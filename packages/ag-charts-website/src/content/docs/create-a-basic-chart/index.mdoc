@@ -9,25 +9,25 @@ An introduction to the key concepts of AG Charts
 In this tutorial you will:
 
 1. [Create a simple bar chart]()
-2. [Style the chart with themes, titles, legend, and formatting data]()
-3. [Add an additional line series to the bar chart]()
+2. [Add an additional line series to the bar chart]()
+3. [Style the chart with themes, titles, legend, and formatted data]()
 4. [Format the axes]()
 
-By the end of this tutorial, you will have a basic combination chart, using a dark theme, with nicely formatted values:
+By the end of this tutorial, you will have a basic combination chart, using a dark theme, with formatted values:
 
 {% chartExampleRunner title="Complete Formatted Example" name="complete-formatted-example" type="generated" /%}
 
 ## Setup
 
 {% note %}
-To follow this tutorial clone our [Quick Start]() example or fork the [CodeSandbox]() project
+To follow this tutorial clone our [Starter Template]() example or fork the [CodeSandbox]() project
 {% /note %}
 
 ## Chart Basics
 
-Charts are configured via a single `AgChartOptions` object. There are lots of properties that can used to configure your chart, but at a minimum you need to provide a **container**, some **Data** and at least one **Series**.
+Charts are configured via a single `AgChartOptions` object. There are lots of properties that can be used to configure your chart, but at a minimum you need to provide a **container**, some **data** and at least one **series**.
 
-The **Container** is simply the HTML element in which the chart should be rendered:
+The **container** is the HTML element in which the chart should be rendered:
 
 ```html
 <div id="myChart" style="height: 100%;"></div>
@@ -40,7 +40,9 @@ const options: AgChartOptions = {
 }
 ```
 
-**Data** is the information that you would like to be presented within a chart. This typically takes the form of an array with various objects that make up the datapoints for the chart:
+_Note: By default, the chart will resize automatically to fill the container element. This behaviour can be customised using the [autoSize](/ag-charts/options/#reference-AgChartOptions-autoSize) property._
+
+**Data** is the information that you would like present within a chart, _typically_ an array of data-points:
 
 ```javascript
 const options: AgChartOptions = {
@@ -58,15 +60,13 @@ const options: AgChartOptions = {
 
 _Note: AG Charts have a number of powerful ways in which data can be provided. Read our [Data](#) guide for more information._
 
-**Series** define the type of chart that we want to display and links this to the data we've provided. There are three properties that need to be configured for cartesian charts:
+**Series** defines the type of chart(s) that we want to display and links them to the data. There are three properties that need to be configured for _cartesian_ charts:
 
 -   `type` Defines the type of chart to display (e.g. Line, Bar, etc...)
 -   `xKey` The data to use for the X axis.
 -   `yKey` The data to use for the Y axis.
 
-_Note: AG Charts provides a large number of series, which can each be configured with properties unique to that series_
-
-To create a bar chart we add an object to our `series` array within the `AgChartOptions` object:
+To create a bar chart we can add an object to our `series` array within the `AgChartOptions` object:
 
 ```javascript
 const options: AgChartOptions = {
@@ -77,95 +77,37 @@ const options: AgChartOptions = {
 }
 ```
 
-Putting the code together at this point creates a simple bar chart:
+_Note: AG Charts provides a large number of [series](/gallery) which can each be configured with properties unique to that series_
+
+The last thing we need to do is create the chart by calling the `create()` method, passing our complete `AgChartOptions` object:
+
+```javascript
+AgChart.create(options);
+```
+
+Running our code at this point creates a simple bar chart:
 
 {% chartExampleRunner title="Basic Example" name="basic-example" type="generated" /%}
 
-## Styling
+_Note: Learn more about creating and updating charts in our [API docs](#)._
 
-Charts can be styled in a number of ways...
+## Combinations Charts
 
-### Choosing a Theme
-
-AG Charts provide a number of [themes](/themes/) out of the box to easily control the style of the chart. To set a theme, add the `theme` property to the `AgChartOptions` object, with the value as your chosen theme:
-
-```javascript
-const options: AgChartOptions = {
-  theme: 'ag-material-dark'
-  ...
-}
-```
-
-{% chartExampleRunner title="Theme Example" name="theme-example" type="generated" /%}
-
-_Note: Refer to the [theme](/options/#reference-AgChartOptions-theme) api docs for a full list of properties that can be configured_
-
-### Titles
-
-Titles and sub-titles can also be added to the grid via the `title` and `subtitle` properties:
-
-```javascript
-const options: AgChartOptions = {
-  title: { text: "Ice Cream Sales" },
-  subtitle: { text: "UK Data from 2022" }
-  ...
-}
-```
-
-{% chartExampleRunner title="Titles Example" name="title-example" type="generated" /%}
-
-_Note: Refer to the [title](/options/#reference-AgChartOptions-title) api docs for a full list of properties that can be configured_
-
-### Legend
-
-Legends can also be configured to adjust thier position, size, etc...
-
-```javascript
-const options: AgChartOptions = {
-  legend: {
-    enabled: true,
-    position: 'right'
-  },
-  ...
-}
-```
-
-{% chartExampleRunner title="Legend Example" name="legend-example" type="generated" /%}
-
-_Note: Refer to the [legend](/options/#reference-AgChartOptions-legend) api docs for a full list of properties that can be configured_
-
-### Formatting Data
-
-As you can see, our legend uses the property name from the data directly. Usually, we'll want to format this into something more human readable, which can be done by adding the `yName` property to our series:
-
-```javascript
-const options: AgChartOptions = {
-  series: [
-    { type: 'bar', xKey: "month", yKey: "iceCreamSales", yName: "Ice Cream Sales" }
-  ]
-  ...
-}
-```
-
-{% chartExampleRunner title="Formatting Series Example" name="format-series-example" type="generated" /%}
-
-## Secondary Axes
-
-A chart can have one or more series, which can be useful when comparing datasets, for example.
-
-To add another series to the chart, simply add another object to our series array, referencing the data to use:
+A chart can have more than one series, which can be useful when comparing datasets. To add another series to the chart, simply add another object to the series array, referencing the data to use:
 
 ```javascript
 const options: AgChartOptions = {
   series: [
     ...
-    { type: 'line', xKey: "month", yKey: "avgTemp", yName: "Average Temp" }
+    { type: 'line', xKey: "month", yKey: "avgTemp" }
   ]
   ...
 }
 ```
 
-If you run the code at this point, you'll notice that the chart is empty. This is because we need to define our axes given that we're using multiple series.
+### Configuring Secondary Axes
+
+If you run the code at this point, you'll notice that the chart is empty. This is because we need to define our axes now that we're using multiple series.
 
 To configure axes for our combo chart, we need to configure three Axes: bottom, left & right:
 
@@ -180,9 +122,92 @@ const options: AgChartOptions = {
 }
 ```
 
+Let's breakdown whats happening here:
+
+-   **Type:** The type of axis to use - one of [category](/axes-types#category), [number](/axes-types#number), [time](/axes-types#time) or [log](/axes-types#log).
+-   **Position:** The position on the chart where the axis should be rendered, e.g. 'top', 'bottom', 'right' or 'left'
+-   **Keys:** Associates the axis with a given series, with the keys axis property linking the appropriate series to the axis
+
+Now when we run our chart, we should see both series & two axes:
+
 {% chartExampleRunner title="Second Series Example" name="second-series-example" type="generated" /%}
 
-## Formatting Axes
+## Styling
+
+Now we have a chart complete with multiple series and axes, the last thing to do is style the chart.
+
+### Choosing a Theme
+
+AG Charts provide a number of [themes](/themes/) out of the box to easily control the style of the chart. To set a theme, add the `theme` property to the `AgChartOptions` object, with the value as your chosen theme:
+
+```javascript
+const options: AgChartOptions = {
+  theme: 'ag-material-dark'
+  ...
+}
+```
+
+Running the code at this point will display a dark chart:
+
+{% chartExampleRunner title="Theme Example" name="theme-example" type="generated" /%}
+
+_Note: Refer to the [theme](/options/#reference-AgChartOptions-theme) api docs for a full list of properties that can be configured_
+
+### Titles
+
+Titles and subtitles can also be added to the grid via the `title` and `subtitle` properties:
+
+```javascript
+const options: AgChartOptions = {
+  title: { text: "Ice Cream Sales" },
+  subtitle: { text: "UK Data from 2022" }
+  ...
+}
+```
+
+{% chartExampleRunner title="Titles Example" name="title-example" type="generated" /%}
+
+_Note: Refer to the [title](/options/#reference-AgChartOptions-title) and [subtitle](/options/#reference-AgChartOptions-subtitle) api docs for a full list of properties that can be configured_
+
+### Legend
+
+You may have noticed that the chart added a Legend when we added a second series to our chart. We can configure the legend using the `legend` property, to adjust its size, position, etc:
+
+```javascript
+const options: AgChartOptions = {
+  legend: {
+    enabled: true,
+    position: 'right'
+  },
+  ...
+}
+```
+
+We should now see the legend displayed on the right hand side of the chart, rather than underneath it:
+
+{% chartExampleRunner title="Legend Example" name="legend-example" type="generated" /%}
+
+_Note: Refer to the [legend](/options/#reference-AgChartOptions-legend) api docs for a full list of properties that can be configured_
+
+### Formatting Data
+
+As you can see, our legend uses the property name from the data directly. Usually, we'll want to format this into something more human readable, which can be done by adding the `yName` property to our series:
+
+```javascript
+const options: AgChartOptions = {
+  series: [
+    { type: 'bar', xKey: "month", yKey: "iceCreamSales", yName: "Ice Cream Sales" }
+    ...
+  ]
+  ...
+}
+```
+
+Now we should see our Legend using the `yName` value as opposed to the `yKey`:
+
+{% chartExampleRunner title="Formatting Series Example" name="format-series-example" type="generated" /%}
+
+### Formatting Axes
 
 Oftentimes we'll want to format our axes to make the chart more readable. We can control the format of our axes label by using a `formatter` on the `label` property, which is function that accepts the axis data and returns a formatted value.
 
@@ -203,7 +228,11 @@ const options: AgChartOptions = {
 }
 ```
 
+Now our chart should display formatted temperature values on the right-hand-side axis:
+
 {% chartExampleRunner title="Second Series Formatted Example" name="second-series-formatted-example" type="generated" /%}
+
+_Note: Refer to the [axes](/ag-charts/options/#reference-AgChartOptions-axes) api docs for a full list of properties that can be configured_
 
 ## Test your Knowledge
 
@@ -211,11 +240,9 @@ const options: AgChartOptions = {
 
     _Hint: Theme is a property of `AgChartOptions`_
 
-2. Change the tick interval of the iceCreamSales series to 200
+2. Format the 'avgTemp' series to 'Average Temperature (°C)'
 
-    _Hint: `tick` is an Axes property_
-
-3. ...
+    _Hint: use the `yName` property on the 'avgTemp' series_
 
 If you're stuck, check the source code of the example:
 
@@ -225,10 +252,10 @@ If you're stuck, check the source code of the example:
 
 Congratulations, you've completed our introductory tutorial! By now, you should be familiar with a few key concepts of AG Charts:
 
--   **Data:** The data to be displayed within the chart
+-   **Data:** The data to be displayed within the chart.
 -   **Series:** Controls the chart type and links it to our data. There can be multiple series for combination charts.
--   **Styling & Formatting:** Control the look and feel of the chart through themes, formatters, series properties, etc...
 -   **Axes:** Controls the Axes and links it to our data.
+-   **Styling & Formatting:** Control the look and feel of the chart through themes, formatters, series properties, etc...
 
 ## Next Steps
 

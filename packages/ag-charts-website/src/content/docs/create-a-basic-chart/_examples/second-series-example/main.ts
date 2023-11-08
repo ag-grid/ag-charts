@@ -2,9 +2,6 @@ import { AgChart, AgChartOptions } from 'ag-charts-community';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart') as HTMLElement,
-    title: { text: '' },
-    subtitle: { text: '' },
-    theme: 'ag-material-dark',
     data: [
       { month: "Jan", avgTemp: 2.3, iceCreamSales: 162 },
       { month: "Mar", avgTemp: 6.3, iceCreamSales: 302 },
@@ -14,18 +11,14 @@ const options: AgChartOptions = {
       { month: "Nov", avgTemp: 8.9, iceCreamSales: 200 }
     ],
     series: [
-      { type: 'bar', xKey: "month", yKey: "iceCreamSales", yName: "Ice Cream Sales" },
-      { type: 'line', xKey: "month", yKey: "avgTemp", yName: "Average Temperature" }
+      { type: 'bar', xKey: "month", yKey: "iceCreamSales" },
+      { type: 'line', xKey: "month", yKey: "avgTemp" }
     ],
     axes: [
       { type: 'category', position: 'bottom' },
       { type: 'number', position: 'left', keys: [ 'iceCreamSales' ] },
       { type: 'number', position: 'right', keys: [ 'avgTemp' ] }
-    ],
-    legend: {
-      enabled: true,
-      position: 'right'
-    }
+    ]
 };
 
 AgChart.create(options);
