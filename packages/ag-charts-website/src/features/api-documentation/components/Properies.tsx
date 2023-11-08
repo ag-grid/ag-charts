@@ -3,6 +3,7 @@ import { navigate, scrollIntoViewById } from '@utils/navigation';
 import classnames from 'classnames';
 import type { AllHTMLAttributes, FunctionComponent, MouseEventHandler, ReactNode } from 'react';
 
+import { cleanupName } from '../apiReferenceHelpers';
 import styles from './ApiReference.module.scss';
 
 interface PropertyTitleOptions {
@@ -38,7 +39,13 @@ export function PropertyNamePrefix({
     prefixPath?: string[];
 }) {
     const parentPrefix = prefixPath?.join('.');
-    return <>{parentPrefix && <Component className={styles.parentProperties}>{`${parentPrefix}.`}</Component>}</>;
+    return (
+        <>
+            {parentPrefix && (
+                <Component className={styles.parentProperties}>{`${cleanupName(parentPrefix)}.`}</Component>
+            )}
+        </>
+    );
 }
 
 export function PropertyType({ type, defaultValue }: { type: string; defaultValue?: string }) {
