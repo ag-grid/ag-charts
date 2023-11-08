@@ -39,9 +39,19 @@
 }
 
 // ag-grid.com menu style overrides
-aside ul.menuInner {
-    padding-bottom: 0;
-    margin-bottom: 0;
+:global(#docs-nav-collapser) {
+    ul.menuInner {
+        padding-bottom: 0;
+        margin-bottom: 0;
+    }
+
+    li:first-child button:not([class^='ag-']) {
+        margin-top: 0;
+    }
+}
+
+.menu {
+    padding-top: $size-4;
 }
 
 .enterpriseIcon {
