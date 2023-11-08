@@ -155,12 +155,7 @@ export interface AgTreemapSeriesFormatterParams<TDatum = any>
     readonly highlighted: boolean;
 }
 
-export interface AgTreemapSeriesLabelFormatterParams<_TDatum = any> extends AgTreemapSeriesOptionsKeys {
-    // /** The parent of the datum from the treemap data. */
-    // readonly parent?: TDatum;
-    // /** The depth of the datum in the hierarchy. */
-    // readonly depth: number;
-}
+export interface AgTreemapSeriesLabelFormatterParams<_TDatum = any> extends AgTreemapSeriesOptionsKeys {}
 
 /** The formatted style of a treemap tile */
 export interface AgTreemapSeriesStyle extends FillOptions, StrokeOptions {}
