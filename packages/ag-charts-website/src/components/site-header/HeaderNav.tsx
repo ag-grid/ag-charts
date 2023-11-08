@@ -19,7 +19,7 @@ const links = [
         url: pathJoin(SITE_BASE_URL, 'gallery'),
     },
     {
-        name: 'Documentation',
+        name: 'Docs',
         url: pathJoin(SITE_BASE_URL, 'documentation'),
     },
     {
