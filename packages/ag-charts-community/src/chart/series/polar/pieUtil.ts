@@ -8,6 +8,10 @@ type AnimatableSectorDatum = {
     outerRadius: number;
     startAngle: number;
     endAngle: number;
+    sectorFormat: {
+        fill: string;
+        stroke: string;
+    };
 };
 
 export function preparePieSeriesAnimationFunctions(rotationDegrees: number) {
@@ -21,6 +25,7 @@ export function preparePieSeriesAnimationFunctions(rotationDegrees: number) {
     ) => {
         // Default to starting from current state.
         let { startAngle, endAngle, innerRadius, outerRadius } = sect;
+        let { fill, stroke } = datum.sectorFormat;
 
         if (status === 'unknown' || (status === 'added' && !prevFromProps)) {
             // Start of animation (full new data) - sweep in.
@@ -35,7 +40,12 @@ export function preparePieSeriesAnimationFunctions(rotationDegrees: number) {
             outerRadius = prevFromProps.outerRadius ?? datum.outerRadius;
         }
 
-        return { startAngle, endAngle, innerRadius, outerRadius };
+        if (status === 'updated') {
+            fill = sect.fill ?? fill;
+            stroke = sect.stroke ?? stroke;
+        }
+
+        return { startAngle, endAngle, innerRadius, outerRadius, fill, stroke };
     };
     const toFn = (
         _sect: Sector,
@@ -46,6 +56,7 @@ export function preparePieSeriesAnimationFunctions(rotationDegrees: number) {
         // Default to moving to target state.
         let { startAngle, endAngle } = datum;
         const { innerRadius, outerRadius } = datum;
+        const { stroke, fill } = datum.sectorFormat;
 
         if (status === 'removed' && prevLive) {
             startAngle = prevLive.datum?.endAngle;
@@ -55,7 +66,7 @@ export function preparePieSeriesAnimationFunctions(rotationDegrees: number) {
             endAngle = rotation;
         }
 
-        return { startAngle, endAngle, outerRadius, innerRadius };
+        return { startAngle, endAngle, outerRadius, innerRadius, stroke, fill };
     };
 
     const innerCircle = {
@@ -76,5 +87,7 @@ export function resetPieSelectionsFn(_node: Sector, datum: AnimatableSectorDatum
         endAngle: datum.endAngle,
         innerRadius: datum.innerRadius,
         outerRadius: datum.outerRadius,
+        fill: datum.sectorFormat.fill,
+        stroke: datum.sectorFormat.stroke,
     };
 }

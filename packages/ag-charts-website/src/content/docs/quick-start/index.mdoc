@@ -1,0 +1,61 @@
+---
+title: 'Quick Start'
+---
+
+Create a chart with AG Charts in 60 seconds.
+
+## Install
+
+Create a new project and add the Ag Charts library:
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/ag-charts-community/dist/ag-charts-community.min.js"></script>
+```
+
+## Create
+
+First, create a div that will contain the Chart:
+
+```javascript
+<div id="myChart" style="height: 100%;"></div>
+```
+
+Then, create a new file and add the code below to create the chart:
+
+```javascript
+// Required Imports
+import { AgChart, AgChartOptions } from 'ag-charts-community';
+
+// Chart Options
+const options: AgChartOptions = {
+    // Data to be displayed
+    data: [
+      { beverage: 'Coffee', Q1: 700 },
+      { beverage: 'Tea', Q1: 520 },
+      { beverage: 'Milk', Q1: 200 }
+    ],
+    // Container element
+    container: document.getElementById('myChart'),
+    // Series Info
+    series: [
+        {
+            type: 'bar',
+            xKey: 'beverage',
+            yKey: 'Q1',
+        },
+    ],
+};
+
+// Create Chart
+AgChart.create(options);
+```
+
+## Example
+
+The code above will output the below chart:
+
+{% chartExampleRunner title="Basic Chart Example" name="basic-example" type="generated" /%}
+
+## Next Steps
+
+-   [Create a Basic Chart](/basic-chart)

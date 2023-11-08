@@ -415,7 +415,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
             `<b>${sanitizeHtml(yName ?? yKey)}</b>: ${yString}`;
 
         if (sizeKey) {
-            content += `<br><b>${sanitizeHtml(sizeName ?? sizeKey)}</b>: ${sanitizeHtml(sizeValue)}`;
+            content += `<br><b>${sanitizeHtml(sizeName ?? sizeKey)}</b>: ${sanitizeHtml(String(sizeValue))}`;
         }
 
         if (labelKey) {

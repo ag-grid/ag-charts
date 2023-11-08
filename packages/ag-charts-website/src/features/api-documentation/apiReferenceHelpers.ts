@@ -1,3 +1,5 @@
+import type { ApiReferenceConfig } from 'src/features/api-documentation/components/ApiReference';
+
 import type { ApiReferenceNode, ApiReferenceType, InterfaceNode, MemberNode, TypeNode } from './api-reference-types';
 
 type PossibleTypeNode = TypeNode | undefined | PossibleTypeNode[];
@@ -73,6 +75,26 @@ export function normalizeType(refType: TypeNode, includeGenerics?: boolean): str
             console.warn('Unknown type encountered: ', refType);
             return '';
     }
+}
+
+export function processMembers(interfaceRef: InterfaceNode, config: ApiReferenceConfig) {
+    let { members } = interfaceRef;
+    const { prioritise, include, exclude } = config;
+    if (include?.length || exclude?.length) {
+        members = members.filter(
+            (member) => !exclude?.includes(member.name) && (include?.includes(member.name) ?? true)
+        );
+    }
+    if (prioritise) {
+        return members.sort((a, b) => (prioritise.includes(a.name) ? -1 : prioritise.includes(b.name) ? 1 : 0));
+    }
+    return members.map((member) => {
+        const memberType = normalizeType(member.type);
+        if (interfaceRef.genericsMap?.[memberType]) {
+            return { ...member, type: interfaceRef.genericsMap?.[memberType] };
+        }
+        return member;
+    });
 }
 
 export function formatTypeToCode(apiNode: ApiReferenceNode | MemberNode, reference: ApiReferenceType): string {
@@ -264,8 +286,13 @@ export function extractSearchData(
 export function patchAgChartOptionsReference(reference: ApiReferenceType) {
     const interfaceRef = reference.get('AgChartOptions');
     const getTypeUnion = (typeRef: ApiReferenceNode | undefined): string[] => {
-        if (typeRef?.kind === 'typeAlias' && typeof typeRef.type === 'object' && typeRef.type.kind === 'union') {
-            return typeRef.type.type.filter((type): type is string => typeof type === 'string');
+        if (typeRef?.kind === 'typeAlias') {
+            if (typeof typeRef.type === 'string') {
+                return [typeRef.type];
+            }
+            if (typeof typeRef.type === 'object' && typeRef.type.kind === 'union') {
+                return typeRef.type.type.filter((type): type is string => typeof type === 'string');
+            }
         }
         return [];
     };

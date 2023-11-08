@@ -3,27 +3,9 @@
         "items": [
             {
                 "title": "Getting Started",
-                "path": "getting-started"
-            },
-            {
-                "title": "Building & Tooling",
                 "items": [
-                    { "title": "Install with NPM", "path": "npm", "frameworks": ["javascript"] },
-                    { "title": "Download Bundles", "path": "download", "frameworks": ["javascript"] },
-                    { "title": "Community and Enterprise", "path": "licensing" },
-                    { "title": "Packages vs Modules", "path": "packages-modules" },
-                    { "title": "Packages", "path": "packages", "frameworks": ["javascript"] },
-                    { "title": "Modules", "path": "modules", "frameworks": ["javascript"] },
-                    { "title": "Supported browsers", "path": "supported-browsers" },
-                    { "title": "Building", "path": "building", "frameworks": ["javascript"] }
-                ]
-            },
-            {
-                "title": "API",
-                "items": [
-                    { "title": "Create/Update", "path": "api-create-update" },
-                    { "title": "Download", "path": "api-download" },
-                    { "title": "Events", "path": "events" }
+                    { "title": "Quick Start", "path": "quick-start" },
+                    { "title": "Creating a Basic Chart", "path": "create-a-basic-chart" }
                 ]
             },
             {
@@ -41,26 +23,29 @@
                 ]
             },
             {
-                "title": "Axes",
-                "items": [
-                    { "title": "Axis Overview", "path": "axes" },
-                    { "title": "Axis Types", "path": "axes-types" },
-                    { "title": "Axis Ticks", "path": "axes-ticks" },
-                    { "title": "Axis Domain", "path": "axes-domain" },
-                    { "title": "Axis Labels", "path": "axes-labels" },
-                    { "title": "Grid Lines", "path": "axes-grid-lines" },
-                    { "title": "Secondary Axes", "path": "axes-secondary" }
-                ]
-            },
-            {
                 "title": "Features",
                 "items": [
+                    {
+                        "title": "Axes",
+                        "path": "axes",
+                        "items": [
+                            { "title": "Axis Types", "path": "axes-types" },
+                            { "title": "Axis Ticks", "path": "axes-ticks" },
+                            { "title": "Axis Domain", "path": "axes-domain" },
+                            { "title": "Axis Labels", "path": "axes-labels" },
+                            { "title": "Grid Lines", "path": "axes-grid-lines" },
+                            { "title": "Secondary Axes", "path": "axes-secondary" }
+                        ]
+                    },
                     { "title": "Legend", "path": "legend" },
                     { "title": "Series Markers", "path": "markers" },
                     { "title": "Series Highlighting", "path": "series-highlighting" },
                     { "title": "Tooltips", "path": "tooltips" },
                     { "title": "Formatters", "path": "formatters" },
                     { "title": "Cross lines", "path": "axes-cross-lines" },
+                    { "title": "Download", "path": "api-download" },
+                    { "title": "Create / Update", "path": "api-create-update" },
+                    { "title": "Events", "path": "events" },
                     { "title": "Navigator", "path": "navigator", "isEnterprise": true },
                     {
                         "title": "Crosshairs",

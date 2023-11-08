@@ -6,6 +6,7 @@ import type {
     AgBarSeriesLabelPlacement,
     AgBarSeriesStyle,
     AgBarSeriesTooltipRendererParams,
+    Direction,
     FontStyle,
     FontWeight,
 } from '../../../options/agChartOptions';
@@ -20,6 +21,7 @@ import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
 import { sanitizeHtml } from '../../../util/sanitize';
 import {
+    DIRECTION,
     NUMBER,
     OPT_COLOR_STRING,
     OPT_FUNCTION,
@@ -137,8 +139,8 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
     @Validate(OPT_STRING)
     yName?: string = undefined;
 
-    @Validate(STRING_UNION('vertical', 'horizontal'))
-    direction: 'vertical' | 'horizontal' = 'vertical';
+    @Validate(DIRECTION)
+    direction: Direction = 'vertical';
 
     @Validate(OPT_STRING)
     stackGroup?: string = undefined;

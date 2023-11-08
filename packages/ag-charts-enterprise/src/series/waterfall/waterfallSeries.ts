@@ -6,6 +6,7 @@ import type {
     AgWaterfallSeriesLabelFormatterParams,
     AgWaterfallSeriesLabelPlacement,
     AgWaterfallSeriesTooltipRendererParams,
+    Direction,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
@@ -27,7 +28,7 @@ const {
     OPT_FUNCTION,
     OPT_COLOR_STRING,
     OPT_LINE_DASH,
-    STRING_UNION,
+    DIRECTION,
     getRectConfig,
     updateRect,
     checkCrisp,
@@ -209,8 +210,8 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
     @Validate(OPT_STRING)
     yName?: string = undefined;
 
-    @Validate(STRING_UNION('vertical', 'horizontal'))
-    direction: 'vertical' | 'horizontal' = 'vertical';
+    @Validate(DIRECTION)
+    direction: Direction = 'vertical';
 
     private seriesItemTypes: Set<AgWaterfallSeriesItemType> = new Set(['positive', 'negative', 'total']);
 

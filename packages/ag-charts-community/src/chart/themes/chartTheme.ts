@@ -106,15 +106,6 @@ export class ChartTheme {
 
     readonly config: any;
 
-    private static getAxisGridLineStyleDefaults() {
-        return [
-            {
-                stroke: DEFAULT_AXIS_GRID_COLOUR,
-                lineDash: [],
-            },
-        ];
-    }
-
     private static getAxisDefaults() {
         return {
             top: {},
@@ -154,7 +145,12 @@ export class ChartTheme {
             },
             gridLine: {
                 enabled: true,
-                style: ChartTheme.getAxisGridLineStyleDefaults(),
+                style: [
+                    {
+                        stroke: DEFAULT_AXIS_GRID_COLOUR,
+                        lineDash: [],
+                    },
+                ],
             },
             crossLines: {
                 enabled: false,

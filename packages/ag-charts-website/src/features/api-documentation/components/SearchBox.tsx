@@ -53,30 +53,38 @@ export function SearchBox({
             />
             <Icon svgClasses={styles.searchIcon} name={iconName} />
 
-            {data.length > 0 && searchQuery.length > 0 && inFocus && (
+            {searchQuery.length > 0 && inFocus && (
                 <div className={styles.searchDropdown} onMouseDown={(e) => e.preventDefault()}>
                     <div className={styles.searchOptions}>
-                        {data.map((data, index) => (
-                            <div
-                                key={data.label}
-                                ref={
-                                    index === selectedIndex
-                                        ? (ref) => ref?.scrollIntoView({ block: 'nearest', inline: 'start' })
-                                        : null
-                                }
-                                className={classnames(styles.searchOption, {
-                                    [styles.selected]: index === selectedIndex,
-                                })}
-                                onClick={() => handleClick(data)}
-                                onMouseEnter={() => setSelectedIndex(index)}
-                            >
-                                {markResults && searchQuery ? (
-                                    <Markdown>{data.label.replace(searchRegexp, `**$1**`)}</Markdown>
-                                ) : (
-                                    data.label
-                                )}
+                        {data.length ? (
+                            data.map((data, index) => (
+                                <div
+                                    key={data.label}
+                                    ref={
+                                        index === selectedIndex
+                                            ? (ref) => ref?.scrollIntoView({ block: 'nearest', inline: 'start' })
+                                            : null
+                                    }
+                                    className={classnames(styles.searchOption, {
+                                        [styles.selected]: index === selectedIndex,
+                                    })}
+                                    onClick={() => handleClick(data)}
+                                    onMouseEnter={() => setSelectedIndex(index)}
+                                >
+                                    {markResults && searchQuery ? (
+                                        <Markdown>{data.label.replace(searchRegexp, `**$1**`)}</Markdown>
+                                    ) : (
+                                        data.label
+                                    )}
+                                </div>
+                            ))
+                        ) : (
+                            <div className={styles.searchOption}>
+                                <span className="font-size-small">
+                                    We couldn't find any matches for "<b>{searchQuery}</b>"
+                                </span>
                             </div>
-                        ))}
+                        )}
                     </div>
                 </div>
             )}

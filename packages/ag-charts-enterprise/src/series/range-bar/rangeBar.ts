@@ -5,6 +5,7 @@ import type {
     AgRangeBarSeriesLabelPlacement,
     AgRangeBarSeriesTooltipRendererParams,
     AgTooltipRendererResult,
+    Direction,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
@@ -27,6 +28,7 @@ const {
     CategoryAxis,
     SMALLEST_KEY_INTERVAL,
     STRING_UNION,
+    DIRECTION,
     diff,
     prepareBarAnimationFunctions,
     midpointStartingBarPosition,
@@ -202,8 +204,8 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
     @Validate(OPT_STRING)
     yName?: string = undefined;
 
-    @Validate(STRING_UNION('vertical', 'horizontal'))
-    direction: 'vertical' | 'horizontal' = 'vertical';
+    @Validate(DIRECTION)
+    direction: Direction = 'vertical';
 
     protected smallestDataInterval?: { x: number; y: number } = undefined;
 

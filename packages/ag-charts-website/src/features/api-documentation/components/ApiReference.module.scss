@@ -18,41 +18,26 @@
     > a[id] {
         scroll-margin-top: var(--anchor-offset, 0);
     }
+
+    :global(.tabs-content) & table {
+        margin-bottom: -$size-1;
+        border-bottom: none;
+    }
+}
+
+.propertyDescription {
+    margin-top: -$size-1;
+    margin-bottom: $size-3;
+    color: var(--secondary-text-color);
 }
 
 .apiReference {
+    display: table; // remove after table > div refactor
     position: relative;
     table-layout: fixed;
 
-    tr {
-        scroll-margin-top: var(--anchor-offset, 0);
-
-        &:hover a:global(.docs-header-icon) {
-            opacity: 1;
-        }
-    }
-
     @container (max-width: #{$breakpoint-table-small}) {
         display: block;
-
-        thead,
-        tbody,
-        tr,
-        td {
-            display: block;
-            width: 100%;
-        }
-
-        tr {
-            padding-top: $size-1;
-            padding-bottom: $size-1;
-        }
-
-        td {
-            padding-right: 0;
-            padding-left: 0;
-            border: none;
-        }
     }
 
     @container (min-width: #{$breakpoint-table-small}) {
@@ -69,13 +54,52 @@
     }
 }
 
+.propertyRow {
+    display: flex;
+    flex-wrap: wrap;
+    scroll-margin-top: var(--anchor-offset, 0);
+
+    &:where(:not(:first-child)) {
+        border-top: 1px solid var(--border-color);
+    }
+
+    &:hover a:global(.docs-header-icon) {
+        opacity: 0.5;
+    }
+
+    @container (max-width: #{$breakpoint-table-small}) {
+        display: block;
+        width: 100%;
+        padding-top: $size-1;
+        padding-bottom: $size-1;
+    }
+
+    #{$darkmode-selector} & {
+        border-top-color: var(--neutral-500);
+    }
+}
+
 .leftColumn {
+    flex-shrink: 0;
     width: 40%;
-    padding-left: 0;
+    padding: $size-1 $size-2 $size-1 calc(var(--nested-path-depth, 0) * $size-1);
+
+    @container (max-width: #{$breakpoint-table-small}) {
+        width: 100%;
+        padding-right: 0;
+    }
 }
 
 .rightColumn {
-    padding-right: 0;
+    display: flex;
+    flex-direction: column;
+    width: 60%;
+    padding: $size-1 0 $size-1 $size-2;
+
+    @container (max-width: #{$breakpoint-table-small}) {
+        width: 100%;
+        padding-left: calc(var(--nested-path-depth, 0) * $size-1);
+    }
 }
 
 .name {
@@ -150,10 +174,18 @@
     display: flex;
     flex-wrap: wrap;
     gap: $size-2 $size-4;
-    margin-top: $size-1;
+    margin-top: auto;
+    padding-top: $size-1;
 
     pre {
         min-width: 100%;
+    }
+
+    svg {
+        --icon-size: 1em;
+
+        margin: -0.1em 0 0;
+        transition: fill $default-transition-timing;
     }
 }
 
@@ -166,11 +198,50 @@
     &:hover {
         --text-color: var(--link-hover-color);
     }
+}
 
-    svg {
-        --icon-size: 1em;
+.highlightAnimate {
+    animation: highlight-animation 3000ms ease-out;
+}
 
-        margin: -0.1em 0 0;
-        transition: fill $default-transition-timing;
+@keyframes highlight-animation {
+    0%,
+    100% {
+        background-color: inherit;
+    }
+    10%,
+    50% {
+        background-color: var(--background-400);
+    }
+}
+
+.isChildProp {
+    border-top: 1px dashed var(--neutral-200);
+
+    .name {
+        font-size: calc(var(--font-size-medium) * 0.92);
+    }
+
+    .description p,
+    .actions button {
+        font-size: calc(var(--font-size-medium) * 0.9);
+    }
+
+    .metaValue {
+        font-size: calc(var(--font-size-small) * 0.92);
+    }
+}
+
+@container (max-width: #{$breakpoint-table-small}) {
+    .level-1 .rightColumn {
+        padding-left: $size-1;
+    }
+
+    .level-2 .rightColumn {
+        padding-left: $size-2;
+    }
+
+    .level-3 .rightColumn {
+        padding-left: $size-3;
     }
 }

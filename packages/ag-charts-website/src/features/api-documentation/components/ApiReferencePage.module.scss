@@ -1,24 +1,41 @@
 @use '../../../design-system' as *;
 
 .container {
-    --jsObjectWidth: 420px;
+    --jsObjectWidth: min(420px, 33vw);
 
     display: flex;
+    flex-direction: column;
     width: 100%;
-    padding-right: max(var(--horizontal-margin), 50vw - var(--max-page-width) / 2);
+
+    @media screen and (min-width: $breakpoint-options-medium) {
+        flex-direction: row;
+        padding-left: 0;
+        padding-right: max(var(--horizontal-margin), 50vw - var(--max-page-width) / 2);
+    }
 }
 
 .objectViewOuter {
     --right-margin: max(#{$size-6}, calc(50vw - var(--max-page-width) / 2 - var(--jsObjectWidth)));
 
-    border-right: 1px solid var(--border-color);
+    width: 100%;
     min-width: var(--jsObjectWidth);
     margin-right: var(--right-margin);
+
+    @media screen and (min-width: $breakpoint-options-medium) {
+        width: auto;
+        border-right: 1px solid var(--border-color);
+    }
 }
 
 .referenceOuter {
     width: 100%;
     margin-bottom: 105px;
+    padding-left: var(--horizontal-margin);
+    padding-right: var(--horizontal-margin);
+
+    @media screen and (min-width: $breakpoint-options-medium) {
+        padding: 0;
+    }
 
     header {
         --parent-properties-color: var(--text-color);

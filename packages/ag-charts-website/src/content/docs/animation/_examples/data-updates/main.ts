@@ -15,225 +15,217 @@ let duration = SLOW;
 
 let interval: any;
 
-function barOptions(): AgChartOptions {
-    return {
-        container: document.getElementById('myChart'),
-        animation: {
-            enabled: true,
-            duration,
+const options: AgChartOptions = {
+    container: document.getElementById('myChart'),
+    animation: {
+        enabled: true,
+        duration,
+    },
+    data: [],
+    series: [
+        {
+            type: 'bar',
+            xKey: 'year',
+            yKey: 'one',
+            yName: 'One',
+            stacked: true,
         },
-        data: getGeneratedData(),
-        series: [
-            {
-                type: 'bar',
-                xKey: 'year',
-                yKey: 'one',
-                yName: 'One',
-                stacked: true,
+        {
+            type: 'bar',
+            xKey: 'year',
+            yKey: 'two',
+            yName: 'Two',
+            stacked: true,
+        },
+        {
+            type: 'bar',
+            xKey: 'year',
+            yKey: 'three',
+            yName: 'Three',
+            stacked: true,
+        },
+        {
+            type: 'bar',
+            xKey: 'year',
+            yKey: 'four',
+            yName: 'Four',
+            stacked: true,
+        },
+        {
+            type: 'bar',
+            xKey: 'year',
+            yKey: 'five',
+            yName: 'Five',
+            stacked: true,
+        },
+    ],
+    axes: [
+        {
+            type: 'number',
+            position: 'left',
+        },
+        {
+            type: 'number',
+            position: 'bottom',
+            nice: false,
+            label: {
+                autoRotate: false,
             },
-            {
-                type: 'bar',
-                xKey: 'year',
-                yKey: 'two',
-                yName: 'Two',
-                stacked: true,
-            },
-            {
-                type: 'bar',
-                xKey: 'year',
-                yKey: 'three',
-                yName: 'Three',
-                stacked: true,
-            },
-            {
-                type: 'bar',
-                xKey: 'year',
-                yKey: 'four',
-                yName: 'Four',
-                stacked: true,
-            },
-            {
-                type: 'bar',
-                xKey: 'year',
-                yKey: 'five',
-                yName: 'Five',
-                stacked: true,
-            },
-        ],
-        axes: [
-            {
-                type: 'number',
-                position: 'left',
-            },
-            {
-                type: 'number',
-                position: 'bottom',
-                nice: false,
-                label: {
-                    autoRotate: false,
-                },
-            },
-        ],
-    };
-}
+        },
+    ],
+};
 
-function lineOptions(): AgChartOptions {
-    return {
-        container: document.getElementById('myChart'),
-        animation: {
-            enabled: true,
-            duration,
+const lineOptions: AgChartOptions = {
+    container: document.getElementById('myChart'),
+    animation: {
+        enabled: true,
+        duration,
+    },
+    data: [],
+    series: [
+        {
+            type: 'line',
+            xKey: 'year',
+            yKey: 'one',
+            yName: 'One',
         },
-        data: getGeneratedData(),
-        series: [
-            {
-                type: 'line',
-                xKey: 'year',
-                yKey: 'one',
-                yName: 'One',
+        {
+            type: 'line',
+            xKey: 'year',
+            yKey: 'two',
+            yName: 'Two',
+        },
+        {
+            type: 'line',
+            xKey: 'year',
+            yKey: 'three',
+            yName: 'Three',
+        },
+        {
+            type: 'line',
+            xKey: 'year',
+            yKey: 'four',
+            yName: 'Four',
+        },
+        {
+            type: 'line',
+            xKey: 'year',
+            yKey: 'five',
+            yName: 'Five',
+        },
+    ],
+    axes: [
+        {
+            type: 'number',
+            position: 'left',
+        },
+        {
+            type: 'number',
+            position: 'bottom',
+            nice: false,
+            label: {
+                autoRotate: false,
             },
-            {
-                type: 'line',
-                xKey: 'year',
-                yKey: 'two',
-                yName: 'Two',
-            },
-            {
-                type: 'line',
-                xKey: 'year',
-                yKey: 'three',
-                yName: 'Three',
-            },
-            {
-                type: 'line',
-                xKey: 'year',
-                yKey: 'four',
-                yName: 'Four',
-            },
-            {
-                type: 'line',
-                xKey: 'year',
-                yKey: 'five',
-                yName: 'Five',
-            },
-        ],
-        axes: [
-            {
-                type: 'number',
-                position: 'left',
-            },
-            {
-                type: 'number',
-                position: 'bottom',
-                nice: false,
-                label: {
-                    autoRotate: false,
-                },
-            },
-        ],
-    };
-}
+        },
+    ],
+};
 
-function areaOptions(): AgChartOptions {
-    return {
-        container: document.getElementById('myChart'),
-        animation: {
-            enabled: true,
-            duration,
+const areaOptions: AgChartOptions = {
+    container: document.getElementById('myChart'),
+    animation: {
+        enabled: true,
+        duration,
+    },
+    data: [],
+    series: [
+        {
+            type: 'area',
+            xKey: 'year',
+            yKey: 'one',
+            yName: 'One',
+            stacked: true,
         },
-        data: getGeneratedData(),
-        series: [
-            {
-                type: 'area',
-                xKey: 'year',
-                yKey: 'one',
-                yName: 'One',
-                stacked: true,
+        {
+            type: 'area',
+            xKey: 'year',
+            yKey: 'two',
+            yName: 'Two',
+            stacked: true,
+        },
+        {
+            type: 'area',
+            xKey: 'year',
+            yKey: 'three',
+            yName: 'Three',
+            stacked: true,
+        },
+        {
+            type: 'area',
+            xKey: 'year',
+            yKey: 'four',
+            yName: 'Four',
+            stacked: true,
+        },
+        {
+            type: 'area',
+            xKey: 'year',
+            yKey: 'five',
+            yName: 'Five',
+            stacked: true,
+        },
+    ],
+    axes: [
+        {
+            type: 'number',
+            position: 'left',
+        },
+        {
+            type: 'number',
+            position: 'bottom',
+            nice: false,
+            label: {
+                autoRotate: false,
             },
-            {
-                type: 'area',
-                xKey: 'year',
-                yKey: 'two',
-                yName: 'Two',
-                stacked: true,
-            },
-            {
-                type: 'area',
-                xKey: 'year',
-                yKey: 'three',
-                yName: 'Three',
-                stacked: true,
-            },
-            {
-                type: 'area',
-                xKey: 'year',
-                yKey: 'four',
-                yName: 'Four',
-                stacked: true,
-            },
-            {
-                type: 'area',
-                xKey: 'year',
-                yKey: 'five',
-                yName: 'Five',
-                stacked: true,
-            },
-        ],
-        axes: [
-            {
-                type: 'number',
-                position: 'left',
-            },
-            {
-                type: 'number',
-                position: 'bottom',
-                nice: false,
-                label: {
-                    autoRotate: false,
-                },
-            },
-        ],
-    };
-}
+        },
+    ],
+};
 
-function pieOptions(): AgChartOptions {
-    return {
-        container: document.getElementById('myChart'),
-        animation: {
-            enabled: true,
-            duration,
+const pieOptions: AgChartOptions = {
+    container: document.getElementById('myChart'),
+    animation: {
+        enabled: true,
+        duration,
+    },
+    data: [],
+    series: [
+        {
+            type: 'pie',
+            title: {
+                text: 'One',
+            },
+            calloutLabelKey: 'year',
+            legendItemKey: 'year',
+            angleKey: 'one',
+            outerRadiusRatio: 0.6,
+            innerRadiusRatio: 0.3,
         },
-        data: getGeneratedData(),
-        series: [
-            {
-                type: 'pie',
-                title: {
-                    text: 'One',
-                },
-                calloutLabelKey: 'year',
-                legendItemKey: 'year',
-                angleKey: 'one',
-                outerRadiusRatio: 0.6,
-                innerRadiusRatio: 0.3,
+        {
+            type: 'pie',
+            title: {
+                text: 'Two',
             },
-            {
-                type: 'pie',
-                title: {
-                    text: 'Two',
-                },
-                calloutLabelKey: 'year',
-                legendItemKey: 'year',
-                angleKey: 'two',
-                innerRadiusRatio: 0.7,
-                showInLegend: false,
-            },
-        ],
-    };
-}
+            calloutLabelKey: 'year',
+            legendItemKey: 'year',
+            angleKey: 'two',
+            innerRadiusRatio: 0.7,
+            showInLegend: false,
+        },
+    ],
+};
 
 // Create chart
-const options = barOptions();
 const chart = AgEnterpriseCharts.create(options);
+updateChart();
 
 // Elements
 const tickingButton = document.getElementById('animation-data-updates__toggle-ticking');
@@ -247,7 +239,8 @@ function changeSeriesBar() {
     length = 8;
     seed = 1234;
 
-    AgEnterpriseCharts.update(chart, barOptions());
+    AgEnterpriseCharts.update(chart, options);
+    updateChart();
 }
 
 function changeSeriesLine() {
@@ -256,7 +249,8 @@ function changeSeriesLine() {
     length = 30;
     seed = 1234;
 
-    AgEnterpriseCharts.update(chart, lineOptions());
+    AgEnterpriseCharts.update(chart, lineOptions);
+    updateChart();
 }
 
 function changeSeriesArea() {
@@ -265,7 +259,8 @@ function changeSeriesArea() {
     length = 30;
     seed = 1234;
 
-    AgEnterpriseCharts.update(chart, areaOptions());
+    AgEnterpriseCharts.update(chart, areaOptions);
+    updateChart();
 }
 
 function changeSeriesPie() {
@@ -274,7 +269,8 @@ function changeSeriesPie() {
     length = 6;
     seed = 1234;
 
-    AgEnterpriseCharts.update(chart, pieOptions());
+    AgEnterpriseCharts.update(chart, pieOptions);
+    updateChart();
 }
 
 function toggleTickingUpdates() {

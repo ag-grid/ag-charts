@@ -283,5 +283,33 @@ export const INTERACTION_RANGE = predicateWithMessage(
 const TEXT_WRAPS = ['never', 'always', 'hyphenate', 'on-space'];
 export const TEXT_WRAP = predicateWithMessage(
     (v: any) => TEXT_WRAPS.includes(v),
-    `expecting a text wrap strategy keyword such as 'never', 'always', 'hyphenate', 'on-space'`
+    `expecting a text wrap strategy keyword such as 'never', 'always', 'hyphenate', or 'on-space'`
+);
+
+const TEXT_OVERFLOWS = ['ellipsis', 'never'];
+export const TEXT_OVERFLOW = predicateWithMessage(
+    (v: any) => TEXT_OVERFLOWS.includes(v),
+    `expecting a text wrap strategy keyword such as 'ellipsis', or 'never'`
+);
+
+const TEXT_ALIGNS = ['left', 'center', 'right'];
+export const TEXT_ALIGN = predicateWithMessage(
+    (v: any) => TEXT_ALIGNS.includes(v),
+    `expecting a text align keyword such as 'left', 'center', or 'right'`
+);
+
+const VERTICAL_ALIGNS = ['top', 'middle', 'bottom'];
+export const VERTICAL_ALIGN = predicateWithMessage(
+    (v: any) => VERTICAL_ALIGNS.includes(v),
+    `expecting a text align keyword such as 'top', 'middle', or 'bottom'`
+);
+
+const DIRECTIONS = ['horizontal', 'vertical'];
+export const DIRECTION = predicateWithMessage(
+    (v: any) => DIRECTIONS.includes(v),
+    `expecting a direction keyword such as 'horizontal' or 'vertical'`
+);
+export const OPT_DIRECTION = predicateWithMessage(
+    (v: any, ctx) => OPTIONAL(v, ctx, DIRECTION),
+    `expecting an optional direction keyword such as 'horizontal' or 'vertical'`
 );

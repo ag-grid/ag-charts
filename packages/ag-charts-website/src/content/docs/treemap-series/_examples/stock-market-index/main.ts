@@ -8,8 +8,34 @@ const options: AgChartOptions = {
     {
       type: 'treemap',
       labelKey: 'name', // defaults to 'label', but current dataset uses 'name'
+      secondaryLabelKey: 'color',
       sizeKey: 'size', // default (can be omitted for current dataset)
       colorKey: 'color', // default (can be omitted for current dataset)
+      group: {
+        label: {
+          formatter({value}) {
+            return value.toUpperCase()
+          }
+        },
+        textAlign: 'left'
+      },
+      tile: {
+        secondaryLabel: {
+          formatter(params) {
+            return params.value.toFixed(2) + '%';
+          }
+        }
+      },
+      highlightStyle: {
+        tile: {
+          label: {
+            color: 'black'
+          },
+          secondaryLabel: {
+            color: 'black'
+          }
+        }
+      },
       tooltip: {
         renderer: params => {
           return {
@@ -17,12 +43,10 @@ const options: AgChartOptions = {
           }
         },
       },
-      formatter: params => ({ stroke: params.depth < 2 ? 'transparent' : 'black' }),
-      labels: {
-        value: {
-          formatter: params => `${params.datum.color.toFixed(2)}%`,
-        },
-      },
+      formatter: params => ({
+        fill: !params.datum.children ? undefined : params.highlighted ? '#aaa' : '#333',
+        stroke: params.depth < 1 ? 'white' : 'black'
+      }),
     },
   ],
   title: {

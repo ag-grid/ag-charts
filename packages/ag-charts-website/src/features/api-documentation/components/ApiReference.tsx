@@ -3,13 +3,20 @@ import { Icon } from '@components/icon/Icon';
 import { useToggle } from '@utils/hooks/useToggle';
 import { navigate, scrollIntoViewById, useLocation } from '@utils/navigation';
 import classnames from 'classnames';
-import type { AllHTMLAttributes } from 'react';
+import type { AllHTMLAttributes, CSSProperties } from 'react';
 import { createContext, useContext, useEffect } from 'react';
 import Markdown from 'react-markdown';
 
 import type { ApiReferenceNode, ApiReferenceType, MemberNode, TypeAliasNode } from '../api-reference-types';
 import type { SpecialTypesMap } from '../apiReferenceHelpers';
-import { cleanupName, formatTypeToCode, getMemberType, isInterfaceHidden, normalizeType } from '../apiReferenceHelpers';
+import {
+    cleanupName,
+    formatTypeToCode,
+    getMemberType,
+    isInterfaceHidden,
+    normalizeType,
+    processMembers,
+} from '../apiReferenceHelpers';
 import styles from './ApiReference.module.scss';
 import { SelectionContext } from './OptionsNavigation';
 import { PropertyTitle, PropertyType } from './Properies';
@@ -81,17 +88,17 @@ export function ApiReference({ id, anchorId, className, ...props }: ApiReference
             {anchorId && <a id={anchorId} />}
             {!config.hideHeader &&
                 (interfaceRef.docs?.join('\n') ?? (
-                    <p>
+                    <p className={styles.propertyDescription}>
                         Properties available on the <code>{id}</code> interface.
                     </p>
                 ))}
-            <table className={classnames(styles.reference, styles.apiReference, 'no-zebra')}>
-                <tbody>
-                    {processMembers(interfaceRef.members, config).map((member) => (
+            <div className={classnames(styles.reference, styles.apiReference, 'no-zebra')}>
+                <div>
+                    {processMembers(interfaceRef, config).map((member) => (
                         <NodeFactory key={member.name} member={member} anchorId={`reference-${id}-${member.name}`} />
                     ))}
-                </tbody>
-            </table>
+                </div>
+            </div>
         </div>
     );
 }
@@ -108,7 +115,7 @@ function NodeFactory({ member, anchorId, prefixPath = [], ...props }: ApiReferen
     useEffect(() => {
         const hash = location?.hash.substring(1);
         if (hash === anchorId) {
-            scrollIntoViewById(anchorId);
+            scrollToAndHighlightById(anchorId);
         } else if (hasMembers && hash?.startsWith(`${anchorId}-`)) {
             setExpanded(true);
         }
@@ -157,8 +164,12 @@ function ApiReferenceRow({
     const memberType = normalizeType(member.type);
 
     return (
-        <tr id={anchorId}>
-            <td className={styles.leftColumn}>
+        <div
+            id={anchorId}
+            className={classnames(styles.propertyRow, prefixPath && prefixPath.length > 0 && styles.isChildProp)}
+            style={{ '--nested-path-depth': prefixPath?.length ?? 0 } as CSSProperties}
+        >
+            <div className={styles.leftColumn}>
                 <PropertyTitle
                     name={memberName}
                     anchorId={anchorId}
@@ -166,33 +177,35 @@ function ApiReferenceRow({
                     required={!config.hideRequired && !member.optional}
                 />
                 <PropertyType type={memberType} defaultValue={member.defaultValue} />
-            </td>
-            <td className={styles.rightColumn}>
+            </div>
+            <div className={styles.rightColumn}>
                 <div role="presentation" className={styles.description}>
                     <Markdown>{member.docs?.join('\n')}</Markdown>
                 </div>
                 {nestedPath ? (
-                    <a
-                        href={nestedPath}
-                        onClick={(event) => {
-                            event.preventDefault();
-                            const selectionState = {
-                                pathname: nestedPath,
-                                hash: `reference-${memberType}`,
-                                pageInterface: memberType,
-                                pageTitle: { name: memberName },
-                            };
-                            selection?.setSelection(selectionState);
-                            navigate(selectionState, { state: selectionState });
-                        }}
-                    >
-                        See property details
-                    </a>
+                    <div className={styles.actions}>
+                        <a
+                            href={nestedPath}
+                            onClick={(event) => {
+                                event.preventDefault();
+                                const selectionState = {
+                                    pathname: nestedPath,
+                                    hash: `reference-${memberType}`,
+                                    pageInterface: memberType,
+                                    pageTitle: { name: memberName },
+                                };
+                                selection?.setSelection(selectionState);
+                                navigate(selectionState, { state: selectionState });
+                            }}
+                        >
+                            See property details <Icon name="arrowRight" />
+                        </a>
+                    </div>
                 ) : (
                     <MemberActions member={member} isExpanded={isExpanded} onDetailsToggle={onDetailsToggle} />
                 )}
-            </td>
-        </tr>
+            </div>
+        </div>
     );
 }
 
@@ -218,8 +231,8 @@ function MemberActions({
             {additionalDetails && (
                 <ToggleDetails
                     isOpen={isExpanded}
-                    moreText={hasMembers ? 'Expand interface' : 'More details'}
-                    lessText={hasMembers ? 'Collapse interface' : 'Hide details'}
+                    moreText={hasMembers ? 'See child properties' : 'More details'}
+                    lessText={hasMembers ? 'Hide child properties' : 'Hide details'}
                     onToggle={onDetailsToggle}
                 />
             )}
@@ -287,15 +300,11 @@ function useMemberAdditionalDetails(member: MemberNode) {
     }
 }
 
-function processMembers(members: MemberNode[], config: ApiReferenceConfig) {
-    const { prioritise, include, exclude } = config;
-    if (include?.length || exclude?.length) {
-        members = members.filter(
-            (member) => !exclude?.includes(member.name) && (include?.includes(member.name) ?? true)
-        );
-    }
-    if (prioritise) {
-        return members.sort((a, b) => (prioritise.includes(a.name) ? -1 : prioritise.includes(b.name) ? 1 : 0));
-    }
-    return members;
+function scrollToAndHighlightById(id: string) {
+    scrollIntoViewById(id);
+    const element = document.getElementById(id);
+    element?.classList.add(styles.highlightAnimate);
+    element?.addEventListener('animationend', () => {
+        element.classList.remove(styles.highlightAnimate);
+    });
 }

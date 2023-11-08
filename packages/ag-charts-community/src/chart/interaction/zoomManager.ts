@@ -37,10 +37,10 @@ export class ZoomManager extends BaseManager<'zoom-change', ZoomChangeEvent> {
             delete this.axes[axisId];
         });
 
-        if (this.initialZoom) {
+        if (this.initialZoom?.newZoom) {
             this.updateZoom(this.initialZoom.callerId, this.initialZoom.newZoom);
-            this.initialZoom = undefined;
         }
+        this.initialZoom = undefined;
     }
 
     public updateZoom(callerId: string, newZoom?: AxisZoomState) {
@@ -120,12 +120,16 @@ export class ZoomManager extends BaseManager<'zoom-change', ZoomChangeEvent> {
 
 class AxisZoomManager {
     private readonly states: Record<string, ZoomState> = {};
-    private currentZoom?: ZoomState = undefined;
+    private currentZoom: ZoomState;
 
     private axis: ChartAxis;
 
     constructor(axis: ChartAxis) {
         this.axis = axis;
+
+        const [min = 0, max = 1] = axis.visibleRange;
+        this.currentZoom = { min, max };
+        this.states['__initial__'] = this.currentZoom;
     }
 
     getDirection(): ChartAxisDirection {

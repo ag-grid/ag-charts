@@ -34,11 +34,11 @@ export const getInternalFrameworkExamples = async ({
 }: {
     pages: DocsPage[];
 }): Promise<InternalFrameworkExample[]> => {
-    const internalFrameworkPageNames = INTERNAL_FRAMEWORKS.map((internalFramework) => {
+    const internalFrameworkPageNames = INTERNAL_FRAMEWORKS.flatMap((internalFramework) => {
         return pages.map((page) => {
             return { internalFramework, pageName: page.slug };
         });
-    }).flat();
+    });
 
     const examplePromises = internalFrameworkPageNames.map(async ({ internalFramework, pageName }) => {
         const docsExamplesPathUrl = getExamplesPathUrl({
