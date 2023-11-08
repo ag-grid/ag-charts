@@ -493,6 +493,8 @@ export abstract class RadialColumnSeriesBase<
         const { animationManager } = this.ctx;
         const diff = processedData?.reduced?.diff;
 
+        this.ctx.animationManager.stopByAnimationGroupId(this.id);
+
         const fns = this.getColumnTransitionFunctions();
         motion.fromToMotion(
             this.id,
