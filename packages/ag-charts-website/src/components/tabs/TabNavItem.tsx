@@ -1,7 +1,6 @@
 import classnames from 'classnames';
 
 export const TabNavItem = ({
-    tabId,
     label,
     selected,
     onSelect,
@@ -12,7 +11,7 @@ export const TabNavItem = ({
     onSelect: (label: string) => void;
 }) => {
     return (
-        <li key={label} id={tabId} className="tabs-nav-item" role="presentation">
+        <li key={label} className="tabs-nav-item" role="presentation">
             <button
                 className={classnames('button-style-none', 'tabs-nav-link', { active: selected })}
                 onClick={(e) => {

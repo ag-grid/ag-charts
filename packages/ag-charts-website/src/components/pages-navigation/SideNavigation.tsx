@@ -1,34 +1,35 @@
 import { addNonBreakingSpaceBetweenLastWords } from '@utils/addNonBreakingSpaceBetweenLastWords';
-import { navigate } from '@utils/navigation';
 import { smoothScrollIntoView } from '@utils/smoothScrollIntoView';
 import type { MarkdownHeading } from 'astro';
 import classnames from 'classnames';
 import type { FunctionComponent } from 'react';
 
 import styles from './SideNavigation.module.scss';
-import { useSideNavigationScrolling } from './useSideNavigationScrolling';
 
 interface Props {
     title: string;
-    pageHeadings: MarkdownHeading[];
+    headings: MarkdownHeading[];
 }
 
-export const SideNavigation: FunctionComponent<Props> = ({ title, pageHeadings }) => {
-    const hasHeadings = pageHeadings.length > 0;
-    const topHeading = {
-        slug: 'top',
-        depth: 1,
-        text: title,
-    };
-    const headings = [topHeading].concat(pageHeadings);
-
-    useSideNavigationScrolling({ headings });
-
+export const SideNavigation: FunctionComponent<Props> = ({ title, headings }) => {
     return (
         <nav id="side-menu" className={classnames(styles.sideNav, 'font-size-responsive')}>
             <div>
-                {hasHeadings && (
+                {headings.length > 0 && (
                     <ul className="list-style-none">
+                        <li className={styles.level1}>
+                            <a
+                                href="#top"
+                                className={classnames(styles.topLink, 'nav-link')}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    smoothScrollIntoView({ id: 'top' });
+                                }}
+                            >
+                                {title}
+                            </a>
+                        </li>
+
                         {headings.map((heading) => {
                             const id = heading.slug;
                             const href = `#${id}`;
@@ -40,7 +41,6 @@ export const SideNavigation: FunctionComponent<Props> = ({ title, pageHeadings }
                                         onClick={(e) => {
                                             e.preventDefault();
                                             smoothScrollIntoView({ id });
-                                            navigate(`#${id}`);
                                         }}
                                     >
                                         {addNonBreakingSpaceBetweenLastWords(heading.text)}
