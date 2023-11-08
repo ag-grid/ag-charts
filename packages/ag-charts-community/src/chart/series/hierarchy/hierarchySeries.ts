@@ -1,24 +1,32 @@
+import type { Point } from '../../../integrated-charts-scene';
 import type { ModuleContext } from '../../../module/moduleContext';
+import { ColorScale } from '../../../scale/colorScale';
 import type { PointLabelDatum } from '../../../util/labelPlacement';
-import { OPT_STRING, Validate } from '../../../util/validation';
+import { OPT_COLOR_STRING_ARRAY, OPT_STRING, Validate } from '../../../util/validation';
 import { Series, SeriesNodePickMode } from '../series';
-import type { SeriesNodeDatum } from '../seriesTypes';
+import type { ISeries, SeriesNodeDatum } from '../seriesTypes';
 
-export class HierarchyNode<Datum> {
+export class HierarchyNode implements SeriesNodeDatum {
     static Walk = {
         PreOrder: 0,
         PostOrder: 1,
     };
 
-    constructor(
-        public index: number,
-        public datum: Datum | undefined,
-        public size: number,
-        public color: number | undefined,
-        public children: HierarchyNode<Datum>[]
-    ) {}
+    readonly midPoint: Point;
 
-    walk(callback: (node: HierarchyNode<Datum>) => void, order = HierarchyNode.Walk.PreOrder) {
+    constructor(
+        public series: ISeries<any>,
+        public index: number,
+        public datum: Record<string, any> | undefined,
+        public size: number,
+        public color: string | undefined,
+        public parent: HierarchyNode | undefined,
+        public children: HierarchyNode[]
+    ) {
+        this.midPoint = { x: 0, y: 0 };
+    }
+
+    walk(callback: (node: HierarchyNode) => void, order = HierarchyNode.Walk.PreOrder) {
         if (order === HierarchyNode.Walk.PreOrder) {
             callback(this);
         }
@@ -31,9 +39,20 @@ export class HierarchyNode<Datum> {
             callback(this);
         }
     }
+
+    *[Symbol.iterator](): Iterator<HierarchyNode> {
+        yield this;
+
+        for (const child of this.children) {
+            yield* child;
+        }
+    }
 }
 
 export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<S> {
+    @Validate(OPT_STRING)
+    childrenKey?: string = 'children';
+
     @Validate(OPT_STRING)
     labelKey?: string;
 
@@ -43,10 +62,10 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
     @Validate(OPT_STRING)
     colorKey?: string;
 
-    @Validate(OPT_STRING)
-    childrenKey?: string = 'children';
+    @Validate(OPT_COLOR_STRING_ARRAY)
+    colorRange?: string[] = undefined;
 
-    rootNode = new HierarchyNode<Record<string, any> | undefined>(0, undefined, 0, undefined, []);
+    rootNode = new HierarchyNode(this, 0, undefined, 0, undefined, undefined, []);
 
     maxDepth: number = 0;
     sumSize: number = 0;
@@ -62,7 +81,7 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
     }
 
     override async processData(): Promise<void> {
-        const { sizeKey, colorKey, childrenKey } = this;
+        const { childrenKey, sizeKey, colorKey, colorRange } = this;
 
         let index = 0;
         const getIndex = () => {
@@ -74,47 +93,68 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
         let sumSize = 0;
         let minColor = Infinity;
         let maxColor = -Infinity;
+        const colors: (number | undefined)[] = new Array((this.data?.length ?? 0) + 1).fill(undefined);
 
-        const createNode = (datum: any, depth: number): HierarchyNode<any> => {
+        const createNode = (datum: any, parent: HierarchyNode | undefined, depth: number): HierarchyNode => {
+            const index = getIndex();
+
             const size = Math.max((sizeKey != null ? datum[sizeKey] : undefined) ?? 0, 0);
-            const color = colorKey != null ? datum[colorKey] : undefined;
             maxDepth = Math.max(maxDepth, depth);
             sumSize += size;
 
-            if (color != null) {
+            const color = colorKey != null ? datum[colorKey] : undefined;
+            if (typeof color === 'number') {
+                colors[index] = color;
                 minColor = Math.min(minColor, color);
                 maxColor = Math.max(maxColor, color);
             }
 
-            return new HierarchyNode(
-                getIndex(),
-                datum,
-                size,
-                color,
-                createChildren(childrenKey != null ? datum[childrenKey] : undefined, depth)
-            );
+            const node = new HierarchyNode(this, index, datum, size, undefined, parent, []);
+
+            appendChildren(node, childrenKey != null ? datum[childrenKey] : undefined, depth);
+
+            return node;
         };
 
-        const createChildren = (data: S[] | undefined, depth: number): HierarchyNode<any>[] =>
-            data != null ? data.map((datum) => createNode(datum, depth + 1)) : [];
+        const appendChildren = (node: HierarchyNode, data: S[] | undefined, depth: number) => {
+            data?.forEach((datum) => {
+                node.children.push(createNode(datum, node, depth + 1));
+            });
+        };
 
-        this.rootNode = new HierarchyNode(0, undefined, 0, undefined, createChildren(this.data, 0));
+        const rootNode = new HierarchyNode(this, 0, undefined, 0, undefined, undefined, []);
+        appendChildren(rootNode, this.data, 0);
 
+        if (colorRange != null) {
+            const colorScale = new ColorScale();
+            colorScale.domain = [minColor, maxColor];
+            colorScale.range = colorRange;
+            colorScale.update();
+
+            rootNode.walk((node) => {
+                const color = colors[node.index];
+                if (color != null) {
+                    node.color = colorScale.convert(color);
+                }
+            });
+        }
+
+        this.rootNode = rootNode;
         this.maxDepth = maxDepth;
         this.sumSize = sumSize;
         this.minColor = minColor;
         this.maxColor = maxColor;
     }
 
-    getDatumIdFromData(datum: any) {
+    getDatumIdFromData(node: HierarchyNode) {
         const { labelKey } = this;
 
         if (labelKey != null) {
-            return datum[labelKey];
+            return node.datum?.[labelKey];
         }
     }
 
-    getDatumId(datum: any) {
-        return this.getDatumIdFromData(datum.datum);
+    getDatumId(node: HierarchyNode) {
+        return this.getDatumIdFromData(node);
     }
 }

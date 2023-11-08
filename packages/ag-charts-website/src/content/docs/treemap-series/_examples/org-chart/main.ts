@@ -10,7 +10,6 @@ const options: AgChartOptions = {
       labelKey: 'orgHierarchy',
       sizeKey: undefined, // make all siblings within a parent the same size
       colorKey: undefined, // if undefined, depth will be used an the value, where root has 0 depth
-      colorDomain: [0, 2, 4, 5],
       colorRange: ['#d73027', '#fee08b', '#1a9850', 'rgb(0, 116, 52)'],
       group: {
         padding: 5,

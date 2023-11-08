@@ -16,7 +16,6 @@ const options: AgChartOptions = {
             labelKey: 'name',
             sizeKey: 'size',
             colorKey: 'size',
-            colorDomain: [0, 1200000000],
             colorRange: ['#241248', '#2a9850'],
             group: {
                 stroke: 'white',
