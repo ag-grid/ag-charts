@@ -3,7 +3,7 @@ import type { ChartAxisDirection } from '../../chartAxisDirection';
 import type { ChartLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { SeriesNodeDataContext } from '../series';
 import type { SeriesTooltip } from '../seriesTooltip';
-import { type HierarchyNode, HierarchySeries } from './hierarchySeries';
+import { HierarchySeries } from './hierarchySeries';
 
 class ExampleHierarchySeries extends HierarchySeries<any> {
     override tooltip: SeriesTooltip<any> = null!;
@@ -46,16 +46,16 @@ describe('hierarchySeries', () => {
         ];
         await series.processData();
 
-        const removeDatum = (node: HierarchyNode<any>) => {
+        series.rootNode.walk((node) => {
+            // @ts-expect-error
+            delete node.series;
             delete node.datum;
-            node.children.forEach(removeDatum);
-        };
-
-        removeDatum(series.rootNode);
+            delete node.parent;
+        });
 
         expect(series.rootNode).toMatchSnapshot();
         expect(series.sumSize).toBe(5 + 1 + 2 + 3 + 5 + 1 + 2 + 4 + 5 + 6 + 3 + 7);
-        expect(series.maxDepth).toBe(3);
+        expect(series.maxDepth).toBe(2);
     });
 
     it('Handles an empty dataset', async () => {
@@ -63,12 +63,18 @@ describe('hierarchySeries', () => {
         series.data = [];
         await series.processData();
 
+        // @ts-expect-error - Jest will complain about circular dependencies otherwise
+        delete series.rootNode.series;
+
         expect(series.rootNode).toEqual({
             index: 0,
             datum: undefined,
-            size: undefined,
+            size: 0,
             color: undefined,
+            depth: undefined,
+            parent: undefined,
             children: [],
+            midPoint: { x: 0, y: 0 },
         });
         expect(series.sumSize).toBe(0);
         expect(series.maxDepth).toBe(0);
@@ -93,7 +99,7 @@ describe('hierarchySeries', () => {
         await series.processData();
 
         let index = 0;
-        series.walk((node) => {
+        series.rootNode.walk((node) => {
             expect(node.index).toBe(index);
 
             if (node.datum != null) {

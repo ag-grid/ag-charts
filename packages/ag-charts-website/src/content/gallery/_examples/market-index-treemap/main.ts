@@ -10,7 +10,7 @@ const options: AgChartOptions = {
             labelKey: 'name', // defaults to 'label', but current dataset uses 'name'
             secondaryLabelKey: 'change',
             sizeKey: 'valuation', // default (can be omitted for current dataset)
-            colorKey: 'color', // default (can be omitted for current dataset)
+            colorKey: 'change', // default (can be omitted for current dataset)
             group: {
                 label: {
                     formatter({value}) {
