@@ -1,0 +1,87 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`hierarchySeries Creates a hierarchy 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "color": undefined,
+          "index": 2,
+          "size": 1,
+        },
+        {
+          "children": [],
+          "color": undefined,
+          "index": 3,
+          "size": 2,
+        },
+        {
+          "children": [],
+          "color": undefined,
+          "index": 4,
+          "size": 3,
+        },
+      ],
+      "color": undefined,
+      "index": 1,
+      "size": 5,
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "color": undefined,
+          "index": 6,
+          "size": 1,
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "color": undefined,
+              "index": 8,
+              "size": 4,
+            },
+            {
+              "children": [],
+              "color": undefined,
+              "index": 9,
+              "size": 5,
+            },
+            {
+              "children": [],
+              "color": undefined,
+              "index": 10,
+              "size": 6,
+            },
+          ],
+          "color": undefined,
+          "index": 7,
+          "size": 2,
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "color": undefined,
+              "index": 12,
+              "size": 7,
+            },
+          ],
+          "color": undefined,
+          "index": 11,
+          "size": 3,
+        },
+      ],
+      "color": undefined,
+      "index": 5,
+      "size": 5,
+    },
+  ],
+  "color": undefined,
+  "index": 0,
+  "size": undefined,
+}
+`;

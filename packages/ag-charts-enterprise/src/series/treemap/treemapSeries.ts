@@ -16,6 +16,7 @@ import {
 import { TreemapSeriesTileLabel, formatLabels } from './treemapLabelFormatter';
 
 const {
+    HierarchyNode,
     HighlightStyle,
     SeriesNodeClickEvent,
     SeriesTooltip,
@@ -42,6 +43,11 @@ type TreeDatum = {
 
 type Side = 'left' | 'right' | 'top' | 'bottom';
 
+interface LabelData {
+    label: string | undefined;
+    secondaryLabel: string | undefined;
+}
+
 interface TreemapNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     datum: TreeDatum | undefined;
     value: number;
@@ -57,7 +63,7 @@ interface TreemapNodeDatum extends _ModuleSupport.SeriesNodeDatum {
 class TreemapSeriesNodeClickEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
 > extends SeriesNodeClickEvent<TreemapNodeDatum, TEvent> {
-    readonly childrenKey: string;
+    readonly childrenKey?: string;
     readonly colorKey?: string;
     readonly labelKey?: string;
     readonly secondaryLabelKey?: string;
@@ -247,7 +253,8 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
         Group
     );
 
-    private dataRoot?: TreemapNodeDatum;
+    private labelData?: (LabelData | undefined)[];
+    private sumSizes?: number[];
 
     readonly group = new TreemapSeriesGroup();
 
@@ -261,22 +268,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
     spacing = 0;
 
     @Validate(OPT_STRING)
-    labelKey?: string = 'label';
-
-    @Validate(OPT_STRING)
     secondaryLabelKey?: string = undefined;
-
-    @Validate(OPT_STRING)
-    sizeKey?: string = 'size';
-
-    @Validate(STRING)
-    childrenKey: string = 'children';
-
-    @Validate(OPT_STRING)
-    colorKey?: string = 'color';
-
-    @Validate(OPT_NUMBER_ARRAY)
-    colorDomain?: number[] = undefined;
 
     @Validate(OPT_COLOR_STRING_ARRAY)
     colorRange?: string[] = undefined;
@@ -339,42 +331,102 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
         };
     }
 
+    override async processData() {
+        super.processData();
+
+        const { data, childrenKey, colorKey, labelKey, secondaryLabelKey, sizeKey, tile, group } = this;
+
+        if (!data || data.length === 0) {
+            this.labelData = undefined;
+            return;
+        }
+
+        const labelData: LabelData[] = new Array(data.length + 1).fill(undefined);
+
+        this.rootNode.walk(({ index, datum, children }) => {
+            const isLeaf = children.length === 0;
+
+            const labelStyle = isLeaf ? tile.label : group.label;
+            let label: string | undefined;
+            if (datum != null && labelKey != null && labelStyle.enabled) {
+                label = this.getLabelText(labelStyle, {
+                    datum,
+                    // parent: parent?.datum,
+                    childrenKey,
+                    colorKey,
+                    labelKey,
+                    secondaryLabelKey,
+                    sizeKey,
+                    value: datum[labelKey] ?? '',
+                });
+            }
+
+            let secondaryLabel: string | undefined;
+            if (isLeaf && datum != null && secondaryLabelKey != null && tile.secondaryLabel.enabled) {
+                secondaryLabel = this.getLabelText(tile.secondaryLabel, {
+                    datum,
+                    // parent: parent?.datum,
+                    childrenKey,
+                    colorKey,
+                    labelKey,
+                    secondaryLabelKey,
+                    sizeKey,
+                    value: datum[secondaryLabelKey] ?? '',
+                });
+            }
+
+            labelData[index] = { label, secondaryLabel };
+        });
+
+        this.labelData = labelData;
+
+        const sumSizes: number[] = new Array(data.length + 1).fill(0);
+
+        this.rootNode.walk(({ index, size, children }) => {
+            sumSizes[index] = children.reduce((sumSize, child) => sumSize + sumSizes[child.index], size);
+        }, HierarchyNode.Walk.PostOrder);
+
+        this.sumSizes = sumSizes;
+
+        console.log(this.labelData, this.sumSizes);
+    }
+
     /**
      * Squarified Treemap algorithm
      * https://www.win.tue.nl/~vanwijk/stm.pdf
      */
     private squarify(
-        nodeDatum: TreemapNodeDatum,
+        node: _ModuleSupport.HierarchyNode<TreemapNodeDatum>,
         bbox: _Scene.BBox,
-        outputNodesBoxes: Map<TreemapNodeDatum, _Scene.BBox> = new Map()
-    ): typeof outputNodesBoxes {
-        if (bbox.width <= 0 || bbox.height <= 0) {
-            return outputNodesBoxes;
+        outputBoxes: (_Scene.BBox | undefined)[]
+    ): typeof outputBoxes {
+        const { sumSizes } = this;
+        const { index, datum, size, children } = node;
+        if (bbox.width <= 0 || bbox.height <= 0 || sumSizes == null) {
+            return outputBoxes;
         }
 
-        if (nodeDatum.depth != null) {
-            outputNodesBoxes.set(nodeDatum, bbox);
-        }
+        outputBoxes[index] = bbox;
 
         const targetTileAspectRatio = 1; // The width and height will tend to this ratio
-        const padding = this.getNodePadding(nodeDatum, bbox);
+        const padding = datum != null ? this.getNodePadding(datum, bbox) : { top: 0, right: 0, bottom: 0, left: 0 };
         const width = bbox.width - padding.left - padding.right;
         const height = bbox.height - padding.top - padding.bottom;
-        if (width <= 0 || height <= 0 || nodeDatum.value <= 0) {
-            return outputNodesBoxes;
+
+        if (width <= 0 || height <= 0 || size <= 0) {
+            return outputBoxes;
         }
 
         let stackSum = 0;
         let startIndex = 0;
         let minRatioDiff = Infinity;
-        let partitionSum = nodeDatum.value;
-        const children = nodeDatum.children;
+        let partitionSum = sumSizes[index];
         const innerBox = new BBox(bbox.x + padding.left, bbox.y + padding.top, width, height);
         const partition = innerBox.clone();
 
         for (let i = 0; i < children.length; i++) {
-            const value = children[i].value;
-            const firstValue = children[startIndex].value;
+            const value = sumSizes[children[i].index];
+            const firstValue = sumSizes[children[startIndex].index];
             const isVertical = partition.width < partition.height;
             stackSum += value;
 
@@ -399,15 +451,15 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
 
                 const x = isVertical ? start : partition.x;
                 const y = isVertical ? partition.y : start;
-                const length = (partLength * child.value) / stackSum;
+                const length = (partLength * sumSizes[child.index]) / stackSum;
                 const width = isVertical ? length : stackThickness;
                 const height = isVertical ? stackThickness : length;
 
                 const childBox = new BBox(x, y, width, height);
                 this.applyGap(innerBox, childBox);
-                this.squarify(child, childBox, outputNodesBoxes);
+                this.squarify(child, childBox, outputBoxes);
 
-                partitionSum -= child.value;
+                partitionSum -= sumSizes[child.index];
                 start += length;
             }
 
@@ -430,16 +482,16 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
         for (let i = startIndex; i < children.length; i++) {
             const x = isVertical ? start : partition.x;
             const y = isVertical ? partition.y : start;
-            const part = children[i].value / partitionSum;
+            const part = sumSizes[children[i].index] / partitionSum;
             const width = partition.width * (isVertical ? part : 1);
             const height = partition.height * (isVertical ? 1 : part);
             const childBox = new BBox(x, y, width, height);
             this.applyGap(innerBox, childBox);
-            this.squarify(children[i], childBox, outputNodesBoxes);
+            this.squarify(children[i], childBox, outputBoxes);
             start += isVertical ? width : height;
         }
 
-        return outputNodesBoxes;
+        return outputBoxes;
     }
 
     private applyGap(innerBox: _Scene.BBox, childBox: _Scene.BBox) {
@@ -462,126 +514,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
         });
     }
 
-    override async processData() {
-        const {
-            data,
-            childrenKey,
-            colorKey,
-            labelKey,
-            secondaryLabelKey,
-            sizeKey,
-            colorDomain,
-            colorRange,
-            tile,
-            group,
-        } = this;
-
-        if (!data || data.length === 0) {
-            return;
-        }
-
-        let colorScale: _Scale.ColorScale | undefined;
-        if (colorDomain != null && colorRange != null) {
-            colorScale = new ColorScale();
-            colorScale.domain = colorDomain;
-            colorScale.range = colorRange;
-            colorScale.update();
-        }
-
-        type CreateTreeNodeDatumParams = {
-            datum?: TreeDatum;
-            depth?: number;
-            parent?: TreemapNodeDatum;
-            children?: TreeDatum[];
-        };
-        const createTreeNodeDatum = ({
-            datum,
-            depth,
-            parent,
-            children = datum != null ? datum[childrenKey] : undefined,
-        }: CreateTreeNodeDatumParams) => {
-            const isLeaf = children == null || children.length === 0;
-
-            const labelStyle = isLeaf ? tile.label : group.label;
-            let label: string | undefined;
-            if (datum != null && depth != null && labelKey != null && labelStyle.enabled) {
-                label = this.getLabelText(labelStyle, {
-                    datum,
-                    depth,
-                    parent: parent?.datum,
-                    childrenKey,
-                    colorKey,
-                    labelKey,
-                    secondaryLabelKey,
-                    sizeKey,
-                    value: datum[labelKey] ?? '',
-                });
-            }
-
-            let secondaryLabel: string | undefined;
-            if (isLeaf && datum != null && depth != null && secondaryLabelKey != null && tile.secondaryLabel.enabled) {
-                secondaryLabel = this.getLabelText(tile.secondaryLabel, {
-                    datum,
-                    depth,
-                    parent: parent?.datum,
-                    childrenKey,
-                    colorKey,
-                    labelKey,
-                    secondaryLabelKey,
-                    sizeKey,
-                    value: datum[secondaryLabelKey] ?? '',
-                });
-            }
-
-            let colorScaleValue = (datum != null && colorKey != null ? datum[colorKey] : undefined) ?? depth;
-            colorScaleValue = validateColor(colorScaleValue);
-            let fill = isLeaf ? tile.fill : group.fill;
-            if (typeof colorScaleValue === 'string') {
-                fill = colorScaleValue;
-            } else if (colorScale != null) {
-                fill = colorScale.convert(colorScaleValue);
-            }
-
-            const nodeDatum: TreemapNodeDatum = {
-                datum,
-                depth,
-                parent,
-                value: 0,
-                label,
-                secondaryLabel,
-                fill,
-                series: this,
-                isLeaf,
-                children: [] as TreemapNodeDatum[],
-            };
-
-            if (isLeaf) {
-                nodeDatum.value = datum != null && sizeKey != null ? datum[sizeKey] ?? 1 : 1;
-            } else {
-                children?.forEach((childDatum) => {
-                    const childNodeDatum = createTreeNodeDatum({
-                        datum: childDatum,
-                        depth: depth != null ? depth + 1 : 0,
-                        parent: nodeDatum,
-                    });
-                    const value = childNodeDatum.value;
-                    if (!Number.isFinite(value) || value <= 0) {
-                        return;
-                    }
-                    nodeDatum.value += value;
-                    nodeDatum.children.push(childNodeDatum);
-                });
-                nodeDatum.children.sort((a, b) => {
-                    return b.value - a.value;
-                });
-            }
-
-            return nodeDatum;
-        };
-
-        this.dataRoot = createTreeNodeDatum({ children: data });
-    }
-
     async createNodeData() {
         return [];
     }
@@ -597,9 +529,9 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
         }
         this.nodeDataRefresh = false;
 
-        const { chart, dataRoot } = this;
+        const { chart } = this;
 
-        if (!chart || !dataRoot) {
+        if (!chart) {
             return;
         }
 
@@ -611,7 +543,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
 
         const descendants: TreemapNodeDatum[] = [];
 
-        this.traverseTree(dataRoot, (datum) => descendants.push(datum));
+        this.rootNode.walk((datum) => descendants.push(datum));
 
         const updateGroup = (group: _Scene.Group) => {
             group.append([new Rect(), new Text({ tag: TextNodeTag.Name }), new Text({ tag: TextNodeTag.Value })]);
@@ -661,14 +593,14 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
     }
 
     async updateNodes() {
-        if (!this.chart) return;
+        const { rootNode, data, highlightStyle, tile, group } = this;
 
-        const { highlightStyle, tile, group, dataRoot } = this;
+        if (!this.chart || !data) return;
 
-        if (!dataRoot) return;
+        const bboxes = new Array(this.data.length + 1);
 
         const seriesRect = this.chart.getSeriesRect()!;
-        const boxes = this.squarify(dataRoot, new BBox(0, 0, seriesRect.width, seriesRect.height));
+        const boxes = this.squarify(rootNode, new BBox(0, 0, seriesRect.width, seriesRect.height));
         const labelMeta = this.buildLabelMeta(boxes);
         const highlightedSubtree = this.getHighlightedSubtree(dataRoot);
 
@@ -800,19 +732,15 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
         });
     }
 
-    private getHighlightedSubtree(dataRoot: TreemapNodeDatum): Set<TreemapNodeDatum> {
+    private getHighlightedSubtree(dataRoot: _ModuleSupport.HierarchyNode<TreemapNodeDatum>): Set<TreemapNodeDatum> {
         const items = new Set<TreemapNodeDatum>();
-        this.traverseTree(dataRoot, (datum) => {
-            if (this.isDatumHighlighted(datum) || (datum.parent && items.has(datum.parent))) {
+        dataRoot.walk(({ datum }) => {
+            // FIXME - parent
+            if (datum != null && (this.isDatumHighlighted(datum) || (datum.parent && items.has(datum.parent)))) {
                 items.add(datum);
             }
         });
         return items;
-    }
-
-    private traverseTree<D extends { children?: D[] }>(datum: D, iterator: (datum: D) => void) {
-        iterator(datum);
-        datum.children?.forEach((childDatum) => this.traverseTree(childDatum, iterator));
     }
 
     buildLabelMeta(boxes: Map<TreemapNodeDatum, _Scene.BBox>) {

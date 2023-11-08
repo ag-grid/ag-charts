@@ -34,7 +34,7 @@ const options: AgChartOptions = {
                     },
                 }
             },
-            formatter: ({ datum, depth, parent, highlighted }) => {
+            formatter: ({ datum, parent, highlighted }) => {
                 if (datum.children) {
                     return { fill: 'white' };
                 } else {

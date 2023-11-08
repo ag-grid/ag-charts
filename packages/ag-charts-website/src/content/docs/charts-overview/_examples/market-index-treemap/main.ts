@@ -9,7 +9,7 @@ const options: AgChartOptions = {
       type: 'treemap',
       labelKey: 'name', // defaults to 'label', but current dataset uses 'name'
       secondaryLabelKey: 'change',
-      sizeKey: 'size', // default (can be omitted for current dataset)
+      sizeKey: 'valuation', // default (can be omitted for current dataset)
       colorKey: 'color', // default (can be omitted for current dataset)
       group: {
         label: {
@@ -23,8 +23,8 @@ const options: AgChartOptions = {
         secondaryLabel: {
           formatter(params) {
             return params.value.toFixed(2) + '%';
-          }
-        }
+          },
+        },
       },
       tooltip: {
         renderer: params => {

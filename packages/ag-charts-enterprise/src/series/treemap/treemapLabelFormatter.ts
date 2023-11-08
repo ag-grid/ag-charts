@@ -178,7 +178,7 @@ export function formatStackedLabels(
                 allowTruncation ? labelProps.overflow : 'never'
             );
 
-            const hasValidText = labelText.length !== 0;
+            const hasValidText = labelText.length !== 0 && labelText !== Text.ellipsis;
 
             labelTextNode.text = labelText;
             labelTextNode.fontSize = labelFontSize;
@@ -204,7 +204,7 @@ export function formatStackedLabels(
                 allowTruncation ? secondaryLabelProps.overflow : 'never'
             );
 
-            const hasValidText = secondaryLabelText.length !== 0;
+            const hasValidText = secondaryLabelText.length !== 0 && secondaryLabelText !== Text.ellipsis;
 
             secondaryLabelTextNode.text = secondaryLabelText;
             secondaryLabelTextNode.fontSize = secondaryLabelFontSize;
@@ -268,7 +268,7 @@ export function formatSingleLabel(
             allowTruncation ? props.overflow : 'never'
         );
 
-        if (text.length === 0) {
+        if (text.length === 0 || text === Text.ellipsis) {
             return undefined;
         }
 

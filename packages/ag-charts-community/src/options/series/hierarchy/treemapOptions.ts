@@ -164,10 +164,10 @@ export interface AgTreemapSeriesFormatterParams<TDatum = any>
 }
 
 export interface AgTreemapSeriesLabelFormatterParams<TDatum = any> extends AgTreemapSeriesOptionsKeys {
-    /** The parent of the datum from the treemap data. */
-    readonly parent?: TDatum;
-    /** The depth of the datum in the hierarchy. */
-    readonly depth: number;
+    // /** The parent of the datum from the treemap data. */
+    // readonly parent?: TDatum;
+    // /** The depth of the datum in the hierarchy. */
+    // readonly depth: number;
 }
 
 /** The formatted style of a treemap tile */

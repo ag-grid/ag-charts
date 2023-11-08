@@ -24,7 +24,7 @@ const options: AgChartOptions = {
           formatter(params) {
             return params.value.toFixed(2) + '%';
           }
-        }
+        },
       },
       highlightStyle: {
         tile: {
