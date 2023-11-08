@@ -7,6 +7,8 @@ import classnames from 'classnames';
 import { useEffect, useState } from 'react';
 
 import styles from './PagesNavigation.module.scss';
+// ag-grid menu styles
+import gridStyles from './gridMenu.module.scss';
 
 const PAGE_TO_SHOW_SERIES_MENU_TIME_BY_DEFAULT = 'overview';
 
@@ -27,7 +29,7 @@ function EnterpriseIcon() {
     );
 }
 
-function Level2Nav({
+function CollapsibleNav({
     id,
     items,
     framework,
@@ -42,20 +44,37 @@ function Level2Nav({
 }) {
     return (
         <Collapsible id={id} isOpen={isOpen}>
-            <ul className={classnames(styles.navGroup, 'list-style-none')}>
-                {items.map(({ title, path, url, icon, isEnterprise }: any) => {
+            <ul className={classnames(gridStyles.menuGroup, 'list-style-none')}>
+                {items.map((menuItem: any) => {
+                    const { title, path, items, url, icon, isEnterprise } = menuItem;
                     const linkUrl = getLinkUrl({ framework, path, url });
                     const isActive = activeMenuItem?.path === path;
+                    const childId = `${title}-${path}`;
 
-                    return (
-                        <li key={`${title}-${path}`}>
+                    return items ? (
+                        <NavItemContainer
+                            key={childId}
+                            menuItem={menuItem}
+                            framework={framework}
+                            activeMenuItem={activeMenuItem}
+                            // All sub nav menus (not top level) are open by default and can't be toggled open
+                            isActive={true}
+                            hideCollapsibleButton={true}
+                        />
+                    ) : (
+                        <li key={childId}>
                             <a
                                 href={linkUrl}
                                 className={classnames({
-                                    [styles.activeMenuItem]: isActive,
+                                    [gridStyles.activeMenuItem]: isActive,
                                 })}
                             >
-                                {icon && <Icon name={icon} svgClasses={styles.menuIcon} />}
+                                {icon && (
+                                    <Icon
+                                        name={icon}
+                                        svgClasses={classnames(styles.menuIcon, { [styles.activeMenuIcon]: isActive })}
+                                    />
+                                )}
                                 {title}
                                 {isEnterprise && <EnterpriseIcon />}
                             </a>
@@ -67,38 +86,40 @@ function Level2Nav({
     );
 }
 
-function Level1Nav({
+function NavItemContainer({
     framework,
     menuItem,
     isActive,
     toggleActive,
     activeMenuItem,
+    hideCollapsibleButton,
 }: {
     framework: Framework;
     menuItem: MenuItem;
     isActive: boolean;
-    toggleActive: () => void;
+    toggleActive?: () => void;
     activeMenuItem?: MenuItem;
+    hideCollapsibleButton?: boolean;
 }) {
     const { title, path, url, icon, isEnterprise, items } = menuItem;
     const linkUrl = getLinkUrl({ framework, path, url });
 
     return (
-        <li key={url} className={styles.navGroup}>
-            {items ? (
+        <li key={url}>
+            {items && !hideCollapsibleButton ? (
                 <button
                     onClick={toggleActive}
                     tabIndex={0}
-                    className={classnames(styles.sectionHeader, 'button-style-none', {
-                        [styles.active]: isActive,
+                    className={classnames(gridStyles.sectionHeader, 'button-style-none', {
+                        [gridStyles.active]: isActive,
                     })}
                     aria-expanded={isActive}
                     aria-controls={`#${toElementId(title)}`}
                 >
                     <Icon
                         name="chevronRight"
-                        svgClasses={classnames(styles.sectionIcon, {
-                            [styles.active]: isActive,
+                        svgClasses={classnames(gridStyles.sectionIcon, {
+                            [gridStyles.active]: isActive,
                         })}
                     />
 
@@ -109,8 +130,8 @@ function Level1Nav({
             ) : (
                 <a
                     href={linkUrl}
-                    className={classnames(styles.sectionHeader, {
-                        [styles.activeMenuItem]: activeMenuItem === menuItem,
+                    className={classnames(gridStyles.sectionHeader, {
+                        [gridStyles.activeMenuItem]: activeMenuItem === menuItem,
                     })}
                 >
                     {icon && <Icon name={icon} svgClasses={styles.menuIcon} />}
@@ -120,7 +141,7 @@ function Level1Nav({
             )}
 
             {items && (
-                <Level2Nav
+                <CollapsibleNav
                     id={(path || url)!}
                     items={items}
                     framework={framework}
@@ -132,32 +153,31 @@ function Level1Nav({
     );
 }
 
-function findActiveLevel1MenuItem({
+const createIsTopLevelPath = (activeMenuItemPath) => {
+    const findPath = ({ path, items }: MenuItem) => {
+        return path === activeMenuItemPath || items?.some(findPath);
+    };
+    return findPath;
+};
+
+function findActiveTopLevelMenuItem({
     menuData,
     activeMenuItemPath,
 }: {
     menuData: MenuData;
     activeMenuItemPath: string;
 }) {
-    const findPath = ({ path, items }: MenuItem) => {
-        return items
-            ? items.some(({ path }) => {
-                  return path === activeMenuItemPath;
-              })
-            : path === activeMenuItemPath;
-    };
-    return menuData.main.items.find(findPath) || menuData.charts.items.find(findPath);
+    const isTopLevelPath = createIsTopLevelPath(activeMenuItemPath);
+    return menuData.main.items.find(isTopLevelPath) || menuData.charts.items.find(isTopLevelPath);
 }
 
 function findActiveMenuItem({ menuData, activeMenuItemPath }: { menuData: MenuData; activeMenuItemPath: string }) {
     const getMenuItemReducer = (foundMenuItem: MenuItem | undefined, menuItem: MenuItem) => {
         const { path, items } = menuItem;
-        if (!items && path === activeMenuItemPath) {
+        if (path === activeMenuItemPath) {
             return menuItem;
         }
-        const childMenuItem = items?.find(({ path }) => {
-            return path === activeMenuItemPath;
-        });
+        const childMenuItem = items?.reduce(getMenuItemReducer, undefined);
 
         return childMenuItem ? childMenuItem : foundMenuItem;
     };
@@ -172,31 +192,31 @@ function MainPagesNavigation({
     menuData,
     framework,
     activeMenuItem,
-    activeLevel1MenuItem,
-    setActiveLevel1MenuItem,
+    activeTopLevelMenuItem,
+    setActiveTopLevelMenuItem,
     onMenuToggle,
 }: {
     menuData: MenuData;
     framework: Framework;
     activeMenuItem?: MenuItem;
-    activeLevel1MenuItem?: MenuItem;
-    setActiveLevel1MenuItem: (menuItem?: MenuItem) => void;
+    activeTopLevelMenuItem?: MenuItem;
+    setActiveTopLevelMenuItem: (menuItem?: MenuItem) => void;
     onMenuToggle: () => void;
 }) {
     const mainMenuItems = menuData.main.items;
     return (
-        <ul className={classnames('list-style-none', styles.navInner)}>
+        <ul className={classnames(styles.menuInner, gridStyles.menuInner, 'list-style-none')}>
             {mainMenuItems?.map((menuItem) => {
                 const { title, path } = menuItem;
-                const isActive = menuItem === activeLevel1MenuItem;
+                const isActive = menuItem === activeTopLevelMenuItem;
 
                 const toggleActive = () => {
-                    setActiveLevel1MenuItem(isActive ? undefined : menuItem);
+                    setActiveTopLevelMenuItem(isActive ? undefined : menuItem);
                     onMenuToggle();
                 };
 
                 return (
-                    <Level1Nav
+                    <NavItemContainer
                         key={`${title}-${path}`}
                         framework={framework}
                         menuItem={menuItem}
@@ -214,34 +234,34 @@ function SeriesPagesNavigation({
     menuData,
     framework,
     activeMenuItem,
-    activeLevel1MenuItem,
-    setActiveLevel1MenuItem,
+    activeTopLevelMenuItem,
+    setActiveTopLevelMenuItem,
     seriesIsActive,
     onMenuToggle,
 }: {
     menuData: MenuData;
     framework: Framework;
     activeMenuItem?: MenuItem;
-    activeLevel1MenuItem?: MenuItem;
-    setActiveLevel1MenuItem: (menuItem?: MenuItem) => void;
+    activeTopLevelMenuItem?: MenuItem;
+    setActiveTopLevelMenuItem: (menuItem?: MenuItem) => void;
     seriesIsActive: boolean;
     onMenuToggle: () => void;
 }) {
     const chartsMenuItems = menuData.charts.items;
 
     return (
-        <ul className={classnames('list-style-none', styles.navInner, styles.seriesTypesNav)}>
+        <ul className={classnames(styles.seriesTypesNav, styles.menuInner, gridStyles.menuInner, 'list-style-none')}>
             {chartsMenuItems?.map((menuItem) => {
                 const { title, path } = menuItem;
-                const isActive = menuItem === activeLevel1MenuItem || (seriesIsActive && title === 'Series');
+                const isActive = menuItem === activeTopLevelMenuItem || (seriesIsActive && title === 'Series');
 
                 const toggleActive = () => {
                     onMenuToggle();
-                    setActiveLevel1MenuItem(isActive ? undefined : menuItem);
+                    setActiveTopLevelMenuItem(isActive ? undefined : menuItem);
                 };
 
                 return (
-                    <Level1Nav
+                    <NavItemContainer
                         key={`${title}-${path}`}
                         framework={framework}
                         menuItem={menuItem}
@@ -265,8 +285,8 @@ export function PagesNavigation({
     pageName: string;
 }) {
     const [seriesIsActive, setSeriesIsActive] = useState(pageName === PAGE_TO_SHOW_SERIES_MENU_TIME_BY_DEFAULT);
-    const [activeLevel1MenuItem, setActiveLevel1MenuItem] = useState<MenuItem | undefined>(
-        findActiveLevel1MenuItem({
+    const [activeTopLevelMenuItem, setActiveTopLevelMenuItem] = useState<MenuItem | undefined>(
+        findActiveTopLevelMenuItem({
             menuData,
             activeMenuItemPath: pageName,
         })
@@ -300,21 +320,21 @@ export function PagesNavigation({
 
     return (
         <Collapsible id="docs-nav-collapser" isOpen={navOpen}>
-            <aside className={classnames(styles.nav, 'font-size-responsive')}>
+            <aside className={classnames(styles.menu, gridStyles.menu, 'font-size-responsive')}>
                 <MainPagesNavigation
                     menuData={menuData}
                     framework={framework}
                     activeMenuItem={activeMenuItem}
-                    activeLevel1MenuItem={activeLevel1MenuItem}
-                    setActiveLevel1MenuItem={setActiveLevel1MenuItem}
+                    activeTopLevelMenuItem={activeTopLevelMenuItem}
+                    setActiveTopLevelMenuItem={setActiveTopLevelMenuItem}
                     onMenuToggle={onMenuToggle}
                 />
                 <SeriesPagesNavigation
                     menuData={menuData}
                     framework={framework}
                     activeMenuItem={activeMenuItem}
-                    activeLevel1MenuItem={activeLevel1MenuItem}
-                    setActiveLevel1MenuItem={setActiveLevel1MenuItem}
+                    activeTopLevelMenuItem={activeTopLevelMenuItem}
+                    setActiveTopLevelMenuItem={setActiveTopLevelMenuItem}
                     seriesIsActive={seriesIsActive}
                     onMenuToggle={onMenuToggle}
                 />
