@@ -701,6 +701,7 @@ export class AreaSeries extends CartesianSeries<
         super.resetAllAnimation(animationData);
 
         if (contextData.length === 0 || !previousContextData || previousContextData.length === 0) {
+            animationManager.skipCurrentBatch();
             this.updateAreaPaths(paths, contextData);
             return;
         }
