@@ -7,10 +7,10 @@ const options: AgChartOptions = {
   series: [
     {
       type: 'treemap',
-      labelKey: 'name', // defaults to 'label', but current dataset uses 'name'
+      labelKey: 'name',
       secondaryLabelKey: 'color',
-      sizeKey: 'size', // default (can be omitted for current dataset)
-      colorKey: 'color', // default (can be omitted for current dataset)
+      sizeKey: 'size',
+      colorKey: 'color',
       group: {
         label: {
           formatter({value}) {
@@ -47,7 +47,7 @@ const options: AgChartOptions = {
         fill: !params.datum.children ? undefined : params.highlighted ? '#aaa' : '#333',
         stroke: params.depth < 1 ? 'white' : 'black'
       }),
-    },
+    }
   ],
   title: {
     text: 'S&P 500 index stocks categorized by sectors and industries.',

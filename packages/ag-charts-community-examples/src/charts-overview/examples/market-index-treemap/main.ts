@@ -10,8 +10,8 @@ const options: AgChartOptions = {
       type: 'treemap',
       labelKey: 'name',
       secondaryLabelKey: 'change',
-      sizeKey: 'valuation', // defaults to 'size', but current dataset uses 'valuation'
-      colorKey: 'change', // default (can be omitted for current dataset)
+      sizeKey: 'valuation',
+      colorKey: 'change',
       group: {
         label: {
           formatter({value}) {

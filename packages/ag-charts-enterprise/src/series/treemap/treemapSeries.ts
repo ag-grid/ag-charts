@@ -382,7 +382,10 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
             return nodeSize(children[bIndex]) - nodeSize(children[aIndex]);
         });
 
-        const childAt = (index: number) => children[sortedChildrenIndices[index]];
+        const childAt = (index: number) => {
+            const sortedIndex = sortedChildrenIndices[index];
+            return children[sortedIndex];
+        };
 
         const targetTileAspectRatio = 1; // The width and height will tend to this ratio
         const padding = datum != null ? this.getNodePadding(node, bbox) : { top: 0, right: 0, bottom: 0, left: 0 };

@@ -99,8 +99,10 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
         const createNode = (datum: any, parent: HierarchyNode): HierarchyNode => {
             const index = getIndex();
             const depth = parent.depth != null ? parent.depth + 1 : 0;
+            const children = childrenKey != null ? datum[childrenKey] : undefined;
+            const isLeaf = children == null || children.length === 0;
 
-            const size = Math.max((sizeKey != null ? datum[sizeKey] : undefined) ?? 0, 0);
+            const size = Math.max((sizeKey != null ? datum[sizeKey] : undefined) ?? (isLeaf ? 1 : 0), 0);
             maxDepth = Math.max(maxDepth, depth);
             sumSize += size;
 
@@ -111,30 +113,29 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
                 maxColor = Math.max(maxColor, color);
             }
 
-            const node = new HierarchyNode(this, index, datum, size, undefined, depth, parent, []);
-
-            appendChildren(node, childrenKey != null ? datum[childrenKey] : undefined);
-
-            return node;
+            return appendChildren(new HierarchyNode(this, index, datum, size, undefined, depth, parent, []), children);
         };
 
-        const appendChildren = (node: HierarchyNode, data: S[] | undefined) => {
+        const appendChildren = (node: HierarchyNode, data: S[] | undefined): HierarchyNode => {
             data?.forEach((datum) => {
                 node.children.push(createNode(datum, node));
             });
+            return node;
         };
 
-        const rootNode = new HierarchyNode(this, 0, undefined, 0, undefined, undefined, undefined, []);
-        appendChildren(rootNode, this.data);
+        const rootNode = appendChildren(
+            new HierarchyNode(this, 0, undefined, 0, undefined, undefined, undefined, []),
+            this.data
+        );
 
         if (colorRange != null) {
             const colorScale = new ColorScale();
-            colorScale.domain = [minColor, maxColor];
+            colorScale.domain = colorKey == null ? [0, maxDepth] : [minColor, maxColor];
             colorScale.range = colorRange;
             colorScale.update();
 
             rootNode.walk((node) => {
-                const color = colors[node.index];
+                const color = colorKey == null ? node.depth : colors[node.index];
                 if (color != null) {
                     node.color = colorScale.convert(color);
                 }
