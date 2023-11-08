@@ -1,9 +1,20 @@
-import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
+import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
-import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
+
+interface BulletSeriesKeysAndNames {
+    /** The key to use to retrieve the gauge value from the data. */
+    valueKey: string;
+    /** A human-readable description of the gauge value. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
+    valueName?: string;
+    /** The key to use to retrieve the target value from the data. */
+    targetKey?: string;
+    /** A human-readable description of the target value. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
+    targetName?: string;
+}
 
 export interface AgBulletSeriesTooltipRendererParams<TDatum = any>
-    extends AgCartesianSeriesTooltipRendererParams<TDatum> {}
+    extends AgSeriesTooltipRendererParams<TDatum>,
+        BulletSeriesKeysAndNames {}
 
 export interface AgBulletSeriesThemeableOptions extends AgBaseSeriesThemeableOptions {}
 
@@ -14,7 +25,7 @@ export interface AgBulletColorRange {
     stop?: number;
 }
 
-export interface AgBulletSeriesOptions<TDatum = any> extends AgBaseSeriesOptions<TDatum> {
+export interface AgBulletSeriesOptions<TDatum = any> extends AgBaseSeriesOptions<TDatum>, BulletSeriesKeysAndNames {
     /** Configuration for the Bullet series. */
     type: 'bullet';
     /** Bar rendering direction. NOTE: This option affects the layout direction of X and Y data values. */

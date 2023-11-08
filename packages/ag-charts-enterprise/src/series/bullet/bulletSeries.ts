@@ -1,9 +1,9 @@
 import type { AgBulletSeriesTooltipRendererParams, Direction } from 'ag-charts-community';
-import { _ModuleSupport, _Scale, _Scene } from 'ag-charts-community';
+import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 const {
-    partialAssign,
     keyProperty,
+    partialAssign,
     valueProperty,
     Validate,
     COLOR_STRING,
@@ -13,12 +13,14 @@ const {
     OPT_NUMBER,
     OPT_STRING,
 } = _ModuleSupport;
+const { sanitizeHtml } = _Util;
 
 interface BulletNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
     readonly x: number;
     readonly y: number;
     readonly width: number;
     readonly height: number;
+    readonly cumulativeValue: number;
     readonly target?: {
         readonly value: number;
         readonly x1: number;
@@ -89,14 +91,18 @@ export class BulletSeries extends _ModuleSupport.CartesianSeries<BulletNode, Bul
     private colorRangesSelection: _Scene.Selection<_Scene.Rect, NormalizedColorRange>;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
-        super({ moduleCtx });
+        super({
+            moduleCtx,
+            pickModes: [_ModuleSupport.SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            hasHighlightedLabels: true,
+        });
         this.colorRangesGroup = new _Scene.Group({ name: `${this.id}-colorRanges` });
         this.colorRangesSelection = _Scene.Selection.select(this.colorRangesGroup, _Scene.Rect);
-        this.contentGroup.append(this.colorRangesGroup);
+        this.rootGroup.append(this.colorRangesGroup);
     }
 
     override destroy() {
-        this.contentGroup.removeChild(this.colorRangesGroup);
+        this.rootGroup.removeChild(this.colorRangesGroup);
         super.destroy();
     }
 
@@ -136,6 +142,13 @@ export class BulletSeries extends _ModuleSupport.CartesianSeries<BulletNode, Bul
         } else {
             throw new Error(`unknown direction ${direction}`);
         }
+    }
+
+    override getKeys(direction: _ModuleSupport.ChartAxisDirection): string[] {
+        if (direction === this.getBarDirection()) {
+            return [this.valueKey];
+        }
+        return super.getKeys(direction);
     }
 
     override async createNodeData() {
@@ -195,6 +208,7 @@ export class BulletSeries extends _ModuleSupport.CartesianSeries<BulletNode, Bul
                 xValue,
                 yKey: valueKey,
                 yValue,
+                cumulativeValue: yValue,
                 target,
                 ...rect,
                 midPoint: { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 },
@@ -222,11 +236,33 @@ export class BulletSeries extends _ModuleSupport.CartesianSeries<BulletNode, Bul
         legendType as any;
         return [];
     }
+
     override getTooltipHtml(nodeDatum: BulletNodeDatum): string {
-        // TODO(olegat)
-        nodeDatum as any;
-        return '';
+        const { valueKey, valueName, targetKey, targetName } = this;
+        const axis = this.getValueAxis();
+        const { yValue: valueValue, target: { value: targetValue } = { value: undefined }, datum } = nodeDatum;
+
+        if (valueKey === undefined || valueValue === undefined || axis === undefined) {
+            return '';
+        }
+
+        const makeLine = (key: string, name: string | undefined, value: number) => {
+            const nameString = sanitizeHtml(name ?? key);
+            const valueString = sanitizeHtml(axis.formatDatum(value));
+            return `<b>${nameString}</b>: ${valueString}`;
+        };
+        const title = undefined;
+        const content =
+            targetKey === undefined || targetValue === undefined
+                ? makeLine(valueKey, valueName, valueValue)
+                : `${makeLine(valueKey, valueName, valueValue)}<br/>${makeLine(targetKey, targetName, targetValue)}`;
+
+        return this.tooltip.toTooltipHtml(
+            { title, content },
+            { datum, title, seriesId: this.id, valueKey, valueName, targetKey, targetName }
+        );
     }
+
     protected override isLabelEnabled() {
         // TODO(olegat)
         return false;
