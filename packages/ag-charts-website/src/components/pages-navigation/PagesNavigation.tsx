@@ -153,7 +153,7 @@ function NavItemContainer({
     );
 }
 
-const createIsTopLevelPath = (activeMenuItemPath) => {
+const createIsTopLevelPath = (activeMenuItemPath: string) => {
     const findPath = ({ path, items }: MenuItem) => {
         return path === activeMenuItemPath || items?.some(findPath);
     };
@@ -172,7 +172,7 @@ function findActiveTopLevelMenuItem({
 }
 
 function findActiveMenuItem({ menuData, activeMenuItemPath }: { menuData: MenuData; activeMenuItemPath: string }) {
-    const getMenuItemReducer = (foundMenuItem: MenuItem | undefined, menuItem: MenuItem) => {
+    const getMenuItemReducer = (foundMenuItem: MenuItem | undefined, menuItem: MenuItem): MenuItem | undefined => {
         const { path, items } = menuItem;
         if (path === activeMenuItemPath) {
             return menuItem;
