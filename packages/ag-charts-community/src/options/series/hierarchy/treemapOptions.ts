@@ -22,6 +22,8 @@ export type AgTreemapSeriesLabelHighlightOptions<TDatum> = Pick<
 export interface AgTreemapSeriesTooltipRendererParams<TDatum>
     extends AgChartCallbackParams<TDatum>,
         AgTreemapSeriesOptionsKeys {
+    /** The depth of the datum in the hierarchy. */
+    depth: number;
     /** The title of the treemap tile */
     title?: string;
     /** The computed fill color of the treemap tile. */
@@ -151,11 +153,16 @@ export interface AgTreemapSeriesFormatterParams<TDatum = any>
     extends AgChartCallbackParams<TDatum>,
         AgTreemapSeriesOptionsKeys,
         AgTreemapSeriesStyle {
+    /** The depth of the datum in the hierarchy. */
+    depth: number;
     /** `true` if the tile is highlighted by hovering */
     readonly highlighted: boolean;
 }
 
-export interface AgTreemapSeriesLabelFormatterParams<_TDatum = any> extends AgTreemapSeriesOptionsKeys {}
+export interface AgTreemapSeriesLabelFormatterParams<_TDatum = any> extends AgTreemapSeriesOptionsKeys {
+    /** The depth of the datum in the hierarchy. */
+    depth: number;
+}
 
 /** The formatted style of a treemap tile */
 export interface AgTreemapSeriesStyle extends FillOptions, StrokeOptions {}

@@ -20,6 +20,7 @@ export class HierarchyNode implements SeriesNodeDatum {
         public datum: Record<string, any> | undefined,
         public size: number,
         public color: string | undefined,
+        public depth: number | undefined,
         public parent: HierarchyNode | undefined,
         public children: HierarchyNode[]
     ) {
@@ -65,7 +66,7 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
     @Validate(OPT_COLOR_STRING_ARRAY)
     colorRange?: string[] = undefined;
 
-    rootNode = new HierarchyNode(this, 0, undefined, 0, undefined, undefined, []);
+    rootNode = new HierarchyNode(this, 0, undefined, 0, undefined, 0, undefined, []);
 
     maxDepth: number = 0;
     sumSize: number = 0;
@@ -95,8 +96,9 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
         let maxColor = -Infinity;
         const colors: (number | undefined)[] = new Array((this.data?.length ?? 0) + 1).fill(undefined);
 
-        const createNode = (datum: any, parent: HierarchyNode | undefined, depth: number): HierarchyNode => {
+        const createNode = (datum: any, parent: HierarchyNode): HierarchyNode => {
             const index = getIndex();
+            const depth = parent.depth != null ? parent.depth + 1 : 0;
 
             const size = Math.max((sizeKey != null ? datum[sizeKey] : undefined) ?? 0, 0);
             maxDepth = Math.max(maxDepth, depth);
@@ -109,21 +111,21 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
                 maxColor = Math.max(maxColor, color);
             }
 
-            const node = new HierarchyNode(this, index, datum, size, undefined, parent, []);
+            const node = new HierarchyNode(this, index, datum, size, undefined, depth, parent, []);
 
-            appendChildren(node, childrenKey != null ? datum[childrenKey] : undefined, depth);
+            appendChildren(node, childrenKey != null ? datum[childrenKey] : undefined);
 
             return node;
         };
 
-        const appendChildren = (node: HierarchyNode, data: S[] | undefined, depth: number) => {
+        const appendChildren = (node: HierarchyNode, data: S[] | undefined) => {
             data?.forEach((datum) => {
-                node.children.push(createNode(datum, node, depth + 1));
+                node.children.push(createNode(datum, node));
             });
         };
 
-        const rootNode = new HierarchyNode(this, 0, undefined, 0, undefined, undefined, []);
-        appendChildren(rootNode, this.data, 0);
+        const rootNode = new HierarchyNode(this, 0, undefined, 0, undefined, undefined, undefined, []);
+        appendChildren(rootNode, this.data);
 
         if (colorRange != null) {
             const colorScale = new ColorScale();

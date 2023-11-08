@@ -315,13 +315,14 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
 
         const labelData: LabelData[] = new Array(data.length + 1).fill(undefined);
 
-        this.rootNode.walk(({ index, datum, children }) => {
+        this.rootNode.walk(({ index, datum, depth, children }) => {
             const isLeaf = children.length === 0;
 
             const labelStyle = isLeaf ? tile.label : group.label;
             let label: string | undefined;
-            if (datum != null && labelKey != null && labelStyle.enabled) {
+            if (datum != null && depth != null && labelKey != null && labelStyle.enabled) {
                 label = this.getLabelText(labelStyle, {
+                    depth,
                     datum,
                     childrenKey,
                     colorKey,
@@ -333,8 +334,9 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
             }
 
             let secondaryLabel: string | undefined;
-            if (isLeaf && datum != null && secondaryLabelKey != null && tile.secondaryLabel.enabled) {
+            if (isLeaf && datum != null && depth != null && secondaryLabelKey != null && tile.secondaryLabel.enabled) {
                 secondaryLabel = this.getLabelText(tile.secondaryLabel, {
+                    depth,
                     datum,
                     childrenKey,
                     colorKey,
@@ -374,6 +376,14 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
 
         outputBoxes[index] = index !== 0 ? bbox : undefined;
 
+        const nodeSize = (node: _ModuleSupport.HierarchyNode) => sumSizes[node.index];
+
+        const sortedChildrenIndices = Array.from(children, (_, index) => index).sort((aIndex, bIndex) => {
+            return nodeSize(children[bIndex]) - nodeSize(children[aIndex]);
+        });
+
+        const childAt = (index: number) => children[sortedChildrenIndices[index]];
+
         const targetTileAspectRatio = 1; // The width and height will tend to this ratio
         const padding = datum != null ? this.getNodePadding(node, bbox) : { top: 0, right: 0, bottom: 0, left: 0 };
         const width = bbox.width - padding.left - padding.right;
@@ -386,13 +396,13 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
         let stackSum = 0;
         let startIndex = 0;
         let minRatioDiff = Infinity;
-        let partitionSum = sumSizes[index];
+        let partitionSum = nodeSize(node);
         const innerBox = new BBox(bbox.x + padding.left, bbox.y + padding.top, width, height);
         const partition = innerBox.clone();
 
         for (let i = 0; i < children.length; i++) {
-            const value = sumSizes[children[i].index];
-            const firstValue = sumSizes[children[startIndex].index];
+            const value = nodeSize(childAt(i));
+            const firstValue = nodeSize(childAt(startIndex));
             const isVertical = partition.width < partition.height;
             stackSum += value;
 
@@ -413,11 +423,11 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
             stackThickness = (partThickness * stackSum) / partitionSum;
             let start = isVertical ? partition.x : partition.y;
             for (let j = startIndex; j < i; j++) {
-                const child = children[j];
+                const child = childAt(j);
 
                 const x = isVertical ? start : partition.x;
                 const y = isVertical ? partition.y : start;
-                const length = (partLength * sumSizes[child.index]) / stackSum;
+                const length = (partLength * nodeSize(child)) / stackSum;
                 const width = isVertical ? length : stackThickness;
                 const height = isVertical ? stackThickness : length;
 
@@ -425,7 +435,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
                 this.applyGap(innerBox, childBbox);
                 this.squarify(child, childBbox, outputBoxes);
 
-                partitionSum -= sumSizes[child.index];
+                partitionSum -= nodeSize(child);
                 start += length;
             }
 
@@ -446,14 +456,15 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
         const isVertical = partition.width < partition.height;
         let start = isVertical ? partition.x : partition.y;
         for (let i = startIndex; i < children.length; i++) {
+            const child = childAt(i);
             const x = isVertical ? start : partition.x;
             const y = isVertical ? partition.y : start;
-            const part = sumSizes[children[i].index] / partitionSum;
+            const part = nodeSize(child) / partitionSum;
             const width = partition.width * (isVertical ? part : 1);
             const height = partition.height * (isVertical ? 1 : part);
             const childBox = new BBox(x, y, width, height);
             this.applyGap(innerBox, childBox);
-            this.squarify(children[i], childBox, outputBoxes);
+            this.squarify(child, childBox, outputBoxes);
             start += isVertical ? width : height;
         }
     }
@@ -520,30 +531,32 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
     }
 
     private getTileFormat(node: _ModuleSupport.HierarchyNode, isHighlighted: boolean): AgTreemapSeriesStyle {
+        const { datum, color: fill, depth, children } = node;
         const {
             tile,
             group,
             formatter,
             ctx: { callbackCache },
         } = this;
-        if (!formatter || node.datum == null) {
+        if (!formatter || datum == null || depth == null) {
             return {};
         }
 
         const { colorKey, labelKey, secondaryLabelKey, sizeKey } = this;
-        const isLeaf = node.children.length === 0;
+        const isLeaf = children.length === 0;
 
         const stroke = isLeaf ? tile.stroke : group.stroke;
         const strokeWidth = isLeaf ? tile.strokeWidth : group.strokeWidth;
 
         const result = callbackCache.call(formatter, {
             seriesId: this.id,
-            datum: node.datum,
+            depth,
+            datum,
             colorKey,
             labelKey,
             secondaryLabelKey,
             sizeKey,
-            fill: node.color,
+            fill,
             stroke,
             strokeWidth,
             highlighted: isHighlighted,
@@ -569,7 +582,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
 
         const updateRectFn = (node: _ModuleSupport.HierarchyNode, rect: _Scene.Rect, highlighted: boolean) => {
             const bbox = bboxes[node.index];
-            if (!bbox) {
+            if (bbox == null) {
                 rect.visible = false;
                 return;
             }
@@ -811,10 +824,10 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
 
     getTooltipHtml(node: _ModuleSupport.HierarchyNode): string {
         const { tooltip, colorKey, labelKey, secondaryLabelKey, sizeKey, id: seriesId } = this;
-        const { datum } = node;
+        const { datum, depth } = node;
         const isLeaf = node.children.length === 0;
         const interactive = isLeaf || this.group.interactive;
-        if (datum == null || !interactive) {
+        if (datum == null || depth == null || !interactive) {
             return '';
         }
 
@@ -833,7 +846,8 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
         }
 
         return tooltip.toTooltipHtml(defaults, {
-            datum: datum,
+            depth,
+            datum,
             colorKey,
             labelKey,
             secondaryLabelKey,
