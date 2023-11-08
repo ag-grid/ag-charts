@@ -104,31 +104,36 @@ export class BulletSeries extends _ModuleSupport.CartesianSeries<BulletNode, Bul
 
     override async processData(dataController: _ModuleSupport.DataController) {
         const { valueKey, targetKey, data = [] } = this;
-        if (!valueKey || !targetKey || !data) return;
+        if (!valueKey || !data) return;
 
         const isContinuousX = _Scale.ContinuousScale.is(this.getCategoryAxis()?.scale);
         const isContinuousY = _Scale.ContinuousScale.is(this.getValueAxis()?.scale);
 
+        const props = [
+            keyProperty(this, valueKey, isContinuousX, { id: 'xValue' }),
+            valueProperty(this, valueKey, isContinuousY, { id: 'value' }),
+        ];
+        if (targetKey !== undefined) {
+            props.push(valueProperty(this, targetKey, isContinuousY, { id: 'target' }));
+        }
+
         await this.requestDataModel<any, any, true>(dataController, data, {
-            props: [
-                keyProperty(this, valueKey, isContinuousX, { id: 'xValue' }),
-                valueProperty(this, valueKey, isContinuousY, { id: 'value' }),
-                valueProperty(this, targetKey, isContinuousY, { id: 'target' }),
-            ],
+            props,
             groupByKeys: true,
             dataVisible: this.visible,
         });
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection) {
-        const { dataModel, processedData } = this;
+        const { dataModel, processedData, targetKey } = this;
         if (!dataModel || !processedData) return [];
 
         if (direction === this.getCategoryDirection()) {
             return [this.xValue];
         } else if (direction == this.getValueAxis()?.direction) {
             const valueDomain = dataModel.getDomain(this, 'value', 'value', processedData);
-            const targetDomain = dataModel.getDomain(this, 'target', 'value', processedData);
+            const targetDomain =
+                targetKey === undefined ? [] : dataModel.getDomain(this, 'target', 'value', processedData);
             return [0, Math.max(...valueDomain, ...targetDomain)];
         } else {
             throw new Error(`unknown direction ${direction}`);
@@ -136,7 +141,7 @@ export class BulletSeries extends _ModuleSupport.CartesianSeries<BulletNode, Bul
     }
 
     override async createNodeData() {
-        const { valueKey, dataModel, processedData } = this;
+        const { valueKey, targetKey, dataModel, processedData } = this;
         const xScale = this.getCategoryAxis()?.scale;
         const yScale = this.getValueAxis()?.scale;
         if (!valueKey || !dataModel || !processedData || !xScale || !yScale) return [];
@@ -144,7 +149,8 @@ export class BulletSeries extends _ModuleSupport.CartesianSeries<BulletNode, Bul
         this.colorRangesGroup.visible = this.colorRanges !== undefined;
 
         const valueIndex = dataModel.resolveProcessedDataIndexById(this, 'value').index;
-        const targetIndex = dataModel.resolveProcessedDataIndexById(this, 'target').index;
+        const targetIndex =
+            targetKey === undefined ? NaN : dataModel.resolveProcessedDataIndexById(this, 'target').index;
         const context: _ModuleSupport.CartesianSeriesNodeDataContext<BulletNodeDatum> = {
             itemId: valueKey,
             nodeData: [],
