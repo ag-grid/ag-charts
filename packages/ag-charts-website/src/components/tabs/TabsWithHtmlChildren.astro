@@ -1,8 +1,14 @@
 ---
-import { TabsWithHtmlChildren } from "./TabsWithHtmlChildren";
+import { TabsWithHtmlChildren } from './TabsWithHtmlChildren';
+import { extractTabsData } from './utils';
 
+const html = await Astro.slots.render('default');
+// Extract tabs data so that the tab nav items can be rendered at build time
+const tabsData = extractTabsData(html);
+
+const { tabItemIdPrefix } = Astro.props;
 ---
 
-<TabsWithHtmlChildren client:load>
-    <slot />
+<TabsWithHtmlChildren client:load tabsData={tabsData} tabItemIdPrefix={tabItemIdPrefix}>
+    <Fragment set:html={html} />
 </TabsWithHtmlChildren>
