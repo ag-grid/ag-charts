@@ -100,7 +100,7 @@ function NavItemContainer({
     const linkUrl = getLinkUrl({ framework, path, url });
 
     return (
-        <li key={url} className={gridStyles.menuGroup}>
+        <li key={url}>
             {items && !hideCollapsibleButton ? (
                 <button
                     onClick={toggleActive}
