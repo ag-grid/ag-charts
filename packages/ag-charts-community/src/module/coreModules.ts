@@ -1,7 +1,12 @@
 import type { ChartAxis } from '../chart/chartAxis';
 import type { ChartLegend, ChartLegendType } from '../chart/legendDatum';
 import type { Series } from '../chart/series/series';
-import type { AgBaseChartThemeOverrides, AgChartOptions, AgChartThemePalette } from '../options/agChartOptions';
+import type {
+    AgBaseChartThemeOverrides,
+    AgCartesianChartOptions,
+    AgChartOptions,
+    AgChartThemePalette,
+} from '../options/agChartOptions';
 import type { BaseModule, ModuleInstance } from './baseModule';
 import type { ModuleContext } from './moduleContext';
 
@@ -93,5 +98,5 @@ export interface SeriesModule<SeriesType extends RequiredSeriesType = RequiredSe
     groupable?: boolean;
     stackedByDefault?: boolean;
     swapDefaultAxesCondition?: (opts: SeriesOptions<SeriesType>) => boolean;
-    customDefaultAxesSwapper?: (opts: SeriesOptions<SeriesType>) => SeriesOptions<SeriesType>;
+    customDefaultAxesSwapper?: (opts: AgCartesianChartOptions) => AgCartesianChartOptions;
 }

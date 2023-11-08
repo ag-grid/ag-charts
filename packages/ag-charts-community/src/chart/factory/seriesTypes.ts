@@ -1,15 +1,14 @@
 import { hasRegisteredEnterpriseModules } from '../../module-support';
-import type { SeriesConstructor, SeriesOptions, SeriesPaletteFactory } from '../../module/coreModules';
+import type { SeriesConstructor, SeriesPaletteFactory } from '../../module/coreModules';
 import type { ModuleContext } from '../../module/moduleContext';
-import type { AgChartOptions } from '../../options/agChartOptions';
+import type { AgCartesianChartOptions, AgChartOptions } from '../../options/agChartOptions';
 import { jsonMerge } from '../../sparklines-util';
 import type { SeriesOptionsTypes } from '../mapping/types';
 import type { Series } from '../series/series';
 import type { ChartType } from './chartTypes';
 import { registerChartSeriesType } from './chartTypes';
 
-type SeriesOptionsUnion = SeriesOptions<NonNullable<SeriesOptionsTypes['type']>>;
-type SwapperFunction = (opts: unknown) => SeriesOptionsUnion;
+type SwapperFunction = (opts: AgCartesianChartOptions) => AgCartesianChartOptions;
 
 const SERIES_FACTORIES: Record<string, SeriesConstructor> = {};
 const SERIES_DEFAULTS: Record<string, any> = {};
@@ -34,7 +33,7 @@ export function registerSeries(
     groupable: boolean | undefined,
     stackedByDefault: boolean | undefined,
     swapDefaultAxesCondition: ((opts: any) => boolean) | undefined,
-    customDefaultAxesSwapper: ((opts: any) => SeriesOptionsUnion) | undefined
+    customDefaultAxesSwapper: SwapperFunction | undefined
 ) {
     SERIES_FACTORIES[seriesType] = cstr;
     SERIES_DEFAULTS[seriesType] = defaults;

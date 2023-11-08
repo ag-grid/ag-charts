@@ -26,17 +26,12 @@ export const BulletModule: _ModuleSupport.SeriesModule<'bullet'> = {
     },
     swapDefaultAxesCondition: (opts) => opts?.direction !== 'horizontal',
     customDefaultAxesSwapper: (opts) => {
+        const [axis0, axis1] = opts.axes ?? [];
         return {
             ...opts,
             axes: [
-                {
-                    type: CARTESIAN_AXIS_TYPES.CATEGORY,
-                    position: CARTESIAN_AXIS_POSITIONS.TOP,
-                },
-                {
-                    type: CARTESIAN_AXIS_TYPES.NUMBER,
-                    position: CARTESIAN_AXIS_POSITIONS.LEFT,
-                },
+                { ...axis0, position: CARTESIAN_AXIS_POSITIONS.LEFT },
+                { ...axis1, position: CARTESIAN_AXIS_POSITIONS.TOP },
             ],
         };
     },
