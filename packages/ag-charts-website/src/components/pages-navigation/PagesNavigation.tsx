@@ -10,7 +10,7 @@ import styles from './PagesNavigation.module.scss';
 // ag-grid menu styles
 import gridStyles from './gridMenu.module.scss';
 
-const PAGE_TO_SHOW_SERIES_MENU_TIME_BY_DEFAULT = 'overview';
+const PAGE_TO_SHOW_SERIES_MENU_TIME_BY_DEFAULT = 'getting-started';
 
 function toElementId(str: string) {
     return 'menu-' + str.toLowerCase().replace('&', '').replace('/', '').replaceAll(' ', '-');
@@ -299,7 +299,7 @@ export function PagesNavigation({
     );
 
     const onMenuToggle = () => {
-        setSeriesIsActive(false);
+        setSeriesIsActive(true);
     };
 
     const [navOpen, setNavOpen] = useState(false);

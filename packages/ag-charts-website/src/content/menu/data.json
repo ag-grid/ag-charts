@@ -9,27 +9,6 @@
                 ]
             },
             {
-                "title": "Building & Tooling",
-                "items": [
-                    { "title": "Install with NPM", "path": "npm", "frameworks": ["javascript"] },
-                    { "title": "Download Bundles", "path": "download", "frameworks": ["javascript"] },
-                    { "title": "Community and Enterprise", "path": "licensing" },
-                    { "title": "Packages vs Modules", "path": "packages-modules" },
-                    { "title": "Packages", "path": "packages", "frameworks": ["javascript"] },
-                    { "title": "Modules", "path": "modules", "frameworks": ["javascript"] },
-                    { "title": "Supported browsers", "path": "supported-browsers" },
-                    { "title": "Building", "path": "building", "frameworks": ["javascript"] }
-                ]
-            },
-            {
-                "title": "API",
-                "items": [
-                    { "title": "Create/Update", "path": "api-create-update" },
-                    { "title": "Download", "path": "api-download" },
-                    { "title": "Events", "path": "events" }
-                ]
-            },
-            {
                 "title": "Layout & Styling",
                 "items": [
                     { "title": "Layout", "path": "layout" },
@@ -64,6 +43,9 @@
                     { "title": "Tooltips", "path": "tooltips" },
                     { "title": "Formatters", "path": "formatters" },
                     { "title": "Cross lines", "path": "axes-cross-lines" },
+                    { "title": "Download", "path": "api-download" },
+                    { "title": "Create / Update", "path": "api-create-update" },
+                    { "title": "Events", "path": "events" },
                     { "title": "Navigator", "path": "navigator", "isEnterprise": true },
                     {
                         "title": "Crosshairs",
