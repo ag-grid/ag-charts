@@ -1,7 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
-import type { AgChartInstance, AgScatterSeriesTooltipRendererParams } from 'ag-charts-community';
+import type {
+    AgChartInstance,
+    AgErrorBarCapFormatter,
+    AgErrorBarFormatter,
+    AgErrorBarFormatterParams,
+    AgScatterSeriesTooltipRendererParams,
+} from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     clickAction,
@@ -14,7 +20,6 @@ import {
 
 import { AgEnterpriseCharts } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
-import type { ErrorBarCapFormatter, ErrorBarFormatter } from './errorBarNode';
 
 expect.extend({ toMatchImageSnapshot });
 
@@ -627,7 +632,7 @@ describe('ErrorBars', () => {
     });
 
     it('should apply formatter as expected', async () => {
-        const whisker_formatter: ErrorBarFormatter = (params) => {
+        const whisker_formatter: AgErrorBarFormatter = (params) => {
             let color = undefined;
             switch (params.datum[params.xKey]) {
                 case 'Jan':
@@ -652,7 +657,7 @@ describe('ErrorBars', () => {
             }
             return { stroke: color };
         };
-        const cap_formatter: ErrorBarCapFormatter = (params) => {
+        const cap_formatter: AgErrorBarCapFormatter = (params) => {
             switch (params.datum[params.xKey]) {
                 case 'Jan':
                 case 'Feb':
@@ -683,6 +688,57 @@ describe('ErrorBars', () => {
             ],
         });
         await compare();
+    });
+
+    it('should set formatter highlighted param as expected', async () => {
+        const whiskerResult: boolean[] = [];
+        const capResult: boolean[] = [];
+        chart = deproxy(
+            AgEnterpriseCharts.create({
+                ...opts,
+                series: [
+                    {
+                        ...SERIES_CANADA,
+                        errorBar: {
+                            ...SERIES_CANADA.errorBar,
+                            formatter: (param: AgErrorBarFormatterParams) => {
+                                whiskerResult.push(param.highlighted);
+                                return {};
+                            },
+                            cap: {
+                                formatter: (param: AgErrorBarFormatterParams) => {
+                                    capResult.push(param.highlighted);
+                                    return {};
+                                },
+                            },
+                        },
+                    },
+                ],
+            })
+        );
+
+        // Check formatter initialisation
+        await waitForChartStability(chart);
+        const allfalse = [false, false, false, false, false, false, false, false, false, false, false, false];
+        expect(whiskerResult).toStrictEqual(allfalse);
+        expect(capResult).toStrictEqual(allfalse);
+        whiskerResult.length = 0;
+        capResult.length = 0;
+
+        // Hover over an error bar
+        const { x, y } = getItemCoords(4);
+        await hoverAction(x, y - 20)(chart);
+        await waitForChartStability(chart);
+        expect(whiskerResult).toStrictEqual([true]);
+        expect(capResult).toStrictEqual([true]);
+        whiskerResult.length = 0;
+        capResult.length = 0;
+
+        // Hover over nothing
+        await hoverAction(0, 0)(chart);
+        await waitForChartStability(chart);
+        expect(whiskerResult).toStrictEqual([false]);
+        expect(capResult).toStrictEqual([false]);
     });
 
     it('should use correct cursor', async () => {
