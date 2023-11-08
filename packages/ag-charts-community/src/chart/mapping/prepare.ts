@@ -11,7 +11,12 @@ import { Logger } from '../../util/logger';
 import type { DeepPartial } from '../../util/types';
 import { AXIS_TYPES } from '../factory/axisTypes';
 import { CHART_TYPES } from '../factory/chartTypes';
-import { getSeriesDefaults, getSeriesPaletteFactory, isDefaultAxisSwapNeeded } from '../factory/seriesTypes';
+import {
+    getDefaultAxisSwapper,
+    getSeriesDefaults,
+    getSeriesPaletteFactory,
+    isDefaultAxisSwapNeeded,
+} from '../factory/seriesTypes';
 import type { ChartTheme } from '../themes/chartTheme';
 import { resolveModuleConflicts, swapAxes } from './defaults';
 import type { SeriesOptions } from './prepareSeries';
@@ -81,7 +86,8 @@ export function prepareOptions<T extends AgChartOptions>(options: T): T {
 
     let defaultOverrides = getSeriesDefaults(type);
     if (isDefaultAxisSwapNeeded(options)) {
-        defaultOverrides = swapAxes(defaultOverrides);
+        const swapper = getDefaultAxisSwapper(options) ?? swapAxes;
+        defaultOverrides = swapper(defaultOverrides);
     }
     const conflictOverrides = resolveModuleConflicts(options);
 
