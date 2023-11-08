@@ -2,8 +2,10 @@ import type { ThemeName } from '@stores/themeStore';
 import { filterPropertyKeys } from '@utils/jsCodeShiftUtils';
 import j from 'jscodeshift';
 
+import * as agChartsEnterprise from 'ag-charts-enterprise';
+
 // eslint-disable-next-line @nx/enforce-module-boundaries
-import { parseExampleOptions } from '../../../../../ag-charts-enterprise/src/test/load-example';
+import { parseExampleOptions } from '../../../../../ag-charts-community/src/chart/test/load-example';
 
 /**
  * JS Code Shift transformer to generate plain entry file
@@ -167,7 +169,9 @@ function transformer(sourceFile: string, dataFile?: string, themeName?: ThemeNam
     optionsExpressionProperties.push(paddingPropertyNode);
 
     const code = root.toSource();
-    const options = parseExampleOptions('options', code, dataFile);
+    const options = parseExampleOptions('options', code, dataFile, {
+        agChartsEnterprise,
+    });
 
     return { code, options };
 }
