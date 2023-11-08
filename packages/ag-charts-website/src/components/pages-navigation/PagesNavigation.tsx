@@ -69,7 +69,12 @@ function CollapsibleNav({
                                     [gridStyles.activeMenuItem]: isActive,
                                 })}
                             >
-                                {icon && <Icon name={icon} svgClasses={styles.menuIcon} />}
+                                {icon && (
+                                    <Icon
+                                        name={icon}
+                                        svgClasses={classnames(styles.menuIcon, { [styles.activeMenuIcon]: isActive })}
+                                    />
+                                )}
                                 {title}
                                 {isEnterprise && <EnterpriseIcon />}
                             </a>
