@@ -72,16 +72,20 @@ export function resetMarkerPositionFn<T extends CartesianSeriesNodeDatum>(_node:
     };
 }
 
-export function prepareMarkerAnimation(pairMap: PathPointMap, parentStatus: NodeUpdateState) {
+export function prepareMarkerAnimation(pairMap: PathPointMap<any>, parentStatus: NodeUpdateState) {
+    const readFirstPair = (xValue: string, type: keyof typeof pairMap) => {
+        const val = pairMap[type][xValue];
+        return Array.isArray(val) ? val[0] : val;
+    };
     const markerStatus = (datum: PathNodeDatumLike): { point?: PathPoint; status: NodeUpdateState } => {
         const { xValue } = datum;
 
         if (pairMap.moved[xValue]) {
-            return { point: pairMap.moved[xValue], status: 'updated' };
+            return { point: readFirstPair(xValue, 'moved'), status: 'updated' };
         } else if (pairMap.removed[xValue]) {
-            return { point: pairMap.removed[xValue], status: 'removed' };
+            return { point: readFirstPair(xValue, 'removed'), status: 'removed' };
         } else if (pairMap.added[xValue]) {
-            return { point: pairMap.added[xValue], status: 'added' };
+            return { point: readFirstPair(xValue, 'added'), status: 'added' };
         }
 
         return { status: 'unknown' };

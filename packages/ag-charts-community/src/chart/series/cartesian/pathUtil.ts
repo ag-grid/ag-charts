@@ -14,8 +14,8 @@ export type PathPoint = {
     change: PathPointChange;
     moveTo: true | false | 'in' | 'out';
 };
-export type PathPointMap = {
-    [key in 'moved' | 'added' | 'removed']: { [key: string]: PathPoint };
+export type PathPointMap<ARRAY extends boolean = false> = {
+    [key in 'moved' | 'added' | 'removed']: { [key: string]: ARRAY extends true ? PathPoint[] : PathPoint };
 };
 export interface PathNodeDatumLike extends Pick<CartesianSeriesNodeDatum, 'xValue'> {
     readonly point: Point & { moveTo?: boolean };

@@ -82,12 +82,20 @@ function pairFillCategoryData(
     const oldPoints = splitFillPoints(oldData);
     const newPoints = splitFillPoints(newData);
 
+    const pairOpts = { multiDatum: true, datumIndexMultiplier: 2 };
+
     return {
-        top: pairCategoryData(prepPoints('top', newData, newPoints), prepPoints('top', oldData, oldPoints), diff),
+        top: pairCategoryData(
+            prepPoints('top', newData, newPoints),
+            prepPoints('top', oldData, oldPoints),
+            diff,
+            pairOpts
+        ),
         bottom: pairCategoryData(
             prepPoints('bottom', newData, newPoints),
             prepPoints('bottom', oldData, oldPoints),
-            diff
+            diff,
+            pairOpts
         ),
     };
 }
@@ -117,7 +125,7 @@ export function prepareAreaPathAnimation(
 
     const prepareMarkerPairs = () => {
         if (isCategoryBased && diff) {
-            return pairCategoryData(newData, oldData, diff, { backfillSplitMode: 'static' });
+            return pairCategoryData(newData, oldData, diff, { backfillSplitMode: 'static', multiDatum: true });
         }
         return pairContinuousData(newData, oldData, { backfillSplitMode: 'static' });
     };
