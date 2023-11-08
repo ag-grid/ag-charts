@@ -54,7 +54,7 @@ function Level2Nav({
                             <a
                                 href={linkUrl}
                                 className={classnames({
-                                    [styles.activeMenuItem]: isActive,
+                                    [gridStyles.activeMenuItem]: isActive,
                                 })}
                             >
                                 {icon && <Icon name={icon} svgClasses={styles.menuIcon} />}
