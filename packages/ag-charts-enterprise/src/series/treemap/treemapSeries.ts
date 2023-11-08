@@ -564,7 +564,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
         const labelMeta = this.buildLabelMeta(bboxes);
 
         const highlightedSubtree = this.getHighlightedSubtree();
-        console.log([...highlightedSubtree]);
 
         this.updateNodeMidPoint(bboxes);
 
@@ -693,18 +692,10 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
         });
     }
 
-    private getHighlightedSubtree(): Set<Record<string, any>> {
+    private getHighlightedSubtree(): Set<_ModuleSupport.HierarchyNode> {
         const highlightedNode: _ModuleSupport.HierarchyNode | undefined =
             this.ctx.highlightManager?.getActiveHighlight() as any;
-        if (highlightedNode == null) {
-            return new Set();
-        }
-
-        const items = new Set<Record<string, any>>();
-        for (const { datum } of highlightedNode) {
-            if (datum != null) items.add(datum);
-        }
-        return items;
+        return highlightedNode != null ? new Set(highlightedNode) : new Set();
     }
 
     buildLabelMeta(bboxes: (_Scene.BBox | undefined)[]) {
