@@ -22,6 +22,8 @@ export default getViteConfig({
             '@ag-grid-types': resolvePath('src/types/ag-grid.d.ts'),
             '@utils': resolvePath('src/utils'),
             '@constants': resolvePath('src/constants.ts'),
+            'ag-charts-enterprise': resolvePath('../ag-charts-enterprise/src/main.ts'),
+            'ag-charts-community': resolvePath('../ag-charts-community/src/main.ts'),
         },
     },
 });
