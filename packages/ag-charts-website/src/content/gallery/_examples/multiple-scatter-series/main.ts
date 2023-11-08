@@ -47,7 +47,12 @@ const options: AgChartOptions = {
         },
     ],
     legend: {
-        enabled: false,
+        position: 'right',
+        item: {
+            marker: {
+                size: 5,
+            },
+        },
     },
 };
 
