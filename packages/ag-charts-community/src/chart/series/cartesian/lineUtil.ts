@@ -160,6 +160,9 @@ export function pairCategoryData(
     opts: {
         backfillSplitMode?: BackfillSplitMode;
         multiDatum?: boolean;
+        // Multiplier to align point indexes with datum indexes from the diff. For most series this
+        // is unneeded if there is a 1:1 mapping. For AreaSeries there is a 1:2 mapping, so diff indices
+        // need to be multiplied up to align with point-data indices.
         datumIndexMultiplier?: number;
     } = {}
 ) {
