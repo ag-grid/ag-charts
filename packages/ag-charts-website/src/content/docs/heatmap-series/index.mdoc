@@ -3,11 +3,13 @@ title: 'Heatmap Series'
 enterprise: true
 ---
 
-A Heatmap Series is using the colour-coding to represent numeric values in a form of a colourful matrix.
+A Heatmap Series displays data in a matrix format, using colors to denote the magnitude of the values.
 
 ## Simple Heatmap
 
-To plot a basic `heatmap` we need an array of data, where every item will have 2 category values and a single numeric value.
+{% chartExampleRunner title="Simple Heatmap" name="simple-heatmap" type="generated" /%}
+
+To create a Heatmap Series, use the `heatmap` series type.
 
 ```js
 series: [
@@ -24,20 +26,7 @@ In this configuration:
 
 -   `xKey` is set to 'month', which is the category for the X Axis.
 -   `yKey` is set to 'year', which is the category for the Y Axis.
--   `colorKey` supplies numerical values for the Colour Scale (set to 'temperature' in this example).
-
-The corresponding sample data looks like:
-
-```js
-data: [
-    { year: '2010', month: 'January', temperature: 1.2 },
-    { year: '2010', month: 'February', temperature: 1.9 },
-],
-```
-
-The following example shows a simple Heatmap Series using default options.
-
-{% chartExampleRunner title="Simple Heatmap" name="simple-heatmap" type="generated" /%}
+-   `colorKey` is set to 'temperature', which supplies numerical values for the Colour Scale.
 
 ## Customisation
 

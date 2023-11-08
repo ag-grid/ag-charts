@@ -2,7 +2,7 @@
 import * as ts from 'typescript';
 
 import { writeFile } from './executors-utils';
-import { mapTyping, resolveType } from './types-utils';
+import { TypeMapper } from './types-utils';
 
 type OptionsMode = 'debug-interfaces' | 'docs-interfaces';
 type ExecutorOptions = { mode: OptionsMode; inputs: string[]; output: string };
@@ -26,19 +26,15 @@ export default async function (options: ExecutorOptions) {
 }
 
 function generateFile(options: ExecutorOptions) {
-    const typesMap = mapTyping(options.inputs);
-    const typeEntries = Array.from(typesMap.entries()).sort();
+    const typeMapper = new TypeMapper(options.inputs);
 
     switch (options.mode) {
         // flat version of the interfaces file, without resolving
         case 'debug-interfaces':
-            return writeFile(
-                options.output,
-                typeEntries.map(([_, { node, heritage }]) => ({ ...node, heritage }))
-            );
+            return writeFile(options.output, typeMapper.entries());
 
         case 'docs-interfaces':
-            return writeFile(options.output, typeEntries.map(([name]) => resolveType(typesMap, name)).filter(Boolean));
+            return writeFile(options.output, typeMapper.resolvedEntries());
 
         default:
             throw new Error(`Unsupported mode "${options.mode}"`);

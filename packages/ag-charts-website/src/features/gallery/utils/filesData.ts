@@ -83,33 +83,29 @@ export const getChartExampleTitle = ({
 export const getGalleryExamples = ({ galleryData }: { galleryData: GalleryData }) => {
     const { series } = galleryData;
 
-    const allExamples = series.map((series) => series.examples).flat();
+    const allExamples = series.flatMap((series) => series.examples);
 
-    const galleryExamples = series
-        .map((series) => {
-            const { examples } = series;
-            return examples.map((example) => {
-                const exampleIndex = allExamples.findIndex((item) => item.name === example.name);
+    const galleryExamples = series.flatMap((series) => {
+        const { examples } = series;
+        return examples.map((example) => {
+            const exampleIndex = allExamples.findIndex((item) => item.name === example.name);
 
-                return {
-                    exampleName: example.name,
-                    page: {
-                        ...example,
-                        seriesTitle: series.title,
-                        chartSeriesName: series.name,
-                        docsUrl: getPageHashUrl({ chartSeriesName: series.name }),
-                        icon: series.icon,
-                        enterprise: series.enterprise,
-                    },
-                    prevExample: exampleIndex > 0 ? allExamples[exampleIndex - 1] : allExamples[allExamples.length - 1],
-                    nextExampleOne:
-                        allExamples.length > exampleIndex + 1 ? allExamples[exampleIndex + 1] : allExamples[0],
-                    nextExampleTwo:
-                        allExamples.length > exampleIndex + 2 ? allExamples[exampleIndex + 2] : allExamples[1],
-                };
-            });
-        })
-        .flat();
+            return {
+                exampleName: example.name,
+                page: {
+                    ...example,
+                    seriesTitle: series.title,
+                    chartSeriesName: series.name,
+                    docsUrl: getPageHashUrl({ chartSeriesName: series.name }),
+                    icon: series.icon,
+                    enterprise: series.enterprise,
+                },
+                prevExample: exampleIndex > 0 ? allExamples[exampleIndex - 1] : allExamples[allExamples.length - 1],
+                nextExampleOne: allExamples.length > exampleIndex + 1 ? allExamples[exampleIndex + 1] : allExamples[0],
+                nextExampleTwo: allExamples.length > exampleIndex + 2 ? allExamples[exampleIndex + 2] : allExamples[1],
+            };
+        });
+    });
 
     return galleryExamples;
 };

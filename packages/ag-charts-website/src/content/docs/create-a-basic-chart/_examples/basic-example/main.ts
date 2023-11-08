@@ -2,7 +2,6 @@ import { AgChart, AgChartOptions } from 'ag-charts-community';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart') as HTMLElement,
-    theme: 'ag-material-dark',
     data: [
       { month: "Jan", avgTemp: 2.3, iceCreamSales: 162 },
       { month: "Mar", avgTemp: 6.3, iceCreamSales: 302 },

@@ -144,10 +144,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
             valueProperty(this, yKey, isContinuousY, { id: 'yValue', invalidValue: undefined })
         );
 
-        await this.requestDataModel<any>(dataController, data, {
-            props,
-            dataVisible: this.visible,
-        });
+        await this.requestDataModel<any>(dataController, data, { props });
 
         this.animationState.transition('updateData');
     }
@@ -308,8 +305,11 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
             strokeOpacity: this.strokeOpacity,
             lineDash: this.lineDash,
             lineDashOffset: this.lineDashOffset,
-            visible: visible || animationEnabled,
         });
+
+        if (!animationEnabled) {
+            lineNode.visible = visible;
+        }
 
         if (lineNode.clipPath == null) {
             lineNode.clipPath = new Path2D();
@@ -513,13 +513,8 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
 
         super.resetAllAnimation(animationData);
 
-        if (
-            contextData.length === 0 ||
-            !previousContextData ||
-            previousContextData.length === 0 ||
-            !contextData.every((d) => d.animationValid) ||
-            !previousContextData.every((d) => d.animationValid)
-        ) {
+        if (contextData.length === 0 || !previousContextData || previousContextData.length === 0) {
+            animationManager.skipCurrentBatch();
             this.updateLinePaths(paths, contextData);
             return;
         }
@@ -530,6 +525,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
 
         const fns = prepareLinePathAnimation(newData, oldData, this.processedData?.reduced?.diff);
         if (fns === undefined) {
+            animationManager.skipCurrentBatch();
             this.updateLinePaths(paths, contextData);
             return;
         }

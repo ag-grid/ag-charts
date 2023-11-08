@@ -18,7 +18,7 @@ const options: AgChartOptions = {
     data: [...data],
     series: [
         {
-            type: 'line',
+            type: 'area',
             xKey: 'quarter',
             yKey: 'iphone',
             label: {

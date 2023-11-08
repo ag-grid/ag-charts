@@ -14,7 +14,13 @@ const options: AgChartOptions = {
       { month: "Nov", avgTemp: 8.9, iceCreamSales: 200 }
     ],
     series: [
-      { type: 'bar', xKey: "month", yKey: "iceCreamSales", yName: "Ice Cream Sales" }
+      { type: 'bar', xKey: "month", yKey: "iceCreamSales", yName: "Ice Cream Sales" },
+      { type: 'line', xKey: "month", yKey: "avgTemp" }
+    ],
+    axes: [
+      { type: 'category', position: 'bottom' },
+      { type: 'number', position: 'left', keys: [ 'iceCreamSales' ] },
+      { type: 'number', position: 'right', keys: [ 'avgTemp' ], label: { formatter: (params) => { return params.value + ' °C' } } }
     ],
     legend: {
       enabled: true,

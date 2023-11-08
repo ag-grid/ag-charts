@@ -4,7 +4,7 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart') as HTMLElement,
     title: { text: '' },
     subtitle: { text: '' },
-    theme: 'ag-material-dark',
+    theme: 'ag-vivid-dark',
     data: [
       { month: "Jan", avgTemp: 2.3, iceCreamSales: 162 },
       { month: "Mar", avgTemp: 6.3, iceCreamSales: 302 },
@@ -19,7 +19,7 @@ const options: AgChartOptions = {
     ],
     axes: [
       { type: 'category', position: 'bottom' },
-      { type: 'number', position: 'left', keys: [ 'iceCreamSales' ], tick: { interval: 200 } },
+      { type: 'number', position: 'left', keys: [ 'iceCreamSales' ] },
       { type: 'number', position: 'right', keys: [ 'avgTemp' ], label: { formatter: (params) => { return params.value + ' °C' } } }
     ],
     legend: {

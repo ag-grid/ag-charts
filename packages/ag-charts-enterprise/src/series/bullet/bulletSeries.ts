@@ -1,9 +1,9 @@
 import type { AgBulletSeriesTooltipRendererParams, Direction } from 'ag-charts-community';
-import { _ModuleSupport, _Scale, _Scene } from 'ag-charts-community';
+import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 const {
-    partialAssign,
     keyProperty,
+    partialAssign,
     valueProperty,
     Validate,
     COLOR_STRING,
@@ -13,12 +13,14 @@ const {
     OPT_NUMBER,
     OPT_STRING,
 } = _ModuleSupport;
+const { sanitizeHtml } = _Util;
 
 interface BulletNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
     readonly x: number;
     readonly y: number;
     readonly width: number;
     readonly height: number;
+    readonly cumulativeValue: number;
     readonly target?: {
         readonly value: number;
         readonly x1: number;
@@ -82,8 +84,6 @@ export class BulletSeries extends _ModuleSupport.CartesianSeries<BulletNode, Bul
     @Validate(OPT_ARRAY())
     colorRanges?: BulletColorRange[] = undefined;
 
-    readonly xValue: string = 'xPlaceholderValue';
-
     tooltip = new _ModuleSupport.SeriesTooltip<AgBulletSeriesTooltipRendererParams>();
 
     private normalizedColorRanges: NormalizedColorRange[] = [];
@@ -91,52 +91,68 @@ export class BulletSeries extends _ModuleSupport.CartesianSeries<BulletNode, Bul
     private colorRangesSelection: _Scene.Selection<_Scene.Rect, NormalizedColorRange>;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
-        super({ moduleCtx });
+        super({
+            moduleCtx,
+            pickModes: [_ModuleSupport.SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            hasHighlightedLabels: true,
+        });
         this.colorRangesGroup = new _Scene.Group({ name: `${this.id}-colorRanges` });
         this.colorRangesSelection = _Scene.Selection.select(this.colorRangesGroup, _Scene.Rect);
-        this.contentGroup.append(this.colorRangesGroup);
+        this.rootGroup.append(this.colorRangesGroup);
     }
 
     override destroy() {
-        this.contentGroup.removeChild(this.colorRangesGroup);
+        this.rootGroup.removeChild(this.colorRangesGroup);
         super.destroy();
     }
 
     override async processData(dataController: _ModuleSupport.DataController) {
         const { valueKey, targetKey, data = [] } = this;
-        if (!valueKey || !targetKey || !data) return;
+        if (!valueKey || !data) return;
 
         const isContinuousX = _Scale.ContinuousScale.is(this.getCategoryAxis()?.scale);
         const isContinuousY = _Scale.ContinuousScale.is(this.getValueAxis()?.scale);
 
+        const props = [
+            keyProperty(this, valueKey, isContinuousX, { id: 'xValue' }),
+            valueProperty(this, valueKey, isContinuousY, { id: 'value' }),
+        ];
+        if (targetKey !== undefined) {
+            props.push(valueProperty(this, targetKey, isContinuousY, { id: 'target' }));
+        }
+
         await this.requestDataModel<any, any, true>(dataController, data, {
-            props: [
-                keyProperty(this, valueKey, isContinuousX, { id: 'xValue' }),
-                valueProperty(this, valueKey, isContinuousY, { id: 'value' }),
-                valueProperty(this, targetKey, isContinuousY, { id: 'target' }),
-            ],
+            props,
             groupByKeys: true,
             dataVisible: this.visible,
         });
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection) {
-        const { dataModel, processedData } = this;
+        const { dataModel, processedData, targetKey } = this;
         if (!dataModel || !processedData) return [];
 
         if (direction === this.getCategoryDirection()) {
-            return [this.xValue];
+            return [this.valueName ?? this.valueKey];
         } else if (direction == this.getValueAxis()?.direction) {
             const valueDomain = dataModel.getDomain(this, 'value', 'value', processedData);
-            const targetDomain = dataModel.getDomain(this, 'target', 'value', processedData);
+            const targetDomain =
+                targetKey === undefined ? [] : dataModel.getDomain(this, 'target', 'value', processedData);
             return [0, Math.max(...valueDomain, ...targetDomain)];
         } else {
             throw new Error(`unknown direction ${direction}`);
         }
     }
 
+    override getKeys(direction: _ModuleSupport.ChartAxisDirection): string[] {
+        if (direction === this.getBarDirection()) {
+            return [this.valueKey];
+        }
+        return super.getKeys(direction);
+    }
+
     override async createNodeData() {
-        const { valueKey, dataModel, processedData } = this;
+        const { valueKey, targetKey, dataModel, processedData } = this;
         const xScale = this.getCategoryAxis()?.scale;
         const yScale = this.getValueAxis()?.scale;
         if (!valueKey || !dataModel || !processedData || !xScale || !yScale) return [];
@@ -144,7 +160,8 @@ export class BulletSeries extends _ModuleSupport.CartesianSeries<BulletNode, Bul
         this.colorRangesGroup.visible = this.colorRanges !== undefined;
 
         const valueIndex = dataModel.resolveProcessedDataIndexById(this, 'value').index;
-        const targetIndex = dataModel.resolveProcessedDataIndexById(this, 'target').index;
+        const targetIndex =
+            targetKey === undefined ? NaN : dataModel.resolveProcessedDataIndexById(this, 'target').index;
         const context: _ModuleSupport.CartesianSeriesNodeDataContext<BulletNodeDatum> = {
             itemId: valueKey,
             nodeData: [],
@@ -153,7 +170,7 @@ export class BulletSeries extends _ModuleSupport.CartesianSeries<BulletNode, Bul
             visible: this.visible,
         };
         for (const { datum, values } of processedData.data) {
-            const xValue = this.xValue;
+            const xValue = this.valueName ?? this.valueKey;
             const yValue = values[0][valueIndex];
             const x = xScale.convert(xValue);
             const y = yScale.convert(yValue);
@@ -191,6 +208,7 @@ export class BulletSeries extends _ModuleSupport.CartesianSeries<BulletNode, Bul
                 xValue,
                 yKey: valueKey,
                 yValue,
+                cumulativeValue: yValue,
                 target,
                 ...rect,
                 midPoint: { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 },
@@ -218,11 +236,33 @@ export class BulletSeries extends _ModuleSupport.CartesianSeries<BulletNode, Bul
         legendType as any;
         return [];
     }
+
     override getTooltipHtml(nodeDatum: BulletNodeDatum): string {
-        // TODO(olegat)
-        nodeDatum as any;
-        return '';
+        const { valueKey, valueName, targetKey, targetName } = this;
+        const axis = this.getValueAxis();
+        const { yValue: valueValue, target: { value: targetValue } = { value: undefined }, datum } = nodeDatum;
+
+        if (valueKey === undefined || valueValue === undefined || axis === undefined) {
+            return '';
+        }
+
+        const makeLine = (key: string, name: string | undefined, value: number) => {
+            const nameString = sanitizeHtml(name ?? key);
+            const valueString = sanitizeHtml(axis.formatDatum(value));
+            return `<b>${nameString}</b>: ${valueString}`;
+        };
+        const title = undefined;
+        const content =
+            targetKey === undefined || targetValue === undefined
+                ? makeLine(valueKey, valueName, valueValue)
+                : `${makeLine(valueKey, valueName, valueValue)}<br/>${makeLine(targetKey, targetName, targetValue)}`;
+
+        return this.tooltip.toTooltipHtml(
+            { title, content },
+            { datum, title, seriesId: this.id, valueKey, valueName, targetKey, targetName }
+        );
     }
+
     protected override isLabelEnabled() {
         // TODO(olegat)
         return false;

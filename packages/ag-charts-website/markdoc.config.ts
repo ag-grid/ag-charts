@@ -1,6 +1,7 @@
 import { component, defineMarkdocConfig, nodes } from '@astrojs/markdoc/config';
 
 import prism from './src/astro/plugins/prism';
+import { DOCS_TAB_ITEM_ID_PREFIX } from './src/constants';
 
 export default defineMarkdocConfig({
     extends: [prism()],
@@ -100,6 +101,12 @@ export default defineMarkdocConfig({
         },
         tabs: {
             render: component('./src/components/tabs/TabsWithHtmlChildren.astro'),
+            attributes: {
+                tabItemIdPrefix: {
+                    type: String,
+                    default: DOCS_TAB_ITEM_ID_PREFIX,
+                },
+            },
         },
         tabItem: {
             render: component('./src/components/tabs/TabHtmlContent', 'TabHtmlContent'),

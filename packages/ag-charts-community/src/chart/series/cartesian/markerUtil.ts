@@ -72,16 +72,20 @@ export function resetMarkerPositionFn<T extends CartesianSeriesNodeDatum>(_node:
     };
 }
 
-export function prepareMarkerAnimation(pairMap: PathPointMap, parentStatus: NodeUpdateState) {
+export function prepareMarkerAnimation(pairMap: PathPointMap<any>, parentStatus: NodeUpdateState) {
+    const readFirstPair = (xValue: string, type: keyof typeof pairMap) => {
+        const val = pairMap[type][xValue];
+        return Array.isArray(val) ? val[0] : val;
+    };
     const markerStatus = (datum: PathNodeDatumLike): { point?: PathPoint; status: NodeUpdateState } => {
         const { xValue } = datum;
 
         if (pairMap.moved[xValue]) {
-            return { point: pairMap.moved[xValue], status: 'updated' };
+            return { point: readFirstPair(xValue, 'moved'), status: 'updated' };
         } else if (pairMap.removed[xValue]) {
-            return { point: pairMap.removed[xValue], status: 'removed' };
+            return { point: readFirstPair(xValue, 'removed'), status: 'removed' };
         } else if (pairMap.added[xValue]) {
-            return { point: pairMap.added[xValue], status: 'added' };
+            return { point: readFirstPair(xValue, 'added'), status: 'added' };
         }
 
         return { status: 'unknown' };
@@ -97,8 +101,17 @@ export function prepareMarkerAnimation(pairMap: PathPointMap, parentStatus: Node
             ...FROM_TO_MIXINS[status],
         };
 
-        if (status === 'added' || parentStatus === 'added') {
-            return { ...defaults, opacity: 0 };
+        if (parentStatus === 'added') {
+            return {
+                ...defaults,
+                opacity: 0,
+                translationX: point?.to?.x,
+                translationY: point?.to?.y,
+                ...FROM_TO_MIXINS['added'],
+            };
+        }
+        if (status === 'added') {
+            defaults.opacity = 0;
         }
 
         return defaults;
@@ -108,10 +121,21 @@ export function prepareMarkerAnimation(pairMap: PathPointMap, parentStatus: Node
         const { status, point } = markerStatus(datum);
         if (status === 'unknown') return { opacity: 0 };
 
-        const defaults = { translationX: datum.point.x, translationY: datum.point.y, opacity: 1 };
+        const defaults = {
+            translationX: datum.point.x,
+            translationY: datum.point.y,
+            opacity: 1,
+            ...FROM_TO_MIXINS[status],
+        };
 
         if (status === 'removed' || parentStatus === 'removed') {
-            return { ...defaults, translationX: point?.to?.x, translationY: point?.to?.y, opacity: 0 };
+            return {
+                ...defaults,
+                translationX: point?.to?.x,
+                translationY: point?.to?.y,
+                opacity: 0,
+                ...FROM_TO_MIXINS['removed'],
+            };
         }
 
         return defaults;

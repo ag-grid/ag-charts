@@ -28,6 +28,7 @@ import type { DataController } from '../../data/dataController';
 import type { DatumPropertyDefinition } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
 import { normaliseGroupTo } from '../../data/processors';
+import { diff } from '../../data/processors';
 import { Label } from '../../label';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
@@ -130,6 +131,7 @@ export class AreaSeries extends CartesianSeries<
 
         if (xKey == null || yKey == null || data == null) return;
 
+        const animationEnabled = !this.ctx.animationManager.isSkipped();
         const { isContinuousX, isContinuousY } = this.isContinuous();
         const ids = [
             `area-stack-${groupIndex}-yValues`,
@@ -144,6 +146,14 @@ export class AreaSeries extends CartesianSeries<
         if (normaliseTo) {
             extraProps.push(normaliseGroupTo(this, [ids[0], ids[1], ids[4]], normaliseTo, 'range'));
             extraProps.push(normaliseGroupTo(this, [ids[2], ids[3]], normaliseTo, 'range'));
+        }
+
+        // If two or more datums share an x-value, i.e. lined up vertically, they will have the same datum id.
+        // They must be identified this way when animated to ensure they can be tracked when their y-value
+        // is updated. If this is a static chart, we can instead not bother with identifying datums and
+        // automatically garbage collect the marker selection.
+        if (!isContinuousX && animationEnabled && this.processedData) {
+            extraProps.push(diff(this.processedData));
         }
 
         const common: Partial<DatumPropertyDefinition<unknown>> = { invalidValue: null };
@@ -690,13 +700,8 @@ export class AreaSeries extends CartesianSeries<
 
         super.resetAllAnimation(animationData);
 
-        if (
-            contextData.length === 0 ||
-            !previousContextData ||
-            previousContextData.length === 0 ||
-            !contextData.every((d) => d.animationValid) ||
-            !previousContextData.every((d) => d.animationValid)
-        ) {
+        if (contextData.length === 0 || !previousContextData || previousContextData.length === 0) {
+            animationManager.skipCurrentBatch();
             this.updateAreaPaths(paths, contextData);
             return;
         }
@@ -707,6 +712,7 @@ export class AreaSeries extends CartesianSeries<
 
         const fns = prepareAreaPathAnimation(newData, oldData, this.processedData?.reduced?.diff);
         if (fns === undefined) {
+            animationManager.skipCurrentBatch();
             this.updateAreaPaths(paths, contextData);
             return;
         }

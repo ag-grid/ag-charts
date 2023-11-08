@@ -1,4 +1,10 @@
-import type { AgErrorBarFormatterParams, AgErrorBarOptions, AgErrorBarThemeableOptions } from 'ag-charts-community';
+import type {
+    AgErrorBarCapFormatter,
+    AgErrorBarFormatter,
+    AgErrorBarFormatterParams,
+    AgErrorBarOptions,
+    AgErrorBarThemeableOptions,
+} from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 const { partialAssign, mergeDefaults } = _ModuleSupport;
@@ -8,26 +14,17 @@ type Point = _Scene.Point;
 type NearestResult<T> = _Scene.NearestResult<T>;
 
 export type ErrorBarNodeDatum = _ModuleSupport.CartesianSeriesNodeDatum & _ModuleSupport.ErrorBoundSeriesNodeDatum;
-
-interface ErrorBarPoint {
-    readonly lowerPoint: _Scene.Point;
-    readonly upperPoint: _Scene.Point;
-}
-
-export interface ErrorBarPoints {
-    readonly xBar?: ErrorBarPoint;
-    readonly yBar?: ErrorBarPoint;
-}
-
 export type ErrorBarStylingOptions = Omit<AgErrorBarThemeableOptions, 'cap'>;
-export type ErrorBarFormatter = (params: AgErrorBarFormatterParams) => AgErrorBarOptions | undefined;
-export type ErrorBarCapFormatter = (params: AgErrorBarFormatterParams) => AgErrorBarOptions['cap'] | undefined;
-export type ErrorBarDataOptions = Pick<
+
+type ErrorBarDataOptions = Pick<
     AgErrorBarOptions,
     'xLowerKey' | 'xLowerName' | 'xUpperKey' | 'xUpperName' | 'yLowerKey' | 'yLowerName' | 'yUpperKey' | 'yUpperName'
 >;
 
-type Formatters = { formatter?: ErrorBarFormatter; cap: { formatter?: ErrorBarCapFormatter } } & ErrorBarDataOptions;
+type Formatters = {
+    formatter?: AgErrorBarFormatter;
+    cap: { formatter?: AgErrorBarCapFormatter };
+} & ErrorBarDataOptions;
 
 type CapDefaults = NonNullable<ErrorBarNodeDatum['capDefaults']>;
 type CapOptions = NonNullable<AgErrorBarThemeableOptions['cap']>;
@@ -97,7 +94,7 @@ export class ErrorBarNode extends _Scene.Group {
         return Math.min(desiredLength, lengthMax);
     }
 
-    private getFormatterParams(formatters: Formatters): AgErrorBarFormatterParams | undefined {
+    private getFormatterParams(formatters: Formatters, highlighted: boolean): AgErrorBarFormatterParams | undefined {
         const { datum } = this;
         if (datum === undefined || (formatters.formatter === undefined && formatters.cap.formatter === undefined)) {
             return undefined;
@@ -117,13 +114,14 @@ export class ErrorBarNode extends _Scene.Group {
             yLowerName,
             yUpperKey,
             yUpperName,
+            highlighted,
         };
     }
 
-    private formatStyles(style: AgErrorBarThemeableOptions, formatters: Formatters) {
+    private formatStyles(style: AgErrorBarThemeableOptions, formatters: Formatters, highlighted: boolean) {
         let { cap: capsStyle, ...whiskerStyle } = style;
 
-        const params = this.getFormatterParams(formatters);
+        const params = this.getFormatterParams(formatters, highlighted);
         if (params !== undefined) {
             if (formatters.formatter !== undefined) {
                 const result = formatters.formatter(params);
@@ -151,13 +149,13 @@ export class ErrorBarNode extends _Scene.Group {
         );
     }
 
-    update(style: AgErrorBarThemeableOptions, formatters: Formatters) {
+    update(style: AgErrorBarThemeableOptions, formatters: Formatters, highlighted: boolean) {
         // Note: The method always uses the RedrawType.MAJOR mode for simplicity.
         // This could be optimised to reduce a amount of unnecessary redraws.
         if (this.datum === undefined) {
             return;
         }
-        const { whiskerStyle, capsStyle } = this.formatStyles(style, formatters);
+        const { whiskerStyle, capsStyle } = this.formatStyles(style, formatters, highlighted);
 
         const { xBar, yBar, capDefaults } = this.datum;
 

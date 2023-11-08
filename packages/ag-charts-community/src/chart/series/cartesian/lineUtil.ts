@@ -159,14 +159,45 @@ export function pairCategoryData(
     diff: ProcessedOutputDiff,
     opts: {
         backfillSplitMode?: BackfillSplitMode;
+        multiDatum?: boolean;
+        // Multiplier to align point indexes with datum indexes from the diff. For most series this
+        // is unneeded if there is a 1:1 mapping. For AreaSeries there is a 1:2 mapping, so diff indices
+        // need to be multiplied up to align with point-data indices.
+        datumIndexMultiplier?: number;
     } = {}
 ) {
-    const { backfillSplitMode = 'intersect' } = opts;
+    const { backfillSplitMode = 'intersect', multiDatum = false, datumIndexMultiplier = 1 } = opts;
     const result: PathPoint[] = [];
-    const resultMap: PathPointMap = {
+    const resultMapSingle: PathPointMap<false> = {
         added: {},
         moved: {},
         removed: {},
+    };
+    const resultMapMulti: PathPointMap<true> = {
+        added: {},
+        moved: {},
+        removed: {},
+    };
+
+    const addToResultMap = (xValue: string, type: keyof PathPointMap, result: PathPoint) => {
+        if (multiDatum) {
+            resultMapMulti[type][xValue] ??= [];
+            resultMapMulti[type][xValue].push(result);
+        } else {
+            resultMapSingle[type][xValue] = result;
+        }
+    };
+
+    const getFirstWithoutTo = (xValue: string, type: keyof PathPointMap) => {
+        if (multiDatum) {
+            for (const result of resultMapMulti[type][xValue]) {
+                if (result.to == null) {
+                    return result;
+                }
+            }
+            return undefined;
+        }
+        return resultMapSingle[type][xValue];
     };
 
     // Process oldData first to maintain old order if possible.
@@ -178,14 +209,14 @@ export function pairCategoryData(
                 moveTo: next.point.moveTo ?? false,
                 from: next.point,
             };
-            resultMap.removed[next.xValue] = resultPoint;
+            addToResultMap(next.xValue, 'removed', resultPoint);
         } else {
             resultPoint = {
                 change: 'move',
                 moveTo: next.point.moveTo ?? false,
                 from: next.point,
             };
-            resultMap.moved[next.xValue] = resultPoint;
+            addToResultMap(next.xValue, 'moved', resultPoint);
         }
         result.push(resultPoint);
     }
@@ -199,12 +230,14 @@ export function pairCategoryData(
                 moveTo: next.point.moveTo ?? false,
                 to: next.point,
             };
-            resultMap.added[next.xValue] = resultPoint;
-            result.splice(diff.addedIndices[addedIdx], 0, resultPoint);
+            addToResultMap(next.xValue, 'added', resultPoint);
+            result.splice(diff.addedIndices[addedIdx] * datumIndexMultiplier, 0, resultPoint);
         } else {
-            const moved = resultMap.moved[next.xValue];
-            moved.to = next.point;
-            moved.moveTo = calculateMoveTo(!!moved.moveTo, next.point.moveTo);
+            const moved = getFirstWithoutTo(next.xValue, 'moved');
+            if (moved) {
+                moved.to = next.point;
+                moved.moveTo = calculateMoveTo(!!moved.moveTo, next.point.moveTo);
+            }
         }
     }
 
@@ -223,7 +256,10 @@ export function pairCategoryData(
 
     backfillPathPointData(result, backfillSplitMode);
 
-    return { result, resultMap };
+    if (multiDatum) {
+        return { result, resultMap: resultMapMulti };
+    }
+    return { result, resultMap: resultMapSingle };
 }
 
 export function determinePathStatus(newData: LineContextLike, oldData: LineContextLike) {
@@ -242,12 +278,22 @@ export function determinePathStatus(newData: LineContextLike, oldData: LineConte
 }
 
 function prepareLinePathPropertyAnimation(status: NodeUpdateState, visibleToggleMode: 'fade' | 'none') {
+    const phase: NodeUpdateState = visibleToggleMode === 'none' ? 'updated' : status;
+
     const result = {
         fromFn: (_path: Path) => {
-            return { ...FROM_TO_MIXINS[status] };
+            let mixin;
+            if (status === 'removed') {
+                mixin = { finish: { visible: false } };
+            } else if (status === 'added') {
+                mixin = { start: { visible: true } };
+            } else {
+                mixin = {};
+            }
+            return { ...FROM_TO_MIXINS[phase], ...mixin };
         },
         toFn: (_path: Path) => {
-            return { ...FROM_TO_MIXINS[status] };
+            return { ...FROM_TO_MIXINS[phase] };
         },
     };
 

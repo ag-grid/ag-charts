@@ -297,6 +297,12 @@ class AnimationBatch {
     }
 
     skip(skip = true) {
+        if (this.skipAnimations === false && skip === true) {
+            for (const controller of this.controllers.values()) {
+                controller.stop();
+            }
+            this.controllers.clear();
+        }
         this.skipAnimations = skip;
     }
 

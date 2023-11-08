@@ -28,6 +28,7 @@ export interface InterfaceNode {
     docs?: string[];
     members: MemberNode[];
     typeParams?: TypeParameterNode[];
+    genericsMap?: Record<string, string>;
 }
 
 export interface TypeAliasNode {
@@ -46,7 +47,7 @@ export interface TypeLiteralNode {
 export interface TypeReferenceNode {
     kind: 'typeRef';
     type: string;
-    typeParams?: TypeParameterNode[];
+    typeArguments?: Array<string | TypeReferenceNode>;
 }
 
 export interface EnumNode {

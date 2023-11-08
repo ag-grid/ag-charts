@@ -896,6 +896,10 @@ export abstract class CartesianSeries<
         if (marker) {
             resetMotion(data.markerSelections, marker);
         }
+
+        if (data.contextData.some((d) => d.animationValid === false)) {
+            this.ctx.animationManager.skipCurrentBatch();
+        }
     }
 
     protected animateEmptyUpdateReady(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
