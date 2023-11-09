@@ -1,16 +1,8 @@
 ---
-import type { ApiMenuItem } from '@ag-grid-types';
-import { ApiTopBar } from '@components/top-bar/ApiTopBar';
 import Layout from '@layouts/Layout.astro';
-import { getEntry } from 'astro:content';
-
-const { pathname } = Astro.url;
-const menuData = await getEntry('menu', 'data');
-const apiMenuItems = menuData.data.api.items as ApiMenuItem[];
 ---
 
 <Layout>
-    <ApiTopBar menuItems={apiMenuItems} fullPath={pathname} />
     <div id="top" class="container">
         <slot />
     </div>
@@ -27,5 +19,6 @@ const apiMenuItems = menuData.data.api.items as ApiMenuItem[];
         display: flex;
         flex-direction: row;
         position: relative;
+        width: 100%;
     }
 </style>

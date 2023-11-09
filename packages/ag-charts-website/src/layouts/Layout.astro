@@ -8,6 +8,9 @@ import { TopBar } from '@components/top-bar/TopBar';
 import { FRAMEWORKS } from '@constants';
 import { getFrameworkFromPath } from '@features/docs/utils/urlPaths';
 import { getIsDev, getIsStaging } from '@utils/env';
+import type { ApiMenuItem } from '@ag-grid-types';
+import { urlWithBaseUrl } from '@utils/pages';
+import { ApiTopBar } from '@components/top-bar/ApiTopBar';
 
 export interface Props {
     title?: string;
@@ -25,6 +28,16 @@ const framework = getFrameworkFromPath(path);
 
 const isDev = getIsDev();
 const isStaging = getIsStaging();
+
+const menuData = await getEntry('menu', 'data');
+const apiMenuItems = menuData.data.api.items as ApiMenuItem[];
+
+const isApiLayout = apiMenuItems.some((item) => {
+    const removeTrailingSlash = (s: string) => s.replace(/\/$/, '');
+    const currentPath = removeTrailingSlash(path);
+    const itemPath = removeTrailingSlash(urlWithBaseUrl(item.path));
+    return currentPath.startsWith(itemPath);
+});
 ---
 
 <!doctype html>
@@ -63,7 +76,7 @@ const isStaging = getIsStaging();
         <div class="mainContainer">
             <SiteHeader />
             {
-                showTopBar && (
+                showTopBar && !isApiLayout && (
                     <TopBar
                         client:load
                         frameworks={frameworks}
@@ -73,6 +86,7 @@ const isStaging = getIsStaging();
                     />
                 )
             }
+            {isApiLayout && <ApiTopBar menuItems={apiMenuItems} fullPath={path} />}
 
             <div class="contentViewport">
                 <slot name="aside" />

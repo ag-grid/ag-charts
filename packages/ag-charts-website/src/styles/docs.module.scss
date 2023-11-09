@@ -50,6 +50,7 @@
 
 .docPageWrapper {
     --docs-page-max-width: 68em;
+    --horizontal-padding: max(calc((100vw - var(--max-page-width)) / 2), var(--horizontal-margin));
 
     display: flex;
     justify-content: space-between;
@@ -65,6 +66,10 @@
 
     @media screen and (min-width: $breakpoint-docs-nav-extra-large) {
         --docs-page-max-width: 74em;
+    }
+
+    &.hidePageMenu {
+        padding-left: var(--horizontal-padding);
     }
 }
 

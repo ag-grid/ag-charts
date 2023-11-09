@@ -18,7 +18,7 @@ export async function getStaticPaths() {
 const { page } = Astro.props;
 const framework = Astro.params.framework as Framework;
 const pageName = Astro.params.pageName as Framework;
-const { title, enterprise, sideMenu = true } = page.data;
+const { title, enterprise, sideMenu = true, hidePageMenu } = page.data;
 
 const { Content, headings } = await page.render();
 const extendedHeadings = addTabsToHeadings({
@@ -31,9 +31,27 @@ const menuEntry = await getEntry('menu', 'data');
 ---
 
 <Layout title={`${getFrameworkDisplayText(framework)} Charts: AG Charts`} showTopBar={true}>
-    <PagesNavigation client:load slot="aside" menuData={menuEntry.data} framework={framework} pageName={pageName} />
+    {
+        !hidePageMenu && (
+            <PagesNavigation
+                client:load
+                slot="aside"
+                menuData={menuEntry.data}
+                framework={framework}
+                pageName={pageName}
+            />
+        )
+    }
 
-    <div id="doc-page-wrapper" class="docPageWrapper">
+    <div
+        id="doc-page-wrapper"
+        class:list={[
+            'docPageWrapper',
+            {
+                hidePageMenu,
+            },
+        ]}
+    >
         <div
             id="doc-content"
             class:list={[
