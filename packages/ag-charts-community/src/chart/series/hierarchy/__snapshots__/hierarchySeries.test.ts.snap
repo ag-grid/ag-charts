@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`hierarchySeries Creates a hierarchy 1`] = `
+exports[`HierarchySeries creates a hierarchy 1`] = `
 HierarchyNode {
   "children": [
     HierarchyNode {
