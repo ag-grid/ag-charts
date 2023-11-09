@@ -392,6 +392,7 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
                     yKey,
                     xName: this.xName,
                     yName: this.yName,
+                    legendItemName: this.legendItemName,
                 },
                 (value) => (isNumber(value) ? value.toFixed(2) : '')
             );

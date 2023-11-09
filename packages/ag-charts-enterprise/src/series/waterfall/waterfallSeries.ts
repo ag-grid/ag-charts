@@ -480,9 +480,9 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
             const labelText = this.getLabelText(
                 label,
                 {
+                    itemId: itemId === 'subtotal' ? 'total' : itemId,
                     value,
                     datum,
-                    itemId,
                     xKey,
                     yKey,
                     xName: this.xName,

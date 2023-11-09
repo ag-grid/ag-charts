@@ -120,8 +120,6 @@ export interface AgPieSeriesOptions<TDatum = any>
     type: 'pie';
     /** Configuration for the text lines to display inside the series, typically used when rendering a doughnut chart */
     innerLabels?: AgDoughnutInnerLabel[];
-    /** The key to use to retrieve legend item labels from the data. If multiple pie series share this key they will be merged in the legend. */
-    legendItemKey?: string;
 }
 
 export interface AgPieSeriesOptionsKeys {
@@ -133,6 +131,8 @@ export interface AgPieSeriesOptionsKeys {
     calloutLabelKey?: string;
     /** The key to use to retrieve sector label values from the data. */
     sectorLabelKey?: string;
+    /** The key to use to retrieve legend item labels from the data. If multiple pie series share this key they will be merged in the legend. */
+    legendItemKey?: string;
 }
 
 export interface AgPieSeriesOptionsNames {
