@@ -459,6 +459,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         } = this;
         const diff = processedData?.reduced?.diff;
 
+        this.ctx.animationManager.stopByAnimationGroupId(this.id);
+
         const fns = prepareRadialBarSeriesAnimationFunctions(this.axes);
         motion.fromToMotion(
             this.id,

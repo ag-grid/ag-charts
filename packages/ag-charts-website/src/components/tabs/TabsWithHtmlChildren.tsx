@@ -51,7 +51,9 @@ function useShowHtmlChildrenContent({ selected }: { selected: TabData }) {
         document.querySelectorAll(`[${TAB_ID_PROP}]`).forEach((el) => ((el as HTMLElement).style.display = 'none'));
 
         const selectedTab = document.querySelector(`[${TAB_ID_PROP}="${selected.id}"]`);
-        (selectedTab as HTMLElement).style.display = 'block';
+        if (selectedTab) {
+            (selectedTab as HTMLElement).style.display = 'block';
+        }
     }, [selected]);
 }
 

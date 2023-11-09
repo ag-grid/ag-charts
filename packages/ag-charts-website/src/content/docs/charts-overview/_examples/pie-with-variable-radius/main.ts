@@ -1,4 +1,5 @@
 import { AgChart, AgChartOptions } from 'ag-charts-community';
+
 import { getData } from './data';
 
 const numFormatter = new Intl.NumberFormat('en-US');
@@ -43,18 +44,18 @@ const options: AgChartOptions = {
                 strokeWidth: 1,
                 colors: ['black'],
             },
-            fills: [
-                '#fb7451',
-                '#f4b944',
-                '#49afda',
-            ],
+            fills: ['#fb7451', '#f4b944', '#49afda'],
             strokeWidth: 0,
             tooltip: {
                 renderer: ({ datum, color }) => {
                     return [
                         `<div style="background-color: ${color}; padding: 4px 8px; border-top-left-radius: 5px; border-top-right-radius: 5px; font-weight: bold; color: white;">${datum['country']}</div>`,
-                        `<div style="padding: 4px 8px"><strong>Population:</strong> ${numFormatter.format(datum['population'])}</div>`,
-                        `<div style="padding: 4px 8px"><strong>GDP per Capita:</strong> ${usdFormatter.format(datum['gdpPerCapita'])}</div>`,
+                        `<div style="padding: 4px 8px"><strong>Population:</strong> ${numFormatter.format(
+                            datum['population']
+                        )}</div>`,
+                        `<div style="padding: 4px 8px"><strong>GDP per Capita:</strong> ${usdFormatter.format(
+                            datum['gdpPerCapita']
+                        )}</div>`,
                     ].join('\n');
                 },
             },

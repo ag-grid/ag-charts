@@ -1,35 +1,36 @@
-import { AgChart, AgChartOptions } from "ag-charts-community";
-import { getData } from "./data";
+import { AgChart, AgChartOptions } from 'ag-charts-community';
+
+import { getData } from './data';
 
 const options: AgChartOptions = {
-  container: document.getElementById('myChart'),
-  title: {
-    text: 'Sales by Month',
-  },
-  data: getData(),
-  series: [
-    {
-      type: 'area',
-      xKey: 'month',
-      yKey: 'subscriptions',
-      yName: 'Subscriptions',
-      stacked: true,
+    container: document.getElementById('myChart'),
+    title: {
+        text: 'Sales by Month',
     },
-    {
-      type: 'area',
-      xKey: 'month',
-      yKey: 'services',
-      yName: 'Services',
-      stacked: true,
-    },
+    data: getData(),
+    series: [
         {
-      type: 'area',
-      xKey: 'month',
-      yKey: 'products',
-      yName: 'Products',
-      stacked: true,
-    },
-  ],
-}
+            type: 'area',
+            xKey: 'month',
+            yKey: 'subscriptions',
+            yName: 'Subscriptions',
+            stacked: true,
+        },
+        {
+            type: 'area',
+            xKey: 'month',
+            yKey: 'services',
+            yName: 'Services',
+            stacked: true,
+        },
+        {
+            type: 'area',
+            xKey: 'month',
+            yKey: 'products',
+            yName: 'Products',
+            stacked: true,
+        },
+    ],
+};
 
-AgChart.create(options)
+AgChart.create(options);

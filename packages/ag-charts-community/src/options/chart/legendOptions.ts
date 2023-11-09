@@ -74,7 +74,7 @@ export interface AgChartLegendListeners {
 }
 
 export interface AgChartLegendOptions {
-    /** Whether or not to show the legend. By default, the chart displays a legend when there is more than one series present. */
+    /** Whether to show the legend. By default, the chart displays a legend when there is more than one series present. */
     enabled?: boolean;
     /** Where the legend should show in relation to the chart. */
     position?: AgChartLegendPosition;
@@ -92,11 +92,12 @@ export interface AgChartLegendOptions {
     reverseOrder?: boolean;
     /** Optional callbacks for specific legend-related events. */
     listeners?: AgChartLegendListeners;
+    /** Configuration for the pagination controls. */
     pagination?: AgChartLegendPaginationOptions;
 }
 
 export interface AgChartLegendPaginationOptions {
-    /** Configuration for the pagination markers. */
+    /** Configuration for the pagination buttons. */
     marker?: AgPaginationMarkerOptions;
     /** Configuration for pagination buttons when a button is active. */
     activeStyle?: AgPaginationMarkerStyle;

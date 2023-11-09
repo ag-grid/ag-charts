@@ -63,7 +63,7 @@ export function getHelium() {
             pressure: 1.2,
             pressureLower: 1.1,
             pressureUpper: 1.4,
-        }
+        },
     ];
 }
 

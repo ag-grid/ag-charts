@@ -342,12 +342,13 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
         const yRawIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-raw`).index;
         const yStartIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-start`).index;
         const yEndIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-end`).index;
+        const animationEnabled = !this.ctx.animationManager.isSkipped();
         const context: CartesianSeriesNodeDataContext<BarNodeDatum> = {
             itemId: yKey,
             nodeData: [],
             labelData: [],
             scales: super.calculateScaling(),
-            visible: this.visible,
+            visible: this.visible || animationEnabled,
         };
         processedData?.data.forEach(({ keys, datum: seriesDatum, values }) => {
             const xValue = keys[xIndex];
@@ -391,6 +392,7 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
                     yKey,
                     xName: this.xName,
                     yName: this.yName,
+                    legendItemName: this.legendItemName,
                 },
                 (value) => (isNumber(value) ? value.toFixed(2) : '')
             );
@@ -628,12 +630,16 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
             collapsedStartingBarPosition(this.direction === 'vertical', this.axes)
         );
 
-        fromToMotion(this.id, 'empty-update-ready', this.ctx.animationManager, datumSelections, fns);
+        fromToMotion(this.id, 'nodes', this.ctx.animationManager, datumSelections, fns);
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
         seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, annotationSelections);
     }
 
-    override animateWaitingUpdateReady({ datumSelections, labelSelections, annotationSelections }: BarAnimationData) {
+    override animateWaitingUpdateReady(data: BarAnimationData) {
+        const { datumSelections, labelSelections, annotationSelections } = data;
+
+        this.ctx.animationManager.stopByAnimationGroupId(this.id);
+
         const diff = this.processedData?.reduced?.diff;
         const fns = prepareBarAnimationFunctions(
             collapsedStartingBarPosition(this.direction === 'vertical', this.axes)
@@ -641,7 +647,7 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
 
         fromToMotion(
             this.id,
-            'waiting-update-ready',
+            'nodes',
             this.ctx.animationManager,
             datumSelections,
             fns,

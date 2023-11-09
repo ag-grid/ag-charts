@@ -1,4 +1,5 @@
-import { AgEnterpriseCharts, AgChartOptions } from 'ag-charts-enterprise';
+import { AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+
 import { getData } from './data';
 
 const options: AgChartOptions = {
@@ -26,7 +27,7 @@ const options: AgChartOptions = {
             type: 'number',
             title: {
                 text: 'Engine Size (Cubic Inches)',
-            }
+            },
         },
         {
             position: 'left',

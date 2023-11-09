@@ -1,4 +1,12 @@
 {
+    "api": {
+        "items": [
+            { "title": "Options API", "path": "/options" },
+            { "title": "Themes API", "path": "/themes-api" },
+            { "title": "Chart API", "path": "/javascript/api-create-update" },
+            { "title": "Events API", "path": "/javascript/events" }
+        ]
+    },
     "main": {
         "items": [
             {
@@ -44,8 +52,6 @@
                     { "title": "Formatters", "path": "formatters" },
                     { "title": "Cross lines", "path": "axes-cross-lines" },
                     { "title": "Download", "path": "api-download" },
-                    { "title": "Create / Update", "path": "api-create-update" },
-                    { "title": "Events", "path": "events" },
                     { "title": "Navigator", "path": "navigator", "isEnterprise": true },
                     {
                         "title": "Crosshairs",

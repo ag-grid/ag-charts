@@ -1,4 +1,5 @@
-import { AgEnterpriseCharts, AgChartOptions } from 'ag-charts-enterprise';
+import { AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+
 import { getData } from './data';
 
 const options: AgChartOptions = {
@@ -21,10 +22,10 @@ const options: AgChartOptions = {
         marker: {
             size: 20,
             maxSize: 60,
-            domain: [2000000, 1200000000]
+            domain: [2000000, 1200000000],
         },
         label: {
-            formatter: ({ datum: { ranking, title } }) => `${ranking}. ${title}`
+            formatter: ({ datum: { ranking, title } }) => `${ranking}. ${title}`,
         },
     })),
     axes: [
@@ -37,7 +38,7 @@ const options: AgChartOptions = {
             gridLine: {
                 enabled: false,
             },
-            nice: false
+            nice: false,
         },
         {
             position: 'left',

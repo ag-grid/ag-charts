@@ -521,6 +521,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
             calloutLabelName: this.calloutLabelName,
             sectorLabelKey: this.sectorLabelKey,
             sectorLabelName: this.sectorLabelName,
+            legendItemKey: this.legendItemKey,
         };
 
         const result: {
@@ -1465,6 +1466,8 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         const { itemSelection, highlightSelection, processedData } = this;
         const { animationManager } = this.ctx;
         const diff = processedData?.reduced?.diff;
+
+        this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
         const fns = preparePieSeriesAnimationFunctions(this.rotation);
         fromToMotion(

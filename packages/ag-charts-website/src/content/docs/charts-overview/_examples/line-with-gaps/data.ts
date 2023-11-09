@@ -18,7 +18,7 @@ export function getData(): any[] {
             windwardIsles: null,
             guatemala: null,
             nicaragua: null,
-            brazil: null
+            brazil: null,
         },
         {
             week: 2,
@@ -37,7 +37,7 @@ export function getData(): any[] {
             windwardIsles: null,
             guatemala: null,
             nicaragua: null,
-            brazil: null
+            brazil: null,
         },
         {
             week: 3,
@@ -56,7 +56,7 @@ export function getData(): any[] {
             windwardIsles: null,
             guatemala: null,
             nicaragua: null,
-            brazil: null
+            brazil: null,
         },
         {
             week: 4,
@@ -75,7 +75,7 @@ export function getData(): any[] {
             windwardIsles: null,
             guatemala: null,
             nicaragua: null,
-            brazil: null
+            brazil: null,
         },
         {
             week: 5,
@@ -94,7 +94,7 @@ export function getData(): any[] {
             windwardIsles: null,
             guatemala: null,
             nicaragua: 0.74,
-            brazil: null
+            brazil: null,
         },
         {
             week: 6,
@@ -113,7 +113,7 @@ export function getData(): any[] {
             windwardIsles: null,
             guatemala: 0.74,
             nicaragua: null,
-            brazil: null
+            brazil: null,
         },
         {
             week: 7,
@@ -132,7 +132,7 @@ export function getData(): any[] {
             windwardIsles: null,
             guatemala: 0.74,
             nicaragua: null,
-            brazil: null
+            brazil: null,
         },
         {
             week: 8,
@@ -151,7 +151,7 @@ export function getData(): any[] {
             windwardIsles: 0.44,
             guatemala: 0.75,
             nicaragua: null,
-            brazil: null
+            brazil: null,
         },
         {
             week: 9,
@@ -170,7 +170,7 @@ export function getData(): any[] {
             windwardIsles: 0.33,
             guatemala: 0.71,
             nicaragua: null,
-            brazil: null
+            brazil: null,
         },
         {
             week: 10,
@@ -189,7 +189,7 @@ export function getData(): any[] {
             windwardIsles: null,
             guatemala: 0.77,
             nicaragua: null,
-            brazil: null
+            brazil: null,
         },
         {
             week: 11,
@@ -208,7 +208,7 @@ export function getData(): any[] {
             windwardIsles: null,
             guatemala: 0.85,
             nicaragua: null,
-            brazil: null
+            brazil: null,
         },
         {
             week: 12,
@@ -227,7 +227,7 @@ export function getData(): any[] {
             windwardIsles: null,
             guatemala: 0.88,
             nicaragua: null,
-            brazil: null
+            brazil: null,
         },
         {
             week: 13,
@@ -246,7 +246,7 @@ export function getData(): any[] {
             windwardIsles: null,
             guatemala: 0.76,
             nicaragua: null,
-            brazil: null
+            brazil: null,
         },
         {
             week: 14,
@@ -265,7 +265,7 @@ export function getData(): any[] {
             windwardIsles: 0.29,
             guatemala: 0.82,
             nicaragua: null,
-            brazil: null
+            brazil: null,
         },
         {
             week: 15,
@@ -284,7 +284,7 @@ export function getData(): any[] {
             windwardIsles: 0.35,
             guatemala: 0.75,
             nicaragua: null,
-            brazil: null
+            brazil: null,
         },
         {
             week: 16,
@@ -303,7 +303,7 @@ export function getData(): any[] {
             windwardIsles: null,
             guatemala: 0.79,
             nicaragua: null,
-            brazil: null
+            brazil: null,
         },
         {
             week: 17,
@@ -322,7 +322,7 @@ export function getData(): any[] {
             windwardIsles: null,
             guatemala: 0.79,
             nicaragua: null,
-            brazil: 0.79
+            brazil: 0.79,
         },
         {
             week: 18,
@@ -341,7 +341,7 @@ export function getData(): any[] {
             windwardIsles: null,
             guatemala: 0.83,
             nicaragua: null,
-            brazil: null
+            brazil: null,
         },
         {
             week: 19,
@@ -360,7 +360,7 @@ export function getData(): any[] {
             windwardIsles: null,
             guatemala: 0.77,
             nicaragua: null,
-            brazil: 0.74
+            brazil: 0.74,
         },
         {
             week: 20,
@@ -379,7 +379,7 @@ export function getData(): any[] {
             windwardIsles: null,
             guatemala: null,
             nicaragua: null,
-            brazil: 0.74
+            brazil: 0.74,
         },
         {
             week: 21,
@@ -398,7 +398,7 @@ export function getData(): any[] {
             windwardIsles: 0.31,
             guatemala: 0.74,
             nicaragua: null,
-            brazil: 0.74
+            brazil: 0.74,
         },
         {
             week: 22,
@@ -417,7 +417,7 @@ export function getData(): any[] {
             windwardIsles: 0.29,
             guatemala: 0.71,
             nicaragua: null,
-            brazil: 0.68
+            brazil: 0.68,
         },
         {
             week: 23,
@@ -436,7 +436,7 @@ export function getData(): any[] {
             windwardIsles: null,
             guatemala: 0.71,
             nicaragua: null,
-            brazil: 0.68
+            brazil: 0.68,
         },
         {
             week: 24,
@@ -455,7 +455,7 @@ export function getData(): any[] {
             windwardIsles: null,
             guatemala: 0.74,
             nicaragua: null,
-            brazil: null
+            brazil: null,
         },
         {
             week: 25,
@@ -474,7 +474,7 @@ export function getData(): any[] {
             windwardIsles: 0.29,
             guatemala: 0.7,
             nicaragua: null,
-            brazil: null
+            brazil: null,
         },
         {
             week: 26,
@@ -493,7 +493,7 @@ export function getData(): any[] {
             windwardIsles: null,
             guatemala: 0.61,
             nicaragua: null,
-            brazil: null
+            brazil: null,
         },
         {
             week: 27,
@@ -512,7 +512,7 @@ export function getData(): any[] {
             windwardIsles: null,
             guatemala: 0.61,
             nicaragua: null,
-            brazil: null
+            brazil: null,
         },
         {
             week: 28,
@@ -531,7 +531,7 @@ export function getData(): any[] {
             windwardIsles: 0.29,
             guatemala: 0.72,
             nicaragua: null,
-            brazil: null
+            brazil: null,
         },
         {
             week: 29,
@@ -550,7 +550,7 @@ export function getData(): any[] {
             windwardIsles: null,
             guatemala: null,
             nicaragua: null,
-            brazil: null
+            brazil: null,
         },
         {
             week: 30,
@@ -569,7 +569,7 @@ export function getData(): any[] {
             windwardIsles: null,
             guatemala: null,
             nicaragua: null,
-            brazil: null
+            brazil: null,
         },
         {
             week: 31,
@@ -588,7 +588,7 @@ export function getData(): any[] {
             windwardIsles: 0.25,
             guatemala: 0.77,
             nicaragua: null,
-            brazil: null
+            brazil: null,
         },
         {
             week: 32,
@@ -607,7 +607,7 @@ export function getData(): any[] {
             windwardIsles: null,
             guatemala: 0.79,
             nicaragua: null,
-            brazil: null
+            brazil: null,
         },
         {
             week: 33,
@@ -626,7 +626,7 @@ export function getData(): any[] {
             windwardIsles: null,
             guatemala: null,
             nicaragua: null,
-            brazil: null
+            brazil: null,
         },
         {
             week: 34,
@@ -645,7 +645,7 @@ export function getData(): any[] {
             windwardIsles: null,
             guatemala: 0.77,
             nicaragua: null,
-            brazil: null
+            brazil: null,
         },
         {
             week: 35,
@@ -664,7 +664,7 @@ export function getData(): any[] {
             windwardIsles: null,
             guatemala: null,
             nicaragua: null,
-            brazil: null
+            brazil: null,
         },
         {
             week: 36,
@@ -683,7 +683,7 @@ export function getData(): any[] {
             windwardIsles: null,
             guatemala: 0.75,
             nicaragua: null,
-            brazil: null
+            brazil: null,
         },
         {
             week: 37,
@@ -702,7 +702,7 @@ export function getData(): any[] {
             windwardIsles: null,
             guatemala: 0.77,
             nicaragua: 0.44,
-            brazil: null
+            brazil: null,
         },
         {
             week: 38,
@@ -721,7 +721,7 @@ export function getData(): any[] {
             windwardIsles: null,
             guatemala: 0.73,
             nicaragua: 0.31,
-            brazil: null
+            brazil: null,
         },
         {
             week: 39,
@@ -740,7 +740,7 @@ export function getData(): any[] {
             windwardIsles: null,
             guatemala: null,
             nicaragua: null,
-            brazil: null
+            brazil: null,
         },
         {
             week: 40,
@@ -759,7 +759,7 @@ export function getData(): any[] {
             windwardIsles: null,
             guatemala: null,
             nicaragua: null,
-            brazil: null
+            brazil: null,
         },
         {
             week: 41,
@@ -778,7 +778,7 @@ export function getData(): any[] {
             windwardIsles: null,
             guatemala: null,
             nicaragua: null,
-            brazil: null
+            brazil: null,
         },
         {
             week: 42,
@@ -797,7 +797,7 @@ export function getData(): any[] {
             windwardIsles: null,
             guatemala: null,
             nicaragua: null,
-            brazil: null
+            brazil: null,
         },
         {
             week: 43,
@@ -816,7 +816,7 @@ export function getData(): any[] {
             windwardIsles: 0.39,
             guatemala: null,
             nicaragua: null,
-            brazil: null
+            brazil: null,
         },
         {
             week: 44,
@@ -835,7 +835,7 @@ export function getData(): any[] {
             windwardIsles: 0.36,
             guatemala: null,
             nicaragua: null,
-            brazil: null
+            brazil: null,
         },
         {
             week: 45,
@@ -854,7 +854,7 @@ export function getData(): any[] {
             windwardIsles: 0.39,
             guatemala: 0.79,
             nicaragua: null,
-            brazil: null
+            brazil: null,
         },
         {
             week: 46,
@@ -873,7 +873,7 @@ export function getData(): any[] {
             windwardIsles: 0.29,
             guatemala: null,
             nicaragua: null,
-            brazil: null
+            brazil: null,
         },
         {
             week: 47,
@@ -892,7 +892,7 @@ export function getData(): any[] {
             windwardIsles: null,
             guatemala: null,
             nicaragua: null,
-            brazil: null
+            brazil: null,
         },
         {
             week: 48,
@@ -911,7 +911,7 @@ export function getData(): any[] {
             windwardIsles: null,
             guatemala: null,
             nicaragua: null,
-            brazil: null
+            brazil: null,
         },
         {
             week: 49,
@@ -930,7 +930,7 @@ export function getData(): any[] {
             windwardIsles: null,
             guatemala: null,
             nicaragua: null,
-            brazil: null
+            brazil: null,
         },
         {
             week: 50,
@@ -949,7 +949,7 @@ export function getData(): any[] {
             windwardIsles: null,
             guatemala: null,
             nicaragua: null,
-            brazil: null
+            brazil: null,
         },
         {
             week: 51,
@@ -968,7 +968,7 @@ export function getData(): any[] {
             windwardIsles: 0.25,
             guatemala: 0.73,
             nicaragua: null,
-            brazil: 0.85
+            brazil: 0.85,
         },
         {
             week: 52,
@@ -987,7 +987,7 @@ export function getData(): any[] {
             windwardIsles: null,
             guatemala: null,
             nicaragua: null,
-            brazil: null
+            brazil: null,
         },
     ];
 }

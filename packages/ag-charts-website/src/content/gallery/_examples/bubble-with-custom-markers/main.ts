@@ -1,4 +1,10 @@
-import { AgEnterpriseCharts, AgChartOptions, Marker, AgCartesianSeriesTooltipRendererParams } from 'ag-charts-enterprise';
+import {
+    AgCartesianSeriesTooltipRendererParams,
+    AgChartOptions,
+    AgEnterpriseCharts,
+    Marker,
+} from 'ag-charts-enterprise';
+
 import { getData } from './data';
 
 const data = getData();
@@ -18,14 +24,7 @@ const rainDropFactory = () => {
 
             path.moveTo(startX, startY);
 
-            path.cubicCurveTo(
-                startX,
-                y,
-                x - halfSize,
-                y + halfSize,
-                x,
-                y + quarterSize + halfSize
-            );
+            path.cubicCurveTo(startX, y, x - halfSize, y + halfSize, x, y + quarterSize + halfSize);
             path.cubicCurveTo(x + halfSize, y + halfSize, x, y, startX, startY);
 
             path.closePath();

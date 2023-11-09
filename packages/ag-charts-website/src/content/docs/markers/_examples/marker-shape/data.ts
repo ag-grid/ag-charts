@@ -24,5 +24,5 @@ export function getData(): any[] {
             diesel: 200,
             electric: 50,
         },
-    ]
+    ];
 }

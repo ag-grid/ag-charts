@@ -29,7 +29,7 @@ export interface AgNavigatorHandleOptions {
 }
 
 export interface AgNavigatorOptions {
-    /** Whether or not to show the navigator. */
+    /** Whether to show the navigator. */
     enabled?: boolean;
     /** The height of the navigator. */
     height?: PixelSize;

@@ -24,7 +24,7 @@ export interface AgBaseSeriesThemeableOptions {
     cursor?: string;
     /** Configuration for series markers and series line highlighting when a marker / data point or a legend item is hovered over. */
     highlightStyle?: AgSeriesHighlightStyle;
-    /** Range from a node a click triggers the listener. */
+    /** Range from a node that a click triggers the listener. */
     nodeClickRange?: InteractionRange;
     /** Whether to include the series in the legend. */
     showInLegend?: boolean;
@@ -32,10 +32,7 @@ export interface AgBaseSeriesThemeableOptions {
 
 export interface AgBaseSeriesOptions<TDatum> extends AgBaseSeriesThemeableOptions {
     /**
-     * Primary identifier for the series. This is provided as `seriesId` in user callbacks to differentiate multiple
-     * series. Auto-generated ids are subject to future change without warning, if your callbacks need to vary behaviour
-     * by series please supply your own unique `id` value.
-     *
+     * Primary identifier for the series. This is provided as `seriesId` in user callbacks to differentiate multiple series. Auto-generated ids are subject to future change without warning, if your callbacks need to vary behaviour by series please supply your own unique `id` value.
      * Default: `auto-generated value`
      */
     id?: string;

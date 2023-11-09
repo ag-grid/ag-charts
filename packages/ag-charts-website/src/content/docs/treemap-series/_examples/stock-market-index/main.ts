@@ -1,61 +1,61 @@
 import { AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
-import { data } from './data'
+
+import { data } from './data';
 
 const options: AgChartOptions = {
-  container: document.getElementById('myChart'),
-  data,
-  series: [
-    {
-      type: 'treemap',
-      labelKey: 'name', // defaults to 'label', but current dataset uses 'name'
-      secondaryLabelKey: 'color',
-      sizeKey: 'size', // default (can be omitted for current dataset)
-      colorKey: 'color', // default (can be omitted for current dataset)
-      group: {
-        label: {
-          formatter({value}) {
-            return value.toUpperCase()
-          }
+    container: document.getElementById('myChart'),
+    data,
+    series: [
+        {
+            type: 'treemap',
+            labelKey: 'name',
+            secondaryLabelKey: 'color',
+            sizeKey: 'size',
+            colorKey: 'color',
+            group: {
+                label: {
+                    formatter({ value }) {
+                        return value.toUpperCase();
+                    },
+                },
+                textAlign: 'left',
+            },
+            tile: {
+                secondaryLabel: {
+                    formatter(params) {
+                        return params.value.toFixed(2) + '%';
+                    },
+                },
+            },
+            highlightStyle: {
+                tile: {
+                    label: {
+                        color: 'black',
+                    },
+                    secondaryLabel: {
+                        color: 'black',
+                    },
+                },
+            },
+            tooltip: {
+                renderer: (params) => {
+                    return {
+                        content: `<b>Change</b>: ${params.datum[params.colorKey!].toFixed(2)}%`,
+                    };
+                },
+            },
+            formatter: (params) => ({
+                fill: !params.datum.children ? undefined : params.highlighted ? '#aaa' : '#333',
+                stroke: params.depth < 1 ? 'white' : 'black',
+            }),
         },
-        textAlign: 'left'
-      },
-      tile: {
-        secondaryLabel: {
-          formatter(params) {
-            return params.value.toFixed(2) + '%';
-          }
-        }
-      },
-      highlightStyle: {
-        tile: {
-          label: {
-            color: 'black'
-          },
-          secondaryLabel: {
-            color: 'black'
-          }
-        }
-      },
-      tooltip: {
-        renderer: params => {
-          return {
-            content: `<b>Change</b>: ${(params.datum[params.colorKey!]).toFixed(2)}%`,
-          }
-        },
-      },
-      formatter: params => ({
-        fill: !params.datum.children ? undefined : params.highlighted ? '#aaa' : '#333',
-        stroke: params.depth < 1 ? 'white' : 'black'
-      }),
+    ],
+    title: {
+        text: 'S&P 500 index stocks categorized by sectors and industries.',
     },
-  ],
-  title: {
-    text: 'S&P 500 index stocks categorized by sectors and industries.',
-  },
-  subtitle: {
-    text:
-      'Area represents market cap. Color represents change from the day before.',
-  },
-}
+    subtitle: {
+        text: 'Area represents market cap. Color represents change from the day before.',
+    },
+};
 
-AgEnterpriseCharts.create(options)
+AgEnterpriseCharts.create(options);

@@ -11,6 +11,6 @@ export function getData(): any[] {
         { month: 'Sep', dividends: 3.0, lowerCI: 2.2, upperCI: 3.8 },
         { month: 'Oct', dividends: 2.6, lowerCI: 1.8, upperCI: 3.4 },
         { month: 'Nov', dividends: 2.8, lowerCI: 2.0, upperCI: 3.6 },
-        { month: 'Dec', dividends: 2.9, lowerCI: 2.1, upperCI: 3.7 }
+        { month: 'Dec', dividends: 2.9, lowerCI: 2.1, upperCI: 3.7 },
     ];
 }

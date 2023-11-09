@@ -43,7 +43,7 @@ export function HomepageSeriesSelector({ galleryData, defaultExampleName }: Prop
                         const { icon, title } = seriesExample;
 
                         return (
-                            <li>
+                            <li key={seriesExampleName}>
                                 <button
                                     className={classNames('button-secondary', {
                                         [styles.buttonActive]: seriesExampleName === exampleName,

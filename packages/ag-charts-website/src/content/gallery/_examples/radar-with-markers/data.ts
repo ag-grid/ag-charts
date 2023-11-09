@@ -1,11 +1,10 @@
 type SocialCircle = {
-    [key: string]:
-    {
+    [key: string]: {
         name: string;
         closeness: number;
         recognitionTime: number;
-    }[]
-}
+    }[];
+};
 
 export function getData() {
     const socialCircle: SocialCircle = {

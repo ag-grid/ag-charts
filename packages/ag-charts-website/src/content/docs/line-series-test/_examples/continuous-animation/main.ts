@@ -1,4 +1,5 @@
 import { AgChart, AgChartOptions, AgEnterpriseCharts, time } from 'ag-charts-enterprise';
+
 import { getData } from './data';
 
 const options: AgChartOptions = {
@@ -41,11 +42,11 @@ const options: AgChartOptions = {
 
 const chart = AgEnterpriseCharts.create(options);
 
-function genDataPoint(ref: Date | { date: Date, petrol: number, diesel: number }, offsetDays: number) {
+function genDataPoint(ref: Date | { date: Date; petrol: number; diesel: number }, offsetDays: number) {
     const { date, petrol = 120, diesel = 125 } = ref instanceof Date ? { date: ref } : ref;
 
     return {
-        date: new Date(date.getTime() + (offsetDays * 3600 * 24 * 1000)),
+        date: new Date(date.getTime() + offsetDays * 3600 * 24 * 1000),
         petrol: petrol + Math.random() * 4 - 2,
         diesel: diesel + Math.random() * 4 - 2,
     };
@@ -82,7 +83,7 @@ function actionRemoveLastPoint() {
 
 function actionRemoveHalf() {
     const { length } = options.data;
-    options.data = options.data.slice(Math.floor(length * 1/4), Math.floor(length * 3/4));
+    options.data = options.data.slice(Math.floor((length * 1) / 4), Math.floor((length * 3) / 4));
 
     AgChart.update(chart, options);
 }
@@ -90,12 +91,12 @@ function actionRemoveHalf() {
 function actionAddPoints() {
     options.data = [...options.data];
     const { length } = options.data;
-    for (const idx of [length / 4, length / 2, length * 3 / 4]) {
+    for (const idx of [length / 4, length / 2, (length * 3) / 4]) {
         const dataIdx = Math.floor(idx);
         const [datum, nextDatum] = options.data.slice(dataIdx, dataIdx + 2);
 
         const date = new Date((datum.date.getTime() + nextDatum.date.getTime()) / 2);
-        options.data.splice(dataIdx + 1, 0, genDataPoint({ ...datum, date}, 0));
+        options.data.splice(dataIdx + 1, 0, genDataPoint({ ...datum, date }, 0));
     }
     AgChart.update(chart, options);
 }
@@ -111,7 +112,7 @@ function actionAddPointsBefore() {
 function actionAddPointsAfter(count = 2) {
     options.data = [...options.data];
 
-    const [ ref ] = options.data.slice(-1);
+    const [ref] = options.data.slice(-1);
     for (let idx = 0; idx < count; idx++) {
         options.data.push(genDataPoint(ref, (idx + 1) * 7));
     }
@@ -125,9 +126,9 @@ function actionAddDouble() {
     let start = genDataPoint(options.data[0], -7 * (count + 1));
     let [end] = options.data.slice(-1);
     options.data = [
-        ...times(() => start = genDataPoint(start, 7), count),
+        ...times(() => (start = genDataPoint(start, 7)), count),
         ...options.data,
-        ...times(() => end = genDataPoint(end, 7), count),
+        ...times(() => (end = genDataPoint(end, 7)), count),
     ];
     AgChart.update(chart, options);
 }
@@ -151,14 +152,14 @@ function actionUpdatePointUndefined() {
 }
 
 function actionShiftLeft() {
-    const [ ref ] = options.data.slice(-1);
+    const [ref] = options.data.slice(-1);
     options.data = [...options.data.slice(1), genDataPoint(ref, 7)];
 
     AgChart.update(chart, options);
 }
 
 function actionShiftRight() {
-    const [ ref ] = options.data.slice(0);
+    const [ref] = options.data.slice(0);
     options.data = [genDataPoint(ref, -7), ...options.data.slice(0, -1)];
 
     AgChart.update(chart, options);
@@ -168,7 +169,7 @@ let tick: NodeJS.Timer;
 function actionTickStart() {
     if (tick) clearInterval(tick);
 
-    tick = setInterval(() => actionAddPointsAfter(1), 1000)
+    tick = setInterval(() => actionAddPointsAfter(1), 1000);
 }
 
 function actionTickStop() {

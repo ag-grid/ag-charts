@@ -1,4 +1,5 @@
-import { AgEnterpriseCharts, AgChartOptions } from 'ag-charts-enterprise';
+import { AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+
 import { getData } from './data';
 
 const numFormatter = new Intl.NumberFormat('en-US');

@@ -1,12 +1,13 @@
-import type { AgErrorBarOptions, AgErrorBarThemeableOptions, _Scale } from 'ag-charts-community';
+import type {
+    AgErrorBarCapFormatter,
+    AgErrorBarFormatter,
+    AgErrorBarOptions,
+    AgErrorBarThemeableOptions,
+    _Scale,
+} from 'ag-charts-community';
 import { AgErrorBarSupportedSeriesTypes, _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import type {
-    ErrorBarCapFormatter,
-    ErrorBarFormatter,
-    ErrorBarNodeDatum,
-    ErrorBarStylingOptions,
-} from './errorBarNode';
+import type { ErrorBarNodeDatum, ErrorBarStylingOptions } from './errorBarNode';
 import { ErrorBarGroup, ErrorBarNode } from './errorBarNode';
 
 const {
@@ -62,7 +63,7 @@ class ErrorBarCap implements NonNullable<AgErrorBarOptions['cap']> {
     @Validate(OPT_COLOR_STRING)
     stroke?: string = undefined;
 
-    @Validate(OPT_NUMBER(1))
+    @Validate(OPT_NUMBER(0))
     strokeWidth?: number = undefined;
 
     @Validate(OPT_NUMBER(0, 1))
@@ -81,7 +82,7 @@ class ErrorBarCap implements NonNullable<AgErrorBarOptions['cap']> {
     lengthRatio?: number = undefined;
 
     @Validate(OPT_FUNCTION)
-    formatter?: ErrorBarCapFormatter = undefined;
+    formatter?: AgErrorBarCapFormatter = undefined;
 }
 
 export class ErrorBars
@@ -131,7 +132,7 @@ export class ErrorBars
     lineDashOffset?: number;
 
     @Validate(OPT_FUNCTION)
-    formatter?: ErrorBarFormatter = undefined;
+    formatter?: AgErrorBarFormatter = undefined;
 
     cap: ErrorBarCap = new ErrorBarCap();
 
@@ -294,7 +295,7 @@ export class ErrorBars
     private updateNode(node: ErrorBarNode, datum: ErrorBarNodeDatum, _index: number) {
         const style = this.getDefaultStyle();
         node.datum = datum;
-        node.update(style, this);
+        node.update(style, this, false);
         node.updateBBoxes();
     }
 
@@ -358,7 +359,11 @@ export class ErrorBars
         return this.makeStyle(this.cartesianSeries.highlightStyle.item);
     }
 
-    private restyleHightlightChange(highlightChange: HighlightNodeDatum, style: AgErrorBarThemeableOptions) {
+    private restyleHightlightChange(
+        highlightChange: HighlightNodeDatum,
+        style: AgErrorBarThemeableOptions,
+        highlighted: boolean
+    ) {
         // Search for the ErrorBarNode that matches this highlight change. This
         // isn't a good solution in terms of performance. However, it's assumed
         // that the typical use case for error bars includes few data points
@@ -367,7 +372,7 @@ export class ErrorBars
         const { nodeData } = this.cartesianSeries.contextNodeData[0];
         for (let i = 0; i < nodeData.length; i++) {
             if (highlightChange === nodeData[i]) {
-                this.selection.nodes()[i].update(style, this);
+                this.selection.nodes()[i].update(style, this, highlighted);
                 break;
             }
         }
@@ -379,12 +384,12 @@ export class ErrorBars
 
         if (currentHighlight?.series === thisSeries) {
             // Highlight this node:
-            this.restyleHightlightChange(currentHighlight, this.getHighlightStyle());
+            this.restyleHightlightChange(currentHighlight, this.getHighlightStyle(), true);
         }
 
         if (previousHighlight?.series === thisSeries) {
             // Unhighlight this node:
-            this.restyleHightlightChange(previousHighlight, this.getDefaultStyle());
+            this.restyleHightlightChange(previousHighlight, this.getDefaultStyle(), false);
         }
 
         this.groupNode.opacity = this.cartesianSeries.getOpacity();

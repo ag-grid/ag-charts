@@ -41,9 +41,9 @@ export interface AgBoxPlotSeriesTooltipRendererParams
 }
 
 export interface AgBoxPlotSeriesStyles extends FillOptions, StrokeOptions, LineDashOptions {
-    /** Options to style chart's caps **/
+    /** Options to style chart's caps */
     cap?: AgBoxPlotCapOptions;
-    /** Options to style chart's whiskers **/
+    /** Options to style chart's whiskers */
     whisker?: AgBoxPlotWhiskerOptions;
 }
 

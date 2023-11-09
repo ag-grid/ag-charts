@@ -328,7 +328,7 @@ export abstract class Series<
     chart?: {
         mode: 'standalone' | 'integrated';
         placeLabels(): Map<Series<any>, PlacedLabel[]>;
-        getSeriesRect(): Readonly<BBox> | undefined;
+        seriesRect?: BBox;
     };
 
     axes: Record<ChartAxisDirection, ChartAxis | undefined> = {

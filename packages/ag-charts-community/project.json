@@ -37,28 +37,8 @@
         "compiler": "tsc"
       }
     },
-    "interface-metadata": {
-      "executor": "ag-charts-build-tools:generate-code-reference-files",
-      "inputs": ["{projectRoot}/src/options"],
-      "outputPath": "{options.output}",
-      "options": {
-        "mode": "interfaces",
-        "inputs": ["packages/ag-charts-community/src/options"],
-        "output": "dist/packages/ag-charts-community/interfaces.AUTO.json"
-      }
-    },
-    "interface-docs": {
-      "executor": "ag-charts-build-tools:generate-code-reference-files",
-      "inputs": ["{projectRoot}/src/options"],
-      "outputPath": "{options.output}",
-      "options": {
-        "mode": "docs",
-        "inputs": ["packages/ag-charts-community/src/options"],
-        "output": "dist/packages/ag-charts-community/doc-interfaces.AUTO.json"
-      }
-    },
     "docs-debug-interfaces": {
-      "executor": "ag-charts-build-tools:generate-code-reference-files-new",
+      "executor": "ag-charts-build-tools:generate-code-reference-files",
       "inputs": ["{projectRoot}/src/options"],
       "outputPath": "{options.output}",
       "options": {
@@ -68,7 +48,7 @@
       }
     },
     "docs-resolved-interfaces": {
-      "executor": "ag-charts-build-tools:generate-code-reference-files-new",
+      "executor": "ag-charts-build-tools:generate-code-reference-files",
       "inputs": ["{projectRoot}/src/options"],
       "outputPath": "{options.output}",
       "options": {

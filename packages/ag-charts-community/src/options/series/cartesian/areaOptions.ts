@@ -8,6 +8,8 @@ import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOption
 
 export type AgAreaSeriesLabelFormatterParams = AgAreaSeriesOptionsKeys & AgAreaSeriesOptionsNames;
 
+type AgAreaSeriesTooltipRendererParams<TDatum> = AgCartesianSeriesTooltipRendererParams<TDatum>;
+
 export interface AgAreaSeriesThemeableOptions<TDatum = any>
     extends StrokeOptions,
         FillOptions,
@@ -20,7 +22,7 @@ export interface AgAreaSeriesThemeableOptions<TDatum = any>
     /** Configuration for the labels shown on top of data points. */
     label?: AgChartLabelOptions<TDatum, AgAreaSeriesLabelFormatterParams>;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgCartesianSeriesTooltipRendererParams<TDatum>>;
+    tooltip?: AgSeriesTooltip<AgAreaSeriesTooltipRendererParams<TDatum>>;
 }
 
 export interface AgAreaSeriesOptionsKeys {

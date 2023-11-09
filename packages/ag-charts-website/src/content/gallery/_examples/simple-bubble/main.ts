@@ -1,4 +1,5 @@
-import { AgEnterpriseCharts, AgChartOptions } from 'ag-charts-enterprise';
+import { AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+
 import { getData } from './data';
 
 const options: AgChartOptions = {
@@ -34,7 +35,7 @@ const options: AgChartOptions = {
             title: {
                 text: 'Depth (m)',
             },
-            nice: false
+            nice: false,
         },
         {
             position: 'left',
@@ -42,13 +43,13 @@ const options: AgChartOptions = {
             title: {
                 text: 'Magnitude',
             },
-            nice: false
+            nice: false,
         },
     ],
     seriesArea: {
         padding: {
             left: 40,
-        }
+        },
     },
     tooltip: {
         range: 'exact',

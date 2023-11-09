@@ -8,7 +8,7 @@ export function getData() {
                 rating: 9.3,
                 genre: 'Drama',
                 boxOffice: 73300000,
-                ranking: 1
+                ranking: 1,
             },
             {
                 title: '12 Angry Men',
@@ -17,7 +17,7 @@ export function getData() {
                 rating: 9.0,
                 genre: 'Drama',
                 boxOffice: 2000000,
-                ranking: 5
+                ranking: 5,
             },
         ],
         crime: [
@@ -28,7 +28,7 @@ export function getData() {
                 rating: 9.2,
                 genre: 'Crime',
                 boxOffice: 1200000000,
-                ranking: 2
+                ranking: 2,
             },
             {
                 title: 'The Godfather Part II',
@@ -37,7 +37,7 @@ export function getData() {
                 rating: 9.0,
                 genre: 'Crime',
                 boxOffice: 700000000,
-                ranking: 4
+                ranking: 4,
             },
             {
                 title: 'Pulp Fiction',
@@ -46,7 +46,7 @@ export function getData() {
                 rating: 8.9,
                 genre: 'Crime',
                 boxOffice: 213900000,
-                ranking: 8
+                ranking: 8,
             },
         ],
         action: [
@@ -57,7 +57,7 @@ export function getData() {
                 rating: 9.0,
                 genre: 'Action',
                 boxOffice: 1006000000,
-                ranking: 3
+                ranking: 3,
             },
         ],
         biography: [
@@ -68,7 +68,7 @@ export function getData() {
                 rating: 9.0,
                 genre: 'Biography',
                 boxOffice: 322200000,
-                ranking: 6
+                ranking: 6,
             },
         ],
         adventure: [
@@ -88,7 +88,7 @@ export function getData() {
                 rating: 8.8,
                 genre: 'Adventure',
                 boxOffice: 898200000,
-                ranking: 9
+                ranking: 9,
             },
         ],
         western: [
@@ -99,7 +99,7 @@ export function getData() {
                 rating: 8.8,
                 genre: 'Western',
                 boxOffice: 38900000,
-                ranking: 10
+                ranking: 10,
             },
         ],
     };

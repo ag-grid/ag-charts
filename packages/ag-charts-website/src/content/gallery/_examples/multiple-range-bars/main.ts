@@ -1,4 +1,5 @@
 import { AgChartOptions, AgEnterpriseCharts, AgRangeBarSeriesLabelFormatterParams } from 'ag-charts-enterprise';
+
 import { getData } from './data';
 
 const options: AgChartOptions = {
@@ -8,9 +9,9 @@ const options: AgChartOptions = {
         text: `Pete's Instagram Followers`,
     },
     subtitle: {
-        text: `He Wishes`
+        text: `He Wishes`,
     },
-    series:[
+    series: [
         {
             type: 'range-bar',
             xKey: 'date',
@@ -23,9 +24,7 @@ const options: AgChartOptions = {
             label: {
                 placement: 'outside',
                 formatter: ({ itemId, yLowValue, yHighValue }: AgRangeBarSeriesLabelFormatterParams) => {
-                    return itemId === 'low'
-                        ? ''
-                        : `+${(yHighValue - yLowValue).toFixed(0)}`;
+                    return itemId === 'low' ? '' : `+${(yHighValue - yLowValue).toFixed(0)}`;
                 },
             },
         },
@@ -41,9 +40,7 @@ const options: AgChartOptions = {
             label: {
                 placement: 'outside',
                 formatter: ({ itemId, yLowValue, yHighValue }: AgRangeBarSeriesLabelFormatterParams) => {
-                    return itemId === 'high'
-                        ? ''
-                        : `-${(yHighValue - yLowValue).toFixed(0)}`;
+                    return itemId === 'high' ? '' : `-${(yHighValue - yLowValue).toFixed(0)}`;
                 },
             },
         },
@@ -59,12 +56,13 @@ const options: AgChartOptions = {
         {
             type: 'category',
             position: 'bottom',
-            groupPaddingInner: 0
-        }, {
+            groupPaddingInner: 0,
+        },
+        {
             type: 'number',
-            position: 'left'
-        }
-    ]
+            position: 'left',
+        },
+    ],
 };
 
 AgEnterpriseCharts.create(options);

@@ -80,7 +80,7 @@ describe('Chart', () => {
         getNodePoint: (nodeItem: any) => [number, number];
         getDatumValues: (datum: any, series: any) => any[];
         getTooltipRenderedValues: (tooltipRendererParams: any) => any[];
-        getHighlightNode: (series: any) => any;
+        getHighlightNode: (chart: any, series: any) => any;
     }) => {
         const format = (...values: any[]) => values.join(': ');
 
@@ -137,7 +137,7 @@ describe('Chart', () => {
         const checkHighlight = async (chart: Chart) => {
             await hoverChartNodes(chart, async ({ series }) => {
                 // Check the highlighted marker
-                const highlightNode = testParams.getHighlightNode(series);
+                const highlightNode = testParams.getHighlightNode(chart, series);
                 expect(highlightNode).toBeDefined();
                 expect(highlightNode.fill).toEqual('lime');
             });
@@ -222,7 +222,7 @@ describe('Chart', () => {
         getNodeData: (series) => series.contextNodeData[0].nodeData,
         getTooltipRenderedValues: (params) => [params.datum[params.xKey], params.datum[params.yKey]],
         // Returns a highlighted marker
-        getHighlightNode: (series) => series.highlightNode.children[0],
+        getHighlightNode: (_, series) => series.highlightNode.children[0],
     } as Parameters<typeof testPointerEvents>[0];
 
     describe(`Line Series Pointer Events`, () => {
@@ -322,9 +322,9 @@ describe('Chart', () => {
                 return [category, value];
             },
             getTooltipRenderedValues: (params) => [params.datum[params.sectorLabelKey], params.datum[params.angleKey]],
-            getHighlightNode: (series) => {
+            getHighlightNode: (chart, series) => {
                 // Returns a highlighted sector
-                const highlightedDatum = series.chart.highlightManager.getActiveHighlight();
+                const highlightedDatum = chart.highlightManager.getActiveHighlight();
                 return series.highlightGroup.children.find(
                     (child: any) => child?.datum?.itemId === highlightedDatum.itemId
                 );

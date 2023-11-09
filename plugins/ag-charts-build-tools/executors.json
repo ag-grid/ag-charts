@@ -4,11 +4,6 @@
             "implementation": "./src/executors/generate-code-reference-files/executor",
             "schema": "./src/executors/generate-code-reference-files/schema.json",
             "description": "generate-code-reference-files executor"
-        },
-        "generate-code-reference-files-new": {
-            "implementation": "./src/executors/generate-code-reference-files/executor-new",
-            "schema": "./src/executors/generate-code-reference-files/schema-new.json",
-            "description": "generate-code-reference-files executor"
         }
     }
 }

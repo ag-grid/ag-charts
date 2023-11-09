@@ -51,10 +51,7 @@ export interface AgBaseChartThemeOptions {
 
 /** This object is used to define the configuration for a custom chart theme. */
 export interface AgChartTheme extends AgBaseChartThemeOptions {
-    /**
-     * The name of the theme to base your theme on. Your custom theme will inherit all the configuration from
-     * the base theme, allowing you to override just the settings you wish to change using the `overrides` config (see below).
-     */
+    /** The name of the theme to base your theme on. Your custom theme will inherit all the configuration from the base theme, allowing you to override just the settings you wish to change using the `overrides` config (see below). */
     baseTheme?: AgChartThemeName;
 }
 

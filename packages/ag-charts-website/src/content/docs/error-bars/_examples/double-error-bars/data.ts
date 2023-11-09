@@ -8,6 +8,6 @@ export function getData(): any[] {
         { expiry: 18, price: 38, expiryLo: 17.5, expiryHi: 18.5, priceLo: 34, priceHi: 42 },
         { expiry: 24, price: 40, expiryLo: 23, expiryHi: 25, priceLo: 36, priceHi: 44 },
         { expiry: 30, price: 42, expiryLo: 29, expiryHi: 31, priceLo: 38, priceHi: 46 },
-        { expiry: 36, price: 45, expiryLo: 35, expiryHi: 37, priceLo: 40, priceHi: 50 }
+        { expiry: 36, price: 45, expiryLo: 35, expiryHi: 37, priceLo: 40, priceHi: 50 },
     ];
 }

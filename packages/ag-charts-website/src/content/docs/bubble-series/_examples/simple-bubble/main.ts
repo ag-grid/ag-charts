@@ -1,64 +1,65 @@
-import { AgChartOptions, AgChart } from 'ag-charts-community'
-import { maleHeightWeight, femaleHeightWeight } from './height-weight-data'
+import { AgChart, AgChartOptions } from 'ag-charts-community';
+
+import { femaleHeightWeight, maleHeightWeight } from './height-weight-data';
 
 const options: AgChartOptions = {
-  container: document.getElementById('myChart'),
-  title: {
-    text: 'Weight vs Height',
-  },
-  subtitle: {
-    text: 'by gender',
-  },
-  series: [
-    {
-      type: 'bubble',
-      title: 'Male',
-      data: maleHeightWeight,
-      xKey: 'height',
-      xName: 'Height',
-      yKey: 'weight',
-      yName: 'Weight',
-      sizeKey: 'age',
-      sizeName: 'Age',
+    container: document.getElementById('myChart'),
+    title: {
+        text: 'Weight vs Height',
     },
-    {
-      type: 'bubble',
-      title: 'Female',
-      data: femaleHeightWeight,
-      xKey: 'height',
-      xName: 'Height',
-      yKey: 'weight',
-      yName: 'Weight',
-      sizeKey: 'age',
-      sizeName: 'Age',
+    subtitle: {
+        text: 'by gender',
     },
-  ],
-  axes: [
-    {
-      type: 'number',
-      position: 'bottom',
-      title: {
-        text: 'Height',
-      },
-      label: {
-        formatter: (params) => {
-          return params.value + 'cm'
+    series: [
+        {
+            type: 'bubble',
+            title: 'Male',
+            data: maleHeightWeight,
+            xKey: 'height',
+            xName: 'Height',
+            yKey: 'weight',
+            yName: 'Weight',
+            sizeKey: 'age',
+            sizeName: 'Age',
         },
-      },
-    },
-    {
-      type: 'number',
-      position: 'left',
-      title: {
-        text: 'Weight',
-      },
-      label: {
-        formatter: (params) => {
-          return params.value + 'kg'
+        {
+            type: 'bubble',
+            title: 'Female',
+            data: femaleHeightWeight,
+            xKey: 'height',
+            xName: 'Height',
+            yKey: 'weight',
+            yName: 'Weight',
+            sizeKey: 'age',
+            sizeName: 'Age',
         },
-      },
-    },
-  ],
-}
+    ],
+    axes: [
+        {
+            type: 'number',
+            position: 'bottom',
+            title: {
+                text: 'Height',
+            },
+            label: {
+                formatter: (params) => {
+                    return params.value + 'cm';
+                },
+            },
+        },
+        {
+            type: 'number',
+            position: 'left',
+            title: {
+                text: 'Weight',
+            },
+            label: {
+                formatter: (params) => {
+                    return params.value + 'kg';
+                },
+            },
+        },
+    ],
+};
 
-AgChart.create(options)
+AgChart.create(options);

@@ -101,8 +101,17 @@ export function prepareMarkerAnimation(pairMap: PathPointMap<any>, parentStatus:
             ...FROM_TO_MIXINS[status],
         };
 
-        if (status === 'added' || parentStatus === 'added') {
-            return { ...defaults, opacity: 0 };
+        if (parentStatus === 'added') {
+            return {
+                ...defaults,
+                opacity: 0,
+                translationX: point?.to?.x,
+                translationY: point?.to?.y,
+                ...FROM_TO_MIXINS['added'],
+            };
+        }
+        if (status === 'added') {
+            defaults.opacity = 0;
         }
 
         return defaults;
@@ -112,10 +121,21 @@ export function prepareMarkerAnimation(pairMap: PathPointMap<any>, parentStatus:
         const { status, point } = markerStatus(datum);
         if (status === 'unknown') return { opacity: 0 };
 
-        const defaults = { translationX: datum.point.x, translationY: datum.point.y, opacity: 1 };
+        const defaults = {
+            translationX: datum.point.x,
+            translationY: datum.point.y,
+            opacity: 1,
+            ...FROM_TO_MIXINS[status],
+        };
 
         if (status === 'removed' || parentStatus === 'removed') {
-            return { ...defaults, translationX: point?.to?.x, translationY: point?.to?.y, opacity: 0 };
+            return {
+                ...defaults,
+                translationX: point?.to?.x,
+                translationY: point?.to?.y,
+                opacity: 0,
+                ...FROM_TO_MIXINS['removed'],
+            };
         }
 
         return defaults;

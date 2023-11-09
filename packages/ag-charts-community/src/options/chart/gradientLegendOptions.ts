@@ -6,7 +6,7 @@ export interface AgGradientLegendLabelFormatterParams {
 }
 
 export interface AgGradientLegendOptions {
-    /** Whether or not to show the gradient legend. By default, the chart displays a gradient legend for heatmap series. */
+    /** Whether to show the gradient legend. By default, the chart displays a gradient legend for heatmap series. */
     enabled?: boolean;
     /** Where the legend should show in relation to the chart. */
     position?: AgChartLegendPosition;

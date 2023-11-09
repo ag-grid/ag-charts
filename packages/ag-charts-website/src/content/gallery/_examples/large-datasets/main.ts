@@ -1,4 +1,5 @@
 import { AgCartesianChartOptions, AgCartesianSeriesOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+
 import { getData } from './data';
 
 const count = 100_000;

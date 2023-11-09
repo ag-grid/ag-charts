@@ -24,6 +24,21 @@ export const BulletModule: _ModuleSupport.SeriesModule<'bullet'> = {
             },
         ],
     },
-    swapDefaultAxesCondition: (series) => series?.direction !== 'horizontal',
+    swapDefaultAxesCondition: (opts) => opts?.direction !== 'horizontal',
+    customDefaultAxesSwapper: (opts) => {
+        return {
+            ...opts,
+            axes: [
+                {
+                    type: CARTESIAN_AXIS_TYPES.CATEGORY,
+                    position: CARTESIAN_AXIS_POSITIONS.TOP,
+                },
+                {
+                    type: CARTESIAN_AXIS_TYPES.NUMBER,
+                    position: CARTESIAN_AXIS_POSITIONS.LEFT,
+                },
+            ],
+        };
+    },
     themeTemplate: {},
 };

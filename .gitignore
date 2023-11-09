@@ -42,3 +42,4 @@ Thumbs.db
 
 .astro
 packages/ag-charts-website/.env
+.nx/

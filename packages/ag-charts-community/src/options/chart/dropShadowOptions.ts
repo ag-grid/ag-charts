@@ -1,7 +1,7 @@
 import type { CssColor, PixelSize } from './types';
 
 export interface AgDropShadowOptions {
-    /** Whether or not the shadow is visible. */
+    /** Whether the shadow is visible. */
     enabled?: boolean;
     /** The colour of the shadow. */
     color?: CssColor;

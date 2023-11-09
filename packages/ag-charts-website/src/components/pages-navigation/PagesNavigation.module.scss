@@ -53,6 +53,22 @@
 .menu {
     padding-top: $size-4;
     padding-bottom: $size-7;
+
+    h5 {
+        text-transform: uppercase;
+    }
+
+    // Override menuGroup styles
+    .seriesTypesNav > li {
+        margin-bottom: 0 !important;
+
+        // Remove left line and adjust spacing
+        a {
+            margin-left: $size-half;
+            padding-left: $size-half;
+            border-left: none;
+        }
+    }
 }
 
 .enterpriseIcon {

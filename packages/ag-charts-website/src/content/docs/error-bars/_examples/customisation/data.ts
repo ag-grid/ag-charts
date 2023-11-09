@@ -63,6 +63,6 @@ export function getData() {
             pres: 1.2,
             presLower: 1,
             presUpper: 1.6,
-        }
+        },
     ];
 }

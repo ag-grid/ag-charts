@@ -1,15 +1,8 @@
-import { AgEnterpriseCharts, AgPolarChartOptions } from 'ag-charts-enterprise'
+import { AgEnterpriseCharts, AgPolarChartOptions } from 'ag-charts-enterprise';
 
 const options: AgPolarChartOptions = {
     container: document.getElementById('myChart'),
-    data: [
-        {value: 56.9},
-        {value: 22.5},
-        {value: 6.8},
-        {value: 8.5},
-        {value: 2.6},
-        {value: 1.9},
-    ],
+    data: [{ value: 56.9 }, { value: 22.5 }, { value: 6.8 }, { value: 8.5 }, { value: 2.6 }, { value: 1.9 }],
     series: [
         {
             type: 'pie',

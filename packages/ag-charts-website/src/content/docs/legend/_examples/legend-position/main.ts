@@ -1,92 +1,92 @@
-import { AgChart, AgChartLegendPosition, AgChartOptions } from "ag-charts-community"
+import { AgChart, AgChartLegendPosition, AgChartOptions } from 'ag-charts-community';
 
 const options: AgChartOptions = {
-  container: document.getElementById("myChart"),
-  theme: {
-    palette: {
-      fills: ["#AC9BF5", "#5984C2", "#36A883", "#F5CA46", "#F5546F"],
-      strokes: ["#AC9BF5", "#5984C2", "#36A883", "#F5CA46", "#F5546F"],
+    container: document.getElementById('myChart'),
+    theme: {
+        palette: {
+            fills: ['#AC9BF5', '#5984C2', '#36A883', '#F5CA46', '#F5546F'],
+            strokes: ['#AC9BF5', '#5984C2', '#36A883', '#F5CA46', '#F5546F'],
+        },
     },
-  },
-  data: [
-    {
-      quarter: "Q1",
-      coal: -666,
-      manufacturedFuels: -14,
-      primaryOil: -261,
-      petroleum: -124,
-      naturalGas: -1197,
+    data: [
+        {
+            quarter: 'Q1',
+            coal: -666,
+            manufacturedFuels: -14,
+            primaryOil: -261,
+            petroleum: -124,
+            naturalGas: -1197,
+        },
+        {
+            quarter: 'Q2',
+            coal: 208,
+            manufacturedFuels: 71,
+            primaryOil: 950,
+            petroleum: -318,
+            naturalGas: 906,
+        },
+        {
+            quarter: 'Q3',
+            coal: 426,
+            manufacturedFuels: 19,
+            primaryOil: -845,
+            petroleum: 166,
+            naturalGas: 276,
+        },
+        {
+            quarter: 'Q4',
+            coal: 158,
+            manufacturedFuels: -29,
+            primaryOil: -156,
+            petroleum: -19,
+            naturalGas: 672,
+        },
+    ],
+    series: [
+        {
+            type: 'bar',
+            xKey: 'quarter',
+            yKey: 'naturalGas',
+            yName: 'Natural gas',
+        },
+        {
+            type: 'bar',
+            xKey: 'quarter',
+            yKey: 'coal',
+            yName: 'Coal',
+        },
+        {
+            type: 'bar',
+            xKey: 'quarter',
+            yKey: 'primaryOil',
+            yName: 'Primary oil',
+        },
+        {
+            type: 'bar',
+            xKey: 'quarter',
+            yKey: 'petroleum',
+            yName: 'Petroleum',
+        },
+        {
+            type: 'bar',
+            xKey: 'quarter',
+            yKey: 'manufacturedFuels',
+            yName: 'Manufactured fuels',
+        },
+    ],
+    legend: {
+        position: 'right',
     },
-    {
-      quarter: "Q2",
-      coal: 208,
-      manufacturedFuels: 71,
-      primaryOil: 950,
-      petroleum: -318,
-      naturalGas: 906,
-    },
-    {
-      quarter: "Q3",
-      coal: 426,
-      manufacturedFuels: 19,
-      primaryOil: -845,
-      petroleum: 166,
-      naturalGas: 276,
-    },
-    {
-      quarter: "Q4",
-      coal: 158,
-      manufacturedFuels: -29,
-      primaryOil: -156,
-      petroleum: -19,
-      naturalGas: 672,
-    },
-  ],
-  series: [
-    {
-      type: "bar",
-      xKey: "quarter",
-      yKey: "naturalGas",
-      yName: "Natural gas",
-    },
-    {
-      type: "bar",
-      xKey: "quarter",
-      yKey: "coal",
-      yName: "Coal",
-    },
-    {
-      type: "bar",
-      xKey: "quarter",
-      yKey: "primaryOil",
-      yName: "Primary oil",
-    },
-    {
-      type: "bar",
-      xKey: "quarter",
-      yKey: "petroleum",
-      yName: "Petroleum",
-    },
-    {
-      type: "bar",
-      xKey: "quarter",
-      yKey: "manufacturedFuels",
-      yName: "Manufactured fuels",
-    },
-  ],
-  legend: {
-    position: "right",
-  },
-}
+};
 
-var chart = AgChart.create(options)
+var chart = AgChart.create(options);
 
 function updateLegendPosition(value: AgChartLegendPosition) {
-  options.legend!.position = value
-  AgChart.update(chart, options)
+    options.legend!.position = value;
+    AgChart.update(chart, options);
 }
 
 function setLegendEnabled(enabled: boolean) {
-  options.legend!.enabled = enabled
-  AgChart.update(chart, options)
+    options.legend!.enabled = enabled;
+    AgChart.update(chart, options);
 }

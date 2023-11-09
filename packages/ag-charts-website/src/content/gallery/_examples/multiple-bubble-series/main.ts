@@ -1,5 +1,6 @@
-import { AgEnterpriseCharts, AgChartOptions } from 'ag-charts-enterprise';
-import { getFoodIndustryData, getCoffeeIndustryData } from './data';
+import { AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+
+import { getCoffeeIndustryData, getFoodIndustryData } from './data';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
@@ -78,8 +79,8 @@ const options: AgChartOptions = {
                         text: '^',
                         position: 'top',
                         fontSize: 14,
-                        padding: 0
-                    }
+                        padding: 0,
+                    },
                 },
             ],
         },

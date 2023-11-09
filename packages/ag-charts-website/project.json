@@ -6,7 +6,7 @@
   "targets": {
     "build": {
       "outputs": ["{workspaceRoot}/dist/{projectRoot}"],
-      "dependsOn": ["^build", "^interface-metadata", "^interface-docs", "^docs-resolved-interfaces"],
+      "dependsOn": ["^build", "^docs-resolved-interfaces"],
       "executor": "@nxtensions/astro:build",
       "options": {
         "silent": true
@@ -33,7 +33,7 @@
         "port": 4600,
         "host": true
       },
-      "dependsOn": ["^build", "^interface-metadata", "^interface-docs", "^docs-resolved-interfaces"],
+      "dependsOn": ["^build", "^docs-resolved-interfaces"],
       "configurations": {
         "watch": {}
       }

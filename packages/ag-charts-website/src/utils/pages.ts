@@ -35,9 +35,6 @@ export interface DevFileRoute {
 export const DEV_FILE_PATH_MAP: Record<string, string> = {
     'resolved-interfaces.json': 'dist/packages/ag-charts-community/resolved-interfaces.AUTO.json',
 
-    'ag-charts-community/interfaces.AUTO.json': 'dist/packages/ag-charts-community/interfaces.AUTO.json',
-    'ag-charts-community/doc-interfaces.AUTO.json': 'dist/packages/ag-charts-community/doc-interfaces.AUTO.json',
-
     'ag-charts-community/dist/**': 'packages/ag-charts-community/dist/**/*.{cjs,js,map}',
     'ag-charts-enterprise/dist/**': 'packages/ag-charts-enterprise/dist/**/*.{cjs,js,map}',
     'ag-charts-react/main.js': 'packages/ag-charts-react/dist/index.cjs.js',

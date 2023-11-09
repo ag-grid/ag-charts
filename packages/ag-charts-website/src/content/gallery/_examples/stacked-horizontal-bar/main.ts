@@ -1,7 +1,8 @@
-import { AgEnterpriseCharts, AgChartOptions, AgBarSeriesTooltipRendererParams } from 'ag-charts-enterprise';
+import { AgBarSeriesTooltipRendererParams, AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+
 import { getData } from './data';
 
-type YKey = keyof  Omit<typeof data[number], 'type'>;
+type YKey = keyof Omit<(typeof data)[number], 'type'>;
 const data = getData();
 
 const tooltip = {
@@ -10,7 +11,7 @@ const tooltip = {
     }),
 };
 
-const options: AgChartOptions =  {
+const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     theme: {
         overrides: {
@@ -23,13 +24,7 @@ const options: AgChartOptions =  {
                         formatter: ({ value }) => `${Math.abs(value)}`,
                     },
                     formatter: ({ datum, yKey, fill = 'transparent' }) => ({
-                        fill: getColor(
-                            Math.abs(datum[yKey]),
-                            yKey as YKey,
-                            fill,
-                            0.4,
-                            1
-                        ),
+                        fill: getColor(Math.abs(datum[yKey]), yKey as YKey, fill, 0.4, 1),
                     }),
                 },
             },
@@ -107,7 +102,7 @@ const options: AgChartOptions =  {
                 width: 0,
             },
             tick: {
-                values: [2013, 2023]
+                values: [2013, 2023],
             },
             gridLine: {
                 enabled: true,

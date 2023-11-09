@@ -696,6 +696,8 @@ export class RangeBarSeries extends _ModuleSupport.CartesianSeries<
         const { processedData } = this;
         const diff = processedData?.reduced?.diff;
 
+        this.ctx.animationManager.stopByAnimationGroupId(this.id);
+
         const fns = prepareBarAnimationFunctions(midpointStartingBarPosition(this.direction === 'vertical'));
         motion.fromToMotion(
             this.id,
