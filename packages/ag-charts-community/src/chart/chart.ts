@@ -761,15 +761,16 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     private initSeries(series: Series<any>) {
+        const chart = this;
         series.chart = {
             get mode() {
-                return this.mode;
+                return chart.mode;
             },
             get seriesRect() {
-                return this.seriesRect;
+                return chart.seriesRect;
             },
             placeLabels() {
-                return this.placeLabels();
+                return chart.placeLabels();
             },
         };
         series.setChartData(this.data);
