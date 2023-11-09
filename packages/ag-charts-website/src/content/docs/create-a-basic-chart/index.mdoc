@@ -33,29 +33,29 @@ The **container** is the HTML element in which the chart should be rendered:
 <div id="myChart" style="height: 100%;"></div>
 ```
 
-```javascript
+```ts
 const options: AgChartOptions = {
-  container: document.getElementById('myChart') as HTMLElement,
-  ...
-}
+    container: document.getElementById('myChart') as HTMLElement,
+    // ...
+};
 ```
 
 _Note: By default, the chart will resize automatically to fill the container element. This behaviour can be customised using the [autoSize](/ag-charts/options/#reference-AgChartOptions-autoSize) property._
 
 **Data** is the information that you would like present within a chart, _typically_ an array of data-points:
 
-```javascript
+```ts
 const options: AgChartOptions = {
-  data: [
-    { month: "Jan", avgTemp: 2.3, iceCreamSales: 162 },
-    { month: "Mar", avgTemp: 6.3, iceCreamSales: 302 },
-    { month: "May", avgTemp: 16.2, iceCreamSales: 800 },
-    { month: "Jul", avgTemp: 22.8, iceCreamSales: 1254 },
-    { month: "Sep", avgTemp: 14.5, iceCreamSales: 950 },
-    { month: "Nov", avgTemp: 8.9, iceCreamSales: 200 }
-  ]
-  ...
-}
+    data: [
+        { month: 'Jan', avgTemp: 2.3, iceCreamSales: 162 },
+        { month: 'Mar', avgTemp: 6.3, iceCreamSales: 302 },
+        { month: 'May', avgTemp: 16.2, iceCreamSales: 800 },
+        { month: 'Jul', avgTemp: 22.8, iceCreamSales: 1254 },
+        { month: 'Sep', avgTemp: 14.5, iceCreamSales: 950 },
+        { month: 'Nov', avgTemp: 8.9, iceCreamSales: 200 },
+    ],
+    // ...
+};
 ```
 
 _Note: AG Charts have a number of powerful ways in which data can be provided. Read our [Data](#) guide for more information._
@@ -68,13 +68,11 @@ _Note: AG Charts have a number of powerful ways in which data can be provided. R
 
 To create a bar chart we can add an object to our `series` array within the `AgChartOptions` object:
 
-```javascript
+```ts
 const options: AgChartOptions = {
-  series: [
-    { type: 'bar', xKey: "month", yKey: "iceCreamSales" }
-  ]
-  ...
-}
+    series: [{ type: 'bar', xKey: 'month', yKey: 'iceCreamSales' }],
+    // ...
+};
 ```
 
 _Note: AG Charts provides a large number of [series](/gallery) which can each be configured with properties unique to that series_
@@ -95,14 +93,14 @@ _Note: Learn more about creating and updating charts in our [API docs](#)._
 
 A chart can have more than one series, which can be useful when comparing datasets. To add another series to the chart, simply add another object to the series array, referencing the data to use:
 
-```javascript
+```ts
 const options: AgChartOptions = {
-  series: [
-    ...
-    { type: 'line', xKey: "month", yKey: "avgTemp" }
-  ]
-  ...
-}
+    series: [
+        // ...
+        { type: 'line', xKey: 'month', yKey: 'avgTemp' },
+    ],
+    // ...
+};
 ```
 
 ### Configuring Secondary Axes
@@ -111,15 +109,15 @@ If you run the code at this point, you'll notice that the chart is empty. This i
 
 To configure axes for our combo chart, we need to configure three Axes: bottom, left & right:
 
-```javascript
+```ts
 const options: AgChartOptions = {
-  axes: [
-    { type: 'category', position: 'bottom' },
-    { type: 'number', position: 'left', keys: [ 'iceCreamSales' ] },
-    { type: 'number', position: 'right', keys: [ 'avgTemp' ] }
-  ],
-  ...
-}
+    axes: [
+        { type: 'category', position: 'bottom' },
+        { type: 'number', position: 'left', keys: ['iceCreamSales'] },
+        { type: 'number', position: 'right', keys: ['avgTemp'] },
+    ],
+    // ...
+};
 ```
 
 Let's breakdown whats happening here:
@@ -140,11 +138,11 @@ Now we have a chart complete with multiple series and axes, the last thing to do
 
 AG Charts provide a number of [themes](/themes/) out of the box to easily control the style of the chart. To set a theme, add the `theme` property to the `AgChartOptions` object, with the value as your chosen theme:
 
-```javascript
+```ts
 const options: AgChartOptions = {
-  theme: 'ag-material-dark'
-  ...
-}
+    theme: 'ag-material-dark',
+    // ...
+};
 ```
 
 Running the code at this point will display a dark chart:
@@ -157,12 +155,12 @@ _Note: Refer to the [theme](/options/#reference-AgChartOptions-theme) api docs f
 
 Titles and subtitles can also be added to the grid via the `title` and `subtitle` properties:
 
-```javascript
+```ts
 const options: AgChartOptions = {
-  title: { text: "Ice Cream Sales" },
-  subtitle: { text: "UK Data from 2022" }
-  ...
-}
+    title: { text: 'Ice Cream Sales' },
+    subtitle: { text: 'UK Data from 2022' },
+    // ...
+};
 ```
 
 {% chartExampleRunner title="Titles Example" name="title-example" type="generated" /%}
@@ -173,14 +171,14 @@ _Note: Refer to the [title](/options/#reference-AgChartOptions-title) and [subti
 
 You may have noticed that the chart added a Legend when we added a second series to our chart. We can configure the legend using the `legend` property, to adjust its size, position, etc:
 
-```javascript
+```ts
 const options: AgChartOptions = {
-  legend: {
-    enabled: true,
-    position: 'right'
-  },
-  ...
-}
+    legend: {
+        enabled: true,
+        position: 'right',
+    },
+    // ...
+};
 ```
 
 We should now see the legend displayed on the right hand side of the chart, rather than underneath it:
@@ -193,14 +191,14 @@ _Note: Refer to the [legend](/options/#reference-AgChartOptions-legend) api docs
 
 As you can see, our legend uses the property name from the data directly. Usually, we'll want to format this into something more human readable, which can be done by adding the `yName` property to our series:
 
-```javascript
+```ts
 const options: AgChartOptions = {
-  series: [
-    { type: 'bar', xKey: "month", yKey: "iceCreamSales", yName: "Ice Cream Sales" }
-    ...
-  ]
-  ...
-}
+    series: [
+        { type: 'bar', xKey: 'month', yKey: 'iceCreamSales', yName: 'Ice Cream Sales' },
+        // ...
+    ],
+    // ...
+};
 ```
 
 Now we should see our Legend using the `yName` value as opposed to the `yKey`:
@@ -213,19 +211,23 @@ Oftentimes we'll want to format our axes to make the chart more readable. We can
 
 For example, we can format our right-side Y axes to include ' °C' with the following function:
 
-```javascript
+```ts
 const options: AgChartOptions = {
-  axes: [
-    ...
-    {
-      type: 'number',
-      position: 'right',
-      keys: [ 'avgTemp' ],
-      label: { formatter: (params) => { return params.value + ' °C' } }  // Label value as a formatter function
-    }
-  ],
-  ...
-}
+    axes: [
+        // ...
+        {
+            type: 'number',
+            position: 'right',
+            keys: ['avgTemp'],
+            label: {
+                formatter: (params) => {
+                    return params.value + ' °C';
+                },
+            }, // Label value as a formatter function
+        },
+    ],
+    // ...
+};
 ```
 
 Now our chart should display formatted temperature values on the right-hand-side axis:

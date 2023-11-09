@@ -34,7 +34,7 @@ The colour of the centre area can be changed by using `innerCircle`.
 ```js
 series: [
     {
-        ...
+        // ...
         innerLabels: [
             {
                 text: 'Total Investment',
@@ -64,14 +64,14 @@ To render multiple pie series in a single chart without overlapping, set an `out
 series: [
     {
         // outer series
-        ...
-        outerRadiusRatio: 1, //the default
+        // ...
+        outerRadiusRatio: 1, // the default
         innerRadiusRatio: 0.9,
         title: { text: 'Previous Year', showInLegend: true },
     },
     {
         // inner series
-        ...
+        // ...
         outerRadiusRatio: 0.6,
         innerRadiusRatio: 0.2,
         title: { text: 'Current Year', showInLegend: true },
@@ -94,8 +94,16 @@ Providing a matching `legendItemKey` allows synchronising of legend items across
 
 ```js
 series: [
-    { ... calloutLabelKey: 'asset', legendItemKey: 'asset' },
-    { ... legendItemKey: 'asset', showInLegend: false },
+    {
+        // ...
+        calloutLabelKey: 'asset',
+        legendItemKey: 'asset',
+    },
+    {
+        // ...
+        legendItemKey: 'asset',
+        showInLegend: false,
+    },
 ];
 ```
 

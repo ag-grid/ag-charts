@@ -34,13 +34,15 @@ Note that the [Legend](./legend) automatically reflects the customisation of the
 Labels can be displayed above each data point. Use the `label` option to enable and style the labels.
 
 ```js
-series: [{
-    ...
-    label: {
-        enabled: true,
-        fontWeight: 'bold'
-    }
-}]
+series: [
+    {
+        // ...
+        label: {
+            enabled: true,
+            fontWeight: 'bold',
+        },
+    },
+];
 ```
 
 Please see the [API Reference](./line-series/#reference-AgLineSeriesOptions-label) for a list of all available label options.
@@ -50,16 +52,18 @@ Please see the [API Reference](./line-series/#reference-AgLineSeriesOptions-labe
 Markers are displayed by default in the Line Series. Use the `marker` option to style or disable the markers.
 
 ```js
-series: [{
-    ...
-    marker: {
-        fill: 'orange',
-        size: 10,
-        stroke: 'black',
-        strokeWidth: 3,
-        shape: 'diamond',
-    }
-}]
+series: [
+    {
+        // ...
+        marker: {
+            fill: 'orange',
+            size: 10,
+            stroke: 'black',
+            strokeWidth: 3,
+            shape: 'diamond',
+        },
+    },
+];
 ```
 
 Please see the [Series Markers](./markers/) page for more information or the [API Reference](./line-series/#reference-AgLineSeriesOptions-marker) for a list of all available marker options.
