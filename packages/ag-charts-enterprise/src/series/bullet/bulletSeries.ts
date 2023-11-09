@@ -97,6 +97,11 @@ class TargetStyle {
     lineDashOffset: number = 0;
 }
 
+class BulletScale {
+    @Validate(NUMBER(0))
+    max = 0;
+}
+
 export class BulletSeries extends _ModuleSupport.AbstractBarSeries<BulletNode, BulletNodeDatum> {
     @Validate(COLOR_STRING)
     fill: string = 'black';
@@ -135,6 +140,8 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<BulletNode, B
 
     @Validate(OPT_ARRAY())
     colorRanges?: BulletColorRange[] = undefined;
+
+    scale: BulletScale = new BulletScale();
 
     tooltip = new _ModuleSupport.SeriesTooltip<AgBulletSeriesTooltipRendererParams>();
 
@@ -182,17 +189,21 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<BulletNode, B
         });
     }
 
-    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection) {
-        const { dataModel, processedData, targetKey } = this;
-        if (!dataModel || !processedData) return [];
+    private getMaxValue(): number {
+        const { dataModel, processedData, targetKey, scale } = this;
+        if (!dataModel || !processedData) return NaN;
 
+        const valueDomain = dataModel.getDomain(this, 'value', 'value', processedData);
+        const targetDomain = targetKey === undefined ? [] : dataModel.getDomain(this, 'target', 'value', processedData);
+
+        return Math.max(scale.max, ...valueDomain, ...targetDomain);
+    }
+
+    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection) {
         if (direction === this.getCategoryDirection()) {
             return [this.valueName ?? this.valueKey];
         } else if (direction == this.getValueAxis()?.direction) {
-            const valueDomain = dataModel.getDomain(this, 'value', 'value', processedData);
-            const targetDomain =
-                targetKey === undefined ? [] : dataModel.getDomain(this, 'target', 'value', processedData);
-            return [0, Math.max(...valueDomain, ...targetDomain)];
+            return [0, this.getMaxValue()];
         } else {
             throw new Error(`unknown direction ${direction}`);
         }
@@ -271,11 +282,11 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<BulletNode, B
         }
 
         if (this.colorRanges) {
-            const maxValue = Math.max(...(this.getSeriesDomain(this.getBarDirection()) as number[]));
+            const maxValue = this.getMaxValue();
             const sortedRanges = [...this.colorRanges].sort((a, b) => (a.stop || maxValue) - (b.stop || maxValue));
             let start = 0;
             this.normalizedColorRanges = sortedRanges.map((item) => {
-                const stop = item.stop === undefined ? maxValue : item.stop;
+                const stop = Math.min(maxValue, item.stop ?? Infinity);
                 const result = { color: item.color, start, stop };
                 start = stop;
                 return result;
