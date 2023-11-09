@@ -46,12 +46,9 @@ describe('HierarchySeries', () => {
         ];
         await series.processData();
 
-        series.rootNode.walk((node) => {
-            // @ts-expect-error
+        series.rootNode.walk((node: any) => {
             delete node.series;
-            // @ts-expect-error
             delete node.datum;
-            // @ts-expect-error
             delete node.parent;
         });
 
