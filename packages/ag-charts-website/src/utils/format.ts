@@ -29,15 +29,16 @@ export async function format(fileName: string, text: string, extensionsToFormat?
     });
 }
 
-type PrettierExtension = 'html' | 'json' | 'js' | 'jsx' | 'ts' | 'tsx';
+type PrettierExtension = 'html' | 'json' | 'css' | 'js' | 'jsx' | 'ts' | 'tsx';
 
 const prettierParsers: { [T in PrettierExtension]: string } = {
     html: 'html',
+    json: 'json',
+    css: 'css',
     js: 'babel',
     ts: 'typescript',
     jsx: 'babel',
     tsx: 'babel-ts',
-    json: 'json',
 };
 
 async function getPrettierConfig(extension: PrettierExtension) {
