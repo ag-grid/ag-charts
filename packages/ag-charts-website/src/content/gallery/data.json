@@ -83,14 +83,14 @@
                     "name": "simple-horizontal-bar"
                 },
                 {
-                    "title": "Grouped Horizontal Bar",
-                    "description": "Grouped Horizontal Bar charts (also known as clustered bar charts) show multiple series with the <a href='./simple-bar/'>bars</a> grouped by category, to allow for easier comparisons across different series.",
-                    "name": "grouped-horizontal-bar"
-                },
-                {
                     "title": "Stacked Horizontal Bar",
                     "description": "Stacked Horizontal Bar charts allow part-to-whole comparisons, with series stacked from left to right in the horizontal <a href='./simple-bar/'>bars</a>. They make it easy to compare combined bar lengths.",
                     "name": "stacked-horizontal-bar"
+                },
+                {
+                    "title": "Grouped Horizontal Bar",
+                    "description": "Grouped Horizontal Bar charts (also known as clustered bar charts) show multiple series with the <a href='./simple-bar/'>bars</a> grouped by category, to allow for easier comparisons across different series.",
+                    "name": "grouped-horizontal-bar"
                 }
             ]
         },
