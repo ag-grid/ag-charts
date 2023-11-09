@@ -42,33 +42,23 @@ export interface AgChartInterface {
     create(options: AgChartOptions): AgChartInstance;
 
     /**
-     * Update an existing `AgChartInstance`. Options provided should be complete and not
-     * partial.
+     * Update an existing `AgChartInstance`. Options provided should be complete and not partial.
      *
-     * __NOTE__ As each call could trigger a chart redraw, multiple calls to update options in
-     * quick succession could result in undesirable flickering, so callers should batch up and/or
-     * debounce changes to avoid unintended partial update renderings.
+     * __NOTE__ As each call could trigger a chart redraw, multiple calls to update options in quick succession could result in undesirable flickering, so callers should batch up and/or debounce changes to avoid unintended partial update renderings.
      */
     update(chart: AgChartInstance, options: AgChartOptions): void;
 
     /**
      * Update an existing `AgChartInstance` by applying a partial set of option changes.
      *
-     * __NOTE__: As each call could trigger a chart redraw, each individual delta options update
-     * should leave the chart in a valid options state. Also, multiple calls to update options in
-     * quick succession could result in undesirable flickering, so callers should batch up and/or
-     * debounce changes to avoid unintended partial update renderings.
+     * __NOTE__: As each call could trigger a chart redraw, each individual delta options update should leave the chart in a valid options state. Also, multiple calls to update options in quick succession could result in undesirable flickering, so callers should batch up and/or debounce changes to avoid unintended partial update renderings.
      */
     updateDelta(chart: AgChartInstance, deltaOptions: AgChartOptions): void;
 
-    /**
-     * Starts a browser-based image download for the given `AgChartInstance`.
-     */
+    /** Starts a browser-based image download for the given `AgChartInstance`. */
     download(chart: AgChartInstance, options?: DownloadOptions): void;
 
-    /**
-     * Returns a base64-encoded image data URL for the given `AgChartInstance`.
-     */
+    /** Returns a base64-encoded image data URL for the given `AgChartInstance`. */
     getImageDataURL(chart: AgChartInstance, options?: ImageDataUrlOptions): Promise<string>;
 }
 

@@ -1,6 +1,7 @@
 import type { AgAxisCategoryTickOptions, AgAxisNumberTickOptions } from '../series/cartesian/cartesianOptions';
 import type { AgAxisCaptionOptions, AgBaseAxisOptions } from './axisOptions';
 import type { AgBaseCrossLineLabelOptions, AgBaseCrossLineOptions } from './crossLineOptions';
+import type { AgPolarAxisShape } from './polarAxisOptions';
 import type { Ratio } from './types';
 
 export interface AgRadiusNumberAxisOptions extends AgBaseAxisOptions {
@@ -16,7 +17,7 @@ export interface AgRadiusNumberAxisOptions extends AgBaseAxisOptions {
     /** Configuration for the axis ticks. */
     tick?: AgAxisNumberTickOptions;
     /** Shape of axis. Default: `polygon` */
-    shape?: 'polygon' | 'circle';
+    shape?: AgPolarAxisShape;
     /** Configuration for the title shown next to the axis. */
     title?: AgAxisCaptionOptions;
     /** Add cross lines or regions corresponding to data values. */

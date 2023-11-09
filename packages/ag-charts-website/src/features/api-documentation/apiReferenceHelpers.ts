@@ -1,6 +1,14 @@
 import type { ApiReferenceConfig } from 'src/features/api-documentation/components/ApiReference';
 
-import type { ApiReferenceNode, ApiReferenceType, InterfaceNode, MemberNode, TypeNode } from './api-reference-types';
+import type {
+    ApiReferenceNode,
+    ApiReferenceType,
+    EnumNode,
+    InterfaceNode,
+    MemberNode,
+    TypeLiteralNode,
+    TypeNode,
+} from './api-reference-types';
 
 type PossibleTypeNode = TypeNode | undefined | PossibleTypeNode[];
 
@@ -77,9 +85,10 @@ export function normalizeType(refType: TypeNode, includeGenerics?: boolean): str
     }
 }
 
-export function processMembers(interfaceRef: InterfaceNode, config: ApiReferenceConfig) {
+export function processMembers(interfaceRef: InterfaceNode | TypeLiteralNode | EnumNode, config: ApiReferenceConfig) {
     let { members } = interfaceRef;
     const { prioritise, include, exclude } = config;
+    const isInterface = interfaceRef.kind === 'interface';
     if (include?.length || exclude?.length) {
         members = members.filter(
             (member) => !exclude?.includes(member.name) && (include?.includes(member.name) ?? true)
@@ -90,7 +99,7 @@ export function processMembers(interfaceRef: InterfaceNode, config: ApiReference
     }
     return members.map((member) => {
         const memberType = normalizeType(member.type);
-        if (interfaceRef.genericsMap?.[memberType]) {
+        if (isInterface && interfaceRef.genericsMap?.[memberType]) {
             return { ...member, type: interfaceRef.genericsMap?.[memberType] };
         }
         return member;
