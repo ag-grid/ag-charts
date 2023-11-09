@@ -65,10 +65,14 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
 
         const id = opts.id ?? Math.random().toString();
 
+        const skip = this.isSkipped();
+        if (skip) {
+            this.debug('AnimationManager - skipping animation');
+        }
         return new Animation({
             ...opts,
             id,
-            skip: this.isSkipped(),
+            skip,
             autoplay: this.isPlaying ? opts.autoplay : false,
             duration: opts.duration ?? this.defaultDuration,
             onPlay: (controller) => {
@@ -81,9 +85,6 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
             },
             onStop: (controller) => {
                 batch.controllers.delete(id);
-                if (!batch.isActive()) {
-                    this.cancelAnimation();
-                }
                 if (disableInteractions) {
                     this.interactionManager.resume('animation');
                 }
