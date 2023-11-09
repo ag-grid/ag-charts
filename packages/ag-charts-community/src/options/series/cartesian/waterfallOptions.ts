@@ -118,7 +118,7 @@ export interface AgWaterfallSeriesItemOptions<TDatum> extends FillOptions, Strok
 }
 
 export interface AgWaterfallSeriesLineOptions {
-    /** Whether or not the connector lines should be shown. */
+    /** Whether the connector lines should be shown. */
     enabled?: boolean;
     /** The colour to use for the connector lines. */
     stroke?: CssColor;

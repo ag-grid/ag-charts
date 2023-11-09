@@ -1,7 +1,7 @@
 import type { CssColor, Opacity, PixelSize } from './types';
 
 export interface AgCrosshairOptions {
-    /** Whether or not to show the crosshair. */
+    /** Whether to show the crosshair. */
     enabled?: boolean;
     /** When true, the crosshair snaps to the highlighted data point. By default this property is false and the crosshair is rendered at the mouse pointer position. */
     snap?: boolean;
@@ -20,7 +20,7 @@ export interface AgCrosshairOptions {
 }
 
 export interface AgCrosshairLabel {
-    /** Whether or not to show label when the crosshair is visible. */
+    /** Whether to show label when the crosshair is visible. */
     enabled?: boolean;
     /** A class name to be added to the crosshair label element. */
     className?: string;

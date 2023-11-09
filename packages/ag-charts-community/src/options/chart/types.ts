@@ -30,8 +30,8 @@ export type PixelSize = number;
 /** Alias to denote that a value is a ratio, usually in the range [0, 1]. */
 export type Ratio = number;
 
-/** Alias to denote that a value is a data value. */
-export type DataValue = any;
+/** Alias to denote that a value is an axis value. */
+export type AxisValue = any;
 
 export type TextAlign = 'left' | 'center' | 'right';
 

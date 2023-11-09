@@ -50,7 +50,7 @@ export interface AgBaseAxisOptions<LabelType = AgBaseAxisLabelOptions> {
 }
 
 export interface AgAxisLineOptions {
-    /** Set to false to hide the axis line. */
+    /** Set to `false` to hide the axis line. */
     enabled?: boolean;
     /** The width in pixels of the axis line. */
     width?: PixelSize;
@@ -59,7 +59,7 @@ export interface AgAxisLineOptions {
 }
 
 export interface AgAxisGridLineOptions {
-    /** Set to false to hide the axis grid lines. */
+    /** Set to `false` to hide the axis grid lines. */
     enabled?: boolean;
     /** The width in pixels of the axis grid lines. */
     width?: PixelSize;
@@ -68,7 +68,7 @@ export interface AgAxisGridLineOptions {
 }
 
 export interface AgAxisBaseTickOptions {
-    /** Set to false to hide the axis tick lines. */
+    /** Set to `false` to hide the axis tick lines. */
     enabled?: boolean;
     /** The width in pixels of the axis ticks. */
     width?: PixelSize;
@@ -92,7 +92,7 @@ export interface AgAxisLabelFormatterParams {
 }
 
 export interface AgBaseAxisLabelOptions {
-    /** Set to false to hide the axis labels. */
+    /** Set to `false` to hide the axis labels. */
     enabled?: boolean;
     /** The font style to use for the labels. */
     fontStyle?: FontStyle;

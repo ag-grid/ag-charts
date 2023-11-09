@@ -133,7 +133,7 @@ function NodeFactory({ member, anchorId, prefixPath = [], ...props }: ApiReferen
             />
             {hasMembers &&
                 isExpanded &&
-                interfaceRef.members.map((childMember) => (
+                processMembers(interfaceRef, config).map((childMember) => (
                     <NodeFactory
                         key={childMember.name}
                         member={childMember}

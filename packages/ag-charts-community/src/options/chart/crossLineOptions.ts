@@ -1,16 +1,16 @@
-import type { CssColor, DataValue, FontFamily, FontSize, FontStyle, FontWeight, Opacity, PixelSize } from './types';
+import type { AxisValue, CssColor, FontFamily, FontSize, FontStyle, FontWeight, Opacity, PixelSize } from './types';
 
 export interface AgCrossLineThemeOptions extends Omit<AgBaseCrossLineOptions, 'type'> {}
 
 export interface AgBaseCrossLineOptions<LabelType = AgBaseCrossLineLabelOptions> {
-    /** Whether or not to show the cross line. */
+    /** Whether to show the cross line. */
     enabled?: boolean;
     /** Type of cross line to render. */
     type: 'line' | 'range';
     /** The data value at which the line should be positioned. This property is used if the crossLine type is `line`. */
-    value?: DataValue;
+    value?: AxisValue;
     /** The range of values from the data used to display lines at a desired chart region. This property is only used for crossLine type `range`. */
-    range?: [DataValue, DataValue];
+    range?: [AxisValue, AxisValue];
     /** The colour to use for the fill of the range. */
     fill?: CssColor;
     /** The opacity of the fill for the range. */
@@ -28,7 +28,7 @@ export interface AgBaseCrossLineOptions<LabelType = AgBaseCrossLineLabelOptions>
 }
 
 export interface AgBaseCrossLineLabelOptions {
-    /** Whether or not to show the cross line label. */
+    /** Whether to show the cross line label. */
     enabled?: boolean;
     /** The text to show in the label. */
     text?: string;

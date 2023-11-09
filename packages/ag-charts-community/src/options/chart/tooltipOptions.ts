@@ -2,7 +2,7 @@ import type { AgChartCallbackParams } from './callbackOptions';
 import type { CssColor, InteractionRange, PixelSize } from './types';
 
 export interface AgChartTooltipOptions {
-    /** Set to false to disable tooltips for all series in the chart. */
+    /** Set to `false` to disable tooltips for all series in the chart. */
     enabled?: boolean;
     /** The tooltip arrow is displayed by default, unless the container restricts it or a position offset is provided. To always display the arrow, set `showArrow` to `true`. To remove the arrow, set `showArrow` to `false`.  */
     showArrow?: boolean;
@@ -20,7 +20,7 @@ export type AgTooltipPositionType = 'pointer' | 'node';
 
 export interface AgTooltipPositionOptions {
     /** The type of positioning for the tooltip. By default, the tooltip follows the mouse pointer for series without markers, and it is anchored to the highlighted marker node for series with markers. */
-    type: AgTooltipPositionType;
+    type?: AgTooltipPositionType;
     /** The horizontal offset in pixels for the position of the tooltip. */
     xOffset?: PixelSize;
     /** The vertical offset in pixels for the position of the tooltip. */
@@ -61,6 +61,6 @@ export interface AgSeriesTooltip<TParams extends AgSeriesTooltipRendererParams> 
 }
 
 export interface AgSeriesTooltipInteraction {
-    /** Set to true to keep the tooltip open when the mouse is hovering over it, and enable clicking tooltip text */
+    /** Set to `true` to keep the tooltip open when the mouse is hovering over it, and enable clicking tooltip text */
     enabled: boolean;
 }

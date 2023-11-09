@@ -51,7 +51,7 @@ export interface AgChartOverlaysOptions {
 }
 
 export interface AgChartCaptionOptions {
-    /** Whether or not the text should be shown. */
+    /** Whether the text should be shown. */
     enabled?: boolean;
     /** The text to display. */
     text?: string;
@@ -84,7 +84,7 @@ export interface AgChartSubtitleOptions extends AgChartCaptionOptions {}
 export interface AgChartFooterOptions extends AgChartCaptionOptions {}
 
 export interface AgChartBackground {
-    /** Whether or not the background should be visible. */
+    /** Whether the background should be visible. */
     visible?: boolean;
     /** Colour of the chart background. */
     fill?: CssColor;
