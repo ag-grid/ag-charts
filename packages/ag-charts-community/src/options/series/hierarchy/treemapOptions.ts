@@ -33,7 +33,7 @@ export interface AgTreemapSeriesTooltipRendererParams<TDatum>
 export interface AgTreemapSeriesGroupStyle extends FillOptions, StrokeOptions {}
 
 export interface AgTreemapSeriesGroupLayout<TDatum> {
-    /* Options for the label in a group */
+    /** Options for the label in a group */
     label?: AgChartLabelOptions<TDatum, AgTreemapSeriesLabelFormatterParams<TDatum>>;
     /** Horizontal position of the label */
     textAlign?: TextAlign;
@@ -48,7 +48,7 @@ export interface AgTreemapSeriesGroupLayout<TDatum> {
 }
 
 export interface AgTreemapSeriesGroupHighlightStyle<TDatum> extends AgTreemapSeriesGroupStyle {
-    /* Options for the label in a group */
+    /** Options for the label in a group */
     label?: AgTreemapSeriesLabelHighlightOptions<TDatum>;
 }
 
@@ -75,7 +75,7 @@ export interface AgTreemapSeriesTileLabelOptions<TDatum>
 export interface AgTreemapSeriesTileStyle extends FillOptions, StrokeOptions {}
 
 export interface AgTreemapSeriesTileLayout<TDatum> {
-    /* Options for the label in a tile */
+    /** Options for the label in a tile */
     label?: AgTreemapSeriesTileLabelOptions<TDatum>;
     /* Options for a secondary, smaller label in a tile - displayed under the primary label */
     secondaryLabel?: AgTreemapSeriesTileLabelOptions<TDatum>;
@@ -101,17 +101,15 @@ export interface AgTreemapSeriesTileOptions<TDatum>
         AgTreemapSeriesTileLayout<TDatum> {}
 
 export interface AgTreemapSeriesHighlightStyle<TDatum> extends AgSeriesHighlightStyle {
-    /* Options for the label in a tile */
+    /** Options for the label in a tile */
     group?: AgTreemapSeriesGroupHighlightStyle<TDatum>;
-    /* Options for a secondary, smaller label in a tile - displayed under the primary label */
+    /** Options for a secondary, smaller label in a tile - displayed under the primary label */
     tile?: AgTreemapSeriesTileHighlightStyle<TDatum>;
 }
 
 export interface AgTreemapSeriesThemeableOptions<TDatum = any>
     extends Omit<AgBaseSeriesThemeableOptions, 'highlightStyle'> {
-    /** The domain the 'colorKey' values belong to. The domain can contain more than two stops, for example `[-5, 0, -5]`. In that case the 'colorRange' should also use a matching number of colors. */
-    colorDomain?: number[];
-    /** The color range to interpolate the numeric `colorDomain` into. For example, if the `colorDomain` is `[-5, 5]` and `colorRange` is `['red', 'green']`, a `colorKey` value of `-5` will be assigned the 'red' color, `5` - 'green' color and `0` a blend of 'red' and 'green'. */
+    /** The color range to interpolate. */
     colorRange?: CssColor[];
     /** Options for group nodes (i.e. nodes WITH children) */
     group?: AgTreemapSeriesGroupOptions<TDatum>;
@@ -144,7 +142,7 @@ export interface AgTreemapSeriesOptionsKeys {
     childrenKey?: string;
     /** The name of the node key containing the size value. */
     sizeKey?: string;
-    /** The name of the node key containing the color value. This value (along with `colorDomain` and `colorRange` configs) will be used to determine the tile color. */
+    /** The name of the node key containing the color value. This value (along with `colorRange` config) will be used to determine the tile color. */
     colorKey?: string;
 }
 

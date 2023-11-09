@@ -25,6 +25,7 @@ import { RadialBarModule } from './series/radial-bar/main';
 import { RadialColumnModule } from './series/radial-column/main';
 import { RangeAreaModule } from './series/range-area/rangeAreaModule';
 import { RangeBarModule } from './series/range-bar/main';
+import { SunburstSeriesModule } from './series/sunburst/sunburstSeriesModule';
 import { TreemapSeriesModule } from './series/treemap/treemapSeriesModule';
 import { WaterfallModule } from './series/waterfall/main';
 
@@ -54,6 +55,7 @@ _ModuleSupport.registerModule(RadiusCategoryAxisModule);
 _ModuleSupport.registerModule(RadiusNumberAxisModule);
 _ModuleSupport.registerModule(RangeBarModule);
 _ModuleSupport.registerModule(RangeAreaModule);
+_ModuleSupport.registerModule(SunburstSeriesModule);
 _ModuleSupport.registerModule(TreemapSeriesModule);
 _ModuleSupport.registerModule(WaterfallModule);
 _ModuleSupport.registerModule(ZoomModule);

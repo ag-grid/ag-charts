@@ -74,7 +74,11 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
     rootNode = new HierarchyNode(this, 0, undefined, 0, undefined, 0, undefined, undefined, []);
 
     constructor(moduleCtx: ModuleContext) {
-        super({ moduleCtx, pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH] });
+        super({
+            moduleCtx,
+            pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            contentGroupVirtual: false,
+        });
     }
 
     getLabelData(): PointLabelDatum[] {
