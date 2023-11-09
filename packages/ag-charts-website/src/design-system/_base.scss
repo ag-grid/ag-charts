@@ -19,6 +19,7 @@ html {
     font-weight: var(--font-weight);
     background-color: var(--default-background-color);
     color: var(--default-text-color);
+    scroll-padding-top: var(--scroll-offset);
 
     @media (min-width: $breakpoint-docs-nav-medium) {
         --header-nav-height: 59px;
