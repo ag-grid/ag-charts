@@ -100,6 +100,40 @@ describe('BulletSeries', () => {
         await compare();
     });
 
+    it('should clip everything to scale.max', async () => {
+        chart = AgEnterpriseCharts.create({
+            ...opts,
+            series: [
+                {
+                    type: 'bullet',
+                    data: [{ income: 11, objective: 7 }],
+                    scale: { max: 5 },
+                    valueKey: 'income',
+                    targetKey: 'objective',
+                    colorRanges: [{ color: 'yellow', stop: 45 }],
+                },
+            ],
+        });
+        await compare();
+    });
+
+    it('should extend final color to scale.max', async () => {
+        chart = AgEnterpriseCharts.create({
+            ...opts,
+            series: [
+                {
+                    type: 'bullet',
+                    data: [{ income: 11, objective: 7 }],
+                    scale: { max: 20 },
+                    valueKey: 'income',
+                    targetKey: 'objective',
+                    colorRanges: [{ color: 'red', stop: 5 }, { color: 'yellow', stop: 8 }, { color: 'green' }],
+                },
+            ],
+        });
+        await compare();
+    });
+
     test('tooltip valueKey only', async () => {
         chart = deproxy(
             AgEnterpriseCharts.create({
