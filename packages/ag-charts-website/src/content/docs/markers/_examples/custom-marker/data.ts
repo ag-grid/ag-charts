@@ -16,5 +16,5 @@ export function getData(): any[] {
             quarter: 'Q4',
             electric: 40,
         },
-    ]
+    ];
 }

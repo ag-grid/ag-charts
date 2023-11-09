@@ -1,7 +1,7 @@
-import { AgChart, AgChartOptions } from "ag-charts-community";
+import { AgChart, AgChartOptions } from 'ag-charts-community';
 
 const options: AgChartOptions = {
-    container: document.getElementById("myChart"),
+    container: document.getElementById('myChart'),
     title: {
         text: 'A chart with missing data',
     },

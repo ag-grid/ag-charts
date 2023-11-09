@@ -1,21 +1,20 @@
 import { AgChartOptions, AgEnterpriseCharts, AgErrorBarFormatterParams } from 'ag-charts-enterprise';
+
 import { getData } from './data';
 
 const highlightStyle = {
-    item: {stroke: 'red' },
+    item: { stroke: 'red' },
     series: { dimOpacity: 0.3 },
-}
+};
 
 const formatter = (param: AgErrorBarFormatterParams) => {
-    const errorBarStyle = { strokeWidth: 3 }
+    const errorBarStyle = { strokeWidth: 3 };
     if (param.highlighted) {
-        return {...errorBarStyle, ...highlightStyle.item}
+        return { ...errorBarStyle, ...highlightStyle.item };
+    } else {
+        return errorBarStyle;
     }
-    else {
-        return errorBarStyle
-    }
-
-}
+};
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
@@ -28,7 +27,7 @@ const options: AgChartOptions = {
             xKey: 'month',
             yKey: 'temperature',
             yName: 'Canada',
-            errorBar:  {
+            errorBar: {
                 yLowerKey: 'temperatureLower',
                 yUpperKey: 'temperatureUpper',
                 formatter,
@@ -40,7 +39,7 @@ const options: AgChartOptions = {
             xKey: 'month',
             yKey: 'temperature',
             yName: 'Australia',
-            errorBar:  {
+            errorBar: {
                 yLowerKey: 'temperatureLower',
                 yUpperKey: 'temperatureUpper',
                 formatter,

@@ -95,7 +95,7 @@ function actionAddWeek7and8() {
 
 function reorder() {
     options.data = [...options.data];
-    options.data?.forEach((d) => d.random = Math.random());
+    options.data?.forEach((d) => (d.random = Math.random()));
     options.data?.sort((a, b) => a.random - b.random);
 
     AgEnterpriseCharts.update(chart, options);
@@ -108,11 +108,7 @@ function rapidUpdate() {
 
     (chart as any).chart.waitForUpdate().then(() => {
         AgEnterpriseCharts.updateDelta(chart, {
-            data: [
-                ...data,
-                { quarter: 'week 12', iphone: 78 },
-                { quarter: 'week 13', iphone: 138 },
-            ],
+            data: [...data, { quarter: 'week 12', iphone: 78 }, { quarter: 'week 13', iphone: 138 }],
         });
     });
 }

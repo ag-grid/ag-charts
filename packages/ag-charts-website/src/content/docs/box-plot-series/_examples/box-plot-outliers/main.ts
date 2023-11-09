@@ -1,4 +1,5 @@
 import { AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+
 import { getBoxPlotData, getOutliersData } from './data';
 
 const options: AgChartOptions = {

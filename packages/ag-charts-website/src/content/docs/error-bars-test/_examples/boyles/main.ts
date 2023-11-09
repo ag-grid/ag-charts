@@ -1,5 +1,6 @@
 import { AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
-import { getHelium, getOxygen, getArgon } from './data';
+
+import { getArgon, getHelium, getOxygen } from './data';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
@@ -19,7 +20,7 @@ const options: AgChartOptions = {
             xKey: 'volume',
             yKey: 'pressure',
             title: 'Oxygen',
-            errorBar:  {
+            errorBar: {
                 xLowerKey: 'volumeLower',
                 xUpperKey: 'volumeUpper',
                 yLowerKey: 'pressureLower',
@@ -32,7 +33,7 @@ const options: AgChartOptions = {
             xKey: 'volume',
             yKey: 'pressure',
             title: 'Helium',
-            errorBar:  {
+            errorBar: {
                 xLowerKey: 'volumeLower',
                 xUpperKey: 'volumeUpper',
                 yLowerKey: 'pressureLower',
@@ -45,7 +46,7 @@ const options: AgChartOptions = {
             xKey: 'volume',
             yKey: 'pressure',
             title: 'Argon',
-            errorBar:  {
+            errorBar: {
                 xLowerKey: 'volumeLower',
                 xUpperKey: 'volumeUpper',
                 yLowerKey: 'pressureLower',

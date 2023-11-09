@@ -1,9 +1,10 @@
-import { AgEnterpriseCharts, AgChartOptions, AgCartesianSeriesTooltipRendererParams } from 'ag-charts-enterprise';
+import { AgCartesianSeriesTooltipRendererParams, AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+
 import { getData } from './data';
 
 const tooltip = {
     renderer: ({ datum, xKey, yKey, yName, xName }: AgCartesianSeriesTooltipRendererParams) => {
-        const year = (datum[xKey]).toFixed(0);
+        const year = datum[xKey].toFixed(0);
         return {
             content: `${year}: ${Math.round(datum[yKey])}`,
         };
@@ -38,7 +39,7 @@ const options: AgChartOptions = {
             marker: {
                 size: 4,
             },
-            tooltip
+            tooltip,
         },
         {
             type: 'scatter',
@@ -49,7 +50,7 @@ const options: AgChartOptions = {
             marker: {
                 size: 4,
             },
-            tooltip
+            tooltip,
         },
     ],
     axes: [
@@ -71,9 +72,10 @@ const options: AgChartOptions = {
                 values: [338984, 715246],
             },
             label: {
-                formatter: ({ value }) => `~${Math.round(value).toLocaleString('en-GB', {
-                    maximumFractionDigits: 0,
-                  })} Deaths`,
+                formatter: ({ value }) =>
+                    `~${Math.round(value).toLocaleString('en-GB', {
+                        maximumFractionDigits: 0,
+                    })} Deaths`,
             },
             line: {
                 width: 1,
@@ -90,9 +92,10 @@ const options: AgChartOptions = {
                 width: 1,
             },
             label: {
-                formatter: ({ value }) => `~${Math.round(value).toLocaleString('en-GB', {
-                    maximumFractionDigits: 0,
-                  })} Years`,
+                formatter: ({ value }) =>
+                    `~${Math.round(value).toLocaleString('en-GB', {
+                        maximumFractionDigits: 0,
+                    })} Years`,
             },
             tick: {
                 values: [81.77, 29.22],

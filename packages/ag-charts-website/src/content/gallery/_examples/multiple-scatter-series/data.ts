@@ -160,7 +160,8 @@ function getData() {
                 gdpPerCapita: 5955,
                 lifeSatisfaction: 5.06,
                 country: 'Vietnam',
-            },            {
+            },
+            {
                 gdpPerCapita: 2325,
                 lifeSatisfaction: 3.83,
                 country: 'Yemen',

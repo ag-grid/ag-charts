@@ -68,7 +68,7 @@ const options: AgCartesianChartOptions = {
     axes: [
         {
             type: 'category',
-            position: "bottom",
+            position: 'bottom',
         },
         {
             // primary y axis
@@ -82,7 +82,7 @@ const options: AgCartesianChartOptions = {
         {
             // secondary y axis
             type: 'number',
-            position: "right",
+            position: 'right',
             keys: ['portions'],
             title: {
                 text: 'Portions Consumed (Per Day)',

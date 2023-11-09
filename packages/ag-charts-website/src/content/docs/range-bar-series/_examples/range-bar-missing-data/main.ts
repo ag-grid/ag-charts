@@ -1,4 +1,5 @@
 import { AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+
 import { getData } from './data';
 
 const options: AgChartOptions = {
@@ -14,7 +15,7 @@ const options: AgChartOptions = {
             xName: 'Date',
             yLowKey: 'low',
             yHighKey: 'high',
-        }
+        },
     ],
     axes: [
         {
@@ -26,36 +27,33 @@ const options: AgChartOptions = {
             position: 'bottom',
             nice: false,
             crosshair: {
-                enabled: false
-            }
+                enabled: false,
+            },
         },
-    ]
+    ],
 };
-
 
 let chart = AgEnterpriseCharts.create(options);
 
-
 function missingYValues() {
-  const data = getData();
-  data[2].high = undefined;
-  data[5].low = undefined;
-  options.data = data;
+    const data = getData();
+    data[2].high = undefined;
+    data[5].low = undefined;
+    options.data = data;
 
-  AgEnterpriseCharts.update(chart, options);
+    AgEnterpriseCharts.update(chart, options);
 }
 
-
 function missingXValue() {
-  const data = getData();
+    const data = getData();
 
-  data[6].date = undefined;
-  options.data = data;
+    data[6].date = undefined;
+    options.data = data;
 
-  AgEnterpriseCharts.update(chart, options);
+    AgEnterpriseCharts.update(chart, options);
 }
 
 function reset() {
     options.data = getData();
     AgEnterpriseCharts.update(chart, options);
-  }
+}

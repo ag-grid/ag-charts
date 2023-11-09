@@ -75,7 +75,7 @@ export function getData(): any[] {
         { city: 'Chengdu, China', lat: 30.67, lon: 104.07, population: 4123000 },
         { city: 'Rangoon, Burma', lat: 16.7834, lon: 96.1667, population: 4088000 },
         { city: 'Phoenix, United States', lat: 33.5722, lon: -112.0891, population: 4081849 },
-        { city: 'Xi\'an, China', lat: 34.275, lon: 108.895, population: 4009000 },
+        { city: "Xi'an, China", lat: 34.275, lon: 108.895, population: 4009000 },
         { city: 'Porto Alegre, Brazil', lat: -30.05, lon: -51.2, population: 3917000 },
         { city: 'Surat, India', lat: 21.2, lon: 72.84, population: 3842000 },
         { city: 'Hechi, China', lat: 23.0965, lon: 109.6091, population: 3830000 },

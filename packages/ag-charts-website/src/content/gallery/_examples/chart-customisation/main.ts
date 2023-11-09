@@ -1,4 +1,5 @@
-import { AgEnterpriseCharts, AgChartOptions, time } from 'ag-charts-enterprise';
+import { AgChartOptions, AgEnterpriseCharts, time } from 'ag-charts-enterprise';
+
 import { getData } from './data';
 
 const options: AgChartOptions = {
@@ -79,7 +80,7 @@ const options: AgChartOptions = {
                 style: [
                     { stroke: '#c1d832', lineDash: [6, 3] },
                     { stroke: '#162c53', lineDash: [10, 5] },
-                ]
+                ],
             },
         },
         {

@@ -1,9 +1,10 @@
 'use strict';
 
-import { AgChartsReact } from 'ag-charts-react';
-import { time } from 'ag-charts-enterprise';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
+
+import { time } from 'ag-charts-enterprise';
+import { AgChartsReact } from 'ag-charts-react';
 
 const ChartExample = () => {
     const chartRef = useRef(null);

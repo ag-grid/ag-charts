@@ -1,4 +1,4 @@
-export const data =  [
+export const data = [
     {
         name: 'Utilities',
         children: [

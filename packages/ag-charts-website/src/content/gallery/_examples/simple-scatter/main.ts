@@ -1,4 +1,5 @@
-import { AgEnterpriseCharts, AgChartOptions } from 'ag-charts-enterprise';
+import { AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+
 import { getData } from './data';
 
 const options: AgChartOptions = {
@@ -23,10 +24,10 @@ const options: AgChartOptions = {
             type: 'number',
             nice: false,
             gridLine: {
-                enabled: false
+                enabled: false,
             },
             label: {
-                enabled: false
+                enabled: false,
             },
             crossLines: [
                 {
@@ -36,19 +37,19 @@ const options: AgChartOptions = {
                     label: {
                         text: 'Height (Inches)',
                         position: 'topLeft',
-                    }
-                }
-            ]
+                    },
+                },
+            ],
         },
         {
             position: 'left',
             type: 'number',
             nice: false,
             gridLine: {
-                enabled: false
+                enabled: false,
             },
-            label:{
-                enabled: false
+            label: {
+                enabled: false,
             },
             crossLines: [
                 {
@@ -58,9 +59,9 @@ const options: AgChartOptions = {
                     label: {
                         text: 'Weight (Pounds)',
                         position: 'insideTopRight',
-                    }
-                }
-            ]
+                    },
+                },
+            ],
         },
     ],
 };

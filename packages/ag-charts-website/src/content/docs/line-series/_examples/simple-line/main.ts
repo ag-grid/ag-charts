@@ -1,26 +1,27 @@
-import { AgChartOptions, AgChart } from 'ag-charts-community'
-import { getData } from "./data";
+import { AgChart, AgChartOptions } from 'ag-charts-community';
+
+import { getData } from './data';
 
 const options: AgChartOptions = {
-  container: document.getElementById('myChart'),
-  title: {
-    text: 'Annual Fuel Expenditure)',
-  },
-  data: getData(),
-  series: [
-    {
-      type: 'line',
-      xKey: 'quarter',
-      yKey: 'petrol',
-      yName: 'Petrol',
+    container: document.getElementById('myChart'),
+    title: {
+        text: 'Annual Fuel Expenditure)',
     },
-    {
-      type: 'line',
-      xKey: 'quarter',
-      yKey: 'diesel',
-      yName: 'Diesel',
-    },
-  ],
-}
+    data: getData(),
+    series: [
+        {
+            type: 'line',
+            xKey: 'quarter',
+            yKey: 'petrol',
+            yName: 'Petrol',
+        },
+        {
+            type: 'line',
+            xKey: 'quarter',
+            yKey: 'diesel',
+            yName: 'Diesel',
+        },
+    ],
+};
 
-AgChart.create(options)
+AgChart.create(options);

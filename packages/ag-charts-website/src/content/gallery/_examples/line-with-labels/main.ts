@@ -13,7 +13,6 @@ const formatTime = (value: number) => {
     return `${hours > 0 ? hours + 'h' : ''} ${minutes + 'm'}`;
 };
 
-
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -34,29 +33,28 @@ const options: AgChartOptions = {
         yName: ageGroup,
         label: {
             enabled: true,
-            formatter:({ value }) => `${Math.floor(value) * 60 + Math.round((value % 1) * 60)}m`
+            formatter: ({ value }) => `${Math.floor(value) * 60 + Math.round((value % 1) * 60)}m`,
         },
         marker: {
-            size: 10
-        }
+            size: 10,
+        },
     })),
     axes: [
         {
             position: 'bottom',
             type: 'number',
             tick: {
-                enabled: false
+                enabled: false,
             },
             label: {
                 enabled: false,
             },
             gridLine: {
-                enabled: false
-             },
+                enabled: false,
+            },
             nice: false,
             min: 2011.5,
             max: 2022.5,
-
         },
         {
             position: 'left',
@@ -65,7 +63,7 @@ const options: AgChartOptions = {
                 text: 'Time',
             },
             gridLine: {
-               enabled: false
+                enabled: false,
             },
             tick: {
                 size: 20,
@@ -87,17 +85,17 @@ const options: AgChartOptions = {
                         text: '>Year',
                         fontSize: 13,
                         padding: 0,
-                        position: 'right'
-                    }
-                }
-             ]
+                        position: 'right',
+                    },
+                },
+            ],
         },
     ],
     seriesArea: {
         padding: {
             left: 10,
-            bottom: 10
-        }
+            bottom: 10,
+        },
     },
 };
 

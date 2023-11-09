@@ -1,4 +1,5 @@
-import { AgChartOptions, AgTreemapSeriesOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgEnterpriseCharts, AgTreemapSeriesOptions } from 'ag-charts-enterprise';
+
 import { getData } from './data';
 
 const options: AgChartOptions = {
@@ -25,14 +26,14 @@ const options: AgChartOptions = {
                     color: 'white',
                 },
                 strokeWidth: 2,
-                spacing: 2
+                spacing: 2,
             },
             highlightStyle: {
                 tile: {
                     label: {
-                        color: 'white'
+                        color: 'white',
                     },
-                }
+                },
             },
             formatter: ({ datum, highlighted }) => {
                 if (datum.children) {
@@ -52,6 +53,6 @@ const options: AgChartOptions = {
     subtitle: {
         text: 'in millions US dollars',
     },
-}
+};
 
 AgEnterpriseCharts.create(options);

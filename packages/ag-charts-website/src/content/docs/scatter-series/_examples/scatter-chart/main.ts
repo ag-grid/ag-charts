@@ -1,19 +1,20 @@
 import { AgChart, AgChartOptions } from 'ag-charts-community';
-import { getData } from "./data";
+
+import { getData } from './data';
 
 const options: AgChartOptions = {
-  title: {
-    text: 'Mean Sea Level (mm)',
-  },
-  container: document.getElementById('myChart'),
-  data: getData(),
-  series: [
-    {
-      type: 'scatter',
-      xKey: 'time',
-      yKey: 'mm',
+    title: {
+        text: 'Mean Sea Level (mm)',
     },
-  ],
-}
+    container: document.getElementById('myChart'),
+    data: getData(),
+    series: [
+        {
+            type: 'scatter',
+            xKey: 'time',
+            yKey: 'mm',
+        },
+    ],
+};
 
-AgChart.create(options)
+AgChart.create(options);

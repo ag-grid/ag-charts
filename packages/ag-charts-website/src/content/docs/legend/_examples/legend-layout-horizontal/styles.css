@@ -18,7 +18,9 @@
     border: 1px solid lightgray;
     border-radius: 5px;
     background-color: white;
-    font: 12px Verdana, sans-serif;
+    font:
+        12px Verdana,
+        sans-serif;
 }
 
 .slider input {

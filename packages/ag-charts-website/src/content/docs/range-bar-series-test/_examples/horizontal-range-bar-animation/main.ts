@@ -1,4 +1,5 @@
 import { AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+
 import { getData } from './data';
 
 const data = getData();
@@ -26,27 +27,27 @@ const chart = AgEnterpriseCharts.create(options);
 let updating = false;
 let refreshIntervalId: string | number | NodeJS.Timeout | undefined;
 function startUpdates() {
-  if (updating) {
-    return
-  }
+    if (updating) {
+        return;
+    }
 
-  updating = true;
-  update();
-  refreshIntervalId = setInterval(update, 1000);
+    updating = true;
+    update();
+    refreshIntervalId = setInterval(update, 1000);
 }
 
 function stopUpdates() {
     if (!updating) {
-      return;
+        return;
     }
 
     updating = false;
     clearInterval(refreshIntervalId);
-  }
+}
 
 function update() {
-  options.data = getUpdatedData()
-  AgEnterpriseCharts.update(chart, options);
+    options.data = getUpdatedData();
+    AgEnterpriseCharts.update(chart, options);
 }
 
 function getUpdatedData() {
@@ -85,10 +86,7 @@ function getUpdatedData() {
         randomIndex = Math.floor(Math.random() * currentIndex);
         currentIndex--;
 
-        [updatedData[currentIndex], updatedData[randomIndex]] = [
-            updatedData[randomIndex],
-            updatedData[currentIndex],
-        ];
+        [updatedData[currentIndex], updatedData[randomIndex]] = [updatedData[randomIndex], updatedData[currentIndex]];
     }
-    return options.data = updatedData;
+    return (options.data = updatedData);
 }

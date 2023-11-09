@@ -1,4 +1,5 @@
 import { AgCartesianSeriesTooltipRendererParams, AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+
 import { getData } from './data';
 
 const tooltip = {
@@ -8,7 +9,6 @@ const tooltip = {
         };
     },
 };
-
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
@@ -34,7 +34,7 @@ const options: AgChartOptions = {
             xKey: 'industry',
             yKey: 'targetRevenue',
             yName: 'Target',
-            tooltip
+            tooltip,
         },
         {
             type: 'area',

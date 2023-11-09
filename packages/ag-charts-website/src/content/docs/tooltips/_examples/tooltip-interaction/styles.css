@@ -1,9 +1,9 @@
 .wrapper {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 #myChart {
-  height: 100%;
+    height: 100%;
 }

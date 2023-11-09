@@ -1,5 +1,6 @@
-import { AgEnterpriseCharts, AgChartOptions } from 'ag-charts-enterprise';
-import { getData, days } from './data';
+import { AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+
+import { days, getData } from './data';
 
 const data = getData();
 
@@ -23,8 +24,8 @@ const options: AgChartOptions = {
         marker: {
             strokeWidth: 0,
             size: 0,
-            maxSize: 40
-        }
+            maxSize: 40,
+        },
     })),
     axes: [
         {
