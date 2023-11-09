@@ -13,15 +13,13 @@ html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 
-    color: var(--default-text-color);
     font-family: var(--font-family);
     font-size: var(--font-size);
     line-height: var(--line-height);
     font-weight: var(--font-weight);
     background-color: var(--default-background-color);
-    scroll-padding-top: var(--header-nav-height);
-
-    --header-nav-height: 0;
+    color: var(--default-text-color);
+    scroll-padding-top: var(--scroll-offset);
 
     @media (min-width: $breakpoint-docs-nav-medium) {
         --header-nav-height: 59px;
@@ -39,6 +37,63 @@ html {
 
     nav::-webkit-scrollbar-thumb {
         background-color: #354856;
+        border-radius: 10px;
+        border: 4px solid #0a161f;
+    }
+}
+
+#{$darkmode-selector} {
+    #doc-content a:not(.button) {
+        color: #3893f9;
+    }
+
+    #doc-content h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        color: var(--default-text-color);
+    }
+
+    #doc-content {
+        color: #c3cad3;
+    }
+
+    #doc-content a:hover {
+        color: var(--link-hover-color);
+    }
+
+    nav::-webkit-scrollbar {
+        background-color: var(--background-100);
+    }
+
+    nav::-webkit-scrollbar-thumb {
+        background-color: #354856;
+        border-radius: 10px;
+        border: 4px solid #0a161f;
+    }
+}
+
+#{$darkmode-selector} {
+    #doc-content a {
+        color: #3893f9;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+        text-decoration-color: #3892f977;
+    }
+
+    #doc-content a:hover {
+        color: #3893f9;
+        text-decoration-color: #60aafe;
+    }
+
+    nav::-webkit-scrollbar {
+        background-color: var(--background-100);
+    }
+
+    nav::-webkit-scrollbar-thumb {
+        background-color: #3548565a;
         border-radius: 10px;
         border: 4px solid #0a161f;
     }

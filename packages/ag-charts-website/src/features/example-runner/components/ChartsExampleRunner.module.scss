@@ -1,0 +1,7 @@
+@use '../../../design-system/' as *;
+
+.content {
+    border-radius: $size-1;
+    // Border color taken from
+    border: 1px solid var(--example-border-color);
+}
