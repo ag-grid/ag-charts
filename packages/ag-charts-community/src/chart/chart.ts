@@ -596,8 +596,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this._performUpdateType = ChartUpdateType.NONE;
         this.seriesToUpdate.clear();
 
-        let endBatch = false;
-        if (this._performUpdateSkipAnimations != null) {
+        if (this.updateShortcutCount === 0 && performUpdateType < ChartUpdateType.SCENE_RENDER) {
             this.animationManager.startBatch(this._performUpdateSkipAnimations);
         }
 
@@ -650,12 +649,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 // Do nothing.
                 this.updateShortcutCount = 0;
                 this.updateRequestors = {};
-                endBatch = this._performUpdateSkipAnimations != null;
                 this._performUpdateSkipAnimations = undefined;
-        }
-
-        if (endBatch) {
-            this.animationManager.endBatch();
+                this.animationManager.endBatch();
         }
 
         this.updateService.dispatchUpdateComplete(this.getMinRect());
@@ -1000,7 +995,13 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     private async processLayout() {
+        const oldRect = this.animationRect;
         await this.performLayout();
+
+        if (oldRect && !this.animationRect?.equals(oldRect)) {
+            // Skip animations if the layout changed.
+            this.animationManager.skipCurrentBatch();
+        }
 
         this.handleNoDataOverlay();
         this.debug('Chart.performUpdate() - seriesRect', this.seriesRect);

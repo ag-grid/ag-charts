@@ -85,9 +85,6 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
             },
             onStop: (controller) => {
                 batch.controllers.delete(id);
-                if (!batch.isActive()) {
-                    this.cancelAnimation();
-                }
                 if (disableInteractions) {
                     this.interactionManager.resume('animation');
                 }
