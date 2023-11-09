@@ -36,6 +36,7 @@ export * from './chart/series/seriesLabelUtil';
 export * from './chart/series/seriesMarker';
 export * from './chart/series/seriesTooltip';
 export * from './chart/series/seriesTypes';
+export * from './chart/series/cartesian/abstractBarSeries';
 export * from './chart/series/cartesian/cartesianSeries';
 export * from './chart/series/cartesian/lineUtil';
 export * from './chart/series/cartesian/barUtil';

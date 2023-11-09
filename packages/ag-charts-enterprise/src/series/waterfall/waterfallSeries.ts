@@ -6,7 +6,6 @@ import type {
     AgWaterfallSeriesLabelFormatterParams,
     AgWaterfallSeriesLabelPlacement,
     AgWaterfallSeriesTooltipRendererParams,
-    Direction,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
@@ -28,7 +27,6 @@ const {
     OPT_FUNCTION,
     OPT_COLOR_STRING,
     OPT_LINE_DASH,
-    DIRECTION,
     getRectConfig,
     updateRect,
     checkCrisp,
@@ -160,7 +158,7 @@ interface TotalMeta {
     axisLabel: any;
 }
 
-export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
+export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     _Scene.Rect,
     WaterfallNodeDatum,
     WaterfallNodeDatum,
@@ -209,9 +207,6 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
 
     @Validate(OPT_STRING)
     yName?: string = undefined;
-
-    @Validate(DIRECTION)
-    direction: Direction = 'vertical';
 
     private seriesItemTypes: Set<AgWaterfallSeriesItemType> = new Set(['positive', 'negative', 'total']);
 
@@ -324,14 +319,6 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
             const fixedYExtent = [yExtent[0] > 0 ? 0 : yExtent[0], yExtent[1] < 0 ? 0 : yExtent[1]];
             return fixNumericExtent(fixedYExtent as any);
         }
-    }
-
-    private getCategoryAxis(): _ModuleSupport.ChartAxis | undefined {
-        return this.axes[this.getCategoryDirection()];
-    }
-
-    protected getValueAxis(): _ModuleSupport.ChartAxis | undefined {
-        return this.axes[this.getBarDirection()];
     }
 
     async createNodeData() {
@@ -929,28 +916,6 @@ export class WaterfallSeries extends _ModuleSupport.CartesianSeries<
 
     protected isLabelEnabled() {
         return this.item.positive.label.enabled || this.item.negative.label.enabled || this.item.total.label.enabled;
-    }
-
-    protected getBarDirection() {
-        if (this.direction === 'horizontal') {
-            return ChartAxisDirection.X;
-        }
-        return ChartAxisDirection.Y;
-    }
-
-    protected getCategoryDirection() {
-        if (this.direction === 'horizontal') {
-            return ChartAxisDirection.Y;
-        }
-        return ChartAxisDirection.X;
-    }
-
-    override getBandScalePadding() {
-        return { inner: 0.2, outer: 0.1 };
-    }
-
-    override shouldFlipXY() {
-        return this.direction === 'horizontal';
     }
 
     protected override onDataChange() {}
