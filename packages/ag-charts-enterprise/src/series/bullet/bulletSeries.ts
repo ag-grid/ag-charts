@@ -1,8 +1,19 @@
-import type { AgBulletSeriesTooltipRendererParams } from 'ag-charts-community';
+import type { AgBarSeriesStyle, AgBulletSeriesTooltipRendererParams } from 'ag-charts-community';
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
-const { keyProperty, partialAssign, valueProperty, Validate, COLOR_STRING, STRING, OPT_ARRAY, OPT_NUMBER, OPT_STRING } =
-    _ModuleSupport;
+const {
+    keyProperty,
+    partialAssign,
+    valueProperty,
+    Validate,
+    COLOR_STRING,
+    STRING,
+    LINE_DASH,
+    NUMBER,
+    OPT_ARRAY,
+    OPT_NUMBER,
+    OPT_STRING,
+} = _ModuleSupport;
 const { sanitizeHtml } = _Util;
 
 interface BulletNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
@@ -34,6 +45,16 @@ interface NormalizedColorRange {
     stop: number;
 }
 
+const STYLING_KEYS: (keyof _Scene.Shape)[] = [
+    'fill',
+    'fillOpacity',
+    'stroke',
+    'strokeWidth',
+    'strokeOpacity',
+    'lineDash',
+    'lineDashOffset',
+];
+
 class BulletNode extends _Scene.Group {
     private valueRect: _Scene.Rect = new _Scene.Rect();
     private targetLine: _Scene.Line = new _Scene.Line();
@@ -44,18 +65,62 @@ class BulletNode extends _Scene.Group {
         this.append(this.targetLine);
     }
 
-    public update(datum: BulletNodeDatum) {
+    public update(datum: BulletNodeDatum, valueStyle: AgBarSeriesStyle, targetStyle: AgBarSeriesStyle) {
         partialAssign(['x', 'y', 'height', 'width'], this.valueRect, datum);
-        this.valueRect.visible = true;
+        partialAssign(STYLING_KEYS, this.valueRect, valueStyle);
 
         partialAssign(['x1', 'x2', 'y1', 'y2'], this.targetLine, datum.target);
-        this.targetLine.stroke = 'black';
-        this.targetLine.strokeWidth = 3;
-        this.targetLine.visible = datum.target !== undefined;
+        partialAssign(STYLING_KEYS, this.targetLine, targetStyle);
     }
 }
 
+class TargetStyle {
+    @Validate(COLOR_STRING)
+    fill: string = 'black';
+
+    @Validate(NUMBER(0, 1))
+    fillOpacity = 1;
+
+    @Validate(COLOR_STRING)
+    stroke: string = 'black';
+
+    @Validate(NUMBER(0))
+    strokeWidth = 1;
+
+    @Validate(NUMBER(0, 1))
+    strokeOpacity = 1;
+
+    @Validate(LINE_DASH)
+    lineDash: number[] = [0];
+
+    @Validate(NUMBER(0))
+    lineDashOffset: number = 0;
+}
+
 export class BulletSeries extends _ModuleSupport.AbstractBarSeries<BulletNode, BulletNodeDatum> {
+    @Validate(COLOR_STRING)
+    fill: string = 'black';
+
+    @Validate(NUMBER(0, 1))
+    fillOpacity = 1;
+
+    @Validate(COLOR_STRING)
+    stroke: string = 'black';
+
+    @Validate(NUMBER(0))
+    strokeWidth = 1;
+
+    @Validate(NUMBER(0, 1))
+    strokeOpacity = 1;
+
+    @Validate(LINE_DASH)
+    lineDash: number[] = [0];
+
+    @Validate(NUMBER(0))
+    lineDashOffset: number = 0;
+
+    target: TargetStyle = new TargetStyle();
+
     @Validate(STRING)
     valueKey: string = '';
 
@@ -270,7 +335,7 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<BulletNode, B
         isHighlight: boolean;
     }) {
         for (const { node, datum } of opts.datumSelection) {
-            node.update(datum);
+            node.update(datum, this, this.target);
         }
     }
 

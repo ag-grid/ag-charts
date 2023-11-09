@@ -1,5 +1,6 @@
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
+import type { AgBarSeriesStyle } from './barOptions';
 
 interface BulletSeriesKeysAndNames {
     /** The key to use to retrieve the gauge value from the data. */
@@ -16,7 +17,10 @@ export interface AgBulletSeriesTooltipRendererParams<TDatum = any>
     extends AgSeriesTooltipRendererParams<TDatum>,
         BulletSeriesKeysAndNames {}
 
-export interface AgBulletSeriesThemeableOptions extends AgBaseSeriesThemeableOptions {}
+export interface AgBulletSeriesThemeableOptions extends AgBarSeriesStyle, AgBaseSeriesThemeableOptions {
+    /** Styling options for the target node. */
+    target?: AgBarSeriesStyle;
+}
 
 export interface AgBulletColorRange {
     /** Color of this category. */
