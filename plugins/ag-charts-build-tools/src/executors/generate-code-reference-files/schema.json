@@ -9,7 +9,7 @@
     "properties": {
         "mode": {
             "type": "string",
-            "enum": ["interfaces", "docs"],
+            "enum": ["debug-interfaces", "docs-interfaces"],
             "description": "Type of output to generate.",
             "x-priority": "important"
         },
