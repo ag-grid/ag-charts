@@ -54,7 +54,7 @@ describe('hierarchySeries', () => {
         });
 
         expect(series.rootNode).toMatchSnapshot();
-        expect(series.sumSize).toBe(5 + 1 + 2 + 3 + 5 + 1 + 2 + 4 + 5 + 6 + 3 + 7);
+        expect(series.rootNode.sumSize).toBe(5 + 1 + 2 + 3 + 5 + 1 + 2 + 4 + 5 + 6 + 3 + 7);
         expect(series.maxDepth).toBe(2);
     });
 
@@ -71,12 +71,12 @@ describe('hierarchySeries', () => {
             datum: undefined,
             size: 0,
             color: undefined,
+            sumSize: 0,
             depth: undefined,
             parent: undefined,
             children: [],
             midPoint: { x: 0, y: 0 },
         });
-        expect(series.sumSize).toBe(0);
         expect(series.maxDepth).toBe(0);
     });
 

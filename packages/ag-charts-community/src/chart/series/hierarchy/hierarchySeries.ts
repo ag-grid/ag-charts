@@ -20,6 +20,7 @@ export class HierarchyNode implements SeriesNodeDatum {
         public datum: Record<string, any> | undefined,
         public size: number,
         public color: string | undefined,
+        public sumSize: number,
         public depth: number | undefined,
         public parent: HierarchyNode | undefined,
         public children: HierarchyNode[]
@@ -66,10 +67,9 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
     @Validate(OPT_COLOR_STRING_ARRAY)
     colorRange?: string[] = undefined;
 
-    rootNode = new HierarchyNode(this, 0, undefined, 0, undefined, 0, undefined, []);
+    rootNode = new HierarchyNode(this, 0, undefined, 0, undefined, 0, undefined, undefined, []);
 
     maxDepth: number = 0;
-    sumSize: number = 0;
     minColor: number = 0;
     maxColor: number = 0;
 
@@ -91,7 +91,6 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
         };
 
         let maxDepth = 0;
-        let sumSize = 0;
         let minColor = Infinity;
         let maxColor = -Infinity;
         const colors: (number | undefined)[] = new Array((this.data?.length ?? 0) + 1).fill(undefined);
@@ -104,7 +103,7 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
 
             const size = Math.max((sizeKey != null ? datum[sizeKey] : undefined) ?? (isLeaf ? 1 : 0), 0);
             maxDepth = Math.max(maxDepth, depth);
-            sumSize += size;
+            const sumSize = size;
 
             const color = colorKey != null ? datum[colorKey] : undefined;
             if (typeof color === 'number') {
@@ -113,18 +112,23 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
                 maxColor = Math.max(maxColor, color);
             }
 
-            return appendChildren(new HierarchyNode(this, index, datum, size, undefined, depth, parent, []), children);
+            return appendChildren(
+                new HierarchyNode(this, index, datum, size, undefined, sumSize, depth, parent, []),
+                children
+            );
         };
 
         const appendChildren = (node: HierarchyNode, data: S[] | undefined): HierarchyNode => {
             data?.forEach((datum) => {
-                node.children.push(createNode(datum, node));
+                const child = createNode(datum, node);
+                node.children.push(child);
+                node.sumSize += child.sumSize;
             });
             return node;
         };
 
         const rootNode = appendChildren(
-            new HierarchyNode(this, 0, undefined, 0, undefined, undefined, undefined, []),
+            new HierarchyNode(this, 0, undefined, 0, undefined, 0, undefined, undefined, []),
             this.data
         );
 
@@ -144,7 +148,6 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
 
         this.rootNode = rootNode;
         this.maxDepth = maxDepth;
-        this.sumSize = sumSize;
         this.minColor = minColor;
         this.maxColor = maxColor;
     }

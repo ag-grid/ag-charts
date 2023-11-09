@@ -15,6 +15,7 @@ HierarchyNode {
             "y": 0,
           },
           "size": 1,
+          "sumSize": 1,
         },
         HierarchyNode {
           "children": [],
@@ -26,6 +27,7 @@ HierarchyNode {
             "y": 0,
           },
           "size": 2,
+          "sumSize": 2,
         },
         HierarchyNode {
           "children": [],
@@ -37,6 +39,7 @@ HierarchyNode {
             "y": 0,
           },
           "size": 3,
+          "sumSize": 3,
         },
       ],
       "color": undefined,
@@ -47,6 +50,7 @@ HierarchyNode {
         "y": 0,
       },
       "size": 5,
+      "sumSize": 11,
     },
     HierarchyNode {
       "children": [
@@ -60,6 +64,7 @@ HierarchyNode {
             "y": 0,
           },
           "size": 1,
+          "sumSize": 1,
         },
         HierarchyNode {
           "children": [
@@ -73,6 +78,7 @@ HierarchyNode {
                 "y": 0,
               },
               "size": 4,
+              "sumSize": 4,
             },
             HierarchyNode {
               "children": [],
@@ -84,6 +90,7 @@ HierarchyNode {
                 "y": 0,
               },
               "size": 5,
+              "sumSize": 5,
             },
             HierarchyNode {
               "children": [],
@@ -95,6 +102,7 @@ HierarchyNode {
                 "y": 0,
               },
               "size": 6,
+              "sumSize": 6,
             },
           ],
           "color": undefined,
@@ -105,6 +113,7 @@ HierarchyNode {
             "y": 0,
           },
           "size": 2,
+          "sumSize": 17,
         },
         HierarchyNode {
           "children": [
@@ -118,6 +127,7 @@ HierarchyNode {
                 "y": 0,
               },
               "size": 7,
+              "sumSize": 7,
             },
           ],
           "color": undefined,
@@ -128,6 +138,7 @@ HierarchyNode {
             "y": 0,
           },
           "size": 3,
+          "sumSize": 10,
         },
       ],
       "color": undefined,
@@ -138,6 +149,7 @@ HierarchyNode {
         "y": 0,
       },
       "size": 5,
+      "sumSize": 33,
     },
   ],
   "color": undefined,
@@ -148,5 +160,6 @@ HierarchyNode {
     "y": 0,
   },
   "size": 0,
+  "sumSize": 44,
 }
 `;

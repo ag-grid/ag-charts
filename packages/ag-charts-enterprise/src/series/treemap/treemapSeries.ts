@@ -16,7 +16,6 @@ import {
 import { TreemapSeriesTileLabel, formatLabels } from './treemapLabelFormatter';
 
 const {
-    HierarchyNode,
     HighlightStyle,
     SeriesNodeClickEvent,
     SeriesTooltip,
@@ -234,7 +233,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
     );
 
     private labelData?: (LabelData | undefined)[];
-    private sumSizes?: number[];
 
     readonly group = new TreemapSeriesGroup();
 
@@ -351,14 +349,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
         });
 
         this.labelData = labelData;
-
-        const sumSizes: number[] = new Array(data.length + 1).fill(0);
-
-        this.rootNode.walk(({ index, size, children }) => {
-            sumSizes[index] = children.reduce((sumSize, child) => sumSize + sumSizes[child.index], size);
-        }, HierarchyNode.Walk.PostOrder);
-
-        this.sumSizes = sumSizes;
     }
 
     /**
@@ -366,20 +356,17 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
      * https://www.win.tue.nl/~vanwijk/stm.pdf
      */
     private squarify(node: _ModuleSupport.HierarchyNode, bbox: _Scene.BBox, outputBoxes: (_Scene.BBox | undefined)[]) {
-        const { sumSizes } = this;
         const { index, datum, children } = node;
 
-        if (bbox.width <= 0 || bbox.height <= 0 || sumSizes == null) {
+        if (bbox.width <= 0 || bbox.height <= 0) {
             outputBoxes[index] = undefined;
             return;
         }
 
         outputBoxes[index] = index !== 0 ? bbox : undefined;
 
-        const nodeSize = (node: _ModuleSupport.HierarchyNode) => sumSizes[node.index];
-
         const sortedChildrenIndices = Array.from(children, (_, index) => index).sort((aIndex, bIndex) => {
-            return nodeSize(children[bIndex]) - nodeSize(children[aIndex]);
+            return children[bIndex].sumSize - children[aIndex].sumSize;
         });
 
         const childAt = (index: number) => {
@@ -399,13 +386,13 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
         let stackSum = 0;
         let startIndex = 0;
         let minRatioDiff = Infinity;
-        let partitionSum = nodeSize(node);
+        let partitionSum = node.sumSize;
         const innerBox = new BBox(bbox.x + padding.left, bbox.y + padding.top, width, height);
         const partition = innerBox.clone();
 
         for (let i = 0; i < children.length; i++) {
-            const value = nodeSize(childAt(i));
-            const firstValue = nodeSize(childAt(startIndex));
+            const value = childAt(i).sumSize;
+            const firstValue = childAt(startIndex).sumSize;
             const isVertical = partition.width < partition.height;
             stackSum += value;
 
@@ -430,7 +417,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
 
                 const x = isVertical ? start : partition.x;
                 const y = isVertical ? partition.y : start;
-                const length = (partLength * nodeSize(child)) / stackSum;
+                const length = (partLength * child.sumSize) / stackSum;
                 const width = isVertical ? length : stackThickness;
                 const height = isVertical ? stackThickness : length;
 
@@ -438,7 +425,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
                 this.applyGap(innerBox, childBbox);
                 this.squarify(child, childBbox, outputBoxes);
 
-                partitionSum -= nodeSize(child);
+                partitionSum -= child.sumSize;
                 start += length;
             }
 
@@ -462,7 +449,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
             const child = childAt(i);
             const x = isVertical ? start : partition.x;
             const y = isVertical ? partition.y : start;
-            const part = nodeSize(child) / partitionSum;
+            const part = child.sumSize / partitionSum;
             const width = partition.width * (isVertical ? part : 1);
             const height = partition.height * (isVertical ? 1 : part);
             const childBox = new BBox(x, y, width, height);
