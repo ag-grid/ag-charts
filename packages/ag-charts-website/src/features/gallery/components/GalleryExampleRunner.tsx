@@ -16,7 +16,7 @@ interface Props {
 const queryClient = new QueryClient();
 
 const queryOptions = {
-    retry: 3,
+    retry: false,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
@@ -36,26 +36,24 @@ const GalleryExampleRunnerInner = ({ title, exampleName }: Props) => {
     const {
         isLoading: exampleFilesIsLoading,
         isError: exampleFilesIsError,
-        data,
+        data: [contents, exampleFileHtml] = [],
     } = useQuery(
         ['galleryExampleFiles', exampleName],
-        () =>
-            fetch(
+        () => {
+            const getContents = fetch(
                 getExampleContentsUrl({
                     exampleName,
                 })
-            ).then((res) => res.json()),
-        queryOptions
-    );
+            ).then((res) => res.json());
 
-    const { data: exampleFileHtml } = useQuery(
-        ['galleryExampleHtml', exampleName],
-        () =>
-            fetch(
+            const getExampleFileHtml = fetch(
                 getExampleUrl({
                     exampleName,
                 })
-            ).then((res) => res.text()),
+            ).then((res) => res.text());
+
+            return Promise.all([getContents, getExampleFileHtml]);
+        },
         queryOptions
     );
 
@@ -68,11 +66,11 @@ const GalleryExampleRunnerInner = ({ title, exampleName }: Props) => {
     }, [exampleName]);
 
     useEffect(() => {
-        if (!data || exampleFilesIsLoading || exampleFilesIsError) {
+        if (!contents || exampleFilesIsLoading || exampleFilesIsError) {
             return;
         }
-        setInitialSelectedFile(data?.mainFileName);
-    }, [data, exampleFilesIsLoading, exampleFilesIsError]);
+        setInitialSelectedFile(contents?.mainFileName);
+    }, [contents, exampleFilesIsLoading, exampleFilesIsError]);
 
     useEffect(() => {
         setPlunkrHtmlUrl(
@@ -85,17 +83,17 @@ const GalleryExampleRunnerInner = ({ title, exampleName }: Props) => {
     // Override `index.html` with generated file as
     // exampleFiles endpoint only gets the index html fragment
     useEffect(() => {
-        if (!data || exampleFilesIsLoading || exampleFilesIsError || !exampleFileHtml) {
+        if (!contents || exampleFilesIsLoading || exampleFilesIsError || !exampleFileHtml) {
             return;
         }
         const files = {
-            ...data.files,
+            ...contents.files,
             'index.html': exampleFileHtml,
         };
 
         setExampleFiles(files);
-        setExampleBoilerPlateFiles(data.boilerPlateFiles);
-    }, [data, exampleFilesIsLoading, exampleFilesIsError, exampleFileHtml]);
+        setExampleBoilerPlateFiles(contents.boilerPlateFiles);
+    }, [contents, exampleFilesIsLoading, exampleFilesIsError, exampleFileHtml]);
 
     const externalLinkButton =
         exampleFiles && plunkrHtmlUrl ? (
