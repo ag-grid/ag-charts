@@ -22,47 +22,32 @@ const {
     Validate,
     NUMBER,
     BOOLEAN,
-    OPT_COLOR_STRING_ARRAY,
     OPT_COLOR_STRING,
     OPT_FUNCTION,
-    OPT_NUMBER_ARRAY,
     OPT_NUMBER,
     OPT_STRING,
-    STRING,
     TEXT_ALIGN,
     VERTICAL_ALIGN,
 } = _ModuleSupport;
 const { Rect, Label, Group, BBox, Selection, Text } = _Scene;
-const { ColorScale } = _Scale;
 const { Color, Logger, isEqual } = _Util;
-
-type TreeDatum = {
-    [prop: string]: any;
-};
 
 type Side = 'left' | 'right' | 'top' | 'bottom';
 
-interface TreemapNodeDatum extends _ModuleSupport.SeriesNodeDatum {
-    datum: TreeDatum | undefined;
-    value: number;
-    depth: number | undefined;
+interface LabelData {
     label: string | undefined;
     secondaryLabel: string | undefined;
-    fill: string;
-    parent: TreemapNodeDatum | undefined;
-    isLeaf: boolean;
-    children: TreemapNodeDatum[];
 }
 
 class TreemapSeriesNodeClickEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
-> extends SeriesNodeClickEvent<TreemapNodeDatum, TEvent> {
-    readonly childrenKey: string;
+> extends SeriesNodeClickEvent<_ModuleSupport.HierarchyNode, TEvent> {
+    readonly childrenKey?: string;
     readonly colorKey?: string;
     readonly labelKey?: string;
     readonly secondaryLabelKey?: string;
     readonly sizeKey?: string;
-    constructor(type: TEvent, nativeEvent: MouseEvent, datum: TreemapNodeDatum, series: TreemapSeries) {
+    constructor(type: TEvent, nativeEvent: MouseEvent, datum: _ModuleSupport.HierarchyNode, series: TreemapSeries) {
         super(type, nativeEvent, datum, series);
         this.childrenKey = series.childrenKey;
         this.colorKey = series.colorKey;
@@ -232,22 +217,22 @@ const verticalAlignFactors: Record<VerticalAlign, number | undefined> = {
     bottom: 1,
 };
 
-export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDatum> {
+export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport.HierarchyNode> {
     static className = 'TreemapSeries';
     static type = 'treemap' as const;
 
     protected override readonly NodeClickEvent = TreemapSeriesNodeClickEvent;
 
-    private groupSelection: _Scene.Selection<_Scene.Group, TreemapNodeDatum> = Selection.select(
+    private groupSelection: _Scene.Selection<_Scene.Group, _ModuleSupport.HierarchyNode> = Selection.select(
         this.contentGroup,
         Group
     );
-    private highlightSelection: _Scene.Selection<_Scene.Group, TreemapNodeDatum> = Selection.select(
+    private highlightSelection: _Scene.Selection<_Scene.Group, _ModuleSupport.HierarchyNode> = Selection.select(
         this.highlightGroup,
         Group
     );
 
-    private dataRoot?: TreemapNodeDatum;
+    private labelData?: (LabelData | undefined)[];
 
     readonly group = new TreemapSeriesGroup();
 
@@ -261,42 +246,19 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
     spacing = 0;
 
     @Validate(OPT_STRING)
-    labelKey?: string = 'label';
-
-    @Validate(OPT_STRING)
     secondaryLabelKey?: string = undefined;
-
-    @Validate(OPT_STRING)
-    sizeKey?: string = 'size';
-
-    @Validate(STRING)
-    childrenKey: string = 'children';
-
-    @Validate(OPT_STRING)
-    colorKey?: string = 'color';
-
-    @Validate(OPT_NUMBER_ARRAY)
-    colorDomain?: number[] = undefined;
-
-    @Validate(OPT_COLOR_STRING_ARRAY)
-    colorRange?: string[] = undefined;
 
     @Validate(OPT_FUNCTION)
     formatter?: (params: AgTreemapSeriesFormatterParams) => AgTreemapSeriesStyle = undefined;
 
-    @Validate(STRING)
-    colorName: string = 'Change';
-
-    private groupTitleHeight(nodeDatum: TreemapNodeDatum, bbox: _Scene.BBox): number | undefined {
-        if (nodeDatum.depth == null || nodeDatum.isLeaf) {
-            return undefined;
-        }
+    private groupTitleHeight(node: _ModuleSupport.HierarchyNode, bbox: _Scene.BBox): number | undefined {
+        const label = this.labelData?.[node.index]?.label;
 
         const { label: font } = this.group;
 
         const heightRatioThreshold = 3;
 
-        if (nodeDatum.label == null) {
+        if (label == null) {
             return undefined;
         } else if (
             font.fontSize > bbox.width / heightRatioThreshold ||
@@ -304,20 +266,20 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
         ) {
             return undefined;
         } else {
-            const { height: fontHeight } = getTextSize(nodeDatum.label, font);
+            const { height: fontHeight } = getTextSize(label, font);
             return Math.max(fontHeight, font.fontSize);
         }
     }
 
-    private getNodePadding(nodeDatum: TreemapNodeDatum, bbox: _Scene.BBox) {
-        if (nodeDatum.depth == null) {
+    private getNodePadding(node: _ModuleSupport.HierarchyNode, bbox: _Scene.BBox) {
+        if (node.index === 0) {
             return {
                 top: 0,
                 right: 0,
                 bottom: 0,
                 left: 0,
             };
-        } else if (nodeDatum.isLeaf) {
+        } else if (node.children.length === 0) {
             const { padding } = this.tile;
             return {
                 top: padding,
@@ -328,7 +290,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
         }
 
         const { padding, spacing } = this.group;
-        const fontHeight = this.groupTitleHeight(nodeDatum, bbox);
+        const fontHeight = this.groupTitleHeight(node, bbox);
         const titleHeight = fontHeight != null ? fontHeight + spacing : 0;
 
         return {
@@ -339,42 +301,98 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
         };
     }
 
+    override async processData() {
+        super.processData();
+
+        const { data, childrenKey, colorKey, labelKey, secondaryLabelKey, sizeKey, tile, group } = this;
+
+        if (data == null || data.length === 0) {
+            this.labelData = undefined;
+            return;
+        }
+
+        const labelData: LabelData[] = new Array(data.length + 1).fill(undefined);
+
+        this.rootNode.walk(({ index, datum, depth, children }) => {
+            const isLeaf = children.length === 0;
+
+            const labelStyle = isLeaf ? tile.label : group.label;
+            let label: string | undefined;
+            if (datum != null && depth != null && labelKey != null && labelStyle.enabled) {
+                label = this.getLabelText(labelStyle, {
+                    depth,
+                    datum,
+                    childrenKey,
+                    colorKey,
+                    labelKey,
+                    secondaryLabelKey,
+                    sizeKey,
+                    value: datum[labelKey] ?? '',
+                });
+            }
+
+            let secondaryLabel: string | undefined;
+            if (isLeaf && datum != null && depth != null && secondaryLabelKey != null && tile.secondaryLabel.enabled) {
+                secondaryLabel = this.getLabelText(tile.secondaryLabel, {
+                    depth,
+                    datum,
+                    childrenKey,
+                    colorKey,
+                    labelKey,
+                    secondaryLabelKey,
+                    sizeKey,
+                    value: datum[secondaryLabelKey] ?? '',
+                });
+            }
+
+            labelData[index] = { label, secondaryLabel };
+        });
+
+        this.labelData = labelData;
+    }
+
     /**
      * Squarified Treemap algorithm
      * https://www.win.tue.nl/~vanwijk/stm.pdf
      */
-    private squarify(
-        nodeDatum: TreemapNodeDatum,
-        bbox: _Scene.BBox,
-        outputNodesBoxes: Map<TreemapNodeDatum, _Scene.BBox> = new Map()
-    ): typeof outputNodesBoxes {
+    private squarify(node: _ModuleSupport.HierarchyNode, bbox: _Scene.BBox, outputBoxes: (_Scene.BBox | undefined)[]) {
+        const { index, datum, children } = node;
+
         if (bbox.width <= 0 || bbox.height <= 0) {
-            return outputNodesBoxes;
+            outputBoxes[index] = undefined;
+            return;
         }
 
-        if (nodeDatum.depth != null) {
-            outputNodesBoxes.set(nodeDatum, bbox);
-        }
+        outputBoxes[index] = index !== 0 ? bbox : undefined;
+
+        const sortedChildrenIndices = Array.from(children, (_, index) => index).sort((aIndex, bIndex) => {
+            return children[bIndex].sumSize - children[aIndex].sumSize;
+        });
+
+        const childAt = (index: number) => {
+            const sortedIndex = sortedChildrenIndices[index];
+            return children[sortedIndex];
+        };
 
         const targetTileAspectRatio = 1; // The width and height will tend to this ratio
-        const padding = this.getNodePadding(nodeDatum, bbox);
+        const padding = datum != null ? this.getNodePadding(node, bbox) : { top: 0, right: 0, bottom: 0, left: 0 };
         const width = bbox.width - padding.left - padding.right;
         const height = bbox.height - padding.top - padding.bottom;
-        if (width <= 0 || height <= 0 || nodeDatum.value <= 0) {
-            return outputNodesBoxes;
+
+        if (width <= 0 || height <= 0) {
+            return;
         }
 
         let stackSum = 0;
         let startIndex = 0;
         let minRatioDiff = Infinity;
-        let partitionSum = nodeDatum.value;
-        const children = nodeDatum.children;
+        let partitionSum = node.sumSize;
         const innerBox = new BBox(bbox.x + padding.left, bbox.y + padding.top, width, height);
         const partition = innerBox.clone();
 
         for (let i = 0; i < children.length; i++) {
-            const value = children[i].value;
-            const firstValue = children[startIndex].value;
+            const value = childAt(i).sumSize;
+            const firstValue = childAt(startIndex).sumSize;
             const isVertical = partition.width < partition.height;
             stackSum += value;
 
@@ -395,19 +413,19 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
             stackThickness = (partThickness * stackSum) / partitionSum;
             let start = isVertical ? partition.x : partition.y;
             for (let j = startIndex; j < i; j++) {
-                const child = children[j];
+                const child = childAt(j);
 
                 const x = isVertical ? start : partition.x;
                 const y = isVertical ? partition.y : start;
-                const length = (partLength * child.value) / stackSum;
+                const length = (partLength * child.sumSize) / stackSum;
                 const width = isVertical ? length : stackThickness;
                 const height = isVertical ? stackThickness : length;
 
-                const childBox = new BBox(x, y, width, height);
-                this.applyGap(innerBox, childBox);
-                this.squarify(child, childBox, outputNodesBoxes);
+                const childBbox = new BBox(x, y, width, height);
+                this.applyGap(innerBox, childBbox);
+                this.squarify(child, childBbox, outputBoxes);
 
-                partitionSum -= child.value;
+                partitionSum -= child.sumSize;
                 start += length;
             }
 
@@ -428,30 +446,27 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
         const isVertical = partition.width < partition.height;
         let start = isVertical ? partition.x : partition.y;
         for (let i = startIndex; i < children.length; i++) {
+            const child = childAt(i);
             const x = isVertical ? start : partition.x;
             const y = isVertical ? partition.y : start;
-            const part = children[i].value / partitionSum;
+            const part = child.sumSize / partitionSum;
             const width = partition.width * (isVertical ? part : 1);
             const height = partition.height * (isVertical ? 1 : part);
             const childBox = new BBox(x, y, width, height);
             this.applyGap(innerBox, childBox);
-            this.squarify(children[i], childBox, outputNodesBoxes);
+            this.squarify(child, childBox, outputBoxes);
             start += isVertical ? width : height;
         }
-
-        return outputNodesBoxes;
     }
 
     private applyGap(innerBox: _Scene.BBox, childBox: _Scene.BBox) {
         const gap = this.group.tileSpacing / 2;
-        const getBounds = (box: _Scene.BBox): Record<Side, number> => {
-            return {
-                left: box.x,
-                top: box.y,
-                right: box.x + box.width,
-                bottom: box.y + box.height,
-            };
-        };
+        const getBounds = (box: _Scene.BBox): Record<Side, number> => ({
+            left: box.x,
+            top: box.y,
+            right: box.x + box.width,
+            bottom: box.y + box.height,
+        });
         const innerBounds = getBounds(innerBox);
         const childBounds = getBounds(childBox);
         const sides: Side[] = ['top', 'right', 'bottom', 'left'];
@@ -460,126 +475,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
                 childBox.shrink(gap, side);
             }
         });
-    }
-
-    override async processData() {
-        const {
-            data,
-            childrenKey,
-            colorKey,
-            labelKey,
-            secondaryLabelKey,
-            sizeKey,
-            colorDomain,
-            colorRange,
-            tile,
-            group,
-        } = this;
-
-        if (!data || data.length === 0) {
-            return;
-        }
-
-        let colorScale: _Scale.ColorScale | undefined;
-        if (colorDomain != null && colorRange != null) {
-            colorScale = new ColorScale();
-            colorScale.domain = colorDomain;
-            colorScale.range = colorRange;
-            colorScale.update();
-        }
-
-        type CreateTreeNodeDatumParams = {
-            datum?: TreeDatum;
-            depth?: number;
-            parent?: TreemapNodeDatum;
-            children?: TreeDatum[];
-        };
-        const createTreeNodeDatum = ({
-            datum,
-            depth,
-            parent,
-            children = datum != null ? datum[childrenKey] : undefined,
-        }: CreateTreeNodeDatumParams) => {
-            const isLeaf = children == null || children.length === 0;
-
-            const labelStyle = isLeaf ? tile.label : group.label;
-            let label: string | undefined;
-            if (datum != null && depth != null && labelKey != null && labelStyle.enabled) {
-                label = this.getLabelText(labelStyle, {
-                    datum,
-                    depth,
-                    parent: parent?.datum,
-                    childrenKey,
-                    colorKey,
-                    labelKey,
-                    secondaryLabelKey,
-                    sizeKey,
-                    value: datum[labelKey] ?? '',
-                });
-            }
-
-            let secondaryLabel: string | undefined;
-            if (isLeaf && datum != null && depth != null && secondaryLabelKey != null && tile.secondaryLabel.enabled) {
-                secondaryLabel = this.getLabelText(tile.secondaryLabel, {
-                    datum,
-                    depth,
-                    parent: parent?.datum,
-                    childrenKey,
-                    colorKey,
-                    labelKey,
-                    secondaryLabelKey,
-                    sizeKey,
-                    value: datum[secondaryLabelKey] ?? '',
-                });
-            }
-
-            let colorScaleValue = (datum != null && colorKey != null ? datum[colorKey] : undefined) ?? depth;
-            colorScaleValue = validateColor(colorScaleValue);
-            let fill = isLeaf ? tile.fill : group.fill;
-            if (typeof colorScaleValue === 'string') {
-                fill = colorScaleValue;
-            } else if (colorScale != null) {
-                fill = colorScale.convert(colorScaleValue);
-            }
-
-            const nodeDatum: TreemapNodeDatum = {
-                datum,
-                depth,
-                parent,
-                value: 0,
-                label,
-                secondaryLabel,
-                fill,
-                series: this,
-                isLeaf,
-                children: [] as TreemapNodeDatum[],
-            };
-
-            if (isLeaf) {
-                nodeDatum.value = datum != null && sizeKey != null ? datum[sizeKey] ?? 1 : 1;
-            } else {
-                children?.forEach((childDatum) => {
-                    const childNodeDatum = createTreeNodeDatum({
-                        datum: childDatum,
-                        depth: depth != null ? depth + 1 : 0,
-                        parent: nodeDatum,
-                    });
-                    const value = childNodeDatum.value;
-                    if (!Number.isFinite(value) || value <= 0) {
-                        return;
-                    }
-                    nodeDatum.value += value;
-                    nodeDatum.children.push(childNodeDatum);
-                });
-                nodeDatum.children.sort((a, b) => {
-                    return b.value - a.value;
-                });
-            }
-
-            return nodeDatum;
-        };
-
-        this.dataRoot = createTreeNodeDatum({ children: data });
     }
 
     async createNodeData() {
@@ -597,9 +492,9 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
         }
         this.nodeDataRefresh = false;
 
-        const { chart, dataRoot } = this;
+        const { chart } = this;
 
-        if (!chart || !dataRoot) {
+        if (!chart) {
             return;
         }
 
@@ -609,49 +504,49 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
             return;
         }
 
-        const descendants: TreemapNodeDatum[] = [];
-
-        this.traverseTree(dataRoot, (datum) => descendants.push(datum));
+        const descendants: _ModuleSupport.HierarchyNode[] = Array.from(this.rootNode) as any;
+        descendants.shift();
 
         const updateGroup = (group: _Scene.Group) => {
             group.append([new Rect(), new Text({ tag: TextNodeTag.Name }), new Text({ tag: TextNodeTag.Value })]);
         };
 
-        this.groupSelection.update(descendants, updateGroup);
-        this.highlightSelection.update(descendants, updateGroup);
+        this.groupSelection.update(descendants, updateGroup, (node) => this.getDatumId(node));
+        this.highlightSelection.update(descendants, updateGroup, (node) => this.getDatumId(node));
     }
 
-    private isDatumHighlighted(datum: TreemapNodeDatum) {
-        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
-        return datum === highlightedDatum && (datum.isLeaf || this.group.interactive);
+    private isDatumHighlighted(node: _ModuleSupport.HierarchyNode) {
+        const highlightedNode = this.ctx.highlightManager?.getActiveHighlight();
+        return node === highlightedNode && (node.children.length === 0 || this.group.interactive);
     }
 
-    private getTileFormat(datum: TreemapNodeDatum, isHighlighted: boolean): AgTreemapSeriesStyle {
+    private getTileFormat(node: _ModuleSupport.HierarchyNode, isHighlighted: boolean): AgTreemapSeriesStyle {
+        const { datum, color: fill, depth, children } = node;
         const {
             tile,
             group,
             formatter,
             ctx: { callbackCache },
         } = this;
-        if (!formatter || datum.depth == null) {
+        if (!formatter || datum == null || depth == null) {
             return {};
         }
 
         const { colorKey, labelKey, secondaryLabelKey, sizeKey } = this;
+        const isLeaf = children.length === 0;
 
-        const stroke = datum.isLeaf ? tile.stroke : group.stroke;
-        const strokeWidth = datum.isLeaf ? tile.strokeWidth : group.strokeWidth;
+        const stroke = isLeaf ? tile.stroke : group.stroke;
+        const strokeWidth = isLeaf ? tile.strokeWidth : group.strokeWidth;
 
         const result = callbackCache.call(formatter, {
             seriesId: this.id,
-            datum: datum.datum,
-            depth: datum.depth,
-            parent: datum.parent?.datum,
+            depth,
+            datum,
             colorKey,
             labelKey,
             secondaryLabelKey,
             sizeKey,
-            fill: datum.fill,
+            fill,
             stroke,
             strokeWidth,
             highlighted: isHighlighted,
@@ -661,27 +556,28 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
     }
 
     async updateNodes() {
-        if (!this.chart) return;
+        const { rootNode, data, highlightStyle, tile, group } = this;
 
-        const { highlightStyle, tile, group, dataRoot } = this;
+        if (!this.chart || !data) return;
 
-        if (!dataRoot) return;
+        const { width, height } = this.chart.getSeriesRect()!;
+        const bboxes: (_Scene.BBox | undefined)[] = new Array(data.length + 1);
+        this.squarify(rootNode, new BBox(0, 0, width, height), bboxes);
 
-        const seriesRect = this.chart.getSeriesRect()!;
-        const boxes = this.squarify(dataRoot, new BBox(0, 0, seriesRect.width, seriesRect.height));
-        const labelMeta = this.buildLabelMeta(boxes);
-        const highlightedSubtree = this.getHighlightedSubtree(dataRoot);
+        const labelMeta = this.buildLabelMeta(bboxes);
 
-        this.updateNodeMidPoint(boxes);
+        const highlightedSubtree = this.getHighlightedSubtree();
 
-        const updateRectFn = (rect: _Scene.Rect, datum: TreemapNodeDatum, highlighted: boolean) => {
-            const box = boxes.get(datum)!;
-            if (!box) {
+        this.updateNodeMidPoint(bboxes);
+
+        const updateRectFn = (node: _ModuleSupport.HierarchyNode, rect: _Scene.Rect, highlighted: boolean) => {
+            const bbox = bboxes[node.index];
+            if (bbox == null) {
                 rect.visible = false;
                 return;
             }
 
-            const { isLeaf } = datum;
+            const isLeaf = node.children.length === 0;
 
             let highlightedFill: string | undefined;
             let highlightedFillOpacity: number | undefined;
@@ -697,13 +593,13 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
                 highlightedStrokeOpacity = isLeaf ? tile.strokeOpacity : group.strokeOpacity;
             }
 
-            const fill = highlightedFill ?? datum.fill;
+            const fill = highlightedFill ?? node.color ?? (isLeaf ? tile.fill : group.fill);
             const fillOpacity = highlightedFillOpacity ?? (isLeaf ? tile.fillOpacity : group.fillOpacity);
             const stroke = highlightedStroke ?? (isLeaf ? tile.stroke : group.stroke);
             const strokeWidth = highlightedStrokeWidth ?? (isLeaf ? tile.strokeWidth : group.strokeWidth);
             const strokeOpacity = highlightedStrokeOpacity ?? (isLeaf ? tile.strokeOpacity : group.strokeOpacity);
 
-            const format = this.getTileFormat(datum, highlighted);
+            const format = this.getTileFormat(node, highlighted);
 
             rect.fill = validateColor(format?.fill ?? fill);
             rect.fillOpacity = format?.fillOpacity ?? fillOpacity;
@@ -712,36 +608,35 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
             rect.strokeOpacity = format?.strokeOpacity ?? strokeOpacity;
             rect.crisp = true;
 
-            rect.x = box.x;
-            rect.y = box.y;
-            rect.width = box.width;
-            rect.height = box.height;
+            rect.x = bbox.x;
+            rect.y = bbox.y;
+            rect.width = bbox.width;
+            rect.height = bbox.height;
             rect.visible = true;
         };
-        this.groupSelection.selectByClass(Rect).forEach((rect) => updateRectFn(rect, rect.datum, false));
+        this.groupSelection.selectByClass(Rect).forEach((rect) => updateRectFn(rect.datum, rect, false));
         this.highlightSelection.selectByClass(Rect).forEach((rect) => {
             const isDatumHighlighted = this.isDatumHighlighted(rect.datum);
 
             rect.visible = isDatumHighlighted || highlightedSubtree.has(rect.datum);
             if (rect.visible) {
-                updateRectFn(rect, rect.datum, isDatumHighlighted);
+                updateRectFn(rect.datum, rect, isDatumHighlighted);
             }
         });
 
         const updateLabelFn = (
+            node: _ModuleSupport.HierarchyNode,
             text: _Scene.Text,
-            datum: TreemapNodeDatum,
             highlighted: boolean,
-            key: 'label' | 'value'
+            key: 'label' | 'secondaryLabel'
         ) => {
-            const meta = labelMeta.get(datum);
+            const isLeaf = node.children.length === 0;
+            const meta = labelMeta[node.index];
             const label = meta?.[key];
             if (!label) {
                 text.visible = false;
                 return;
             }
-
-            const { isLeaf } = datum;
 
             let highlightedColor: string | undefined;
             if (highlighted) {
@@ -768,54 +663,45 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
         };
         this.groupSelection
             .selectByTag<_Scene.Text>(TextNodeTag.Name)
-            .forEach((text) => updateLabelFn(text, text.datum, false, 'label'));
+            .forEach((text) => updateLabelFn(text.datum, text, false, 'label'));
         this.highlightSelection.selectByTag<_Scene.Text>(TextNodeTag.Name).forEach((text) => {
             const isDatumHighlighted = this.isDatumHighlighted(text.datum);
 
             text.visible = isDatumHighlighted || highlightedSubtree.has(text.datum);
             if (text.visible) {
-                updateLabelFn(text, text.datum, isDatumHighlighted, 'label');
+                updateLabelFn(text.datum, text, isDatumHighlighted, 'label');
             }
         });
-
         this.groupSelection
             .selectByTag<_Scene.Text>(TextNodeTag.Value)
-            .forEach((text) => updateLabelFn(text, text.datum, false, 'value'));
+            .forEach((text) => updateLabelFn(text.datum, text, false, 'secondaryLabel'));
         this.highlightSelection.selectByTag<_Scene.Text>(TextNodeTag.Value).forEach((text) => {
             const isDatumHighlighted = this.isDatumHighlighted(text.datum);
 
             text.visible = isDatumHighlighted || highlightedSubtree.has(text.datum);
             if (text.visible) {
-                updateLabelFn(text, text.datum, isDatumHighlighted, 'value');
+                updateLabelFn(text.datum, text, isDatumHighlighted, 'secondaryLabel');
             }
         });
     }
 
-    private updateNodeMidPoint(boxes: Map<TreemapNodeDatum, _Scene.BBox>) {
-        boxes.forEach((box, treeNodeDatum) => {
-            treeNodeDatum.midPoint = {
-                x: box.x + box.width / 2,
-                y: box.y,
-            };
-        });
-    }
-
-    private getHighlightedSubtree(dataRoot: TreemapNodeDatum): Set<TreemapNodeDatum> {
-        const items = new Set<TreemapNodeDatum>();
-        this.traverseTree(dataRoot, (datum) => {
-            if (this.isDatumHighlighted(datum) || (datum.parent && items.has(datum.parent))) {
-                items.add(datum);
+    private updateNodeMidPoint(bboxes: (_Scene.BBox | undefined)[]) {
+        this.rootNode.walk((node) => {
+            const bbox = bboxes[node.index];
+            if (bbox != null) {
+                node.midPoint.x = bbox.x + bbox.width / 2;
+                node.midPoint.y = bbox.y;
             }
         });
-        return items;
     }
 
-    private traverseTree<D extends { children?: D[] }>(datum: D, iterator: (datum: D) => void) {
-        iterator(datum);
-        datum.children?.forEach((childDatum) => this.traverseTree(childDatum, iterator));
+    private getHighlightedSubtree(): Set<_ModuleSupport.HierarchyNode> {
+        const highlightedNode: _ModuleSupport.HierarchyNode | undefined =
+            this.ctx.highlightManager?.getActiveHighlight() as any;
+        return highlightedNode != null ? new Set(highlightedNode) : new Set();
     }
 
-    buildLabelMeta(boxes: Map<TreemapNodeDatum, _Scene.BBox>) {
+    buildLabelMeta(bboxes: (_Scene.BBox | undefined)[]) {
         const { group, tile } = this;
 
         type TextMeta = {
@@ -828,101 +714,108 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
             vAlign: CanvasTextBaseline;
         };
 
-        type LabelMeta = { label?: TextMeta; value?: TextMeta };
-        const labelMeta = new Map<TreemapNodeDatum, LabelMeta>();
+        type LabelMeta = { label?: TextMeta; secondaryLabel?: TextMeta };
 
-        boxes.forEach((box, datum) => {
-            if (datum.label == null) {
-                return;
-            } else if (datum.isLeaf) {
-                const labelFormatting = formatLabels(
-                    datum.label,
+        return Array.from(this.rootNode, (node): LabelMeta | undefined => {
+            const { index, datum, children } = node;
+            const bbox = bboxes[index];
+            const labelData = this.labelData![index];
+            const label = labelData?.label;
+            const secondaryLabel = labelData?.secondaryLabel;
+
+            if (datum == null || bbox == null || label == null) {
+                return undefined;
+            } else if (children.length === 0) {
+                const labelsFormatting = formatLabels(
+                    label,
                     tile.label,
-                    datum.secondaryLabel,
+                    secondaryLabel,
                     tile.secondaryLabel,
-                    box,
+                    bbox,
                     tile
                 );
 
-                if (labelFormatting == null) {
-                    return;
+                if (labelsFormatting == null) {
+                    return undefined;
                 }
 
                 const { textAlign, verticalAlign, padding } = tile;
-                const { label, secondaryLabel } = labelFormatting;
+                const { label: labelFormatting, secondaryLabel: secondaryLabelFormatting } = labelsFormatting;
 
                 const totalHeight =
-                    secondaryLabel != null ? label.height + tile.spacing + secondaryLabel.height : label.height;
+                    secondaryLabelFormatting != null
+                        ? labelFormatting.height + tile.spacing + secondaryLabelFormatting.height
+                        : labelFormatting.height;
 
                 const textAlignFactor = textAlignFactors[textAlign] ?? 0.5;
-                const labelX = box.x + padding + (box.width - 2 * padding) * textAlignFactor;
+                const labelX = bbox.x + padding + (bbox.width - 2 * padding) * textAlignFactor;
 
                 const verticalAlignFactor = verticalAlignFactors[verticalAlign] ?? 0.5;
                 const labelYStart =
-                    box.y +
+                    bbox.y +
                     padding +
                     totalHeight * 0.5 +
-                    (box.height - 2 * padding - totalHeight) * verticalAlignFactor;
+                    (bbox.height - 2 * padding - totalHeight) * verticalAlignFactor;
 
-                labelMeta.set(datum, {
+                return {
                     label: {
-                        text: label.text,
-                        fontSize: label.fontSize,
+                        text: labelFormatting.text,
+                        fontSize: labelFormatting.fontSize,
                         style: tile.label,
                         hAlign: textAlign,
                         vAlign: 'middle',
                         x: labelX,
-                        y: labelYStart - (totalHeight - label.height) * 0.5,
+                        y: labelYStart - (totalHeight - labelFormatting.height) * 0.5,
                     },
-                    value:
-                        secondaryLabel != null
+                    secondaryLabel:
+                        secondaryLabelFormatting != null
                             ? {
-                                  text: secondaryLabel.text,
-                                  fontSize: secondaryLabel.fontSize,
+                                  text: secondaryLabelFormatting.text,
+                                  fontSize: secondaryLabelFormatting.fontSize,
                                   style: tile.secondaryLabel,
                                   hAlign: textAlign,
                                   vAlign: 'middle',
                                   x: labelX,
-                                  y: labelYStart + (totalHeight - secondaryLabel.height) * 0.5,
+                                  y: labelYStart + (totalHeight - secondaryLabelFormatting.height) * 0.5,
                               }
                             : undefined,
-                });
-            } else {
-                const { padding, label, textAlign } = group;
-                const groupTitleHeight = this.groupTitleHeight(datum, box);
+                };
+            } else if (datum != null) {
+                const { padding, textAlign } = group;
+                const groupTitleHeight = this.groupTitleHeight(node, bbox);
 
                 if (groupTitleHeight == null) {
-                    return;
+                    return undefined;
                 }
 
-                const innerWidth = box.width - 2 * padding;
-                const text = Text.wrap(datum.label, box.width - 2 * padding, Infinity, label, 'never');
+                const innerWidth = bbox.width - 2 * padding;
+                const text = Text.wrap(label, bbox.width - 2 * padding, Infinity, group.label, 'never');
                 const textAlignFactor = textAlignFactors[textAlign] ?? 0.5;
 
-                labelMeta.set(datum, {
+                return {
                     label: {
                         text,
-                        fontSize: label.fontSize,
-                        style: label,
+                        fontSize: group.label.fontSize,
+                        style: group.label,
                         hAlign: textAlign,
                         vAlign: 'middle',
-                        x: box.x + padding + innerWidth * textAlignFactor,
-                        y: box.y + padding + groupTitleHeight * 0.5,
+                        x: bbox.x + padding + innerWidth * textAlignFactor,
+                        y: bbox.y + padding + groupTitleHeight * 0.5,
                     },
-                });
+                    secondaryLabel: undefined,
+                };
             }
         });
-
-        return labelMeta;
     }
 
     override getSeriesDomain(_direction: _ModuleSupport.ChartAxisDirection): any[] {
         return [0, 1];
     }
 
-    getTooltipHtml(nodeDatum: TreemapNodeDatum): string {
+    getTooltipHtml(node: _ModuleSupport.HierarchyNode): string {
         const { tooltip, colorKey, labelKey, secondaryLabelKey, sizeKey, id: seriesId } = this;
-        const { datum, parent, depth, isLeaf } = nodeDatum;
+        const { datum, depth } = node;
+        const isLeaf = node.children.length === 0;
         const interactive = isLeaf || this.group.interactive;
         if (datum == null || depth == null || !interactive) {
             return '';
@@ -930,8 +823,8 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
 
         const title = labelKey != null ? datum[labelKey] : undefined;
 
-        const format = this.getTileFormat(nodeDatum, false);
-        const color = format?.fill ?? nodeDatum.fill;
+        const format = this.getTileFormat(node, false);
+        const color = format?.fill ?? node.color;
 
         const defaults: AgTooltipRendererResult = {
             title,
@@ -943,9 +836,8 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<TreemapNodeDat
         }
 
         return tooltip.toTooltipHtml(defaults, {
-            datum: datum,
-            parent: parent?.datum,
-            depth: depth,
+            depth,
+            datum,
             colorKey,
             labelKey,
             secondaryLabelKey,

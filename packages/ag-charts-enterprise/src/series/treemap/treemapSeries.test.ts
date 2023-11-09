@@ -73,7 +73,7 @@ describe('HierarchyChart', () => {
             await waitForChartStability(chart);
 
             const seriesImpl = chart.series[0] as TreemapSeries;
-            let node = seriesImpl['dataRoot'];
+            let node = seriesImpl.rootNode;
             const childIndexes = [...childAtDepth];
             while (depth > 0 && node) {
                 node = node.children![childIndexes.shift() ?? 0];

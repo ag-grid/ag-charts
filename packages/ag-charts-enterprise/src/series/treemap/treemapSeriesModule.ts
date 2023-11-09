@@ -23,7 +23,6 @@ export const TreemapSeriesModule: _ModuleSupport.SeriesModule<'treemap'> = {
     themeTemplate: {
         __extends__: EXTENDS_SERIES_DEFAULTS,
         showInLegend: false,
-        colorDomain: [-5, 5],
         colorRange: ['#cb4b3f', '#6acb64'],
         group: {
             label: {

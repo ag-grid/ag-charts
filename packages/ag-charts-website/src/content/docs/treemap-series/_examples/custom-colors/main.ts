@@ -34,11 +34,12 @@ const options: AgChartOptions = {
                     },
                 }
             },
-            formatter: ({ datum, depth, parent, highlighted }) => {
+            formatter: ({ datum, highlighted }) => {
                 if (datum.children) {
                     return { fill: 'white' };
                 } else {
-                    const fill = parent.name === 'Foodstuffs' ? 'rgb(64, 172, 64)' : 'rgb(32, 96, 224)';
+                    // const fill = parent.name === 'Foodstuffs' ? 'rgb(64, 172, 64)' : 'rgb(32, 96, 224)';
+                    const fill = 'rgb(32, 96, 224)';
                     const stroke = highlighted ? 'black' : fill;
                     return { fill, stroke };
                 }

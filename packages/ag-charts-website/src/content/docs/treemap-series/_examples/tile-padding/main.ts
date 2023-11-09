@@ -16,12 +16,19 @@ const options: AgChartOptions = {
             labelKey: 'name',
             sizeKey: 'size',
             colorKey: 'size',
-            colorDomain: [0, 1200000000],
             colorRange: ['#241248', '#2a9850'],
             group: {
+                label: {
+                    fontSize: 18,
+                    fontWeight: 'bold',
+                },
+                textAlign: 'left',
                 stroke: 'white',
                 fill: '#241248',
                 spacing: 1,
+                padding: 20,
+                spacing: 5,
+                tileSpacing: 10,
             },
             tile: {
                 label: {

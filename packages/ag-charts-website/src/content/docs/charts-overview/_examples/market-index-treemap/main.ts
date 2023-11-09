@@ -7,10 +7,10 @@ const options: AgChartOptions = {
   series: [
     {
       type: 'treemap',
-      labelKey: 'name', // defaults to 'label', but current dataset uses 'name'
+      labelKey: 'name',
       secondaryLabelKey: 'change',
-      sizeKey: 'size', // default (can be omitted for current dataset)
-      colorKey: 'color', // default (can be omitted for current dataset)
+      sizeKey: 'valuation',
+      colorKey: 'change',
       group: {
         label: {
           formatter({value}) {
@@ -23,8 +23,8 @@ const options: AgChartOptions = {
         secondaryLabel: {
           formatter(params) {
             return params.value.toFixed(2) + '%';
-          }
-        }
+          },
+        },
       },
       tooltip: {
         renderer: params => {
@@ -56,39 +56,6 @@ const options: AgChartOptions = {
     text:
       'Area represents market cap. Color represents change from the day before.',
   },
-}
-
-function tooltipRenderer(params: AgTreemapSeriesTooltipRendererParams<any>) {
-  const { parent, depth, labelKey } = params
-  const customRootText = 'All industries'
-  const title = depth > 1
-    ? parent[labelKey!]
-    : customRootText
-  let content = '<div>'
-  let ellipsis = false
-
-  if (parent) {
-    const maxCount = 5
-    ellipsis = parent.children!.length > maxCount
-    const sorted = parent.children!.slice(0).sort((a: any, b: any) => b.valuation - a.valuation);
-    sorted.slice(0, maxCount).forEach((child: any) => {
-      const bg = child.color || '#272931';
-      content += `<div style="font-weight: bold; color: white; background-color: ${bg
-        }; padding: 5px;"><strong>${child[labelKey!]
-        }</strong>: ${String(
-          isFinite(child.change) ? child.change.toFixed(2) : ''
-        )}%</div>`
-    })
-  }
-  if (ellipsis) {
-    content += `<div style="text-align: center;">...</div>`
-  }
-  content += '</div>'
-  return {
-    title,
-    content,
-    backgroundColor: 'gray',
-  }
 }
 
 AgChart.create(options)
