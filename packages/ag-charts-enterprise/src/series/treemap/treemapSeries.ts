@@ -311,44 +311,49 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
             return;
         }
 
-        const labelData: LabelData[] = new Array(data.length + 1).fill(undefined);
+        const defaultLabelFormatter = (value: any) => {
+            if (typeof value === 'number') {
+                // This copies what other series are doing - we should look to provide format customization
+                return value.toFixed(2);
+            } else if (typeof value === 'string') {
+                return value;
+            } else {
+                return '';
+            }
+        };
 
-        this.rootNode.walk(({ index, datum, depth, children }) => {
+        this.labelData = Array.from(this.rootNode, ({ datum, depth, children }): LabelData | undefined => {
             const isLeaf = children.length === 0;
 
             const labelStyle = isLeaf ? tile.label : group.label;
             let label: string | undefined;
             if (datum != null && depth != null && labelKey != null && labelStyle.enabled) {
-                label = this.getLabelText(labelStyle, {
-                    depth,
-                    datum,
-                    childrenKey,
-                    colorKey,
-                    labelKey,
-                    secondaryLabelKey,
-                    sizeKey,
-                    value: datum[labelKey] ?? '',
-                });
+                const value = datum[labelKey] ?? '';
+                label = this.getLabelText(
+                    labelStyle,
+                    { depth, datum, childrenKey, colorKey, labelKey, secondaryLabelKey, sizeKey, value },
+                    defaultLabelFormatter
+                );
+            }
+            if (label === '') {
+                label = undefined;
             }
 
             let secondaryLabel: string | undefined;
             if (isLeaf && datum != null && depth != null && secondaryLabelKey != null && tile.secondaryLabel.enabled) {
-                secondaryLabel = this.getLabelText(tile.secondaryLabel, {
-                    depth,
-                    datum,
-                    childrenKey,
-                    colorKey,
-                    labelKey,
-                    secondaryLabelKey,
-                    sizeKey,
-                    value: datum[secondaryLabelKey] ?? '',
-                });
+                const value = datum[secondaryLabelKey] ?? '';
+                secondaryLabel = this.getLabelText(
+                    tile.secondaryLabel,
+                    { depth, datum, childrenKey, colorKey, labelKey, secondaryLabelKey, sizeKey, value },
+                    defaultLabelFormatter
+                );
+            }
+            if (secondaryLabel === '') {
+                secondaryLabel = undefined;
             }
 
-            labelData[index] = { label, secondaryLabel };
+            return label != null || secondaryLabel != null ? { label, secondaryLabel } : undefined;
         });
-
-        this.labelData = labelData;
     }
 
     /**
@@ -504,8 +509,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
             return;
         }
 
-        const descendants: _ModuleSupport.HierarchyNode[] = Array.from(this.rootNode) as any;
-        descendants.shift();
+        const descendants = Array.from(this.rootNode);
 
         const updateGroup = (group: _Scene.Group) => {
             group.append([new Rect(), new Text({ tag: TextNodeTag.Name }), new Text({ tag: TextNodeTag.Value })]);
@@ -561,7 +565,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
         if (!this.chart || !data) return;
 
         const { width, height } = this.chart.getSeriesRect()!;
-        const bboxes: (_Scene.BBox | undefined)[] = new Array(data.length + 1);
+        const bboxes: (_Scene.BBox | undefined)[] = Array.from(this.rootNode, () => undefined);
         this.squarify(rootNode, new BBox(0, 0, width, height), bboxes);
 
         const labelMeta = this.buildLabelMeta(bboxes);

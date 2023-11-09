@@ -150,11 +150,7 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
     }
 
     getDatumIdFromData(node: HierarchyNode) {
-        const { labelKey } = this;
-
-        if (labelKey != null) {
-            return node.datum?.[labelKey];
-        }
+        return `${node.index}`;
     }
 
     getDatumId(node: HierarchyNode) {
