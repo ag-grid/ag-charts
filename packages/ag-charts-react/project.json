@@ -28,8 +28,7 @@
             "output": "."
           }
         ],
-        "format": ["cjs", "esm"],
-        "updateBuildableProjectDepsInPackageJson": true
+        "format": ["cjs", "esm"]
       }
     },
     "test": {
@@ -49,12 +48,16 @@
     "pack": {
       "executor": "nx:run-commands",
       "dependsOn": ["build"],
-      "outputs": ["dist/packages/ag-charts-react.tgz"],
+      "outputs": ["{workspaceRoot}/dist/packages/ag-charts-react.tgz"],
       "options": {
         "cwd": "packages/ag-charts-react/dist",
         "commands": [
-          { "command": "mkdir -p ../../../dist/packages/" },
-          { "command": "yarn pack -f ../../../dist/packages/ag-charts-react.tgz" }
+          {
+            "command": "mkdir -p ../../../dist/packages/"
+          },
+          {
+            "command": "yarn pack -f ../../../dist/packages/ag-charts-react.tgz"
+          }
         ]
       }
     }

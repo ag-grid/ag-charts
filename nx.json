@@ -30,33 +30,33 @@
   "targetDefaults": {
     "build": {
       "dependsOn": ["^build"],
-      "inputs": ["production", "^production"]
+      "inputs": ["production", "^production"],
+      "cache": true
     },
     "lint": {
-      "inputs": ["default", "{workspaceRoot}/.eslintrc.json", "{workspaceRoot}/.eslintignore"]
+      "inputs": ["default", "{workspaceRoot}/.eslintrc.json", "{workspaceRoot}/.eslintignore"],
+      "cache": true
     },
     "test": {
-      "inputs": ["default", "production", "^production", "{workspaceRoot}/jest.preset.js"]
+      "inputs": ["default", "production", "^production", "{workspaceRoot}/jest.preset.js"],
+      "cache": true
     },
     "check": {
-      "inputs": ["production", "^production"]
+      "inputs": ["production", "^production"],
+      "cache": true
     },
     "e2e": {
-      "inputs": ["default", "^production"]
+      "inputs": ["default", "^production"],
+      "cache": true
+    },
+    "pack": {
+      "cache": true
     }
   },
   "workspaceLayout": {
     "appsDir": "packages",
     "libsDir": "libraries"
   },
-  "tasksRunnerOptions": {
-    "default": {
-      "runner": "nx/tasks-runners/default",
-      "options": {
-        "cacheableOperations": ["build", "lint", "test", "e2e", "check", "pack"],
-        "parallel": 1
-      }
-    }
-  },
-  "defaultProject": "all"
+  "defaultProject": "all",
+  "parallel": 1
 }
