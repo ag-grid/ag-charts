@@ -497,17 +497,8 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
         }
         this.nodeDataRefresh = false;
 
-        const { chart } = this;
-
-        if (!chart) {
-            return;
-        }
-
-        const seriesRect = chart.getSeriesRect();
-
-        if (!seriesRect) {
-            return;
-        }
+        const { seriesRect } = this.chart ?? {};
+        if (!seriesRect) return;
 
         const descendants = Array.from(this.rootNode);
 
@@ -561,10 +552,11 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
 
     async updateNodes() {
         const { rootNode, data, highlightStyle, tile, group } = this;
+        const { seriesRect } = this.chart ?? {};
 
-        if (!this.chart || !data) return;
+        if (!seriesRect || !data) return;
 
-        const { width, height } = this.chart.getSeriesRect()!;
+        const { width, height } = seriesRect;
         const bboxes: (_Scene.BBox | undefined)[] = Array.from(this.rootNode, () => undefined);
         this.squarify(rootNode, new BBox(0, 0, width, height), bboxes);
 

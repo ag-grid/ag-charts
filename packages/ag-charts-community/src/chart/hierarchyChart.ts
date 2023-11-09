@@ -26,6 +26,7 @@ export class HierarchyChart extends Chart {
         shrinkRect.shrink(padding.bottom, 'bottom');
 
         this.seriesRect = shrinkRect;
+        this.animationRect = shrinkRect;
         this.hoverRect = shrinkRect;
 
         this.seriesRoot.translationX = Math.floor(shrinkRect.x);

@@ -12,7 +12,6 @@ import { BBox } from '../scene/bbox';
 import { Group } from '../scene/group';
 import type { Point } from '../scene/point';
 import { Scene } from '../scene/scene';
-import { Text } from '../scene/shape/text';
 import { sleep } from '../util/async';
 import { CallbackCache } from '../util/callbackCache';
 import { Debug } from '../util/debug';
@@ -30,7 +29,7 @@ import { debouncedAnimationFrame, debouncedCallback } from '../util/render';
 import { SizeMonitor } from '../util/sizeMonitor';
 import type { PickRequired } from '../util/types';
 import { BOOLEAN, OPT_BOOLEAN, STRING_UNION, Validate } from '../util/validation';
-import { Caption } from './caption';
+import type { Caption } from './caption';
 import type { ChartAxis } from './chartAxis';
 import type { ChartAxisDirection } from './chartAxisDirection';
 import { ChartHighlight } from './chartHighlight';
@@ -47,7 +46,7 @@ import { InteractionManager } from './interaction/interactionManager';
 import { TooltipManager } from './interaction/tooltipManager';
 import { ZoomManager } from './interaction/zoomManager';
 import { Layers } from './layers';
-import { type LayoutCompleteEvent, LayoutService } from './layout/layoutService';
+import { LayoutService } from './layout/layoutService';
 import { Legend } from './legend';
 import type { CategoryLegendDatum, ChartLegend, ChartLegendType, GradientLegendDatum } from './legendDatum';
 import type { SeriesOptionsTypes } from './mapping/types';
@@ -58,6 +57,8 @@ import { SeriesLayerManager } from './series/seriesLayerManager';
 import { SeriesStateManager } from './series/seriesStateManager';
 import type { ISeries, SeriesNodeDatum } from './series/seriesTypes';
 import { Tooltip } from './tooltip/tooltip';
+import { BaseLayoutProcessor } from './update/baseLayoutProcessor';
+import type { UpdateProcessor } from './update/processor';
 import { UpdateService } from './updateService';
 
 type OptionalHTMLElement = HTMLElement | undefined | null;
@@ -271,7 +272,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
     protected readonly seriesLayerManager: SeriesLayerManager;
     protected readonly modules: Record<string, { instance: ModuleInstance }> = {};
     protected readonly legendModules: Record<string, { instance: ModuleInstance }> = {};
+
     private readonly specialOverrides: PickRequired<ChartExtendedOptions, 'document' | 'window'>;
+
+    private readonly processors: UpdateProcessor[] = [];
 
     protected constructor(specialOverrides: ChartExtendedOptions, resources?: TransferableResources) {
         super();
@@ -323,6 +327,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.animationManager.skip();
         this.animationManager.play();
 
+        this.processors = [new BaseLayoutProcessor(this, this.layoutService)];
+
         this.tooltip = new Tooltip(this.scene.canvas.element, document, window, document.body);
         this.tooltipManager = new TooltipManager(this.tooltip, this.interactionManager);
         this.overlays = new ChartOverlays(this.element);
@@ -331,11 +337,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         SizeMonitor.observe(this.element, (size) => this.rawResize(size));
         this._destroyFns.push(
-            // eslint-disable-next-line sonarjs/no-duplicate-string
-            this.layoutService.addListener('start-layout', (e) => this.positionPadding(e.shrinkRect)),
-            this.layoutService.addListener('start-layout', (e) => this.positionCaptions(e.shrinkRect)),
-            this.layoutService.addListener('layout-complete', (e) => this.layoutComplete(e)),
-
             this.interactionManager.addListener('click', (event) => this.onClick(event)),
             this.interactionManager.addListener('dblclick', (event) => this.onDoubleClick(event)),
             this.interactionManager.addListener('hover', (event) => this.onMouseMove(event)),
@@ -456,6 +457,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this._performUpdateType = ChartUpdateType.NONE;
 
         this._destroyFns.forEach((fn) => fn());
+        this.processors.forEach((p) => p.destroy());
         this.tooltipManager.destroy();
         this.tooltip.destroy();
         Object.values(this.legends).forEach((legend) => legend.destroy());
@@ -613,9 +615,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 if (this.checkUpdateShortcut(ChartUpdateType.PERFORM_LAYOUT)) break;
                 if (!this.checkFirstAutoSize(seriesToUpdate)) break;
 
-                await this.performLayout();
-                this.handleOverlays();
-                this.debug('Chart.performUpdate() - seriesRect', this.seriesRect);
+                await this.processLayout();
                 splits['⌖'] = performance.now();
 
             // eslint-disable-next-line no-fallthrough
@@ -766,7 +766,17 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     private initSeries(series: Series<any>) {
-        series.chart = this;
+        series.chart = {
+            get mode() {
+                return this.mode;
+            },
+            get seriesRect() {
+                return this.seriesRect;
+            },
+            placeLabels() {
+                return this.placeLabels();
+            },
+        };
         series.setChartData(this.data);
         this.addSeriesListeners(series);
 
@@ -989,6 +999,13 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
+    private async processLayout() {
+        await this.performLayout();
+
+        this.handleNoDataOverlay();
+        this.debug('Chart.performUpdate() - seriesRect', this.seriesRect);
+    }
+
     protected async performLayout() {
         if (this.scene.root) {
             this.scene.root.visible = true;
@@ -1001,99 +1018,11 @@ export abstract class Chart extends Observable implements AgChartInstance {
         return ctx.shrinkRect;
     }
 
-    private layoutComplete({ clipSeries, series: { paddedRect } }: LayoutCompleteEvent): void {
-        if (this.seriesArea.clip || clipSeries) {
-            this.seriesRoot.setClipRectInGroupCoordinateSpace(paddedRect);
-        } else {
-            this.seriesRoot.setClipRectInGroupCoordinateSpace();
-        }
-    }
-
-    private positionPadding(shrinkRect: BBox) {
-        const { padding } = this;
-
-        shrinkRect.shrink(padding.left, 'left');
-        shrinkRect.shrink(padding.top, 'top');
-        shrinkRect.shrink(padding.right, 'right');
-        shrinkRect.shrink(padding.bottom, 'bottom');
-
-        return { shrinkRect };
-    }
-
-    private positionCaptions(shrinkRect: BBox) {
-        const { title, subtitle, footnote } = this;
-        const newShrinkRect = shrinkRect.clone();
-
-        const updateCaption = (caption: Caption) => {
-            const defaultCaptionHeight = shrinkRect.height / 10;
-            const captionLineHeight = caption.lineHeight ?? caption.fontSize * Text.defaultLineHeightRatio;
-            const maxWidth = shrinkRect.width;
-            const maxHeight = Math.max(captionLineHeight, defaultCaptionHeight);
-            caption.computeTextWrap(maxWidth, maxHeight);
-        };
-
-        const positionTopAndShrinkBBox = (caption: Caption, spacing: number) => {
-            const baseY = newShrinkRect.y;
-            caption.node.x = newShrinkRect.x + newShrinkRect.width / 2;
-            caption.node.y = baseY;
-            caption.node.textBaseline = 'top';
-            updateCaption(caption);
-            const bbox = caption.node.computeBBox();
-
-            // As the bbox (x,y) ends up at a different location than specified above, we need to
-            // take it into consideration when calculating how much space needs to be reserved to
-            // accommodate the caption.
-            const bboxHeight = Math.ceil(bbox.y - baseY + bbox.height + spacing);
-
-            newShrinkRect.shrink(bboxHeight, 'top');
-        };
-        const positionBottomAndShrinkBBox = (caption: Caption, spacing: number) => {
-            const baseY = newShrinkRect.y + newShrinkRect.height;
-            caption.node.x = newShrinkRect.x + newShrinkRect.width / 2;
-            caption.node.y = baseY;
-            caption.node.textBaseline = 'bottom';
-            updateCaption(caption);
-            const bbox = caption.node.computeBBox();
-
-            const bboxHeight = Math.ceil(baseY - bbox.y + spacing);
-
-            newShrinkRect.shrink(bboxHeight, 'bottom');
-        };
-
-        if (subtitle) {
-            subtitle.node.visible = subtitle.enabled ?? false;
-        }
-
-        if (title) {
-            title.node.visible = title.enabled;
-            if (title.node.visible) {
-                const defaultTitleSpacing = subtitle?.node.visible ? Caption.SMALL_PADDING : Caption.LARGE_PADDING;
-                const spacing = title.spacing ?? defaultTitleSpacing;
-                positionTopAndShrinkBBox(title, spacing);
-            }
-        }
-
-        if (subtitle && subtitle.node.visible) {
-            positionTopAndShrinkBBox(subtitle, subtitle.spacing ?? 0);
-        }
-
-        if (footnote) {
-            footnote.node.visible = footnote.enabled;
-            if (footnote.node.visible) {
-                positionBottomAndShrinkBBox(footnote, footnote.spacing ?? 0);
-            }
-        }
-
-        return { shrinkRect: newShrinkRect };
-    }
-
     protected hoverRect?: BBox;
 
     // Should be available after the first layout.
     protected seriesRect?: BBox;
-    getSeriesRect(): Readonly<BBox | undefined> {
-        return this.seriesRect;
-    }
+    protected animationRect?: BBox;
 
     // x/y are local canvas coordinates in CSS pixels, not actual pixels
     private pickSeriesNode(point: Point, exactMatchOnly: boolean, maxDistance?: number): PickedNode | undefined {
@@ -1397,16 +1326,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
         await this.updateMutex.waitForClearAcquireQueue();
     }
 
-    protected handleOverlays() {
-        this.handleNoDataOverlay();
-    }
-
     protected handleNoDataOverlay() {
         const shouldDisplayNoDataOverlay = !this.series.some((s) => s.hasData());
-        const rect = this.getSeriesRect();
-
-        if (shouldDisplayNoDataOverlay && rect) {
-            this.overlays.noData.show(rect);
+        if (shouldDisplayNoDataOverlay && this.seriesRect) {
+            this.overlays.noData.show(this.seriesRect);
         } else {
             this.overlays.noData.hide();
         }
