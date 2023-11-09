@@ -3,6 +3,15 @@ import { defineCollection, z } from 'astro:content';
 
 import { FRAMEWORKS } from '../constants';
 
+const docs = defineCollection({
+    schema: z.object({
+        title: z.string(),
+        enterprise: z.boolean().optional(),
+        sideMenu: z.boolean().optional(),
+        hidePageMenu: z.boolean().optional(),
+    }),
+});
+
 const menuItemBase = {
     title: z.string(),
     /**
@@ -49,5 +58,6 @@ const menu = defineCollection({
 });
 
 export const collections = {
+    docs,
     menu,
 };
