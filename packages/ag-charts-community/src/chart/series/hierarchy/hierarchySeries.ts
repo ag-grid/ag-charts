@@ -6,6 +6,10 @@ import { OPT_COLOR_STRING_ARRAY, OPT_STRING, Validate } from '../../../util/vali
 import { Series, SeriesNodePickMode } from '../series';
 import type { ISeries, SeriesNodeDatum } from '../seriesTypes';
 
+type Mutable<T> = {
+    -readonly [k in keyof T]: T[k];
+};
+
 export class HierarchyNode implements SeriesNodeDatum {
     static Walk = {
         PreOrder: 0,
@@ -15,15 +19,15 @@ export class HierarchyNode implements SeriesNodeDatum {
     readonly midPoint: Point;
 
     constructor(
-        public series: ISeries<any>,
-        public index: number,
-        public datum: Record<string, any> | undefined,
-        public size: number,
-        public color: string | undefined,
-        public sumSize: number,
-        public depth: number | undefined,
-        public parent: HierarchyNode | undefined,
-        public children: HierarchyNode[]
+        public readonly series: ISeries<any>,
+        public readonly index: number,
+        public readonly datum: Record<string, any> | undefined,
+        public readonly size: number,
+        public readonly color: string | undefined,
+        public readonly sumSize: number,
+        public readonly depth: number | undefined,
+        public readonly parent: HierarchyNode | undefined,
+        public readonly children: HierarchyNode[]
     ) {
         this.midPoint = { x: 0, y: 0 };
     }
@@ -68,10 +72,6 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
     colorRange?: string[] = undefined;
 
     rootNode = new HierarchyNode(this, 0, undefined, 0, undefined, 0, undefined, undefined, []);
-
-    maxDepth: number = 0;
-    minColor: number = 0;
-    maxColor: number = 0;
 
     constructor(moduleCtx: ModuleContext) {
         super({ moduleCtx, pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH] });
@@ -118,7 +118,7 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
             );
         };
 
-        const appendChildren = (node: HierarchyNode, data: S[] | undefined): HierarchyNode => {
+        const appendChildren = (node: Mutable<HierarchyNode>, data: S[] | undefined): HierarchyNode => {
             data?.forEach((datum) => {
                 const child = createNode(datum, node);
                 node.children.push(child);
@@ -138,7 +138,7 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
             colorScale.range = colorRange;
             colorScale.update();
 
-            rootNode.walk((node) => {
+            rootNode.walk((node: Mutable<HierarchyNode>) => {
                 const color = colorKey == null ? node.depth : colors[node.index];
                 if (color != null) {
                     node.color = colorScale.convert(color);
@@ -147,9 +147,6 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
         }
 
         this.rootNode = rootNode;
-        this.maxDepth = maxDepth;
-        this.minColor = minColor;
-        this.maxColor = maxColor;
     }
 
     getDatumIdFromData(node: HierarchyNode) {

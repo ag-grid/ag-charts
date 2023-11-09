@@ -29,8 +29,8 @@ class ExampleHierarchySeries extends HierarchySeries<any> {
     }
 }
 
-describe('hierarchySeries', () => {
-    it('Creates a hierarchy', async () => {
+describe('HierarchySeries', () => {
+    it('creates a hierarchy', async () => {
         const series = new ExampleHierarchySeries(null!);
         series.sizeKey = 'size';
         series.data = [
@@ -49,21 +49,22 @@ describe('hierarchySeries', () => {
         series.rootNode.walk((node) => {
             // @ts-expect-error
             delete node.series;
+            // @ts-expect-error
             delete node.datum;
+            // @ts-expect-error
             delete node.parent;
         });
 
         expect(series.rootNode).toMatchSnapshot();
         expect(series.rootNode.sumSize).toBe(5 + 1 + 2 + 3 + 5 + 1 + 2 + 4 + 5 + 6 + 3 + 7);
-        expect(series.maxDepth).toBe(2);
     });
 
-    it('Handles an empty dataset', async () => {
+    it('handles an empty dataset', async () => {
         const series = new ExampleHierarchySeries(null!);
         series.data = [];
         await series.processData();
 
-        // @ts-expect-error - Jest will complain about circular dependencies otherwise
+        // @ts-expect-error - Remove circular dependencies because if this test fails, Jest won't be able to print any errors
         delete series.rootNode.series;
 
         expect(series.rootNode).toEqual({
@@ -77,10 +78,9 @@ describe('hierarchySeries', () => {
             children: [],
             midPoint: { x: 0, y: 0 },
         });
-        expect(series.maxDepth).toBe(0);
     });
 
-    it('Walks tree in pre-order', async () => {
+    it('walks tree in pre-order', async () => {
         const series = new ExampleHierarchySeries(null!);
         series.data = [
             {
