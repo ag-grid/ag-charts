@@ -3,7 +3,7 @@ import type { PngConfig } from 'canvas';
 import { Canvas, createCanvas } from 'canvas';
 import * as fs from 'fs';
 import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
-import * as pixelmatch from 'pixelmatch';
+import pixelmatch from 'pixelmatch';
 import { PNG } from 'pngjs';
 
 import { AgChart, _ModuleSupport } from '../../main';
