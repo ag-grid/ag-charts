@@ -9,22 +9,28 @@ import {
     _Util,
 } from 'ag-charts-community';
 
-const { SeriesTooltip, Validate, OPT_COLOR_STRING, OPT_FUNCTION, OPT_NUMBER, OPT_STRING } = _ModuleSupport;
+const { HighlightStyle, SeriesTooltip, Validate, OPT_COLOR_STRING, OPT_FUNCTION, OPT_NUMBER, NUMBER, OPT_STRING } =
+    _ModuleSupport;
 const { Sector, Group, Selection } = _Scene;
 
-export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport.HierarchyNode> {
-    static className = 'SunburstSeries';
-    static type = 'sunburst' as const;
+const getAngleData = (
+    node: _ModuleSupport.HierarchyNode,
+    startAngle = 0,
+    angleScale = (2 * Math.PI) / node.sumSize,
+    angleData: Array<{ start: number; end: number } | undefined> = Array.from(node, () => undefined)
+) => {
+    let currentAngle = startAngle;
+    for (const child of node.children) {
+        const start = currentAngle;
+        const end = currentAngle + child.sumSize * angleScale;
+        angleData[child.index] = { start, end };
+        getAngleData(child, start, angleScale, angleData);
+        currentAngle = end;
+    }
+    return angleData;
+};
 
-    readonly tooltip = new SeriesTooltip<AgSunburstSeriesTooltipRendererParams<any>>();
-
-    private groupSelection: _Scene.Selection<_Scene.Group, _ModuleSupport.HierarchyNode> = Selection.select(
-        this.contentGroup,
-        Group
-    );
-
-    private angleData: Array<{ start: number; end: number } | undefined> = [];
-
+class SunburstSeriesTileHighlightStyle extends HighlightStyle {
     @Validate(OPT_STRING)
     fill?: string;
 
@@ -39,41 +45,76 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
 
     @Validate(OPT_NUMBER(0, 1))
     strokeOpacity?: number;
+}
+
+export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport.HierarchyNode> {
+    static className = 'SunburstSeries';
+    static type = 'sunburst' as const;
+
+    readonly tooltip = new SeriesTooltip<AgSunburstSeriesTooltipRendererParams<any>>();
+
+    private groupSelection: _Scene.Selection<_Scene.Group, _ModuleSupport.HierarchyNode> = Selection.select(
+        this.contentGroup,
+        Group
+    );
+    private highlightSelection: _Scene.Selection<_Scene.Group, _ModuleSupport.HierarchyNode> = Selection.select(
+        this.highlightGroup,
+        Group
+    );
+
+    private angleData: Array<{ start: number; end: number } | undefined> = [];
+
+    override readonly highlightStyle = new SunburstSeriesTileHighlightStyle();
+
+    @Validate(OPT_STRING)
+    fill?: string;
+
+    @Validate(NUMBER(0, 1))
+    fillOpacity: number = 1;
+
+    @Validate(OPT_COLOR_STRING)
+    stroke?: string;
+
+    @Validate(NUMBER(0))
+    strokeWidth: number = 0;
+
+    @Validate(NUMBER(0, 1))
+    strokeOpacity: number = 1;
 
     @Validate(OPT_FUNCTION)
     formatter?: (params: AgSunburstSeriesFormatterParams) => AgSunburstSeriesStyle = undefined;
 
     override async processData() {
         super.processData();
-
-        const angleData: Array<{ start: number; end: number } | undefined> = Array.from(this.rootNode, () => undefined);
-
-        const angleScale = (2 * Math.PI) / this.rootNode.sumSize;
-
-        const setAngleData = (node: _ModuleSupport.HierarchyNode, startAngle: number) => {
-            let currentAngle = startAngle;
-            for (const child of node.children) {
-                const start = currentAngle;
-                const end = currentAngle + child.sumSize * angleScale;
-                angleData[child.index] = { start, end };
-                setAngleData(child, start);
-                currentAngle = end;
-            }
-        };
-
-        setAngleData(this.rootNode, 0);
-
-        this.angleData = angleData;
+        this.angleData = getAngleData(this.rootNode);
     }
 
     async updateSelections() {
-        const descendants: _ModuleSupport.HierarchyNode[] = Array.from(this.rootNode) as any;
+        if (!this.nodeDataRefresh) {
+            return;
+        }
+        this.nodeDataRefresh = false;
+
+        const { chart } = this;
+
+        if (!chart) {
+            return;
+        }
+
+        const seriesRect = chart.getSeriesRect();
+
+        if (!seriesRect) {
+            return;
+        }
+
+        const descendants: _ModuleSupport.HierarchyNode[] = Array.from(this.rootNode);
 
         const updateGroup = (group: _Scene.Group) => {
             group.append([new Sector()]);
         };
 
         this.groupSelection.update(descendants, updateGroup, (node) => this.getDatumId(node));
+        this.highlightSelection.update(descendants, updateGroup, (node) => this.getDatumId(node));
     }
 
     async updateNodes() {
@@ -85,36 +126,12 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
 
         this.contentGroup.translationX = width / 2;
         this.contentGroup.translationY = height / 2;
+        this.highlightGroup.translationX = width / 2;
+        this.highlightGroup.translationY = height / 2;
 
         const radius = Math.min(width, height) / 2;
         const maxDepth = 4;
         const radiusScale = radius / (maxDepth + 1);
-
-        const { fill, fillOpacity = 1, stroke, strokeWidth = 0, strokeOpacity = 1 } = this;
-        const angleOffset = -Math.PI / 2;
-
-        this.groupSelection.selectByClass(Sector).forEach((sector) => {
-            const { index, color, depth }: _ModuleSupport.HierarchyNode = sector.datum;
-            const angleDatum = this.angleData[index];
-            if (angleDatum == null || depth == null) {
-                sector.visible = false;
-                return;
-            }
-
-            sector.centerX = 0;
-            sector.centerY = 0;
-            sector.innerRadius = depth * radiusScale;
-            sector.outerRadius = (depth + 1) * radiusScale;
-            sector.angleOffset = angleOffset;
-            sector.startAngle = angleDatum.start;
-            sector.endAngle = angleDatum.end;
-            sector.fill = color ?? fill;
-            sector.fillOpacity = fillOpacity ?? 1;
-            sector.stroke = stroke;
-            sector.strokeWidth = strokeWidth;
-            sector.strokeOpacity = strokeOpacity;
-            sector.visible = true;
-        });
 
         this.rootNode.walk((node) => {
             const angleDatum = this.angleData[node.index];
@@ -123,6 +140,70 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
                 const midRadius = (node.depth + 0.5) * radiusScale;
                 node.midPoint.x = Math.cos(midAngle) * midRadius;
                 node.midPoint.y = Math.sin(midAngle) * midRadius;
+            }
+        });
+
+        const angleOffset = -Math.PI / 2;
+        const updateSector = (node: _ModuleSupport.HierarchyNode, sector: _Scene.Sector, highlighted: boolean) => {
+            const { depth } = node;
+            const angleDatum = this.angleData[node.index];
+            if (depth == null || angleDatum == null) {
+                sector.visible = false;
+                return;
+            }
+
+            sector.visible = true;
+
+            const { highlightStyle } = this;
+
+            let highlightedFill: string | undefined;
+            let highlightedFillOpacity: number | undefined;
+            let highlightedStroke: string | undefined;
+            let highlightedStrokeWidth: number | undefined;
+            let highlightedStrokeOpacity: number | undefined;
+            if (highlighted) {
+                highlightedFill = highlightStyle.fill;
+                highlightedFillOpacity = highlightStyle.fillOpacity;
+                highlightedStroke = highlightStyle.stroke;
+                highlightedStrokeWidth = highlightStyle.strokeWidth;
+                highlightedStrokeOpacity = highlightStyle.strokeOpacity;
+            }
+
+            const fill = highlightedFill ?? node.color ?? this.fill;
+            const fillOpacity = highlightedFillOpacity ?? this.fillOpacity;
+            const stroke = highlightedStroke ?? this.stroke;
+            const strokeWidth = highlightedStrokeWidth ?? this.strokeWidth;
+            const strokeOpacity = highlightedStrokeOpacity ?? this.strokeOpacity;
+
+            const format = this.getSectorFormat(node, highlighted);
+
+            sector.fill = format?.fill ?? fill;
+            sector.fillOpacity = format?.fillOpacity ?? fillOpacity;
+            sector.stroke = format?.stroke ?? stroke;
+            sector.strokeWidth = format?.strokeWidth ?? strokeWidth;
+            sector.strokeOpacity = format?.strokeOpacity ?? strokeOpacity;
+
+            sector.centerX = 0;
+            sector.centerY = 0;
+            sector.innerRadius = depth * radiusScale;
+            sector.outerRadius = (depth + 1) * radiusScale;
+            sector.angleOffset = angleOffset;
+            sector.startAngle = angleDatum.start;
+            sector.endAngle = angleDatum.end;
+        };
+
+        this.groupSelection.selectByClass(Sector).forEach((sector) => {
+            updateSector(sector.datum, sector, false);
+        });
+
+        const highlightedNode: _ModuleSupport.HierarchyNode | undefined =
+            this.ctx.highlightManager?.getActiveHighlight() as any;
+        this.highlightSelection.selectByClass(Sector).forEach((sector) => {
+            const node: _ModuleSupport.HierarchyNode = sector.datum;
+            const isHighlighted = highlightedNode === node;
+            sector.visible = isHighlighted;
+            if (sector.visible) {
+                updateSector(sector.datum, sector, isHighlighted);
             }
         });
     }

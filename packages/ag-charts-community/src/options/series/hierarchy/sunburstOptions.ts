@@ -2,7 +2,7 @@ import type { AgSeriesTooltip } from '../../agChartOptions';
 import type { AgChartCallbackParams } from '../../chart/callbackOptions';
 import type { CssColor } from '../../chart/types';
 import type { FillOptions, StrokeOptions } from '../cartesian/commonOptions';
-import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
+import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 
 export interface AgSunburstSeriesTooltipRendererParams<TDatum>
     extends AgChartCallbackParams<TDatum>,
@@ -15,6 +15,8 @@ export interface AgSunburstSeriesTooltipRendererParams<TDatum>
     color?: CssColor;
 }
 
+export interface AgSunburstSeriesHighlightStyle<_TDatum> extends AgSeriesHighlightStyle, FillOptions, StrokeOptions {}
+
 export interface AgSunburstSeriesThemeableOptions<TDatum = any>
     extends Omit<AgBaseSeriesThemeableOptions, 'highlightStyle'>,
         FillOptions,
@@ -25,6 +27,8 @@ export interface AgSunburstSeriesThemeableOptions<TDatum = any>
     tooltip?: AgSeriesTooltip<AgSunburstSeriesTooltipRendererParams<TDatum>>;
     /** A callback function for adjusting the styles of a particular sunburst tile based on the input parameters */
     formatter?: (params: AgSunburstSeriesFormatterParams<TDatum>) => AgSunburstSeriesStyle;
+    /** */
+    highlightStyle?: AgSunburstSeriesHighlightStyle<TDatum>;
 }
 
 export interface AgSunburstSeriesOptions<TDatum = any>

@@ -10,6 +10,9 @@ const options: AgChartOptions = {
             type: 'sunburst',
             labelKey: 'orgHierarchy',
             colorRange: ['#cb4b3f', '#6acb64'],
+            highlightStyle: {
+                strokeWidth: 3,
+            },
         },
     ],
     title: {
