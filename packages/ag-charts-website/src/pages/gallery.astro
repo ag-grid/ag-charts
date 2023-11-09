@@ -36,7 +36,7 @@ const { series } = galleryData;
         </div>
 
         <div class="content">
-            <GalleryExampleThemeDropdown client:only></GalleryExampleThemeDropdown>
+            <GalleryExampleThemeDropdown client:only />
             <div>
                 {
                     series.map((series: GalleryExampleChartType) => (
@@ -90,7 +90,6 @@ const { series } = galleryData;
         flex-direction: row;
         position: relative;
         background-color: var(--background-100);
-
     }
 
     .menu {
@@ -151,7 +150,9 @@ const { series } = galleryData;
 
         :global(.icon) {
             opacity: 0.75;
-            transition: opacity $default-transition-timing, fill $default-transition-timing;
+            transition:
+                opacity $default-transition-timing,
+                fill $default-transition-timing;
         }
 
         &:hover {
@@ -211,7 +212,6 @@ const { series } = galleryData;
     .chart-type {
         padding-bottom: $size-4;
     }
-
 
     .gallery-list {
         display: flex;
