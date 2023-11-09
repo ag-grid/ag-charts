@@ -81,11 +81,6 @@ const options: AgChartOptions = {
 };
 
 const lineOptions: AgChartOptions = {
-    container: document.getElementById('myChart'),
-    data: getData(),
-    animation: {
-        enabled: true,
-    },
     series: [
         {
             type: 'line',
@@ -141,11 +136,6 @@ const lineOptions: AgChartOptions = {
 };
 
 const areaOptions: AgChartOptions = {
-    container: document.getElementById('myChart'),
-    data: getData(),
-    animation: {
-        enabled: true,
-    },
     series: [
         {
             type: 'area',
@@ -206,11 +196,6 @@ const areaOptions: AgChartOptions = {
 };
 
 const pieOptions: AgChartOptions = {
-    container: document.getElementById('myChart'),
-    data: getData(),
-    animation: {
-        enabled: true,
-    },
     series: [
         {
             type: 'pie',
@@ -240,17 +225,17 @@ const pieOptions: AgChartOptions = {
 let chart = AgEnterpriseCharts.create(options);
 
 function changeSeriesBar() {
-    AgEnterpriseCharts.update(chart, options);
+    AgEnterpriseCharts.updateDelta(chart, options);
 }
 
 function changeSeriesLine() {
-    AgEnterpriseCharts.update(chart, lineOptions);
+    AgEnterpriseCharts.updateDelta(chart, lineOptions);
 }
 
 function changeSeriesArea() {
-    AgEnterpriseCharts.update(chart, areaOptions);
+    AgEnterpriseCharts.updateDelta(chart, areaOptions);
 }
 
 function changeSeriesPie() {
-    AgEnterpriseCharts.update(chart, pieOptions);
+    AgEnterpriseCharts.updateDelta(chart, pieOptions);
 }
