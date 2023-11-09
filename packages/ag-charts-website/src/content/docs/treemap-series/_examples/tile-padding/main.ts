@@ -18,9 +18,17 @@ const options: AgChartOptions = {
             colorKey: 'size',
             colorRange: ['#241248', '#2a9850'],
             group: {
+                label: {
+                    fontSize: 18,
+                    fontWeight: 'bold',
+                },
+                textAlign: 'left',
                 stroke: 'white',
                 fill: '#241248',
                 spacing: 1,
+                padding: 20,
+                spacing: 5,
+                tileSpacing: 10,
             },
             tile: {
                 label: {
