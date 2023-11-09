@@ -31,48 +31,55 @@ const menuEntry = await getEntry('menu', 'data');
 ---
 
 <Layout title={`${getFrameworkDisplayText(framework)} Charts: AG Charts`} showTopBar={true}>
-    {
-        !hidePageMenu && (
-            <PagesNavigation
-                client:load
-                slot="aside"
-                menuData={menuEntry.data}
-                framework={framework}
-                pageName={pageName}
-            />
-        )
-    }
+    <div class="contentViewport">
+        {
+            !hidePageMenu && (
+                <PagesNavigation client:load menuData={menuEntry.data} framework={framework} pageName={pageName} />
+            )
+        }
 
-    <div
-        id="doc-page-wrapper"
-        class:list={[
-            'docPageWrapper',
-            {
-                hidePageMenu,
-            },
-        ]}
-    >
         <div
-            id="doc-content"
+            id="doc-page-wrapper"
             class:list={[
-                'docPage',
+                'docPageWrapper',
                 {
-                    noSideMenu: hideSideMenu,
+                    hidePageMenu,
                 },
             ]}
         >
-            <Header title={title} framework={framework} isEnterprise={enterprise} />
+            <div
+                id="doc-content"
+                class:list={[
+                    'docPage',
+                    {
+                        noSideMenu: hideSideMenu,
+                    },
+                ]}
+            >
+                <Header title={title} framework={framework} isEnterprise={enterprise} />
 
-            {/* Wrapping div is a hack to target "intro" section of docs page */}
-            <div class="pageSections">
-                <Content framework={framework} page={page} />
+                {/* Wrapping div is a hack to target "intro" section of docs page */}
+                <div class="pageSections">
+                    <Content framework={framework} page={page} />
+                </div>
             </div>
-        </div>
 
-        {!hideSideMenu && <SideNavigation client:load title={title} pageHeadings={extendedHeadings} />}
+            {!hideSideMenu && <SideNavigation client:load title={title} pageHeadings={extendedHeadings} />}
+        </div>
     </div>
 </Layout>
 
 <style lang="scss">
+    @use '../../design-system' as *;
     @import '../../styles/docs.module.scss';
+
+    .contentViewport {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+
+        @media (min-width: $breakpoint-docs-nav-medium) {
+            flex-direction: row;
+        }
+    }
 </style>

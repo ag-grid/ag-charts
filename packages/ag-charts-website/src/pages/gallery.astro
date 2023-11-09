@@ -90,6 +90,7 @@ const { series } = galleryData;
         flex-direction: row;
         position: relative;
         background-color: var(--background-100);
+        padding-top: $site-header-height;
     }
 
     .menu {
@@ -246,16 +247,10 @@ const { series } = galleryData;
 <style lang="scss" is:global>
     @use '../design-system' as *;
 
-    $site-header-height: 64px;
-
     .site-header {
         position: fixed !important;
         width: 100%;
         z-index: 2;
-    }
-
-    .contentViewport {
-        padding-top: $site-header-height;
     }
 
     .icon {
