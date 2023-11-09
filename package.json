@@ -24,6 +24,7 @@
     "@nanostores/react": "^0.7.1",
     "@nrwl/linter": "17.0.3",
     "@nx/cypress": "17.0.3",
+    "@nx/eslint": "17.0.3",
     "@nx/eslint-plugin": "17.0.3",
     "@nx/jest": "17.0.3",
     "@nx/js": "17.0.3",
@@ -104,8 +105,7 @@
     "vite-plugin-svgr": "^3.2.0",
     "vite-tsconfig-paths": "~4.2.0",
     "vitest": "~0.32.0",
-    "ws": "8.9.0",
-    "@nx/eslint": "17.0.3"
+    "ws": "8.9.0"
   },
   "overrides": {
     "@nxtensions/astro": {
