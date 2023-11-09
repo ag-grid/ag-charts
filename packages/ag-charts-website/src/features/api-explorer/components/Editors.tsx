@@ -9,6 +9,8 @@ import { AlphaPicker, HuePicker } from 'react-color';
 
 import styles from './Editors.module.scss';
 
+// TODO this feature is using the old docs model, which is no longer available, and should be rewritten when we'll want to enable it again
+
 type FontFamily = string;
 type FontSize = number;
 type FontStyle = string;

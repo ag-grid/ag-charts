@@ -1,21 +1,42 @@
 /* eslint-disable no-console */
-import type { ExecutorContext } from '@nx/devkit';
-import * as fs from 'fs';
+import * as ts from 'typescript';
 
-import { generate } from './generate-code-reference-files.mjs';
-import type { GenerateCodeReferenceFilesExecutorSchema } from './schema';
+import { writeFile } from './executors-utils';
+import { TypeMapper } from './types-utils';
 
-export default async function runExecutor(options: GenerateCodeReferenceFilesExecutorSchema, context: ExecutorContext) {
+type OptionsMode = 'debug-interfaces' | 'docs-interfaces';
+type ExecutorOptions = { mode: OptionsMode; inputs: string[]; output: string };
+
+export default async function (options: ExecutorOptions) {
     try {
-        const outputDir = options.output.split('/').slice(0, -1).join('/');
-        fs.mkdirSync(outputDir, { recursive: true });
+        console.log('-'.repeat(80));
+        console.log('Generate docs reference files...');
+        console.log('Using Typescript version: ', ts.version);
 
-        generate(options.mode, options.inputs, options.output);
+        generateFile(options);
+
+        console.log('Generation completed.');
+        console.log('-'.repeat(80));
 
         return { success: true };
     } catch (e) {
-        console.log({ options });
-        console.error(e);
+        console.error(e, { options });
         return { success: false };
+    }
+}
+
+function generateFile(options: ExecutorOptions) {
+    const typeMapper = new TypeMapper(options.inputs);
+
+    switch (options.mode) {
+        // flat version of the interfaces file, without resolving
+        case 'debug-interfaces':
+            return writeFile(options.output, typeMapper.entries());
+
+        case 'docs-interfaces':
+            return writeFile(options.output, typeMapper.resolvedEntries());
+
+        default:
+            throw new Error(`Unsupported mode "${options.mode}"`);
     }
 }
