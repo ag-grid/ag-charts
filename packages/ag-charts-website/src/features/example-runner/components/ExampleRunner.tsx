@@ -5,6 +5,8 @@ import type { ExampleType, FileContents } from '@features/examples-generator/typ
 import classnames from 'classnames';
 import { type FunctionComponent, type ReactElement, useState } from 'react';
 
+// Charts specific example runner styles
+import chartsStyles from './ChartsExampleRunner.module.scss';
 import { CodeViewer } from './CodeViewer';
 import { ExampleIFrame } from './ExampleIFrame';
 import styles from './ExampleRunner.module.scss';
@@ -45,7 +47,7 @@ export const ExampleRunner: FunctionComponent<Props> = ({
         <div id={id} className={styles.exampleOuter} style={{ minHeight: `${exampleHeight + 48}px` }}>
             <div className={styles.tabsContainer}>
                 <div
-                    className={styles.content}
+                    className={classnames(chartsStyles.content, styles.content)}
                     role="tabpanel"
                     aria-labelledby={`${showCode ? 'Preview' : 'Code'} tab`}
                     style={{ height: exampleHeight, width: '100%' }}
