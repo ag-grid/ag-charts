@@ -134,6 +134,21 @@ describe('BulletSeries', () => {
         await compare();
     });
 
+    it('should process first datum only', async () => {
+        chart = AgEnterpriseCharts.create({
+            ...opts,
+            series: [
+                {
+                    type: 'bullet',
+                    data: [{ income: 1 }, { income: 2 }, { income: 3 }],
+                    scale: { max: 1.5 },
+                    valueKey: 'income',
+                },
+            ],
+        });
+        await compare();
+    });
+
     test('tooltip valueKey only', async () => {
         chart = deproxy(
             AgEnterpriseCharts.create({
