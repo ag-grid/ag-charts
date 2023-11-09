@@ -10,7 +10,7 @@
         max-width: unset;
     }
 
-    &:global(.results-open) {
+    &:global('.results-open') {
         background-color: red;
     }
 
