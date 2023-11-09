@@ -98,6 +98,16 @@ const isStaging = getIsStaging();
                 min-height: 100vh;
                 padding: 0;
             }
+
+            :global(.contentViewport) {
+                display: flex;
+                flex-direction: column;
+                flex-grow: 1;
+
+                @media (min-width: $breakpoint-docs-nav-medium) {
+                    flex-direction: row;
+                }
+            }
         </style>
     </body>
 </html>

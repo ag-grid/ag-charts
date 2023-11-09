@@ -1,16 +1,6 @@
 @use '../design-system' as *;
 
 :global {
-    .contentViewport {
-        display: flex;
-        flex-direction: column;
-        flex-grow: 1;
-
-        @media (min-width: $breakpoint-docs-nav-medium) {
-            flex-direction: row;
-        }
-    }
-
     .pageSections article {
         > h2 {
             margin-top: $size-6;
