@@ -40,58 +40,12 @@ export const ExampleRunner: FunctionComponent<Props> = ({
     const [showCode, setShowCode] = useState(initialShowCode);
 
     const exampleHeight = initialExampleHeight || DEFAULT_HEIGHT;
-    const minHeight = `${exampleHeight + FRAME_WRAPPER_HEIGHT}px`;
 
     return (
-        <div id={id} style={{ minHeight }}>
-            <div className={classnames('tabs-outer', styles.tabsContainer)}>
-                <header className={classnames('tabs-header', styles.header)}>
-                    <ul className="tabs-nav-list" role="tablist">
-                        {/* eslint-disable-line */}
-                        <li className="tabs-nav-item" role="presentation">
-                            <button
-                                className={classnames('button-style-none', 'tabs-nav-link', { active: !showCode })}
-                                onClick={(e) => {
-                                    setShowCode(false);
-                                    e.preventDefault();
-                                }}
-                                role="tab"
-                                title="Run example"
-                                disabled={!showCode}
-                            >
-                                Preview <Icon name="executableProgram" />
-                            </button>
-                        </li>
-                        <li className="tabs-nav-item" role="presentation">
-                            <button
-                                className={classnames(
-                                    'button-style-none',
-                                    'tabs-nav-link',
-                                    { active: showCode },
-                                    styles.codeTabButton
-                                )}
-                                onClick={(e) => {
-                                    setShowCode(true);
-                                    e.preventDefault();
-                                }}
-                                role="tab"
-                                title="View Example Source Code"
-                                disabled={showCode}
-                            >
-                                Code <Icon name="code" />
-                            </button>
-                        </li>
-                    </ul>
-
-                    <ul className={classnames('list-style-none', styles.externalLinks)}>
-                        <li>
-                            <OpenInCTA type="newTab" href={exampleUrl!} />
-                        </li>
-                        {externalLinkButton && <li>{externalLinkButton}</li>}
-                    </ul>
-                </header>
+        <div id={id} className={styles.exampleOuter} style={{ minHeight: `${exampleHeight + 48}px` }}>
+            <div className={styles.tabsContainer}>
                 <div
-                    className={classnames('tabs-content', styles.content)}
+                    className={styles.content}
                     role="tabpanel"
                     aria-labelledby={`${showCode ? 'Preview' : 'Code'} tab`}
                     style={{ height: exampleHeight, width: '100%' }}
@@ -109,6 +63,32 @@ export const ExampleRunner: FunctionComponent<Props> = ({
                         />
                     )}
                 </div>
+                <footer className={styles.footer}>
+                    <button
+                        className={classnames(styles.previewCodeToggle, 'button-secondary')}
+                        onClick={(e) => {
+                            setShowCode(!showCode);
+                        }}
+                    >
+                        {showCode && (
+                            <span>
+                                <Icon name="eye" /> Preview
+                            </span>
+                        )}
+                        {!showCode && (
+                            <span>
+                                <Icon name="code" /> Code
+                            </span>
+                        )}
+                    </button>
+
+                    <ul className={classnames('list-style-none', styles.externalLinks)}>
+                        <li>
+                            <OpenInCTA type="newTab" href={exampleUrl!} />
+                        </li>
+                        {externalLinkButton && <li>{externalLinkButton}</li>}
+                    </ul>
+                </footer>
             </div>
         </div>
     );

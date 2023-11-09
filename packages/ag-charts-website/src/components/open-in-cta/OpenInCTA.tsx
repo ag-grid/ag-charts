@@ -22,22 +22,26 @@ type Props = ButtonProps | LinkProps;
 const COPY_TEXT: Record<CtaType, ReactNode> = {
     newTab: (
         <>
-            Open in New Tab <Icon name="docs-import-export" />
+            <span className={styles.tooltip}>New Tab</span>
+            <Icon name="newTab" />
         </>
     ),
     plunker: (
         <>
-            Edit on Plunker <Icon name="plunker" />
+            <span className={styles.tooltip}>Plunker</span>
+            <Icon name="plunker" />
         </>
     ),
     stackblitz: (
         <>
-            Edit on StackBlitz <Icon name="stackblitz" />
+            <span className={styles.tooltip}>StackBlitz</span>
+            <Icon name="stackblitz" />
         </>
     ),
     codesandbox: (
         <>
-            Edit on CodeSandbox <Icon name="codesandbox" />
+            <span className={styles.tooltip}>CodeSandbox</span>
+            <Icon name="codesandbox" />
         </>
     ),
 };
@@ -52,7 +56,7 @@ export const OpenInCTA: FunctionComponent<Props> = (props) => {
         const { onClick } = props as ButtonProps;
         return (
             <button
-                className={classnames('button-as-link', styles.cta)}
+                className={classnames('button-style-none', styles.cta)}
                 onClick={(event) => {
                     onClick(event);
                     tracking && tracking();
