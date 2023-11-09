@@ -98,8 +98,8 @@ class TargetStyle {
 }
 
 class BulletScale {
-    @Validate(NUMBER(0))
-    max = 0;
+    @Validate(OPT_NUMBER(0))
+    max?: number = undefined;
 }
 
 export class BulletSeries extends _ModuleSupport.AbstractBarSeries<BulletNode, BulletNodeDatum> {
@@ -191,12 +191,17 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<BulletNode, B
 
     private getMaxValue(): number {
         const { dataModel, processedData, targetKey, scale } = this;
-        if (!dataModel || !processedData) return NaN;
+        if (scale.max !== undefined) {
+            return scale.max;
+        }
+        if (!dataModel || !processedData) {
+            return NaN;
+        }
 
         const valueDomain = dataModel.getDomain(this, 'value', 'value', processedData);
         const targetDomain = targetKey === undefined ? [] : dataModel.getDomain(this, 'target', 'value', processedData);
 
-        return Math.max(scale.max, ...valueDomain, ...targetDomain);
+        return Math.max(...valueDomain, ...targetDomain);
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection) {
@@ -224,6 +229,7 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<BulletNode, B
 
         this.colorRangesGroup.visible = this.colorRanges !== undefined;
 
+        const maxValue = this.getMaxValue();
         const valueIndex = dataModel.resolveProcessedDataIndexById(this, 'value').index;
         const targetIndex =
             targetKey === undefined ? NaN : dataModel.resolveProcessedDataIndexById(this, 'target').index;
@@ -236,7 +242,7 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<BulletNode, B
         };
         for (const { datum, values } of processedData.data) {
             const xValue = this.valueName ?? this.valueKey;
-            const yValue = values[0][valueIndex];
+            const yValue = Math.min(maxValue, values[0][valueIndex]);
             const x = xScale.convert(xValue);
             const y = yScale.convert(yValue);
             const barWidth = 8;
@@ -252,7 +258,7 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<BulletNode, B
             let target;
             if (this.targetKey) {
                 const targetLineLength = 20;
-                const targetValue = values[0][targetIndex];
+                const targetValue = Math.min(maxValue, values[0][targetIndex]);
                 if (!isNaN(targetValue) && targetValue !== undefined) {
                     const convertedY = yScale.convert(targetValue);
                     const convertedX = xScale.convert(xValue) + barWidth / 2;
@@ -282,7 +288,6 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<BulletNode, B
         }
 
         if (this.colorRanges) {
-            const maxValue = this.getMaxValue();
             const sortedRanges = [...this.colorRanges].sort((a, b) => (a.stop || maxValue) - (b.stop || maxValue));
             let start = 0;
             this.normalizedColorRanges = sortedRanges.map((item) => {
