@@ -130,6 +130,9 @@ export abstract class PolarSeries<TDatum extends SeriesNodeDatum, TNode extends 
 
     protected resetAllAnimation() {
         const { item, label } = this.animationResetFns ?? {};
+
+        this.ctx.animationManager.stopByAnimationGroupId(this.id);
+
         if (item) {
             resetMotion([this.itemSelection, this.highlightSelection], item);
         }

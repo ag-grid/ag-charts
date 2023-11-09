@@ -1466,6 +1466,8 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         const { animationManager } = this.ctx;
         const diff = processedData?.reduced?.diff;
 
+        this.ctx.animationManager.stopByAnimationGroupId(this.id);
+
         const fns = preparePieSeriesAnimationFunctions(this.rotation);
         fromToMotion(
             this.id,
