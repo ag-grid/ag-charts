@@ -521,6 +521,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
             calloutLabelName: this.calloutLabelName,
             sectorLabelKey: this.sectorLabelKey,
             sectorLabelName: this.sectorLabelName,
+            legendItemKey: this.legendItemKey,
         };
 
         const result: {

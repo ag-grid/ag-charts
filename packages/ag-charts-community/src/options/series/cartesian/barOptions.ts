@@ -63,6 +63,8 @@ export interface AgBarSeriesOptionsNames {
     xName?: string;
     /** Human-readable description of the y-values. If supplied, a corresponding `yName` will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     yName?: string;
+    /** Human-readable description of the y-values. If supplied, matching items with the same value will be toggled together. */
+    legendItemName?: string;
 }
 
 export interface AgBarSeriesOptions<TDatum = any>
@@ -80,8 +82,6 @@ export interface AgBarSeriesOptions<TDatum = any>
     stackGroup?: string;
     /** The number to normalise the bar stacks to. Has no effect when `grouped` is `true`. For example, if `normalizedTo` is set to `100`, the bar stacks will all be scaled proportionally so that each of their totals is 100. */
     normalizedTo?: number;
-    /** Human-readable description of the y-values. If supplied, matching items with the same value will be toggled together. */
-    legendItemName?: string;
     /** Configuration for the Error Bars. */
     errorBar?: AgErrorBarOptions;
 }
