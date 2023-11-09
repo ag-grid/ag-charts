@@ -330,12 +330,13 @@ function applyChartOptions(chart: Chart, processedOptions: ProcessedOptions, use
     applyOptionValues(chart, processedOptions, { skip });
 
     let forceNodeDataRefresh = false;
+    let seriesRecreated = false;
     if (processedOptions.series && processedOptions.series.length > 0) {
-        applySeries(chart, processedOptions);
+        seriesRecreated = applySeries(chart, processedOptions);
         forceNodeDataRefresh = true;
     }
-    if ('axes' in processedOptions && Array.isArray(processedOptions.axes)) {
-        const axesPresent = applyAxes(chart, processedOptions);
+    if ('axes' in completeOptions && Array.isArray(completeOptions.axes)) {
+        const axesPresent = applyAxes(chart, completeOptions, seriesRecreated);
         if (axesPresent) {
             forceNodeDataRefresh = true;
         }
@@ -415,11 +416,17 @@ function applyModules(chart: Chart, options: AgChartOptions) {
 function applySeries(chart: Chart, options: AgChartOptions) {
     const optSeries = options.series;
     if (!optSeries) {
-        return;
+        return false;
     }
 
-    const matchingTypes =
-        chart.series.length === optSeries.length && chart.series.every((s, i) => s.type === optSeries[i]?.type);
+    const keysToConsider = ['type', 'direction', 'xKey', 'yKey', 'sizeKey', 'angleKey', 'stacked', 'stackGroup'];
+
+    let matchingTypes = chart.series.length === optSeries.length;
+    for (let i = 0; i < chart.series.length && matchingTypes; i++) {
+        for (const key of keysToConsider) {
+            matchingTypes &&= (chart.series[i] as any)[key] === (optSeries[i] as any)[key];
+        }
+    }
 
     // Try to optimise series updates if series count and types didn't change.
     if (matchingTypes) {
@@ -437,20 +444,23 @@ function applySeries(chart: Chart, options: AgChartOptions) {
             s.markNodeDataDirty();
         });
 
-        return;
+        return false;
     }
 
     chart.series = createSeries(chart, optSeries);
+    return true;
 }
 
-function applyAxes(chart: Chart, options: { axes?: AgBaseAxisOptions[] }) {
+function applyAxes(chart: Chart, options: { axes?: AgBaseAxisOptions[] }, forceRecreate: boolean) {
     const optAxes = options.axes;
     if (!optAxes) {
         return false;
     }
 
     const matchingTypes =
-        chart.axes.length === optAxes.length && chart.axes.every((a, i) => a.type === optAxes[i].type);
+        !forceRecreate &&
+        chart.axes.length === optAxes.length &&
+        chart.axes.every((a, i) => a.type === optAxes[i].type);
 
     // Try to optimise series updates if series count and types didn't change.
     if (matchingTypes) {
