@@ -173,7 +173,9 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<BulletNode, B
             props.push(valueProperty(this, targetKey, isContinuousY, { id: 'target' }));
         }
 
-        await this.requestDataModel<any, any, true>(dataController, data, {
+        // Bullet graphs only need 1 datum, but we keep that `data` option as array for consistency with other series
+        // types and future compatibility (we may decide to support multiple datums at some point).
+        await this.requestDataModel<any, any, true>(dataController, data.slice(0, 1), {
             props,
             groupByKeys: true,
             dataVisible: this.visible,
