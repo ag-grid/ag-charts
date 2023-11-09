@@ -26,14 +26,16 @@ let data = {
     children: [
         {
             label: 'Utilities',
-            children: [{
-                label: 'AWK',
-                size: 252
-            }]
+            children: [
+                {
+                    label: 'AWK',
+                    size: 252,
+                },
+            ],
         },
-        ...
-    ]
-}
+        // ...
+    ],
+};
 ```
 
 ### Configuration
@@ -105,21 +107,21 @@ The colour for the groups can be specified in `groupFill` property.
 If `groupFill` is `undefined`, the group colour behaviour will match the one for tiles, using the `colorKey` value specified on the group node.
 
 ```js
-series: [{
-    type: 'treemap',
-    colorKey: 'color',
-    groupFill: 'black',
-    ...
-    groupFill: undefined,
-    data: [{
-        color: 'black',
-        children: [
-            { color: 'white' },
-            { color: 'red' },
-            { color: 'white' },
+series: [
+    {
+        type: 'treemap',
+        colorKey: 'color',
+        groupFill: 'black',
+        // ...
+        groupFill: undefined,
+        data: [
+            {
+                color: 'black',
+                children: [{ color: 'white' }, { color: 'red' }, { color: 'white' }],
+            },
         ],
-    }],
-}]
+    },
+];
 ```
 
 ## Strokes
@@ -234,11 +236,13 @@ There are some properties to control the spacing of treemap tiles:
 -   `nodePadding` controls the padding of the inner content of treemap tiles. This is the space between the border of each tile and the contained labels and tiles.
 
 ```js
-series: [{
-    ...
-    nodeGap: 10,
-    nodePadding: 20,
-}]
+series: [
+    {
+        // ...
+        nodeGap: 10,
+        nodePadding: 20,
+    },
+];
 ```
 
 {% chartExampleRunner title="Tile Padding" name="tile-padding" type="generated" /%}
