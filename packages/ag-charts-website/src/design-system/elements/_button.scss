@@ -83,7 +83,7 @@ input[type='submit']#{$exclude-grid-selector},
         --button-active-color: var(--primary-500);
         --button-text-color: var(--default-text-color);
         --button-focus-box-shadow-color: var(--900);
-        border: 1px solid var(--input-border-color)
+        border: 1px solid var(--input-border-color);
     }
 }
 
