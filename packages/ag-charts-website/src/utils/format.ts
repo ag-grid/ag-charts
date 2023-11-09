@@ -1,3 +1,4 @@
+import { readFile } from 'fs/promises';
 import * as prettier from 'prettier';
 
 /**
@@ -7,7 +8,7 @@ import * as prettier from 'prettier';
  * @param extensionsToFormat optional Only format the text if its extension is in this array.
  * @returns Promise<string>
  */
-export function format(fileName: string, text: string, extensionsToFormat?: Array<string>) {
+export async function format(fileName: string, text: string, extensionsToFormat?: Array<string>) {
     const parts = fileName.split('.');
     const maybeExtension = parts[parts.length - 1];
 
@@ -20,10 +21,11 @@ export function format(fileName: string, text: string, extensionsToFormat?: Arra
         return text;
     }
 
+    const config = await getPrettierConfig(extension);
+
     return prettier.format(text, {
         parser: prettierParsers[extension],
-        ...prettierConfig,
-        ...(extension === 'jsx' || extension === 'tsx' ? prettierConfigJsx : {}),
+        ...config,
     });
 }
 
@@ -38,18 +40,20 @@ const prettierParsers: { [T in PrettierExtension]: string } = {
     json: 'json',
 };
 
-// A trimmed copy of `.prettierrc`
-const prettierConfig = {
-    tabWidth: 4,
-    printWidth: 120,
-    singleQuote: true,
-    importOrder: ['^ag-charts-(.*)$', '^[./]'],
-    importOrderParserPlugins: ['typescript', 'decorators-legacy'],
-    importOrderSeparation: true,
-    importOrderSortSpecifiers: true,
-    plugins: ['@trivago/prettier-plugin-sort-imports'],
-};
+async function getPrettierConfig(extension: PrettierExtension) {
+    const prettierRC = await readFile('.prettierrc', 'utf8');
+    const json = JSON.parse(prettierRC);
 
-const prettierConfigJsx = {
-    importOrderParserPlugins: ['typescript', 'decorators-legacy', 'jsx'],
-};
+    const prettierConfig: any = {};
+    const rejects = ['overrides'];
+    for (const [key, value] of Object.entries(json)) {
+        if (rejects.includes(key)) continue;
+        prettierConfig[key] = value;
+    }
+
+    if (extension === 'jsx' || extension === 'tsx') {
+        prettierConfig['importOrderParserPlugins'].push('jsx');
+    }
+
+    return prettierConfig;
+}
