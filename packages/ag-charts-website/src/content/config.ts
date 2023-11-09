@@ -58,6 +58,7 @@ const menu = defineCollection({
 });
 
 export const collections = {
-    docs,
+    // TODO: Astro does not properly ignore `package.json` in build. Wait for Astro upgrade and uncomment
+    // docs,
     menu,
 };
