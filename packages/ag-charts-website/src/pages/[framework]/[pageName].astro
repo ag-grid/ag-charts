@@ -18,7 +18,7 @@ export async function getStaticPaths() {
 const { page } = Astro.props;
 const framework = Astro.params.framework as Framework;
 const pageName = Astro.params.pageName as Framework;
-const { title, enterprise, sideMenu = true } = page.data;
+const { title, enterprise, hideSideMenu, hidePageMenu } = page.data;
 
 const { Content, headings } = await page.render();
 const extendedHeadings = addTabsToHeadings({
@@ -31,15 +31,33 @@ const menuEntry = await getEntry('menu', 'data');
 ---
 
 <Layout title={`${getFrameworkDisplayText(framework)} Charts: AG Charts`} showTopBar={true}>
-    <PagesNavigation client:load slot="aside" menuData={menuEntry.data} framework={framework} pageName={pageName} />
+    {
+        !hidePageMenu && (
+            <PagesNavigation
+                client:load
+                slot="aside"
+                menuData={menuEntry.data}
+                framework={framework}
+                pageName={pageName}
+            />
+        )
+    }
 
-    <div id="doc-page-wrapper" class="docPageWrapper">
+    <div
+        id="doc-page-wrapper"
+        class:list={[
+            'docPageWrapper',
+            {
+                hidePageMenu,
+            },
+        ]}
+    >
         <div
             id="doc-content"
             class:list={[
                 'docPage',
                 {
-                    noSideMenu: !sideMenu,
+                    noSideMenu: hideSideMenu,
                 },
             ]}
         >
@@ -51,176 +69,10 @@ const menuEntry = await getEntry('menu', 'data');
             </div>
         </div>
 
-        {sideMenu && <SideNavigation client:load title={title} pageHeadings={extendedHeadings} />}
+        {!hideSideMenu && <SideNavigation client:load title={title} pageHeadings={extendedHeadings} />}
     </div>
 </Layout>
 
-<style lang="scss" is:global>
-    @use '../../design-system' as *;
-
-    .contentViewport {
-        display: flex;
-        flex-direction: column;
-        flex-grow: 1;
-
-        @media (min-width: $breakpoint-docs-nav-medium) {
-            flex-direction: row;
-        }
-    }
-
-    .pageSections article {
-        > h2 {
-            margin-top: $size-6;
-        }
-
-        > h3,
-        > h4 {
-            margin-top: $size-4;
-        }
-
-        p,
-        > ul,
-        > ol,
-        > table,
-        > pre {
-            font-size: var(--font-size-medium);
-        }
-
-        > h1,
-        > h2,
-        > h3,
-        > h4,
-        > h5,
-        > h6,
-        > p,
-        > ul,
-        > ol,
-        > table,
-        > hr {
-            @media screen and (min-width: $max-page-width) {
-                @include font-size-responsive();
-            }
-        }
-    }
-
-    h1,
-    h2,
-    h3,
-    h4,
-    h5,
-    h6 {
-        &:hover .docs-header-icon {
-            opacity: 0.5;
-        }
-    }
-</style>
-
 <style lang="scss">
-    @use '../../design-system' as *;
-
-    .docPageWrapper {
-        --docs-page-max-width: 68em;
-
-        display: flex;
-        justify-content: space-between;
-        width: 100%;
-
-        @media screen and (max-width: $breakpoint-docs-nav-medium) {
-            @include page-horizontal-margins();
-        }
-
-        @media screen and (min-width: $breakpoint-docs-nav-medium) and (max-width: $breakpoint-docs-nav-large) {
-            padding-right: var(--horizontal-margin);
-        }
-
-        @media screen and (min-width: $breakpoint-docs-nav-extra-large) {
-            --docs-page-max-width: 74em;
-        }
-    }
-
-    %enterprise-icon {
-        display: inline-block;
-        background-image: url('../../images/enterprise.svg');
-        text-indent: -10000px;
-        background-position-y: center;
-        background-repeat: no-repeat;
-        content: 'e';
-    }
-
-    .docPage {
-        flex: 1 1 0px;
-        min-width: 0px;
-        padding-top: $size-4 + $size-half;
-        padding-bottom: $size-7;
-
-        @media screen and (min-width: $breakpoint-docs-nav-large) {
-            padding-right: $size-7;
-            max-width: var(--docs-page-max-width);
-        }
-
-        &.noSideMenu {
-            @media screen and (min-width: $breakpoint-docs-nav-large) {
-                padding-right: $horizontal-margin;
-                max-width: none;
-            }
-
-            @media screen and (min-width: 1600px) {
-                padding-right: calc(50vw - $max-page-width / 2);
-            }
-        }
-
-        enterprise-icon::after {
-            @extend %enterprise-icon;
-
-            width: 1rem;
-            margin-left: 0.25rem;
-        }
-
-        a {
-            &:hover {
-                text-decoration: none;
-                color: var(--ag-grid-orange);
-            }
-        }
-
-        :global(.nav-link) {
-            p {
-                margin: 0;
-            }
-        }
-
-        ul li > p {
-            margin-bottom: 0.25rem;
-        }
-
-        :global(.alert) {
-            margin-bottom: $size-2;
-        }
-    }
-
-    // Align two column markdown tables
-    .pageSections > :global(article) > :global(table) {
-        table-layout: fixed;
-    }
-
-    // Hack to target "intro" section of docs page
-    .pageSections > :global(article) > :global(p:first-child) {
-        --font-size-extra-large: #{$font-size-extra-large};
-
-        font-size: var(--font-size-extra-large);
-        margin-bottom: $size-4;
-
-        code {
-            font-size: 0.8em;
-        }
-    }
-
-    // Hack to target markdown images and not images within components
-    .pageSections > :global(article) > :global(div) *:not([class]) :global(img) {
-        max-width: 100%;
-    }
-
-    .sideMenu {
-        padding-top: $size-4 + $size-half;
-    }
+    @import '../../styles/docs.module.scss';
 </style>

@@ -41,7 +41,7 @@ function useUpdateInternalFrameworkFromFramework(framework: Framework) {
 }
 
 const queryOptions = {
-    retry: 3,
+    retry: false,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
@@ -59,32 +59,29 @@ const DocsExampleRunnerInner = ({ name, title, exampleType, options, framework, 
     const id = `example-${name}`;
 
     const {
-        isLoading: exampleFilesIsLoading,
-        isError: exampleFilesIsError,
-        data,
+        isLoading: contentsIsLoading,
+        isError: contentsIsError,
+        data: [contents, exampleFileHtml] = [],
     } = useQuery(
-        ['docsExampleFiles', internalFramework, pageName, exampleName],
-        () =>
-            fetch(
+        ['docsExampleContents', internalFramework, pageName, exampleName],
+        () => {
+            const getContents = fetch(
                 getExampleContentsUrl({
                     internalFramework,
                     pageName,
                     exampleName,
                 })
-            ).then((res) => res.json()),
-        queryOptions
-    );
+            ).then((res) => res.json());
 
-    const { data: exampleFileHtml } = useQuery(
-        ['docsExampleHtml', internalFramework, pageName, exampleName],
-        () =>
-            fetch(
+            const getExampleFileHtml = fetch(
                 getExampleUrl({
                     internalFramework,
                     pageName,
                     exampleName,
                 })
-            ).then((res) => res.text()),
+            ).then((res) => res.text());
+            return Promise.all([getContents, getExampleFileHtml]);
+        },
         queryOptions
     );
 
@@ -99,11 +96,11 @@ const DocsExampleRunnerInner = ({ name, title, exampleType, options, framework, 
     }, [internalFramework, pageName, exampleName]);
 
     useEffect(() => {
-        if (!data || exampleFilesIsLoading || exampleFilesIsError) {
+        if (!contents || contentsIsLoading || contentsIsError) {
             return;
         }
-        setInitialSelectedFile(data?.mainFileName);
-    }, [data, exampleFilesIsLoading, exampleFilesIsError]);
+        setInitialSelectedFile(contents?.mainFileName);
+    }, [contents, contentsIsLoading, contentsIsError]);
 
     useEffect(() => {
         setPlunkrHtmlUrl(
@@ -118,17 +115,17 @@ const DocsExampleRunnerInner = ({ name, title, exampleType, options, framework, 
     // Override `index.html` with generated file as
     // exampleFiles endpoint only gets the index html fragment
     useEffect(() => {
-        if (!data || exampleFilesIsLoading || exampleFilesIsError || !exampleFileHtml) {
+        if (!contents || contentsIsLoading || contentsIsError || !exampleFileHtml) {
             return;
         }
         const files = {
-            ...data.files,
+            ...contents.files,
             'index.html': exampleFileHtml,
         };
 
         setExampleFiles(files);
-        setExampleBoilerPlateFiles(data.boilerPlateFiles);
-    }, [data, exampleFilesIsLoading, exampleFilesIsError, exampleFileHtml]);
+        setExampleBoilerPlateFiles(contents.boilerPlateFiles);
+    }, [contents, contentsIsLoading, contentsIsError, exampleFileHtml]);
 
     useUpdateInternalFrameworkFromFramework(framework);
 

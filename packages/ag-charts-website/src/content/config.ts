@@ -3,15 +3,21 @@ import { defineCollection, z } from 'astro:content';
 
 import { FRAMEWORKS } from '../constants';
 
+const docs = defineCollection({
+    schema: z.object({
+        title: z.string(),
+        enterprise: z.boolean().optional(),
+        hideSideMenu: z.boolean().optional(),
+        hidePageMenu: z.boolean().optional(),
+    }),
+});
+
 const menuItemBase = {
     title: z.string(),
     /**
      * Path to website docs within `src/content/docs`
      */
-    path: z
-        .string()
-        .regex(/^(?!\/)(?!.*\/$).*$/, 'path must not have a `/` at the beginning or end')
-        .optional(),
+    path: z.string().optional(),
     /**
      * External link url
      */
@@ -39,6 +45,9 @@ const level1MenuItem = z.object({
 const menu = defineCollection({
     type: 'data',
     schema: z.object({
+        api: z.object({
+            items: z.array(level1MenuItem),
+        }),
         main: z.object({
             items: z.array(level1MenuItem),
         }),
@@ -49,5 +58,7 @@ const menu = defineCollection({
 });
 
 export const collections = {
+    // TODO: Astro does not properly ignore `package.json` in build. Wait for Astro upgrade and uncomment
+    // docs,
     menu,
 };
