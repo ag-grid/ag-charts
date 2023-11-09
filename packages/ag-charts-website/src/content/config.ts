@@ -7,7 +7,7 @@ const docs = defineCollection({
     schema: z.object({
         title: z.string(),
         enterprise: z.boolean().optional(),
-        sideMenu: z.boolean().optional(),
+        hideSideMenu: z.boolean().optional(),
         hidePageMenu: z.boolean().optional(),
     }),
 });
