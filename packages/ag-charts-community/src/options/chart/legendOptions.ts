@@ -92,11 +92,12 @@ export interface AgChartLegendOptions {
     reverseOrder?: boolean;
     /** Optional callbacks for specific legend-related events. */
     listeners?: AgChartLegendListeners;
+    /** Configuration for the pagination controls. */
     pagination?: AgChartLegendPaginationOptions;
 }
 
 export interface AgChartLegendPaginationOptions {
-    /** Configuration for the pagination markers. */
+    /** Configuration for the pagination buttons. */
     marker?: AgPaginationMarkerOptions;
     /** Configuration for pagination buttons when a button is active. */
     activeStyle?: AgPaginationMarkerStyle;

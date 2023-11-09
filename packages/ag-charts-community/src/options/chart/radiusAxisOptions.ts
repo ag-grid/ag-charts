@@ -40,19 +40,16 @@ export interface AgRadiusCategoryAxisOptions extends AgBaseAxisOptions {
     /**
      * This property is for grouped polar series plotted on a radius category axis.
      * It is a proportion between 0 and 1 which determines the size of the gap between the items within a single group along the angle axis.
-     * Default: `0.2`
      */
     groupPaddingInner?: number;
     /**
      * This property is for grouped polar series plotted on a radius category axis.
      * It is a proportion between 0 and 1 which determines the size of the gap between the groups of items along the angle axis.
-     * Default: `0.2`
      */
     paddingInner?: number;
     /**
      * This property is for grouped polar series plotted on a radius category axis.
      * It is a proportion between 0 and 1 which determines the size of the gap between the groups of items along the angle axis.
-     * Default: `0.1`
      */
     paddingOuter?: number;
 }
