@@ -1,4 +1,10 @@
 {
+    "api": {
+        "items": [
+            { "title": "Options API", "path": "/options" },
+            { "title": "Themes API", "path": "/themes-api" }
+        ]
+    },
     "main": {
         "items": [
             {

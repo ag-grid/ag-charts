@@ -8,10 +8,7 @@ const menuItemBase = {
     /**
      * Path to website docs within `src/content/docs`
      */
-    path: z
-        .string()
-        .regex(/^(?!\/)(?!.*\/$).*$/, 'path must not have a `/` at the beginning or end')
-        .optional(),
+    path: z.string().optional(),
     /**
      * External link url
      */
@@ -39,6 +36,9 @@ const level1MenuItem = z.object({
 const menu = defineCollection({
     type: 'data',
     schema: z.object({
+        api: z.object({
+            items: z.array(level1MenuItem),
+        }),
         main: z.object({
             items: z.array(level1MenuItem),
         }),

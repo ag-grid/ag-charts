@@ -52,3 +52,8 @@ export interface MenuItem {
     isEnterprise?: boolean;
     items?: MenuItem[];
 }
+
+export interface ApiMenuItem {
+    title: string;
+    path: string;
+}
