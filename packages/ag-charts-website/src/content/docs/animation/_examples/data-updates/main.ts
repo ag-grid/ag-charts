@@ -2,16 +2,12 @@ import { AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
 
 import { getData, random } from './data';
 
-const FAST = 300;
-const SLOW = 1000;
-
 // Series type data options
 let start = [120, 150, 130, 140, 80];
 let variance = 20;
 let offset = 0;
 let length = 8;
 let seed = 1234;
-let duration = SLOW;
 
 let interval: any;
 
@@ -19,9 +15,62 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     animation: {
         enabled: true,
-        duration,
     },
-    data: [],
+    data: getGeneratedData(),
+    series: [
+        {
+            type: 'bar',
+            xKey: 'year',
+            yKey: 'one',
+            yName: 'One',
+            stacked: true,
+        },
+        {
+            type: 'bar',
+            xKey: 'year',
+            yKey: 'two',
+            yName: 'Two',
+            stacked: true,
+        },
+        {
+            type: 'bar',
+            xKey: 'year',
+            yKey: 'three',
+            yName: 'Three',
+            stacked: true,
+        },
+        {
+            type: 'bar',
+            xKey: 'year',
+            yKey: 'four',
+            yName: 'Four',
+            stacked: true,
+        },
+        {
+            type: 'bar',
+            xKey: 'year',
+            yKey: 'five',
+            yName: 'Five',
+            stacked: true,
+        },
+    ],
+    axes: [
+        {
+            type: 'number',
+            position: 'left',
+        },
+        {
+            type: 'number',
+            position: 'bottom',
+            nice: false,
+            label: {
+                autoRotate: false,
+            },
+        },
+    ],
+};
+
+const barOptions: AgChartOptions = {
     series: [
         {
             type: 'bar',
@@ -76,12 +125,6 @@ const options: AgChartOptions = {
 };
 
 const lineOptions: AgChartOptions = {
-    container: document.getElementById('myChart'),
-    animation: {
-        enabled: true,
-        duration,
-    },
-    data: [],
     series: [
         {
             type: 'line',
@@ -131,12 +174,6 @@ const lineOptions: AgChartOptions = {
 };
 
 const areaOptions: AgChartOptions = {
-    container: document.getElementById('myChart'),
-    animation: {
-        enabled: true,
-        duration,
-    },
-    data: [],
     series: [
         {
             type: 'area',
@@ -191,12 +228,6 @@ const areaOptions: AgChartOptions = {
 };
 
 const pieOptions: AgChartOptions = {
-    container: document.getElementById('myChart'),
-    animation: {
-        enabled: true,
-        duration,
-    },
-    data: [],
     series: [
         {
             type: 'pie',
@@ -225,22 +256,22 @@ const pieOptions: AgChartOptions = {
 
 // Create chart
 const chart = AgEnterpriseCharts.create(options);
-updateChart();
 
 // Elements
 const tickingButton = document.getElementById('animation-data-updates__toggle-ticking');
-const speedButton = document.getElementById('animation-data-updates__toggle-speed');
 const actionButtons = document.getElementsByClassName('animation-data-updates__action');
 
-// User-facing actions
+if (tickingButton) {
+    tickingButton.textContent = 'Start Ticking Updates';
+}
+
 function changeSeriesBar() {
     variance = 20;
     offset = 0;
     length = 8;
     seed = 1234;
 
-    AgEnterpriseCharts.update(chart, options);
-    updateChart();
+    AgEnterpriseCharts.updateDelta(chart, { ...barOptions, data: getGeneratedData() });
 }
 
 function changeSeriesLine() {
@@ -249,8 +280,7 @@ function changeSeriesLine() {
     length = 30;
     seed = 1234;
 
-    AgEnterpriseCharts.update(chart, lineOptions);
-    updateChart();
+    AgEnterpriseCharts.updateDelta(chart, { ...lineOptions, data: getGeneratedData() });
 }
 
 function changeSeriesArea() {
@@ -259,8 +289,7 @@ function changeSeriesArea() {
     length = 30;
     seed = 1234;
 
-    AgEnterpriseCharts.update(chart, areaOptions);
-    updateChart();
+    AgEnterpriseCharts.updateDelta(chart, { ...areaOptions, data: getGeneratedData() });
 }
 
 function changeSeriesPie() {
@@ -269,86 +298,67 @@ function changeSeriesPie() {
     length = 6;
     seed = 1234;
 
-    AgEnterpriseCharts.update(chart, pieOptions);
-    updateChart();
+    AgEnterpriseCharts.updateDelta(chart, { ...pieOptions, data: getGeneratedData() });
 }
 
 function toggleTickingUpdates() {
-    toggleUpdatesText();
-    toggleActionButtons();
-    toggleInterval();
-}
-
-function toggleSpeed() {
-    if (duration === FAST) {
-        duration = SLOW;
-        speedButton!.textContent = 'Set Speed: Fast';
-    } else {
-        duration = FAST;
-        speedButton!.textContent = 'Set Speed: Slow';
+    if (tickingButton) {
+        if (!interval) {
+            tickingButton.textContent = 'Stop Ticking Updates';
+        } else {
+            tickingButton.textContent = 'Start Ticking Updates';
+        }
     }
 
-    toggleInterval();
-    toggleInterval();
-}
+    if (actionButtons && actionButtons.length > 0) {
+        if (!interval) {
+            for (let i = 0; i < actionButtons.length; i++) {
+                const item = actionButtons.item(i);
+                if (!item) continue;
+                item.setAttribute('disabled', 'disabled');
+            }
+        } else {
+            for (let i = 0; i < actionButtons.length; i++) {
+                const item = actionButtons.item(i);
+                if (!item) continue;
+                item.removeAttribute('disabled');
+            }
+        }
+    }
 
-function add() {
-    offset++;
-    length++;
-    updateChart();
-}
-
-function remove() {
-    length--;
-    updateChart();
-}
-
-function update() {
-    seed = Math.floor(random() * 1000);
-    updateChart();
-}
-
-function addRemoveUpdate() {
-    offset++;
-    seed = Math.floor(random() * 1000);
-    updateChart();
-}
-
-// Private functions
-function toggleInterval() {
     if (!interval) {
+        offset++;
+        AgEnterpriseCharts.updateDelta(chart, { data: getGeneratedData() });
         interval = setInterval(() => {
             offset++;
-            updateChart();
-        }, duration * 2);
+            AgEnterpriseCharts.updateDelta(chart, { data: getGeneratedData() });
+        }, 2000);
     } else {
         clearInterval(interval);
         interval = undefined;
     }
 }
 
-function toggleUpdatesText() {
-    if (!interval) {
-        tickingButton!.textContent = 'Stop Ticking Updates';
-    } else {
-        tickingButton!.textContent = 'Start Ticking Updates';
-    }
+function add() {
+    offset++;
+    length++;
+    AgEnterpriseCharts.updateDelta(chart, { data: getGeneratedData() });
 }
 
-function toggleActionButtons() {
-    if (!interval) {
-        for (let i = 0; i < actionButtons.length; i++) {
-            actionButtons.item(i)?.setAttribute('disabled', 'disabled');
-        }
-    } else {
-        for (let i = 0; i < actionButtons.length; i++) {
-            actionButtons.item(i)?.removeAttribute('disabled');
-        }
-    }
+function remove() {
+    length = Math.max(0, length - 1);
+    AgEnterpriseCharts.updateDelta(chart, { data: getGeneratedData() });
 }
 
-function updateChart() {
-    AgEnterpriseCharts.updateDelta(chart, { data: getGeneratedData(), animation: { duration } });
+function update() {
+    seed = Math.floor(random() * 1000);
+    AgEnterpriseCharts.updateDelta(chart, { data: getGeneratedData() });
+}
+
+function addRemoveUpdate() {
+    offset++;
+    seed = Math.floor(random() * 1000);
+    AgEnterpriseCharts.updateDelta(chart, { data: getGeneratedData() });
 }
 
 function getGeneratedData() {
