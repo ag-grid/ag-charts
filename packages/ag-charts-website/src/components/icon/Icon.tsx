@@ -11,6 +11,7 @@ import { ReactComponent as EnterpriseIcon } from '@images/inline-svgs/enterprise
 import { ReactComponent as IntegratedChartsIcon } from '@images/inline-svgs/integrated-chart.svg';
 import { ReactComponent as maximizeIcon } from '@images/inline-svgs/maximize.svg';
 import { ReactComponent as minimizeIcon } from '@images/inline-svgs/minimize.svg';
+import { ReactComponent as NewTabIcon } from '@images/inline-svgs/new-tab.svg';
 import { ReactComponent as PlunkerIcon } from '@images/inline-svgs/plunker.svg';
 import { ReactComponent as ReplayDemoIcon } from '@images/inline-svgs/replay-demo-icon.svg';
 import { ReactComponent as RowsIcon } from '@images/inline-svgs/rows.svg';
@@ -134,6 +135,7 @@ export const ICON_MAP = {
     idea: CarbonIcon.DataEnrichment,
     sun: CarbonIcon.Sun,
     moon: CarbonIcon.Moon,
+    newTab: NewTabIcon,
     ...SOCIALS_ICON_MAP,
     ...DOCS_CATEGORIES_ICON_MAP,
     ...HOMEPAGE_FEATURES_ICON_MAP,

@@ -1,10 +1,9 @@
 import { getGeneratedGalleryContents } from '@features/gallery/utils/examplesGenerator';
 import { getGalleryExamplePages } from '@features/gallery/utils/pageData';
+import type { APIContext } from 'astro';
 import { getEntry } from 'astro:content';
 
-interface Params {
-    exampleName: string;
-}
+import { format } from '../../../../utils/format';
 
 export async function getStaticPaths() {
     const galleryDataEntry = await getEntry('gallery', 'data');
@@ -12,17 +11,22 @@ export async function getStaticPaths() {
     return pages;
 }
 
-export async function get({ params }: { params: Params }) {
-    const { exampleName } = params;
+export async function get(context: APIContext) {
+    const { exampleName } = context.params;
 
-    const generatedContents =
-        (await getGeneratedGalleryContents({
-            exampleName,
-        })) || {};
-    const response = generatedContents;
-    const body = JSON.stringify(response);
+    const generatedContents = await getGeneratedGalleryContents({
+        exampleName: exampleName!,
+    });
 
-    return {
-        body,
-    };
+    const files: Record<string, string> = {};
+    for (const [fileName, fileText] of Object.entries(generatedContents?.files ?? {})) {
+        files[fileName] = await format(fileName, fileText);
+    }
+
+    return new Response(JSON.stringify({ ...generatedContents, files }), {
+        status: 200,
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
 }

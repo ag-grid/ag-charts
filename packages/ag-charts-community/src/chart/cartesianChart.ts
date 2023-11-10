@@ -27,9 +27,10 @@ export class CartesianChart extends Chart {
     override async performLayout() {
         const shrinkRect = await super.performLayout();
 
-        const { seriesRect, visibility, clipSeries } = this.updateAxes(shrinkRect);
+        const { animationRect, seriesRect, visibility, clipSeries } = this.updateAxes(shrinkRect);
         this.seriesRoot.visible = visibility.series;
         this.seriesRect = seriesRect;
+        this.animationRect = animationRect;
         this.seriesRoot.translationX = Math.floor(seriesRect.x);
         this.seriesRoot.translationY = Math.floor(seriesRect.y);
 
@@ -192,7 +193,7 @@ export class CartesianChart extends Chart {
         this._lastAxisWidths = axisWidths;
         this._lastVisibility = visibility;
 
-        return { seriesRect, visibility, clipSeries };
+        return { seriesRect, animationRect: inputShrinkRect, visibility, clipSeries };
     }
 
     private updateAxesPass(

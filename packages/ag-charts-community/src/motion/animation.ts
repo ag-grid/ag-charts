@@ -130,7 +130,7 @@ export class Animation<T extends AnimationValue> implements IAnimation<T> {
         this.interpolate = this.createInterpolator(opts.from, opts.to) as (delta: number) => T;
 
         if (opts.skip === true) {
-            this.onUpdate?.(opts.to, true, this);
+            this.onUpdate?.(opts.to, false, this);
             this.onStop?.(this);
             this.onComplete?.(this);
         } else if (this.autoplay) {

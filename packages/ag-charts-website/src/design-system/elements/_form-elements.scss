@@ -2,7 +2,7 @@
 @use 'sass:map';
 @use '../core' as *;
 
-fieldset {
+fieldset#{$exclude-grid-selector} {
     margin: 0;
     padding: 0;
     border: none;
@@ -12,7 +12,7 @@ fieldset {
     }
 }
 
-legend {
+legend#{$exclude-grid-selector} {
     padding: unset;
 }
 
@@ -41,24 +41,17 @@ input#{$exclude-grid-selector} {
     font-size: var(--font-size);
 }
 
-input[type='text'],
-input[type='search'],
-input[type='email'],
-input[type='checkbox'],
-input[type='number'],
-select {
-    &#{$exclude-grid-selector} {
-        color: var(--default-text-color);
+input[type='text']#{$exclude-grid-selector},
+input[type='search']#{$exclude-grid-selector},
+input[type='email']#{$exclude-grid-selector},
+input[type='checkbox']#{$exclude-grid-selector},
+input[type='number']#{$exclude-grid-selector},
+select#{$exclude-grid-selector} {
+    color: var(--default-text-color);
 
-        &:disabled,
-        &[readonly] {
-            background-color: var(--neutral-100);
-        }
-
-        &.ag-builder-preview-focus:not(:disabled):not([readonly]),
-        &:focus-visible:not(:disabled):not([readonly]) {
-            box-shadow: 0 0 0 3px var(--input-focus-box-shadow-color);
-        }
+    &:disabled,
+    &[readonly] {
+        background-color: var(--neutral-100);
     }
 }
 
@@ -76,6 +69,10 @@ input[type='number'] {
         transition:
             border-color $default-transition-timing,
             box-shadow $default-transition-timing;
+
+        #{$darkmode-selector} & {
+            border: 1px solid var(--input-border-color);
+        }
 
         &::placeholder {
             font-style: italic;
@@ -98,8 +95,8 @@ input[type='number'] {
     }
 }
 
-input[type='checkbox'],
-input[type='radio'] {
+input[type='checkbox']#{$exclude-grid-selector},
+input[type='radio']#{$exclude-grid-selector} {
     $square-size: 1.25em;
 
     appearance: none;
@@ -118,7 +115,7 @@ input[type='radio'] {
     }
 }
 
-input[type='checkbox']:not(.switch) {
+input[type='checkbox']:not(.switch)#{$exclude-grid-selector} {
     $svg-tick: url('data:image/svg+xml;utf8,<svg fill="none" stroke="%23fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30"><path d="m9 15 3.75 3.75L21 10.5"/></svg>');
 
     border-radius: var(--border-radius);
@@ -161,7 +158,7 @@ input[type='checkbox'].switch {
     }
 }
 
-input[type='radio'] {
+input[type='radio']#{$exclude-grid-selector} {
     border-radius: 50%;
     box-shadow:
         inset 0 0 0 0.125em var(--input-secondary-border-color),
@@ -186,7 +183,7 @@ input[type='radio'] {
     }
 }
 
-select {
+select#{$exclude-grid-selector} {
     $svg-chevron-down: url('data:image/svg+xml;utf8,<svg fill="none" stroke="%23212529" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 26 30"><path d="m7.5 13.688 5.25 4.125L18 13.688"/></svg>');
 
     $svg-chevron-down-dark: url('data:image/svg+xml;utf8,<svg fill="none" stroke="%23f8f9fa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 26 30"><path d="m7.5 13.688 5.25 4.125L18 13.688"/></svg>');
@@ -205,6 +202,10 @@ select {
     transition:
         border-color $default-transition-timing,
         box-shadow $default-transition-timing;
+
+    #{$darkmode-selector} & {
+        border: 1px solid var(--input-border-color);
+    }
 
     &:not(:disabled) {
         cursor: pointer;
@@ -226,7 +227,7 @@ select {
     }
 }
 
-input[type='range'] {
+input[type='range']#{$exclude-grid-selector} {
     @mixin track {
         height: math.div(4em, 16);
         background-color: var(--input-secondary-background-color);

@@ -58,7 +58,7 @@
       }
     },
     "lint-eslint": {
-      "executor": "@nx/linter:eslint",
+      "executor": "@nx/eslint:lint",
       "outputs": ["{options.outputFile}"],
       "options": {
         "lintFilePatterns": ["packages/ag-charts-community/**/*.ts", "packages/ag-charts-community/package.json"],

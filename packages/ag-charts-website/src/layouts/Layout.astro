@@ -88,10 +88,7 @@ const isApiLayout = apiMenuItems.some((item) => {
             }
             {isApiLayout && <ApiTopBar menuItems={apiMenuItems} fullPath={path} />}
 
-            <div class="contentViewport">
-                <slot name="aside" />
-                <slot />
-            </div>
+            <slot />
         </div>
         <Footer path={path} />
 
@@ -111,16 +108,6 @@ const isApiLayout = apiMenuItems.some((item) => {
                 width: 100%;
                 min-height: 100vh;
                 padding: 0;
-            }
-
-            :global(.contentViewport) {
-                display: flex;
-                flex-direction: column;
-                flex-grow: 1;
-
-                @media (min-width: $breakpoint-docs-nav-medium) {
-                    flex-direction: row;
-                }
             }
         </style>
     </body>

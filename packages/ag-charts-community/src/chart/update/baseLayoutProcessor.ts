@@ -1,0 +1,112 @@
+import type { BBox } from '../../scene/bbox';
+import { Text } from '../../scene/shape/text';
+import { Caption } from '../caption';
+import type { LayoutCompleteEvent, LayoutService } from '../layout/layoutService';
+import type { ChartLike } from './processor';
+
+export class BaseLayoutProcessor {
+    private destroyFns: (() => void)[] = [];
+
+    constructor(
+        private readonly chartLike: ChartLike,
+        private readonly layoutService: LayoutService
+    ) {
+        this.destroyFns.push(
+            // eslint-disable-next-line sonarjs/no-duplicate-string
+            this.layoutService.addListener('layout-complete', (e) => this.layoutComplete(e)),
+            this.layoutService.addListener('start-layout', (e) => this.positionPadding(e.shrinkRect)),
+            this.layoutService.addListener('start-layout', (e) => this.positionCaptions(e.shrinkRect))
+        );
+    }
+
+    destroy() {
+        this.destroyFns.forEach((cb) => cb());
+    }
+
+    private layoutComplete({ clipSeries, series: { paddedRect } }: LayoutCompleteEvent): void {
+        const { seriesArea, seriesRoot } = this.chartLike;
+        if (seriesArea.clip || clipSeries) {
+            seriesRoot.setClipRectInGroupCoordinateSpace(paddedRect);
+        } else {
+            seriesRoot.setClipRectInGroupCoordinateSpace();
+        }
+    }
+
+    private positionPadding(shrinkRect: BBox) {
+        const { padding } = this.chartLike;
+
+        shrinkRect.shrink(padding.left, 'left');
+        shrinkRect.shrink(padding.top, 'top');
+        shrinkRect.shrink(padding.right, 'right');
+        shrinkRect.shrink(padding.bottom, 'bottom');
+
+        return { shrinkRect };
+    }
+
+    private positionCaptions(shrinkRect: BBox) {
+        const { title, subtitle, footnote } = this.chartLike;
+        const newShrinkRect = shrinkRect.clone();
+
+        const updateCaption = (caption: Caption) => {
+            const defaultCaptionHeight = shrinkRect.height / 10;
+            const captionLineHeight = caption.lineHeight ?? caption.fontSize * Text.defaultLineHeightRatio;
+            const maxWidth = shrinkRect.width;
+            const maxHeight = Math.max(captionLineHeight, defaultCaptionHeight);
+            caption.computeTextWrap(maxWidth, maxHeight);
+        };
+
+        const positionTopAndShrinkBBox = (caption: Caption, spacing: number) => {
+            const baseY = newShrinkRect.y;
+            caption.node.x = newShrinkRect.x + newShrinkRect.width / 2;
+            caption.node.y = baseY;
+            caption.node.textBaseline = 'top';
+            updateCaption(caption);
+            const bbox = caption.node.computeBBox();
+
+            // As the bbox (x,y) ends up at a different location than specified above, we need to
+            // take it into consideration when calculating how much space needs to be reserved to
+            // accommodate the caption.
+            const bboxHeight = Math.ceil(bbox.y - baseY + bbox.height + spacing);
+
+            newShrinkRect.shrink(bboxHeight, 'top');
+        };
+        const positionBottomAndShrinkBBox = (caption: Caption, spacing: number) => {
+            const baseY = newShrinkRect.y + newShrinkRect.height;
+            caption.node.x = newShrinkRect.x + newShrinkRect.width / 2;
+            caption.node.y = baseY;
+            caption.node.textBaseline = 'bottom';
+            updateCaption(caption);
+            const bbox = caption.node.computeBBox();
+
+            const bboxHeight = Math.ceil(baseY - bbox.y + spacing);
+
+            newShrinkRect.shrink(bboxHeight, 'bottom');
+        };
+
+        if (subtitle) {
+            subtitle.node.visible = subtitle.enabled ?? false;
+        }
+
+        if (title) {
+            title.node.visible = title.enabled;
+            if (title.node.visible) {
+                const defaultTitleSpacing = subtitle?.node.visible ? Caption.SMALL_PADDING : Caption.LARGE_PADDING;
+                const spacing = title.spacing ?? defaultTitleSpacing;
+                positionTopAndShrinkBBox(title, spacing);
+            }
+        }
+
+        if (subtitle && subtitle.node.visible) {
+            positionTopAndShrinkBBox(subtitle, subtitle.spacing ?? 0);
+        }
+
+        if (footnote) {
+            footnote.node.visible = footnote.enabled;
+            if (footnote.node.visible) {
+                positionBottomAndShrinkBBox(footnote, footnote.spacing ?? 0);
+            }
+        }
+
+        return { shrinkRect: newShrinkRect };
+    }
+}

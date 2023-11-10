@@ -77,6 +77,7 @@ export class PolarChart extends Chart {
         shrinkRect.shrink(padding.bottom, 'bottom');
 
         this.seriesRect = shrinkRect;
+        this.animationRect = shrinkRect;
     }
 
     private async computeCircle(seriesBox: BBox) {

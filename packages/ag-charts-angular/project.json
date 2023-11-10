@@ -15,12 +15,16 @@
     "pack": {
       "executor": "nx:run-commands",
       "dependsOn": ["build"],
-      "outputs": ["dist/packages/ag-charts-angular.tgz"],
+      "outputs": ["{workspaceRoot}/dist/packages/ag-charts-angular.tgz"],
       "options": {
         "cwd": "packages/ag-charts-angular/dist",
         "commands": [
-          { "command": "mkdir -p ../../../dist/packages/" },
-          { "command": "yarn pack -f ../../../dist/packages/ag-charts-angular.tgz" }
+          {
+            "command": "mkdir -p ../../../dist/packages/"
+          },
+          {
+            "command": "yarn pack -f ../../../dist/packages/ag-charts-angular.tgz"
+          }
         ]
       }
     }

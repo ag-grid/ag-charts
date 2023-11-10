@@ -121,7 +121,7 @@ describe('HierarchyChart', () => {
         getNodePoint: (nodeItem: any) => [number, number];
         getDatumValues: (datum: any, series: any) => any[];
         getTooltipRenderedValues: (tooltipRendererParams: any) => any[];
-        getHighlightNode: (series: any) => any;
+        getHighlightNode: (chart: any, series: any) => any;
     }) => {
         const format = (...values: any[]) => values.join(': ');
 
@@ -184,7 +184,7 @@ describe('HierarchyChart', () => {
         const checkHighlight = async (chart: any) => {
             await hoverChartNodes(chart, async ({ series }) => {
                 // Check the highlighted marker
-                const highlightNode = testParams.getHighlightNode(series);
+                const highlightNode = testParams.getHighlightNode(chart, series);
                 expect(highlightNode).toBeDefined();
                 expect(highlightNode.fill).toEqual('lime');
             });
@@ -288,7 +288,7 @@ describe('HierarchyChart', () => {
             getNodeData: (series) => series.contextNodeData[0].nodeData,
             getTooltipRenderedValues: (params) => [params.xValue, params.yValue],
             // Returns a highlighted marker
-            getHighlightNode: (series) => series.highlightNode.children[0],
+            getHighlightNode: (_, series) => series.highlightNode.children[0],
         } as Parameters<typeof testPointerEvents>[0];
 
         testPointerEvents({
@@ -316,8 +316,8 @@ describe('HierarchyChart', () => {
                 const { datum } = params;
                 return [datum[params.labelKey], datum[params.sizeKey]];
             },
-            getHighlightNode: (series) => {
-                const highlightedDatum = series.chart.highlightManager.getActiveHighlight();
+            getHighlightNode: (chart, series) => {
+                const highlightedDatum = chart.highlightManager.getActiveHighlight();
                 return series.highlightGroup.children.find((child: any) => child?.datum === highlightedDatum)
                     .children[0];
             },
