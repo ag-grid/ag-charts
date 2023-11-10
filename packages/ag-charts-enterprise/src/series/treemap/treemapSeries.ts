@@ -13,7 +13,7 @@ import {
     _Util,
 } from 'ag-charts-community';
 
-import { TreemapSeriesTileLabel, formatLabels } from './treemapLabelFormatter';
+import { AutoSizeableLabel, formatLabels } from '../util/labelFormatter';
 
 const {
     HighlightStyle,
@@ -93,9 +93,9 @@ class TreemapSeriesGroup {
 }
 
 class TreemapSeriesTile {
-    readonly label = new TreemapSeriesTileLabel();
+    readonly label = new AutoSizeableLabel<AgTreemapSeriesLabelFormatterParams>();
 
-    readonly secondaryLabel = new TreemapSeriesTileLabel();
+    readonly secondaryLabel = new AutoSizeableLabel<AgTreemapSeriesLabelFormatterParams>();
 
     @Validate(OPT_STRING)
     fill?: string = undefined;
@@ -126,7 +126,7 @@ class TreemapSeriesTile {
 }
 
 class TreemapSeriesGroupHighlightStyle {
-    readonly label = new TreemapSeriesTileLabel();
+    readonly label = new AutoSizeableLabel<AgTreemapSeriesLabelFormatterParams>();
 
     @Validate(OPT_STRING)
     fill?: string = undefined;
@@ -145,9 +145,9 @@ class TreemapSeriesGroupHighlightStyle {
 }
 
 class TreemapSeriesTileHighlightStyle {
-    readonly label = new TreemapSeriesTileLabel();
+    readonly label = new AutoSizeableLabel<AgTreemapSeriesLabelFormatterParams>();
 
-    readonly secondaryLabel = new TreemapSeriesTileLabel();
+    readonly secondaryLabel = new AutoSizeableLabel<AgTreemapSeriesLabelFormatterParams>();
 
     @Validate(OPT_STRING)
     fill?: string = undefined;

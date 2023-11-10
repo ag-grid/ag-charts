@@ -1,15 +1,9 @@
-import {
-    type AgTreemapSeriesLabelFormatterParams,
-    type TextOverflow,
-    type TextWrap,
-    _ModuleSupport,
-    _Scene,
-} from 'ag-charts-community';
+import { type TextOverflow, type TextWrap, _ModuleSupport, _Scene } from 'ag-charts-community';
 
 const { Validate, OPT_NUMBER, TEXT_WRAP, TEXT_OVERFLOW } = _ModuleSupport;
 const { Text, Label, BBox } = _Scene;
 
-export class TreemapSeriesTileLabel extends Label<AgTreemapSeriesLabelFormatterParams> {
+export class AutoSizeableLabel<FormatterParams> extends Label<FormatterParams> {
     @Validate(TEXT_WRAP)
     wrapping: TextWrap = 'on-space';
 
@@ -25,9 +19,9 @@ type FontSizeCandidate = {
     secondaryLabelFontSize: number;
 };
 
-export function generateLabelSecondaryLabelFontSizeCandidates(
-    label: TreemapSeriesTileLabel,
-    secondaryLabel: TreemapSeriesTileLabel
+export function generateLabelSecondaryLabelFontSizeCandidates<FormatterParams>(
+    label: AutoSizeableLabel<FormatterParams>,
+    secondaryLabel: AutoSizeableLabel<FormatterParams>
 ): FontSizeCandidate[] {
     const { fontSize: labelFontSize, minimumFontSize: labelMinimumFontSize = labelFontSize } = label;
     const {
@@ -118,11 +112,11 @@ type SizeFittingHeightFn = (height: number) => {
     height: number;
 };
 
-export function formatStackedLabels(
+export function formatStackedLabels<FormatterParams>(
     labelValue: string,
-    labelProps: TreemapSeriesTileLabel,
+    labelProps: AutoSizeableLabel<FormatterParams>,
     secondaryLabelValue: string,
-    secondaryLabelProps: TreemapSeriesTileLabel,
+    secondaryLabelProps: AutoSizeableLabel<FormatterParams>,
     { spacing, padding }: LayoutParams,
     sizeFittingHeight: SizeFittingHeightFn
 ) {
@@ -237,9 +231,9 @@ export function formatStackedLabels(
     });
 }
 
-export function formatSingleLabel(
+export function formatSingleLabel<FormatterParams>(
     value: string,
-    props: TreemapSeriesTileLabel,
+    props: AutoSizeableLabel<FormatterParams>,
     { padding }: LayoutParams,
     sizeFittingHeight: SizeFittingHeightFn
 ) {
@@ -298,11 +292,11 @@ export function formatSingleLabel(
     });
 }
 
-export function formatLabels(
+export function formatLabels<FormatterParams = any>(
     labelValue: string,
-    label: TreemapSeriesTileLabel,
+    label: AutoSizeableLabel<FormatterParams>,
     secondaryLabelValue: string | undefined,
-    secondaryLabel: TreemapSeriesTileLabel,
+    secondaryLabel: AutoSizeableLabel<FormatterParams>,
     layoutParams: LayoutParams,
     sizeFittingHeight: SizeFittingHeightFn
 ): StackedLabelFormatting | undefined {

@@ -1,15 +1,14 @@
 import {
     type AgSunburstSeriesFormatterParams,
+    type AgSunburstSeriesLabelFormatterParams,
     type AgSunburstSeriesStyle,
     type AgSunburstSeriesTooltipRendererParams,
     AgTooltipRendererResult,
     _ModuleSupport,
-    _Scale,
     _Scene,
-    _Util,
 } from 'ag-charts-community';
 
-import { TreemapSeriesTileLabel, formatLabels } from '../treemap/treemapLabelFormatter';
+import { AutoSizeableLabel, formatLabels } from '../util/labelFormatter';
 
 const { HighlightStyle, SeriesTooltip, Validate, OPT_COLOR_STRING, OPT_FUNCTION, OPT_NUMBER, NUMBER, OPT_STRING } =
     _ModuleSupport;
@@ -38,6 +37,10 @@ const getAngleData = (
 };
 
 class SunburstSeriesTileHighlightStyle extends HighlightStyle {
+    readonly label = new AutoSizeableLabel<AgSunburstSeriesLabelFormatterParams>();
+
+    readonly secondaryLabel = new AutoSizeableLabel<AgSunburstSeriesLabelFormatterParams>();
+
     @Validate(OPT_STRING)
     fill?: string = undefined;
 
@@ -80,9 +83,9 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
 
     override readonly highlightStyle = new SunburstSeriesTileHighlightStyle();
 
-    readonly label = new TreemapSeriesTileLabel();
+    readonly label = new AutoSizeableLabel<AgSunburstSeriesLabelFormatterParams>();
 
-    readonly secondaryLabel = new TreemapSeriesTileLabel();
+    readonly secondaryLabel = new AutoSizeableLabel<AgSunburstSeriesLabelFormatterParams>();
 
     @Validate(OPT_STRING)
     labelKey?: string = undefined;
@@ -362,6 +365,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
         ) => {
             const { index, depth } = node;
             const meta = labelMeta?.[index];
+            const labelStyle = tag === TextNodeTag.Primary ? this.label : this.secondaryLabel;
             const label = tag === TextNodeTag.Primary ? meta?.label : meta?.secondaryLabel;
             const sizing = labelMetaSizing[index];
             if (depth == null || meta == null || label == null || sizing == null) {
@@ -371,17 +375,19 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
 
             const { height, bottomHalf, radius, theta } = sizing;
 
-            // let highlightedColor: string | undefined;
-            // if (highlighted) {
-            //     highlightedColor = key === 'label' ? this.label.color : this.secondaryLabel.color;
-            // }
+            let highlightedColor: string | undefined;
+            if (highlighted) {
+                const labelStyle =
+                    tag === TextNodeTag.Primary ? this.highlightStyle.label : this.highlightStyle.secondaryLabel;
+                highlightedColor = labelStyle.color;
+            }
 
             text.text = label.text;
             text.fontSize = label.fontSize;
 
-            text.fontFamily = this.label.fontFamily; // label.style.fontFamily;
-            text.fontWeight = this.label.fontWeight; // label.style.fontWeight;
-            text.fill = this.label.color; // highlightedColor ?? label.style.color;
+            text.fontFamily = labelStyle.fontFamily;
+            text.fontWeight = labelStyle.fontWeight;
+            text.fill = highlightedColor ?? labelStyle.color;
 
             const isCenterInCircle = node.depth === 0 && node.sumSize === node.parent?.sumSize;
             if (isCenterInCircle) {

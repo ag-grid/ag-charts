@@ -5,6 +5,12 @@ import type { CssColor, FontSize, TextOverflow, TextWrap } from '../../chart/typ
 import type { FillOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 
+/* All the label properties that can be changed without affecting the layout */
+export type AgSunburstSeriesLabelHighlightOptions<TDatum> = Pick<
+    AgChartLabelOptions<TDatum, AgSunburstSeriesLabelFormatterParams<TDatum>>,
+    'color'
+>;
+
 export interface AgSunburstSeriesTooltipRendererParams<TDatum>
     extends AgChartCallbackParams<TDatum>,
         AgSunburstSeriesOptionsKeys {
@@ -16,7 +22,12 @@ export interface AgSunburstSeriesTooltipRendererParams<TDatum>
     color?: CssColor;
 }
 
-export interface AgSunburstSeriesHighlightStyle<_TDatum> extends AgSeriesHighlightStyle, FillOptions, StrokeOptions {}
+export interface AgSunburstSeriesHighlightStyle<TDatum> extends AgSeriesHighlightStyle, FillOptions, StrokeOptions {
+    /** Options for the label in a sector */
+    label?: AgSunburstSeriesLabelHighlightOptions<TDatum>;
+    /* Options for a secondary, smaller label in a sector - displayed under the primary label */
+    secondaryLabel?: AgSunburstSeriesLabelHighlightOptions<TDatum>;
+}
 
 export interface AgSunburstSeriesTileLabelOptions<TDatum>
     extends AgChartLabelOptions<TDatum, AgSunburstSeriesLabelFormatterParams<TDatum>> {

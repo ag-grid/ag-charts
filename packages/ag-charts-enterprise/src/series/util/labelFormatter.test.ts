@@ -5,7 +5,7 @@ import {
     formatStackedLabels,
     generateLabelSecondaryLabelFontSizeCandidates,
     maximumValueSatisfying,
-} from './treemapLabelFormatter';
+} from './labelFormatter';
 
 const { Text } = _Scene;
 
