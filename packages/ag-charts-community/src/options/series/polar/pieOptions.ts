@@ -28,6 +28,8 @@ export interface AgPieSeriesFormatterParams<TDatum>
         StrokeOptions,
         AgPieSeriesOptionsKeys {
     readonly highlighted: boolean;
+    readonly fills: CssColor[];
+    readonly strokes: CssColor[];
 }
 
 export type AgPieSeriesFormat = FillOptions & StrokeOptions;

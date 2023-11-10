@@ -613,6 +613,8 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
                 radiusKey,
                 fill,
                 stroke,
+                fills,
+                strokes,
                 strokeWidth,
                 highlighted: isDatumHighlighted,
                 seriesId,
