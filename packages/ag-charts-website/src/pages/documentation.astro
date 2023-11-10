@@ -1,6 +1,30 @@
 ---
-import { urlWithBaseUrl } from '@utils/pages';
+import { urlWithPrefix } from '@utils/urlWithPrefix';
+
+const defaultFramework = 'javascript';
+const docsRedirectPage = './quick-start';
 ---
 
-<!-- Redirect to quick start -->
-<meta http-equiv="refresh" content={`0;url=${urlWithBaseUrl('javascript/quick-start')}`} />
+<!-- Redirect for crawlers -->
+<noscript>
+    <meta
+        http-equiv="refresh"
+        content={`0;url=${urlWithPrefix({
+            framework: defaultFramework,
+            url: docsRedirectPage,
+        })}`}
+    />
+</noscript>
+
+<div id="docsRedirectPage" data-docs-redirect-page={docsRedirectPage}></div>
+<script>
+    import { $internalFramework } from '@stores/frameworkStore';
+    import { getFrameworkFromInternalFramework } from '@utils/framework';
+    import { urlWithPrefix } from '@utils/urlWithPrefix';
+
+    const framework = getFrameworkFromInternalFramework($internalFramework.get());
+    const docsRedirectPage = document.getElementById('docsRedirectPage')?.dataset.docsRedirectPage;
+    const redirectUrl = urlWithPrefix({ framework, url: docsRedirectPage! });
+
+    window.location.replace(redirectUrl);
+</script>
