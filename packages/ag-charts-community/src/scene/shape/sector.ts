@@ -80,7 +80,7 @@ export class Sector extends Path {
                 // Form a right angle from the wedge with hypotenuse x0 and an opposite side of inset
                 // Gives x0 = inset * sin(sweep)
                 // y = inset = inset * sin(sweep) + x * tan(sweep) - solve for x
-                const x = inset * ((1 - Math.sin(sweep)) / Math.tan(sweep));
+                const x = inset / (Math.tan(sweep) / (1 - Math.sin(sweep)));
                 // Floating point isn't perfect, so if we're getting an answer too small, use the innerRadius
                 const r = Math.max(Math.hypot(inset, x), innerRadius);
                 const midAngle = (startAngle + endAngle) / 2;
