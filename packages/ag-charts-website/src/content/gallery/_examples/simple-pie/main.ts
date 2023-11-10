@@ -16,26 +16,21 @@ const options: AgChartOptions = {
         {
             data: getData(),
             type: 'pie',
-            calloutLabelKey: 'religion',
             sectorLabelKey: 'population',
             angleKey: 'population',
             calloutLabel: {
                 minAngle: 0,
             },
             sectorLabel: {
-                formatter: ({ datum, sectorLabelKey }) => {
-                    return numFormatter.format(datum[sectorLabelKey!]);
+                formatter: ({ datum, sectorLabelKey = 'population' }) => {
+                    return numFormatter.format(datum[sectorLabelKey]);
                 },
             },
             tooltip: {
-                renderer: ({ datum, color, calloutLabelKey, sectorLabelKey }) => {
-                    return [
-                        `<div style="background-color: ${color}; padding: 4px 8px; border-top-left-radius: 5px; border-top-right-radius: 5px; font-weight: bold; color: white;">${
-                            datum[calloutLabelKey!]
-                        }</div>`,
-                        `<div style="padding: 4px 8px">${numFormatter.format(datum[sectorLabelKey!])}</div>`,
-                    ].join('\n');
-                },
+                renderer: ({ datum, sectorLabelKey = 'population' }) => ({
+                    title: `${datum['religion']}`,
+                    content: `${datum[sectorLabelKey].toLocaleString()}`,
+                }),
             },
         },
     ],
@@ -43,5 +38,4 @@ const options: AgChartOptions = {
         enabled: false,
     },
 };
-
 AgEnterpriseCharts.create(options);
