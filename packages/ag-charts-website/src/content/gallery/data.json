@@ -68,9 +68,9 @@
                     "name": "simple-bar"
                 },
                 {
-                    "title": "Grouped Bar",
-                    "description": "Grouped Bar charts (also known as clustered bar charts) present multiple series with the <a href='./simple-bar/'>bars</a> grouped by category, to allow for easier comparisons across different series.",
-                    "name": "grouped-bar"
+                    "title": "Grouped Stacked Bar",
+                    "description": "Bar charts (also known as vertical <a href='./simple-bar/'>bar charts</a>) represent data using vertical bars, with the height of each bar proportional to the value being plotted. They can be used to plot both nominal and ordinal data, and are simple to interpret. They work best where the number of data points is limited.",
+                    "name": "grouped-stacked-bar"
                 },
                 {
                     "title": "Stacked Bar",
@@ -83,14 +83,14 @@
                     "name": "simple-horizontal-bar"
                 },
                 {
-                    "title": "Grouped Horizontal Bar",
-                    "description": "Grouped Horizontal Bar charts (also known as clustered bar charts) show multiple series with the <a href='./simple-bar/'>bars</a> grouped by category, to allow for easier comparisons across different series.",
-                    "name": "grouped-horizontal-bar"
-                },
-                {
                     "title": "Stacked Horizontal Bar",
                     "description": "Stacked Horizontal Bar charts allow part-to-whole comparisons, with series stacked from left to right in the horizontal <a href='./simple-bar/'>bars</a>. They make it easy to compare combined bar lengths.",
                     "name": "stacked-horizontal-bar"
+                },
+                {
+                    "title": "Grouped Horizontal Bar",
+                    "description": "Grouped Horizontal Bar charts (also known as clustered bar charts) show multiple series with the <a href='./simple-bar/'>bars</a> grouped by category, to allow for easier comparisons across different series.",
+                    "name": "grouped-horizontal-bar"
                 }
             ]
         },

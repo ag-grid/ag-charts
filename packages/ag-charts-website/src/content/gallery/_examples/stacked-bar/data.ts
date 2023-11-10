@@ -27,7 +27,7 @@ export function getData() {
         {
             station: 'Warren\nStreet',
             early: 9108,
-            morningPeak: 1210,
+            morningPeak: 2710,
             interPeak: 5902,
             afternoonPeak: 10947,
             evening: 5574,
@@ -35,7 +35,7 @@ export function getData() {
         {
             station: 'Oxford\nCircus',
             early: 7170,
-            morningPeak: 1796,
+            morningPeak: 4996,
             interPeak: 26616,
             afternoonPeak: 32269,
             evening: 3665,
@@ -43,7 +43,7 @@ export function getData() {
         {
             station: 'Green\nPark',
             early: 6252,
-            morningPeak: 1911,
+            morningPeak: 3911,
             interPeak: 11971,
             afternoonPeak: 19749,
             evening: 11582,

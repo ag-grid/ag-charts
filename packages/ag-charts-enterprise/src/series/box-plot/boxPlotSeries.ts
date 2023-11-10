@@ -2,7 +2,6 @@ import {
     type AgBoxPlotSeriesFormatterParams,
     type AgBoxPlotSeriesStyles,
     type AgBoxPlotSeriesTooltipRendererParams,
-    type Direction,
     _ModuleSupport,
     _Scale,
     _Scene,
@@ -14,8 +13,6 @@ import { BoxPlotGroup } from './boxPlotGroup';
 import type { BoxPlotNodeDatum } from './boxPlotTypes';
 
 const {
-    CartesianSeries,
-    ChartAxisDirection,
     extent,
     extractDecoratedProperties,
     fixNumericExtent,
@@ -29,7 +26,6 @@ const {
     SeriesNodePickMode,
     SeriesTooltip,
     SMALLEST_KEY_INTERVAL,
-    DIRECTION,
     Validate,
     valueProperty,
 } = _ModuleSupport;
@@ -78,7 +74,7 @@ class BoxPlotSeriesWhisker {
     lineDashOffset?: number;
 }
 
-export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatum> {
+export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup, BoxPlotNodeDatum> {
     @Validate(OPT_STRING)
     xKey?: string = undefined;
 
@@ -139,9 +135,6 @@ export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatu
     @Validate(NUMBER(0))
     lineDashOffset: number = 0;
 
-    @Validate(DIRECTION)
-    direction: Direction = 'vertical';
-
     @Validate(OPT_FUNCTION)
     formatter?: (params: AgBoxPlotSeriesFormatterParams<unknown>) => AgBoxPlotSeriesStyles = undefined;
 
@@ -198,11 +191,11 @@ export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatu
         const { processedData, dataModel, smallestDataInterval } = this;
         if (!(processedData && dataModel)) return [];
 
-        if (direction === this.getValuesDirection()) {
+        if (direction === this.getBarDirection()) {
             const minValues = dataModel.getDomain(this, `minValue`, 'value', processedData);
             const maxValues = dataModel.getDomain(this, `maxValue`, 'value', processedData);
 
-            return fixNumericExtent([Math.min(...minValues), Math.max(...maxValues)], this.getValuesAxis());
+            return fixNumericExtent([Math.min(...minValues), Math.max(...maxValues)], this.getValueAxis());
         }
 
         const { index, def } = dataModel.resolveProcessedDataIndexById(this, `xValue`);
@@ -220,7 +213,7 @@ export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatu
         const { visible, dataModel } = this;
 
         const xAxis = this.getCategoryAxis();
-        const yAxis = this.getValuesAxis();
+        const yAxis = this.getValueAxis();
 
         if (!(dataModel && visible && xAxis && yAxis)) {
             return [];
@@ -380,7 +373,7 @@ export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatu
         const { datum } = nodeDatum as { datum: any };
 
         const xAxis = this.getCategoryAxis();
-        const yAxis = this.getValuesAxis();
+        const yAxis = this.getValueAxis();
 
         if (!xAxis || !yAxis || !xKey || !minKey || !q1Key || !medianKey || !q3Key || !maxKey) return '';
 
@@ -454,7 +447,7 @@ export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatu
         // highlightedItems?: BoxPlotNodeDatum[];
         isHighlight: boolean;
     }) {
-        const invertAxes = this.shouldFlipXY();
+        const isVertical = this.direction === 'vertical';
         datumSelection.each((boxPlotGroup, nodeDatum) => {
             let activeStyles = this.getFormattedStyles(nodeDatum, highlighted);
 
@@ -479,7 +472,7 @@ export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatu
             boxPlotGroup.updateDatumStyles(
                 nodeDatum,
                 activeStyles as _ModuleSupport.DeepRequired<AgBoxPlotSeriesStyles>,
-                invertAxes
+                isVertical
             );
         });
     }
@@ -548,36 +541,12 @@ export class BoxPlotSeries extends CartesianSeries<BoxPlotGroup, BoxPlotNodeDatu
         return activeStyles;
     }
 
-    override getBandScalePadding() {
-        return { inner: 0.2, outer: 0.1 };
-    }
-
-    override shouldFlipXY() {
-        return this.direction === 'vertical';
-    }
-
-    protected getValuesDirection() {
-        return this.shouldFlipXY() ? ChartAxisDirection.Y : ChartAxisDirection.X;
-    }
-
-    protected getCategoryDirection() {
-        return this.shouldFlipXY() ? ChartAxisDirection.X : ChartAxisDirection.Y;
-    }
-
-    protected getCategoryAxis(): _ModuleSupport.ChartAxis | undefined {
-        return this.axes[this.getCategoryDirection()];
-    }
-
-    protected getValuesAxis(): _ModuleSupport.ChartAxis | undefined {
-        return this.axes[this.getValuesDirection()];
-    }
-
     convertValuesToScaleByDefs<T extends string>(
         defs: [string, _ModuleSupport.ProcessedDataDef[]][],
         values: Record<T, unknown>
     ): Record<T, number> {
         const xAxis = this.getCategoryAxis();
-        const yAxis = this.getValuesAxis();
+        const yAxis = this.getValueAxis();
         if (!(xAxis && yAxis)) {
             throw new Error('Axes must be defined');
         }

@@ -6,7 +6,6 @@ import type {
     AgBarSeriesLabelPlacement,
     AgBarSeriesStyle,
     AgBarSeriesTooltipRendererParams,
-    Direction,
     FontStyle,
     FontWeight,
 } from '../../../options/agChartOptions';
@@ -21,7 +20,6 @@ import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
 import { sanitizeHtml } from '../../../util/sanitize';
 import {
-    DIRECTION,
     NUMBER,
     OPT_COLOR_STRING,
     OPT_FUNCTION,
@@ -35,7 +33,6 @@ import { isNumber } from '../../../util/value';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import { GroupedCategoryAxis } from '../../axis/groupedCategoryAxis';
 import { LogAxis } from '../../axis/logAxis';
-import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { fixNumericExtent } from '../../data/dataModel';
@@ -46,6 +43,7 @@ import { SeriesNodePickMode, groupAccumulativeValueProperty, keyProperty, valueP
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { SeriesTooltip } from '../seriesTooltip';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
+import { AbstractBarSeries } from './abstractBarSeries';
 import type { RectConfig } from './barUtil';
 import {
     checkCrisp,
@@ -60,7 +58,6 @@ import type {
     CartesianSeriesNodeDataContext,
     CartesianSeriesNodeDatum,
 } from './cartesianSeries';
-import { CartesianSeries } from './cartesianSeries';
 import { adjustLabelPlacement, updateLabelNode } from './labelUtil';
 
 interface BarNodeLabelDatum extends Readonly<Point> {
@@ -98,7 +95,7 @@ class BarSeriesLabel extends Label<AgBarSeriesLabelFormatterParams> {
     placement: AgBarSeriesLabelPlacement = 'inside';
 }
 
-export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
+export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
     static className = 'BarSeries';
     static type = 'bar' as const;
 
@@ -138,9 +135,6 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
 
     @Validate(OPT_STRING)
     yName?: string = undefined;
-
-    @Validate(DIRECTION)
-    direction: Direction = 'vertical';
 
     @Validate(OPT_STRING)
     stackGroup?: string = undefined;
@@ -270,16 +264,6 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
             const fixedYExtent = [yExtent[0] > 0 ? 0 : yExtent[0], yExtent[1] < 0 ? 0 : yExtent[1]];
             return fixNumericExtent(fixedYExtent as any, valueAxis);
         }
-    }
-
-    private getCategoryAxis(): ChartAxis | undefined {
-        const direction = this.getCategoryDirection();
-        return this.axes[direction];
-    }
-
-    private getValueAxis(): ChartAxis | undefined {
-        const direction = this.getBarDirection();
-        return this.axes[direction];
     }
 
     async createNodeData() {
@@ -661,27 +645,5 @@ export class BarSeries extends CartesianSeries<Rect, BarNodeDatum> {
 
     protected isLabelEnabled() {
         return this.label.enabled;
-    }
-
-    override getBandScalePadding() {
-        return { inner: 0.2, outer: 0.1 };
-    }
-
-    override shouldFlipXY(): boolean {
-        return this.direction === 'horizontal';
-    }
-
-    protected getBarDirection() {
-        if (this.direction === 'vertical') {
-            return ChartAxisDirection.Y;
-        }
-        return ChartAxisDirection.X;
-    }
-
-    protected getCategoryDirection() {
-        if (this.direction === 'vertical') {
-            return ChartAxisDirection.X;
-        }
-        return ChartAxisDirection.Y;
     }
 }
