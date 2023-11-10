@@ -447,7 +447,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup
         // highlightedItems?: BoxPlotNodeDatum[];
         isHighlight: boolean;
     }) {
-        const invertAxes = this.shouldFlipXY();
+        const isVertical = this.direction === 'vertical';
         datumSelection.each((boxPlotGroup, nodeDatum) => {
             let activeStyles = this.getFormattedStyles(nodeDatum, highlighted);
 
@@ -472,7 +472,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup
             boxPlotGroup.updateDatumStyles(
                 nodeDatum,
                 activeStyles as _ModuleSupport.DeepRequired<AgBoxPlotSeriesStyles>,
-                invertAxes
+                isVertical
             );
         });
     }
