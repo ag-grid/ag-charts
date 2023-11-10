@@ -16,15 +16,16 @@ export const BulletModule: _ModuleSupport.SeriesModule<'bullet'> = {
     instanceConstructor: BulletSeries,
     seriesDefaults: BULLET_DEFAULTS,
     themeTemplate: BULLET_SERIES_THEME,
-    swapDefaultAxesCondition: (opts) => opts?.direction !== 'horizontal',
-    customDefaultAxesSwapper: (opts) => {
-        const [axis0, axis1] = opts.axes ?? [];
-        return {
-            ...opts,
-            axes: [
-                { ...axis0, position: CARTESIAN_AXIS_POSITIONS.LEFT },
-                { ...axis1, position: CARTESIAN_AXIS_POSITIONS.TOP },
-            ],
-        };
+    customDefaultsFunction: (series) => {
+        const axis0 = { ...BULLET_DEFAULTS.axes[0] };
+        const axis1 = { ...BULLET_DEFAULTS.axes[1] };
+        if (series.direction !== 'horizontal') {
+            axis0.position = CARTESIAN_AXIS_POSITIONS.LEFT;
+            axis1.position = CARTESIAN_AXIS_POSITIONS.TOP;
+        }
+        if (series.scale?.max !== undefined) {
+            axis0.max = series.scale.max;
+        }
+        return { ...BULLET_DEFAULTS, axes: [axis0, axis1] };
     },
 };

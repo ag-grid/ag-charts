@@ -1,14 +1,14 @@
 import { hasRegisteredEnterpriseModules } from '../../module-support';
 import type { SeriesConstructor, SeriesPaletteFactory } from '../../module/coreModules';
 import type { ModuleContext } from '../../module/moduleContext';
-import type { AgCartesianChartOptions, AgChartOptions } from '../../options/agChartOptions';
+import type { AgChartOptions } from '../../options/agChartOptions';
 import { jsonMerge } from '../../sparklines-util';
 import type { SeriesOptionsTypes } from '../mapping/types';
 import type { Series } from '../series/series';
 import type { ChartType } from './chartTypes';
 import { registerChartSeriesType } from './chartTypes';
 
-type SwapperFunction = (opts: AgCartesianChartOptions) => AgCartesianChartOptions;
+type DefaultsFunction = (opts: unknown) => AgChartOptions;
 
 const SERIES_FACTORIES: Record<string, SeriesConstructor> = {};
 const SERIES_DEFAULTS: Record<string, any> = {};
@@ -19,7 +19,7 @@ const STACKABLE_SERIES_TYPES = new Set<SeriesOptionsTypes['type']>();
 const GROUPABLE_SERIES_TYPES = new Set<SeriesOptionsTypes['type']>();
 const STACKED_BY_DEFAULT_SERIES_TYPES = new Set<string>();
 const SWAP_DEFAULT_AXES_CONDITIONS: Record<string, (opts: unknown) => boolean> = {};
-const CUSTOM_DEFAULT_AXES_SWAPPERS: Record<string, SwapperFunction> = {};
+const CUSTOM_DEFAULTS_FUNCTIONS: Record<string, DefaultsFunction> = {};
 
 export function registerSeries(
     seriesType: NonNullable<SeriesOptionsTypes['type']>,
@@ -33,7 +33,7 @@ export function registerSeries(
     groupable: boolean | undefined,
     stackedByDefault: boolean | undefined,
     swapDefaultAxesCondition: ((opts: any) => boolean) | undefined,
-    customDefaultAxesSwapper: SwapperFunction | undefined
+    customDefaultsFunction: ((opts: any) => AgChartOptions) | undefined
 ) {
     SERIES_FACTORIES[seriesType] = cstr;
     SERIES_DEFAULTS[seriesType] = defaults;
@@ -55,8 +55,8 @@ export function registerSeries(
     if (swapDefaultAxesCondition) {
         addSwapDefaultAxesCondition(seriesType, swapDefaultAxesCondition);
     }
-    if (customDefaultAxesSwapper) {
-        addCustomDefaultAxesSwapper(seriesType, customDefaultAxesSwapper);
+    if (customDefaultsFunction) {
+        addCustomDefaultsFunctions(seriesType, customDefaultsFunction);
     }
 
     registerChartSeriesType(seriesType, chartType);
@@ -132,8 +132,8 @@ export function addSwapDefaultAxesCondition(seriesType: string, predicate: (opts
     SWAP_DEFAULT_AXES_CONDITIONS[seriesType] = predicate;
 }
 
-export function addCustomDefaultAxesSwapper(seriesType: string, predicate: SwapperFunction) {
-    CUSTOM_DEFAULT_AXES_SWAPPERS[seriesType] = predicate;
+export function addCustomDefaultsFunctions(seriesType: string, predicate: DefaultsFunction) {
+    CUSTOM_DEFAULTS_FUNCTIONS[seriesType] = predicate;
 }
 
 export function isDefaultAxisSwapNeeded(opts: AgChartOptions) {
@@ -154,13 +154,16 @@ export function isDefaultAxisSwapNeeded(opts: AgChartOptions) {
     return result ?? false;
 }
 
-export function getDefaultAxisSwapper(opts: AgChartOptions): SwapperFunction | undefined {
-    let result: SwapperFunction | undefined;
+export function executeCustomDefaultsFunctions(opts: AgChartOptions, initialDefaults: {}): {} {
+    let result = initialDefaults;
 
     for (const series of opts.series ?? []) {
         const { type } = series;
 
-        result = type != null ? CUSTOM_DEFAULT_AXES_SWAPPERS[type] : undefined;
+        const fn = type != null ? CUSTOM_DEFAULTS_FUNCTIONS[type] : undefined;
+        if (fn !== undefined) {
+            result = { ...result, ...fn(series) };
+        }
     }
 
     return result;

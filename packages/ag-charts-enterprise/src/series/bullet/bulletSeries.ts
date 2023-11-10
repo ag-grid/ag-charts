@@ -99,7 +99,7 @@ class TargetStyle {
 
 class BulletScale {
     @Validate(OPT_NUMBER(0))
-    max?: number = undefined;
+    max?: number = undefined; // alias for AgChartOptions.axes[0].max
 }
 
 export class BulletSeries extends _ModuleSupport.AbstractBarSeries<BulletNode, BulletNodeDatum> {
@@ -190,25 +190,20 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<BulletNode, B
     }
 
     private getMaxValue(): number {
-        const { dataModel, processedData, targetKey, scale } = this;
-        if (scale.max !== undefined) {
-            return scale.max;
-        }
-        if (!dataModel || !processedData) {
-            return NaN;
-        }
-
-        const valueDomain = dataModel.getDomain(this, 'value', 'value', processedData);
-        const targetDomain = targetKey === undefined ? [] : dataModel.getDomain(this, 'target', 'value', processedData);
-
-        return Math.max(...valueDomain, ...targetDomain);
+        return Math.max(...(this.getValueAxis()?.dataDomain.domain ?? [0]));
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection) {
+        const { dataModel, processedData, targetKey } = this;
+        if (!dataModel || !processedData) return [];
+
         if (direction === this.getCategoryDirection()) {
             return [this.valueName ?? this.valueKey];
         } else if (direction == this.getValueAxis()?.direction) {
-            return [0, this.getMaxValue()];
+            const valueDomain = dataModel.getDomain(this, 'value', 'value', processedData);
+            const targetDomain =
+                targetKey === undefined ? [] : dataModel.getDomain(this, 'target', 'value', processedData);
+            return [0, Math.max(...valueDomain, ...targetDomain)];
         } else {
             throw new Error(`unknown direction ${direction}`);
         }

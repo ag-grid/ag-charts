@@ -12,7 +12,7 @@ import type { DeepPartial } from '../../util/types';
 import { AXIS_TYPES } from '../factory/axisTypes';
 import { CHART_TYPES } from '../factory/chartTypes';
 import {
-    getDefaultAxisSwapper,
+    executeCustomDefaultsFunctions,
     getSeriesDefaults,
     getSeriesPaletteFactory,
     isDefaultAxisSwapNeeded,
@@ -86,9 +86,10 @@ export function prepareOptions<T extends AgChartOptions>(options: T): T {
 
     let defaultOverrides = getSeriesDefaults(type);
     if (isDefaultAxisSwapNeeded(options)) {
-        const swapper = getDefaultAxisSwapper(options) ?? swapAxes;
-        defaultOverrides = swapper(defaultOverrides);
+        defaultOverrides = swapAxes(defaultOverrides);
     }
+    defaultOverrides = executeCustomDefaultsFunctions(options, defaultOverrides);
+
     const conflictOverrides = resolveModuleConflicts(options);
 
     removeDisabledOptions<T>(options);
