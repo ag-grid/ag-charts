@@ -2,7 +2,7 @@ import { AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-type YKey = keyof  Omit<typeof data[number], 'type'>;
+type YKey = keyof Omit<(typeof data)[number], 'type'>;
 
 const data = getData();
 const options: AgChartOptions = {
@@ -29,7 +29,7 @@ const options: AgChartOptions = {
             },
             formatter: ({ datum, yKey, fill = 'transparent' }) => ({
                 fill: getColor(datum[yKey], yKey as YKey, fill, 0.4, 1),
-            })
+            }),
         },
     ],
     axes: [

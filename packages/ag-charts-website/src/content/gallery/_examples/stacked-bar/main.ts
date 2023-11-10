@@ -27,7 +27,7 @@ const options: AgChartOptions = {
                     fillOpacity: 0.8,
                     label: {
                         enabled: true,
-                        formatter: ({ value }) => `${numFormatter.format(value)}`
+                        formatter: ({ value }) => `${numFormatter.format(value)}`,
                     },
                 },
             },
