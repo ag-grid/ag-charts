@@ -3,7 +3,7 @@ import {
     type AgSunburstSeriesLabelFormatterParams,
     type AgSunburstSeriesStyle,
     type AgSunburstSeriesTooltipRendererParams,
-    AgTooltipRendererResult,
+    type AgTooltipRendererResult,
     _ModuleSupport,
     _Scene,
 } from 'ag-charts-community';
