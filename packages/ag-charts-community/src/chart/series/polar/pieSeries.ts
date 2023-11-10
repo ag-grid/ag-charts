@@ -401,7 +401,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 ...extraKeyProps,
-                accumulativeValueProperty(this, angleKey, true, { id: `angleValue` }),
+                accumulativeValueProperty(this, angleKey, true, { id: `angleValue`, onlyPositive: true }),
                 valueProperty(this, angleKey, true, { id: `angleRaw` }), // Raw value pass-through.
                 normalisePropertyTo(this, { id: 'angleValue' }, [0, 1], 0, 0),
                 ...extraProps,
