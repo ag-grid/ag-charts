@@ -169,6 +169,7 @@ button:not([class^='ag-']).sectionHeader {
 
     line-height: var(--line-height-tight);
     font-size: var(--font-size-small);
+    margin-top: -8px;
 
     ul a,
     ul .groupLabel {
