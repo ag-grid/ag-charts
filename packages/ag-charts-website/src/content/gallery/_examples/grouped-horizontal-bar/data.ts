@@ -1,4 +1,4 @@
-export function getData(): any[] {
+export function getData() {
     return [
         { month: 'Jul', men: 79011, women: 3808, menDelta: 149, womenDelta: 62 },
         { month: 'Aug', men: 79166, women: 3841, menDelta: 155, womenDelta: 33 },
