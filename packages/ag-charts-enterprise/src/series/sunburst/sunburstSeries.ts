@@ -9,9 +9,16 @@ import {
     _Util,
 } from 'ag-charts-community';
 
+import { TreemapSeriesTileLabel, formatLabels } from '../treemap/treemapLabelFormatter';
+
 const { HighlightStyle, SeriesTooltip, Validate, OPT_COLOR_STRING, OPT_FUNCTION, OPT_NUMBER, NUMBER, OPT_STRING } =
     _ModuleSupport;
-const { Sector, Group, Selection } = _Scene;
+const { Sector, Group, Selection, Text } = _Scene;
+
+interface LabelData {
+    label: string | undefined;
+    secondaryLabel: string | undefined;
+}
 
 const getAngleData = (
     node: _ModuleSupport.HierarchyNode,
@@ -64,7 +71,19 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
 
     private angleData: Array<{ start: number; end: number } | undefined> = [];
 
+    private labelData?: (LabelData | undefined)[];
+
     override readonly highlightStyle = new SunburstSeriesTileHighlightStyle();
+
+    readonly label = new TreemapSeriesTileLabel();
+
+    readonly secondaryLabel = new TreemapSeriesTileLabel();
+
+    @Validate(OPT_STRING)
+    labelKey?: string = undefined;
+
+    @Validate(OPT_STRING)
+    secondaryLabelKey?: string = undefined;
 
     @Validate(OPT_STRING)
     fill?: string = undefined;
@@ -88,32 +107,68 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
     formatter?: (params: AgSunburstSeriesFormatterParams) => AgSunburstSeriesStyle = undefined;
 
     override async processData() {
+        const { labelKey, secondaryLabelKey, childrenKey, colorKey, sizeKey } = this;
+
         super.processData();
+
         this.angleData = getAngleData(this.rootNode);
+
+        const defaultLabelFormatter = (value: any) => {
+            if (typeof value === 'number') {
+                // This copies what other series are doing - we should look to provide format customization
+                return value.toFixed(2);
+            } else if (typeof value === 'string') {
+                return value;
+            } else {
+                return '';
+            }
+        };
+
+        this.labelData = Array.from(this.rootNode, ({ datum, depth }) => {
+            let label: string | undefined;
+            if (datum != null && depth != null && labelKey != null && this.label.enabled) {
+                const value = datum[labelKey] ?? '';
+                label = this.getLabelText(
+                    this.label,
+                    { depth, datum, childrenKey, colorKey, labelKey, secondaryLabelKey, sizeKey, value },
+                    defaultLabelFormatter
+                );
+            }
+            if (label === '') {
+                label = undefined;
+            }
+
+            let secondaryLabel: string | undefined;
+            if (datum != null && depth != null && secondaryLabelKey != null && this.secondaryLabel.enabled) {
+                const value = datum[secondaryLabelKey] ?? '';
+                secondaryLabel = this.getLabelText(
+                    this.secondaryLabel,
+                    { depth, datum, childrenKey, colorKey, labelKey, secondaryLabelKey, sizeKey, value },
+                    defaultLabelFormatter
+                );
+            }
+            if (secondaryLabel === '') {
+                secondaryLabel = undefined;
+            }
+
+            return label != null || secondaryLabel != null ? { label, secondaryLabel } : undefined;
+        });
     }
 
     async updateSelections() {
-        if (!this.nodeDataRefresh) {
-            return;
-        }
+        if (!this.nodeDataRefresh) return;
         this.nodeDataRefresh = false;
 
         const { chart } = this;
+        if (chart == null) return;
 
-        if (!chart) {
-            return;
-        }
-
-        const seriesRect = chart.getSeriesRect();
-
-        if (!seriesRect) {
-            return;
-        }
+        const seriesRect = chart.seriesRect;
+        if (seriesRect == null) return;
 
         const descendants: _ModuleSupport.HierarchyNode[] = Array.from(this.rootNode);
 
         const updateGroup = (group: _Scene.Group) => {
-            group.append([new Sector()]);
+            group.append([new Sector(), new Text()]);
         };
 
         this.groupSelection.update(descendants, updateGroup, (node) => this.getDatumId(node));
@@ -121,11 +176,11 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
     }
 
     async updateNodes() {
-        const { chart, data, spacing = 0, highlightStyle } = this;
+        const { chart, data, spacing = 0, highlightStyle, labelData } = this;
 
-        if (chart == null || data == null) return;
+        if (chart == null || data == null || labelData == null) return;
 
-        const { width, height } = chart.getSeriesRect()!;
+        const { width, height } = chart.seriesRect!;
 
         this.contentGroup.translationX = width / 2;
         this.contentGroup.translationY = height / 2;
@@ -136,6 +191,44 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
         const radius = Math.min(width, height) / 2;
         const maxDepth = 4;
         const radiusScale = radius / (maxDepth + 1);
+        const angleOffset = -Math.PI / 2;
+
+        const highlightedNode: _ModuleSupport.HierarchyNode | undefined =
+            this.ctx.highlightManager?.getActiveHighlight() as any;
+
+        const descendants = Array.from(this.rootNode);
+        const labelTextNode = new Text();
+        labelTextNode.setFont(this.label);
+        const labelMeta = labelData.map((labelData, index) => {
+            const label = labelData?.label;
+            const { depth } = descendants[index];
+            const angleData = this.angleData[index];
+            if (label == null || depth == null || angleData == null) return undefined;
+
+            const labelFontSize = this.label.fontSize;
+            const minHeight = labelFontSize;
+            const availableWidthUntilItHitsTheOuterRadius =
+                2 * Math.sqrt(((depth + 1) * radiusScale) ** 2 - (depth * radiusScale + minHeight) ** 2);
+            const deltaAngle = angleData.end - angleData.start;
+            const availableWidthUntilItHitsTheStraightEdges =
+                deltaAngle < Math.PI ? 2 * depth * radiusScale * Math.tan(deltaAngle * 0.5) : Infinity;
+            const availableWidth = Math.min(
+                availableWidthUntilItHitsTheOuterRadius,
+                availableWidthUntilItHitsTheStraightEdges
+            );
+
+            const labelText = Text.wrap(label, availableWidth, minHeight, this.label, 'on-space');
+            if (labelText === '' || labelText === Text.ellipsis) return undefined;
+
+            labelTextNode.text = labelText;
+            labelTextNode.fontSize = labelFontSize;
+            const { width, height } = labelTextNode.computeBBox();
+
+            const labelWidth = width;
+            const labelHeight = Math.max(height, labelFontSize);
+
+            return { text: labelText, fontSize: labelFontSize, width: labelWidth, height: labelHeight };
+        });
 
         this.rootNode.walk((node) => {
             const angleDatum = this.angleData[node.index];
@@ -147,7 +240,6 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
             }
         });
 
-        const angleOffset = -Math.PI / 2;
         const updateSector = (node: _ModuleSupport.HierarchyNode, sector: _Scene.Sector, highlighted: boolean) => {
             const { depth } = node;
             const angleDatum = this.angleData[node.index];
@@ -198,15 +290,66 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
         this.groupSelection.selectByClass(Sector).forEach((sector) => {
             updateSector(sector.datum, sector, false);
         });
-
-        const highlightedNode: _ModuleSupport.HierarchyNode | undefined =
-            this.ctx.highlightManager?.getActiveHighlight() as any;
         this.highlightSelection.selectByClass(Sector).forEach((sector) => {
             const node: _ModuleSupport.HierarchyNode = sector.datum;
             const isHighlighted = highlightedNode === node;
             sector.visible = isHighlighted;
             if (sector.visible) {
                 updateSector(sector.datum, sector, isHighlighted);
+            }
+        });
+
+        const updateText = (
+            node: _ModuleSupport.HierarchyNode,
+            text: _Scene.Text,
+            highlighted: boolean,
+            key: 'label' | 'secondaryLabel'
+        ) => {
+            const { index, depth } = node;
+            const label = labelMeta?.[index];
+            const angleData = this.angleData?.[index];
+            if (depth == null || label == null || angleData == null) {
+                text.visible = false;
+                return;
+            }
+
+            const theta = angleOffset + (angleData.start + angleData.end) / 2;
+            const bottomHalf = Math.sin(theta) >= 0;
+
+            const opticalCentering = 0.58; // Between 0 and 1 - there's no maths behind this, just what visually looks good
+            const idealRadius = (depth + 1) * radiusScale - baseInset - (radiusScale - label.height) * opticalCentering;
+            const maximumRadius = Math.sqrt(((depth + 1) * radiusScale - baseInset) ** 2 - (label.width / 2) ** 2);
+            const radius = Math.min(idealRadius, maximumRadius);
+
+            // let highlightedColor: string | undefined;
+            // if (highlighted) {
+            //     highlightedColor = key === 'label' ? this.label.color : this.secondaryLabel.color;
+            // }
+
+            text.text = label.text;
+            text.fontSize = label.fontSize;
+
+            text.fontFamily = this.label.fontFamily; // label.style.fontFamily;
+            text.fontWeight = this.label.fontWeight; // label.style.fontWeight;
+            text.fill = this.label.color; // highlightedColor ?? label.style.color;
+
+            text.textAlign = 'center';
+            text.textBaseline = bottomHalf ? 'bottom' : 'top';
+            text.translationX = Math.cos(theta) * radius;
+            text.translationY = Math.sin(theta) * radius;
+            text.rotation = bottomHalf ? theta - Math.PI * 0.5 : theta + Math.PI * 0.5;
+            text.visible = true;
+        };
+
+        this.groupSelection.selectByClass(Text).forEach((text) => {
+            updateText(text.datum, text, false, 'label');
+        });
+        this.highlightSelection.selectByClass(Text).forEach((text) => {
+            const node: _ModuleSupport.HierarchyNode = text.datum;
+            const isHighlighted = highlightedNode === node;
+            text.visible = isHighlighted;
+            if (text.visible) {
+                updateText(text.datum, text, isHighlighted, 'label');
             }
         });
     }
@@ -277,13 +420,11 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
         });
     }
 
-    override async createNodeData(): Promise<
-        _ModuleSupport.SeriesNodeDataContext<_ModuleSupport.HierarchyNode, _ModuleSupport.HierarchyNode>[]
-    > {
+    override async createNodeData() {
         return [];
     }
 
-    override getSeriesDomain(): any[] {
+    override getSeriesDomain() {
         // FIXME: Is this right?
         return [0, 1];
     }

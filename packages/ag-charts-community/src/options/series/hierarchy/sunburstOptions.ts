@@ -1,6 +1,7 @@
-import type { AgSeriesTooltip } from '../../agChartOptions';
 import type { AgChartCallbackParams } from '../../chart/callbackOptions';
-import type { CssColor } from '../../chart/types';
+import type { AgChartLabelOptions } from '../../chart/labelOptions';
+import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
+import type { CssColor, FontSize, TextOverflow, TextWrap } from '../../chart/types';
 import type { FillOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 
@@ -17,10 +18,30 @@ export interface AgSunburstSeriesTooltipRendererParams<TDatum>
 
 export interface AgSunburstSeriesHighlightStyle<_TDatum> extends AgSeriesHighlightStyle, FillOptions, StrokeOptions {}
 
+export interface AgSunburstSeriesTileLabelOptions<TDatum>
+    extends AgChartLabelOptions<TDatum, AgSunburstSeriesLabelFormatterParams<TDatum>> {
+    minimumFontSize?: FontSize;
+    /**
+     * Text wrapping strategy for treemap labels.
+     * `'always'` will always wrap text to fit within the tile.
+     * `'hyphenate'` is similar to `'always'`, but inserts a hyphen (`-`) if forced to wrap in the middle of a word.
+     * `'on-space'` will only wrap on white space. If there is no possibility to wrap a line on space and satisfy the tile dimensions, the text will be truncated.
+     * `'never'` disables text wrapping.
+     * Default: `'on-space'`
+     */
+    wrapping?: TextWrap;
+
+    overflow?: TextOverflow;
+}
+
 export interface AgSunburstSeriesThemeableOptions<TDatum = any>
     extends Omit<AgBaseSeriesThemeableOptions, 'highlightStyle'>,
         FillOptions,
         StrokeOptions {
+    /** Options for the label in a sector */
+    label?: AgSunburstSeriesTileLabelOptions<TDatum>;
+    /* Options for a secondary, smaller label in a sector - displayed under the primary label */
+    secondaryLabel?: AgSunburstSeriesTileLabelOptions<TDatum>;
     /** Spacing between the sectors */
     spacing?: number;
     /** The color range to interpolate. */
@@ -61,6 +82,11 @@ export interface AgSunburstSeriesFormatterParams<TDatum = any>
     depth: number;
     /** `true` if the tile is highlighted by hovering */
     readonly highlighted: boolean;
+}
+
+export interface AgSunburstSeriesLabelFormatterParams<_TDatum = any> extends AgSunburstSeriesOptionsKeys {
+    /** The depth of the datum in the hierarchy. */
+    depth: number;
 }
 
 /** The formatted style of a sunburst sector */

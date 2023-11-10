@@ -246,6 +246,9 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
     spacing = 0;
 
     @Validate(OPT_STRING)
+    labelKey?: string = undefined;
+
+    @Validate(OPT_STRING)
     secondaryLabelKey?: string = undefined;
 
     @Validate(OPT_FUNCTION)

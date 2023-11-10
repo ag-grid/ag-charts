@@ -60,13 +60,10 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
     childrenKey?: string = 'children';
 
     @Validate(OPT_STRING)
-    labelKey?: string;
+    sizeKey?: string = undefined;
 
     @Validate(OPT_STRING)
-    sizeKey?: string;
-
-    @Validate(OPT_STRING)
-    colorKey?: string;
+    colorKey?: string = undefined;
 
     @Validate(OPT_COLOR_STRING_ARRAY)
     colorRange?: string[] = undefined;
