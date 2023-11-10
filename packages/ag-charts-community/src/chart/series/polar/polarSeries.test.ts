@@ -27,6 +27,10 @@ const EXAMPLES: Record<string, PolarTestCase> = {
         options: examples.PIE_SERIES,
         assertions: polarChartAssertions({ seriesTypes: ['pie'] }),
     },
+    PIE_SERIES_NEGATIVE_VALUES: {
+        options: examples.PIE_SERIES_NEGATIVE_VALUES,
+        assertions: polarChartAssertions({ seriesTypes: ['pie'] }),
+    },
     PIE_SECTORS_DIFFERENT_RADII: {
         options: examples.PIE_SECTORS_DIFFERENT_RADII,
         assertions: polarChartAssertions({ seriesTypes: ['pie'] }),
