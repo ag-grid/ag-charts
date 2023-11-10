@@ -280,7 +280,7 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
         const { processedData, dataModel } = this;
 
-        if (!processedData || !dataModel) return [];
+        if (!processedData || !dataModel || !this.calculatedBins.length) return [];
 
         const yDomain = dataModel.getDomain(this, `groupAgg`, 'aggregate', processedData);
         const xDomainMin = this.calculatedBins?.[0][0];
