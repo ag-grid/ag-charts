@@ -16,7 +16,10 @@ export const SunburstSeriesModule: _ModuleSupport.SeriesModule<'sunburst'> = {
     themeTemplate: {
         __extends__: EXTENDS_SERIES_DEFAULTS,
         showInLegend: false,
-        stroke: 'white',
-        strokeWidth: 1,
+        highlightStyle: {
+            stroke: 'black',
+            strokeWidth: 2,
+            strokeOpacity: 0.2,
+        },
     },
 };

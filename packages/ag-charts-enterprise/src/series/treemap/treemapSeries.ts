@@ -68,13 +68,13 @@ class TreemapSeriesGroup {
     textAlign: TextAlign = 'center';
 
     @Validate(OPT_STRING)
-    fill: string = 'black';
+    fill?: string = undefined;
 
     @Validate(OPT_NUMBER(0, 1))
     fillOpacity: number = 1;
 
     @Validate(OPT_COLOR_STRING)
-    stroke: string = 'black';
+    stroke?: string = undefined;
 
     @Validate(OPT_NUMBER(0))
     strokeWidth: number = 1;
@@ -98,13 +98,13 @@ class TreemapSeriesTile {
     readonly secondaryLabel = new TreemapSeriesTileLabel();
 
     @Validate(OPT_STRING)
-    fill: string = 'black';
+    fill?: string = undefined;
 
     @Validate(OPT_NUMBER(0, 1))
     fillOpacity: number = 1;
 
     @Validate(OPT_COLOR_STRING)
-    stroke: string = 'black';
+    stroke?: string = undefined;
 
     @Validate(OPT_NUMBER(0))
     strokeWidth: number = 1;
@@ -129,19 +129,19 @@ class TreemapSeriesGroupHighlightStyle {
     readonly label = new TreemapSeriesTileLabel();
 
     @Validate(OPT_STRING)
-    fill?: string;
+    fill?: string = undefined;
 
     @Validate(OPT_NUMBER(0, 1))
-    fillOpacity?: number;
+    fillOpacity?: number = undefined;
 
     @Validate(OPT_COLOR_STRING)
-    stroke?: string;
+    stroke?: string = undefined;
 
     @Validate(OPT_NUMBER(0))
-    strokeWidth?: number;
+    strokeWidth?: number = undefined;
 
     @Validate(OPT_NUMBER(0, 1))
-    strokeOpacity?: number;
+    strokeOpacity?: number = undefined;
 }
 
 class TreemapSeriesTileHighlightStyle {
@@ -150,19 +150,19 @@ class TreemapSeriesTileHighlightStyle {
     readonly secondaryLabel = new TreemapSeriesTileLabel();
 
     @Validate(OPT_STRING)
-    fill?: string;
+    fill?: string = undefined;
 
     @Validate(OPT_NUMBER(0, 1))
-    fillOpacity?: number;
+    fillOpacity?: number = undefined;
 
     @Validate(OPT_COLOR_STRING)
-    stroke?: string;
+    stroke?: string = undefined;
 
     @Validate(OPT_NUMBER(0))
-    strokeWidth?: number;
+    strokeWidth?: number = undefined;
 
     @Validate(OPT_NUMBER(0, 1))
-    strokeOpacity?: number;
+    strokeOpacity?: number = undefined;
 }
 
 class TreemapSeriesHighlightStyle extends HighlightStyle {

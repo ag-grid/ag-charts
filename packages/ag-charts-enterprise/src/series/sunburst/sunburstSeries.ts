@@ -32,19 +32,19 @@ const getAngleData = (
 
 class SunburstSeriesTileHighlightStyle extends HighlightStyle {
     @Validate(OPT_STRING)
-    fill?: string;
+    fill?: string = undefined;
 
     @Validate(OPT_NUMBER(0, 1))
-    fillOpacity?: number;
+    fillOpacity?: number = undefined;
 
     @Validate(OPT_COLOR_STRING)
-    stroke?: string;
+    stroke?: string = undefined;
 
     @Validate(OPT_NUMBER(0))
-    strokeWidth?: number;
+    strokeWidth?: number = undefined;
 
     @Validate(OPT_NUMBER(0, 1))
-    strokeOpacity?: number;
+    strokeOpacity?: number = undefined;
 }
 
 export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport.HierarchyNode> {
@@ -67,19 +67,22 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
     override readonly highlightStyle = new SunburstSeriesTileHighlightStyle();
 
     @Validate(OPT_STRING)
-    fill?: string;
+    fill?: string = undefined;
 
     @Validate(NUMBER(0, 1))
     fillOpacity: number = 1;
 
     @Validate(OPT_COLOR_STRING)
-    stroke?: string;
+    stroke?: string = undefined;
 
     @Validate(NUMBER(0))
     strokeWidth: number = 0;
 
     @Validate(NUMBER(0, 1))
     strokeOpacity: number = 1;
+
+    @Validate(OPT_NUMBER())
+    spacing?: number = undefined;
 
     @Validate(OPT_FUNCTION)
     formatter?: (params: AgSunburstSeriesFormatterParams) => AgSunburstSeriesStyle = undefined;
@@ -118,7 +121,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
     }
 
     async updateNodes() {
-        const { chart, data } = this;
+        const { chart, data, spacing = 0, highlightStyle } = this;
 
         if (chart == null || data == null) return;
 
@@ -129,6 +132,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
         this.highlightGroup.translationX = width / 2;
         this.highlightGroup.translationY = height / 2;
 
+        const baseInset = spacing * 0.5;
         const radius = Math.min(width, height) / 2;
         const maxDepth = 4;
         const radiusScale = radius / (maxDepth + 1);
@@ -154,8 +158,6 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
 
             sector.visible = true;
 
-            const { highlightStyle } = this;
-
             let highlightedFill: string | undefined;
             let highlightedFillOpacity: number | undefined;
             let highlightedStroke: string | undefined;
@@ -169,19 +171,19 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
                 highlightedStrokeOpacity = highlightStyle.strokeOpacity;
             }
 
-            const fill = highlightedFill ?? node.color ?? this.fill;
-            const fillOpacity = highlightedFillOpacity ?? this.fillOpacity;
-            const stroke = highlightedStroke ?? this.stroke;
-            const strokeWidth = highlightedStrokeWidth ?? this.strokeWidth;
-            const strokeOpacity = highlightedStrokeOpacity ?? this.strokeOpacity;
-
             const format = this.getSectorFormat(node, highlighted);
 
-            sector.fill = format?.fill ?? fill;
-            sector.fillOpacity = format?.fillOpacity ?? fillOpacity;
-            sector.stroke = format?.stroke ?? stroke;
-            sector.strokeWidth = format?.strokeWidth ?? strokeWidth;
-            sector.strokeOpacity = format?.strokeOpacity ?? strokeOpacity;
+            const fill = format?.fill ?? highlightedFill ?? node.color ?? this.fill;
+            const fillOpacity = format?.fillOpacity ?? highlightedFillOpacity ?? this.fillOpacity;
+            const stroke = format?.stroke ?? highlightedStroke ?? this.stroke;
+            const strokeWidth = format?.strokeWidth ?? highlightedStrokeWidth ?? this.strokeWidth;
+            const strokeOpacity = format?.strokeOpacity ?? highlightedStrokeOpacity ?? this.strokeOpacity;
+
+            sector.fill = fill;
+            sector.fillOpacity = fillOpacity;
+            sector.stroke = stroke;
+            sector.strokeWidth = strokeWidth;
+            sector.strokeOpacity = strokeOpacity;
 
             sector.centerX = 0;
             sector.centerY = 0;
@@ -190,6 +192,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
             sector.angleOffset = angleOffset;
             sector.startAngle = angleDatum.start;
             sector.endAngle = angleDatum.end;
+            sector.inset = baseInset + strokeWidth * 0.5;
         };
 
         this.groupSelection.selectByClass(Sector).forEach((sector) => {

@@ -21,6 +21,8 @@ export interface AgSunburstSeriesThemeableOptions<TDatum = any>
     extends Omit<AgBaseSeriesThemeableOptions, 'highlightStyle'>,
         FillOptions,
         StrokeOptions {
+    /** Spacing between the sectors */
+    spacing?: number;
     /** The color range to interpolate. */
     colorRange?: CssColor[];
     /** Series-specific tooltip configuration. */
