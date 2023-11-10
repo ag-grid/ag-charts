@@ -211,14 +211,13 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
         const highlightedNode: _ModuleSupport.HierarchyNode | undefined =
             this.ctx.highlightManager?.getActiveHighlight() as any;
 
-        const descendants = Array.from(this.rootNode);
         const labelTextNode = new Text();
         labelTextNode.setFont(this.label);
 
-        const labelMeta = labelData.map((labelData, index) => {
-            const label = labelData?.label;
-            const secondaryLabel = labelData?.secondaryLabel;
-            const { depth } = descendants[index];
+        const labelMeta = Array.from(this.rootNode, (node, index) => {
+            const { depth } = node;
+            const label = labelData[index]?.label;
+            const secondaryLabel = labelData[index]?.secondaryLabel;
             const angleData = this.angleData[index];
             if (label == null || depth == null || angleData == null) return undefined;
 
@@ -227,16 +226,28 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
             const { start: startAngle, end: endAngle } = angleData;
 
             const sizeFittingHeight = (height: number) => {
-                const availableWidthUntilItHitsTheOuterRadius =
-                    2 * Math.sqrt(outerRadius ** 2 - (innerRadius + height) ** 2);
-                const deltaAngle = endAngle - startAngle;
-                const availableWidthUntilItHitsTheStraightEdges =
-                    deltaAngle < Math.PI ? 2 * innerRadius * Math.tan(deltaAngle * 0.5) : Infinity;
-                const width = Math.min(
-                    availableWidthUntilItHitsTheOuterRadius,
-                    availableWidthUntilItHitsTheStraightEdges
-                );
-                return { width, height };
+                if (depth > 0) {
+                    const availableWidthUntilItHitsTheOuterRadius =
+                        2 * Math.sqrt(outerRadius ** 2 - (innerRadius + height) ** 2);
+                    const deltaAngle = endAngle - startAngle;
+                    const availableWidthUntilItHitsTheStraightEdges =
+                        deltaAngle < Math.PI ? 2 * innerRadius * Math.tan(deltaAngle * 0.5) : Infinity;
+                    const width = Math.min(
+                        availableWidthUntilItHitsTheOuterRadius,
+                        availableWidthUntilItHitsTheStraightEdges
+                    );
+                    return { width, height };
+                } else if (node.parent?.sumSize !== node.sumSize) {
+                    // Wedge in center
+                    return { width: 0, height: 0 };
+                } else if (height > outerRadius) {
+                    // Circle in center - text too big
+                    return { width: 0, height: 0 };
+                } else {
+                    // Circle in center
+                    const width = 2 * Math.sqrt(outerRadius ** 2 - (height * 0.5) ** 2);
+                    return { width, height };
+                }
             };
 
             return formatLabels(
@@ -346,12 +357,12 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
         const updateText = (
             node: _ModuleSupport.HierarchyNode,
             text: _Scene.Text,
-            highlighted: boolean,
-            key: 'label' | 'secondaryLabel'
+            tag: TextNodeTag,
+            highlighted: boolean
         ) => {
             const { index, depth } = node;
             const meta = labelMeta?.[index];
-            const label = meta?.[key];
+            const label = tag === TextNodeTag.Primary ? meta?.label : meta?.secondaryLabel;
             const sizing = labelMetaSizing[index];
             if (depth == null || meta == null || label == null || sizing == null) {
                 text.visible = false;
@@ -372,37 +383,34 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
             text.fontWeight = this.label.fontWeight; // label.style.fontWeight;
             text.fill = this.label.color; // highlightedColor ?? label.style.color;
 
-            text.textAlign = 'center';
-            text.textBaseline = bottomHalf ? 'bottom' : 'top';
-
-            const translationRadius =
-                (key === 'secondaryLabel') === bottomHalf ? radius : radius - (height - label.height);
-            text.translationX = Math.cos(theta) * translationRadius;
-            text.translationY = Math.sin(theta) * translationRadius;
-            text.rotation = bottomHalf ? theta - Math.PI * 0.5 : theta + Math.PI * 0.5;
+            const isCenterInCircle = node.depth === 0 && node.sumSize === node.parent?.sumSize;
+            if (isCenterInCircle) {
+                text.textAlign = 'center';
+                text.textBaseline = 'top';
+                text.translationX = 0;
+                text.translationY = (tag === TextNodeTag.Primary ? 0 : height - label.height) - height * 0.5;
+                text.rotation = 0;
+            } else {
+                const translationRadius =
+                    (tag === TextNodeTag.Primary) === !bottomHalf ? radius : radius - (height - label.height);
+                text.textAlign = 'center';
+                text.textBaseline = bottomHalf ? 'bottom' : 'top';
+                text.translationX = Math.cos(theta) * translationRadius;
+                text.translationY = Math.sin(theta) * translationRadius;
+                text.rotation = bottomHalf ? theta - Math.PI * 0.5 : theta + Math.PI * 0.5;
+            }
             text.visible = true;
         };
 
-        this.groupSelection.selectByTag<_Scene.Text>(TextNodeTag.Primary).forEach((text) => {
-            updateText(text.datum, text, false, 'label');
+        this.groupSelection.selectByClass(Text).forEach((text) => {
+            updateText(text.datum, text, text.tag, false);
         });
-        this.groupSelection.selectByTag<_Scene.Text>(TextNodeTag.Secondary).forEach((text) => {
-            updateText(text.datum, text, false, 'secondaryLabel');
-        });
-        this.highlightSelection.selectByTag<_Scene.Text>(TextNodeTag.Primary).forEach((text) => {
+        this.highlightSelection.selectByClass(Text).forEach((text) => {
             const node: _ModuleSupport.HierarchyNode = text.datum;
             const isHighlighted = highlightedNode === node;
             text.visible = isHighlighted;
             if (text.visible) {
-                updateText(text.datum, text, isHighlighted, 'label');
-            }
-        });
-        this.highlightSelection.selectByTag<_Scene.Text>(TextNodeTag.Secondary).forEach((text) => {
-            const node: _ModuleSupport.HierarchyNode = text.datum;
-            const isHighlighted = highlightedNode === node;
-            text.visible = isHighlighted;
-            if (text.visible) {
-                updateText(text.datum, text, isHighlighted, 'secondaryLabel');
+                updateText(text.datum, text, text.tag, isHighlighted);
             }
         });
     }

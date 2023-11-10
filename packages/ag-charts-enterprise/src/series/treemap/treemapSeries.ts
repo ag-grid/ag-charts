@@ -630,12 +630,12 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
         const updateLabelFn = (
             node: _ModuleSupport.HierarchyNode,
             text: _Scene.Text,
-            highlighted: boolean,
-            key: 'label' | 'secondaryLabel'
+            tag: TextNodeTag,
+            highlighted: boolean
         ) => {
             const isLeaf = node.children.length === 0;
             const meta = labelMeta[node.index];
-            const label = meta?.[key];
+            const label = tag === TextNodeTag.Primary ? meta?.label : meta?.secondaryLabel;
             if (!label) {
                 text.visible = false;
                 return;
@@ -646,7 +646,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
                 const { tile, group } = highlightStyle;
                 highlightedColor = !isLeaf
                     ? group.label.color
-                    : key === 'label'
+                    : tag === TextNodeTag.Primary
                     ? tile.label.color
                     : tile.secondaryLabel.color;
             }
@@ -664,26 +664,15 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
             text.y = label.y;
             text.visible = true;
         };
-        this.groupSelection
-            .selectByTag<_Scene.Text>(TextNodeTag.Primary)
-            .forEach((text) => updateLabelFn(text.datum, text, false, 'label'));
-        this.groupSelection
-            .selectByTag<_Scene.Text>(TextNodeTag.Secondary)
-            .forEach((text) => updateLabelFn(text.datum, text, false, 'secondaryLabel'));
-        this.highlightSelection.selectByTag<_Scene.Text>(TextNodeTag.Primary).forEach((text) => {
-            const isDatumHighlighted = this.isDatumHighlighted(text.datum);
-
-            text.visible = isDatumHighlighted || highlightedSubtree.has(text.datum);
-            if (text.visible) {
-                updateLabelFn(text.datum, text, isDatumHighlighted, 'label');
-            }
+        this.groupSelection.selectByClass(Text).forEach((text) => {
+            updateLabelFn(text.datum, text, text.tag, false);
         });
-        this.highlightSelection.selectByTag<_Scene.Text>(TextNodeTag.Secondary).forEach((text) => {
+        this.highlightSelection.selectByClass(Text).forEach((text) => {
             const isDatumHighlighted = this.isDatumHighlighted(text.datum);
 
             text.visible = isDatumHighlighted || highlightedSubtree.has(text.datum);
             if (text.visible) {
-                updateLabelFn(text.datum, text, isDatumHighlighted, 'secondaryLabel');
+                updateLabelFn(text.datum, text, text.tag, isDatumHighlighted);
             }
         });
     }
