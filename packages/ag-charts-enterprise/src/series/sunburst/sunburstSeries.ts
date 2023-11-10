@@ -54,6 +54,11 @@ class SunburstSeriesTileHighlightStyle extends HighlightStyle {
     strokeOpacity?: number = undefined;
 }
 
+enum TextNodeTag {
+    Primary,
+    Secondary,
+}
+
 export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport.HierarchyNode> {
     static className = 'SunburstSeries';
     static type = 'sunburst' as const;
@@ -101,7 +106,13 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
     strokeOpacity: number = 1;
 
     @Validate(OPT_NUMBER())
-    spacing?: number = undefined;
+    labelSpacing?: number = undefined;
+
+    @Validate(OPT_NUMBER())
+    sectorSpacing?: number = undefined;
+
+    @Validate(OPT_NUMBER())
+    padding?: number = undefined;
 
     @Validate(OPT_FUNCTION)
     formatter?: (params: AgSunburstSeriesFormatterParams) => AgSunburstSeriesStyle = undefined;
@@ -168,7 +179,11 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
         const descendants: _ModuleSupport.HierarchyNode[] = Array.from(this.rootNode);
 
         const updateGroup = (group: _Scene.Group) => {
-            group.append([new Sector(), new Text()]);
+            group.append([
+                new Sector(),
+                new Text({ tag: TextNodeTag.Primary }),
+                new Text({ tag: TextNodeTag.Secondary }),
+            ]);
         };
 
         this.groupSelection.update(descendants, updateGroup, (node) => this.getDatumId(node));
@@ -176,7 +191,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
     }
 
     async updateNodes() {
-        const { chart, data, spacing = 0, highlightStyle, labelData } = this;
+        const { chart, data, sectorSpacing = 0, labelSpacing = 0, padding = 0, highlightStyle, labelData } = this;
 
         if (chart == null || data == null || labelData == null) return;
 
@@ -187,7 +202,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
         this.highlightGroup.translationX = width / 2;
         this.highlightGroup.translationY = height / 2;
 
-        const baseInset = spacing * 0.5;
+        const baseInset = sectorSpacing * 0.5;
         const radius = Math.min(width, height) / 2;
         const maxDepth = 4;
         const radiusScale = radius / (maxDepth + 1);
@@ -199,35 +214,39 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
         const descendants = Array.from(this.rootNode);
         const labelTextNode = new Text();
         labelTextNode.setFont(this.label);
+
         const labelMeta = labelData.map((labelData, index) => {
             const label = labelData?.label;
+            const secondaryLabel = labelData?.secondaryLabel;
             const { depth } = descendants[index];
             const angleData = this.angleData[index];
             if (label == null || depth == null || angleData == null) return undefined;
 
-            const labelFontSize = this.label.fontSize;
-            const minHeight = labelFontSize;
-            const availableWidthUntilItHitsTheOuterRadius =
-                2 * Math.sqrt(((depth + 1) * radiusScale) ** 2 - (depth * radiusScale + minHeight) ** 2);
-            const deltaAngle = angleData.end - angleData.start;
-            const availableWidthUntilItHitsTheStraightEdges =
-                deltaAngle < Math.PI ? 2 * depth * radiusScale * Math.tan(deltaAngle * 0.5) : Infinity;
-            const availableWidth = Math.min(
-                availableWidthUntilItHitsTheOuterRadius,
-                availableWidthUntilItHitsTheStraightEdges
+            const innerRadius = depth * radiusScale;
+            const outerRadius = (depth + 1) * radiusScale;
+            const { start: startAngle, end: endAngle } = angleData;
+
+            const sizeFittingHeight = (height: number) => {
+                const availableWidthUntilItHitsTheOuterRadius =
+                    2 * Math.sqrt(outerRadius ** 2 - (innerRadius + height) ** 2);
+                const deltaAngle = endAngle - startAngle;
+                const availableWidthUntilItHitsTheStraightEdges =
+                    deltaAngle < Math.PI ? 2 * innerRadius * Math.tan(deltaAngle * 0.5) : Infinity;
+                const width = Math.min(
+                    availableWidthUntilItHitsTheOuterRadius,
+                    availableWidthUntilItHitsTheStraightEdges
+                );
+                return { width, height };
+            };
+
+            return formatLabels(
+                label,
+                this.label,
+                secondaryLabel,
+                this.secondaryLabel,
+                { spacing: labelSpacing, padding },
+                sizeFittingHeight
             );
-
-            const labelText = Text.wrap(label, availableWidth, minHeight, this.label, 'on-space');
-            if (labelText === '' || labelText === Text.ellipsis) return undefined;
-
-            labelTextNode.text = labelText;
-            labelTextNode.fontSize = labelFontSize;
-            const { width, height } = labelTextNode.computeBBox();
-
-            const labelWidth = width;
-            const labelHeight = Math.max(height, labelFontSize);
-
-            return { text: labelText, fontSize: labelFontSize, width: labelWidth, height: labelHeight };
         });
 
         this.rootNode.walk((node) => {
@@ -299,6 +318,31 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
             }
         });
 
+        const labelMetaSizing = Array.from(this.rootNode, (node) => {
+            const { index, depth } = node;
+            const meta = labelMeta?.[index];
+            const angleData = this.angleData?.[index];
+            if (depth == null || meta == null || angleData == null) return undefined;
+
+            const height =
+                meta.secondaryLabel != null
+                    ? meta.label.height + labelSpacing + meta.secondaryLabel.height
+                    : meta.label.height;
+            const width =
+                meta.secondaryLabel != null ? Math.max(meta.label.width, meta.secondaryLabel.width) : meta.label.width;
+
+            const theta = angleOffset + (angleData.start + angleData.end) / 2;
+            const bottomHalf = Math.sin(theta) >= 0;
+
+            const opticalCentering = 0.58; // Between 0 and 1 - there's no maths behind this, just what visually looks good
+            const outerRadius = (depth + 1) * radiusScale - baseInset;
+            const idealRadius = outerRadius - (radiusScale - height) * opticalCentering;
+            const maximumRadius = Math.sqrt((outerRadius - padding) ** 2 - (width / 2) ** 2);
+            const radius = Math.min(idealRadius, maximumRadius);
+
+            return { height, width, bottomHalf, radius, theta };
+        });
+
         const updateText = (
             node: _ModuleSupport.HierarchyNode,
             text: _Scene.Text,
@@ -306,20 +350,15 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
             key: 'label' | 'secondaryLabel'
         ) => {
             const { index, depth } = node;
-            const label = labelMeta?.[index];
-            const angleData = this.angleData?.[index];
-            if (depth == null || label == null || angleData == null) {
+            const meta = labelMeta?.[index];
+            const label = meta?.[key];
+            const sizing = labelMetaSizing[index];
+            if (depth == null || meta == null || label == null || sizing == null) {
                 text.visible = false;
                 return;
             }
 
-            const theta = angleOffset + (angleData.start + angleData.end) / 2;
-            const bottomHalf = Math.sin(theta) >= 0;
-
-            const opticalCentering = 0.58; // Between 0 and 1 - there's no maths behind this, just what visually looks good
-            const idealRadius = (depth + 1) * radiusScale - baseInset - (radiusScale - label.height) * opticalCentering;
-            const maximumRadius = Math.sqrt(((depth + 1) * radiusScale - baseInset) ** 2 - (label.width / 2) ** 2);
-            const radius = Math.min(idealRadius, maximumRadius);
+            const { height, bottomHalf, radius, theta } = sizing;
 
             // let highlightedColor: string | undefined;
             // if (highlighted) {
@@ -335,21 +374,35 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
 
             text.textAlign = 'center';
             text.textBaseline = bottomHalf ? 'bottom' : 'top';
-            text.translationX = Math.cos(theta) * radius;
-            text.translationY = Math.sin(theta) * radius;
+
+            const translationRadius =
+                (key === 'secondaryLabel') === bottomHalf ? radius : radius - (height - label.height);
+            text.translationX = Math.cos(theta) * translationRadius;
+            text.translationY = Math.sin(theta) * translationRadius;
             text.rotation = bottomHalf ? theta - Math.PI * 0.5 : theta + Math.PI * 0.5;
             text.visible = true;
         };
 
-        this.groupSelection.selectByClass(Text).forEach((text) => {
+        this.groupSelection.selectByTag<_Scene.Text>(TextNodeTag.Primary).forEach((text) => {
             updateText(text.datum, text, false, 'label');
         });
-        this.highlightSelection.selectByClass(Text).forEach((text) => {
+        this.groupSelection.selectByTag<_Scene.Text>(TextNodeTag.Secondary).forEach((text) => {
+            updateText(text.datum, text, false, 'secondaryLabel');
+        });
+        this.highlightSelection.selectByTag<_Scene.Text>(TextNodeTag.Primary).forEach((text) => {
             const node: _ModuleSupport.HierarchyNode = text.datum;
             const isHighlighted = highlightedNode === node;
             text.visible = isHighlighted;
             if (text.visible) {
                 updateText(text.datum, text, isHighlighted, 'label');
+            }
+        });
+        this.highlightSelection.selectByTag<_Scene.Text>(TextNodeTag.Secondary).forEach((text) => {
+            const node: _ModuleSupport.HierarchyNode = text.datum;
+            const isHighlighted = highlightedNode === node;
+            text.visible = isHighlighted;
+            if (text.visible) {
+                updateText(text.datum, text, isHighlighted, 'secondaryLabel');
             }
         });
     }

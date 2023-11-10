@@ -42,7 +42,7 @@ export class Sector extends Path {
         const { angleOffset, inset } = this;
         const startAngle = this.startAngle + angleOffset;
         const endAngle = this.endAngle + angleOffset;
-        const baseInnerRadius = this.innerRadius === 0 ? 0 : this.innerRadius + inset;
+        const baseInnerRadius = this.innerRadius <= 0 ? 0 : this.innerRadius + inset;
         const innerRadius = Math.min(baseInnerRadius, this.outerRadius - inset);
         const outerRadius = Math.max(baseInnerRadius, this.outerRadius - inset);
         const fullPie = isEqual(normalizeAngle360(this.startAngle), normalizeAngle360(this.endAngle));
@@ -58,8 +58,8 @@ export class Sector extends Path {
                 path.arc(centerX, centerY, innerRadius, endAngle, startAngle, true);
             }
         } else {
-            const innerAngleOffset = inset / innerRadius;
-            const outerAngleOffset = inset / outerRadius;
+            const innerAngleOffset = inset !== 0 && innerRadius !== 0 ? inset / innerRadius : 0;
+            const outerAngleOffset = inset !== 0 && outerRadius !== 0 ? inset / outerRadius : 0;
             path.moveTo(
                 centerX + innerRadius * Math.cos(startAngle + innerAngleOffset),
                 centerY + innerRadius * Math.sin(startAngle + innerAngleOffset)

@@ -21,5 +21,9 @@ export const SunburstSeriesModule: _ModuleSupport.SeriesModule<'sunburst'> = {
             strokeWidth: 2,
             strokeOpacity: 0.2,
         },
+        label: {
+            wrapping: 'never',
+        },
+        padding: 3,
     },
 };

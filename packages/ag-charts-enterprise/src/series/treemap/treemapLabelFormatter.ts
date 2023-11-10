@@ -113,21 +113,25 @@ type StackedLabelFormatting = {
     secondaryLabel: LabelFormatting | undefined;
 };
 
+type SizeFittingHeightFn = (height: number) => {
+    width: number;
+    height: number;
+};
+
 export function formatStackedLabels(
     labelValue: string,
     labelProps: TreemapSeriesTileLabel,
     secondaryLabelValue: string,
     secondaryLabelProps: TreemapSeriesTileLabel,
-    { width, height }: _Scene.BBox,
-    { spacing, padding }: LayoutParams
+    { spacing, padding }: LayoutParams,
+    sizeFittingHeight: SizeFittingHeightFn
 ) {
-    const availableWidth = width - 2 * padding;
-    const availableHeight = height - 2 * padding - spacing;
-
+    const widthAdjust = 2 * padding;
+    const heightAdjust = 2 * padding + spacing;
     const minimumHeight =
         (labelProps.minimumFontSize ?? labelProps.fontSize) +
         (secondaryLabelProps.minimumFontSize ?? secondaryLabelProps.fontSize);
-    if (minimumHeight > availableHeight) {
+    if (minimumHeight > sizeFittingHeight(minimumHeight + heightAdjust).height - heightAdjust) {
         return undefined;
     }
 
@@ -162,6 +166,9 @@ export function formatStackedLabels(
     return maximumValueSatisfying<StackedLabelFormatting>(0, fontSizeCandidates.length - 1, (index) => {
         const { labelFontSize, secondaryLabelFontSize } = fontSizeCandidates[index];
         const allowTruncation = index === 0;
+        const sizeFitting = sizeFittingHeight(labelFontSize + secondaryLabelFontSize + heightAdjust);
+        const availableWidth = sizeFitting.width - widthAdjust;
+        const availableHeight = sizeFitting.height - heightAdjust;
 
         if (labelFontSize + secondaryLabelFontSize > availableHeight) {
             return undefined;
@@ -233,13 +240,11 @@ export function formatStackedLabels(
 export function formatSingleLabel(
     value: string,
     props: TreemapSeriesTileLabel,
-    { width, height }: _Scene.BBox,
-    { padding }: LayoutParams
+    { padding }: LayoutParams,
+    sizeFittingHeight: SizeFittingHeightFn
 ) {
+    const sizeAdjust = 2 * padding;
     const minimumFontSize = props.minimumFontSize ?? props.fontSize;
-
-    const availableWidth = width - 2 * padding;
-    const availableHeight = height - 2 * padding;
 
     const textNode = new Text();
     textNode.setFont(props);
@@ -252,6 +257,10 @@ export function formatSingleLabel(
     };
 
     return maximumValueSatisfying<StackedLabelFormatting>(minimumFontSize, props.fontSize, (fontSize) => {
+        const sizeFitting = sizeFittingHeight(fontSize + sizeAdjust);
+        const availableWidth = sizeFitting.width - sizeAdjust;
+        const availableHeight = sizeFitting.height - sizeAdjust;
+
         if (fontSize > availableHeight) {
             return undefined;
         }
@@ -294,16 +303,23 @@ export function formatLabels(
     label: TreemapSeriesTileLabel,
     secondaryLabelValue: string | undefined,
     secondaryLabel: TreemapSeriesTileLabel,
-    bbox: _Scene.BBox,
-    layoutParams: LayoutParams
+    layoutParams: LayoutParams,
+    sizeFittingHeight: SizeFittingHeightFn
 ): StackedLabelFormatting | undefined {
     let value: StackedLabelFormatting | undefined;
 
     if (secondaryLabelValue != null) {
-        value = formatStackedLabels(labelValue, label, secondaryLabelValue, secondaryLabel, bbox, layoutParams);
+        value = formatStackedLabels(
+            labelValue,
+            label,
+            secondaryLabelValue,
+            secondaryLabel,
+            layoutParams,
+            sizeFittingHeight
+        );
     }
 
-    value ??= formatSingleLabel(labelValue, label, bbox, layoutParams);
+    value ??= formatSingleLabel(labelValue, label, layoutParams, sizeFittingHeight);
 
     return value;
 }

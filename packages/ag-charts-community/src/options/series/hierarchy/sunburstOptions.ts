@@ -42,8 +42,12 @@ export interface AgSunburstSeriesThemeableOptions<TDatum = any>
     label?: AgSunburstSeriesTileLabelOptions<TDatum>;
     /* Options for a secondary, smaller label in a sector - displayed under the primary label */
     secondaryLabel?: AgSunburstSeriesTileLabelOptions<TDatum>;
+    /** Spacing the label and secondary label */
+    labelSpacing?: number;
     /** Spacing between the sectors */
-    spacing?: number;
+    sectorSpacing?: number;
+    /** Minimum distance between text and the edges of the sectors */
+    padding?: number;
     /** The color range to interpolate. */
     colorRange?: CssColor[];
     /** Series-specific tooltip configuration. */
@@ -65,6 +69,8 @@ export interface AgSunburstSeriesOptions<TDatum = any>
 export interface AgSunburstSeriesOptionsKeys {
     /** The name of the node key containing the label. */
     labelKey?: string;
+    /** The name of the node key containing a secondary label. */
+    secondaryLabelKey?: string;
     /** The name of the node key containing the children. Defaults to `children`. */
     childrenKey?: string;
     /** The name of the node key containing the size value. */
