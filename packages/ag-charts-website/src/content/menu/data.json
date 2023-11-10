@@ -80,6 +80,10 @@
                         "path": "markers"
                     },
                     {
+                        "title": "Formatters",
+                        "path": "formatters"
+                    },
+                    {
                         "title": "Cross lines",
                         "path": "axes-cross-lines"
                     },
@@ -96,10 +100,6 @@
                     {
                         "title": "Tooltips",
                         "path": "tooltips"
-                    },
-                    {
-                        "title": "Formatters",
-                        "path": "formatters"
                     },
                     {
                         "title": "Series Highlighting",
