@@ -32,6 +32,18 @@ export class HierarchyNode implements SeriesNodeDatum {
         this.midPoint = { x: 0, y: 0 };
     }
 
+    contains(other: HierarchyNode): boolean {
+        let current: HierarchyNode | undefined = other;
+        // Index check is a performance optimization - it does not affect correctness
+        while (current != null && current.index >= this.index) {
+            if (current === this) {
+                return true;
+            }
+            current = current.parent;
+        }
+        return false;
+    }
+
     walk(callback: (node: HierarchyNode) => void, order = HierarchyNode.Walk.PreOrder) {
         if (order === HierarchyNode.Walk.PreOrder) {
             callback(this);

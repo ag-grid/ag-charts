@@ -492,8 +492,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
     }
 
     override getSeriesDomain() {
-        // FIXME: Is this right?
-        return [0, 1];
+        return [NaN, NaN];
     }
 
     override getLegendData() {

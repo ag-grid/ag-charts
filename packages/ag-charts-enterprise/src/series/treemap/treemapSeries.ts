@@ -517,11 +517,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
         this.highlightSelection.update(descendants, updateGroup, (node) => this.getDatumId(node));
     }
 
-    private isDatumHighlighted(node: _ModuleSupport.HierarchyNode) {
-        const highlightedNode = this.ctx.highlightManager?.getActiveHighlight();
-        return node === highlightedNode && (node.children.length === 0 || this.group.interactive);
-    }
-
     private getTileFormat(node: _ModuleSupport.HierarchyNode, isHighlighted: boolean): AgTreemapSeriesStyle {
         const { datum, color: fill, depth, children } = node;
         const {
@@ -567,9 +562,13 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
         const bboxes: (_Scene.BBox | undefined)[] = Array.from(this.rootNode, () => undefined);
         this.squarify(rootNode, new BBox(0, 0, width, height), bboxes);
 
-        const labelMeta = this.buildLabelMeta(bboxes);
+        let highlightedNode: _ModuleSupport.HierarchyNode | undefined =
+            this.ctx.highlightManager?.getActiveHighlight() as any;
+        if (highlightedNode != null && !this.group.interactive && highlightedNode.children.length !== 0) {
+            highlightedNode = undefined;
+        }
 
-        const highlightedSubtree = this.getHighlightedSubtree();
+        const labelMeta = this.buildLabelMeta(bboxes);
 
         this.updateNodeMidPoint(bboxes);
 
@@ -619,9 +618,9 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
         };
         this.groupSelection.selectByClass(Rect).forEach((rect) => updateRectFn(rect.datum, rect, false));
         this.highlightSelection.selectByClass(Rect).forEach((rect) => {
-            const isDatumHighlighted = this.isDatumHighlighted(rect.datum);
+            const isDatumHighlighted = rect.datum === highlightedNode;
 
-            rect.visible = isDatumHighlighted || highlightedSubtree.has(rect.datum);
+            rect.visible = isDatumHighlighted || (highlightedNode?.contains(rect.datum) ?? false);
             if (rect.visible) {
                 updateRectFn(rect.datum, rect, isDatumHighlighted);
             }
@@ -668,9 +667,9 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
             updateLabelFn(text.datum, text, text.tag, false);
         });
         this.highlightSelection.selectByClass(Text).forEach((text) => {
-            const isDatumHighlighted = this.isDatumHighlighted(text.datum);
+            const isDatumHighlighted = text.datum === highlightedNode;
 
-            text.visible = isDatumHighlighted || highlightedSubtree.has(text.datum);
+            text.visible = isDatumHighlighted || (highlightedNode?.contains(text.datum) ?? false);
             if (text.visible) {
                 updateLabelFn(text.datum, text, text.tag, isDatumHighlighted);
             }
@@ -685,12 +684,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
                 node.midPoint.y = bbox.y;
             }
         });
-    }
-
-    private getHighlightedSubtree(): Set<_ModuleSupport.HierarchyNode> {
-        const highlightedNode: _ModuleSupport.HierarchyNode | undefined =
-            this.ctx.highlightManager?.getActiveHighlight() as any;
-        return highlightedNode != null ? new Set(highlightedNode) : new Set();
     }
 
     buildLabelMeta(bboxes: (_Scene.BBox | undefined)[]) {
@@ -802,7 +795,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
     }
 
     override getSeriesDomain(_direction: _ModuleSupport.ChartAxisDirection): any[] {
-        return [0, 1];
+        return [NaN, NaN];
     }
 
     getTooltipHtml(node: _ModuleSupport.HierarchyNode): string {
