@@ -34,7 +34,7 @@ const options: AgChartOptions = {
         },
     },
     title: {
-        text: 'Average Station Entries',
+        text: 'Station Entries',
         fontSize: 18,
     },
     subtitle: {
