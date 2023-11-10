@@ -134,6 +134,22 @@ describe('BulletSeries', () => {
         await compare();
     });
 
+    it('should use explicit axis max', async () => {
+        chart = AgEnterpriseCharts.create({
+            ...opts,
+            axes: [{ type: 'number', max: 50 }, { type: 'category' }],
+            series: [
+                {
+                    type: 'bullet',
+                    data: [{ income: 11 }],
+                    scale: { max: 20 },
+                    valueKey: 'income',
+                },
+            ],
+        });
+        await compare();
+    });
+
     it('should process first datum only', async () => {
         chart = AgEnterpriseCharts.create({
             ...opts,
