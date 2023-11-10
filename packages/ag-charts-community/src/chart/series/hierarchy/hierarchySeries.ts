@@ -81,6 +81,7 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
     colorRange?: string[] = undefined;
 
     rootNode = new HierarchyNode(this, 0, undefined, 0, undefined, 0, undefined, undefined, []);
+    maxDepth = 0;
 
     constructor(moduleCtx: ModuleContext) {
         super({
@@ -160,6 +161,7 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
         }
 
         this.rootNode = rootNode;
+        this.maxDepth = maxDepth;
     }
 
     getDatumIdFromData(node: HierarchyNode) {

@@ -194,7 +194,16 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
     }
 
     async updateNodes() {
-        const { chart, data, sectorSpacing = 0, labelSpacing = 0, padding = 0, highlightStyle, labelData } = this;
+        const {
+            chart,
+            data,
+            maxDepth,
+            sectorSpacing = 0,
+            labelSpacing = 0,
+            padding = 0,
+            highlightStyle,
+            labelData,
+        } = this;
 
         if (chart == null || data == null || labelData == null) return;
 
@@ -207,7 +216,6 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
 
         const baseInset = sectorSpacing * 0.5;
         const radius = Math.min(width, height) / 2;
-        const maxDepth = 4;
         const radiusScale = radius / (maxDepth + 1);
         const angleOffset = -Math.PI / 2;
 

@@ -52,6 +52,9 @@
             "seriesExampleName": "stacked-radial-bar"
         },
         {
+            "seriesExampleName": "market-index-sunburst"
+        },
+        {
             "seriesExampleName": "market-index-treemap"
         }
     ],
@@ -496,6 +499,19 @@
             ]
         },
         {
+            "title": "Sunburst",
+            "name": "sunburst",
+            "icon": "chartsSunburst",
+            "enterprise": true,
+            "examples": [
+                {
+                    "title": "Market Index Sunburst",
+                    "description": "A sunburst of a snapshot of the S&P 500 stock market index.",
+                    "name": "market-index-Sunburst"
+                }
+            ]
+        },
+        {
             "title": "Treemap",
             "name": "treemap",
             "icon": "chartsTreemap",
@@ -507,13 +523,6 @@
                     "name": "market-index-treemap"
                 }
             ]
-        },
-        {
-            "title": "Sunburst",
-            "name": "sunburst",
-            "icon": "chartsSunburst",
-            "enterprise": true,
-            "examples": []
         },
         {
             "title": "Icicle",
