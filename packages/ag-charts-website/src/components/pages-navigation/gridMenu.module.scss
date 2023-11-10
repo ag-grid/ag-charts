@@ -114,7 +114,7 @@ ul.menuInner {
 button:not([class^='ag-']).sectionHeader {
     width: 100%;
     padding-top: $size-half;
-    padding-bottom: $size-half;
+    padding-bottom: $size-1;
     margin-top: 0;
     font-weight: var(--font-weight-bold);
     border: 2px solid transparent;
