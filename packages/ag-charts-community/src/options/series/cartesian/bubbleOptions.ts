@@ -34,7 +34,7 @@ export interface AgBubbleSeriesOptionsKeys {
     /** The key to use to retrieve y-values from the data.  */
     yKey: string;
     /** The key to use to retrieve size values from the data, used to control the size of the markers.  */
-    sizeKey?: string;
+    sizeKey: string;
     /** The key to use to retrieve values from the data to use as labels for the markers.  */
     labelKey?: string;
 }

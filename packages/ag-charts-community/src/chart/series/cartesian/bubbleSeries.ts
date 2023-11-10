@@ -145,7 +145,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
         const {
             xKey,
             yKey,
-            sizeKey = '',
+            sizeKey,
             labelKey,
             colorScale,
             colorDomain,
@@ -156,7 +156,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
             ctx: { animationManager },
         } = this;
 
-        if (xKey == null || yKey == null || data == null) return;
+        if (xKey == null || yKey == null || sizeKey === null || data == null) return;
 
         const { isContinuousX, isContinuousY } = this.isContinuous();
 
@@ -212,7 +212,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
             dataModel,
             processedData,
             colorScale,
-            sizeKey,
+            sizeKey = '',
             colorKey,
         } = this;
 
@@ -320,7 +320,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
         isHighlight: boolean;
     }) {
         const { markerSelection, isHighlight: highlighted } = opts;
-        const { xKey = '', yKey = '', sizeKey, labelKey, marker } = this;
+        const { xKey = '', yKey = '', sizeKey = '', labelKey, marker } = this;
         const baseStyle = mergeDefaults(highlighted && this.highlightStyle.item, marker.getStyle());
 
         this.sizeScale.range = [marker.size, marker.maxSize];
@@ -442,10 +442,10 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
     }
 
     getLegendData(): CategoryLegendDatum[] {
-        const { id, data, xKey, yKey, yName, title, visible, marker } = this;
+        const { id, data, xKey, yKey, sizeKey, yName, title, visible, marker } = this;
         const { shape, fill, stroke, fillOpacity, strokeOpacity, strokeWidth } = marker;
 
-        if (!(data?.length && xKey && yKey)) {
+        if (!(data?.length && xKey && yKey && sizeKey)) {
             return [];
         }
 
