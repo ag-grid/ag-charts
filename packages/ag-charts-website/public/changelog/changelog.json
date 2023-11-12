@@ -1,0 +1,28 @@
+[
+    {
+        "key": "AG-9592",
+        "issueType": "Bug",
+        "summary": "[Regression] When pressing TAB, currently focused value is not selected in agRichSelectCellEditor ",
+        "versions": ["30.2.1"],
+        "status": "Done",
+        "resolution": "Done",
+        "features": ["Cell_Editing"],
+        "moreInformation": null,
+        "deprecationNotes": null,
+        "breakingChangesNotes": null,
+        "documentationUrl": null
+    },
+    {
+        "key": "AG-9581",
+        "issueType": "Bug",
+        "summary": "[Regression] When agRichSelectCellEditor value set to null, cellValueChanged event gets triggered upon cancelling edit",
+        "versions": ["30.2.1"],
+        "status": "Done",
+        "resolution": "Done",
+        "features": null,
+        "moreInformation": null,
+        "deprecationNotes": null,
+        "breakingChangesNotes": null,
+        "documentationUrl": null
+    }
+]

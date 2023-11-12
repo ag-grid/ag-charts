@@ -16,6 +16,87 @@
     event-pubsub "4.3.0"
     js-message "1.0.7"
 
+"@ag-grid-community/client-side-row-model@latest":
+  version "30.2.1"
+  resolved "https://registry.yarnpkg.com/@ag-grid-community/client-side-row-model/-/client-side-row-model-30.2.1.tgz#88c0b2d17555c16316c34f7ef22f4642f1f75d2a"
+  integrity sha512-LeFAsq2RuDXwjoUVLqlUgBYTHyCbyQozaQ4JY8SzBEABc8bOanIfsY3YONUckn+KWtRUrH5nGYA8bBeGrc20MQ==
+  dependencies:
+    "@ag-grid-community/core" "~30.2.1"
+
+"@ag-grid-community/core@~30.2.1":
+  version "30.2.1"
+  resolved "https://registry.yarnpkg.com/@ag-grid-community/core/-/core-30.2.1.tgz#9e4dcc4178ae2821ea3e4a637e5538a5455ae4d3"
+  integrity sha512-jGRBfRFsLwxch8GJGjbVI2FVbB+/fy1s4mm8//+kOkcPFlq4BbLFELvU4Kupwk1YkhduxUC50GTYyFzmF0rSIQ==
+
+"@ag-grid-community/react@latest":
+  version "30.2.1"
+  resolved "https://registry.yarnpkg.com/@ag-grid-community/react/-/react-30.2.1.tgz#32d641ad1e2b73fe1f409f0e32692c1f3b4fcd9e"
+  integrity sha512-bSrEh/zVI5oL0pf4cXRvZYiLuMjzWhyS0o5THzS4fqifmPczmH0HU3iTgQjH6QUNHAX3Ch4ZficVWdD005j/vw==
+  dependencies:
+    prop-types "^15.8.1"
+
+"@ag-grid-community/styles@latest":
+  version "30.2.1"
+  resolved "https://registry.yarnpkg.com/@ag-grid-community/styles/-/styles-30.2.1.tgz#ab625b7689659f65c2d7f074aa7872918154c572"
+  integrity sha512-Tvs7Rtz4aSA5H2Vlerh6BCLIEa93jR0KLVRVwYOIHzwaNxovKYeMs/e8fr2comxsTAPxqozrMpzQ8Oa/RHKC7g==
+
+"@ag-grid-enterprise/column-tool-panel@latest":
+  version "30.2.1"
+  resolved "https://registry.yarnpkg.com/@ag-grid-enterprise/column-tool-panel/-/column-tool-panel-30.2.1.tgz#627c01cb6ef66615d2211ee7cc7cb1abec580299"
+  integrity sha512-w4Ed7kKExl5hBhojq3VirK+Qwhp3vfPbLeTnM1AC1unqS6sWAnDQsZb6i9oXKmtMsobDVki+2lMncU+Y0pq44Q==
+  dependencies:
+    "@ag-grid-community/core" "~30.2.1"
+    "@ag-grid-enterprise/core" "~30.2.1"
+    "@ag-grid-enterprise/row-grouping" "~30.2.1"
+    "@ag-grid-enterprise/side-bar" "~30.2.1"
+
+"@ag-grid-enterprise/core@~30.2.1":
+  version "30.2.1"
+  resolved "https://registry.yarnpkg.com/@ag-grid-enterprise/core/-/core-30.2.1.tgz#d1bd219c1db10336ad1c58688815b36dc822ee61"
+  integrity sha512-POVdYwMho+WPQ1wrNwQwX4ihGvdq+UbLIHQfWnnZn5c2FLFiUmlxAhCZAXXiOeXq5MDHBKqKrTRemb9TUbBRcg==
+  dependencies:
+    "@ag-grid-community/core" "~30.2.1"
+
+"@ag-grid-enterprise/master-detail@latest":
+  version "30.2.1"
+  resolved "https://registry.yarnpkg.com/@ag-grid-enterprise/master-detail/-/master-detail-30.2.1.tgz#f47f7e0d4aae66142117bfd5bb3ccef9839caa5c"
+  integrity sha512-GSsR7p0Os9fUHr7jJXtbquQwVUj5SBzgd92qhQ7OwIkQVf5bgrnLacgQKjV4xMKMXNL6om9EN8mbtfpwmOJECg==
+  dependencies:
+    "@ag-grid-community/core" "~30.2.1"
+    "@ag-grid-enterprise/core" "~30.2.1"
+
+"@ag-grid-enterprise/row-grouping@~30.2.1":
+  version "30.2.1"
+  resolved "https://registry.yarnpkg.com/@ag-grid-enterprise/row-grouping/-/row-grouping-30.2.1.tgz#d75e4b14caf3dda584fec7efed97c8129490eac3"
+  integrity sha512-sjcSjkaP0B+JqhH7GyRo8FA1920Aj58ewZbkXgiqJaU+VvpvwqhpdNNnT0wGaZgK6OYPuBL0IzQZ1uq0sTK0kw==
+  dependencies:
+    "@ag-grid-community/core" "~30.2.1"
+    "@ag-grid-enterprise/core" "~30.2.1"
+
+"@ag-grid-enterprise/set-filter@latest":
+  version "30.2.1"
+  resolved "https://registry.yarnpkg.com/@ag-grid-enterprise/set-filter/-/set-filter-30.2.1.tgz#6f33e1d60dfbc4b4a7bb22eb485f590d5cd10c1e"
+  integrity sha512-VsrAzj1I21CKWorcxuafmyW3MdTgZ/Va3/jkB/qRStA3WaePKHlHG3FwfmzDDXt0uobkTgXyVcLkLMwYC7xiXg==
+  dependencies:
+    "@ag-grid-community/core" "~30.2.1"
+    "@ag-grid-enterprise/core" "~30.2.1"
+
+"@ag-grid-enterprise/side-bar@~30.2.1":
+  version "30.2.1"
+  resolved "https://registry.yarnpkg.com/@ag-grid-enterprise/side-bar/-/side-bar-30.2.1.tgz#7633c85d6cef5d4ba3192f7f1613ef092989468f"
+  integrity sha512-1uFLxMiQumzsebow+RFHyai8Z9PZsMvMINsqDva+64BADvtdo76l6xXIFqZ61WUm8Til2LTRPOoGC4S4Ji6eaQ==
+  dependencies:
+    "@ag-grid-community/core" "~30.2.1"
+    "@ag-grid-enterprise/core" "~30.2.1"
+
+"@ag-grid-enterprise/status-bar@latest":
+  version "30.2.1"
+  resolved "https://registry.yarnpkg.com/@ag-grid-enterprise/status-bar/-/status-bar-30.2.1.tgz#4db12cf0a6b5339c406675b0a8bcc77e2e52beed"
+  integrity sha512-UXuq1iB3DVWt2iPAOZ7Q4Ykp19627Dm0AcmzNFWL3vKgh/7F3k/Fg4Y7p5Nx0njXeR8dbLBAskkDspRmApOXaw==
+  dependencies:
+    "@ag-grid-community/core" "~30.2.1"
+    "@ag-grid-enterprise/core" "~30.2.1"
+
 "@algolia/cache-browser-local-storage@4.18.0":
   version "4.18.0"
   resolved "https://registry.npmjs.org/@algolia/cache-browser-local-storage/-/cache-browser-local-storage-4.18.0.tgz"
