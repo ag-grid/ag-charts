@@ -127,10 +127,10 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
 
         // add website dark mode handling code to doc examples - this code is later striped out from the code viewer / plunker
         if (!isGalleryExample) {
-            const chartAPI = isEnterprise ? 'agChartsEnterprise' : 'agCharts';
+            const chartAPI = isEnterprise ? 'agChartsEnterprise.AgEnterprise' : 'agCharts.AgChart';
 
             if (!mainJs.includes(`chart = ${chartAPI}`)) {
-                mainJs = mainJs.replace(`${chartAPI}.`, `var chart = ${chartAPI}.`);
+                mainJs = mainJs.replace(`${chartAPI}`, `var chart = ${chartAPI}`);
             }
 
             mainJs =
@@ -185,7 +185,6 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
 
         // add website dark mode handling code to doc examples - this code is later striped out from the code viewer / plunker
         if (!isGalleryExample) {
-            // const chartAPI = isEnterprise ? 'agChartsEnterprise' : 'agCharts';
             const chartAPI = isEnterprise ? 'AgEnterpriseCharts' : 'AgChart';
             if (!mainTsx.includes(`chart = ${chartAPI}`)) {
                 mainTsx = mainTsx.replace(`${chartAPI}.create(options);`, `var chart = ${chartAPI}.create(options);`);
@@ -238,10 +237,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
 
         // add website dark mode handling code to doc examples - this code is later striped out from the code viewer / plunker
         if (!isGalleryExample) {
-            indexTsx = indexTsx.replace(
-                `return <AgChartsReact`,
-                `
-                /** DARK MODE START **/
+            const codeToInsert = `/** DARK MODE START **/
                 options.theme = localStorage['documentation:darkmode'] === 'true' ? 'ag-default-dark' : 'ag-default';
                 window.addEventListener('message', (event) => {
                     if (event.data?.type === 'color-scheme-change') {
@@ -251,9 +247,10 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
                         }));
                     }
                 });
-                /** DARK MODE END **/
-                return <AgChartsReact`
-            );
+                /** DARK MODE END **/`;
+
+            const regex = /(const \[options, setOptions] = useState<[\s\S]*?\);)/;
+            indexTsx = indexTsx.replace(regex, `$1${codeToInsert}`);
         }
 
         return {

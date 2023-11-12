@@ -24,9 +24,9 @@ export async function get(context: APIContext) {
     });
 
     const files: Record<string, string> = {};
-    // for (const [fileName, fileText] of Object.entries(generatedContents?.files ?? {})) {
-    //     files[fileName] = await format(fileName, fileText);
-    // }
+    for (const [fileName, fileText] of Object.entries(generatedContents?.files ?? {})) {
+        files[fileName] = await format(fileName, fileText);
+    }
 
     return new Response(JSON.stringify({ ...generatedContents, files }), {
         status: 200,
