@@ -39,13 +39,6 @@
                 ]
             },
             {
-                "title": "Resources",
-                "items": [
-                    { "title": "Changelog", "path": "changelog" },
-                    { "title": "Pipeline", "path": "pipeline" }
-                ]
-            },
-            {
                 "title": "Axis Configuration",
                 "path": "axes",
                 "items": [

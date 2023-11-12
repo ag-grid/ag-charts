@@ -4,8 +4,8 @@ import { SITE_BASE_URL, SITE_URL } from '../../constants';
 
 const IS_SSR = typeof window === 'undefined';
 
-const bugIcon = `${SITE_URL}${SITE_BASE_URL ?? ''}/images/issue-type-icons/bug-icon.svg`;
-const taskIcon = `${SITE_URL}${SITE_BASE_URL ?? ''}/images/issue-type-icons/task-icon.svg`;
+const bugIcon = `${SITE_URL}${SITE_BASE_URL ?? ''}images/issue-type-icons/bug-icon.svg`;
+const taskIcon = `${SITE_URL}${SITE_BASE_URL ?? ''}images/issue-type-icons/task-icon.svg`;
 
 const PaddingCellRenderer = forwardRef((props, ref) => {
     const icon = props.valueFormatted === 'Defect' ? bugIcon : taskIcon;
