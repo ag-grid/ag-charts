@@ -9,6 +9,28 @@ import { useEffect, useState } from 'react';
 import { CodeOptions } from './CodeOptions';
 import styles from './CodeViewer.module.scss';
 
+const startDelimiter = '/** DARK MODE START **/';
+const endDelimiter = '/** DARK MODE END **/';
+const escapedStart = startDelimiter.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const escapedEnd = endDelimiter.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const regex = new RegExp(`${escapedStart}[\\s\\S]*?${escapedEnd}`, 'g');
+
+const ExtensionMap = {
+    sh: 'bash',
+    vue: 'html',
+    tsx: 'jsx',
+    json: 'js',
+};
+
+function stripOutDarkModeCode(files: FileContents) {
+    const mainFiles = ['main.js', 'main.ts', 'index.tsx', 'index.jsx', 'app.component.ts'];
+    mainFiles.forEach((mainFile) => {
+        if (files[mainFile]) {
+            files[mainFile] = files[mainFile].replace(regex, '');
+        }
+    });
+}
+
 /**
  * This renders the code viewer in the example runner.
  */
@@ -33,6 +55,7 @@ export const CodeViewer = ({
     const [showFiles, setShowFiles] = useState(true);
 
     const exampleFiles = Object.keys(files);
+    stripOutDarkModeCode(files);
 
     useEffect(() => {
         setActiveFile(initialSelectedFile);
@@ -106,13 +129,6 @@ const FileItem = ({ path, isActive, onClick }) => (
         </button>
     </li>
 );
-
-const ExtensionMap = {
-    sh: 'bash',
-    vue: 'html',
-    tsx: 'jsx',
-    json: 'js',
-};
 
 const FileView = ({ path, code }) => {
     const parts = path.split('.');

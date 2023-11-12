@@ -54,7 +54,7 @@ function getPropertyBindings(bindings: any): [string[], string[], string[]] {
 
 function getTemplate(bindings: any, attributes: string[]): string {
     const agChartTag = `<ag-charts-vue
-    ${bindings.usesChartApi ? `ref="agChart"` : ''}    
+    ${bindings.usesChartApi ? `ref="agChart"` : ''}
     ${attributes.join('\n    ')}></ag-charts-vue>`;
 
     const template = bindings.template ? bindings.template.replace(templatePlaceholder, agChartTag) : agChartTag;
@@ -106,6 +106,20 @@ const ChartExample = {
     },
     mounted() {
         ${bindings.init.join(';\n        ')}
+        /** DARK MODE START **/
+        this.options = {
+            ...this.options,
+            theme: localStorage['documentation:darkmode'] === 'true' ? 'ag-default-dark' : 'ag-default'
+        };
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'color-scheme-change') {
+                this.options = {
+                    ...this.options,
+                    theme: event.data.darkmode ? 'ag-default-dark' : 'ag-default'
+                };
+            }
+        });
+        /** DARK MODE END **/
     },
     methods: {
         ${instanceMethods

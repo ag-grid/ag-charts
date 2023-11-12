@@ -60,9 +60,9 @@ function startUpdates() {
 
     updating = true;
     //@ts-ignore
-    this.update();
+    update();
     //@ts-ignore
-    setInterval(this.update, 500);
+    setInterval(update, 500);
 }
 
 /** inScope */

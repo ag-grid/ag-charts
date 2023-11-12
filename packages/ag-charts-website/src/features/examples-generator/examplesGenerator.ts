@@ -52,9 +52,11 @@ export const getGeneratedContentsFileList = async ({
 export const getGeneratedContents = async ({
     internalFramework,
     folderUrl,
+    isGalleryExample,
 }: {
     internalFramework: InternalFramework;
     folderUrl: URL;
+    isGalleryExample: boolean;
 }): Promise<GeneratedContents | undefined> => {
     const sourceFileList = await fs.readdir(folderUrl);
 
@@ -108,6 +110,7 @@ export const getGeneratedContents = async ({
         bindings,
         typedBindings,
         otherScriptFiles,
+        isGalleryExample,
     });
     const contents: GeneratedContents = {
         isEnterprise,

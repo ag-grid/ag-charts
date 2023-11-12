@@ -33,6 +33,7 @@ type ConfigGenerator = ({
     bindings,
     typedBindings,
     otherScriptFiles,
+    isGalleryExample,
 }: {
     entryFile: string;
     indexHtml: string;
@@ -40,6 +41,7 @@ type ConfigGenerator = ({
     bindings: any;
     typedBindings: any;
     otherScriptFiles: FileContents;
+    isGalleryExample: boolean;
 }) => FrameworkFiles | Promise<FrameworkFiles>;
 
 const createReactFilesGenerator =
@@ -103,7 +105,7 @@ const createVueFilesGenerator =
     };
 
 export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator> = {
-    vanilla: ({ entryFile, indexHtml, typedBindings, isEnterprise, otherScriptFiles }) => {
+    vanilla: ({ entryFile, indexHtml, typedBindings, isEnterprise, otherScriptFiles, isGalleryExample }) => {
         const entryFileName = getEntryFileName('vanilla')!;
         const mainFileName = getMainFileName('vanilla')!;
         let mainJs = readAsJsFile(entryFile);
@@ -123,6 +125,30 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             });
         }
 
+        // add website dark mode handling code to doc examples - this code is later striped out from the code viewer / plunker
+        if (!isGalleryExample) {
+            const chartAPI = isEnterprise ? 'agChartsEnterprise' : 'agCharts';
+
+            if (!mainJs.includes(`chart = ${chartAPI}`)) {
+                mainJs = mainJs.replace(`${chartAPI}.`, `var chart = ${chartAPI}.`);
+            }
+
+            mainJs =
+                mainJs +
+                `\n
+                /** DARK MODE START **/
+                options.theme = localStorage['documentation:darkmode'] === 'true' ? 'ag-default-dark' : 'ag-default';
+                agCharts.AgChart.update(chart, options);
+                window.addEventListener('message', (event) => {
+                    if (event.data?.type === 'color-scheme-change') {
+                        options.theme = event.data.darkmode ? 'ag-default-dark' : 'ag-default';
+                        agCharts.AgChart.update(chart, options);
+                    }
+                });
+                /** DARK MODE END **/
+            `;
+        }
+
         return {
             files: {
                 ...otherScriptFiles,
@@ -134,7 +160,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainFileName,
         };
     },
-    typescript: async ({ entryFile, indexHtml, otherScriptFiles, bindings }) => {
+    typescript: async ({ entryFile, indexHtml, otherScriptFiles, bindings, isEnterprise, isGalleryExample }) => {
         const internalFramework: InternalFramework = 'typescript';
         const entryFileName = getEntryFileName(internalFramework)!;
         const mainFileName = getMainFileName(internalFramework)!;
@@ -155,7 +181,31 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             ].join('\n');
         }
 
-        const mainTsx = externalEventHandlersCode ? `${entryFile}${externalEventHandlersCode}` : entryFile;
+        let mainTsx = externalEventHandlersCode ? `${entryFile}${externalEventHandlersCode}` : entryFile;
+
+        // add website dark mode handling code to doc examples - this code is later striped out from the code viewer / plunker
+        if (!isGalleryExample) {
+            // const chartAPI = isEnterprise ? 'agChartsEnterprise' : 'agCharts';
+            const chartAPI = isEnterprise ? 'AgEnterpriseCharts' : 'AgChart';
+            if (!mainTsx.includes(`chart = ${chartAPI}`)) {
+                mainTsx = mainTsx.replace(`${chartAPI}.create(options);`, `var chart = ${chartAPI}.create(options);`);
+            }
+
+            mainTsx =
+                mainTsx +
+                `\n
+                /** DARK MODE START **/
+                options.theme = localStorage['documentation:darkmode'] === 'true' ? 'ag-default-dark' : 'ag-default';
+                ${chartAPI}.update(chart, options);
+                window.addEventListener('message', (event) => {
+                    if (event.data?.type === 'color-scheme-change') {
+                        options.theme = event.data.darkmode ? 'ag-default-dark' : 'ag-default';
+                        ${chartAPI}.update(chart, options);
+                    }
+                });
+                /** DARK MODE END **/
+            `;
+        }
 
         return {
             files: {
@@ -177,14 +227,34 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         sourceGenerator: vanillaToReactFunctional,
         internalFramework: 'reactFunctional',
     }),
-    reactFunctionalTs: async ({ typedBindings, indexHtml, otherScriptFiles }) => {
+    reactFunctionalTs: async ({ typedBindings, indexHtml, otherScriptFiles, isGalleryExample }) => {
         const internalFramework: InternalFramework = 'reactFunctionalTs';
         const entryFileName = getEntryFileName(internalFramework)!;
         const mainFileName = getMainFileName(internalFramework)!;
         const boilerPlateFiles = await getBoilerPlateFiles(internalFramework);
 
         const getSource = vanillaToReactFunctionalTs(deepCloneObject(typedBindings), []);
-        const indexTsx = getSource();
+        let indexTsx = getSource();
+
+        // add website dark mode handling code to doc examples - this code is later striped out from the code viewer / plunker
+        if (!isGalleryExample) {
+            indexTsx = indexTsx.replace(
+                `return <AgChartsReact`,
+                `
+                /** DARK MODE START **/
+                options.theme = localStorage['documentation:darkmode'] === 'true' ? 'ag-default-dark' : 'ag-default';
+                window.addEventListener('message', (event) => {
+                    if (event.data?.type === 'color-scheme-change') {
+                        setOptions((currentOptions) => ({
+                            ...currentOptions,
+                            theme: event.data.darkmode ? 'ag-default-dark' : 'ag-default',
+                        }));
+                    }
+                });
+                /** DARK MODE END **/
+                return <AgChartsReact`
+            );
+        }
 
         return {
             files: {
