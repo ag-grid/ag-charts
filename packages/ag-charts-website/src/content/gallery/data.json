@@ -283,23 +283,9 @@
             ]
         },
         {
-            "title": "Combination",
-            "name": "combination",
-            "icon": "chartsCombination",
-            "enterprise": false,
-            "examples": [
-                {
-                    "title": "Simple Combination",
-                    "description": "A combination chart combines two or more series types allowing for flexible data visualisations. They are ideal for making visual comparisons of different sets of data in a single chart.",
-                    "name": "combination-of-different-series-types"
-                }
-            ]
-        },
-        {
             "title": "Histogram",
             "name": "histogram",
             "icon": "chartsHistogram",
-            "enterprise": true,
             "examples": [
                 {
                     "title": "Simple Histogram",
@@ -315,6 +301,19 @@
                     "title": "XY Histogram With Mean Aggregation",
                     "description": "Here we bin the data by car engine size, but plot the average highway MPG in the y-axis, revealing the relationship between these two fields. We also plot the same data as a scatter series to illustrate the aggregation.",
                     "name": "xy-histogram-with-mean-aggregation"
+                }
+            ]
+        },
+        {
+            "title": "Combination",
+            "name": "combination",
+            "icon": "chartsCombination",
+            "enterprise": false,
+            "examples": [
+                {
+                    "title": "Simple Combination",
+                    "description": "A combination chart combines two or more series types allowing for flexible data visualisations. They are ideal for making visual comparisons of different sets of data in a single chart.",
+                    "name": "combination-of-different-series-types"
                 }
             ]
         },
@@ -519,20 +518,6 @@
             "title": "Icicle",
             "name": "icicle",
             "icon": "chartsIcicle",
-            "enterprise": true,
-            "examples": []
-        },
-        {
-            "title": "Funnel",
-            "name": "funnel",
-            "icon": "chartsFunnel",
-            "enterprise": true,
-            "examples": []
-        },
-        {
-            "title": "Pyramid",
-            "name": "pyramid",
-            "icon": "chartsPyramid",
             "enterprise": true,
             "examples": []
         },
