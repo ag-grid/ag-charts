@@ -1,9 +1,4 @@
-import {
-    AgEnterpriseCharts,
-    AgPieSeriesTooltipRendererParams,
-    AgPolarChartOptions,
-    AgPolarSeriesOptions,
-} from 'ag-charts-enterprise';
+import { AgEnterpriseCharts, AgPolarChartOptions, AgPolarSeriesOptions } from 'ag-charts-enterprise';
 
 import { getData2020, getData2022 } from './data';
 
@@ -23,15 +18,11 @@ const sharedSeriesOptions: AgPolarSeriesOptions = {
     },
     legendItemKey: 'browser',
     tooltip: {
-        renderer: ({ datum, color, sectorLabelKey }: AgPieSeriesTooltipRendererParams) => {
-            return [
-                `<div style="background-color: ${color}; padding: 4px 8px; border-top-left-radius: 5px; border-top-right-radius: 5px; color: white; font-weight: bold;">`,
-                datum['year'],
-                `</div>`,
-                `<div style="padding: 4px 8px;">`,
-                `  <strong>${datum['browser']}:</strong> ${numFormatter.format(datum[sectorLabelKey!])}`,
-                `</div>`,
-            ].join('\n');
+        renderer: ({ datum, sectorLabelKey = 'share' }) => {
+            return {
+                title: datum['year'],
+                content: `${datum['browser']}: ${numFormatter.format(datum[sectorLabelKey])}`,
+            };
         },
     },
 };
@@ -54,7 +45,7 @@ const options: AgPolarChartOptions = {
         {
             ...sharedSeriesOptions,
             data: getData2022(),
-            innerRadiusRatio: 0.7,
+            innerRadiusRatio: 0.6,
             title: {
                 text: 'September 2022',
             },
