@@ -1,13 +1,44 @@
-import { interpolateColor } from '../interpolate';
 import { Color } from '../util/color';
 import { Logger } from '../util/logger';
 import type { Scale } from './scale';
+
+type HSBA = { h: number; s: number; b: number; a: number };
+
+const convertColorStringToHsba = (v: string): HSBA => {
+    const color = Color.fromString(v);
+    const [h, s, l] = Color.RGBtoHSB(color.r, color.g, color.b);
+    return { h, s, b: l, a: color.a };
+};
+
+const interpolateHsba = (x: HSBA, y: HSBA, d: number): Color => {
+    d = Math.min(Math.max(d, 0), 1);
+    let h: number;
+    if (Number.isNaN(x.h) && Number.isNaN(y.h)) {
+        h = 0;
+    } else if (Number.isNaN(x.h)) {
+        h = y.h;
+    } else if (Number.isNaN(y.h)) {
+        h = x.h;
+    } else {
+        const xH = x.h;
+        let yH = y.h;
+        const deltaH = y.h - x.h;
+        if (deltaH > 180) {
+            yH -= 360;
+        } else if (deltaH < -180) {
+            yH += 360;
+        }
+        h = xH * (1 - d) + yH * d;
+    }
+
+    return Color.fromHSB(h, x.s * (1 - d) + y.s * d, x.b * (1 - d) + y.b * d, x.a * (1 - d) + y.a * d);
+};
 
 export class ColorScale implements Scale<number, string, number> {
     domain = [0, 1];
     range = ['red', 'blue'];
 
-    private parsedRange = this.range.map((v) => Color.fromString(v));
+    private parsedRange = this.range.map(convertColorStringToHsba);
 
     update() {
         const { domain, range } = this;
@@ -37,7 +68,7 @@ export class ColorScale implements Scale<number, string, number> {
             }
         }
 
-        this.parsedRange = this.range.map((v) => Color.fromString(v));
+        this.parsedRange = this.range.map(convertColorStringToHsba);
     }
 
     convert(x: number) {
@@ -76,6 +107,6 @@ export class ColorScale implements Scale<number, string, number> {
 
         const c0 = parsedRange[index];
         const c1 = parsedRange[index + 1];
-        return interpolateColor(c0, c1)(q);
+        return interpolateHsba(c0, c1, q).toRgbaString();
     }
 }
