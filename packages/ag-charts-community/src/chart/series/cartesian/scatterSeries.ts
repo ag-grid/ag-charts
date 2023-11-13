@@ -17,7 +17,7 @@ import { COLOR_STRING_ARRAY, OPT_NUMBER_ARRAY, OPT_STRING, Validate } from '../.
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { fixNumericExtent } from '../../data/dataModel';
-import { animationValidation, diff } from '../../data/processors';
+import { diff } from '../../data/processors';
 import { Label } from '../../label';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
@@ -113,9 +113,6 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
         const extraProps = [];
         if (animationEnabled && this.processedData) {
             extraProps.push(diff(this.processedData));
-        }
-        if (animationEnabled) {
-            extraProps.push(animationValidation(this));
         }
 
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
