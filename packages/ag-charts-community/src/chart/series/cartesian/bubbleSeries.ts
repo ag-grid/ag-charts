@@ -146,13 +146,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
 
         if (xKey == null || yKey == null || sizeKey === null || data == null) return;
 
-        const animationEnabled = !this.ctx.animationManager.isSkipped();
         const { isContinuousX, isContinuousY } = this.isContinuous();
-
-        const extraProps = [];
-        if (animationEnabled && this.processedData) {
-            extraProps.push(diff(this.processedData));
-        }
 
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
@@ -164,7 +158,6 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
                 valueProperty(this, sizeKey, true, { id: `sizeValue` }),
                 ...(colorKey ? [valueProperty(this, colorKey, true, { id: `colorValue` })] : []),
                 ...(labelKey ? [valueProperty(this, labelKey, false, { id: `labelValue` })] : []),
-                ...extraProps,
             ],
             dataVisible: this.visible,
         });
