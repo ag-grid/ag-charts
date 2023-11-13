@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgChart } from 'ag-charts-community';
+import { AgBarSeriesOptions, AgCartesianChartOptions, AgChart } from 'ag-charts-community';
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
@@ -28,13 +28,13 @@ const options: AgCartesianChartOptions = {
 var chart = AgChart.create(options);
 
 function setYNames() {
-    options.series![0].yName = 'Sweaters Made';
-    options.series![1].yName = 'Hats Made';
+    (options.series![0] as AgBarSeriesOptions).yName = 'Sweaters Made';
+    (options.series![1] as AgBarSeriesOptions).yName = 'Hats Made';
     AgChart.update(chart, options);
 }
 
 function resetYNames() {
-    options.series![0].yName = undefined;
-    options.series![1].yName = undefined;
+    (options.series![0] as AgBarSeriesOptions).yName = undefined;
+    (options.series![1] as AgBarSeriesOptions).yName = undefined;
     AgChart.update(chart, options);
 }

@@ -4,7 +4,6 @@ import { getData } from './data';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
-
     title: {
         text: `Renewable sources used to generate electricity for transport fuels`,
     },

@@ -48,9 +48,10 @@ function actionReset() {
 }
 
 function actionAddEndWeek() {
-    const nextWeek = options.data.slice(-1)[0].week + 1;
+    const data = options.data ?? [];
+    const nextWeek = data.slice(-1)[0].week + 1;
     options.data = [
-        ...options.data,
+        ...data,
         {
             quarter: `week ${nextWeek}`,
             week: nextWeek,
@@ -61,21 +62,22 @@ function actionAddEndWeek() {
 }
 
 function actionAddStartWeek() {
-    const prevWeek = options.data[0].week - 1;
+    const data = options.data ?? [];
+    const prevWeek = data[0].week - 1;
     options.data = [
         {
             quarter: `week ${prevWeek}`,
             week: prevWeek,
             iphone: 78 * (Math.random() - 0.5),
         },
-        ...options.data,
+        ...data,
     ];
     AgEnterpriseCharts.update(chart, options);
 }
 
 function actionAddWeek12and13() {
     options.data = [
-        ...options.data,
+        ...(options.data ?? []),
         { quarter: 'week 12', week: 12, iphone: 78 },
         { quarter: 'week 13', week: 13, iphone: 138 },
     ];
@@ -85,7 +87,7 @@ function actionAddWeek12and13() {
 
 function actionAddWeek7and8() {
     options.data = [
-        ...options.data,
+        ...(options.data ?? []),
         { quarter: 'week 7', week: 7, iphone: 142 },
         { quarter: 'week 8', week: 8, iphone: 87 },
     ];
@@ -94,7 +96,7 @@ function actionAddWeek7and8() {
 }
 
 function reorder() {
-    options.data = [...options.data];
+    options.data = [...(options.data ?? [])];
     options.data?.forEach((d) => (d.random = Math.random()));
     options.data?.sort((a, b) => a.random - b.random);
 

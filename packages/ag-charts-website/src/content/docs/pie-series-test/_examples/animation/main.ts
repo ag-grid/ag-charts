@@ -49,7 +49,7 @@ function randomIndex(array: unknown[]) {
 
 function randomise() {
     options.data = [
-        ...options.data.map((d: any) => ({
+        ...(options.data ?? []).map((d: any) => ({
             ...d,
             originalValue: d.originalValue ?? d.value,
             value: (d.originalValue ?? d.value) * (Math.random() * 5 + 0.5),
@@ -65,7 +65,7 @@ function add() {
 }
 
 function remove() {
-    const newData = [...options.data];
+    const newData = [...(options.data ?? [])];
     const indexToRemove = randomIndex(newData);
 
     newData.splice(indexToRemove, 1);

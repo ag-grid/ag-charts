@@ -1,10 +1,9 @@
-import { AgChart, AgChartLegendPosition, AgChartOptions } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgChart, AgChartLegendPosition } from 'ag-charts-community';
 
 import { getData } from './data';
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
-
     title: {
         text: `Renewable sources used to generate electricity for transport fuels`,
     },

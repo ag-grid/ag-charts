@@ -1,8 +1,8 @@
-import { AgChart, AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+import { AgChart, AgChartLegendPosition, AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const legendPositions = ['bottom', 'left', 'right', 'top'];
+const legendPositions: Array<AgChartLegendPosition> = ['bottom', 'left', 'right', 'top'];
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
@@ -116,6 +116,7 @@ function switchToStacked() {
 
 function moveLegend() {
     const currentPosition = legendPositions.indexOf(options.legend?.position ?? 'bottom');
+    options.legend ??= {};
     options.legend.position = legendPositions[(currentPosition + 1) % 4];
     AgChart.update(chart, options as any);
 }
