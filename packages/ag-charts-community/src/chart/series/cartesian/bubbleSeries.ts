@@ -156,7 +156,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
             ctx: { animationManager },
         } = this;
 
-        if (xKey == null || yKey == null || sizeKey === null || data == null) return;
+        if (xKey == null || yKey == null || sizeKey == null || data == null) return;
 
         const { isContinuousX, isContinuousY } = this.isContinuous();
 
