@@ -5,7 +5,14 @@ import type { FromToDiff } from '../../motion/fromToMotion';
 import { fromToMotion } from '../../motion/fromToMotion';
 import { resetMotion } from '../../motion/resetMotion';
 import { StateMachine } from '../../motion/states';
-import type { AgAxisCaptionFormatterParams } from '../../options/agChartOptions';
+import type {
+    AgAxisCaptionFormatterParams,
+    CssColor,
+    FontFamily,
+    FontSize,
+    FontStyle,
+    FontWeight,
+} from '../../options/agChartOptions';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { LogScale } from '../../scale/logScale';
 import type { Scale } from '../../scale/scale';
@@ -87,6 +94,24 @@ export type TickDatum = {
     translationY: number;
 };
 
+export type LabelNodeDatum = {
+    tickId: string;
+    fill?: CssColor;
+    fontFamily?: FontFamily;
+    fontSize?: FontSize;
+    fontStyle?: FontStyle;
+    fontWeight?: FontWeight;
+    rotation: number;
+    rotationCenterX: number;
+    text: string;
+    textAlign?: CanvasTextAlign;
+    textBaseline: CanvasTextBaseline;
+    visible: boolean;
+    x: number;
+    y: number;
+    translationY: number;
+};
+
 type TickData = { rawTicks: any[]; ticks: TickDatum[]; labelCount: number };
 
 interface TickGenerationParams {
@@ -164,7 +189,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     );
 
     protected tickLineGroupSelection = Selection.select(this.tickLineGroup, Line, false);
-    protected tickLabelGroupSelection = Selection.select(this.tickLabelGroup, Text, false);
+    protected tickLabelGroupSelection = Selection.select<Text, LabelNodeDatum>(this.tickLabelGroup, Text, false);
     protected gridLineGroupSelection = Selection.select(this.gridLineGroup, Line, false);
 
     protected abstract assignCrossLineArrayConstructor(crossLines: CrossLine[]): void;
@@ -445,7 +470,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         const { tickData, combinedRotation, textBaseline, textAlign, ...ticksResult } = this.tickGenerationResult;
         const previousTicks = this.tickLabelGroupSelection.nodes().map((node) => node.datum.tickId);
-        this.updateSelections(tickData.ticks);
+        this.updateSelections(tickData.ticks, { combinedRotation, textAlign, textBaseline });
 
         if (this.animationManager.isSkipped()) {
             this.resetSelectionNodes();
@@ -454,12 +479,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             this.animationState.transition('update', diff);
         }
 
-        this.updateLabels({
-            combinedRotation,
-            textBaseline,
-            textAlign,
-        });
-
+        this.updateLabels();
         this.updateVisibility();
         this.updateGridLines(sideFlag);
         this.updateTickLines();
@@ -498,7 +518,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             textBaseline: CanvasTextBaseline;
             textAlign: CanvasTextAlign;
         }
-    ) {
+    ): LabelNodeDatum {
         const { label } = this;
         const { combinedRotation, textBaseline, textAlign } = params;
         const text = datum.tickLabel;
@@ -507,6 +527,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const labelX = sideFlag * (tickSize + label.padding + this.seriesAreaPadding);
         const visible = text !== '' && text != undefined;
         return {
+            tickId: datum.tickId,
+            translationY: datum.translationY,
             fill: label.color,
             fontFamily: label.fontFamily,
             fontSize: label.fontSize,
@@ -807,12 +829,10 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                     primaryTickCount,
                 }));
 
-                const ticksResult = tickData.ticks;
-
-                textAlign = getTextAlign(parallel, configuredRotation, autoRotation, sideFlag, regularFlipFlag);
                 const rotated = configuredRotation !== 0 || autoRotation !== 0;
                 const rotation = initialRotation + autoRotation;
-                labelOverlap = this.checkLabelOverlap(rotation, rotated, labelMatrix, ticksResult, labelX, {
+                textAlign = getTextAlign(parallel, configuredRotation, autoRotation, sideFlag, regularFlipFlag);
+                labelOverlap = this.checkLabelOverlap(rotation, rotated, labelMatrix, tickData.ticks, labelX, {
                     ...textProps,
                     textAlign,
                 });
@@ -1198,7 +1218,14 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         throw new Error('AG Charts - unexpected call to updateSecondaryAxisTicks() - check axes configuration.');
     }
 
-    protected updateSelections(data: TickDatum[]) {
+    protected updateSelections(
+        data: TickDatum[],
+        params: {
+            combinedRotation: number;
+            textBaseline: CanvasTextBaseline;
+            textAlign: CanvasTextAlign;
+        }
+    ) {
         this.gridLineGroupSelection.update(
             this.gridLength ? data : [],
             (group) => group.append(new Line({ tag: Tags.GridLine })),
@@ -1210,9 +1237,9 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             (datum: TickDatum) => datum.tickId
         );
         this.tickLabelGroupSelection.update(
-            data,
+            data.map((d) => this.getTickLabelProps(d, params)),
             (group) => group.appendChild(new Text({ tag: Tags.TickLabel })),
-            (datum: TickDatum) => datum.tickId
+            (datum) => datum.tickId
         );
     }
 
@@ -1253,11 +1280,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         });
     }
 
-    protected updateLabels(params: {
-        combinedRotation: number;
-        textBaseline: CanvasTextBaseline;
-        textAlign: CanvasTextAlign;
-    }) {
+    protected updateLabels() {
         const { label } = this;
         if (!label.enabled) {
             return;
@@ -1265,11 +1288,21 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         // Apply label option values
         this.tickLabelGroupSelection.each((node, datum) => {
-            const props = this.getTickLabelProps(datum, params);
-            node.setProperties({
-                ...props,
-                fill: label.color,
-            });
+            node.setProperties(datum, [
+                'fill',
+                'fontFamily',
+                'fontSize',
+                'fontStyle',
+                'fontWeight',
+                'rotation',
+                'rotationCenterX',
+                'text',
+                'textAlign',
+                'textBaseline',
+                'visible',
+                'x',
+                'y',
+            ]);
         });
     }
 

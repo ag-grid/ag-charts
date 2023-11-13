@@ -1,4 +1,5 @@
-import { FROM_TO_MIXINS, type NodeUpdateState } from '../../motion/fromToMotion';
+import { FROM_TO_MIXINS } from '../../motion/fromToMotion';
+import type { NodeUpdateState } from '../../motion/fromToMotion';
 import type { Line } from '../../scene/shape/line';
 import type { Text } from '../../scene/shape/text';
 
