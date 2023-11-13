@@ -21,7 +21,7 @@ const {
     POSITION,
     STRING,
 } = _ModuleSupport;
-const { BBox, Group, Rect, Selection, Text, Triangle } = _Scene;
+const { BBox, Group, Rect, LinearGradientFill, Selection, Text, Triangle } = _Scene;
 const { createId } = _Util;
 
 class GradientLegendLabel {
@@ -65,6 +65,7 @@ export class GradientLegend {
 
     private readonly group: _Scene.Group = new Group({ name: 'legend', layer: true, zIndex: Layers.LEGEND_ZINDEX });
     private readonly gradientRect: _Scene.Rect;
+    private readonly gradientFill: _Scene.LinearGradientFill;
     private readonly textSelection: _Scene.Selection<_Scene.Text, number>;
     private readonly arrow: _Scene.Triangle;
 
@@ -118,7 +119,9 @@ export class GradientLegend {
         this.destroyFns.push(this.highlightManager.addListener('highlight-change', () => this.onChartHoverChange()));
 
         this.gradientRect = new Rect();
-        this.group.append(this.gradientRect);
+        this.gradientFill = new LinearGradientFill();
+        this.gradientFill.mask = this.gradientRect;
+        this.group.append(this.gradientFill);
         this.arrow = new Triangle();
         this.group.append(this.arrow);
         const textContainer = new Group();
@@ -256,10 +259,11 @@ export class GradientLegend {
         if (this.reverseOrder) {
             colorRange = colorRange.slice().reverse();
         }
-        const colorsString = colorRange.join(', ');
-        const orientation = this.getOrientation();
-        const rotation = orientation === 'vertical' ? 0 : 90;
-        this.gradientRect.fill = `linear-gradient(${rotation}deg, ${colorsString})`;
+        // const colorsString = colorRange.join(', ');
+        // const orientation = this.getOrientation();
+        // const rotation = orientation === 'vertical' ? 0 : 90;
+        // this.gradientRect.fill = `linear-gradient(${rotation}deg, ${colorsString})`;
+        this.gradientFill.stops = colorRange;
 
         this.gradientRect.x = gradientBox.x;
         this.gradientRect.y = gradientBox.y;

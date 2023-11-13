@@ -42,7 +42,7 @@ test('multi-color range', () => {
 
     expect(scale.convert(-101)).toBe('black');
     expect(scale.convert(-100)).toBe('black');
-    expect(scale.convert(-50)).toBe('rgb(128, 64, 64)');
+    expect(scale.convert(-50)).toBe('rgb(128, 0, 0)');
     expect(scale.convert(0)).toBe('rgb(255, 0, 0)');
     expect(scale.convert(50)).toBe('rgb(255, 128, 128)');
     expect(scale.convert(100)).toBe('#ffffff');
@@ -58,7 +58,7 @@ test('multi-value domain', () => {
 
     expect(scale.convert(-1)).toBe('black');
     expect(scale.convert(0)).toBe('black');
-    expect(scale.convert(50)).toBe('rgb(128, 64, 64)');
+    expect(scale.convert(50)).toBe('rgb(128, 0, 0)');
     expect(scale.convert(100)).toBe('rgb(255, 0, 0)');
     expect(scale.convert(300)).toBe('rgb(255, 128, 128)');
     expect(scale.convert(500)).toBe('#ffffff');
@@ -79,7 +79,7 @@ test('heatmap multistop', () => {
     expect(scale.convert(200)).toBe('rgb(255, 0, 0)');
     expect(scale.convert(250)).toBe('rgb(255, 0, 255)');
     expect(scale.convert(300)).toBe('rgb(0, 0, 255)');
-    expect(scale.convert(350)).toBe('rgb(64, 64, 128)');
+    expect(scale.convert(350)).toBe('rgb(0, 0, 128)');
     expect(scale.convert(400)).toBe('black');
 });
 
@@ -91,7 +91,7 @@ test('hsl interpolation', () => {
     scale.update();
 
     expect(scale.convert(0)).toBe('red');
-    expect(scale.convert(50)).toBe('rgb(192, 192, 0)');
+    expect(scale.convert(50)).toBe('rgb(191, 192, 0)');
     expect(scale.convert(100)).toBe('green');
 });
 
@@ -117,4 +117,28 @@ test('hsl interpolation anti-clockwise not starting at red', () => {
     expect(scale.convert(0)).toBe('yellow');
     expect(scale.convert(50)).toBe('rgb(255, 0, 0)');
     expect(scale.convert(100)).toBe('magenta');
+});
+
+test('fade to black', () => {
+    const scale = new ColorScale();
+
+    scale.domain = [0, 100];
+    scale.range = ['blue', 'black'];
+    scale.update();
+
+    expect(scale.convert(0)).toBe('blue');
+    expect(scale.convert(50)).toBe('rgb(0, 0, 128)');
+    expect(scale.convert(100)).toBe('black');
+});
+
+test('fade to white', () => {
+    const scale = new ColorScale();
+
+    scale.domain = [0, 100];
+    scale.range = ['blue', 'white'];
+    scale.update();
+
+    expect(scale.convert(0)).toBe('blue');
+    expect(scale.convert(50)).toBe('rgb(128, 128, 255)');
+    expect(scale.convert(100)).toBe('white');
 });

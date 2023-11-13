@@ -25,6 +25,8 @@ export class BBox implements DistantObject {
     width: number;
     height: number;
 
+    static zero = new BBox(0, 0, 0, 0);
+
     constructor(x: number, y: number, width: number, height: number) {
         this.x = x;
         this.y = y;

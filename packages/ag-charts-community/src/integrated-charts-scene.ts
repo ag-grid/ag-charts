@@ -11,6 +11,7 @@ export { Selection } from './scene/selection';
 export type { Point, SizedPoint } from './scene/point';
 export { Arc } from './scene/shape/arc';
 export { Line } from './scene/shape/line';
+export { LinearGradientFill } from './scene/shape/linearGradientFill';
 export { Path, ScenePathChangeDetection } from './scene/shape/path';
 export { Rect } from './scene/shape/rect';
 export { Sector } from './scene/shape/sector';
