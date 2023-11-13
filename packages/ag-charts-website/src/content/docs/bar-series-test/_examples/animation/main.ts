@@ -2,6 +2,8 @@ import { AgChart, AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterpris
 
 import { getData } from './data';
 
+const legendPositions = ['bottom', 'left', 'right', 'top'];
+
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     animation: {
@@ -63,6 +65,7 @@ const options: AgChartOptions = {
             },
         },
     ],
+    legend: {},
 };
 
 const chart = AgEnterpriseCharts.create(options);
@@ -108,5 +111,11 @@ function switchToStacked() {
             s.stackGroup = 'Devices';
         }
     });
+    AgChart.update(chart, options as any);
+}
+
+function moveLegend() {
+    const currentPosition = legendPositions.indexOf(options.legend?.position ?? 'bottom');
+    options.legend.position = legendPositions[(currentPosition + 1) % 4];
     AgChart.update(chart, options as any);
 }
