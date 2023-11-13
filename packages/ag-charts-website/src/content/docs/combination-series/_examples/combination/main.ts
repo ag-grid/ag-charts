@@ -94,13 +94,11 @@ const options: AgCartesianChartOptions = {
 var chart = AgChart.create(options);
 
 function barLine() {
-    console.log('Bar & Line', BAR_AND_LINE);
     options.series = BAR_AND_LINE;
     AgChart.update(chart, options);
 }
 
 function areaBar() {
-    console.log('Area & Bar', AREA_AND_BAR);
     options.series = AREA_AND_BAR;
     AgChart.update(chart, options);
 }

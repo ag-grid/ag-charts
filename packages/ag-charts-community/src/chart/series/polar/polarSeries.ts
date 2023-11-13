@@ -88,34 +88,38 @@ export abstract class PolarSeries<TDatum extends SeriesNodeDatum, TNode extends 
         this.sectorGroup.zIndexSubOrder = [() => this._declarationOrder, 1];
         this.animationResetFns = animationResetFns;
 
-        this.animationState = new StateMachine<PolarAnimationState, PolarAnimationEvent>('empty', {
-            empty: {
-                update: {
-                    target: 'ready',
-                    action: (data) => this.animateEmptyUpdateReady(data),
+        this.animationState = new StateMachine<PolarAnimationState, PolarAnimationEvent>(
+            'empty',
+            {
+                empty: {
+                    update: {
+                        target: 'ready',
+                        action: (data) => this.animateEmptyUpdateReady(data),
+                    },
+                },
+                ready: {
+                    updateData: 'waiting',
+                    clear: 'clearing',
+                    update: (data) => this.animateReadyUpdate(data),
+                    highlight: (data) => this.animateReadyHighlight(data),
+                    highlightMarkers: (data) => this.animateReadyHighlightMarkers(data),
+                    resize: (data) => this.animateReadyResize(data),
+                },
+                waiting: {
+                    update: {
+                        target: 'ready',
+                        action: (data) => this.animateWaitingUpdateReady(data),
+                    },
+                },
+                clearing: {
+                    update: {
+                        target: 'empty',
+                        action: (data) => this.animateClearingUpdateEmpty(data),
+                    },
                 },
             },
-            ready: {
-                updateData: 'waiting',
-                clear: 'clearing',
-                update: (data) => this.animateReadyUpdate(data),
-                highlight: (data) => this.animateReadyHighlight(data),
-                highlightMarkers: (data) => this.animateReadyHighlightMarkers(data),
-                resize: (data) => this.animateReadyResize(data),
-            },
-            waiting: {
-                update: {
-                    target: 'ready',
-                    action: (data) => this.animateWaitingUpdateReady(data),
-                },
-            },
-            clearing: {
-                update: {
-                    target: 'empty',
-                    action: (data) => this.animateClearingUpdateEmpty(data),
-                },
-            },
-        });
+            () => this.checkProcessedDataAnimatable()
+        );
     }
 
     protected abstract nodeFactory(): TNode;

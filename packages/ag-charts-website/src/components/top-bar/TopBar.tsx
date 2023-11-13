@@ -6,7 +6,7 @@ import { Icon } from '../icon/Icon';
 import Search from '../search/Search';
 import styles from './TopBar.module.scss';
 
-export const TopBar = ({ frameworks, currentFramework, path, isDev }) => {
+export const TopBar = ({ frameworks, currentFramework, path, isDev, suppressFrameworkSelector }) => {
     const frameworksData = frameworks.map((framework) => ({
         name: framework,
         url: getNewFrameworkPath({
@@ -36,7 +36,7 @@ export const TopBar = ({ frameworks, currentFramework, path, isDev }) => {
 
                     <Search currentFramework={currentFramework} isDev={isDev} />
 
-                    {currentFramework && (
+                    {!suppressFrameworkSelector && currentFramework && (
                         <FrameworkSelector
                             data={frameworksData}
                             currentFramework={currentFramework}

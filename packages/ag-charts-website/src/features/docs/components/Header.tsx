@@ -9,13 +9,16 @@ interface Props {
     title: string;
     framework: Framework;
     isEnterprise?: boolean;
+    suppressFrameworkHeader?: boolean;
 }
 
-export const Header: FunctionComponent<Props> = ({ title, framework, isEnterprise }) => {
+export const Header: FunctionComponent<Props> = ({ title, framework, isEnterprise, suppressFrameworkHeader }) => {
     return (
         <header className={styles.docsPageHeader}>
             <h1 id="top" className={styles.docsPageTitle}>
-                <span className={styles.headerFramework}>{getFrameworkDisplayText(framework)} Charts</span>
+                {!suppressFrameworkHeader && (
+                    <span className={styles.headerFramework}>{getFrameworkDisplayText(framework)} Charts</span>
+                )}
                 <span>{title}</span>
 
                 {isEnterprise && (

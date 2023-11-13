@@ -168,6 +168,38 @@ export function normalisePropertyTo(
     };
 }
 
+export function animationValidation(scope: ScopeProvider): ProcessorOutputPropertyDefinition {
+    return {
+        type: 'processor',
+        scopes: [scope.id],
+        property: 'animationValidation',
+        calculate(result: ProcessedData<any>) {
+            const { keys } = result.defs;
+            const { input, data } = result;
+            let uniqueKeys = true;
+            let orderedKeys = true;
+
+            for (let k = 0; (uniqueKeys || orderedKeys) && k < keys.length; k++) {
+                if (keys[k].valueType === 'category') {
+                    const keyValues = result.domain.keys[k];
+                    uniqueKeys &&= keyValues.length === input.count;
+                    continue;
+                }
+
+                let lastValue = data[0]?.keys[k];
+                for (let d = 1; (uniqueKeys || orderedKeys) && d < data.length; d++) {
+                    const keyValue = data[d].keys[k];
+                    orderedKeys &&= lastValue <= keyValue;
+                    uniqueKeys &&= lastValue !== keyValue;
+                    lastValue = keyValue;
+                }
+            }
+
+            return { uniqueKeys, orderedKeys };
+        },
+    };
+}
+
 function buildGroupAccFn({ mode, separateNegative }: { mode: 'normal' | 'trailing'; separateNegative?: boolean }) {
     return () => () => (values: any[], valueIndexes: number[]) => {
         // Datum scope.

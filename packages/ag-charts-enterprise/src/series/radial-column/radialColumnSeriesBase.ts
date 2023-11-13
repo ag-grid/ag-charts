@@ -30,6 +30,7 @@ const {
     seriesLabelFadeInAnimation,
     seriesLabelFadeOutAnimation,
     valueProperty,
+    animationValidation,
 } = _ModuleSupport;
 
 const { BandScale } = _Scale;
@@ -201,6 +202,9 @@ export abstract class RadialColumnSeriesBase<
         const animationEnabled = !this.ctx.animationManager.isSkipped();
         if (animationEnabled && this.processedData) {
             extraProps.push(diff(this.processedData));
+        }
+        if (animationEnabled) {
+            extraProps.push(animationValidation(this));
         }
 
         const visibleProps = this.visible || !animationEnabled ? {} : { forceValue: 0 };

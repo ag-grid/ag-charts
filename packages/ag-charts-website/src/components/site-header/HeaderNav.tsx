@@ -27,12 +27,12 @@ const links = [
         url: pathJoin(SITE_BASE_URL, 'options'),
     },
     {
-        name: 'Pricing',
-        url: 'https://ag-grid.com/license-pricing/',
-    },
-    {
         name: 'Blog',
         url: 'https://blog.ag-grid.com/',
+    },
+    {
+        name: 'Pricing',
+        url: 'https://ag-grid.com/license-pricing/',
     },
     {
         name: 'Github',

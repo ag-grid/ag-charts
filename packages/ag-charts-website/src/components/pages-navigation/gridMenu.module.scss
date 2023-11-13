@@ -39,7 +39,7 @@
 .menu {
     $top-bar-height: 58px;
 
-    --menu-width: min(30vw, 290px);
+    --menu-width: min(30vw, 240px);
     --font-size: 16px;
 
     border-bottom: 1px solid var(--border-color);
@@ -114,7 +114,7 @@ ul.menuInner {
 button:not([class^='ag-']).sectionHeader {
     width: 100%;
     padding-top: $size-half;
-    padding-bottom: $size-half;
+    padding-bottom: $size-1;
     margin-top: 0;
     font-weight: var(--font-weight-bold);
     border: 2px solid transparent;

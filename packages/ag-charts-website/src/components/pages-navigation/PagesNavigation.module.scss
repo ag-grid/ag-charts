@@ -52,15 +52,17 @@
 
 .menu {
     padding-top: $size-4;
-    padding-bottom: $size-7;
+    padding-bottom: $size-8;
 
     h5 {
         text-transform: uppercase;
+        margin-bottom: $size-1;
     }
 
     // Override menuGroup styles
     .seriesTypesNav > li {
         margin-bottom: 0 !important;
+        padding-left: 15px;
 
         // Remove left line and adjust spacing
         a {

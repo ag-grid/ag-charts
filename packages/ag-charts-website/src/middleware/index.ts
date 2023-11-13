@@ -26,7 +26,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
         body = await format(context.url.pathname, body, extensionsToFormat);
     } catch (e) {
         // eslint-disable-next-line no-console
-        console.error(`Failed to format [${context.url.pathname}] with the error "${(e as Error).message}"`);
+        console.warn(`Unable to prettier format for [${context.url.pathname}]`);
     }
 
     return new Response(body, {

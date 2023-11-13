@@ -49,6 +49,12 @@ export default defineMarkdocConfig({
                 options: { type: Object },
             },
         },
+        pipeline: {
+            render: component('./src/features/pipeline/Pipeline.astro'),
+        },
+        changelog: {
+            render: component('./src/features/changelog/Changelog.astro'),
+        },
         note: {
             render: component('./src/components/alert/Note'),
         },

@@ -1,11 +1,25 @@
 import type { AgPolarChartOptions } from '../../../../options/agChartOptions';
-import { DATA_MANY_LONG_LABELS, DATA_MARKET_SHARE } from './data';
+import { DATA_MANY_LONG_LABELS, DATA_MARKET_SHARE, DATA_MARKET_SHARE_WITH_NEGATIVE_VALUES } from './data';
 
 export const PIE_SERIES: AgPolarChartOptions = {
     title: {
         text: 'Market Share',
     },
     data: DATA_MARKET_SHARE,
+    series: [
+        {
+            type: 'pie',
+            calloutLabelKey: 'os',
+            angleKey: 'share',
+        },
+    ],
+};
+
+export const PIE_SERIES_NEGATIVE_VALUES: AgPolarChartOptions = {
+    title: {
+        text: 'Market Share',
+    },
+    data: DATA_MARKET_SHARE_WITH_NEGATIVE_VALUES,
     series: [
         {
             type: 'pie',

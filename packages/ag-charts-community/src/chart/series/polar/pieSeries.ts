@@ -39,7 +39,7 @@ import { Caption } from '../../caption';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import type { DataModel } from '../../data/dataModel';
-import { diff, normalisePropertyTo } from '../../data/processors';
+import { animationValidation, diff, normalisePropertyTo } from '../../data/processors';
 import type { LegendItemClickChartEvent } from '../../interaction/chartEventManager';
 import { Label } from '../../label';
 import { Layers } from '../../layers';
@@ -357,15 +357,17 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
 
         if (angleKey == null || data == null) return;
 
+        const animationEnabled = !this.ctx.animationManager.isSkipped();
         const extraKeyProps = [];
         const extraProps = [];
 
-        if (calloutLabelKey) {
+        // Order here should match `getDatumIdFromData()`.
+        if (legendItemKey) {
+            extraKeyProps.push(keyProperty(this, legendItemKey, false, { id: `legendItemKey` }));
+        } else if (calloutLabelKey) {
             extraKeyProps.push(keyProperty(this, calloutLabelKey, false, { id: `calloutLabelKey` }));
         } else if (sectorLabelKey) {
             extraKeyProps.push(keyProperty(this, sectorLabelKey, false, { id: `sectorLabelKey` }));
-        } else if (legendItemKey) {
-            extraKeyProps.push(keyProperty(this, legendItemKey, false, { id: `legendItemKey` }));
         }
 
         if (radiusKey) {
@@ -388,12 +390,11 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         if (legendItemKey) {
             extraProps.push(valueProperty(this, legendItemKey, false, { id: `legendItemValue` }));
         }
-        if (
-            !this.ctx.animationManager.isSkipped() &&
-            this.processedData &&
-            (calloutLabelKey || sectorLabelKey || legendItemKey)
-        ) {
-            extraProps.push(diff(this.processedData));
+        if (animationEnabled && this.processedData && extraKeyProps.length > 0) {
+            extraProps.push(diff(this.processedData), animationValidation(this));
+        }
+        if (animationEnabled) {
+            extraProps.push(animationValidation(this));
         }
 
         data = data.map((d, idx) => (seriesItemEnabled[idx] ? d : { ...d, [angleKey]: 0 }));
@@ -401,7 +402,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 ...extraKeyProps,
-                accumulativeValueProperty(this, angleKey, true, { id: `angleValue` }),
+                accumulativeValueProperty(this, angleKey, true, { id: `angleValue`, onlyPositive: true }),
                 valueProperty(this, angleKey, true, { id: `angleRaw` }), // Raw value pass-through.
                 normalisePropertyTo(this, { id: 'angleValue' }, [0, 1], 0, 0),
                 ...extraProps,
@@ -1469,6 +1470,10 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
 
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
+        // if (!this.processedData?.reduced?.animationValidation?.uniqueKeys) {
+        //     this.ctx.animationManager.skipCurrentBatch();
+        // }
+
         const fns = preparePieSeriesAnimationFunctions(this.rotation);
         fromToMotion(
             this.id,
@@ -1501,6 +1506,10 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
 
     getDatumIdFromData(datum: any) {
         const { calloutLabelKey, sectorLabelKey, legendItemKey } = this;
+
+        if (!this.processedData?.reduced?.animationValidation?.uniqueKeys) {
+            return undefined;
+        }
 
         if (legendItemKey) {
             return datum[legendItemKey];

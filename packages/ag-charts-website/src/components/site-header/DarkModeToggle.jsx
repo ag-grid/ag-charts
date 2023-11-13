@@ -22,6 +22,14 @@ export const DarkModeToggle = () => {
                 className={classNames(styles.toggle, darkmode ? styles.dark : styles.light, 'button-style-none')}
                 onClick={() => {
                     setDarkmode(!darkmode);
+
+                    // post message for example runner to listen for user initiated color scheme changes
+                    const iframe = document.getElementById('exampleRunner');
+                    iframe &&
+                        iframe.contentWindow.postMessage({
+                            type: 'color-scheme-change',
+                            darkmode: !darkmode,
+                        });
                 }}
             >
                 {darkmode ? <Icon name="sun" /> : <Icon name="moon" />}
