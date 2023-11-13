@@ -115,9 +115,14 @@ export const COMMUNITY_AND_ENTERPRISE_EXAMPLES: Record<string, TestCase> = {
         assertions: cartesianChartAssertions({ seriesTypes: repeat('area', 5) }),
         enterprise: false,
     },
+    MARKET_INDEX_SUNBURST_GRAPH_EXAMPLE: {
+        options: examples.MARKET_INDEX_SUNBURST_GRAPH_EXAMPLE,
+        assertions: hierarchyChartAssertions({ seriesTypes: ['sunburst'] }),
+        enterprise: true,
+    },
     MARKET_INDEX_TREEMAP_GRAPH_EXAMPLE: {
         options: examples.MARKET_INDEX_TREEMAP_GRAPH_EXAMPLE,
-        assertions: hierarchyChartAssertions(),
+        assertions: hierarchyChartAssertions({ seriesTypes: ['treemap'] }),
         enterprise: true,
     },
     SIMPLE_HISTOGRAM_CHART_EXAMPLE: {

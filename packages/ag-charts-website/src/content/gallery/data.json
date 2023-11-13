@@ -507,7 +507,7 @@
                 {
                     "title": "Market Index Sunburst",
                     "description": "A sunburst of a snapshot of the S&P 500 stock market index.",
-                    "name": "market-index-Sunburst"
+                    "name": "market-index-sunburst"
                 }
             ]
         },

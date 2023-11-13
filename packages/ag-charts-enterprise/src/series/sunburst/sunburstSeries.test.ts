@@ -9,7 +9,7 @@ import type {
 import {
     GALLERY_EXAMPLES,
     IMAGE_SNAPSHOT_DEFAULTS,
-    TREEMAP_SERIES_LABELS,
+    SUNBURST_SERIES_LABELS,
     clickAction,
     deproxy,
     extractImageData,
@@ -53,7 +53,6 @@ describe('SunburstChart', () => {
 
         const SIMPLIFIED_EXAMPLE = {
             ...GALLERY_EXAMPLES.MARKET_INDEX_SUNBURST_GRAPH_EXAMPLE.options,
-            data: GALLERY_EXAMPLES.MARKET_INDEX_SUNBURST_GRAPH_EXAMPLE.options.data.slice(0, 1),
         };
 
         it('should render a complex chart', async () => {
@@ -88,8 +87,8 @@ describe('SunburstChart', () => {
 
     describe('Series Labels', () => {
         const examples = {
-            TREEMAP_SERIES_LABELS: {
-                options: TREEMAP_SERIES_LABELS,
+            SUNBURST_SERIES_LABELS: {
+                options: SUNBURST_SERIES_LABELS,
                 assertions: hierarchyChartAssertions({ seriesTypes: ['sunburst'] }),
             },
         };
@@ -306,7 +305,12 @@ describe('SunburstChart', () => {
                 const maxDepth = Math.max(...nodes.map((n) => n.datum.depth ?? -1));
                 return nodes.filter((node) => node.datum.depth === maxDepth);
             },
-            getNodePoint: (item) => [item.x + item.width / 2, item.y + item.height / 2],
+            getNodePoint: (item) => {
+                const { centerX, centerY, innerRadius, outerRadius, startAngle, endAngle } = item;
+                const r = (innerRadius + outerRadius) / 2;
+                const theta = (startAngle + endAngle) / 2 - Math.PI / 2;
+                return [centerX + r * Math.cos(theta), centerY + r * Math.sin(theta)];
+            },
             getDatumValues: (item, series) => {
                 const { datum } = item.datum;
                 return [datum[series.labelKey], datum[series.sizeKey]];

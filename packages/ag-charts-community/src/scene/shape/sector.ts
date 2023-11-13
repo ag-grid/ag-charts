@@ -61,9 +61,10 @@ export class Sector extends Path {
             const outerRadius = Math.max(this.innerRadius + inset, this.outerRadius - inset);
             const innerAngleOffset = innerRadius > inset ? inset / innerRadius : inset;
             const outerAngleOffset = outerRadius > inset ? inset / outerRadius : inset;
-
             const sweep = Math.abs(endAngle - startAngle);
-            if (sweep < 2 * outerAngleOffset) return;
+
+            const outerAngleExceeded = sweep < 2 * outerAngleOffset;
+            if (outerAngleExceeded) return;
 
             const innerAngleExceeded = sweep < 2 * innerAngleOffset;
 
@@ -74,12 +75,12 @@ export class Sector extends Path {
                 // Form a right angle from the wedge with hypotenuse x0 and an opposite side of innerRadius
                 // Gives x0 = innerRadius * sin(sweep)
                 // y = innerRadius = innerRadius * sin(sweep) + x * tan(sweep) - solve for x
-                const x = inset / (Math.tan(sweep) / (1 - Math.sin(sweep)));
+                const x = (inset * (1 - Math.sin(sweep))) / Math.tan(sweep);
                 // r = sqrt(x**2 + y**2)
                 // Floating point isn't perfect, so if we're getting an answer too small, use the innerRadius
                 const r = Math.max(Math.hypot(inset, x), innerRadius);
                 const midAngle = (startAngle + endAngle) / 2;
-                path.lineTo(centerX + r * Math.cos(midAngle), centerY + r * Math.sin(midAngle));
+                path.moveTo(centerX + r * Math.cos(midAngle), centerY + r * Math.sin(midAngle));
             } else {
                 path.moveTo(
                     centerX + innerRadius * Math.cos(startAngle + innerAngleOffset),
