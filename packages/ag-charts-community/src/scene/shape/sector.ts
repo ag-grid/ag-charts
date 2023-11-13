@@ -67,24 +67,30 @@ export class Sector extends Path {
 
             const innerAngleExceeded = sweep < 2 * innerAngleOffset;
 
-            path.moveTo(
-                centerX + innerRadius * Math.cos(startAngle + innerAngleOffset),
-                centerY + innerRadius * Math.sin(startAngle + innerAngleOffset)
-            );
-            path.arc(centerX, centerY, outerRadius, startAngle + outerAngleOffset, endAngle - outerAngleOffset);
-
             if (innerAngleExceeded) {
                 // Draw a wedge on a cartesian co-ordinate with radius `sweep`
-                // Inset from bottom - i.e. y = inset
+                // Inset from bottom - i.e. y = innerRadius
                 // Inset the top - i.e. y = x0 + x * tan(sweep)
-                // Form a right angle from the wedge with hypotenuse x0 and an opposite side of inset
-                // Gives x0 = inset * sin(sweep)
-                // y = inset = inset * sin(sweep) + x * tan(sweep) - solve for x
+                // Form a right angle from the wedge with hypotenuse x0 and an opposite side of innerRadius
+                // Gives x0 = innerRadius * sin(sweep)
+                // y = innerRadius = innerRadius * sin(sweep) + x * tan(sweep) - solve for x
                 const x = inset / (Math.tan(sweep) / (1 - Math.sin(sweep)));
+                // r = sqrt(x**2 + y**2)
                 // Floating point isn't perfect, so if we're getting an answer too small, use the innerRadius
                 const r = Math.max(Math.hypot(inset, x), innerRadius);
                 const midAngle = (startAngle + endAngle) / 2;
                 path.lineTo(centerX + r * Math.cos(midAngle), centerY + r * Math.sin(midAngle));
+            } else {
+                path.moveTo(
+                    centerX + innerRadius * Math.cos(startAngle + innerAngleOffset),
+                    centerY + innerRadius * Math.sin(startAngle + innerAngleOffset)
+                );
+            }
+
+            path.arc(centerX, centerY, outerRadius, startAngle + outerAngleOffset, endAngle - outerAngleOffset);
+
+            if (innerAngleExceeded) {
+                // Ignore - completed by closePath
             } else if (innerRadius > 0) {
                 path.arc(
                     centerX,
