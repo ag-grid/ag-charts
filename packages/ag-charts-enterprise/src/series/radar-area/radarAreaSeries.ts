@@ -50,10 +50,10 @@ export class RadarAreaSeries extends RadarSeries {
         areaNode.stroke = undefined;
     }
 
-    protected override animatePaths(totalDuration: number, timePassed: number) {
-        super.animatePaths(totalDuration, timePassed);
+    protected override animatePaths(ratio: number) {
+        super.animatePaths(ratio);
         const areaPoints = this.getLinePoints({ breakMissingPoints: false });
-        this.animateSinglePath(this.getAreaNode(), areaPoints, totalDuration, timePassed);
+        this.animateSinglePath(this.getAreaNode(), areaPoints, ratio);
     }
 
     protected override resetPaths() {

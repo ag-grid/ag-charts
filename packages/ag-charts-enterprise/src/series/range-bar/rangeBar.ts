@@ -34,6 +34,7 @@ const {
     fixNumericExtent,
     seriesLabelFadeInAnimation,
     resetLabelFn,
+    animationValidation,
 } = _ModuleSupport;
 const { ContinuousScale, BandScale, Rect, PointerEvents, motion } = _Scene;
 const { sanitizeHtml, isNumber, extent } = _Util;
@@ -212,9 +213,13 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const isContinuousX = ContinuousScale.is(this.getCategoryAxis()?.scale);
         const isContinuousY = ContinuousScale.is(this.getValueAxis()?.scale);
 
-        const animationProp = [];
+        const extraProps = [];
+        const animationEnabled = !this.ctx.animationManager.isSkipped();
         if (!this.ctx.animationManager.isSkipped() && this.processedData) {
-            animationProp.push(diff(this.processedData));
+            extraProps.push(diff(this.processedData));
+        }
+        if (animationEnabled) {
+            extraProps.push(animationValidation(this));
         }
 
         const { processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
@@ -223,7 +228,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 valueProperty(this, yLowKey, isContinuousY, { id: `yLowValue` }),
                 valueProperty(this, yHighKey, isContinuousY, { id: `yHighValue` }),
                 ...(isContinuousX ? [SMALLEST_KEY_INTERVAL] : []),
-                ...animationProp,
+                ...extraProps,
             ],
             groupByKeys: true,
             dataVisible: this.visible,
