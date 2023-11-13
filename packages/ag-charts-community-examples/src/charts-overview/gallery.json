@@ -120,6 +120,12 @@
             "example": "xy-histogram-with-mean-aggregation"
         }
     },
+    "Sunburst": {
+        "Market Index Sunburst": {
+            "description": "A sunburst of a snapshot of the S&P 500 stock market index.",
+            "example": "market-index-sunburst"
+        }
+    },
     "Treemap": {
         "Market Index Treemap": {
             "description": "A treemap of a snapshot of the S&P 500 stock market index.",

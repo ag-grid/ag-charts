@@ -5,7 +5,7 @@ import {
     formatStackedLabels,
     generateLabelSecondaryLabelFontSizeCandidates,
     maximumValueSatisfying,
-} from './treemapLabelFormatter';
+} from './labelFormatter';
 
 const { Text } = _Scene;
 
@@ -103,8 +103,7 @@ describe('treeMapLabelFormatter', () => {
     describe('formatSingleLabel', () => {
         it('formats a label without shrinking within large bounds', () => {
             wrap.mockImplementation((text) => text);
-            computeBBox.mockImplementation(function () {
-                // @ts-expect-error
+            computeBBox.mockImplementation(function (this: _Scene.Text) {
                 return { width: this.fontSize, height: this.fontSize };
             });
 
@@ -112,8 +111,8 @@ describe('treeMapLabelFormatter', () => {
                 'Hello',
                 // @ts-expect-error Fix typechecking here
                 { fontSize: 20, minimumFontSize: 10, wrapping: 'never', overflow: 'never' },
-                { width: 1000, height: 1000 },
-                { padding: 10, spacing: 10 }
+                { padding: 10, spacing: 10 },
+                () => ({ width: 1000, height: 1000 })
             );
             expect(format).toEqual({
                 label: {
@@ -128,8 +127,7 @@ describe('treeMapLabelFormatter', () => {
 
         it('shrinks a label to fit within smaller bounds', () => {
             wrap.mockImplementation((text) => text);
-            computeBBox.mockImplementation(function () {
-                // @ts-expect-error
+            computeBBox.mockImplementation(function (this: _Scene.Text) {
                 return { width: this.fontSize, height: this.fontSize };
             });
 
@@ -137,8 +135,8 @@ describe('treeMapLabelFormatter', () => {
                 'Hello',
                 // @ts-expect-error Fix typechecking here
                 { fontSize: 20, minimumFontSize: 10, wrapping: 'never', overflow: 'never' },
-                { width: 35, height: 35 },
-                { padding: 10, spacing: 10 }
+                { padding: 10, spacing: 10 },
+                () => ({ width: 35, height: 35 })
             );
             expect(format).toEqual({
                 label: {
@@ -155,8 +153,7 @@ describe('treeMapLabelFormatter', () => {
     describe('formatStackedLabels', () => {
         it('formats stacked labels without shrinking within large bounds', () => {
             wrap.mockImplementation((text) => text);
-            computeBBox.mockImplementation(function () {
-                // @ts-expect-error
+            computeBBox.mockImplementation(function (this: _Scene.Text) {
                 return { width: this.fontSize, height: this.fontSize };
             });
 
@@ -166,8 +163,8 @@ describe('treeMapLabelFormatter', () => {
                 { fontSize: 20, minimumFontSize: 10, wrapping: 'never', overflow: 'never' },
                 'World',
                 { fontSize: 10, minimumFontSize: 5, wrapping: 'never', overflow: 'never' },
-                { width: 1000, height: 1000 },
-                { padding: 10, spacing: 10 }
+                { padding: 10, spacing: 10 },
+                () => ({ width: 1000, height: 1000 })
             );
             expect(format).toEqual({
                 label: {
@@ -187,8 +184,7 @@ describe('treeMapLabelFormatter', () => {
 
         it('shrinks stacked labels to fit within smaller bounds', () => {
             wrap.mockImplementation((text) => text);
-            computeBBox.mockImplementation(function () {
-                // @ts-expect-error
+            computeBBox.mockImplementation(function (this: _Scene.Text) {
                 return { width: this.fontSize, height: this.fontSize };
             });
 
@@ -202,8 +198,8 @@ describe('treeMapLabelFormatter', () => {
                 { fontSize: 20, minimumFontSize: 10, wrapping: 'never', overflow: 'never' },
                 'World',
                 { fontSize: 10, minimumFontSize: 5, wrapping: 'never', overflow: 'never' },
-                { width: 50, height },
-                { padding, spacing }
+                { padding, spacing },
+                () => ({ width: 50, height })
             );
             expect(format).toEqual({
                 label: {

@@ -13,6 +13,7 @@ import type { AgRangeBarSeriesThemeableOptions } from '../series/cartesian/range
 import type { AgScatterSeriesThemeableOptions } from '../series/cartesian/scatterOptions';
 import type { AgWaterfallSeriesThemeableOptions } from '../series/cartesian/waterfallOptions';
 import type { AgBaseHierarchyThemeOptions, AgHierarchySeriesOptions } from '../series/hierarchy/hierarchyOptions';
+import type { AgSunburstSeriesThemeableOptions } from '../series/hierarchy/sunburstOptions';
 import type { AgTreemapSeriesThemeableOptions } from '../series/hierarchy/treemapOptions';
 import type { AgNightingaleSeriesThemeableOptions } from '../series/polar/nightingaleOptions';
 import type { AgPieSeriesThemeableOptions } from '../series/polar/pieOptions';
@@ -110,6 +111,9 @@ export interface AgRadialColumnSeriesThemeOverrides extends AgBasePolarThemeOpti
 export interface AgNightingaleSeriesThemeOverrides extends AgBasePolarThemeOptions {
     series?: AgNightingaleSeriesThemeableOptions;
 }
+export interface AgSunburstSeriesThemeOverrides extends AgBaseHierarchyThemeOptions {
+    series?: AgSunburstSeriesThemeableOptions;
+}
 export interface AgTreemapSeriesThemeOverrides extends AgBaseHierarchyThemeOptions {
     series?: AgTreemapSeriesThemeableOptions;
 }
@@ -161,6 +165,8 @@ export interface AgBaseChartThemeOverrides {
     /** Nightingale series theme overrides. */
     nightingale?: AgNightingaleSeriesThemeOverrides;
 
+    /** Sunburst series theme overrides. */
+    sunburst?: AgSunburstSeriesThemeOverrides;
     /** Treemap series theme overrides. */
     treemap?: AgTreemapSeriesThemeOverrides;
 }
