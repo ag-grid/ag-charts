@@ -44,10 +44,16 @@ export abstract class DataModelSeries<
         return { dataModel, processedData };
     }
 
+    protected isProcessedDataAnimatable() {
+        const validationResults = this.processedData?.reduced?.animationValidation;
+        if (!validationResults) return true;
+
+        const { orderedKeys, uniqueKeys } = validationResults;
+        return !!orderedKeys && !!uniqueKeys;
+    }
+
     protected checkProcessedDataAnimatable() {
-        const { orderedKeys, uniqueKeys } = this.processedData?.reduced?.animationValidation ?? {};
-        const animationValid = !!orderedKeys && !!uniqueKeys;
-        if (!animationValid) {
+        if (!this.isProcessedDataAnimatable()) {
             this.ctx.animationManager.skipCurrentBatch();
         }
     }

@@ -30,6 +30,8 @@ const {
     resetMotion,
     markerSwipeScaleInAnimation,
     seriesLabelFadeInAnimation,
+    animationValidation,
+    diff,
 } = _ModuleSupport;
 const { getMarker, PointerEvents, Path2D } = _Scene;
 const { sanitizeHtml, extent, isNumber } = _Util;
@@ -179,6 +181,15 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
         const { isContinuousX, isContinuousY } = this.isContinuous();
 
+        const extraProps = [];
+        const animationEnabled = !this.ctx.animationManager.isSkipped();
+        if (!this.ctx.animationManager.isSkipped() && this.processedData) {
+            extraProps.push(diff(this.processedData));
+        }
+        if (animationEnabled) {
+            extraProps.push(animationValidation(this));
+        }
+
         await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 keyProperty(this, xKey, isContinuousX, { id: `xValue` }),
@@ -192,6 +203,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                     id: `yHighTrailingValue`,
                     invalidValue: undefined,
                 }),
+                ...extraProps,
             ],
             dataVisible: this.visible,
         });

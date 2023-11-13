@@ -178,7 +178,7 @@ export abstract class CartesianSeries<
         markerSelectionGarbageCollection = true,
         animationResetFns,
         ...otherOpts
-    }: Partial<SeriesOpts<TNode, TDatum, TLabel>> & ConstructorParameters<typeof Series>[0]) {
+    }: Partial<SeriesOpts<TNode, TDatum, TLabel>> & ConstructorParameters<typeof DataModelSeries>[0]) {
         super({
             directionKeys,
             directionNames,
@@ -287,8 +287,7 @@ export abstract class CartesianSeries<
             this.debug(`CartesianSeries.updateSelections() - calling createNodeData() for`, this.id);
 
             this._contextNodeData = await this.createNodeData();
-            const { orderedKeys, uniqueKeys } = this.processedData?.reduced?.animationValidation ?? {};
-            const animationValid = !!orderedKeys && !!uniqueKeys;
+            const animationValid = this.isProcessedDataAnimatable();
             this._contextNodeData.forEach((nodeData) => {
                 nodeData.animationValid ??= animationValid;
             });
