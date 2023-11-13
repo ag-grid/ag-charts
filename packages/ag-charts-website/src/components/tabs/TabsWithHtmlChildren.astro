@@ -35,6 +35,7 @@ const { tabItemIdPrefix } = Astro.props;
 </tabs-with-html-children>
 
 <script>
+    import type { Listener } from 'history';
     import { TAB_ID_PROP } from './constants';
     import type { TabData } from './types';
     import { getTabId } from './utils';
@@ -47,6 +48,7 @@ const { tabItemIdPrefix } = Astro.props;
         tabsData: TabData[];
         selectedIndex: number;
         tabItemIdPrefix: string;
+        unlistenToHashChanges: () => void;
 
         constructor() {
             super();
@@ -59,21 +61,22 @@ const { tabItemIdPrefix } = Astro.props;
 
             this.initNavButtonHandlers();
             this.updateTabs();
-            this.listenToHashChanges();
+
+            this.unlistenToHashChanges = browserHistory?.listen(({ location }) => {
+                const hashTabIndex = this.getTabIndexFromHash(location?.hash);
+                if (hashTabIndex >= 0) {
+                    this.selectedIndex = hashTabIndex;
+                    this.updateTabs();
+                }
+            })!;
         }
 
         get selected(): TabData {
             return this.tabsData[this.selectedIndex];
         }
 
-        listenToHashChanges() {
-            browserHistory?.listen(({ location }) => {
-                const hashTabIndex = this.getTabIndexFromHash(location?.hash);
-                if (hashTabIndex >= 0) {
-                    this.selectedIndex = hashTabIndex;
-                    this.updateTabs();
-                }
-            });
+        disconnectedCallback() {
+            this.unlistenToHashChanges();
         }
 
         getTabIndexFromHash(hash: string) {
