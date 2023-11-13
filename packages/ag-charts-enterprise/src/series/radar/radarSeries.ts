@@ -24,6 +24,7 @@ const {
     seriesLabelFadeInAnimation,
     markerFadeInAnimation,
     resetMarkerFn,
+    ADD_PHASE,
 } = _ModuleSupport;
 
 const { BBox, Group, Path, PointerEvents, Selection, Text, getMarker } = _Scene;
@@ -574,12 +575,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         return points;
     }
 
-    protected animateSinglePath(
-        pathNode: _Scene.Path,
-        points: RadarLinePoint[],
-        totalDuration: number,
-        timePassed: number
-    ) {
+    protected animateSinglePath(pathNode: _Scene.Path, points: RadarLinePoint[], ratio: number) {
         const { path } = pathNode;
 
         path.clear({ trackChanges: true });
@@ -591,7 +587,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
             const angle = Math.atan2(y1, x1);
             const x0 = axisInnerRadius * Math.cos(angle);
             const y0 = axisInnerRadius * Math.sin(angle);
-            const t = timePassed / totalDuration;
+            const t = ratio;
             const x = x0 * (1 - t) + x1 * t;
             const y = y0 * (1 - t) + y1 * t;
 
@@ -605,26 +601,27 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         pathNode.checkPathDirty();
     }
 
-    protected animatePaths(totalDuration: number, timePassed: number) {
+    protected animatePaths(ratio: number) {
         const linePoints = this.getLinePoints({ breakMissingPoints: true });
-        this.animateSinglePath(this.getLineNode(), linePoints, totalDuration, timePassed);
+        this.animateSinglePath(this.getLineNode(), linePoints, ratio);
     }
 
     override animateEmptyUpdateReady() {
         const { itemSelection, labelSelection } = this;
         const { animationManager } = this.ctx;
 
-        const duration = animationManager.defaultDuration;
-        const animationOptions = { from: 0, to: duration };
+        const duration = animationManager.defaultDuration * (1 - ADD_PHASE.animationDuration);
+        const animationOptions = { from: 0, to: 1 };
 
         this.beforePathAnimation();
 
         animationManager.animate({
-            id: `${this.id}_'empty-update-ready`,
+            id: `${this.id}_'path`,
             groupId: this.id,
             ...animationOptions,
             duration,
-            onUpdate: (timePassed) => this.animatePaths(duration, timePassed),
+            onUpdate: (ratio) => this.animatePaths(ratio),
+            onStop: () => this.animatePaths(1),
         });
 
         markerFadeInAnimation(this, animationManager, [itemSelection], 'added');
