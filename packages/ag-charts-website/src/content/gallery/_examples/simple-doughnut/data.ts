@@ -1,4 +1,3 @@
-// Source: https://www.gov.uk/government/statistical-data-sets/fire-statistics-data-tables
 export function getData() {
     return [
         { type: 'House', count: 15349 },

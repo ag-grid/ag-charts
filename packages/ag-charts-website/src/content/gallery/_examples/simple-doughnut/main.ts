@@ -33,7 +33,7 @@ const options: AgChartOptions = {
             title: {
                 text: 'Annual Count',
             },
-            innerRadiusRatio: 0.6,
+            innerRadiusRatio: 0.7,
             innerLabels: [
                 {
                     text: numFormatter.format(total),
@@ -53,6 +53,7 @@ const options: AgChartOptions = {
                     };
                 },
             },
+            strokeWidth: 3,
         },
     ],
 };
