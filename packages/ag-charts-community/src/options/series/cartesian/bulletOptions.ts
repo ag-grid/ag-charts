@@ -1,5 +1,6 @@
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
+import type { AgBarSeriesStyle } from './barOptions';
 
 interface BulletSeriesKeysAndNames {
     /** The key to use to retrieve the gauge value from the data. */
@@ -16,7 +17,17 @@ export interface AgBulletSeriesTooltipRendererParams<TDatum = any>
     extends AgSeriesTooltipRendererParams<TDatum>,
         BulletSeriesKeysAndNames {}
 
-export interface AgBulletSeriesThemeableOptions extends AgBaseSeriesThemeableOptions {}
+export interface AgBulletSeriesStyle extends AgBarSeriesStyle {}
+
+export interface AgBulletScaleOptions {
+    /** Maximum value of the scale. Any values exceeding this number will be clipped to this maximum */
+    max?: number;
+}
+
+export interface AgBulletSeriesThemeableOptions extends AgBulletSeriesStyle, AgBaseSeriesThemeableOptions {
+    /** Styling options for the target node. */
+    target?: AgBulletSeriesStyle;
+}
 
 export interface AgBulletColorRange {
     /** Color of this category. */
@@ -25,7 +36,10 @@ export interface AgBulletColorRange {
     stop?: number;
 }
 
-export interface AgBulletSeriesOptions<TDatum = any> extends AgBaseSeriesOptions<TDatum>, BulletSeriesKeysAndNames {
+export interface AgBulletSeriesOptions<TDatum = any>
+    extends AgBaseSeriesOptions<TDatum>,
+        AgBulletSeriesThemeableOptions,
+        BulletSeriesKeysAndNames {
     /** Configuration for the Bullet series. */
     type: 'bullet';
     /** Bar rendering direction. NOTE: This option affects the layout direction of X and Y data values. */
@@ -34,4 +48,6 @@ export interface AgBulletSeriesOptions<TDatum = any> extends AgBaseSeriesOptions
     tooltip?: AgSeriesTooltip<AgBulletSeriesTooltipRendererParams>;
     /** Categoric ranges of the chart */
     colorRanges?: AgBulletColorRange[];
+    /** Scale options for the graph. */
+    scale?: AgBulletScaleOptions;
 }
