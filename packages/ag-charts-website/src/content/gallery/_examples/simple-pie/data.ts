@@ -1,13 +1,12 @@
-// Source: https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationestimates/datasets/populationcharacteristicsresearchtables
 export function getData() {
     return [
-        { religion: 'Christian', population: 4159000 },
-        { religion: 'Buddhist', population: 97000 },
-        { religion: 'Hindu', population: 456000 },
-        { religion: 'Jewish', population: 168000 },
-        { religion: 'Muslim', population: 1215000 },
-        { religion: 'Sikh', population: 123000 },
-        { religion: 'Other', population: 174000 },
-        { religion: 'None', population: 2274000 },
+        { ingredient: 'Bramley Apples', weight: 1000 },
+        { ingredient: 'Caster Sugar', weight: 140 },
+        { ingredient: 'Brown Sugar', weight: 55 },
+        { ingredient: 'Butter', weight: 225 },
+        { ingredient: 'Mixed Spice', weight: 20 },
+        { ingredient: 'Eggs', weight: 100 },
+        { ingredient: 'Cornstarch', weight: 37.5 },
+        { ingredient: 'Plain Flour', weight: 350 },
     ];
 }

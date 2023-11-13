@@ -7,30 +7,37 @@ const numFormatter = new Intl.NumberFormat('en-US');
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
-        text: 'Religions of London Population',
+        text: 'Apple Pie',
+    },
+    subtitle: {
+        text: 'Easy Apple Pie (Serves 4)',
     },
     footnote: {
-        text: 'Source: Office for National Statistics',
+        text: 'Bake the pie in the oven for 25 minutes at 180℃',
     },
     series: [
         {
             data: getData(),
             type: 'pie',
-            sectorLabelKey: 'population',
-            angleKey: 'population',
+            calloutLabelKey: 'ingredient',
+            sectorLabelKey: 'weight',
+            angleKey: 'weight',
             calloutLabel: {
-                minAngle: 0,
+                offset: 10,
             },
             sectorLabel: {
-                formatter: ({ datum, sectorLabelKey = 'population' }) => {
-                    return numFormatter.format(datum[sectorLabelKey]);
+                formatter: ({ datum, sectorLabelKey = 'weight' }) => {
+                    return `${numFormatter.format(datum[sectorLabelKey])}g`;
                 },
             },
             tooltip: {
-                renderer: ({ datum, sectorLabelKey = 'population' }) => ({
-                    title: `${datum['religion']}`,
-                    content: `${datum[sectorLabelKey].toLocaleString()}`,
+                renderer: ({ datum, angleKey, calloutLabelKey = 'ingredient' }) => ({
+                    title: `${datum[calloutLabelKey]}`,
+                    content: `${datum[angleKey]}g`,
                 }),
+            },
+            title: {
+                text: 'Recipe',
             },
         },
     ],
