@@ -259,12 +259,9 @@ export class GradientLegend {
         if (this.reverseOrder) {
             colorRange = colorRange.slice().reverse();
         }
-        // const colorsString = colorRange.join(', ');
-        // const orientation = this.getOrientation();
-        // const rotation = orientation === 'vertical' ? 0 : 90;
-        // this.gradientRect.fill = `linear-gradient(${rotation}deg, ${colorsString})`;
+        const orientation = this.getOrientation();
         this.gradientFill.stops = colorRange;
-
+        this.gradientFill.direction = orientation === 'vertical' ? 'to bottom' : 'to right';
         this.gradientRect.x = gradientBox.x;
         this.gradientRect.y = gradientBox.y;
         this.gradientRect.width = gradientBox.width;
