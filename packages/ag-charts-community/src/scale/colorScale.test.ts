@@ -65,6 +65,24 @@ test('multi-value domain', () => {
     expect(scale.convert(501)).toBe('#ffffff');
 });
 
+test('heatmap multistop', () => {
+    const scale = new ColorScale();
+
+    scale.domain = [0, 100, 200, 300, 400];
+    scale.range = ['white', 'yellow', 'red', 'blue', 'black'];
+    scale.update();
+
+    expect(scale.convert(0)).toBe('white');
+    expect(scale.convert(50)).toBe('rgb(255, 255, 128)');
+    expect(scale.convert(100)).toBe('rgb(255, 255, 0)');
+    expect(scale.convert(150)).toBe('rgb(255, 128, 0)');
+    expect(scale.convert(200)).toBe('rgb(255, 0, 0)');
+    expect(scale.convert(250)).toBe('rgb(255, 0, 255)');
+    expect(scale.convert(300)).toBe('rgb(0, 0, 255)');
+    expect(scale.convert(350)).toBe('rgb(64, 64, 128)');
+    expect(scale.convert(400)).toBe('black');
+});
+
 test('hsl interpolation', () => {
     const scale = new ColorScale();
 
@@ -99,22 +117,4 @@ test('hsl interpolation anti-clockwise not starting at red', () => {
     expect(scale.convert(0)).toBe('yellow');
     expect(scale.convert(50)).toBe('rgb(255, 0, 0)');
     expect(scale.convert(100)).toBe('magenta');
-});
-
-test('multi-stop-2', () => {
-    const scale = new ColorScale();
-
-    scale.domain = [0, 100, 200, 300, 400];
-    scale.range = ['white', 'yellow', 'red', 'blue', 'black'];
-    scale.update();
-
-    expect(scale.convert(0)).toBe('white');
-    expect(scale.convert(50)).toBe('rgb(255, 255, 128)');
-    expect(scale.convert(100)).toBe('rgb(255, 255, 0)');
-    expect(scale.convert(150)).toBe('rgb(255, 128, 0)');
-    expect(scale.convert(200)).toBe('rgb(255, 0, 0)');
-    expect(scale.convert(250)).toBe('rgb(255, 0, 255)');
-    expect(scale.convert(300)).toBe('rgb(0, 0, 255)');
-    expect(scale.convert(350)).toBe('rgb(64, 64, 128)');
-    expect(scale.convert(400)).toBe('black');
 });
