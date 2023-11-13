@@ -573,6 +573,26 @@ export const GROUPED_DOUGHNUT_SERIES_LABELS: AgPolarChartOptions = {
     ],
 };
 
+export const SUNBURST_SERIES_LABELS: AgHierarchyChartOptions = {
+    data: DATA_TREEMAP,
+    series: [
+        {
+            type: 'sunburst',
+            labelKey: 'orgHierarchy',
+            sizeKey: undefined, // make all siblings within a parent the same size
+            colorKey: undefined, // if undefined, depth will be used an the value, where root has 0 depth
+            colorRange: ['#d73027', '#fee08b', '#1a9850', 'rgb(0, 116, 52)'],
+            sectorSpacing: 3,
+        },
+    ],
+    title: {
+        text: 'Organizational Chart',
+    },
+    subtitle: {
+        text: 'of a top secret startup',
+    },
+};
+
 export const TREEMAP_SERIES_LABELS: AgHierarchyChartOptions = {
     data: DATA_TREEMAP,
     series: [

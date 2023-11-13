@@ -1,15 +1,9 @@
-import {
-    type AgTreemapSeriesLabelFormatterParams,
-    type TextOverflow,
-    type TextWrap,
-    _ModuleSupport,
-    _Scene,
-} from 'ag-charts-community';
+import { type TextOverflow, type TextWrap, _ModuleSupport, _Scene } from 'ag-charts-community';
 
 const { Validate, OPT_NUMBER, TEXT_WRAP, TEXT_OVERFLOW } = _ModuleSupport;
 const { Text, Label, BBox } = _Scene;
 
-export class TreemapSeriesTileLabel extends Label<AgTreemapSeriesLabelFormatterParams> {
+export class AutoSizeableLabel<FormatterParams> extends Label<FormatterParams> {
     @Validate(TEXT_WRAP)
     wrapping: TextWrap = 'on-space';
 
@@ -25,9 +19,9 @@ type FontSizeCandidate = {
     secondaryLabelFontSize: number;
 };
 
-export function generateLabelSecondaryLabelFontSizeCandidates(
-    label: TreemapSeriesTileLabel,
-    secondaryLabel: TreemapSeriesTileLabel
+export function generateLabelSecondaryLabelFontSizeCandidates<FormatterParams>(
+    label: AutoSizeableLabel<FormatterParams>,
+    secondaryLabel: AutoSizeableLabel<FormatterParams>
 ): FontSizeCandidate[] {
     const { fontSize: labelFontSize, minimumFontSize: labelMinimumFontSize = labelFontSize } = label;
     const {
@@ -113,21 +107,25 @@ type StackedLabelFormatting = {
     secondaryLabel: LabelFormatting | undefined;
 };
 
-export function formatStackedLabels(
-    labelValue: string,
-    labelProps: TreemapSeriesTileLabel,
-    secondaryLabelValue: string,
-    secondaryLabelProps: TreemapSeriesTileLabel,
-    { width, height }: _Scene.BBox,
-    { spacing, padding }: LayoutParams
-) {
-    const availableWidth = width - 2 * padding;
-    const availableHeight = height - 2 * padding - spacing;
+type SizeFittingHeightFn = (height: number) => {
+    width: number;
+    height: number;
+};
 
+export function formatStackedLabels<FormatterParams>(
+    labelValue: string,
+    labelProps: AutoSizeableLabel<FormatterParams>,
+    secondaryLabelValue: string,
+    secondaryLabelProps: AutoSizeableLabel<FormatterParams>,
+    { spacing, padding }: LayoutParams,
+    sizeFittingHeight: SizeFittingHeightFn
+) {
+    const widthAdjust = 2 * padding;
+    const heightAdjust = 2 * padding + spacing;
     const minimumHeight =
         (labelProps.minimumFontSize ?? labelProps.fontSize) +
         (secondaryLabelProps.minimumFontSize ?? secondaryLabelProps.fontSize);
-    if (minimumHeight > availableHeight) {
+    if (minimumHeight > sizeFittingHeight(minimumHeight + heightAdjust).height - heightAdjust) {
         return undefined;
     }
 
@@ -162,6 +160,9 @@ export function formatStackedLabels(
     return maximumValueSatisfying<StackedLabelFormatting>(0, fontSizeCandidates.length - 1, (index) => {
         const { labelFontSize, secondaryLabelFontSize } = fontSizeCandidates[index];
         const allowTruncation = index === 0;
+        const sizeFitting = sizeFittingHeight(labelFontSize + secondaryLabelFontSize + heightAdjust);
+        const availableWidth = sizeFitting.width - widthAdjust;
+        const availableHeight = sizeFitting.height - heightAdjust;
 
         if (labelFontSize + secondaryLabelFontSize > availableHeight) {
             return undefined;
@@ -230,16 +231,14 @@ export function formatStackedLabels(
     });
 }
 
-export function formatSingleLabel(
+export function formatSingleLabel<FormatterParams>(
     value: string,
-    props: TreemapSeriesTileLabel,
-    { width, height }: _Scene.BBox,
-    { padding }: LayoutParams
+    props: AutoSizeableLabel<FormatterParams>,
+    { padding }: LayoutParams,
+    sizeFittingHeight: SizeFittingHeightFn
 ) {
+    const sizeAdjust = 2 * padding;
     const minimumFontSize = props.minimumFontSize ?? props.fontSize;
-
-    const availableWidth = width - 2 * padding;
-    const availableHeight = height - 2 * padding;
 
     const textNode = new Text();
     textNode.setFont(props);
@@ -252,6 +251,10 @@ export function formatSingleLabel(
     };
 
     return maximumValueSatisfying<StackedLabelFormatting>(minimumFontSize, props.fontSize, (fontSize) => {
+        const sizeFitting = sizeFittingHeight(fontSize + sizeAdjust);
+        const availableWidth = sizeFitting.width - sizeAdjust;
+        const availableHeight = sizeFitting.height - sizeAdjust;
+
         if (fontSize > availableHeight) {
             return undefined;
         }
@@ -289,21 +292,28 @@ export function formatSingleLabel(
     });
 }
 
-export function formatLabels(
+export function formatLabels<FormatterParams = any>(
     labelValue: string,
-    label: TreemapSeriesTileLabel,
+    label: AutoSizeableLabel<FormatterParams>,
     secondaryLabelValue: string | undefined,
-    secondaryLabel: TreemapSeriesTileLabel,
-    bbox: _Scene.BBox,
-    layoutParams: LayoutParams
+    secondaryLabel: AutoSizeableLabel<FormatterParams>,
+    layoutParams: LayoutParams,
+    sizeFittingHeight: SizeFittingHeightFn
 ): StackedLabelFormatting | undefined {
     let value: StackedLabelFormatting | undefined;
 
     if (secondaryLabelValue != null) {
-        value = formatStackedLabels(labelValue, label, secondaryLabelValue, secondaryLabel, bbox, layoutParams);
+        value = formatStackedLabels(
+            labelValue,
+            label,
+            secondaryLabelValue,
+            secondaryLabel,
+            layoutParams,
+            sizeFittingHeight
+        );
     }
 
-    value ??= formatSingleLabel(labelValue, label, bbox, layoutParams);
+    value ??= formatSingleLabel(labelValue, label, layoutParams, sizeFittingHeight);
 
     return value;
 }

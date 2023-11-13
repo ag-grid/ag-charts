@@ -32,6 +32,18 @@ export class HierarchyNode implements SeriesNodeDatum {
         this.midPoint = { x: 0, y: 0 };
     }
 
+    contains(other: HierarchyNode): boolean {
+        let current: HierarchyNode | undefined = other;
+        // Index check is a performance optimization - it does not affect correctness
+        while (current != null && current.index >= this.index) {
+            if (current === this) {
+                return true;
+            }
+            current = current.parent;
+        }
+        return false;
+    }
+
     walk(callback: (node: HierarchyNode) => void, order = HierarchyNode.Walk.PreOrder) {
         if (order === HierarchyNode.Walk.PreOrder) {
             callback(this);
@@ -60,21 +72,23 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
     childrenKey?: string = 'children';
 
     @Validate(OPT_STRING)
-    labelKey?: string;
+    sizeKey?: string = undefined;
 
     @Validate(OPT_STRING)
-    sizeKey?: string;
-
-    @Validate(OPT_STRING)
-    colorKey?: string;
+    colorKey?: string = undefined;
 
     @Validate(OPT_COLOR_STRING_ARRAY)
     colorRange?: string[] = undefined;
 
     rootNode = new HierarchyNode(this, 0, undefined, 0, undefined, 0, undefined, undefined, []);
+    maxDepth = 0;
 
     constructor(moduleCtx: ModuleContext) {
-        super({ moduleCtx, pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH] });
+        super({
+            moduleCtx,
+            pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            contentGroupVirtual: false,
+        });
     }
 
     getLabelData(): PointLabelDatum[] {
@@ -147,6 +161,7 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
         }
 
         this.rootNode = rootNode;
+        this.maxDepth = maxDepth;
     }
 
     getDatumIdFromData(node: HierarchyNode) {

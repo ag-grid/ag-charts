@@ -20,6 +20,11 @@ describe('Sector', () => {
             { startAngle: 0, endAngle: fullCircle - 0.5 },
             { startAngle: 2, endAngle: 4 },
         ];
+        const INSET_CASES: Partial<Sector>[] = [
+            { startAngle: 0, endAngle: 1, innerRadius: 0, outerRadius: 30, inset: 5 },
+            { startAngle: 0, endAngle: 2, innerRadius: 0, outerRadius: 30, inset: 5 },
+            { startAngle: 0, endAngle: 2 * Math.PI, innerRadius: 0, outerRadius: 30, inset: 5 },
+        ];
         const STROKE_TC_PARAMS: Partial<Sector> = {
             stroke: 'red',
             fill: 'yellow',
@@ -28,6 +33,11 @@ describe('Sector', () => {
             strokeWidth: 2,
             stroke: 'green',
             fill: 'blue',
+        };
+        const INSET_TC_PARAMS: Partial<Sector> = {
+            strokeWidth: 2,
+            stroke: 'purple',
+            fill: 'cyan',
         };
         const TEST_CASES: (Partial<Sector> | undefined)[][] = [
             // Angle cases.
@@ -49,6 +59,11 @@ describe('Sector', () => {
                 strokeWidth,
                 lineDash: [5, 10],
                 ...STROKE_TC_PARAMS,
+            })),
+            // Inset cases
+            INSET_CASES.map((insets) => ({
+                ...insets,
+                ...INSET_TC_PARAMS,
             })),
             [
                 // Shadow cases.

@@ -31,6 +31,7 @@ export * from './series/cartesian/rangeAreaOptions';
 export * from './series/cartesian/scatterOptions';
 export * from './series/cartesian/waterfallOptions';
 export * from './series/hierarchy/hierarchyOptions';
+export * from './series/hierarchy/sunburstOptions';
 export * from './series/hierarchy/treemapOptions';
 export * from './series/polar/nightingaleOptions';
 export * from './series/polar/pieOptions';

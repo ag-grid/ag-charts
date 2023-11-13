@@ -107,4 +107,34 @@ describe('HierarchySeries', () => {
         });
         expect(index).toBe(12 + 1);
     });
+
+    it('checks for subtree inclusion', async () => {
+        const series = new ExampleHierarchySeries(null!);
+        series.data = [
+            {
+                order: 1,
+                children: [{ order: 2 }, { order: 3 }, { order: 4 }],
+            },
+            {
+                order: 5,
+                children: [
+                    { order: 6 },
+                    { order: 7, children: [{ order: 8 }, { order: 9 }, { order: 10 }] },
+                    { order: 11, children: [{ order: 12 }] },
+                ],
+            },
+        ];
+        await series.processData();
+
+        const nodes = Array.from(series.rootNode);
+
+        expect(nodes[1].contains(nodes[2])).toBe(true);
+        expect(nodes[2].contains(nodes[1])).toBe(false);
+
+        expect(nodes[5].contains(nodes[9])).toBe(true);
+        expect(nodes[9].contains(nodes[5])).toBe(false);
+
+        expect(nodes[9].contains(nodes[10])).toBe(false);
+        expect(nodes[10].contains(nodes[9])).toBe(false);
+    });
 });
