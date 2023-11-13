@@ -16,7 +16,7 @@ import {
     DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
 } from './symbols';
 
-const DEFAULT_DARK_BACKGROUND_FILL = '#15181c';
+const DEFAULT_DARK_BACKGROUND_FILL = '#0a161f';
 
 const DEFAULT_DARK_FILLS = {
     BLUE: '#5090dc',
