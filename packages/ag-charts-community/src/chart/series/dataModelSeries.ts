@@ -43,4 +43,12 @@ export abstract class DataModelSeries<
         this.dispatch('data-processed', { dataModel, processedData });
         return { dataModel, processedData };
     }
+
+    protected checkProcessedDataAnimatable() {
+        const { orderedKeys, uniqueKeys } = this.processedData?.reduced?.animationValidation ?? {};
+        const animationValid = !!orderedKeys && !!uniqueKeys;
+        if (!animationValid) {
+            this.ctx.animationManager.skipCurrentBatch();
+        }
+    }
 }

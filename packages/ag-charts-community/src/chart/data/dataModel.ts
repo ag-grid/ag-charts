@@ -19,6 +19,7 @@ export type UngroupedDataItem<D, V> = {
 
 export interface UngroupedData<D> {
     type: 'ungrouped';
+    input: { count: number };
     data: UngroupedDataItem<D, any[]>[];
     domain: {
         keys: any[][];
@@ -31,6 +32,10 @@ export interface UngroupedData<D> {
         smallestKeyInterval?: number;
         aggValuesExtent?: [number, number];
         sortedGroupDomain?: any[][];
+        animationValidation?: {
+            uniqueKeys: boolean;
+            orderedKeys: boolean;
+        };
     };
     defs: {
         keys: DatumPropertyDefinition<keyof D>[];
@@ -61,6 +66,7 @@ export interface ProcessedDataDef {
 
 export interface GroupedData<D> {
     type: 'grouped';
+    input: UngroupedData<D>['input'];
     data: GroupedDataItem<D>[];
     domain: UngroupedData<D>['domain'];
     reduced?: UngroupedData<D>['reduced'];
@@ -648,6 +654,7 @@ export class DataModel<
 
         return {
             type: 'ungrouped',
+            input: { count: data.length },
             data: resultData,
             domain: {
                 keys: keyDefs.map((def) => propertyDomain(def)),

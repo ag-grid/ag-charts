@@ -36,6 +36,7 @@ const {
     resetBarSelectionsFn,
     seriesLabelFadeInAnimation,
     resetLabelFn,
+    animationValidation,
 } = _ModuleSupport;
 const { ContinuousScale, Rect, motion } = _Scene;
 const { sanitizeHtml, isContinuous, isNumber } = _Util;
@@ -260,7 +261,13 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             }
         });
 
+        const animationEnabled = !this.ctx.animationManager.isSkipped();
         const isContinuousX = ContinuousScale.is(this.getCategoryAxis()?.scale);
+        const extraProps = [];
+        if (animationEnabled) {
+            extraProps.push(animationValidation(this));
+        }
+
         await this.requestDataModel<any, any, true>(dataController, dataWithTotals, {
             props: [
                 keyProperty(this, xKey, isContinuousX, { id: `xValue` }),
@@ -293,6 +300,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                     missingValue: undefined,
                     validation: totalTypeValue,
                 }),
+                ...extraProps,
             ],
             dataVisible: this.visible,
         });

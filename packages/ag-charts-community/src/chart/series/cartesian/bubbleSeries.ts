@@ -19,7 +19,7 @@ import { COLOR_STRING_ARRAY, NUMBER, OPT_NUMBER_ARRAY, OPT_STRING, Validate } fr
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { fixNumericExtent } from '../../data/dataModel';
-import { createDatumId, diff } from '../../data/processors';
+import { animationValidation, createDatumId, diff } from '../../data/processors';
 import { Label } from '../../label';
 import type { CategoryLegendDatum } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
@@ -142,23 +142,20 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
     }
 
     override async processData(dataController: DataController) {
-        const {
-            xKey,
-            yKey,
-            sizeKey,
-            labelKey,
-            colorScale,
-            colorDomain,
-            colorRange,
-            colorKey,
-            marker,
-            data,
-            ctx: { animationManager },
-        } = this;
+        const { xKey, yKey, sizeKey, labelKey, colorScale, colorDomain, colorRange, colorKey, marker, data } = this;
 
         if (xKey == null || yKey == null || sizeKey === null || data == null) return;
 
+        const animationEnabled = !this.ctx.animationManager.isSkipped();
         const { isContinuousX, isContinuousY } = this.isContinuous();
+
+        const extraProps = [];
+        if (animationEnabled && this.processedData) {
+            extraProps.push(diff(this.processedData));
+        }
+        if (animationEnabled) {
+            extraProps.push(animationValidation(this));
+        }
 
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
@@ -170,7 +167,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
                 valueProperty(this, sizeKey, true, { id: `sizeValue` }),
                 ...(colorKey ? [valueProperty(this, colorKey, true, { id: `colorValue` })] : []),
                 ...(labelKey ? [valueProperty(this, labelKey, false, { id: `labelValue` })] : []),
-                ...(!animationManager.isSkipped() && this.processedData ? [diff(this.processedData)] : []),
+                ...extraProps,
             ],
             dataVisible: this.visible,
         });

@@ -36,7 +36,7 @@ import { LogAxis } from '../../axis/logAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { fixNumericExtent } from '../../data/dataModel';
-import { SMALLEST_KEY_INTERVAL, diff, normaliseGroupTo } from '../../data/processors';
+import { SMALLEST_KEY_INTERVAL, animationValidation, diff, normaliseGroupTo } from '../../data/processors';
 import { Label } from '../../label';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import { SeriesNodePickMode, groupAccumulativeValueProperty, keyProperty, valueProperty } from '../series';
@@ -196,9 +196,11 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
         if (normaliseTo) {
             extraProps.push(normaliseGroupTo(this, [stackGroupName, stackGroupTrailingName], normaliseTo, 'range'));
         }
-
         if (animationEnabled && this.processedData) {
             extraProps.push(diff(this.processedData));
+        }
+        if (animationEnabled) {
+            extraProps.push(animationValidation(this));
         }
 
         const visibleProps = !this.visible && animationEnabled ? { forceValue: 0 } : {};

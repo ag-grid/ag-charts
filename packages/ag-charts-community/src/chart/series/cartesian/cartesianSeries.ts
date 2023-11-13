@@ -199,34 +199,38 @@ export abstract class CartesianSeries<
             markerSelectionGarbageCollection,
         };
 
-        this.animationState = new StateMachine<CartesianAnimationState, CartesianAnimationEvent>('empty', {
-            empty: {
-                update: {
-                    target: 'ready',
-                    action: (data) => this.animateEmptyUpdateReady(data),
+        this.animationState = new StateMachine<CartesianAnimationState, CartesianAnimationEvent>(
+            'empty',
+            {
+                empty: {
+                    update: {
+                        target: 'ready',
+                        action: (data) => this.animateEmptyUpdateReady(data),
+                    },
+                },
+                ready: {
+                    updateData: 'waiting',
+                    clear: 'clearing',
+                    update: (data) => this.animateReadyUpdate(data),
+                    highlight: (data) => this.animateReadyHighlight(data),
+                    highlightMarkers: (data) => this.animateReadyHighlightMarkers(data),
+                    resize: (data) => this.animateReadyResize(data),
+                },
+                waiting: {
+                    update: {
+                        target: 'ready',
+                        action: (data) => this.animateWaitingUpdateReady(data),
+                    },
+                },
+                clearing: {
+                    update: {
+                        target: 'empty',
+                        action: (data) => this.animateClearingUpdateEmpty(data),
+                    },
                 },
             },
-            ready: {
-                updateData: 'waiting',
-                clear: 'clearing',
-                update: (data) => this.animateReadyUpdate(data),
-                highlight: (data) => this.animateReadyHighlight(data),
-                highlightMarkers: (data) => this.animateReadyHighlightMarkers(data),
-                resize: (data) => this.animateReadyResize(data),
-            },
-            waiting: {
-                update: {
-                    target: 'ready',
-                    action: (data) => this.animateWaitingUpdateReady(data),
-                },
-            },
-            clearing: {
-                update: {
-                    target: 'empty',
-                    action: (data) => this.animateClearingUpdateEmpty(data),
-                },
-            },
-        });
+            () => this.checkProcessedDataAnimatable()
+        );
     }
 
     override addChartEventListeners(): void {
@@ -283,6 +287,12 @@ export abstract class CartesianSeries<
             this.debug(`CartesianSeries.updateSelections() - calling createNodeData() for`, this.id);
 
             this._contextNodeData = await this.createNodeData();
+            const { orderedKeys, uniqueKeys } = this.processedData?.reduced?.animationValidation ?? {};
+            const animationValid = !!orderedKeys && !!uniqueKeys;
+            this._contextNodeData.forEach((nodeData) => {
+                nodeData.animationValid ??= animationValid;
+            });
+
             await this.updateSeriesGroups();
 
             const { dataModel, processedData } = this;

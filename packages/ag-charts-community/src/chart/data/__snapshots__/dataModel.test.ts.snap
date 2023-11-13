@@ -79,6 +79,9 @@ exports[`DataModel empty data set processing should generated the expected resul
       [],
     ],
   },
+  "input": {
+    "count": 0,
+  },
   "partialValidDataCount": 0,
   "time": Any<Number>,
   "type": "ungrouped",
@@ -320,6 +323,9 @@ exports[`DataModel grouped processing - calculated grouping should generated the
         3505,
       ],
     ],
+  },
+  "input": {
+    "count": 20,
   },
   "partialValidDataCount": 0,
   "reduced": {
@@ -603,6 +609,9 @@ exports[`DataModel grouped processing - calculated grouping should generated the
       ],
     ],
   },
+  "input": {
+    "count": 20,
+  },
   "partialValidDataCount": 0,
   "reduced": {
     "sortedGroupDomain": [
@@ -803,6 +812,9 @@ exports[`DataModel grouped processing - calculated grouping should generated the
       ],
     ],
     "values": [],
+  },
+  "input": {
+    "count": 20,
   },
   "partialValidDataCount": 0,
   "reduced": {
@@ -1094,6 +1106,9 @@ exports[`DataModel grouped processing - grouped example should generated the exp
         4.2,
       ],
     ],
+  },
+  "input": {
+    "count": 7,
   },
   "partialValidDataCount": 0,
   "time": Any<Number>,
@@ -1690,6 +1705,9 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       ],
     ],
   },
+  "input": {
+    "count": 12,
+  },
   "partialValidDataCount": 0,
   "reduced": {
     "aggValuesExtent": [
@@ -2019,6 +2037,9 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
         3.221457119468387,
       ],
     ],
+  },
+  "input": {
+    "count": 5,
   },
   "partialValidDataCount": 0,
   "reduced": {
@@ -2396,6 +2417,9 @@ exports[`DataModel grouped processing - stacked example should generated the exp
         919,
       ],
     ],
+  },
+  "input": {
+    "count": 8,
   },
   "partialValidDataCount": 0,
   "reduced": {
@@ -2778,6 +2802,9 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
       ],
     ],
   },
+  "input": {
+    "count": 8,
+  },
   "partialValidDataCount": 0,
   "reduced": {
     "aggValuesExtent": [
@@ -3105,6 +3132,9 @@ exports[`DataModel grouped processing - stacked with accumulation example should
       ],
     ],
   },
+  "input": {
+    "count": 8,
+  },
   "partialValidDataCount": 0,
   "time": Any<Number>,
   "type": "grouped",
@@ -3405,6 +3435,9 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
         15.23,
       ],
     ],
+  },
+  "input": {
+    "count": 11,
   },
   "partialValidDataCount": 4,
   "time": Any<Number>,
@@ -3715,6 +3748,9 @@ exports[`DataModel missing and invalid data processing should generated the expe
       ],
     ],
   },
+  "input": {
+    "count": 11,
+  },
   "partialValidDataCount": 0,
   "time": Any<Number>,
   "type": "ungrouped",
@@ -3829,6 +3865,9 @@ exports[`DataModel repeated property processing should generated the expected re
         0.6869,
       ],
     ],
+  },
+  "input": {
+    "count": 5,
   },
   "partialValidDataCount": 0,
   "time": Any<Number>,
@@ -3999,6 +4038,9 @@ exports[`DataModel ungrouped processing - accumulated and normalised properties 
         4159000,
       ],
     ],
+  },
+  "input": {
+    "count": 8,
   },
   "partialValidDataCount": 0,
   "time": Any<Number>,
@@ -4794,6 +4836,9 @@ exports[`DataModel ungrouped processing should generated the expected results 1`
         136.45,
       ],
     ],
+  },
+  "input": {
+    "count": 52,
   },
   "partialValidDataCount": 0,
   "time": Any<Number>,

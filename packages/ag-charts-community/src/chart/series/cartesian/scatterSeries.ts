@@ -17,7 +17,7 @@ import { COLOR_STRING_ARRAY, OPT_NUMBER_ARRAY, OPT_STRING, Validate } from '../.
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { fixNumericExtent } from '../../data/dataModel';
-import { diff } from '../../data/processors';
+import { animationValidation, diff } from '../../data/processors';
 import { Label } from '../../label';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
@@ -102,18 +102,21 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
     }
 
     override async processData(dataController: DataController) {
-        const {
-            xKey,
-            yKey,
-            labelKey,
-            data,
-            ctx: { animationManager },
-        } = this;
+        const { xKey, yKey, labelKey, data } = this;
 
         if (xKey == null || yKey == null || data == null) return;
 
+        const animationEnabled = !this.ctx.animationManager.isSkipped();
         const { isContinuousX, isContinuousY } = this.isContinuous();
         const { colorScale, colorDomain, colorRange, colorKey } = this;
+
+        const extraProps = [];
+        if (animationEnabled && this.processedData) {
+            extraProps.push(diff(this.processedData));
+        }
+        if (animationEnabled) {
+            extraProps.push(animationValidation(this));
+        }
 
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
@@ -124,7 +127,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
                 valueProperty(this, yKey, isContinuousY, { id: `yValue` }),
                 ...(colorKey ? [valueProperty(this, colorKey, true, { id: `colorValue` })] : []),
                 ...(labelKey ? [valueProperty(this, labelKey, false, { id: `labelValue` })] : []),
-                ...(!animationManager.isSkipped() && this.processedData ? [diff(this.processedData)] : []),
+                ...extraProps,
             ],
             dataVisible: this.visible,
         });

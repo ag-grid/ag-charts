@@ -27,7 +27,7 @@ import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import type { DatumPropertyDefinition } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
-import { normaliseGroupTo } from '../../data/processors';
+import { animationValidation, normaliseGroupTo } from '../../data/processors';
 import { diff } from '../../data/processors';
 import { Label } from '../../label';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
@@ -154,6 +154,9 @@ export class AreaSeries extends CartesianSeries<
         // automatically garbage collect the marker selection.
         if (!isContinuousX && animationEnabled && this.processedData) {
             extraProps.push(diff(this.processedData));
+        }
+        if (animationEnabled) {
+            extraProps.push(animationValidation(this));
         }
 
         const common: Partial<DatumPropertyDefinition<unknown>> = { invalidValue: null };
@@ -297,7 +300,6 @@ export class AreaSeries extends CartesianSeries<
             labelData,
             nodeData: markerData,
             scales: super.calculateScaling(),
-            animationValid: true,
             visible: this.visible,
         };
 
