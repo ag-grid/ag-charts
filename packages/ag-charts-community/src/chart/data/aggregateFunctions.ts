@@ -148,7 +148,7 @@ export function area(
     return result;
 }
 
-export function accumulatedValue(): DatumPropertyDefinition<any>['processor'] {
+export function accumulatedValue(onlyPositive?: boolean): DatumPropertyDefinition<any>['processor'] {
     return () => {
         let value = 0;
 
@@ -156,7 +156,7 @@ export function accumulatedValue(): DatumPropertyDefinition<any>['processor'] {
             if (typeof datum !== 'number') return datum;
             if (isNaN(datum)) return datum;
 
-            value += datum;
+            value += onlyPositive ? Math.max(0, datum) : datum;
             return value;
         };
     };

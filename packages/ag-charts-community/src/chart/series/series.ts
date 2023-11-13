@@ -156,11 +156,12 @@ export function accumulativeValueProperty<K>(
     scope: ScopeProvider,
     propName: K,
     continuous: boolean,
-    opts: Partial<DatumPropertyDefinition<K>> = {}
+    opts: Partial<DatumPropertyDefinition<K>> & { onlyPositive?: boolean } = {}
 ) {
+    const { onlyPositive, ...defOpts } = opts;
     const result: DatumPropertyDefinition<K> = {
-        ...valueProperty(scope, propName, continuous, opts),
-        processor: accumulatedValue(),
+        ...valueProperty(scope, propName, continuous, defOpts),
+        processor: accumulatedValue(onlyPositive),
     };
     return result;
 }

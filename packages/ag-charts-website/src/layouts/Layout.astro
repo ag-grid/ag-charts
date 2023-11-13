@@ -20,7 +20,7 @@ export interface Props {
 
 const metadata = await getEntry('metadata', 'metadata');
 
-const { title = metadata.data.title, description = metadata.data.description, showTopBar } = Astro.props;
+const { title = metadata.data.title, description = metadata.data.description, showTopBar, suppressFrameworkSelector } = Astro.props;
 const path = Astro.url.pathname;
 
 const frameworks = FRAMEWORKS;
@@ -83,6 +83,7 @@ const isApiLayout = apiMenuItems.some((item) => {
                         currentFramework={framework}
                         path={path}
                         isDev={isDev || isStaging}
+                        suppressFrameworkSelector={suppressFrameworkSelector}
                     />
                 )
             }

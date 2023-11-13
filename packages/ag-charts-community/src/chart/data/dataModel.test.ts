@@ -50,7 +50,7 @@ const accumulatedGroupValue = (property: string, groupId: string = property, id?
 });
 const accumulatedPropertyValue = (property: string, groupId: string = property, id?: string) => ({
     ...value(property, groupId, id),
-    processor: accumulatedValue(),
+    processor: accumulatedValue(true),
 });
 const sum = (groupId: string) => actualSum({ id: 'test' }, `sum-${groupId}`, groupId);
 const scopedSum = (scopes: string[] | undefined, groupId: string) => ({
@@ -196,7 +196,7 @@ describe('DataModel', () => {
                 });
                 const data = [
                     { kp: 2, vp1: 5, vp2: 7, vp3: 1 },
-                    { kp: 3, vp1: 1, vp2: 2, vp3: 2 },
+                    { kp: 3, vp1: 1, vp2: -5, vp3: 2 },
                     { kp: 4, vp1: 6, vp2: 9, vp3: 3 },
                 ];
 
@@ -216,8 +216,8 @@ describe('DataModel', () => {
                     expect(result?.type).toEqual('ungrouped');
                     expect(result?.data.length).toEqual(3);
                     expect(result?.data[0].values).toEqual([0, 7, 1]);
-                    expect(result?.data[1].values).toEqual([14.285714285714285, 9, 2]);
-                    expect(result?.data[2].values).toEqual([100, 18, 3]);
+                    expect(result?.data[1].values).toEqual([14.285714285714285, 7, 2]);
+                    expect(result?.data[2].values).toEqual([100, 16, 3]);
                 });
 
                 it('should calculate the domains', () => {
@@ -227,7 +227,7 @@ describe('DataModel', () => {
                     expect(result?.domain.keys).toEqual([[2, 4]]);
                     expect(result?.domain.values).toEqual([
                         [0, 100],
-                        [7, 18],
+                        [7, 16],
                         [1, 3],
                     ]);
                 });

@@ -69,10 +69,20 @@ export class DataController {
         const merged = this.mergeRequested();
         this.debug('DataController.execute() - merged', merged);
 
+        const debugMode = Debug.check(true, 'data-model');
+        if (debugMode) {
+            (window as any).processedData = [];
+        }
+
         for (const { opts, data, resultCbs, rejects, ids } of merged) {
             try {
                 const dataModel = new DataModel<any>(opts);
                 const processedData = dataModel.processData(data);
+
+                if (debugMode) {
+                    (window as any).processedData.push(processedData);
+                }
+
                 if (processedData && processedData.partialValidDataCount === 0) {
                     resultCbs.forEach((cb) => cb({ dataModel, processedData }));
                 } else if (processedData) {

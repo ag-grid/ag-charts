@@ -92,7 +92,7 @@ export function vanillaToReactFunctional(bindings: any, componentFilenames: stri
 ${imports.join('\n')}
 
 const ChartExample = () => {
-    
+
         ${
             bindings.usesChartApi
                 ? `
@@ -104,6 +104,17 @@ const ChartExample = () => {
         ${instanceBindings.join(';\n        ')}
         ${instanceMethods.concat(externalEventHandlers).join('\n\n    ')}
 
+        /** DARK MODE START **/
+        options.theme = localStorage['documentation:darkmode'] === 'true' ? 'ag-default-dark' : 'ag-default';
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'color-scheme-change') {
+                setOptions((currentOptions) => ({
+                    ...currentOptions,
+                    theme: event.data.darkmode ? 'ag-default-dark' : 'ag-default',
+                }));
+            }
+        });
+        /** DARK MODE END **/
         return ${template};
     }
 

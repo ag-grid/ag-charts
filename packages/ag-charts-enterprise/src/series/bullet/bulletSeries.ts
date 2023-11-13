@@ -1,18 +1,8 @@
-import type { AgBulletSeriesTooltipRendererParams, Direction } from 'ag-charts-community';
+import type { AgBulletSeriesTooltipRendererParams } from 'ag-charts-community';
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
-const {
-    keyProperty,
-    partialAssign,
-    valueProperty,
-    Validate,
-    COLOR_STRING,
-    DIRECTION,
-    STRING,
-    OPT_ARRAY,
-    OPT_NUMBER,
-    OPT_STRING,
-} = _ModuleSupport;
+const { keyProperty, partialAssign, valueProperty, Validate, COLOR_STRING, STRING, OPT_ARRAY, OPT_NUMBER, OPT_STRING } =
+    _ModuleSupport;
 const { sanitizeHtml } = _Util;
 
 interface BulletNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
@@ -65,7 +55,7 @@ class BulletNode extends _Scene.Group {
     }
 }
 
-export class BulletSeries extends _ModuleSupport.CartesianSeries<BulletNode, BulletNodeDatum> {
+export class BulletSeries extends _ModuleSupport.AbstractBarSeries<BulletNode, BulletNodeDatum> {
     @Validate(STRING)
     valueKey: string = '';
 
@@ -77,9 +67,6 @@ export class BulletSeries extends _ModuleSupport.CartesianSeries<BulletNode, Bul
 
     @Validate(OPT_STRING)
     targetName?: string = undefined;
-
-    @Validate(DIRECTION)
-    direction: Direction = 'vertical';
 
     @Validate(OPT_ARRAY())
     colorRanges?: BulletColorRange[] = undefined;
@@ -332,29 +319,4 @@ export class BulletSeries extends _ModuleSupport.CartesianSeries<BulletNode, Bul
     protected override async updateLabelNodes(_opts: {
         labelSelection: _Scene.Selection<_Scene.Text, BulletNodeDatum>;
     }) {}
-
-    // barSeries.ts copy/pasta
-    private getCategoryAxis(): _ModuleSupport.ChartAxis | undefined {
-        const direction = this.getCategoryDirection();
-        return this.axes[direction];
-    }
-
-    private getValueAxis(): _ModuleSupport.ChartAxis | undefined {
-        const direction = this.getBarDirection();
-        return this.axes[direction];
-    }
-
-    private getBarDirection() {
-        if (this.direction === 'vertical') {
-            return _ModuleSupport.ChartAxisDirection.Y;
-        }
-        return _ModuleSupport.ChartAxisDirection.X;
-    }
-
-    private getCategoryDirection() {
-        if (this.direction === 'vertical') {
-            return _ModuleSupport.ChartAxisDirection.X;
-        }
-        return _ModuleSupport.ChartAxisDirection.Y;
-    }
 }
