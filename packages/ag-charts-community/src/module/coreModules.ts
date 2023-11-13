@@ -93,5 +93,5 @@ export interface SeriesModule<SeriesType extends RequiredSeriesType = RequiredSe
     groupable?: boolean;
     stackedByDefault?: boolean;
     swapDefaultAxesCondition?: (opts: SeriesOptions<SeriesType>) => boolean;
-    customDefaultAxesSwapper?: (opts: SeriesOptions<SeriesType>) => SeriesOptions<SeriesType>;
+    customDefaultsFunction?: (opts: SeriesOptions<SeriesType>) => AgChartOptions;
 }

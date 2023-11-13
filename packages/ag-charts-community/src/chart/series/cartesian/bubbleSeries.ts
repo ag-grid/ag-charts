@@ -144,7 +144,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
     override async processData(dataController: DataController) {
         const { xKey, yKey, sizeKey, labelKey, colorScale, colorDomain, colorRange, colorKey, marker, data } = this;
 
-        if (xKey == null || yKey == null || sizeKey === null || data == null) return;
+        if (xKey == null || yKey == null || sizeKey == null || data == null) return;
 
         const animationEnabled = !this.ctx.animationManager.isSkipped();
         const { isContinuousX, isContinuousY } = this.isContinuous();
