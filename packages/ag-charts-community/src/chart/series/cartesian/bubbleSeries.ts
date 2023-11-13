@@ -19,7 +19,7 @@ import { COLOR_STRING_ARRAY, NUMBER, OPT_NUMBER_ARRAY, OPT_STRING, Validate } fr
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { fixNumericExtent } from '../../data/dataModel';
-import { createDatumId, diff } from '../../data/processors';
+import { createDatumId } from '../../data/processors';
 import { Label } from '../../label';
 import type { CategoryLegendDatum } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
