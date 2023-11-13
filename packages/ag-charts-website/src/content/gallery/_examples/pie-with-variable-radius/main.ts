@@ -26,6 +26,14 @@ const options: AgChartOptions = {
                     return usdShortFormatter.format(datum['population'] * datum['gdpPerCapita']);
                 },
             },
+            tooltip: {
+                renderer: ({ datum }) => {
+                    return {
+                        title: `GDP Per Capita: $${datum['gdpPerCapita'].toLocaleString()}`,
+                        content: `Population: ${datum['population'].toLocaleString()}`,
+                    };
+                },
+            },
         },
     ],
     legend: {
