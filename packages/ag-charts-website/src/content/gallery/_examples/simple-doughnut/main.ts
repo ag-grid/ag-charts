@@ -33,16 +33,16 @@ const options: AgChartOptions = {
             title: {
                 text: 'Annual Count',
             },
-            innerRadiusRatio: 0.5,
+            innerRadiusRatio: 0.7,
             innerLabels: [
                 {
                     text: numFormatter.format(total),
                     fontSize: 24,
-                    fontWeight: 'bold',
                 },
                 {
                     text: 'Total',
                     fontSize: 16,
+                    margin: 10,
                 },
             ],
             tooltip: {
@@ -53,6 +53,7 @@ const options: AgChartOptions = {
                     };
                 },
             },
+            strokeWidth: 3,
         },
     ],
 };

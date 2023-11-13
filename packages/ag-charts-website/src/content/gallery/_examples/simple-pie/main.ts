@@ -7,35 +7,37 @@ const numFormatter = new Intl.NumberFormat('en-US');
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
-        text: 'Religions of London Population',
+        text: 'Apple Pie',
+    },
+    subtitle: {
+        text: 'Easy Apple Pie (Serves 4)',
     },
     footnote: {
-        text: 'Source: Office for National Statistics',
+        text: 'Bake the pie in the oven for 25 minutes at 180℃',
     },
     series: [
         {
             data: getData(),
             type: 'pie',
-            calloutLabelKey: 'religion',
-            sectorLabelKey: 'population',
-            angleKey: 'population',
+            calloutLabelKey: 'ingredient',
+            sectorLabelKey: 'weight',
+            angleKey: 'weight',
             calloutLabel: {
-                minAngle: 0,
+                offset: 10,
             },
             sectorLabel: {
-                formatter: ({ datum, sectorLabelKey }) => {
-                    return numFormatter.format(datum[sectorLabelKey!]);
+                formatter: ({ datum, sectorLabelKey = 'weight' }) => {
+                    return `${numFormatter.format(datum[sectorLabelKey])}g`;
                 },
             },
             tooltip: {
-                renderer: ({ datum, color, calloutLabelKey, sectorLabelKey }) => {
-                    return [
-                        `<div style="background-color: ${color}; padding: 4px 8px; border-top-left-radius: 5px; border-top-right-radius: 5px; font-weight: bold; color: white;">${
-                            datum[calloutLabelKey!]
-                        }</div>`,
-                        `<div style="padding: 4px 8px">${numFormatter.format(datum[sectorLabelKey!])}</div>`,
-                    ].join('\n');
-                },
+                renderer: ({ datum, angleKey, calloutLabelKey = 'ingredient' }) => ({
+                    title: `${datum[calloutLabelKey]}`,
+                    content: `${datum[angleKey]}g`,
+                }),
+            },
+            title: {
+                text: 'Recipe',
             },
         },
     ],
@@ -43,5 +45,4 @@ const options: AgChartOptions = {
         enabled: false,
     },
 };
-
 AgEnterpriseCharts.create(options);
