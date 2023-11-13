@@ -24,7 +24,7 @@ import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import type { DataModelOptions, UngroupedDataItem } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
-import { createDatumId, diff } from '../../data/processors';
+import { animationValidation, createDatumId, diff } from '../../data/processors';
 import { Label } from '../../label';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
@@ -138,6 +138,9 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
                 props.push(diff(this.processedData));
             }
         }
+        if (animationEnabled) {
+            props.push(animationValidation(this));
+        }
 
         props.push(
             valueProperty(this, xKey, isContinuousX, { id: 'xValue' }),
@@ -193,8 +196,6 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
 
         let moveTo = true;
         let nextPoint: UngroupedDataItem<any, any> | undefined;
-        let lastXValue: number = -Infinity;
-        let isXUniqueAndOrdered = true;
         for (let i = 0; i < processedData.data.length; i++) {
             const { datum, values } = nextPoint ?? processedData.data[i];
             const xDatum = values[xIdx];
@@ -227,9 +228,6 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
                     },
                     (value) => (isNumber(value) ? value.toFixed(2) : String(value))
                 );
-
-                isXUniqueAndOrdered &&= lastXValue < x;
-                lastXValue = x;
 
                 nodeData.push({
                     series: this,
@@ -264,7 +262,6 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
                 nodeData,
                 labelData: nodeData,
                 scales: super.calculateScaling(),
-                animationValid: isXUniqueAndOrdered,
                 visible: this.visible,
             },
         ];

@@ -399,6 +399,7 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
                 nodeData,
                 labelData: nodeData,
                 scales: super.calculateScaling(),
+                animationValid: true,
                 visible: this.visible,
             },
         ];

@@ -28,6 +28,8 @@ const {
     SMALLEST_KEY_INTERVAL,
     Validate,
     valueProperty,
+    diff,
+    animationValidation,
 } = _ModuleSupport;
 const { motion } = _Scene;
 
@@ -166,7 +168,15 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup
 
         if (!xKey || !minKey || !q1Key || !medianKey || !q3Key || !maxKey) return;
 
+        const animationEnabled = !this.ctx.animationManager.isSkipped();
         const isContinuousX = this.getCategoryAxis()?.scale instanceof _Scale.ContinuousScale;
+        const extraProps = [];
+        if (animationEnabled && this.processedData) {
+            extraProps.push(diff(this.processedData));
+        }
+        if (animationEnabled) {
+            extraProps.push(animationValidation(this));
+        }
 
         const { processedData } = await this.requestDataModel(dataController, data, {
             props: [
@@ -177,6 +187,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup
                 valueProperty(this, q3Key, true, { id: `q3Value` }),
                 valueProperty(this, maxKey, true, { id: `maxValue` }),
                 ...(isContinuousX ? [SMALLEST_KEY_INTERVAL] : []),
+                ...extraProps,
             ],
             dataVisible: this.visible,
         });
