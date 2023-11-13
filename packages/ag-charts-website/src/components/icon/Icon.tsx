@@ -124,6 +124,7 @@ export const ICON_MAP = {
     playCircle: CarbonIcon.PlayFilled,
     download: CarbonIcon.Download,
     executableProgram: CarbonIcon.ExecutableProgram,
+    eye: CarbonIcon.View,
     code: CarbonIcon.Code,
     tick: TickIcon,
     cross: CrossIcon,
