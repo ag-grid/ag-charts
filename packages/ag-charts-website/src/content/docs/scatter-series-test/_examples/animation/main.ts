@@ -1,4 +1,4 @@
-import { AgChart, AgChartOptions, AgChart } from 'ag-charts-enterprise';
+import { AgChart, AgChartOptions } from 'ag-charts-enterprise';
 
 import {
     getFemaleData,
