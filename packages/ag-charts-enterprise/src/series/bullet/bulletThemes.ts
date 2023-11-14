@@ -6,9 +6,11 @@ export const BULLET_SERIES_THEME = {
     strokeOpacity: 1,
     fill: 'black',
     fillOpacity: 1,
+    widthRatio: 0.5,
     target: {
         stroke: 'black',
         strokeWidth: 3,
         strokeOpacity: 1,
+        lengthRatio: 0.75,
     },
 };

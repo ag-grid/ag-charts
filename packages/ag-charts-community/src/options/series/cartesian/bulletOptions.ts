@@ -25,8 +25,13 @@ export interface AgBulletScaleOptions {
 }
 
 export interface AgBulletSeriesThemeableOptions extends AgBulletSeriesStyle, AgBaseSeriesThemeableOptions {
+    /* Width of the bar relative to the width/height of the series area. */
+    widthRatio?: number;
     /** Styling options for the target node. */
-    target?: AgBulletSeriesStyle;
+    target?: AgBulletSeriesStyle & {
+        /* Length of target line relative to the width/height of the series area. */
+        lengthRatio?: number;
+    };
 }
 
 export interface AgBulletColorRange {

@@ -85,6 +85,9 @@ class TargetStyle {
 
     @Validate(NUMBER(0))
     lineDashOffset: number = 0;
+
+    @Validate(NUMBER(0, 1))
+    lengthRatio: number = 0.75;
 }
 
 class BulletScale {
@@ -113,6 +116,9 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
 
     @Validate(NUMBER(0))
     lineDashOffset: number = 0;
+
+    @Validate(NUMBER(0, 1))
+    widthRatio: number = 0.5;
 
     target: TargetStyle = new TargetStyle();
 
@@ -194,6 +200,10 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
         this.animationState.transition('updateData');
     }
 
+    override getBandScalePadding() {
+        return { inner: 0, outer: 0 };
+    }
+
     private getMaxValue(): number {
         return Math.max(...(this.getValueAxis()?.dataDomain.domain ?? [0]));
     }
@@ -222,13 +232,22 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
     }
 
     override async createNodeData() {
-        const { valueKey, targetKey, dataModel, processedData } = this;
+        const {
+            valueKey,
+            targetKey,
+            dataModel,
+            processedData,
+            widthRatio,
+            target: { lengthRatio },
+        } = this;
         const xScale = this.getCategoryAxis()?.scale;
         const yScale = this.getValueAxis()?.scale;
         if (!valueKey || !dataModel || !processedData || !xScale || !yScale) return [];
+        if (widthRatio === undefined || lengthRatio === undefined) return [];
 
         this.colorRangesGroup.visible = this.colorRanges !== undefined;
 
+        const multiplier = xScale.bandwidth ?? NaN;
         const maxValue = this.getMaxValue();
         const valueIndex = dataModel.resolveProcessedDataIndexById(this, 'value').index;
         const targetIndex =
@@ -243,27 +262,28 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
         for (const { datum, values } of processedData.data) {
             const xValue = this.valueName ?? this.valueKey;
             const yValue = Math.min(maxValue, values[0][valueIndex]);
-            const x = xScale.convert(xValue);
             const y = yScale.convert(yValue);
-            const barWidth = 8;
+            const barWidth = widthRatio * multiplier;
             const bottomY = yScale.convert(0);
             const barAlongX = this.getBarDirection() === _ModuleSupport.ChartAxisDirection.X;
             const rect = {
-                x: barAlongX ? Math.min(y, bottomY) : x,
-                y: barAlongX ? x : Math.min(y, bottomY),
-                width: barAlongX ? Math.abs(bottomY - y) : barWidth,
-                height: barAlongX ? barWidth : Math.abs(bottomY - y),
+                x: (multiplier * (1.0 - widthRatio)) / 2,
+                y: Math.min(y, bottomY),
+                width: barWidth,
+                height: Math.abs(bottomY - y),
             };
+            if (barAlongX) {
+                [rect.x, rect.y, rect.width, rect.height] = [rect.y, rect.x, rect.height, rect.width];
+            }
 
             let target;
             if (this.targetKey) {
-                const targetLineLength = 20;
+                const targetLineLength = lengthRatio * multiplier;
                 const targetValue = Math.min(maxValue, values[0][targetIndex]);
                 if (!isNaN(targetValue) && targetValue !== undefined) {
                     const convertedY = yScale.convert(targetValue);
-                    const convertedX = xScale.convert(xValue) + barWidth / 2;
-                    let x1 = convertedX - targetLineLength / 2;
-                    let x2 = convertedX + targetLineLength / 2;
+                    let x1 = (multiplier * (1.0 - lengthRatio)) / 2;
+                    let x2 = x1 + targetLineLength;
                     let [y1, y2] = [convertedY, convertedY];
                     if (barAlongX) {
                         [x1, x2, y1, y2] = [y1, y2, x1, x2];
