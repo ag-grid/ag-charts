@@ -169,20 +169,31 @@
 
 .benefitsInner {
     ul {
-        display: flex;
-        gap: $size-2;
+        @media screen and (min-width: 820px) {
+            display: flex;
+            gap: $size-2;
+        }
     }
 
     li {
-        width: 33.33%;
         text-align: center;
+        margin-bottom: $size-4 !important;
+
+        @media screen and (min-width: 820px) {
+            width: 33.33%;
+            margin-bottom: 0 !important;
+        }
     }
 
     :global(.icon) {
-        --icon-size: #{$size-7};
+        --icon-size: #{$size-6};
         --text-color: var(--auro-metal);
 
-        margin-bottom: $size-3;
+        margin-bottom: $size-1;
+
+        @media screen and (min-width: 820px) {
+            --icon-size: #{$size-7};
+        }
     }
 
     p {
@@ -202,20 +213,39 @@
 
 .devExInner {
     display: flex;
-    gap: $size-4;
+    flex-wrap: wrap;
+    gap: $size-4 0;
+
+    @media screen and (min-width: 1400px) {
+        gap: $size-4;
+    }
 }
 
 .devExExample {
     display: flex;
-    width: 66.66%;
+    flex-direction: column;
+    width: 100%;
     border-radius: var(--border-radius);
     border: 1px solid var(--border-color);
     overflow: hidden;
 
+    @media screen and (min-width: 820px) {
+        flex-direction: row;
+    }
+
+    @media screen and (min-width: 1400px) {
+        width: 66.66%;
+    }
+
     .tmpImgOuter {
+        width: 100%;
         display: flex;
         align-items: center;
         justify-content: center;
+
+        @media screen and (min-width: 820px) {
+            width: 50%;
+        }
     }
 
     img {
@@ -223,11 +253,21 @@
     }
 
     :global(.code) {
-        width: 540px;
+        width: 100%;
         margin-bottom: 0;
         border: none !important;
-        border-left: 1px solid var(--border-color) !important;
+        border-top: 1px solid var(--border-color) !important;
         border-radius: 0 !important;
+
+        @media screen and (min-width: 820px) {
+            width: max(50%, 540px);
+            border-top: none !important;
+            border-left: 1px solid var(--border-color) !important;
+        }
+
+        @media screen and (min-width: 1400px) {
+            width: 540px;
+        }
     }
 
     #{$darkmode-selector} & {
@@ -240,7 +280,13 @@
 }
 
 .devExCopy {
-    width: 30%;
+    width: 100%;
+    text-align: center;
+
+    @media screen and (min-width: 1400px) {
+        width: 30%;
+        text-align: left;
+    }
 
     h3 {
         line-height: var(--line-height-tight);
@@ -258,17 +304,36 @@
 
 .gridInner {
     display: flex;
+    flex-direction: column;
+
+    @media screen and (min-width: 920px) {
+        flex-direction: row;
+    }
 }
 
 .gridCopy {
-    width: 40%;
-    padding-right: $size-4;
+    width: 100%;
+    margin-bottom: $size-4;
+    text-align: center;
+
+    @media screen and (min-width: 920px) {
+        width: 40%;
+        margin-bottom: 0;
+        padding-right: $size-4;
+        text-align: left;
+    }
 }
 
 .agGridLogo {
-    max-width: 320px;
-    margin-bottom: $size-1;
-    margin-left: -$size-1;
+    width: 100%;
+    margin-bottom: $size-2;
+    margin-left: $size-2;
+
+    @media screen and (min-width: 920px) {
+        max-width: 320px;
+        margin-bottom: $size-1;
+        margin-left: -$size-1;
+    }
 }
 
 [data-dark-mode='false'] .agGridLogo :global(.logotype) > * {
@@ -276,7 +341,11 @@
 }
 
 .gridExample {
-    width: 60%;
+    width: 100%;
+
+    @media screen and (min-width: 920px) {
+        width: 60%;
+    }
 
     video {
         width: 100%;

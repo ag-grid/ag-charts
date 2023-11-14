@@ -1,8 +1,14 @@
 @use '../../../design-system' as *;
 
 .seriesChart {
-    width: 50%;
-    padding-right: $size-7;
+    width: 100%;
+    margin-bottom: $size-4;
+
+    @media screen and (min-width: 820px) {
+        width: 50%;
+        margin-bottom: 0;
+        padding-right: $size-3;
+    }
 }
 
 .chartContainer {
@@ -19,12 +25,19 @@
 }
 
 .seriesList {
-    width: 50%;
+    @media screen and (min-width: 820px) {
+        width: 50%;
+    }
 
     ul {
         display: flex;
         flex-wrap: wrap;
+        justify-content: center;
         gap: $size-2;
+
+        @media screen and (min-width: 820px) {
+            justify-content: flex-start;
+        }
     }
 }
 
