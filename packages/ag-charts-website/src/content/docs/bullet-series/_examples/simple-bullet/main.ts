@@ -2,13 +2,9 @@ import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
-    title: {
-        text: 'Income',
-    },
-    subtitle: {
-        text: '2021-2022',
-    },
-    data: [{ income: 11, objective: 7 }],
+    title: { text: 'Income' },
+    subtitle: { text: 'USD' },
+    data: [{ income: 12500, objective: 10000 }],
     series: [
         {
             type: 'bullet',
@@ -16,8 +12,12 @@ const options: AgChartOptions = {
             valueName: 'Actual income',
             targetKey: 'objective',
             targetName: 'Target income',
-            direction: 'horizontal',
-            colorRanges: [{ color: 'red', stop: 5 }, { color: 'yellow', stop: 8 }, { color: 'green' }],
+            scale: { max: 15000 },
+            colorRanges: [
+                { color: '#FFB6C1' /* Light Pink */, stop: 8000 },
+                { color: '#FFFACD' /* Light Yellow */, stop: 13000 },
+                { color: '#B6FBB6' /* Light Green */ },
+            ],
         },
     ],
 };

@@ -10,7 +10,37 @@ values. It employs a horizontal bar and employs various visual cues for clarity.
 
 {% chartExampleRunner title="Simple Bullet" name="simple-bullet" type="generated" /%}
 
-TODO
+To create a Bullet Series, use the `bullet` series type.
+
+```js
+series: [
+    {
+        type: 'bullet',
+        valueKey: 'income',
+        valueName: 'Actual income',
+        targetKey: 'objective',
+        targetName: 'Target income',
+        scale: { max: 15000 },
+        colorRanges: [
+            { color: '#FFB6C1' /* Light Pink */, stop: 8000 },
+            { color: '#FFFACD' /* Light Yellow */, stop: 13000 },
+            { color: '#B6FBB6' /* Light Green */ }
+        ],
+    },
+],
+```
+
+In this configuration:
+
+-   `valueKey` defines the numeric value represented by the bar.
+-   `targetKey` defines the optional numeric value represented by the target
+    line.
+-   `valueName` and `targetName` configure display names, reflected in the
+    [Tooltip](./tooltips).
+-   `scale.max` defines the maximum value of the graph. This an alias for the
+    [Axes Domain](./axes-domain/#domain-min--max).
+-   `colorRange` define the quantitantive categories of the scale. The optional
+    `stop` key defaults to `scale.max`.
 
 ## API Reference
 
