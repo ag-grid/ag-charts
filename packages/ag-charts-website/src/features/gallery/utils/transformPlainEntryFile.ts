@@ -170,7 +170,7 @@ function transformer(sourceFile: string, dataFile?: string, themeName?: ThemeNam
 
     const code = root.toSource();
     const options = parseExampleOptions('options', code, dataFile, {
-        agChart: agChartsEnterprise,
+        agCharts: agChartsEnterprise,
     });
 
     return { code, options };
