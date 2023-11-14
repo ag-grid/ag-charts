@@ -308,6 +308,7 @@ export class Scene {
 
         const renderCtx: RenderContext = {
             ctx,
+            devicePixelRatio: this.canvas.pixelRatio ?? 1,
             forceRender: true,
             resized: !!pendingSize,
             debugNodes: {},

@@ -1,13 +1,52 @@
-import { interpolateColor } from '../interpolate';
 import { Color } from '../util/color';
 import { Logger } from '../util/logger';
 import type { Scale } from './scale';
+
+type HSLA = { h: number; s: number; l: number; a: number };
+
+const convertColorStringToHsla = (v: string): HSLA => {
+    const color = Color.fromString(v);
+    const [h, s, l] = Color.RGBtoHSL(color.r, color.g, color.b);
+    return { h, s, l, a: color.a };
+};
+
+const interpolateHsla = (x: HSLA, y: HSLA, d: number): Color => {
+    d = Math.min(Math.max(d, 0), 1);
+    let h: number;
+    let s: number;
+    if (Number.isNaN(x.h) && Number.isNaN(y.h)) {
+        h = 0;
+        s = 0;
+    } else if (Number.isNaN(x.h)) {
+        h = y.h;
+        s = y.s;
+    } else if (Number.isNaN(y.h)) {
+        h = x.h;
+        s = x.s;
+    } else {
+        const xH = x.h;
+        let yH = y.h;
+        const deltaH = y.h - x.h;
+        if (deltaH > 180) {
+            yH -= 360;
+        } else if (deltaH < -180) {
+            yH += 360;
+        }
+        h = xH * (1 - d) + yH * d;
+        s = x.s * (1 - d) + y.s * d;
+    }
+
+    const l = x.l * (1 - d) + y.l * d;
+    const a = x.a * (1 - d) + y.a * d;
+
+    return Color.fromHSL(h, s, l, a);
+};
 
 export class ColorScale implements Scale<number, string, number> {
     domain = [0, 1];
     range = ['red', 'blue'];
 
-    private parsedRange = this.range.map((v) => Color.fromString(v));
+    private parsedRange = this.range.map(convertColorStringToHsla);
 
     update() {
         const { domain, range } = this;
@@ -37,7 +76,7 @@ export class ColorScale implements Scale<number, string, number> {
             }
         }
 
-        this.parsedRange = this.range.map((v) => Color.fromString(v));
+        this.parsedRange = this.range.map(convertColorStringToHsla);
     }
 
     convert(x: number) {
@@ -76,6 +115,6 @@ export class ColorScale implements Scale<number, string, number> {
 
         const c0 = parsedRange[index];
         const c1 = parsedRange[index + 1];
-        return interpolateColor(c0, c1)(q);
+        return interpolateHsla(c0, c1, q).toRgbaString();
     }
 }

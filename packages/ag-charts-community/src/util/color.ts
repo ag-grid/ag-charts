@@ -209,6 +209,11 @@ export class Color implements IColor {
         return new Color(rgb[0], rgb[1], rgb[2], alpha);
     }
 
+    static fromHSL(h: number, s: number, l: number, alpha = 1): Color {
+        const rgb = Color.HSLtoRGB(h, s, l);
+        return new Color(rgb[0], rgb[1], rgb[2], alpha);
+    }
+
     private static padHex(str: string): string {
         // Can't use `padStart(2, '0')` here because of IE.
         return str.length === 1 ? '0' + str : str;
@@ -250,6 +255,61 @@ export class Color implements IColor {
 
     toHSB(): [number, number, number] {
         return Color.RGBtoHSB(this.r, this.g, this.b);
+    }
+
+    static RGBtoHSL(r: number, g: number, b: number): [number, number, number] {
+        const min = Math.min(r, g, b);
+        const max = Math.max(r, g, b);
+
+        const l = (max + min) / 2;
+
+        let h: number;
+        let s: number;
+        if (max === min) {
+            // Achromatic
+            h = NaN;
+            s = 0;
+        } else {
+            const delta = max - min;
+
+            s = l > 0.5 ? delta / (2 - max - min) : delta / (max + min);
+
+            if (max === r) {
+                h = (g - b) / delta + (g < b ? 6 : 0);
+            } else if (max === g) {
+                h = (b - r) / delta + 2;
+            } else {
+                h = (r - g) / delta + 4;
+            }
+            h *= 360 / 6;
+        }
+
+        return [h, s, l];
+    }
+
+    static HSLtoRGB(h: number, s: number, l: number): [number, number, number] {
+        if (s === 0) {
+            // Achromatic
+            return [l, l, l];
+        }
+
+        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        const p = 2 * l - q;
+
+        function hueToRgb(t: number) {
+            if (t < 0) t += 1;
+            if (t > 1) t -= 1;
+            if (t < 1 / 6) return p + (q - p) * 6 * t;
+            if (t < 1 / 2) return q;
+            if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+            return p;
+        }
+
+        const r = hueToRgb(h / 360 + 1 / 3);
+        const g = hueToRgb(h / 360);
+        const b = hueToRgb(h / 360 - 1 / 3);
+
+        return [r, g, b];
     }
 
     /**
