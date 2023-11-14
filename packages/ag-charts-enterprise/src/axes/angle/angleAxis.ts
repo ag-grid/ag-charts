@@ -194,7 +194,7 @@ export abstract class AngleAxis<
         const { label, tickLabelGroupSelection } = this;
 
         const ticks = this.tickData;
-        tickLabelGroupSelection.update(label.enabled ? ticks : []).each((node, _, index) => {
+        tickLabelGroupSelection.update(label.enabled ? (ticks as any[]) : []).each((node, _, index) => {
             const labelDatum = this.labelData[index];
             if (!labelDatum || labelDatum.hidden) {
                 node.visible = false;

@@ -1,4 +1,4 @@
-import { AgChart, AgChartOptions } from 'ag-charts-community';
+import { AgBubbleSeriesOptions, AgChart, AgChartOptions } from 'ag-charts-community';
 
 import { femaleHeightWeight, maleHeightWeight } from './height-weight-data';
 
@@ -84,8 +84,8 @@ var chart = AgChart.create(options);
 function updateFontSize(event: any) {
     var value = +event.target.value;
 
-    options.series![0].label!.fontSize = value;
-    options.series![1].label!.fontSize = value;
+    (options.series![0] as AgBubbleSeriesOptions).label!.fontSize = value;
+    (options.series![1] as AgBubbleSeriesOptions).label!.fontSize = value;
     AgChart.update(chart, options);
 
     document.getElementById('fontSizeSliderValue')!.innerHTML = String(value);

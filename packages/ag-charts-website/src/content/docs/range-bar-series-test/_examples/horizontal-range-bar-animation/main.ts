@@ -51,7 +51,7 @@ function update() {
 }
 
 function getUpdatedData() {
-    const optionsData = options.data;
+    const optionsData = options.data ?? [];
 
     // Update
     console.log('updating');

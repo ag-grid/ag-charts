@@ -1,8 +1,18 @@
 ---
 import { ReactComponent as LoadingLogo } from '@images/inline-svgs/ag-grid-logomark-loading.svg';
+
+interface Props {
+    exampleHeight?: number;
+}
+
+const DEFAULT_HEIGHT = 500;
+const FRAME_WRAPPER_HEIGHT = 48 + 26;
+
+const exampleHeight = Astro.props.exampleHeight || DEFAULT_HEIGHT;
+const minHeight = exampleHeight + FRAME_WRAPPER_HEIGHT;
 ---
 
-<div class="container">
+<div class="container" style={{ minHeight: `${minHeight}px` }}>
     <LoadingLogo />
     <slot />
 </div>

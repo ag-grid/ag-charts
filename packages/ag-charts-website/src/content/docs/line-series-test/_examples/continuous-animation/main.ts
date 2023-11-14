@@ -1,4 +1,4 @@
-import { AgChart, AgChartOptions, AgEnterpriseCharts, time } from 'ag-charts-enterprise';
+import { AgChart, AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -66,30 +66,31 @@ function actionReset() {
 }
 
 function actionRemovePoints() {
-    options.data = [...options.data];
+    options.data = [...(options.data ?? [])];
     options.data.splice(options.data.length / 2 - 5, 10);
     AgChart.update(chart, options);
 }
 
 function actionRemoveFirstPoint() {
-    options.data = [...options.data.slice(1)];
+    options.data = [...(options.data ?? []).slice(1)];
     AgChart.update(chart, options);
 }
 
 function actionRemoveLastPoint() {
-    options.data = [...options.data.slice(0, -1)];
+    options.data = [...(options.data ?? []).slice(0, -1)];
     AgChart.update(chart, options);
 }
 
 function actionRemoveHalf() {
-    const { length } = options.data;
-    options.data = options.data.slice(Math.floor((length * 1) / 4), Math.floor((length * 3) / 4));
+    const data = options.data ?? [];
+    const { length } = data;
+    options.data = data.slice(Math.floor((length * 1) / 4), Math.floor((length * 3) / 4));
 
     AgChart.update(chart, options);
 }
 
 function actionAddPoints() {
-    options.data = [...options.data];
+    options.data = [...(options.data ?? [])];
     const { length } = options.data;
     for (const idx of [length / 4, length / 2, (length * 3) / 4]) {
         const dataIdx = Math.floor(idx);
@@ -102,7 +103,7 @@ function actionAddPoints() {
 }
 
 function actionAddPointsBefore() {
-    options.data = [...options.data];
+    options.data = [...(options.data ?? [])];
 
     const ref = options.data[0];
     options.data.splice(0, 0, genDataPoint(ref, -14), genDataPoint(ref, -7));
@@ -110,7 +111,7 @@ function actionAddPointsBefore() {
 }
 
 function actionAddPointsAfter(count = 2) {
-    options.data = [...options.data];
+    options.data = [...(options.data ?? [])];
 
     const [ref] = options.data.slice(-1);
     for (let idx = 0; idx < count; idx++) {
@@ -120,21 +121,22 @@ function actionAddPointsAfter(count = 2) {
 }
 
 function actionAddDouble() {
-    const { length } = options.data;
+    const data = options.data ?? [];
+    const { length } = data;
 
     const count = Math.ceil(length / 4);
-    let start = genDataPoint(options.data[0], -7 * (count + 1));
-    let [end] = options.data.slice(-1);
+    let start = genDataPoint(data[0], -7 * (count + 1));
+    let [end] = data.slice(-1);
     options.data = [
         ...times(() => (start = genDataPoint(start, 7)), count),
-        ...options.data,
+        ...data,
         ...times(() => (end = genDataPoint(end, 7)), count),
     ];
     AgChart.update(chart, options);
 }
 
 function actionUpdatePoints() {
-    options.data = options.data.map((d: any) => ({
+    options.data = (options.data ?? []).map((d: any) => ({
         ...d,
         petrol: d.petrol + Math.random() * 4 - 2,
         diesel: d.diesel + Math.random() * 4 - 2,
@@ -143,7 +145,7 @@ function actionUpdatePoints() {
 }
 
 function actionUpdatePointUndefined() {
-    options.data = options.data.map((d: any) => ({
+    options.data = (options.data ?? []).map((d: any) => ({
         ...d,
         petrol: Math.random() > 0.9 ? undefined : d.petrol,
         diesel: Math.random() > 0.9 ? undefined : d.diesel,
@@ -152,15 +154,17 @@ function actionUpdatePointUndefined() {
 }
 
 function actionShiftLeft() {
-    const [ref] = options.data.slice(-1);
-    options.data = [...options.data.slice(1), genDataPoint(ref, 7)];
+    const data = options.data ?? [];
+    const [ref] = data.slice(-1);
+    options.data = [...data.slice(1), genDataPoint(ref, 7)];
 
     AgChart.update(chart, options);
 }
 
 function actionShiftRight() {
-    const [ref] = options.data.slice(0);
-    options.data = [genDataPoint(ref, -7), ...options.data.slice(0, -1)];
+    const data = options.data ?? [];
+    const [ref] = data.slice(0);
+    options.data = [genDataPoint(ref, -7), ...data.slice(0, -1)];
 
     AgChart.update(chart, options);
 }

@@ -75,8 +75,16 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
     protected abstract prepareTickData(tickData: _ModuleSupport.TickDatum[]): _ModuleSupport.TickDatum[];
     protected abstract getTickRadius(tickDatum: _ModuleSupport.TickDatum): number;
 
-    protected override updateSelections(data: _ModuleSupport.TickDatum[]) {
-        super.updateSelections(data);
+    protected override updateSelections(
+        lineData: _ModuleSupport.AxisLineDatum,
+        data: _ModuleSupport.TickDatum[],
+        params: {
+            combinedRotation: number;
+            textBaseline: CanvasTextBaseline;
+            textAlign: CanvasTextAlign;
+        }
+    ) {
+        super.updateSelections(lineData, data, params);
 
         const {
             gridLine: { enabled, style, width },
