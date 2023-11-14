@@ -1,4 +1,4 @@
-import { AgChartOptions, AgChart } from 'ag-charts-enterprise';
+import { AgChart, AgChartOptions } from 'ag-charts-enterprise';
 
 const data = [
     { quarter: 'week 3', week: 3, iphone: 60 },
