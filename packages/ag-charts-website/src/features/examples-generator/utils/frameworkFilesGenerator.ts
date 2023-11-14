@@ -1,4 +1,5 @@
 import type { InternalFramework } from '@ag-grid-types';
+import { getDarkModeSnippet } from '@components/site-header/getDarkModeSnippet';
 
 import { ANGULAR_GENERATED_MAIN_FILE_NAME } from '../constants';
 import { vanillaToAngular } from '../transformation-scripts/chart-vanilla-to-angular';
@@ -106,8 +107,9 @@ const createVueFilesGenerator =
 
 export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator> = {
     vanilla: ({ entryFile, indexHtml, typedBindings, isEnterprise, otherScriptFiles, isGalleryExample }) => {
-        const entryFileName = getEntryFileName('vanilla')!;
-        const mainFileName = getMainFileName('vanilla')!;
+        const internalFramework: InternalFramework = 'vanilla';
+        const entryFileName = getEntryFileName(internalFramework)!;
+        const mainFileName = getMainFileName(internalFramework)!;
         let mainJs = readAsJsFile(entryFile);
 
         // replace Typescript new Grid( with Javascript new agGrid.Grid(
@@ -136,17 +138,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainJs =
                 mainJs +
                 `\n
-                /** DARK MODE START **/
-                options.theme = localStorage['documentation:darkmode'] === 'true' ? 'ag-default-dark' : 'ag-default';
-                agCharts.AgChart.update(chart, options);
-                window.addEventListener('message', (event) => {
-                    if (event.data?.type === 'color-scheme-change') {
-                        options.theme = event.data.darkmode ? 'ag-default-dark' : 'ag-default';
-                        agCharts.AgChart.update(chart, options);
-                    }
-                });
-                /** DARK MODE END **/
-            `;
+                ${getDarkModeSnippet(internalFramework)}`;
         }
 
         return {
@@ -193,16 +185,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainTsx =
                 mainTsx +
                 `\n
-                /** DARK MODE START **/
-                options.theme = localStorage['documentation:darkmode'] === 'true' ? 'ag-default-dark' : 'ag-default';
-                ${chartAPI}.update(chart, options);
-                window.addEventListener('message', (event) => {
-                    if (event.data?.type === 'color-scheme-change') {
-                        options.theme = event.data.darkmode ? 'ag-default-dark' : 'ag-default';
-                        ${chartAPI}.update(chart, options);
-                    }
-                });
-                /** DARK MODE END **/
+                ${getDarkModeSnippet(internalFramework, { chartAPI })}
             `;
         }
 
@@ -237,17 +220,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
 
         // add website dark mode handling code to doc examples - this code is later striped out from the code viewer / plunker
         if (!isGalleryExample) {
-            const codeToInsert = `/** DARK MODE START **/
-                options.theme = localStorage['documentation:darkmode'] === 'true' ? 'ag-default-dark' : 'ag-default';
-                window.addEventListener('message', (event) => {
-                    if (event.data?.type === 'color-scheme-change') {
-                        setOptions((currentOptions) => ({
-                            ...currentOptions,
-                            theme: event.data.darkmode ? 'ag-default-dark' : 'ag-default',
-                        }));
-                    }
-                });
-                /** DARK MODE END **/`;
+            const codeToInsert = getDarkModeSnippet(internalFramework);
 
             const regex = /(const \[options, setOptions] = useState<[\s\S]*?\);)/;
             indexTsx = indexTsx.replace(regex, `$1${codeToInsert}`);

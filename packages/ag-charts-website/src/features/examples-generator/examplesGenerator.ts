@@ -56,7 +56,7 @@ export const getGeneratedContents = async ({
 }: {
     internalFramework: InternalFramework;
     folderUrl: URL;
-    isGalleryExample: boolean;
+    isGalleryExample?: boolean;
 }): Promise<GeneratedContents | undefined> => {
     const sourceFileList = await fs.readdir(folderUrl);
 
