@@ -8,6 +8,6 @@ module.exports = (config) => {
                 return false;
             }
             return config.external(...args);
-        }
+        },
     });
 };
