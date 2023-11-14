@@ -1069,7 +1069,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         maxTickCount: number;
         defaultTickCount: number;
     } {
-        const availableRange = this.calculateAvailableRange();
+        const availableRange = this.calculateVisibleRange();
         const defaultMinSpacing = Math.max(
             this.defaultTickMinSpacing,
             availableRange / ContinuousScale.defaultMaxTickCount
@@ -1145,12 +1145,19 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     protected calculateAvailableRange(): number {
-        const { range: requestedRange } = this;
+        const { range } = this;
 
-        const min = Math.min(...requestedRange);
-        const max = Math.max(...requestedRange);
+        const min = Math.min(...range);
+        const max = Math.max(...range);
 
         return max - min;
+    }
+
+    protected calculateVisibleRange() {
+        const { visibleRange } = this;
+        const visibleScale = 1 / (visibleRange[1] - visibleRange[0]);
+
+        return this.calculateAvailableRange() * visibleScale;
     }
 
     protected calculateDomain() {
