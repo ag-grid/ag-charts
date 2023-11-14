@@ -14,11 +14,11 @@ const options: AgChartOptions = {
             colorRange: ['#d73027', '#fee08b', '#1a9850', 'rgb(0, 116, 52)'],
             group: {
                 padding: 5,
-                spacing: 2,
             },
             tile: {
                 spacing: 1,
             },
+            spacing: 5,
             highlightStyle: {
                 group: {
                     label: {

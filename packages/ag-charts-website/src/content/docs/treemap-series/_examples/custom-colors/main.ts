@@ -24,8 +24,7 @@ const options: AgChartOptions = {
                 label: {
                     color: 'white',
                 },
-                strokeWidth: 2,
-                spacing: 2,
+                strokeWidth: 0,
             },
             spacing: 1,
             highlightStyle: {
@@ -33,17 +32,8 @@ const options: AgChartOptions = {
                     label: {
                         color: 'white',
                     },
+                    strokeWidth: 2,
                 },
-            },
-            formatter: ({ datum, highlighted }) => {
-                if (datum.children) {
-                    return { fill: 'white' };
-                } else {
-                    // const fill = parent.name === 'Foodstuffs' ? 'rgb(64, 172, 64)' : 'rgb(32, 96, 224)';
-                    const fill = 'rgb(32, 96, 224)';
-                    const stroke = highlighted ? 'black' : fill;
-                    return { fill, stroke };
-                }
             },
         } as AgTreemapSeriesOptions,
     ],

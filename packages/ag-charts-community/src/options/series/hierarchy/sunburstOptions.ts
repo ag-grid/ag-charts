@@ -53,6 +53,8 @@ export interface AgSunburstSeriesThemeableOptions<TDatum = any>
     /** Minimum distance between text and the edges of the sectors */
     padding?: number;
     /** The color range to interpolate. */
+    fills?: CssColor[];
+    /** The color range to interpolate. */
     colorRange?: CssColor[];
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgSunburstSeriesTooltipRendererParams<TDatum>>;

@@ -15,14 +15,18 @@ export const SunburstSeriesModule: _ModuleSupport.SeriesModule<'sunburst'> = {
     seriesDefaults: {},
     themeTemplate: {
         __extends__: EXTENDS_SERIES_DEFAULTS,
+        fills: ['#c16068', '#a2bf8a', '#ebcc87', '#80a0c3', '#b58dae', '#85c0d1'],
         colorRange: ['#cb4b3f', '#6acb64'],
-        highlightStyle: {
-            stroke: 'black',
-            strokeWidth: 2,
-            strokeOpacity: 0.2,
-        },
         label: {
+            color: 'white',
             wrapping: 'never',
+        },
+        highlightStyle: {
+            label: {
+                color: undefined,
+            },
+            stroke: `rgba(0, 0, 0, 0.4)`,
+            strokeWidth: 2,
         },
         fill: undefined, // Override default fill
         padding: 3,

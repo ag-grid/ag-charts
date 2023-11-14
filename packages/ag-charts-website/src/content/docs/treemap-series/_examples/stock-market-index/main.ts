@@ -19,6 +19,7 @@ const options: AgChartOptions = {
                     },
                 },
                 textAlign: 'left',
+                strokeWidth: 1,
             },
             tile: {
                 secondaryLabel: {
@@ -36,6 +37,9 @@ const options: AgChartOptions = {
                         color: 'black',
                     },
                 },
+                group: {
+                    strokeWidth: 1,
+                },
             },
             tooltip: {
                 renderer: (params) => {
@@ -45,7 +49,7 @@ const options: AgChartOptions = {
                 },
             },
             formatter: (params) => ({
-                fill: !params.datum.children ? undefined : params.highlighted ? '#aaa' : '#333',
+                fill: !params.datum.children ? undefined : params.highlighted ? '#888' : '#333',
                 stroke: params.depth < 1 ? 'white' : 'black',
             }),
         },

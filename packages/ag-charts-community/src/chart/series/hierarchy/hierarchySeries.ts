@@ -78,6 +78,9 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
     colorKey?: string = undefined;
 
     @Validate(OPT_COLOR_STRING_ARRAY)
+    fills?: string[] = undefined;
+
+    @Validate(OPT_COLOR_STRING_ARRAY)
     colorRange?: string[] = undefined;
 
     rootNode = new HierarchyNode(this, 0, undefined, 0, undefined, 0, undefined, undefined, []);
@@ -100,7 +103,7 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
     }
 
     override async processData(): Promise<void> {
-        const { childrenKey, sizeKey, colorKey, colorRange } = this;
+        const { childrenKey, sizeKey, colorKey, fills, colorRange } = this;
 
         let index = 0;
         const getIndex = () => {
@@ -150,9 +153,9 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
             this.data
         );
 
-        if (this.hasData() && colorRange != null) {
+        if (colorRange != null && Number.isFinite(minColor) && Number.isFinite(maxColor)) {
             const colorScale = new ColorScale();
-            colorScale.domain = colorKey == null ? [0, maxDepth] : [minColor, maxColor];
+            colorScale.domain = [minColor, maxColor];
             colorScale.range = colorRange;
             colorScale.update();
 
@@ -161,6 +164,13 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
                 if (color != null) {
                     node.color = colorScale.convert(color);
                 }
+            });
+        } else if (fills != null) {
+            rootNode.children.forEach((child, index) => {
+                const fill = fills[index % fills.length];
+                child.walk((node: Mutable<HierarchyNode>) => {
+                    node.color = fill;
+                });
             });
         }
 
