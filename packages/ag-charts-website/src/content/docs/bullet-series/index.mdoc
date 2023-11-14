@@ -4,7 +4,8 @@ title: 'Bullet Series'
 
 A Bullet Series presents a single data point within a predefined range, commonly
 used to illustrate the relationship of a key value to a target or comparative
-values. It employs a horizontal bar and employs various visual cues for clarity.
+values. It employs a horizontal or vertical bar and employs various visual cues
+for clarity.
 
 ## Simple Bullet
 
@@ -41,6 +42,30 @@ In this configuration:
     [Axes Domain](./axes-domain/#domain-min--max).
 -   `colorRange` define the quantitantive categories of the scale. The optional
     `stop` key defaults to `scale.max`.
+
+## Horizontal Bullet
+
+{% chartExampleRunner title="Horizontal Bullet" name="horizontal-bullet" type="generated" /%}
+
+To create a Horizontal bullet Series, set `direction: 'horizontal'`.
+
+```diff
+ series: [
+     {
+         type: 'bar',
++        direction: 'horizontal',
+         valueKey: 'income',
+         valueName: 'Actual income',
+         targetKey: 'objective',
+         targetName: 'Target income',
+         scale: { max: 15000 },
+         colorRanges: [
+             { color: '#FFB6C1' /* Light Pink */, stop: 8000 },
+             { color: '#FFFACD' /* Light Yellow */, stop: 13000 },
+             { color: '#B6FBB6' /* Light Green */ }
+         ],
+ ],
+```
 
 ## Multiple Bullets
 
