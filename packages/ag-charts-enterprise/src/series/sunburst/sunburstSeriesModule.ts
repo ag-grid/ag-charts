@@ -15,7 +15,7 @@ export const SunburstSeriesModule: _ModuleSupport.SeriesModule<'sunburst'> = {
     seriesDefaults: {},
     themeTemplate: {
         __extends__: EXTENDS_SERIES_DEFAULTS,
-        showInLegend: false,
+        colorRange: ['#cb4b3f', '#6acb64'],
         highlightStyle: {
             stroke: 'black',
             strokeWidth: 2,
@@ -24,6 +24,7 @@ export const SunburstSeriesModule: _ModuleSupport.SeriesModule<'sunburst'> = {
         label: {
             wrapping: 'never',
         },
+        fill: undefined, // Override default fill
         padding: 3,
     },
 };

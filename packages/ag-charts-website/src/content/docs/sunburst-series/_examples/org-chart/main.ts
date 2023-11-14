@@ -8,10 +8,8 @@ const options: AgChartOptions = {
     series: [
         {
             label: {
-                // fontSize: 14,
-                // minimumFontSize: 9,
-                fontSize: 9,
-                minimumFontSize: 7,
+                fontSize: 14,
+                minimumFontSize: 9,
             },
             secondaryLabel: {
                 fontSize: 8,

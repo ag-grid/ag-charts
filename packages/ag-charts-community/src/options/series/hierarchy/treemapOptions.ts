@@ -41,8 +41,6 @@ export interface AgTreemapSeriesGroupLayout<TDatum> {
     padding?: PixelSize;
     /** The distance between the tiles and the title */
     spacing?: PixelSize;
-    /** The amount of spacing tiles. Default: `0` */
-    tileSpacing?: PixelSize;
     /** Whether the group can be highlighted */
     interactive?: boolean;
 }
@@ -108,7 +106,7 @@ export interface AgTreemapSeriesThemeableOptions<TDatum = any>
     group?: AgTreemapSeriesGroupOptions<TDatum>;
     /** Options for leaf nodes (i.e. nodes WITHOUT children) */
     tile?: AgTreemapSeriesTileOptions<TDatum>;
-    /** Spacing between groups */
+    /** Spacing between tiles */
     spacing?: PixelSize;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgTreemapSeriesTooltipRendererParams<TDatum>>;

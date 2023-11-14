@@ -95,6 +95,10 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
         return [];
     }
 
+    override hasData() {
+        return Array.isArray(this.data) && this.data.length > 0;
+    }
+
     override async processData(): Promise<void> {
         const { childrenKey, sizeKey, colorKey, colorRange } = this;
 
@@ -146,7 +150,7 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
             this.data
         );
 
-        if (colorRange != null) {
+        if (this.hasData() && colorRange != null) {
             const colorScale = new ColorScale();
             colorScale.domain = colorKey == null ? [0, maxDepth] : [minColor, maxColor];
             colorScale.range = colorRange;

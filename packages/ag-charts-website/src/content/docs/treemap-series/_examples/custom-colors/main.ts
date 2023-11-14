@@ -18,7 +18,6 @@ const options: AgChartOptions = {
                 fill: 'transparent',
                 strokeWidth: 0,
                 padding: 5,
-                tileSpacing: 1,
                 interactive: false,
             },
             tile: {
@@ -28,6 +27,7 @@ const options: AgChartOptions = {
                 strokeWidth: 2,
                 spacing: 2,
             },
+            spacing: 1,
             highlightStyle: {
                 tile: {
                     label: {

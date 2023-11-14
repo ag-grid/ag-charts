@@ -26,10 +26,8 @@ const options: AgChartOptions = {
                 textAlign: 'left',
                 stroke: 'white',
                 fill: '#241248',
-                spacing: 1,
                 padding: 20,
                 spacing: 5,
-                tileSpacing: 10,
             },
             tile: {
                 label: {
@@ -40,6 +38,7 @@ const options: AgChartOptions = {
                 stroke: 'white',
                 padding: 10,
             },
+            spacing: 10,
             highlightStyle: {
                 tile: {
                     label: {

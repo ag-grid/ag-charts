@@ -87,9 +87,6 @@ class TreemapSeriesGroup {
 
     @Validate(OPT_NUMBER(0))
     spacing: number = 0;
-
-    @Validate(OPT_NUMBER(0))
-    tileSpacing: number = 0;
 }
 
 class TreemapSeriesTile {
@@ -314,6 +311,19 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
             return;
         }
 
+        const hasInvalidFontSize = (label: AutoSizeableLabel<AgTreemapSeriesLabelFormatterParams> | undefined) => {
+            return (
+                label != null &&
+                label.minimumFontSize != null &&
+                label.fontSize &&
+                label.minimumFontSize > label.fontSize
+            );
+        };
+
+        if (hasInvalidFontSize(this.tile.label) || hasInvalidFontSize(this.tile.secondaryLabel)) {
+            Logger.warn(`minimumFontSize should be set to a value less than or equal to the font size`);
+        }
+
         const defaultLabelFormatter = (value: any) => {
             if (typeof value === 'number') {
                 // This copies what other series are doing - we should look to provide format customization
@@ -468,7 +478,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
     }
 
     private applyGap(innerBox: _Scene.BBox, childBox: _Scene.BBox) {
-        const gap = this.group.tileSpacing / 2;
+        const gap = this.spacing / 2;
         const getBounds = (box: _Scene.BBox): Record<Side, number> => ({
             left: box.x,
             top: box.y,
@@ -568,8 +578,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
             highlightedNode = undefined;
         }
 
-        const labelMeta = this.buildLabelMeta(bboxes);
-
         this.updateNodeMidPoint(bboxes);
 
         const updateRectFn = (node: _ModuleSupport.HierarchyNode, rect: _Scene.Rect, highlighted: boolean) => {
@@ -595,7 +603,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
                 highlightedStrokeOpacity = isLeaf ? tile.strokeOpacity : group.strokeOpacity;
             }
 
-            const fill = highlightedFill ?? node.color ?? (isLeaf ? tile.fill : group.fill);
+            const fill = highlightedFill ?? (isLeaf ? tile.fill : group.fill) ?? node.color;
             const fillOpacity = highlightedFillOpacity ?? (isLeaf ? tile.fillOpacity : group.fillOpacity);
             const stroke = highlightedStroke ?? (isLeaf ? tile.stroke : group.stroke);
             const strokeWidth = highlightedStrokeWidth ?? (isLeaf ? tile.strokeWidth : group.strokeWidth);
@@ -626,6 +634,85 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
             }
         });
 
+        const labelMeta = Array.from(this.rootNode, (node) => {
+            const { index, children } = node;
+            const bbox = bboxes[index];
+            const labelDatum = this.labelData?.[index];
+
+            if (bbox == null || labelDatum == null) return undefined;
+
+            if (children.length === 0) {
+                const formatting = formatLabels(
+                    labelDatum?.label,
+                    this.tile.label,
+                    labelDatum?.secondaryLabel,
+                    this.tile.secondaryLabel,
+                    { spacing: tile.spacing, padding: tile.padding },
+                    () => bbox
+                );
+                if (formatting == null) return undefined;
+
+                const { height, label, secondaryLabel } = formatting;
+                const { textAlign, verticalAlign, padding } = tile;
+
+                const textAlignFactor = textAlignFactors[textAlign] ?? 0.5;
+                const labelX = bbox.x + padding + (bbox.width - 2 * padding) * textAlignFactor;
+
+                const verticalAlignFactor = verticalAlignFactors[verticalAlign] ?? 0.5;
+                const labelYStart =
+                    bbox.y + padding + height * 0.5 + (bbox.height - 2 * padding - height) * verticalAlignFactor;
+
+                return {
+                    label:
+                        label != null
+                            ? {
+                                  text: label.text,
+                                  fontSize: label.fontSize,
+                                  style: this.tile.label,
+                                  x: labelX,
+                                  y: labelYStart - (height - label.height) * 0.5,
+                              }
+                            : undefined,
+                    secondaryLabel:
+                        secondaryLabel != null
+                            ? {
+                                  text: secondaryLabel.text,
+                                  fontSize: secondaryLabel.fontSize,
+                                  style: this.tile.secondaryLabel,
+                                  x: labelX,
+                                  y: labelYStart + (height - secondaryLabel.height) * 0.5,
+                              }
+                            : undefined,
+                    verticalAlign: 'middle' as const,
+                    textAlign,
+                };
+            } else if (labelDatum?.label != null) {
+                const { padding, textAlign } = group;
+
+                const groupTitleHeight = this.groupTitleHeight(node, bbox);
+                if (groupTitleHeight == null) return undefined;
+
+                const innerWidth = bbox.width - 2 * padding;
+                const text = Text.wrap(labelDatum.label, bbox.width - 2 * padding, Infinity, group.label, 'never');
+                const textAlignFactor = textAlignFactors[textAlign] ?? 0.5;
+
+                return {
+                    label: {
+                        text,
+                        fontSize: group.label.fontSize,
+                        style: this.group.label,
+                        x: bbox.x + padding + innerWidth * textAlignFactor,
+                        y: bbox.y + padding + groupTitleHeight * 0.5,
+                    },
+                    secondaryLabel: undefined,
+                    verticalAlign: 'middle' as const,
+                    textAlign,
+                };
+            } else {
+                return undefined;
+            }
+        });
+
         const updateLabelFn = (
             node: _ModuleSupport.HierarchyNode,
             text: _Scene.Text,
@@ -635,7 +722,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
             const isLeaf = node.children.length === 0;
             const meta = labelMeta[node.index];
             const label = tag === TextNodeTag.Primary ? meta?.label : meta?.secondaryLabel;
-            if (!label) {
+            if (meta == null || label == null) {
                 text.visible = false;
                 return;
             }
@@ -653,12 +740,13 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
             text.text = label.text;
             text.fontSize = label.fontSize;
 
+            text.fontStyle = label.style.fontStyle;
             text.fontFamily = label.style.fontFamily;
             text.fontWeight = label.style.fontWeight;
             text.fill = highlightedColor ?? label.style.color;
 
-            text.textAlign = label.hAlign;
-            text.textBaseline = label.vAlign;
+            text.textAlign = meta.textAlign;
+            text.textBaseline = meta.verticalAlign;
             text.x = label.x;
             text.y = label.y;
             text.visible = true;
@@ -682,114 +770,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
             if (bbox != null) {
                 node.midPoint.x = bbox.x + bbox.width / 2;
                 node.midPoint.y = bbox.y;
-            }
-        });
-    }
-
-    buildLabelMeta(bboxes: (_Scene.BBox | undefined)[]) {
-        const { group, tile } = this;
-
-        type TextMeta = {
-            text: string;
-            fontSize: number;
-            style: Omit<_Scene.Label, 'fontSize'>;
-            x: number;
-            y: number;
-            hAlign: CanvasTextAlign;
-            vAlign: CanvasTextBaseline;
-        };
-
-        type LabelMeta = { label?: TextMeta; secondaryLabel?: TextMeta };
-
-        return Array.from(this.rootNode, (node): LabelMeta | undefined => {
-            const { index, datum, children } = node;
-            const bbox = bboxes[index];
-            const labelData = this.labelData![index];
-            const label = labelData?.label;
-            const secondaryLabel = labelData?.secondaryLabel;
-
-            if (datum == null || bbox == null || label == null) {
-                return undefined;
-            } else if (children.length === 0) {
-                const size = { width: bbox.width, height: bbox.height };
-                const labelsFormatting = formatLabels(
-                    label,
-                    tile.label,
-                    secondaryLabel,
-                    tile.secondaryLabel,
-                    { spacing: tile.spacing, padding: tile.padding },
-                    () => size
-                );
-
-                if (labelsFormatting == null) {
-                    return undefined;
-                }
-
-                const { textAlign, verticalAlign, padding } = tile;
-                const { label: labelFormatting, secondaryLabel: secondaryLabelFormatting } = labelsFormatting;
-
-                const totalHeight =
-                    secondaryLabelFormatting != null
-                        ? labelFormatting.height + tile.spacing + secondaryLabelFormatting.height
-                        : labelFormatting.height;
-
-                const textAlignFactor = textAlignFactors[textAlign] ?? 0.5;
-                const labelX = bbox.x + padding + (bbox.width - 2 * padding) * textAlignFactor;
-
-                const verticalAlignFactor = verticalAlignFactors[verticalAlign] ?? 0.5;
-                const labelYStart =
-                    bbox.y +
-                    padding +
-                    totalHeight * 0.5 +
-                    (bbox.height - 2 * padding - totalHeight) * verticalAlignFactor;
-
-                return {
-                    label: {
-                        text: labelFormatting.text,
-                        fontSize: labelFormatting.fontSize,
-                        style: tile.label,
-                        hAlign: textAlign,
-                        vAlign: 'middle',
-                        x: labelX,
-                        y: labelYStart - (totalHeight - labelFormatting.height) * 0.5,
-                    },
-                    secondaryLabel:
-                        secondaryLabelFormatting != null
-                            ? {
-                                  text: secondaryLabelFormatting.text,
-                                  fontSize: secondaryLabelFormatting.fontSize,
-                                  style: tile.secondaryLabel,
-                                  hAlign: textAlign,
-                                  vAlign: 'middle',
-                                  x: labelX,
-                                  y: labelYStart + (totalHeight - secondaryLabelFormatting.height) * 0.5,
-                              }
-                            : undefined,
-                };
-            } else if (datum != null) {
-                const { padding, textAlign } = group;
-                const groupTitleHeight = this.groupTitleHeight(node, bbox);
-
-                if (groupTitleHeight == null) {
-                    return undefined;
-                }
-
-                const innerWidth = bbox.width - 2 * padding;
-                const text = Text.wrap(label, bbox.width - 2 * padding, Infinity, group.label, 'never');
-                const textAlignFactor = textAlignFactors[textAlign] ?? 0.5;
-
-                return {
-                    label: {
-                        text,
-                        fontSize: group.label.fontSize,
-                        style: group.label,
-                        hAlign: textAlign,
-                        vAlign: 'middle',
-                        x: bbox.x + padding + innerWidth * textAlignFactor,
-                        y: bbox.y + padding + groupTitleHeight * 0.5,
-                    },
-                    secondaryLabel: undefined,
-                };
             }
         });
     }

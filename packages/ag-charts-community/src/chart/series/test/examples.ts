@@ -604,11 +604,11 @@ export const TREEMAP_SERIES_LABELS: AgHierarchyChartOptions = {
             colorRange: ['#d73027', '#fee08b', '#1a9850', 'rgb(0, 116, 52)'],
             group: {
                 padding: 5,
-                tileSpacing: 5,
             },
             tile: {
                 spacing: 1,
             },
+            spacing: 5,
         },
     ],
     title: {

@@ -22,7 +22,6 @@ export const TreemapSeriesModule: _ModuleSupport.SeriesModule<'treemap'> = {
     seriesDefaults: {},
     themeTemplate: {
         __extends__: EXTENDS_SERIES_DEFAULTS,
-        showInLegend: false,
         colorRange: ['#cb4b3f', '#6acb64'],
         group: {
             label: {
@@ -33,7 +32,7 @@ export const TreemapSeriesModule: _ModuleSupport.SeriesModule<'treemap'> = {
                 fontSize: 12,
                 fontFamily: DEFAULT_FONT_FAMILY,
             },
-            fill: '#272931',
+            fill: undefined, // Override default fill
             stroke: DEFAULT_TREEMAP_TILE_BORDER_COLOUR,
             strokeWidth: 1,
             padding: 2,
@@ -60,6 +59,7 @@ export const TreemapSeriesModule: _ModuleSupport.SeriesModule<'treemap'> = {
                 wrapping: 'never',
                 overflow: 'never',
             },
+            fill: undefined, // Override default fill
             stroke: DEFAULT_TREEMAP_TILE_BORDER_COLOUR,
             strokeWidth: 1,
             padding: 3,
