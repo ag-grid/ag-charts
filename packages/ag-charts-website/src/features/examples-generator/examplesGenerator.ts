@@ -52,11 +52,11 @@ export const getGeneratedContentsFileList = async ({
 export const getGeneratedContents = async ({
     internalFramework,
     folderUrl,
-    isGalleryExample,
+    ignoreDarkMode,
 }: {
     internalFramework: InternalFramework;
     folderUrl: URL;
-    isGalleryExample?: boolean;
+    ignoreDarkMode?: boolean;
 }): Promise<GeneratedContents | undefined> => {
     const sourceFileList = await fs.readdir(folderUrl);
 
@@ -110,7 +110,7 @@ export const getGeneratedContents = async ({
         bindings,
         typedBindings,
         otherScriptFiles,
-        isGalleryExample,
+        ignoreDarkMode,
     });
     const contents: GeneratedContents = {
         isEnterprise,

@@ -32,7 +32,7 @@ export const getGeneratedGalleryContents = async ({
     return getGeneratedContents({
         internalFramework: GALLERY_INTERNAL_FRAMEWORK,
         folderUrl,
-        isGalleryExample: true,
+        ignoreDarkMode: true,
     });
 };
 
