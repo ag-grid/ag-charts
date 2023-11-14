@@ -154,12 +154,16 @@
 }
 
 .homepageBenefits {
-    background-color: var(--bright-blue-gray);
+    background-color: var(--background-200);
     padding-top: $size-7;
     padding-bottom: $size-8;
 
     #{$darkmode-selector} & {
+        padding-top: $size-8;
+        padding-bottom: $size-9;
         background-color: var(--default-background-color);
+        border-top: 1px solid #394755;
+        border-bottom: 1px solid #394755;
     }
 }
 
@@ -186,9 +190,70 @@
     }
 }
 
+.homepageDevEx {
+    padding-top: $size-9;
+    padding-bottom: $size-7;
+
+    #{$darkmode-selector} & {
+        padding-bottom: $size-9;
+        border-bottom: 1px solid #394755;
+    }
+}
+
+.devExInner {
+    display: flex;
+    gap: $size-4;
+}
+
+.devExExample {
+    display: flex;
+    width: 66.66%;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+
+    .tmpImgOuter {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    img {
+        width: 90%;
+    }
+
+    :global(.code) {
+        width: 540px;
+        margin-bottom: 0;
+        border: none !important;
+        border-left: 1px solid var(--border-color) !important;
+        border-radius: 0 !important;
+    }
+
+    #{$darkmode-selector} & {
+        border-color: 1px solid rgba(255, 255, 255, 0.1);
+
+        :global(.code) {
+            border-color: 1px solid rgba(255, 255, 255, 0.1) !important;
+        }
+    }
+}
+
+.devExCopy {
+    width: 30%;
+
+    h3 {
+        line-height: var(--line-height-tight);
+    }
+}
+
 .homepageGrid {
-    padding-top: $size-6;
+    padding-top: $size-8;
     padding-bottom: $size-10;
+
+    #{$darkmode-selector} & {
+        padding-top: $size-9;
+    }
 }
 
 .gridInner {
@@ -214,52 +279,8 @@
     width: 60%;
 
     video {
-        margin-top: $size-8;
         width: 100%;
         border-radius: 4px;
         box-shadow: 2px 0 2px 0 rgba(0, 0, 0, 0.15);
-    }
-}
-
-.homepageDevEx {
-    margin-top: $size-8;
-    margin-bottom: $size-7;
-}
-
-.devExInner {
-    display: flex;
-    gap: $size-4;
-}
-
-.devExExample {
-    display: flex;
-    width: 66.66%;
-    border-radius: var(--border-radius);
-    border: 2px solid var(--border-color);
-
-    .tmpImgOuter {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    img {
-        width: 90%;
-    }
-
-    :global(.code) {
-        width: 540px;
-        margin-bottom: 0;
-        border: none;
-        border-left: 2px solid var(--border-color);
-        border-radius: 0;
-    }
-}
-
-.devExCopy {
-    width: 30%;
-
-    h3 {
-        line-height: var(--line-height-tight);
     }
 }
