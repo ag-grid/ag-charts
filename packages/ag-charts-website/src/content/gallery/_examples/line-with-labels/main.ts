@@ -1,9 +1,4 @@
-import {
-    AgCartesianSeriesTooltipRendererParams,
-    AgChart,
-    AgChartOptions,
-    AgTooltipRendererResult,
-} from 'ag-charts-enterprise';
+import { AgChartOptions, AgChart } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -15,7 +10,6 @@ const formatTime = (value: number) => {
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
-    data: getData(),
     title: {
         text: 'Eating Hours In A Day',
     },

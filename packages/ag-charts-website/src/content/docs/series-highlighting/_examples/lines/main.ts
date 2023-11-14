@@ -1,20 +1,18 @@
-import { AgChart, AgChartOptions } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgChart } from 'ag-charts-community';
 
 import { getData } from './data';
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.body,
     data: getData(),
     theme: {
         overrides: {
-            cartesian: {
+            line: {
                 series: {
-                    line: {
-                        highlightStyle: {
-                            series: {
-                                dimOpacity: 0.2,
-                                strokeWidth: 4,
-                            },
+                    highlightStyle: {
+                        series: {
+                            dimOpacity: 0.2,
+                            strokeWidth: 4,
                         },
                     },
                 },

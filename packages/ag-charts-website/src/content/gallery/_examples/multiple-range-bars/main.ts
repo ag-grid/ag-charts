@@ -1,4 +1,4 @@
-import { AgChart, AgChartOptions, AgRangeBarSeriesLabelFormatterParams } from 'ag-charts-enterprise';
+import { AgChartOptions, AgChart } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -23,8 +23,8 @@ const options: AgChartOptions = {
             yName: 'Followers Gained',
             label: {
                 placement: 'outside',
-                formatter: ({ itemId, yLowValue, yHighValue }: AgRangeBarSeriesLabelFormatterParams) => {
-                    return itemId === 'low' ? '' : `+${(yHighValue - yLowValue).toFixed(0)}`;
+                formatter: ({ itemId, value }) => {
+                    return itemId === 'low' ? '' : `+${value.toFixed(0)}`;
                 },
             },
         },
@@ -39,8 +39,8 @@ const options: AgChartOptions = {
             yName: 'Followers Lost',
             label: {
                 placement: 'outside',
-                formatter: ({ itemId, yLowValue, yHighValue }: AgRangeBarSeriesLabelFormatterParams) => {
-                    return itemId === 'high' ? '' : `-${(yHighValue - yLowValue).toFixed(0)}`;
+                formatter: ({ itemId, value }) => {
+                    return itemId === 'high' ? '' : `-${value.toFixed(0)}`;
                 },
             },
         },

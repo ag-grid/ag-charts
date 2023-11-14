@@ -64,19 +64,19 @@ const options: AgChartOptions = {
 const chart = AgChart.create(options);
 
 function reset() {
-    options.series[0].data = getMaleData();
-    options.series[1].data = getFemaleData();
+    options.series![0].data = getMaleData();
+    options.series![1].data = getFemaleData();
     AgChart.update(chart, options as any);
 }
 
 function randomise() {
-    options.series[0].data = getRandomisedMaleData();
-    options.series[1].data = getRandomisedFemaleData();
+    options.series![0].data = getRandomisedMaleData();
+    options.series![1].data = getRandomisedFemaleData();
     AgChart.update(chart, options as any);
 }
 
 function remove() {
-    options.series[0].data = getRemovedMaleData();
-    options.series[1].data = getRemovedFemaleData();
+    options.series![0].data = getRemovedMaleData();
+    options.series![1].data = getRemovedFemaleData();
     AgChart.update(chart, options as any);
 }

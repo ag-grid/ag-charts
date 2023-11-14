@@ -28,7 +28,6 @@ const options: AgChartOptions = {
                 fill: '#241248',
                 spacing: 1,
                 padding: 20,
-                spacing: 5,
                 tileSpacing: 10,
             },
             tile: {

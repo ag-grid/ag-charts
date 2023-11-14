@@ -67,7 +67,7 @@ export class ErrorBarNode extends _Scene.Group {
     // of 0. Therefore, we only need bounding boxes for number based ranges.
     private bboxes: HierarchialBBox;
 
-    protected override _datum?: ErrorBarNodeDatum;
+    protected override _datum?: ErrorBarNodeDatum = undefined;
     public override get datum(): ErrorBarNodeDatum | undefined {
         return this._datum;
     }

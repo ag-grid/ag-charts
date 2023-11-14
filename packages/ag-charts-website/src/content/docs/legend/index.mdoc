@@ -2,93 +2,51 @@
 title: 'Legend'
 ---
 
-A legend makes it easier to tell at a glance which series or series items correspond to which pieces of data. This section describes the legend options and layout behaviour.
-
-## Position
-
-By default, a legend is displayed for all charts with more than one series present. However, it can be hidden by using the `enabled` configuration option:
-
-```js
-legend: {
-    enabled: false;
-}
-```
-
-When enabled, it can be positioned to any side of a chart using the `position` config:
-
-```js
-legend: {
-    position: 'right'; // 'bottom', 'left', 'top'
-}
-```
-
-### Example: Legend Position
-
-Notice how when you click on one of the buttons in the example to change the position of the legend:
-
--   the layout of the legend items also changes
--   the layout of the chart changes as well, with series moving around and growing/shrinking slightly to accommodate the legend
+A Legend aids in matching visual elements in the chart to their corresponding series or data categories.
 
 {% chartExampleRunner title="Legend Position" name="legend-position" type="generated" /%}
 
-## Orientation
+A Legend is made up of multiple 'items', each of which consists of a 'marker' and a 'label'.
 
-The legend can have a `vertical` or `horizontal` orientation. The arrangement of legend items can be configured using the `legend.orientation` property.
+By default, a Legend is displayed below all charts containing more than one series. This can be changed by using the `legend.enabled` property.
 
-### Vertical Orientation
+## Layout
 
-In the `vertical` orientation, the legend items are arranged using the minimum number of columns possible given the current dimension constraints.
+### Position
 
-By default, when the legend is positioned to the `'right'` or `'left'` of a chart, it is rendered in a `vertical` orientation.
-The number of columns in a `vertical` legend increases as the height of a chart shrinks, as fewer legend items can be placed in a given column.
-
-### Example: Vertical Legend Layout
-
-{% chartExampleRunner title="Vertical Legend Layout" name="legend-layout-vertical" type="generated" /%}
-
-### Horizontal Layout
-
-If the legend is `horizontal`, the legend items are arranged using the minimum possible number of rows. If the legend is not wide enough, the items are divided into more rows until everything fits.
-
-By default, when the legend is positioned to the `'bottom'` or `'top'` of a chart, it is rendered in a `horizontal` orientation. The number of rows in a `horizontal` legend increases as the width of a chart shrinks, as fewer legend items can be placed in a given row.
-
-### Example: Horizontal Legend Layout
-
-{% chartExampleRunner title="Horizontal Legend Layout" name="legend-layout-horizontal" type="generated" /%}
-
-## Constraints
-
-The legend width and height can be constrained using the `legend.maxWidth` and `legend.maxHeight` properties.
-
-By default, the legend width and height will be a percentage of the chart width and height depending on the legend's orientation.
-
-If the legend `maxWidth` or `maxHeight` is set to a value which is larger than the chart `width` or `height`, the legend may overflow the chart and become clipped. Likewise, if the `maxWidth` or `maxHeight` is too small, the legend layout will contain at least one row or column of items depending on the `orientation`.
-
-In addition to `maxWidth` and `maxHeight`, the legend's layout is also affected by the amount of padding between the legend items. For example, `legend.item.paddingX` controls the amount of padding between adjacent horizontal legend items:
+The default position of a Legend is below the chart. However, this can be changed with the `position` property.
 
 ```js
 legend: {
-    item: {
-        paddingX: 16;
-    }
+    position: 'bottom'; // 'top', 'right', 'left',
 }
 ```
 
-`legend.item.paddingY` controls the amount of padding between adjacent vertical legend items:
+Notice that when you change the legend position in the example above:
+
+-   The size and position of the chart changes to accommodate the Legend within the container.
+-   The default `orientation` of the Legend changes.
+    -   A `vertical` orientation - with the items arranged in columns - is used when the Legend is positioned to `right` or `left`.
+    -   A `horizontal` orientation - with the items arranged in rows - is used when the Legend is positioned to `top` or `bottom`.
+
+### Size
+
+By default, the overall width and height of the Legend will be a percentage of the chart's width and height.
+
+The Legend width and height can be constrained using the `legend.maxWidth` and `legend.maxHeight` properties. The Legend will always contain at least one row or column of items.
+
+### Padding
+
+It is possible to add padding between and within the Legend items.
+
+{% chartExampleRunner title="Legend Constraints" name="legend-constraints" type="generated" /%}
 
 ```js
 legend: {
     item: {
+        maxWidth: 130,
+        paddingX: 32,
         paddingY: 8;
-    }
-}
-```
-
-And the `legend.item.marker.padding` config is responsible for the amount of padding within a legend item, between the marker and the label:
-
-```js
-legend: {
-    item: {
         marker: {
             padding: 8;
         }
@@ -96,59 +54,24 @@ legend: {
 }
 ```
 
-Please refer to the example below to get a better idea of how the above configs affect the legend layout.
-
-### Example: Legend Constraints
-
-{% chartExampleRunner title="Legend Constraints" name="legend-constraints" type="generated" /%}
-
 ## Pagination
 
-If the legend items don't fit within the constraints, the items will be paginated and the pagination component will be displayed.
+If the Legend items don't fit within the size constraints, the items are paginated and the pagination component is displayed.
 
-The pagination component can be customised using `legend.pagination`. For example, the pagination button markers can be made larger with `legend.pagination.marker`:
-
-```js
-legend: {
-    pagination: {
-        marker: {
-            size: 18;
-        }
-    }
-}
-```
-
-`legend.pagination.activeStyle` and `legend.pagination.inactiveStyle` can be used to style the pagination buttons when in the active and inactive states.
-
-```js
-legend: {
-    pagination: {
-        activeStyle: {
-            fill: 'blue',
-            strokeWidth: 0,
-        },
-        inactiveStyle: {
-            fillOpcacity: 0,
-        }
-    }
-}
-```
-
-### Example: Legend Pagination
-
--   Initially the legend is positioned at the bottom of the chart so by default, the legend is rendered in the `horizontal` orientation.
--   `legend.maxHeight` is used to restrict the height of the legend, resulting in a single row of legend items spread across different pages.
--   The pagination component appears automatically when the legend items combined with their configured padding do not fit in the given width and height constraints.
--   `legend.pagination` is used to customise the styles of the pagination label and buttons.
--   You can switch between different legend positions using the buttons above the chart to see how the legend pagination component behaves.
+In this example `legend.maxWidth` and `legend.maxHeight` are used to constrain the size of the Legend and force pagination.
 
 {% chartExampleRunner title="Legend Pagination" name="legend-pagination" type="generated" /%}
 
-## Labels
+Use `legend.pagination` to customise the styling of the pagination label and buttons.
+See the [API Reference](#reference-AgChartLegendOptions-pagination) for more details.
 
-There are a number of configs that affect the `fontSize`, `fontStyle`, `fontWeight`, `fontFamily`, and `color` of the legend item labels.
+## Customisation
 
-`maxLength` can also be configured to constrain the length of legend item labels, if the label text exceeds the maximum length, it will be truncated and an ellipsis will be appended.
+{% chartExampleRunner title="Legend Customisation" name="legend-customisation" type="generated" /%}
+
+### Labels
+
+It is possible to customise the look of the item label using `legend.item.label`.
 
 ```js
 legend: {
@@ -165,34 +88,24 @@ legend: {
 }
 ```
 
-## Markers
+`maxLength` constrains the length of the labels, after which the text will be truncated with ellipsis.
 
-### Size and StrokeWidth
+See the [API Reference](#reference-AgChartLegendOptions-item-label) for more details about customising the appearance of the labels.
 
-All legend items use the same `size` and `strokeWidth`, regardless of the `size` and `strokeWidth` used by the series they represent. It's possible to adjust the defaults using the following configs:
+See [Formatters](formatters/#legend-item-label-formatter) for details about customising the label text.
+
+### Markers
+
+The look of the Legend markers is based on the styling of the series that they represent.
+It is possible to override this behaviour and set the `size`, `stroke` and `shape` of the `legend.item.marker`.
 
 ```js
 legend: {
     item: {
         marker: {
             size: 20,
-            strokeWidth: 3
-        }
-    }
-}
-```
-
-### Shape
-
-Normally, the legend mirrors the marker shapes used by the series, unless the series in question doesn't support markers (for example `'bar'` series), in which case the legend will use `'square'`.
-
-It's also possible to override the default behaviour and make the legend use a specified marker shape for all legend items, regardless of the shapes the series are using:
-
-```js
-legend: {
-    item: {
-        marker: {
-            shape: 'circle', // 'square', 'diamond', 'cross', 'plus', 'triangle'
+            strokeWidth: 3,
+            shape: 'diamond', // 'circle', 'square', 'cross', 'plus', 'triangle'
         }
     }
 }
@@ -200,9 +113,17 @@ legend: {
 
 ## Series Visibility Toggling
 
-By default, when a legend item is clicked, the visibility of the series associated with that legend item will be toggled. This allows the users to control which series are displayed in the chart by clicking on legend items. Additionally, when a legend item is double clicked, it will make only that series visible.
+{% chartExampleRunner title="Series Visibility Toggling" name="legend-click-series-toggle" type="generated" /%}
 
-To disable series toggling on legend item click or double click, the `legend.item.toggleSeriesVisible` property can be set to `false`:
+By default, when a Legend item is clicked, the visibility of the series associated with that item will be toggled. This allows the users to control which series are displayed in the chart by clicking on Legend items.
+
+Additionally, when a Legend item is double clicked, the chart will show that series only. Double clicking again will show all of the series.
+
+{% note %}
+NOTE: Pie series sectors do not toggle when a legend item is double clicked.
+{% /note %}
+
+To disable series toggling on Legend item click or double click, set the `legend.item.toggleSeriesVisible` property to `false`.
 
 ```js
 legend: {
@@ -212,23 +133,11 @@ legend: {
 }
 ```
 
-If a callback function is configured via [`legend.listeners.legendItemClick`](./events/#legend-events---legenditemclick-and-legenditemdoubleclick), it will still be invoked when the legend click event is fired.
-
 The `legendItemClick` and `legendItemDoubleClick` events can be used to listen to legend item clicks and double clicks, respectively. For more information see [Legend Events](./events/#legend-events---legenditemclick-and-legenditemdoubleclick).
 
-{% note %}
-NOTE: Pie series sectors do not toggle when a legend item is double clicked.
-{% /note %}
-
-### Example: Series Visibility Toggling
-
-This example demonstrates toggling the visiblity of series via clicks and double clicks, and logs a message to the browser console when the legend is clicked.
-
-{% chartExampleRunner title="Series Visibility Toggling" name="legend-click-series-toggle" type="generated" /%}
+In this scenario, both the listener and the item toggle behaviour will occur. In the above example, clicking or double clicking a Legend item will toggle the series visibility as well as logging a message to the browser console via a `legendItemClick` event.
 
 ## API Reference
-
-### Chart Legend Options
 
 {% tabs %}
 

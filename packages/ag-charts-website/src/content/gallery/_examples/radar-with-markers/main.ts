@@ -4,7 +4,6 @@ import { getData } from './data';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
-    data: getData(),
     title: {
         text: 'SOCIAL CIRCLE',
     },
@@ -26,7 +25,6 @@ const options: AgChartOptions = {
     axes: [
         {
             type: 'angle-number',
-            shape: 'circle',
             label: {
                 enabled: false,
             },

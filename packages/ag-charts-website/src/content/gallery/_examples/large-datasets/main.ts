@@ -5,9 +5,11 @@ import { getData } from './data';
 const count = 100_000;
 
 const highlightTheme = {
-    highlightStyle: {
-        series: {
-            dimOpacity: 0.2,
+    series: {
+        highlightStyle: {
+            series: {
+                dimOpacity: 0.2,
+            },
         },
     },
 };
@@ -54,14 +56,10 @@ const options: AgCartesianChartOptions = {
     },
     theme: {
         overrides: {
-            cartesian: {
-                series: {
-                    line: highlightTheme,
-                    scatter: highlightTheme,
-                    area: highlightTheme,
-                    bar: highlightTheme,
-                },
-            },
+            line: highlightTheme,
+            scatter: highlightTheme,
+            area: highlightTheme,
+            bar: highlightTheme,
         },
     },
     axes: [

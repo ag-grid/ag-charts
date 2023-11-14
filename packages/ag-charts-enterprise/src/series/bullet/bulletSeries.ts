@@ -2,8 +2,14 @@ import type { AgBarSeriesStyle, AgBulletSeriesTooltipRendererParams } from 'ag-c
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 const {
+    animationValidation,
+    collapsedStartingBarPosition,
+    diff,
     keyProperty,
     partialAssign,
+    prepareBarAnimationFunctions,
+    resetBarSelectionsFn,
+    seriesLabelFadeInAnimation,
     valueProperty,
     Validate,
     COLOR_STRING,
@@ -14,6 +20,7 @@ const {
     OPT_NUMBER,
     OPT_STRING,
 } = _ModuleSupport;
+const { fromToMotion } = _Scene.motion;
 const { sanitizeHtml } = _Util;
 
 interface BulletNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
@@ -55,24 +62,7 @@ const STYLING_KEYS: (keyof _Scene.Shape)[] = [
     'lineDashOffset',
 ];
 
-class BulletNode extends _Scene.Group {
-    private valueRect: _Scene.Rect = new _Scene.Rect();
-    private targetLine: _Scene.Line = new _Scene.Line();
-
-    public constructor() {
-        super();
-        this.append(this.valueRect);
-        this.append(this.targetLine);
-    }
-
-    public update(datum: BulletNodeDatum, valueStyle: AgBarSeriesStyle, targetStyle: AgBarSeriesStyle) {
-        partialAssign(['x', 'y', 'height', 'width'], this.valueRect, datum);
-        partialAssign(STYLING_KEYS, this.valueRect, valueStyle);
-
-        partialAssign(['x1', 'x2', 'y1', 'y2'], this.targetLine, datum.target);
-        partialAssign(STYLING_KEYS, this.targetLine, targetStyle);
-    }
-}
+type BulletAnimationData = _ModuleSupport.CartesianAnimationData<_Scene.Rect, BulletNodeDatum>;
 
 class TargetStyle {
     @Validate(COLOR_STRING)
@@ -95,6 +85,9 @@ class TargetStyle {
 
     @Validate(NUMBER(0))
     lineDashOffset: number = 0;
+
+    @Validate(NUMBER(0, 1))
+    lengthRatio: number = 0.75;
 }
 
 class BulletScale {
@@ -102,7 +95,7 @@ class BulletScale {
     max?: number = undefined; // alias for AgChartOptions.axes[0].max
 }
 
-export class BulletSeries extends _ModuleSupport.AbstractBarSeries<BulletNode, BulletNodeDatum> {
+export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, BulletNodeDatum> {
     @Validate(COLOR_STRING)
     fill: string = 'black';
 
@@ -123,6 +116,9 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<BulletNode, B
 
     @Validate(NUMBER(0))
     lineDashOffset: number = 0;
+
+    @Validate(NUMBER(0, 1))
+    widthRatio: number = 0.5;
 
     target: TargetStyle = new TargetStyle();
 
@@ -148,16 +144,21 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<BulletNode, B
     private normalizedColorRanges: NormalizedColorRange[] = [];
     private colorRangesGroup: _Scene.Group;
     private colorRangesSelection: _Scene.Selection<_Scene.Rect, NormalizedColorRange>;
+    private targetLinesSelection: _Scene.Selection<_Scene.Line, BulletNodeDatum>;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
             pickModes: [_ModuleSupport.SeriesNodePickMode.EXACT_SHAPE_MATCH],
             hasHighlightedLabels: true,
+            animationResetFns: {
+                datum: resetBarSelectionsFn,
+            },
         });
         this.colorRangesGroup = new _Scene.Group({ name: `${this.id}-colorRanges` });
         this.colorRangesSelection = _Scene.Selection.select(this.colorRangesGroup, _Scene.Rect);
         this.rootGroup.append(this.colorRangesGroup);
+        this.targetLinesSelection = _Scene.Selection.select(this.annotationGroup, _Scene.Line);
     }
 
     override destroy() {
@@ -180,13 +181,27 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<BulletNode, B
             props.push(valueProperty(this, targetKey, isContinuousY, { id: 'target' }));
         }
 
+        const extraProps = [];
+        if (!this.ctx.animationManager.isSkipped()) {
+            if (this.processedData !== undefined) {
+                extraProps.push(diff(this.processedData));
+            }
+            extraProps.push(animationValidation(this));
+        }
+
         // Bullet graphs only need 1 datum, but we keep that `data` option as array for consistency with other series
         // types and future compatibility (we may decide to support multiple datums at some point).
         await this.requestDataModel<any, any, true>(dataController, data.slice(0, 1), {
-            props,
+            props: [...props, ...extraProps],
             groupByKeys: true,
             dataVisible: this.visible,
         });
+
+        this.animationState.transition('updateData');
+    }
+
+    override getBandScalePadding() {
+        return { inner: 0, outer: 0 };
     }
 
     private getMaxValue(): number {
@@ -217,13 +232,22 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<BulletNode, B
     }
 
     override async createNodeData() {
-        const { valueKey, targetKey, dataModel, processedData } = this;
+        const {
+            valueKey,
+            targetKey,
+            dataModel,
+            processedData,
+            widthRatio,
+            target: { lengthRatio },
+        } = this;
         const xScale = this.getCategoryAxis()?.scale;
         const yScale = this.getValueAxis()?.scale;
         if (!valueKey || !dataModel || !processedData || !xScale || !yScale) return [];
+        if (widthRatio === undefined || lengthRatio === undefined) return [];
 
         this.colorRangesGroup.visible = this.colorRanges !== undefined;
 
+        const multiplier = xScale.bandwidth ?? NaN;
         const maxValue = this.getMaxValue();
         const valueIndex = dataModel.resolveProcessedDataIndexById(this, 'value').index;
         const targetIndex =
@@ -238,27 +262,28 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<BulletNode, B
         for (const { datum, values } of processedData.data) {
             const xValue = this.valueName ?? this.valueKey;
             const yValue = Math.min(maxValue, values[0][valueIndex]);
-            const x = xScale.convert(xValue);
             const y = yScale.convert(yValue);
-            const barWidth = 8;
+            const barWidth = widthRatio * multiplier;
             const bottomY = yScale.convert(0);
             const barAlongX = this.getBarDirection() === _ModuleSupport.ChartAxisDirection.X;
             const rect = {
-                x: barAlongX ? Math.min(y, bottomY) : x,
-                y: barAlongX ? x : Math.min(y, bottomY),
-                width: barAlongX ? Math.abs(bottomY - y) : barWidth,
-                height: barAlongX ? barWidth : Math.abs(bottomY - y),
+                x: (multiplier * (1.0 - widthRatio)) / 2,
+                y: Math.min(y, bottomY),
+                width: barWidth,
+                height: Math.abs(bottomY - y),
             };
+            if (barAlongX) {
+                [rect.x, rect.y, rect.width, rect.height] = [rect.y, rect.x, rect.height, rect.width];
+            }
 
             let target;
             if (this.targetKey) {
-                const targetLineLength = 20;
+                const targetLineLength = lengthRatio * multiplier;
                 const targetValue = Math.min(maxValue, values[0][targetIndex]);
                 if (!isNaN(targetValue) && targetValue !== undefined) {
                     const convertedY = yScale.convert(targetValue);
-                    const convertedX = xScale.convert(xValue) + barWidth / 2;
-                    let x1 = convertedX - targetLineLength / 2;
-                    let x2 = convertedX + targetLineLength / 2;
+                    let x1 = (multiplier * (1.0 - lengthRatio)) / 2;
+                    let x2 = x1 + targetLineLength;
                     let [y1, y2] = [convertedY, convertedY];
                     if (barAlongX) {
                         [x1, x2, y1, y2] = [y1, y2, x1, x2];
@@ -332,23 +357,38 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<BulletNode, B
         // TODO(olegat)
         return false;
     }
+
     protected override nodeFactory() {
-        return new BulletNode();
+        return new _Scene.Rect();
     }
 
     protected override async updateDatumSelection(opts: {
         nodeData: BulletNodeDatum[];
-        datumSelection: _Scene.Selection<BulletNode, BulletNodeDatum>;
+        datumSelection: _Scene.Selection<_Scene.Rect, BulletNodeDatum>;
     }) {
+        this.targetLinesSelection.update(opts.nodeData, undefined, undefined);
         return opts.datumSelection.update(opts.nodeData, undefined, undefined);
     }
 
     protected override async updateDatumNodes(opts: {
-        datumSelection: _Scene.Selection<BulletNode, BulletNodeDatum>;
+        datumSelection: _Scene.Selection<_Scene.Rect, BulletNodeDatum>;
         isHighlight: boolean;
     }) {
-        for (const { node, datum } of opts.datumSelection) {
-            node.update(datum, this, this.target);
+        // The translation of the rectangles (values) is updated by the animation manager.
+        // The target lines aren't animated, therefore we must update the translation here.
+        for (const { node } of opts.datumSelection) {
+            const style: AgBarSeriesStyle = this;
+            partialAssign(STYLING_KEYS, node, style);
+        }
+
+        for (const { node, datum } of this.targetLinesSelection) {
+            if (datum.target !== undefined) {
+                const style: AgBarSeriesStyle = this.target;
+                partialAssign(['x1', 'x2', 'y1', 'y2'], node, datum.target);
+                partialAssign(STYLING_KEYS, node, style);
+            } else {
+                node.visible = false;
+            }
         }
     }
 
@@ -397,4 +437,40 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<BulletNode, B
     protected override async updateLabelNodes(_opts: {
         labelSelection: _Scene.Selection<_Scene.Text, BulletNodeDatum>;
     }) {}
+
+    override animateEmptyUpdateReady(data: BulletAnimationData) {
+        const { datumSelections, labelSelections, annotationSelections } = data;
+
+        const fns = prepareBarAnimationFunctions(
+            collapsedStartingBarPosition(this.direction === 'vertical', this.axes)
+        );
+
+        fromToMotion(this.id, 'nodes', this.ctx.animationManager, datumSelections, fns);
+        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
+        seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, annotationSelections);
+    }
+
+    override animateWaitingUpdateReady(data: BulletAnimationData) {
+        const { datumSelections, labelSelections, annotationSelections } = data;
+
+        this.ctx.animationManager.stopByAnimationGroupId(this.id);
+
+        const diff = this.processedData?.reduced?.diff;
+        const fns = prepareBarAnimationFunctions(
+            collapsedStartingBarPosition(this.direction === 'vertical', this.axes)
+        );
+
+        fromToMotion(
+            this.id,
+            'nodes',
+            this.ctx.animationManager,
+            datumSelections,
+            fns,
+            (_, datum) => String(datum.xValue),
+            diff
+        );
+
+        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
+        seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, annotationSelections);
+    }
 }
