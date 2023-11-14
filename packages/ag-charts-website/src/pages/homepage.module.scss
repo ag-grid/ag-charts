@@ -157,6 +157,10 @@
     background-color: var(--bright-blue-gray);
     padding-top: $size-7;
     padding-bottom: $size-8;
+
+    #{$darkmode-selector} & {
+        background-color: var(--default-background-color);
+    }
 }
 
 .benefitsInner {
