@@ -4,15 +4,13 @@ import { toMatchImageSnapshot } from 'jest-image-snapshot';
 import type { AgChartInstance } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
-    clickAction,
     deproxy,
     extractImageData,
-    hoverAction,
     setupMockCanvas,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { AgEnterpriseCharts } from '../../main';
+import { AgCharts } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 import type { BulletSeries } from './bulletSeries';
 
@@ -50,7 +48,7 @@ describe('BulletSeries', () => {
     const opts = prepareEnterpriseTestOptions({});
 
     it('should render simple bullet', async () => {
-        chart = AgEnterpriseCharts.create({
+        chart = AgCharts.create({
             ...opts,
             series: [
                 {
@@ -64,7 +62,7 @@ describe('BulletSeries', () => {
     });
 
     it('should render a vertical bullet by default', async () => {
-        chart = AgEnterpriseCharts.create({
+        chart = AgCharts.create({
             ...opts,
             series: [
                 {
@@ -82,7 +80,7 @@ describe('BulletSeries', () => {
     });
 
     it('should render a horizontal bullet as expected', async () => {
-        chart = AgEnterpriseCharts.create({
+        chart = AgCharts.create({
             ...opts,
             series: [
                 {
@@ -101,7 +99,7 @@ describe('BulletSeries', () => {
     });
 
     it('should clip everything to scale.max', async () => {
-        chart = AgEnterpriseCharts.create({
+        chart = AgCharts.create({
             ...opts,
             series: [
                 {
@@ -118,7 +116,7 @@ describe('BulletSeries', () => {
     });
 
     it('should extend final color to scale.max', async () => {
-        chart = AgEnterpriseCharts.create({
+        chart = AgCharts.create({
             ...opts,
             series: [
                 {
@@ -135,7 +133,7 @@ describe('BulletSeries', () => {
     });
 
     it('should use explicit axis max', async () => {
-        chart = AgEnterpriseCharts.create({
+        chart = AgCharts.create({
             ...opts,
             axes: [{ type: 'number', max: 50 }, { type: 'category' }],
             series: [
@@ -151,7 +149,7 @@ describe('BulletSeries', () => {
     });
 
     it('should process first datum only', async () => {
-        chart = AgEnterpriseCharts.create({
+        chart = AgCharts.create({
             ...opts,
             series: [
                 {
@@ -167,7 +165,7 @@ describe('BulletSeries', () => {
 
     test('tooltip valueKey only', async () => {
         chart = deproxy(
-            AgEnterpriseCharts.create({
+            AgCharts.create({
                 ...opts,
                 series: [
                     {
@@ -186,7 +184,7 @@ describe('BulletSeries', () => {
 
     test('tooltip no names', async () => {
         chart = deproxy(
-            AgEnterpriseCharts.create({
+            AgCharts.create({
                 ...opts,
                 series: [
                     {
@@ -208,7 +206,7 @@ describe('BulletSeries', () => {
 
     test('tooltip with names', async () => {
         chart = deproxy(
-            AgEnterpriseCharts.create({
+            AgCharts.create({
                 ...opts,
                 series: [
                     {
