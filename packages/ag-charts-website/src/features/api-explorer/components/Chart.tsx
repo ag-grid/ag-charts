@@ -3,7 +3,7 @@ import { doOnEnter } from '@utils/doOnEnter';
 import classnames from 'classnames';
 import React from 'react';
 
-import * as agChartsEnterprise from 'ag-charts-enterprise';
+import { AgChart } from 'ag-charts-enterprise';
 
 import { data, series } from '../utils/templates';
 import { deepClone } from '../utils/utils';
@@ -15,7 +15,7 @@ import styles from './Chart.module.scss';
 export class Chart extends React.Component<{ options: {}; fullScreen: boolean; setFullScreen(o: boolean) }> {
     chart: React.RefObject<HTMLDivElement>;
     chartInstance = undefined;
-    AgChart?: agChartsEnterprise.AgChart;
+    AgChart?: AgChart;
 
     constructor(props) {
         super(props);
@@ -23,7 +23,7 @@ export class Chart extends React.Component<{ options: {}; fullScreen: boolean; s
     }
 
     componentDidMount() {
-        this.AgChart = agChartsEnterprise.AgChart;
+        this.AgChart = AgChart;
         this.createChart();
     }
 

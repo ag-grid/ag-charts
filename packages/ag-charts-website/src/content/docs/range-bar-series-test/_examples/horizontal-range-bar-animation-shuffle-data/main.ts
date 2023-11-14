@@ -1,4 +1,4 @@
-import { AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+import { AgChart, AgChartOptions } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -22,7 +22,7 @@ const options: AgChartOptions = {
     ],
 };
 
-const chart = AgEnterpriseCharts.create(options);
+const chart = AgChart.create(options);
 
 function shuffleValues() {
     console.log('shuffling');
@@ -37,5 +37,5 @@ function shuffleValues() {
     }
 
     options.data = data;
-    AgEnterpriseCharts.update(chart, options);
+    AgChart.update(chart, options);
 }

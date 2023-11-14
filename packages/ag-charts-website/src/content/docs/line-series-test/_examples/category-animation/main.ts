@@ -1,4 +1,4 @@
-import { AgChartOptions, AgEnterpriseCharts, time } from 'ag-charts-enterprise';
+import { AgChart, AgChartOptions, time } from 'ag-charts-enterprise';
 
 const data = [
     { quarter: 'week 3', week: 3, iphone: 60 },
@@ -40,11 +40,11 @@ const options: AgChartOptions = {
     ],
 };
 
-const chart = AgEnterpriseCharts.create(options);
+const chart = AgChart.create(options);
 
 function actionReset() {
     options.data = [...data];
-    AgEnterpriseCharts.update(chart, options);
+    AgChart.update(chart, options);
 }
 
 function actionAddEndWeek() {
@@ -57,7 +57,7 @@ function actionAddEndWeek() {
             iphone: 78 * (Math.random() - 0.5),
         },
     ];
-    AgEnterpriseCharts.update(chart, options);
+    AgChart.update(chart, options);
 }
 
 function actionAddStartWeek() {
@@ -70,7 +70,7 @@ function actionAddStartWeek() {
         },
         ...options.data,
     ];
-    AgEnterpriseCharts.update(chart, options);
+    AgChart.update(chart, options);
 }
 
 function actionAddWeek12and13() {
@@ -80,7 +80,7 @@ function actionAddWeek12and13() {
         { quarter: 'week 13', week: 13, iphone: 138 },
     ];
     options.data.sort((a: any, b: any) => a.week - b.week);
-    AgEnterpriseCharts.update(chart, options);
+    AgChart.update(chart, options);
 }
 
 function actionAddWeek7and8() {
@@ -90,7 +90,7 @@ function actionAddWeek7and8() {
         { quarter: 'week 8', week: 8, iphone: 87 },
     ];
     options.data.sort((a: any, b: any) => a.week - b.week);
-    AgEnterpriseCharts.update(chart, options);
+    AgChart.update(chart, options);
 }
 
 function reorder() {
@@ -98,16 +98,16 @@ function reorder() {
     options.data?.forEach((d) => (d.random = Math.random()));
     options.data?.sort((a, b) => a.random - b.random);
 
-    AgEnterpriseCharts.update(chart, options);
+    AgChart.update(chart, options);
 }
 
 function rapidUpdate() {
-    AgEnterpriseCharts.updateDelta(chart, {
+    AgChart.updateDelta(chart, {
         data: [...data, { quarter: 'week 12', iphone: 78 }],
     });
 
     (chart as any).chart.waitForUpdate().then(() => {
-        AgEnterpriseCharts.updateDelta(chart, {
+        AgChart.updateDelta(chart, {
             data: [...data, { quarter: 'week 12', iphone: 78 }, { quarter: 'week 13', iphone: 138 }],
         });
     });

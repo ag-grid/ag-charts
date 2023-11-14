@@ -4,7 +4,7 @@ import { Logger } from '../../util/logger';
 
 export const filters = [
     /.*AgChart\.(update|create)/,
-    /.*AgEnterpriseCharts\.(update|create)/,
+    /.*AgChart\.(update|create)/,
     /.* container: .*/,
     /.*setInterval.*/,
     /.*setTimeout.*/,
@@ -68,7 +68,7 @@ export function parseExampleOptions(
     dataJs?: string,
     extraGlobals?: Record<string, any>
 ) {
-    const evalExpr = [dataJs ? dataJs : '', ...cleanJs(exampleJs), `return ${evalFn};`].join('\n');
+    const evalExpr = [dataJs ?? '', ...cleanJs(exampleJs), `return ${evalFn};`].join('\n');
     // @ts-ignore - used in the eval() call.
     const agCharts = import('../../main');
     // @ts-ignore - used in the eval() call.

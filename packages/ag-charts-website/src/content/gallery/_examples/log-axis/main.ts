@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgChart } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -46,7 +46,7 @@ const options: AgCartesianChartOptions = {
     ],
 };
 
-const chart = AgEnterpriseCharts.create(options);
+const chart = AgChart.create(options);
 
 function useNumberAxis() {
     options.subtitle = {
@@ -63,7 +63,7 @@ function useNumberAxis() {
             fontSize: 10,
         },
     };
-    AgEnterpriseCharts.update(chart, options);
+    AgChart.update(chart, options);
 }
 
 function useLogAxis() {
@@ -81,5 +81,5 @@ function useLogAxis() {
             fontSize: 10,
         },
     };
-    AgEnterpriseCharts.update(chart, options);
+    AgChart.update(chart, options);
 }

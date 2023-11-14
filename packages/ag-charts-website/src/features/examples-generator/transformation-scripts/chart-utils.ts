@@ -23,9 +23,7 @@ export function getChartImports(imports: BindingImport[], usesChartApi: boolean)
     if (chartsImport) {
         // Only included AgChart if its api is used. Otherwise it can be removed as AgChart.create is handled by framework components
         // But if AgChart.download is used we mustn't remove it.
-        const extraImports = chartsImport.imports.filter(
-            (i) => usesChartApi || (i !== 'AgChart' && i !== 'AgEnterpriseCharts')
-        );
+        const extraImports = chartsImport.imports.filter((i) => usesChartApi || (i !== 'AgChart' && i !== 'AgChart'));
 
         if (extraImports.length > 0) {
             return `import { ${extraImports.join(', ')} } from 'ag-charts-${

@@ -9,7 +9,7 @@ import {
 } from 'ag-charts-community-test';
 
 import type { AgChartOptions } from '../../main';
-import { AgEnterpriseCharts } from '../../main';
+import { AgChart } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
 describe('Radar Area Chart', () => {
@@ -66,7 +66,7 @@ describe('Radar Area Chart', () => {
         const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
         prepareEnterpriseTestOptions(options as any);
 
-        chart = AgEnterpriseCharts.create(options);
+        chart = AgChart.create(options);
         await compare();
     });
 
@@ -80,7 +80,7 @@ describe('Radar Area Chart', () => {
         };
         prepareEnterpriseTestOptions(options as any);
 
-        chart = AgEnterpriseCharts.create(options);
+        chart = AgChart.create(options);
         await compare();
     });
 
@@ -99,7 +99,7 @@ describe('Radar Area Chart', () => {
         };
         prepareEnterpriseTestOptions(options as any);
 
-        chart = AgEnterpriseCharts.create(options);
+        chart = AgChart.create(options);
         await compare();
     });
 
@@ -113,7 +113,7 @@ describe('Radar Area Chart', () => {
                 const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
                 prepareEnterpriseTestOptions(options);
 
-                chart = AgEnterpriseCharts.create(options);
+                chart = AgChart.create(options);
                 await waitForChartStability(chart);
                 await compare();
             });

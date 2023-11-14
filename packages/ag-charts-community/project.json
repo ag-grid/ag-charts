@@ -15,7 +15,7 @@
         "rollupConfig": "packages/ag-charts-community/rollup.config.cjs",
         "project": "packages/ag-charts-community/package.json",
         "compiler": "tsc",
-        "format": ["cjs"]
+        "format": ["cjs", "esm"]
       },
       "configurations": {
         "watch": {

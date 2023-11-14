@@ -18,7 +18,7 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { AgEnterpriseCharts } from '../../main';
+import { AgChart } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
 expect.extend({ toMatchImageSnapshot });
@@ -145,17 +145,17 @@ describe('ErrorBars', () => {
     const opts = prepareEnterpriseTestOptions({});
 
     it('should render 1 line series as expected', async () => {
-        chart = AgEnterpriseCharts.create({ ...opts, series: [{ ...SERIES_CANADA, type: 'line' }] });
+        chart = AgChart.create({ ...opts, series: [{ ...SERIES_CANADA, type: 'line' }] });
         await compare();
     });
 
     it('should render 1 bar series as expected', async () => {
-        chart = AgEnterpriseCharts.create({ ...opts, series: [{ ...SERIES_CANADA, type: 'bar' }] });
+        chart = AgChart.create({ ...opts, series: [{ ...SERIES_CANADA, type: 'bar' }] });
         await compare();
     });
 
     it('should render 2 line series as expected', async () => {
-        chart = AgEnterpriseCharts.create({
+        chart = AgChart.create({
             ...opts,
             series: [
                 { ...SERIES_CANADA, type: 'line' },
@@ -166,7 +166,7 @@ describe('ErrorBars', () => {
     });
 
     it('should render 2 bar series as expected', async () => {
-        chart = AgEnterpriseCharts.create({
+        chart = AgChart.create({
             ...opts,
             series: [
                 { ...SERIES_CANADA, type: 'bar' },
@@ -177,7 +177,7 @@ describe('ErrorBars', () => {
     });
 
     it('should render horizontal bar series as expected', async () => {
-        chart = AgEnterpriseCharts.create({
+        chart = AgChart.create({
             ...opts,
             series: [
                 { ...SERIES_CANADA, type: 'bar', direction: 'horizontal' },
@@ -188,12 +188,12 @@ describe('ErrorBars', () => {
     });
 
     it('should render both errorbars on scatter series as expected', async () => {
-        chart = AgEnterpriseCharts.create({ ...opts, series: [SERIES_BOYLESLAW] });
+        chart = AgChart.create({ ...opts, series: [SERIES_BOYLESLAW] });
         await compare();
     });
 
     it('should render both errorbars on continuous line series as expected', async () => {
-        chart = AgEnterpriseCharts.create({
+        chart = AgChart.create({
             ...opts,
             series: [{ ...SERIES_BOYLESLAW, type: 'line' }],
             axes: [
@@ -205,7 +205,7 @@ describe('ErrorBars', () => {
     });
 
     it('should extend Y axis on line series as expected', async () => {
-        chart = AgEnterpriseCharts.create({
+        chart = AgChart.create({
             ...opts,
             series: [{ ...SERIES_CANADA, data: EXTENDING_BARS }],
         });
@@ -213,7 +213,7 @@ describe('ErrorBars', () => {
     });
 
     it('should extend Y axis on vertical bar series as expected', async () => {
-        chart = AgEnterpriseCharts.create({
+        chart = AgChart.create({
             ...opts,
             series: [{ ...SERIES_CANADA, type: 'bar', data: EXTENDING_BARS }],
         });
@@ -221,7 +221,7 @@ describe('ErrorBars', () => {
     });
 
     it('should extend X axis on horizontal bar series as expected', async () => {
-        chart = AgEnterpriseCharts.create({
+        chart = AgChart.create({
             ...opts,
             series: [{ ...SERIES_CANADA, type: 'bar', direction: 'horizontal', data: EXTENDING_BARS }],
         });
@@ -229,7 +229,7 @@ describe('ErrorBars', () => {
     });
 
     it('should apply stroke styling to whiskers and cap as expected', async () => {
-        chart = AgEnterpriseCharts.create({
+        chart = AgChart.create({
             ...opts,
             series: [
                 {
@@ -249,7 +249,7 @@ describe('ErrorBars', () => {
     });
 
     it('should apply line dash styling to whiskers and cap as expected', async () => {
-        chart = AgEnterpriseCharts.create({
+        chart = AgChart.create({
             ...opts,
             series: [
                 {
@@ -268,7 +268,7 @@ describe('ErrorBars', () => {
     });
 
     it('should override cap styling as expected', async () => {
-        chart = AgEnterpriseCharts.create({
+        chart = AgChart.create({
             ...opts,
             series: [
                 {
@@ -295,7 +295,7 @@ describe('ErrorBars', () => {
     });
 
     it('should default to marker size for cap length on line series', async () => {
-        chart = AgEnterpriseCharts.create({
+        chart = AgChart.create({
             ...opts,
             series: [
                 {
@@ -310,7 +310,7 @@ describe('ErrorBars', () => {
     });
 
     it('should default to marker size for cap length on scatter series', async () => {
-        chart = AgEnterpriseCharts.create({
+        chart = AgChart.create({
             ...opts,
             series: [
                 {
@@ -324,7 +324,7 @@ describe('ErrorBars', () => {
     });
 
     it('should default to half lengthRatio for cap length on bar series', async () => {
-        chart = AgEnterpriseCharts.create({
+        chart = AgChart.create({
             ...opts,
             series: [
                 {
@@ -339,7 +339,7 @@ describe('ErrorBars', () => {
     });
 
     it('should use marker size for lengthRatio on line series', async () => {
-        chart = AgEnterpriseCharts.create({
+        chart = AgChart.create({
             ...opts,
             series: [
                 {
@@ -355,7 +355,7 @@ describe('ErrorBars', () => {
     });
 
     it('should use marker size for lengthRatio on scatter series', async () => {
-        chart = AgEnterpriseCharts.create({
+        chart = AgChart.create({
             ...opts,
             series: [
                 {
@@ -369,7 +369,7 @@ describe('ErrorBars', () => {
     });
 
     it('should use bar width for lengthRatio on vertical bar series', async () => {
-        chart = AgEnterpriseCharts.create({
+        chart = AgChart.create({
             ...opts,
             series: [
                 {
@@ -385,7 +385,7 @@ describe('ErrorBars', () => {
     });
 
     it('should use bar height for lengthRatio on horizontal bar series', async () => {
-        chart = AgEnterpriseCharts.create({
+        chart = AgChart.create({
             ...opts,
             series: [
                 {
@@ -401,7 +401,7 @@ describe('ErrorBars', () => {
     });
 
     it('should use absolute cap.length on line series', async () => {
-        chart = AgEnterpriseCharts.create({
+        chart = AgChart.create({
             ...opts,
             series: [
                 {
@@ -414,7 +414,7 @@ describe('ErrorBars', () => {
     });
 
     it('should use absolute cap.length on bar series', async () => {
-        chart = AgEnterpriseCharts.create({
+        chart = AgChart.create({
             ...opts,
             series: [
                 {
@@ -428,7 +428,7 @@ describe('ErrorBars', () => {
     });
 
     it('should use absolute cap.length on scatter series', async () => {
-        chart = AgEnterpriseCharts.create({
+        chart = AgChart.create({
             ...opts,
             series: [
                 {
@@ -441,7 +441,7 @@ describe('ErrorBars', () => {
     });
 
     it('should limit cap.length to bar width', async () => {
-        chart = AgEnterpriseCharts.create({
+        chart = AgChart.create({
             ...opts,
             series: [
                 {
@@ -455,7 +455,7 @@ describe('ErrorBars', () => {
     });
 
     it('should favour cap length over cap ratio', async () => {
-        chart = AgEnterpriseCharts.create({
+        chart = AgChart.create({
             ...opts,
             series: [
                 {
@@ -476,7 +476,7 @@ describe('ErrorBars', () => {
     });
 
     it('should use marker strokeWidth for cap lengthRatio', async () => {
-        chart = AgEnterpriseCharts.create({
+        chart = AgChart.create({
             ...opts,
             series: [
                 {
@@ -493,7 +493,7 @@ describe('ErrorBars', () => {
 
     it('should render caps over highlight', async () => {
         chart = deproxy(
-            AgEnterpriseCharts.create({
+            AgChart.create({
                 ...opts,
                 series: [
                     {
@@ -514,7 +514,7 @@ describe('ErrorBars', () => {
 
     it('should dim opacity on highlight', async () => {
         chart = deproxy(
-            AgEnterpriseCharts.create({
+            AgChart.create({
                 ...opts,
                 series: [
                     { ...SERIES_CANADA },
@@ -552,7 +552,7 @@ describe('ErrorBars', () => {
         }
 
         chart = deproxy(
-            AgEnterpriseCharts.create({
+            AgChart.create({
                 ...opts,
                 series: [{ ...SERIES_BOYLESLAW, errorBar: { ...expectedParams }, tooltip: { renderer } }],
             })
@@ -587,7 +587,7 @@ describe('ErrorBars', () => {
         }
 
         chart = deproxy(
-            AgEnterpriseCharts.create({
+            AgChart.create({
                 ...opts,
                 series: [{ ...SERIES_BOYLESLAW, errorBar: { ...expectedParams }, tooltip: { renderer } }],
             })
@@ -606,7 +606,7 @@ describe('ErrorBars', () => {
 
     it('should toggle visibility as expected', async () => {
         chart = deproxy(
-            AgEnterpriseCharts.create({
+            AgChart.create({
                 ...opts,
                 series: [
                     { ...SERIES_CANADA, type: 'line' },
@@ -672,7 +672,7 @@ describe('ErrorBars', () => {
                     return { lengthRatio: 0.5 };
             }
         };
-        chart = AgEnterpriseCharts.create({
+        chart = AgChart.create({
             ...opts,
             series: [
                 {
@@ -694,7 +694,7 @@ describe('ErrorBars', () => {
         const whiskerResult: boolean[] = [];
         const capResult: boolean[] = [];
         chart = deproxy(
-            AgEnterpriseCharts.create({
+            AgChart.create({
                 ...opts,
                 series: [
                     {
@@ -746,7 +746,7 @@ describe('ErrorBars', () => {
             return chart.getModuleContext().cursorManager.getCursor();
         };
         chart = deproxy(
-            AgEnterpriseCharts.create({
+            AgChart.create({
                 ...opts,
                 tooltip: { range: 2 },
                 series: [{ ...SERIES_BOYLESLAW, cursor: 'grab' }],

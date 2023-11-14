@@ -1,4 +1,4 @@
-import { AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+import { AgChart, AgChartOptions } from 'ag-charts-enterprise';
 
 import { getData, random } from './data';
 
@@ -255,7 +255,7 @@ const pieOptions: AgChartOptions = {
 };
 
 // Create chart
-const chart = AgEnterpriseCharts.create(options);
+const chart = AgChart.create(options);
 
 // Elements
 const tickingButton = document.getElementById('animation-data-updates__toggle-ticking');
@@ -271,7 +271,7 @@ function changeSeriesBar() {
     length = 8;
     seed = 1234;
 
-    AgEnterpriseCharts.updateDelta(chart, { ...barOptions, data: getGeneratedData() });
+    AgChart.updateDelta(chart, { ...barOptions, data: getGeneratedData() });
 }
 
 function changeSeriesLine() {
@@ -280,7 +280,7 @@ function changeSeriesLine() {
     length = 30;
     seed = 1234;
 
-    AgEnterpriseCharts.updateDelta(chart, { ...lineOptions, data: getGeneratedData() });
+    AgChart.updateDelta(chart, { ...lineOptions, data: getGeneratedData() });
 }
 
 function changeSeriesArea() {
@@ -289,7 +289,7 @@ function changeSeriesArea() {
     length = 30;
     seed = 1234;
 
-    AgEnterpriseCharts.updateDelta(chart, { ...areaOptions, data: getGeneratedData() });
+    AgChart.updateDelta(chart, { ...areaOptions, data: getGeneratedData() });
 }
 
 function changeSeriesPie() {
@@ -298,7 +298,7 @@ function changeSeriesPie() {
     length = 6;
     seed = 1234;
 
-    AgEnterpriseCharts.updateDelta(chart, { ...pieOptions, data: getGeneratedData() });
+    AgChart.updateDelta(chart, { ...pieOptions, data: getGeneratedData() });
 }
 
 function toggleTickingUpdates() {
@@ -328,10 +328,10 @@ function toggleTickingUpdates() {
 
     if (!interval) {
         offset++;
-        AgEnterpriseCharts.updateDelta(chart, { data: getGeneratedData() });
+        AgChart.updateDelta(chart, { data: getGeneratedData() });
         interval = setInterval(() => {
             offset++;
-            AgEnterpriseCharts.updateDelta(chart, { data: getGeneratedData() });
+            AgChart.updateDelta(chart, { data: getGeneratedData() });
         }, 2000);
     } else {
         clearInterval(interval);
@@ -342,23 +342,23 @@ function toggleTickingUpdates() {
 function add() {
     offset++;
     length++;
-    AgEnterpriseCharts.updateDelta(chart, { data: getGeneratedData() });
+    AgChart.updateDelta(chart, { data: getGeneratedData() });
 }
 
 function remove() {
     length = Math.max(0, length - 1);
-    AgEnterpriseCharts.updateDelta(chart, { data: getGeneratedData() });
+    AgChart.updateDelta(chart, { data: getGeneratedData() });
 }
 
 function update() {
     seed = Math.floor(random() * 1000);
-    AgEnterpriseCharts.updateDelta(chart, { data: getGeneratedData() });
+    AgChart.updateDelta(chart, { data: getGeneratedData() });
 }
 
 function addRemoveUpdate() {
     offset++;
     seed = Math.floor(random() * 1000);
-    AgEnterpriseCharts.updateDelta(chart, { data: getGeneratedData() });
+    AgChart.updateDelta(chart, { data: getGeneratedData() });
 }
 
 function getGeneratedData() {

@@ -1,4 +1,4 @@
-import { AgChartOptions, AgEnterpriseCharts, AgErrorBarFormatterParams } from 'ag-charts-enterprise';
+import { AgChart, AgChartOptions, AgErrorBarFormatterParams } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -49,7 +49,7 @@ const options: AgChartOptions = {
     ],
 };
 
-const chart = AgEnterpriseCharts.create(options);
+const chart = AgChart.create(options);
 
 function line() {
     if (options.series !== undefined) {
@@ -57,7 +57,7 @@ function line() {
             opt.type = 'line';
         }
     }
-    AgEnterpriseCharts.update(chart, options);
+    AgChart.update(chart, options);
 }
 
 function bar() {
@@ -66,5 +66,5 @@ function bar() {
             opt.type = 'bar';
         }
     }
-    AgEnterpriseCharts.update(chart, options);
+    AgChart.update(chart, options);
 }

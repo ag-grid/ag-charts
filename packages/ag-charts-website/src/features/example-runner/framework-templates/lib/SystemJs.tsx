@@ -100,7 +100,6 @@ const localConfiguration: Configuration = {
         'ag-charts-vue3': `${localPrefix}/ag-charts-vue3`,
     },
     chartPaths: {
-        'ag-charts-community': `${localPrefix}/ag-charts-community/dist/main.cjs.js`,
         'ag-charts-enterprise': `${localPrefix}/ag-charts-enterprise/dist/main.cjs.js`,
     },
 };
@@ -167,7 +166,6 @@ const buildAndArchivesConfiguration: Configuration = {
         'ag-charts-vue3': `${localPrefix}/ag-charts-vue3`,
     },
     chartPaths: {
-        'ag-charts-community': `${localPrefix}/ag-charts-community/dist/main.cjs.js`,
         'ag-charts-enterprise': `${localPrefix}/ag-charts-enterprise/dist/main.cjs.js`,
     },
 };

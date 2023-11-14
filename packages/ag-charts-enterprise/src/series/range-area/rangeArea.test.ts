@@ -10,7 +10,7 @@ import {
 } from 'ag-charts-community-test';
 
 import type { AgChartOptions } from '../../main';
-import { AgEnterpriseCharts } from '../../main';
+import { AgChart } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
 describe('Chart', () => {
@@ -145,7 +145,7 @@ describe('Chart', () => {
         const options: AgChartOptions = { ...RANGE_AREA_OPTIONS };
         prepareEnterpriseTestOptions(options);
 
-        chart = AgEnterpriseCharts.create(options);
+        chart = AgChart.create(options);
         await compare();
     });
 
@@ -160,7 +160,7 @@ describe('Chart', () => {
         };
         prepareEnterpriseTestOptions(options);
 
-        chart = AgEnterpriseCharts.create(options);
+        chart = AgChart.create(options);
         await compare();
     });
 
@@ -177,7 +177,7 @@ describe('Chart', () => {
         };
         prepareEnterpriseTestOptions(options);
 
-        chart = AgEnterpriseCharts.create(options);
+        chart = AgChart.create(options);
         await compare();
     });
 
@@ -193,7 +193,7 @@ describe('Chart', () => {
         };
         prepareEnterpriseTestOptions(options);
 
-        chart = AgEnterpriseCharts.create(options);
+        chart = AgChart.create(options);
         await compare();
     });
 
@@ -214,7 +214,7 @@ describe('Chart', () => {
         };
         prepareEnterpriseTestOptions(options);
 
-        chart = AgEnterpriseCharts.create(options);
+        chart = AgChart.create(options);
         await compare();
     });
 
@@ -239,7 +239,7 @@ describe('Chart', () => {
         };
         prepareEnterpriseTestOptions(options as any);
 
-        chart = AgEnterpriseCharts.create(options);
+        chart = AgChart.create(options);
         await compare();
     });
 
@@ -260,7 +260,7 @@ describe('Chart', () => {
         };
         prepareEnterpriseTestOptions(options as any);
 
-        chart = AgEnterpriseCharts.create(options);
+        chart = AgChart.create(options);
         await compare();
     });
 
@@ -274,7 +274,7 @@ describe('Chart', () => {
                 const options: AgChartOptions = { ...RANGE_AREA_OPTIONS };
                 prepareEnterpriseTestOptions(options);
 
-                chart = AgEnterpriseCharts.create(options);
+                chart = AgChart.create(options);
                 await waitForChartStability(chart);
                 await compare();
             });

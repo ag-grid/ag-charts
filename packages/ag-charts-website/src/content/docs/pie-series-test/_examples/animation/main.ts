@@ -1,4 +1,4 @@
-import { AgChart, AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+import { AgChart, AgChartOptions, AgChart } from 'ag-charts-enterprise';
 
 const data = [
     { label: 'Android', value: 56.9 },
@@ -35,7 +35,7 @@ const options: AgChartOptions = {
     ],
 };
 
-const chart = AgEnterpriseCharts.create(options);
+const chart = AgChart.create(options);
 
 function reset() {
     options.data = data.filter(filter('Android', 'BlackBerry', 'Bada'));

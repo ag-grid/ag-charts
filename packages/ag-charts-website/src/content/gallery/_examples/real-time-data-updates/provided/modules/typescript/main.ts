@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgEnterpriseCharts, time } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgChart, time } from 'ag-charts-enterprise';
 
 var systemLoad = 0;
 var userLoad = 0;
@@ -87,11 +87,11 @@ const options: AgCartesianChartOptions = {
     ],
 };
 
-var chart = AgEnterpriseCharts.create(options);
+var chart = AgChart.create(options);
 
 function updateData() {
     var now = Date.now();
     options.data = getData();
-    AgEnterpriseCharts.update(chart, options);
+    AgChart.update(chart, options);
 }
 setInterval(updateData, refreshRateInMilliseconds);

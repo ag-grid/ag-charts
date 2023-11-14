@@ -44,11 +44,7 @@ const chartScriptEnterprisePath = getCacheBustingUrl(getChartEnterpriseScriptPat
 
 <html lang="en">
     <head>
-        <MetaData
-            isDev={isDev}
-            title={`${pageName} - ${exampleName}`}
-            modifiedTimeMs={modifiedTimeMs}
-        />
+        <MetaData isDev={isDev} title={`${pageName} - ${exampleName}`} modifiedTimeMs={modifiedTimeMs} />
         <ExampleStyle />
         <Styles
             baseUrl={appLocation}
@@ -70,8 +66,7 @@ const chartScriptEnterprisePath = getCacheBustingUrl(getChartEnterpriseScriptPat
         >
             window.__basePath = appLocation;
         </script>
-        <script src={chartScriptPath}></script>
-        {isEnterprise && <script src={chartScriptEnterprisePath} />}
+        <script src={isEnterprise ? chartScriptEnterprisePath : chartScriptPath}></script>
         <Scripts baseUrl={appLocation} files={scriptFiles} />
         <Styles
             baseUrl={appLocation}
