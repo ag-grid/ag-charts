@@ -711,8 +711,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             return;
         }
 
-        this.setTickCount();
-
         scale.nice = nice;
         scale.update();
     }
