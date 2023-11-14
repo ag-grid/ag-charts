@@ -28,6 +28,16 @@ export function getDocsPages(pages: DocsPage[]) {
     });
 }
 
+export function getDocsFrameworkPages() {
+    return FRAMEWORKS.map((framework) => {
+        return {
+            params: {
+                framework,
+            },
+        };
+    });
+}
+
 export async function getDocsExamplePages({ pages }: { pages: DocsPage[] }) {
     const examples = await getInternalFrameworkExamples({ pages });
 
