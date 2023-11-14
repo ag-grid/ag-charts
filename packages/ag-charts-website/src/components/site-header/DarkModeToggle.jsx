@@ -24,12 +24,13 @@ export const DarkModeToggle = () => {
                     setDarkmode(!darkmode);
 
                     // post message for example runner to listen for user initiated color scheme changes
-                    const iframe = document.getElementById('exampleRunner');
-                    iframe &&
+                    const iframes = document.querySelectorAll('.exampleRunner') || [];
+                    iframes.forEach((iframe) => {
                         iframe.contentWindow.postMessage({
                             type: 'color-scheme-change',
                             darkmode: !darkmode,
                         });
+                    });
                 }}
             >
                 {darkmode ? <Icon name="sun" /> : <Icon name="moon" />}
