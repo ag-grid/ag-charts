@@ -17,14 +17,9 @@
       }
     },
     "build-tsc": {
-      "executor": "@nx/js:tsc",
-      "inputs": ["tsDefaults"],
-      "outputs": ["{options.outputPath}"],
+      "executor": "nx:run-commands",
       "options": {
-        "main": "packages/ag-charts-website/src",
-        "outputPath": "dist/packages/ag-charts-website/out-tsc",
-        "tsConfig": "packages/ag-charts-website/tsconfig.json",
-        "compiler": "tsc"
+        "command": "tsc --project packages/ag-charts-website/tsconfig.json"
       }
     },
     "dev": {

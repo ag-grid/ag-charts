@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+import { AgBarSeriesOptions, AgCartesianChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -40,7 +40,7 @@ function reset() {
     delete options.axes![1].label!.autoRotate;
     delete options.axes![1].label!.avoidCollisions;
 
-    options.series![0].xKey = 'year';
+    (options.series![0] as AgBarSeriesOptions).xKey = 'year';
     AgEnterpriseCharts.update(chart, options);
 }
 
@@ -72,12 +72,12 @@ function autoRotation() {
 }
 
 function uniformLabels() {
-    options.series![0].xKey = 'year';
+    (options.series![0] as AgBarSeriesOptions).xKey = 'year';
     AgEnterpriseCharts.update(chart, options);
 }
 
 function irregularLabels() {
-    options.series![0].xKey = 'country';
+    (options.series![0] as AgBarSeriesOptions).xKey = 'country';
     AgEnterpriseCharts.update(chart, options);
 }
 

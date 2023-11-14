@@ -1,6 +1,6 @@
-import { AgChartOptions, AgEnterpriseCharts, AgErrorBarFormatterParams } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgEnterpriseCharts, AgErrorBarFormatterParams } from 'ag-charts-enterprise';
 
-import { getData } from './data';
+import { getData, getData2 } from './data';
 
 const highlightStyle = {
     item: { stroke: 'red' },
@@ -16,7 +16,7 @@ const formatter = (param: AgErrorBarFormatterParams) => {
     }
 };
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Monthly Average Temperatures with Error Bars (Celsius)',

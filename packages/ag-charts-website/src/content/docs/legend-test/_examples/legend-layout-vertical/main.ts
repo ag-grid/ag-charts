@@ -3,7 +3,6 @@ import { AgChart, AgChartOptions } from 'ag-charts-community';
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     height: 300,
-
     data: [
         { label: 'USA', value: 56.9 },
         { label: 'UK', value: 22.5 },
