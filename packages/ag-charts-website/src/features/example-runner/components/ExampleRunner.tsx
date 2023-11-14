@@ -44,7 +44,7 @@ export const ExampleRunner: FunctionComponent<Props> = ({
     const exampleHeight = initialExampleHeight || DEFAULT_HEIGHT;
 
     return (
-        <div id={id} className={styles.exampleOuter} style={{ minHeight: `${exampleHeight + 48}px` }}>
+        <div id={id} className={styles.exampleOuter} style={{ minHeight: `${exampleHeight + FRAME_WRAPPER_HEIGHT}px` }}>
             <div className={styles.tabsContainer}>
                 <div
                     className={classnames(chartsStyles.content, styles.content)}
