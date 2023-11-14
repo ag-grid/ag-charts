@@ -40,7 +40,21 @@ const options: AgChartOptions = {
         },
     ],
     legend: {
-        position: 'right',
+        item: {
+            label: {
+                fontSize: 14,
+                fontStyle: 'italic',
+                fontWeight: 'bold',
+                fontFamily: 'Papyrus',
+                color: 'red',
+                maxLength: 25,
+            },
+            marker: {
+                size: 20,
+                strokeWidth: 3,
+                shape: 'diamond', // 'circle', 'square', 'cross', 'plus', 'triangle'
+            },
+        },
     },
 };
 
