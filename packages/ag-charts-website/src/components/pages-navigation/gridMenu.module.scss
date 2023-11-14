@@ -1,4 +1,4 @@
-@use '../../design-system' as *;
+@use '../../design-system'as *;
 
 // Copy of ag-grid.com menu styles, before we bring the whole component across
 
@@ -28,6 +28,7 @@
         }
 
         #{$darkmode-selector} & {
+
             &:hover,
             &:focus {
                 background-color: color-mix(in srgb, var(--link-hover-color) 10%, var(--default-background-color));
@@ -57,7 +58,6 @@
         margin-right: var(--right-margin);
         padding-right: var(--menu-horizontal-margin);
         padding-left: var(--horizontal-margin);
-        border-right: solid 0.5px var(--secondary-border-color);
 
         @supports (position: sticky) {
             position: sticky;
@@ -144,7 +144,7 @@ button:not([class^='ag-']).sectionHeader {
         margin-top: $size-1;
     }
 
-    + .menuGroup {
+    +.menuGroup {
         padding-bottom: $size-1;
     }
 
