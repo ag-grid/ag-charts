@@ -24,7 +24,6 @@ interface Props {
     hideInternalFrameworkSelection?: boolean;
 }
 
-const FRAME_WRAPPER_HEIGHT = 48;
 const DEFAULT_HEIGHT = 500;
 
 export const ExampleRunner: FunctionComponent<Props> = ({
@@ -44,7 +43,7 @@ export const ExampleRunner: FunctionComponent<Props> = ({
     const exampleHeight = initialExampleHeight || DEFAULT_HEIGHT;
 
     return (
-        <div id={id} className={styles.exampleOuter} style={{ minHeight: `${exampleHeight + FRAME_WRAPPER_HEIGHT}px` }}>
+        <div id={id} className={styles.exampleOuter}>
             <div className={styles.tabsContainer}>
                 <div
                     className={classnames(chartsStyles.content, styles.content)}
