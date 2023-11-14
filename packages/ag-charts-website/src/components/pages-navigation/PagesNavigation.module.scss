@@ -1,4 +1,4 @@
-@use '../../design-system' as *;
+@use '../../design-system'as *;
 
 :global(#docs-nav-collapser) {
     $top-bar-height: 58px;
@@ -24,7 +24,7 @@
         border-bottom: none;
         overflow: visible !important;
 
-        > div {
+        >div {
             display: block !important;
         }
 
@@ -60,9 +60,9 @@
     }
 
     // Override menuGroup styles
-    .seriesTypesNav > li {
+    .seriesTypesNav>li {
         margin-bottom: 0 !important;
-        padding-left: 15px;
+        // padding-left: 15px;
 
         // Remove left line and adjust spacing
         a {

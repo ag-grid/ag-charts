@@ -125,10 +125,4 @@
 
 .tabs-content {
     position: relative;
-    border-bottom-right-radius: var(--border-radius);
-    border-bottom-left-radius: var(--border-radius);
-    border-right: 1px solid var(--border-color);
-    border-bottom: 1px solid var(--border-color);
-    border-left: 1px solid var(--border-color);
-    padding: $size-2;
 }
