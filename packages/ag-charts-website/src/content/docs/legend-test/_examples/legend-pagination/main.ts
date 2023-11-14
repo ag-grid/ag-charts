@@ -1,10 +1,9 @@
-import { AgChart, AgChartLegendClickEvent, AgChartOptions } from 'ag-charts-community';
+import { AgChart, AgChartLegendPosition, AgChartOptions } from 'ag-charts-community';
 
 import { getData } from './data';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
-
     title: {
         text: `Renewable sources used to generate electricity for transport fuels`,
     },
@@ -75,10 +74,13 @@ const options: AgChartOptions = {
         {
             position: 'bottom',
             type: 'time',
+            gridLine: {
+                style: [],
+            },
             nice: false,
         },
         {
-            position: 'left',
+            position: 'right',
             type: 'number',
             title: {
                 text: `kilotonnes of oil equivalent (ktoe)`,
@@ -86,15 +88,50 @@ const options: AgChartOptions = {
             label: {
                 formatter: (params) => `${params.value / 1000}K`,
             },
+            line: {
+                width: 0,
+            },
         },
     ],
     legend: {
-        listeners: {
-            legendItemClick: ({ seriesId, itemId, enabled }: AgChartLegendClickEvent) => {
-                console.log(`seriesId: ${seriesId}, itemId: ${itemId}, enabled: ${enabled}`);
+        maxHeight: 40,
+        maxWidth: 800,
+        pagination: {
+            marker: {
+                size: 10,
+            },
+            activeStyle: {
+                fill: '#284E8F',
+            },
+            inactiveStyle: {
+                fillOpacity: 0.5,
+            },
+            highlightStyle: {
+                fill: '#7BAFDF',
+            },
+            label: {
+                color: 'rgb(87, 87, 87)',
             },
         },
     },
 };
 
-AgChart.create(options);
+var chart = AgChart.create(options);
+
+function updateLegendPosition(value: AgChartLegendPosition) {
+    options.legend!.position = value;
+    switch (value) {
+        case 'top':
+        case 'bottom':
+            options.legend!.maxHeight = 40;
+            options.legend!.maxWidth = 800;
+            break;
+        case 'right':
+        case 'left':
+            options.legend!.maxHeight = 200;
+            options.legend!.maxWidth = 200;
+            break;
+    }
+
+    AgChart.update(chart, options);
+}
