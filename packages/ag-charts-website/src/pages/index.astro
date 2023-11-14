@@ -12,6 +12,8 @@ import { SITE_BASE_URL } from '@constants';
 import { getCacheBustingUrl, getChartEnterpriseScriptPath, getChartScriptPath } from '@utils/chartLibraryPaths';
 import { urlWithPrefix } from '@utils/urlWithPrefix';
 import styles from './homepage.module.scss';
+import { ReactComponent as GridLogoType } from '@images/inline-svgs/ag-grid-logotype.svg';
+import { ReactComponent as GridLogoMark } from '@images/inline-svgs/ag-grid-logomark.svg';
 
 const frameworksData = [
     {
@@ -181,7 +183,10 @@ const isEnterprise = true;
     <div class={styles.homepageGrid}>
         <div class:list={[styles.gridInner, 'page-margin']}>
             <div class={styles.gridCopy}>
-                <img class={styles.agGridLogo} src="images/AG-Grid-Logo.svg" alt="AG Grid Logo" />
+                <div class={styles.agGridLogo}>
+                    <GridLogoType />
+                    <GridLogoMark />
+                </div>
                 <!-- Dummy copy, to be reviewed -->
                 <p class="font-size-large">
                     <b>AG Charts</b> was created by the amazing team behind <a href="ag-grid.com"><b>AG Grid</b></a>,

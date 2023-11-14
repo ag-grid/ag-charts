@@ -202,7 +202,12 @@
 
 .agGridLogo {
     max-width: 320px;
-    margin-left: -22px;
+    margin-bottom: $size-1;
+    margin-left: -$size-1;
+}
+
+[data-dark-mode='false'] .agGridLogo :global(.logotype) > * {
+    fill: var(--dark-blue-800);
 }
 
 .gridExample {
