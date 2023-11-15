@@ -1,3 +1,5 @@
+import { getDarkModeSnippet } from '@components/site-header/getDarkModeSnippet';
+
 import { getChartImports, wrapOptionsUpdateCode } from './chart-utils';
 import { templatePlaceholder } from './chart-vanilla-src-parser';
 import { convertFunctionToProperty, isInstanceMethod } from './parser-utils';
@@ -97,27 +99,7 @@ class ChartExample extends Component {
 
     componentDidMount() {
         ${bindings.init.join(';\n        ')}
-        /** DARK MODE START **/
-        this.setState((prevState) => ({
-            options: {
-                ...prevState.options,
-                theme:
-                    localStorage['documentation:darkmode'] === 'true'
-                        ? 'ag-default-dark'
-                        : 'ag-default'
-            }
-        }));
-        window.addEventListener('message', (event) => {
-            if (event.data && event.data.type === 'color-scheme-change') {
-                this.setState((prevState) => ({
-                    options: {
-                        ...prevState.options,
-                        theme: event.data.darkmode ? 'ag-default-dark' : 'ag-default'
-                    }
-                }));
-            }
-        });
-        /** DARK MODE END **/
+        ${getDarkModeSnippet('react')}
     }
 
     ${instanceMethods.concat(externalEventHandlers).join('\n\n    ')}

@@ -45,6 +45,7 @@ export async function get({ params }: { params: Params }) {
         const { entryFileName, files = {} } =
             (await getGeneratedGalleryContents({
                 exampleName,
+                ignoreDarkMode: true,
             })) || {};
         const entryFile = files[entryFileName!];
         let { options } = transformPlainEntryFile(entryFile, files['data.js'], theme);

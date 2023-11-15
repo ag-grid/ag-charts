@@ -1472,9 +1472,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
 
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
-        // if (!this.processedData?.reduced?.animationValidation?.uniqueKeys) {
-        //     this.ctx.animationManager.skipCurrentBatch();
-        // }
+        if (processedData?.defs.keys.length === 0 || !processedData?.reduced?.animationValidation?.uniqueKeys) {
+            this.ctx.animationManager.skipCurrentBatch();
+        }
 
         const fns = preparePieSeriesAnimationFunctions(this.rotation);
         fromToMotion(

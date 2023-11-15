@@ -28,10 +28,12 @@ export const getGeneratedDocsContents = async ({
     internalFramework,
     pageName,
     exampleName,
+    ignoreDarkMode,
 }: {
     internalFramework: InternalFramework;
     pageName: string;
     exampleName: string;
+    ignoreDarkMode?: boolean;
 }): Promise<GeneratedContents | undefined> => {
     const folderUrl = getFolderUrl({
         pageName,
@@ -41,5 +43,6 @@ export const getGeneratedDocsContents = async ({
     return getGeneratedContents({
         internalFramework,
         folderUrl,
+        ignoreDarkMode,
     });
 };

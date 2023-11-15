@@ -1,3 +1,5 @@
+import { getDarkModeSnippet } from '@components/site-header/getDarkModeSnippet';
+
 import { toTitleCase } from './angular-utils';
 import { getChartImports, wrapOptionsUpdateCode } from './chart-utils';
 import { templatePlaceholder } from './chart-vanilla-src-parser';
@@ -104,17 +106,7 @@ const ChartExample = () => {
         ${instanceBindings.join(';\n        ')}
         ${instanceMethods.concat(externalEventHandlers).join('\n\n    ')}
 
-        /** DARK MODE START **/
-        options.theme = localStorage['documentation:darkmode'] === 'true' ? 'ag-default-dark' : 'ag-default';
-        window.addEventListener('message', (event) => {
-            if (event.data && event.data.type === 'color-scheme-change') {
-                setOptions((currentOptions) => ({
-                    ...currentOptions,
-                    theme: event.data.darkmode ? 'ag-default-dark' : 'ag-default',
-                }));
-            }
-        });
-        /** DARK MODE END **/
+        ${getDarkModeSnippet('reactFunctional')}
         return ${template};
     }
 

@@ -11,6 +11,9 @@ import { pathJoin } from '@utils/pathJoin';
 import { SITE_BASE_URL } from '@constants';
 import { getCacheBustingUrl, getChartEnterpriseScriptPath, getChartScriptPath } from '@utils/chartLibraryPaths';
 import { urlWithPrefix } from '@utils/urlWithPrefix';
+import styles from './homepage.module.scss';
+import { ReactComponent as GridLogoType } from '@images/inline-svgs/ag-grid-logotype.svg';
+import { ReactComponent as GridLogoMark } from '@images/inline-svgs/ag-grid-logomark.svg';
 
 const frameworksData = [
     {
@@ -44,7 +47,7 @@ const frameworksData = [
 ];
 
 const devExCode = `const options = {
-  container: document.getElementById('myChart'),
+  container: document.getElementById('chart'),
   data: [
     { label: 'Android', value: 56.9 },
     { label: 'iOS', value: 22.5 },
@@ -84,15 +87,15 @@ const isEnterprise = true;
     <script src={chartScriptPath}></script>
     {isEnterprise && <script src={chartScriptEnterprisePath} />}
 
-    <div class="homepageHero">
-        <div class="heroInner page-margin">
-            <div class="heroHeadings">
+    <div class={styles.homepageHero}>
+        <div class:list={[styles.heroInner, 'page-margin']}>
+            <div class={styles.heroHeadings}>
                 <h1 class="font-size-extra-large">The Best JavaScript Charts in the World</h1>
                 <h2 class="font-size-medium normal-weight-text">
                     The professional choice for developers building enterprise applications
                 </h2>
             </div>
-            <div class="heroChart">
+            <div class={styles.heroChart}>
                 <HomepageExampleRunner
                     internalFramework={heroInternalFramework}
                     pageName={heroDocsPageName}
@@ -102,22 +105,22 @@ const isEnterprise = true;
         </div>
     </div>
 
-    <div class="homepageFrameworks">
-        <div class="frameworksInner page-margin">
-            <span class="frameworksLabel text-secondary">Get&nbsp;started</span>
+    <div class={styles.homepageFrameworks}>
+        <div class:list={[styles.frameworksInner, 'page-margin']}>
+            <span class:list={[styles.frameworksLabel, 'text-secondary']}>Get&nbsp;started</span>
             <FrameworkSelector data={frameworksData} isFullWidth />
         </div>
     </div>
 
-    <div class="homepageSeries">
-        <div class="seriesInner page-margin">
+    <div class={styles.homepageSeries}>
+        <div class:list={[styles.seriesInner, 'page-margin']}>
             <h2 class="font-size-gargantuan text-secondary">More series than you can shake a stick at...</h2>
             <HomepageSeriesSelector client:load defaultExampleName={defaultExampleName} galleryData={galleryData} />
         </div>
     </div>
 
-    <div class="homepageBenefits">
-        <div class="benefitsInner page-margin">
+    <div class={styles.homepageBenefits}>
+        <div class:list={[styles.benefitsInner, 'page-margin']}>
             <!-- ChatGPT content to be replaced -->
             <ul class="list-style-none">
                 <li>
@@ -151,17 +154,17 @@ const isEnterprise = true;
         </div>
     </div>
 
-    <div class="homepageDevEx">
-        <div class="devExInner page-margin">
+    <div class={styles.homepageDevEx}>
+        <div class:list={[styles.devExInner, 'page-margin']}>
             {/* [TODO] add linenumbers */}
-            <div class="devExExample">
-                <div class="tmpImgOuter">
+            <div class={styles.devExExample}>
+                <div class={styles.tmpImgOuter}>
                     <img src="images/TMP-homepage-pie-tmp-image.png" alt="TEMP IMAGE" />
                 </div>
 
                 <Code code={devExCode} />
             </div>
-            <div class="devExCopy">
+            <div class={styles.devExCopy}>
                 <h3 class="font-size-massive">
                     Your first chart in 20 lines...<br />The next 200 charts just as easy.
                 </h3>
@@ -177,10 +180,13 @@ const isEnterprise = true;
         </div>
     </div>
 
-    <div class="homepageGrid">
-        <div class="gridInner page-margin">
-            <div class="gridCopy">
-                <img class="agGridLogo" src="images/AG-Grid-Logo.svg" alt="AG Grid Logo" />
+    <div class={styles.homepageGrid}>
+        <div class:list={[styles.gridInner, 'page-margin']}>
+            <div class={styles.gridCopy}>
+                <div class={styles.agGridLogo}>
+                    <GridLogoType />
+                    <GridLogoMark />
+                </div>
                 <!-- Dummy copy, to be reviewed -->
                 <p class="font-size-large">
                     <b>AG Charts</b> was created by the amazing team behind <a href="ag-grid.com"><b>AG Grid</b></a>,
@@ -194,260 +200,9 @@ const isEnterprise = true;
                      available bar none.
                 </p>
             </div>
-            <div class="gridExample">
+            <div class={styles.gridExample}>
                 <video src="videos/integrated-charts.mp4" muted autoplay loop></video>
             </div>
         </div>
     </div>
 </Layout>
-
-<style lang="scss">
-    @use '../design-system' as *;
-
-    .homepageHero {
-        --text-color: var(--white);
-
-        padding-top: $size-5;
-        background-color: var(--dark-cerulean-blue);
-
-        @media screen and (min-width: $breakpoint-hero-small) {
-            padding-top: $size-7;
-        }
-
-        @media screen and (min-width: $breakpoint-hero-large) {
-            padding-top: $size-8;
-        }
-    }
-
-    .heroInner {
-        display: flex;
-        flex-direction: column;
-        gap: 0 $size-4;
-
-        @media screen and (min-width: $breakpoint-hero-large) {
-            flex-direction: row;
-        }
-    }
-
-    .heroHeadings {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        text-align: center;
-
-        @media screen and (min-width: $breakpoint-hero-large) {
-            text-align: unset;
-        }
-
-        h1,
-        h2 {
-            --line-height: var(--line-height-tight);
-
-            color: var(--text-color);
-        }
-
-        h1 {
-            --font-size: 28px;
-
-            @media screen and (min-width: $breakpoint-hero-small) {
-                --font-size: var(--font-size-massive);
-            }
-
-            @media screen and (min-width: $breakpoint-hero-large) {
-                --font-size: min(3.4vw, 54px);
-
-                margin-top: -0.225em;
-                margin-bottom: 0.5em;
-            }
-        }
-
-        h2 {
-            max-width: 18em;
-            margin-right: auto;
-            margin-left: auto;
-            margin-bottom: 1.4em;
-
-            @media screen and (min-width: $breakpoint-hero-small) {
-                --font-size: 22px;
-            }
-
-            @media screen and (min-width: $breakpoint-hero-large) {
-                --font-size: min(1.9vw, 30px);
-                --font-weight: var(--font-weight-thin);
-
-                max-width: unset;
-            }
-        }
-    }
-
-    .heroChart {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 320px;
-        background-color: var(--ag-grid-dark-blue);
-        border-radius: var(--border-radius);
-        margin-bottom: $size-6;
-        color: white;
-
-        @media screen and (min-width: $breakpoint-hero-large) {
-            width: 860px;
-            height: 416px;
-        }
-    }
-
-    .homepageFrameworks {
-        background-color: var(--bright-blue-gray);
-        padding-top: $size-2;
-        padding-bottom: $size-6;
-
-        @media screen and (min-width: 640px) {
-            padding-top: $size-6;
-        }
-    }
-
-    .frameworksInner {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: $size-1;
-
-        @media screen and (min-width: 640px) {
-            flex-direction: row;
-        }
-
-        @media screen and (min-width: 1020px) {
-            gap: $size-2;
-        }
-    }
-
-    .frameworksLabel {
-        font-size: var(--font-size);
-        font-weight: var(--font-weight);
-
-        @media screen and (min-width: 1020px) {
-            --font-size: var(--font-size-extra-large);
-            --font-weight: var(--font-weight-thin);
-        }
-    }
-
-    .homepageSeries {
-        padding-top: $size-7;
-        padding-bottom: $size-9;
-    }
-
-    .seriesInner {
-        display: flex;
-        flex-wrap: wrap;
-
-        h2 {
-            width: 100%;
-            margin-bottom: $size-6 !important;
-            text-align: center;
-            opacity: 0.6;
-        }
-    }
-
-    .homepageBenefits {
-        background-color: var(--bright-blue-gray);
-        padding-top: $size-7;
-        padding-bottom: $size-8;
-    }
-
-    .benefitsInner {
-        ul {
-            display: flex;
-            gap: $size-2;
-        }
-
-        li {
-            width: 33.33%;
-            text-align: center;
-        }
-
-        :global(.icon) {
-            --icon-size: #{$size-7};
-            --text-color: var(--auro-metal);
-
-            margin-bottom: $size-3;
-        }
-
-        p {
-            text-align: left;
-        }
-    }
-
-    .homepageGrid {
-        padding-top: $size-6;
-        padding-bottom: $size-10;
-    }
-
-    .gridInner {
-        display: flex;
-    }
-
-    .gridCopy {
-        width: 40%;
-        padding-right: $size-4;
-    }
-
-    .agGridLogo {
-        max-width: 320px;
-        margin-left: -22px;
-    }
-
-    .gridExample {
-        width: 60%;
-
-        video {
-            margin-top: $size-8;
-            width: 100%;
-            border-radius: 4px;
-            box-shadow: 2px 0 2px 0 rgba(0, 0, 0, 0.15);
-        }
-    }
-
-    .homepageDevEx {
-        margin-top: $size-8;
-        margin-bottom: $size-7;
-    }
-
-    .devExInner {
-        display: flex;
-        gap: $size-4;
-    }
-
-    .devExExample {
-        display: flex;
-        width: 66.66%;
-        border-radius: var(--border-radius);
-        border: 2px solid var(--border-color);
-
-        .tmpImgOuter {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        img {
-            width: 90%;
-        }
-
-        :global(.code) {
-            width: 540px;
-            margin-bottom: 0;
-            border: none;
-            border-left: 2px solid var(--border-color);
-            border-radius: 0;
-        }
-    }
-
-    .devExCopy {
-        width: 30%;
-
-        h3 {
-            line-height: var(--line-height-tight);
-        }
-    }
-</style>
