@@ -3,8 +3,8 @@ import type { ThemeName } from '@stores/themeStore';
 import { pathJoin } from '@utils/pathJoin';
 
 export const getExampleUrl = ({ exampleName, isFullPath }: { exampleName: string; isFullPath?: boolean }) => {
-    const path = pathJoin({ path: [SITE_BASE_URL, 'gallery', 'examples', exampleName] });
-    const fullPath = pathJoin({ path: [import.meta.env?.PUBLIC_SITE_URL, path] });
+    const path = pathJoin({ path: [SITE_BASE_URL, 'gallery', 'examples', exampleName], addTrailingSlash: true });
+    const fullPath = pathJoin({ path: [import.meta.env?.PUBLIC_SITE_URL, path], addTrailingSlash: true });
     return isFullPath ? fullPath : path;
 };
 
@@ -35,7 +35,7 @@ export const getExampleWithRelativePathUrl = ({ exampleName }: { exampleName: st
 };
 
 export const getPageUrl = (pageName: string) => {
-    return pathJoin({ path: [SITE_BASE_URL, 'gallery', pageName] });
+    return pathJoin({ path: [SITE_BASE_URL, 'gallery', pageName], addTrailingSlash: true });
 };
 
 export const getPageHashUrl = ({ chartSeriesName, isRelative }: { chartSeriesName: string; isRelative?: boolean }) => {

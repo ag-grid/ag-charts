@@ -10,7 +10,7 @@ export function getFrameworkFromPath(path: string) {
 }
 
 export const getExamplePageUrl = ({ framework, path }: { framework: Framework; path: string }) => {
-    return pathJoin({ path: [SITE_BASE_URL, framework, path] });
+    return pathJoin({ path: [SITE_BASE_URL, framework, path], addTrailingSlash: true });
 };
 
 /**
@@ -25,7 +25,10 @@ export const getExampleUrl = ({
     pageName: string;
     exampleName: string;
 }) => {
-    return pathJoin({ path: [SITE_BASE_URL, internalFramework, pageName, 'examples', exampleName] });
+    return pathJoin({
+        path: [SITE_BASE_URL, internalFramework, pageName, 'examples', exampleName],
+        addTrailingSlash: true,
+    });
 };
 
 /**

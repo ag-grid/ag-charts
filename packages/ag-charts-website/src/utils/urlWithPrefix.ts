@@ -17,9 +17,12 @@ export const urlWithPrefix = ({
 
     let path = url;
     if (url.match(hasRelativePathRegex)) {
-        path = pathJoin({ path: ['/', siteBaseUrl, framework, url.replace(hasRelativePathRegex, substitution)] });
+        path = pathJoin({
+            path: ['/', siteBaseUrl, framework, url.replace(hasRelativePathRegex, substitution)],
+            addTrailingSlash: true,
+        });
     } else if (url.startsWith('/')) {
-        path = pathJoin({ path: ['/', siteBaseUrl, url] });
+        path = pathJoin({ path: ['/', siteBaseUrl, url], addTrailingSlash: true });
     }
 
     return path;
