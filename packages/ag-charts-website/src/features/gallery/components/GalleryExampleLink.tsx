@@ -1,5 +1,4 @@
-import { useStore } from '@nanostores/react';
-import { $theme } from '@stores/themeStore';
+import { useTheme } from '@utils/hooks/useTheme';
 import classnames from 'classnames';
 import { type FunctionComponent, useEffect, useState } from 'react';
 
@@ -13,7 +12,7 @@ interface Props {
 }
 
 export const GalleryExampleLink: FunctionComponent<Props> = ({ label, exampleName, className }) => {
-    const theme = useStore($theme);
+    const { theme } = useTheme();
     const [imageUrl, setImageUrl] = useState<string>();
     const [isDarkTheme, setIsDarkTheme] = useState<boolean>();
 
