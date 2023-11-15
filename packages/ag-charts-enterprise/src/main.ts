@@ -1,5 +1,5 @@
 import type { AgChartOptions } from 'ag-charts-community';
-import { AgChart, _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { AngleCategoryAxisModule } from './axes/angle-category/main';
 import { AngleNumberAxisModule } from './axes/angle-number/main';
@@ -62,5 +62,3 @@ _ModuleSupport.enterpriseModule.licenseManager = (options: AgChartOptions) =>
     new LicenseManager(
         options.container?.ownerDocument ?? (typeof document !== 'undefined' ? document : undefined)
     ).validateLicense();
-
-export const AgEnterpriseCharts = AgChart;

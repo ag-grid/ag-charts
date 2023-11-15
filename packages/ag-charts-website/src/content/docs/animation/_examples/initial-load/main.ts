@@ -1,7 +1,7 @@
 import {
     AgCartesianSeriesTooltipRendererParams,
+    AgChart,
     AgChartOptions,
-    AgEnterpriseCharts,
     AgTooltipRendererResult,
 } from 'ag-charts-enterprise';
 
@@ -222,20 +222,20 @@ const pieOptions: AgChartOptions = {
     ],
 };
 
-let chart = AgEnterpriseCharts.create(options);
+let chart = AgChart.create(options);
 
 function changeSeriesBar() {
-    AgEnterpriseCharts.updateDelta(chart, options);
+    AgChart.updateDelta(chart, options);
 }
 
 function changeSeriesLine() {
-    AgEnterpriseCharts.updateDelta(chart, lineOptions);
+    AgChart.updateDelta(chart, lineOptions);
 }
 
 function changeSeriesArea() {
-    AgEnterpriseCharts.updateDelta(chart, areaOptions);
+    AgChart.updateDelta(chart, areaOptions);
 }
 
 function changeSeriesPie() {
-    AgEnterpriseCharts.updateDelta(chart, pieOptions);
+    AgChart.updateDelta(chart, pieOptions);
 }

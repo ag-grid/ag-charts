@@ -323,18 +323,13 @@ export function getTypes(node: ts.Node) {
 }
 
 export function usesChartApi(node: ts.Node) {
-    let usesApi = false;
-    if (ts.isCallExpression(node)) {
-        if (node.getText()?.match(/AgChart.(?!create)/)) {
-            return true;
-        }
-        if (node.getText()?.match(/AgEnterpriseCharts.(?!create)/)) {
-            return true;
-        }
+    if (ts.isCallExpression(node) && node.getText()?.match(/AgChart.(?!create)/)) {
+        return true;
     }
 
+    let usesApi = false;
     node.forEachChild((ct) => {
-        usesApi = usesApi || usesChartApi(ct);
+        usesApi ||= usesChartApi(ct);
     });
     return usesApi;
 }

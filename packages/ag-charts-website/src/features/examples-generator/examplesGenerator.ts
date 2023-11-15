@@ -60,35 +60,22 @@ export const getGeneratedContents = async ({
 }): Promise<GeneratedContents | undefined> => {
     const sourceFileList = await fs.readdir(folderUrl);
 
-    const sourceEntryFileName = SOURCE_ENTRY_FILE_NAME;
-    const entryFile = await getFileContents({
-        folderUrl,
-        fileName: sourceEntryFileName,
-    }).catch(() => {}); // Fail silently
+    const entryFile = await getFileContents({ folderUrl, fileName: SOURCE_ENTRY_FILE_NAME }).catch(() => {}); // Fail silently
 
     if (!entryFile) {
         return;
     }
 
-    const indexHtml = await getFileContents({
-        folderUrl,
-        fileName: 'index.html',
-    });
+    const indexHtml = await getFileContents({ folderUrl, fileName: 'index.html' });
 
     const otherScriptFiles = await getOtherScriptFiles({
         folderUrl,
         sourceFileList,
         transformTsFileExt: getTransformTsFileExt(internalFramework),
     });
-    const styleFiles = await getStyleFiles({
-        folderUrl,
-        sourceFileList,
-    });
+    const styleFiles = await getStyleFiles({ folderUrl, sourceFileList });
 
-    const isEnterprise = getIsEnterprise({
-        internalFramework,
-        entryFile,
-    });
+    const isEnterprise = getIsEnterprise({ entryFile });
 
     const { bindings, typedBindings } = chartVanillaSrcParser({
         srcFile: entryFile,
@@ -112,7 +99,8 @@ export const getGeneratedContents = async ({
         otherScriptFiles,
         ignoreDarkMode,
     });
-    const contents: GeneratedContents = {
+
+    return {
         isEnterprise,
         scriptFiles: scriptFiles!,
         styleFiles: Object.keys(styleFiles),
@@ -122,6 +110,4 @@ export const getGeneratedContents = async ({
         entryFileName,
         mainFileName,
     };
-
-    return contents;
 };

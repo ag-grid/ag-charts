@@ -11,7 +11,7 @@ import {
 } from 'ag-charts-community-test';
 
 import type { AgChartOptions } from '../../main';
-import { AgEnterpriseCharts } from '../../main';
+import { AgChart } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
 describe('Zoom', () => {
@@ -51,7 +51,7 @@ describe('Zoom', () => {
         cx = options.width! / 2;
         cy = options.height! / 2;
 
-        chart = AgEnterpriseCharts.create(options);
+        chart = AgChart.create(options);
 
         // Click once in the chart to ensure the chart is active / mouse is over it to ensure the first scroll wheel
         // event is triggered.

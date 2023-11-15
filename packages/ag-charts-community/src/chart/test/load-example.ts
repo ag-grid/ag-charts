@@ -4,7 +4,7 @@ import * as agCharts from '../../main';
 import { Logger } from '../../util/logger';
 
 const filters = [
-    /(AgChart|AgEnterpriseCharts)\.(create|update)/,
+    /AgChart\.(create|update)/,
     /setInterval|setTimeout/,
     /container:/,
     /^Object\.defineProperty/,

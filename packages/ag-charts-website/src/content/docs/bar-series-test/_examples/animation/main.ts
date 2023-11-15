@@ -1,4 +1,4 @@
-import { AgChart, AgChartLegendPosition, AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+import { AgChart, AgChartLegendPosition, AgChartOptions } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -68,7 +68,7 @@ const options: AgChartOptions = {
     legend: {},
 };
 
-const chart = AgEnterpriseCharts.create(options);
+const chart = AgChart.create(options);
 
 function reset() {
     options.data = getData();

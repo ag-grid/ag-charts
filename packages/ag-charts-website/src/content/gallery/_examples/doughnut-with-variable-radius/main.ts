@@ -1,4 +1,4 @@
-import { AgChartOptions, AgEnterpriseCharts, AgPieSeriesTooltipRendererParams } from 'ag-charts-enterprise';
+import { AgChart, AgChartOptions, AgPieSeriesTooltipRendererParams } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -62,4 +62,4 @@ const options: AgChartOptions = {
     },
 };
 
-AgEnterpriseCharts.create(options);
+AgChart.create(options);

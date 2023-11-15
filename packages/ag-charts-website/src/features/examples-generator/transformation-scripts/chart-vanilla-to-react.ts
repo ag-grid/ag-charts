@@ -118,10 +118,6 @@ root.render(<ChartExample />);
         if (bindings.usesChartApi) {
             indexFile = indexFile.replace(/AgChart.(\w*)\((\w*)(,|\))/g, 'AgChart.$1(this.chartRef.current.chart$3');
             indexFile = indexFile.replace(
-                /AgEnterpriseCharts.(\w*)\((\w*)(,|\))/g,
-                'AgEnterpriseCharts.$1(this.chartRef.current.chart$3'
-            );
-            indexFile = indexFile.replace(
                 /\(this.chartRef.current.chart, options/g,
                 '(this.chartRef.current.chart, this.state.options'
             );

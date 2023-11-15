@@ -9,7 +9,7 @@ import {
 } from 'ag-charts-community-test';
 
 import type { AgChartOptions } from '../../main';
-import { AgEnterpriseCharts } from '../../main';
+import { AgChart } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
 describe('Chart', () => {
@@ -120,7 +120,7 @@ describe('Chart', () => {
         const options: AgChartOptions = { ...WATERFALL_COLUMN_OPTIONS };
         prepareEnterpriseTestOptions(options as any);
 
-        chart = AgEnterpriseCharts.create(options);
+        chart = AgChart.create(options);
         await compare();
     });
 
@@ -128,7 +128,7 @@ describe('Chart', () => {
         const options: AgChartOptions = { ...switchSeriesType(WATERFALL_COLUMN_OPTIONS, 'horizontal') };
         prepareEnterpriseTestOptions(options as any);
 
-        chart = AgEnterpriseCharts.create(options);
+        chart = AgChart.create(options);
         await compare();
     });
 
@@ -140,7 +140,7 @@ describe('Chart', () => {
         };
         prepareEnterpriseTestOptions(options as any);
 
-        chart = AgEnterpriseCharts.create(options);
+        chart = AgChart.create(options);
         await compare();
     });
 
@@ -153,7 +153,7 @@ describe('Chart', () => {
         };
         prepareEnterpriseTestOptions(options as any);
 
-        chart = AgEnterpriseCharts.create(options);
+        chart = AgChart.create(options);
         await compare();
     });
 
@@ -166,7 +166,7 @@ describe('Chart', () => {
         };
         prepareEnterpriseTestOptions(options as any);
 
-        chart = AgEnterpriseCharts.create(options);
+        chart = AgChart.create(options);
         await compare();
     });
 
@@ -180,7 +180,7 @@ describe('Chart', () => {
         };
         prepareEnterpriseTestOptions(options as any);
 
-        chart = AgEnterpriseCharts.create(options);
+        chart = AgChart.create(options);
         await compare();
     });
 
@@ -194,7 +194,7 @@ describe('Chart', () => {
                 const options: AgChartOptions = { ...WATERFALL_COLUMN_OPTIONS };
                 prepareEnterpriseTestOptions(options);
 
-                chart = AgEnterpriseCharts.create(options);
+                chart = AgChart.create(options);
                 await waitForChartStability(chart);
                 await compare();
             });
@@ -205,7 +205,7 @@ describe('Chart', () => {
                 const options: AgChartOptions = { ...switchSeriesType(WATERFALL_COLUMN_OPTIONS, 'horizontal') };
                 prepareEnterpriseTestOptions(options);
 
-                chart = AgEnterpriseCharts.create(options);
+                chart = AgChart.create(options);
                 await waitForChartStability(chart);
                 await compare();
             });
