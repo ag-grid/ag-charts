@@ -1,4 +1,4 @@
-import type { ApiReferenceConfig } from 'src/features/api-documentation/components/ApiReference';
+import type { ApiReferenceConfig } from '@features/api-documentation/components/ApiReference';
 
 import type {
     ApiReferenceNode,
@@ -78,10 +78,12 @@ export function normalizeType(refType: TypeNode, includeGenerics?: boolean): str
             return 'Function';
         case 'tuple':
             return `[${refType.type.map((subType) => normalizeType(subType)).join(', ')}]`;
+        case 'typeLiteral':
+            throw Error(
+                'Avoid using type-literals in user facing typings as nameless types break the generated docs.\nYou should use an interface or a type-alias instead.'
+            );
         default:
-            // eslint-disable-next-line no-console
-            console.warn('Unknown type encountered: ', refType);
-            return '';
+            throw Error(`Unknown type encountered: ${refType}`);
     }
 }
 
