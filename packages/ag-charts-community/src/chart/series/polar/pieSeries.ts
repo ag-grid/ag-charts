@@ -392,11 +392,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
             extraProps.push(valueProperty(this, legendItemKey, false, { id: `legendItemValue` }));
         }
         if (animationEnabled && this.processedData && extraKeyProps.length > 0) {
-            extraProps.push(diff(this.processedData), animationValidation(this));
+            extraProps.push(diff(this.processedData));
         }
-        if (animationEnabled) {
-            extraProps.push(animationValidation(this));
-        }
+        extraProps.push(animationValidation(this));
 
         data = data.map((d, idx) => (seriesItemEnabled[idx] ? d : { ...d, [angleKey]: 0 }));
 

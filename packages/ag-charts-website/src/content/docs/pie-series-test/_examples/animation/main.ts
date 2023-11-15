@@ -72,3 +72,11 @@ function remove() {
     options.data = newData;
     AgChart.update(chart, options);
 }
+
+function rapidUpdates() {
+    reset();
+
+    setTimeout(() => randomise(), 300);
+    setTimeout(() => randomise(), 600);
+    setTimeout(() => randomise(), 900);
+}
