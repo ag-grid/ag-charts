@@ -15,7 +15,7 @@ function ignoreUnderscoreFiles(page: DocsPage) {
 
 export const getExamplesPathUrl = ({ pageName }: { pageName: string }) => {
     const contentRoot = getContentRootFileUrl();
-    const sourceExamplesPath = pathJoin(contentRoot.pathname, 'docs', pageName, '_examples');
+    const sourceExamplesPath = pathJoin({ path: [contentRoot.pathname, 'docs', pageName, '_examples'] });
 
     return new URL(sourceExamplesPath, import.meta.url);
 };
@@ -24,7 +24,7 @@ export const getFolderUrl = ({ pageName, exampleName }: { pageName: string; exam
     const examplesFolderPath = getExamplesPathUrl({
         pageName,
     }).pathname;
-    const exampleFolderPath = pathJoin(examplesFolderPath, exampleName);
+    const exampleFolderPath = pathJoin({ path: [examplesFolderPath, exampleName] });
 
     return new URL(exampleFolderPath, import.meta.url);
 };
@@ -64,15 +64,15 @@ export const getPagesList = (pages: DocsPage[]) => {
 
 export const getAllExamplesFileList = async () => {
     const contentRoot = getContentRootFileUrl();
-    const pagesFolder = pathJoin(contentRoot.pathname, 'docs');
+    const pagesFolder = pathJoin({ path: [contentRoot.pathname, 'docs'] });
     const pages = await fs.readdir(pagesFolder);
 
     const examplesPromises = pages.map(async (pageName) => {
-        const examplesFolder = pathJoin(pagesFolder, pageName, '_examples');
+        const examplesFolder = pathJoin({ path: [pagesFolder, pageName, '_examples'] });
         const examples = await getFolders(examplesFolder);
 
         return examples.map((file) => {
-            return pathJoin(examplesFolder, file);
+            return pathJoin({ path: [examplesFolder, file] });
         });
     });
     const exampleFolders = (await Promise.all(examplesPromises)).flat();
@@ -80,7 +80,7 @@ export const getAllExamplesFileList = async () => {
     const exampleFilesPromises = exampleFolders.map(async (exampleFolder) => {
         const exampleFiles = await fs.readdir(exampleFolder);
         return exampleFiles.map((exampleFile) => {
-            return pathJoin(exampleFolder, exampleFile);
+            return pathJoin({ path: [exampleFolder, exampleFile] });
         });
     });
     const exampleFiles = (await Promise.all(exampleFilesPromises)).flat();

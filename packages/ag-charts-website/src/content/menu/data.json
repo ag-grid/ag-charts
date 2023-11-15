@@ -3,23 +3,23 @@
         "items": [
             {
                 "title": "Options API",
-                "path": "/options"
+                "path": "/options/"
             },
             {
                 "title": "Themes API",
-                "path": "/themes-api"
+                "path": "/themes-api/"
             },
             {
                 "title": "Chart API",
-                "path": "/javascript/api-create-update"
+                "path": "/javascript/api-create-update/"
             },
             {
                 "title": "Events API",
-                "path": "/javascript/events"
+                "path": "/javascript/events/"
             },
             {
                 "title": "Download API",
-                "path": "/javascript/api-download"
+                "path": "/javascript/api-download/"
             }
         ]
     },

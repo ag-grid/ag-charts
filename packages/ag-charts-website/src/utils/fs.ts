@@ -12,7 +12,7 @@ export const getFolders = async (rootPath: string) => {
 
     const files = await fs.readdir(rootPath);
     const directories = files.map(async (name) => {
-        const dirPath = pathJoin(rootPath, name);
+        const dirPath = pathJoin({ path: [rootPath, name] });
         const isDirectory = (await fs.stat(dirPath)).isDirectory();
         if (!isDirectory) return undefined;
 
@@ -31,7 +31,7 @@ export async function getFilesRecursively(dir: string, allFiles: string[] = []) 
 
     await Promise.all(
         files.map(async (file) => {
-            const name = pathJoin(dir, file);
+            const name = pathJoin({ path: [dir, file] });
 
             const isDirectory = (await fs.stat(name)).isDirectory();
 
@@ -51,7 +51,7 @@ export async function getFoldersRecursively({ dir, allFolders = [] }: { dir: str
 
     await Promise.all(
         files.map(async (file) => {
-            const name = pathJoin(dir, file);
+            const name = pathJoin({ path: [dir, file] });
             const isDirectory = (await fs.stat(name)).isDirectory();
 
             if (isDirectory) {
@@ -70,7 +70,7 @@ export async function getFilePathsRecursively(dir: string, allFiles: string[] = 
 
     await Promise.all(
         files.map(async (file) => {
-            const name = pathJoin(dir, file);
+            const name = pathJoin({ path: [dir, file] });
 
             const isDirectory = (await fs.stat(name)).isDirectory();
 

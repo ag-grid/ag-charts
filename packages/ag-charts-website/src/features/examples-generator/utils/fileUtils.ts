@@ -55,7 +55,7 @@ export const getBoilerPlateFiles = async (internalFramework: InternalFramework) 
     if (!boilerplateName) {
         return {};
     }
-    const boilerPlatePath = pathJoin(boilerPlateFilesPath.pathname, boilerplateName);
+    const boilerPlatePath = pathJoin({ path: [boilerPlateFilesPath.pathname, boilerplateName] });
 
     const fileNames = await fs.readdir(boilerPlatePath);
 
@@ -66,7 +66,7 @@ export const getBoilerPlateFiles = async (internalFramework: InternalFramework) 
             // Ignore systemjs dev file if on production
             return;
         }
-        const filePath = pathJoin(boilerPlatePath, fileName);
+        const filePath = pathJoin({ path: [boilerPlatePath, fileName] });
         const contents = await fs.readFile(filePath, 'utf-8').catch(() => {
             return undefined;
         });
@@ -131,7 +131,7 @@ export const getMainFileName = (internalFramework: InternalFramework) => {
 };
 
 export const getFileContents = ({ folderUrl, fileName }: { folderUrl: URL; fileName: string }) => {
-    const filePath = pathJoin(folderUrl.pathname, fileName);
+    const filePath = pathJoin({ path: [folderUrl.pathname, fileName] });
 
     return fs.readFile(filePath, 'utf-8');
 };
