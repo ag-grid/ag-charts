@@ -211,6 +211,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
                 ...groupAccumulativeValueProperty(this, yKey, isContinuousY, 'normal', 'current', {
                     id: `yValue-end`,
                     invalidValue: null,
+                    missingValue: 0,
                     groupId: stackGroupName,
                     separateNegative: true,
                     ...visibleProps,
@@ -218,6 +219,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
                 ...groupAccumulativeValueProperty(this, yKey, isContinuousY, 'trailing', 'current', {
                     id: `yValue-start`,
                     invalidValue: null,
+                    missingValue: 0,
                     groupId: stackGroupTrailingName,
                     separateNegative: true,
                     ...visibleProps,
