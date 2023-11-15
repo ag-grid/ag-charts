@@ -15,11 +15,15 @@ const options: AgChartOptions = {
       group: {
         label: {
           color: 'white',
-          formatter({value}) {
-            return value.toUpperCase()
-          }
+          formatter({ value }) {
+            return value.toUpperCase();
+          },
         },
         textAlign: 'left',
+        fill: '#333',
+        stroke: '#333',
+        strokeWidth: 1,
+        padding: 2,
       },
       tile: {
         label: {
@@ -29,41 +33,28 @@ const options: AgChartOptions = {
           color: '#333',
           formatter(params) {
             return params.value.toFixed(2) + '%';
-          }
-        }
+          },
+        },
+        strokeWidth: 0,
       },
       tileSpacing: 1,
       highlightStyle: {
+        group: {
+          fill: '#888',
+          stroke: '#888',
+        },
         tile: {
           label: {
-            color: '#333'
+            color: '#333',
           },
           secondaryLabel: {
-            color: '#333'
-          }
-        }
+            color: '#333',
+          },
+        },
       },
       tooltip: {
         renderer: tooltipRenderer,
       },
-      formatter: ({ datum, depth, highlighted }) => {
-        if (!datum.children) {
-          return {
-            stroke: 'rgba(0, 0, 0, 0.4)',
-            strokeWidth: highlighted ? 2 : 0,
-          };
-        } else if (depth < 1) {
-          return {
-            fill: highlighted ? '#888' : '#333',
-            stroke: 'white',
-          };
-        } else {
-          return {
-            fill: highlighted ? '#888' : '#333',
-            stroke: highlighted ? '#888' : 'black',
-          };
-        }
-    },
     },
   ],
   title: {

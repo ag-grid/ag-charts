@@ -332,7 +332,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
         };
 
         if (hasInvalidFontSize(this.tile.label) || hasInvalidFontSize(this.tile.secondaryLabel)) {
-            Logger.warn(`minimumFontSize should be set to a value less than or equal to the font size`);
+            Logger.warnOnce(`minimumFontSize should be set to a value less than or equal to the font size`);
         }
 
         const defaultLabelFormatter = (value: any) => {

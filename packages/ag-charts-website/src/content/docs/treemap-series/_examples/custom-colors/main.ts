@@ -24,7 +24,6 @@ const options: AgChartOptions = {
                 label: {
                     color: 'white',
                 },
-                strokeWidth: 0,
             },
             tileSpacing: 1,
             highlightStyle: {

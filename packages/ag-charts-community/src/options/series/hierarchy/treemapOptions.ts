@@ -107,8 +107,10 @@ export interface AgTreemapSeriesHighlightStyle<TDatum> extends AgSeriesHighlight
 
 export interface AgTreemapSeriesThemeableOptions<TDatum = any>
     extends Omit<AgBaseSeriesThemeableOptions, 'highlightStyle'> {
-    /** The color range to interpolate. */
+    /** The colours to cycle through for the fills of the sectors. */
     fills?: CssColor[];
+    /** The colours to cycle through for the strokes of the sectors. */
+    strokes?: CssColor[];
     /** The color range to interpolate. */
     colorRange?: CssColor[];
     /** Options for group nodes (i.e. nodes WITH children) */

@@ -81,6 +81,9 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
     fills?: string[] = undefined;
 
     @Validate(OPT_COLOR_STRING_ARRAY)
+    strokes?: string[] = undefined;
+
+    @Validate(OPT_COLOR_STRING_ARRAY)
     colorRange?: string[] = undefined;
 
     rootNode = new HierarchyNode(this, 0, undefined, 0, undefined, 0, undefined, undefined, []);

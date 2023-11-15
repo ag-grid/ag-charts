@@ -20,53 +20,37 @@ const options: AgChartOptions = {
                     },
                 },
                 textAlign: 'left',
+                fill: '#333',
+                stroke: '#333',
+                strokeWidth: 1,
+                padding: 2,
             },
             tile: {
                 label: {
-                    color: 'black',
+                    color: '#333',
                 },
                 secondaryLabel: {
-                    color: 'black',
+                    color: '#333',
                     formatter(params) {
                         return params.value.toFixed(2) + '%';
                     },
                 },
+                strokeWidth: 0,
             },
             tileSpacing: 1,
             highlightStyle: {
+                group: {
+                    fill: '#888',
+                    stroke: '#888',
+                },
                 tile: {
                     label: {
-                        color: 'black',
+                        color: '#333',
                     },
                     secondaryLabel: {
-                        color: 'black',
+                        color: '#333',
                     },
                 },
-            },
-            tooltip: {
-                renderer: (params) => {
-                    return {
-                        content: `<b>Change</b>: ${params.datum.change.toFixed(2)}%`,
-                    };
-                },
-            },
-            formatter: ({ datum, depth, highlighted }) => {
-                if (!datum.children) {
-                    return {
-                        stroke: 'rgba(0, 0, 0, 0.4)',
-                        strokeWidth: highlighted ? 2 : 0,
-                    };
-                } else if (depth < 1) {
-                    return {
-                        fill: highlighted ? '#888' : '#333',
-                        stroke: 'white',
-                    };
-                } else {
-                    return {
-                        fill: highlighted ? '#888' : '#333',
-                        stroke: highlighted ? '#888' : 'black',
-                    };
-                }
             },
         },
     ],

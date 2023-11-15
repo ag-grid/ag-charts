@@ -1,7 +1,7 @@
 import type { AgChartCallbackParams } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
-import type { CssColor, FontSize, PixelSize, TextOverflow, TextWrap } from '../../chart/types';
+import type { CssColor, FontSize, Opacity, PixelSize, TextOverflow, TextWrap } from '../../chart/types';
 import type { FillOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 
@@ -44,9 +44,7 @@ export interface AgSunburstSeriesLabelOptions<TDatum> extends AgSunburstSeriesBa
 }
 
 export interface AgSunburstSeriesThemeableOptions<TDatum = any>
-    extends Omit<AgBaseSeriesThemeableOptions, 'highlightStyle'>,
-        FillOptions,
-        StrokeOptions {
+    extends Omit<AgBaseSeriesThemeableOptions, 'highlightStyle'> {
     /** Options for the label in a sector */
     label?: AgSunburstSeriesBaseLabelOptions<TDatum>;
     /* Options for a secondary, smaller label in a sector - displayed under the primary label */
@@ -55,8 +53,16 @@ export interface AgSunburstSeriesThemeableOptions<TDatum = any>
     sectorSpacing?: number;
     /** Minimum distance between text and the edges of the sectors */
     padding?: number;
-    /** The color range to interpolate. */
+    /** The colours to cycle through for the fills of the sectors. */
     fills?: CssColor[];
+    /** The colours to cycle through for the strokes of the sectors. */
+    strokes?: CssColor[];
+    /** The opacity of the fill for the sectors. */
+    fillOpacity?: Opacity;
+    /** The opacity of the stroke for the sectors. */
+    strokeOpacity?: Opacity;
+    /** The width in pixels of the stroke for the sectors. */
+    strokeWidth?: PixelSize;
     /** The color range to interpolate. */
     colorRange?: CssColor[];
     /** Series-specific tooltip configuration. */

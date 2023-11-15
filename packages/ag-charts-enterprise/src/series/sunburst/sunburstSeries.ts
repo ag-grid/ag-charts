@@ -101,14 +101,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
     @Validate(OPT_STRING)
     secondaryLabelKey?: string = undefined;
 
-    @Validate(OPT_STRING)
-    fill?: string = undefined;
-
     @Validate(NUMBER(0, 1))
     fillOpacity: number = 1;
-
-    @Validate(OPT_COLOR_STRING)
-    stroke?: string = undefined;
 
     @Validate(NUMBER(0))
     strokeWidth: number = 0;
@@ -153,7 +147,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
         };
 
         if (hasInvalidFontSize(this.label) || hasInvalidFontSize(this.secondaryLabel)) {
-            Logger.warn(`minimumFontSize should be set to a value less than or equal to the font size`);
+            Logger.warnOnce(`minimumFontSize should be set to a value less than or equal to the font size`);
         }
 
         this.labelData = Array.from(this.rootNode, ({ datum, depth }) => {
@@ -269,9 +263,9 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
 
             const format = this.getSectorFormat(node, highlighted);
 
-            const fill = format?.fill ?? highlightedFill ?? this.fill ?? node.color;
+            const fill = format?.fill ?? highlightedFill ?? node.color;
             const fillOpacity = format?.fillOpacity ?? highlightedFillOpacity ?? this.fillOpacity;
-            const stroke = format?.stroke ?? highlightedStroke ?? this.stroke;
+            const stroke = format?.stroke ?? highlightedStroke;
             const strokeWidth = format?.strokeWidth ?? highlightedStrokeWidth ?? this.strokeWidth;
             const strokeOpacity = format?.strokeOpacity ?? highlightedStrokeOpacity ?? this.strokeOpacity;
 
@@ -440,7 +434,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
             return {};
         }
 
-        const { colorKey, labelKey, sizeKey, stroke, strokeWidth } = this;
+        const { colorKey, labelKey, sizeKey, strokeWidth } = this;
 
         const result = callbackCache.call(formatter, {
             seriesId: this.id,
@@ -450,7 +444,6 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
             labelKey,
             sizeKey,
             fill,
-            stroke,
             strokeWidth,
             highlighted: isHighlighted,
         });
