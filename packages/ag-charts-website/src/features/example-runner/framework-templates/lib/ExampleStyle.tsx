@@ -27,13 +27,18 @@ export const ExampleStyle = ({ rootId }: { rootId?: string }) => (
             overflow: auto;
         }
 
-        html button:not(#myGrid button, #myChart button, button[class*='ag-'], .ag-chart-context-menu__menu) {
+        button:not(#myGrid button, #myChart button, button[class*='ag-'], .ag-chart-context-menu__menu) {
+            --background-color: transparent;
+            --text-color: #212529;
+            --border-color: rgba(187, 187, 187, 0.3);
+            --hover-background-color: rgba(0,0,0, 0.1);
+
             appearance: none;
-            background-color: var(--background-100);
-            border: 2px solid rgba(187, 187, 187, 0.3);
+            border: 2px solid var(--border-color);
             border-radius: 6px;
             height: 36px;
-            color: #969696;
+            color: var(--text-color);
+            background-color: var(--background-color);
             cursor: pointer;
             display: inline-block;
             font-size: 14px;
@@ -44,6 +49,21 @@ export const ExampleStyle = ({ rootId }: { rootId?: string }) => (
             margin-right: 6px;
             margin-bottom: 8px;
             transition: background-color .25s ease-in-out;
+        }
+
+        button:not(#myGrid button, #myChart button, button[class*='ag-'], .ag-chart-context-menu__menu):hover {
+          background-color: var(--hover-background-color);
+        }
+
+        html[data-dark-mode=true] button:not(#myGrid button, #myChart button, button[class*='ag-'], .ag-chart-context-menu__menu) {
+          --background-color: #0a161f;
+          --text-color: #f8f9fa;
+          --border-color: rgba(255,255,255, 0.2);
+          --hover-background-color: #2a343e;
+
+          border-color: var(--border-color);
+          color: var(--text-color);
+          background-color: var(--background-color);
         }
     `}
     </style>
