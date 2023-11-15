@@ -4,7 +4,6 @@ import { Logger } from '../../util/logger';
 
 export const filters = [
     /.*AgChart\.(update|create)/,
-    /.*AgChart\.(update|create)/,
     /.* container: .*/,
     /.*setInterval.*/,
     /.*setTimeout.*/,
