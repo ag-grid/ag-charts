@@ -261,7 +261,7 @@ export class GradientLegend {
         }
         const orientation = this.getOrientation();
         this.gradientFill.stops = colorRange;
-        this.gradientFill.direction = orientation === 'vertical' ? 'to bottom' : 'to right';
+        this.gradientFill.direction = orientation === 'vertical' ? 'to-bottom' : 'to-right';
         this.gradientRect.x = gradientBox.x;
         this.gradientRect.y = gradientBox.y;
         this.gradientRect.width = gradientBox.width;

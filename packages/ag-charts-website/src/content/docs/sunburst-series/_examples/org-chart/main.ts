@@ -7,20 +7,16 @@ const options: AgChartOptions = {
     data,
     series: [
         {
+            type: 'sunburst',
+            labelKey: 'name',
             label: {
-                // fontSize: 14,
-                // minimumFontSize: 9,
-                fontSize: 9,
-                minimumFontSize: 7,
+                fontSize: 14,
+                minimumFontSize: 9,
             },
             secondaryLabel: {
                 fontSize: 8,
                 minimumFontSize: 7,
             },
-            type: 'sunburst',
-            labelKey: 'orgHierarchy',
-            secondaryLabelKey: 'orgHierarchy',
-            colorRange: ['#cb4b3f', '#6acb64'],
             sectorSpacing: 2,
         },
     ],
