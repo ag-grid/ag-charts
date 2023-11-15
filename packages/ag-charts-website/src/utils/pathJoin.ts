@@ -1,5 +1,6 @@
 interface Params {
     path: (string | URL | undefined)[];
+    addTrailingSlash?: boolean;
 }
 
 /**
@@ -12,22 +13,29 @@ export function pathJoin(params?: Params): string {
         return '';
     }
 
-    const { path } = params;
+    const { path, addTrailingSlash } = params;
     const segments = path as string[];
     if (!segments || !segments.length) {
         return '';
-    } else if (segments[0] === '/' && segments.length === 1) {
-        return '/';
     }
 
-    const removedSlashes = segments
+    const initialClean = segments
         .filter(Boolean)
         // Convert segments to string, in case it's a URL
         .map((segment) => segment!.toString())
         // Remove initial /
         .map((segment) => {
             return segment !== '/' && segment[0] === '/' ? segment.slice(1) : segment;
-        })
+        });
+
+    if (initialClean[0] === '/' && initialClean.length === 1) {
+        return '/';
+    }
+
+    const initialJoin = initialClean.join('/');
+    const hasTrailingSlash = initialJoin[initialJoin.length - 1] === '/';
+
+    const removedSlashes = initialClean
         // Remove end slash /
         .map((segment) => {
             return segment !== '/' && segment[segment.length - 1] === '/'
@@ -40,5 +48,12 @@ export function pathJoin(params?: Params): string {
 
     const [firstSegment] = segments;
     const firstSegmentHasSlash = firstSegment?.[0] === '/';
-    return firstSegmentHasSlash ? `/${removedSlashes.join('/')}` : removedSlashes.join('/');
+    const withInitialSlash = firstSegmentHasSlash ? `/${removedSlashes.join('/')}` : removedSlashes.join('/');
+
+    let output = withInitialSlash;
+    if ((addTrailingSlash && !hasTrailingSlash) || hasTrailingSlash) {
+        output = withInitialSlash + '/';
+    }
+
+    return output;
 }
