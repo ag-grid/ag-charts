@@ -12,9 +12,6 @@ export interface AgErrorBarFormatterParams
     readonly highlighted: boolean;
 }
 
-export type AgErrorBarFormatter = (params: AgErrorBarFormatterParams) => AgErrorBarOptions | undefined;
-export type AgErrorBarCapFormatter = (params: AgErrorBarFormatterParams) => AgErrorBarOptions['cap'] | undefined;
-
 interface ErrorBarStylingOptions extends StrokeOptions, LineDashOptions {
     /** Whether to display the error bars. */
     visible?: boolean;
@@ -66,7 +63,7 @@ interface ErrorBarNameOptions {
 
 interface ErrorBarCapOptions extends ErrorBarCapLengthOptions, ErrorBarStylingOptions {
     /** Function used to return formatting for individual caps, based on the given parameters. If the current error bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    formatter?: AgErrorBarCapFormatter;
+    formatter?: (params: AgErrorBarFormatterParams) => AgErrorBarOptions['cap'] | undefined;
 }
 
 export interface AgErrorBarThemeableOptions extends ErrorBarStylingOptions {
@@ -78,7 +75,7 @@ export const AgErrorBarSupportedSeriesTypes = ['bar', 'line', 'scatter'] as cons
 
 export interface AgErrorBarOptions extends ErrorBarKeyOptions, ErrorBarNameOptions, AgErrorBarThemeableOptions {
     /** Function used to return formatting for individual error bars, based on the given parameters. If the current error bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    formatter?: AgErrorBarFormatter;
+    formatter?: (params: AgErrorBarFormatterParams) => AgErrorBarOptions | undefined;
 }
 
 export interface AgErrorBarTooltipParams
