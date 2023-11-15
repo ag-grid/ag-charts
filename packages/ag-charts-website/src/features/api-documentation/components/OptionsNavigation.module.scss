@@ -1,4 +1,4 @@
-@use '../../../design-system/'as *;
+@use '../../../design-system/' as *;
 
 // Ignore padding & remove border if within tabbed container
 :global(.tabs-outer) .expandableSnippet pre:global(.code) {
@@ -20,7 +20,7 @@
         z-index: unset;
     }
 
-    >header {
+    > header {
         position: sticky;
         top: 0;
         left: 0;
@@ -43,14 +43,14 @@
         }
     }
 
-    >pre {
+    > pre {
         flex: 1 0 auto;
         margin-bottom: 0;
         border: none;
         border-radius: 0;
         overflow-y: hidden;
 
-        >code {
+        > code {
             --code-line-height: 1.75;
 
             min-height: 100%;
@@ -75,13 +75,12 @@
     display: none;
     user-select: none;
 
-
     @media screen and (min-width: $breakpoint-options-medium) {
         display: block;
     }
 }
 
-.navContainer>code {
+.navContainer > code {
     background: var(--background-100) !important;
 }
 

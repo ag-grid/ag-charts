@@ -1,4 +1,4 @@
-@use '../core'as *;
+@use '../core' as *;
 
 .card {
     --card-color: var(--border-color);
@@ -28,7 +28,6 @@
 }
 
 .tabs-outer {
-
     header,
     .tabs-header {
         display: flex;
