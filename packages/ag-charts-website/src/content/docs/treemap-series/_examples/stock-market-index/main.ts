@@ -33,6 +33,7 @@ const options: AgChartOptions = {
                     },
                 },
             },
+            tileSpacing: 1,
             highlightStyle: {
                 tile: {
                     label: {
