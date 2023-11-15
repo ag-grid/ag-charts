@@ -7,7 +7,7 @@ import { Shape } from './shape';
 
 export class LinearGradientFill extends Shape {
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
-    direction: 'to bottom' | 'to right' = 'to right';
+    direction: 'to-bottom' | 'to-right' = 'to-right';
 
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
     stops?: string[] = undefined;
@@ -48,14 +48,14 @@ export class LinearGradientFill extends Shape {
         const y1 = bbox.y + bbox.height;
 
         const colorScale = new ColorScale();
-        const [i0, i1] = this.direction === 'to right' ? [x0, x1] : [y0, y1];
+        const [i0, i1] = this.direction === 'to-right' ? [x0, x1] : [y0, y1];
         colorScale.domain = stops.map((_, index) => {
             return i0 + ((i1 - i0) * index) / (stops.length - 1);
         });
         colorScale.range = stops;
         colorScale.update();
 
-        if (this.direction === 'to right') {
+        if (this.direction === 'to-right') {
             for (let x = x0; x < x1; x += devicePixelRatio) {
                 ctx.fillStyle = colorScale.convert(x);
                 ctx.fillRect(x, y0, devicePixelRatio, y1 - y0);
