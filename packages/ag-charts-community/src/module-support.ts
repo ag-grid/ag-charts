@@ -13,6 +13,7 @@ export * from './module/coreModules';
 export * from './module/optionModules';
 export * from './module/module';
 export * from './module/moduleContext';
+export * from './module/enterpriseModule';
 export * from './chart/background/backgroundModule';
 export * from './chart/chartAxisDirection';
 export { assignJsonApplyConstructedArray } from './chart/chartOptions';
@@ -62,4 +63,3 @@ export * from './motion/resetMotion';
 export { resetIds } from './util/id';
 
 export { ChartUpdateType } from './chart/chartUpdateType';
-export { enterpriseModule } from './chart/agChartV2';

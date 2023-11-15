@@ -1,5 +1,6 @@
 import type { ModuleInstance } from '../module/baseModule';
 import type { LegendModule, RootModule } from '../module/coreModules';
+import { enterpriseModule } from '../module/enterpriseModule';
 import { type Module, REGISTERED_MODULES, hasRegisteredEnterpriseModules } from '../module/module';
 import type { AxisOptionModule, SeriesOptionModule } from '../module/optionModules';
 import type {
@@ -55,8 +56,6 @@ function chartType(options: any): 'cartesian' | 'polar' | 'hierarchy' {
 
     throw new Error(`AG Chart - unknown type of chart for options with type: ${options.type}`);
 }
-
-export const enterpriseModule: { licenseManager?: (options: AgChartOptions) => void } = {};
 
 /**
  * Factory for creating and updating instances of AgChartInstance.
