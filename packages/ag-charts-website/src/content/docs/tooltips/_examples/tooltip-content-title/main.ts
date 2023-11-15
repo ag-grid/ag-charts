@@ -1,4 +1,4 @@
-import { AgCartesianSeriesTooltipRendererParams, AgCharts, AgChartOptions } from 'ag-charts-community';
+import { AgCartesianSeriesTooltipRendererParams, AgChartOptions, AgCharts } from 'ag-charts-community';
 
 function renderer({ datum, xKey, yKey }: AgCartesianSeriesTooltipRendererParams) {
     return {

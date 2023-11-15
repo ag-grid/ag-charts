@@ -1,4 +1,4 @@
-import { AgBubbleSeriesOptions, AgCharts, AgChartOptions } from 'ag-charts-community';
+import { AgBubbleSeriesOptions, AgChartOptions, AgCharts } from 'ag-charts-community';
 
 import { femaleHeightWeight, maleHeightWeight } from './height-weight-data';
 

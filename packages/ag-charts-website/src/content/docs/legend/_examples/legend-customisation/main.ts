@@ -1,4 +1,4 @@
-import { AgCharts, AgChartLegendPosition, AgChartOptions } from 'ag-charts-community';
+import { AgChartLegendPosition, AgChartOptions, AgCharts } from 'ag-charts-community';
 
 import { getData } from './data';
 

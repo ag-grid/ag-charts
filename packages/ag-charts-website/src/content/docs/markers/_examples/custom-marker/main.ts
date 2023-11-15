@@ -1,4 +1,4 @@
-import { AgCharts, AgChartOptions, Marker } from 'ag-charts-community';
+import { AgChartOptions, AgCharts, Marker } from 'ag-charts-community';
 
 import { getData } from './data';
 

@@ -1,4 +1,4 @@
-import { AgCharts, AgChartOptions, AgRangeBarSeriesLabelFormatterParams } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, AgRangeBarSeriesLabelFormatterParams } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 

@@ -1,4 +1,4 @@
-import { AgCharts, AgChartOptions } from 'ag-charts-community';
+import { AgChartOptions, AgCharts } from 'ag-charts-community';
 
 var data = [
     {

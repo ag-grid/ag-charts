@@ -1,4 +1,4 @@
-import { AgCartesianSeriesTooltipRendererParams, AgCharts, AgChartOptions } from 'ag-charts-enterprise';
+import { AgCartesianSeriesTooltipRendererParams, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { chromosomes, getData } from './data';
 

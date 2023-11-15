@@ -1,7 +1,7 @@
 import {
     AgCartesianSeriesTooltipRendererParams,
-    AgCharts,
     AgChartOptions,
+    AgCharts,
     AgTooltipRendererResult,
 } from 'ag-charts-enterprise';
 

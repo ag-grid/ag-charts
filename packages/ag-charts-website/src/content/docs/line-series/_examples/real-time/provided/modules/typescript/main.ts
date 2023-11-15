@@ -1,4 +1,4 @@
-import { AgCharts, AgChartOptions, time } from 'ag-charts-community';
+import { AgChartOptions, AgCharts, time } from 'ag-charts-community';
 
 var lastTime = new Date('07 Jan 2020 13:25:00 GMT').getTime();
 var data: { time: Date; voltage: number }[] = [];

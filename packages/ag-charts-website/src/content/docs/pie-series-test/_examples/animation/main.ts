@@ -1,4 +1,4 @@
-import { AgCharts, AgChartOptions } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 const data = [
     { label: 'Android', value: 56.9 },

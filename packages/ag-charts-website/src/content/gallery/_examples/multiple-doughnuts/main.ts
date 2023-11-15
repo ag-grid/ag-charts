@@ -1,4 +1,4 @@
-import { AgCharts, AgChartOptions, AgPieSeriesTooltipRendererParams } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, AgPieSeriesTooltipRendererParams } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 

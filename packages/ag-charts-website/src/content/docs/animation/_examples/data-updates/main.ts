@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgCharts, AgChartOptions } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData, random } from './data';
 

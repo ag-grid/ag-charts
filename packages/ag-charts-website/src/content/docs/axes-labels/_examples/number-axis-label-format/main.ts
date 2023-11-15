@@ -1,4 +1,4 @@
-import { AgCharts, AgChartOptions, time } from 'ag-charts-community';
+import { AgChartOptions, AgCharts, time } from 'ag-charts-community';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),

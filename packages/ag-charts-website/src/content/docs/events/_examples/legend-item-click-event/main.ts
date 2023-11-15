@@ -1,8 +1,8 @@
 import {
     AgCartesianChartOptions,
-    AgCharts,
     AgChartLegendClickEvent,
     AgChartLegendDoubleClickEvent,
+    AgCharts,
 } from 'ag-charts-community';
 
 let options: AgCartesianChartOptions = {
