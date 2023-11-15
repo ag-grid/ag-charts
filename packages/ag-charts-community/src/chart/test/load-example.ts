@@ -3,17 +3,12 @@ import * as fs from 'fs';
 import * as agCharts from '../../main';
 import { Logger } from '../../util/logger';
 
-export const filters = [
-    /.*AgChart\.(update|create)/,
-    /.*AgEnterpriseCharts\.(update|create)/,
-    /.* container: .*/,
-    /.*setInterval.*/,
-    /.*setTimeout.*/,
+const filters = [
+    /AgChart\.(create|update)/,
+    /setInterval|setTimeout/,
+    /container:/,
     /^Object\.defineProperty/,
-    /^exports\./,
-    /^const ag_charts_community_1 =/,
-    /^const ag_charts_enterprise_1 =/,
-    /^const data_1 =/,
+    /^const (ag_charts_(community|enterprise)|data)_1 =/,
 ];
 
 const cleanJs = (content: string) =>
@@ -32,7 +27,7 @@ export function loadExampleOptions(
     const { AgChart, time, Marker } = agCharts;
     const evalContent = [cleanJs(fs.readFileSync(exampleFile, 'utf8')), `return ${evalReturn};`].join('\n');
     const evalExpr = fs.existsSync(dataFile)
-        ? [`with (data_1 = require('${dataFile}')) {`, evalContent, '}'].join('\n')
+        ? [`const data_1 = require('${dataFile}');`, evalContent].join('\n')
         : evalContent;
 
     try {
