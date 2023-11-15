@@ -76,7 +76,7 @@ const heroDocsPageName = 'homepage';
 const heroDocsExampleName = 'hero-chart';
 
 const modifiedTimeMs = Date.now();
-const siteUrl = Astro.site ? pathJoin(Astro.site, SITE_BASE_URL) : '/';
+const siteUrl = Astro.site ? pathJoin({ path: [Astro.site, SITE_BASE_URL] }) : '/';
 const chartScriptPath = getCacheBustingUrl(getChartScriptPath(siteUrl), modifiedTimeMs);
 const chartScriptEnterprisePath = getCacheBustingUrl(getChartEnterpriseScriptPath(siteUrl), modifiedTimeMs);
 

@@ -2,14 +2,7 @@ import { type _ModuleSupport, _Theme } from 'ag-charts-community';
 
 import { TreemapSeries } from './treemapSeries';
 
-const {
-    NORMAL,
-    EXTENDS_SERIES_DEFAULTS,
-    DEFAULT_LABEL_COLOUR,
-    DEFAULT_FONT_FAMILY,
-    DEFAULT_TREEMAP_TILE_BORDER_COLOUR,
-    DEFAULT_INVERTED_LABEL_COLOUR,
-} = _Theme;
+const { NORMAL, EXTENDS_SERIES_DEFAULTS, DEFAULT_FONT_FAMILY, DEFAULT_INSIDE_SERIES_LABEL_COLOUR } = _Theme;
 
 export const TreemapSeriesModule: _ModuleSupport.SeriesModule<'treemap'> = {
     type: 'series',
@@ -22,48 +15,75 @@ export const TreemapSeriesModule: _ModuleSupport.SeriesModule<'treemap'> = {
     seriesDefaults: {},
     themeTemplate: {
         __extends__: EXTENDS_SERIES_DEFAULTS,
-        showInLegend: false,
         colorRange: ['#cb4b3f', '#6acb64'],
         group: {
             label: {
                 enabled: true,
-                color: DEFAULT_INVERTED_LABEL_COLOUR,
+                color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
                 fontStyle: undefined,
                 fontWeight: NORMAL,
                 fontSize: 12,
                 fontFamily: DEFAULT_FONT_FAMILY,
             },
-            fill: '#272931',
-            stroke: DEFAULT_TREEMAP_TILE_BORDER_COLOUR,
+            fill: undefined, // Override default fill
+            stroke: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
             strokeWidth: 1,
-            padding: 2,
+            padding: 3,
         },
         tile: {
             label: {
                 enabled: true,
+                color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
                 fontStyle: undefined,
                 fontWeight: NORMAL,
                 fontSize: 18,
                 minimumFontSize: 10,
                 fontFamily: DEFAULT_FONT_FAMILY,
-                color: DEFAULT_LABEL_COLOUR,
                 wrapping: 'on-space',
+                spacing: 2,
             },
             secondaryLabel: {
                 enabled: true,
+                color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
                 fontStyle: undefined,
                 fontWeight: undefined,
                 fontSize: 12,
                 minimumFontSize: 10,
                 fontFamily: DEFAULT_FONT_FAMILY,
-                color: DEFAULT_LABEL_COLOUR,
                 wrapping: 'never',
                 overflow: 'never',
             },
-            stroke: DEFAULT_TREEMAP_TILE_BORDER_COLOUR,
+            fill: undefined, // Override default fill
+            stroke: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
             strokeWidth: 1,
             padding: 3,
-            spacing: 2,
         },
+        tileSpacing: 1,
+        // Override defaults
+        highlightStyle: {
+            group: {
+                label: {
+                    color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
+                },
+                fill: undefined,
+                stroke: `rgba(0, 0, 0, 0.4)`,
+                strokeWidth: 2,
+            },
+            tile: {
+                label: {
+                    color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
+                },
+                secondaryLabel: {
+                    color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
+                },
+                fill: undefined,
+                stroke: `rgba(0, 0, 0, 0.4)`,
+                strokeWidth: 2,
+            },
+        },
+    },
+    paletteFactory: ({ takeColors, colorsCount }) => {
+        const { fills, strokes } = takeColors(colorsCount);
+        return { fills, strokes };
     },
 };

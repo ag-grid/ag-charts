@@ -22,13 +22,13 @@ const options: AgChartOptions = {
                 label: {
                     fontSize: 18,
                     fontWeight: 'bold',
+                    spacing: 5,
                 },
                 textAlign: 'left',
-                stroke: 'white',
                 fill: '#241248',
-                spacing: 1,
+                stroke: 'white',
+                strokeWidth: 1,
                 padding: 20,
-                tileSpacing: 10,
             },
             tile: {
                 label: {
@@ -39,16 +39,15 @@ const options: AgChartOptions = {
                 stroke: 'white',
                 padding: 10,
             },
+            tileSpacing: 10,
             highlightStyle: {
                 tile: {
-                    label: {
-                        color: 'white',
-                    },
                     stroke: 'white',
                     strokeWidth: 4,
                 },
                 group: {
-                    fill: 'white',
+                    stroke: 'white',
+                    strokeWidth: 4,
                 },
             },
             tooltip: {

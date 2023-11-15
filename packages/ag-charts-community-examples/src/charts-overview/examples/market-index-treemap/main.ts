@@ -14,36 +14,47 @@ const options: AgChartOptions = {
       colorKey: 'change',
       group: {
         label: {
-          formatter({value}) {
-            return value.toUpperCase()
-          }
+          color: 'white',
+          formatter({ value }) {
+            return value.toUpperCase();
+          },
         },
         textAlign: 'left',
+        fill: '#333',
+        stroke: '#333',
+        strokeWidth: 1,
+        padding: 2,
       },
       tile: {
+        label: {
+          color: '#333',
+        },
         secondaryLabel: {
+          color: '#333',
           formatter(params) {
             return params.value.toFixed(2) + '%';
-          }
-        }
+          },
+        },
+        strokeWidth: 0,
       },
+      tileSpacing: 1,
       highlightStyle: {
+        group: {
+          fill: '#888',
+          stroke: '#888',
+        },
         tile: {
           label: {
-            color: 'black'
+            color: '#333',
           },
           secondaryLabel: {
-            color: 'black'
-          }
-        }
+            color: '#333',
+          },
+        },
       },
       tooltip: {
         renderer: tooltipRenderer,
       },
-      formatter: params => ({
-        fill: !params.datum.children ? undefined : params.highlighted ? '#aaa' : '#333',
-        stroke: params.depth < 1 ? 'white' : 'black'
-      }),
     },
   ],
   title: {

@@ -6,9 +6,12 @@ import {
     type AgTooltipRendererResult,
     _ModuleSupport,
     _Scene,
+    _Util,
 } from 'ag-charts-community';
 
 import { AutoSizeableLabel, formatLabels } from '../util/labelFormatter';
+
+const { Logger } = _Util;
 
 const { HighlightStyle, SeriesTooltip, Validate, OPT_COLOR_STRING, OPT_FUNCTION, OPT_NUMBER, NUMBER, OPT_STRING } =
     _ModuleSupport;
@@ -35,6 +38,11 @@ const getAngleData = (
     }
     return angleData;
 };
+
+class SunburstLabel extends AutoSizeableLabel<AgSunburstSeriesLabelFormatterParams> {
+    @Validate(NUMBER())
+    spacing: number = 0;
+}
 
 class SunburstSeriesTileHighlightStyle extends HighlightStyle {
     readonly label = new AutoSizeableLabel<AgSunburstSeriesLabelFormatterParams>();
@@ -83,7 +91,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
 
     override readonly highlightStyle = new SunburstSeriesTileHighlightStyle();
 
-    readonly label = new AutoSizeableLabel<AgSunburstSeriesLabelFormatterParams>();
+    readonly label = new SunburstLabel();
 
     readonly secondaryLabel = new AutoSizeableLabel<AgSunburstSeriesLabelFormatterParams>();
 
@@ -93,23 +101,14 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
     @Validate(OPT_STRING)
     secondaryLabelKey?: string = undefined;
 
-    @Validate(OPT_STRING)
-    fill?: string = undefined;
-
     @Validate(NUMBER(0, 1))
     fillOpacity: number = 1;
-
-    @Validate(OPT_COLOR_STRING)
-    stroke?: string = undefined;
 
     @Validate(NUMBER(0))
     strokeWidth: number = 0;
 
     @Validate(NUMBER(0, 1))
     strokeOpacity: number = 1;
-
-    @Validate(OPT_NUMBER())
-    labelSpacing?: number = undefined;
 
     @Validate(OPT_NUMBER())
     sectorSpacing?: number = undefined;
@@ -137,6 +136,19 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
                 return '';
             }
         };
+
+        const hasInvalidFontSize = (label: AutoSizeableLabel<AgSunburstSeriesLabelFormatterParams> | undefined) => {
+            return (
+                label != null &&
+                label.minimumFontSize != null &&
+                label.fontSize &&
+                label.minimumFontSize > label.fontSize
+            );
+        };
+
+        if (hasInvalidFontSize(this.label) || hasInvalidFontSize(this.secondaryLabel)) {
+            Logger.warnOnce(`minimumFontSize should be set to a value less than or equal to the font size`);
+        }
 
         this.labelData = Array.from(this.rootNode, ({ datum, depth }) => {
             let label: string | undefined;
@@ -194,16 +206,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
     }
 
     async updateNodes() {
-        const {
-            chart,
-            data,
-            maxDepth,
-            sectorSpacing = 0,
-            labelSpacing = 0,
-            padding = 0,
-            highlightStyle,
-            labelData,
-        } = this;
+        const { chart, data, maxDepth, sectorSpacing = 0, padding = 0, highlightStyle, labelData } = this;
 
         if (chart == null || data == null || labelData == null) return;
 
@@ -224,52 +227,6 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
 
         const labelTextNode = new Text();
         labelTextNode.setFont(this.label);
-
-        const labelMeta = Array.from(this.rootNode, (node, index) => {
-            const { depth } = node;
-            const label = labelData[index]?.label;
-            const secondaryLabel = labelData[index]?.secondaryLabel;
-            const angleData = this.angleData[index];
-            if (label == null || depth == null || angleData == null) return undefined;
-
-            const innerRadius = depth * radiusScale;
-            const outerRadius = (depth + 1) * radiusScale;
-            const { start: startAngle, end: endAngle } = angleData;
-
-            const sizeFittingHeight = (height: number) => {
-                if (depth > 0) {
-                    const availableWidthUntilItHitsTheOuterRadius =
-                        2 * Math.sqrt(outerRadius ** 2 - (innerRadius + height) ** 2);
-                    const deltaAngle = endAngle - startAngle;
-                    const availableWidthUntilItHitsTheStraightEdges =
-                        deltaAngle < Math.PI ? 2 * innerRadius * Math.tan(deltaAngle * 0.5) : Infinity;
-                    const width = Math.min(
-                        availableWidthUntilItHitsTheOuterRadius,
-                        availableWidthUntilItHitsTheStraightEdges
-                    );
-                    return { width, height };
-                } else if (node.parent?.sumSize !== node.sumSize) {
-                    // Wedge in center
-                    return { width: 0, height: 0 };
-                } else if (height > outerRadius) {
-                    // Circle in center - text too big
-                    return { width: 0, height: 0 };
-                } else {
-                    // Circle in center
-                    const width = 2 * Math.sqrt(outerRadius ** 2 - (height * 0.5) ** 2);
-                    return { width, height };
-                }
-            };
-
-            return formatLabels(
-                label,
-                this.label,
-                secondaryLabel,
-                this.secondaryLabel,
-                { spacing: labelSpacing, padding },
-                sizeFittingHeight
-            );
-        });
 
         this.rootNode.walk((node) => {
             const angleDatum = this.angleData[node.index];
@@ -306,9 +263,9 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
 
             const format = this.getSectorFormat(node, highlighted);
 
-            const fill = format?.fill ?? highlightedFill ?? node.color ?? this.fill;
+            const fill = format?.fill ?? highlightedFill ?? node.color;
             const fillOpacity = format?.fillOpacity ?? highlightedFillOpacity ?? this.fillOpacity;
-            const stroke = format?.stroke ?? highlightedStroke ?? this.stroke;
+            const stroke = format?.stroke ?? highlightedStroke;
             const strokeWidth = format?.strokeWidth ?? highlightedStrokeWidth ?? this.strokeWidth;
             const strokeOpacity = format?.strokeOpacity ?? highlightedStrokeOpacity ?? this.strokeOpacity;
 
@@ -340,29 +297,62 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
             }
         });
 
-        const labelMetaSizing = Array.from(this.rootNode, (node) => {
-            const { index, depth } = node;
-            const meta = labelMeta?.[index];
-            const angleData = this.angleData?.[index];
-            if (depth == null || meta == null || angleData == null) return undefined;
+        const labelMeta = Array.from(this.rootNode, (node, index) => {
+            const { depth } = node;
+            const labelDatum = labelData[index];
+            const angleData = this.angleData[index];
+            if (depth == null || angleData == null) return undefined;
 
-            const height =
-                meta.secondaryLabel != null
-                    ? meta.label.height + labelSpacing + meta.secondaryLabel.height
-                    : meta.label.height;
-            const width =
-                meta.secondaryLabel != null ? Math.max(meta.label.width, meta.secondaryLabel.width) : meta.label.width;
+            const innerRadius = depth * radiusScale;
+            const outerRadius = (depth + 1) * radiusScale;
+            const { start: startAngle, end: endAngle } = angleData;
+
+            const sizeFittingHeight = (height: number) => {
+                if (depth > 0 || node.parent?.sumSize !== node.sumSize) {
+                    // Wedge - either leaf node or one of the root nodes in a hierarchy with multiple roots
+                    const availableWidthUntilItHitsTheOuterRadius =
+                        2 * Math.sqrt(outerRadius ** 2 - (innerRadius + height) ** 2);
+                    const deltaAngle = endAngle - startAngle;
+                    const availableWidthUntilItHitsTheStraightEdges =
+                        deltaAngle < Math.PI ? 2 * innerRadius * Math.tan(deltaAngle * 0.5) : Infinity;
+                    const width = Math.min(
+                        availableWidthUntilItHitsTheOuterRadius,
+                        availableWidthUntilItHitsTheStraightEdges
+                    );
+                    return { width, height };
+                } else if (height > outerRadius) {
+                    // Circle in center - text too big
+                    return { width: 0, height: 0 };
+                } else {
+                    // Circle in center
+                    const width = 2 * Math.sqrt(outerRadius ** 2 - (height * 0.5) ** 2);
+                    return { width, height };
+                }
+            };
+
+            const formatting = formatLabels(
+                labelDatum?.label,
+                this.label,
+                labelDatum?.secondaryLabel,
+                this.secondaryLabel,
+                { spacing: this.label.spacing, padding },
+                sizeFittingHeight
+            );
+
+            if (formatting == null) return undefined;
+
+            const { width, height, label, secondaryLabel } = formatting;
 
             const theta = angleOffset + (angleData.start + angleData.end) / 2;
             const bottomHalf = Math.sin(theta) >= 0;
 
             const opticalCentering = 0.58; // Between 0 and 1 - there's no maths behind this, just what visually looks good
-            const outerRadius = (depth + 1) * radiusScale - baseInset;
-            const idealRadius = outerRadius - (radiusScale - height) * opticalCentering;
-            const maximumRadius = Math.sqrt((outerRadius - padding) ** 2 - (width / 2) ** 2);
+            const insetOuterRadius = outerRadius - baseInset;
+            const idealRadius = insetOuterRadius - (radiusScale - height) * opticalCentering;
+            const maximumRadius = Math.sqrt((insetOuterRadius - padding) ** 2 - (width / 2) ** 2);
             const radius = Math.min(idealRadius, maximumRadius);
 
-            return { height, width, bottomHalf, radius, theta };
+            return { width, height, bottomHalf, radius, theta, label, secondaryLabel };
         });
 
         const updateText = (
@@ -375,24 +365,24 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
             const meta = labelMeta?.[index];
             const labelStyle = tag === TextNodeTag.Primary ? this.label : this.secondaryLabel;
             const label = tag === TextNodeTag.Primary ? meta?.label : meta?.secondaryLabel;
-            const sizing = labelMetaSizing[index];
-            if (depth == null || meta == null || label == null || sizing == null) {
+            if (depth == null || meta == null || label == null || meta == null) {
                 text.visible = false;
                 return;
             }
 
-            const { height, bottomHalf, radius, theta } = sizing;
+            const { height, bottomHalf, radius, theta } = meta;
 
             let highlightedColor: string | undefined;
             if (highlighted) {
-                const labelStyle =
+                const highlightedLabelStyle =
                     tag === TextNodeTag.Primary ? this.highlightStyle.label : this.highlightStyle.secondaryLabel;
-                highlightedColor = labelStyle.color;
+                highlightedColor = highlightedLabelStyle.color;
             }
 
             text.text = label.text;
             text.fontSize = label.fontSize;
 
+            text.fontStyle = labelStyle.fontStyle;
             text.fontFamily = labelStyle.fontFamily;
             text.fontWeight = labelStyle.fontWeight;
             text.fill = highlightedColor ?? labelStyle.color;
@@ -444,7 +434,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
             return {};
         }
 
-        const { colorKey, labelKey, sizeKey, stroke, strokeWidth } = this;
+        const { colorKey, labelKey, sizeKey, strokeWidth } = this;
 
         const result = callbackCache.call(formatter, {
             seriesId: this.id,
@@ -454,7 +444,6 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
             labelKey,
             sizeKey,
             fill,
-            stroke,
             strokeWidth,
             highlighted: isHighlighted,
         });
