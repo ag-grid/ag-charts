@@ -41,6 +41,7 @@ export const TreemapSeriesModule: _ModuleSupport.SeriesModule<'treemap'> = {
                 minimumFontSize: 10,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 wrapping: 'on-space',
+                spacing: 2,
             },
             secondaryLabel: {
                 enabled: true,
@@ -57,13 +58,12 @@ export const TreemapSeriesModule: _ModuleSupport.SeriesModule<'treemap'> = {
             stroke: 'white',
             strokeWidth: 1,
             padding: 3,
-            spacing: 2,
         },
         // Override defaults
         highlightStyle: {
             group: {
                 label: {
-                    color: undefined,
+                    color: 'white',
                 },
                 fill: undefined,
                 stroke: `rgba(0, 0, 0, 0.4)`,
@@ -71,10 +71,10 @@ export const TreemapSeriesModule: _ModuleSupport.SeriesModule<'treemap'> = {
             },
             tile: {
                 label: {
-                    color: undefined,
+                    color: 'white',
                 },
                 secondaryLabel: {
-                    color: undefined,
+                    color: 'white',
                 },
                 fill: undefined,
                 stroke: `rgba(0, 0, 0, 0.4)`,

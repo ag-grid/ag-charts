@@ -16,9 +16,11 @@ const options: AgChartOptions = {
                 padding: 5,
             },
             tile: {
-                spacing: 1,
+                label: {
+                    spacing: 1,
+                },
             },
-            spacing: 5,
+            tileSpacing: 5,
             highlightStyle: {
                 group: {
                     label: {

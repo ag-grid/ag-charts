@@ -32,15 +32,19 @@ export interface AgTreemapSeriesTooltipRendererParams<TDatum>
 
 export interface AgTreemapSeriesGroupStyle extends FillOptions, StrokeOptions {}
 
+export interface AgTreemapSeriesGroupLabelOptions<TDatum>
+    extends AgChartLabelOptions<TDatum, AgTreemapSeriesLabelFormatterParams<TDatum>> {
+    /** The distance between the tiles and the title */
+    spacing?: PixelSize;
+}
+
 export interface AgTreemapSeriesGroupLayout<TDatum> {
     /** Options for the label in a group */
-    label?: AgChartLabelOptions<TDatum, AgTreemapSeriesLabelFormatterParams<TDatum>>;
+    label?: AgTreemapSeriesGroupLabelOptions<TDatum>;
     /** Horizontal position of the label */
     textAlign?: TextAlign;
     /** The distance between the edges of the outer-most title to the edges of the group */
     padding?: PixelSize;
-    /** The distance between the tiles and the title */
-    spacing?: PixelSize;
     /** Whether the group can be highlighted */
     interactive?: boolean;
 }
@@ -54,7 +58,7 @@ export interface AgTreemapSeriesGroupOptions<TDatum>
     extends AgTreemapSeriesGroupStyle,
         AgTreemapSeriesGroupLayout<TDatum> {}
 
-export interface AgTreemapSeriesTileLabelOptions<TDatum>
+export interface AgTreemapSeriesTileBaseLabelOptions<TDatum>
     extends AgChartLabelOptions<TDatum, AgTreemapSeriesLabelFormatterParams<TDatum>> {
     minimumFontSize?: FontSize;
 
@@ -63,21 +67,24 @@ export interface AgTreemapSeriesTileLabelOptions<TDatum>
     overflow?: TextOverflow;
 }
 
+export interface AgTreemapSeriesTileLabelOptions<TDatum> extends AgTreemapSeriesTileBaseLabelOptions<TDatum> {
+    /** The distance between the label and secondary label, if both are present */
+    spacing?: PixelSize;
+}
+
 export interface AgTreemapSeriesTileStyle extends FillOptions, StrokeOptions {}
 
 export interface AgTreemapSeriesTileLayout<TDatum> {
     /** Options for the label in a tile */
     label?: AgTreemapSeriesTileLabelOptions<TDatum>;
     /* Options for a secondary, smaller label in a tile - displayed under the primary label */
-    secondaryLabel?: AgTreemapSeriesTileLabelOptions<TDatum>;
+    secondaryLabel?: AgTreemapSeriesTileBaseLabelOptions<TDatum>;
     /** Horizontal position of the label */
     textAlign?: TextAlign;
     /** Vertical position of the label */
     verticalAlign?: VerticalAlign;
     /** Distance between the tile edges and the text */
     padding?: PixelSize;
-    /** The distance between the title and subtitle, if both are present */
-    spacing?: PixelSize;
 }
 
 export interface AgTreemapSeriesTileHighlightStyle<TDatum> extends AgTreemapSeriesTileStyle {
@@ -109,7 +116,7 @@ export interface AgTreemapSeriesThemeableOptions<TDatum = any>
     /** Options for leaf nodes (i.e. nodes WITHOUT children) */
     tile?: AgTreemapSeriesTileOptions<TDatum>;
     /** Spacing between tiles */
-    spacing?: PixelSize;
+    tileSpacing?: PixelSize;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgTreemapSeriesTooltipRendererParams<TDatum>>;
     /** A callback function for adjusting the styles of a particular treemap tile based on the input parameters */

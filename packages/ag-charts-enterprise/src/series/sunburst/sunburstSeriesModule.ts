@@ -21,9 +21,16 @@ export const SunburstSeriesModule: _ModuleSupport.SeriesModule<'sunburst'> = {
             color: 'white',
             wrapping: 'never',
         },
+        secondaryLabel: {
+            color: 'white',
+            wrapping: 'never',
+        },
         highlightStyle: {
             label: {
-                color: undefined,
+                color: 'white',
+            },
+            secondaryLabel: {
+                color: 'white',
             },
             stroke: `rgba(0, 0, 0, 0.4)`,
             strokeWidth: 2,

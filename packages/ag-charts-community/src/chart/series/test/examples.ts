@@ -606,9 +606,11 @@ export const TREEMAP_SERIES_LABELS: AgHierarchyChartOptions = {
                 padding: 5,
             },
             tile: {
-                spacing: 1,
+                label: {
+                    spacing: 1,
+                },
             },
-            spacing: 5,
+            tileSpacing: 5,
         },
     ],
     title: {

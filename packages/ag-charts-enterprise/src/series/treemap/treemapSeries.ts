@@ -58,8 +58,13 @@ class TreemapSeriesNodeClickEvent<
     }
 }
 
+class TreemapGroupLabel extends Label<AgTreemapSeriesLabelFormatterParams> {
+    @Validate(NUMBER())
+    spacing: number = 0;
+}
+
 class TreemapSeriesGroup {
-    readonly label = new Label<AgTreemapSeriesLabelFormatterParams>();
+    readonly label = new TreemapGroupLabel();
 
     @Validate(BOOLEAN)
     interactive: boolean = true;
@@ -84,13 +89,15 @@ class TreemapSeriesGroup {
 
     @Validate(OPT_NUMBER(0))
     padding: number = 0;
+}
 
-    @Validate(OPT_NUMBER(0))
+class TreemapTileLabel extends AutoSizeableLabel<AgTreemapSeriesLabelFormatterParams> {
+    @Validate(NUMBER())
     spacing: number = 0;
 }
 
 class TreemapSeriesTile {
-    readonly label = new AutoSizeableLabel<AgTreemapSeriesLabelFormatterParams>();
+    readonly label = new TreemapTileLabel();
 
     readonly secondaryLabel = new AutoSizeableLabel<AgTreemapSeriesLabelFormatterParams>();
 
@@ -111,9 +118,6 @@ class TreemapSeriesTile {
 
     @Validate(OPT_NUMBER(0))
     padding: number = 0;
-
-    @Validate(OPT_NUMBER(0))
-    spacing: number = 0;
 
     @Validate(TEXT_ALIGN)
     textAlign: TextAlign = 'center';
@@ -240,7 +244,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
     readonly tooltip = new SeriesTooltip<AgTreemapSeriesTooltipRendererParams<any>>();
 
     @Validate(NUMBER(0))
-    spacing = 0;
+    tileSpacing = 0;
 
     @Validate(OPT_STRING)
     labelKey?: string = undefined;
@@ -289,7 +293,10 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
             };
         }
 
-        const { padding, spacing } = this.group;
+        const {
+            label: { spacing },
+            padding,
+        } = this.group;
         const fontHeight = this.groupTitleHeight(node, bbox);
         const titleHeight = fontHeight != null ? fontHeight + spacing : 0;
 
@@ -478,7 +485,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
     }
 
     private applyGap(innerBox: _Scene.BBox, childBox: _Scene.BBox) {
-        const gap = this.spacing / 2;
+        const gap = this.tileSpacing / 2;
         const getBounds = (box: _Scene.BBox): Record<Side, number> => ({
             left: box.x,
             top: box.y,
@@ -647,7 +654,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
                     this.tile.label,
                     labelDatum?.secondaryLabel,
                     this.tile.secondaryLabel,
-                    { spacing: tile.spacing, padding: tile.padding },
+                    { spacing: tile.label.spacing, padding: tile.padding },
                     () => bbox
                 );
                 if (formatting == null) return undefined;

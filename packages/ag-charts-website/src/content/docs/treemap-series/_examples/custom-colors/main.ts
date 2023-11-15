@@ -26,7 +26,7 @@ const options: AgChartOptions = {
                 },
                 strokeWidth: 0,
             },
-            spacing: 1,
+            tileSpacing: 1,
             highlightStyle: {
                 tile: {
                     label: {

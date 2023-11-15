@@ -14,6 +14,7 @@ const options: AgChartOptions = {
       colorKey: 'change',
       group: {
         label: {
+          color: 'black',
           formatter({value}) {
             return value.toUpperCase()
           }
@@ -21,7 +22,11 @@ const options: AgChartOptions = {
         textAlign: 'left',
       },
       tile: {
+        label: {
+          color: '#333',
+        },
         secondaryLabel: {
+          color: '#333',
           formatter(params) {
             return params.value.toFixed(2) + '%';
           }
@@ -30,10 +35,10 @@ const options: AgChartOptions = {
       highlightStyle: {
         tile: {
           label: {
-            color: 'black'
+            color: '#333'
           },
           secondaryLabel: {
-            color: 'black'
+            color: '#333'
           }
         }
       },

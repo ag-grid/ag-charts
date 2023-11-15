@@ -39,6 +39,11 @@ const getAngleData = (
     return angleData;
 };
 
+class SunburstLabel extends AutoSizeableLabel<AgSunburstSeriesLabelFormatterParams> {
+    @Validate(NUMBER())
+    spacing: number = 0;
+}
+
 class SunburstSeriesTileHighlightStyle extends HighlightStyle {
     readonly label = new AutoSizeableLabel<AgSunburstSeriesLabelFormatterParams>();
 
@@ -86,7 +91,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
 
     override readonly highlightStyle = new SunburstSeriesTileHighlightStyle();
 
-    readonly label = new AutoSizeableLabel<AgSunburstSeriesLabelFormatterParams>();
+    readonly label = new SunburstLabel();
 
     readonly secondaryLabel = new AutoSizeableLabel<AgSunburstSeriesLabelFormatterParams>();
 
@@ -110,9 +115,6 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
 
     @Validate(NUMBER(0, 1))
     strokeOpacity: number = 1;
-
-    @Validate(OPT_NUMBER())
-    labelSpacing?: number = undefined;
 
     @Validate(OPT_NUMBER())
     sectorSpacing?: number = undefined;
@@ -210,16 +212,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
     }
 
     async updateNodes() {
-        const {
-            chart,
-            data,
-            maxDepth,
-            sectorSpacing = 0,
-            labelSpacing = 0,
-            padding = 0,
-            highlightStyle,
-            labelData,
-        } = this;
+        const { chart, data, maxDepth, sectorSpacing = 0, padding = 0, highlightStyle, labelData } = this;
 
         if (chart == null || data == null || labelData == null) return;
 
@@ -321,7 +314,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
             const { start: startAngle, end: endAngle } = angleData;
 
             const sizeFittingHeight = (height: number) => {
-                if (depth > 0) {
+                if (depth > 0 || node.parent?.sumSize !== node.sumSize) {
+                    // Wedge - either leaf node or one of the root nodes in a hierarchy with multiple roots
                     const availableWidthUntilItHitsTheOuterRadius =
                         2 * Math.sqrt(outerRadius ** 2 - (innerRadius + height) ** 2);
                     const deltaAngle = endAngle - startAngle;
@@ -332,9 +326,6 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
                         availableWidthUntilItHitsTheStraightEdges
                     );
                     return { width, height };
-                } else if (node.parent?.sumSize !== node.sumSize) {
-                    // Wedge in center
-                    return { width: 0, height: 0 };
                 } else if (height > outerRadius) {
                     // Circle in center - text too big
                     return { width: 0, height: 0 };
@@ -350,7 +341,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
                 this.label,
                 labelDatum?.secondaryLabel,
                 this.secondaryLabel,
-                { spacing: labelSpacing, padding },
+                { spacing: this.label.spacing, padding },
                 sizeFittingHeight
             );
 
@@ -389,9 +380,9 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
 
             let highlightedColor: string | undefined;
             if (highlighted) {
-                const labelStyle =
+                const highlightedLabelStyle =
                     tag === TextNodeTag.Primary ? this.highlightStyle.label : this.highlightStyle.secondaryLabel;
-                highlightedColor = labelStyle.color;
+                highlightedColor = highlightedLabelStyle.color;
             }
 
             text.text = label.text;
