@@ -108,7 +108,7 @@ button .menuIcon {
 }
 
 a :global(.icon).menuIcon {
-    --icon-size: 2em;
+    --icon-size: 1.75em;
 
     fill: var(--secondary-text-color);
     margin-bottom: $size-half;
