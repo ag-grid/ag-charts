@@ -160,13 +160,9 @@ export function pairCategoryData(
     opts: {
         backfillSplitMode?: BackfillSplitMode;
         multiDatum?: boolean;
-        // Multiplier to align point indexes with datum indexes from the diff. For most series this
-        // is unneeded if there is a 1:1 mapping. For AreaSeries there is a 1:2 mapping, so diff indices
-        // need to be multiplied up to align with point-data indices.
-        datumIndexMultiplier?: number;
     } = {}
 ) {
-    const { backfillSplitMode = 'intersect', multiDatum = false, datumIndexMultiplier = 1 } = opts;
+    const { backfillSplitMode = 'intersect', multiDatum = false } = opts;
     const result: PathPoint[] = [];
     const resultMapSingle: PathPointMap<false> = {
         added: {},
@@ -179,70 +175,78 @@ export function pairCategoryData(
         removed: {},
     };
 
-    const addToResultMap = (xValue: string, type: keyof PathPointMap, result: PathPoint) => {
+    let previousResultPoint: PathPoint | undefined = undefined;
+    let previousXValue: any | undefined = undefined;
+    const addToResultMap = (xValue: string, result: PathPoint) => {
+        const type: keyof PathPointMap =
+            result.change === 'move' ? 'moved' : result.change === 'in' ? 'added' : 'removed';
         if (multiDatum) {
             resultMapMulti[type][xValue] ??= [];
             resultMapMulti[type][xValue].push(result);
         } else {
             resultMapSingle[type][xValue] = result;
         }
+
+        previousResultPoint = result;
+        previousXValue = xValue;
     };
 
-    const getFirstWithoutTo = (xValue: string, type: keyof PathPointMap) => {
-        if (multiDatum) {
-            for (const result of resultMapMulti[type][xValue]) {
-                if (result.to == null) {
-                    return result;
-                }
-            }
-            return undefined;
-        }
-        return resultMapSingle[type][xValue];
-    };
+    let oldIndex = 0;
+    let newIndex = 0;
+    let isXUnordered = false;
+    while (oldIndex < oldData.nodeData.length || newIndex < newData.nodeData.length) {
+        const before = oldData.nodeData[oldIndex];
+        const after = newData.nodeData[newIndex];
 
-    // Process oldData first to maintain old order if possible.
-    for (const next of oldData.nodeData) {
         let resultPoint: PathPoint;
-        if (diff.removed.indexOf(next.xValue) >= 0) {
-            resultPoint = {
-                change: 'out',
-                moveTo: next.point.moveTo ?? false,
-                from: next.point,
-            };
-            addToResultMap(next.xValue, 'removed', resultPoint);
-        } else {
+        if (before?.xValue === after?.xValue) {
             resultPoint = {
                 change: 'move',
-                moveTo: next.point.moveTo ?? false,
-                from: next.point,
+                moveTo: calculateMoveTo(before.point.moveTo ?? false, after.point.moveTo),
+                from: before.point,
+                to: after.point,
             };
-            addToResultMap(next.xValue, 'moved', resultPoint);
+            addToResultMap(before.xValue, resultPoint);
+            oldIndex++;
+            newIndex++;
+        } else if (diff.removed.indexOf(before?.xValue) >= 0) {
+            resultPoint = {
+                change: 'out',
+                moveTo: before.point.moveTo ?? false,
+                from: before.point,
+            };
+            addToResultMap(before.xValue, resultPoint);
+            oldIndex++;
+        } else if (diff.added.indexOf(after?.xValue) >= 0) {
+            resultPoint = {
+                change: 'in',
+                moveTo: after.point.moveTo ?? false,
+                to: after.point,
+            };
+            addToResultMap(after.xValue, resultPoint);
+            newIndex++;
+        } else if (multiDatum && previousResultPoint && previousXValue === before?.xValue) {
+            resultPoint = {
+                ...(previousResultPoint as PathPoint),
+            };
+            addToResultMap(before.xValue, resultPoint);
+            oldIndex++;
+        } else if (multiDatum && previousResultPoint && previousXValue === after?.xValue) {
+            resultPoint = {
+                ...(previousResultPoint as PathPoint),
+            };
+            addToResultMap(after.xValue, resultPoint);
+            newIndex++;
+        } else {
+            isXUnordered = true;
+            break;
         }
+
         result.push(resultPoint);
     }
 
-    // Process newData to mixin updated/new coordinates/markers.
-    for (const next of newData.nodeData) {
-        const addedIdx = diff.added.indexOf(next.xValue);
-        if (addedIdx >= 0) {
-            const resultPoint: PathPoint = {
-                change: 'in',
-                moveTo: next.point.moveTo ?? false,
-                to: next.point,
-            };
-            addToResultMap(next.xValue, 'added', resultPoint);
-            result.splice(diff.addedIndices[addedIdx] * datumIndexMultiplier, 0, resultPoint);
-        } else {
-            const moved = getFirstWithoutTo(next.xValue, 'moved');
-            if (moved) {
-                moved.to = next.point;
-                moved.moveTo = calculateMoveTo(!!moved.moveTo, next.point.moveTo);
-            }
-        }
-    }
-
     let previousX = -Infinity;
-    const isXUnordered = result.some((pathPoint) => {
+    isXUnordered ||= result.some((pathPoint) => {
         const { change: marker, to: { x = -Infinity } = {} } = pathPoint;
 
         if (marker === 'out') return;
