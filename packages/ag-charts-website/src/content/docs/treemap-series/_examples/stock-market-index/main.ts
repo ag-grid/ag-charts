@@ -14,7 +14,7 @@ const options: AgChartOptions = {
             colorKey: 'color',
             group: {
                 label: {
-                    color: 'black',
+                    color: 'white',
                     formatter({ value }) {
                         return value.toUpperCase();
                     },
