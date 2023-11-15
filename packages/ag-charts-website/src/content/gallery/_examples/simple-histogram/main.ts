@@ -19,12 +19,15 @@ const options: AgChartOptions = {
             type: 'histogram',
             xKey: 'engine-size',
             xName: 'Engine Size',
+            stroke: 'transparent',
+            strokeWidth: 2,
         },
     ],
     axes: [
         {
             position: 'bottom',
             type: 'number',
+            nice: false,
             title: {
                 text: 'Engine Size (Cubic Inches)',
             },
@@ -32,6 +35,9 @@ const options: AgChartOptions = {
         {
             position: 'left',
             type: 'number',
+            gridLine: {
+                enabled: false,
+            },
             title: {
                 text: 'Frequency',
             },

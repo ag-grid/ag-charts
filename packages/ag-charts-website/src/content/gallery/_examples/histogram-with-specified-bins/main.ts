@@ -2,66 +2,77 @@ import { AgChart, AgChartOptions } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+type GradeBoundaries = {
+    U: [number, number];
+    E: [number, number];
+    D: [number, number];
+    C: [number, number];
+    B: [number, number];
+    A: [number, number];
+    'A*': [number, number];
+};
+
+const gradeBoundaries: GradeBoundaries = {
+    U: [0, 98],
+    E: [98, 130],
+    D: [130, 162],
+    C: [162, 194],
+    B: [194, 226],
+    A: [226, 258],
+    'A*': [258, 370],
+};
+
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
-    data: getData(),
     title: {
-        text: 'Vehicle Weight Distribution',
+        text: 'Student Performance Report',
     },
     subtitle: {
-        text: 'USA 1987',
+        text: 'Distribution of Exam Scores and Grades',
     },
     footnote: {
-        text: 'Source: UCI',
+        text: 'Academic Performance of Students at Clifton School (2023)',
     },
-    series: [
-        {
-            type: 'histogram',
-            xKey: 'curb-weight',
-            xName: 'Curb weight',
-            bins: [
-                [0, 2000],
-                [2000, 3000],
-                [3000, 4000],
-            ],
-            areaPlot: true,
-            tooltip: {
-                renderer: (params) => {
-                    const paramsMax = params.datum.domain[1];
-                    const sizeName = paramsMax === 2000 ? 'small' : paramsMax === 3000 ? 'medium' : 'large';
-
-                    return {
-                        content:
-                            '<b>' +
-                            params.datum.frequency +
-                            '</b> vehicles in the <b>' +
-                            sizeName +
-                            '</b> category by <b>' +
-                            params.xName!.toLowerCase() +
-                            '</b>',
-                    };
-                },
+    series: Object.entries(getData()).map(([grade, gradeData]) => ({
+        data: gradeData,
+        type: 'histogram',
+        xKey: 'score',
+        xName: grade,
+        yName: grade,
+        bins: [gradeBoundaries[grade as keyof typeof gradeBoundaries]],
+        areaPlot: true,
+        tooltip: {
+            renderer: ({ datum: { domain }, xName }) => {
+                const score = `${domain.join(' - ')}`;
+                return {
+                    title: `Grade: ${xName}`,
+                    content: `Score: ${score}`,
+                };
             },
         },
-    ],
+        stroke: 'transparent',
+        strokeWidth: 2,
+    })),
     axes: [
         {
             position: 'bottom',
             type: 'number',
-            title: {
-                text: 'Curb weight (pounds)',
+            nice: false,
+            gridLine: {
+                enabled: false,
             },
         },
         {
             position: 'left',
             type: 'number',
             label: {
-                formatter: () => {
-                    return '';
-                },
+                enabled: false,
             },
         },
     ],
+    legend: {
+        position: 'top',
+    },
 };
 
 AgChart.create(options);

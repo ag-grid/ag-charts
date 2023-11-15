@@ -1,4 +1,4 @@
-import { AgChart, AgChartOptions } from 'ag-charts-enterprise';
+import { AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -23,10 +23,13 @@ const options: AgChartOptions = {
             yKey: 'highway-mpg',
             yName: 'Highway MPG',
             aggregation: 'mean',
-            fillOpacity: 0.7,
-            label: {
-                formatter: ({ value }) => value.toFixed(0),
-            },
+        },
+        {
+            type: 'scatter',
+            xKey: 'engine-size',
+            xName: 'Engine Size',
+            yKey: 'highway-mpg',
+            yName: 'Highway MPG',
         },
     ],
     axes: [
@@ -55,4 +58,4 @@ const options: AgChartOptions = {
     },
 };
 
-AgChart.create(options);
+AgEnterpriseCharts.create(options);

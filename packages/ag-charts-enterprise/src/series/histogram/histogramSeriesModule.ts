@@ -5,8 +5,8 @@ import { HistogramSeries } from './histogramSeries';
 const {
     EXTENDS_SERIES_DEFAULTS,
     DEFAULT_FONT_FAMILY,
-    DEFAULT_LABEL_COLOUR,
     DEFAULT_SHADOW_COLOUR,
+    DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
     CARTESIAN_AXIS_TYPES,
     CARTESIAN_AXIS_POSITIONS,
 } = _Theme;
@@ -38,7 +38,7 @@ export const HistogramSeriesModule: _ModuleSupport.SeriesModule<'histogram'> = {
             fontWeight: undefined,
             fontSize: 12,
             fontFamily: DEFAULT_FONT_FAMILY,
-            color: DEFAULT_LABEL_COLOUR,
+            color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
             formatter: undefined,
         },
         shadow: {
