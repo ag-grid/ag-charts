@@ -26,9 +26,7 @@ export function loadExampleOptions(
 ): any {
     const { AgChart, time, Marker } = agCharts;
     const evalContent = [cleanJs(fs.readFileSync(exampleFile, 'utf8')), `return ${evalReturn};`].join('\n');
-    const evalExpr = fs.existsSync(dataFile)
-        ? [`const data_1 = require('${dataFile}');`, evalContent].join('\n')
-        : evalContent;
+    const evalExpr = fs.existsSync(dataFile) ? `const data_1 = require('${dataFile}');\n${evalContent}` : evalContent;
 
     try {
         const exampleRunFn = Function('ag_charts_community_1', 'AgChart', 'time', 'Marker', 'require', evalExpr);
@@ -43,10 +41,10 @@ export function loadExampleOptions(
 export function parseExampleOptions(
     evalFn: string,
     exampleJs: string,
-    dataJs?: string,
+    dataJs: string = '',
     evalGlobals: Record<string, unknown> = {}
 ) {
-    const evalExpr = [dataJs ?? '', cleanJs(exampleJs), `return ${evalFn};`].join('\n');
+    const evalExpr = [dataJs, cleanJs(exampleJs), `return ${evalFn};`].join('\n');
     const exampleRunFn = Function(...Object.keys(evalGlobals), evalExpr);
     return exampleRunFn(...Object.values(evalGlobals));
 }
