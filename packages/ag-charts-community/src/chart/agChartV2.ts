@@ -56,6 +56,8 @@ function chartType(options: any): 'cartesian' | 'polar' | 'hierarchy' {
     throw new Error(`AG Chart - unknown type of chart for options with type: ${options.type}`);
 }
 
+export const enterpriseModule: { licenseManager?: (options: AgChartOptions) => void } = {};
+
 /**
  * Factory for creating and updating instances of AgChartInstance.
  *
@@ -68,6 +70,7 @@ export abstract class AgChart {
      * Create a new `AgChartInstance` based upon the given configuration options.
      */
     public static create(options: AgChartOptions): AgChartInstance {
+        enterpriseModule.licenseManager?.(options);
         return AgChartInternal.createOrUpdate(options);
     }
 

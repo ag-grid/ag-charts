@@ -62,3 +62,4 @@ export * from './motion/resetMotion';
 export { resetIds } from './util/id';
 
 export { ChartUpdateType } from './chart/chartUpdateType';
+export { enterpriseModule } from './chart/agChartV2';
