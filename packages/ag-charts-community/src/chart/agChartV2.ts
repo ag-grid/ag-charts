@@ -1,5 +1,6 @@
 import type { ModuleInstance } from '../module/baseModule';
 import type { LegendModule, RootModule } from '../module/coreModules';
+import { enterpriseModule } from '../module/enterpriseModule';
 import { type Module, REGISTERED_MODULES, hasRegisteredEnterpriseModules } from '../module/module';
 import type { AxisOptionModule, SeriesOptionModule } from '../module/optionModules';
 import type {
@@ -68,6 +69,7 @@ export abstract class AgChart {
      * Create a new `AgChartInstance` based upon the given configuration options.
      */
     public static create(options: AgChartOptions): AgChartInstance {
+        enterpriseModule.licenseManager?.(options);
         return AgChartInternal.createOrUpdate(options);
     }
 
