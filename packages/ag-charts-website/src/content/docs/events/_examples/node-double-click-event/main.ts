@@ -1,4 +1,4 @@
-import { AgChart, AgChartOptions } from 'ag-charts-community';
+import { AgCharts, AgChartOptions } from 'ag-charts-community';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
@@ -45,7 +45,7 @@ const options: AgChartOptions = {
     ],
 };
 
-var chart = AgChart.create(options);
+var chart = AgCharts.create(options);
 
 function listUnitsSoldByBrand(brands: Record<string, number>) {
     var result = '';

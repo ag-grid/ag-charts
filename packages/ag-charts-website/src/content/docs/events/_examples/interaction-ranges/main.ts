@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgChart } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 
 let options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
@@ -48,7 +48,7 @@ let options: AgCartesianChartOptions = {
     ],
 };
 
-var chart = AgChart.create(options);
+var chart = AgCharts.create(options);
 
 function exact() {
     if (!options.series) return;
@@ -57,7 +57,7 @@ function exact() {
         options.series[i].nodeClickRange = 'exact';
     }
 
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }
 
 function nearest() {
@@ -67,7 +67,7 @@ function nearest() {
         options.series[i].nodeClickRange = 'nearest';
     }
 
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }
 
 function distance() {
@@ -77,5 +77,5 @@ function distance() {
         options.series[i].nodeClickRange = 10;
     }
 
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }

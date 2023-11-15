@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 import type { AgChartOptions } from '../options/agChartOptions';
-import { AgChart } from './agChartV2';
+import { AgCharts } from './agChartV2';
 import type { Chart } from './chart';
 import { EXAMPLES } from './test/examples-integrated-charts';
 import {
@@ -57,10 +57,10 @@ describe('Integrated Charts Examples', () => {
                 const options: AgChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
-                chart = AgChart.create(startingOptions) as Chart;
+                chart = AgCharts.create(startingOptions) as Chart;
                 await waitForChartStability(chart);
 
-                AgChart.update(chart, options);
+                AgCharts.update(chart, options);
                 await compare();
             });
         }

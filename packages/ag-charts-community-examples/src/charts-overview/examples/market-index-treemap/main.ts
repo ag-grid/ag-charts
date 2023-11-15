@@ -1,5 +1,5 @@
 import type { AgChartOptions, AgTreemapSeriesTooltipRendererParams} from 'ag-charts-community';
-import { AgChart } from 'ag-charts-community'
+import { AgCharts } from 'ag-charts-community'
 import { data } from './data'
 
 const options: AgChartOptions = {
@@ -61,4 +61,4 @@ function tooltipRenderer(params: AgTreemapSeriesTooltipRendererParams<any>) {
   };
 }
 
-AgChart.create(options)
+AgCharts.create(options)

@@ -1,4 +1,4 @@
-import { AgChart, AgChartLegendPosition, AgChartOptions } from 'ag-charts-enterprise';
+import { AgCharts, AgChartLegendPosition, AgChartOptions } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -68,11 +68,11 @@ const options: AgChartOptions = {
     legend: {},
 };
 
-const chart = AgChart.create(options);
+const chart = AgCharts.create(options);
 
 function reset() {
     options.data = getData();
-    AgChart.update(chart, options as any);
+    AgCharts.update(chart, options as any);
 }
 
 function randomise() {
@@ -82,7 +82,7 @@ function randomise() {
             iphone: d.iphone + Math.floor(Math.random() * 50 - 25),
         })),
     ];
-    AgChart.update(chart, options as any);
+    AgCharts.update(chart, options as any);
 }
 
 function remove() {
@@ -92,17 +92,17 @@ function remove() {
                 !d.quarter.startsWith("Q1'19") && !d.quarter.startsWith("Q3'19") && !d.quarter.startsWith("Q4'18")
         ),
     ];
-    AgChart.update(chart, options as any);
+    AgCharts.update(chart, options as any);
 }
 
 function switchDirection() {
     options.series?.forEach((s: any) => (s.direction = s.direction === 'horizontal' ? 'vertical' : 'horizontal'));
-    AgChart.update(chart, options as any);
+    AgCharts.update(chart, options as any);
 }
 
 function switchToGrouped() {
     options.series?.forEach((s: any) => delete s['stackGroup']);
-    AgChart.update(chart, options as any);
+    AgCharts.update(chart, options as any);
 }
 
 function switchToStacked() {
@@ -111,12 +111,12 @@ function switchToStacked() {
             s.stackGroup = 'Devices';
         }
     });
-    AgChart.update(chart, options as any);
+    AgCharts.update(chart, options as any);
 }
 
 function moveLegend() {
     const currentPosition = legendPositions.indexOf(options.legend?.position ?? 'bottom');
     options.legend ??= {};
     options.legend.position = legendPositions[(currentPosition + 1) % 4];
-    AgChart.update(chart, options as any);
+    AgCharts.update(chart, options as any);
 }

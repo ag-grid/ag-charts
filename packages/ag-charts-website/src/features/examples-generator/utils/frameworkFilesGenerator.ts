@@ -129,7 +129,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
 
         // add website dark mode handling code to doc examples - this code is later striped out from the code viewer / plunker
         if (!ignoreDarkMode) {
-            const chartAPI = 'agCharts.AgChart';
+            const chartAPI = 'agCharts.AgCharts';
 
             if (!mainJs.includes(`chart = ${chartAPI}`)) {
                 mainJs = mainJs.replace(`${chartAPI}`, `var chart = ${chartAPI}`);
@@ -177,7 +177,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
 
         // add website dark mode handling code to doc examples - this code is later striped out from the code viewer / plunker
         if (!ignoreDarkMode) {
-            const chartAPI = 'AgChart';
+            const chartAPI = 'AgCharts';
             if (!mainTsx.includes(`chart = ${chartAPI}`)) {
                 mainTsx = mainTsx.replace(`${chartAPI}.create(options);`, `var chart = ${chartAPI}.create(options);`);
             }

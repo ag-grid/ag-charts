@@ -7,7 +7,7 @@ import type { Node } from '../scene/node';
 import { Selection } from '../scene/selection';
 import { Rect } from '../scene/shape/rect';
 import { Sector } from '../scene/shape/sector';
-import { AgChart } from './agChartV2';
+import { AgCharts } from './agChartV2';
 import type { Chart } from './chart';
 import type { AgChartProxy } from './chartProxy';
 import { Circle } from './marker/circle';
@@ -338,24 +338,24 @@ describe('Chart', () => {
                 data: [],
                 series: [testOptions.seriesOptions],
             });
-            const chartProxy = AgChart.create(chartOptions) as AgChartProxy;
+            const chartProxy = AgCharts.create(chartOptions) as AgChartProxy;
             chart = deproxy(chartProxy);
             await waitForChartStability(chart);
             expect(testOptions.getNodes(chart).length).toEqual(0);
 
-            AgChart.updateDelta(chartProxy, {
+            AgCharts.updateDelta(chartProxy, {
                 data: datasets.economy.data,
             });
             await waitForChartStability(chart);
             expect(testOptions.getNodes(chart).length).toEqual(3);
 
-            AgChart.updateDelta(chartProxy, {
+            AgCharts.updateDelta(chartProxy, {
                 data: datasets.economy.data.slice(0, 2),
             });
             await waitForChartStability(chart);
             expect(testOptions.getNodes(chart).length).toEqual(2);
 
-            AgChart.updateDelta(chartProxy, {
+            AgCharts.updateDelta(chartProxy, {
                 data: datasets.economy.data,
             });
             await waitForChartStability(chart);
@@ -424,7 +424,7 @@ describe('Chart', () => {
     describe('Chart data inherited by Series', () => {
         async function createChart(options: object) {
             const chartOptions = prepareTestOptions(options);
-            const chartProxy = AgChart.create(chartOptions) as AgChartProxy;
+            const chartProxy = AgCharts.create(chartOptions) as AgChartProxy;
             const chart = deproxy(chartProxy);
             await waitForChartStability(chart);
             return { chart, chartProxy, chartOptions };
@@ -432,7 +432,7 @@ describe('Chart', () => {
 
         async function updateChart(chartProxy: AgChartProxy, options: object) {
             const chartOptions = prepareTestOptions(options);
-            AgChart.update(chartProxy, chartOptions);
+            AgCharts.update(chartProxy, chartOptions);
             const chart = deproxy(chartProxy);
             await waitForChartStability(chart);
         }

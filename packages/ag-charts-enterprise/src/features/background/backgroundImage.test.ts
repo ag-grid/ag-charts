@@ -8,7 +8,7 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { AgChart } from '../../main';
+import { AgCharts } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 import { BackgroundImage } from './backgroundImage';
 
@@ -186,7 +186,7 @@ describe('backgroundImage', () => {
             };
             prepareEnterpriseTestOptions(options);
 
-            chart = AgChart.create(options);
+            chart = AgCharts.create(options);
 
             await compare(chart);
         });
@@ -208,7 +208,7 @@ describe('backgroundImage', () => {
             };
             prepareEnterpriseTestOptions(options);
 
-            chart = AgChart.create(options);
+            chart = AgCharts.create(options);
 
             await compare(chart);
         });

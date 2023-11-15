@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgChart, AgTimeAxisThemeOptions, time } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts, AgTimeAxisThemeOptions, time } from 'ag-charts-community';
 
 const options: AgCartesianChartOptions & { axes: AgTimeAxisThemeOptions[] } = {
     container: document.getElementById('myChart'),
@@ -64,14 +64,14 @@ const options: AgCartesianChartOptions & { axes: AgTimeAxisThemeOptions[] } = {
     ],
 };
 
-var chart = AgChart.create(options);
+var chart = AgCharts.create(options);
 
 function useOneMonthInterval() {
     options.axes![0].tick!.interval = time.month;
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }
 
 function useTwoMonthInterval() {
     options.axes![0].tick!.interval = time.month.every(2);
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }

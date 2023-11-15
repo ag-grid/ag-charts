@@ -4,21 +4,21 @@ export const DARK_MODE_END = '/** DARK MODE END **/';
 const DARK_MODE_SNIPPETS = {
     homepageHero: () => `
         heroChartOptions.theme = localStorage['documentation:darkmode'] === 'true' ? 'ag-default-dark' : 'ag-default';
-        agCharts.AgChart.update(chart, heroChartOptions);
+        agCharts.AgCharts.update(chart, heroChartOptions);
         window.addEventListener('message', (event) => {
             const data = event.detail;
             if (data?.type === 'color-scheme-change') {
                 heroChartOptions.theme = data.darkmode ? 'ag-default-dark' : 'ag-default';
-                agCharts.AgChart.update(chart, heroChartOptions);
+                agCharts.AgCharts.update(chart, heroChartOptions);
             }
         });`,
     vanilla: () => `
         options.theme = localStorage['documentation:darkmode'] === 'true' ? 'ag-default-dark' : 'ag-default';
-        agCharts.AgChart.update(chart, options);
+        agCharts.AgCharts.update(chart, options);
         window.addEventListener('message', (event) => {
             if (event.data?.type === 'color-scheme-change') {
                 options.theme = event.data.darkmode ? 'ag-default-dark' : 'ag-default';
-                agCharts.AgChart.update(chart, options);
+                agCharts.AgCharts.update(chart, options);
             }
         });`,
     typescript: ({ chartAPI }: { chartAPI: string }) => `

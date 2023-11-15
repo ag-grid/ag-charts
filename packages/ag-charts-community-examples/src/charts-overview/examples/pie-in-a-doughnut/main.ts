@@ -3,7 +3,7 @@ import type {
   AgPolarChartOptions,
   AgPolarSeriesOptions} from "ag-charts-community";
 import {
-  AgChart
+  AgCharts
 } from "ag-charts-community"
 import { getData2020, getData2022 } from "./data"
 
@@ -94,4 +94,4 @@ const options: AgPolarChartOptions = {
   ],
 }
 
-const chart = AgChart.create(options)
+const chart = AgCharts.create(options)

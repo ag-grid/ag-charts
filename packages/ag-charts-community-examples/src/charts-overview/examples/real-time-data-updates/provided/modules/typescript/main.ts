@@ -1,5 +1,5 @@
 import type { AgCartesianChartOptions} from "ag-charts-community";
-import { AgChart, time } from "ag-charts-community"
+import { AgCharts, time } from "ag-charts-community"
 
 let systemLoad = 0
 let userLoad = 0
@@ -89,11 +89,11 @@ const options: AgCartesianChartOptions = {
   ],
 }
 
-const chart = AgChart.create(options)
+const chart = AgCharts.create(options)
 
 function updateData() {
   const now = Date.now()
   options.data = getData()
-  AgChart.update(chart, options)
+  AgCharts.update(chart, options)
 }
 setInterval(updateData, refreshRateInMilliseconds)

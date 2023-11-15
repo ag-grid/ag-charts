@@ -8,7 +8,7 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { AgChart } from '../../main';
+import { AgCharts } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
 describe('Chart', () => {
@@ -50,7 +50,7 @@ describe('Chart', () => {
         const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
         prepareEnterpriseTestOptions(options);
 
-        chart = AgChart.create(options);
+        chart = AgCharts.create(options);
         await compare();
     });
 });

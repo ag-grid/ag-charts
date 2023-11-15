@@ -1,5 +1,5 @@
 import type { AgChartOptions } from "ag-charts-community";
-import { AgChart } from "ag-charts-community"
+import { AgCharts } from "ag-charts-community"
 import { getData } from "./data"
 
 function getTotal(datum: any) {
@@ -84,4 +84,4 @@ const options: AgChartOptions = {
   ],
 }
 
-AgChart.create(options)
+AgCharts.create(options)

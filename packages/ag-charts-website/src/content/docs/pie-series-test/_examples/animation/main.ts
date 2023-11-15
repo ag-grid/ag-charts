@@ -1,4 +1,4 @@
-import { AgChart, AgChartOptions } from 'ag-charts-enterprise';
+import { AgCharts, AgChartOptions } from 'ag-charts-enterprise';
 
 const data = [
     { label: 'Android', value: 56.9 },
@@ -35,11 +35,11 @@ const options: AgChartOptions = {
     ],
 };
 
-const chart = AgChart.create(options);
+const chart = AgCharts.create(options);
 
 function reset() {
     options.data = data.filter(filter('Android', 'BlackBerry', 'Bada'));
-    AgChart.update(chart, options as any);
+    AgCharts.update(chart, options as any);
 }
 
 function randomIndex(array: unknown[]) {
@@ -55,13 +55,13 @@ function randomise() {
             value: (d.originalValue ?? d.value) * (Math.random() * 5 + 0.5),
         })),
     ];
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }
 
 function add() {
     const newData = [...data];
     options.data = newData;
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }
 
 function remove() {
@@ -70,7 +70,7 @@ function remove() {
 
     newData.splice(indexToRemove, 1);
     options.data = newData;
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }
 
 function rapidUpdates() {

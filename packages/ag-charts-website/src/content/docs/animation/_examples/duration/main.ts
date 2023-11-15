@@ -1,6 +1,6 @@
 import {
     AgCartesianSeriesTooltipRendererParams,
-    AgChart,
+    AgCharts,
     AgChartOptions,
     AgTooltipRendererResult,
 } from 'ag-charts-enterprise';
@@ -81,11 +81,11 @@ const options: AgChartOptions = {
     ],
 };
 
-let chart = AgChart.create(options);
+let chart = AgCharts.create(options);
 
 function changeDuration(duration: number) {
     chart.destroy();
-    chart = AgChart.create({
+    chart = AgCharts.create({
         ...options,
         animation: {
             ...options.animation,

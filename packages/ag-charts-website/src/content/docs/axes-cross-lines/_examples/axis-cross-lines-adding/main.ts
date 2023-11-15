@@ -1,4 +1,4 @@
-import { AgChart, AgChartOptions, time } from 'ag-charts-community';
+import { AgCharts, AgChartOptions, time } from 'ag-charts-community';
 
 import { getData } from './data';
 
@@ -41,4 +41,4 @@ const options: AgChartOptions = {
     ],
 };
 
-var chart = AgChart.create(options);
+var chart = AgCharts.create(options);

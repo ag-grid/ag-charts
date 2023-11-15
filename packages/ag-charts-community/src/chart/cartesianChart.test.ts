@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals
 import { fail } from 'assert';
 
 import type { AgCartesianChartOptions, AgChartOptions } from '../options/agChartOptions';
-import { AgChart } from './agChartV2';
+import { AgCharts } from './agChartV2';
 import type { CartesianChart } from './cartesianChart';
 import type { Chart } from './chart';
 import type { SeriesNodeDataContext } from './series/series';
@@ -219,7 +219,7 @@ describe('CartesianChart', () => {
                 const options: AgChartOptions = { ...chartOptions };
                 prepareTestOptions(options);
 
-                chart = deproxy(AgChart.create(options)) as CartesianChart;
+                chart = deproxy(AgCharts.create(options)) as CartesianChart;
                 await waitForChartStability(chart);
 
                 const seriesImpl = chart.series.find(
@@ -296,7 +296,7 @@ describe('CartesianChart', () => {
             prepareTestOptions(options);
             options.width = width ?? options.width;
 
-            chart = deproxy(AgChart.create(options)) as CartesianChart;
+            chart = deproxy(AgCharts.create(options)) as CartesianChart;
             await waitForChartStability(chart);
             await compare(chart);
         });
@@ -314,7 +314,7 @@ describe('CartesianChart', () => {
             prepareTestOptions(options);
             options.height = height ?? options.height;
 
-            chart = deproxy(AgChart.create(options)) as CartesianChart;
+            chart = deproxy(AgCharts.create(options)) as CartesianChart;
             await waitForChartStability(chart);
             await compare(chart);
         });

@@ -1,4 +1,4 @@
-import { AgChart, AgChartOptions } from 'ag-charts-enterprise';
+import { AgCharts, AgChartOptions } from 'ag-charts-enterprise';
 
 import { getArgon, getHelium, getOxygen } from './data';
 
@@ -56,7 +56,7 @@ const options: AgChartOptions = {
     ],
 };
 
-const chart = AgChart.create(options);
+const chart = AgCharts.create(options);
 
 function scatter() {
     if (options.series !== undefined) {
@@ -64,7 +64,7 @@ function scatter() {
             series.type = 'scatter';
         }
     }
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }
 
 function line() {
@@ -73,5 +73,5 @@ function line() {
             series.type = 'line';
         }
     }
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }

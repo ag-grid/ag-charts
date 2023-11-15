@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgChart } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -68,7 +68,7 @@ const options: AgCartesianChartOptions = {
     },
 };
 
-const chart = AgChart.create(options);
+const chart = AgCharts.create(options);
 
 function crosshairLabelFormat() {
     const crosshair = options.axes?.[0]?.crosshair;
@@ -78,7 +78,7 @@ function crosshairLabelFormat() {
     crosshair.label = {
         format: `%b %Y`,
     };
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }
 
 function axisLabelFormat() {
@@ -92,7 +92,7 @@ function axisLabelFormat() {
     axes0.label = {
         format: `%Y`,
     };
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }
 
 function defaultFormat() {
@@ -106,5 +106,5 @@ function defaultFormat() {
     if (axes0.label?.format) {
         delete axes0.label.format;
     }
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }

@@ -1,4 +1,4 @@
-import { AgChart, AgChartOptions } from 'ag-charts-enterprise';
+import { AgCharts, AgChartOptions } from 'ag-charts-enterprise';
 
 import { getCoffeeIndustryData, getFoodIndustryData } from './data';
 
@@ -95,4 +95,4 @@ const options: AgChartOptions = {
     ],
 };
 
-AgChart.create(options);
+AgCharts.create(options);

@@ -1,4 +1,4 @@
-import { AgChart, AgChartOptions, time } from 'ag-charts-community';
+import { AgCharts, AgChartOptions, time } from 'ag-charts-community';
 
 var lastTime = new Date('07 Jan 2020 13:25:00 GMT').getTime();
 var data: { time: Date; voltage: number }[] = [];
@@ -50,7 +50,7 @@ const options: AgChartOptions = {
     },
 };
 
-var chart = AgChart.create(options);
+var chart = AgCharts.create(options);
 var updating = false;
 
 function startUpdates() {
@@ -65,7 +65,7 @@ function startUpdates() {
 
 function update() {
     options.data = getData();
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }
 
 if (typeof window !== 'undefined') {

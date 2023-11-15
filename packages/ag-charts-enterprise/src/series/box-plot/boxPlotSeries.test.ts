@@ -9,7 +9,7 @@ import {
 } from 'ag-charts-community-test';
 
 import type { AgChartOptions } from '../../main';
-import { AgChart } from '../../main';
+import { AgCharts } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
 const BOX_PLOT_BAR_OPTIONS: AgChartOptions = {
@@ -57,7 +57,7 @@ describe('Chart', () => {
     it(`should render a box-plot chart as expected`, async () => {
         const options = BOX_PLOT_BAR_OPTIONS;
         prepareEnterpriseTestOptions(options as any);
-        await compareSnapshot(AgChart.create(options));
+        await compareSnapshot(AgCharts.create(options));
     });
 
     describe('initial animation', () => {
@@ -70,7 +70,7 @@ describe('Chart', () => {
                 const options: AgChartOptions = { ...BOX_PLOT_BAR_OPTIONS };
                 prepareEnterpriseTestOptions(options);
 
-                await compareSnapshot(AgChart.create(options));
+                await compareSnapshot(AgCharts.create(options));
             });
         }
     });

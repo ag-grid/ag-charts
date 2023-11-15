@@ -5,7 +5,7 @@ import type {
     AgCartesianCrossLineOptions,
     AgCrossLineLabelPosition,
 } from '../../options/agChartOptions';
-import { AgChart } from '../agChartV2';
+import { AgCharts } from '../agChartV2';
 import type { Chart } from '../chart';
 import type { CartesianTestCase } from '../test/utils';
 import {
@@ -207,7 +207,7 @@ describe('crossLines', () => {
                 const options: AgCartesianChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
-                chart = AgChart.create(options) as Chart;
+                chart = AgCharts.create(options) as Chart;
                 await waitForChartStability(chart);
                 await example.assertions(chart);
             });
@@ -223,7 +223,7 @@ describe('crossLines', () => {
                 const options: AgCartesianChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
-                chart = AgChart.create(options) as Chart;
+                chart = AgCharts.create(options) as Chart;
                 await compare();
             });
         }

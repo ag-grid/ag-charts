@@ -1,4 +1,4 @@
-import { AgChart, AgChartOptions, Marker } from 'ag-charts-enterprise';
+import { AgCharts, AgChartOptions, Marker } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -78,4 +78,4 @@ function starFactory() {
     return Star;
 }
 
-AgChart.create(options);
+AgCharts.create(options);

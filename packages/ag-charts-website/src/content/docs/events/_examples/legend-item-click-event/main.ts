@@ -1,6 +1,6 @@
 import {
     AgCartesianChartOptions,
-    AgChart,
+    AgCharts,
     AgChartLegendClickEvent,
     AgChartLegendDoubleClickEvent,
 } from 'ag-charts-community';
@@ -55,4 +55,4 @@ let options: AgCartesianChartOptions = {
     },
 };
 
-AgChart.create(options);
+AgCharts.create(options);

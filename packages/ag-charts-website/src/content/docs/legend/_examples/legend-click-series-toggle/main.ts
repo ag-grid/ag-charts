@@ -1,4 +1,4 @@
-import { AgChart, AgChartLegendClickEvent, AgChartOptions } from 'ag-charts-community';
+import { AgCharts, AgChartLegendClickEvent, AgChartOptions } from 'ag-charts-community';
 
 import { getData } from './data';
 
@@ -96,4 +96,4 @@ const options: AgChartOptions = {
     },
 };
 
-AgChart.create(options);
+AgCharts.create(options);

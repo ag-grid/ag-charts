@@ -19,7 +19,7 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { AgChart } from '../../main';
+import { AgCharts } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 import type { TreemapSeries } from './treemapSeries';
 
@@ -60,7 +60,7 @@ describe('HierarchyChart', () => {
             const options: AgChartOptions = { ...SIMPLIFIED_EXAMPLE };
             prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgChart.create(options));
+            chart = deproxy(AgCharts.create(options));
             await compare();
         });
 
@@ -69,7 +69,7 @@ describe('HierarchyChart', () => {
             const options: AgChartOptions = { ...SIMPLIFIED_EXAMPLE };
             prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgChart.create(options));
+            chart = deproxy(AgCharts.create(options));
             await waitForChartStability(chart);
 
             const seriesImpl = chart.series[0] as TreemapSeries;
@@ -99,7 +99,7 @@ describe('HierarchyChart', () => {
                 const options: AgChartOptions = { ...example.options };
                 prepareEnterpriseTestOptions(options);
 
-                chart = AgChart.create(options);
+                chart = AgCharts.create(options);
                 await waitForChartStability(chart);
                 await example.assertions(chart);
             });
@@ -108,7 +108,7 @@ describe('HierarchyChart', () => {
                 const options: AgChartOptions = { ...example.options };
                 prepareEnterpriseTestOptions(options);
 
-                chart = AgChart.create(options);
+                chart = AgCharts.create(options);
                 await compare();
             });
         }
@@ -159,7 +159,7 @@ describe('HierarchyChart', () => {
                 ...(testParams.chartOptions ?? {}),
             };
             prepareEnterpriseTestOptions(options);
-            const chart = deproxy(AgChart.create(options));
+            const chart = deproxy(AgCharts.create(options));
             await waitForChartStability(chart);
             return chart;
         };

@@ -65,9 +65,9 @@ export const getJavascriptContent = ({ options }: { options: AgChartOptions }): 
         sourceFileList: [],
         files: {
             'main.js': `const options = ${optionsJson};
-            
+
 options.container = document.querySelector('#myChart');
-agCharts.AgChart.create(options);`,
+agCharts.AgCharts.create(options);`,
             'index.html': '<div id="myChart" style="height: 100%"></div>',
         },
         entryFileName: 'main.js',

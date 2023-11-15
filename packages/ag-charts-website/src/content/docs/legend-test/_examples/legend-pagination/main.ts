@@ -1,4 +1,4 @@
-import { AgChart, AgChartLegendPosition, AgChartOptions } from 'ag-charts-community';
+import { AgCharts, AgChartLegendPosition, AgChartOptions } from 'ag-charts-community';
 
 import { getData } from './data';
 
@@ -116,7 +116,7 @@ const options: AgChartOptions = {
     },
 };
 
-var chart = AgChart.create(options);
+var chart = AgCharts.create(options);
 
 function updateLegendPosition(value: AgChartLegendPosition) {
     options.legend!.position = value;
@@ -133,5 +133,5 @@ function updateLegendPosition(value: AgChartLegendPosition) {
             break;
     }
 
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }

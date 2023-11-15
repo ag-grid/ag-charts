@@ -1,4 +1,4 @@
-import { AgChart, AgChartOptions } from 'ag-charts-community';
+import { AgCharts, AgChartOptions } from 'ag-charts-community';
 
 import { getData } from './data';
 
@@ -26,13 +26,13 @@ const options: AgChartOptions = {
     },
 };
 
-var chart = AgChart.create(options);
+var chart = AgCharts.create(options);
 
 function updateLegendItemPaddingX(event: any) {
     var value = +event.target.value;
 
     options.legend!.item!.paddingX = value;
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 
     document.getElementById('xPaddingValue')!.innerHTML = String(value);
 }
@@ -41,7 +41,7 @@ function updateLegendItemPaddingY(event: any) {
     var value = event.target.value;
 
     options.legend!.item!.paddingY = +event.target.value;
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 
     document.getElementById('yPaddingValue')!.innerHTML = String(value);
 }
@@ -50,7 +50,7 @@ function updateLegendItemSpacing(event: any) {
     var value = +event.target.value;
 
     options.legend!.item!.marker!.padding = value;
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 
     document.getElementById('markerPaddingValue')!.innerHTML = String(value);
 }
@@ -59,7 +59,7 @@ function updateLegendItemMaxWidth(event: any) {
     var value = +event.target.value;
 
     options.legend!.item!.maxWidth = value;
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 
     document.getElementById('maxWidthValue')!.innerHTML = String(value);
 }

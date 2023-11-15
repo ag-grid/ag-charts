@@ -1,4 +1,4 @@
-import { AgChart, AgChartOptions } from 'ag-charts-community';
+import { AgCharts, AgChartOptions } from 'ag-charts-community';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
@@ -35,13 +35,13 @@ const options: AgChartOptions = {
     ],
 };
 
-var chart = AgChart.create(options);
+var chart = AgCharts.create(options);
 
 function updateWidth(event: any) {
     var value = +event.target.value;
 
     options.width = value;
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 
     document.getElementById('sliderValue')!.innerHTML = String(value);
 }

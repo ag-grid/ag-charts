@@ -1,4 +1,4 @@
-import { AgBubbleSeriesOptions, AgChart, AgChartOptions } from 'ag-charts-community';
+import { AgBubbleSeriesOptions, AgCharts, AgChartOptions } from 'ag-charts-community';
 
 import { femaleHeightWeight, maleHeightWeight } from './height-weight-data';
 
@@ -79,14 +79,14 @@ const options: AgChartOptions = {
     ],
 };
 
-var chart = AgChart.create(options);
+var chart = AgCharts.create(options);
 
 function updateFontSize(event: any) {
     var value = +event.target.value;
 
     (options.series![0] as AgBubbleSeriesOptions).label!.fontSize = value;
     (options.series![1] as AgBubbleSeriesOptions).label!.fontSize = value;
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 
     document.getElementById('fontSizeSliderValue')!.innerHTML = String(value);
 }
