@@ -10,51 +10,29 @@ export const filters = [
     /.*setTimeout.*/,
     /^Object\.defineProperty/,
     /^exports\./,
-    /^const ag_charts_community_1 =/,
-    /^const ag_charts_enterprise_1 =/,
     /^const data_1 =/,
 ];
 
-export const cleanJs = (content: Buffer | string) => {
-    const inputLines = (typeof content === 'string' ? content : content.toString()).split('\n');
-    const lines: string[] = [];
-
-    for (let line of inputLines) {
-        // Remove grossly unsupported lines.
-        if (filters.some((f) => f.test(line))) continue;
-        // Remove declares.
-        line = line.replace(/declare var.*;/g, '');
-
-        lines.push(line);
-    }
-
-    return lines;
-};
+const cleanJs = (content: string) =>
+    content
+        .split('\n')
+        .filter((line) => !filters.some((f) => f.test(line)))
+        .join('\n');
 
 export function loadExampleOptions(
     name: string,
-    evalFn = 'options',
+    evalReturn = 'options',
     exampleRootDir = `${process.cwd()}/dist/packages/ag-charts-community-examples/src/`,
     dataFile = `${exampleRootDir}charts-overview/examples/${name}/data.js`,
     exampleFile = `${exampleRootDir}charts-overview/examples/${name}/main.js`
 ): any {
-    const dataFileExists = fs.existsSync(dataFile);
-    const exampleFileLines = cleanJs(fs.readFileSync(exampleFile));
-
-    const evalExpr = [
-        dataFileExists ? `with (data_1 = require('${dataFile}')) {` : '',
-        `${exampleFileLines.join('\n')}`,
-        `return ${evalFn};`,
-        dataFileExists ? `}` : '',
-    ].join('\n');
-    // @ts-ignore - used in the eval() call.
-    const agCharts = require('../../main');
-    // @ts-ignore - used in the eval() call.
-    const { AgChart, time, Marker } = agCharts;
-
+    const evalContent = [cleanJs(fs.readFileSync(exampleFile, 'utf8')), `return ${evalReturn};`].join('\n');
+    const evalExpr = fs.existsSync(dataFile)
+        ? [`with (data_1 = require('${dataFile}')) {`, evalContent, '}'].join('\n')
+        : evalContent;
     try {
-        const exampleRunFn = new Function('ag_charts_community_1', 'AgChart', 'time', 'Marker', 'require', evalExpr);
-        return exampleRunFn(agCharts, AgChart, time, Marker, require);
+        const exampleRunFn = new Function('require', evalExpr);
+        return exampleRunFn(require);
     } catch (error: any) {
         Logger.error(`unable to read example data for [${name}]; error: ${error.message}`);
         Logger.log(evalExpr);
@@ -66,22 +44,9 @@ export function parseExampleOptions(
     evalFn: string,
     exampleJs: string,
     dataJs?: string,
-    extraGlobals?: Record<string, any>
+    evalGlobals: Record<string, unknown> = {}
 ) {
-    const evalExpr = [dataJs ? dataJs : '', ...cleanJs(exampleJs), `return ${evalFn};`].join('\n');
-    // @ts-ignore - used in the eval() call.
-    const agCharts = import('../../main');
-    // @ts-ignore - used in the eval() call.
-    const { AgChart, time, Marker } = agCharts;
-
-    const argNames = ['ag_charts_community_1', 'AgChart', 'time', 'Marker'];
-    const args = [agCharts, AgChart, time, Marker];
-
-    for (const [name, value] of Object.entries(extraGlobals ?? {})) {
-        argNames.push(name);
-        args.push(value);
-    }
-
-    const exampleRunFn = new Function(...argNames, evalExpr);
-    return exampleRunFn(...args);
+    const evalExpr = [dataJs ?? '', cleanJs(exampleJs), `return ${evalFn};`].join('\n');
+    const exampleRunFn = new Function(...Object.keys(evalGlobals), evalExpr);
+    return exampleRunFn(...Object.values(evalGlobals));
 }
