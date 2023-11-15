@@ -57,7 +57,6 @@
         margin-right: var(--right-margin);
         padding-right: var(--menu-horizontal-margin);
         padding-left: var(--horizontal-margin);
-        border-right: solid 0.5px var(--secondary-border-color);
 
         @supports (position: sticky) {
             position: sticky;

@@ -80,6 +80,10 @@
     }
 }
 
+.navContainer > code {
+    background: var(--background-100) !important;
+}
+
 .navGroup {
     position: relative;
 

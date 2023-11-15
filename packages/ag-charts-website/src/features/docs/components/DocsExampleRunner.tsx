@@ -86,6 +86,10 @@ const DocsExampleRunnerInner = ({ name, title, exampleType, options, framework, 
     );
 
     useEffect(() => {
+        if (!exampleName) {
+            return;
+        }
+
         setExampleUrl(
             getExampleUrl({
                 internalFramework,

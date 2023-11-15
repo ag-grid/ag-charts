@@ -58,6 +58,10 @@
         display: block;
         font-weight: 500;
 
+        #{$darkmode-selector} & {
+            color: var(--default-text-color);
+        }
+
         &:hover {
             color: var(--link-color);
         }
