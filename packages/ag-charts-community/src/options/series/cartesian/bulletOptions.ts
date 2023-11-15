@@ -19,6 +19,11 @@ export interface AgBulletSeriesTooltipRendererParams<TDatum = any>
 
 export interface AgBulletSeriesStyle extends AgBarSeriesStyle {}
 
+export interface AgBulletSeriesTargetStyle extends AgBulletSeriesStyle {
+    /* Length of target line relative to the width/height of the series area. */
+    lengthRatio?: number;
+}
+
 export interface AgBulletScaleOptions {
     /** Maximum value of the scale. Any values exceeding this number will be clipped to this maximum */
     max?: number;
@@ -28,10 +33,7 @@ export interface AgBulletSeriesThemeableOptions extends AgBulletSeriesStyle, AgB
     /* Width of the bar relative to the width/height of the series area. */
     widthRatio?: number;
     /** Styling options for the target node. */
-    target?: AgBulletSeriesStyle & {
-        /* Length of target line relative to the width/height of the series area. */
-        lengthRatio?: number;
-    };
+    target?: AgBulletSeriesTargetStyle;
 }
 
 export interface AgBulletColorRange {

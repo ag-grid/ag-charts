@@ -2,7 +2,13 @@ import { persistentAtom } from '@nanostores/persistent';
 
 const LOCALSTORAGE_PREFIX = 'documentation';
 
-const isOSDarkmode = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches).toString();
+const IS_SSR = typeof window === 'undefined';
+
+const isOSDarkmode = (
+    !IS_SSR &&
+    window.matchMedia &&
+    window.matchMedia('(prefers-color-scheme: dark)').matches
+).toString();
 
 export const $darkmode = persistentAtom(`${LOCALSTORAGE_PREFIX}:darkmode`, isOSDarkmode);
 

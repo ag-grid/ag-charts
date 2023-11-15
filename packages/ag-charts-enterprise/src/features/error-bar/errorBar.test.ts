@@ -3,9 +3,8 @@ import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type {
     AgChartInstance,
-    AgErrorBarCapFormatter,
-    AgErrorBarFormatter,
     AgErrorBarFormatterParams,
+    AgErrorBarOptions,
     AgScatterSeriesTooltipRendererParams,
 } from 'ag-charts-community';
 import {
@@ -20,6 +19,9 @@ import {
 
 import { AgChart } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
+
+export type ErrorBarFormatter = NonNullable<AgErrorBarOptions['formatter']>;
+export type ErrorBarCapFormatter = NonNullable<NonNullable<AgErrorBarOptions['cap']>['formatter']>;
 
 expect.extend({ toMatchImageSnapshot });
 
@@ -632,7 +634,7 @@ describe('ErrorBars', () => {
     });
 
     it('should apply formatter as expected', async () => {
-        const whisker_formatter: AgErrorBarFormatter = (params) => {
+        const whisker_formatter: ErrorBarFormatter = (params) => {
             let color = undefined;
             switch (params.datum[params.xKey]) {
                 case 'Jan':
@@ -657,7 +659,7 @@ describe('ErrorBars', () => {
             }
             return { stroke: color };
         };
-        const cap_formatter: AgErrorBarCapFormatter = (params) => {
+        const cap_formatter: ErrorBarCapFormatter = (params) => {
             switch (params.datum[params.xKey]) {
                 case 'Jan':
                 case 'Feb':
