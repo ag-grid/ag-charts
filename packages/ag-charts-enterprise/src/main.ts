@@ -60,4 +60,6 @@ _ModuleSupport.registerModule(WaterfallModule);
 _ModuleSupport.registerModule(ZoomModule);
 
 _ModuleSupport.enterpriseModule.licenseManager = (options: AgChartOptions) =>
-    new LicenseManager(options.container?.ownerDocument ?? document).validateLicense();
+    new LicenseManager(
+        options.container?.ownerDocument ?? typeof document !== 'undefined' ? document : undefined
+    ).validateLicense();
