@@ -3,7 +3,7 @@
 :global(#docs-nav-collapser) {
     $top-bar-height: 58px;
 
-    --menu-width: min(30vw, 320px);
+    --menu-width: min(30vw, 240px);
     --font-size: var(--font-size-medium);
 
     &[aria-hidden='true'] {
@@ -53,6 +53,7 @@
 .menu {
     padding-top: $size-4;
     padding-bottom: $size-8;
+    margin-right: 0 !important;
 
     h5 {
         text-transform: uppercase;
@@ -62,7 +63,6 @@
     // Override menuGroup styles
     .seriesTypesNav > li {
         margin-bottom: 0 !important;
-        // padding-left: 15px;
 
         // Remove left line and adjust spacing
         a {

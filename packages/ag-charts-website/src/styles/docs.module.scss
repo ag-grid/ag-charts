@@ -48,31 +48,6 @@
     }
 }
 
-.docPageWrapper {
-    --docs-page-max-width: 68em;
-    --horizontal-padding: max(calc((100vw - var(--max-page-width)) / 2), var(--horizontal-margin));
-
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-
-    @media screen and (max-width: $breakpoint-docs-nav-medium) {
-        @include page-horizontal-margins();
-    }
-
-    @media screen and (min-width: $breakpoint-docs-nav-medium) and (max-width: $breakpoint-docs-nav-large) {
-        padding-right: var(--horizontal-margin);
-    }
-
-    @media screen and (min-width: $breakpoint-docs-nav-extra-large) {
-        --docs-page-max-width: 74em;
-    }
-
-    &.hidePageMenu {
-        padding-left: var(--horizontal-padding);
-    }
-}
-
 %enterprise-icon {
     display: inline-block;
     background-image: url('../../images/enterprise.svg');
@@ -86,11 +61,18 @@
     flex: 1 1 0px;
     min-width: 0px;
     padding-top: $size-4 + $size-half;
+    padding-right: var(--horizontal-margin);
+    padding-left: var(--horizontal-margin);
     padding-bottom: $size-7;
 
     @media screen and (min-width: $breakpoint-docs-nav-large) {
+        padding-left: $size-4;
         padding-right: $size-7;
         max-width: var(--docs-page-max-width);
+    }
+
+    @media screen and (min-width: $breakpoint-docs-nav-extra-large) {
+        padding-left: 0;
     }
 
     &.noSideMenu {

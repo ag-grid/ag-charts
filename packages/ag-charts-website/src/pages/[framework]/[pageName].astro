@@ -39,33 +39,23 @@ const menuEntry = await getEntry('menu', 'data');
         }
 
         <div
-            id="doc-page-wrapper"
+            id="doc-content"
             class:list={[
-                'docPageWrapper',
+                'docPage',
                 {
-                    hidePageMenu,
+                    noSideMenu: hideSideMenu,
                 },
             ]}
         >
-            <div
-                id="doc-content"
-                class:list={[
-                    'docPage',
-                    {
-                        noSideMenu: hideSideMenu,
-                    },
-                ]}
-            >
-                <Header title={title} framework={framework} isEnterprise={enterprise} />
+            <Header title={title} framework={framework} isEnterprise={enterprise} />
 
-                {/* Wrapping div is a hack to target "intro" section of docs page */}
-                <div class="pageSections">
-                    <Content framework={framework} page={page} />
-                </div>
+            {/* Wrapping div is a hack to target "intro" section of docs page */}
+            <div class="pageSections">
+                <Content framework={framework} page={page} />
             </div>
-
-            {!hideSideMenu && <SideNavigation client:load title={title} pageHeadings={extendedHeadings} />}
         </div>
+
+        {!hideSideMenu && <SideNavigation client:load title={title} pageHeadings={extendedHeadings} />}
     </div>
 </Layout>
 
