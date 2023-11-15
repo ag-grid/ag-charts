@@ -65,10 +65,6 @@ export function OptionsNavigation({
     return (
         <div ref={elementRef} className={styles.expandableSnippet} role="presentation">
             <header>
-                <h3>Options Reference</h3>
-                <p className="text-secondary font-size-small">
-                    A comprehensive interactive explorer for the <strong>{rootInterface}</strong> structure.
-                </p>
                 <SearchBox
                     searchData={searchData}
                     onItemClick={(data) => {
