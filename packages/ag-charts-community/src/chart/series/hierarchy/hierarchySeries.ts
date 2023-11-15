@@ -122,9 +122,15 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
             const children = childrenKey != null ? datum[childrenKey] : undefined;
             const isLeaf = children == null || children.length === 0;
 
-            const size = Math.max((sizeKey != null ? datum[sizeKey] : undefined) ?? (isLeaf ? 1 : 0), 0);
-            maxDepth = Math.max(maxDepth, depth);
+            let size = sizeKey != null ? datum[sizeKey] : undefined;
+            if (Number.isFinite(size)) {
+                size = Math.max(size, 0);
+            } else {
+                size = isLeaf ? 1 : 0;
+            }
+
             const sumSize = size;
+            maxDepth = Math.max(maxDepth, depth);
 
             const color = colorKey != null ? datum[colorKey] : undefined;
             if (typeof color === 'number') {
@@ -160,7 +166,7 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
             colorScale.update();
 
             rootNode.walk((node: Mutable<HierarchyNode>) => {
-                const color = colorKey == null ? node.depth : colors[node.index];
+                const color = colors[node.index];
                 if (color != null) {
                     node.color = colorScale.convert(color);
                 }

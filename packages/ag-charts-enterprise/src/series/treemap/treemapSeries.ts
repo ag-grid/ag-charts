@@ -206,6 +206,10 @@ function validateColor(color?: string): string | undefined {
     return color;
 }
 
+function nodeSize(node: _ModuleSupport.HierarchyNode) {
+    return node.children.length > 0 ? node.sumSize - node.size : node.size;
+}
+
 const textAlignFactors: Record<TextAlign, number | undefined> = {
     left: 0,
     center: 0.5,
@@ -390,9 +394,9 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
 
         outputBoxes[index] = index !== 0 ? bbox : undefined;
 
-        const sortedChildrenIndices = Array.from(children, (_, index) => index).sort((aIndex, bIndex) => {
-            return children[bIndex].sumSize - children[aIndex].sumSize;
-        });
+        const sortedChildrenIndices = Array.from(children, (_, index) => index)
+            .filter((index) => nodeSize(children[index]) > 0)
+            .sort((aIndex, bIndex) => nodeSize(children[bIndex]) - nodeSize(children[aIndex]));
 
         const childAt = (index: number) => {
             const sortedIndex = sortedChildrenIndices[index];
@@ -404,20 +408,19 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
         const width = bbox.width - padding.left - padding.right;
         const height = bbox.height - padding.top - padding.bottom;
 
-        if (width <= 0 || height <= 0) {
-            return;
-        }
+        if (width <= 0 || height <= 0) return;
 
+        const numChildren = sortedChildrenIndices.length;
         let stackSum = 0;
         let startIndex = 0;
         let minRatioDiff = Infinity;
-        let partitionSum = node.sumSize;
+        let partitionSum = sortedChildrenIndices.reduce((sum, sortedIndex) => sum + nodeSize(children[sortedIndex]), 0);
         const innerBox = new BBox(bbox.x + padding.left, bbox.y + padding.top, width, height);
         const partition = innerBox.clone();
 
-        for (let i = 0; i < children.length; i++) {
-            const value = childAt(i).sumSize;
-            const firstValue = childAt(startIndex).sumSize;
+        for (let i = 0; i < numChildren; i++) {
+            const value = nodeSize(childAt(i));
+            const firstValue = nodeSize(childAt(startIndex));
             const isVertical = partition.width < partition.height;
             stackSum += value;
 
@@ -439,10 +442,11 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
             let start = isVertical ? partition.x : partition.y;
             for (let j = startIndex; j < i; j++) {
                 const child = childAt(j);
+                const childSize = nodeSize(child);
 
                 const x = isVertical ? start : partition.x;
                 const y = isVertical ? partition.y : start;
-                const length = (partLength * child.sumSize) / stackSum;
+                const length = (partLength * childSize) / stackSum;
                 const width = isVertical ? length : stackThickness;
                 const height = isVertical ? stackThickness : length;
 
@@ -450,7 +454,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
                 this.applyGap(innerBox, childBbox);
                 this.squarify(child, childBbox, outputBoxes);
 
-                partitionSum -= child.sumSize;
+                partitionSum -= childSize;
                 start += length;
             }
 
@@ -470,7 +474,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
         // Process remaining space
         const isVertical = partition.width < partition.height;
         let start = isVertical ? partition.x : partition.y;
-        for (let i = startIndex; i < children.length; i++) {
+        for (let i = startIndex; i < numChildren; i++) {
             const child = childAt(i);
             const x = isVertical ? start : partition.x;
             const y = isVertical ? partition.y : start;
@@ -610,19 +614,24 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
                 highlightedStrokeOpacity = isLeaf ? tile.strokeOpacity : group.strokeOpacity;
             }
 
-            const fill = highlightedFill ?? (isLeaf ? tile.fill : group.fill) ?? node.color;
-            const fillOpacity = highlightedFillOpacity ?? (isLeaf ? tile.fillOpacity : group.fillOpacity);
-            const stroke = highlightedStroke ?? (isLeaf ? tile.stroke : group.stroke);
-            const strokeWidth = highlightedStrokeWidth ?? (isLeaf ? tile.strokeWidth : group.strokeWidth);
-            const strokeOpacity = highlightedStrokeOpacity ?? (isLeaf ? tile.strokeOpacity : group.strokeOpacity);
-
             const format = this.getTileFormat(node, highlighted);
 
-            rect.fill = validateColor(format?.fill ?? fill);
-            rect.fillOpacity = format?.fillOpacity ?? fillOpacity;
-            rect.stroke = validateColor(format?.stroke ?? stroke);
-            rect.strokeWidth = format?.strokeWidth ?? strokeWidth;
-            rect.strokeOpacity = format?.strokeOpacity ?? strokeOpacity;
+            const fill = format?.fill ?? highlightedFill ?? (isLeaf ? tile.fill : group.fill) ?? node.color;
+            const fillOpacity =
+                format?.fillOpacity ?? highlightedFillOpacity ?? (isLeaf ? tile.fillOpacity : group.fillOpacity);
+            const stroke = format?.stroke ?? highlightedStroke ?? (isLeaf ? tile.stroke : group.stroke);
+            const strokeWidth =
+                format?.strokeWidth ?? highlightedStrokeWidth ?? (isLeaf ? tile.strokeWidth : group.strokeWidth);
+            const strokeOpacity =
+                format?.strokeOpacity ??
+                highlightedStrokeOpacity ??
+                (isLeaf ? tile.strokeOpacity : group.strokeOpacity);
+
+            rect.fill = validateColor(fill);
+            rect.fillOpacity = fillOpacity;
+            rect.stroke = validateColor(stroke);
+            rect.strokeWidth = strokeWidth;
+            rect.strokeOpacity = strokeOpacity;
             rect.crisp = true;
 
             rect.x = bbox.x;
