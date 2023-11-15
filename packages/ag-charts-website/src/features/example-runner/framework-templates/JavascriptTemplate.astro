@@ -36,7 +36,7 @@ import { SITE_BASE_URL } from '@constants';
 import { pathJoin } from '@utils/pathJoin';
 import { getCacheBustingUrl, getChartEnterpriseScriptPath, getChartScriptPath } from '@utils/chartLibraryPaths';
 
-const siteUrl = Astro.site ? pathJoin({ path: [Astro.site, SITE_BASE_URL] }) : '/';
+const siteUrl = Astro.site ? pathJoin(Astro.site, SITE_BASE_URL) : '/';
 
 const chartScriptPath = getCacheBustingUrl(getChartScriptPath(siteUrl), modifiedTimeMs);
 const chartScriptEnterprisePath = getCacheBustingUrl(getChartEnterpriseScriptPath(siteUrl), modifiedTimeMs);
@@ -44,7 +44,11 @@ const chartScriptEnterprisePath = getCacheBustingUrl(getChartEnterpriseScriptPat
 
 <html lang="en">
     <head>
-        <MetaData isDev={isDev} title={`${pageName} - ${exampleName}`} modifiedTimeMs={modifiedTimeMs} />
+        <MetaData
+            isDev={isDev}
+            title={`${pageName} - ${exampleName}`}
+            modifiedTimeMs={modifiedTimeMs}
+        />
         <ExampleStyle />
         <Styles
             baseUrl={appLocation}

@@ -36,7 +36,7 @@ interface Configuration {
     chartPaths: Paths;
 }
 
-const localPrefix = pathJoin({ path: [import.meta.env?.PUBLIC_SITE_URL, SITE_BASE_URL, DEV_FILE_BASE_PATH] });
+const localPrefix = pathJoin(import.meta.env?.PUBLIC_SITE_URL, SITE_BASE_URL, DEV_FILE_BASE_PATH);
 
 const localConfiguration: Configuration = {
     gridMap: {
@@ -298,7 +298,7 @@ export const SystemJs = ({
     internalFramework,
     isDev,
 }: Props) => {
-    const systemJsPath = pathJoin({ path: [boilerplatePath, `systemjs.config${isDev ? '.dev' : ''}.js`] });
+    const systemJsPath = pathJoin(boilerplatePath, `systemjs.config${isDev ? '.dev' : ''}.js`);
     let configuration = isUsingPublishedPackages()
         ? publishedConfiguration
         : isBuildServerBuild() || isPreProductionBuild()

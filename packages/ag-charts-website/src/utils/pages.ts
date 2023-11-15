@@ -104,13 +104,13 @@ export const isTypescriptInternalFramework = (internalFramework: InternalFramewo
  * Get Dev File URL for referencing on the front end
  */
 export const getDevFileUrl = ({ filePath }: { filePath: string }) => {
-    return pathJoin({ path: [SITE_BASE_URL, DEV_FILE_BASE_PATH, filePath] });
+    return pathJoin(SITE_BASE_URL, DEV_FILE_BASE_PATH, filePath);
 };
 
 export const getDevFileList = () => {
     const distFolder = getRootUrl();
     return Object.values(DEV_FILE_PATH_MAP).map((file) => {
-        return pathJoin({ path: [distFolder.pathname, file] });
+        return pathJoin(distFolder.pathname, file);
     });
 };
 
@@ -137,9 +137,11 @@ export const getBoilerPlateUrl = ({
             break;
     }
 
-    const boilerplatePath = pathJoin({
-        path: [SITE_BASE_URL, '/example-runner', `${library}-${boilerPlateFramework}-boilerplate`],
-    });
+    const boilerplatePath = pathJoin(
+        SITE_BASE_URL,
+        '/example-runner',
+        `${library}-${boilerPlateFramework}-boilerplate`
+    );
 
     return boilerplatePath;
 };
@@ -151,7 +153,7 @@ export function getDevFiles(): DevFileRoute[] {
     const result = [];
 
     for (const [filePath, sourceFilePath] of Object.entries(DEV_FILE_PATH_MAP)) {
-        const fullFilePath = pathJoin({ path: [getRootUrl().pathname, sourceFilePath] });
+        const fullFilePath = pathJoin(getRootUrl().pathname, sourceFilePath);
         if (fullFilePath.includes('**')) {
             const pathPrefix = filePath.substring(0, filePath.indexOf('**'));
             const sourcePrefix = fullFilePath.substring(0, fullFilePath.indexOf('**'));
@@ -181,5 +183,5 @@ export function getModelInterfaces() {
 }
 
 export const getModelInterfaceUrl = ({ interfaceName }: { interfaceName: string }) => {
-    return pathJoin({ path: [SITE_BASE_URL, 'debug', 'interface-models', `${interfaceName}.json`] });
+    return pathJoin(SITE_BASE_URL, 'debug', 'interface-models', `${interfaceName}.json`);
 };
