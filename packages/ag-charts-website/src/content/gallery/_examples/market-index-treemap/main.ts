@@ -49,10 +49,24 @@ const options: AgChartOptions = {
                     };
                 },
             },
-            formatter: (params) => ({
-                fill: !params.datum.children ? undefined : params.highlighted ? '#aaa' : '#333',
-                stroke: params.depth < 1 ? 'white' : 'black',
-            }),
+            formatter: ({ datum, depth, highlighted }) => {
+                if (!datum.children) {
+                    return {
+                        stroke: 'rgba(0, 0, 0, 0.4)',
+                        strokeWidth: highlighted ? 2 : 0,
+                    };
+                } else if (depth < 1) {
+                    return {
+                        fill: highlighted ? '#888' : '#333',
+                        stroke: 'white',
+                    };
+                } else {
+                    return {
+                        fill: highlighted ? '#888' : '#333',
+                        stroke: highlighted ? '#888' : 'black',
+                    };
+                }
+            },
         },
     ],
     title: {
