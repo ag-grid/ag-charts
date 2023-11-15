@@ -2,7 +2,7 @@ import type { ThemeName } from '@stores/themeStore';
 import { filterPropertyKeys } from '@utils/jsCodeShiftUtils';
 import j from 'jscodeshift';
 
-import * as agChartsEnterprise from 'ag-charts-enterprise';
+import * as agCharts from 'ag-charts-enterprise';
 
 // eslint-disable-next-line @nx/enforce-module-boundaries
 import { parseExampleOptions } from '../../../../../ag-charts-community/src/chart/test/load-example';
@@ -148,7 +148,7 @@ function transformer(sourceFile: string, dataFile?: string, themeName?: ThemeNam
     optionsExpressionProperties.push(paddingPropertyNode);
 
     const code = root.toSource();
-    const options = parseExampleOptions('options', code, dataFile, { agChartsEnterprise });
+    const options = parseExampleOptions('options', code, dataFile, { agCharts });
 
     return { code, options };
 }
