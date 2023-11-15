@@ -48,7 +48,7 @@ const getCurrentPageName = (path) => {
     const allLinks = [
         ...links,
         ...FRAMEWORKS.map((framework) => ({
-            name: 'Documentation',
+            name: 'Docs',
             url: `${SITE_BASE_URL}${framework}-data-grid`,
         })),
     ];
