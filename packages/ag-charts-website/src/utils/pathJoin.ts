@@ -1,9 +1,19 @@
+interface Params {
+    path: (string | URL | undefined)[];
+}
+
 /**
  * Join path segments.
  *
  * Works on server and client side
  */
-export function pathJoin(...segments: (string | URL | undefined)[]): string {
+export function pathJoin(params?: Params): string {
+    if (!params) {
+        return '';
+    }
+
+    const { path } = params;
+    const segments = path as string[];
     if (!segments || !segments.length) {
         return '';
     } else if (segments[0] === '/' && segments.length === 1) {
@@ -28,7 +38,7 @@ export function pathJoin(...segments: (string | URL | undefined)[]): string {
             return segment !== '/';
         });
 
-    const [firstSegment] = segments as string[];
+    const [firstSegment] = segments;
     const firstSegmentHasSlash = firstSegment?.[0] === '/';
     return firstSegmentHasSlash ? `/${removedSlashes.join('/')}` : removedSlashes.join('/');
 }

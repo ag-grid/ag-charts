@@ -38,17 +38,13 @@ const {
     boilerplatePath,
 } = Astro.props as Props;
 
-const startFile = pathJoin(appLocation, entryFileName);
+const startFile = pathJoin({ path: [appLocation, entryFileName] });
 ---
 
 <html lang="en">
     <head>
-        <MetaData
-            isDev={isDev}
-            title={`Angular - ${pageName} - ${exampleName}`}
-            modifiedTimeMs={modifiedTimeMs}
-        />
-        <ExampleStyle rootId="app"/>
+        <MetaData isDev={isDev} title={`Angular - ${pageName} - ${exampleName}`} modifiedTimeMs={modifiedTimeMs} />
+        <ExampleStyle rootId="app" />
         <Styles
             baseUrl={appLocation}
             files={isDev && styleFiles

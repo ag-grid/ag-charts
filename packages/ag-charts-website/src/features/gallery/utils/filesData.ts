@@ -7,7 +7,7 @@ import { getPageHashUrl } from './urlPaths';
 
 export const getGalleryData = ({ isDev }: { isDev?: boolean } = {}): GalleryData => {
     const contentPath = getContentRootFileUrl({ isDev });
-    const galleryDataFilePath = pathJoin(contentPath, 'gallery', 'data.json');
+    const galleryDataFilePath = pathJoin({ path: [contentPath, 'gallery', 'data.json'] });
     const galleryDataFilePathUrl = new URL(galleryDataFilePath, import.meta.url);
 
     const galleryDataFile = readFileSync(galleryDataFilePathUrl).toString();
@@ -18,14 +18,14 @@ export const getGalleryData = ({ isDev }: { isDev?: boolean } = {}): GalleryData
 
 export const getPlainThumbnailFolderUrl = ({ isDev }: { isDev?: boolean }) => {
     const publicPath = getPublicFileUrl({ isDev });
-    const thumbnailFolderPath = pathJoin(publicPath.pathname, 'gallery', 'thumbnails');
+    const thumbnailFolderPath = pathJoin({ path: [publicPath.pathname, 'gallery', 'thumbnails'] });
 
     return new URL(thumbnailFolderPath, import.meta.url);
 };
 
 export const getFolderUrl = ({ exampleName }: { exampleName: string }) => {
     const contentRoot = getContentRootFileUrl();
-    const sourceExamplesPath = pathJoin(contentRoot.pathname, 'gallery', '_examples', exampleName);
+    const sourceExamplesPath = pathJoin({ path: [contentRoot.pathname, 'gallery', '_examples', exampleName] });
 
     return new URL(sourceExamplesPath, import.meta.url);
 };

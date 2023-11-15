@@ -42,7 +42,7 @@ const {
     vueFramework,
 } = Astro.props as Props;
 
-const startFile = pathJoin(appLocation, entryFileName);
+const startFile = pathJoin({ path: [appLocation, entryFileName] });
 const vueFrameworkTitle = vueFramework === 'vue3' ? 'Vue 3' : 'Vue';
 ---
 
