@@ -23,19 +23,20 @@ const options: AgChartOptions = {
             yKey: 'highway-mpg',
             yName: 'Highway MPG',
             aggregation: 'mean',
-        },
-        {
-            type: 'scatter',
-            xKey: 'engine-size',
-            xName: 'Engine Size',
-            yKey: 'highway-mpg',
-            yName: 'Highway MPG',
+            fillOpacity: 0.7,
+            label: {
+                formatter: ({ value }) => value.toFixed(0),
+            },
         },
     ],
     axes: [
         {
             position: 'bottom',
             type: 'number',
+            nice: false,
+            gridLine: {
+                enabled: false,
+            },
             title: {
                 enabled: true,
                 text: 'Engine Size (Cubic Inches)',

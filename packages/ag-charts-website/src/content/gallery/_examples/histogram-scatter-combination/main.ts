@@ -6,7 +6,8 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'Engine Size Distribution',
+        text: 'Vehicle Fuel Efficiency',
+        fontSize: 18,
     },
     subtitle: {
         text: 'USA 1987',
@@ -19,8 +20,16 @@ const options: AgChartOptions = {
             type: 'histogram',
             xKey: 'engine-size',
             xName: 'Engine Size',
-            stroke: 'transparent',
-            strokeWidth: 2,
+            yKey: 'highway-mpg',
+            yName: 'Highway MPG',
+            aggregation: 'mean',
+        },
+        {
+            type: 'scatter',
+            xKey: 'engine-size',
+            xName: 'Engine Size',
+            yKey: 'highway-mpg',
+            yName: 'Highway MPG',
         },
     ],
     axes: [
@@ -28,21 +37,25 @@ const options: AgChartOptions = {
             position: 'bottom',
             type: 'number',
             nice: false,
+            gridLine: {
+                enabled: false,
+            },
             title: {
+                enabled: true,
                 text: 'Engine Size (Cubic Inches)',
             },
         },
         {
             position: 'left',
             type: 'number',
-            gridLine: {
-                enabled: false,
-            },
             title: {
-                text: 'Frequency',
+                text: 'Highway MPG',
             },
         },
     ],
+    legend: {
+        enabled: false,
+    },
 };
 
 AgEnterpriseCharts.create(options);
