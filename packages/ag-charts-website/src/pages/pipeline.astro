@@ -1,7 +1,8 @@
 ---
+import Layout from '@layouts/Layout.astro';
 import { getFrameworkFromPath } from '@features/docs/utils/urlPaths';
 import { FRAMEWORKS } from '@constants';
-import { Pipeline } from './Pipeline';
+import { Pipeline } from '@features/pipeline/Pipeline';
 
 const path = Astro.url.pathname;
 const frameworks = FRAMEWORKS;
@@ -9,7 +10,9 @@ const framework = getFrameworkFromPath(path);
 
 ---
 
-<Pipeline
-    currentFramework={framework}
-    client:only
-/>
+<Layout>
+    <Pipeline
+        currentFramework={framework}
+        client:only
+    />
+</Layout>

@@ -82,7 +82,7 @@ function pairFillCategoryData(
     const oldPoints = splitFillPoints(oldData);
     const newPoints = splitFillPoints(newData);
 
-    const pairOpts = { multiDatum: true, datumIndexMultiplier: 2 };
+    const pairOpts = { multiDatum: true };
 
     return {
         top: pairCategoryData(

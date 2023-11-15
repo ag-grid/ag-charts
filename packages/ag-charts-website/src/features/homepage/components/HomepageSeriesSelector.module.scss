@@ -1,8 +1,14 @@
 @use '../../../design-system' as *;
 
 .seriesChart {
-    width: 50%;
-    padding-right: $size-7;
+    width: 100%;
+    margin-bottom: $size-4;
+
+    @media screen and (min-width: 820px) {
+        width: 50%;
+        margin-bottom: 0;
+        padding-right: $size-3;
+    }
 }
 
 .chartContainer {
@@ -11,16 +17,27 @@
     align-items: center;
     aspect-ratio: 4 / 3;
     border-radius: var(--border-radius);
-    background-color: var(--border-color);
+    border: 1px solid var(--border-color);
+
+    #{$darkmode-selector} & {
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
 }
 
 .seriesList {
-    width: 50%;
+    @media screen and (min-width: 820px) {
+        width: 50%;
+    }
 
     ul {
         display: flex;
         flex-wrap: wrap;
+        justify-content: center;
         gap: $size-2;
+
+        @media screen and (min-width: 820px) {
+            justify-content: flex-start;
+        }
     }
 }
 

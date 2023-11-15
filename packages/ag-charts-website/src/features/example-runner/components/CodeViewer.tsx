@@ -1,6 +1,7 @@
 import type { InternalFramework } from '@ag-grid-types';
 import Code from '@components/Code';
 import { Icon } from '@components/icon/Icon';
+import { DARK_MODE_END, DARK_MODE_START } from '@components/site-header/getDarkModeSnippet';
 import type { ExampleType, FileContents } from '@features/examples-generator/types';
 import { doOnEnter } from '@utils/doOnEnter';
 import classnames from 'classnames';
@@ -9,8 +10,8 @@ import { useEffect, useState } from 'react';
 import { CodeOptions } from './CodeOptions';
 import styles from './CodeViewer.module.scss';
 
-const startDelimiter = '/** DARK MODE START **/';
-const endDelimiter = '/** DARK MODE END **/';
+const startDelimiter = DARK_MODE_START;
+const endDelimiter = DARK_MODE_END;
 const escapedStart = startDelimiter.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const escapedEnd = endDelimiter.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const regex = new RegExp(`${escapedStart}[\\s\\S]*?${escapedEnd}`, 'g');

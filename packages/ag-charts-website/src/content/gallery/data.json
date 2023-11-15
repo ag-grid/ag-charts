@@ -19,9 +19,6 @@
             "seriesExampleName": "simple-doughnut"
         },
         {
-            "seriesExampleName": "combination-of-different-series-types"
-        },
-        {
             "seriesExampleName": "simple-histogram"
         },
         {
@@ -318,37 +315,6 @@
             ]
         },
         {
-            "title": "Combination",
-            "name": "combination",
-            "icon": "chartsCombination",
-            "enterprise": false,
-            "examples": [
-                {
-                    "title": "Simple Combination",
-                    "description": "A combination chart combines two or more series types allowing for flexible data visualisations. They are ideal for making visual comparisons of different sets of data in a single chart.",
-                    "name": "combination-of-different-series-types"
-                }
-            ]
-        },
-        {
-            "title": "Heatmap",
-            "name": "heatmap",
-            "icon": "chartsHeatmap",
-            "enterprise": true,
-            "examples": [
-                {
-                    "title": "Simple Heatmap",
-                    "description": "A Heatmap Series is using the colour-coding to represent numeric values in a form of a colourful matrix.",
-                    "name": "simple-heatmap"
-                },
-                {
-                    "title": "Calendar Heatmap",
-                    "description": "A Heatmap Series is using the colour-coding to represent numeric values in a form of a colourful matrix.",
-                    "name": "calendar-heatmap"
-                }
-            ]
-        },
-        {
             "title": "Range Bar",
             "name": "range-bar",
             "icon": "chartsRange",
@@ -419,6 +385,24 @@
                     "title": "Box Plot Outliers",
                     "description": "A Box Plot Series, also known as a Box-and-Whisker Plot, visually summarises a dataset's distribution through its median and quartiles.",
                     "name": "box-plot-outliers"
+                }
+            ]
+        },
+        {
+            "title": "Heatmap",
+            "name": "heatmap",
+            "icon": "chartsHeatmap",
+            "enterprise": true,
+            "examples": [
+                {
+                    "title": "Simple Heatmap",
+                    "description": "A Heatmap Series is using the colour-coding to represent numeric values in a form of a colourful matrix.",
+                    "name": "simple-heatmap"
+                },
+                {
+                    "title": "Calendar Heatmap",
+                    "description": "A Heatmap Series is using the colour-coding to represent numeric values in a form of a colourful matrix.",
+                    "name": "calendar-heatmap"
                 }
             ]
         },
@@ -530,6 +514,39 @@
                     "title": "Market Index Treemap",
                     "description": "A treemap of a snapshot of the S&P 500 stock market index.",
                     "name": "market-index-treemap"
+                }
+            ]
+        },
+        {
+            "title": "Combination",
+            "name": "combination",
+            "icon": "chartsCombination",
+            "enterprise": false,
+            "examples": [
+                {
+                    "title": "Bar And Line Combination",
+                    "description": "A combination chart combines two or more series types allowing for flexible data visualisations. They are ideal for making visual comparisons of different sets of data in a single chart.",
+                    "name": "bar-line-combination"
+                },
+                {
+                    "title": "Histogram And Scatter Combination",
+                    "description": "A combination chart combines two or more series types allowing for flexible data visualisations. They are ideal for making visual comparisons of different sets of data in a single chart.",
+                    "name": "histogram-scatter-combination"
+                },
+                {
+                    "title": "Range Bar And Line Combination",
+                    "description": "A combination chart combines two or more series types allowing for flexible data visualisations. They are ideal for making visual comparisons of different sets of data in a single chart.",
+                    "name": "range-bar-line-combination"
+                },
+                {
+                    "title": "Horizontal Range Bar And Scatter Combination",
+                    "description": "A combination chart combines two or more series types allowing for flexible data visualisations. They are ideal for making visual comparisons of different sets of data in a single chart.",
+                    "name": "horizontal-range-bar-scatter-combination"
+                },
+                {
+                    "title": "Box Plot",
+                    "description": "A combination chart combines two or more series types allowing for flexible data visualisations. They are ideal for making visual comparisons of different sets of data in a single chart.",
+                    "name": "box-plot-scatter-combination"
                 }
             ]
         },

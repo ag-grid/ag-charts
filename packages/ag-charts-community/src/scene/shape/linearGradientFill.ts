@@ -1,5 +1,4 @@
 import { ColorScale } from '../../scale/colorScale';
-import { BBox } from '../bbox';
 import type { RenderContext } from '../node';
 import { RedrawType, SceneChangeDetection } from '../node';
 import type { Path } from './path';
@@ -12,40 +11,58 @@ export class LinearGradientFill extends Shape {
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
     stops?: string[] = undefined;
 
+    get mask(): Path | undefined {
+        return this._mask;
+    }
+    set mask(newMask: Path | undefined) {
+        if (this._mask != null) {
+            this.removeChild(this._mask);
+        }
+
+        if (newMask != null) {
+            this.appendChild(newMask);
+        }
+
+        this._mask = newMask;
+    }
+
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
-    mask?: Path = undefined;
+    private _mask?: Path = undefined;
 
     override isPointInPath(x: number, y: number): boolean {
         return this.mask?.isPointInPath(x, y) ?? false;
     }
 
-    override computeBBox(): BBox {
-        return this.mask?.computeBBox() ?? BBox.zero;
+    override computeBBox() {
+        return this.mask?.computeBBox();
     }
 
     override render(renderCtx: RenderContext): void {
         const { mask, stops } = this;
         const { ctx, devicePixelRatio } = renderCtx;
+        const pixelLength = 1 / devicePixelRatio;
 
-        if (mask == null || stops == null) return;
+        const maskBbox = mask?.computeTransformedBBox();
 
-        const bbox = this.computeBBox();
-
-        ctx.save();
+        if (mask == null || stops == null || maskBbox == null) return;
 
         if (mask.dirtyPath) {
             mask.updatePath();
             mask.dirtyPath = false;
         }
 
+        ctx.save();
+
         ctx.beginPath();
         mask.path.draw(ctx);
         ctx.clip();
 
-        const x0 = bbox.x;
-        const x1 = bbox.x + bbox.width;
-        const y0 = bbox.y;
-        const y1 = bbox.y + bbox.height;
+        ctx.resetTransform();
+
+        const x0 = Math.floor(maskBbox.x);
+        const x1 = Math.ceil(maskBbox.x + maskBbox.width);
+        const y0 = Math.floor(maskBbox.y);
+        const y1 = Math.ceil(maskBbox.y + maskBbox.height);
 
         const colorScale = new ColorScale();
         const [i0, i1] = this.direction === 'to-right' ? [x0, x1] : [y0, y1];
@@ -56,14 +73,16 @@ export class LinearGradientFill extends Shape {
         colorScale.update();
 
         if (this.direction === 'to-right') {
-            for (let x = x0; x < x1; x += devicePixelRatio) {
+            const height = y1 - y0;
+            for (let x = x0; x <= x1; x += pixelLength) {
                 ctx.fillStyle = colorScale.convert(x);
-                ctx.fillRect(x, y0, devicePixelRatio, y1 - y0);
+                ctx.fillRect(x, y0, pixelLength, height);
             }
         } else {
-            for (let y = y0; y < y1; y += devicePixelRatio) {
+            const width = x1 - x0;
+            for (let y = y0; y <= y1; y += pixelLength) {
                 ctx.fillStyle = colorScale.convert(y);
-                ctx.fillRect(x0, y, x1 - x0, devicePixelRatio);
+                ctx.fillRect(x0, y, width, pixelLength);
             }
         }
 

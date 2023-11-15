@@ -1,4 +1,4 @@
-import { AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
 
 import { getData, random } from './data';
 
@@ -11,7 +11,7 @@ let seed = 1234;
 
 let interval: any;
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     animation: {
         enabled: true,
@@ -60,9 +60,8 @@ const options: AgChartOptions = {
             position: 'left',
         },
         {
-            type: 'number',
+            type: 'category',
             position: 'bottom',
-            nice: false,
             label: {
                 autoRotate: false,
             },
@@ -70,7 +69,7 @@ const options: AgChartOptions = {
     ],
 };
 
-const barOptions: AgChartOptions = {
+const barOptions: AgCartesianChartOptions = {
     series: [
         {
             type: 'bar',
@@ -114,9 +113,8 @@ const barOptions: AgChartOptions = {
             position: 'left',
         },
         {
-            type: 'number',
+            type: 'category',
             position: 'bottom',
-            nice: false,
             label: {
                 autoRotate: false,
             },

@@ -174,6 +174,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
     static className = 'PieSeries';
     static type = 'pie' as const;
 
+    private readonly previousRadiusScale: LinearScale = new LinearScale();
     private readonly radiusScale: LinearScale = new LinearScale();
     private readonly calloutLabelSelection: Selection<Group, PieNodeDatum>;
     private readonly sectorLabelSelection: Selection<Text, PieNodeDatum>;
@@ -391,11 +392,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
             extraProps.push(valueProperty(this, legendItemKey, false, { id: `legendItemValue` }));
         }
         if (animationEnabled && this.processedData && extraKeyProps.length > 0) {
-            extraProps.push(diff(this.processedData), animationValidation(this));
+            extraProps.push(diff(this.processedData));
         }
-        if (animationEnabled) {
-            extraProps.push(animationValidation(this));
-        }
+        extraProps.push(animationValidation(this));
 
         data = data.map((d, idx) => (seriesItemEnabled[idx] ? d : { ...d, [angleKey]: 0 }));
 
@@ -1456,27 +1455,29 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
     override animateEmptyUpdateReady(_data?: PolarAnimationData) {
         const { animationManager } = this.ctx;
 
-        const fns = preparePieSeriesAnimationFunctions(this.rotation);
+        const fns = preparePieSeriesAnimationFunctions(true, this.rotation, this.radiusScale, this.previousRadiusScale);
         fromToMotion(this.id, 'nodes', animationManager, [this.itemSelection, this.highlightSelection], fns.nodes);
         fromToMotion(this.id, `innerCircle`, animationManager, [this.innerCircleSelection], fns.innerCircle);
 
         seriesLabelFadeInAnimation(this, 'callout', animationManager, [this.calloutLabelSelection]);
         seriesLabelFadeInAnimation(this, 'sector', animationManager, [this.sectorLabelSelection]);
         seriesLabelFadeInAnimation(this, 'inner', animationManager, [this.innerLabelsSelection]);
+
+        this.previousRadiusScale.range = this.radiusScale.range;
     }
 
     override animateWaitingUpdateReady() {
-        const { itemSelection, highlightSelection, processedData } = this;
+        const { itemSelection, highlightSelection, processedData, radiusScale, previousRadiusScale } = this;
         const { animationManager } = this.ctx;
         const diff = processedData?.reduced?.diff;
 
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
-        // if (!this.processedData?.reduced?.animationValidation?.uniqueKeys) {
-        //     this.ctx.animationManager.skipCurrentBatch();
-        // }
+        if (processedData?.defs.keys.length === 0 || !processedData?.reduced?.animationValidation?.uniqueKeys) {
+            this.ctx.animationManager.skipCurrentBatch();
+        }
 
-        const fns = preparePieSeriesAnimationFunctions(this.rotation);
+        const fns = preparePieSeriesAnimationFunctions(false, this.rotation, radiusScale, previousRadiusScale);
         fromToMotion(
             this.id,
             'nodes',
@@ -1491,19 +1492,23 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         seriesLabelFadeInAnimation(this, 'callout', this.ctx.animationManager, [this.calloutLabelSelection]);
         seriesLabelFadeInAnimation(this, 'sector', this.ctx.animationManager, [this.sectorLabelSelection]);
         seriesLabelFadeInAnimation(this, 'inner', this.ctx.animationManager, [this.innerLabelsSelection]);
+
+        this.previousRadiusScale.range = this.radiusScale.range;
     }
 
     override animateClearingUpdateEmpty() {
-        const { itemSelection, highlightSelection } = this;
+        const { itemSelection, highlightSelection, radiusScale, previousRadiusScale } = this;
         const { animationManager } = this.ctx;
 
-        const fns = preparePieSeriesAnimationFunctions(this.rotation);
+        const fns = preparePieSeriesAnimationFunctions(false, this.rotation, radiusScale, previousRadiusScale);
         fromToMotion(this.id, 'nodes', animationManager, [itemSelection, highlightSelection], fns.nodes);
         fromToMotion(this.id, `innerCircle`, animationManager, [this.innerCircleSelection], fns.innerCircle);
 
         seriesLabelFadeOutAnimation(this, 'callout', this.ctx.animationManager, [this.calloutLabelSelection]);
         seriesLabelFadeOutAnimation(this, 'sector', this.ctx.animationManager, [this.sectorLabelSelection]);
         seriesLabelFadeOutAnimation(this, 'inner', this.ctx.animationManager, [this.innerLabelsSelection]);
+
+        this.previousRadiusScale.range = this.radiusScale.range;
     }
 
     getDatumIdFromData(datum: any) {

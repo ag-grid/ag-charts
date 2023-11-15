@@ -1,15 +1,17 @@
 ---
+import Layout from '@layouts/Layout.astro';
 import { getFrameworkFromPath } from '@features/docs/utils/urlPaths';
 import { FRAMEWORKS } from '@constants';
-import { Changelog } from './Changelog';
+import { Changelog } from '@features/changelog/Changelog';
 
 const path = Astro.url.pathname;
 const frameworks = FRAMEWORKS;
 const framework = getFrameworkFromPath(path);
 
 ---
-
-<Changelog
-    currentFramework={framework}
-    client:only
-/>
+<Layout>
+    <Changelog
+        currentFramework={framework}
+        client:only
+    />
+</Layout>
