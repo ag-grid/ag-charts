@@ -60,10 +60,6 @@ export const ExampleStyle = ({ rootId }: { rootId?: string }) => (
           --text-color: #f8f9fa;
           --border-color: rgba(255,255,255, 0.2);
           --hover-background-color: #2a343e;
-
-          border-color: var(--border-color);
-          color: var(--text-color);
-          background-color: var(--background-color);
         }
     `}
     </style>
