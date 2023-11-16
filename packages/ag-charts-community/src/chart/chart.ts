@@ -33,6 +33,7 @@ import type { Caption } from './caption';
 import type { ChartAxis } from './chartAxis';
 import type { ChartAxisDirection } from './chartAxisDirection';
 import { ChartHighlight } from './chartHighlight';
+import type { ChartMode } from './chartMode';
 import { ChartUpdateType } from './chartUpdateType';
 import { DataController } from './data/dataController';
 import { DataService } from './dataService';
@@ -247,7 +248,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     public footnote?: Caption = undefined;
 
     @Validate(STRING_UNION('standalone', 'integrated'))
-    mode: 'standalone' | 'integrated' = 'standalone';
+    mode: ChartMode = 'standalone';
 
     private _destroyed: boolean = false;
     private readonly _destroyFns: (() => void)[] = [];
@@ -920,7 +921,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.assignSeriesToAxes();
         }
 
-        const dataController = new DataController();
+        const dataController = new DataController(this.mode);
         const seriesPromises = this.series.map((s) => s.processData(dataController));
         await dataController.execute();
         await Promise.all(seriesPromises);
