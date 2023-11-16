@@ -38,7 +38,7 @@ interface BulletNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
     };
 }
 
-class BulletColorRange {
+export class BulletColorRange {
     @Validate(COLOR_STRING)
     color: string = 'lightgrey';
 
