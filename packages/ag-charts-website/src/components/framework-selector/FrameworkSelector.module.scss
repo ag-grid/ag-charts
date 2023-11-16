@@ -134,7 +134,7 @@
         --height: #{$size-7};
         --icon-size: #{$size-5};
         --font-size: var(--font-size-extra-large);
-        --x-padding: 20px;
+        // --x-padding: 20px;
     }
 
     #{$darkmode-selector} & {
