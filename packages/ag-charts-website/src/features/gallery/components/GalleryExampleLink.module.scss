@@ -6,7 +6,7 @@
     flex-direction: column;
     border-radius: var(--border-radius);
     border: 1px solid var(--bright-blue-gray);
-    background-color: var(--default-background-color);
+    background-color: var(--default-background-color) !important;
 
     &::after {
         $border-width: 2px;
