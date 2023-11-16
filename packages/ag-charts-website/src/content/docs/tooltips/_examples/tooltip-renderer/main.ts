@@ -1,5 +1,7 @@
 import { AgCartesianSeriesTooltipRendererParams, AgChart, AgChartOptions } from 'ag-charts-community';
 
+import { getData } from './data';
+
 function renderer(params: AgCartesianSeriesTooltipRendererParams) {
     return (
         '<div class="ag-chart-tooltip-title" style="background-color:' +
@@ -15,23 +17,7 @@ function renderer(params: AgCartesianSeriesTooltipRendererParams) {
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
-    data: [
-        {
-            month: 'Dec',
-            sweaters: 50,
-            hats: 40,
-        },
-        {
-            month: 'Jan',
-            sweaters: 70,
-            hats: 50,
-        },
-        {
-            month: 'Feb',
-            sweaters: 60,
-            hats: 30,
-        },
-    ],
+    data: getData(),
     series: [
         {
             type: 'bar',

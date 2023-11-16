@@ -1,21 +1,10 @@
 import { AgChart, AgChartOptions } from 'ag-charts-community';
 
+import { getData } from './data';
+
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
-    data: [
-        {
-            month: 'Jun',
-            sweaters: 50,
-        },
-        {
-            month: 'Jul',
-            sweaters: 70,
-        },
-        {
-            month: 'Aug',
-            sweaters: 60,
-        },
-    ],
+    data: getData(),
     series: [
         {
             type: 'bar',
