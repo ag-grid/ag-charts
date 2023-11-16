@@ -62,9 +62,9 @@ In this configuration:
 -   `errorBar.xLowerKey` and `errorBar.xUpperKey` denote the x-axis bounds.
 -   `errorBar.yLowerKey` and `errorBar.yUpperKey` denote the y-axis bounds.
 
-A custom [Tooltip](./tooltip/) is also provided to the series `tooltip` option
-to display the x and y axis bounds. [Additional parameters](#api-reference)
-are available to the renderer when Error Bars are enabled.
+A custom [Tooltip](./tooltips/) is also provided to the series `tooltip` option
+to display the x and y axis bounds. The X & Y keys and names are availabe to the
+renderer when Error Bars are enabled.
 
 {% note %}
 Double Error Bars require the x-axis to be a [Number Axis](./axes-types/#number), limiting them to [Line](./line-series/)
@@ -102,9 +102,8 @@ The default Cap length is determined based on the type of series:
 {% /note %}
 
 [Formatters](./formatters) can also be used for customisation using
-`errorBar.formatter` or `errorBar.cap.formatter` properties. The
-[Parameters](#api-reference) include properties from the Series and
-Error Bars.
+`errorBar.formatter` or `errorBar.cap.formatter` properties. The Parameters
+includes properties from the Series and Error Bars.
 
 ## API Reference
 
@@ -112,14 +111,6 @@ Error Bars.
 
 {% tabItem id="AgErrorBarOptions" label="Error Bar Options" %}
 {% apiReference id="AgErrorBarOptions" /%}
-{% /tabItem %}
-
-{% tabItem id="AgErrorBarTooltipParams" label="Tooltip Parameters" %}
-{% apiReference id="AgErrorBarTooltipParams" /%}
-{% /tabItem %}
-
-{% tabItem id="AgErrorBarFormatterParams" label="Formatter Parameters" %}
-{% apiReference id="AgErrorBarFormatterParams" /%}
 {% /tabItem %}
 
 {% /tabs %}

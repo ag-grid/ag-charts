@@ -61,10 +61,17 @@ interface ErrorBarNameOptions {
     yUpperName?: string;
 }
 
-interface ErrorBarCapOptions extends ErrorBarCapLengthOptions, ErrorBarStylingOptions {
+interface ErrorBarCapFormatterOption {
     /** Function used to return formatting for individual caps, based on the given parameters. If the current error bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     formatter?: (params: AgErrorBarFormatterParams) => AgErrorBarOptions['cap'] | undefined;
 }
+
+interface ErrorBarFormatterOption {
+    /** Function used to return formatting for individual error bars, based on the given parameters. If the current error bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    formatter?: (params: AgErrorBarFormatterParams) => AgErrorBarOptions | undefined;
+}
+
+interface ErrorBarCapOptions extends ErrorBarCapFormatterOption, ErrorBarCapLengthOptions, ErrorBarStylingOptions {}
 
 export interface AgErrorBarThemeableOptions extends ErrorBarStylingOptions {
     /** Options to style error bars' caps */
@@ -73,10 +80,11 @@ export interface AgErrorBarThemeableOptions extends ErrorBarStylingOptions {
 
 export const AgErrorBarSupportedSeriesTypes = ['bar', 'line', 'scatter'] as const;
 
-export interface AgErrorBarOptions extends ErrorBarKeyOptions, ErrorBarNameOptions, AgErrorBarThemeableOptions {
-    /** Function used to return formatting for individual error bars, based on the given parameters. If the current error bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    formatter?: (params: AgErrorBarFormatterParams) => AgErrorBarOptions | undefined;
-}
+export interface AgErrorBarOptions
+    extends ErrorBarKeyOptions,
+        ErrorBarNameOptions,
+        ErrorBarFormatterOption,
+        AgErrorBarThemeableOptions {}
 
 export interface AgErrorBarTooltipParams
     // Note: AgCartesianSeriesTooltipRendererParams includes SeriesKeyOptions & SeriesNameOptions
