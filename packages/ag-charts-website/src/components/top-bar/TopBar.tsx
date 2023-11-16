@@ -34,8 +34,6 @@ export const TopBar = ({ frameworks, currentFramework, path, isDev, suppressFram
                         <Icon name="collapseCategories" />
                     </button>
 
-                    <Search currentFramework={currentFramework} isDev={isDev} />
-
                     {!suppressFrameworkSelector && currentFramework && (
                         <FrameworkSelector
                             data={frameworksData}

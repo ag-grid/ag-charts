@@ -8,7 +8,10 @@ import type { Framework } from '@ag-grid-types';
 import { getDocsPages } from '@features/docs/utils/pageData';
 import { SideNavigation } from '@components/pages-navigation/SideNavigation';
 import { addTabsToHeadings } from '@utils/addTabsToHeadings';
-import { DOCS_TAB_ITEM_ID_PREFIX } from '@constants';
+import { DOCS_TAB_ITEM_ID_PREFIX, FRAMEWORKS } from '@constants';
+import {getNewFrameworkPath} from '../../utils/framework';
+import {FrameworkSelector} from "../../components/framework-selector/FrameworkSelector";
+import {FrameworkSelectorInsideDocs} from "../../components/framework-selector-inside-doc/FrameworkSelectorInsideDocs";
 
 export async function getStaticPaths() {
     const pages = await getCollection('docs');
@@ -16,8 +19,9 @@ export async function getStaticPaths() {
 }
 
 const { page } = Astro.props;
-const framework = Astro.params.framework as Framework;
+const currentFramework = Astro.params.framework as Framework;
 const pageName = Astro.params.pageName as Framework;
+const path = Astro.url.pathname;
 const { title, enterprise, hideSideMenu, hidePageMenu } = page.data;
 
 const { Content, headings } = await page.render();
@@ -28,13 +32,14 @@ const extendedHeadings = addTabsToHeadings({
 });
 
 const menuEntry = await getEntry('menu', 'data');
+
 ---
 
-<Layout title={`${getFrameworkDisplayText(framework)} Charts: ${title}`} showTopBar={true}>
+<Layout title={`${getFrameworkDisplayText(currentFramework)} Charts: ${title}`} showTopBar={true} showSearchBar={true}>
     <div class="contentViewport">
         {
             !hidePageMenu && (
-                <PagesNavigation client:load menuData={menuEntry.data} framework={framework} pageName={pageName} />
+                <PagesNavigation client:load menuData={menuEntry.data} framework={currentFramework} pageName={pageName} />
             )
         }
 
@@ -47,11 +52,21 @@ const menuEntry = await getEntry('menu', 'data');
                 },
             ]}
         >
-            <Header title={title} framework={framework} isEnterprise={enterprise} />
+            {currentFramework && (
+                <div class="frameworkSelectorWrapper">
+                    <FrameworkSelectorInsideDocs
+                        client:only
+                        path={path}
+                        currentFramework={currentFramework}
+                    />
+                </div>
+            )}
+
+            <Header title={title} framework={currentFramework} isEnterprise={enterprise} />
 
             {/* Wrapping div is a hack to target "intro" section of docs page */}
             <div class="pageSections">
-                <Content framework={framework} page={page} />
+                <Content framework={currentFramework} page={page} />
             </div>
         </div>
 

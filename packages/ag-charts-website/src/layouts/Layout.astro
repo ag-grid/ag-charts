@@ -16,11 +16,19 @@ export interface Props {
     title?: string;
     description?: string;
     showTopBar?: boolean;
+    showSearchBar?: boolean;
 }
 
 const metadata = await getEntry('metadata', 'metadata');
 
-const { title = metadata.data.title, description = metadata.data.description, showTopBar, suppressFrameworkSelector } = Astro.props;
+const {
+    title = metadata.data.title,
+    description = metadata.data.description,
+    showTopBar,
+    showSearchBar,
+    suppressFrameworkSelector,
+} = Astro.props;
+
 const path = Astro.url.pathname;
 
 const frameworks = FRAMEWORKS;
@@ -74,19 +82,7 @@ const isApiLayout = apiMenuItems.some((item) => {
     </head>
     <body>
         <div class="mainContainer">
-            <SiteHeader />
-            {
-                showTopBar && !isApiLayout && (
-                    <TopBar
-                        client:load
-                        frameworks={frameworks}
-                        currentFramework={framework}
-                        path={path}
-                        isDev={isDev || isStaging}
-                        suppressFrameworkSelector={suppressFrameworkSelector}
-                    />
-                )
-            }
+            <SiteHeader showSearchBar={showSearchBar} />
             {isApiLayout && <ApiTopBar menuItems={apiMenuItems} fullPath={path} />}
 
             <slot />
