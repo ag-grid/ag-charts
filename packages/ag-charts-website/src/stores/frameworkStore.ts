@@ -3,9 +3,9 @@ import { persistentAtom, persistentMap } from '@nanostores/persistent';
 import { getInternalFramework } from '@utils/framework';
 
 export type FrameworkContext = {
-    useFunctionalReact: boolean;
-    useTypescript: boolean;
-    useVue3: boolean;
+    useFunctionalReact: string;
+    useTypescript: string;
+    useVue3: string;
 };
 
 const LOCALSTORAGE_PREFIX = 'documentation';
@@ -13,12 +13,13 @@ const DEFAULT_INTERNAL_FRAMEWORK: InternalFramework = 'vanilla';
 
 export const $internalFramework = persistentAtom(
     `${LOCALSTORAGE_PREFIX}:internalFramework`,
-    DEFAULT_INTERNAL_FRAMEWORK
+    DEFAULT_INTERNAL_FRAMEWORK,
+    { listen: false }
 );
 export const $frameworkContext = persistentMap<FrameworkContext>(`${LOCALSTORAGE_PREFIX}:context`, {
-    useFunctionalReact: true,
-    useTypescript: false,
-    useVue3: false,
+    useFunctionalReact: 'true',
+    useTypescript: 'false',
+    useVue3: 'false',
 });
 
 /**
@@ -27,22 +28,22 @@ export const $frameworkContext = persistentMap<FrameworkContext>(`${LOCALSTORAGE
 export const setInternalFramework = (internalFramework: InternalFramework) => {
     // Update framework context
     if (internalFramework === 'vanilla') {
-        $frameworkContext.setKey('useTypescript', false);
+        $frameworkContext.setKey('useTypescript', 'false');
     } else if (internalFramework === 'typescript') {
-        $frameworkContext.setKey('useTypescript', true);
+        $frameworkContext.setKey('useTypescript', 'true');
     } else if (internalFramework === 'react') {
-        $frameworkContext.setKey('useFunctionalReact', false);
-        $frameworkContext.setKey('useTypescript', false);
+        $frameworkContext.setKey('useFunctionalReact', 'false');
+        $frameworkContext.setKey('useTypescript', 'false');
     } else if (internalFramework === 'reactFunctional') {
-        $frameworkContext.setKey('useFunctionalReact', true);
-        $frameworkContext.setKey('useTypescript', false);
+        $frameworkContext.setKey('useFunctionalReact', 'true');
+        $frameworkContext.setKey('useTypescript', 'false');
     } else if (internalFramework === 'reactFunctionalTs') {
-        $frameworkContext.setKey('useFunctionalReact', true);
-        $frameworkContext.setKey('useTypescript', true);
+        $frameworkContext.setKey('useFunctionalReact', 'true');
+        $frameworkContext.setKey('useTypescript', 'true');
     } else if (internalFramework === 'vue') {
-        $frameworkContext.setKey('useVue3', false);
+        $frameworkContext.setKey('useVue3', 'false');
     } else if (internalFramework === 'vue3') {
-        $frameworkContext.setKey('useVue3', true);
+        $frameworkContext.setKey('useVue3', 'true');
     }
 
     $internalFramework.set(internalFramework);
