@@ -20,17 +20,16 @@ const options: AgChartOptions = {
           },
         },
         textAlign: 'left',
-        fill: '#333',
-        stroke: '#333',
-        strokeWidth: 1,
+        fill: '#2c3e50',
+        strokeWidth: 0,
         padding: 2,
       },
       tile: {
         label: {
-          color: '#333',
+          color: '#34495e',
         },
         secondaryLabel: {
-          color: '#333',
+          color: '#34495e',
           formatter(params) {
             return params.value.toFixed(2) + '%';
           },
@@ -40,15 +39,14 @@ const options: AgChartOptions = {
       tileSpacing: 1,
       highlightStyle: {
         group: {
-          fill: '#888',
-          stroke: '#888',
+          fill: '#34495e',
         },
         tile: {
           label: {
-            color: '#333',
+            color: '#34495e',
           },
           secondaryLabel: {
-            color: '#333',
+            color: '#34495e',
           },
         },
       },
