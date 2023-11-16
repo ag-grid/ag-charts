@@ -2,7 +2,7 @@ import type { _ModuleSupport } from 'ag-charts-community';
 import { _Theme } from 'ag-charts-community';
 
 import { BULLET_DEFAULTS } from './bulletDefaults';
-import { BulletSeries } from './bulletSeries';
+import { BulletColorRange, BulletSeries } from './bulletSeries';
 import { BULLET_SERIES_THEME } from './bulletThemes';
 
 const { CARTESIAN_AXIS_POSITIONS } = _Theme;
@@ -13,6 +13,7 @@ export const BulletModule: _ModuleSupport.SeriesModule<'bullet'> = {
     packageType: 'enterprise',
     chartTypes: ['cartesian'],
     identifier: 'bullet',
+    optionConstructors: { 'series[].colorRanges': BulletColorRange },
     instanceConstructor: BulletSeries,
     seriesDefaults: BULLET_DEFAULTS,
     themeTemplate: BULLET_SERIES_THEME,
