@@ -11,6 +11,7 @@ import IssueTypeCellRenderer from '@components/grid/IssueTypeRenderer';
 import PaddingCellRenderer from '@components/grid/PaddingCellRenderer';
 import { Icon } from '@components/icon/Icon';
 import ReleaseVersionNotes from '@components/release-notes/ReleaseVersionNotes';
+import { useDarkmode } from '@utils/hooks/useDarkmode';
 import classnames from 'classnames';
 import { createBrowserHistory } from 'history';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -68,6 +69,8 @@ export const Changelog = () => {
             gridApi.onFilterChanged();
         }
     }, [gridApi, fixVersion, versions]);
+
+    const darkMode = useDarkmode();
 
     useEffect(() => {
         fetch(`/changelog/changelog.json`)
@@ -364,7 +367,7 @@ export const Changelog = () => {
                         onFirstDataRendered={() => {
                             applyFixVersionFilter();
                         }}
-                        theme="ag-theme-alpine"
+                        theme={darkMode ? 'ag-theme-alpine-dark' : 'ag-theme-alpine'}
                     />
                 </div>
             )}
