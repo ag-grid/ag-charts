@@ -35,6 +35,7 @@
     display: table; // remove after table > div refactor
     position: relative;
     table-layout: fixed;
+    width: 100%;
 
     @container (max-width: #{$breakpoint-table-small}) {
         display: block;
