@@ -23,6 +23,7 @@ const menuItemBase = {
      */
     url: z.string().url().optional(),
     icon: z.enum(Object.keys(ICON_MAP) as any).optional(),
+    cssClass: z.string().optional(),
     frameworks: z.array(z.enum(FRAMEWORKS as any)).optional(),
     isEnterprise: z.boolean().optional(),
 };
@@ -45,6 +46,9 @@ const level1MenuItem = z.object({
 const menu = defineCollection({
     type: 'data',
     schema: z.object({
+        header: z.object({
+            items: z.array(level1MenuItem),
+        }),
         api: z.object({
             items: z.array(level1MenuItem),
         }),
