@@ -1,27 +1,13 @@
 import { AgBarSeriesOptions, AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 
+import { getData } from './data';
+
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
-    data: [
-        {
-            month: 'Jun',
-            value1: 50,
-            hats_made: 40,
-        },
-        {
-            month: 'Jul',
-            value1: 70,
-            hats_made: 50,
-        },
-        {
-            month: 'Aug',
-            value1: 60,
-            hats_made: 30,
-        },
-    ],
+    data: getData(),
     series: [
-        { type: 'bar', xKey: 'month', stacked: true, yKey: 'value1' },
-        { type: 'bar', xKey: 'month', stacked: true, yKey: 'hats_made' },
+        { type: 'bar', xKey: 'month', stacked: true, yKey: 'value1', yName: 'Sweaters Made' },
+        { type: 'bar', xKey: 'month', stacked: true, yKey: 'hats_made', yName: 'Hats Made' },
     ],
 };
 

@@ -28,5 +28,5 @@ export const RangeBarModule: _ModuleSupport.SeriesModule<'range-bar'> = {
 
     groupable: true,
 
-    swapDefaultAxesCondition: ({ direction }) => direction !== 'horizontal',
+    swapDefaultAxesCondition: ({ direction }) => direction === 'horizontal',
 };

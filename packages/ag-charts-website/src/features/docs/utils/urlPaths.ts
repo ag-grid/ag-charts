@@ -10,7 +10,7 @@ export function getFrameworkFromPath(path: string) {
 }
 
 export const getExamplePageUrl = ({ framework, path }: { framework: Framework; path: string }) => {
-    return pathJoin({ path: [SITE_BASE_URL, framework, path], addTrailingSlash: true });
+    return pathJoin(SITE_BASE_URL, framework, path);
 };
 
 /**
@@ -25,10 +25,7 @@ export const getExampleUrl = ({
     pageName: string;
     exampleName: string;
 }) => {
-    return pathJoin({
-        path: [SITE_BASE_URL, internalFramework, pageName, 'examples', exampleName],
-        addTrailingSlash: true,
-    });
+    return pathJoin(SITE_BASE_URL, internalFramework, pageName, 'examples', exampleName);
 };
 
 /**
@@ -43,7 +40,7 @@ export const getExampleWithRelativePathUrl = ({
     pageName: string;
     exampleName: string;
 }) => {
-    return pathJoin({ path: [SITE_BASE_URL, internalFramework, pageName, 'examples', exampleName, 'relative-path'] });
+    return pathJoin(SITE_BASE_URL, internalFramework, pageName, 'examples', exampleName, 'relative-path');
 };
 
 /**
@@ -58,16 +55,14 @@ export const getExampleContentsUrl = ({
     pageName: string;
     exampleName: string;
 }) => {
-    return pathJoin({
-        path: [
-            getExampleUrl({
-                internalFramework,
-                pageName,
-                exampleName,
-            }),
-            'contents.json',
-        ],
-    });
+    return pathJoin(
+        getExampleUrl({
+            internalFramework,
+            pageName,
+            exampleName,
+        }),
+        'contents.json'
+    );
 };
 
 /**
@@ -84,16 +79,14 @@ export const getExampleFileUrl = ({
     exampleName: string;
     fileName: string;
 }) => {
-    return pathJoin({
-        path: [
-            getExampleUrl({
-                internalFramework,
-                pageName,
-                exampleName,
-            }),
-            fileName,
-        ],
-    });
+    return pathJoin(
+        getExampleUrl({
+            internalFramework,
+            pageName,
+            exampleName,
+        }),
+        fileName
+    );
 };
 
 /**
@@ -101,5 +94,5 @@ export const getExampleFileUrl = ({
  */
 export const getImageUrl = ({ pageName, imageName }: { pageName: string; imageName: string }) => {
     // Go up a directory to account for the framework path in the url
-    return pathJoin({ path: [SITE_BASE_URL, 'docs', pageName, imageName] });
+    return pathJoin(SITE_BASE_URL, 'docs', pageName, imageName);
 };

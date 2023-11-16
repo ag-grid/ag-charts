@@ -19,7 +19,6 @@ export default defineConfig({
     site: PUBLIC_SITE_URL,
     base: PUBLIC_BASE_URL,
     outDir: OUTPUT_DIR,
-    trailingSlash: 'always',
     vite: {
         plugins: [svgr(), agHotModuleReload()],
         resolve: {
