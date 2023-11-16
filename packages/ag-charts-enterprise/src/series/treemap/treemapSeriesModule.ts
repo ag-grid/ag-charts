@@ -15,7 +15,6 @@ export const TreemapSeriesModule: _ModuleSupport.SeriesModule<'treemap'> = {
     seriesDefaults: {},
     themeTemplate: {
         __extends__: EXTENDS_SERIES_DEFAULTS,
-        colorRange: ['#cb4b3f', '#6acb64'],
         group: {
             label: {
                 enabled: true,
@@ -82,8 +81,10 @@ export const TreemapSeriesModule: _ModuleSupport.SeriesModule<'treemap'> = {
             },
         },
     },
-    paletteFactory: ({ takeColors, colorsCount }) => {
+    paletteFactory: ({ takeColors, colorsCount, themeTemplateParameters }) => {
+        const { properties } = themeTemplateParameters;
         const { fills, strokes } = takeColors(colorsCount);
-        return { fills, strokes };
+        const defaultColorRange = properties.get(_Theme.DEFAULT_DIVERGING_SERIES_COLOUR_RANGE);
+        return { fills, strokes, colorRange: defaultColorRange };
     },
 };
