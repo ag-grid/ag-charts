@@ -65,6 +65,23 @@ class SunburstSeriesTileHighlightStyle extends HighlightStyle {
     strokeOpacity?: number = undefined;
 }
 
+enum CircleQuarter {
+    TopLeft = 0b0001,
+    TopRight = 0b0010,
+    BottomRight = 0b0100,
+    BottomLeft = 0b1000,
+    Top = 0b0011,
+    Right = 0b0110,
+    Bottom = 0b1100,
+    Left = 0b1001,
+}
+
+enum LabelPlacement {
+    CenterCircle,
+    Parallel,
+    Perpendicular,
+}
+
 enum TextNodeTag {
     Primary,
     Secondary,
@@ -308,29 +325,43 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
             const { start: startAngle, end: endAngle } = angleData;
 
             const sizeFittingHeight = (height: number) => {
-                if (depth > 0 || node.parent?.sumSize !== node.sumSize) {
-                    // Wedge - either leaf node or one of the root nodes in a hierarchy with multiple roots
-                    const availableWidthUntilItHitsTheOuterRadius =
-                        2 * Math.sqrt(outerRadius ** 2 - (innerRadius + height) ** 2);
-                    const deltaAngle = endAngle - startAngle;
-                    const availableWidthUntilItHitsTheStraightEdges =
-                        deltaAngle < Math.PI ? 2 * innerRadius * Math.tan(deltaAngle * 0.5) : Infinity;
-                    const width = Math.min(
-                        availableWidthUntilItHitsTheOuterRadius,
-                        availableWidthUntilItHitsTheStraightEdges
-                    );
-                    return { width, height };
-                } else if (height > outerRadius) {
-                    // Circle in center - text too big
-                    return { width: 0, height: 0 };
-                } else {
-                    // Circle in center
+                const isCenterCircle = depth === 0 && node.parent?.sumSize === node.sumSize;
+                if (isCenterCircle) {
                     const width = 2 * Math.sqrt(outerRadius ** 2 - (height * 0.5) ** 2);
-                    return { width, height };
+                    return { width, height, meta: LabelPlacement.CenterCircle };
                 }
+
+                const parallelHeight = height;
+                const availableWidthUntilItHitsTheOuterRadius =
+                    2 * Math.sqrt(outerRadius ** 2 - (innerRadius + parallelHeight) ** 2);
+                const deltaAngle = endAngle - startAngle;
+                const availableWidthUntilItHitsTheStraightEdges =
+                    deltaAngle < Math.PI ? 2 * innerRadius * Math.tan(deltaAngle * 0.5) : Infinity;
+                const parallelWidth = Math.min(
+                    availableWidthUntilItHitsTheOuterRadius,
+                    availableWidthUntilItHitsTheStraightEdges
+                );
+
+                let perpendicularHeight: number;
+                let perpendicularWidth: number;
+                if (depth === 0) {
+                    // Wedge from center - maximize the width of a box with fixed height
+                    perpendicularHeight = height;
+                    perpendicularWidth =
+                        Math.sqrt(outerRadius ** 2 - (perpendicularHeight / 2) ** 2) -
+                        height / (2 * Math.tan(deltaAngle * 0.5));
+                } else {
+                    // Outer wedge - fit the height to the sector, then fit the width
+                    perpendicularHeight = 2 * innerRadius * Math.tan(deltaAngle * 0.5);
+                    perpendicularWidth = Math.sqrt(outerRadius ** 2 - (perpendicularHeight / 2) ** 2) - innerRadius;
+                }
+
+                return parallelWidth >= perpendicularWidth
+                    ? { width: parallelWidth, height: parallelHeight, meta: LabelPlacement.Parallel }
+                    : { width: perpendicularWidth, height: perpendicularHeight, meta: LabelPlacement.Perpendicular };
             };
 
-            const formatting = formatLabels(
+            const formatting = formatLabels<LabelPlacement, AgSunburstSeriesLabelFormatterParams>(
                 labelDatum?.label,
                 this.label,
                 labelDatum?.secondaryLabel,
@@ -341,18 +372,39 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
 
             if (formatting == null) return undefined;
 
-            const { width, height, label, secondaryLabel } = formatting;
+            const { width, height, meta: labelPlacement, label, secondaryLabel } = formatting;
 
             const theta = angleOffset + (angleData.start + angleData.end) / 2;
-            const bottomHalf = Math.sin(theta) >= 0;
+            const top = Math.sin(theta) >= 0;
+            const right = Math.cos(theta) >= 0;
+            const circleQuarter =
+                (top ? CircleQuarter.Top : CircleQuarter.Bottom) & (right ? CircleQuarter.Right : CircleQuarter.Left);
 
-            const opticalCentering = 0.58; // Between 0 and 1 - there's no maths behind this, just what visually looks good
-            const insetOuterRadius = outerRadius - baseInset;
-            const idealRadius = insetOuterRadius - (radiusScale - height) * opticalCentering;
-            const maximumRadius = Math.sqrt((insetOuterRadius - padding) ** 2 - (width / 2) ** 2);
-            const radius = Math.min(idealRadius, maximumRadius);
+            let radius: number;
+            switch (labelPlacement) {
+                case LabelPlacement.CenterCircle:
+                    radius = 0;
+                    break;
+                case LabelPlacement.Parallel: {
+                    const opticalCentering = 0.58; // Between 0 and 1 - there's no maths behind this, just what visually looks good
+                    const insetOuterRadius = outerRadius - baseInset;
+                    const idealRadius = insetOuterRadius - (radiusScale - height) * opticalCentering;
+                    const maximumRadius = Math.sqrt((insetOuterRadius - padding) ** 2 - (width / 2) ** 2);
+                    radius = Math.min(idealRadius, maximumRadius);
+                    break;
+                }
+                case LabelPlacement.Perpendicular:
+                    if (depth === 0) {
+                        const minimumRadius = height / (2 * Math.tan((endAngle - startAngle) * 0.5)) + width * 0.5;
+                        const maximumRadius = Math.sqrt(outerRadius ** 2 - (height * 0.5) ** 2) - width * 0.5;
+                        radius = (minimumRadius + maximumRadius) * 0.5;
+                    } else {
+                        radius = (innerRadius + outerRadius) * 0.5;
+                    }
+                    break;
+            }
 
-            return { width, height, bottomHalf, radius, theta, label, secondaryLabel };
+            return { width, height, labelPlacement, circleQuarter, radius, theta, label, secondaryLabel };
         });
 
         const updateText = (
@@ -370,7 +422,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
                 return;
             }
 
-            const { height, bottomHalf, radius, theta } = meta;
+            const { height, labelPlacement, circleQuarter, radius, theta } = meta;
 
             let highlightedColor: string | undefined;
             if (highlighted) {
@@ -387,21 +439,38 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
             text.fontWeight = labelStyle.fontWeight;
             text.fill = highlightedColor ?? labelStyle.color;
 
-            const isCenterInCircle = node.depth === 0 && node.sumSize === node.parent?.sumSize;
-            if (isCenterInCircle) {
-                text.textAlign = 'center';
-                text.textBaseline = 'top';
-                text.translationX = 0;
-                text.translationY = (tag === TextNodeTag.Primary ? 0 : height - label.height) - height * 0.5;
-                text.rotation = 0;
-            } else {
-                const translationRadius =
-                    (tag === TextNodeTag.Primary) === !bottomHalf ? radius : radius - (height - label.height);
-                text.textAlign = 'center';
-                text.textBaseline = bottomHalf ? 'bottom' : 'top';
-                text.translationX = Math.cos(theta) * translationRadius;
-                text.translationY = Math.sin(theta) * translationRadius;
-                text.rotation = bottomHalf ? theta - Math.PI * 0.5 : theta + Math.PI * 0.5;
+            switch (labelPlacement) {
+                case LabelPlacement.CenterCircle:
+                    text.textAlign = 'center';
+                    text.textBaseline = 'top';
+                    text.translationX = 0;
+                    text.translationY = (tag === TextNodeTag.Primary ? 0 : height - label.height) - height * 0.5;
+                    text.rotation = 0;
+                    break;
+                case LabelPlacement.Parallel: {
+                    const topHalf = (circleQuarter & CircleQuarter.Top) !== 0;
+                    const translationRadius =
+                        (tag === TextNodeTag.Primary) === !topHalf ? radius : radius - (height - label.height);
+                    text.textAlign = 'center';
+                    text.textBaseline = topHalf ? 'bottom' : 'top';
+                    text.translationX = Math.cos(theta) * translationRadius;
+                    text.translationY = Math.sin(theta) * translationRadius;
+                    text.rotation = topHalf ? theta - Math.PI * 0.5 : theta + Math.PI * 0.5;
+                    break;
+                }
+                case LabelPlacement.Perpendicular: {
+                    const rightHalf = (circleQuarter & CircleQuarter.Right) !== 0;
+                    const translation =
+                        (tag === TextNodeTag.Primary) === !rightHalf
+                            ? (height - label.height) * 0.5
+                            : (label.height - height) * 0.5;
+                    text.textAlign = 'center';
+                    text.textBaseline = 'middle';
+                    text.translationX = Math.cos(theta) * radius + Math.cos(theta + Math.PI / 2) * translation;
+                    text.translationY = Math.sin(theta) * radius + Math.sin(theta + Math.PI / 2) * translation;
+                    text.rotation = rightHalf ? theta : theta + Math.PI;
+                    break;
+                }
             }
             text.visible = true;
         };

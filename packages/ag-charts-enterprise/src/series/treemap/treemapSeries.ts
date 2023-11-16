@@ -658,13 +658,18 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
             if (bbox == null || labelDatum == null) return undefined;
 
             if (children.length === 0) {
+                const layout = {
+                    width: bbox.width,
+                    height: bbox.height,
+                    meta: null,
+                };
                 const formatting = formatLabels(
                     labelDatum?.label,
                     this.tile.label,
                     labelDatum?.secondaryLabel,
                     this.tile.secondaryLabel,
                     { spacing: tile.label.spacing, padding: tile.padding },
-                    () => bbox
+                    () => layout
                 );
                 if (formatting == null) return undefined;
 

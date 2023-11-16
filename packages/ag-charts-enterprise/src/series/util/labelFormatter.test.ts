@@ -108,13 +108,13 @@ describe('treeMapLabelFormatter', () => {
                 return { width: this.fontSize, height: this.fontSize } as _Scene.BBox;
             });
 
-            const format = formatSingleLabel(
+            const [format] = formatSingleLabel(
                 'Hello',
                 // @ts-expect-error Fix typechecking here
                 { fontSize: 20, minimumFontSize: 10, wrapping: 'never', overflow: 'never' },
                 { padding: 10, spacing: 10 },
                 () => ({ width: 1000, height: 1000 })
-            );
+            )!;
             expect(format).toEqual({
                 text: 'Hello',
                 fontSize: 20,
@@ -129,13 +129,13 @@ describe('treeMapLabelFormatter', () => {
                 return { width: this.fontSize, height: this.fontSize } as _Scene.BBox;
             });
 
-            const format = formatSingleLabel(
+            const [format] = formatSingleLabel(
                 'Hello',
                 // @ts-expect-error Fix typechecking here
                 { fontSize: 20, minimumFontSize: 10, wrapping: 'never', overflow: 'never' },
                 { padding: 10, spacing: 10 },
                 () => ({ width: 35, height: 35 })
-            );
+            )!;
             expect(format).toEqual({
                 text: 'Hello',
                 fontSize: 15,
