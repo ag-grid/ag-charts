@@ -1,6 +1,7 @@
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 import type { AgBarSeriesStyle } from './barOptions';
+import type { LineDashOptions, StrokeOptions } from './commonOptions';
 
 interface BulletSeriesKeysAndNames {
     /** The key to use to retrieve the gauge value from the data. */
@@ -19,7 +20,7 @@ export interface AgBulletSeriesTooltipRendererParams<TDatum = any>
 
 export interface AgBulletSeriesStyle extends AgBarSeriesStyle {}
 
-export interface AgBulletSeriesTargetStyle extends AgBulletSeriesStyle {
+export interface AgBulletSeriesTargetStyle extends StrokeOptions, LineDashOptions {
     /* Length of target line relative to the width/height of the series area. */
     lengthRatio?: number;
 }
