@@ -141,13 +141,15 @@ export function isDefaultAxisSwapNeeded(opts: AgChartOptions) {
 
     for (const series of opts.series ?? []) {
         const { type = 'line' } = series;
-        const isDefaultAxisSwapped = SWAP_DEFAULT_AXES_CONDITIONS[type]?.(series) ?? false;
+        const isDefaultAxisSwapped = SWAP_DEFAULT_AXES_CONDITIONS[type]?.(series);
 
-        if (result != null && result != isDefaultAxisSwapped) {
-            throw new Error('AG Charts - The provided series have incompatible directions');
+        if (isDefaultAxisSwapped != null) {
+            if (result != null && result != isDefaultAxisSwapped) {
+                throw new Error('AG Charts - The provided series have incompatible directions');
+            }
+
+            result = isDefaultAxisSwapped;
         }
-
-        result = isDefaultAxisSwapped;
     }
 
     return result;
