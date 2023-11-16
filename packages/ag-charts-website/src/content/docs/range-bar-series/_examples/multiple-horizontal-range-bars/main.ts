@@ -47,7 +47,7 @@ const options: AgChartOptions = {
             type: 'bubble',
             yKey: 'smartphone',
             xKey: 'profitMargin',
-            xName: 'Profil Margin',
+            xName: 'Profit Margin',
             yName: 'Profit Margin %',
             sizeKey: 'profitMargin',
             labelKey: 'profitMargin',
