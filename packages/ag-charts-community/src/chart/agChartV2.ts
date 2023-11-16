@@ -12,6 +12,7 @@ import type {
     ImageDataUrlOptions,
 } from '../options/agChartOptions';
 import { Debug } from '../util/debug';
+import { createDeprecationWarning } from '../util/deprecation';
 import { jsonApply, jsonDiff, jsonMerge } from '../util/json';
 import { Logger } from '../util/logger';
 import type { TypedEventListener } from '../util/observable';
@@ -133,7 +134,37 @@ export abstract class AgCharts {
 }
 
 /** @deprecated use AgCharts instead */
-export const AgChart = AgCharts;
+export class AgChart {
+    private static warnDeprecated(memberName: string) {
+        const warnDeprecated = createDeprecationWarning();
+        warnDeprecated(`AgChart.${memberName}`, `Use AgCharts.${memberName} instead`);
+    }
+
+    public static create(options: AgChartOptions): AgChartInstance {
+        AgChart.warnDeprecated('create');
+        return AgCharts.create(options);
+    }
+
+    public static update(chart: AgChartInstance, options: AgChartOptions) {
+        AgChart.warnDeprecated('update');
+        return AgCharts.update(chart, options);
+    }
+
+    public static updateDelta(chart: AgChartInstance, deltaOptions: DeepPartial<AgChartOptions>) {
+        AgChart.warnDeprecated('updateDelta');
+        return AgCharts.updateDelta(chart, deltaOptions);
+    }
+
+    public static download(chart: AgChartInstance, options?: DownloadOptions) {
+        AgChart.warnDeprecated('download');
+        return AgCharts.download(chart, options);
+    }
+
+    public static getImageDataURL(chart: AgChartInstance, options?: ImageDataUrlOptions): Promise<string> {
+        AgChart.warnDeprecated('getImageDataURL');
+        return AgCharts.getImageDataURL(chart, options);
+    }
+}
 
 class AgChartsInternal {
     static initialised = false;
