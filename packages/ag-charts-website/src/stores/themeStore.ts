@@ -15,7 +15,9 @@ export type ThemeName =
 const LOCALSTORAGE_PREFIX = 'documentation';
 const DEFAULT_INTERNAL_THEME: ThemeName = 'ag-default';
 
-export const $theme = persistentAtom<ThemeName>(`${LOCALSTORAGE_PREFIX}:theme`, DEFAULT_INTERNAL_THEME);
+export const $theme = persistentAtom<ThemeName>(`${LOCALSTORAGE_PREFIX}:theme`, DEFAULT_INTERNAL_THEME, {
+    listen: false,
+});
 
 export const setTheme = (themeName: ThemeName) => {
     // Update theme

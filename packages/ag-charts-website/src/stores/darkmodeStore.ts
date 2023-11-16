@@ -10,7 +10,7 @@ const isOSDarkmode = (
     window.matchMedia('(prefers-color-scheme: dark)').matches
 ).toString();
 
-export const $darkmode = persistentAtom(`${LOCALSTORAGE_PREFIX}:darkmode`, isOSDarkmode);
+export const $darkmode = persistentAtom(`${LOCALSTORAGE_PREFIX}:darkmode`, isOSDarkmode, { listen: false });
 
 export const setDarkmode = (darkmode: boolean) => {
     $darkmode.set(darkmode);
