@@ -1,11 +1,9 @@
-import { _Scene } from 'ag-charts-community';
-
+import { Group } from '../../../scene/group';
+import { RedrawType, type RenderContext } from '../../../scene/node';
 import { RangeHandle } from './rangeHandle';
 import { RangeMask } from './rangeMask';
 
-const { RedrawType } = _Scene;
-
-export class RangeSelector extends _Scene.Group {
+export class RangeSelector extends Group {
     static override className = 'Range';
 
     private static defaults = {
@@ -120,7 +118,7 @@ export class RangeSelector extends _Scene.Group {
         return this.mask.computeVisibleRangeBBox();
     }
 
-    override render(renderCtx: _Scene.RenderContext) {
+    override render(renderCtx: RenderContext) {
         const { ctx, forceRender, stats } = renderCtx;
 
         if (this.dirty === RedrawType.NONE && !forceRender) {

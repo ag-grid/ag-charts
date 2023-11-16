@@ -3,7 +3,7 @@ import {
     AgCartesianSeriesTooltipRendererParams,
     AgCharts,
     AgSeriesTooltip,
-} from 'ag-charts-enterprise';
+} from 'ag-charts-community';
 
 import { getData } from './data';
 

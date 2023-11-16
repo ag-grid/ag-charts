@@ -1,20 +1,17 @@
-import { type _ModuleSupport, _Theme } from 'ag-charts-community';
-
+import type { SeriesModule } from '../../../module/coreModules';
+import { CARTESIAN_AXIS_POSITIONS, CARTESIAN_AXIS_TYPES } from '../../themes/constants';
+import {
+    DEFAULT_FONT_FAMILY,
+    DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
+    DEFAULT_SHADOW_COLOUR,
+    EXTENDS_SERIES_DEFAULTS,
+} from '../../themes/symbols';
 import { HistogramSeries } from './histogramSeries';
 
-const {
-    EXTENDS_SERIES_DEFAULTS,
-    DEFAULT_FONT_FAMILY,
-    DEFAULT_SHADOW_COLOUR,
-    DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
-    CARTESIAN_AXIS_TYPES,
-    CARTESIAN_AXIS_POSITIONS,
-} = _Theme;
-
-export const HistogramSeriesModule: _ModuleSupport.SeriesModule<'histogram'> = {
+export const HistogramSeriesModule: SeriesModule<'histogram'> = {
     type: 'series',
     optionsKey: 'series[]',
-    packageType: 'enterprise',
+    packageType: 'community',
     chartTypes: ['cartesian'],
 
     identifier: 'histogram',

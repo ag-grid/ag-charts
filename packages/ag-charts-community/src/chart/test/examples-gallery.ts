@@ -3,7 +3,7 @@ import type { Chart } from '../chart';
 import * as examples from './examples';
 import { cartesianChartAssertions, hierarchyChartAssertions, polarChartAssertions, repeat } from './utils';
 
-type TestCase = {
+export type TestCase = {
     options: AgChartOptions;
     enterprise: boolean;
     assertions: (chart: Chart) => Promise<void>;

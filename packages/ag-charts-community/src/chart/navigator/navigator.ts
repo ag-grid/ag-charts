@@ -1,18 +1,20 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
-
+import type { ModuleInstance } from '../../module/baseModule';
+import { BaseModuleInstance } from '../../module/module';
+import type { ModuleContext } from '../../module/moduleContext';
+import { BBox } from '../../scene/bbox';
+import { ActionOnSet } from '../../util/proxy';
+import { BOOLEAN, NUMBER, Validate } from '../../util/validation';
+import type { LayoutCompleteEvent, LayoutContext } from '../layout/layoutService';
 import { NavigatorHandle } from './navigatorHandle';
 import { NavigatorMask } from './navigatorMask';
 import { RangeSelector } from './shapes/rangeSelector';
-
-const { BBox } = _Scene;
-const { BOOLEAN, NUMBER, ActionOnSet, Validate } = _ModuleSupport;
 
 interface Offset {
     offsetX: number;
     offsetY: number;
 }
 
-export class Navigator extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
+export class Navigator extends BaseModuleInstance implements ModuleInstance {
     private readonly rs = new RangeSelector();
 
     // Wrappers to allow option application to the scene graph nodes.
@@ -90,7 +92,7 @@ export class Navigator extends _ModuleSupport.BaseModuleInstance implements _Mod
         }
     }
 
-    constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
+    constructor(private readonly ctx: ModuleContext) {
         super();
 
         this.rs.onRangeChange = () =>
@@ -116,7 +118,7 @@ export class Navigator extends _ModuleSupport.BaseModuleInstance implements _Mod
         this.updateGroupVisibility();
     }
 
-    private layout({ shrinkRect }: _ModuleSupport.LayoutContext) {
+    private layout({ shrinkRect }: LayoutContext) {
         if (this.enabled) {
             const navigatorTotalHeight = this.rs.height + this.margin;
             shrinkRect.shrink(navigatorTotalHeight, 'bottom');
@@ -126,7 +128,7 @@ export class Navigator extends _ModuleSupport.BaseModuleInstance implements _Mod
         return { shrinkRect };
     }
 
-    private layoutComplete({ series: { rect, visible } }: _ModuleSupport.LayoutCompleteEvent) {
+    private layoutComplete({ series: { rect, visible } }: LayoutCompleteEvent) {
         if (this.enabled && visible) {
             this.rs.x = rect.x;
             this.rs.width = rect.width;

@@ -1,48 +1,42 @@
-import type { AgHistogramSeriesLabelFormatterParams } from 'ag-charts-community';
+import type { ModuleContext } from '../../../module/moduleContext';
+import { fromToMotion } from '../../../motion/fromToMotion';
+import type {
+    AgHistogramSeriesLabelFormatterParams,
+    AgHistogramSeriesOptions,
+    AgHistogramSeriesTooltipRendererParams,
+    AgTooltipRendererResult,
+} from '../../../options/agChartOptions';
+import type { FontStyle, FontWeight } from '../../../options/chart/types';
+import type { DropShadow } from '../../../scene/dropShadow';
+import { PointerEvents } from '../../../scene/node';
+import type { Selection } from '../../../scene/selection';
+import { Rect } from '../../../scene/shape/rect';
+import type { Text } from '../../../scene/shape/text';
+import { sanitizeHtml, tickStep, ticks } from '../../../sparklines-util';
 import {
-    type AgHistogramSeriesOptions,
-    type AgHistogramSeriesTooltipRendererParams,
-    type AgTooltipRendererResult,
-    type FontStyle,
-    type FontWeight,
-    _ModuleSupport,
-    _Scene,
-    _Util,
-} from 'ag-charts-community';
-
-const {
-    predicateWithMessage,
-    Validate,
-    groupCount,
-    groupSum,
-    groupAverage,
-    area,
     BOOLEAN,
-    CartesianSeries,
-    ChartAxisDirection,
     NUMBER,
     OPT_ARRAY,
     OPT_COLOR_STRING,
     OPT_LINE_DASH,
     OPT_NUMBER,
     OPT_STRING,
-    SORT_DOMAIN_GROUPS,
-    Series,
-    SeriesNodePickMode,
-    SeriesTooltip,
-    createDatumId,
-    diff,
-    fixNumericExtent,
-    keyProperty,
-    valueProperty,
-    prepareBarAnimationFunctions,
-    collapsedStartingBarPosition,
-    resetBarSelectionsFn,
-    resetLabelFn,
-    seriesLabelFadeInAnimation,
-} = _ModuleSupport;
-const { Rect, Label, PointerEvents, motion } = _Scene;
-const { ticks, sanitizeHtml, tickStep } = _Util;
+    Validate,
+    predicateWithMessage,
+} from '../../../util/validation';
+import { ChartAxisDirection } from '../../chartAxisDirection';
+import { area, groupAverage, groupCount, groupSum } from '../../data/aggregateFunctions';
+import type { DataController } from '../../data/dataController';
+import type { PropertyDefinition } from '../../data/dataModel';
+import { type AggregatePropertyDefinition, type GroupByFn, fixNumericExtent } from '../../data/dataModel';
+import { SORT_DOMAIN_GROUPS, createDatumId, diff } from '../../data/processors';
+import { Label } from '../../label';
+import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
+import { Series, SeriesNodePickMode, keyProperty, valueProperty } from '../series';
+import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
+import { SeriesTooltip } from '../seriesTooltip';
+import { collapsedStartingBarPosition, prepareBarAnimationFunctions, resetBarSelectionsFn } from './barUtil';
+import { type CartesianAnimationData, CartesianSeries, type CartesianSeriesNodeDatum } from './cartesianSeries';
 
 const HISTOGRAM_AGGREGATIONS = ['count', 'sum', 'mean'];
 const HISTOGRAM_AGGREGATION = predicateWithMessage(
@@ -57,7 +51,7 @@ enum HistogramSeriesNodeTag {
 
 const defaultBinCount = 10;
 
-interface HistogramNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
+interface HistogramNodeDatum extends CartesianSeriesNodeDatum {
     readonly x: number;
     readonly y: number;
     readonly width: number;
@@ -82,9 +76,9 @@ interface HistogramNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
 
 type HistogramAggregation = NonNullable<AgHistogramSeriesOptions['aggregation']>;
 
-type HistogramAnimationData = _ModuleSupport.CartesianAnimationData<_Scene.Rect, HistogramNodeDatum>;
+type HistogramAnimationData = CartesianAnimationData<Rect, HistogramNodeDatum>;
 
-export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeDatum> {
+export class HistogramSeries extends CartesianSeries<Rect, HistogramNodeDatum> {
     static className = 'HistogramSeries';
     static type = 'histogram' as const;
 
@@ -110,7 +104,7 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
     @Validate(NUMBER(0))
     lineDashOffset: number = 0;
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+    constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
@@ -149,7 +143,7 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
     @Validate(NUMBER(0))
     strokeWidth: number = 1;
 
-    shadow?: _Scene.DropShadow = undefined;
+    shadow?: DropShadow = undefined;
     calculatedBins: [number, number][] = [];
 
     // During processData phase, used to unify different ways of the user specifying
@@ -207,12 +201,12 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
         };
     }
 
-    override async processData(dataController: _ModuleSupport.DataController) {
+    override async processData(dataController: DataController) {
         const { xKey, yKey, data, areaPlot, aggregation } = this;
 
-        const props: _ModuleSupport.PropertyDefinition<any>[] = [keyProperty(this, xKey, true), SORT_DOMAIN_GROUPS];
+        const props: PropertyDefinition<any>[] = [keyProperty(this, xKey, true), SORT_DOMAIN_GROUPS];
         if (yKey) {
-            let aggProp: _ModuleSupport.AggregatePropertyDefinition<any, any, any> = groupCount(this, 'groupCount');
+            let aggProp: AggregatePropertyDefinition<any, any, any> = groupCount(this, 'groupCount');
 
             if (aggregation === 'count') {
                 // Nothing to do.
@@ -234,7 +228,7 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
             props.push(aggProp);
         }
 
-        const groupByFn: _ModuleSupport.GroupByFn = (dataSet) => {
+        const groupByFn: GroupByFn = (dataSet) => {
             const xExtent = fixNumericExtent(dataSet.domain.keys[0]);
             if (xExtent.length === 0) {
                 // No buckets can be calculated.
@@ -277,7 +271,7 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
         this.animationState.transition('updateData');
     }
 
-    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: ChartAxisDirection): any[] {
         const { processedData, dataModel } = this;
 
         if (!processedData || !dataModel || !this.calculatedBins.length) return [];
@@ -411,7 +405,7 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
 
     protected override async updateDatumSelection(opts: {
         nodeData: HistogramNodeDatum[];
-        datumSelection: _Scene.Selection<_Scene.Rect, HistogramNodeDatum>;
+        datumSelection: Selection<Rect, HistogramNodeDatum>;
     }) {
         const { nodeData, datumSelection } = opts;
 
@@ -426,7 +420,7 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
     }
 
     protected override async updateDatumNodes(opts: {
-        datumSelection: _Scene.Selection<_Scene.Rect, HistogramNodeDatum>;
+        datumSelection: Selection<Rect, HistogramNodeDatum>;
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight: isDatumHighlighted } = opts;
@@ -466,7 +460,7 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
 
     protected async updateLabelSelection(opts: {
         labelData: HistogramNodeDatum[];
-        labelSelection: _Scene.Selection<_Scene.Text, HistogramNodeDatum>;
+        labelSelection: Selection<Text, HistogramNodeDatum>;
     }) {
         const { labelData, labelSelection } = opts;
 
@@ -478,7 +472,7 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
         });
     }
 
-    protected async updateLabelNodes(opts: { labelSelection: _Scene.Selection<_Scene.Text, HistogramNodeDatum> }) {
+    protected async updateLabelNodes(opts: { labelSelection: Selection<Text, HistogramNodeDatum> }) {
         const { labelSelection } = opts;
         const labelEnabled = this.label.enabled;
 
@@ -547,7 +541,7 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
         });
     }
 
-    getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
+    getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
         const { id, data, xKey, yName, visible, fill, stroke, fillOpacity, strokeOpacity, strokeWidth } = this;
 
         if (!data || data.length === 0 || legendType !== 'category') {
@@ -577,7 +571,7 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
 
     override animateEmptyUpdateReady({ datumSelections, labelSelections }: HistogramAnimationData) {
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(true, this.axes));
-        motion.fromToMotion(this.id, 'empty-update-ready', this.ctx.animationManager, datumSelections, fns);
+        fromToMotion(this.id, 'empty-update-ready', this.ctx.animationManager, datumSelections, fns);
 
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
     }
@@ -586,7 +580,7 @@ export class HistogramSeries extends CartesianSeries<_Scene.Rect, HistogramNodeD
         const diff = this.processedData?.reduced?.diff;
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(true, this.axes));
 
-        motion.fromToMotion(
+        fromToMotion(
             this.id,
             'waiting-update-ready',
             this.ctx.animationManager,

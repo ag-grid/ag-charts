@@ -1,19 +1,18 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
-import type { AgCartesianChartOptions } from 'ag-charts-community';
+import { AgCharts } from '../../main';
+import type { AgCartesianChartOptions } from '../../options/agChartOptions';
+import * as CROSSLINE_EXAMPLES from '../crossline/test/examples';
 import {
-    CROSSLINE_EXAMPLES,
     type CartesianTestCase,
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
     extractImageData,
+    prepareTestOptions,
     repeat,
     setupMockCanvas,
     waitForChartStability,
-} from 'ag-charts-community-test';
-
-import { AgCharts } from '../../main';
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+} from '../test/utils';
 
 const { VALID_RANGE_CROSSLINES } = CROSSLINE_EXAMPLES;
 
@@ -125,7 +124,7 @@ describe('navigator', () => {
         for (const [exampleName, example] of Object.entries(EXAMPLES)) {
             it(`for ${exampleName} it should create chart instance as expected`, async () => {
                 const options: AgCartesianChartOptions = { ...example.options };
-                prepareEnterpriseTestOptions(options);
+                prepareTestOptions(options);
 
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
@@ -141,7 +140,7 @@ describe('navigator', () => {
                 };
 
                 const options: AgCartesianChartOptions = { ...example.options };
-                prepareEnterpriseTestOptions(options);
+                prepareTestOptions(options);
 
                 chart = AgCharts.create(options);
                 await compare();

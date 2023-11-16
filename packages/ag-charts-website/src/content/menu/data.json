@@ -107,8 +107,7 @@
                     },
                     {
                         "title": "Navigator",
-                        "path": "navigator",
-                        "isEnterprise": true
+                        "path": "navigator"
                     },
                     {
                         "title": "Animation",

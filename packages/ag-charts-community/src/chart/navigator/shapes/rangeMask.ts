@@ -1,7 +1,8 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
-
-const { BBox } = _Scene;
-const { ActionOnSet, clamp, NUMBER, Validate } = _ModuleSupport;
+import { BBox } from '../../../scene/bbox';
+import { Path } from '../../../scene/shape/path';
+import { clamp } from '../../../util/number';
+import { ActionOnSet } from '../../../util/proxy';
+import { NUMBER, Validate } from '../../../util/validation';
 
 function markDirtyOnChange(this: RangeMask, newValue: unknown, oldValue: unknown) {
     if (newValue !== oldValue) {
@@ -9,7 +10,7 @@ function markDirtyOnChange(this: RangeMask, newValue: unknown, oldValue: unknown
     }
 }
 
-export class RangeMask extends _Scene.Path {
+export class RangeMask extends Path {
     static override className = 'RangeMask';
 
     @ActionOnSet<RangeMask>({ changeValue: markDirtyOnChange })

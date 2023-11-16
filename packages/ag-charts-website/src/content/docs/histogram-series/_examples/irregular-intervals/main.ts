@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts } from 'ag-charts-community';
 
 import { getData } from './data';
 

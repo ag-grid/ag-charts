@@ -1,23 +1,21 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
-import type { AgChartOptions, _ModuleSupport } from 'ag-charts-community';
+import type { AgChartOptions } from '../../../options/agChartOptions';
+import { AgCharts } from '../../agChartV2';
+import { COMMUNITY_AND_ENTERPRISE_EXAMPLES as GALLERY_EXAMPLES, type TestCase } from '../../test/examples-gallery';
 import {
-    GALLERY_EXAMPLES,
-    HISTOGRAM_SCATTER_COMBO_SERIES_LABELS,
-    HISTOGRAM_SERIES_LABELS,
     IMAGE_SNAPSHOT_DEFAULTS,
-    type TestCase,
     cartesianChartAssertions,
     deproxy,
     extractImageData,
     hoverAction,
+    prepareTestOptions,
     setupMockCanvas,
     spyOnAnimationManager,
     waitForChartStability,
-} from 'ag-charts-community-test';
-
-import { AgCharts } from '../../main';
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+} from '../../test/utils';
+import type { SeriesNodeDataContext } from '../series';
+import { HISTOGRAM_SCATTER_COMBO_SERIES_LABELS, HISTOGRAM_SERIES_LABELS } from '../test/examples';
 
 const EXAMPLES: Record<string, TestCase> = {
     SIMPLE_HISTOGRAM: GALLERY_EXAMPLES.SIMPLE_HISTOGRAM_CHART_EXAMPLE,
@@ -53,7 +51,7 @@ describe('HistogramSeries', () => {
         for (const [exampleName, example] of Object.entries(EXAMPLES)) {
             it(`for ${exampleName} it should create chart instance as expected`, async () => {
                 const options: AgChartOptions = { ...example.options };
-                prepareEnterpriseTestOptions(options);
+                prepareTestOptions(options);
 
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
@@ -62,7 +60,7 @@ describe('HistogramSeries', () => {
 
             it(`for ${exampleName} it should render to canvas as expected`, async () => {
                 const options: AgChartOptions = { ...example.options };
-                prepareEnterpriseTestOptions(options);
+                prepareTestOptions(options);
 
                 chart = AgCharts.create(options);
                 await compare();
@@ -91,7 +89,7 @@ describe('HistogramSeries', () => {
                 container: document.body,
             };
 
-            prepareEnterpriseTestOptions(options);
+            prepareTestOptions(options);
 
             chart = deproxy(AgCharts.create(options));
             await waitForChartStability(chart);
@@ -99,7 +97,7 @@ describe('HistogramSeries', () => {
             const series = chart.series.find((v: any) => v.type === 'scatter');
             if (series == null) fail('No series found');
 
-            const nodeDataArray: _ModuleSupport.SeriesNodeDataContext<any, any>[] = series['contextNodeData'];
+            const nodeDataArray: SeriesNodeDataContext<any, any>[] = series['contextNodeData'];
             const context = nodeDataArray[0];
             const item = context.nodeData.find((n) => n.datum['weight'] === 65.6 && n.datum['age'] === 21);
 
@@ -130,7 +128,7 @@ describe('HistogramSeries', () => {
         for (const [exampleName, example] of Object.entries(examples)) {
             it(`for ${exampleName} it should create chart instance as expected`, async () => {
                 const options: AgChartOptions = { ...example.options };
-                prepareEnterpriseTestOptions(options);
+                prepareTestOptions(options);
 
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
@@ -139,7 +137,7 @@ describe('HistogramSeries', () => {
 
             it(`for ${exampleName} it should render to canvas as expected`, async () => {
                 const options: AgChartOptions = { ...example.options };
-                prepareEnterpriseTestOptions(options);
+                prepareTestOptions(options);
 
                 chart = AgCharts.create(options);
                 await compare();
@@ -155,7 +153,7 @@ describe('HistogramSeries', () => {
                 animate(1200, ratio);
 
                 const options: AgChartOptions = { ...GALLERY_EXAMPLES.SIMPLE_HISTOGRAM_CHART_EXAMPLE.options };
-                prepareEnterpriseTestOptions(options);
+                prepareTestOptions(options);
 
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
@@ -172,7 +170,7 @@ describe('HistogramSeries', () => {
                 animate(1200, 1);
 
                 const options: AgChartOptions = { ...GALLERY_EXAMPLES.SIMPLE_HISTOGRAM_CHART_EXAMPLE.options };
-                prepareEnterpriseTestOptions(options);
+                prepareTestOptions(options);
 
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
@@ -200,7 +198,7 @@ describe('HistogramSeries', () => {
                 animate(1200, 1);
 
                 const options: AgChartOptions = { ...GALLERY_EXAMPLES.SIMPLE_HISTOGRAM_CHART_EXAMPLE.options };
-                prepareEnterpriseTestOptions(options);
+                prepareTestOptions(options);
 
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
@@ -231,7 +229,7 @@ describe('HistogramSeries', () => {
                 animate(1200, 1);
 
                 const options: AgChartOptions = { ...GALLERY_EXAMPLES.SIMPLE_HISTOGRAM_CHART_EXAMPLE.options };
-                prepareEnterpriseTestOptions(options);
+                prepareTestOptions(options);
 
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
