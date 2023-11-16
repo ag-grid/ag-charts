@@ -40,7 +40,7 @@ interface BulletNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
 
 class BulletColorRange {
     @Validate(COLOR_STRING)
-    color: string = 'grey';
+    color: string = 'lightgrey';
 
     @Validate(OPT_NUMBER())
     stop?: number = undefined;
@@ -135,7 +135,7 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
     targetName?: string = undefined;
 
     @Validate(OPT_ARRAY())
-    colorRanges?: BulletColorRange[] = undefined;
+    colorRanges: BulletColorRange[] = [new BulletColorRange()];
 
     scale: BulletScale = new BulletScale();
 
@@ -245,8 +245,6 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
         if (!valueKey || !dataModel || !processedData || !xScale || !yScale) return [];
         if (widthRatio === undefined || lengthRatio === undefined) return [];
 
-        this.colorRangesGroup.visible = this.colorRanges !== undefined;
-
         const multiplier = xScale.bandwidth ?? NaN;
         const maxValue = this.getMaxValue();
         const valueIndex = dataModel.resolveProcessedDataIndexById(this, 'value').index;
@@ -307,16 +305,14 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
             context.nodeData.push(nodeData);
         }
 
-        if (this.colorRanges) {
-            const sortedRanges = [...this.colorRanges].sort((a, b) => (a.stop || maxValue) - (b.stop || maxValue));
-            let start = 0;
-            this.normalizedColorRanges = sortedRanges.map((item) => {
-                const stop = Math.min(maxValue, item.stop ?? Infinity);
-                const result = { color: item.color, start, stop };
-                start = stop;
-                return result;
-            });
-        }
+        const sortedRanges = [...this.colorRanges].sort((a, b) => (a.stop || maxValue) - (b.stop || maxValue));
+        let start = 0;
+        this.normalizedColorRanges = sortedRanges.map((item) => {
+            const stop = Math.min(maxValue, item.stop ?? Infinity);
+            const result = { color: item.color, start, stop };
+            start = stop;
+            return result;
+        });
 
         return [context];
     }
