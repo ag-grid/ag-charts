@@ -1,17 +1,11 @@
-import { useStore } from '@nanostores/react';
-import { $darkmode, setDarkmode } from '@stores/darkmodeStore';
+import { setDarkmode } from '@stores/darkmodeStore';
+import { useDarkmode } from '@utils/hooks/useDarkmode';
 import classNames from 'classnames';
 import React from 'react';
 
 import { Icon } from '../icon/Icon';
 import styles from './DarkModeToggle.module.scss';
 import headerStyles from './SiteHeader.module.scss';
-
-const useDarkmode = () => {
-    const darkmode = useStore($darkmode);
-
-    return darkmode === 'true' || darkmode === true;
-};
 
 export const DarkModeToggle = () => {
     const darkmode = useDarkmode();
