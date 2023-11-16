@@ -8,6 +8,7 @@ const options: AgChartOptions = {
     series: [
         {
             type: 'bullet',
+            direction: 'horizontal',
             valueKey: 'income',
             valueName: 'Actual income',
             targetKey: 'objective',
@@ -20,7 +21,7 @@ const options: AgChartOptions = {
             ],
         },
     ],
-    width: 130,
+    height: 150,
 };
 
 AgCharts.create(options);
