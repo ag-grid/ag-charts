@@ -20,8 +20,8 @@ export const BulletModule: _ModuleSupport.SeriesModule<'bullet'> = {
         const axis0 = { ...BULLET_DEFAULTS.axes[0] };
         const axis1 = { ...BULLET_DEFAULTS.axes[1] };
         if (series.direction === 'horizontal') {
-            axis0.position = CARTESIAN_AXIS_POSITIONS.LEFT;
-            axis1.position = CARTESIAN_AXIS_POSITIONS.TOP;
+            axis0.position = CARTESIAN_AXIS_POSITIONS.BOTTOM;
+            axis1.position = CARTESIAN_AXIS_POSITIONS.LEFT;
         }
         if (series.scale?.max !== undefined) {
             axis0.max = series.scale.max;
