@@ -2,7 +2,7 @@ import type { ThemeName } from '@stores/themeStore';
 import { filterPropertyKeys } from '@utils/jsCodeShiftUtils';
 import j from 'jscodeshift';
 
-import * as agChartsEnterprise from 'ag-charts-enterprise';
+import * as agCharts from 'ag-charts-enterprise';
 
 // eslint-disable-next-line @nx/enforce-module-boundaries
 import { parseExampleOptions } from '../../../../../ag-charts-community/src/chart/test/load-example';
@@ -13,18 +13,13 @@ import { parseExampleOptions } from '../../../../../ag-charts-community/src/char
 
 function transformer(sourceFile: string, dataFile?: string, themeName?: ThemeName) {
     const root = j(sourceFile);
-
     const optionsExpression = root
-        .find(j.VariableDeclarator, {
-            id: {
-                type: 'Identifier',
-                name: 'options',
-            },
-        })
+        .find(j.VariableDeclarator, { id: { type: 'Identifier', name: 'options' } })
         .find(j.ObjectExpression);
 
     // Find and remove properties in the 'options' object
     const propertiesToRemove = ['subtitle', 'footnote', 'legend', 'gradientLegend'];
+
     optionsExpression.forEach((path) => {
         path.node.properties = filterPropertyKeys({
             removePropertyKeys: propertiesToRemove,
@@ -55,13 +50,7 @@ function transformer(sourceFile: string, dataFile?: string, themeName?: ThemeNam
     optionsExpressionProperties.push(gradientLegendPropertyNode);
 
     // Theme - Apply baseTheme and disable category axis autoRotate
-    const themeNode = optionsExpression
-        .find(j.Property, {
-            key: {
-                name: 'theme',
-            },
-        })
-        .find(j.ObjectExpression);
+    const themeNode = optionsExpression.find(j.Property, { key: { name: 'theme' } }).find(j.ObjectExpression);
 
     const baseThemeProperty = j.property('init', j.identifier('baseTheme'), j.literal(themeName ?? 'ag-default'));
 
@@ -104,13 +93,7 @@ function transformer(sourceFile: string, dataFile?: string, themeName?: ThemeNam
         themeNodeProperties.push(baseThemeProperty);
 
         // Add overrides
-        const overridesNode = themeNode
-            .find(j.Property, {
-                key: {
-                    name: 'overrides',
-                },
-            })
-            .find(j.ObjectExpression);
+        const overridesNode = themeNode.find(j.Property, { key: { name: 'overrides' } }).find(j.ObjectExpression);
 
         if (overridesNode.length > 0) {
             const overridesNodeProperties = overridesNode.get(0).node.properties;
@@ -129,11 +112,7 @@ function transformer(sourceFile: string, dataFile?: string, themeName?: ThemeNam
 
     // Axes
     optionsExpression
-        .find(j.Property, {
-            key: {
-                name: 'axes',
-            },
-        })
+        .find(j.Property, { key: { name: 'axes' } })
         .find(j.ObjectExpression)
         .forEach((path) => {
             const propertiesNode = path.node;
@@ -169,9 +148,7 @@ function transformer(sourceFile: string, dataFile?: string, themeName?: ThemeNam
     optionsExpressionProperties.push(paddingPropertyNode);
 
     const code = root.toSource();
-    const options = parseExampleOptions('options', code, dataFile, {
-        agCharts: agChartsEnterprise,
-    });
+    const options = parseExampleOptions('options', code, dataFile, { agCharts });
 
     return { code, options };
 }

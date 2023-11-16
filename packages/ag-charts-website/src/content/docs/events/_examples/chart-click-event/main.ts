@@ -1,4 +1,4 @@
-import { AgChart, AgChartClickEvent, AgChartDoubleClickEvent, AgChartOptions } from 'ag-charts-community';
+import { AgChartClickEvent, AgChartDoubleClickEvent, AgChartOptions, AgCharts } from 'ag-charts-community';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
@@ -40,4 +40,4 @@ const options: AgChartOptions = {
     },
 };
 
-AgChart.create(options);
+AgCharts.create(options);

@@ -5,11 +5,12 @@
   "main": "./dist/main.cjs.js",
   "types": "./dist/main.cjs.d.ts",
   "exports": {
-    ".": {
+    "node": {
       "import": "./dist/main.esm.js",
       "require": "./dist/main.cjs.js",
       "types": "./dist/src/main.cjs.d.ts"
-    }
+    },
+    "default": "./dist/main.cjs.js"
   },
   "private": false,
   "scripts": {

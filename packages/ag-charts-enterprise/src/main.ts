@@ -30,7 +30,6 @@ import { TreemapSeriesModule } from './series/treemap/treemapSeriesModule';
 import { WaterfallModule } from './series/waterfall/main';
 
 export * from 'ag-charts-community';
-export { AgChart, VERSION, time } from 'ag-charts-community';
 
 _ModuleSupport.registerModule(AngleCategoryAxisModule);
 _ModuleSupport.registerModule(AngleNumberAxisModule);
@@ -61,5 +60,5 @@ _ModuleSupport.registerModule(ZoomModule);
 
 _ModuleSupport.enterpriseModule.licenseManager = (options: AgChartOptions) =>
     new LicenseManager(
-        options.container?.ownerDocument ?? typeof document !== 'undefined' ? document : undefined
+        options.container?.ownerDocument ?? (typeof document !== 'undefined' ? document : undefined)
     ).validateLicense();

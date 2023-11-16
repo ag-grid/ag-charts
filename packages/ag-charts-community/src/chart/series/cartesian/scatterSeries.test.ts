@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type { AgChartOptions } from '../../../options/agChartOptions';
-import { AgChart } from '../../agChartV2';
+import { AgCharts } from '../../agChartV2';
 import type { Chart } from '../../chart';
 import * as examples from '../../test/examples';
 import {
@@ -72,7 +72,7 @@ describe('ScatterSeries', () => {
 
             prepareTestOptions(options);
 
-            chart = AgChart.create(options) as Chart;
+            chart = AgCharts.create(options) as Chart;
             await compare();
         });
     });
@@ -87,7 +87,7 @@ describe('ScatterSeries', () => {
                 const options: AgChartOptions = examples.SIMPLE_SCATTER_CHART_EXAMPLE;
                 prepareTestOptions(options);
 
-                chart = AgChart.create(options) as Chart;
+                chart = AgCharts.create(options) as Chart;
                 await compare();
             });
         }
@@ -103,11 +103,11 @@ describe('ScatterSeries', () => {
                 const options: AgChartOptions = examples.SIMPLE_SCATTER_CHART_EXAMPLE;
                 prepareTestOptions(options);
 
-                chart = AgChart.create(options) as Chart;
+                chart = AgCharts.create(options) as Chart;
                 await waitForChartStability(chart);
 
                 animate(900, ratio);
-                AgChart.updateDelta(chart, {
+                AgCharts.updateDelta(chart, {
                     data: options.data!.slice(Math.floor(options.data!.length / 2)),
                 });
 
@@ -126,17 +126,17 @@ describe('ScatterSeries', () => {
                 const options: AgChartOptions = examples.SIMPLE_SCATTER_CHART_EXAMPLE;
                 prepareTestOptions(options);
 
-                chart = AgChart.create(options) as Chart;
+                chart = AgCharts.create(options) as Chart;
                 await waitForChartStability(chart);
 
-                AgChart.updateDelta(chart, {
+                AgCharts.updateDelta(chart, {
                     data: options.data!.slice(Math.floor(options.data!.length / 2)),
                 });
                 animate(1200, 1);
 
                 await waitForChartStability(chart);
 
-                AgChart.update(chart, options);
+                AgCharts.update(chart, options);
                 animate(1200, ratio);
 
                 await compare();
@@ -154,10 +154,10 @@ describe('ScatterSeries', () => {
                 const options: AgChartOptions = examples.SIMPLE_SCATTER_CHART_EXAMPLE;
                 prepareTestOptions(options);
 
-                chart = AgChart.create(options) as Chart;
+                chart = AgCharts.create(options) as Chart;
                 await waitForChartStability(chart);
 
-                AgChart.updateDelta(chart, {
+                AgCharts.updateDelta(chart, {
                     data: options.data!.map((d: any, i: number) =>
                         i % 2 === 0 ? { ...d, height: d.height * 1.1 } : d
                     ),

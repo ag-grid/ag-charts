@@ -1,4 +1,4 @@
-import { AgChart, AgChartOptions } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData, random } from './data';
 
@@ -11,7 +11,7 @@ let seed = 1234;
 
 let interval: any;
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     animation: {
         enabled: true,
@@ -60,9 +60,8 @@ const options: AgChartOptions = {
             position: 'left',
         },
         {
-            type: 'number',
+            type: 'category',
             position: 'bottom',
-            nice: false,
             label: {
                 autoRotate: false,
             },
@@ -70,7 +69,7 @@ const options: AgChartOptions = {
     ],
 };
 
-const barOptions: AgChartOptions = {
+const barOptions: AgCartesianChartOptions = {
     series: [
         {
             type: 'bar',
@@ -114,9 +113,8 @@ const barOptions: AgChartOptions = {
             position: 'left',
         },
         {
-            type: 'number',
+            type: 'category',
             position: 'bottom',
-            nice: false,
             label: {
                 autoRotate: false,
             },
@@ -255,7 +253,7 @@ const pieOptions: AgChartOptions = {
 };
 
 // Create chart
-const chart = AgChart.create(options);
+const chart = AgCharts.create(options);
 
 // Elements
 const tickingButton = document.getElementById('animation-data-updates__toggle-ticking');
@@ -271,7 +269,7 @@ function changeSeriesBar() {
     length = 8;
     seed = 1234;
 
-    AgChart.updateDelta(chart, { ...barOptions, data: getGeneratedData() });
+    AgCharts.updateDelta(chart, { ...barOptions, data: getGeneratedData() });
 }
 
 function changeSeriesLine() {
@@ -280,7 +278,7 @@ function changeSeriesLine() {
     length = 30;
     seed = 1234;
 
-    AgChart.updateDelta(chart, { ...lineOptions, data: getGeneratedData() });
+    AgCharts.updateDelta(chart, { ...lineOptions, data: getGeneratedData() });
 }
 
 function changeSeriesArea() {
@@ -289,7 +287,7 @@ function changeSeriesArea() {
     length = 30;
     seed = 1234;
 
-    AgChart.updateDelta(chart, { ...areaOptions, data: getGeneratedData() });
+    AgCharts.updateDelta(chart, { ...areaOptions, data: getGeneratedData() });
 }
 
 function changeSeriesPie() {
@@ -298,7 +296,7 @@ function changeSeriesPie() {
     length = 6;
     seed = 1234;
 
-    AgChart.updateDelta(chart, { ...pieOptions, data: getGeneratedData() });
+    AgCharts.updateDelta(chart, { ...pieOptions, data: getGeneratedData() });
 }
 
 function toggleTickingUpdates() {
@@ -328,10 +326,10 @@ function toggleTickingUpdates() {
 
     if (!interval) {
         offset++;
-        AgChart.updateDelta(chart, { data: getGeneratedData() });
+        AgCharts.updateDelta(chart, { data: getGeneratedData() });
         interval = setInterval(() => {
             offset++;
-            AgChart.updateDelta(chart, { data: getGeneratedData() });
+            AgCharts.updateDelta(chart, { data: getGeneratedData() });
         }, 2000);
     } else {
         clearInterval(interval);
@@ -342,23 +340,23 @@ function toggleTickingUpdates() {
 function add() {
     offset++;
     length++;
-    AgChart.updateDelta(chart, { data: getGeneratedData() });
+    AgCharts.updateDelta(chart, { data: getGeneratedData() });
 }
 
 function remove() {
     length = Math.max(0, length - 1);
-    AgChart.updateDelta(chart, { data: getGeneratedData() });
+    AgCharts.updateDelta(chart, { data: getGeneratedData() });
 }
 
 function update() {
     seed = Math.floor(random() * 1000);
-    AgChart.updateDelta(chart, { data: getGeneratedData() });
+    AgCharts.updateDelta(chart, { data: getGeneratedData() });
 }
 
 function addRemoveUpdate() {
     offset++;
     seed = Math.floor(random() * 1000);
-    AgChart.updateDelta(chart, { data: getGeneratedData() });
+    AgCharts.updateDelta(chart, { data: getGeneratedData() });
 }
 
 function getGeneratedData() {

@@ -1,4 +1,4 @@
-import { AgBarSeriesOptions, AgCartesianChartOptions, AgChart } from 'ag-charts-enterprise';
+import { AgBarSeriesOptions, AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -26,7 +26,7 @@ const options: AgCartesianChartOptions = {
     ],
 };
 
-const chart = AgChart.create(options);
+const chart = AgCharts.create(options);
 
 function reset() {
     const element = document.getElementsByClassName('ag-chart-wrapper')![0]! as HTMLElement;
@@ -41,7 +41,7 @@ function reset() {
     delete options.axes![1].label!.avoidCollisions;
 
     (options.series![0] as AgBarSeriesOptions).xKey = 'year';
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }
 
 function disableRotation() {
@@ -50,7 +50,7 @@ function disableRotation() {
     options.axes![0].label!.autoRotate = false;
     options.axes![1].label!.autoRotate = false;
 
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }
 
 function fixedRotation() {
@@ -59,7 +59,7 @@ function fixedRotation() {
     options.axes![0].label!.autoRotate = false;
     options.axes![1].label!.autoRotate = false;
 
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }
 
 function autoRotation() {
@@ -68,29 +68,29 @@ function autoRotation() {
     options.axes![0].label!.autoRotate = true;
     options.axes![1].label!.autoRotate = true;
 
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }
 
 function uniformLabels() {
     (options.series![0] as AgBarSeriesOptions).xKey = 'year';
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }
 
 function irregularLabels() {
     (options.series![0] as AgBarSeriesOptions).xKey = 'country';
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }
 
 function noCollisionDetection() {
     options.axes![0].label!.avoidCollisions = false;
     options.axes![1].label!.avoidCollisions = false;
 
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }
 
 function autoCollisionDetection() {
     options.axes![0].label!.avoidCollisions = true;
     options.axes![1].label!.avoidCollisions = true;
 
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }

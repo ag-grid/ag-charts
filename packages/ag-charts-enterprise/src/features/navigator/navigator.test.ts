@@ -12,7 +12,7 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { AgChart } from '../../main';
+import { AgCharts } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
 const { VALID_RANGE_CROSSLINES } = CROSSLINE_EXAMPLES;
@@ -127,7 +127,7 @@ describe('navigator', () => {
                 const options: AgCartesianChartOptions = { ...example.options };
                 prepareEnterpriseTestOptions(options);
 
-                chart = AgChart.create(options);
+                chart = AgCharts.create(options);
                 await waitForChartStability(chart);
                 await example.assertions(chart);
             });
@@ -143,7 +143,7 @@ describe('navigator', () => {
                 const options: AgCartesianChartOptions = { ...example.options };
                 prepareEnterpriseTestOptions(options);
 
-                chart = AgChart.create(options);
+                chart = AgCharts.create(options);
                 await compare();
             });
         }

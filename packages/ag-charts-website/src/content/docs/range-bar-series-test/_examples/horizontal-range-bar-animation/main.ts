@@ -1,4 +1,4 @@
-import { AgChart, AgChartOptions } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -22,7 +22,7 @@ const options: AgChartOptions = {
     ],
 };
 
-const chart = AgChart.create(options);
+const chart = AgCharts.create(options);
 
 let updating = false;
 let refreshIntervalId: string | number | NodeJS.Timeout | undefined;
@@ -47,7 +47,7 @@ function stopUpdates() {
 
 function update() {
     options.data = getUpdatedData();
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }
 
 function getUpdatedData() {

@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgChart } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
@@ -50,7 +50,7 @@ const options: AgCartesianChartOptions = {
     ],
 };
 
-var chart = AgChart.create(options);
+var chart = AgCharts.create(options);
 
 function useGridStyle1() {
     var gridStyle = [
@@ -65,7 +65,7 @@ function useGridStyle1() {
     ];
     options.axes![0].gridLine!.style = gridStyle;
     options.axes![1].gridLine!.style = gridStyle;
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }
 
 function useGridStyle2() {
@@ -83,7 +83,7 @@ function useGridStyle2() {
     ];
     options.axes![0].gridLine!.style = xGridStyle;
     options.axes![1].gridLine!.style = yGridStyle;
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }
 
 function useDefaultGridStyle() {
@@ -95,5 +95,5 @@ function useDefaultGridStyle() {
     ];
     options.axes![0].gridLine!.style = gridStyle;
     options.axes![1].gridLine!.style = gridStyle;
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }

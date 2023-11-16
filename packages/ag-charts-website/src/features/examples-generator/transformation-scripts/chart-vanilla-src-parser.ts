@@ -34,7 +34,7 @@ const optionsVariableName = 'options';
 const PROPERTIES = [optionsVariableName];
 
 function tsGenerateWithOptionReferences(node, srcFile) {
-    return tsGenerate(node, srcFile).replace(new RegExp(`AgChart\\.update\\(chart, options\\);?`, 'g'), '');
+    return tsGenerate(node, srcFile).replace(new RegExp(`AgCharts\\.update\\(chart, options\\);?`, 'g'), '');
 }
 
 export function parser({
@@ -164,7 +164,7 @@ export function internalParser(js, html, exampleSettings) {
         'console',
         'document',
         'Error',
-        'AgChart',
+        'AgCharts',
         'chart',
         'window',
         'Image',

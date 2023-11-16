@@ -1,4 +1,4 @@
-import { AgChart, AgChartOptions } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { data } from './data';
 
@@ -14,11 +14,13 @@ const options: AgChartOptions = {
             colorRange: ['#d73027', '#fee08b', '#1a9850', 'rgb(0, 116, 52)'],
             group: {
                 padding: 5,
-                spacing: 2,
             },
             tile: {
-                spacing: 1,
+                label: {
+                    spacing: 1,
+                },
             },
+            tileSpacing: 5,
             highlightStyle: {
                 group: {
                     label: {
@@ -36,4 +38,4 @@ const options: AgChartOptions = {
     },
 };
 
-AgChart.create(options);
+AgCharts.create(options);

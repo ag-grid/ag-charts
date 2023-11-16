@@ -48,9 +48,7 @@ export const getGeneratedPlainGalleryContents = async ({ exampleName }: { exampl
     const { code } = transformPlainEntryFile(entryFile, files['data.js']);
     // Replace entry file with plain one
     const plainScriptFiles = generatedContents?.scriptFiles
-        .filter((fileName) => {
-            return fileName !== entryFileName;
-        })
+        .filter((fileName) => fileName !== entryFileName)
         .concat(PLAIN_ENTRY_FILE_NAME);
     const plainFiles = {
         ...otherFiles,

@@ -21,9 +21,9 @@ export function getChartImports(imports: BindingImport[], usesChartApi: boolean)
         (i) => i.module.includes('ag-charts-community') || i.module.includes('ag-charts-enterprise')
     );
     if (chartsImport) {
-        // Only included AgChart if its api is used. Otherwise it can be removed as AgChart.create is handled by framework components
-        // But if AgChart.download is used we mustn't remove it.
-        const extraImports = chartsImport.imports.filter((i) => usesChartApi || (i !== 'AgChart' && i !== 'AgChart'));
+        // Only included AgCharts if its api is used. Otherwise it can be removed as AgCharts.create is handled by framework components
+        // But if AgCharts.download is used we mustn't remove it.
+        const extraImports = chartsImport.imports.filter((i) => usesChartApi || i !== 'AgCharts');
 
         if (extraImports.length > 0) {
             return `import { ${extraImports.join(', ')} } from 'ag-charts-${

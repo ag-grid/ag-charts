@@ -9,7 +9,7 @@ import {
 } from 'ag-charts-community-test';
 
 import type { AgChartOptions } from '../../main';
-import { AgChart } from '../../main';
+import { AgCharts } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
 describe('Radial Column Chart', () => {
@@ -76,7 +76,7 @@ describe('Radial Column Chart', () => {
     it(`should render radial column chart as expected`, async () => {
         const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
         prepareEnterpriseTestOptions(options as any);
-        chart = AgChart.create(options);
+        chart = AgCharts.create(options);
         await compare();
     });
 
@@ -92,7 +92,7 @@ describe('Radial Column Chart', () => {
         };
         prepareEnterpriseTestOptions(options as any);
 
-        chart = AgChart.create(options);
+        chart = AgCharts.create(options);
         await compare();
     });
 
@@ -109,7 +109,7 @@ describe('Radial Column Chart', () => {
         };
         prepareEnterpriseTestOptions(options as any);
 
-        chart = AgChart.create(options);
+        chart = AgCharts.create(options);
         await compare();
     });
 
@@ -123,7 +123,7 @@ describe('Radial Column Chart', () => {
                 const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
                 prepareEnterpriseTestOptions(options);
 
-                chart = AgChart.create(options);
+                chart = AgCharts.create(options);
                 await waitForChartStability(chart);
                 await compare();
             });
@@ -140,10 +140,10 @@ describe('Radial Column Chart', () => {
                 const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
                 prepareEnterpriseTestOptions(options);
 
-                chart = AgChart.create(options);
+                chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
-                AgChart.updateDelta(chart, {
+                AgCharts.updateDelta(chart, {
                     data: options.data!.slice(0, 4),
                 });
                 animate(1200, ratio);
@@ -165,10 +165,10 @@ describe('Radial Column Chart', () => {
                 const options: AgChartOptions = { ...EXAMPLE_OPTIONS, data: fullData.slice(0, 4) };
                 prepareEnterpriseTestOptions(options);
 
-                chart = AgChart.create(options);
+                chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
-                AgChart.updateDelta(chart, {
+                AgCharts.updateDelta(chart, {
                     data: fullData,
                 });
                 animate(1200, ratio);
@@ -189,10 +189,10 @@ describe('Radial Column Chart', () => {
                 const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
                 prepareEnterpriseTestOptions(options);
 
-                chart = AgChart.create(options);
+                chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
-                AgChart.updateDelta(chart, {
+                AgCharts.updateDelta(chart, {
                     data: options.data!.map((d: any) => {
                         return Object.entries(d).reduce((obj, [key, value], i) => {
                             return Object.assign(obj, { [key]: typeof value === 'number' ? value * i : value });

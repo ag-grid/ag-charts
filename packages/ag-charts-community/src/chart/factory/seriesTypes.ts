@@ -140,18 +140,19 @@ export function isDefaultAxisSwapNeeded(opts: AgChartOptions) {
     let result: boolean | undefined;
 
     for (const series of opts.series ?? []) {
-        const { type } = series;
+        const { type = 'line' } = series;
+        const isDefaultAxisSwapped = SWAP_DEFAULT_AXES_CONDITIONS[type]?.(series);
 
-        const isDefaultAxisSwapped = type != null ? SWAP_DEFAULT_AXES_CONDITIONS[type]?.(series) : undefined;
+        if (isDefaultAxisSwapped != null) {
+            if (result != null && result != isDefaultAxisSwapped) {
+                throw new Error('AG Charts - The provided series have incompatible directions');
+            }
 
-        if (result != null && isDefaultAxisSwapped != null && result != isDefaultAxisSwapped) {
-            throw new Error('AG Charts - The provided series have incompatible directions');
+            result = isDefaultAxisSwapped;
         }
-
-        result = isDefaultAxisSwapped;
     }
 
-    return result ?? false;
+    return result;
 }
 
 export function executeCustomDefaultsFunctions(opts: AgChartOptions, initialDefaults: {}): {} {

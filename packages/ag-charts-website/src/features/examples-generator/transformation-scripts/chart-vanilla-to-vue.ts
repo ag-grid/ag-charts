@@ -129,8 +129,7 @@ new Vue({
 `;
 
         if (bindings.usesChartApi) {
-            mainFile = mainFile.replace(/AgChart.(\w*)\((\w*)(,|\))/g, 'AgChart.$1(this.$refs.agChart.chart$3');
-            mainFile = mainFile.replace(/AgChart.(\w*)\((\w*)(,|\))/g, 'AgChart.$1(this.$refs.agChart.chart$3');
+            mainFile = mainFile.replace(/AgCharts.(\w*)\((\w*)(,|\))/g, 'AgCharts.$1(this.$refs.agChart.chart$3');
             mainFile = mainFile.replace(
                 /\(this.\$refs.agChart.chart, options/g,
                 '(this.$refs.agChart.chart, this.options'

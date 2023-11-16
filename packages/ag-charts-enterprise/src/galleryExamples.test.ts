@@ -10,7 +10,7 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { AgChart } from './main';
+import { AgCharts } from './main';
 import { prepareEnterpriseTestOptions } from './test/utils';
 
 const ENTERPRISE_GALLERY_EXAMPLES = Object.entries(GALLERY_EXAMPLES)
@@ -50,7 +50,7 @@ describe('Gallery Examples', () => {
         for (const [exampleName, example] of Object.entries(ENTERPRISE_GALLERY_EXAMPLES)) {
             it(`for ${exampleName} it should create chart instance as expected`, async () => {
                 const options: AgChartOptions = prepareEnterpriseTestOptions(example.options);
-                chart = AgChart.create(options);
+                chart = AgCharts.create(options);
                 await waitForChartStability(chart);
                 await example.assertions(chart);
             });
@@ -66,7 +66,7 @@ describe('Gallery Examples', () => {
                 const options: AgChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
-                chart = AgChart.create(options);
+                chart = AgCharts.create(options);
                 await compare();
 
                 if (example.extraScreenshotActions) {
@@ -97,7 +97,7 @@ describe('Gallery Examples', () => {
                     options = { ...example.options };
                     prepareEnterpriseTestOptions(options);
 
-                    chart = AgChart.create(options);
+                    chart = AgCharts.create(options);
                     await waitForChartStability(chart);
                 });
 
@@ -108,7 +108,7 @@ describe('Gallery Examples', () => {
                 });
 
                 it(`it should update chart instance as expected`, async () => {
-                    AgChart.update(chart, options);
+                    AgCharts.update(chart, options);
                     await waitForChartStability(chart);
 
                     await example.assertions(chart);
@@ -121,10 +121,10 @@ describe('Gallery Examples', () => {
                         return ctx.nodeCanvas.toBuffer('raw');
                     };
 
-                    AgChart.update(chart, options);
+                    AgCharts.update(chart, options);
 
                     const before = await snapshot();
-                    AgChart.update(chart, options);
+                    AgCharts.update(chart, options);
                     const after = await snapshot();
 
                     expect(after).toMatchImage(before);

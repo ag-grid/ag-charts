@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgChart } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 
 import { getData } from './data';
 
@@ -243,4 +243,4 @@ const options: AgCartesianChartOptions = {
     },
 };
 
-var chart = AgChart.create(options);
+var chart = AgCharts.create(options);

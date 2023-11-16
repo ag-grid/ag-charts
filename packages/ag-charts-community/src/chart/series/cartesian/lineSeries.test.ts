@@ -3,7 +3,7 @@ import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type { AgChartOptions } from '../../../options/agChartOptions';
 import { jsonMerge } from '../../../util/json';
-import { AgChart } from '../../agChartV2';
+import { AgCharts } from '../../agChartV2';
 import type { Chart } from '../../chart';
 import {
     DATA_FRACTIONAL_LOG_AXIS,
@@ -124,7 +124,7 @@ describe('LineSeries', () => {
                 const options: AgChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
-                chart = AgChart.create(options) as Chart;
+                chart = AgCharts.create(options) as Chart;
                 await waitForChartStability(chart);
                 await example.assertions(chart);
             });
@@ -133,7 +133,7 @@ describe('LineSeries', () => {
                 const options: AgChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
-                chart = AgChart.create(options) as Chart;
+                chart = AgCharts.create(options) as Chart;
                 await compare();
 
                 if (example.extraScreenshotActions) {
@@ -156,7 +156,7 @@ describe('LineSeries', () => {
                 );
                 prepareTestOptions(options);
 
-                chart = AgChart.create(options) as Chart;
+                chart = AgCharts.create(options) as Chart;
                 await waitForChartStability(chart);
                 await compare();
             });
@@ -261,11 +261,11 @@ describe('LineSeries', () => {
                 it(`should animate ${testCase} at ${ratio * 100}%`, async () => {
                     animate(1200, 1);
                     prepareTestOptions(OPTIONS);
-                    chart = AgChart.create(OPTIONS) as Chart;
+                    chart = AgCharts.create(OPTIONS) as Chart;
                     await waitForChartStability(chart);
 
                     animate(duration, ratio);
-                    AgChart.updateDelta(chart, { data: changedData });
+                    AgCharts.updateDelta(chart, { data: changedData });
                     await waitForChartStability(chart);
                     await compare();
                 });
@@ -316,12 +316,12 @@ describe('LineSeries', () => {
                     const options: AgChartOptions = jsonMerge([OPTIONS]);
                     prepareTestOptions(options);
 
-                    chart = AgChart.create(options) as Chart;
+                    chart = AgCharts.create(options) as Chart;
                     await waitForChartStability(chart);
 
                     animate(1200, ratio);
                     options.series![0].visible = false;
-                    AgChart.update(chart, { ...options });
+                    AgCharts.update(chart, { ...options });
 
                     await compare();
                 });
@@ -337,12 +337,12 @@ describe('LineSeries', () => {
                     options.series![1].visible = false;
                     prepareTestOptions(options);
 
-                    chart = AgChart.create(options) as Chart;
+                    chart = AgCharts.create(options) as Chart;
                     await waitForChartStability(chart);
 
                     animate(1200, ratio);
                     options.series![1].visible = true;
-                    AgChart.update(chart, options);
+                    AgCharts.update(chart, options);
 
                     await compare();
                 });
@@ -360,7 +360,7 @@ describe('LineSeries', () => {
                 const options: AgChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
-                chart = AgChart.create(options) as Chart;
+                chart = AgCharts.create(options) as Chart;
                 await waitForChartStability(chart);
                 await example.assertions(chart);
             });
@@ -369,7 +369,7 @@ describe('LineSeries', () => {
                 const options: AgChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
-                chart = AgChart.create(options) as Chart;
+                chart = AgCharts.create(options) as Chart;
                 await compare();
 
                 if (example.extraScreenshotActions) {
@@ -415,7 +415,7 @@ describe('LineSeries', () => {
 
             prepareTestOptions(options);
 
-            chart = AgChart.create(options) as Chart;
+            chart = AgCharts.create(options) as Chart;
             await compare();
         });
     });

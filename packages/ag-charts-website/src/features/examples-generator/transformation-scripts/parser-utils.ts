@@ -221,7 +221,7 @@ export function tsNodeIsGlobalFunctionCall(node: ts.Node) {
     // Get top level function calls like
     // setInterval(callback, 500)
     // but don't match things like
-    // AgChart.create(options)
+    // AgCharts.create(options)
     if (ts.isExpressionStatement(node)) {
         return (
             ts.isSourceFile(node.parent) &&
@@ -323,18 +323,13 @@ export function getTypes(node: ts.Node) {
 }
 
 export function usesChartApi(node: ts.Node) {
-    let usesApi = false;
-    if (ts.isCallExpression(node)) {
-        if (node.getText()?.match(/AgChart.(?!create)/)) {
-            return true;
-        }
-        if (node.getText()?.match(/AgChart.(?!create)/)) {
-            return true;
-        }
+    if (ts.isCallExpression(node) && node.getText()?.match(/AgCharts.(?!create)/)) {
+        return true;
     }
 
+    let usesApi = false;
     node.forEachChild((ct) => {
-        usesApi = usesApi || usesChartApi(ct);
+        usesApi ||= usesChartApi(ct);
     });
     return usesApi;
 }

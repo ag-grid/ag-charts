@@ -63,28 +63,9 @@ Feel free to open this example in Plunker to enlarge the size of the component a
 
 ### Tile Colours
 
-There are several ways to customise the colours of the Treemap tiles.
-
-Use `colorKey` to point to the data field containing the colour. This colour will be used for the specific node.
-
-```js
-series: [
-    {
-        type: 'treemap',
-        colorKey: 'color',
-        data: [
-            {
-                children: [{ color: 'red' }, { color: '#fa5310' }],
-            },
-        ],
-    },
-];
-```
-
-`colorKey` can also specify a property containing a numeric value.
-In this case the `colorDomain` and `colorRange` should be provided.
-
-The colours in the `colourRange` will be interpolated into a gradient between the values provided in the `colorDomain`.
+`colorKey` specifies property containing a numeric value.
+In this case, `colorRange` should be provided.
+The colours in the `colorRange` will be interpolated into a gradient between the minimum and maximum numeric values.
 
 ```js
 series: [
@@ -100,6 +81,8 @@ series: [
     },
 ];
 ```
+
+If `colorRange` is provided without `colorKey`, the colour will be interpolated using the node's depth.
 
 ### Group colours
 

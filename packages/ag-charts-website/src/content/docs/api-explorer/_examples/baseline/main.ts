@@ -1,4 +1,4 @@
-import { AgChart, AgChartOptions } from 'ag-charts-community';
+import { AgChartOptions, AgCharts } from 'ag-charts-community';
 
 import { getData } from './data';
 
@@ -8,4 +8,4 @@ const options: AgChartOptions = {
     // INSERT OPTIONS HERE.
 };
 
-AgChart.create(options);
+AgCharts.create(options);

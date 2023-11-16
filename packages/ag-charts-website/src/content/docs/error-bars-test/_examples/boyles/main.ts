@@ -1,6 +1,8 @@
-import { AgChart, AgChartOptions } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getArgon, getHelium, getOxygen } from './data';
+
+type Datum = ReturnType<typeof getArgon>[number];
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
@@ -56,7 +58,7 @@ const options: AgChartOptions = {
     ],
 };
 
-const chart = AgChart.create(options);
+const chart = AgCharts.create(options);
 
 function scatter() {
     if (options.series !== undefined) {
@@ -64,7 +66,7 @@ function scatter() {
             series.type = 'scatter';
         }
     }
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }
 
 function line() {
@@ -73,5 +75,78 @@ function line() {
             series.type = 'line';
         }
     }
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
+}
+
+function resetData() {
+    if (options.series !== undefined) {
+        options.series[0].data = getOxygen();
+        options.series[1].data = getHelium();
+        options.series[2].data = getArgon();
+    }
+    AgEnterpriseCharts.update(chart, options);
+}
+
+function randomDelta(min: number, max: number) {
+    return Math.random() * (max - min) + min;
+}
+
+function randomIndex(length: number) {
+    return Math.round(Math.random() * (length - 1));
+}
+
+function randomiseData() {
+    if (options.series !== undefined) {
+        const fn = (datum: Datum, index: number): Datum => {
+            const volumeDelta = randomDelta(-0.1, 0.1);
+            const pressureDelta = randomDelta(-1, 1);
+            return {
+                volume: datum.volume + volumeDelta,
+                volumeLower: datum.volumeLower + volumeDelta,
+                volumeUpper: datum.volumeUpper + volumeDelta,
+                pressure: datum.pressure + pressureDelta,
+                pressureLower: datum.pressureLower + pressureDelta,
+                pressureUpper: datum.pressureUpper + pressureDelta,
+            };
+        };
+        options.series[0].data = options.series[0].data?.map(fn);
+        options.series[1].data = options.series[1].data?.map(fn);
+        options.series[2].data = options.series[2].data?.map(fn);
+    }
+    AgEnterpriseCharts.update(chart, options);
+}
+
+function randomiseErrors() {
+    if (options.series !== undefined) {
+        const fn = (datum: Datum, index: number): Datum => {
+            return {
+                volume: datum.volume,
+                volumeLower: datum.volume - randomDelta(0.05, 0.1),
+                volumeUpper: datum.volume + randomDelta(0.05, 0.1),
+                pressure: datum.pressure,
+                pressureLower: datum.pressure - randomDelta(0.5, 2),
+                pressureUpper: datum.pressure + randomDelta(0.5, 2),
+            };
+        };
+        options.series[0].data = options.series[0].data?.map(fn);
+        options.series[1].data = options.series[1].data?.map(fn);
+        options.series[2].data = options.series[2].data?.map(fn);
+    }
+    AgEnterpriseCharts.update(chart, options);
+}
+
+function removeRandomElem() {
+    const { series } = options;
+    if (series !== undefined) {
+        const meta: { seriesIndex: number; datumIndex: number }[] = [];
+        for (let seriesIndex = 0; seriesIndex < series.length; seriesIndex++) {
+            const { data } = series[seriesIndex];
+            for (let datumIndex = 0; datumIndex < (data?.length ?? 0); datumIndex++) {
+                meta.push({ seriesIndex, datumIndex });
+            }
+        }
+        const { seriesIndex, datumIndex } = meta[randomIndex(meta.length)];
+        series[seriesIndex].data?.splice(datumIndex, 1);
+    }
+    AgEnterpriseCharts.update(chart, options);
 }
