@@ -64,12 +64,20 @@ function chartType(options: any): 'cartesian' | 'polar' | 'hierarchy' {
  */
 export abstract class AgCharts {
     private static readonly INVALID_CHART_REF_MESSAGE = 'AG Charts - invalid chart reference passed';
+    private static licenseChecked = false;
+
+    private static licenseCheck(options: AgChartOptions) {
+        if (this.licenseChecked) return;
+
+        enterpriseModule.licenseManager?.(options);
+        this.licenseChecked = true;
+    }
 
     /**
      * Create a new `AgChartInstance` based upon the given configuration options.
      */
     public static create(options: AgChartOptions): AgChartInstance {
-        enterpriseModule.licenseManager?.(options);
+        this.licenseCheck(options);
         return AgChartsInternal.createOrUpdate(options);
     }
 
