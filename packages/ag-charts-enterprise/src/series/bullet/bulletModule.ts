@@ -19,7 +19,7 @@ export const BulletModule: _ModuleSupport.SeriesModule<'bullet'> = {
     customDefaultsFunction: (series) => {
         const axis0 = { ...BULLET_DEFAULTS.axes[0] };
         const axis1 = { ...BULLET_DEFAULTS.axes[1] };
-        if (series.direction !== 'horizontal') {
+        if (series.direction === 'horizontal') {
             axis0.position = CARTESIAN_AXIS_POSITIONS.LEFT;
             axis1.position = CARTESIAN_AXIS_POSITIONS.TOP;
         }
