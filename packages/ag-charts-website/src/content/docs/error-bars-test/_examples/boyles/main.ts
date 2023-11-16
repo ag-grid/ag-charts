@@ -84,7 +84,7 @@ function resetData() {
         options.series[1].data = getHelium();
         options.series[2].data = getArgon();
     }
-    AgEnterpriseCharts.update(chart, options);
+    AgCharts.update(chart, options);
 }
 
 function randomDelta(min: number, max: number) {
@@ -113,7 +113,7 @@ function randomiseData() {
         options.series[1].data = options.series[1].data?.map(fn);
         options.series[2].data = options.series[2].data?.map(fn);
     }
-    AgEnterpriseCharts.update(chart, options);
+    AgCharts.update(chart, options);
 }
 
 function randomiseErrors() {
@@ -132,7 +132,7 @@ function randomiseErrors() {
         options.series[1].data = options.series[1].data?.map(fn);
         options.series[2].data = options.series[2].data?.map(fn);
     }
-    AgEnterpriseCharts.update(chart, options);
+    AgCharts.update(chart, options);
 }
 
 function removeRandomElem() {
@@ -148,5 +148,5 @@ function removeRandomElem() {
         const { seriesIndex, datumIndex } = meta[randomIndex(meta.length)];
         series[seriesIndex].data?.splice(datumIndex, 1);
     }
-    AgEnterpriseCharts.update(chart, options);
+    AgCharts.update(chart, options);
 }

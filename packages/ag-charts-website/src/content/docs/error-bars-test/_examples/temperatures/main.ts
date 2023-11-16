@@ -76,7 +76,7 @@ function resetData() {
         options.series[0].data = getData();
         options.series[1].data = getData2();
     }
-    AgEnterpriseCharts.update(chart, options);
+    AgCharts.update(chart, options);
 }
 
 function removeOdds() {
@@ -87,7 +87,7 @@ function removeOdds() {
         options.series[0].data = getData().filter(fn);
         options.series[1].data = getData2().filter(fn);
     }
-    AgEnterpriseCharts.update(chart, options);
+    AgCharts.update(chart, options);
 }
 
 function removeOddsErrors() {
@@ -103,7 +103,7 @@ function removeOddsErrors() {
         options.series[0].data = getData().map(fn);
         options.series[1].data = getData2().map(fn);
     }
-    AgEnterpriseCharts.update(chart, options);
+    AgCharts.update(chart, options);
 }
 
 function randomDelta(min: number, max: number) {
@@ -124,7 +124,7 @@ function randomiseData() {
         options.series[0].data = getData().map(fn);
         options.series[1].data = getData2().map(fn);
     }
-    AgEnterpriseCharts.update(chart, options);
+    AgCharts.update(chart, options);
 }
 
 function randomiseErrors() {
@@ -141,5 +141,5 @@ function randomiseErrors() {
         options.series[0].data = getData().map(fn);
         options.series[1].data = getData2().map(fn);
     }
-    AgEnterpriseCharts.update(chart, options);
+    AgCharts.update(chart, options);
 }
