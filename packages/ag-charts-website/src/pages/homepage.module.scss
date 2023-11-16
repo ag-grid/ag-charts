@@ -85,7 +85,6 @@
     justify-content: center;
     align-items: center;
     height: 320px;
-    background-color: var(--ag-grid-dark-blue);
     border-radius: var(--border-radius);
     margin-bottom: $size-6;
     color: white;
@@ -107,6 +106,7 @@
 
     #{$darkmode-selector} & {
         background-color: #121f29;
+        border-bottom: 1px solid #394755;
     }
 }
 
@@ -133,6 +133,9 @@
     @media screen and (min-width: 1020px) {
         --font-size: var(--font-size-extra-large);
         --font-weight: var(--font-weight-thin);
+    }
+    #{$darkmode-selector} & {
+        color: var(--default-text-color);
     }
 }
 
