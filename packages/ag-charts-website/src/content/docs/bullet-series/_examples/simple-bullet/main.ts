@@ -20,6 +20,7 @@ const options: AgChartOptions = {
             ],
         },
     ],
+    width: 130,
 };
 
 AgCharts.create(options);
