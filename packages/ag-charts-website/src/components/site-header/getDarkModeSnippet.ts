@@ -4,12 +4,8 @@ export const DARK_MODE_END = '/** DARK MODE END **/';
 const DARK_MODE_SNIPPETS = {
     homepageHero: () => `
         heroChartOptions.theme = localStorage['documentation:darkmode'] === 'true' ? 'ag-default-dark' : 'ag-default';
-<<<<<<< HEAD
-        agCharts.AgCharts.update(chart, heroChartOptions);
-=======
         agCharts.AgChart.update(chart, heroChartOptions);
         document.querySelector('html').setAttribute('data-dark-mode', localStorage['documentation:darkmode'] === 'true');
->>>>>>> 4182b5111 (Add light & darkmode styles for examples UI buttons)
         window.addEventListener('message', (event) => {
             const data = event.detail;
             if (data?.type === 'color-scheme-change') {
@@ -19,13 +15,6 @@ const DARK_MODE_SNIPPETS = {
         });`,
     vanilla: () => `
         options.theme = localStorage['documentation:darkmode'] === 'true' ? 'ag-default-dark' : 'ag-default';
-<<<<<<< HEAD
-        agCharts.AgCharts.update(chart, options);
-        window.addEventListener('message', (event) => {
-            if (event.data?.type === 'color-scheme-change') {
-                options.theme = event.data.darkmode ? 'ag-default-dark' : 'ag-default';
-                agCharts.AgCharts.update(chart, options);
-=======
         agCharts.AgChart.update(chart, options);
         document.querySelector('html').setAttribute('data-dark-mode', localStorage['documentation:darkmode'] === 'true');
         window.addEventListener('message', (event) => {
@@ -33,7 +22,6 @@ const DARK_MODE_SNIPPETS = {
               options.theme = event.data.darkmode ? 'ag-default-dark' : 'ag-default';
               agCharts.AgChart.update(chart, options);
               document.querySelector('html').setAttribute('data-dark-mode', event.data.darkmode);
->>>>>>> 4182b5111 (Add light & darkmode styles for examples UI buttons)
             }
         });`,
     typescript: ({ chartAPI }: { chartAPI: string }) => `
