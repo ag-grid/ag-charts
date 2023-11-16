@@ -9,11 +9,17 @@
 }
 
 .headerInner {
+    @include page-horizontal-margins();
+
     display: flex;
     flex-wrap: wrap;
 
     padding-left: 0 !important;
     padding-right: 0 !important;
+
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
 
     @media screen and (min-width: $breakpoint-site-header-small) {
         flex-wrap: unset;
@@ -24,10 +30,6 @@
     display: block;
     padding: $size-1 10px;
     position: relative;
-
-    @media screen and (min-width: $breakpoint-page-margin-padding) {
-        margin-left: calc(var(--horizontal-margin) - 16px);
-    }
 }
 
 .mobileMenuButton {
@@ -139,13 +141,8 @@
     background-color: var(--site-nav-background);
 
     @media screen and (min-width: $breakpoint-site-header-small) {
-        margin-right: calc(var(--horizontal-margin) - 17px);
         width: unset;
         background-color: unset;
-    }
-
-    @media screen and (min-width: $breakpoint-size-header-medium) {
-        margin-right: calc(var(--horizontal-margin) - 27px);
     }
 
     @media screen and (min-width: $breakpoint-site-header-small) {

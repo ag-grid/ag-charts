@@ -1,15 +1,18 @@
 ---
+import {getIsDev} from '../../utils/env';
 import { HeaderNav } from './HeaderNav';
 import { getEntry } from 'astro:content';
 import { FRAMEWORKS } from '@constants';
 import styles from './SiteHeader.module.scss';
 import { urlWithBaseUrl } from '@utils/pages';
 import { SiteLogo } from './SiteLogo';
-
+import Search from '../search/Search';
+import {getFrameworkFromPath} from '../../features/docs/utils/urlPaths';
 const { pathname } = Astro.url;
 const { data: menuData } = await getEntry('menu', 'data');
 const topNavItems = menuData.header.items;
-
+const framework = getFrameworkFromPath(pathname);
+const isDev = getIsDev();
 const apiPaths = menuData.api.items.map(({ path }) => ({
     title: 'API',
     path: urlWithBaseUrl(path),
@@ -25,11 +28,20 @@ const allPaths = [
     ...apiPaths,
     ...frameworkPaths,
 ];
+export interface Props {
+    showSearchBar?: boolean;
+}
+const {showSearchBar} = Astro.props;
 ---
 
 <header class:list={[styles.header, 'site-header']}>
     <div class:list={[styles.headerInner, 'page-margin']}>
         <SiteLogo client:load />
+        {
+            showSearchBar && (
+                <Search client:only currentFramework={framework} isDev={isDev} />
+            )
+        }
         <HeaderNav currentPath={pathname} items={topNavItems} allPaths={allPaths} client:only />
     </div>
 </header>

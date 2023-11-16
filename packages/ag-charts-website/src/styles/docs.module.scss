@@ -64,11 +64,28 @@
     padding-right: var(--horizontal-margin);
     padding-left: var(--horizontal-margin);
     padding-bottom: $size-7;
+    position: relative;
+
+    .frameworkSelectorWrapper {
+        position: absolute;
+        z-index: 99999;
+        top: $size-4 + $size-half;
+        right: var(--horizontal-margin);
+
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+    }
 
     @media screen and (min-width: $breakpoint-docs-nav-large) {
         padding-left: $size-4;
         padding-right: $size-7;
         max-width: var(--docs-page-max-width);
+
+        .frameworkSelectorWrapper {
+            top: $size-6;
+            right: $size-7;
+        }
     }
 
     @media screen and (min-width: $breakpoint-docs-nav-extra-large) {

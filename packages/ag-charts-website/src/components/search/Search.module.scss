@@ -1,11 +1,8 @@
 @use '../../design-system' as *;
 
 .searchForm {
+    display: flex;
+    justify-content: center;
     flex-grow: 1;
     margin-right: auto;
-
-    @media screen and (min-width: $breakpoint-docs-search-medium) {
-        position: relative;
-        max-width: 32rem;
-    }
 }
