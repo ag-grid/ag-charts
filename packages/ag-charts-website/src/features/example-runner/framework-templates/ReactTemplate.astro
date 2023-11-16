@@ -39,7 +39,7 @@ const {
     boilerplatePath,
 } = Astro.props as Props;
 
-const startFile = pathJoin({ path: [appLocation, entryFileName] });
+const startFile = pathJoin(appLocation, entryFileName);
 ---
 
 <html lang="en">

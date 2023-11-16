@@ -16,15 +16,15 @@ const SITE_HEADER_SMALL_WIDTH = parseInt(breakpoints['site-header-small'], 10);
 const links = [
     {
         name: 'Gallery',
-        url: pathJoin({ path: [SITE_BASE_URL, 'gallery'], addTrailingSlash: true }),
+        url: pathJoin(SITE_BASE_URL, 'gallery'),
     },
     {
         name: 'Docs',
-        url: pathJoin({ path: [SITE_BASE_URL, 'documentation'], addTrailingSlash: true }),
+        url: pathJoin(SITE_BASE_URL, 'documentation'),
     },
     {
         name: 'API',
-        url: pathJoin({ path: [SITE_BASE_URL, 'options'], addTrailingSlash: true }),
+        url: pathJoin(SITE_BASE_URL, 'options'),
     },
     {
         name: 'Blog',

@@ -12,7 +12,7 @@ interface Props {
 }
 
 export const ApiTopBar: FunctionComponent<Props> = ({ menuItems, fullPath }) => {
-    const pagePath = pathJoin({ path: ['/', getPathFromUrlPathname(fullPath)] });
+    const pagePath = pathJoin('/', getPathFromUrlPathname(fullPath));
 
     return (
         <div className={styles.topBar}>
