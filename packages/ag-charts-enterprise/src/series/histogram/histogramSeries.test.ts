@@ -16,7 +16,7 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { AgEnterpriseCharts } from '../../main';
+import { AgCharts } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
 const EXAMPLES: Record<string, TestCase> = {
@@ -55,7 +55,7 @@ describe('HistogramSeries', () => {
                 const options: AgChartOptions = { ...example.options };
                 prepareEnterpriseTestOptions(options);
 
-                chart = AgEnterpriseCharts.create(options);
+                chart = AgCharts.create(options);
                 await waitForChartStability(chart);
                 await example.assertions(chart);
             });
@@ -64,7 +64,7 @@ describe('HistogramSeries', () => {
                 const options: AgChartOptions = { ...example.options };
                 prepareEnterpriseTestOptions(options);
 
-                chart = AgEnterpriseCharts.create(options);
+                chart = AgCharts.create(options);
                 await compare();
 
                 if (example.extraScreenshotActions) {
@@ -93,7 +93,7 @@ describe('HistogramSeries', () => {
 
             prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgEnterpriseCharts.create(options));
+            chart = deproxy(AgCharts.create(options));
             await waitForChartStability(chart);
 
             const series = chart.series.find((v: any) => v.type === 'scatter');
@@ -132,7 +132,7 @@ describe('HistogramSeries', () => {
                 const options: AgChartOptions = { ...example.options };
                 prepareEnterpriseTestOptions(options);
 
-                chart = AgEnterpriseCharts.create(options);
+                chart = AgCharts.create(options);
                 await waitForChartStability(chart);
                 await example.assertions(chart);
             });
@@ -141,7 +141,7 @@ describe('HistogramSeries', () => {
                 const options: AgChartOptions = { ...example.options };
                 prepareEnterpriseTestOptions(options);
 
-                chart = AgEnterpriseCharts.create(options);
+                chart = AgCharts.create(options);
                 await compare();
             });
         }
@@ -157,7 +157,7 @@ describe('HistogramSeries', () => {
                 const options: AgChartOptions = { ...GALLERY_EXAMPLES.SIMPLE_HISTOGRAM_CHART_EXAMPLE.options };
                 prepareEnterpriseTestOptions(options);
 
-                chart = AgEnterpriseCharts.create(options);
+                chart = AgCharts.create(options);
                 await waitForChartStability(chart);
                 await compare();
             });
@@ -174,10 +174,10 @@ describe('HistogramSeries', () => {
                 const options: AgChartOptions = { ...GALLERY_EXAMPLES.SIMPLE_HISTOGRAM_CHART_EXAMPLE.options };
                 prepareEnterpriseTestOptions(options);
 
-                chart = AgEnterpriseCharts.create(options);
+                chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
-                AgEnterpriseCharts.updateDelta(chart, {
+                AgCharts.updateDelta(chart, {
                     data: [
                         ...options.data!.filter(
                             (d: any) => d['engine-size'] > 80 && (d['engine-size'] < 100 || d['engine-size'] > 120)
@@ -202,10 +202,10 @@ describe('HistogramSeries', () => {
                 const options: AgChartOptions = { ...GALLERY_EXAMPLES.SIMPLE_HISTOGRAM_CHART_EXAMPLE.options };
                 prepareEnterpriseTestOptions(options);
 
-                chart = AgEnterpriseCharts.create(options);
+                chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
-                AgEnterpriseCharts.updateDelta(chart, {
+                AgCharts.updateDelta(chart, {
                     data: [
                         ...options.data!.filter(
                             (d: any) => d['engine-size'] > 80 && (d['engine-size'] < 100 || d['engine-size'] > 120)
@@ -214,7 +214,7 @@ describe('HistogramSeries', () => {
                 });
                 await waitForChartStability(chart);
 
-                AgEnterpriseCharts.update(chart, options);
+                AgCharts.update(chart, options);
                 animate(1200, ratio);
 
                 await waitForChartStability(chart);
@@ -233,10 +233,10 @@ describe('HistogramSeries', () => {
                 const options: AgChartOptions = { ...GALLERY_EXAMPLES.SIMPLE_HISTOGRAM_CHART_EXAMPLE.options };
                 prepareEnterpriseTestOptions(options);
 
-                chart = AgEnterpriseCharts.create(options);
+                chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
-                AgEnterpriseCharts.updateDelta(chart, {
+                AgCharts.updateDelta(chart, {
                     data: [
                         ...options.data!.map((d: any, index: number) => ({
                             ...d,

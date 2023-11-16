@@ -21,8 +21,8 @@ export const CodeView = ({ framework, options }) => {
 
 const VanillaCode = ({ options }) => (
     <>
-        <Code code={['// Create new chart', `chart = AgChart.create(${formatJson(options)});`]} />
-        <Code code={['// Update existing chart', `AgChart.update(chart, ${formatJson(options)});`]} />
+        <Code code={['// Create new chart', `chart = AgCharts.create(${formatJson(options)});`]} />
+        <Code code={['// Update existing chart', `AgCharts.update(chart, ${formatJson(options)});`]} />
     </>
 );
 

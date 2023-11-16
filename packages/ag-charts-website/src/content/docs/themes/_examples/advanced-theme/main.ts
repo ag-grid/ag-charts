@@ -1,4 +1,4 @@
-import { AgChart, AgChartOptions, AgChartTheme } from 'ag-charts-community';
+import { AgChartOptions, AgChartTheme, AgCharts } from 'ag-charts-community';
 
 import { getData } from './data';
 
@@ -109,7 +109,7 @@ var options: AgChartOptions = {
     ],
 };
 
-const chart = AgChart.create(options);
+const chart = AgCharts.create(options);
 
 function applyOptions(type: 'bar' | 'pie') {
     if (type === 'pie') {
@@ -133,5 +133,5 @@ function applyOptions(type: 'bar' | 'pie') {
         ];
     }
 
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }

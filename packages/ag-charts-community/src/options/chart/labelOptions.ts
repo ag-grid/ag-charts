@@ -2,7 +2,7 @@ import type { FontOptions, Toggleable } from '../series/cartesian/commonOptions'
 import type { AgChartCallbackParams } from './callbackOptions';
 
 /**
- * Represents the configuration options for labels in an AgChart.
+ * Represents the configuration options for labels in an AgCharts.
  *
  * Labels are used to display textual information alongside data points in a chart.
  *

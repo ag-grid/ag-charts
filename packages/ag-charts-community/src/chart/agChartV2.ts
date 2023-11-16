@@ -1,5 +1,6 @@
 import type { ModuleInstance } from '../module/baseModule';
 import type { LegendModule, RootModule } from '../module/coreModules';
+import { enterpriseModule } from '../module/enterpriseModule';
 import { type Module, REGISTERED_MODULES, hasRegisteredEnterpriseModules } from '../module/module';
 import type { AxisOptionModule, SeriesOptionModule } from '../module/optionModules';
 import type {
@@ -61,14 +62,15 @@ function chartType(options: any): 'cartesian' | 'polar' | 'hierarchy' {
  *
  * @docsInterface
  */
-export abstract class AgChart {
+export abstract class AgCharts {
     private static readonly INVALID_CHART_REF_MESSAGE = 'AG Charts - invalid chart reference passed';
 
     /**
      * Create a new `AgChartInstance` based upon the given configuration options.
      */
     public static create(options: AgChartOptions): AgChartInstance {
-        return AgChartInternal.createOrUpdate(options);
+        enterpriseModule.licenseManager?.(options);
+        return AgChartsInternal.createOrUpdate(options);
     }
 
     /**
@@ -81,9 +83,9 @@ export abstract class AgChart {
      */
     public static update(chart: AgChartInstance, options: AgChartOptions) {
         if (!AgChartInstanceProxy.isInstance(chart)) {
-            throw new Error(AgChart.INVALID_CHART_REF_MESSAGE);
+            throw new Error(AgCharts.INVALID_CHART_REF_MESSAGE);
         }
-        AgChartInternal.createOrUpdate(options, chart);
+        AgChartsInternal.createOrUpdate(options, chart);
     }
 
     /**
@@ -96,9 +98,9 @@ export abstract class AgChart {
      */
     public static updateDelta(chart: AgChartInstance, deltaOptions: DeepPartial<AgChartOptions>) {
         if (!AgChartInstanceProxy.isInstance(chart)) {
-            throw new Error(AgChart.INVALID_CHART_REF_MESSAGE);
+            throw new Error(AgCharts.INVALID_CHART_REF_MESSAGE);
         }
-        AgChartInternal.updateUserDelta(chart, deltaOptions);
+        AgChartsInternal.updateUserDelta(chart, deltaOptions);
     }
 
     /**
@@ -106,9 +108,9 @@ export abstract class AgChart {
      */
     public static download(chart: AgChartInstance, options?: DownloadOptions) {
         if (!(chart instanceof AgChartInstanceProxy)) {
-            throw new Error(AgChart.INVALID_CHART_REF_MESSAGE);
+            throw new Error(AgCharts.INVALID_CHART_REF_MESSAGE);
         }
-        AgChartInternal.download(chart, options);
+        AgChartsInternal.download(chart, options);
     }
 
     /**
@@ -116,25 +118,28 @@ export abstract class AgChart {
      */
     public static getImageDataURL(chart: AgChartInstance, options?: ImageDataUrlOptions): Promise<string> {
         if (!(chart instanceof AgChartInstanceProxy)) {
-            throw new Error(AgChart.INVALID_CHART_REF_MESSAGE);
+            throw new Error(AgCharts.INVALID_CHART_REF_MESSAGE);
         }
-        return AgChartInternal.getImageDataURL(chart, options);
+        return AgChartsInternal.getImageDataURL(chart, options);
     }
 }
 
-abstract class AgChartInternal {
+/** @deprecated use AgCharts instead */
+export const AgChart = AgCharts;
+
+class AgChartsInternal {
     static initialised = false;
     static initialiseModules() {
-        if (AgChartInternal.initialised) return;
+        if (AgChartsInternal.initialised) return;
 
         registerInbuiltModules();
         setupModules();
 
-        AgChartInternal.initialised = true;
+        AgChartsInternal.initialised = true;
     }
 
     static createOrUpdate(userOptions: ChartExtendedOptions, proxy?: AgChartInstanceProxy) {
-        AgChartInternal.initialiseModules();
+        AgChartsInternal.initialiseModules();
 
         debug('>>> AgChartV2.createOrUpdate() user options', userOptions);
 
@@ -144,7 +149,7 @@ abstract class AgChartInternal {
         const processedOptions = prepareOptions(chartOptions);
         let chart = proxy?.chart;
         if (chart == null || chartType(chartOptions) !== chartType(chart.processedOptions)) {
-            chart = AgChartInternal.createChartInstance(processedOptions, specialOverrides, chart);
+            chart = AgChartsInternal.createChartInstance(processedOptions, specialOverrides, chart);
         }
 
         if (proxy == null) {
@@ -177,7 +182,7 @@ abstract class AgChartInternal {
                 return;
             }
 
-            await AgChartInternal.updateDelta(chartToUpdate, deltaOptions, chartOptions);
+            await AgChartsInternal.updateDelta(chartToUpdate, deltaOptions, chartOptions);
             dequeue();
         });
 
@@ -194,7 +199,7 @@ abstract class AgChartInternal {
         const userOptions = jsonMerge([lastUpdateOptions, deltaOptions]) as AgChartOptions;
         debug('>>> AgChartV2.updateUserDelta() user delta', deltaOptions);
         debug('AgChartV2.updateUserDelta() - base options', lastUpdateOptions);
-        AgChartInternal.createOrUpdate(userOptions, proxy);
+        AgChartsInternal.createOrUpdate(userOptions, proxy);
     }
 
     /**
@@ -203,7 +208,7 @@ abstract class AgChartInternal {
      */
     static download(proxy: AgChartInstanceProxy, opts?: DownloadOptions) {
         const asyncDownload = async () => {
-            const maybeClone = await AgChartInternal.prepareResizedChart(proxy, opts);
+            const maybeClone = await AgChartsInternal.prepareResizedChart(proxy, opts);
 
             const { chart } = maybeClone;
             chart.scene.download(opts?.fileName, opts?.fileFormat);
@@ -217,7 +222,7 @@ abstract class AgChartInternal {
     }
 
     static async getImageDataURL(proxy: AgChartInstanceProxy, opts?: ImageDataUrlOptions): Promise<string> {
-        const maybeClone = await AgChartInternal.prepareResizedChart(proxy, opts);
+        const maybeClone = await AgChartsInternal.prepareResizedChart(proxy, opts);
 
         const { chart } = maybeClone;
         const result = chart.scene.canvas.getDataURL(opts?.fileFormat);
@@ -265,7 +270,7 @@ abstract class AgChartInternal {
             options.animation.enabled = false;
         }
 
-        const clonedChart = AgChartInternal.createOrUpdate(options);
+        const clonedChart = AgChartsInternal.createOrUpdate(options);
 
         await clonedChart.chart.waitForUpdate();
         return clonedChart;

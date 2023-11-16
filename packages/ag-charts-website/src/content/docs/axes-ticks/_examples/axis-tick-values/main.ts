@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgChart } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
@@ -35,14 +35,14 @@ const options: AgCartesianChartOptions = {
     ],
 };
 
-const chart = AgChart.create(options);
+const chart = AgCharts.create(options);
 
 function setTickValues(values: number[]) {
     options.axes![1].tick = { values };
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }
 
 function reset() {
     options.axes![1].tick = {};
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }

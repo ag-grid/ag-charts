@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgChart, AgNumberAxisThemeOptions } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts, AgNumberAxisThemeOptions } from 'ag-charts-community';
 
 const options: AgCartesianChartOptions & { axes: AgNumberAxisThemeOptions[] } = {
     container: document.getElementById('myChart'),
@@ -27,12 +27,12 @@ const options: AgCartesianChartOptions & { axes: AgNumberAxisThemeOptions[] } = 
     ],
 };
 
-var chart = AgChart.create(options);
+var chart = AgCharts.create(options);
 
 function resetTickConfig() {
     options.axes![0].tick = {};
     options.axes![1].tick = {};
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }
 
 function setTickMinMaxSpacing() {
@@ -44,7 +44,7 @@ function setTickMinMaxSpacing() {
         minSpacing: 100,
         maxSpacing: 200,
     };
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }
 
 function setTickInterval() {
@@ -54,7 +54,7 @@ function setTickInterval() {
     options.axes![1].tick = {
         interval: 30,
     };
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }
 
 function setTickValues() {
@@ -64,7 +64,7 @@ function setTickValues() {
     options.axes![1].tick = {
         values: [-50, -43, -21, -6, 21, 43, 50],
     };
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }
 
 function generateSpiralData() {

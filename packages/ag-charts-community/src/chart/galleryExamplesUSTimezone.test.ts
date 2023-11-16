@@ -4,7 +4,7 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 import type { AgChartOptions } from '../options/agChartOptions';
-import { AgChart } from './agChartV2';
+import { AgCharts } from './agChartV2';
 import type { Chart } from './chart';
 import { isAgCartesianChartOptions } from './mapping/types';
 import { EXAMPLES } from './test/examples-gallery';
@@ -53,7 +53,7 @@ describe('Gallery Examples (US TZ)', () => {
     for (const [exampleName, example] of Object.entries(TIME_AXIS_EXAMPLES)) {
         it(`for ${exampleName} it should create chart instance as expected`, async () => {
             const options: AgChartOptions = example.options;
-            chart = AgChart.create(options) as Chart;
+            chart = AgCharts.create(options) as Chart;
             await waitForChartStability(chart);
             await example.assertions(chart);
         });
@@ -69,7 +69,7 @@ describe('Gallery Examples (US TZ)', () => {
             const options: AgChartOptions = { ...example.options };
             prepareTestOptions(options);
 
-            chart = AgChart.create(options) as Chart;
+            chart = AgCharts.create(options) as Chart;
             await compare();
 
             if (example.extraScreenshotActions) {

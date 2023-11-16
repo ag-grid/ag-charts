@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgChart } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 
 import { getData } from './data';
 
@@ -26,9 +26,9 @@ const options: AgCartesianChartOptions = {
     },
 };
 
-const chart = AgChart.create(options);
+const chart = AgCharts.create(options);
 
 function toggleTooltipArrow() {
     options.tooltip!.showArrow = !options.tooltip!.showArrow;
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }

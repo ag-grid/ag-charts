@@ -1,4 +1,4 @@
-import { AgChart, AgChartOptions } from 'ag-charts-community';
+import { AgChartOptions, AgCharts } from 'ag-charts-community';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart') as HTMLElement,
@@ -13,4 +13,4 @@ const options: AgChartOptions = {
     series: [{ type: 'bar', xKey: 'month', yKey: 'iceCreamSales' }],
 };
 
-AgChart.create(options);
+AgCharts.create(options);

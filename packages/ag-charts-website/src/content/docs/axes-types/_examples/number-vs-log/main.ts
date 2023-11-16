@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgChart } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
@@ -29,7 +29,7 @@ const options: AgCartesianChartOptions = {
     ],
 };
 
-var chart = AgChart.create(options);
+var chart = AgCharts.create(options);
 
 function useNumberAxis() {
     options.axes = [
@@ -46,7 +46,7 @@ function useNumberAxis() {
             },
         },
     ];
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }
 
 function useLogAxis() {
@@ -64,7 +64,7 @@ function useLogAxis() {
             },
         },
     ];
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }
 
 function useBaseTwoLogAxis() {
@@ -83,7 +83,7 @@ function useBaseTwoLogAxis() {
             base: 2,
         },
     ];
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }
 
 function useLogAxisWithFewerTicks() {
@@ -104,5 +104,5 @@ function useLogAxisWithFewerTicks() {
             },
         },
     ];
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }

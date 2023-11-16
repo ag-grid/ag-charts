@@ -1,4 +1,4 @@
-import { AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -31,4 +31,4 @@ const options: AgChartOptions = {
     },
 };
 
-const chart = AgEnterpriseCharts.create(options);
+const chart = AgCharts.create(options);

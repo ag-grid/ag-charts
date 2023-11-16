@@ -1,4 +1,4 @@
-import { AgChart, AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -60,11 +60,11 @@ const options: AgChartOptions = {
     ],
 };
 
-const chart = AgEnterpriseCharts.create(options);
+const chart = AgCharts.create(options);
 
 function reset() {
     options.data = getData();
-    AgChart.update(chart, options as any);
+    AgCharts.update(chart, options as any);
 }
 
 function randomise() {
@@ -74,7 +74,7 @@ function randomise() {
             iphone: d.iphone + Math.floor(Math.random() * 50 - 25),
         })),
     ];
-    AgChart.update(chart, options as any);
+    AgCharts.update(chart, options as any);
 }
 
 function remove() {
@@ -84,5 +84,5 @@ function remove() {
                 !d.quarter.startsWith("Q1'19") && !d.quarter.startsWith("Q3'19") && !d.quarter.startsWith("Q4'18")
         ),
     ];
-    AgChart.update(chart, options as any);
+    AgCharts.update(chart, options as any);
 }

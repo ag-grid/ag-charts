@@ -1,4 +1,4 @@
-import { AgChart, AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import {
     getFemaleData,
@@ -61,22 +61,22 @@ const options: AgChartOptions = {
     ],
 };
 
-const chart = AgEnterpriseCharts.create(options);
+const chart = AgCharts.create(options);
 
 function reset() {
     options.series![0].data = getMaleData();
     options.series![1].data = getFemaleData();
-    AgChart.update(chart, options as any);
+    AgCharts.update(chart, options as any);
 }
 
 function randomise() {
     options.series![0].data = getRandomisedMaleData();
     options.series![1].data = getRandomisedFemaleData();
-    AgChart.update(chart, options as any);
+    AgCharts.update(chart, options as any);
 }
 
 function remove() {
     options.series![0].data = getRemovedMaleData();
     options.series![1].data = getRemovedFemaleData();
-    AgChart.update(chart, options as any);
+    AgCharts.update(chart, options as any);
 }

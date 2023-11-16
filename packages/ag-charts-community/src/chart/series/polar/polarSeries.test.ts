@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type { AgPolarChartOptions } from '../../../options/agChartOptions';
-import { AgChart } from '../../agChartV2';
+import { AgCharts } from '../../agChartV2';
 import type { Chart } from '../../chart';
 import { ChartUpdateType } from '../../chartUpdateType';
 import type { PolarTestCase } from '../../test/utils';
@@ -119,7 +119,7 @@ describe('PolarSeries', () => {
                 const options: AgPolarChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
-                chart = deproxy(AgChart.create(options));
+                chart = deproxy(AgCharts.create(options));
                 await waitForChartStability(chart);
                 await example.assertions(chart);
             });
@@ -128,7 +128,7 @@ describe('PolarSeries', () => {
                 const options: AgPolarChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
-                chart = deproxy(AgChart.create(options));
+                chart = deproxy(AgCharts.create(options));
                 await compare();
 
                 if (example.extraScreenshotActions) {
@@ -149,7 +149,7 @@ describe('PolarSeries', () => {
                 const options: AgPolarChartOptions = examples.PIE_SERIES;
                 prepareTestOptions(options);
 
-                chart = AgChart.create(options);
+                chart = AgCharts.create(options);
                 await compare();
             });
         }
@@ -165,11 +165,11 @@ describe('PolarSeries', () => {
                 const options: AgPolarChartOptions = examples.PIE_SERIES;
                 prepareTestOptions(options);
 
-                chart = AgChart.create(options);
+                chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
                 animate(1200, ratio);
-                AgChart.update(chart, {
+                AgCharts.update(chart, {
                     ...options,
                     data: options.data!.filter((d) => d.os !== 'iOS' && d.os !== 'Symbian'),
                 });
@@ -188,14 +188,14 @@ describe('PolarSeries', () => {
                 const options: AgPolarChartOptions = examples.PIE_SERIES;
                 prepareTestOptions(options);
 
-                chart = AgChart.create({
+                chart = AgCharts.create({
                     ...options,
                     data: options.data!.filter((d) => d.os !== 'iOS' && d.os !== 'Symbian'),
                 });
                 await waitForChartStability(chart);
 
                 animate(1200, ratio);
-                AgChart.update(chart, { ...options });
+                AgCharts.update(chart, { ...options });
 
                 await compare();
             });
@@ -212,11 +212,11 @@ describe('PolarSeries', () => {
                 const options: AgPolarChartOptions = examples.PIE_SERIES;
                 prepareTestOptions(options);
 
-                chart = AgChart.create(options);
+                chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
                 animate(1200, ratio);
-                AgChart.update(chart, {
+                AgCharts.update(chart, {
                     ...options,
                     data: options.data!.map((d) => (d.os === 'iOS' ? { ...d, share: d.share * 2 } : d)),
                 });
@@ -242,7 +242,7 @@ describe('PolarSeries', () => {
             prepareTestOptions(options);
             options.legend = { enabled: true };
 
-            chart = deproxy(AgChart.create(options));
+            chart = deproxy(AgCharts.create(options));
             const reference = await snapshot();
 
             options.data?.forEach((_, idx) => {

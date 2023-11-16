@@ -1,4 +1,4 @@
-import { AgChart, AgChartOptions } from 'ag-charts-community';
+import { AgChartOptions, AgCharts } from 'ag-charts-community';
 
 import { getData } from './data';
 
@@ -45,4 +45,4 @@ const heroChartOptions: AgChartOptions = {
     ],
 };
 
-AgChart.create(heroChartOptions);
+AgCharts.create(heroChartOptions);

@@ -1,4 +1,4 @@
-import { AgChart, AgChartOptions } from 'ag-charts-community';
+import { AgChartOptions, AgCharts } from 'ag-charts-community';
 
 function formatter({ yKey, size }: { yKey: string; size: number }) {
     return { size: yKey === 'electric' ? 12 : size };
@@ -51,4 +51,4 @@ const options: AgChartOptions = {
     ],
 };
 
-AgChart.create(options);
+AgCharts.create(options);

@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgChart, AgNumberAxisOptions } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts, AgNumberAxisOptions } from 'ag-charts-community';
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
@@ -32,13 +32,13 @@ const options: AgCartesianChartOptions = {
     ],
 };
 
-const chart = AgChart.create(options);
+const chart = AgCharts.create(options);
 
 function setAxisMinMax() {
     const numberAxisOptions = options.axes![1] as AgNumberAxisOptions;
     numberAxisOptions.min = -50;
     numberAxisOptions.max = 150;
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }
 
 function resetAxisDomain() {
@@ -49,5 +49,5 @@ function resetAxisDomain() {
     if (numberAxisOptions.max) {
         delete numberAxisOptions.max;
     }
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }

@@ -1,4 +1,4 @@
-import { AgAreaSeriesOptions, AgChart, AgChartLegendPosition } from 'ag-charts-community';
+import { AgAreaSeriesOptions, AgChartLegendPosition, AgCharts } from 'ag-charts-community';
 
 import { getData } from './data';
 
@@ -19,7 +19,7 @@ const legend = {
     position: positions[1],
 };
 
-let chart = AgChart.create({
+let chart = AgCharts.create({
     container: document.getElementById('myChart'),
     title: {
         text: 'Browser Usage Statistics',
@@ -36,13 +36,13 @@ function reverseSeries() {
     const series = chart.getOptions().series as AgAreaSeriesOptions[];
     series!.reverse();
 
-    AgChart.updateDelta(chart, { series });
+    AgCharts.updateDelta(chart, { series });
 }
 
 function swapTitles() {
     const { title, subtitle } = chart.getOptions();
 
-    AgChart.updateDelta(chart, { title: subtitle, subtitle: title });
+    AgCharts.updateDelta(chart, { title: subtitle, subtitle: title });
 }
 
 function rotateLegend() {
@@ -51,11 +51,11 @@ function rotateLegend() {
     const currentIdx = positions.indexOf(position || 'top');
     const newPosition = positions[(currentIdx + 1) % positions.length];
 
-    AgChart.updateDelta(chart, { legend: { position: newPosition } });
+    AgCharts.updateDelta(chart, { legend: { position: newPosition } });
 }
 
 function changeTheme() {
-    AgChart.updateDelta(chart, {
+    AgCharts.updateDelta(chart, {
         theme: { overrides: { area: { series: { marker: { enabled: true } } } } },
     });
 }

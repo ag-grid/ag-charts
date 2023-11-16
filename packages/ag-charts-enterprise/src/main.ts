@@ -1,5 +1,5 @@
-import type { AgChartInstance, AgChartOptions } from 'ag-charts-community';
-import { AgChart, _ModuleSupport } from 'ag-charts-community';
+import type { AgChartOptions } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { AngleCategoryAxisModule } from './axes/angle-category/main';
 import { AngleNumberAxisModule } from './axes/angle-number/main';
@@ -28,8 +28,6 @@ import { RangeBarModule } from './series/range-bar/main';
 import { SunburstSeriesModule } from './series/sunburst/sunburstSeriesModule';
 import { TreemapSeriesModule } from './series/treemap/treemapSeriesModule';
 import { WaterfallModule } from './series/waterfall/main';
-
-export { RadiusNumberAxisModule } from './axes/radius-number/radiusNumberAxisModule';
 
 export * from 'ag-charts-community';
 
@@ -60,19 +58,7 @@ _ModuleSupport.registerModule(TreemapSeriesModule);
 _ModuleSupport.registerModule(WaterfallModule);
 _ModuleSupport.registerModule(ZoomModule);
 
-export class AgEnterpriseCharts {
-    public static create(options: AgChartOptions): AgChartInstance {
-        const doc = typeof document !== 'undefined' ? document : undefined;
-        new LicenseManager(options.container?.ownerDocument ?? doc).validateLicense();
-
-        return AgChart.create(options);
-    }
-
-    public static update(chart: AgChartInstance, options: AgChartOptions) {
-        return AgChart.update(chart, options);
-    }
-
-    public static updateDelta(chart: AgChartInstance, deltaOptions: Parameters<(typeof AgChart)['updateDelta']>[1]) {
-        return AgChart.updateDelta(chart, deltaOptions);
-    }
-}
+_ModuleSupport.enterpriseModule.licenseManager = (options: AgChartOptions) =>
+    new LicenseManager(
+        options.container?.ownerDocument ?? (typeof document !== 'undefined' ? document : undefined)
+    ).validateLicense();

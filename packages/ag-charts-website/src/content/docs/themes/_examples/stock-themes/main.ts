@@ -1,4 +1,4 @@
-import { AgChart, AgChartOptions, AgChartThemeName } from 'ag-charts-community';
+import { AgChartOptions, AgChartThemeName, AgCharts } from 'ag-charts-community';
 
 import { getData } from './data';
 
@@ -18,12 +18,12 @@ const options: AgChartOptions = {
     ],
 };
 
-var chart = AgChart.create(options);
+var chart = AgCharts.create(options);
 
 function applyTheme(theme: AgChartThemeName) {
     options.theme = theme;
 
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }
 
 document.getElementById('theme-select')?.addEventListener('input', (event) => {

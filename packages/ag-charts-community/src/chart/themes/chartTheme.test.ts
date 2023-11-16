@@ -7,7 +7,7 @@ import type {
     AgChartTheme,
     AgPolarChartOptions,
 } from '../../options/agChartOptions';
-import { AgChart } from '../agChartV2';
+import { AgCharts } from '../agChartV2';
 import { CartesianChart } from '../cartesianChart';
 import { PolarChart } from '../polarChart';
 import type { AreaSeries } from '../series/cartesian/areaSeries';
@@ -178,10 +178,10 @@ describe('ChartTheme', () => {
 
         const serializedOptions = JSON.stringify(cartesianChartOptions);
         beforeEach(() => {
-            chart = deproxy(AgChart.create(cartesianChartOptions)) as CartesianChart;
+            chart = deproxy(AgCharts.create(cartesianChartOptions)) as CartesianChart;
         });
 
-        test('Options are not mutated after AgChart.create', () => {
+        test('Options are not mutated after AgCharts.create', () => {
             expect(JSON.stringify(cartesianChartOptions)).toBe(serializedOptions);
         });
 
@@ -273,10 +273,10 @@ describe('ChartTheme', () => {
         const serializedOptions = JSON.stringify(polarChartOptions);
 
         beforeEach(() => {
-            chart = deproxy(AgChart.create(polarChartOptions)) as PolarChart;
+            chart = deproxy(AgCharts.create(polarChartOptions)) as PolarChart;
         });
 
-        test('Options are not mutated after AgChart.create', () => {
+        test('Options are not mutated after AgCharts.create', () => {
             expect(JSON.stringify(polarChartOptions)).toBe(serializedOptions);
         });
 
@@ -427,7 +427,7 @@ describe('ChartTheme', () => {
         };
 
         test('Cartesian chart instance properties', async () => {
-            chart = deproxy(AgChart.create(cartesianChartOptions));
+            chart = deproxy(AgCharts.create(cartesianChartOptions));
             if (!(chart instanceof CartesianChart)) fail();
 
             await waitForChartStability(chart);
@@ -453,7 +453,7 @@ describe('ChartTheme', () => {
         });
 
         test('Polar chart intstance properties', async () => {
-            chart = deproxy(AgChart.create(polarChartOptions));
+            chart = deproxy(AgCharts.create(polarChartOptions));
             if (!(chart instanceof PolarChart)) fail();
 
             await waitForChartStability(chart);
@@ -543,7 +543,7 @@ describe('ChartTheme', () => {
 
         test('Themed bottom category, unthemed left number', async () => {
             chart = deproxy(
-                AgChart.create({
+                AgCharts.create({
                     theme,
                     data,
                     series: [
@@ -593,7 +593,7 @@ describe('ChartTheme', () => {
 
         test('Specialized chart type themed bottom category, unthemed left number', async () => {
             chart = deproxy(
-                AgChart.create({
+                AgCharts.create({
                     theme,
                     data,
                     series: [
@@ -643,7 +643,7 @@ describe('ChartTheme', () => {
 
         test('Themed right number, unthemed top category', async () => {
             chart = deproxy(
-                AgChart.create({
+                AgCharts.create({
                     theme,
                     data,
                     axes: [
@@ -703,7 +703,7 @@ describe('ChartTheme', () => {
 
         test('Partially themed axes', async () => {
             chart = deproxy(
-                AgChart.create({
+                AgCharts.create({
                     theme,
                     data,
                     axes: [
@@ -851,7 +851,7 @@ describe('ChartTheme', () => {
         };
 
         test('Cartesian chart instance properties', async () => {
-            chart = deproxy(AgChart.create(cartesianChartOptions));
+            chart = deproxy(AgCharts.create(cartesianChartOptions));
             if (!(chart instanceof CartesianChart)) fail();
             await waitForChartStability(chart);
             const { series } = chart;

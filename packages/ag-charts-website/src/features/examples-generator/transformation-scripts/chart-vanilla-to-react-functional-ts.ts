@@ -1,7 +1,7 @@
 import { toTitleCase } from './angular-utils';
 import { wrapOptionsUpdateCode } from './chart-utils';
 import { templatePlaceholder } from './chart-vanilla-src-parser';
-import { BindingImport, addBindingImports, convertFunctionToProperty, isInstanceMethod } from './parser-utils';
+import { addBindingImports, convertFunctionToProperty, isInstanceMethod } from './parser-utils';
 import { convertFunctionToConstCallback, convertFunctionalTemplate, getImport } from './react-utils';
 
 export function processFunction(code: string): string {
@@ -108,7 +108,7 @@ export function vanillaToReactFunctionalTs(bindings: any, componentFilenames: st
 ${imports.join('\n')}
 
 const ChartExample = () => {
-    
+
         ${
             bindings.usesChartApi
                 ? `
@@ -130,11 +130,7 @@ root.render(<ChartExample />);
 `;
 
         if (bindings.usesChartApi) {
-            indexFile = indexFile.replace(/AgChart.(\w*)\((\w*)(,|\))/g, 'AgChart.$1(chartRef.current!.chart$3');
-            indexFile = indexFile.replace(
-                /AgEnterpriseCharts.(\w*)\((\w*)(,|\))/g,
-                'AgEnterpriseCharts.$1(chartRef.current!.chart$3'
-            );
+            indexFile = indexFile.replace(/AgCharts.(\w*)\((\w*)(,|\))/g, 'AgCharts.$1(chartRef.current!.chart$3');
             indexFile = indexFile.replace(
                 /\(this.chartRef.current.chart, options/g,
                 '(chartRef.current!.chart, options'

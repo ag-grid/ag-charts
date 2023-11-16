@@ -16,7 +16,7 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { AgEnterpriseCharts } from '../../main';
+import { AgCharts } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
 function applyAxesFlip<T>(opts: T): T {
@@ -296,7 +296,7 @@ describe('Crosshair', () => {
             const options: AgChartOptions = TEST_CASE;
             prepareEnterpriseTestOptions(options);
 
-            chart = AgEnterpriseCharts.create(options);
+            chart = AgCharts.create(options);
             await waitForChartStability(chart);
             await hoverAction(605, 300)(chart);
             await compare();
@@ -306,7 +306,7 @@ describe('Crosshair', () => {
             const options: AgChartOptions = applyCrosshairSnap(TEST_CASE, true);
             prepareEnterpriseTestOptions(options);
 
-            chart = AgEnterpriseCharts.create(options);
+            chart = AgCharts.create(options);
             await waitForChartStability(chart);
             await hoverAction(605, 125)(chart);
             await compare();
@@ -324,7 +324,7 @@ describe('Crosshair', () => {
                 },
             };
 
-            chart = AgEnterpriseCharts.create(options);
+            chart = AgCharts.create(options);
             await waitForChartStability(chart);
             await hoverAction(300, 300)(chart);
             await compare();

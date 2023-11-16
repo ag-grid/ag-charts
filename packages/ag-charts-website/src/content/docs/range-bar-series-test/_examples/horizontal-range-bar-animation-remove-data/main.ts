@@ -1,4 +1,4 @@
-import { AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -22,7 +22,7 @@ const options: AgChartOptions = {
     ],
 };
 
-const chart = AgEnterpriseCharts.create(options);
+const chart = AgCharts.create(options);
 
 function removeValue() {
     console.log('removing');
@@ -30,5 +30,5 @@ function removeValue() {
     const removeIndex = Math.floor(dataLength * Math.random());
     data.splice(removeIndex, 1);
     options.data = data;
-    AgEnterpriseCharts.update(chart, options);
+    AgCharts.update(chart, options);
 }

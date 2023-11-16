@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 import type { AgCartesianChartOptions } from '../options/agChartOptions';
-import { AgChart } from './agChartV2';
+import { AgCharts } from './agChartV2';
 import type { CartesianChart } from './cartesianChart';
 import type { Chart } from './chart';
 import * as examples from './test/examples';
@@ -77,7 +77,7 @@ describe('Legend', () => {
             prepareTestOptions(options);
             options.width = width ?? options.width;
 
-            chart = deproxy(AgChart.create(options)) as CartesianChart;
+            chart = deproxy(AgCharts.create(options)) as CartesianChart;
             await compare(chart);
         });
     });
@@ -94,7 +94,7 @@ describe('Legend', () => {
             };
             prepareTestOptions(options);
 
-            chart = deproxy(AgChart.create(options)) as CartesianChart;
+            chart = deproxy(AgCharts.create(options)) as CartesianChart;
             await compare(chart);
         });
     });
@@ -107,7 +107,7 @@ describe('Legend', () => {
 
             prepareTestOptions(options);
 
-            chart = deproxy(AgChart.create(options)) as CartesianChart;
+            chart = deproxy(AgCharts.create(options)) as CartesianChart;
 
             await waitForChartStability(chart);
 
@@ -124,7 +124,7 @@ describe('Legend', () => {
 
             prepareTestOptions(options);
 
-            chart = deproxy(AgChart.create(options)) as CartesianChart;
+            chart = deproxy(AgCharts.create(options)) as CartesianChart;
 
             await waitForChartStability(chart);
             const { x = 0, y = 0 } = chart.legend?.computeBBox() ?? {};
@@ -145,7 +145,7 @@ describe('Legend', () => {
 
             prepareTestOptions(options);
 
-            chart = deproxy(AgChart.create(options)) as CartesianChart;
+            chart = deproxy(AgCharts.create(options)) as CartesianChart;
 
             await waitForChartStability(chart);
             const { x = 0, y = 0 } = chart.legend?.computeBBox() ?? {};
@@ -162,7 +162,7 @@ describe('Legend', () => {
 
             prepareTestOptions(options);
 
-            chart = deproxy(AgChart.create(options)) as CartesianChart;
+            chart = deproxy(AgCharts.create(options)) as CartesianChart;
 
             await waitForChartStability(chart);
             const { x = 0, y = 0 } = chart.legend?.computeBBox() ?? {};
