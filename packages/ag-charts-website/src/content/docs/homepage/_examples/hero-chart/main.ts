@@ -2,7 +2,7 @@ import { AgChartOptions, AgCharts } from 'ag-charts-community';
 
 import { getData } from './data';
 
-const heroChartOptions: AgChartOptions = {
+const options: AgChartOptions = {
     container: document.getElementById('homepageHeroChart'),
     title: {
         text: 'TODO: Find better hero chart',
@@ -45,4 +45,4 @@ const heroChartOptions: AgChartOptions = {
     ],
 };
 
-AgCharts.create(heroChartOptions);
+AgCharts.create(options);
