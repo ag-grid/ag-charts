@@ -17,7 +17,7 @@ export async function getStaticPaths() {
 const { page, prevExample, nextExampleOne, nextExampleTwo } = Astro.props;
 ---
 
-<Layout>
+<Layout title={`AG Charts Gallery: ${page.title}`}>
     <div class="page-margin font-size-responsive font-size-medium">
         <h1>
             <span>

@@ -4,13 +4,112 @@ title: 'Bullet Series'
 
 A Bullet Series presents a single data point within a predefined range, commonly
 used to illustrate the relationship of a key value to a target or comparative
-values. It employs a horizontal bar and employs various visual cues for clarity.
+values. It employs a horizontal or vertical bar and employs various visual cues
+for clarity.
 
 ## Simple Bullet
 
 {% chartExampleRunner title="Simple Bullet" name="simple-bullet" type="generated" /%}
 
-TODO
+To create a Bullet Series, use the `bullet` series type.
+
+```js
+series: [
+    {
+        type: 'bullet',
+        valueKey: 'income',
+        valueName: 'Actual income',
+        targetKey: 'objective',
+        targetName: 'Target income',
+        scale: { max: 15000 },
+        colorRanges: [
+            { color: '#FFB6C1' /* Light Pink */, stop: 8000 },
+            { color: '#FFFACD' /* Light Yellow */, stop: 13000 },
+            { color: '#B6FBB6' /* Light Green */ }
+        ],
+    },
+],
+```
+
+In this configuration:
+
+-   `valueKey` defines the numeric value represented by the bar.
+-   `targetKey` defines the optional numeric value represented by the target
+    line.
+-   `valueName` and `targetName` configure display names, reflected in the
+    [Tooltip](./tooltips).
+-   `scale.max` defines the maximum value of the graph. This an alias for the
+    [Axes Domain](./axes-domain/#domain-min--max).
+-   `colorRange` define the quantitantive categories of the scale. The optional
+    `stop` key defaults to `scale.max`.
+
+## Horizontal Bullet
+
+{% chartExampleRunner title="Horizontal Bullet" name="horizontal-bullet" type="generated" /%}
+
+To create a Horizontal bullet Series, set `direction: 'horizontal'`.
+
+```diff
+ series: [
+     {
+         type: 'bar',
++        direction: 'horizontal',
+         valueKey: 'income',
+         valueName: 'Actual income',
+         targetKey: 'objective',
+         targetName: 'Target income',
+         scale: { max: 15000 },
+         colorRanges: [
+             { color: '#FFB6C1' /* Light Pink */, stop: 8000 },
+             { color: '#FFFACD' /* Light Yellow */, stop: 13000 },
+             { color: '#B6FBB6' /* Light Green */ }
+         ],
+ ],
+```
+
+## Multiple Bullets
+
+{% chartExampleRunner title="Multiple Bullet" name="5-bullets" type="generated" /%}
+
+Only a single Bullet Series can be drawn per Chart. To draw multiple Bullet
+Series use multiple [Chart Instances](./create-a-basic-chart):
+
+```js
+AgCharts.create({
+    container: document.getElementById('myChart1'),
+    title: { text: 'Return Of Investment (ROI) %' },
+    data: [{ target: 15, actual: 11 }],
+    series: [{ type: 'bullet' /* ... */ }],
+});
+
+AgCharts.create({
+    container: document.getElementById('myChart2'),
+    title: { text: 'Debt-to-Equity' },
+    data: [{ target: 0.5, actual: 0.7 }],
+    series: [{ type: 'bullet' /* ... */ }],
+});
+
+AgCharts.create({
+    container: document.getElementById('myChart3'),
+    title: { text: 'Profit Margin %' },
+    data: [{ target: 20, actual: 16.2 }],
+    series: [{ type: 'bullet' /* ... */ }],
+});
+
+AgCharts.create({
+    container: document.getElementById('myChart4'),
+    title: { text: 'Cash Flow (US$)' },
+    data: [{ target: 500000, actual: 468100 }],
+    series: [{ type: 'bullet' /* ... */ }],
+});
+
+AgCharts.create({
+    container: document.getElementById('myChart5'),
+    title: { text: 'Earnings Before Interest, Taxes, Depreciation, and Amortization (EBITDA) Margin' },
+    data: [{ target: 25, actual: 21.7 }],
+    series: [{ type: 'bullet' /* ... */ }],
+});
+```
 
 ## API Reference
 
