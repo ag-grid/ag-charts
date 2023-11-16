@@ -1,5 +1,6 @@
 import { FRAMEWORKS } from '@constants';
 import fwLogos from '@images/fw-logos';
+import { getFrameworkDisplayText } from '@utils/framework';
 import classnames from 'classnames';
 
 import { getNewFrameworkPath } from '../../utils/framework';
@@ -33,7 +34,7 @@ export const FrameworkSelectorInsideDocs = ({ path, currentFramework }) => {
                 >
                     {FRAMEWORKS.map((framework) => (
                         <option value={framework} key={framework}>
-                            {framework.charAt(0).toUpperCase() + framework.slice(1)}
+                            {getFrameworkDisplayText(framework)}
                         </option>
                     ))}
                 </select>
