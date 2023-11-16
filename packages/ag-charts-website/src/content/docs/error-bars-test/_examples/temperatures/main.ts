@@ -2,7 +2,12 @@ import { AgCartesianChartOptions, AgCharts, AgErrorBarFormatterParams } from 'ag
 
 import { getData, getData2 } from './data';
 
-type Datum = ReturnType<typeof getData>[number];
+interface Datum {
+    month: string;
+    temperature: number;
+    temperatureLower?: number;
+    temperatureUpper?: number;
+}
 
 const highlightStyle = {
     item: { stroke: 'red' },
@@ -81,7 +86,7 @@ function resetData() {
 
 function removeOdds() {
     if (options.series !== undefined) {
-        const fn = (_value: Datum, index: number) => {
+        const fn = (_value: Datum, index: number): boolean => {
             return index % 2 === 0;
         };
         options.series[0].data = getData().filter(fn);
@@ -92,7 +97,7 @@ function removeOdds() {
 
 function removeOddsErrors() {
     if (options.series !== undefined) {
-        const fn = (value: Datum, index: number) => {
+        const fn = (value: Datum, index: number): Datum => {
             if (index % 2 === 1) {
                 const { month, temperature } = value;
                 return { month, temperature };
@@ -112,34 +117,45 @@ function randomDelta(min: number, max: number) {
 
 function randomiseData() {
     if (options.series !== undefined) {
-        const fn = (value: Datum, index: number): Datum => {
+        const fn = (value: Datum): Datum => {
             const delta = randomDelta(-4, 4);
-            return {
-                month: value.month,
-                temperature: value.temperature + delta,
-                temperatureLower: value.temperatureLower + delta,
-                temperatureUpper: value.temperatureUpper + delta,
-            };
+            const { month, temperature, temperatureLower, temperatureUpper } = value;
+            if (temperatureLower === undefined || temperatureUpper === undefined) {
+                return {
+                    month,
+                    temperature: temperature + delta,
+                };
+            } else {
+                return {
+                    month,
+                    temperature: temperature + delta,
+                    temperatureLower: temperatureLower + delta,
+                    temperatureUpper: temperatureUpper + delta,
+                };
+            }
         };
-        options.series[0].data = getData().map(fn);
-        options.series[1].data = getData2().map(fn);
+        options.series[0].data = options.series[0].data?.map(fn);
+        options.series[1].data = options.series[1].data?.map(fn);
     }
     AgCharts.update(chart, options);
 }
 
 function randomiseErrors() {
     if (options.series !== undefined) {
-        const fn = (value: Datum, index: number): Datum => {
-            const delta = randomDelta(-2, 2);
+        const fn = (value: Datum): Datum => {
+            const { month, temperature, temperatureLower, temperatureUpper } = value;
+            if (temperatureLower === undefined || temperatureUpper === undefined) {
+                return { month, temperature };
+            }
             return {
-                month: value.month,
-                temperature: value.temperature,
-                temperatureLower: value.temperatureLower + delta,
-                temperatureUpper: value.temperatureUpper + delta,
+                month,
+                temperature,
+                temperatureLower: value.temperature - randomDelta(0, 2.5),
+                temperatureUpper: value.temperature + randomDelta(0, 2.5),
             };
         };
-        options.series[0].data = getData().map(fn);
-        options.series[1].data = getData2().map(fn);
+        options.series[0].data = options.series[0].data?.map(fn);
+        options.series[1].data = options.series[1].data?.map(fn);
     }
     AgCharts.update(chart, options);
 }
