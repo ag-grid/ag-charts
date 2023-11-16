@@ -225,16 +225,23 @@ export class ErrorBars
         }
     }
 
+    private getNodeData(): ErrorBarNodeDatum[] | undefined {
+        const { contextNodeData } = this.cartesianSeries;
+        if (contextNodeData.length > 0) {
+            return contextNodeData[0].nodeData;
+        }
+    }
+
     private createNodeData() {
-        const nodeData = this.cartesianSeries.contextNodeData[0].nodeData;
+        const nodeData = this.getNodeData();
         const xScale = this.cartesianSeries.axes[ChartAxisDirection.X]?.scale;
         const yScale = this.cartesianSeries.axes[ChartAxisDirection.Y]?.scale;
-        if (!xScale || !yScale) {
+        if (!xScale || !yScale || !nodeData) {
             return;
         }
 
         for (let i = 0; i < nodeData.length; i++) {
-            const { midPoint, xLower, xUpper, yLower, yUpper } = this.getDatum(i);
+            const { midPoint, xLower, xUpper, yLower, yUpper } = this.getDatum(nodeData, i);
             if (midPoint !== undefined) {
                 let xBar = undefined;
                 let yBar = undefined;
@@ -267,10 +274,9 @@ export class ErrorBars
         return { xLowerKey, xUpperKey, xErrorsID, yLowerKey, yUpperKey, yErrorsID };
     }
 
-    private getDatum(datumIndex: number) {
-        const { cartesianSeries } = this;
+    private getDatum(nodeData: ErrorBarNodeDatum[], datumIndex: number) {
         const { xLowerKey, xUpperKey, yLowerKey, yUpperKey } = this.getMaybeFlippedKeys();
-        const datum = cartesianSeries.contextNodeData[0].nodeData[datumIndex];
+        const datum = nodeData[datumIndex];
 
         return {
             midPoint: datum.midPoint,
@@ -287,8 +293,11 @@ export class ErrorBars
     }
 
     private update() {
-        this.selection.update(this.cartesianSeries.contextNodeData[0].nodeData, undefined, undefined);
-        this.selection.each((node, datum, i) => this.updateNode(node, datum, i));
+        const nodeData = this.getNodeData();
+        if (nodeData !== undefined) {
+            this.selection.update(nodeData, undefined, undefined);
+            this.selection.each((node, datum, i) => this.updateNode(node, datum, i));
+        }
     }
 
     private updateNode(node: ErrorBarNode, datum: ErrorBarNodeDatum, _index: number) {
@@ -363,12 +372,14 @@ export class ErrorBars
         style: AgErrorBarThemeableOptions,
         highlighted: boolean
     ) {
+        const nodeData = this.getNodeData();
+        if (nodeData === undefined) return;
+
         // Search for the ErrorBarNode that matches this highlight change. This
         // isn't a good solution in terms of performance. However, it's assumed
         // that the typical use case for error bars includes few data points
         // (because the chart will get cluttered very quickly if there are many
         // data points with error bars).
-        const { nodeData } = this.cartesianSeries.contextNodeData[0];
         for (let i = 0; i < nodeData.length; i++) {
             if (highlightChange === nodeData[i]) {
                 this.selection.nodes()[i].update(style, this, highlighted);
