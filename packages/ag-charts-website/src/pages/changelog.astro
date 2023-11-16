@@ -7,11 +7,8 @@ import { Changelog } from '@features/changelog/Changelog';
 const path = Astro.url.pathname;
 const frameworks = FRAMEWORKS;
 const framework = getFrameworkFromPath(path);
-
 ---
-<Layout>
-    <Changelog
-        currentFramework={framework}
-        client:only
-    />
+
+<Layout title="AG Charts Changelog">
+    <Changelog currentFramework={framework} client:only />
 </Layout>

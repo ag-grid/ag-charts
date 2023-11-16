@@ -7,12 +7,8 @@ import { Pipeline } from '@features/pipeline/Pipeline';
 const path = Astro.url.pathname;
 const frameworks = FRAMEWORKS;
 const framework = getFrameworkFromPath(path);
-
 ---
 
-<Layout>
-    <Pipeline
-        currentFramework={framework}
-        client:only
-    />
+<Layout title="AG Charts Pipeline">
+    <Pipeline currentFramework={framework} client:only />
 </Layout>

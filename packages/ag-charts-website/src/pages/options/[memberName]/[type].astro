@@ -12,7 +12,8 @@ export async function getStaticPaths() {
 const reference = getInterfacesReference();
 patchAgChartOptionsReference(reference);
 ---
-<APIViewLayout>
+
+<APIViewLayout title="Options API">
     <ApiReferencePage
         client:only
         {...Astro.props}

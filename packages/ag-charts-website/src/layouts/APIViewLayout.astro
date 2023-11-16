@@ -1,8 +1,14 @@
 ---
 import Layout from '@layouts/Layout.astro';
+
+interface Props {
+    title: string;
+}
+
+const { title } = Astro.props;
 ---
 
-<Layout>
+<Layout title={`AG Charts: ${title}`}>
     <div id="top" class="container">
         <slot />
     </div>
