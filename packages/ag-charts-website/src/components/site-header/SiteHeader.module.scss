@@ -1,4 +1,5 @@
 @use 'sass:map';
+@use '../../design-system/core/' as *;
 @use '../../design-system/' as *;
 
 .header {
@@ -30,6 +31,35 @@
     display: block;
     padding: $size-1 10px;
     position: relative;
+}
+
+.searchBarContainer {
+    --max-width: 480px;
+
+    flex-grow: 1;
+
+    @media screen and (max-width: $breakpoint-docs-nav-medium) {
+        width: calc(100vh - $size-4);
+        margin: 12px $size-2 8px;
+    }
+
+    @media screen and (min-width: $breakpoint-docs-nav-medium) {
+        position: relative;
+        width: 100%;
+        top: 12px;
+        max-width: var(--max-width);
+        margin: 0 auto;
+    }
+
+    @media screen and (min-width: $breakpoint-docs-nav-large) {
+        --max-width: 440px;
+
+        position: absolute;
+        left: 40%;
+        top: 12px;
+        margin-right: $size-3;
+        margin-left: calc(var(--max-width) / -2);
+    }
 }
 
 .mobileMenuButton {

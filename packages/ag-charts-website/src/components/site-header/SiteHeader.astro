@@ -39,7 +39,9 @@ const {showSearchBar} = Astro.props;
         <SiteLogo client:load />
         {
             showSearchBar && (
-                <Search client:only currentFramework={framework} isDev={isDev} />
+                <div class:list={styles.searchBarContainer}>
+                    <Search client:only currentFramework={framework} isDev={isDev} />
+                </div>
             )
         }
         <HeaderNav currentPath={pathname} items={topNavItems} allPaths={allPaths} client:only />
