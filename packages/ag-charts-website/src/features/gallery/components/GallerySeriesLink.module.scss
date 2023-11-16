@@ -1,0 +1,31 @@
+@use '../../../design-system' as *;
+
+.seriesLink {
+    --font-weight: var(--font-weight-normal);
+
+    position: relative;
+    width: 100%;
+    font-weight: var(--font-weight-normal);
+
+    &:hover .arrowIcon {
+        --text-color: var(--link-hover-color);
+
+        transform: translateX(2px);
+    }
+
+    @media screen and (min-width: $breakpoint-gallery-small) {
+        width: auto;
+        top: -3px;
+        margin-left: $size-2;
+    }
+}
+
+.seriesLink .arrowIcon {
+    --icon-size: 1.125em;
+
+    position: relative;
+    display: inline-block;
+    top: -1px;
+    left: 0;
+    transition: transform $default-transition-timing;
+}
