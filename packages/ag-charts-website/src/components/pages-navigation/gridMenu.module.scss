@@ -285,3 +285,7 @@ button:not([class^='ag-']).sectionHeader {
 .activeMenuItem svg {
     fill: var(--active-color) !important;
 }
+
+.sectionHeader:hover svg {
+    fill: var(--active-color) !important;
+}
