@@ -11,7 +11,7 @@ export type FrameworkContext = {
 const LOCALSTORAGE_PREFIX = 'documentation';
 const DEFAULT_INTERNAL_FRAMEWORK: InternalFramework = 'vanilla';
 
-export const $internalFramework = persistentAtom(
+export const $internalFramework = persistentAtom<InternalFramework>(
     `${LOCALSTORAGE_PREFIX}:internalFramework`,
     DEFAULT_INTERNAL_FRAMEWORK,
     { listen: false }
