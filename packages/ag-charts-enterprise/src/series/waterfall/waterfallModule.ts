@@ -15,7 +15,7 @@ export const WaterfallModule: _ModuleSupport.SeriesModule<'waterfall'> = {
     instanceConstructor: WaterfallSeries,
     seriesDefaults: WATERFALL_DEFAULTS,
     themeTemplate: WATERFALL_SERIES_THEME,
-    swapDefaultAxesCondition: ({ direction }) => direction !== 'horizontal',
+    swapDefaultAxesCondition: ({ direction }) => direction === 'horizontal',
     paletteFactory: ({ takeColors, colorsCount, userPalette, themeTemplateParameters }) => {
         const { properties } = themeTemplateParameters;
         const { fills, strokes } = takeColors(colorsCount);

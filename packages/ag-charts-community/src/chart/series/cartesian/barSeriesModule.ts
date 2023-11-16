@@ -23,15 +23,15 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
         axes: [
             {
                 type: CARTESIAN_AXIS_TYPES.NUMBER,
-                position: CARTESIAN_AXIS_POSITIONS.BOTTOM,
+                position: CARTESIAN_AXIS_POSITIONS.LEFT,
             },
             {
                 type: CARTESIAN_AXIS_TYPES.CATEGORY,
-                position: CARTESIAN_AXIS_POSITIONS.LEFT,
+                position: CARTESIAN_AXIS_POSITIONS.BOTTOM,
             },
         ],
     },
-    swapDefaultAxesCondition: (series) => series?.direction !== 'horizontal',
+    swapDefaultAxesCondition: (series) => series?.direction === 'horizontal',
     themeTemplate: {
         __extends__: EXTENDS_SERIES_DEFAULTS,
         fillOpacity: 1,
