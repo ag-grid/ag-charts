@@ -53,7 +53,7 @@ const menuEntry = await getEntry('menu', 'data');
                 },
             ]}
         >
-            <Header title={title} framework={currentFramework} isEnterprise={enterprise} path={path} />
+            <Header client:load title={title} framework={currentFramework} isEnterprise={enterprise} path={path} />
 
             {/* Wrapping div is a hack to target "intro" section of docs page */}
             <div class="pageSections">
