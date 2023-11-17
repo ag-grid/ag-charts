@@ -1,3 +1,4 @@
+import type { ChartMode } from '../chart/chartMode';
 import type { DataService } from '../chart/dataService';
 import type { AnimationManager } from '../chart/interaction/animationManager';
 import type { ChartEventManager } from '../chart/interaction/chartEventManager';
@@ -19,7 +20,7 @@ export interface ModuleContext {
     document: Document;
     window: Window;
     scene: Scene;
-    mode: 'standalone' | 'integrated';
+    mode: ChartMode;
     animationManager: AnimationManager;
     chartEventManager: ChartEventManager;
     cursorManager: CursorManager;

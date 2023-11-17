@@ -3,6 +3,7 @@ import { Logger } from '../../util/logger';
 import { isNegative } from '../../util/number';
 import { isNumber } from '../../util/value';
 import type { ChartAxis } from '../chartAxis';
+import type { ChartMode } from '../chartMode';
 import { DataDomain } from './dataDomain';
 import type { ContinuousDomain } from './utilFunctions';
 import { extendDomain } from './utilFunctions';
@@ -165,6 +166,7 @@ export type DataModelOptions<K, Grouped extends boolean | undefined> = {
     readonly groupByKeys?: Grouped;
     readonly groupByFn?: GroupByFn;
     readonly dataVisible?: boolean;
+    readonly mode?: ChartMode;
 };
 
 export type PropertyDefinition<K> =
@@ -279,9 +281,11 @@ export class DataModel<
     private readonly propertyProcessors: (PropertyValueProcessorDefinition<D> & InternalDefinition)[];
     private readonly reducers: (ReducerOutputPropertyDefinition & InternalDefinition)[];
     private readonly processors: (ProcessorOutputPropertyDefinition & InternalDefinition)[];
+    private readonly mode: ChartMode;
 
     public constructor(opts: DataModelOptions<K, Grouped>) {
-        const { props } = opts;
+        const { props, mode = 'standalone' } = opts;
+        this.mode = mode;
 
         // Validate that keys appear before values in the definitions, as output ordering depends
         // on configuration ordering, but we process keys before values.
@@ -984,6 +988,8 @@ export class DataModel<
 
     buildAccessors(...defs: { property: string }[]) {
         const result: Record<string, (d: any) => any> = {};
+        if (this.mode === 'integrated') return result;
+
         for (const def of defs) {
             const isPath = def.property.indexOf('.') >= 0 || def.property.indexOf('[') >= 0;
             if (!isPath) continue;
