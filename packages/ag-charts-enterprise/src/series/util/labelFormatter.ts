@@ -1,6 +1,6 @@
 import { type OverflowStrategy, type TextWrap, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-const { Validate, OPT_NUMBER, TEXT_WRAP, TEXT_OVERFLOW } = _ModuleSupport;
+const { Validate, OPT_NUMBER, TEXT_WRAP, OVERFLOW_STRATEGY } = _ModuleSupport;
 const { Logger } = _Util;
 const { Text, Label, BBox } = _Scene;
 
@@ -8,7 +8,7 @@ export class AutoSizeableLabel<FormatterParams> extends Label<FormatterParams> {
     @Validate(TEXT_WRAP)
     wrapping: TextWrap = 'on-space';
 
-    @Validate(TEXT_OVERFLOW)
+    @Validate(OVERFLOW_STRATEGY)
     overflowStrategy: OverflowStrategy = 'ellipsis';
 
     @Validate(OPT_NUMBER())

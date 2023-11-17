@@ -286,10 +286,10 @@ export const TEXT_WRAP = predicateWithMessage(
     `expecting a text wrap strategy keyword such as 'never', 'always', 'hyphenate', or 'on-space'`
 );
 
-const TEXT_OVERFLOWS = ['ellipsis', 'never'];
-export const TEXT_OVERFLOW = predicateWithMessage(
-    (v: any) => TEXT_OVERFLOWS.includes(v),
-    `expecting a text wrap strategy keyword such as 'ellipsis', or 'never'`
+const OVERFLOW_STRAGEGIES = ['ellipsis', 'hide'];
+export const OVERFLOW_STRATEGY = predicateWithMessage(
+    (v: any) => OVERFLOW_STRAGEGIES.includes(v),
+    `expecting a text wrap strategy keyword such as 'ellipsis', or 'hide'`
 );
 
 const TEXT_ALIGNS = ['left', 'center', 'right'];
