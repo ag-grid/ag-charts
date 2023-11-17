@@ -4,7 +4,14 @@ import fs from 'node:fs/promises';
 import { ANGULAR_GENERATED_MAIN_FILE_NAME, SOURCE_ENTRY_FILE_NAME } from './constants';
 import chartVanillaSrcParser from './transformation-scripts/chart-vanilla-src-parser';
 import type { GeneratedContents } from './types.d';
-import { getEntryFileName, getFileContents, getIsEnterprise, getTransformTsFileExt } from './utils/fileUtils';
+import {
+    getEntryFileName,
+    getFileContents,
+    getIsEnterprise,
+    getProvidedExampleFiles,
+    getProvidedExampleFolder,
+    getTransformTsFileExt,
+} from './utils/fileUtils';
 import { frameworkFilesGenerator } from './utils/frameworkFilesGenerator';
 import { getOtherScriptFiles } from './utils/getOtherScriptFiles';
 import { getStyleFiles } from './utils/getStyleFiles';
@@ -73,6 +80,22 @@ export const getGeneratedContents = async ({
         sourceFileList,
         transformTsFileExt: getTransformTsFileExt(internalFramework),
     });
+    const providedExampleFileNames = await getProvidedExampleFiles({ folderUrl, internalFramework });
+    const providedExampleEntries = await Promise.all(
+        providedExampleFileNames.map(async (fileName) => {
+            const contents = await getFileContents({
+                folderUrl: getProvidedExampleFolder({
+                    folderUrl,
+                    internalFramework,
+                }),
+                fileName,
+            });
+
+            return [fileName, contents];
+        })
+    );
+    const providedExamples = Object.fromEntries(providedExampleEntries);
+
     const styleFiles = await getStyleFiles({ folderUrl, sourceFileList });
 
     const isEnterprise = getIsEnterprise({ entryFile });
@@ -105,8 +128,12 @@ export const getGeneratedContents = async ({
         scriptFiles: scriptFiles!,
         styleFiles: Object.keys(styleFiles),
         sourceFileList,
-        files: Object.assign(styleFiles, files),
+        // Replace files with provided examples
+        files: Object.assign(styleFiles, files, providedExamples),
+        // Files without provided examples
+        generatedFiles: files,
         boilerPlateFiles: boilerPlateFiles!,
+        providedExamples,
         entryFileName,
         mainFileName,
     };

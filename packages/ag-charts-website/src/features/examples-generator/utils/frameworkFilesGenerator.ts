@@ -16,6 +16,7 @@ import { getBoilerPlateFiles, getEntryFileName, getMainFileName } from './fileUt
 interface FrameworkFiles {
     files: FileContents;
     boilerPlateFiles?: FileContents;
+    hasProvidedExamples?: boolean;
     scriptFiles?: string[];
     /**
      * Filename to execute code
