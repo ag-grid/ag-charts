@@ -88,14 +88,9 @@ export function normalizeType(refType: TypeNode, includeGenerics?: boolean): str
 }
 
 export function processMembers(interfaceRef: InterfaceNode | TypeLiteralNode | EnumNode, config: ApiReferenceConfig) {
-    let { members } = interfaceRef;
-    const { prioritise, include, exclude } = config;
+    const { members } = interfaceRef;
+    const { prioritise } = config;
     const isInterface = interfaceRef.kind === 'interface';
-    if (include?.length || exclude?.length) {
-        members = members.filter(
-            (member) => !exclude?.includes(member.name) && (include?.includes(member.name) ?? true)
-        );
-    }
     if (prioritise) {
         return members.sort((a, b) => (prioritise.includes(a.name) ? -1 : prioritise.includes(b.name) ? 1 : 0));
     }
@@ -375,7 +370,22 @@ export function patchAgChartOptionsReference(reference: ApiReferenceType) {
         }),
     };
 
+    removeMembersFromInterface(reference.get('AgCategoryAxisOptions'), ['keys']);
+    removeMembersFromInterface(reference.get('AgNumberAxisOptions'), ['keys']);
+    removeMembersFromInterface(reference.get('AgTimeAxisOptions'), ['keys']);
+    removeMembersFromInterface(reference.get('AgLogAxisOptions'), ['keys']);
+    removeMembersFromInterface(reference.get('AgSunburstSeriesOptions'), ['showInLegend']);
+    removeMembersFromInterface(reference.get('AgSunburstSeriesHighlightStyle'), ['item', 'series']);
+    removeMembersFromInterface(reference.get('AgTreemapSeriesOptions'), ['showInLegend']);
+    removeMembersFromInterface(reference.get('AgTreemapSeriesHighlightStyle'), ['item', 'series']);
+
     reference.set('AgChartOptions', altInterface);
+}
+
+function removeMembersFromInterface(reference: ApiReferenceNode | undefined, keys: string[]) {
+    if (reference?.kind !== 'interface') return;
+
+    reference.members = reference.members.filter((member) => !keys.includes(member.name));
 }
 
 export function getOptionsStaticPaths(reference: ApiReferenceType) {
