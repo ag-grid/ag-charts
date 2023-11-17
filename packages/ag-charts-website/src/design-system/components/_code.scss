@@ -50,7 +50,7 @@ pre.code {
     padding: 0;
     border: 1px solid color-mix(in srgb, var(--secondary-border-color), var(--border-color));
     overflow: visible;
-    overflow-y: auto !important;
+    overflow-y: auto;
 
     #{$darkmode-selector} & {
         color-scheme: dark;
