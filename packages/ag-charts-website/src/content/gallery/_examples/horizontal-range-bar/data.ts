@@ -1,39 +1,16 @@
 export function getData() {
     return [
-        {
-            date: 'Nov 1',
-            high: 1900,
-            low: 900,
-        },
-        {
-            date: 'Nov 2',
-            high: 1345,
-            low: 345,
-        },
-        {
-            date: 'Nov 3',
-            high: 1393,
-            low: 393,
-        },
-        {
-            date: 'Nov 4',
-            high: 1108,
-            low: -108,
-        },
-        {
-            date: 'Nov 5',
-            high: 1154,
-            low: -154,
-        },
-        {
-            date: 'Nov 6',
-            high: 1135,
-            low: 135,
-        },
-        {
-            date: 'Nov 7',
-            high: 1178,
-            low: 178,
-        },
+        { subject: 'Math', low: 80, high: 95 },
+        { subject: 'Math 2', low: 90, high: 98 },
+        { subject: 'English', low: 75, high: 90 },
+        { subject: 'English 2', low: 82, high: 95 },
+        { subject: 'Physics', low: 75, high: 90 },
+        { subject: 'Physics 2', low: 85, high: 96 },
+        { subject: 'Chemistry', low: 78, high: 92 },
+        { subject: 'Chemistry 2', low: 88, high: 98 },
+        { subject: 'Biology', low: 82, high: 94 },
+        { subject: 'Biology 2', low: 85, high: 97 },
+        { subject: 'Computer Science', low: 72, high: 88 },
+        { subject: 'Computer Science 2', low: 78, high: 92 },
     ];
 }
