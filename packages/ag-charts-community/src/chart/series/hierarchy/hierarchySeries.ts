@@ -183,7 +183,8 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
                 fill ??= fills?.[index % fills.length];
 
                 node.fill = fill;
-                node.stroke = strokes?.[index % strokes.length];
+                // FIXME: If there's a color scale, the strokes won't make sense. For now, just hard-code this default
+                node.stroke = colorScale == null ? strokes?.[index % strokes.length] : 'rgba(0, 0, 0, 0.2)';
             });
         });
 

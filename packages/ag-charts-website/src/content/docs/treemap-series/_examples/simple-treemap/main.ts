@@ -8,14 +8,14 @@ const options: AgChartOptions = {
     series: [
         {
             type: 'treemap',
-            labelKey: 'name',
+            labelKey: 'title',
         },
     ],
     title: {
-        text: 'Organizational Chart',
+        text: 'UK Government Budget',
     },
     subtitle: {
-        text: 'of a top secret startup',
+        text: '2024',
     },
 };
 
