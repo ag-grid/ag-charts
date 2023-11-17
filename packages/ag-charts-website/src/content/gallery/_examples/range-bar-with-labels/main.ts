@@ -1,4 +1,4 @@
-import { AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -78,4 +78,4 @@ const map = (value: number, start1: number, end1: number, start2: number, end2: 
     return ((value - start1) / (end1 - start1)) * (end2 - start2) + start2;
 };
 
-AgEnterpriseCharts.create(options);
+AgCharts.create(options);
