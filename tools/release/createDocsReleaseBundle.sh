@@ -13,7 +13,7 @@ ZIP_PREFIX=`date +%Y%m%d`
 VERSION=""${RAW_VERSION//./}""
 
 echo "Creating Release Archive"
-FILENAME=release_"$ZIP_PREFIX"_v"$VERSION".zip
+FILENAME=charts-release_"$ZIP_PREFIX"_v"$VERSION".zip
 cd ./dist/packages/ag-charts-website
 zip -r ../../../$FILENAME .
 
