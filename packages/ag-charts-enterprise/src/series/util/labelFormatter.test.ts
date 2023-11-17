@@ -143,6 +143,27 @@ describe('treeMapLabelFormatter', () => {
                 height: 15,
             });
         });
+
+        it('ignores minimumFontSizes greater than fontSize', () => {
+            wrap.mockImplementation((text) => text);
+            computeBBox.mockImplementation(function (this: _Scene.Text) {
+                return { width: this.fontSize, height: this.fontSize } as _Scene.BBox;
+            });
+
+            const [format] = formatSingleLabel(
+                'Hello',
+                // @ts-expect-error Fix typechecking here
+                { fontSize: 20, minimumFontSize: 30, wrapping: 'never', overflow: 'never' },
+                { padding: 10, spacing: 10 },
+                () => ({ width: 1000, height: 1000 })
+            )!;
+            expect(format).toEqual({
+                text: 'Hello',
+                fontSize: 20,
+                width: 20,
+                height: 20,
+            });
+        });
     });
 
     describe('formatStackedLabels', () => {
@@ -215,6 +236,39 @@ describe('treeMapLabelFormatter', () => {
                 },
             });
             expect(padding + format!.label!.height + spacing + format!.secondaryLabel!.height + padding).toBe(height);
+        });
+
+        it('ignores minimumFontSizes greater than fontSize', () => {
+            wrap.mockImplementation((text) => text);
+            computeBBox.mockImplementation(function (this: _Scene.Text) {
+                return { width: this.fontSize, height: this.fontSize } as _Scene.BBox;
+            });
+
+            const format = formatStackedLabels(
+                'Hello',
+                // @ts-expect-error Fix typechecking here
+                { fontSize: 20, minimumFontSize: 30, wrapping: 'never', overflow: 'never' },
+                'World',
+                { fontSize: 10, minimumFontSize: 20, wrapping: 'never', overflow: 'never' },
+                { padding: 10, spacing: 10 },
+                () => ({ width: 1000, height: 1000 })
+            );
+            expect(format).toEqual({
+                width: 20,
+                height: 40,
+                label: {
+                    text: 'Hello',
+                    fontSize: 20,
+                    width: 20,
+                    height: 20,
+                },
+                secondaryLabel: {
+                    text: 'World',
+                    fontSize: 10,
+                    width: 10,
+                    height: 10,
+                },
+            });
         });
     });
 

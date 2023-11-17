@@ -1,6 +1,7 @@
-import { type TextOverflow, type TextWrap, _ModuleSupport, _Scene } from 'ag-charts-community';
+import { type OverflowStrategy, type TextWrap, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 const { Validate, OPT_NUMBER, TEXT_WRAP, TEXT_OVERFLOW } = _ModuleSupport;
+const { Logger } = _Util;
 const { Text, Label, BBox } = _Scene;
 
 export class AutoSizeableLabel<FormatterParams> extends Label<FormatterParams> {
@@ -8,7 +9,7 @@ export class AutoSizeableLabel<FormatterParams> extends Label<FormatterParams> {
     wrapping: TextWrap = 'on-space';
 
     @Validate(TEXT_OVERFLOW)
-    overflow: TextOverflow = 'ellipsis';
+    overflowStrategy: OverflowStrategy = 'ellipsis';
 
     @Validate(OPT_NUMBER())
     minimumFontSize?: number = undefined;
@@ -191,7 +192,7 @@ export function formatStackedLabels<Meta, FormatterParams>(
                 availableHeight,
                 labelTextSizeProps,
                 labelProps.wrapping,
-                allowTruncation ? labelProps.overflow : 'never'
+                allowTruncation ? labelProps.overflowStrategy : 'hide'
             );
 
             const hasValidText = labelText.length !== 0 && labelText !== Text.ellipsis;
@@ -217,7 +218,7 @@ export function formatStackedLabels<Meta, FormatterParams>(
                 availableHeight,
                 secondaryLabelTextSizeProps,
                 secondaryLabelProps.wrapping,
-                allowTruncation ? secondaryLabelProps.overflow : 'never'
+                allowTruncation ? secondaryLabelProps.overflowStrategy : 'hide'
             );
 
             const hasValidText = secondaryLabelText.length !== 0 && secondaryLabelText !== Text.ellipsis;
@@ -259,7 +260,7 @@ export function formatSingleLabel<Meta, FormatterParams>(
     sizeFittingHeight: SizeFittingHeightFn<Meta>
 ): [LabelFormatting, Meta] | undefined {
     const sizeAdjust = 2 * padding;
-    const minimumFontSize = props.minimumFontSize ?? props.fontSize;
+    const minimumFontSize = Math.min(props.minimumFontSize ?? props.fontSize, props.fontSize);
 
     const textNode = new Text();
     textNode.setFont(props);
@@ -289,7 +290,7 @@ export function formatSingleLabel<Meta, FormatterParams>(
             availableHeight,
             textSizeProps,
             props.wrapping,
-            allowTruncation ? props.overflow : 'never'
+            allowTruncation ? props.overflowStrategy : 'hide'
         );
 
         if (text.length === 0 || text === Text.ellipsis) {
@@ -310,6 +311,10 @@ export function formatSingleLabel<Meta, FormatterParams>(
     });
 }
 
+function hasInvalidFontSize<FormatterParams>(label: AutoSizeableLabel<FormatterParams> | undefined) {
+    return label != null && label.minimumFontSize != null && label.fontSize && label.minimumFontSize > label.fontSize;
+}
+
 export function formatLabels<Meta = never, FormatterParams = any>(
     labelValue: string | undefined,
     labelProps: AutoSizeableLabel<FormatterParams>,
@@ -318,6 +323,10 @@ export function formatLabels<Meta = never, FormatterParams = any>(
     layoutParams: LayoutParams,
     sizeFittingHeight: SizeFittingHeightFn<Meta>
 ): StackedLabelFormatting<Meta> | undefined {
+    if (hasInvalidFontSize(labelProps) || hasInvalidFontSize(secondaryLabelProps)) {
+        Logger.warnOnce(`minimumFontSize should be set to a value less than or equal to the font size`);
+    }
+
     let value: StackedLabelFormatting<Meta> | undefined;
 
     if (labelValue != null && secondaryLabelValue != null) {
