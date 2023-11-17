@@ -66,8 +66,7 @@ const chartScriptEnterprisePath = getCacheBustingUrl(getChartEnterpriseScriptPat
         >
             window.__basePath = appLocation;
         </script>
-        {!isEnterprise && <script src={chartScriptPath} />}
-        {isEnterprise && <script src={chartScriptEnterprisePath} />}
+        <script src={isEnterprise ? chartScriptEnterprisePath : chartScriptPath} />
         <Scripts baseUrl={appLocation} files={scriptFiles} />
         <Styles
             baseUrl={appLocation}
