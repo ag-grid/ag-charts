@@ -21,6 +21,7 @@ interface ApiReferencePageOptions {
     pageTitle?: PageTitle;
     basePath: string;
     specialTypes?: SpecialTypesMap;
+    keepExpanded?: string[];
 }
 
 export function ApiReferencePage({
@@ -31,6 +32,7 @@ export function ApiReferencePage({
     basePath,
     reference,
     specialTypes,
+    keepExpanded,
 }: ApiReferencePageOptions) {
     const location = useLocation();
     const [selection, setSelection] = useState<NavigationData>({
@@ -58,7 +60,7 @@ export function ApiReferencePage({
 
     return (
         <ApiReferenceContext.Provider value={reference}>
-            <ApiReferenceConfigContext.Provider value={{ hideHeader: true, specialTypes }}>
+            <ApiReferenceConfigContext.Provider value={{ hideHeader: true, specialTypes, keepExpanded }}>
                 <SelectionContext.Provider value={{ selection, setSelection }}>
                     <div className={styles.container}>
                         <div className={styles.objectViewOuter}>

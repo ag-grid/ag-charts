@@ -31,6 +31,7 @@ export interface ApiReferenceConfig {
     hideHeader?: boolean;
     hideRequired?: boolean;
     specialTypes?: SpecialTypesMap;
+    keepExpanded?: string[];
 }
 
 interface ApiReferenceOptions {
@@ -55,6 +56,7 @@ export function ApiReferenceWithContext({
     exclude,
     hideHeader,
     hideRequired,
+    keepExpanded,
     ...props
 }: ApiReferenceOptions & ApiReferenceConfig & { reference: ApiReferenceType }) {
     return (

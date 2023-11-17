@@ -137,7 +137,9 @@ function NavProperty({
     const navData = getNavigationDataFromPath(path, config?.specialTypes);
 
     const [isExpanded, toggleExpanded] = useAutoExpand(() =>
-        isInterfaceArray
+        config?.keepExpanded?.includes(member.name)
+            ? true
+            : isInterfaceArray
             ? typeof selection?.selection.pageInterface === 'string' &&
               getInterfaceArrayTypes(reference, interfaceRef).some(
                   (item) => item.type === selection?.selection.pageInterface
