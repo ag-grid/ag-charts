@@ -539,7 +539,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
     }
 
     private getTileFormat(node: _ModuleSupport.HierarchyNode, isHighlighted: boolean): AgTreemapSeriesStyle {
-        const { datum, color: fill, depth, children } = node;
+        const { datum, depth, children } = node;
         const {
             tile,
             group,
@@ -553,7 +553,8 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
         const { colorKey, labelKey, secondaryLabelKey, sizeKey } = this;
         const isLeaf = children.length === 0;
 
-        const stroke = isLeaf ? tile.stroke : group.stroke;
+        const fill = (isLeaf ? tile.fill : group.fill) ?? node.fill;
+        const stroke = (isLeaf ? tile.stroke : group.stroke) ?? node.stroke;
         const strokeWidth = isLeaf ? tile.strokeWidth : group.strokeWidth;
 
         const result = callbackCache.call(formatter, {
@@ -616,10 +617,10 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
 
             const format = this.getTileFormat(node, highlighted);
 
-            const fill = format?.fill ?? highlightedFill ?? (isLeaf ? tile.fill : group.fill) ?? node.color;
+            const fill = format?.fill ?? highlightedFill ?? (isLeaf ? tile.fill : group.fill) ?? node.fill;
             const fillOpacity =
                 format?.fillOpacity ?? highlightedFillOpacity ?? (isLeaf ? tile.fillOpacity : group.fillOpacity);
-            const stroke = format?.stroke ?? highlightedStroke ?? (isLeaf ? tile.stroke : group.stroke);
+            const stroke = format?.stroke ?? highlightedStroke ?? (isLeaf ? tile.stroke : group.stroke) ?? node.stroke;
             const strokeWidth =
                 format?.strokeWidth ?? highlightedStrokeWidth ?? (isLeaf ? tile.strokeWidth : group.strokeWidth);
             const strokeOpacity =
@@ -811,7 +812,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
         const title = labelKey != null ? datum[labelKey] : undefined;
 
         const format = this.getTileFormat(node, false);
-        const color = format?.fill ?? node.color;
+        const color = format?.fill ?? node.fill;
 
         const defaults: AgTooltipRendererResult = {
             title,

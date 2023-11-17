@@ -1,6 +1,6 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-import { getData } from './data';
+import { data } from './data';
 
 function formatSize(value: number) {
     const e = Math.min(3, Math.floor(Math.log(value) / Math.log(1024)));
@@ -10,49 +10,37 @@ function formatSize(value: number) {
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
-    data: getData(),
+    data: data,
     series: [
         {
             type: 'treemap',
             labelKey: 'name',
+            secondaryLabelKey: 'size',
             sizeKey: 'size',
-            colorKey: 'size',
-            colorRange: ['#241248', '#2a9850'],
+            colorKey: 'numberFiles',
+            colorRange: ['rgb(63, 145, 79)', 'rgb(253, 149, 63)'],
             group: {
                 label: {
                     fontSize: 18,
-                    fontWeight: 'bold',
-                    spacing: 5,
+                    spacing: 2,
                 },
-                textAlign: 'left',
-                fill: '#241248',
-                stroke: 'white',
-                strokeWidth: 1,
-                padding: 20,
             },
             tile: {
                 label: {
-                    fontSize: 24,
-                    minimumFontSize: 9,
-                    color: 'white',
+                    fontSize: 32,
+                    minimumFontSize: 18,
+                    spacing: 12,
                 },
-                stroke: 'white',
-                padding: 10,
-            },
-            tileSpacing: 10,
-            highlightStyle: {
-                tile: {
-                    stroke: 'white',
-                    strokeWidth: 4,
-                },
-                group: {
-                    stroke: 'white',
-                    strokeWidth: 4,
+                secondaryLabel: {
+                    formatter: (params) => formatSize(params.datum.size),
                 },
             },
             tooltip: {
                 renderer: (params) => {
-                    return params.depth === 2 ? { content: formatSize(params.datum.size) } : { content: '' };
+                    const { size, numberFiles } = params.datum;
+                    return size != null && numberFiles != null
+                        ? { content: `${numberFiles} files, ${formatSize(size)}` }
+                        : { content: '' };
                 },
             },
         },

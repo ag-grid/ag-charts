@@ -25,7 +25,7 @@ export const TreemapSeriesModule: _ModuleSupport.SeriesModule<'treemap'> = {
                 fontFamily: DEFAULT_FONT_FAMILY,
             },
             fill: undefined, // Override default fill
-            stroke: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
+            stroke: undefined, // Override default stroke
             strokeWidth: 1,
             padding: 3,
         },
@@ -53,7 +53,7 @@ export const TreemapSeriesModule: _ModuleSupport.SeriesModule<'treemap'> = {
                 overflow: 'never',
             },
             fill: undefined, // Override default fill
-            stroke: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
+            stroke: undefined, // Override default stroke
             strokeWidth: 1,
             padding: 3,
         },

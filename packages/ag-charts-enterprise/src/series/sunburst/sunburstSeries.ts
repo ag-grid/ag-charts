@@ -280,9 +280,9 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
 
             const format = this.getSectorFormat(node, highlighted);
 
-            const fill = format?.fill ?? highlightedFill ?? node.color;
+            const fill = format?.fill ?? highlightedFill ?? node.fill;
             const fillOpacity = format?.fillOpacity ?? highlightedFillOpacity ?? this.fillOpacity;
-            const stroke = format?.stroke ?? highlightedStroke;
+            const stroke = format?.stroke ?? highlightedStroke ?? node.stroke;
             const strokeWidth = format?.strokeWidth ?? highlightedStrokeWidth ?? this.strokeWidth;
             const strokeOpacity = format?.strokeOpacity ?? highlightedStrokeOpacity ?? this.strokeOpacity;
 
@@ -494,7 +494,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
     }
 
     private getSectorFormat(node: _ModuleSupport.HierarchyNode, isHighlighted: boolean): AgSunburstSeriesStyle {
-        const { datum, color: fill, depth } = node;
+        const { datum, fill, stroke, depth } = node;
         const {
             formatter,
             ctx: { callbackCache },
@@ -513,6 +513,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
             labelKey,
             sizeKey,
             fill,
+            stroke,
             strokeWidth,
             highlighted: isHighlighted,
         });
@@ -530,7 +531,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
         const title = labelKey != null ? datum[labelKey] : undefined;
 
         const format = this.getSectorFormat(node, false);
-        const color = format?.fill ?? node.color;
+        const color = format?.fill ?? node.fill;
 
         const defaults: AgTooltipRendererResult = {
             title,

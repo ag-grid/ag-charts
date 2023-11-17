@@ -23,7 +23,8 @@ export class HierarchyNode implements SeriesNodeDatum {
         public readonly index: number,
         public readonly datum: Record<string, any> | undefined,
         public readonly size: number,
-        public readonly color: string | undefined,
+        public readonly fill: string | undefined,
+        public readonly stroke: string | undefined,
         public readonly sumSize: number,
         public readonly depth: number | undefined,
         public readonly parent: HierarchyNode | undefined,
@@ -86,7 +87,7 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
     @Validate(OPT_COLOR_STRING_ARRAY)
     colorRange?: string[] = undefined;
 
-    rootNode = new HierarchyNode(this, 0, undefined, 0, undefined, 0, undefined, undefined, []);
+    rootNode = new HierarchyNode(this, 0, undefined, 0, undefined, undefined, 0, undefined, undefined, []);
     maxDepth = 0;
 
     constructor(moduleCtx: ModuleContext) {
@@ -106,7 +107,7 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
     }
 
     override async processData(): Promise<void> {
-        const { childrenKey, sizeKey, colorKey, fills, colorRange } = this;
+        const { childrenKey, sizeKey, colorKey, fills, strokes, colorRange } = this;
 
         let index = 0;
         const getIndex = () => {
@@ -143,7 +144,7 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
             }
 
             return appendChildren(
-                new HierarchyNode(this, index, datum, size, undefined, sumSize, depth, parent, []),
+                new HierarchyNode(this, index, datum, size, undefined, undefined, sumSize, depth, parent, []),
                 children
             );
         };
@@ -158,30 +159,33 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
         };
 
         const rootNode = appendChildren(
-            new HierarchyNode(this, 0, undefined, 0, undefined, 0, undefined, undefined, []),
+            new HierarchyNode(this, 0, undefined, 0, undefined, undefined, 0, undefined, undefined, []),
             this.data
         );
 
+        let colorScale: ColorScale | undefined;
         if (colorRange != null && Number.isFinite(minColor) && Number.isFinite(maxColor)) {
-            const colorScale = new ColorScale();
+            colorScale = new ColorScale();
             colorScale.domain = [minColor, maxColor];
             colorScale.range = colorRange;
             colorScale.update();
+        }
 
-            rootNode.walk((node: Mutable<HierarchyNode>) => {
+        rootNode.children.forEach((child, index) => {
+            child.walk((node: Mutable<HierarchyNode>) => {
+                let fill: string | undefined;
+
                 const color = colors[node.index];
                 if (color != null) {
-                    node.color = colorScale.convert(color);
+                    fill = colorScale?.convert(color);
                 }
+
+                fill ??= fills?.[index % fills.length];
+
+                node.fill = fill;
+                node.stroke = strokes?.[index % strokes.length];
             });
-        } else if (fills != null) {
-            rootNode.children.forEach((child, index) => {
-                const fill = fills[index % fills.length];
-                child.walk((node: Mutable<HierarchyNode>) => {
-                    node.color = fill;
-                });
-            });
-        }
+        });
 
         this.rootNode = rootNode;
         this.maxDepth = maxDepth;
