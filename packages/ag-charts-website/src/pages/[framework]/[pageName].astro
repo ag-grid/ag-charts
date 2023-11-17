@@ -9,7 +9,6 @@ import { getDocsPages } from '@features/docs/utils/pageData';
 import { SideNavigation } from '@components/pages-navigation/SideNavigation';
 import { addTabsToHeadings } from '@utils/addTabsToHeadings';
 import { DOCS_TAB_ITEM_ID_PREFIX, FRAMEWORKS } from '@constants';
-import { FrameworkSelectorInsideDocs } from '../../components/framework-selector-inside-doc/FrameworkSelectorInsideDocs';
 
 export async function getStaticPaths() {
     const pages = await getCollection('docs');
@@ -54,15 +53,7 @@ const menuEntry = await getEntry('menu', 'data');
                 },
             ]}
         >
-            {
-                currentFramework && (
-                    <div class="frameworkSelectorWrapper">
-                        <FrameworkSelectorInsideDocs client:only path={path} currentFramework={currentFramework} />
-                    </div>
-                )
-            }
-
-            <Header title={title} framework={currentFramework} isEnterprise={enterprise} />
+            <Header title={title} framework={currentFramework} isEnterprise={enterprise} path={path} />
 
             {/* Wrapping div is a hack to target "intro" section of docs page */}
             <div class="pageSections">

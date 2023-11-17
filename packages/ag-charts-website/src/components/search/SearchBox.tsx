@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { connectSearchBox } from 'react-instantsearch-dom';
 
 import { Icon } from '../icon/Icon';
-import styles from './SearchBox.module.scss';
+import gridStyles from './gridSearchBox.module.scss';
 
 const IS_SSR = typeof window === 'undefined';
 
@@ -27,14 +27,14 @@ const SearchBox = ({ delay, refine, currentRefinement, className, onFocus, resul
     const searchPlaceholder = !IS_SSR && window.innerWidth < 620 ? 'Search...' : 'Search documentation...';
 
     return (
-        <form className={classnames(className, styles.searchBox)}>
+        <form className={classnames(className, gridStyles.searchBox)}>
             <input
                 type="search"
                 placeholder={searchPlaceholder}
                 aria-label="Search"
                 onChange={onChangeDebounced}
                 onFocus={onFocus}
-                className={resultsOpen ? styles.resultsOpen : ''}
+                className={resultsOpen ? gridStyles.resultsOpen : ''}
             />
 
             <Icon name="search" />

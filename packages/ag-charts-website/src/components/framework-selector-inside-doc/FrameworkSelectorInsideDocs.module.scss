@@ -47,6 +47,6 @@
         cursor: pointer;
         font-weight: var(--font-weight-bold);
         font-size: var(--font-size-medium);
-        border: none;
+        border: none !important;
     }
 }

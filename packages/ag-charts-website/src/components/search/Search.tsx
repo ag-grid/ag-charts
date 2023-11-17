@@ -3,9 +3,9 @@ import algoliasearch from 'algoliasearch/lite';
 import { createRef, useMemo, useState } from 'react';
 import { InstantSearch, connectSearchBox } from 'react-instantsearch-dom';
 
-import styles from './Search.module.scss';
 import SearchBox from './SearchBox';
 import SearchResult from './SearchResult';
+import gridStyles from './gridSearch.module.scss';
 import { useClickOutside } from './useClickOutside';
 
 /**
@@ -65,7 +65,7 @@ const SearchComponents = connectSearchBox(({ indices, query, refine }) => {
     useClickOutside(rootRef, () => setFocus(false));
 
     return (
-        <div className={styles.searchForm} ref={rootRef}>
+        <div className={gridStyles.searchForm} ref={rootRef}>
             <SearchBox onFocus={() => setFocus(true)} hasFocus={hasFocus} delay={250} resultsOpen={showResults} />
 
             <SearchResult show={showResults} indices={indices} onResultClicked={onResultClicked} />
