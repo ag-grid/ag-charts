@@ -39,7 +39,10 @@
         "parallel": true,
         "commands": [
           {
-            "command": "while true ; do nx watch -d -p ag-charts-community,ag-charts-enterprise -- nx run ag-charts-enterprise:build --configuration watch ; done"
+            "command": "while true ; do nx watch -d -p ag-charts-community,ag-charts-enterprise -- nx run ag-charts-enterprise:build:package --configuration watch ; done"
+          },
+          {
+            "command": "while true ; do nx watch -d -p ag-charts-community,ag-charts-enterprise -- nx run ag-charts-enterprise:build:umd --configuration watch ; done"
           },
           {
             "command": "while true ; do nx watch -d -p ag-charts-community -- nx run ag-charts-community:docs-resolved-interfaces ; done"
