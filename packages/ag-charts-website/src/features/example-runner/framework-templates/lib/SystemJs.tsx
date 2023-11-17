@@ -63,7 +63,7 @@ const localConfiguration: Configuration = {
         '@ag-grid-community/csv-export': `${localPrefix}/@ag-grid-community/csv-export/dist/csv-export.cjs.js`,
         '@ag-grid-community/infinite-row-model': `${localPrefix}/@ag-grid-community/infinite-row-model/dist/infinite-row-model.cjs.js`,
         /* END OF GRID COMMUNITY MODULES PATHS DEV - DO NOT DELETE */
-        'ag-charts-community': `${localPrefix}/ag-charts-community/dist/main.cjs.js`,
+        'ag-charts-community': `${localPrefix}/ag-charts-community/dist/package/main.cjs.js`,
     },
     gridEnterprisePaths: {
         /* START OF GRID ENTERPRISE MODULES PATHS DEV - DO NOT DELETE */
@@ -90,8 +90,8 @@ const localConfiguration: Configuration = {
         '@ag-grid-enterprise/status-bar': `${localPrefix}/@ag-grid-enterprise/status-bar/dist/status-bar.cjs.js`,
         '@ag-grid-enterprise/viewport-row-model': `${localPrefix}/@ag-grid-enterprise/viewport-row-model/dist/viewport-row-model.cjs.js`,
         /* END OF GRID ENTERPRISE MODULES PATHS DEV - DO NOT DELETE */
-        'ag-charts-community': `${localPrefix}/ag-charts-community/dist/main.cjs.js`,
-        'ag-charts-enterprise': `${localPrefix}/ag-charts-enterprise/dist/main.cjs.js`,
+        'ag-charts-community': `${localPrefix}/ag-charts-community/dist/package/main.cjs.js`,
+        'ag-charts-enterprise': `${localPrefix}/ag-charts-enterprise/dist/package/main.cjs.js`,
     },
     chartMap: {
         'ag-charts-react': `${localPrefix}/ag-charts-react`,
@@ -100,8 +100,8 @@ const localConfiguration: Configuration = {
         'ag-charts-vue3': `${localPrefix}/ag-charts-vue3`,
     },
     chartPaths: {
-        'ag-charts-community': `${localPrefix}/ag-charts-community/dist/main.cjs.js`,
-        'ag-charts-enterprise': `${localPrefix}/ag-charts-enterprise/dist/main.cjs.js`,
+        'ag-charts-community': `${localPrefix}/ag-charts-community/dist/package/main.cjs.js`,
+        'ag-charts-enterprise': `${localPrefix}/ag-charts-enterprise/dist/package/main.cjs.js`,
     },
 };
 
@@ -130,7 +130,7 @@ const buildAndArchivesConfiguration: Configuration = {
         '@ag-grid-community/csv-export': `${localPrefix}/@ag-grid-community/csv-export/dist/csv-export.cjs.js`,
         '@ag-grid-community/infinite-row-model': `${localPrefix}/@ag-grid-community/infinite-row-model/dist/infinite-row-model.cjs.js`,
         /* END OF GRID COMMUNITY MODULES PATHS DEV - DO NOT DELETE */
-        'ag-charts-community': `${localPrefix}/ag-charts-community/dist/main.cjs.js`,
+        'ag-charts-community': `${localPrefix}/ag-charts-community/dist/package/main.cjs.js`,
     },
     gridEnterprisePaths: {
         /* START OF GRID ENTERPRISE MODULES PATHS DEV - DO NOT DELETE */
@@ -157,8 +157,8 @@ const buildAndArchivesConfiguration: Configuration = {
         '@ag-grid-enterprise/status-bar': `${localPrefix}/@ag-grid-enterprise/status-bar/dist/status-bar.cjs.js`,
         '@ag-grid-enterprise/viewport-row-model': `${localPrefix}/@ag-grid-enterprise/viewport-row-model/dist/viewport-row-model.cjs.js`,
         /* END OF GRID ENTERPRISE MODULES PATHS DEV - DO NOT DELETE */
-        'ag-charts-community': `${localPrefix}/ag-charts-community/dist/main.cjs.js`,
-        'ag-charts-enterprise': `${localPrefix}/ag-charts-enterprise/dist/main.cjs.js`,
+        'ag-charts-community': `${localPrefix}/ag-charts-community/dist/package/main.cjs.js`,
+        'ag-charts-enterprise': `${localPrefix}/ag-charts-enterprise/dist/package/main.cjs.js`,
     },
     chartMap: {
         'ag-charts-react': `${localPrefix}/ag-charts-react`,
@@ -167,8 +167,8 @@ const buildAndArchivesConfiguration: Configuration = {
         'ag-charts-vue3': `${localPrefix}/ag-charts-vue3`,
     },
     chartPaths: {
-        'ag-charts-community': `${localPrefix}/ag-charts-community/dist/main.cjs.js`,
-        'ag-charts-enterprise': `${localPrefix}/ag-charts-enterprise/dist/main.cjs.js`,
+        'ag-charts-community': `${localPrefix}/ag-charts-community/dist/package/main.cjs.js`,
+        'ag-charts-enterprise': `${localPrefix}/ag-charts-enterprise/dist/package/main.cjs.js`,
     },
 };
 

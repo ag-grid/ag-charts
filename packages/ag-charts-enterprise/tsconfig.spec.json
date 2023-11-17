@@ -3,10 +3,7 @@
   "compilerOptions": {
     "outDir": "../../dist/out-tsc",
     "module": "commonjs",
-    "types": ["jest", "node"],
-    "paths": {
-      "ag-charts-community": ["../../dist/packages/ag-charts-community/main.cjs"]
-    }
+    "types": ["jest", "node"]
   },
   "include": [
     "jest.config.ts",
