@@ -46,4 +46,4 @@ ssh -i $SSH_LOCATION -p $SSH_PORT $HOST "chmod +x $WORKING_DIR_ROOT/switchCharts
 
 # backup the old charts dir, unzip the new release and update permissions etc
 # we do this via a remote script as there are many steps and doing so one by one remotely times out occasionally
-#ssh -i $SSH_LOCATION -p $SSH_PORT $HOST "cd $WORKING_DIR_ROOT && ./switchChartsReleaseRemote.sh $TIMESTAMP"
+ssh -i $SSH_LOCATION -p $SSH_PORT $HOST "cd $WORKING_DIR_ROOT && ./switchChartsReleaseRemote.sh $TIMESTAMP"
