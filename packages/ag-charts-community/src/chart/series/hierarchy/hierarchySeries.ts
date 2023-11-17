@@ -79,10 +79,10 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
     colorKey?: string = undefined;
 
     @Validate(OPT_COLOR_STRING_ARRAY)
-    fills?: string[] = undefined;
+    fills: string[] = ['black'];
 
     @Validate(OPT_COLOR_STRING_ARRAY)
-    strokes?: string[] = undefined;
+    strokes: string[] = ['black'];
 
     @Validate(OPT_COLOR_STRING_ARRAY)
     colorRange?: string[] = undefined;

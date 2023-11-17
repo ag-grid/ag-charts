@@ -322,19 +322,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
             return;
         }
 
-        const hasInvalidFontSize = (label: AutoSizeableLabel<AgTreemapSeriesLabelFormatterParams> | undefined) => {
-            return (
-                label != null &&
-                label.minimumFontSize != null &&
-                label.fontSize &&
-                label.minimumFontSize > label.fontSize
-            );
-        };
-
-        if (hasInvalidFontSize(this.tile.label) || hasInvalidFontSize(this.tile.secondaryLabel)) {
-            Logger.warnOnce(`minimumFontSize should be set to a value less than or equal to the font size`);
-        }
-
         const defaultLabelFormatter = (value: any) => {
             if (typeof value === 'number') {
                 // This copies what other series are doing - we should look to provide format customization

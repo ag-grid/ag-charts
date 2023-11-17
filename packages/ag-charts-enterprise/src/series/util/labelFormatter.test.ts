@@ -111,7 +111,7 @@ describe('treeMapLabelFormatter', () => {
             const [format] = formatSingleLabel(
                 'Hello',
                 // @ts-expect-error Fix typechecking here
-                { fontSize: 20, minimumFontSize: 10, wrapping: 'never', overflow: 'never' },
+                { fontSize: 20, minimumFontSize: 10, wrapping: 'never', overflowStrategy: 'hide' },
                 { padding: 10, spacing: 10 },
                 () => ({ width: 1000, height: 1000 })
             )!;
@@ -132,7 +132,7 @@ describe('treeMapLabelFormatter', () => {
             const [format] = formatSingleLabel(
                 'Hello',
                 // @ts-expect-error Fix typechecking here
-                { fontSize: 20, minimumFontSize: 10, wrapping: 'never', overflow: 'never' },
+                { fontSize: 20, minimumFontSize: 10, wrapping: 'never', overflowStrategy: 'hide' },
                 { padding: 10, spacing: 10 },
                 () => ({ width: 35, height: 35 })
             )!;
@@ -141,6 +141,27 @@ describe('treeMapLabelFormatter', () => {
                 fontSize: 15,
                 width: 15,
                 height: 15,
+            });
+        });
+
+        it('ignores minimumFontSizes greater than fontSize', () => {
+            wrap.mockImplementation((text) => text);
+            computeBBox.mockImplementation(function (this: _Scene.Text) {
+                return { width: this.fontSize, height: this.fontSize } as _Scene.BBox;
+            });
+
+            const [format] = formatSingleLabel(
+                'Hello',
+                // @ts-expect-error Fix typechecking here
+                { fontSize: 20, minimumFontSize: 30, wrapping: 'never', overflowStrategy: 'hide' },
+                { padding: 10, spacing: 10 },
+                () => ({ width: 1000, height: 1000 })
+            )!;
+            expect(format).toEqual({
+                text: 'Hello',
+                fontSize: 20,
+                width: 20,
+                height: 20,
             });
         });
     });
@@ -155,9 +176,9 @@ describe('treeMapLabelFormatter', () => {
             const format = formatStackedLabels(
                 'Hello',
                 // @ts-expect-error Fix typechecking here
-                { fontSize: 20, minimumFontSize: 10, wrapping: 'never', overflow: 'never' },
+                { fontSize: 20, minimumFontSize: 10, wrapping: 'never', overflowStrategy: 'hide' },
                 'World',
-                { fontSize: 10, minimumFontSize: 5, wrapping: 'never', overflow: 'never' },
+                { fontSize: 10, minimumFontSize: 5, wrapping: 'never', overflowStrategy: 'hide' },
                 { padding: 10, spacing: 10 },
                 () => ({ width: 1000, height: 1000 })
             );
@@ -192,9 +213,9 @@ describe('treeMapLabelFormatter', () => {
             const format = formatStackedLabels(
                 'Hello',
                 // @ts-expect-error Fix typechecking here
-                { fontSize: 20, minimumFontSize: 10, wrapping: 'never', overflow: 'never' },
+                { fontSize: 20, minimumFontSize: 10, wrapping: 'never', overflowStrategy: 'hide' },
                 'World',
-                { fontSize: 10, minimumFontSize: 5, wrapping: 'never', overflow: 'never' },
+                { fontSize: 10, minimumFontSize: 5, wrapping: 'never', overflowStrategy: 'hide' },
                 { padding, spacing },
                 () => ({ width: 50, height })
             );
@@ -216,6 +237,39 @@ describe('treeMapLabelFormatter', () => {
             });
             expect(padding + format!.label!.height + spacing + format!.secondaryLabel!.height + padding).toBe(height);
         });
+
+        it('ignores minimumFontSizes greater than fontSize', () => {
+            wrap.mockImplementation((text) => text);
+            computeBBox.mockImplementation(function (this: _Scene.Text) {
+                return { width: this.fontSize, height: this.fontSize } as _Scene.BBox;
+            });
+
+            const format = formatStackedLabels(
+                'Hello',
+                // @ts-expect-error Fix typechecking here
+                { fontSize: 20, minimumFontSize: 30, wrapping: 'never', overflowStrategy: 'hide' },
+                'World',
+                { fontSize: 10, minimumFontSize: 20, wrapping: 'never', overflowStrategy: 'hide' },
+                { padding: 10, spacing: 10 },
+                () => ({ width: 1000, height: 1000 })
+            );
+            expect(format).toEqual({
+                width: 20,
+                height: 40,
+                label: {
+                    text: 'Hello',
+                    fontSize: 20,
+                    width: 20,
+                    height: 20,
+                },
+                secondaryLabel: {
+                    text: 'World',
+                    fontSize: 10,
+                    width: 10,
+                    height: 10,
+                },
+            });
+        });
     });
 
     describe('formatLabels', () => {
@@ -228,9 +282,9 @@ describe('treeMapLabelFormatter', () => {
             const output = formatLabels(
                 undefined,
                 // @ts-expect-error Fix typechecking here
-                { fontSize: 20, minimumFontSize: 10, wrapping: 'never', overflow: 'never' },
+                { fontSize: 20, minimumFontSize: 10, wrapping: 'never', overflowStrategy: 'hide' },
                 'World',
-                { fontSize: 10, minimumFontSize: 5, wrapping: 'never', overflow: 'never' },
+                { fontSize: 10, minimumFontSize: 5, wrapping: 'never', overflowStrategy: 'hide' },
                 { padding: 10, spacing: 10 },
                 () => ({ width: Infinity, height: Infinity })
             );
