@@ -1,4 +1,5 @@
 import type { InternalFramework } from '@ag-grid-types';
+import { getDarkModeSnippet } from '@components/site-header/getDarkModeSnippet';
 
 import { ANGULAR_GENERATED_MAIN_FILE_NAME } from '../constants';
 import { vanillaToAngular } from '../transformation-scripts/chart-vanilla-to-angular';
@@ -33,7 +34,7 @@ type ConfigGenerator = ({
     bindings,
     typedBindings,
     otherScriptFiles,
-    isGalleryExample,
+    ignoreDarkMode,
 }: {
     entryFile: string;
     indexHtml: string;
@@ -41,7 +42,7 @@ type ConfigGenerator = ({
     bindings: any;
     typedBindings: any;
     otherScriptFiles: FileContents;
-    isGalleryExample: boolean;
+    ignoreDarkMode?: boolean;
 }) => FrameworkFiles | Promise<FrameworkFiles>;
 
 const createReactFilesGenerator =
@@ -105,9 +106,10 @@ const createVueFilesGenerator =
     };
 
 export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator> = {
-    vanilla: ({ entryFile, indexHtml, typedBindings, isEnterprise, otherScriptFiles, isGalleryExample }) => {
-        const entryFileName = getEntryFileName('vanilla')!;
-        const mainFileName = getMainFileName('vanilla')!;
+    vanilla: ({ entryFile, indexHtml, typedBindings, otherScriptFiles, ignoreDarkMode }) => {
+        const internalFramework: InternalFramework = 'vanilla';
+        const entryFileName = getEntryFileName(internalFramework)!;
+        const mainFileName = getMainFileName(internalFramework)!;
         let mainJs = readAsJsFile(entryFile);
 
         // replace Typescript new Grid( with Javascript new agGrid.Grid(
@@ -121,13 +123,13 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             chartImports.imports.forEach((i: any) => {
                 const toReplace = `(?<!\\.)${i}([\\s/.])`;
                 const reg = new RegExp(toReplace, 'g');
-                mainJs = mainJs.replace(reg, `${isEnterprise ? 'agChartsEnterprise' : 'agCharts'}.${i}$1`);
+                mainJs = mainJs.replace(reg, `agCharts.${i}$1`);
             });
         }
 
         // add website dark mode handling code to doc examples - this code is later striped out from the code viewer / plunker
-        if (!isGalleryExample) {
-            const chartAPI = isEnterprise ? 'agChartsEnterprise.AgEnterprise' : 'agCharts.AgChart';
+        if (!ignoreDarkMode) {
+            const chartAPI = 'agCharts.AgCharts';
 
             if (!mainJs.includes(`chart = ${chartAPI}`)) {
                 mainJs = mainJs.replace(`${chartAPI}`, `var chart = ${chartAPI}`);
@@ -136,17 +138,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainJs =
                 mainJs +
                 `\n
-                /** DARK MODE START **/
-                options.theme = localStorage['documentation:darkmode'] === 'true' ? 'ag-default-dark' : 'ag-default';
-                agCharts.AgChart.update(chart, options);
-                window.addEventListener('message', (event) => {
-                    if (event.data?.type === 'color-scheme-change') {
-                        options.theme = event.data.darkmode ? 'ag-default-dark' : 'ag-default';
-                        agCharts.AgChart.update(chart, options);
-                    }
-                });
-                /** DARK MODE END **/
-            `;
+                ${getDarkModeSnippet(internalFramework)}`;
         }
 
         return {
@@ -160,7 +152,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainFileName,
         };
     },
-    typescript: async ({ entryFile, indexHtml, otherScriptFiles, bindings, isEnterprise, isGalleryExample }) => {
+    typescript: async ({ entryFile, indexHtml, otherScriptFiles, bindings, ignoreDarkMode }) => {
         const internalFramework: InternalFramework = 'typescript';
         const entryFileName = getEntryFileName(internalFramework)!;
         const mainFileName = getMainFileName(internalFramework)!;
@@ -184,8 +176,8 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         let mainTsx = externalEventHandlersCode ? `${entryFile}${externalEventHandlersCode}` : entryFile;
 
         // add website dark mode handling code to doc examples - this code is later striped out from the code viewer / plunker
-        if (!isGalleryExample) {
-            const chartAPI = isEnterprise ? 'AgEnterpriseCharts' : 'AgChart';
+        if (!ignoreDarkMode) {
+            const chartAPI = 'AgCharts';
             if (!mainTsx.includes(`chart = ${chartAPI}`)) {
                 mainTsx = mainTsx.replace(`${chartAPI}.create(options);`, `var chart = ${chartAPI}.create(options);`);
             }
@@ -193,16 +185,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainTsx =
                 mainTsx +
                 `\n
-                /** DARK MODE START **/
-                options.theme = localStorage['documentation:darkmode'] === 'true' ? 'ag-default-dark' : 'ag-default';
-                ${chartAPI}.update(chart, options);
-                window.addEventListener('message', (event) => {
-                    if (event.data?.type === 'color-scheme-change') {
-                        options.theme = event.data.darkmode ? 'ag-default-dark' : 'ag-default';
-                        ${chartAPI}.update(chart, options);
-                    }
-                });
-                /** DARK MODE END **/
+                ${getDarkModeSnippet(internalFramework, { chartAPI })}
             `;
         }
 
@@ -226,7 +209,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         sourceGenerator: vanillaToReactFunctional,
         internalFramework: 'reactFunctional',
     }),
-    reactFunctionalTs: async ({ typedBindings, indexHtml, otherScriptFiles, isGalleryExample }) => {
+    reactFunctionalTs: async ({ typedBindings, indexHtml, otherScriptFiles, ignoreDarkMode }) => {
         const internalFramework: InternalFramework = 'reactFunctionalTs';
         const entryFileName = getEntryFileName(internalFramework)!;
         const mainFileName = getMainFileName(internalFramework)!;
@@ -236,18 +219,8 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         let indexTsx = getSource();
 
         // add website dark mode handling code to doc examples - this code is later striped out from the code viewer / plunker
-        if (!isGalleryExample) {
-            const codeToInsert = `/** DARK MODE START **/
-                options.theme = localStorage['documentation:darkmode'] === 'true' ? 'ag-default-dark' : 'ag-default';
-                window.addEventListener('message', (event) => {
-                    if (event.data?.type === 'color-scheme-change') {
-                        setOptions((currentOptions) => ({
-                            ...currentOptions,
-                            theme: event.data.darkmode ? 'ag-default-dark' : 'ag-default',
-                        }));
-                    }
-                });
-                /** DARK MODE END **/`;
+        if (!ignoreDarkMode) {
+            const codeToInsert = getDarkModeSnippet(internalFramework);
 
             const regex = /(const \[options, setOptions] = useState<[\s\S]*?\);)/;
             indexTsx = indexTsx.replace(regex, `$1${codeToInsert}`);

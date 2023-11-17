@@ -33,6 +33,7 @@ import {
 import { checkDatum } from '../../util/value';
 import type { ChartAxis } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
+import type { ChartMode } from '../chartMode';
 import { accumulatedValue, trailingAccumulatedValue } from '../data/aggregateFunctions';
 import type { DataController } from '../data/dataController';
 import type { DatumPropertyDefinition, ScopeProvider } from '../data/dataModel';
@@ -327,7 +328,7 @@ export abstract class Series<
 
     // Package-level visibility, not meant to be set by the user.
     chart?: {
-        mode: 'standalone' | 'integrated';
+        mode: ChartMode;
         placeLabels(): Map<Series<any>, PlacedLabel[]>;
         seriesRect?: BBox;
     };

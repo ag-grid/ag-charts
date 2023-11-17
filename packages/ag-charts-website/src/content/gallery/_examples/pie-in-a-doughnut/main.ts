@@ -1,4 +1,4 @@
-import { AgEnterpriseCharts, AgPolarChartOptions, AgPolarSeriesOptions } from 'ag-charts-enterprise';
+import { AgCharts, AgPolarChartOptions, AgPolarSeriesOptions } from 'ag-charts-enterprise';
 
 import { getData2020, getData2022 } from './data';
 
@@ -57,4 +57,4 @@ const options: AgPolarChartOptions = {
     ],
 };
 
-AgEnterpriseCharts.create(options);
+AgCharts.create(options);

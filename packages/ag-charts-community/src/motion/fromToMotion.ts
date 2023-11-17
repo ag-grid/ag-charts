@@ -19,7 +19,12 @@ export type FromToMotionPropFnContext<T> = {
     prevLive?: T;
     nextLive?: T;
 };
-type ExtraOpts<T> = { animationDelay?: number; animationDuration?: number; start?: Partial<T>; finish?: Partial<T> };
+export type ExtraOpts<T> = {
+    animationDelay?: number;
+    animationDuration?: number;
+    start?: Partial<T>;
+    finish?: Partial<T>;
+};
 export type FromToMotionPropFn<N extends Node, T extends Record<string, string | number> & Partial<N>, D> = (
     node: N,
     datum: D,

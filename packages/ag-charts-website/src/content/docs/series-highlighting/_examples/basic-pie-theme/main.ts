@@ -1,4 +1,4 @@
-import { AgChart, AgChartOptions } from 'ag-charts-community';
+import { AgChartOptions, AgCharts } from 'ag-charts-community';
 
 const data = [
     {
@@ -40,24 +40,21 @@ const options: AgChartOptions = {
         position: 'right',
     },
     theme: {
-        baseTheme: 'ag-pastel',
         overrides: {
-            polar: {
+            pie: {
                 series: {
-                    pie: {
-                        title: {
-                            showInLegend: true,
+                    title: {
+                        showInLegend: true,
+                    },
+                    highlightStyle: {
+                        item: {
+                            fill: 'red',
+                            stroke: 'maroon',
+                            strokeWidth: 4,
                         },
-                        highlightStyle: {
-                            item: {
-                                fill: 'red',
-                                stroke: 'maroon',
-                                strokeWidth: 4,
-                            },
-                            series: {
-                                dimOpacity: 0.2,
-                                strokeWidth: 2,
-                            },
+                        series: {
+                            dimOpacity: 0.2,
+                            strokeWidth: 2,
                         },
                     },
                 },
@@ -125,4 +122,4 @@ const options: AgChartOptions = {
     ],
 };
 
-AgChart.create(options);
+AgCharts.create(options);

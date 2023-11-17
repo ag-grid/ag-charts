@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 import type { AgChartOptions } from '../options/agChartOptions';
-import { AgChart } from './agChartV2';
+import { AgCharts } from './agChartV2';
 import type { Chart } from './chart';
 import { EXAMPLES } from './test/examples-gallery';
 import {
@@ -40,7 +40,7 @@ describe('Gallery Examples', () => {
         for (const [exampleName, example] of Object.entries(EXAMPLES)) {
             it(`for ${exampleName} it should create chart instance as expected`, async () => {
                 const options: AgChartOptions = example.options;
-                chart = AgChart.create(options) as Chart;
+                chart = AgCharts.create(options) as Chart;
                 await waitForChartStability(chart);
                 await example.assertions(chart);
             });
@@ -56,7 +56,7 @@ describe('Gallery Examples', () => {
                 const options: AgChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
-                chart = AgChart.create(options) as Chart;
+                chart = AgCharts.create(options) as Chart;
                 await compare();
 
                 if (example.extraScreenshotActions) {
@@ -87,7 +87,7 @@ describe('Gallery Examples', () => {
                     options = { ...example.options };
                     prepareTestOptions(options);
 
-                    chart = AgChart.create(options) as Chart;
+                    chart = AgCharts.create(options) as Chart;
                     await waitForChartStability(chart);
                 });
 
@@ -98,7 +98,7 @@ describe('Gallery Examples', () => {
                 });
 
                 it(`it should update chart instance as expected`, async () => {
-                    AgChart.update(chart, options);
+                    AgCharts.update(chart, options);
                     await waitForChartStability(chart);
 
                     await example.assertions(chart);
@@ -111,10 +111,10 @@ describe('Gallery Examples', () => {
                         return ctx.nodeCanvas.toBuffer('raw');
                     };
 
-                    AgChart.update(chart, options);
+                    AgCharts.update(chart, options);
 
                     const before = await snapshot();
-                    AgChart.update(chart, options);
+                    AgCharts.update(chart, options);
                     const after = await snapshot();
 
                     expect(after).toMatchImage(before);

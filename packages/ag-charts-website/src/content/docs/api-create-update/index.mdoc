@@ -8,18 +8,18 @@ Learn about creating and updating charts in more detail.
 ## Creating and Updating Charts
 
 {% if isFramework("javascript") %}
-`AgChart` exposes `create()` and `update()` static methods to perform chart initialisation and update based upon
+`AgCharts` exposes `create()` and `update()` static methods to perform chart initialisation and update based upon
 the `AgChartOptions` configuration structure.
 
 Mutations to the previously used options object are not automatically picked up by the chart implementation,
-`AgChart.update()` should be called for changes to be applied.
+`AgCharts.update()` should be called for changes to be applied.
 
 {% note %}
-NOTE: We expect the options supplied to `AgChart.update()` to be the full configuration state to update
-to, not a partial configuration. Use `AgChart.updateDelta()` to apply partial updates.
+NOTE: We expect the options supplied to `AgCharts.update()` to be the full configuration state to update
+to, not a partial configuration. Use `AgCharts.updateDelta()` to apply partial updates.
 {% /note %}
 
-`AgChart` has the following API:
+`AgCharts` has the following API:
 
 {% apiReference id="AgChartInterface" include=["create", "update"] hideHeader=true hideRequired=true /%}
 
@@ -42,7 +42,7 @@ The following example demonstrates both create and update cases:
 
 ## Delta Options Update
 
-`AgChart` exposes an `updateDelta()` static method to allow partial updates to a charts options.
+`AgCharts` exposes an `updateDelta()` static method to allow partial updates to a charts options.
 
 {% apiReference id="AgChartInterface" include=["updateDelta"] hideHeader=true hideRequired=true /%}
 

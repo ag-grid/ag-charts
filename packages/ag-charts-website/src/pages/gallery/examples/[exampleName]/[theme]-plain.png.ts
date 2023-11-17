@@ -4,7 +4,7 @@ import type { ThemeName } from '@stores/themeStore';
 import { getEntry } from 'astro:content';
 import { JSDOM } from 'jsdom';
 
-import { AgChart } from 'ag-charts-community';
+import { AgCharts } from 'ag-charts-community';
 // eslint-disable-next-line @nx/enforce-module-boundaries
 import 'ag-charts-enterprise';
 
@@ -45,6 +45,7 @@ export async function get({ params }: { params: Params }) {
         const { entryFileName, files = {} } =
             (await getGeneratedGalleryContents({
                 exampleName,
+                ignoreDarkMode: true,
             })) || {};
         const entryFile = files[entryFileName!];
         let { options } = transformPlainEntryFile(entryFile, files['data.js'], theme);
@@ -57,7 +58,7 @@ export async function get({ params }: { params: Params }) {
             height: DEFAULT_THUMBNAIL_HEIGHT,
         };
 
-        const chartProxy = AgChart.create(options);
+        const chartProxy = AgCharts.create(options);
         const chart = (chartProxy as any).chart;
         await chart.waitForUpdate(5_000);
 

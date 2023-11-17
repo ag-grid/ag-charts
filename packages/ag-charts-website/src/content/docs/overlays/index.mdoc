@@ -6,6 +6,8 @@ There are some options to display custom HTML over a chart.
 
 ## Missing Data Overlay
 
+{% chartExampleRunner title="Overlay for Missing Data" name="no-data-plain" type="generated" /%}
+
 Sometimes end-users can be confused if a chart doesn't have any content. To help them understand that no data has been supplied, a message is displayed over the chart area.
 
 This message can be customised through `overlays.noData`:
@@ -18,13 +20,11 @@ overlays: {
 },
 ```
 
-### Example: Overlay for missing data
-
-{% chartExampleRunner title="Overlay for Missing Data" name="no-data-plain" type="generated" /%}
-
 ## Custom Missing Data Overlay
 
 If finer grained control is required, a renderer can be provided to allow full customisation:
+
+{% chartExampleRunner title="Custom Overlay for Missing Data" name="no-data" type="generated" /%}
 
 ```js
 overlays: {
@@ -33,10 +33,6 @@ overlays: {
     },
 },
 ```
-
-### Example: Custom overlay for missing data
-
-{% chartExampleRunner title="Custom Overlay for Missing Data" name="no-data" type="generated" /%}
 
 ## API Reference
 

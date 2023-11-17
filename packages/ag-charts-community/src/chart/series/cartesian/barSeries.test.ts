@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type { AgChartOptions } from '../../../options/agChartOptions';
-import { AgChart } from '../../agChartV2';
+import { AgCharts } from '../../agChartV2';
 import type { Chart } from '../../chart';
 import {
     DATA_FRACTIONAL_LOG_AXIS,
@@ -137,7 +137,7 @@ describe('BarSeries', () => {
                 const options: AgChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
-                chart = AgChart.create(options) as Chart;
+                chart = AgCharts.create(options) as Chart;
                 await waitForChartStability(chart);
                 await example.assertions(chart);
             });
@@ -146,7 +146,7 @@ describe('BarSeries', () => {
                 const options: AgChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
-                chart = AgChart.create(options) as Chart;
+                chart = AgCharts.create(options) as Chart;
                 await compare();
 
                 if (example.extraScreenshotActions) {
@@ -167,7 +167,7 @@ describe('BarSeries', () => {
                 const options: AgChartOptions = { ...examples.COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS };
                 prepareTestOptions(options);
 
-                chart = AgChart.create(options) as Chart;
+                chart = AgCharts.create(options) as Chart;
                 await waitForChartStability(chart);
                 await compare();
             });
@@ -180,7 +180,7 @@ describe('BarSeries', () => {
                 const options: AgChartOptions = { ...examples.BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS };
                 prepareTestOptions(options);
 
-                chart = AgChart.create(options) as Chart;
+                chart = AgCharts.create(options) as Chart;
                 await waitForChartStability(chart);
                 await compare();
             });
@@ -197,10 +197,10 @@ describe('BarSeries', () => {
                 const options: AgChartOptions = { ...examples.COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS };
                 prepareTestOptions(options);
 
-                chart = AgChart.create(options) as Chart;
+                chart = AgCharts.create(options) as Chart;
                 await waitForChartStability(chart);
 
-                AgChart.updateDelta(chart, {
+                AgCharts.updateDelta(chart, {
                     data: [...options.data!.slice(2, 4), ...options.data!.slice(6, -2)],
                 });
                 animate(1200, ratio);
@@ -217,10 +217,10 @@ describe('BarSeries', () => {
                 const options: AgChartOptions = { ...examples.BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS };
                 prepareTestOptions(options);
 
-                chart = AgChart.create(options) as Chart;
+                chart = AgCharts.create(options) as Chart;
                 await waitForChartStability(chart);
 
-                AgChart.updateDelta(chart, {
+                AgCharts.updateDelta(chart, {
                     data: options.data!.slice(0, options.data!.length / 2),
                 });
                 animate(1200, ratio);
@@ -241,15 +241,15 @@ describe('BarSeries', () => {
                 const options: AgChartOptions = { ...examples.COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS };
                 prepareTestOptions(options);
 
-                chart = AgChart.create(options) as Chart;
+                chart = AgCharts.create(options) as Chart;
                 await waitForChartStability(chart);
 
-                AgChart.updateDelta(chart, {
+                AgCharts.updateDelta(chart, {
                     data: [...options.data!.slice(2, 4), ...options.data!.slice(6, -2)],
                 });
                 await waitForChartStability(chart);
 
-                AgChart.update(chart, options);
+                AgCharts.update(chart, options);
                 animate(1200, ratio);
 
                 await waitForChartStability(chart);
@@ -264,15 +264,15 @@ describe('BarSeries', () => {
                 const options: AgChartOptions = { ...examples.BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS };
                 prepareTestOptions(options);
 
-                chart = AgChart.create(options) as Chart;
+                chart = AgCharts.create(options) as Chart;
                 await waitForChartStability(chart);
 
-                AgChart.updateDelta(chart, {
+                AgCharts.updateDelta(chart, {
                     data: options.data!.slice(0, options.data!.length / 2),
                 });
                 await waitForChartStability(chart);
 
-                AgChart.update(chart, options);
+                AgCharts.update(chart, options);
                 animate(1200, ratio);
 
                 await waitForChartStability(chart);
@@ -291,10 +291,10 @@ describe('BarSeries', () => {
                 const options: AgChartOptions = { ...examples.COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS };
                 prepareTestOptions(options);
 
-                chart = AgChart.create(options) as Chart;
+                chart = AgCharts.create(options) as Chart;
                 await waitForChartStability(chart);
 
-                AgChart.updateDelta(chart, {
+                AgCharts.updateDelta(chart, {
                     data: [...options.data!.map((d, i) => (i % 2 === 0 ? { ...d, value: d.value * 2 } : d))],
                 });
                 animate(1200, ratio);
@@ -311,10 +311,10 @@ describe('BarSeries', () => {
                 const options: AgChartOptions = { ...examples.BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS };
                 prepareTestOptions(options);
 
-                chart = AgChart.create(options) as Chart;
+                chart = AgCharts.create(options) as Chart;
                 await waitForChartStability(chart);
 
-                AgChart.updateDelta(chart, {
+                AgCharts.updateDelta(chart, {
                     data: [...options.data!.map((d, i) => (i % 2 === 0 ? { ...d, value: d.value * 2 } : d))],
                 });
                 animate(1200, ratio);
@@ -335,7 +335,7 @@ describe('BarSeries', () => {
                 const options: AgChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
-                chart = AgChart.create(options) as Chart;
+                chart = AgCharts.create(options) as Chart;
                 await waitForChartStability(chart);
                 await example.assertions(chart);
             });
@@ -344,7 +344,7 @@ describe('BarSeries', () => {
                 const options: AgChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
-                chart = AgChart.create(options) as Chart;
+                chart = AgCharts.create(options) as Chart;
                 await compare();
 
                 if (example.extraScreenshotActions) {

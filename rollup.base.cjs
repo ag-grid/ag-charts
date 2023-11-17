@@ -1,34 +1,47 @@
-module.exports = function buildConfig(name, { output, ...config }, { umd = {} } = {}) {
+module.exports = function buildConfig(
+    name,
+    { output, ...config },
+    { umdOutput = 'add', filename = undefined, umd = {} } = {}
+) {
     if (!Array.isArray(output)) {
         output = [output];
     }
 
+    const sourcemap = process.env.NX_TASK_TARGET_CONFIGURATION !== 'production';
+
     const result = {
         ...config,
         cache: false,
-        output: [
-            ...output.map(({ entryFileNames, chunkFileNames, format, ...opts }) => ({
-                ...opts,
-                format,
-                name,
-                entryFileNames,
-                chunkFileNames,
-                sourcemap: process.env.NX_TASK_TARGET_CONFIGURATION !== 'production',
-            })),
-        ],
+        output: output.map((opts) => ({ ...opts, name, sourcemap })),
     };
 
     const { entryFileNames, chunkFileNames, format, ...opts } = result.output[0];
-    if (format === 'cjs') {
-        result.output.push({
-            ...opts,
-            name,
-            entryFileNames: entryFileNames.replace('cjs', 'umd'),
-            chunkFileNames: chunkFileNames.replace('cjs', 'umd'),
-            sourcemap: process.env.NX_TASK_TARGET_CONFIGURATION !== 'production',
-            format: 'umd',
-            ...umd,
-        });
+    const umdOutputConfig = {
+        ...opts,
+        name,
+        sourcemap,
+        format: 'umd',
+        entryFileNames: filename ?? entryFileNames.replace(format, 'umd'),
+        chunkFileNames: filename ?? chunkFileNames.replace(format, 'umd'),
+        ...umd,
+    };
+
+    if (umdOutput === 'add' && format === 'cjs') {
+        // Generate module-only UMD output in addition to CJS output.
+        result.output.push(umdOutputConfig);
+    } else if (umdOutput === 'only') {
+        // Only output UMD, with referenced AG Charts modules included.
+        result.plugins = result.plugins.filter((p) => p.name !== 'dts-bundle');
+        result.output = [umdOutputConfig];
+
+        const { external } = result;
+        result.external = (moduleName) => {
+            if (moduleName.startsWith('ag-')) return false;
+
+            return external(moduleName);
+        };
+    } else if (umdOutput === 'none') {
+        // Don't include UMD output.
     }
 
     return result;

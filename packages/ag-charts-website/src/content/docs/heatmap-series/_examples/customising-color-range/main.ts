@@ -1,4 +1,4 @@
-import { AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -20,9 +20,9 @@ const options: AgChartOptions = {
 
             colorKey: 'temperature',
             colorName: 'Temperature',
-            colorRange: ['#4A90E2', '#FF6B6B'],
+            colorRange: ['#d7301f', '#fef0d9'],
         },
     ],
 };
 
-const chart = AgEnterpriseCharts.create(options);
+const chart = AgCharts.create(options);

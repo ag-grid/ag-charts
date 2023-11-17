@@ -9,80 +9,42 @@ import { useState } from 'react';
 import { Collapsible } from '../Collapsible';
 import { Icon } from '../icon/Icon';
 import { DarkModeToggle } from './DarkModeToggle';
-import styles from './SiteHeader.module.scss';
+import gridStyles from './gridSiteHeader.module.scss';
 
 const SITE_HEADER_SMALL_WIDTH = parseInt(breakpoints['site-header-small'], 10);
 
-const links = [
-    {
-        name: 'Gallery',
-        url: pathJoin(SITE_BASE_URL, 'gallery'),
-    },
-    {
-        name: 'Docs',
-        url: pathJoin(SITE_BASE_URL, 'documentation'),
-    },
-    {
-        name: 'API',
-        url: pathJoin(SITE_BASE_URL, 'options'),
-    },
-    {
-        name: 'Blog',
-        url: 'https://blog.ag-grid.com/',
-    },
-    {
-        name: 'Pricing',
-        url: 'https://ag-grid.com/license-pricing/',
-    },
-    {
-        name: 'Github',
-        url: 'https://github.com/ag-grid/ag-grid',
-        icon: <Icon name="github" />,
-        cssClass: 'github-item',
-    },
-];
+const getCurrentPageName = ({ path, allPaths }) => {
+    const match = allPaths.find((link) => path.includes(link.path));
 
-const getCurrentPageName = (path) => {
-    const rawPath = path.split('/')[1];
-
-    const allLinks = [
-        ...links,
-        ...FRAMEWORKS.map((framework) => ({
-            name: 'Documentation',
-            url: `${SITE_BASE_URL}${framework}-data-grid`,
-        })),
-    ];
-
-    const match = allLinks.filter((link) => link.url.includes(rawPath));
-
-    if (match && match.length === 1) {
-        return match[0].name;
+    if (match) {
+        return match.title;
     }
 };
 
-const HeaderLinks = ({ path, isOpen, toggleIsOpen }) => {
+const HeaderLinks = ({ currentPath, items, allPaths, isOpen, toggleIsOpen }) => {
     return (
-        <ul className={classnames(styles.navItemList, 'list-style-none')}>
-            {links.map((link) => {
-                const linkClasses = classnames(styles.navItem, {
-                    [styles.navItemActive]: link.name === getCurrentPageName(path),
-                    [styles[link.cssClass]]: link.cssClass,
+        <ul className={classnames(gridStyles.navItemList, 'list-style-none')}>
+            {items.map(({ title, cssClass, path, url, icon }) => {
+                const linkClasses = classnames(gridStyles.navItem, {
+                    [gridStyles.navItemActive]: title === getCurrentPageName({ path: currentPath, allPaths }),
+                    [gridStyles[cssClass]]: cssClass,
                 });
+                const href = path ? pathJoin(SITE_BASE_URL, path) : url;
 
                 return (
-                    <li key={link.name.toLocaleLowerCase()} className={linkClasses}>
+                    <li key={title.toLocaleLowerCase()} className={linkClasses}>
                         <a
-                            className={styles.navLink}
-                            href={link.url}
+                            className={gridStyles.navLink}
+                            href={href}
                             onClick={() => {
                                 if (isOpen) {
                                     toggleIsOpen();
                                 }
                             }}
-                            aria-label={`AG Grid ${link.name}`}
+                            aria-label={`AG Grid ${title}`}
                         >
-                            {link.icon}
-                            <span>{link.name}</span>
+                            {icon && <Icon name={icon} />}
+                            <span>{title}</span>
                         </a>
                     </li>
                 );
@@ -95,18 +57,18 @@ const HeaderLinks = ({ path, isOpen, toggleIsOpen }) => {
 
 const HeaderExpandButton = ({ isOpen, toggleIsOpen }) => (
     <button
-        className={styles.mobileMenuButton}
+        className={gridStyles.mobileMenuButton}
         type="button"
         aria-controls="main-nav"
         aria-expanded={isOpen.toString()}
         aria-label="Toggle navigation"
         onClick={() => toggleIsOpen()}
     >
-        <MenuIcon className={styles.menuIcon} />
+        <MenuIcon className={gridStyles.menuIcon} />
     </button>
 );
 
-export const HeaderNav = ({ path }) => {
+export const HeaderNav = ({ currentPath, items, allPaths }) => {
     const [isOpen, setIsOpen] = useState(false);
     const { width } = useWindowSize();
     const isDesktop = width >= SITE_HEADER_SMALL_WIDTH;
@@ -121,8 +83,14 @@ export const HeaderNav = ({ path }) => {
         <>
             <HeaderExpandButton isOpen={isOpen} toggleIsOpen={toggleIsOpen} />
             <Collapsible id="main-nav" isDisabled={isDesktop} isOpen={isOpen}>
-                <nav id={isDesktop ? 'main-nav' : undefined}>
-                    <HeaderLinks path={path} isOpen={isOpen} toggleIsOpen={toggleIsOpen} />
+                <nav id={isDesktop ? 'main-nav' : undefined} className={gridStyles.mainNav}>
+                    <HeaderLinks
+                        currentPath={currentPath}
+                        items={items}
+                        allPaths={allPaths}
+                        isOpen={isOpen}
+                        toggleIsOpen={toggleIsOpen}
+                    />
                 </nav>
             </Collapsible>
         </>

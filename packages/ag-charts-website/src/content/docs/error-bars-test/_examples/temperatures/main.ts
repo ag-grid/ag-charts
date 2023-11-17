@@ -1,6 +1,8 @@
-import { AgChartOptions, AgEnterpriseCharts, AgErrorBarFormatterParams } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, AgErrorBarFormatterParams } from 'ag-charts-enterprise';
 
-import { getData } from './data';
+import { getData, getData2 } from './data';
+
+type Datum = ReturnType<typeof getData>[number];
 
 const highlightStyle = {
     item: { stroke: 'red' },
@@ -16,7 +18,7 @@ const formatter = (param: AgErrorBarFormatterParams) => {
     }
 };
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Monthly Average Temperatures with Error Bars (Celsius)',
@@ -49,7 +51,7 @@ const options: AgChartOptions = {
     ],
 };
 
-const chart = AgEnterpriseCharts.create(options);
+const chart = AgCharts.create(options);
 
 function line() {
     if (options.series !== undefined) {
@@ -57,7 +59,7 @@ function line() {
             opt.type = 'line';
         }
     }
-    AgEnterpriseCharts.update(chart, options);
+    AgCharts.update(chart, options);
 }
 
 function bar() {
@@ -65,6 +67,79 @@ function bar() {
         for (const opt of options.series) {
             opt.type = 'bar';
         }
+    }
+    AgCharts.update(chart, options);
+}
+
+function resetData() {
+    if (options.series !== undefined) {
+        options.series[0].data = getData();
+        options.series[1].data = getData2();
+    }
+    AgEnterpriseCharts.update(chart, options);
+}
+
+function removeOdds() {
+    if (options.series !== undefined) {
+        const fn = (_value: Datum, index: number) => {
+            return index % 2 === 0;
+        };
+        options.series[0].data = getData().filter(fn);
+        options.series[1].data = getData2().filter(fn);
+    }
+    AgEnterpriseCharts.update(chart, options);
+}
+
+function removeOddsErrors() {
+    if (options.series !== undefined) {
+        const fn = (value: Datum, index: number) => {
+            if (index % 2 === 1) {
+                const { month, temperature } = value;
+                return { month, temperature };
+            } else {
+                return value;
+            }
+        };
+        options.series[0].data = getData().map(fn);
+        options.series[1].data = getData2().map(fn);
+    }
+    AgEnterpriseCharts.update(chart, options);
+}
+
+function randomDelta(min: number, max: number) {
+    return Math.random() * (max - min) + min;
+}
+
+function randomiseData() {
+    if (options.series !== undefined) {
+        const fn = (value: Datum, index: number): Datum => {
+            const delta = randomDelta(-4, 4);
+            return {
+                month: value.month,
+                temperature: value.temperature + delta,
+                temperatureLower: value.temperatureLower + delta,
+                temperatureUpper: value.temperatureUpper + delta,
+            };
+        };
+        options.series[0].data = getData().map(fn);
+        options.series[1].data = getData2().map(fn);
+    }
+    AgEnterpriseCharts.update(chart, options);
+}
+
+function randomiseErrors() {
+    if (options.series !== undefined) {
+        const fn = (value: Datum, index: number): Datum => {
+            const delta = randomDelta(-2, 2);
+            return {
+                month: value.month,
+                temperature: value.temperature,
+                temperatureLower: value.temperatureLower + delta,
+                temperatureUpper: value.temperatureUpper + delta,
+            };
+        };
+        options.series[0].data = getData().map(fn);
+        options.series[1].data = getData2().map(fn);
     }
     AgEnterpriseCharts.update(chart, options);
 }

@@ -52,7 +52,15 @@ import { AxisLine } from './axisLine';
 import type { TickCount, TickInterval } from './axisTick';
 import { AxisTick } from './axisTick';
 import type { AxisTitle } from './axisTitle';
-import { prepareAxisAnimationContext, prepareAxisAnimationFunctions, resetAxisSelectionFn } from './axisUtil';
+import type { AxisLineDatum } from './axisUtil';
+import {
+    prepareAxisAnimationContext,
+    prepareAxisAnimationFunctions,
+    resetAxisGroupFn,
+    resetAxisLabelSelectionFn,
+    resetAxisLineSelectionFn,
+    resetAxisSelectionFn,
+} from './axisUtil';
 
 export enum Tags {
     TickLine,
@@ -466,11 +474,10 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const sideFlag = this.label.getSideFlag();
         this.updatePosition();
 
-        this.updateAxisLine();
-
+        const lineData = this.getAxisLineCoordinates();
         const { tickData, combinedRotation, textBaseline, textAlign, ...ticksResult } = this.tickGenerationResult;
         const previousTicks = this.tickLabelGroupSelection.nodes().map((node) => node.datum.tickId);
-        this.updateSelections(tickData.ticks, { combinedRotation, textAlign, textBaseline });
+        this.updateSelections(lineData, tickData.ticks, { combinedRotation, textAlign, textBaseline });
 
         if (this.animationManager.isSkipped()) {
             this.resetSelectionNodes();
@@ -479,6 +486,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             this.animationState.transition('update', diff);
         }
 
+        this.updateAxisLine();
         this.updateLabels();
         this.updateVisibility();
         this.updateGridLines(sideFlag);
@@ -491,7 +499,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         return primaryTickCount;
     }
 
-    private getAxisLineCoordinates() {
+    private getAxisLineCoordinates(): AxisLineDatum {
         const {
             range: [start, end],
         } = this;
@@ -732,8 +740,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         if (!ContinuousScale.is(scale)) {
             return;
         }
-
-        this.setTickCount();
 
         scale.nice = nice;
         scale.update();
@@ -1089,7 +1095,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         maxTickCount: number;
         defaultTickCount: number;
     } {
-        const availableRange = this.calculateAvailableRange();
+        const availableRange = this.calculateVisibleRange();
         const defaultMinSpacing = Math.max(
             this.defaultTickMinSpacing,
             availableRange / ContinuousScale.defaultMaxTickCount
@@ -1165,12 +1171,19 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     protected calculateAvailableRange(): number {
-        const { range: requestedRange } = this;
+        const { range } = this;
 
-        const min = Math.min(...requestedRange);
-        const max = Math.max(...requestedRange);
+        const min = Math.min(...range);
+        const max = Math.max(...range);
 
         return max - min;
+    }
+
+    protected calculateVisibleRange() {
+        const { visibleRange } = this;
+        const visibleScale = 1 / (visibleRange[1] - visibleRange[0]);
+
+        return this.calculateAvailableRange() * visibleScale;
     }
 
     protected calculateDomain() {
@@ -1203,7 +1216,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         crossLineGroup.setProperties({ rotation, translationX, translationY });
 
-        axisGroup.setProperties(this.getAxisTransform());
+        axisGroup.datum = this.getAxisTransform();
 
         gridGroup.setProperties({ rotation, translationX, translationY });
 
@@ -1219,6 +1232,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     protected updateSelections(
+        lineData: AxisLineDatum,
         data: TickDatum[],
         params: {
             combinedRotation: number;
@@ -1226,6 +1240,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             textAlign: CanvasTextAlign;
         }
     ) {
+        this.lineNode.datum = lineData;
         this.gridLineGroupSelection.update(
             this.gridLength ? data : [],
             (group) => group.append(new Line({ tag: Tags.GridLine })),
@@ -1245,11 +1260,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     protected updateAxisLine() {
         const { line } = this;
-        const lineData = this.getAxisLineCoordinates();
         this.lineNode.setProperties({
-            x: lineData.x,
-            y1: lineData.y1,
-            y2: lineData.y2,
             stroke: line.color,
             strokeWidth: line.width,
             visible: line.enabled,
@@ -1294,14 +1305,9 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                 'fontSize',
                 'fontStyle',
                 'fontWeight',
-                'rotation',
-                'rotationCenterX',
                 'text',
                 'textAlign',
                 'textBaseline',
-                'visible',
-                'x',
-                'y',
             ]);
         });
     }
@@ -1466,12 +1472,14 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const selectionCtx = prepareAxisAnimationContext(this);
         const fns = prepareAxisAnimationFunctions(selectionCtx);
 
+        fromToMotion(this.id, 'axis-group', animationManager, [this.axisGroup], fns.group);
+        fromToMotion(this.id, 'line', animationManager, [this.lineNode], fns.line);
         fromToMotion(
             this.id,
             'line-paths',
             animationManager,
             [this.gridLineGroupSelection, this.tickLineGroupSelection],
-            fns,
+            fns.tick,
             (_, d) => d.tickId,
             diff
         );
@@ -1480,18 +1488,20 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             'tick-labels',
             animationManager,
             [this.tickLabelGroupSelection],
-            fns,
+            fns.label,
             (_, d) => d.tickId,
             diff
         );
     }
 
     private resetSelectionNodes() {
-        const { gridLineGroupSelection, tickLineGroupSelection, tickLabelGroupSelection } = this;
+        const { gridLineGroupSelection, tickLineGroupSelection, tickLabelGroupSelection, lineNode } = this;
 
         const selectionCtx = prepareAxisAnimationContext(this);
+        resetMotion([this.axisGroup], resetAxisGroupFn());
         resetMotion([gridLineGroupSelection, tickLineGroupSelection], resetAxisSelectionFn(selectionCtx));
-        resetMotion([tickLabelGroupSelection], resetAxisSelectionFn(selectionCtx));
+        resetMotion([tickLabelGroupSelection], resetAxisLabelSelectionFn());
+        resetMotion([lineNode], resetAxisLineSelectionFn());
     }
 
     private calculateUpdateDiff(previous: string[], tickData: TickData) {

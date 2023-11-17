@@ -1,3 +1,5 @@
+import { getDarkModeSnippet } from '@components/site-header/getDarkModeSnippet';
+
 import { convertTemplate, getImport, toAssignment, toConst, toInput, toMember } from './angular-utils';
 import { wrapOptionsUpdateCode } from './chart-utils';
 import { templatePlaceholder } from './chart-vanilla-src-parser';
@@ -100,20 +102,7 @@ export class AppComponent {
 
     ngOnInit() {
         ${bindings.init.join(';\n    ')}
-        /** DARK MODE START **/
-        this.options = {
-            ...this.options,
-            theme: localStorage['documentation:darkmode'] === 'true' ? 'ag-default-dark' : 'ag-default'
-        };
-        window.addEventListener('message', (event) => {
-            if (event.data && event.data.type === 'color-scheme-change') {
-                this.options = {
-                    ...this.options,
-                    theme: event.data.darkmode ? 'ag-default-dark' : 'ag-default'
-                };
-            }
-        });
-        /** DARK MODE END **/
+        ${getDarkModeSnippet('angular')}
     }
 
     ${instanceMethods
@@ -125,11 +114,7 @@ export class AppComponent {
 ${bindings.globals.join('\n')}
 `;
         if (bindings.usesChartApi) {
-            appComponent = appComponent.replace(/AgChart.(\w*)\((\w*)(,|\))/g, 'AgChart.$1(this.agChart.chart!$3');
-            appComponent = appComponent.replace(
-                /AgEnterpriseCharts.(\w*)\((\w*)(,|\))/g,
-                'AgEnterpriseCharts.$1(this.agChart.chart!$3'
-            );
+            appComponent = appComponent.replace(/AgCharts.(\w*)\((\w*)(,|\))/g, 'AgCharts.$1(this.agChart.chart!$3');
             appComponent = appComponent.replace(
                 /\(this.agChart.chart!, options/g,
                 '(this.agChart.chart!, this.options'

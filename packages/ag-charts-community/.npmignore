@@ -10,10 +10,11 @@ tsconfig.*
 project.json
 rollup.*
 
+dist/*.d.ts
 dist/**/*.test.*
 *.map
 *.tgz
 
 !dist/
-!dist/src
-dist/package.json
+!dist/package/src
+dist/**/package.json

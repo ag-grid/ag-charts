@@ -1,5 +1,6 @@
 import { Debug } from '../../util/debug';
 import { jsonDiff } from '../../util/json';
+import type { ChartMode } from '../chartMode';
 import type { DataModelOptions, DatumPropertyDefinition, ProcessedData, PropertyDefinition } from './dataModel';
 import { DataModel } from './dataModel';
 
@@ -40,7 +41,7 @@ export class DataController {
     private requested: RequestedProcessing<any, any, any>[] = [];
     private status: 'setup' | 'executed' = 'setup';
 
-    public constructor() {}
+    public constructor(private readonly mode: ChartMode) {}
 
     public async request<
         D extends object,
@@ -76,7 +77,7 @@ export class DataController {
 
         for (const { opts, data, resultCbs, rejects, ids } of merged) {
             try {
-                const dataModel = new DataModel<any>(opts);
+                const dataModel = new DataModel<any>({ ...opts, mode: this.mode });
                 const processedData = dataModel.processData(data);
 
                 if (debugMode) {

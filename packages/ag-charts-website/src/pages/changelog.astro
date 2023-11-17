@@ -1,0 +1,14 @@
+---
+import Layout from '@layouts/Layout.astro';
+import { getFrameworkFromPath } from '@features/docs/utils/urlPaths';
+import { FRAMEWORKS } from '@constants';
+import { Changelog } from '@features/changelog/Changelog';
+
+const path = Astro.url.pathname;
+const frameworks = FRAMEWORKS;
+const framework = getFrameworkFromPath(path);
+---
+
+<Layout title="AG Charts Changelog">
+    <Changelog currentFramework={framework} client:only />
+</Layout>

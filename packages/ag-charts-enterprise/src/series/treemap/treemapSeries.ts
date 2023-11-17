@@ -58,8 +58,13 @@ class TreemapSeriesNodeClickEvent<
     }
 }
 
+class TreemapGroupLabel extends Label<AgTreemapSeriesLabelFormatterParams> {
+    @Validate(NUMBER())
+    spacing: number = 0;
+}
+
 class TreemapSeriesGroup {
-    readonly label = new Label<AgTreemapSeriesLabelFormatterParams>();
+    readonly label = new TreemapGroupLabel();
 
     @Validate(BOOLEAN)
     interactive: boolean = true;
@@ -84,16 +89,15 @@ class TreemapSeriesGroup {
 
     @Validate(OPT_NUMBER(0))
     padding: number = 0;
+}
 
-    @Validate(OPT_NUMBER(0))
+class TreemapTileLabel extends AutoSizeableLabel<AgTreemapSeriesLabelFormatterParams> {
+    @Validate(NUMBER())
     spacing: number = 0;
-
-    @Validate(OPT_NUMBER(0))
-    tileSpacing: number = 0;
 }
 
 class TreemapSeriesTile {
-    readonly label = new AutoSizeableLabel<AgTreemapSeriesLabelFormatterParams>();
+    readonly label = new TreemapTileLabel();
 
     readonly secondaryLabel = new AutoSizeableLabel<AgTreemapSeriesLabelFormatterParams>();
 
@@ -114,9 +118,6 @@ class TreemapSeriesTile {
 
     @Validate(OPT_NUMBER(0))
     padding: number = 0;
-
-    @Validate(OPT_NUMBER(0))
-    spacing: number = 0;
 
     @Validate(TEXT_ALIGN)
     textAlign: TextAlign = 'center';
@@ -205,6 +206,10 @@ function validateColor(color?: string): string | undefined {
     return color;
 }
 
+function nodeSize(node: _ModuleSupport.HierarchyNode) {
+    return node.children.length > 0 ? node.sumSize - node.size : node.size;
+}
+
 const textAlignFactors: Record<TextAlign, number | undefined> = {
     left: 0,
     center: 0.5,
@@ -243,7 +248,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
     readonly tooltip = new SeriesTooltip<AgTreemapSeriesTooltipRendererParams<any>>();
 
     @Validate(NUMBER(0))
-    spacing = 0;
+    tileSpacing = 0;
 
     @Validate(OPT_STRING)
     labelKey?: string = undefined;
@@ -292,7 +297,10 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
             };
         }
 
-        const { padding, spacing } = this.group;
+        const {
+            label: { spacing },
+            padding,
+        } = this.group;
         const fontHeight = this.groupTitleHeight(node, bbox);
         const titleHeight = fontHeight != null ? fontHeight + spacing : 0;
 
@@ -312,6 +320,19 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
         if (data == null || data.length === 0) {
             this.labelData = undefined;
             return;
+        }
+
+        const hasInvalidFontSize = (label: AutoSizeableLabel<AgTreemapSeriesLabelFormatterParams> | undefined) => {
+            return (
+                label != null &&
+                label.minimumFontSize != null &&
+                label.fontSize &&
+                label.minimumFontSize > label.fontSize
+            );
+        };
+
+        if (hasInvalidFontSize(this.tile.label) || hasInvalidFontSize(this.tile.secondaryLabel)) {
+            Logger.warnOnce(`minimumFontSize should be set to a value less than or equal to the font size`);
         }
 
         const defaultLabelFormatter = (value: any) => {
@@ -373,9 +394,9 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
 
         outputBoxes[index] = index !== 0 ? bbox : undefined;
 
-        const sortedChildrenIndices = Array.from(children, (_, index) => index).sort((aIndex, bIndex) => {
-            return children[bIndex].sumSize - children[aIndex].sumSize;
-        });
+        const sortedChildrenIndices = Array.from(children, (_, index) => index)
+            .filter((index) => nodeSize(children[index]) > 0)
+            .sort((aIndex, bIndex) => nodeSize(children[bIndex]) - nodeSize(children[aIndex]));
 
         const childAt = (index: number) => {
             const sortedIndex = sortedChildrenIndices[index];
@@ -387,20 +408,19 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
         const width = bbox.width - padding.left - padding.right;
         const height = bbox.height - padding.top - padding.bottom;
 
-        if (width <= 0 || height <= 0) {
-            return;
-        }
+        if (width <= 0 || height <= 0) return;
 
+        const numChildren = sortedChildrenIndices.length;
         let stackSum = 0;
         let startIndex = 0;
         let minRatioDiff = Infinity;
-        let partitionSum = node.sumSize;
+        let partitionSum = sortedChildrenIndices.reduce((sum, sortedIndex) => sum + nodeSize(children[sortedIndex]), 0);
         const innerBox = new BBox(bbox.x + padding.left, bbox.y + padding.top, width, height);
         const partition = innerBox.clone();
 
-        for (let i = 0; i < children.length; i++) {
-            const value = childAt(i).sumSize;
-            const firstValue = childAt(startIndex).sumSize;
+        for (let i = 0; i < numChildren; i++) {
+            const value = nodeSize(childAt(i));
+            const firstValue = nodeSize(childAt(startIndex));
             const isVertical = partition.width < partition.height;
             stackSum += value;
 
@@ -422,10 +442,11 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
             let start = isVertical ? partition.x : partition.y;
             for (let j = startIndex; j < i; j++) {
                 const child = childAt(j);
+                const childSize = nodeSize(child);
 
                 const x = isVertical ? start : partition.x;
                 const y = isVertical ? partition.y : start;
-                const length = (partLength * child.sumSize) / stackSum;
+                const length = (partLength * childSize) / stackSum;
                 const width = isVertical ? length : stackThickness;
                 const height = isVertical ? stackThickness : length;
 
@@ -433,7 +454,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
                 this.applyGap(innerBox, childBbox);
                 this.squarify(child, childBbox, outputBoxes);
 
-                partitionSum -= child.sumSize;
+                partitionSum -= childSize;
                 start += length;
             }
 
@@ -453,11 +474,11 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
         // Process remaining space
         const isVertical = partition.width < partition.height;
         let start = isVertical ? partition.x : partition.y;
-        for (let i = startIndex; i < children.length; i++) {
+        for (let i = startIndex; i < numChildren; i++) {
             const child = childAt(i);
             const x = isVertical ? start : partition.x;
             const y = isVertical ? partition.y : start;
-            const part = child.sumSize / partitionSum;
+            const part = nodeSize(child) / partitionSum;
             const width = partition.width * (isVertical ? part : 1);
             const height = partition.height * (isVertical ? 1 : part);
             const childBox = new BBox(x, y, width, height);
@@ -468,7 +489,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
     }
 
     private applyGap(innerBox: _Scene.BBox, childBox: _Scene.BBox) {
-        const gap = this.group.tileSpacing / 2;
+        const gap = this.tileSpacing / 2;
         const getBounds = (box: _Scene.BBox): Record<Side, number> => ({
             left: box.x,
             top: box.y,
@@ -518,7 +539,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
     }
 
     private getTileFormat(node: _ModuleSupport.HierarchyNode, isHighlighted: boolean): AgTreemapSeriesStyle {
-        const { datum, color: fill, depth, children } = node;
+        const { datum, depth, children } = node;
         const {
             tile,
             group,
@@ -532,7 +553,8 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
         const { colorKey, labelKey, secondaryLabelKey, sizeKey } = this;
         const isLeaf = children.length === 0;
 
-        const stroke = isLeaf ? tile.stroke : group.stroke;
+        const fill = (isLeaf ? tile.fill : group.fill) ?? node.fill;
+        const stroke = (isLeaf ? tile.stroke : group.stroke) ?? node.stroke;
         const strokeWidth = isLeaf ? tile.strokeWidth : group.strokeWidth;
 
         const result = callbackCache.call(formatter, {
@@ -568,8 +590,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
             highlightedNode = undefined;
         }
 
-        const labelMeta = this.buildLabelMeta(bboxes);
-
         this.updateNodeMidPoint(bboxes);
 
         const updateRectFn = (node: _ModuleSupport.HierarchyNode, rect: _Scene.Rect, highlighted: boolean) => {
@@ -595,19 +615,24 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
                 highlightedStrokeOpacity = isLeaf ? tile.strokeOpacity : group.strokeOpacity;
             }
 
-            const fill = highlightedFill ?? node.color ?? (isLeaf ? tile.fill : group.fill);
-            const fillOpacity = highlightedFillOpacity ?? (isLeaf ? tile.fillOpacity : group.fillOpacity);
-            const stroke = highlightedStroke ?? (isLeaf ? tile.stroke : group.stroke);
-            const strokeWidth = highlightedStrokeWidth ?? (isLeaf ? tile.strokeWidth : group.strokeWidth);
-            const strokeOpacity = highlightedStrokeOpacity ?? (isLeaf ? tile.strokeOpacity : group.strokeOpacity);
-
             const format = this.getTileFormat(node, highlighted);
 
-            rect.fill = validateColor(format?.fill ?? fill);
-            rect.fillOpacity = format?.fillOpacity ?? fillOpacity;
-            rect.stroke = validateColor(format?.stroke ?? stroke);
-            rect.strokeWidth = format?.strokeWidth ?? strokeWidth;
-            rect.strokeOpacity = format?.strokeOpacity ?? strokeOpacity;
+            const fill = format?.fill ?? highlightedFill ?? (isLeaf ? tile.fill : group.fill) ?? node.fill;
+            const fillOpacity =
+                format?.fillOpacity ?? highlightedFillOpacity ?? (isLeaf ? tile.fillOpacity : group.fillOpacity);
+            const stroke = format?.stroke ?? highlightedStroke ?? (isLeaf ? tile.stroke : group.stroke) ?? node.stroke;
+            const strokeWidth =
+                format?.strokeWidth ?? highlightedStrokeWidth ?? (isLeaf ? tile.strokeWidth : group.strokeWidth);
+            const strokeOpacity =
+                format?.strokeOpacity ??
+                highlightedStrokeOpacity ??
+                (isLeaf ? tile.strokeOpacity : group.strokeOpacity);
+
+            rect.fill = validateColor(fill);
+            rect.fillOpacity = fillOpacity;
+            rect.stroke = validateColor(stroke);
+            rect.strokeWidth = strokeWidth;
+            rect.strokeOpacity = strokeOpacity;
             rect.crisp = true;
 
             rect.x = bbox.x;
@@ -626,6 +651,90 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
             }
         });
 
+        const labelMeta = Array.from(this.rootNode, (node) => {
+            const { index, children } = node;
+            const bbox = bboxes[index];
+            const labelDatum = this.labelData?.[index];
+
+            if (bbox == null || labelDatum == null) return undefined;
+
+            if (children.length === 0) {
+                const layout = {
+                    width: bbox.width,
+                    height: bbox.height,
+                    meta: null,
+                };
+                const formatting = formatLabels(
+                    labelDatum?.label,
+                    this.tile.label,
+                    labelDatum?.secondaryLabel,
+                    this.tile.secondaryLabel,
+                    { spacing: tile.label.spacing, padding: tile.padding },
+                    () => layout
+                );
+                if (formatting == null) return undefined;
+
+                const { height, label, secondaryLabel } = formatting;
+                const { textAlign, verticalAlign, padding } = tile;
+
+                const textAlignFactor = textAlignFactors[textAlign] ?? 0.5;
+                const labelX = bbox.x + padding + (bbox.width - 2 * padding) * textAlignFactor;
+
+                const verticalAlignFactor = verticalAlignFactors[verticalAlign] ?? 0.5;
+                const labelYStart =
+                    bbox.y + padding + height * 0.5 + (bbox.height - 2 * padding - height) * verticalAlignFactor;
+
+                return {
+                    label:
+                        label != null
+                            ? {
+                                  text: label.text,
+                                  fontSize: label.fontSize,
+                                  style: this.tile.label,
+                                  x: labelX,
+                                  y: labelYStart - (height - label.height) * 0.5,
+                              }
+                            : undefined,
+                    secondaryLabel:
+                        secondaryLabel != null
+                            ? {
+                                  text: secondaryLabel.text,
+                                  fontSize: secondaryLabel.fontSize,
+                                  style: this.tile.secondaryLabel,
+                                  x: labelX,
+                                  y: labelYStart + (height - secondaryLabel.height) * 0.5,
+                              }
+                            : undefined,
+                    verticalAlign: 'middle' as const,
+                    textAlign,
+                };
+            } else if (labelDatum?.label != null) {
+                const { padding, textAlign } = group;
+
+                const groupTitleHeight = this.groupTitleHeight(node, bbox);
+                if (groupTitleHeight == null) return undefined;
+
+                const innerWidth = bbox.width - 2 * padding;
+                const text = Text.wrap(labelDatum.label, bbox.width - 2 * padding, Infinity, group.label, 'never');
+                const textAlignFactor = textAlignFactors[textAlign] ?? 0.5;
+
+                return {
+                    label: {
+                        text,
+                        fontSize: group.label.fontSize,
+                        style: this.group.label,
+                        x: bbox.x + padding + innerWidth * textAlignFactor,
+                        y: bbox.y + padding + groupTitleHeight * 0.5,
+                    },
+                    secondaryLabel: undefined,
+                    verticalAlign: 'middle' as const,
+                    textAlign,
+                };
+            } else {
+                return undefined;
+            }
+        });
+
         const updateLabelFn = (
             node: _ModuleSupport.HierarchyNode,
             text: _Scene.Text,
@@ -635,7 +744,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
             const isLeaf = node.children.length === 0;
             const meta = labelMeta[node.index];
             const label = tag === TextNodeTag.Primary ? meta?.label : meta?.secondaryLabel;
-            if (!label) {
+            if (meta == null || label == null) {
                 text.visible = false;
                 return;
             }
@@ -653,12 +762,13 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
             text.text = label.text;
             text.fontSize = label.fontSize;
 
+            text.fontStyle = label.style.fontStyle;
             text.fontFamily = label.style.fontFamily;
             text.fontWeight = label.style.fontWeight;
             text.fill = highlightedColor ?? label.style.color;
 
-            text.textAlign = label.hAlign;
-            text.textBaseline = label.vAlign;
+            text.textAlign = meta.textAlign;
+            text.textBaseline = meta.verticalAlign;
             text.x = label.x;
             text.y = label.y;
             text.visible = true;
@@ -686,114 +796,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
         });
     }
 
-    buildLabelMeta(bboxes: (_Scene.BBox | undefined)[]) {
-        const { group, tile } = this;
-
-        type TextMeta = {
-            text: string;
-            fontSize: number;
-            style: Omit<_Scene.Label, 'fontSize'>;
-            x: number;
-            y: number;
-            hAlign: CanvasTextAlign;
-            vAlign: CanvasTextBaseline;
-        };
-
-        type LabelMeta = { label?: TextMeta; secondaryLabel?: TextMeta };
-
-        return Array.from(this.rootNode, (node): LabelMeta | undefined => {
-            const { index, datum, children } = node;
-            const bbox = bboxes[index];
-            const labelData = this.labelData![index];
-            const label = labelData?.label;
-            const secondaryLabel = labelData?.secondaryLabel;
-
-            if (datum == null || bbox == null || label == null) {
-                return undefined;
-            } else if (children.length === 0) {
-                const size = { width: bbox.width, height: bbox.height };
-                const labelsFormatting = formatLabels(
-                    label,
-                    tile.label,
-                    secondaryLabel,
-                    tile.secondaryLabel,
-                    { spacing: tile.spacing, padding: tile.padding },
-                    () => size
-                );
-
-                if (labelsFormatting == null) {
-                    return undefined;
-                }
-
-                const { textAlign, verticalAlign, padding } = tile;
-                const { label: labelFormatting, secondaryLabel: secondaryLabelFormatting } = labelsFormatting;
-
-                const totalHeight =
-                    secondaryLabelFormatting != null
-                        ? labelFormatting.height + tile.spacing + secondaryLabelFormatting.height
-                        : labelFormatting.height;
-
-                const textAlignFactor = textAlignFactors[textAlign] ?? 0.5;
-                const labelX = bbox.x + padding + (bbox.width - 2 * padding) * textAlignFactor;
-
-                const verticalAlignFactor = verticalAlignFactors[verticalAlign] ?? 0.5;
-                const labelYStart =
-                    bbox.y +
-                    padding +
-                    totalHeight * 0.5 +
-                    (bbox.height - 2 * padding - totalHeight) * verticalAlignFactor;
-
-                return {
-                    label: {
-                        text: labelFormatting.text,
-                        fontSize: labelFormatting.fontSize,
-                        style: tile.label,
-                        hAlign: textAlign,
-                        vAlign: 'middle',
-                        x: labelX,
-                        y: labelYStart - (totalHeight - labelFormatting.height) * 0.5,
-                    },
-                    secondaryLabel:
-                        secondaryLabelFormatting != null
-                            ? {
-                                  text: secondaryLabelFormatting.text,
-                                  fontSize: secondaryLabelFormatting.fontSize,
-                                  style: tile.secondaryLabel,
-                                  hAlign: textAlign,
-                                  vAlign: 'middle',
-                                  x: labelX,
-                                  y: labelYStart + (totalHeight - secondaryLabelFormatting.height) * 0.5,
-                              }
-                            : undefined,
-                };
-            } else if (datum != null) {
-                const { padding, textAlign } = group;
-                const groupTitleHeight = this.groupTitleHeight(node, bbox);
-
-                if (groupTitleHeight == null) {
-                    return undefined;
-                }
-
-                const innerWidth = bbox.width - 2 * padding;
-                const text = Text.wrap(label, bbox.width - 2 * padding, Infinity, group.label, 'never');
-                const textAlignFactor = textAlignFactors[textAlign] ?? 0.5;
-
-                return {
-                    label: {
-                        text,
-                        fontSize: group.label.fontSize,
-                        style: group.label,
-                        hAlign: textAlign,
-                        vAlign: 'middle',
-                        x: bbox.x + padding + innerWidth * textAlignFactor,
-                        y: bbox.y + padding + groupTitleHeight * 0.5,
-                    },
-                    secondaryLabel: undefined,
-                };
-            }
-        });
-    }
-
     override getSeriesDomain(_direction: _ModuleSupport.ChartAxisDirection): any[] {
         return [NaN, NaN];
     }
@@ -810,7 +812,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
         const title = labelKey != null ? datum[labelKey] : undefined;
 
         const format = this.getTileFormat(node, false);
-        const color = format?.fill ?? node.color;
+        const color = format?.fill ?? node.fill;
 
         const defaults: AgTooltipRendererResult = {
             title,

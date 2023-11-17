@@ -1,4 +1,4 @@
-import { AgChart, AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 const data = [
     { label: 'Android', value: 56.9 },
@@ -35,11 +35,11 @@ const options: AgChartOptions = {
     ],
 };
 
-const chart = AgEnterpriseCharts.create(options);
+const chart = AgCharts.create(options);
 
 function reset() {
     options.data = data.filter(filter('Android', 'BlackBerry', 'Bada'));
-    AgChart.update(chart, options as any);
+    AgCharts.update(chart, options as any);
 }
 
 function randomIndex(array: unknown[]) {
@@ -49,26 +49,34 @@ function randomIndex(array: unknown[]) {
 
 function randomise() {
     options.data = [
-        ...options.data.map((d: any) => ({
+        ...(options.data ?? []).map((d: any) => ({
             ...d,
             originalValue: d.originalValue ?? d.value,
             value: (d.originalValue ?? d.value) * (Math.random() * 5 + 0.5),
         })),
     ];
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }
 
 function add() {
     const newData = [...data];
     options.data = newData;
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }
 
 function remove() {
-    const newData = [...options.data];
+    const newData = [...(options.data ?? [])];
     const indexToRemove = randomIndex(newData);
 
     newData.splice(indexToRemove, 1);
     options.data = newData;
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
+}
+
+function rapidUpdates() {
+    reset();
+
+    setTimeout(() => randomise(), 300);
+    setTimeout(() => randomise(), 600);
+    setTimeout(() => randomise(), 900);
 }

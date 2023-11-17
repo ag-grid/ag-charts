@@ -1,3 +1,5 @@
+import { getDarkModeSnippet } from '@components/site-header/getDarkModeSnippet';
+
 import { getChartImports, wrapOptionsUpdateCode } from './chart-utils';
 import { templatePlaceholder } from './chart-vanilla-src-parser';
 import { getFunctionName, isInstanceMethod, removeFunctionKeyword } from './parser-utils';
@@ -106,20 +108,7 @@ const ChartExample = {
     },
     mounted() {
         ${bindings.init.join(';\n        ')}
-        /** DARK MODE START **/
-        this.options = {
-            ...this.options,
-            theme: localStorage['documentation:darkmode'] === 'true' ? 'ag-default-dark' : 'ag-default'
-        };
-        window.addEventListener('message', (event) => {
-            if (event.data && event.data.type === 'color-scheme-change') {
-                this.options = {
-                    ...this.options,
-                    theme: event.data.darkmode ? 'ag-default-dark' : 'ag-default'
-                };
-            }
-        });
-        /** DARK MODE END **/
+        ${getDarkModeSnippet('vue')}
     },
     methods: {
         ${instanceMethods
@@ -140,11 +129,7 @@ new Vue({
 `;
 
         if (bindings.usesChartApi) {
-            mainFile = mainFile.replace(/AgChart.(\w*)\((\w*)(,|\))/g, 'AgChart.$1(this.$refs.agChart.chart$3');
-            mainFile = mainFile.replace(
-                /AgEnterpriseCharts.(\w*)\((\w*)(,|\))/g,
-                'AgEnterpriseCharts.$1(this.$refs.agChart.chart$3'
-            );
+            mainFile = mainFile.replace(/AgCharts.(\w*)\((\w*)(,|\))/g, 'AgCharts.$1(this.$refs.agChart.chart$3');
             mainFile = mainFile.replace(
                 /\(this.\$refs.agChart.chart, options/g,
                 '(this.$refs.agChart.chart, this.options'

@@ -1,10 +1,4 @@
-import type {
-    AgErrorBarCapFormatter,
-    AgErrorBarFormatter,
-    AgErrorBarFormatterParams,
-    AgErrorBarOptions,
-    AgErrorBarThemeableOptions,
-} from 'ag-charts-community';
+import type { AgErrorBarFormatterParams, AgErrorBarOptions, AgErrorBarThemeableOptions } from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 const { partialAssign, mergeDefaults } = _ModuleSupport;
@@ -16,14 +10,17 @@ type NearestResult<T> = _Scene.NearestResult<T>;
 export type ErrorBarNodeDatum = _ModuleSupport.CartesianSeriesNodeDatum & _ModuleSupport.ErrorBoundSeriesNodeDatum;
 export type ErrorBarStylingOptions = Omit<AgErrorBarThemeableOptions, 'cap'>;
 
+export type ErrorBarFormatter = NonNullable<AgErrorBarOptions['formatter']>;
+export type ErrorBarCapFormatter = NonNullable<NonNullable<AgErrorBarOptions['cap']>['formatter']>;
+
 type ErrorBarDataOptions = Pick<
     AgErrorBarOptions,
     'xLowerKey' | 'xLowerName' | 'xUpperKey' | 'xUpperName' | 'yLowerKey' | 'yLowerName' | 'yUpperKey' | 'yUpperName'
 >;
 
 type Formatters = {
-    formatter?: AgErrorBarFormatter;
-    cap: { formatter?: AgErrorBarCapFormatter };
+    formatter?: ErrorBarFormatter;
+    cap: { formatter?: ErrorBarCapFormatter };
 } & ErrorBarDataOptions;
 
 type CapDefaults = NonNullable<ErrorBarNodeDatum['capDefaults']>;
@@ -67,7 +64,7 @@ export class ErrorBarNode extends _Scene.Group {
     // of 0. Therefore, we only need bounding boxes for number based ranges.
     private bboxes: HierarchialBBox;
 
-    protected override _datum?: ErrorBarNodeDatum;
+    protected override _datum?: ErrorBarNodeDatum = undefined;
     public override get datum(): ErrorBarNodeDatum | undefined {
         return this._datum;
     }

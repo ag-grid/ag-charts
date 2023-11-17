@@ -11,6 +11,7 @@ import IssueTypeCellRenderer from '@components/grid/IssueTypeRenderer';
 import PaddingCellRenderer from '@components/grid/PaddingCellRenderer';
 import { Icon } from '@components/icon/Icon';
 import { SITE_BASE_URL, SITE_URL } from '@constants';
+import { useDarkmode } from '@utils/hooks/useDarkmode';
 import classnames from 'classnames';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -150,7 +151,7 @@ export const Pipeline = ({ location, currentFramework }) => {
     const URLFilterSearchQuery = useState(extractFilterTerm(location))[0];
     const searchBarEl = useRef(null);
 
-    const darkMode = false;
+    const darkMode = useDarkmode();
 
     useEffect(() => {
         fetch('/pipeline/pipeline.json')

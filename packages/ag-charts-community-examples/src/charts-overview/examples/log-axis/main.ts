@@ -1,5 +1,5 @@
 import type { AgCartesianChartOptions} from "ag-charts-community";
-import { AgChart } from "ag-charts-community"
+import { AgCharts } from "ag-charts-community"
 import { getData } from "./data"
 
 const formatter = new Intl.NumberFormat()
@@ -50,7 +50,7 @@ const options: AgCartesianChartOptions = {
   ],
 }
 
-const chart = AgChart.create(options)
+const chart = AgCharts.create(options)
 
 function useNumberAxis() {
   options.subtitle = {
@@ -67,7 +67,7 @@ function useNumberAxis() {
       fontSize: 10,
     },
   }
-  AgChart.update(chart, options)
+  AgCharts.update(chart, options)
 }
 
 function useLogAxis() {
@@ -85,5 +85,5 @@ function useLogAxis() {
       fontSize: 10,
     },
   }
-  AgChart.update(chart, options)
+  AgCharts.update(chart, options)
 }

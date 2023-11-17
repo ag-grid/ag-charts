@@ -3,7 +3,6 @@ import classNames from 'classnames';
 
 import { FrameworkSelector } from '../framework-selector/FrameworkSelector';
 import { Icon } from '../icon/Icon';
-import Search from '../search/Search';
 import styles from './TopBar.module.scss';
 
 export const TopBar = ({ frameworks, currentFramework, path, isDev, suppressFrameworkSelector }) => {
@@ -33,8 +32,6 @@ export const TopBar = ({ frameworks, currentFramework, path, isDev, suppressFram
                         <span>Docs</span>
                         <Icon name="collapseCategories" />
                     </button>
-
-                    <Search currentFramework={currentFramework} isDev={isDev} />
 
                     {!suppressFrameworkSelector && currentFramework && (
                         <FrameworkSelector

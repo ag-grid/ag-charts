@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, jest, test } from '@jest/globa
 import 'jest-canvas-mock';
 
 import type { AgChartInstance } from '../options/agChartOptions';
-import { AgChart } from './agChartV2';
+import { AgCharts } from './agChartV2';
 import { NumberAxis } from './axis/numberAxis';
 import { AreaSeries } from './series/cartesian/areaSeries';
 import { BarSeries } from './series/cartesian/barSeries';
@@ -57,7 +57,7 @@ describe('update', () => {
     });
 
     test('cartesian chart top-level properties', async () => {
-        chartProxy = AgChart.create({
+        chartProxy = AgCharts.create({
             // chart type is optional because it defaults to `cartesian`
             container: document.body,
             data: revenueProfitData,
@@ -85,7 +85,7 @@ describe('update', () => {
             },
         });
         await waitForChartStability(chartProxy);
-        AgChart.update(chartProxy, {
+        AgCharts.update(chartProxy, {
             // chart type is optional because it defaults to `cartesian`
             container: document.body,
             width: 500,
@@ -154,7 +154,7 @@ describe('update', () => {
         expect((chart as any).background.visible).toBe(false);
         expect((chart.series[0] as any).marker.shape).toBe('plus');
 
-        AgChart.updateDelta(chartProxy, {
+        AgCharts.updateDelta(chartProxy, {
             data: revenueProfitData,
             series: [
                 {
@@ -190,7 +190,7 @@ describe('update', () => {
     });
 
     test('series', async () => {
-        chartProxy = AgChart.create({
+        chartProxy = AgCharts.create({
             data: revenueProfitData,
             series: [
                 {
@@ -215,7 +215,7 @@ describe('update', () => {
         const chart = deproxy(chartProxy);
         const createdSeries = chart.series;
 
-        AgChart.update(chartProxy, {
+        AgCharts.update(chartProxy, {
             data: revenueProfitData,
             series: [
                 {
@@ -264,7 +264,7 @@ describe('update', () => {
         expect((updatedSeries[3] as any).xKey).toEqual('month');
         expect((updatedSeries[3] as any).yKey).toEqual('bazqux');
 
-        AgChart.update(chartProxy, {
+        AgCharts.update(chartProxy, {
             data: revenueProfitData,
             series: [
                 {
@@ -298,7 +298,7 @@ describe('update', () => {
         expect(updatedSeries2[1]).not.toBe(updatedSeries[1]);
         expect(updatedSeries2[2]).not.toBe(updatedSeries[2]);
 
-        AgChart.update(chartProxy, {
+        AgCharts.update(chartProxy, {
             data: revenueProfitData,
             series: [
                 {
@@ -343,7 +343,7 @@ describe('update', () => {
 
         const lineSeries = updatedSeries3[1];
 
-        AgChart.update(chartProxy, {
+        AgCharts.update(chartProxy, {
             data: revenueProfitData,
             series: [
                 {
@@ -382,7 +382,7 @@ describe('update', () => {
     });
 
     test('axes', async () => {
-        chartProxy = AgChart.create({
+        chartProxy = AgCharts.create({
             data: revenueProfitData,
             series: [
                 {
@@ -393,7 +393,7 @@ describe('update', () => {
         });
         await waitForChartStability(chartProxy);
 
-        AgChart.update(chartProxy, {
+        AgCharts.update(chartProxy, {
             data: revenueProfitData,
             series: [
                 {
@@ -433,7 +433,7 @@ describe('update', () => {
                 lineDash: [],
             },
         ]);
-        AgChart.update(chartProxy, {
+        AgCharts.update(chartProxy, {
             data: revenueProfitData,
             series: [
                 {

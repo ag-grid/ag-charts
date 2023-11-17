@@ -17,12 +17,11 @@ const { title, name, type, options } = Astro.props as Props;
 const pathSegments = Astro.url.pathname.split('/');
 const framework = pathSegments[DOCS_FRAMEWORK_PATH_INDEX];
 const pageName = pathSegments[DOCS_PAGE_NAME_PATH_INDEX];
-
 ---
 
-<ExampleRunnerContainer>
+<ExampleRunnerContainer exampleHeight={options?.exampleHeight}>
     <DocsExampleRunner
-        client:load
+        client:only
         title={title}
         name={name}
         exampleType={type}

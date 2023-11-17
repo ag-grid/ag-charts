@@ -154,16 +154,4 @@ export const getFileList = async ({ folderUrl, fileList }: { folderUrl: URL; fil
 };
 
 // TODO: Find a better way to determine if an example is enterprise or not
-export const getIsEnterprise = ({
-    internalFramework,
-    entryFile,
-}: {
-    internalFramework: InternalFramework;
-    entryFile: string;
-}) => {
-    const entryFileName = getEntryFileName(internalFramework);
-
-    return entryFileName === 'main.js'
-        ? entryFile?.includes('AgEnterpriseCharts')
-        : entryFile?.includes('ag-charts-enterprise');
-};
+export const getIsEnterprise = ({ entryFile }: { entryFile: string }) => entryFile?.includes('ag-charts-enterprise');

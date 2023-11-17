@@ -6,7 +6,7 @@ import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 import pixelmatch from 'pixelmatch';
 import { PNG } from 'pngjs';
 
-import { AgChart, _ModuleSupport } from '../../main';
+import { AgCharts, _ModuleSupport } from '../../main';
 import type {
     AgCartesianChartOptions,
     AgChartInstance,
@@ -337,7 +337,7 @@ export function toMatchImage(this: any, actual: Buffer, expected: Buffer, { writ
 
 export async function createChart(options: AgChartOptions) {
     options = prepareTestOptions({ ...options });
-    const chart = deproxy(AgChart.create(options) as AgChartProxy);
+    const chart = deproxy(AgCharts.create(options) as AgChartProxy);
     await waitForChartStability(chart);
     return chart;
 }

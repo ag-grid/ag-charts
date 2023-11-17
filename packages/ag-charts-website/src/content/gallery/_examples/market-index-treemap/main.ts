@@ -1,4 +1,4 @@
-import { AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { data } from './data';
 
@@ -14,40 +14,42 @@ const options: AgChartOptions = {
             colorKey: 'change',
             group: {
                 label: {
+                    color: 'white',
                     formatter({ value }) {
                         return value.toUpperCase();
                     },
                 },
                 textAlign: 'left',
+                fill: '#2c3e50',
+                strokeWidth: 0,
+                padding: 2,
             },
             tile: {
+                label: {
+                    color: '#34495e',
+                },
                 secondaryLabel: {
+                    color: '#34495e',
                     formatter(params) {
                         return params.value.toFixed(2) + '%';
                     },
                 },
+                strokeWidth: 0,
             },
+            tileSpacing: 1,
             highlightStyle: {
+                group: {
+                    fill: '#34495e',
+                },
                 tile: {
                     label: {
-                        color: 'black',
+                        color: '#34495e',
                     },
                     secondaryLabel: {
-                        color: 'black',
+                        color: '#34495e',
                     },
                 },
             },
-            tooltip: {
-                renderer: (params) => {
-                    return {
-                        content: `<b>Change</b>: ${params.datum.change.toFixed(2)}%`,
-                    };
-                },
-            },
-            formatter: (params) => ({
-                fill: !params.datum.children ? undefined : params.highlighted ? '#aaa' : '#333',
-                stroke: params.depth < 1 ? 'white' : 'black',
-            }),
         },
     ],
     title: {
@@ -58,4 +60,4 @@ const options: AgChartOptions = {
     },
 };
 
-AgEnterpriseCharts.create(options);
+AgCharts.create(options);

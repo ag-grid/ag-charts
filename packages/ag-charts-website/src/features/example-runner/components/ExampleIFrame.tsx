@@ -39,8 +39,8 @@ export const ExampleIFrame: FunctionComponent<Props> = ({ isHidden, url }) => {
                 [styles.hidden]: isHidden,
             })}
         >
-            {/*`exampleRunner` id is used by the dark mode toggle to post a message to this iFrame*/}
-            <iframe id={'exampleRunner'} ref={iFrameRef} className={styles.iframe} />
+            {/*`exampleRunner` class is used by the dark mode toggle to post a message to this iFrame*/}
+            <iframe ref={iFrameRef} className={classnames('exampleRunner', styles.iframe)} />
         </div>
     );
 };

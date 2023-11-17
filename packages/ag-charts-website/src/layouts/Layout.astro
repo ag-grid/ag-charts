@@ -16,11 +16,19 @@ export interface Props {
     title?: string;
     description?: string;
     showTopBar?: boolean;
+    showSearchBar?: boolean;
 }
 
 const metadata = await getEntry('metadata', 'metadata');
 
-const { title = metadata.data.title, description = metadata.data.description, showTopBar, suppressFrameworkSelector } = Astro.props;
+const {
+    title = metadata.data.title,
+    description = metadata.data.description,
+    showTopBar,
+    showSearchBar,
+    suppressFrameworkSelector,
+} = Astro.props;
+
 const path = Astro.url.pathname;
 
 const frameworks = FRAMEWORKS;
@@ -74,20 +82,19 @@ const isApiLayout = apiMenuItems.some((item) => {
     </head>
     <body>
         <div class="mainContainer">
-            <SiteHeader />
-            {
-                showTopBar && !isApiLayout && (
-                    <TopBar
-                        client:load
-                        frameworks={frameworks}
-                        currentFramework={framework}
-                        path={path}
-                        isDev={isDev || isStaging}
-                        suppressFrameworkSelector={suppressFrameworkSelector}
-                    />
-                )
-            }
-            {isApiLayout && <ApiTopBar menuItems={apiMenuItems} fullPath={path} />}
+            <SiteHeader showSearchBar={showSearchBar} />
+            { isApiLayout && (
+                // Update page scroll offset when API top bar is sticky
+                <style>
+                    @media screen and (min-width: 1020px) {
+                        :root {
+                            --scroll-offset: calc(64px * 2 + 13px);
+                        }
+                    }
+                </style>
+
+                <ApiTopBar menuItems={apiMenuItems} fullPath={path} />
+            )}
 
             <slot />
         </div>

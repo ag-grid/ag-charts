@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 import type { AgCartesianChartOptions, AgChartInstance, AgChartOptions } from '../options/agChartOptions';
-import { AgChart } from './agChartV2';
+import { AgCharts } from './agChartV2';
 import type { Chart } from './chart';
 import * as examples from './test/examples';
 import type { TestCase } from './test/utils';
@@ -64,7 +64,7 @@ describe('AgChartV2', () => {
                 const options: AgChartOptions = { ...example.options };
                 prepareTestOptions(options, container);
 
-                chart = AgChart.create(options);
+                chart = AgCharts.create(options);
                 await waitForChartStability(chart);
                 await example.assertions(chart);
             });
@@ -73,7 +73,7 @@ describe('AgChartV2', () => {
                 const options: AgChartOptions = { ...example.options };
                 prepareTestOptions(options, container);
 
-                chart = AgChart.create(options);
+                chart = AgCharts.create(options);
                 await compare();
 
                 if (example.extraScreenshotActions) {
@@ -97,7 +97,7 @@ describe('AgChartV2', () => {
             const snapshots: any[] = [];
 
             // Create initial chart instance.
-            chart = AgChart.create(exampleCycle[0]) as Chart;
+            chart = AgCharts.create(exampleCycle[0]) as Chart;
             snapshots[0] = await snapshot();
 
             // Execute 2 rounds of comparisons to try and catch any issues. On first round, just
@@ -106,7 +106,7 @@ describe('AgChartV2', () => {
             let previousSnapshot: any = undefined;
             for (let round = 0; round <= 1; round++) {
                 for (let index = 0; index < exampleCycle.length; index++) {
-                    AgChart.update(chart, exampleCycle[index]);
+                    AgCharts.update(chart, exampleCycle[index]);
 
                     const exampleSnapshot = await snapshot();
                     if (snapshots[index] != null) {
@@ -141,7 +141,7 @@ describe('AgChartV2', () => {
             exampleCycle.forEach((opts) => prepareTestOptions(opts));
 
             // Create initial chart instance.
-            chart = AgChart.create(exampleCycle[0]) as Chart;
+            chart = AgCharts.create(exampleCycle[0]) as Chart;
             await waitForChartStability(chart);
 
             // Execute 2 rounds of comparisons to try and catch any issues. On first round, just
@@ -149,7 +149,7 @@ describe('AgChartV2', () => {
             // generated.
             for (let round = 0; round <= 1; round++) {
                 for (let index = 0; index < exampleCycle.length; index++) {
-                    AgChart.update(chart, exampleCycle[index]);
+                    AgCharts.update(chart, exampleCycle[index]);
 
                     await waitForChartStability(chart);
                 }

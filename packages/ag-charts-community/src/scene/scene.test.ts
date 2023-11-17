@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals
 import * as examples from '../chart/test/examples';
 import { IMAGE_SNAPSHOT_DEFAULTS, extractImageData, setupMockCanvas, waitForChartStability } from '../chart/test/utils';
 import type { AgCartesianChartOptions, AgChartInstance, AgChartLegendOptions } from '../options/agChartOptions';
-import { AgChart } from './../chart/agChartV2';
+import { AgCharts } from './../chart/agChartV2';
 
 describe('Scene', () => {
     let chart: AgChartInstance;
@@ -35,11 +35,11 @@ describe('Scene', () => {
                 ...examples.STACKED_BAR_CHART_EXAMPLE,
                 legend: { position: 'bottom' },
             };
-            chart = AgChart.create(options);
+            chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
             (options.legend as AgChartLegendOptions).position = 'top';
-            AgChart.update(chart, options);
+            AgCharts.update(chart, options);
 
             await compare();
         });
@@ -49,11 +49,11 @@ describe('Scene', () => {
                 ...examples.SIMPLE_LINE_CHART_EXAMPLE,
                 legend: { position: 'bottom' },
             };
-            chart = AgChart.create(options);
+            chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
             (options.legend as AgChartLegendOptions).position = 'top';
-            AgChart.update(chart, options);
+            AgCharts.update(chart, options);
 
             await compare();
         });

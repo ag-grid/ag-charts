@@ -22,8 +22,10 @@ export const getGeneratedGalleryContentsFileList = async ({
 
 export const getGeneratedGalleryContents = async ({
     exampleName,
+    ignoreDarkMode,
 }: {
     exampleName: string;
+    ignoreDarkMode?: boolean;
 }): Promise<GeneratedContents | undefined> => {
     const folderUrl = getFolderUrl({
         exampleName,
@@ -32,22 +34,21 @@ export const getGeneratedGalleryContents = async ({
     return getGeneratedContents({
         internalFramework: GALLERY_INTERNAL_FRAMEWORK,
         folderUrl,
-        isGalleryExample: true,
+        ignoreDarkMode,
     });
 };
 
 export const getGeneratedPlainGalleryContents = async ({ exampleName }: { exampleName: string }) => {
     const generatedContents = await getGeneratedGalleryContents({
         exampleName,
+        ignoreDarkMode: true,
     });
     const { entryFileName, files = {} } = generatedContents || {};
     const { [entryFileName!]: entryFile, ...otherFiles } = files;
     const { code } = transformPlainEntryFile(entryFile, files['data.js']);
     // Replace entry file with plain one
     const plainScriptFiles = generatedContents?.scriptFiles
-        .filter((fileName) => {
-            return fileName !== entryFileName;
-        })
+        .filter((fileName) => fileName !== entryFileName)
         .concat(PLAIN_ENTRY_FILE_NAME);
     const plainFiles = {
         ...otherFiles,

@@ -8,10 +8,10 @@ An introduction to the key concepts of AG Charts
 
 In this tutorial you will:
 
-1. [Create a simple bar chart]()
-2. [Add an additional line series to the bar chart]()
-3. [Style the chart with themes, titles, legend, and formatted data]()
-4. [Format the axes]()
+1. [Create a simple bar chart](#chart-basics)
+2. [Add an additional line series to the bar chart](#combination-charts)
+3. [Style the chart with themes, titles, legend, and formatted data](#styling)
+4. [Format the axes](#formatting-axes)
 
 By the end of this tutorial, you will have a basic combination chart, using a dark theme, with formatted values:
 
@@ -40,7 +40,7 @@ const options: AgChartOptions = {
 };
 ```
 
-_Note: By default, the chart will resize automatically to fill the container element. This behaviour can be customised using the [autoSize](/ag-charts/options/#reference-AgChartOptions-autoSize) property._
+_Note: By default, the chart will resize automatically to fill the container element. This behaviour can be customised using the [autoSize](../options/#reference-AgChartOptions-autoSize) property._
 
 **Data** is the information that you would like present within a chart, _typically_ an array of data-points:
 
@@ -80,16 +80,16 @@ _Note: AG Charts provides a large number of [series](/gallery) which can each be
 The last thing we need to do is create the chart by calling the `create()` method, passing our complete `AgChartOptions` object:
 
 ```javascript
-AgChart.create(options);
+AgCharts.create(options);
 ```
 
 Running our code at this point creates a simple bar chart:
 
 {% chartExampleRunner title="Basic Example" name="basic-example" type="generated" /%}
 
-_Note: Learn more about creating and updating charts in our [API docs](#)._
+_Note: Learn more about creating and updating charts in our [API docs](api-create-update)._
 
-## Combinations Charts
+## Combination Charts
 
 A chart can have more than one series, which can be useful when comparing datasets. To add another series to the chart, simply add another object to the series array, referencing the data to use:
 
@@ -122,9 +122,9 @@ const options: AgChartOptions = {
 
 Let's breakdown whats happening here:
 
--   **Type:** The type of axis to use - one of [category](/axes-types#category), [number](/axes-types#number), [time](/axes-types#time) or [log](/axes-types#log).
--   **Position:** The position on the chart where the axis should be rendered, e.g. 'top', 'bottom', 'right' or 'left'
--   **Keys:** Associates the axis with a given series, with the keys axis property linking the appropriate series to the axis
+-   **Type:** The type of axis to use - one of [Category](axes-types#category), [Number](axes-types#number), [Time](axes-types#time) or [Log](axes-types#log).
+-   **Position:** The position on the chart where the axis should be rendered, e.g. 'top', 'bottom', 'right' or 'left'.
+-   **Keys:** Associates the axis with a given series, with the keys axis property linking the appropriate series to the axis.
 
 Now when we run our chart, we should see both series & two axes:
 
@@ -136,7 +136,7 @@ Now we have a chart complete with multiple series and axes, the last thing to do
 
 ### Choosing a Theme
 
-AG Charts provide a number of [themes](/themes/) out of the box to easily control the style of the chart. To set a theme, add the `theme` property to the `AgChartOptions` object, with the value as your chosen theme:
+AG Charts provide a number of [themes](themes) out of the box to easily control the style of the chart. To set a theme, add the `theme` property to the `AgChartOptions` object, with the value as your chosen theme:
 
 ```ts
 const options: AgChartOptions = {
@@ -149,11 +149,11 @@ Running the code at this point will display a dark chart:
 
 {% chartExampleRunner title="Theme Example" name="theme-example" type="generated" /%}
 
-_Note: Refer to the [theme](/options/#reference-AgChartOptions-theme) api docs for a full list of properties that can be configured_
+_Note: Refer to the [theme](../themes-api) api docs for a full list of properties that can be configured_
 
 ### Titles
 
-Titles and subtitles can also be added to the grid via the `title` and `subtitle` properties:
+Titles and subtitles can also be added to the chart via the `title` and `subtitle` properties:
 
 ```ts
 const options: AgChartOptions = {
@@ -234,7 +234,7 @@ Now our chart should display formatted temperature values on the right-hand-side
 
 {% chartExampleRunner title="Second Series Formatted Example" name="second-series-formatted-example" type="generated" /%}
 
-_Note: Refer to the [axes](/ag-charts/options/#reference-AgChartOptions-axes) api docs for a full list of properties that can be configured_
+_Note: Refer to the [axes](../options/#reference-AgChartOptions-axes) api docs for a full list of properties that can be configured_
 
 ## Test your Knowledge
 
@@ -255,9 +255,9 @@ If you're stuck, check the source code of the example:
 Congratulations, you've completed our introductory tutorial! By now, you should be familiar with a few key concepts of AG Charts:
 
 -   **Data:** The data to be displayed within the chart.
--   **Series:** Controls the chart type and links it to our data. There can be multiple series for combination charts.
--   **Axes:** Controls the Axes and links it to our data.
--   **Styling & Formatting:** Control the look and feel of the chart through themes, formatters, series properties, etc...
+-   **Series:** Controls the chart type and links it to the data. There can be multiple series for combination charts.
+-   **Axes:** Controls the Axes and links it to the data.
+-   **Styling & Formatting:** Controls the look and feel of the chart through themes, formatters, series properties, etc...
 
 ## Next Steps
 

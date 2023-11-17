@@ -1,8 +1,8 @@
-import { AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
@@ -21,7 +21,6 @@ const options: AgChartOptions = {
             yName: 'Onshore Wind Capacity 2022 - 2023',
             fill: '#205C37',
             stroke: '#205C37',
-            stacked: false,
         },
         {
             type: 'range-area',
@@ -52,4 +51,4 @@ const options: AgChartOptions = {
     },
 };
 
-AgEnterpriseCharts.create(options);
+AgCharts.create(options);

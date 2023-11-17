@@ -1,5 +1,5 @@
 import type { AgChartOptions} from "ag-charts-community";
-import { AgChart, time } from "ag-charts-community"
+import { AgCharts, time } from "ag-charts-community"
 import { getData } from "./data"
 
 const options: AgChartOptions = {
@@ -131,4 +131,4 @@ const options: AgChartOptions = {
   },
 }
 
-const chart = AgChart.create(options)
+const chart = AgCharts.create(options)

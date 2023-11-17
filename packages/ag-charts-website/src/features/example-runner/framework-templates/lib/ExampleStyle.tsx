@@ -26,6 +26,41 @@ export const ExampleStyle = ({ rootId }: { rootId?: string }) => (
             padding: 1rem;
             overflow: auto;
         }
+
+        button:not(#myGrid button, #myChart button, button[class*='ag-'], .ag-chart-context-menu__menu) {
+            --background-color: transparent;
+            --text-color: #212529;
+            --border-color: rgba(187, 187, 187, 0.3);
+            --hover-background-color: rgba(0,0,0, 0.1);
+
+            appearance: none;
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            height: 36px;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            cursor: pointer;
+            display: inline-block;
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: .01em;
+            padding: 0.375em 1em 0.5em;
+            white-space: nowrap;
+            margin-right: 6px;
+            margin-bottom: 8px;
+            transition: background-color .25s ease-in-out;
+        }
+
+        button:not(#myGrid button, #myChart button, button[class*='ag-'], .ag-chart-context-menu__menu):hover {
+          background-color: var(--hover-background-color);
+        }
+
+        html[data-dark-mode=true] button:not(#myGrid button, #myChart button, button[class*='ag-'], .ag-chart-context-menu__menu) {
+          --background-color: #0a161f;
+          --text-color: #f8f9fa;
+          --border-color: rgba(255,255,255, 0.2);
+          --hover-background-color: #2a343e;
+        }
     `}
     </style>
 );

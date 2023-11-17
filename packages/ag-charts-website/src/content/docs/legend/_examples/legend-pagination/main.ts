@@ -1,49 +1,9 @@
-import { AgChart, AgChartLegendPosition, AgChartOptions } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgChartLegendPosition, AgCharts } from 'ag-charts-community';
 
 import { getData } from './data';
 
-const colors = [
-    '#AC9BF5',
-    '#5984C2',
-    '#36A883',
-    '#F5CA46',
-    '#F5546F',
-    '#8B6FB8',
-    '#E8A7F0',
-    '#7BAFDF',
-    '#65CC8D',
-    '#F57940',
-    '#B2DB6A',
-    '#32B33B',
-    '#758080',
-    '#284E8F',
-    '#F5BFAE',
-    '#D65653',
-    '#B3AC4C',
-    '#758080',
-    '#A0CEF5',
-    '#357A72',
-];
-
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
-    theme: {
-        palette: {
-            fills: colors,
-            strokes: colors,
-        },
-        overrides: {
-            cartesian: {
-                series: {
-                    line: {
-                        marker: {
-                            enabled: false,
-                        },
-                    },
-                },
-            },
-        },
-    },
     title: {
         text: `Renewable sources used to generate electricity for transport fuels`,
     },
@@ -114,13 +74,10 @@ const options: AgChartOptions = {
         {
             position: 'bottom',
             type: 'time',
-            gridLine: {
-                style: [],
-            },
             nice: false,
         },
         {
-            position: 'right',
+            position: 'left',
             type: 'number',
             title: {
                 text: `kilotonnes of oil equivalent (ktoe)`,
@@ -128,35 +85,15 @@ const options: AgChartOptions = {
             label: {
                 formatter: (params) => `${params.value / 1000}K`,
             },
-            line: {
-                width: 0,
-            },
         },
     ],
     legend: {
         maxHeight: 40,
         maxWidth: 800,
-        pagination: {
-            marker: {
-                size: 10,
-            },
-            activeStyle: {
-                fill: '#284E8F',
-            },
-            inactiveStyle: {
-                fillOpacity: 0.5,
-            },
-            highlightStyle: {
-                fill: '#7BAFDF',
-            },
-            label: {
-                color: 'rgb(87, 87, 87)',
-            },
-        },
     },
 };
 
-var chart = AgChart.create(options);
+var chart = AgCharts.create(options);
 
 function updateLegendPosition(value: AgChartLegendPosition) {
     options.legend!.position = value;
@@ -173,5 +110,5 @@ function updateLegendPosition(value: AgChartLegendPosition) {
             break;
     }
 
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }

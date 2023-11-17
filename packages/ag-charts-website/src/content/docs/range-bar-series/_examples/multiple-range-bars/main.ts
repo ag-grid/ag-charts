@@ -1,4 +1,4 @@
-import { AgChartOptions, AgEnterpriseCharts, AgRangeBarSeriesLabelFormatterParams } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -25,8 +25,9 @@ const options: AgChartOptions = {
             stroke: '#205C37',
             label: {
                 placement: 'outside',
-                formatter: ({ itemId, yLowValue, yHighValue }: AgRangeBarSeriesLabelFormatterParams) => {
-                    return itemId === 'low' ? '' : `+${(yHighValue - yLowValue).toFixed(0)}`;
+                color: '#205C37',
+                formatter: ({ itemId, value }) => {
+                    return itemId === 'low' ? '' : `+${value.toFixed(0)}`;
                 },
             },
         },
@@ -43,8 +44,9 @@ const options: AgChartOptions = {
             stroke: '#D1C0A8',
             label: {
                 placement: 'outside',
-                formatter: ({ itemId, yLowValue, yHighValue }: AgRangeBarSeriesLabelFormatterParams) => {
-                    return itemId === 'high' ? '' : `-${(yHighValue - yLowValue).toFixed(0)}`;
+                color: '#D1C0A8',
+                formatter: ({ itemId, value }) => {
+                    return itemId === 'high' ? '' : `-${value.toFixed(0)}`;
                 },
             },
         },
@@ -76,4 +78,4 @@ const options: AgChartOptions = {
     ],
 };
 
-AgEnterpriseCharts.create(options);
+AgCharts.create(options);

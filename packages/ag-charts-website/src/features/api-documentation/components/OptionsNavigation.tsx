@@ -65,10 +65,6 @@ export function OptionsNavigation({
     return (
         <div ref={elementRef} className={styles.expandableSnippet} role="presentation">
             <header>
-                <h3>Options Reference</h3>
-                <p className="text-secondary font-size-small">
-                    A comprehensive interactive explorer for the <strong>{rootInterface}</strong> structure.
-                </p>
                 <SearchBox
                     searchData={searchData}
                     onItemClick={(data) => {
@@ -141,7 +137,9 @@ function NavProperty({
     const navData = getNavigationDataFromPath(path, config?.specialTypes);
 
     const [isExpanded, toggleExpanded] = useAutoExpand(() =>
-        isInterfaceArray
+        config?.keepExpanded?.includes(member.name)
+            ? true
+            : isInterfaceArray
             ? typeof selection?.selection.pageInterface === 'string' &&
               getInterfaceArrayTypes(reference, interfaceRef).some(
                   (item) => item.type === selection?.selection.pageInterface

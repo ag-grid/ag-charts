@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type { AgChartOptions } from '../../../options/agChartOptions';
-import { AgChart } from '../../agChartV2';
+import { AgCharts } from '../../agChartV2';
 import type { Chart } from '../../chart';
 import * as examples from '../../test/examples';
 import {
@@ -76,7 +76,7 @@ describe('BubbleSeries', () => {
 
             prepareTestOptions(options);
 
-            chart = AgChart.create(options) as Chart;
+            chart = AgCharts.create(options) as Chart;
             await compare();
         });
     });
@@ -91,7 +91,7 @@ describe('BubbleSeries', () => {
                 const options: AgChartOptions = examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE;
                 prepareTestOptions(options);
 
-                chart = AgChart.create(options) as Chart;
+                chart = AgCharts.create(options) as Chart;
                 await waitForChartStability(chart);
                 await compare();
             });
@@ -108,10 +108,10 @@ describe('BubbleSeries', () => {
                 const options: AgChartOptions = examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE;
                 prepareTestOptions(options);
 
-                chart = AgChart.create(options) as Chart;
+                chart = AgCharts.create(options) as Chart;
                 await waitForChartStability(chart);
 
-                AgChart.updateDelta(chart, { data: options.data!.slice(4) });
+                AgCharts.updateDelta(chart, { data: options.data!.slice(4) });
                 animate(1200, ratio);
 
                 await waitForChartStability(chart);
@@ -130,15 +130,15 @@ describe('BubbleSeries', () => {
                 const options: AgChartOptions = examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE;
                 prepareTestOptions(options);
 
-                chart = AgChart.create(options) as Chart;
+                chart = AgCharts.create(options) as Chart;
                 await waitForChartStability(chart);
 
-                AgChart.updateDelta(chart, { data: options.data!.slice(4) });
+                AgCharts.updateDelta(chart, { data: options.data!.slice(4) });
                 animate(1200, 1);
 
                 await waitForChartStability(chart);
 
-                AgChart.update(chart, options);
+                AgCharts.update(chart, options);
                 animate(1200, ratio);
 
                 await waitForChartStability(chart);
@@ -157,10 +157,10 @@ describe('BubbleSeries', () => {
                 const options: AgChartOptions = examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE;
                 prepareTestOptions(options);
 
-                chart = AgChart.create(options) as Chart;
+                chart = AgCharts.create(options) as Chart;
                 await waitForChartStability(chart);
 
-                AgChart.updateDelta(chart, {
+                AgCharts.updateDelta(chart, {
                     data: options.data!.map((d: any, i: number) => (i % 2 === 0 ? { ...d, lat: d.lat * 2 } : d)),
                 });
                 animate(1200, ratio);

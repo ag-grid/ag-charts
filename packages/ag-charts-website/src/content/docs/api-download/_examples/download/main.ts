@@ -1,4 +1,4 @@
-import { AgAreaSeriesOptions, AgChart, AgChartOptions } from 'ag-charts-community';
+import { AgAreaSeriesOptions, AgChartOptions, AgCharts } from 'ag-charts-community';
 
 import { getData } from './data';
 
@@ -25,18 +25,18 @@ const options: AgChartOptions = {
     legend: { position: 'top' },
 };
 
-let chart = AgChart.create(options);
+let chart = AgCharts.create(options);
 
 function download() {
-    AgChart.download(chart);
+    AgCharts.download(chart);
 }
 
 function downloadFixedSize() {
-    AgChart.download(chart, { width: 600, height: 300 });
+    AgCharts.download(chart, { width: 600, height: 300 });
 }
 
 function openImage() {
-    AgChart.getImageDataURL(chart, { width: 600, height: 300 }).then((imageDataURL) => {
+    AgCharts.getImageDataURL(chart, { width: 600, height: 300 }).then((imageDataURL) => {
         const image = new Image();
         image.src = imageDataURL;
 

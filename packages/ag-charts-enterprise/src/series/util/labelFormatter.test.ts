@@ -1,6 +1,7 @@
 import { _Scene } from 'ag-charts-community';
 
 import {
+    formatLabels,
     formatSingleLabel,
     formatStackedLabels,
     generateLabelSecondaryLabelFontSizeCandidates,
@@ -104,48 +105,42 @@ describe('treeMapLabelFormatter', () => {
         it('formats a label without shrinking within large bounds', () => {
             wrap.mockImplementation((text) => text);
             computeBBox.mockImplementation(function (this: _Scene.Text) {
-                return { width: this.fontSize, height: this.fontSize };
+                return { width: this.fontSize, height: this.fontSize } as _Scene.BBox;
             });
 
-            const format = formatSingleLabel(
+            const [format] = formatSingleLabel(
                 'Hello',
                 // @ts-expect-error Fix typechecking here
                 { fontSize: 20, minimumFontSize: 10, wrapping: 'never', overflow: 'never' },
                 { padding: 10, spacing: 10 },
                 () => ({ width: 1000, height: 1000 })
-            );
+            )!;
             expect(format).toEqual({
-                label: {
-                    text: 'Hello',
-                    fontSize: 20,
-                    width: 20,
-                    height: 20,
-                },
-                secondaryLabel: undefined,
+                text: 'Hello',
+                fontSize: 20,
+                width: 20,
+                height: 20,
             });
         });
 
         it('shrinks a label to fit within smaller bounds', () => {
             wrap.mockImplementation((text) => text);
             computeBBox.mockImplementation(function (this: _Scene.Text) {
-                return { width: this.fontSize, height: this.fontSize };
+                return { width: this.fontSize, height: this.fontSize } as _Scene.BBox;
             });
 
-            const format = formatSingleLabel(
+            const [format] = formatSingleLabel(
                 'Hello',
                 // @ts-expect-error Fix typechecking here
                 { fontSize: 20, minimumFontSize: 10, wrapping: 'never', overflow: 'never' },
                 { padding: 10, spacing: 10 },
                 () => ({ width: 35, height: 35 })
-            );
+            )!;
             expect(format).toEqual({
-                label: {
-                    text: 'Hello',
-                    fontSize: 15,
-                    width: 15,
-                    height: 15,
-                },
-                secondaryLabel: undefined,
+                text: 'Hello',
+                fontSize: 15,
+                width: 15,
+                height: 15,
             });
         });
     });
@@ -154,7 +149,7 @@ describe('treeMapLabelFormatter', () => {
         it('formats stacked labels without shrinking within large bounds', () => {
             wrap.mockImplementation((text) => text);
             computeBBox.mockImplementation(function (this: _Scene.Text) {
-                return { width: this.fontSize, height: this.fontSize };
+                return { width: this.fontSize, height: this.fontSize } as _Scene.BBox;
             });
 
             const format = formatStackedLabels(
@@ -167,6 +162,8 @@ describe('treeMapLabelFormatter', () => {
                 () => ({ width: 1000, height: 1000 })
             );
             expect(format).toEqual({
+                width: 20,
+                height: 40,
                 label: {
                     text: 'Hello',
                     fontSize: 20,
@@ -185,7 +182,7 @@ describe('treeMapLabelFormatter', () => {
         it('shrinks stacked labels to fit within smaller bounds', () => {
             wrap.mockImplementation((text) => text);
             computeBBox.mockImplementation(function (this: _Scene.Text) {
-                return { width: this.fontSize, height: this.fontSize };
+                return { width: this.fontSize, height: this.fontSize } as _Scene.BBox;
             });
 
             const height = 50;
@@ -202,6 +199,8 @@ describe('treeMapLabelFormatter', () => {
                 () => ({ width: 50, height })
             );
             expect(format).toEqual({
+                width: 14,
+                height: 30,
                 label: {
                     text: 'Hello',
                     fontSize: 14,
@@ -215,7 +214,29 @@ describe('treeMapLabelFormatter', () => {
                     height: 6,
                 },
             });
-            expect(padding + format!.label.height + spacing + format!.secondaryLabel!.height + padding).toBe(height);
+            expect(padding + format!.label!.height + spacing + format!.secondaryLabel!.height + padding).toBe(height);
+        });
+    });
+
+    describe('formatLabels', () => {
+        it('formats the secondaryLabel on its own if and only if the primary label is not present', () => {
+            wrap.mockImplementation((text) => text);
+            computeBBox.mockImplementation(function (this: _Scene.Text) {
+                return { width: 1, height: 1 } as _Scene.BBox;
+            });
+
+            const output = formatLabels(
+                undefined,
+                // @ts-expect-error Fix typechecking here
+                { fontSize: 20, minimumFontSize: 10, wrapping: 'never', overflow: 'never' },
+                'World',
+                { fontSize: 10, minimumFontSize: 5, wrapping: 'never', overflow: 'never' },
+                { padding: 10, spacing: 10 },
+                () => ({ width: Infinity, height: Infinity })
+            );
+
+            expect(output!.label).toBe(undefined);
+            expect(output!.secondaryLabel).not.toBe(undefined);
         });
     });
 });

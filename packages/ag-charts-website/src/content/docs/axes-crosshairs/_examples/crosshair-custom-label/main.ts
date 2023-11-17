@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgCrosshairLabelRendererParams, AgEnterpriseCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, AgCrosshairLabelRendererParams } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -56,4 +56,4 @@ const options: AgCartesianChartOptions = {
     ],
 };
 
-AgEnterpriseCharts.create(options);
+AgCharts.create(options);

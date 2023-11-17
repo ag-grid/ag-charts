@@ -1,5 +1,6 @@
-import type { AgChartInstance, AgChartOptions } from 'ag-charts-community';
-import { AgChart, _ModuleSupport } from 'ag-charts-community';
+import type { AgChartOptions } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
+import { AgCharts, time } from 'ag-charts-community';
 
 import { AngleCategoryAxisModule } from './axes/angle-category/main';
 import { AngleNumberAxisModule } from './axes/angle-number/main';
@@ -10,14 +11,12 @@ import { BackgroundModule } from './features/background/main';
 import { ContextMenuModule } from './features/context-menu/main';
 import { CrosshairModule } from './features/crosshair/main';
 import { ErrorBarsModule } from './features/error-bar/errorBarModule';
-import { NavigatorModule } from './features/navigator/navigatorModule';
 import { ZoomModule } from './features/zoom/main';
 import { GradientLegendModule } from './gradient-legend/main';
 import { LicenseManager } from './license/licenseManager';
 import { BoxPlotModule } from './series/box-plot/boxPlotModule';
 import { BulletModule } from './series/bullet/bulletModule';
 import { HeatmapModule } from './series/heatmap/main';
-import { HistogramSeriesModule } from './series/histogram/histogramSeriesModule';
 import { NightingaleModule } from './series/nightingale/main';
 import { RadarAreaModule } from './series/radar-area/main';
 import { RadarLineModule } from './series/radar-line/main';
@@ -29,9 +28,10 @@ import { SunburstSeriesModule } from './series/sunburst/sunburstSeriesModule';
 import { TreemapSeriesModule } from './series/treemap/treemapSeriesModule';
 import { WaterfallModule } from './series/waterfall/main';
 
-export { RadiusNumberAxisModule } from './axes/radius-number/radiusNumberAxisModule';
-
+// Export types.
 export * from 'ag-charts-community';
+// Needed for UMD global exports to work correctly.
+export { time, AgCharts };
 
 _ModuleSupport.registerModule(AngleCategoryAxisModule);
 _ModuleSupport.registerModule(AngleNumberAxisModule);
@@ -44,9 +44,7 @@ _ModuleSupport.registerModule(CrosshairModule);
 _ModuleSupport.registerModule(ErrorBarsModule);
 _ModuleSupport.registerModule(GradientLegendModule);
 _ModuleSupport.registerModule(HeatmapModule);
-_ModuleSupport.registerModule(HistogramSeriesModule);
 _ModuleSupport.registerModule(NightingaleModule);
-_ModuleSupport.registerModule(NavigatorModule);
 _ModuleSupport.registerModule(RadarAreaModule);
 _ModuleSupport.registerModule(RadarLineModule);
 _ModuleSupport.registerModule(RadialBarModule);
@@ -60,19 +58,7 @@ _ModuleSupport.registerModule(TreemapSeriesModule);
 _ModuleSupport.registerModule(WaterfallModule);
 _ModuleSupport.registerModule(ZoomModule);
 
-export class AgEnterpriseCharts {
-    public static create(options: AgChartOptions): AgChartInstance {
-        const doc = typeof document !== 'undefined' ? document : undefined;
-        new LicenseManager(options.container?.ownerDocument ?? doc).validateLicense();
-
-        return AgChart.create(options);
-    }
-
-    public static update(chart: AgChartInstance, options: AgChartOptions) {
-        return AgChart.update(chart, options);
-    }
-
-    public static updateDelta(chart: AgChartInstance, deltaOptions: Parameters<(typeof AgChart)['updateDelta']>[1]) {
-        return AgChart.updateDelta(chart, deltaOptions);
-    }
-}
+_ModuleSupport.enterpriseModule.licenseManager = (options: AgChartOptions) =>
+    new LicenseManager(
+        options.container?.ownerDocument ?? (typeof document !== 'undefined' ? document : undefined)
+    ).validateLicense();

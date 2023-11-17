@@ -8,7 +8,7 @@ import type { Framework } from '@ag-grid-types';
 import { getDocsPages } from '@features/docs/utils/pageData';
 import { SideNavigation } from '@components/pages-navigation/SideNavigation';
 import { addTabsToHeadings } from '@utils/addTabsToHeadings';
-import { DOCS_TAB_ITEM_ID_PREFIX } from '@constants';
+import { DOCS_TAB_ITEM_ID_PREFIX, FRAMEWORKS } from '@constants';
 
 export async function getStaticPaths() {
     const pages = await getCollection('docs');
@@ -16,8 +16,9 @@ export async function getStaticPaths() {
 }
 
 const { page } = Astro.props;
-const framework = Astro.params.framework as Framework;
+const currentFramework = Astro.params.framework as Framework;
 const pageName = Astro.params.pageName as Framework;
+const path = Astro.url.pathname;
 const { title, enterprise, hideSideMenu, hidePageMenu } = page.data;
 
 const { Content, headings } = await page.render();
@@ -30,42 +31,37 @@ const extendedHeadings = addTabsToHeadings({
 const menuEntry = await getEntry('menu', 'data');
 ---
 
-<Layout title={`${getFrameworkDisplayText(framework)} Charts: AG Charts`} showTopBar={true}>
-    <div class="contentViewport">
+<Layout title={`${getFrameworkDisplayText(currentFramework)} Charts: ${title}`} showTopBar={true} showSearchBar={true}>
+    <div class:list={[hidePageMenu && 'noLeftMenu', 'contentViewport']}>
         {
             !hidePageMenu && (
-                <PagesNavigation client:load menuData={menuEntry.data} framework={framework} pageName={pageName} />
+                <PagesNavigation
+                    client:load
+                    menuData={menuEntry.data}
+                    framework={currentFramework}
+                    pageName={pageName}
+                />
             )
         }
 
         <div
-            id="doc-page-wrapper"
+            id="doc-content"
             class:list={[
-                'docPageWrapper',
+                'docPage',
                 {
-                    hidePageMenu,
+                    noSideMenu: hideSideMenu,
                 },
             ]}
         >
-            <div
-                id="doc-content"
-                class:list={[
-                    'docPage',
-                    {
-                        noSideMenu: hideSideMenu,
-                    },
-                ]}
-            >
-                <Header title={title} framework={framework} isEnterprise={enterprise} />
+            <Header client:load title={title} framework={currentFramework} isEnterprise={enterprise} path={path} />
 
-                {/* Wrapping div is a hack to target "intro" section of docs page */}
-                <div class="pageSections">
-                    <Content framework={framework} page={page} />
-                </div>
+            {/* Wrapping div is a hack to target "intro" section of docs page */}
+            <div class="pageSections">
+                <Content framework={currentFramework} page={page} />
             </div>
-
-            {!hideSideMenu && <SideNavigation client:load title={title} pageHeadings={extendedHeadings} />}
         </div>
+
+        {!hideSideMenu && <SideNavigation client:load title={title} pageHeadings={extendedHeadings} />}
     </div>
 </Layout>
 
@@ -80,6 +76,16 @@ const menuEntry = await getEntry('menu', 'data');
 
         @media (min-width: $breakpoint-docs-nav-medium) {
             flex-direction: row;
+        }
+
+        @media (min-width: $breakpoint-docs-nav-large) {
+            &.noLeftMenu {
+                padding-left: max(var(--horizontal-margin), calc(50vw - var(--max-page-width) / 2));
+            }
+
+            .docPage {
+                padding-left: 0;
+            }
         }
     }
 </style>

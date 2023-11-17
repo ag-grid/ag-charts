@@ -5,8 +5,8 @@ export interface AgCrossLineThemeOptions extends Omit<AgBaseCrossLineOptions, 't
 export interface AgBaseCrossLineOptions<LabelType = AgBaseCrossLineLabelOptions> {
     /** Whether to show the cross line. */
     enabled?: boolean;
-    /** Type of cross line to render. */
-    type: 'line' | 'range';
+    /** Type of cross line to render, defaults to `line`. */
+    type?: 'line' | 'range';
     /** The data value at which the line should be positioned. This property is used if the crossLine type is `line`. */
     value?: AxisValue;
     /** The range of values from the data used to display lines at a desired chart region. This property is only used for crossLine type `range`. */

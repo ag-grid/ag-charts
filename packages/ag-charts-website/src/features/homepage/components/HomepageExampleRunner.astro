@@ -3,6 +3,7 @@ import { InternalFramework } from '@ag-grid-types';
 import { getExampleUrl } from '@features/docs/utils/urlPaths';
 import HomepageChart from './HomepageChart.astro';
 import { getGeneratedDocsContents } from '@features/docs/utils/examplesGenerator';
+import { getDarkModeSnippet } from '@components/site-header/getDarkModeSnippet';
 
 interface Props {
     internalFramework: InternalFramework;
@@ -17,15 +18,20 @@ const exampleUrl = getExampleUrl({
     pageName,
     exampleName,
 });
-const generatedContents =
-    await getGeneratedDocsContents({
-        internalFramework,
-        pageName,
-        exampleName,
-    });
+const generatedContents = await getGeneratedDocsContents({
+    internalFramework,
+    pageName,
+    exampleName,
+    // Ignore dark mode and add on page manually
+    ignoreDarkMode: true,
+});
 const { scriptFiles, styleFiles, files } = generatedContents!;
 const indexFragment = files && files['index.html'];
 const appLocation = exampleUrl;
+
+const darkModeSnippet = `<script>
+    ${getDarkModeSnippet('homepageHeroListener')}
+</script>`;
 ---
 
 <div class="container">
@@ -51,3 +57,5 @@ const appLocation = exampleUrl;
         }
     }
 </style>
+
+<Fragment set:html={darkModeSnippet} />

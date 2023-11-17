@@ -1,10 +1,9 @@
-import { AgChartOptions, AgEnterpriseCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
-    data: getData(),
     title: {
         text: 'SOCIAL CIRCLE',
     },
@@ -26,7 +25,6 @@ const options: AgChartOptions = {
     axes: [
         {
             type: 'angle-number',
-            shape: 'circle',
             label: {
                 enabled: false,
             },
@@ -91,4 +89,4 @@ const options: AgChartOptions = {
     },
 };
 
-AgEnterpriseCharts.create(options);
+AgCharts.create(options);

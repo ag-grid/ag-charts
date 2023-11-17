@@ -118,7 +118,8 @@ $abstract-colors: (
     'cerise-pink': #e83e8c,
     'danger-red': #dc3545,
     'papaya-whip': #ffeed9,
-    'pineapple': #5c3508
+    'pineapple': #5c3508,
+    'pink-code-text': #f64f76
 );
 
 $color-scales: (
@@ -338,7 +339,7 @@ $semantic-colors: (
     'secondary-border-color': background-500,
     // Link
     'link-color': primary-600,
-    'link-hover-color': orange-700,
+    'link-hover-color': azure-blue,
     // Button
     'button-text-color': white,
     'button-color': primary-600,
@@ -384,7 +385,7 @@ $dark-semantic-colors: (
     'secondary-border-color': neutral-300,
     // Link
     'link-color': primary-600,
-    'link-hover-color': orange-800,
+    'link-hover-color': azure-blue,
     // Button
     'button-text-color': white,
     'button-color': primary-600,
@@ -392,7 +393,7 @@ $dark-semantic-colors: (
     'button-active-color': primary-900,
     'button-focus-box-shadow-color': primary-100,
     // Code
-    'code-text-color': pink-900,
+    'code-text-color': pink-code-text,
     'code-background-color': neutral-100,
     // Input
     'input-background-color': default-background-color,

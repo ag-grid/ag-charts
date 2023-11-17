@@ -4,7 +4,7 @@ import {
     AgCartesianChartOptions,
     AgCartesianSeriesOptions,
     AgCartesianSeriesTooltipRendererParams,
-    AgChart,
+    AgCharts,
     AgLineSeriesOptions,
 } from 'ag-charts-community';
 
@@ -91,14 +91,14 @@ const options: AgCartesianChartOptions = {
     ] as AgCartesianAxisOptions[],
 };
 
-var chart = AgChart.create(options);
+var chart = AgCharts.create(options);
 
 function barLine() {
     options.series = BAR_AND_LINE;
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }
 
 function areaBar() {
     options.series = AREA_AND_BAR;
-    AgChart.update(chart, options);
+    AgCharts.update(chart, options);
 }

@@ -1,4 +1,34 @@
 {
+    "header": {
+        "items": [
+            {
+                "title": "Gallery",
+                "path": "/gallery"
+            },
+            {
+                "title": "Docs",
+                "path": "/documentation"
+            },
+            {
+                "title": "API",
+                "path": "/options"
+            },
+            {
+                "title": "Blog",
+                "url": "https://blog.ag-grid.com/"
+            },
+            {
+                "title": "Pricing",
+                "url": "https://ag-grid.com/license-pricing/"
+            },
+            {
+                "title": "Github",
+                "url": "https://github.com/ag-grid/ag-grid",
+                "icon": "github",
+                "cssClass": "github-item"
+            }
+        ]
+    },
     "api": {
         "items": [
             {
@@ -107,8 +137,7 @@
                     },
                     {
                         "title": "Navigator",
-                        "path": "navigator",
-                        "isEnterprise": true
+                        "path": "navigator"
                     },
                     {
                         "title": "Animation",

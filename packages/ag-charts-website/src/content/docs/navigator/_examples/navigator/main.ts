@@ -1,9 +1,9 @@
 import {
     AgCartesianChartOptions,
     AgCartesianSeriesTooltipRendererParams,
-    AgEnterpriseCharts,
+    AgCharts,
     AgSeriesTooltip,
-} from 'ag-charts-enterprise';
+} from 'ag-charts-community';
 
 import { getData } from './data';
 
@@ -86,9 +86,9 @@ const options: AgCartesianChartOptions = {
     },
 };
 
-var chart = AgEnterpriseCharts.create(options);
+var chart = AgCharts.create(options);
 
 function toggleEnabled(value: boolean) {
     options.navigator!.enabled = value;
-    AgEnterpriseCharts.update(chart, options);
+    AgCharts.update(chart, options);
 }

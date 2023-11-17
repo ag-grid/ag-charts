@@ -50,7 +50,12 @@
         border-bottom: 1px solid var(--border-color);
 
         @media screen and (min-width: $breakpoint-docs-nav-medium) {
-            top: var(--header-nav-height);
+            top: calc(var(--header-nav-height) * 2 + 4px);
+
+            #{$darkmode-selector} & {
+                top: calc(var(--header-nav-height) * 2 + 6px);
+                box-shadow: 0 -2px 0 0 var(--default-background-color);
+            }
         }
     }
 

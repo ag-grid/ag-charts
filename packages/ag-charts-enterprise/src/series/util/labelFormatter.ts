@@ -102,23 +102,38 @@ type LabelFormatting = {
     height: number;
 };
 
-type StackedLabelFormatting = {
-    label: LabelFormatting;
-    secondaryLabel: LabelFormatting | undefined;
-};
-
-type SizeFittingHeightFn = (height: number) => {
+type StackedLabelFormatting<Meta> = {
     width: number;
     height: number;
+    meta: Meta;
+} & (
+    | {
+          label: LabelFormatting;
+          secondaryLabel: LabelFormatting;
+      }
+    | {
+          label: LabelFormatting;
+          secondaryLabel: LabelFormatting | undefined;
+      }
+    | {
+          label: LabelFormatting | undefined;
+          secondaryLabel: LabelFormatting;
+      }
+);
+
+type SizeFittingHeightFn<Meta> = (height: number) => {
+    width: number;
+    height: number;
+    meta: Meta;
 };
 
-export function formatStackedLabels<FormatterParams>(
+export function formatStackedLabels<Meta, FormatterParams>(
     labelValue: string,
     labelProps: AutoSizeableLabel<FormatterParams>,
     secondaryLabelValue: string,
     secondaryLabelProps: AutoSizeableLabel<FormatterParams>,
     { spacing, padding }: LayoutParams,
-    sizeFittingHeight: SizeFittingHeightFn
+    sizeFittingHeight: SizeFittingHeightFn<Meta>
 ) {
     const widthAdjust = 2 * padding;
     const heightAdjust = 2 * padding + spacing;
@@ -157,7 +172,7 @@ export function formatStackedLabels<FormatterParams>(
 
     const infiniteBBox = new BBox(-Infinity, -Infinity, Infinity, Infinity);
 
-    return maximumValueSatisfying<StackedLabelFormatting>(0, fontSizeCandidates.length - 1, (index) => {
+    return maximumValueSatisfying<StackedLabelFormatting<Meta>>(0, fontSizeCandidates.length - 1, (index) => {
         const { labelFontSize, secondaryLabelFontSize } = fontSizeCandidates[index];
         const allowTruncation = index === 0;
         const sizeFitting = sizeFittingHeight(labelFontSize + secondaryLabelFontSize + heightAdjust);
@@ -227,16 +242,22 @@ export function formatStackedLabels<FormatterParams>(
             return undefined;
         }
 
-        return { label, secondaryLabel };
+        return {
+            width: Math.max(label.width, secondaryLabel.width),
+            height: totalLabelHeight + spacing,
+            meta: sizeFitting.meta,
+            label,
+            secondaryLabel,
+        };
     });
 }
 
-export function formatSingleLabel<FormatterParams>(
+export function formatSingleLabel<Meta, FormatterParams>(
     value: string,
     props: AutoSizeableLabel<FormatterParams>,
     { padding }: LayoutParams,
-    sizeFittingHeight: SizeFittingHeightFn
-) {
+    sizeFittingHeight: SizeFittingHeightFn<Meta>
+): [LabelFormatting, Meta] | undefined {
     const sizeAdjust = 2 * padding;
     const minimumFontSize = props.minimumFontSize ?? props.fontSize;
 
@@ -250,7 +271,7 @@ export function formatSingleLabel<FormatterParams>(
         fontWeight: props.fontWeight,
     };
 
-    return maximumValueSatisfying<StackedLabelFormatting>(minimumFontSize, props.fontSize, (fontSize) => {
+    return maximumValueSatisfying<[LabelFormatting, Meta]>(minimumFontSize, props.fontSize, (fontSize) => {
         const sizeFitting = sizeFittingHeight(fontSize + sizeAdjust);
         const availableWidth = sizeFitting.width - sizeAdjust;
         const availableHeight = sizeFitting.height - sizeAdjust;
@@ -285,35 +306,66 @@ export function formatSingleLabel<FormatterParams>(
             return undefined;
         }
 
-        return {
-            label: { text, fontSize, width, height },
-            secondaryLabel: undefined,
-        };
+        return [{ text, fontSize, width, height }, sizeFitting.meta];
     });
 }
 
-export function formatLabels<FormatterParams = any>(
-    labelValue: string,
-    label: AutoSizeableLabel<FormatterParams>,
+export function formatLabels<Meta = never, FormatterParams = any>(
+    labelValue: string | undefined,
+    labelProps: AutoSizeableLabel<FormatterParams>,
     secondaryLabelValue: string | undefined,
-    secondaryLabel: AutoSizeableLabel<FormatterParams>,
+    secondaryLabelProps: AutoSizeableLabel<FormatterParams>,
     layoutParams: LayoutParams,
-    sizeFittingHeight: SizeFittingHeightFn
-): StackedLabelFormatting | undefined {
-    let value: StackedLabelFormatting | undefined;
+    sizeFittingHeight: SizeFittingHeightFn<Meta>
+): StackedLabelFormatting<Meta> | undefined {
+    let value: StackedLabelFormatting<Meta> | undefined;
 
-    if (secondaryLabelValue != null) {
+    if (labelValue != null && secondaryLabelValue != null) {
         value = formatStackedLabels(
             labelValue,
-            label,
+            labelProps,
             secondaryLabelValue,
-            secondaryLabel,
+            secondaryLabelProps,
             layoutParams,
             sizeFittingHeight
         );
     }
 
-    value ??= formatSingleLabel(labelValue, label, layoutParams, sizeFittingHeight);
+    let labelMeta: [LabelFormatting, Meta] | undefined;
+    if (value == null && labelValue != null) {
+        labelMeta = formatSingleLabel(labelValue, labelProps, layoutParams, sizeFittingHeight);
+    }
+    if (labelMeta != null) {
+        const [label, meta] = labelMeta;
+        value = {
+            width: label.width,
+            height: label.height,
+            meta: meta,
+            label,
+            secondaryLabel: undefined,
+        };
+    }
+
+    let secondaryLabelMeta: [LabelFormatting, Meta] | undefined;
+    // Only print secondary label on its own if the primary label was not specified
+    if (value == null && labelValue == null && secondaryLabelValue != null) {
+        secondaryLabelMeta = formatSingleLabel(
+            secondaryLabelValue,
+            secondaryLabelProps,
+            layoutParams,
+            sizeFittingHeight
+        );
+    }
+    if (secondaryLabelMeta != null) {
+        const [secondaryLabel, meta] = secondaryLabelMeta;
+        value = {
+            width: secondaryLabel.width,
+            height: secondaryLabel.height,
+            meta,
+            label: undefined,
+            secondaryLabel,
+        };
+    }
 
     return value;
 }
