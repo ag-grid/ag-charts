@@ -478,7 +478,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
             const child = childAt(i);
             const x = isVertical ? start : partition.x;
             const y = isVertical ? partition.y : start;
-            const part = child.sumSize / partitionSum;
+            const part = nodeSize(child) / partitionSum;
             const width = partition.width * (isVertical ? part : 1);
             const height = partition.height * (isVertical ? 1 : part);
             const childBox = new BBox(x, y, width, height);
