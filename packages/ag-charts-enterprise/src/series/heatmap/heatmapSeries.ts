@@ -72,7 +72,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
     colorName?: string = 'Color';
 
     @Validate(AND(COLOR_STRING_ARRAY, NON_EMPTY_ARRAY))
-    colorRange: string[] = ['#cb4b3f', '#6acb64'];
+    colorRange: string[] = ['black', 'black'];
 
     @Validate(OPT_COLOR_STRING)
     stroke: string = 'black';
