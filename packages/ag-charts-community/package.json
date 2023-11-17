@@ -2,15 +2,16 @@
   "name": "ag-charts-community",
   "version": "9.0.0-beta.20231114",
   "description": "Advanced Charting / Charts supporting Javascript / Typescript / React / Angular / Vue",
-  "main": "./dist/main.cjs.js",
-  "types": "./dist/main.cjs.d.ts",
+  "main": "./dist/package/main.cjs.js",
+  "types": "./dist/package/main.cjs.d.ts",
+  "module": "./dist/package/main.esm.js",
   "exports": {
     "node": {
-      "import": "./dist/main.esm.js",
-      "require": "./dist/main.cjs.js",
-      "types": "./dist/src/main.cjs.d.ts"
+      "import": "./dist/package/main.esm.js",
+      "require": "./dist/package/main.cjs.js",
+      "types": "./dist/package/src/main.cjs.d.ts"
     },
-    "default": "./dist/main.cjs.js"
+    "default": "./dist/package/main.cjs.js"
   },
   "scripts": {
     "lint:circular": "npx madge --circular --extensions ts src/",

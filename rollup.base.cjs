@@ -1,4 +1,8 @@
-module.exports = function buildConfig(name, { output, ...config }, { umdOutput = 'add', umd = {} } = {}) {
+module.exports = function buildConfig(
+    name,
+    { output, ...config },
+    { umdOutput = 'add', filename = undefined, umd = {} } = {}
+) {
     if (!Array.isArray(output)) {
         output = [output];
     }
@@ -17,8 +21,8 @@ module.exports = function buildConfig(name, { output, ...config }, { umdOutput =
         name,
         sourcemap,
         format: 'umd',
-        entryFileNames: entryFileNames.replace(format, 'umd'),
-        chunkFileNames: chunkFileNames.replace(format, 'umd'),
+        entryFileNames: filename ?? entryFileNames.replace(format, 'umd'),
+        chunkFileNames: filename ?? chunkFileNames.replace(format, 'umd'),
         ...umd,
     };
 

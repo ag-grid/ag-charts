@@ -33,6 +33,16 @@
       "inputs": ["production", "^production"],
       "cache": true
     },
+    "build:package": {
+      "dependsOn": ["^build:package"],
+      "inputs": ["production", "^production"],
+      "cache": true
+    },
+    "build:umd": {
+      "dependsOn": ["^build:umd"],
+      "inputs": ["production", "^production"],
+      "cache": true
+    },
     "lint": {
       "inputs": ["default", "{workspaceRoot}/.eslintrc.json", "{workspaceRoot}/.eslintignore"],
       "cache": true
