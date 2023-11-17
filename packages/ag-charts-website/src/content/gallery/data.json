@@ -326,6 +326,11 @@
                     "name": "simple-range-bar"
                 },
                 {
+                    "title": "Range Bar With Labels",
+                    "description": "Range Bar charts (also known as vertical <a href='./simple-bar/'> range bar charts</a>) represent data using vertical bars, with the height of each bar proportional to the range value being plotted. They work best where the number of data points is limited.",
+                    "name": "range-bar-with-labels"
+                },
+                {
                     "title": "Multiple Range Bars",
                     "description": "Range Bar charts (also known as vertical <a href='./simple-bar/'> range bar charts</a>) represent data using vertical bars, with the height of each bar proportional to the range value being plotted. They work best where the number of data points is limited.",
                     "name": "multiple-range-bars"
@@ -334,6 +339,11 @@
                     "title": "Horizontal Range Bar",
                     "description": "Horizontal Bar charts represent data using horizontal bars, with the length of each bar proportional to the range value being plotted. They work best where the number of data points is limited.",
                     "name": "horizontal-range-bar"
+                },
+                {
+                    "title": "Horizontal Range Bar With Labels",
+                    "description": "Horizontal Bar charts represent data using horizontal bars, with the length of each bar proportional to the range value being plotted. They work best where the number of data points is limited.",
+                    "name": "horizontal-range-bar-with-labels"
                 },
                 {
                     "title": "Multiple Horizontal Range Bar",
@@ -354,14 +364,14 @@
                     "name": "simple-range-area"
                 },
                 {
-                    "title": "Range Area Missing Data",
-                    "description": "A Range Area Series shows an area between high and low data values. It's used to monitor data consistency or variability.",
-                    "name": "range-area-missing-data"
-                },
-                {
                     "title": "Multiple Range Areas",
                     "description": "A Range Area Series shows an area between high and low data values. It's used to monitor data consistency or variability.",
                     "name": "multiple-range-areas"
+                },
+                {
+                    "title": "Range Area With Labels",
+                    "description": "A Range Area Series shows an area between high and low data values. It's used to monitor data consistency or variability.",
+                    "name": "range-area-with-labels"
                 }
             ]
         },
