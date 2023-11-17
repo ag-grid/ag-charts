@@ -20,7 +20,7 @@ const options: AgChartOptions = {
 
             colorKey: 'temperature',
             colorName: 'Temperature',
-            colorRange: ['#4A90E2', '#FF6B6B'],
+            colorRange: ['#d7301f', '#fef0d9'],
         },
     ],
 };
