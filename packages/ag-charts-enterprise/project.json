@@ -24,21 +24,20 @@
         "project": "packages/ag-charts-enterprise/package.json",
         "deleteOutputPath": false,
         "compiler": "tsc",
-        "format": ["cjs"]
+        "format": ["cjs", "esm"]
       },
       "configurations": {
         "watch": {
           "tsConfig": "packages/ag-charts-enterprise/tsconfig.watch.json"
         },
-        "production": {
-          "format": ["cjs", "esm"]
-        }
+        "production": {}
       }
     },
     "build:umd": {
       "executor": "@nx/rollup:rollup",
       "inputs": ["tsDefaults"],
       "outputs": ["{options.outputPath}"],
+      "dependsOn": ["^build:package"],
       "options": {
         "outputPath": "packages/ag-charts-enterprise/dist/umd",
         "main": "packages/ag-charts-enterprise/src/main.ts",

@@ -13,6 +13,7 @@ import { CHART_TYPES, type ChartType, getChartDefaults } from '../factory/chartT
 import { getLegendThemeTemplates } from '../factory/legendTypes';
 import { getSeriesThemeTemplate } from '../factory/seriesTypes';
 import { BOTTOM, FONT_SIZE, NORMAL } from './constants';
+import { DEFAULT_FILLS, DEFAULT_STROKES } from './defaultColors';
 import {
     DEFAULT_AXIS_GRID_COLOUR,
     DEFAULT_AXIS_LINE_COLOUR,
@@ -45,32 +46,6 @@ import {
 } from './symbols';
 
 const DEFAULT_BACKGROUND_FILL = 'white';
-
-const DEFAULT_FILLS = {
-    BLUE: '#5090dc',
-    ORANGE: '#ffa03a',
-    GREEN: '#459d55',
-    CYAN: '#34bfe1',
-    YELLOW: '#e1cc00',
-    VIOLET: '#9669cb',
-    GRAY: '#b5b5b5',
-    MAGENTA: '#bd5aa7',
-    BROWN: '#8a6224',
-    RED: '#ef5452',
-};
-
-const DEFAULT_STROKES = {
-    BLUE: '#2b5c95',
-    ORANGE: '#cc6f10',
-    GREEN: '#1e652e',
-    CYAN: '#18859e',
-    YELLOW: '#a69400',
-    VIOLET: '#603c88',
-    GRAY: '#575757',
-    MAGENTA: '#7d2f6d',
-    BROWN: '#4f3508',
-    RED: '#a82529',
-};
 
 const palette: AgChartThemePalette = {
     fills: Array.from(Object.values(DEFAULT_FILLS)),

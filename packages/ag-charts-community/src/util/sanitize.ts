@@ -4,12 +4,12 @@ export function sanitizeHtml(text: string): string;
 export function sanitizeHtml(text: string | undefined): string | undefined;
 
 export function sanitizeHtml(text: string | undefined): string | undefined {
-    if (typeof text !== 'string') {
+    if (text == null) {
         return undefined;
     } else if (text === '') {
         return '';
     }
     element ??= document.createElement('div');
-    element.textContent = text;
+    element.textContent = String(text);
     return element.innerHTML;
 }
