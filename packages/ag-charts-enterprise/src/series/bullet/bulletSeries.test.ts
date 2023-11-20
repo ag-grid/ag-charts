@@ -191,7 +191,7 @@ describe('BulletSeries', () => {
         );
         await waitForChartStability(chart);
         await hoverOnBullet();
-        await compare();
+        await compare(chart, ctx);
     });
 
     test('tooltip valueKey only', async () => {
