@@ -6,6 +6,7 @@ import {
     type AgTooltipRendererResult,
     _ModuleSupport,
     _Scene,
+    _Util,
 } from 'ag-charts-community';
 
 import { AutoSizeableLabel, formatLabels } from '../util/labelFormatter';
@@ -13,6 +14,7 @@ import { AutoSizeableLabel, formatLabels } from '../util/labelFormatter';
 const { HighlightStyle, SeriesTooltip, Validate, OPT_COLOR_STRING, OPT_FUNCTION, OPT_NUMBER, NUMBER, OPT_STRING } =
     _ModuleSupport;
 const { Sector, Group, Selection, Text } = _Scene;
+const { sanitizeHtml } = _Util;
 
 interface LabelData {
     label: string | undefined;
@@ -110,6 +112,12 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
     readonly secondaryLabel = new AutoSizeableLabel<AgSunburstSeriesLabelFormatterParams>();
 
     @Validate(OPT_STRING)
+    sizeName?: string = undefined;
+
+    @Validate(OPT_STRING)
+    colorName?: string = undefined;
+
+    @Validate(OPT_STRING)
     labelKey?: string = undefined;
 
     @Validate(OPT_STRING)
@@ -134,7 +142,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
     formatter?: (params: AgSunburstSeriesFormatterParams) => AgSunburstSeriesStyle = undefined;
 
     override async processData() {
-        const { labelKey, secondaryLabelKey, childrenKey, colorKey, sizeKey } = this;
+        const { childrenKey, colorKey, colorName, labelKey, secondaryLabelKey, sizeKey, sizeName } = this;
 
         super.processData();
 
@@ -157,7 +165,18 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
                 const value = datum[labelKey] ?? '';
                 label = this.getLabelText(
                     this.label,
-                    { depth, datum, childrenKey, colorKey, labelKey, secondaryLabelKey, sizeKey, value },
+                    {
+                        depth,
+                        datum,
+                        childrenKey,
+                        colorKey,
+                        colorName,
+                        labelKey,
+                        secondaryLabelKey,
+                        sizeKey,
+                        sizeName,
+                        value,
+                    },
                     defaultLabelFormatter
                 );
             }
@@ -170,7 +189,18 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
                 const value = datum[secondaryLabelKey] ?? '';
                 secondaryLabel = this.getLabelText(
                     this.secondaryLabel,
-                    { depth, datum, childrenKey, colorKey, labelKey, secondaryLabelKey, sizeKey, value },
+                    {
+                        depth,
+                        datum,
+                        childrenKey,
+                        colorKey,
+                        colorName,
+                        labelKey,
+                        secondaryLabelKey,
+                        sizeKey,
+                        sizeName,
+                        value,
+                    },
                     defaultLabelFormatter
                 );
             }
@@ -506,7 +536,16 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
     }
 
     override getTooltipHtml(node: _ModuleSupport.HierarchyNode): string {
-        const { tooltip, colorKey, labelKey, sizeKey, id: seriesId } = this;
+        const {
+            tooltip,
+            colorKey,
+            colorName = colorKey,
+            labelKey,
+            secondaryLabelKey,
+            sizeKey,
+            sizeName = sizeKey,
+            id: seriesId,
+        } = this;
         const { datum, depth } = node;
         if (datum == null || depth == null) {
             return '';
@@ -517,20 +556,44 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
         const format = this.getSectorFormat(node, false);
         const color = format?.fill ?? node.fill;
 
-        const defaults: AgTooltipRendererResult = {
-            title,
-            backgroundColor: color,
-        };
-
         if (!tooltip.renderer && !tooltip.format && !title) {
             return '';
         }
+
+        const contentArray: Array<{ title: string | undefined; value: string }> = [];
+
+        const datumSecondaryLabel = secondaryLabelKey != null ? datum[secondaryLabelKey] : undefined;
+        if (datumSecondaryLabel != null) {
+            contentArray.push({ title: undefined, value: sanitizeHtml(datumSecondaryLabel) });
+        }
+
+        const datumSize = sizeKey != null ? datum[sizeKey] : undefined;
+        if (datumSize != null) {
+            contentArray.push({ title: sizeName, value: sanitizeHtml(datumSize) });
+        }
+
+        const datumColor = colorKey != null ? datum[colorKey] : undefined;
+        if (datumColor != null) {
+            contentArray.push({ title: colorName, value: sanitizeHtml(datumColor) });
+        }
+
+        const content =
+            contentArray.length !== 1
+                ? contentArray.map(({ title, value }) => (title != null ? `${title}: ${value}` : value)).join('<br>')
+                : contentArray[0].value;
+
+        const defaults: AgTooltipRendererResult = {
+            title,
+            backgroundColor: color,
+            content,
+        };
 
         return tooltip.toTooltipHtml(defaults, {
             depth,
             datum,
             colorKey,
             labelKey,
+            secondaryLabelKey,
             sizeKey,
             title,
             color,
