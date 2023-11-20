@@ -492,27 +492,6 @@ export abstract class RadialColumnSeriesBase<
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, [labelSelection]);
     }
 
-    override animateWaitingUpdateReady() {
-        const { itemSelection, labelSelection, processedData } = this;
-        const { animationManager } = this.ctx;
-        const diff = processedData?.reduced?.diff;
-
-        this.ctx.animationManager.stopByAnimationGroupId(this.id);
-
-        const fns = this.getColumnTransitionFunctions();
-        motion.fromToMotion(
-            this.id,
-            'datums',
-            animationManager,
-            [itemSelection],
-            fns,
-            (_, datum) => String(datum.radiusValue),
-            diff
-        );
-
-        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, [labelSelection]);
-    }
-
     override animateClearingUpdateEmpty() {
         const { itemSelection } = this;
         const { animationManager } = this.ctx;

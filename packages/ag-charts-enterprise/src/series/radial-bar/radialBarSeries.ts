@@ -455,30 +455,6 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, [labelSelection]);
     }
 
-    override animateWaitingUpdateReady() {
-        const { itemSelection, labelSelection } = this;
-        const {
-            processedData,
-            ctx: { animationManager },
-        } = this;
-        const diff = processedData?.reduced?.diff;
-
-        this.ctx.animationManager.stopByAnimationGroupId(this.id);
-
-        const fns = prepareRadialBarSeriesAnimationFunctions(this.axes);
-        motion.fromToMotion(
-            this.id,
-            'datums',
-            animationManager,
-            [itemSelection],
-            fns,
-            (_, datum) => String(datum.radiusValue),
-            diff
-        );
-
-        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, [labelSelection]);
-    }
-
     override animateClearingUpdateEmpty() {
         const { itemSelection } = this;
         const { animationManager } = this.ctx;
