@@ -56,7 +56,7 @@ function getPropertyBindings(bindings: any): [string[], string[], string[]] {
 
 function getTemplate(bindings: any, attributes: string[]): string {
     const agChartTag = `<ag-charts-vue
-    ${bindings.usesChartApi ? `ref="agChart"` : ''}
+    ${bindings.usesChartApi ? `ref="agCharts"` : ''}
     ${attributes.join('\n    ')}></ag-charts-vue>`;
 
     const template = bindings.template ? bindings.template.replace(templatePlaceholder, agChartTag) : agChartTag;
@@ -129,10 +129,10 @@ new Vue({
 `;
 
         if (bindings.usesChartApi) {
-            mainFile = mainFile.replace(/AgCharts.(\w*)\((\w*)(,|\))/g, 'AgCharts.$1(this.$refs.agChart.chart$3');
+            mainFile = mainFile.replace(/AgCharts.(\w*)\((\w*)(,|\))/g, 'AgCharts.$1(this.$refs.agCharts.chart$3');
             mainFile = mainFile.replace(
-                /\(this.\$refs.agChart.chart, options/g,
-                '(this.$refs.agChart.chart, this.options'
+                /\(this.\$refs.agCharts.chart, options/g,
+                '(this.$refs.agCharts.chart, this.options'
             );
         }
 

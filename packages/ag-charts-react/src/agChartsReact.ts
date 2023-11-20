@@ -1,7 +1,7 @@
 import * as PropTypes from 'prop-types';
 import { Component, RefObject, createElement, createRef } from 'react';
 
-import { AgChart, AgChartInstance, AgChartOptions } from 'ag-charts-community';
+import { AgChartInstance, AgChartOptions, AgCharts } from 'ag-charts-community';
 
 export interface AgChartProps {
     options: AgChartOptions;
@@ -40,7 +40,7 @@ export class AgChartsReact extends Component<AgChartProps, AgChartState> {
     componentDidMount() {
         const options = this.applyContainerIfNotSet(this.props.options);
 
-        const chart = AgChart.create(options);
+        const chart = AgCharts.create(options);
         this.chart = chart;
 
         (chart as any).chart.waitForUpdate().then(() => this.props.onChartReady?.(chart));
@@ -65,7 +65,7 @@ export class AgChartsReact extends Component<AgChartProps, AgChartState> {
 
     processPropsChanges(prevProps: any, nextProps: any) {
         if (this.chart) {
-            AgChart.update(this.chart, this.applyContainerIfNotSet(nextProps.options));
+            AgCharts.update(this.chart, this.applyContainerIfNotSet(nextProps.options));
         }
     }
 

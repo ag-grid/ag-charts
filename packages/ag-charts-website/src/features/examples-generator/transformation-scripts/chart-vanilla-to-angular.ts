@@ -93,7 +93,7 @@ export class AppComponent {
     ${
         bindings.usesChartApi
             ? `\n    @ViewChild(AgChartsAngular)
-    public agChart!: AgChartsAngular;\n`
+    public agCharts!: AgChartsAngular;\n`
             : ''
     }
     constructor() {
@@ -114,10 +114,10 @@ export class AppComponent {
 ${bindings.globals.join('\n')}
 `;
         if (bindings.usesChartApi) {
-            appComponent = appComponent.replace(/AgCharts.(\w*)\((\w*)(,|\))/g, 'AgCharts.$1(this.agChart.chart!$3');
+            appComponent = appComponent.replace(/AgCharts.(\w*)\((\w*)(,|\))/g, 'AgCharts.$1(this.agCharts.chart!$3');
             appComponent = appComponent.replace(
-                /\(this.agChart.chart!, options/g,
-                '(this.agChart.chart!, this.options'
+                /\(this.agCharts.chart!, options/g,
+                '(this.agCharts.chart!, this.options'
             );
         }
         return appComponent;
