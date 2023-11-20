@@ -6,6 +6,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     deproxy,
     extractImageData,
+    hoverAction,
     setupMockCanvas,
     waitForChartStability,
 } from 'ag-charts-community-test';
