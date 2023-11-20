@@ -79,6 +79,7 @@ series: [
         type: 'treemap',
         labelKey: 'name',
         sizeKey: 'size',
+        // ...
     },
 ];
 ```
@@ -101,6 +102,7 @@ series: [
         sizeKey: 'size',
         colorKey: 'numberFiles',
         colorRange: ['rgb(63, 145, 79)', 'rgb(253, 149, 63)'],
+        // ...
     },
 ],
 ```
@@ -120,11 +122,13 @@ It's possible to override the default colours, or the colours on a group or tile
 series: [
     {
         type: 'treemap',
+        // ...
         colorRange: ['rgb(63, 145, 79)', 'rgb(253, 149, 63)'],
         fills: ['#455A64'],
         group: {
             stroke: '#37474F',
         },
+        // ...
     },
 ];
 ```
@@ -151,12 +155,13 @@ series: [
         type: 'treemap',
         labelKey: 'name',
         secondaryLabelKey: 'size',
+        // ...
         group: {
             label: {
                 fontSize: 18,
                 spacing: 2,
             },
-            padding: 5,
+            // ...
         },
         tile: {
             label: {
@@ -167,8 +172,8 @@ series: [
             secondaryLabel: {
                 formatter: (params) => formatSize(params.datum),
             },
-            padding: 10,
         },
+        // ...
     },
 ];
 ```
@@ -191,13 +196,17 @@ Various spacing values can be adjusted to tweak the layout of the chart.
 series: [
     {
         type: 'treemap',
+        // ...
         group: {
+            // ...
             padding: 10,
         },
         tile: {
+            // ...
             padding: 10,
         },
         tileSpacing: 5,
+        // ...
     },
 ],
 ```
