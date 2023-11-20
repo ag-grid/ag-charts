@@ -346,7 +346,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
             const labelStyle = isLeaf ? tile.label : group.label;
             let label: string | undefined;
             if (datum != null && depth != null && labelKey != null && labelStyle.enabled) {
-                const value = datum[labelKey] ?? '';
+                const value = datum[labelKey];
                 label = this.getLabelText(
                     labelStyle,
                     {
@@ -370,7 +370,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
 
             let secondaryLabel: string | undefined;
             if (isLeaf && datum != null && depth != null && secondaryLabelKey != null && tile.secondaryLabel.enabled) {
-                const value = datum[secondaryLabelKey] ?? '';
+                const value = datum[secondaryLabelKey];
                 secondaryLabel = this.getLabelText(
                     tile.secondaryLabel,
                     {

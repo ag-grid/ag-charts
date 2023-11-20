@@ -9,22 +9,10 @@ const options: AgChartOptions = {
         {
             type: 'sunburst',
             labelKey: 'name',
-            label: {
-                fontSize: 14,
-                minimumFontSize: 9,
-            },
-            secondaryLabel: {
-                fontSize: 8,
-                minimumFontSize: 7,
-            },
-            sectorSpacing: 2,
         },
     ],
     title: {
         text: 'Organizational Chart',
-    },
-    subtitle: {
-        text: 'of a top secret startup',
     },
 };
 
