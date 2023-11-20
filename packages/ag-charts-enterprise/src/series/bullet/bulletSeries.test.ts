@@ -134,6 +134,22 @@ describe('BulletSeries', () => {
         await compare();
     });
 
+    it('should ignore empty colorRange arrays', async () => {
+        chart = AgCharts.create({
+            ...opts,
+            series: [
+                {
+                    type: 'bullet',
+                    data: [{ income: 11 }],
+                    scale: { max: 20 },
+                    valueKey: 'income',
+                    colorRanges: [],
+                },
+            ],
+        });
+        await compare();
+    });
+
     it('should use explicit axis max', async () => {
         chart = AgCharts.create({
             ...opts,

@@ -135,7 +135,7 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
     targetName?: string = undefined;
 
     @Validate(OPT_ARRAY())
-    colorRanges: BulletColorRange[] = [new BulletColorRange()];
+    colorRanges: BulletColorRange[] = [];
 
     scale: BulletScale = new BulletScale();
 
@@ -303,6 +303,10 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
                 midPoint: { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 },
             };
             context.nodeData.push(nodeData);
+        }
+
+        if (this.colorRanges.length === 0) {
+            this.colorRanges = [new BulletColorRange()];
         }
 
         const sortedRanges = [...this.colorRanges].sort((a, b) => (a.stop || maxValue) - (b.stop || maxValue));
