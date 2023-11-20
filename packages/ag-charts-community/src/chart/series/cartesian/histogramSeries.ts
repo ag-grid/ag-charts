@@ -571,7 +571,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramNodeDatum> {
 
     override animateEmptyUpdateReady({ datumSelections, labelSelections }: HistogramAnimationData) {
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(true, this.axes));
-        fromToMotion(this.id, 'empty-update-ready', this.ctx.animationManager, datumSelections, fns);
+        fromToMotion(this.id, 'datums', this.ctx.animationManager, datumSelections, fns);
 
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
     }
@@ -582,7 +582,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramNodeDatum> {
 
         fromToMotion(
             this.id,
-            'waiting-update-ready',
+            'datums',
             this.ctx.animationManager,
             data.datumSelections,
             fns,

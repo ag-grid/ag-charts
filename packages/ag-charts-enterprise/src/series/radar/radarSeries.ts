@@ -188,6 +188,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
                 ...extraProps,
             ],
         });
+
+        this.animationState.transition('updateData');
     }
 
     protected circleCache = { r: 0, cx: 0, cy: 0 };
@@ -640,7 +642,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         seriesLabelFadeInAnimation(this, 'labels', animationManager, [labelSelection]);
     }
 
-    override animateReadyUpdate() {
+    override animateWaitingUpdateReady() {
+        this.ctx.animationManager.skipCurrentBatch();
         this.resetPaths();
     }
 
