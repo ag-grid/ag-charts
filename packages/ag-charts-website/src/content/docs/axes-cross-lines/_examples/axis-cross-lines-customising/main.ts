@@ -5,73 +5,24 @@ import { getData } from './data';
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
-    theme: {
-        overrides: {
-            line: {
-                axes: {
-                    number: {
-                        gridLine: {
-                            style: [],
-                        },
-                    },
-                    time: {
-                        gridLine: {
-                            style: [],
-                        },
-                    },
-                },
-                series: {
-                    tooltip: {
-                        renderer: ({ datum, xKey, yKey }) => ({
-                            content: `${datum[xKey].toLocaleString('en-GB', {
-                                day: 'numeric',
-                                month: 'long',
-                                year: 'numeric',
-                            })}: ${datum[yKey]}`,
-                        }),
-                    },
-                    highlightStyle: {
-                        series: {
-                            strokeWidth: 3,
-                            dimOpacity: 0.2,
-                        },
-                    },
-                },
-            },
-        },
-    },
     series: [
         {
             type: 'line',
             xKey: 'date',
             yKey: 'petrol',
-            stroke: '#01c185',
-            marker: {
-                stroke: '#01c185',
-                fill: '#01c185',
-            },
+            yName: 'Petrol',
         },
         {
             type: 'line',
             xKey: 'date',
             yKey: 'diesel',
-            stroke: '#000000',
-            marker: {
-                stroke: '#000000',
-                fill: '#000000',
-            },
+            yName: 'Diesel',
         },
     ],
     axes: [
         {
             position: 'bottom',
             type: 'time',
-            label: {
-                autoRotate: true,
-            },
-            tick: {
-                interval: time.month.every(2),
-            },
             title: {
                 text: 'Date',
             },
@@ -148,6 +99,23 @@ const options: AgChartOptions = {
             ],
         },
     ],
+    theme: {
+        overrides: {
+            line: {
+                series: {
+                    tooltip: {
+                        renderer: ({ datum, xKey, yKey }) => ({
+                            content: `${datum[xKey].toLocaleString('en-GB', {
+                                day: 'numeric',
+                                month: 'long',
+                                year: 'numeric',
+                            })}: ${datum[yKey]}`,
+                        }),
+                    },
+                },
+            },
+        },
+    },
 };
 
 var chart = AgCharts.create(options);

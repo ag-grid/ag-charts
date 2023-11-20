@@ -15,24 +15,14 @@ const options: AgChartOptions = {
             radiusKey: 'value',
         },
     ],
-    legend: {
-        enabled: true,
-    },
     axes: [
         {
             type: 'angle-category',
             shape: 'circle',
             crossLines: [
                 {
-                    type: 'line',
-                    value: 'Meeting Deadlines',
-                    label: {
-                        text: 'Useless Skill',
-                    },
-                },
-                {
                     type: 'range',
-                    range: ['Communication', 'Team Player'],
+                    range: ['Technical Skills', 'Communication'],
                     label: {
                         text: 'Valuable Skills',
                     },
@@ -42,6 +32,17 @@ const options: AgChartOptions = {
         {
             type: 'radius-number',
             shape: 'circle',
+            crossLines: [
+                {
+                    type: 'line',
+                    value: 6,
+                    stroke: 'red',
+                    label: {
+                        text: 'Minimal\nRequirement',
+                        positionAngle: 180,
+                    },
+                },
+            ],
         },
     ],
 };
