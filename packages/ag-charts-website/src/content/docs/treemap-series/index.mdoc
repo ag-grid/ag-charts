@@ -184,12 +184,13 @@ series: [
         group: {
             // ...
             padding: 10,
+            gap: 5,
         },
         tile: {
             // ...
             padding: 10,
+            gap: 2,
         },
-        tileSpacing: 5,
         // ...
     },
 ],
@@ -198,8 +199,9 @@ series: [
 In this configuration:
 
 -   `group.padding` adjusts the padding between the edge of the group, its title, and the inner nodes
+-   `group.gap` adjusts the gap between adjacent tiles where one or more nodes in the parent node are group nodes
 -   `tile.padding` adjusts the padding between the edge of the tile and its labels
--   `tileSpacing` adjusts the space between groups and tiles
+-   `tile.gap` adjusts the gap between adjacent tiles where all nodes in the parent node are leaf nodes
 
 ## API Reference
 
