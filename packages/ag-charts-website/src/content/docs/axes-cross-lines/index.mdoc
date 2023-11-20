@@ -2,15 +2,15 @@
 title: 'Cross Lines'
 ---
 
-Cross lines are lines or shaded areas in a chart that can highlight important information like trends and thresholds, making them useful for data analysis.
+Cross Lines are lines or shaded areas in a chart that denote additional information or thresholds, making them useful for data analysis.
 
 ## Adding Cross Lines
 
-To add a cross line at a specific data value on an axis, you need to specify the `crossLines` property on the `axis` options object:
+To add a Cross Line at a specific data value on an axis, use the `crossLines` property in the `axis` options.
 
-{% apiReference id="AgBaseCartesianAxisOptions" include=["crossLines"] hideHeader=true /%}
+A Cross Line can either be a `line` or a `range`, and multiple Cross Lines can be added to a single axis.
 
-The following snippet shows how to add a horizontal cross line:
+{% chartExampleRunner title="Adding Cross Lines" name="axis-cross-lines-adding" type="generated" /%}
 
 ```js
 axes: [
@@ -24,14 +24,6 @@ axes: [
             },
         ],
     },
-];
-```
-
-To create a region on a chart between two lines, set the `type` of cross line to `range`, and provide an array with the
-two data values that define the region as shown below:
-
-```js
-axes: [
     {
         position: 'bottom',
         type: 'category',
@@ -45,14 +37,15 @@ axes: [
 ];
 ```
 
-The following example demonstrates these configurations:
+In this configuration:
 
-{% chartExampleRunner title="Adding Cross Lines" name="axis-cross-lines-adding" type="generated" /%}
+-   A `line` is displayed on the vertical axis at value 11.
+-   A `range` is displayed on the horizontal axis between June and September.
+-   The `value` or `range` values should be the same types as those displayed in the axis.
 
 ## Customising Cross Lines
 
-The properties such as `stroke`, `strokeWidth`, and `fill` can be customised by using `AgCartesianCrossLineOptions`.
-Additionally, a label can be added and positioned in relation to the cross line, as shown below:
+{% chartExampleRunner title="Customising Cross Lines" name="axis-cross-lines-customising" type="generated" /%}
 
 ```js
 crossLines: [
@@ -71,70 +64,56 @@ crossLines: [
 ];
 ```
 
-The example below demonstrates these configurations, note the following:
+In this configuration:
 
--   Data values can be numbers or categories such as `String` values or `Date` objects in accordance with values provided in the chart data.
--   The left Y axis has cross lines with type `line`, so the `value` property on each cross lines options object is used to position the lines on the chart.
--   The bottom X axis has a cross line of type `range`; the `range` property is used to configure the range of the cross line boundaries.
-
-{% chartExampleRunner title="Customising Cross Lines" name="axis-cross-lines-customising" type="generated" /%}
+-   Properties such as `stroke`, `strokeWidth`, and `fill` are used to customise the Cross Line.
+-   A label is added, customised and positioned in relation to the Cross Line.
 
 ## Polar Axes Cross Lines
 
-Cross lines are lines or shaded areas in a chart that can highlight important information like trends and thresholds, making them useful for data analysis. To add a cross line at a specific data value on an axis, you need to specify the `crossLines` property on the `axis` options object.
-
-The following snippet shows how to add a cross line and range for Angle Axis:
-
-```js
-axes: [
-    {
-        type: 'angle-category',
-        crossLines: [
-            {
-                type: 'line',
-                value: 'Meeting Deadlines',
-                label: {
-                    text: 'Useless Skill',
-                },
-            },
-            {
-                type: 'range',
-                range: ['Communication', 'Team Player'],
-                label: {
-                    text: 'Valuable Skills',
-                },
-            },
-        ],
-    },
-];
-```
+Cross Lines are also available for Polar Axes. These have the same configuration as the Cartesian Cross Lines.
 
 {% chartExampleRunner title="Polar Axis Angle Crosslines" name="polar-axes-crosslines-angle" type="generated" /%}
 
-The following snippet shows how to add a cross line and range for Radius Axis:
-
 ```js
 axes: [
-    {
-        type: 'radius-number',
-        crossLines: [
-            {
-                type: 'line',
-                value: 5,
-                label: {
-                    text: 'Useless Skill',
-                },
+{
+    type: 'angle-category',
+    shape: 'circle',
+    crossLines: [{
+        type: 'range',
+        range: ['Technical Skills', 'Communication'],
+        label: {
+            text: 'Valuable Skills',
+        },
+    }],
+},
+{
+    type: 'radius-number',
+    shape: 'circle',
+    crossLines: [
+        {
+            type: 'line',
+            stroke: 'red',
+            value: 6,
+            label: {
+                text: 'Minimal\nRequirement',
+                positionAngle: 180,
             },
-            {
-                type: 'range',
-                range: [7, 10],
-                label: {
-                    text: 'Excellent',
-                },
-            },
-        ],
-    },
-];
+        },
+
+    ],
+},
+],
 ```
 
-{% chartExampleRunner title="Polar Axis Radius Crosslines" name="polar-axes-crosslines-radius" type="generated" /%}
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgCartesianCrossLineOptions" label="Axes Cross Lines" %}
+{% apiReference id="AgCartesianCrossLineOptions" hideHeader=true /%}
+
+{% /tabItem %}
+
+{% /tabs %}
