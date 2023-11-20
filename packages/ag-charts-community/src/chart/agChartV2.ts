@@ -1,6 +1,6 @@
 import type { ModuleInstance } from '../module/baseModule';
 import type { LegendModule, RootModule } from '../module/coreModules';
-import { enterpriseModule } from '../module/enterpriseModule';
+import { LicenseManager, enterpriseModule } from '../module/enterpriseModule';
 import { type Module, REGISTERED_MODULES, hasRegisteredEnterpriseModules } from '../module/module';
 import type { AxisOptionModule, SeriesOptionModule } from '../module/optionModules';
 import type {
@@ -65,12 +65,14 @@ function chartType(options: any): 'cartesian' | 'polar' | 'hierarchy' {
  */
 export abstract class AgCharts {
     private static readonly INVALID_CHART_REF_MESSAGE = 'AG Charts - invalid chart reference passed';
+    private static licenseManager?: LicenseManager;
     private static licenseChecked = false;
 
     private static licenseCheck(options: AgChartOptions) {
         if (this.licenseChecked) return;
 
-        enterpriseModule.licenseManager?.(options);
+        this.licenseManager = enterpriseModule.licenseManager?.(options);
+        this.licenseManager?.validateLicense();
         this.licenseChecked = true;
     }
 
@@ -80,7 +82,14 @@ export abstract class AgCharts {
     public static create(options: AgChartOptions): AgChartInstance {
         this.licenseCheck(options);
         const chart = AgChartsInternal.createOrUpdate(options);
-        console.log(chart.chart.element);
+
+        if (this.licenseManager?.isDisplayWatermark()) {
+            enterpriseModule.injectWatermark?.(
+                (options as ChartExtendedOptions).document ?? document,
+                chart.chart.element,
+                this.licenseManager.getWatermarkMessage()
+            );
+        }
         return chart;
     }
 

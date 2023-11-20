@@ -14,6 +14,7 @@ import { ErrorBarsModule } from './features/error-bar/errorBarModule';
 import { ZoomModule } from './features/zoom/main';
 import { GradientLegendModule } from './gradient-legend/main';
 import { LicenseManager } from './license/licenseManager';
+import { injectWatermark } from './license/watermark';
 import { BoxPlotModule } from './series/box-plot/boxPlotModule';
 import { BulletModule } from './series/bullet/bulletModule';
 import { HeatmapModule } from './series/heatmap/main';
@@ -60,6 +61,5 @@ _ModuleSupport.registerModule(ZoomModule);
 
 _ModuleSupport.enterpriseModule.isEnterprise = true;
 _ModuleSupport.enterpriseModule.licenseManager = (options: AgChartOptions) =>
-    new LicenseManager(
-        options.container?.ownerDocument ?? (typeof document !== 'undefined' ? document : undefined)
-    ).validateLicense();
+    new LicenseManager(options.container?.ownerDocument ?? (typeof document !== 'undefined' ? document : undefined));
+_ModuleSupport.enterpriseModule.injectWatermark = injectWatermark;
