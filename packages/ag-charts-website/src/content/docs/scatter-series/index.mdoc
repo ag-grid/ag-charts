@@ -6,13 +6,68 @@ A Scatter Series identifies the correlation between values across two categories
 
 ## Simple Scatter
 
-{% chartExampleRunner title="Scatter Chart" name="scatter-chart" type="generated" /%}
+{% chartExampleRunner title="Scatter Chart" name="simple-scatter" type="generated" /%}
 
 To create a Scatter Series use the `'scatter'` series type.
 
 ```js
-series: [{ type: 'scatter', xKey: 'time', yKey: 'mm' }];
+series: [
+    {
+        type: 'scatter',
+        title: 'Male',
+        xKey: 'height',
+        xName: 'Height',
+        yKey: 'weight',
+        yName: 'Weight',
+    },
+];
 ```
+
+In this configuration:
+
+-   `xKey` defines the numerical values for the x axis, and is mapped by default to a [Number](./axes-types/#number).
+-   `yKey` provides the numerical values for the y axis, and is mapped by default to a [Number Axis](./axes-types/#number).
+-   `xName` and `yName` are optional and configure display names, reflected in [Tooltips](./tooltips).
+-   `title` is optional and is used in the [Tooltip Titles](./tooltips) and [Legend Items](./legend).
+
+## Markers
+
+{% chartExampleRunner title="Scatter Markers" name="scatter-customised-markers" type="generated" /%}
+
+It is possible to customise the fill, stroke and shape of the markers used in the Scatter Series.
+
+```js
+marker: {
+    shape: 'square',
+    fill: '#e36f6ab5',
+    stroke: '#9f4e4a',
+  },
+```
+
+In the above example, the 'females' series uses `'circle'` markers and the 'male' series uses `'square'` markers.
+
+Please see the [Series Markers](./markers/) page for more information or the [API Reference](#reference-AgScatterSeriesOptions-marker) for a list of all available marker options.
+
+## Labels
+
+To show labels for a Scatter Series set the `label.enabled` config of a series to `true` and specify which key should be used to fetch the label values.
+
+{% chartExampleRunner title="Scatter Chart with Labels" name="scatter-chart-labels" type="generated" /%}
+
+Scatter Series label placement is constrained so that:
+
+-   labels don't overlap any markers
+-   labels don't overlap other labels
+
+If these constraints are not satisfied, a label is not placed.
+
+Try opening the above example in a larger window to see that more labels are placed as the chart gets bigger.
+You can also try changing the size of the markers and the font size of the labels to see how that affects
+label placement.
+
+{% note %}
+Satisfying these constraints is computationally intensive and the complexity rises exponentially with increasing number of data points. Given that label placement might have to happen in real time, for example, when resizing a chart window, it is advised not to enable Scatter Series labels for data sets with more than a few hundred points.
+{% /note %}
 
 ## API Reference
 
