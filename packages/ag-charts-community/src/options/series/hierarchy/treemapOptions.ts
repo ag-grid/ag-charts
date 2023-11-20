@@ -4,9 +4,9 @@ import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type {
     CssColor,
     FontSize,
+    OverflowStrategy,
     PixelSize,
     TextAlign,
-    TextOverflow,
     TextWrap,
     VerticalAlign,
 } from '../../chart/types';
@@ -64,7 +64,7 @@ export interface AgTreemapSeriesTileBaseLabelOptions<TDatum>
 
     wrapping?: TextWrap;
 
-    overflow?: TextOverflow;
+    overflowStrategy?: OverflowStrategy;
 }
 
 export interface AgTreemapSeriesTileLabelOptions<TDatum> extends AgTreemapSeriesTileBaseLabelOptions<TDatum> {
@@ -107,9 +107,9 @@ export interface AgTreemapSeriesHighlightStyle<TDatum> extends AgSeriesHighlight
 
 export interface AgTreemapSeriesThemeableOptions<TDatum = any>
     extends Omit<AgBaseSeriesThemeableOptions, 'highlightStyle'> {
-    /** The colours to cycle through for the fills of the sectors. */
+    /** The colours to cycle through for the fills of the groups and tiles. */
     fills?: CssColor[];
-    /** The colours to cycle through for the strokes of the sectors. */
+    /** The colours to cycle through for the strokes of the groups and tiles. */
     strokes?: CssColor[];
     /** The color range to interpolate. */
     colorRange?: CssColor[];

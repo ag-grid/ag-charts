@@ -45,7 +45,7 @@ export type TextAlign = 'left' | 'center' | 'right';
  */
 export type TextWrap = 'never' | 'always' | 'hyphenate' | 'on-space';
 
-export type TextOverflow = 'ellipsis' | 'never';
+export type OverflowStrategy = 'ellipsis' | 'hide';
 
 /** Define a range within which an interaction can trigger on a point with one of:
  * - A distance in pixels from a point within which the event can be triggered.

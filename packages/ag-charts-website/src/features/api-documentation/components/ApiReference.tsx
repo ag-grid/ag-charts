@@ -26,11 +26,10 @@ export const ApiReferenceConfigContext = createContext<ApiReferenceConfig>({});
 
 export interface ApiReferenceConfig {
     prioritise?: string[];
-    include?: string[];
-    exclude?: string[];
     hideHeader?: boolean;
     hideRequired?: boolean;
     specialTypes?: SpecialTypesMap;
+    keepExpanded?: string[];
 }
 
 interface ApiReferenceOptions {
@@ -51,15 +50,14 @@ interface ApiReferenceRowOptions {
 export function ApiReferenceWithContext({
     reference,
     prioritise,
-    include,
-    exclude,
     hideHeader,
     hideRequired,
+    keepExpanded,
     ...props
 }: ApiReferenceOptions & ApiReferenceConfig & { reference: ApiReferenceType }) {
     return (
         <ApiReferenceContext.Provider value={reference}>
-            <ApiReferenceConfigContext.Provider value={{ prioritise, include, exclude, hideHeader, hideRequired }}>
+            <ApiReferenceConfigContext.Provider value={{ prioritise, hideHeader, hideRequired }}>
                 <ApiReference {...props} />
             </ApiReferenceConfigContext.Provider>
         </ApiReferenceContext.Provider>

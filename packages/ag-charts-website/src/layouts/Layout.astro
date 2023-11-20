@@ -83,7 +83,18 @@ const isApiLayout = apiMenuItems.some((item) => {
     <body>
         <div class="mainContainer">
             <SiteHeader showSearchBar={showSearchBar} />
-            {isApiLayout && <ApiTopBar menuItems={apiMenuItems} fullPath={path} />}
+            { isApiLayout && (
+                // Update page scroll offset when API top bar is sticky
+                <style>
+                    @media screen and (min-width: 1020px) {
+                        :root {
+                            --scroll-offset: calc(64px * 2 + 13px);
+                        }
+                    }
+                </style>
+
+                <ApiTopBar menuItems={apiMenuItems} fullPath={path} />
+            )}
 
             <slot />
         </div>

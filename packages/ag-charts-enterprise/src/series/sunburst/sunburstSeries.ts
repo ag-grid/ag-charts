@@ -6,12 +6,9 @@ import {
     type AgTooltipRendererResult,
     _ModuleSupport,
     _Scene,
-    _Util,
 } from 'ag-charts-community';
 
 import { AutoSizeableLabel, formatLabels } from '../util/labelFormatter';
-
-const { Logger } = _Util;
 
 const { HighlightStyle, SeriesTooltip, Validate, OPT_COLOR_STRING, OPT_FUNCTION, OPT_NUMBER, NUMBER, OPT_STRING } =
     _ModuleSupport;
@@ -153,19 +150,6 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
                 return '';
             }
         };
-
-        const hasInvalidFontSize = (label: AutoSizeableLabel<AgSunburstSeriesLabelFormatterParams> | undefined) => {
-            return (
-                label != null &&
-                label.minimumFontSize != null &&
-                label.fontSize &&
-                label.minimumFontSize > label.fontSize
-            );
-        };
-
-        if (hasInvalidFontSize(this.label) || hasInvalidFontSize(this.secondaryLabel)) {
-            Logger.warnOnce(`minimumFontSize should be set to a value less than or equal to the font size`);
-        }
 
         this.labelData = Array.from(this.rootNode, ({ datum, depth }) => {
             let label: string | undefined;

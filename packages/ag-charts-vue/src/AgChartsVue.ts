@@ -1,6 +1,6 @@
 import { Component, Vue } from 'vue-property-decorator';
 
-import { AgChart, AgChartInstance, AgChartOptions } from 'ag-charts-community';
+import { AgChartInstance, AgChartOptions, AgCharts } from 'ag-charts-community';
 
 @Component({
     props: {
@@ -22,7 +22,7 @@ export class AgChartsVue extends Vue {
     public mounted() {
         const options = this.applyContainerIfNotSet(this.options);
 
-        this.chart = AgChart.create(options);
+        this.chart = AgCharts.create(options);
 
         this.$watch('options', (newValue, oldValue) => {
             this.processChanges(newValue, oldValue);
@@ -45,7 +45,7 @@ export class AgChartsVue extends Vue {
 
     private processChanges(currentValue: any, previousValue: any) {
         if (this.isCreated && this.chart) {
-            AgChart.update(this.chart, this.applyContainerIfNotSet(this.options));
+            AgCharts.update(this.chart, this.applyContainerIfNotSet(this.options));
         }
     }
 

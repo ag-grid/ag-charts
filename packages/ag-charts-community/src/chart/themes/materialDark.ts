@@ -1,7 +1,6 @@
 import type { AgChartThemePalette } from '../../options/agChartOptions';
 import { DarkTheme } from './darkTheme';
 import {
-    DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
     DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
     DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
     DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
@@ -81,10 +80,6 @@ export class MaterialDark extends DarkTheme {
             DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
             MaterialDark.getWaterfallSeriesDefaultTotalColors().stroke
         );
-        result.properties.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [
-            MATERIAL_DARK_FILLS.BLUE,
-            MATERIAL_DARK_FILLS.RED,
-        ]);
 
         return result;
     }

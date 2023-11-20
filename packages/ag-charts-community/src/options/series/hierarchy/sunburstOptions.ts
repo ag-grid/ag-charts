@@ -1,7 +1,7 @@
 import type { AgChartCallbackParams } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
-import type { CssColor, FontSize, Opacity, PixelSize, TextOverflow, TextWrap } from '../../chart/types';
+import type { CssColor, FontSize, Opacity, OverflowStrategy, PixelSize, TextWrap } from '../../chart/types';
 import type { FillOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 
@@ -35,7 +35,7 @@ export interface AgSunburstSeriesBaseLabelOptions<TDatum>
 
     wrapping?: TextWrap;
 
-    overflow?: TextOverflow;
+    overflowStrategy?: OverflowStrategy;
 }
 
 export interface AgSunburstSeriesLabelOptions<TDatum> extends AgSunburstSeriesBaseLabelOptions<TDatum> {

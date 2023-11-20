@@ -1,4 +1,11 @@
-import type { FontFamily, FontSize, FontStyle, FontWeight, TextOverflow, TextWrap } from '../../options/agChartOptions';
+import type {
+    FontFamily,
+    FontSize,
+    FontStyle,
+    FontWeight,
+    OverflowStrategy,
+    TextWrap,
+} from '../../options/agChartOptions';
 import { BBox } from '../bbox';
 import { HdpiCanvas } from '../canvas/hdpiCanvas';
 import type { RenderContext } from '../node';
@@ -203,9 +210,9 @@ export class Text extends Shape {
         maxHeight: number,
         textProps: TextSizeProperties,
         wrapping: TextWrap,
-        overflow: TextOverflow = 'ellipsis'
+        overflow: OverflowStrategy = 'ellipsis'
     ): string {
-        const canOverflow = overflow !== 'never';
+        const canOverflow = overflow !== 'hide';
         const font = getFont(textProps);
         const measurer = createTextMeasurer(font);
         const lines: string[] = text.split(/\r?\n/g);

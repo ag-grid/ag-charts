@@ -1,5 +1,6 @@
 import type { AgChartOptions } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import { AgCharts, time } from 'ag-charts-community';
 
 import { AngleCategoryAxisModule } from './axes/angle-category/main';
 import { AngleNumberAxisModule } from './axes/angle-number/main';
@@ -27,7 +28,10 @@ import { SunburstSeriesModule } from './series/sunburst/sunburstSeriesModule';
 import { TreemapSeriesModule } from './series/treemap/treemapSeriesModule';
 import { WaterfallModule } from './series/waterfall/main';
 
+// Export types.
 export * from 'ag-charts-community';
+// Needed for UMD global exports to work correctly.
+export { time, AgCharts };
 
 _ModuleSupport.registerModule(AngleCategoryAxisModule);
 _ModuleSupport.registerModule(AngleNumberAxisModule);

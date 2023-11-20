@@ -7,13 +7,19 @@
 }
 
 .expandableSnippet {
+    --total-header-height: calc(var(--header-nav-height) * 2 + 4px);
+
     position: sticky;
-    top: var(--header-nav-height);
+    top: var(--total-header-height);
     display: flex;
     flex-direction: column;
     width: 100%;
-    height: calc(100vh - var(--header-nav-height));
+    height: calc(100vh - var(--total-header-height));
     z-index: 3;
+
+    #{$darkmode-selector} & {
+        --total-header-height: calc(var(--header-nav-height) * 2 + 6px);
+    }
 
     @media screen and (min-width: $breakpoint-options-medium) {
         overflow-y: auto;

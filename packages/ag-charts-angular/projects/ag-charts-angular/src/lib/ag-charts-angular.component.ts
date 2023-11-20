@@ -10,7 +10,7 @@ import {
     ViewEncapsulation,
 } from '@angular/core';
 
-import { AgChart, AgChartInstance, AgChartOptions } from 'ag-charts-community';
+import { AgChartInstance, AgChartOptions, AgCharts } from 'ag-charts-community';
 
 // noinspection AngularIncorrectTemplateDefinition
 @Component({
@@ -37,7 +37,7 @@ export class AgChartsAngular implements AfterViewInit, OnChanges, OnDestroy {
     ngAfterViewInit(): void {
         const options = this.applyContainerIfNotSet(this.options);
 
-        this.chart = AgChart.create(options);
+        this.chart = AgCharts.create(options);
         this._initialised = true;
 
         (this.chart as any).chart.waitForUpdate().then(() => {
@@ -51,7 +51,7 @@ export class AgChartsAngular implements AfterViewInit, OnChanges, OnDestroy {
             return;
         }
 
-        AgChart.update(this.chart, this.applyContainerIfNotSet(this.options));
+        AgCharts.update(this.chart, this.applyContainerIfNotSet(this.options));
     }
 
     public ngOnDestroy(): void {
