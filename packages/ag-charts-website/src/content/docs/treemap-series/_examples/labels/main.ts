@@ -12,7 +12,7 @@ const options: AgChartOptions = {
             secondaryLabelKey: 'total',
             sizeKey: 'total',
             colorKey: 'change',
-            colorRange: ['rgb(63, 145, 79)', 'rgb(253, 149, 63)'],
+            colorRange: ['rgb(234, 82, 80)', 'rgb(67, 153, 83)'],
             fills: ['#455A64'],
             group: {
                 label: {

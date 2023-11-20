@@ -12,7 +12,7 @@ const options: AgChartOptions = {
             secondaryLabelKey: 'total',
             sizeKey: 'total',
             colorKey: 'change',
-            colorRange: ['rgb(63, 145, 79)', 'rgb(253, 149, 63)'],
+            colorRange: ['rgb(234, 82, 80)', 'rgb(67, 153, 83)'],
             fills: ['#455A64'],
             group: {
                 label: {
@@ -21,6 +21,7 @@ const options: AgChartOptions = {
                 },
                 stroke: '#37474F',
                 padding: 10,
+                gap: 5,
             },
             tile: {
                 label: {
@@ -32,8 +33,8 @@ const options: AgChartOptions = {
                     formatter: (params) => `£${params.value.toFixed(1)}bn`,
                 },
                 padding: 10,
+                gap: 2,
             },
-            tileSpacing: 5,
             tooltip: {
                 renderer: (params) => {
                     const { total, change } = params.datum;

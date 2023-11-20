@@ -23,6 +23,7 @@ const options: AgChartOptions = {
         fill: '#2c3e50',
         strokeWidth: 0,
         padding: 2,
+        gap: 1,
       },
       tile: {
         label: {
@@ -38,7 +39,6 @@ const options: AgChartOptions = {
         },
         strokeWidth: 0,
       },
-      tileSpacing: 1,
       highlightStyle: {
         group: {
           fill: '#34495e',

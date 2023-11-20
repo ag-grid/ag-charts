@@ -23,11 +23,14 @@ export const TreemapSeriesModule: _ModuleSupport.SeriesModule<'treemap'> = {
                 fontWeight: NORMAL,
                 fontSize: 12,
                 fontFamily: DEFAULT_FONT_FAMILY,
+                spacing: 3,
             },
             fill: undefined, // Override default fill
             stroke: undefined, // Override default stroke
             strokeWidth: 1,
-            padding: 3,
+            padding: 6,
+            gap: 4,
+            textAlign: 'left',
         },
         tile: {
             label: {
@@ -57,8 +60,8 @@ export const TreemapSeriesModule: _ModuleSupport.SeriesModule<'treemap'> = {
             stroke: undefined, // Override default stroke
             strokeWidth: 1,
             padding: 3,
+            gap: -1,
         },
-        tileSpacing: 1,
         // Override defaults
         highlightStyle: {
             group: {
