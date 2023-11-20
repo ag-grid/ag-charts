@@ -12,7 +12,7 @@ import { Logger } from '../../util/logger';
 import type { DeepPartial } from '../../util/types';
 import { AXIS_TYPES } from '../factory/axisTypes';
 import { CHART_TYPES } from '../factory/chartTypes';
-import { getUsedEnterpriseOptions } from '../factory/expectedEnterpriseModules';
+import { removeUsedEnterpriseOptions } from '../factory/expectedEnterpriseModules';
 import {
     executeCustomDefaultsFunctions,
     getSeriesDefaults,
@@ -209,18 +209,7 @@ function prepareMainOptions<T extends AgChartOptions>(
     );
 
     if (!enterpriseModule.isEnterprise) {
-        for (const propertyName of getUsedEnterpriseOptions(mergedOptions)) {
-            Logger.warnOnce(
-                [
-                    `AG Charts: unable to use ${propertyName} as package 'ag-charts-enterprise' has not been imported.`,
-                    'Check that you have imported the package:',
-                    '',
-                    '    import "ag-charts-enterprise";',
-                    '',
-                    'For more info see: https://www.ag-grid.com/ag-charts/javascript/quick-start/',
-                ].join('\n')
-            );
-        }
+        removeUsedEnterpriseOptions(mergedOptions);
     }
 
     return { context, mergedOptions, axesThemes, seriesThemes, theme };
