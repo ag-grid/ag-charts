@@ -289,7 +289,7 @@ export const TEXT_WRAP = predicateWithMessage(
 const OVERFLOW_STRAGEGIES = ['ellipsis', 'hide'];
 export const OVERFLOW_STRATEGY = predicateWithMessage(
     (v: any) => OVERFLOW_STRAGEGIES.includes(v),
-    `expecting a text wrap strategy keyword such as 'ellipsis', or 'hide'`
+    `expecting an overflow strategy keyword such as 'ellipsis', or 'hide'`
 );
 
 const TEXT_ALIGNS = ['left', 'center', 'right'];
