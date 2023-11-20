@@ -132,6 +132,4 @@ export function removeUsedEnterpriseOptions<T extends AgChartOptions>(options: T
             ].join('\n')
         );
     }
-
-    return usedOptions;
 }
