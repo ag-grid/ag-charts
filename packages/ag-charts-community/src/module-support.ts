@@ -2,7 +2,6 @@ export * from './util/array';
 export * from './util/validation';
 export * from './util/default';
 export { extractDecoratedProperties, isDecoratedObject, listDecoratedProperties } from './util/decorator';
-export * from './util/function';
 export * from './util/number';
 export * from './util/object';
 export * from './util/proxy';
