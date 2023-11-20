@@ -17,10 +17,12 @@ export const SunburstSeriesModule: _ModuleSupport.SeriesModule<'sunburst'> = {
         __extends__: EXTENDS_SERIES_DEFAULTS,
         label: {
             color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
+            overflowStrategy: 'ellipsis',
             wrapping: 'never',
         },
         secondaryLabel: {
             color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
+            overflowStrategy: 'ellipsis',
             wrapping: 'never',
         },
         sectorSpacing: 1,

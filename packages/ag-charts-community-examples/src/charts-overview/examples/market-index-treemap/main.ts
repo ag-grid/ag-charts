@@ -27,9 +27,11 @@ const options: AgChartOptions = {
       tile: {
         label: {
           color: '#34495e',
+          overflowStrategy: 'hide',
         },
         secondaryLabel: {
           color: '#34495e',
+          overflowStrategy: 'hide',
           formatter(params) {
             return params.value.toFixed(2) + '%';
           },
