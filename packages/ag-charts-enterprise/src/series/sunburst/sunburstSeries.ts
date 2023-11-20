@@ -536,7 +536,16 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
     }
 
     override getTooltipHtml(node: _ModuleSupport.HierarchyNode): string {
-        const { tooltip, colorKey, colorName = colorKey, labelKey, sizeKey, sizeName = sizeKey, id: seriesId } = this;
+        const {
+            tooltip,
+            colorKey,
+            colorName = colorKey,
+            labelKey,
+            secondaryLabelKey,
+            sizeKey,
+            sizeName = sizeKey,
+            id: seriesId,
+        } = this;
         const { datum, depth } = node;
         if (datum == null || depth == null) {
             return '';
@@ -551,21 +560,26 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
             return '';
         }
 
-        const contentArray: Array<{ title: string; value: string }> = [];
-        const datumSize = sizeKey != null ? datum[sizeKey] : undefined;
+        const contentArray: Array<{ title: string | undefined; value: string }> = [];
 
+        const datumSecondaryLabel = secondaryLabelKey != null ? datum[secondaryLabelKey] : undefined;
+        if (datumSecondaryLabel != null) {
+            contentArray.push({ title: undefined, value: sanitizeHtml(datumSecondaryLabel) });
+        }
+
+        const datumSize = sizeKey != null ? datum[sizeKey] : undefined;
         if (datumSize != null) {
-            contentArray.push({ title: sizeName!, value: sanitizeHtml(datumSize) });
+            contentArray.push({ title: sizeName, value: sanitizeHtml(datumSize) });
         }
 
         const datumColor = colorKey != null ? datum[colorKey] : undefined;
         if (datumColor != null) {
-            contentArray.push({ title: colorName!, value: sanitizeHtml(datumColor) });
+            contentArray.push({ title: colorName, value: sanitizeHtml(datumColor) });
         }
 
         const content =
             contentArray.length !== 1
-                ? contentArray.map(({ title, value }) => `${title}: ${value}`).join('<br>')
+                ? contentArray.map(({ title, value }) => (title != null ? `${title}: ${value}` : value)).join('<br>')
                 : contentArray[0].value;
 
         const defaults: AgTooltipRendererResult = {
@@ -579,6 +593,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
             datum,
             colorKey,
             labelKey,
+            secondaryLabelKey,
             sizeKey,
             title,
             color,

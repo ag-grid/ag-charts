@@ -843,21 +843,26 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
             return '';
         }
 
-        const contentArray: Array<{ title: string; value: string }> = [];
-        const datumSize = sizeKey != null ? datum[sizeKey] : undefined;
+        const contentArray: Array<{ title: string | undefined; value: string }> = [];
 
+        const datumSecondaryLabel = secondaryLabelKey != null ? datum[secondaryLabelKey] : undefined;
+        if (datumSecondaryLabel != null) {
+            contentArray.push({ title: undefined, value: sanitizeHtml(datumSecondaryLabel) });
+        }
+
+        const datumSize = sizeKey != null ? datum[sizeKey] : undefined;
         if (datumSize != null) {
-            contentArray.push({ title: sizeName!, value: sanitizeHtml(datumSize) });
+            contentArray.push({ title: sizeName, value: sanitizeHtml(datumSize) });
         }
 
         const datumColor = colorKey != null ? datum[colorKey] : undefined;
         if (datumColor != null) {
-            contentArray.push({ title: colorName!, value: sanitizeHtml(datumColor) });
+            contentArray.push({ title: colorName, value: sanitizeHtml(datumColor) });
         }
 
         const content =
             contentArray.length !== 1
-                ? contentArray.map(({ title, value }) => `${title}: ${value}`).join('<br>')
+                ? contentArray.map(({ title, value }) => (title != null ? `${title}: ${value}` : value)).join('<br>')
                 : contentArray[0].value;
 
         const defaults: AgTooltipRendererResult = {
