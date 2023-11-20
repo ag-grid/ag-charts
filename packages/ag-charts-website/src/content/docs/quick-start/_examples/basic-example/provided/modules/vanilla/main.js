@@ -1,9 +1,7 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-community';
-
 // Chart Options
-const options: AgChartOptions = {
+const options = {
     // Container: HTML Element to hold the chart
-    container: document.getElementById('myChart') as HTMLElement,
+    container: document.getElementById('myChart'),
     // Data: Data to be displayed in the chart
     data: [
         { month: 'Jan', avgTemp: 2.3, iceCreamSales: 162 },
@@ -18,4 +16,4 @@ const options: AgChartOptions = {
 };
 
 // Create Chart
-AgCharts.create(options);
+agCharts.AgCharts.create(options);

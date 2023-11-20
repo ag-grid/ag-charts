@@ -4,57 +4,232 @@ title: 'Quick Start'
 
 Create a chart with AG Charts in 60 seconds.
 
+{% if isNotJavascriptFramework() %}
+
 ## Install
 
-Create a new project and add the Ag Charts library:
+Install the AG Charts library:
 
-```html
-<script src="https://cdn.jsdelivr.net/npm/ag-charts-community/dist/ag-charts-community.min.js"></script>
+<!-- REACT Installation -->
+
+{% if isFramework("react") %}
+
+```bash
+npm install ag-charts-react
 ```
+
+{% /if %}
+
+<!-- ANGULAR Installation -->
+
+{% if isFramework("angular") %}
+
+```bash
+npm install ag-charts-angular
+```
+
+{% /if %}
+
+<!-- VUE Installation -->
+
+{% if isFramework("vue") %}
+
+```bash
+npm install ag-charts-vue3
+```
+
+{% /if %}
+
+{% /if %}
 
 ## Create
 
-First, create a div that will contain the chart:
+{% if isFramework("javascript") %}
 
-```javascript
-<div id="myChart" style="height: 100%;"></div>
+Create a new `index.html` file with the following code:
+
+```html
+<!doctype html>
+<html lang="en">
+    <head>
+        <title>AG Charts Quick Start</title>
+        <!-- Charts Core Library -->
+        <script src="https://cdn.jsdelivr.net/npm/ag-charts-community/dist/ag-charts-community.min.js"></script>
+    </head>
+    <body>
+        <!-- Container for Chart -->
+        <div id="myChart" style="height: 100%"></div>
+        <!-- Charts configuration file -->
+        <script src="index.js"></script>
+    </body>
+</html>
 ```
 
-Then, create a new file and add the code below to create the chart:
+Create a new `index.js` file, in the same directory, with the following code:
 
-```javascript
-// Required Imports
-import { AgCharts, AgChartOptions } from 'ag-charts-community';
-
+```js
 // Chart Options
-const options: AgChartOptions = {
-    // Data to be displayed
-    data: [
-      { beverage: 'Coffee', Q1: 700 },
-      { beverage: 'Tea', Q1: 520 },
-      { beverage: 'Milk', Q1: 200 }
-    ],
-    // Container element
+const options = {
+    // Container: HTML Element to hold the chart
     container: document.getElementById('myChart'),
-    // Series Info
-    series: [
-        {
-            type: 'bar',
-            xKey: 'beverage',
-            yKey: 'Q1',
-        },
+    // Data: Data to be displayed in the chart
+    data: [
+        { month: 'Jan', avgTemp: 2.3, iceCreamSales: 162 },
+        { month: 'Mar', avgTemp: 6.3, iceCreamSales: 302 },
+        { month: 'May', avgTemp: 16.2, iceCreamSales: 800 },
+        { month: 'Jul', avgTemp: 22.8, iceCreamSales: 1254 },
+        { month: 'Sep', avgTemp: 14.5, iceCreamSales: 950 },
+        { month: 'Nov', avgTemp: 8.9, iceCreamSales: 200 },
     ],
+    // Series: Defines which chart type and data to use
+    series: [{ type: 'bar', xKey: 'month', yKey: 'iceCreamSales' }],
 };
 
 // Create Chart
-AgCharts.create(options);
+var chart = agCharts.AgCharts.create(options);
 ```
+
+{% /if %}
+
+<!-- REACT Create -->
+
+{% if isFramework("react") %}
+
+Replace your `index.js` file (or root component) with the following code:
+
+```jsx
+import React, { useState } from 'react';
+import ReactDOM from 'react-dom/client';
+import { AgChartsReact } from 'ag-charts-react';
+
+// Chart Component
+const ChartExample = () => {
+  // Chart Options: Control & configure the chart
+  const [chartOptions, setChartOptions] = useState({
+    // Data: Data to be displayed in the chart
+    data: [
+        { month: 'Jan', avgTemp: 2.3, iceCreamSales: 162 },
+        { month: 'Mar', avgTemp: 6.3, iceCreamSales: 302 },
+        { month: 'May', avgTemp: 16.2, iceCreamSales: 800 },
+        { month: 'Jul', avgTemp: 22.8, iceCreamSales: 1254 },
+        { month: 'Sep', avgTemp: 14.5, iceCreamSales: 950 },
+        { month: 'Nov', avgTemp: 8.9, iceCreamSales: 200 },
+    ],
+    // Series: Defines which chart type and data to use
+    series: [{ type: 'bar', xKey: 'month', yKey: 'iceCreamSales' }],
+  });
+
+  return (
+    // AgCharsReact component with options passed as prop
+    <AgChartsReact options={chartOptions} />
+  );
+}
+
+// Render component inside root element
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<ChartExample />);
+```
+
+{% /if %}
+
+<!-- ANGULAR Create -->
+
+{% if isFramework("angular") %}
+
+Replace your `app.component.ts` file (or root component) with the following:
+
+```js
+import { Component } from '@angular/core';
+import { AgChartsAngularModule } from 'ag-charts-angular';
+import { AgChartOptions } from 'ag-charts-community';
+
+@Component({
+  selector: 'app-root',
+  standalone: true,
+  imports: [AgChartsAngularModule],
+  // ag-charts-angular component with chartOptions attribute
+  template:
+  `<ag-charts-angular
+    style="height: 100%"
+    [options]="chartOptions">
+   </ag-charts-angular>`,
+})
+export class AppComponent {
+  // Chart Options
+  public chartOptions: AgChartOptions;
+  constructor() {
+    this.chartOptions = {
+      // Data: Data to be displayed in the chart
+      data: [
+        { month: 'Jan', avgTemp: 2.3, iceCreamSales: 162 },
+        { month: 'Mar', avgTemp: 6.3, iceCreamSales: 302 },
+        { month: 'May', avgTemp: 16.2, iceCreamSales: 800 },
+        { month: 'Jul', avgTemp: 22.8, iceCreamSales: 1254 },
+        { month: 'Sep', avgTemp: 14.5, iceCreamSales: 950 },
+        { month: 'Nov', avgTemp: 8.9, iceCreamSales: 200 },
+      ],
+      // Series: Defines which chart type and data to use
+      series: [{ type: 'bar', xKey: 'month', yKey: 'iceCreamSales' }]
+    };
+  }
+}
+```
+
+{% /if %}
+
+<!-- VUE Create -->
+
+{% if isFramework("vue") %}
+
+Replace your `app.vue` (or root component) with the following code:
+
+```html
+<template>
+    <!-- The AG Charts component with chartsOptions as an attribute -->
+    <ag-charts-vue :options="options"> </ag-charts-vue>
+</template>
+
+<script>
+    import { ref } from 'vue';
+
+    import { AgChartsVue } from 'ag-charts-vue3';
+
+    // Core Charts Logic
+    export default {
+        name: 'App',
+        components: {
+            AgChartsVue,
+        },
+        setup() {
+            // Chart Options
+            const options = ref({
+                // Data: Data to be displayed in the chart
+                data: [
+                    { month: 'Jan', avgTemp: 2.3, iceCreamSales: 162 },
+                    { month: 'Mar', avgTemp: 6.3, iceCreamSales: 302 },
+                    { month: 'May', avgTemp: 16.2, iceCreamSales: 800 },
+                    { month: 'Jul', avgTemp: 22.8, iceCreamSales: 1254 },
+                    { month: 'Sep', avgTemp: 14.5, iceCreamSales: 950 },
+                    { month: 'Nov', avgTemp: 8.9, iceCreamSales: 200 },
+                ],
+                // Series: Defines which chart type and data to use
+                series: [{ type: 'bar', xKey: 'month', yKey: 'iceCreamSales' }],
+            });
+            return {
+                options,
+            };
+        },
+    };
+</script>
+```
+
+{% /if %}
 
 ## Example
 
-The code above will output the below chart:
+When you run your app, you should see a basic chart:
 
-{% chartExampleRunner title="Basic Chart Example" name="basic-example" type="generated" /%}
+{% chartExampleRunner title="Basic Chart Example" name="basic-example" type="mixed" /%}
 
 ## Next Steps
 
