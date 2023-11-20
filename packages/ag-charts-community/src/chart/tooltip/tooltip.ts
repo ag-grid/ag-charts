@@ -1,5 +1,6 @@
 import type { AgTooltipRendererResult, InteractionRange } from '../../options/agChartOptions';
 import { BBox } from '../../scene/bbox';
+import { injectStyle } from '../../util/dom';
 import {
     BOOLEAN,
     INTERACTION_RANGE,
@@ -233,10 +234,7 @@ export class Tooltip {
         }
 
         if (Tooltip.tooltipDocuments.indexOf(document) < 0) {
-            const styleElement = document.createElement('style');
-            styleElement.innerHTML = defaultTooltipCss;
-            // Make sure the default tooltip style goes before other styles so it can be overridden.
-            document.head.insertBefore(styleElement, document.head.querySelector('style'));
+            injectStyle(document, defaultTooltipCss);
             Tooltip.tooltipDocuments.push(document);
         }
     }

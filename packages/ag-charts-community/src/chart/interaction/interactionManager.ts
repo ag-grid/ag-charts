@@ -1,3 +1,4 @@
+import { injectStyle } from '../../util/dom';
 import { Logger } from '../../util/logger';
 import { isNumber } from '../../util/value';
 import { BaseManager } from './baseManager';
@@ -120,10 +121,8 @@ export class InteractionManager extends BaseManager<
             this.window.addEventListener(type, this.eventHandler);
         }
 
-        if (InteractionManager.interactionDocuments.indexOf(document) < 0) {
-            const styleElement = document.createElement('style');
-            styleElement.innerHTML = CSS;
-            document.head.insertBefore(styleElement, document.head.querySelector('style'));
+        if (!InteractionManager.interactionDocuments.includes(document)) {
+            injectStyle(document, CSS);
             InteractionManager.interactionDocuments.push(document);
         }
     }

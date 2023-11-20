@@ -79,7 +79,9 @@ export abstract class AgCharts {
      */
     public static create(options: AgChartOptions): AgChartInstance {
         this.licenseCheck(options);
-        return AgChartsInternal.createOrUpdate(options);
+        const chart = AgChartsInternal.createOrUpdate(options);
+        console.log(chart.chart.element);
+        return chart;
     }
 
     /**
