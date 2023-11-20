@@ -112,6 +112,12 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
     readonly secondaryLabel = new AutoSizeableLabel<AgSunburstSeriesLabelFormatterParams>();
 
     @Validate(OPT_STRING)
+    sizeName?: string = undefined;
+
+    @Validate(OPT_STRING)
+    colorName?: string = undefined;
+
+    @Validate(OPT_STRING)
     labelKey?: string = undefined;
 
     @Validate(OPT_STRING)
@@ -136,7 +142,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
     formatter?: (params: AgSunburstSeriesFormatterParams) => AgSunburstSeriesStyle = undefined;
 
     override async processData() {
-        const { labelKey, secondaryLabelKey, childrenKey, colorKey, sizeKey } = this;
+        const { childrenKey, colorKey, colorName, labelKey, secondaryLabelKey, sizeKey, sizeName } = this;
 
         super.processData();
 
@@ -159,7 +165,18 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
                 const value = datum[labelKey] ?? '';
                 label = this.getLabelText(
                     this.label,
-                    { depth, datum, childrenKey, colorKey, labelKey, secondaryLabelKey, sizeKey, value },
+                    {
+                        depth,
+                        datum,
+                        childrenKey,
+                        colorKey,
+                        colorName,
+                        labelKey,
+                        secondaryLabelKey,
+                        sizeKey,
+                        sizeName,
+                        value,
+                    },
                     defaultLabelFormatter
                 );
             }
@@ -172,7 +189,18 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
                 const value = datum[secondaryLabelKey] ?? '';
                 secondaryLabel = this.getLabelText(
                     this.secondaryLabel,
-                    { depth, datum, childrenKey, colorKey, labelKey, secondaryLabelKey, sizeKey, value },
+                    {
+                        depth,
+                        datum,
+                        childrenKey,
+                        colorKey,
+                        colorName,
+                        labelKey,
+                        secondaryLabelKey,
+                        sizeKey,
+                        sizeName,
+                        value,
+                    },
                     defaultLabelFormatter
                 );
             }
@@ -508,7 +536,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
     }
 
     override getTooltipHtml(node: _ModuleSupport.HierarchyNode): string {
-        const { tooltip, colorKey, labelKey, sizeKey, id: seriesId } = this;
+        const { tooltip, colorKey, colorName = colorKey, labelKey, sizeKey, sizeName = sizeKey, id: seriesId } = this;
         const { datum, depth } = node;
         if (datum == null || depth == null) {
             return '';
@@ -523,21 +551,27 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
             return '';
         }
 
-        const contentArray: string[] = [];
+        const contentArray: Array<{ title: string; value: string }> = [];
         const datumSize = sizeKey != null ? datum[sizeKey] : undefined;
+
         if (datumSize != null) {
-            contentArray.push(sanitizeHtml(datumSize));
+            contentArray.push({ title: sizeName!, value: sanitizeHtml(datumSize) });
         }
 
         const datumColor = colorKey != null ? datum[colorKey] : undefined;
         if (datumColor != null) {
-            contentArray.push(sanitizeHtml(datumColor));
+            contentArray.push({ title: colorName!, value: sanitizeHtml(datumColor) });
         }
+
+        const content =
+            contentArray.length !== 1
+                ? contentArray.map(({ title, value }) => `${title}: ${value}`).join('<br>')
+                : contentArray[0].value;
 
         const defaults: AgTooltipRendererResult = {
             title,
             backgroundColor: color,
-            content: contentArray.join('<br>'),
+            content,
         };
 
         return tooltip.toTooltipHtml(defaults, {

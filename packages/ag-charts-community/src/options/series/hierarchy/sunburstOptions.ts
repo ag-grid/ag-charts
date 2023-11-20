@@ -92,6 +92,8 @@ export interface AgSunburstSeriesOptionsKeys {
     sizeKey?: string;
     /** The name of the node key containing the color value. This value (along with `colorRange` config) will be used to determine the segment color. */
     colorKey?: string;
+    sizeName?: string;
+    colorName?: string;
 }
 
 /** The parameters of the sunburst series formatter function */

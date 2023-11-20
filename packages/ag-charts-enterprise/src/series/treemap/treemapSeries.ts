@@ -251,6 +251,12 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
     tileSpacing = 0;
 
     @Validate(OPT_STRING)
+    sizeName?: string = undefined;
+
+    @Validate(OPT_STRING)
+    colorName?: string = undefined;
+
+    @Validate(OPT_STRING)
     labelKey?: string = undefined;
 
     @Validate(OPT_STRING)
@@ -315,7 +321,8 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
     override async processData() {
         super.processData();
 
-        const { data, childrenKey, colorKey, labelKey, secondaryLabelKey, sizeKey, tile, group } = this;
+        const { data, childrenKey, colorKey, colorName, labelKey, secondaryLabelKey, sizeKey, sizeName, tile, group } =
+            this;
 
         if (data == null || data.length === 0) {
             this.labelData = undefined;
@@ -342,7 +349,18 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
                 const value = datum[labelKey] ?? '';
                 label = this.getLabelText(
                     labelStyle,
-                    { depth, datum, childrenKey, colorKey, labelKey, secondaryLabelKey, sizeKey, value },
+                    {
+                        depth,
+                        datum,
+                        childrenKey,
+                        colorKey,
+                        colorName,
+                        labelKey,
+                        secondaryLabelKey,
+                        sizeKey,
+                        sizeName,
+                        value,
+                    },
                     defaultLabelFormatter
                 );
             }
@@ -355,7 +373,18 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
                 const value = datum[secondaryLabelKey] ?? '';
                 secondaryLabel = this.getLabelText(
                     tile.secondaryLabel,
-                    { depth, datum, childrenKey, colorKey, labelKey, secondaryLabelKey, sizeKey, value },
+                    {
+                        depth,
+                        datum,
+                        childrenKey,
+                        colorKey,
+                        colorName,
+                        labelKey,
+                        secondaryLabelKey,
+                        sizeKey,
+                        sizeName,
+                        value,
+                    },
                     defaultLabelFormatter
                 );
             }
@@ -788,7 +817,16 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
     }
 
     getTooltipHtml(node: _ModuleSupport.HierarchyNode): string {
-        const { tooltip, colorKey, labelKey, secondaryLabelKey, sizeKey, id: seriesId } = this;
+        const {
+            tooltip,
+            colorKey,
+            colorName = colorKey,
+            labelKey,
+            secondaryLabelKey,
+            sizeKey,
+            sizeName = sizeKey,
+            id: seriesId,
+        } = this;
         const { datum, depth } = node;
         const isLeaf = node.children.length === 0;
         const interactive = isLeaf || this.group.interactive;
@@ -805,21 +843,27 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
             return '';
         }
 
-        const contentArray: string[] = [];
+        const contentArray: Array<{ title: string; value: string }> = [];
         const datumSize = sizeKey != null ? datum[sizeKey] : undefined;
+
         if (datumSize != null) {
-            contentArray.push(sanitizeHtml(datumSize));
+            contentArray.push({ title: sizeName!, value: sanitizeHtml(datumSize) });
         }
 
         const datumColor = colorKey != null ? datum[colorKey] : undefined;
         if (datumColor != null) {
-            contentArray.push(sanitizeHtml(datumColor));
+            contentArray.push({ title: colorName!, value: sanitizeHtml(datumColor) });
         }
+
+        const content =
+            contentArray.length !== 1
+                ? contentArray.map(({ title, value }) => `${title}: ${value}`).join('<br>')
+                : contentArray[0].value;
 
         const defaults: AgTooltipRendererResult = {
             title,
             backgroundColor: color,
-            content: contentArray.join('<br>'),
+            content,
         };
 
         return tooltip.toTooltipHtml(defaults, {
