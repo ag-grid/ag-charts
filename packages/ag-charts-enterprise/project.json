@@ -37,6 +37,7 @@
       "executor": "@nx/rollup:rollup",
       "inputs": ["tsDefaults"],
       "outputs": ["{options.outputPath}"],
+      "dependsOn": ["^build:package"],
       "options": {
         "outputPath": "packages/ag-charts-enterprise/dist/umd",
         "main": "packages/ag-charts-enterprise/src/main.ts",
