@@ -58,10 +58,17 @@ export const ARRAY = (length?: number, predicate?: ValidatePredicate) => {
 export const OPT_ARRAY = (length?: number) => {
     return predicateWithMessage((v: any, ctx) => OPTIONAL(v, ctx, ARRAY(length)), 'expecting an optional Array');
 };
+
 export const NON_EMPTY_ARRAY = predicateWithMessage(
     (v: any) => Array.isArray(v) && v.length > 0,
     `expecting a non-empty Array`
 );
+export const OPT_NON_EMPTY_ARRAY = () => {
+    return predicateWithMessage(
+        (v: any, ctx) => OPTIONAL(v, ctx, NON_EMPTY_ARRAY),
+        'expecting an optional non-empty Array'
+    );
+};
 
 export const AND = (...predicates: ValidatePredicate[]) => {
     return predicateWithMessage(
