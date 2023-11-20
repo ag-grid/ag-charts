@@ -1326,6 +1326,19 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
 
     protected override readonly NodeClickEvent = PieSeriesNodeClickEvent;
 
+    private getDatumLegendName(nodeDatum: PieNodeDatum) {
+        const { angleKey, calloutLabelKey, sectorLabelKey, legendItemKey } = this;
+        const { sectorLabel, calloutLabel, legendItem } = nodeDatum;
+
+        if (legendItemKey && legendItem !== undefined) {
+            return legendItem.text;
+        } else if (calloutLabelKey && calloutLabelKey !== angleKey && calloutLabel?.text !== undefined) {
+            return calloutLabel.text;
+        } else if (sectorLabelKey && sectorLabelKey !== angleKey && sectorLabel?.text !== undefined) {
+            return sectorLabel.text;
+        }
+    }
+
     getTooltipHtml(nodeDatum: PieNodeDatum): string {
         if (!this.angleKey) {
             return '';
@@ -1335,14 +1348,18 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
             datum,
             angleValue,
             sectorFormat: { fill: color },
-            calloutLabel: { text: labelText } = {},
         } = nodeDatum;
 
         const title = sanitizeHtml(this.title?.text);
         const content = isNumber(angleValue) ? toFixed(angleValue) : String(angleValue);
+        const labelText = this.getDatumLegendName(nodeDatum);
 
         return this.tooltip.toTooltipHtml(
-            { title, content: labelText ? `${labelText}: ${content}` : content, backgroundColor: color },
+            {
+                title: title ?? labelText,
+                content: title && labelText ? `${labelText}: ${content}` : content,
+                backgroundColor: color,
+            },
             {
                 datum,
                 title,
@@ -1361,11 +1378,16 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
     }
 
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
-        const { processedData, calloutLabelKey, legendItemKey, id, dataModel } = this;
+        const { processedData, angleKey, calloutLabelKey, sectorLabelKey, legendItemKey, id, dataModel } = this;
 
         if (!dataModel || !processedData || processedData.data.length === 0 || legendType !== 'category') return [];
 
-        if (!legendItemKey && !calloutLabelKey) return [];
+        if (
+            !legendItemKey &&
+            (!calloutLabelKey || calloutLabelKey === angleKey) &&
+            (!sectorLabelKey || sectorLabelKey === angleKey)
+        )
+            return [];
 
         const { calloutLabelIdx, sectorLabelIdx, legendItemIdx } = this.getProcessedDataIndexes(dataModel);
 
@@ -1388,10 +1410,13 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
                 values[sectorLabelIdx],
                 values[legendItemIdx]
             );
+
             if (legendItemKey && labels.legendItem !== undefined) {
                 labelParts.push(labels.legendItem.text);
-            } else if (calloutLabelKey && labels.calloutLabel?.text !== undefined) {
+            } else if (calloutLabelKey && calloutLabelKey !== angleKey && labels.calloutLabel?.text !== undefined) {
                 labelParts.push(labels.calloutLabel?.text);
+            } else if (sectorLabelKey && sectorLabelKey !== angleKey && labels.sectorLabel?.text !== undefined) {
+                labelParts.push(labels.sectorLabel?.text);
             }
 
             if (labelParts.length === 0) continue;
