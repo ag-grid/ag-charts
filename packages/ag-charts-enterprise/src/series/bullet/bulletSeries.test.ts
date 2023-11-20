@@ -296,5 +296,114 @@ describe('BulletSeriesValidation', () => {
         );
         await compare(chart, ctx);
     });
+
+    it('should ignore trailing bullet series', async () => {
+        chart = AgCharts.create({
+            ...opts,
+            series: [
+                {
+                    type: 'bullet',
+                    data: [{ income: 78, objective: 90 }],
+                    scale: { max: 100 },
+                    valueKey: 'income',
+                    targetKey: 'objective',
+                },
+                {
+                    type: 'bullet',
+                    data: [{ income: 234 }],
+                    scale: { max: 300 },
+                    valueKey: 'income',
+                    colorRanges: [{ color: 'red' }],
+                },
+                {
+                    type: 'bullet',
+                    data: [{ cost: 30, costTarget: 60 }],
+                    scale: { max: 120 },
+                    valueKey: 'cost',
+                    targetKey: 'costTarget',
+                    fill: 'blue',
+                    target: { stroke: 'green' },
+                },
+            ],
+        });
+
+        expect(console.warn).toBeCalledTimes(1);
+        expect(console.warn).toBeCalledWith(
+            `AG Charts - series[0] of type 'bullet' is incompatible with other series types. Only processing series[0]`
+        );
+        await compare(chart, ctx);
+    });
+
+    it('should ignore other trailing series', async () => {
+        chart = AgCharts.create({
+            ...opts,
+            data: [
+                { a: 23, b: 17, yr: '1990' },
+                { a: 53, b: 59, yr: '2000' },
+                { a: 47, b: 65, yr: '2010' },
+            ],
+            series: [
+                {
+                    type: 'bullet',
+                    data: [{ cost: 30, costTarget: 60 }],
+                    scale: { max: 120 },
+                    valueKey: 'cost',
+                    targetKey: 'costTarget',
+                    fill: 'blue',
+                    target: { stroke: 'green' },
+                },
+                { type: 'line', xKey: 'yr', yKey: 'a' },
+                { type: 'bar', xKey: 'yr', yKey: 'b' },
+            ],
+        });
+
+        expect(console.warn).toBeCalledTimes(1);
+        expect(console.warn).toBeCalledWith(
+            `AG Charts - series[0] of type 'bullet' is incompatible with other series types. Only processing series[0]`
+        );
+        await compare(chart, ctx);
+    });
+
+    it('should filter bullet series from line chart', async () => {
+        chart = AgCharts.create({
+            ...opts,
+            data: [
+                { a: 23, b: 17, yr: '1990' },
+                { a: 53, b: 59, yr: '2000' },
+                { a: 47, b: 65, yr: '2010' },
+            ],
+            series: [
+                { type: 'line', xKey: 'yr', yKey: 'a' },
+                { type: 'line', xKey: 'yr', yKey: 'b' },
+
+                {
+                    type: 'bullet',
+                    data: [{ income: 78 }],
+                    scale: { max: 100 },
+                    valueKey: 'income',
+                },
+                {
+                    type: 'bullet',
+                    data: [{ cost: 30, costTarget: 60 }],
+                    scale: { max: 120 },
+                    valueKey: 'cost',
+                    targetKey: 'costTarget',
+                    fill: 'blue',
+                    target: { stroke: 'green' },
+                },
+            ],
+        });
+
+        expect(console.warn).toBeCalledTimes(2);
+        expect(console.warn).nthCalledWith(
+            1,
+            `AG Charts - series[2] of type 'bullet' is incompatible with other series types. Ignoring series[2]`
+        );
+        expect(console.warn).nthCalledWith(
+            2,
+            `AG Charts - series[3] of type 'bullet' is incompatible with other series types. Ignoring series[3]`
+        );
+        await compare(chart, ctx);
+    });
 });
 /* eslint-enable no-console */

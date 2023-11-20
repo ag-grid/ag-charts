@@ -185,26 +185,30 @@ function validateSoloSeries<T extends AgChartOptions>(options: T): T {
         return false;
     }
 
-    if (options.series === undefined || !hasSoloSeries(options.series)) return options;
+    if (options.series === undefined || options.series.length <= 1 || !hasSoloSeries(options.series)) {
+        return options;
+    }
 
     // If the first series is a solo-series, remove all trailing series.
     // If the frist series is not a solo-series, remove all solo-series.
     let series = [...options.series];
     if (isSoloSeries(series[0])) {
         Logger.warn(
-            `AG Charts - series[0] of type '${series[0].type}' is incompatible with other series types. Only processing series[0]`
+            `series[0] of type '${series[0].type}' is incompatible with other series types. Only processing series[0]`
         );
         series = series.slice(0, 1);
     } else {
+        let userIndex = 1;
         for (let i = 1; i < series.length; ) {
             if (isSoloSeries(series[i])) {
                 Logger.warn(
-                    `AG Charts - series[${i}] of type '${series[0].type}' is incompatible with other series types. Ignoring series[${i}]`
+                    `series[${userIndex}] of type '${series[i].type}' is incompatible with other series types. Ignoring series[${userIndex}]`
                 );
                 series.splice(i, 1);
             } else {
                 i++;
             }
+            userIndex += 1;
         }
     }
 
