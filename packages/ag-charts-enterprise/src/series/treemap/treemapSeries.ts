@@ -30,7 +30,7 @@ const {
     VERTICAL_ALIGN,
 } = _ModuleSupport;
 const { Rect, Label, Group, BBox, Selection, Text } = _Scene;
-const { Color, Logger, isEqual } = _Util;
+const { Color, Logger, isEqual, sanitizeHtml } = _Util;
 
 type Side = 'left' | 'right' | 'top' | 'bottom';
 
@@ -801,14 +801,26 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
         const format = this.getTileFormat(node, false);
         const color = format?.fill ?? node.fill;
 
-        const defaults: AgTooltipRendererResult = {
-            title,
-            backgroundColor: color,
-        };
-
         if (!tooltip.renderer && !tooltip.format && !title) {
             return '';
         }
+
+        const contentArray: string[] = [];
+        const datumSize = sizeKey != null ? datum[sizeKey] : undefined;
+        if (datumSize != null) {
+            contentArray.push(sanitizeHtml(datumSize));
+        }
+
+        const datumColor = colorKey != null ? datum[colorKey] : undefined;
+        if (datumColor != null) {
+            contentArray.push(sanitizeHtml(datumColor));
+        }
+
+        const defaults: AgTooltipRendererResult = {
+            title,
+            backgroundColor: color,
+            content: contentArray.join('<br>'),
+        };
 
         return tooltip.toTooltipHtml(defaults, {
             depth,

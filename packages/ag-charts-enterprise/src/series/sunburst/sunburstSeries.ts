@@ -6,6 +6,7 @@ import {
     type AgTooltipRendererResult,
     _ModuleSupport,
     _Scene,
+    _Util,
 } from 'ag-charts-community';
 
 import { AutoSizeableLabel, formatLabels } from '../util/labelFormatter';
@@ -13,6 +14,7 @@ import { AutoSizeableLabel, formatLabels } from '../util/labelFormatter';
 const { HighlightStyle, SeriesTooltip, Validate, OPT_COLOR_STRING, OPT_FUNCTION, OPT_NUMBER, NUMBER, OPT_STRING } =
     _ModuleSupport;
 const { Sector, Group, Selection, Text } = _Scene;
+const { sanitizeHtml } = _Util;
 
 interface LabelData {
     label: string | undefined;
@@ -517,14 +519,26 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
         const format = this.getSectorFormat(node, false);
         const color = format?.fill ?? node.fill;
 
-        const defaults: AgTooltipRendererResult = {
-            title,
-            backgroundColor: color,
-        };
-
         if (!tooltip.renderer && !tooltip.format && !title) {
             return '';
         }
+
+        const contentArray: string[] = [];
+        const datumSize = sizeKey != null ? datum[sizeKey] : undefined;
+        if (datumSize != null) {
+            contentArray.push(sanitizeHtml(datumSize));
+        }
+
+        const datumColor = colorKey != null ? datum[colorKey] : undefined;
+        if (datumColor != null) {
+            contentArray.push(sanitizeHtml(datumColor));
+        }
+
+        const defaults: AgTooltipRendererResult = {
+            title,
+            backgroundColor: color,
+            content: contentArray.join('<br>'),
+        };
 
         return tooltip.toTooltipHtml(defaults, {
             depth,
