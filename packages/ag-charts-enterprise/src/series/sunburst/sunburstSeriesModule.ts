@@ -16,14 +16,18 @@ export const SunburstSeriesModule: _ModuleSupport.SeriesModule<'sunburst'> = {
     themeTemplate: {
         __extends__: EXTENDS_SERIES_DEFAULTS,
         label: {
+            fontSize: 14,
+            minimumFontSize: 9,
             color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
             wrapping: 'never',
         },
         secondaryLabel: {
+            fontSize: 8,
+            minimumFontSize: 7,
             color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
             wrapping: 'never',
         },
-        sectorSpacing: 1,
+        sectorSpacing: 2,
         padding: 3,
         highlightStyle: {
             label: {

@@ -154,7 +154,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
         this.labelData = Array.from(this.rootNode, ({ datum, depth }) => {
             let label: string | undefined;
             if (datum != null && depth != null && labelKey != null && this.label.enabled) {
-                const value = datum[labelKey] ?? '';
+                const value = datum[labelKey];
                 label = this.getLabelText(
                     this.label,
                     { depth, datum, childrenKey, colorKey, labelKey, secondaryLabelKey, sizeKey, value },
@@ -167,7 +167,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
 
             let secondaryLabel: string | undefined;
             if (datum != null && depth != null && secondaryLabelKey != null && this.secondaryLabel.enabled) {
-                const value = datum[secondaryLabelKey] ?? '';
+                const value = datum[secondaryLabelKey];
                 secondaryLabel = this.getLabelText(
                     this.secondaryLabel,
                     { depth, datum, childrenKey, colorKey, labelKey, secondaryLabelKey, sizeKey, value },
