@@ -488,7 +488,7 @@ export abstract class RadialColumnSeriesBase<
         const { labelSelection } = this;
 
         const fns = this.getColumnTransitionFunctions();
-        motion.fromToMotion(this.id, 'empty-update-ready', this.ctx.animationManager, [this.itemSelection], fns);
+        motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, [this.itemSelection], fns);
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, [labelSelection]);
     }
 
@@ -502,7 +502,7 @@ export abstract class RadialColumnSeriesBase<
         const fns = this.getColumnTransitionFunctions();
         motion.fromToMotion(
             this.id,
-            'waiting-update-ready',
+            'datums',
             animationManager,
             [itemSelection],
             fns,
@@ -518,7 +518,7 @@ export abstract class RadialColumnSeriesBase<
         const { animationManager } = this.ctx;
 
         const fns = this.getColumnTransitionFunctions();
-        motion.fromToMotion(this.id, 'clearing-update-empty', animationManager, [itemSelection], fns);
+        motion.fromToMotion(this.id, 'datums', animationManager, [itemSelection], fns);
 
         seriesLabelFadeOutAnimation(this, 'labels', animationManager, [this.labelSelection]);
     }

@@ -433,7 +433,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup
         motion.resetMotion(datumSelections, resetBoxPlotSelectionsScalingCenterFn(isVertical));
 
         const { from, to } = prepareBoxPlotFromTo(isVertical);
-        motion.staticFromToMotion(this.id, 'empty-update-ready', this.ctx.animationManager, datumSelections, from, to);
+        motion.staticFromToMotion(this.id, 'datums', this.ctx.animationManager, datumSelections, from, to);
     }
 
     protected isLabelEnabled(): boolean {

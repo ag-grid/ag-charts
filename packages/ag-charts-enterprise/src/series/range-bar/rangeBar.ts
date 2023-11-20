@@ -679,7 +679,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
     override animateEmptyUpdateReady({ datumSelections, labelSelections }: RangeBarAnimationData) {
         const fns = prepareBarAnimationFunctions(midpointStartingBarPosition(this.direction === 'vertical'));
-        motion.fromToMotion(this.id, 'empty-update-ready', this.ctx.animationManager, datumSelections, fns);
+        motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, datumSelections, fns);
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
     }
 
@@ -693,7 +693,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const fns = prepareBarAnimationFunctions(midpointStartingBarPosition(this.direction === 'vertical'));
         motion.fromToMotion(
             this.id,
-            'empty-update-ready',
+            'datums',
             this.ctx.animationManager,
             datumSelections,
             fns,
