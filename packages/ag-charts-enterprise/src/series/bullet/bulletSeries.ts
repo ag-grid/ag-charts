@@ -16,7 +16,7 @@ const {
     STRING,
     LINE_DASH,
     NUMBER,
-    OPT_ARRAY,
+    OPT_NON_EMPTY_ARRAY,
     OPT_NUMBER,
     OPT_STRING,
 } = _ModuleSupport;
@@ -134,7 +134,7 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
     @Validate(OPT_STRING)
     targetName?: string = undefined;
 
-    @Validate(OPT_ARRAY())
+    @Validate(OPT_NON_EMPTY_ARRAY())
     colorRanges: BulletColorRange[] = [new BulletColorRange()];
 
     scale: BulletScale = new BulletScale();
