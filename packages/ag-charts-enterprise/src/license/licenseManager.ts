@@ -8,7 +8,7 @@ function missingOrEmpty<T>(value?: T[] | string | null): boolean {
     return value == null || value.length === 0;
 }
 
-function exists(value: any, allowEmptyString = false): value is string {
+function exists(value: any, allowEmptyString = false): boolean {
     return value != null && (value !== '' || allowEmptyString);
 }
 
@@ -41,7 +41,7 @@ export class LicenseManager {
                 );
 
                 if (md5 === this.md5.md5(license)) {
-                    if (exists(version)) {
+                    if (exists(version) && version) {
                         this.validateLicenseKeyForVersion(version, !!isTrial, license);
                     } else {
                         this.validateLegacyKey(license);
@@ -113,30 +113,32 @@ export class LicenseManager {
 
     private getHostname(): string {
         const win = this.document?.defaultView ?? typeof window != 'undefined' ? window : undefined;
-        if (!win) {
-            return 'localhost';
-        }
+        if (!win) return 'localhost';
 
-        const { hostname = '' } = win.location;
+        const loc = win.location;
+        const { hostname = '' } = loc;
+
         return hostname;
     }
 
     private isForceWatermark(): boolean {
         const win = this.document?.defaultView ?? typeof window != 'undefined' ? window : undefined;
-        if (!win) {
-            return false;
-        }
+        if (!win) return false;
 
-        const { pathname } = win.location;
+        const loc = win.location;
+        const { pathname } = loc;
+
         return pathname ? pathname.indexOf('forceWatermark') !== -1 : false;
     }
 
     private isWebsiteUrl(): boolean {
-        return this.getHostname().match(/^((?:\w+\.)?ag-grid\.com)$/) !== null;
+        const hostname = this.getHostname();
+        return hostname.match(/^((?:\w+\.)?ag-grid\.com)$/) !== null;
     }
 
     private isLocalhost(): boolean {
-        return this.getHostname().match(/^(?:127\.0\.0\.1|localhost)$/) !== null;
+        const hostname = this.getHostname();
+        return hostname.match(/^(?:127\.0\.0\.1|localhost)$/) !== null;
     }
 
     private static formatDate(date: any): string {
@@ -219,8 +221,12 @@ export class LicenseManager {
     private static extractBracketedInformation(licenseKey: string): [string | null, boolean | null] {
         const matches = licenseKey
             .split('[')
-            .filter((value) => value.indexOf(']') > -1)
-            .map((value) => value.split(']')[0]);
+            .filter(function (v) {
+                return v.indexOf(']') > -1;
+            })
+            .map(function (value) {
+                return value.split(']')[0];
+            });
 
         if (!matches || matches.length === 0) {
             return [null, null];
@@ -245,147 +251,168 @@ export class LicenseManager {
     }
 
     private validateLegacyKey(license: string) {
-        const expiryDate = LicenseManager.extractExpiry(license);
+        const gridReleaseDate = LicenseManager.getGridReleaseDate();
+        const expiry = LicenseManager.extractExpiry(license);
 
-        if (isNaN(expiryDate.getTime())) {
-            this.outputInvalidLicenseKey();
-            return;
+        let valid: boolean = false;
+        let current: boolean = false;
+        if (!isNaN(expiry.getTime())) {
+            valid = true;
+            current = gridReleaseDate < expiry;
         }
 
-        const gridReleaseDate = LicenseManager.getGridReleaseDate();
-
-        if (gridReleaseDate >= expiryDate) {
-            const formattedExpiryDate = LicenseManager.formatDate(expiryDate);
+        if (!valid) {
+            this.outputInvalidLicenseKey();
+        } else if (!current) {
+            const formattedExpiryDate = LicenseManager.formatDate(expiry);
             const formattedReleaseDate = LicenseManager.formatDate(gridReleaseDate);
+
             this.outputIncompatibleVersion(formattedExpiryDate, formattedReleaseDate);
         }
     }
 
     private validateForTrial(license: string) {
-        const expiryDate = LicenseManager.extractExpiry(license);
-
-        if (isNaN(expiryDate.getTime())) {
-            this.outputInvalidLicenseKey();
-            return;
-        }
-
+        const expiry = LicenseManager.extractExpiry(license);
         const now = new Date();
 
-        if (expiryDate <= now) {
-            const formattedExpiryDate = LicenseManager.formatDate(expiryDate);
+        let valid: boolean = false;
+        let current: boolean = false;
+        if (!isNaN(expiry.getTime())) {
+            valid = true;
+            current = expiry > now;
+        }
+
+        if (!valid) {
+            this.outputInvalidLicenseKey();
+        } else if (!current) {
+            const formattedExpiryDate = LicenseManager.formatDate(expiry);
             this.outputExpiredTrialKey(formattedExpiryDate);
         }
     }
 
-    private padText(str: string, width: number, { char = ' ', center }: { char?: string; center?: boolean } = {}) {
-        const padSpace = Math.max(0, width - str.length);
-        if (center) {
-            return char.repeat(Math.floor(padSpace / 2)) + str + char.repeat(Math.ceil(padSpace / 2));
-        }
-        return str + char.repeat(padSpace);
-    }
-
-    private padLine(str: string, width: number, options?: { center?: boolean }) {
-        return `* ${this.padText(str, width - 4, options)} *`;
-    }
-
     private outputInvalidLicenseKey() {
-        const lineWidth = 115;
         console.error(
-            [
-                '*'.repeat(lineWidth),
-                this.padText(' AG Charts Enterprise License ', lineWidth, { char: '*', center: true }),
-                this.padText(' Invalid License ', lineWidth, { char: '*', center: true }),
-                this.padLine(
-                    'Your license for AG Charts Enterprise is not valid - please contact info@ag-grid.com to obtain a valid license.',
-                    lineWidth
-                ),
-                '*'.repeat(lineWidth),
-                '*'.repeat(lineWidth),
-            ].join('\n')
+            '******************************************************************************************************************'
+        );
+        console.error(
+            '***************************************** AG Charts Enterprise License ********************************************'
+        );
+        console.error(
+            '********************************************** Invalid License ****************************************************'
+        );
+        console.error(
+            '* Your license for AG Charts Enterprise is not valid - please contact info@ag-grid.com to obtain a valid license. *'
+        );
+        console.error(
+            '*******************************************************************************************************************'
+        );
+        console.error(
+            '*******************************************************************************************************************'
         );
 
         this.watermarkMessage = 'Invalid License';
     }
 
     private outputExpiredTrialKey(formattedExpiryDate: string) {
-        const lineWidth = 112;
         console.error(
-            [
-                '*'.repeat(lineWidth),
-                this.padText(' AG Charts Enterprise License ', lineWidth, { char: '*', center: true }),
-                this.padText(' Trial Period Expired ', lineWidth, { char: '*', center: true }),
-                this.padLine(`Your license for AG Charts Enterprise expired on ${formattedExpiryDate}.`, lineWidth),
-                this.padLine('Please email info@ag-grid.com to purchase a license.', lineWidth),
-                '*'.repeat(lineWidth),
-                '*'.repeat(lineWidth),
-            ].join('\n')
+            '****************************************************************************************************************'
+        );
+        console.error(
+            '***************************************** AG Charts Enterprise License *******************************************'
+        );
+        console.error(
+            '*****************************************   Trial Period Expired.    *******************************************'
+        );
+        console.error(
+            `* Your license for AG Charts Enterprise expired on ${formattedExpiryDate}.                                                *`
+        );
+        console.error(
+            '* Please email info@ag-grid.com to purchase a license.                                                         *'
+        );
+        console.error(
+            '****************************************************************************************************************'
+        );
+        console.error(
+            '****************************************************************************************************************'
         );
 
         this.watermarkMessage = 'Trial Period Expired';
     }
 
     private outputMissingLicenseKey() {
-        const lineWidth = 112;
         console.error(
-            [
-                '*'.repeat(lineWidth),
-                this.padText(' AG Charts Enterprise License ', lineWidth, { char: '*', center: true }),
-                this.padText(' License Key Not Found ', lineWidth, { char: '*', center: true }),
-                this.padLine('All AG Charts Enterprise features are unlocked.', lineWidth),
-                this.padLine(
-                    'This is an evaluation only version, it is not licensed for development projects intended for production.',
-                    lineWidth
-                ),
-                this.padLine(
-                    'If you want to hide the watermark, please email info@ag-grid.com for a trial license.',
-                    lineWidth
-                ),
-                '*'.repeat(lineWidth),
-                '*'.repeat(lineWidth),
-            ].join('\n')
+            '****************************************************************************************************************'
+        );
+        console.error(
+            '***************************************** AG Charts Enterprise License *******************************************'
+        );
+        console.error(
+            '****************************************** License Key Not Found ***********************************************'
+        );
+        console.error(
+            '* All AG Charts Enterprise features are unlocked.                                                                *'
+        );
+        console.error(
+            '* This is an evaluation only version, it is not licensed for development projects intended for production.     *'
+        );
+        console.error(
+            '* If you want to hide the watermark, please email info@ag-grid.com for a trial license.                        *'
+        );
+        console.error(
+            '****************************************************************************************************************'
+        );
+        console.error(
+            '****************************************************************************************************************'
         );
 
         this.watermarkMessage = 'For Trial Use Only';
     }
 
     private outputIncompatibleVersion(formattedExpiryDate: string, formattedReleaseDate: string) {
-        const lineWidth = 124;
         console.error(
-            [
-                '*'.repeat(lineWidth),
-                '*'.repeat(lineWidth),
-                this.padLine('AG Charts Enterprise License', lineWidth, { center: true }),
-                this.padLine('License not compatible with installed version of AG Charts Enterprise', lineWidth, {
-                    center: true,
-                }),
-                this.padLine('', lineWidth),
-                this.padLine(
-                    'Your AG Charts License entitles you to all versions of AG Charts that we release within the time covered by your license',
-                    lineWidth
-                ),
-                this.padLine(
-                    '- typically we provide one year licenses which entitles you to all releases / updates of AG Charts within that year.',
-                    lineWidth
-                ),
-                this.padLine(
-                    'Your license has an end (expiry) date which stops the license key working with versions of AG Charts released after the',
-                    lineWidth
-                ),
-                this.padLine(
-                    `license end date. The license key that you have expires on ${formattedExpiryDate}, however the version of AG Charts you`,
-                    lineWidth
-                ),
-                this.padLine(`are trying to use was released on ${formattedReleaseDate}.`, lineWidth),
-                this.padLine('', lineWidth),
-                this.padLine(
-                    'Please contact info@ag-grid.com to renew your subscription to new versions and get a new license key to work with this',
-                    lineWidth
-                ),
-                this.padLine('version of AG Charts.', lineWidth),
-                '*'.repeat(lineWidth),
-                '*'.repeat(lineWidth),
-            ].join('\n')
+            '****************************************************************************************************************************'
+        );
+        console.error(
+            '****************************************************************************************************************************'
+        );
+        console.error(
+            '*                                             AG Charts Enterprise License                                                   *'
+        );
+        console.error(
+            '*                           License not compatible with installed version of AG Charts Enterprise.                           *'
+        );
+        console.error(
+            '*                                                                                                                          *'
+        );
+        console.error(
+            `* Your AG Charts License entitles you to all versions of AG Charts that we release within the time covered by your license     *`
+        );
+        console.error(
+            `* - typically we provide one year licenses which entitles you to all releases / updates of AG Charts within that year.       *`
+        );
+        console.error(
+            `* Your license has an end (expiry) date which stops the license key working with versions of AG Charts released after the    *`
+        );
+        console.error(
+            `* license end date. The license key that you have expires on ${formattedExpiryDate}, however the version of AG Charts you    *`
+        );
+        console.error(
+            `* are trying to use was released on ${formattedReleaseDate}.                                                               *`
+        );
+        console.error(
+            '*                                                                                                                          *'
+        );
+        console.error(
+            '* Please contact info@ag-grid.com to renew your subscription to new versions and get a new license key to work with this   *'
+        );
+        console.error(
+            '* version of AG Charts.                                                                                                      *'
+        );
+        console.error(
+            '****************************************************************************************************************************'
+        );
+        console.error(
+            '****************************************************************************************************************************'
         );
 
         this.watermarkMessage = 'License Expired';
