@@ -134,22 +134,6 @@ describe('BulletSeries', () => {
         await compare();
     });
 
-    it('should ignore empty colorRange arrays', async () => {
-        chart = AgCharts.create({
-            ...opts,
-            series: [
-                {
-                    type: 'bullet',
-                    data: [{ income: 11 }],
-                    scale: { max: 20 },
-                    valueKey: 'income',
-                    colorRanges: [],
-                },
-            ],
-        });
-        await compare();
-    });
-
     it('should use explicit axis max', async () => {
         chart = AgCharts.create({
             ...opts,
@@ -246,3 +230,48 @@ describe('BulletSeries', () => {
         );
     });
 });
+
+/* eslint-disable no-console */
+describe('BulletSeriesValidation', () => {
+    let chart: AgChartInstance | undefined;
+    const ctx = setupMockCanvas();
+
+    beforeEach(() => {
+        console.warn = jest.fn();
+    });
+
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+    });
+
+    const compare = async () => {
+        await waitForChartStability(chart);
+
+        const imageData = extractImageData(ctx);
+        expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 });
+    };
+    const opts = prepareEnterpriseTestOptions({});
+
+    it('should ignore empty colorRange arrays', async () => {
+        chart = AgCharts.create({
+            ...opts,
+            series: [
+                {
+                    type: 'bullet',
+                    data: [{ income: 11 }],
+                    scale: { max: 20 },
+                    valueKey: 'income',
+                    colorRanges: [],
+                },
+            ],
+        });
+
+        expect(console.warn).toBeCalledTimes(1);
+        expect(console.warn).toBeCalledWith(
+            'AG Charts - Property [colorRanges] of [BulletSeries] cannot be set to [[]]; expecting an optional non-empty Array, ignoring.'
+        );
+        await compare();
+    });
+});
+/* eslint-enable no-console */
