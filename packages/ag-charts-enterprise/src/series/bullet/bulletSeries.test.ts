@@ -47,6 +47,13 @@ describe('BulletSeries', () => {
         return series.getTooltipHtml(datum);
     };
 
+    const hoverOnBullet = async () => {
+        const series = chart['series'][0];
+        const item = series['contextNodeData'][0].nodeData[0];
+        const { x, y } = series.rootGroup.inverseTransformPoint(item.midPoint.x, item.midPoint.y);
+        await hoverAction(x, y)(chart);
+    };
+
     const opts = prepareEnterpriseTestOptions({});
 
     it('should render simple bullet', async () => {
@@ -162,6 +169,25 @@ describe('BulletSeries', () => {
                 },
             ],
         });
+        await compare();
+    });
+
+    it('should not render crosshair', async () => {
+        chart = deproxy(
+            AgCharts.create({
+                ...opts,
+                series: [
+                    {
+                        type: 'bullet',
+                        data: [{ income: 1 }],
+                        scale: { max: 2 },
+                        valueKey: 'income',
+                    },
+                ],
+            })
+        );
+        await waitForChartStability(chart);
+        await hoverOnBullet();
         await compare();
     });
 
