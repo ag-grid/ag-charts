@@ -1,3 +1,4 @@
+import { enterpriseModule } from '../../module/enterpriseModule';
 import type {
     AgCartesianChartOptions,
     AgCartesianCrossLineOptions,
@@ -11,6 +12,7 @@ import { Logger } from '../../util/logger';
 import type { DeepPartial } from '../../util/types';
 import { AXIS_TYPES } from '../factory/axisTypes';
 import { CHART_TYPES } from '../factory/chartTypes';
+import { getUsedEnterpriseOptions } from '../factory/expectedEnterpriseModules';
 import {
     executeCustomDefaultsFunctions,
     getSeriesDefaults,
@@ -92,7 +94,7 @@ export function prepareOptions<T extends AgChartOptions>(options: T): T {
 
     const conflictOverrides = resolveModuleConflicts(options);
 
-    removeDisabledOptions<T>(options);
+    removeDisabledOptions(options);
 
     const { context, mergedOptions, axesThemes, seriesThemes, theme } = prepareMainOptions<T>(
         defaultOverrides as T,
@@ -107,11 +109,7 @@ export function prepareOptions<T extends AgChartOptions>(options: T): T {
     mergedOptions.series = processSeriesOptions(
         mergedOptions,
         ((mergedOptions.series as SeriesOptions[]) ?? []).map((s) => {
-            let type = defaultSeriesType;
-            if (s.type) {
-                type = s.type;
-            }
-
+            const type = s.type ?? defaultSeriesType;
             const mergedSeries = mergeSeriesOptions(s, type, seriesThemes, globalTooltipPositionOptions);
 
             if (type === 'pie') {
@@ -135,7 +133,7 @@ export function prepareOptions<T extends AgChartOptions>(options: T): T {
     if ('axes' in mergedOptions) {
         let validAxesTypes = true;
         for (const { type: axisType } of mergedOptions.axes ?? []) {
-            validAxesTypes = validAxesTypes && checkAxisType(axisType);
+            validAxesTypes &&= checkAxisType(axisType);
         }
 
         const axisSource = validAxesTypes ? mergedOptions.axes : (defaultOverrides as AgCartesianChartOptions).axes;
@@ -154,10 +152,10 @@ export function prepareOptions<T extends AgChartOptions>(options: T): T {
             ]);
             return prepareAxis(axis, axesTheme);
         });
-        prepareLegendEnabledOption<T>(options, mergedOptions);
+        prepareLegendEnabledOption(options, mergedOptions);
     }
 
-    prepareEnabledOptions<T>(options, mergedOptions);
+    prepareEnabledOptions(options, mergedOptions);
 
     return mergedOptions;
 }
@@ -170,7 +168,7 @@ function sanityCheckOptions<T extends AgChartOptions>(options: T) {
     Object.entries(deprecatedArrayProps).forEach(([oldProp, newProp]) => {
         if (options.series?.some((s: any) => s[oldProp] != null)) {
             Logger.warnOnce(
-                `property [series.${oldProp}] is deprecated, please use [series.${newProp}] and multiple series instead.`
+                `Property [series.${oldProp}] is deprecated, please use [series.${newProp}] and multiple series instead.`
             );
         }
     });
@@ -209,6 +207,21 @@ function prepareMainOptions<T extends AgChartOptions>(
         [defaultOverrides, cleanedTheme, options, conflictOverrides],
         noDataCloneMergeOptions
     );
+
+    if (!enterpriseModule.isEnterprise) {
+        for (const propertyName of getUsedEnterpriseOptions(mergedOptions)) {
+            Logger.warnOnce(
+                [
+                    `AG Charts: unable to use ${propertyName} as package 'ag-charts-enterprise' has not been imported.`,
+                    'Check that you have imported the package:',
+                    '',
+                    '    import "ag-charts-enterprise";',
+                    '',
+                    'For more info see: https://www.ag-grid.com/ag-charts/javascript/quick-start/',
+                ].join('\n')
+            );
+        }
+    }
 
     return { context, mergedOptions, axesThemes, seriesThemes, theme };
 }
@@ -298,9 +311,8 @@ function removeDisabledOptions<T extends AgChartOptions>(options: T) {
     jsonWalk(
         options,
         (_, visitingUserOpts) => {
-            if (!('enabled' in visitingUserOpts)) return;
             if (visitingUserOpts.enabled === false) {
-                Object.entries(visitingUserOpts).forEach(([key]) => {
+                Object.keys(visitingUserOpts).forEach((key) => {
                     if (key === 'enabled') return;
                     delete visitingUserOpts[key];
                 });
