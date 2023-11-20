@@ -1,0 +1,22 @@
+---
+import { getCollection } from 'astro:content';
+import type { InternalFramework } from '@ag-grid-types';
+import DocsFrameworkTemplate from '@features/docs/components/DocsFrameworkTemplate.astro';
+import { getDocsExamplePages } from '@features/docs/utils/pageData';
+
+export async function getStaticPaths() {
+    const pages = await getCollection('docs');
+    return getDocsExamplePages({
+        pages,
+    });
+}
+
+const { internalFramework, pageName, exampleName } = Astro.params;
+---
+
+<DocsFrameworkTemplate
+    internalFramework={internalFramework as InternalFramework}
+    pageName={pageName!}
+    exampleName={exampleName!}
+    addInitMessageScript={true}
+/>

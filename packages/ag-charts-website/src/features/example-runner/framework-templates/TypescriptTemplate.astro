@@ -42,11 +42,7 @@ const startFile = pathJoin(appLocation, entryFileName);
 
 <html lang="en">
     <head>
-        <MetaData
-            isDev={isDev}
-            title={`Typescript - ${pageName} - ${exampleName}`}
-            modifiedTimeMs={modifiedTimeMs}
-        />
+        <MetaData isDev={isDev} title={`Typescript - ${pageName} - ${exampleName}`} modifiedTimeMs={modifiedTimeMs} />
         <ExampleStyle />
         <Styles
             baseUrl={appLocation}
@@ -84,5 +80,6 @@ const startFile = pathJoin(appLocation, entryFileName);
                 ? styleFiles.filter((file: string) => file.includes('style.css') || file.includes('styles.css'))
                 : []}
         />
+        <slot />
     </body>
 </html>
