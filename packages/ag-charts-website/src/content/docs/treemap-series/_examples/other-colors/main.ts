@@ -10,12 +10,30 @@ const options: AgChartOptions = {
             type: 'treemap',
             labelKey: 'title',
             sizeKey: 'total',
-            colorKey: 'change',
-            colorRange: ['rgb(234, 82, 80)', 'rgb(67, 153, 83)'],
-            fills: ['#455A64'],
-            group: {
-                stroke: '#37474F',
-            },
+            fills: [
+                '#FF3D00',
+                '#FF9100',
+                '#FFC400',
+                '#FFEA00',
+                '#C6FF00',
+                '#76FF03',
+                '#00E676',
+                '#1DE9B6',
+                '#00E5FF',
+                '#00B0FF',
+            ],
+            strokes: [
+                '#FF6E40',
+                '#FFAB40',
+                '#FFD740',
+                '#FFFF00',
+                '#EEFF41',
+                '#B2FF59',
+                '#69F0AE',
+                '#64FFDA',
+                '#18FFFF',
+                '#40C4FF',
+            ],
             tooltip: {
                 renderer: (params) => {
                     const { total, change } = params.datum;
