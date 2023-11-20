@@ -100,7 +100,6 @@ export abstract class PolarSeries<TDatum extends SeriesNodeDatum, TNode extends 
                 ready: {
                     updateData: 'waiting',
                     clear: 'clearing',
-                    update: (data) => this.animateReadyUpdate(data),
                     highlight: (data) => this.animateReadyHighlight(data),
                     highlightMarkers: (data) => this.animateReadyHighlightMarkers(data),
                     resize: (data) => this.animateReadyResize(data),
@@ -149,14 +148,12 @@ export abstract class PolarSeries<TDatum extends SeriesNodeDatum, TNode extends 
     }
 
     protected animateEmptyUpdateReady(_data: PolarAnimationData) {
-        this.resetAllAnimation();
-    }
-
-    protected animateReadyUpdate(_data: PolarAnimationData) {
+        this.ctx.animationManager.skipCurrentBatch();
         this.resetAllAnimation();
     }
 
     protected animateWaitingUpdateReady(_data: PolarAnimationData) {
+        this.ctx.animationManager.skipCurrentBatch();
         this.resetAllAnimation();
     }
 
@@ -176,6 +173,7 @@ export abstract class PolarSeries<TDatum extends SeriesNodeDatum, TNode extends 
     }
 
     protected animateClearingUpdateEmpty(_data: PolarAnimationData) {
+        this.ctx.animationManager.skipCurrentBatch();
         this.resetAllAnimation();
     }
 

@@ -146,6 +146,8 @@ export interface AgTreemapSeriesOptionsKeys {
     sizeKey?: string;
     /** The name of the node key containing the color value. This value (along with `colorRange` config) will be used to determine the tile color. */
     colorKey?: string;
+    sizeName?: string;
+    colorName?: string;
 }
 
 /** The parameters of the treemap series formatter function */

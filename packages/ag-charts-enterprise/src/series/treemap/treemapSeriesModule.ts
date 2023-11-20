@@ -39,7 +39,7 @@ export const TreemapSeriesModule: _ModuleSupport.SeriesModule<'treemap'> = {
                 minimumFontSize: 10,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 wrapping: 'on-space',
-                overflowStrategy: 'hide',
+                overflowStrategy: 'ellipsis',
                 spacing: 2,
             },
             secondaryLabel: {
@@ -51,7 +51,7 @@ export const TreemapSeriesModule: _ModuleSupport.SeriesModule<'treemap'> = {
                 minimumFontSize: 10,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 wrapping: 'never',
-                overflowStrategy: 'hide',
+                overflowStrategy: 'ellipsis',
             },
             fill: undefined, // Override default fill
             stroke: undefined, // Override default stroke

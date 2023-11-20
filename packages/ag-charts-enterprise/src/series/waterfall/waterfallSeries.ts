@@ -306,6 +306,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         });
 
         this.updateSeriesItemTypes();
+
+        this.animationState.transition('updateData');
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
@@ -766,7 +768,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const fns = prepareBarAnimationFunctions(
             collapsedStartingBarPosition(this.direction === 'vertical', this.axes)
         );
-        motion.fromToMotion(this.id, 'empty-update-ready', this.ctx.animationManager, datumSelections, fns);
+        motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, datumSelections, fns);
 
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
 
@@ -803,7 +805,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         };
 
         this.ctx.animationManager.animate({
-            id: `${this.id}_empty-update-ready`,
+            id: `${this.id}_datums`,
             groupId: this.id,
             from: startX,
             to: endX,
@@ -844,7 +846,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         };
 
         this.ctx.animationManager.animate({
-            id: `${this.id}_empty-update-ready`,
+            id: `${this.id}_datums`,
             groupId: this.id,
             from: startY,
             to: endY,
@@ -864,11 +866,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 lineNode.checkPathDirty();
             },
         });
-    }
-
-    override animateReadyUpdate(data: WaterfallAnimationData) {
-        super.animateReadyUpdate(data);
-        this.resetConnectorLinesPath(data);
     }
 
     override animateReadyResize(data: WaterfallAnimationData) {
