@@ -75,7 +75,7 @@ export function prepareOptions<T extends AgChartOptions>(options: T): T {
         checkSeriesType(seriesType);
     }
 
-    options = { ...options, type };
+    options = validateSoloSeries({ ...options, type });
 
     let defaultSeriesType = 'line';
     if (isAgCartesianChartOptions(options)) {
@@ -172,6 +172,43 @@ function sanityCheckOptions<T extends AgChartOptions>(options: T) {
             );
         }
     });
+}
+
+function validateSoloSeries<T extends AgChartOptions>(options: T): T {
+    function isSoloSeries(series: SeriesOptionsTypes) {
+        return series.type === 'bullet';
+    }
+    function hasSoloSeries(options: SeriesOptionsTypes[]) {
+        for (const series of options) {
+            if (isSoloSeries(series)) return true;
+        }
+        return false;
+    }
+
+    if (options.series === undefined || !hasSoloSeries(options.series)) return options;
+
+    // If the first series is a solo-series, remove all trailing series.
+    // If the frist series is not a solo-series, remove all solo-series.
+    let series = [...options.series];
+    if (isSoloSeries(series[0])) {
+        Logger.warn(
+            `AG Charts - series[0] of type '${series[0].type}' is incompatible with other series types. Only processing series[0]`
+        );
+        series = series.slice(0, 1);
+    } else {
+        for (let i = 1; i < series.length; ) {
+            if (isSoloSeries(series[i])) {
+                Logger.warn(
+                    `AG Charts - series[${i}] of type '${series[0].type}' is incompatible with other series types. Ignoring series[${i}]`
+                );
+                series.splice(i, 1);
+            } else {
+                i++;
+            }
+        }
+    }
+
+    return { ...options, series };
 }
 
 function mergeSeriesOptions<T extends SeriesOptionsTypes>(
