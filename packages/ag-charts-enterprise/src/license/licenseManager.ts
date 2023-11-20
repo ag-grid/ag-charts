@@ -1,11 +1,7 @@
 /* eslint-disable sonarjs/no-duplicate-string */
 
 /* eslint-disable no-console */
-import { _ModuleSupport } from 'ag-charts-community';
-
 import { MD5 } from './md5';
-
-const { doOnce } = _ModuleSupport;
 
 // move to general utils
 function missingOrEmpty<T>(value?: T[] | string | null): boolean {
@@ -31,30 +27,32 @@ export class LicenseManager {
         this.md5.init();
     }
 
-    public validateLicense(): boolean {
+    public validateLicense(): void {
         if (missingOrEmpty(LicenseManager.licenseKey)) {
             if (!this.isWebsiteUrl() || this.isForceWatermark()) {
-                doOnce(this.outputMissingLicenseKey, 'outputMissingLicenseKey');
-                return false;
+                this.outputMissingLicenseKey();
             }
         } else if (LicenseManager.licenseKey.length > 32) {
             if (LicenseManager.licenseKey.indexOf('For_Trialing_ag-Grid_Only') !== -1) {
-                doOnce(this.outputInvalidLicenseKey, 'outputInvalidLicenseKey');
-                return false;
-            }
-            const { md5, license, version, isTrial } = LicenseManager.extractLicenseComponents(
-                LicenseManager.licenseKey
-            );
+                this.outputInvalidLicenseKey();
+            } else {
+                const { md5, license, version, isTrial } = LicenseManager.extractLicenseComponents(
+                    LicenseManager.licenseKey
+                );
 
-            if (md5 === this.md5.md5(license)) {
-                if (exists(version)) {
-                    return this.validateLicenseKeyForVersion(version, !!isTrial, license);
+                if (md5 === this.md5.md5(license)) {
+                    if (exists(version)) {
+                        this.validateLicenseKeyForVersion(version, !!isTrial, license);
+                    } else {
+                        this.validateLegacyKey(license);
+                    }
+                } else {
+                    this.outputInvalidLicenseKey();
                 }
-                return this.validateLegacyKey(license);
             }
+        } else {
+            this.outputInvalidLicenseKey();
         }
-        doOnce(this.outputInvalidLicenseKey, 'outputInvalidLicenseKey');
-        return false;
     }
 
     private static extractExpiry(license: string) {
@@ -234,19 +232,24 @@ export class LicenseManager {
         return [version, isTrial];
     }
 
-    private validateLicenseKeyForVersion(version: string, isTrial: boolean, license: string): boolean {
+    private validateLicenseKeyForVersion(version: string, isTrial: boolean, license: string) {
         if (version !== '2') {
-            return true;
+            return;
         }
-        return isTrial ? this.validateForTrial(license) : this.validateLegacyKey(license);
+
+        if (isTrial) {
+            this.validateForTrial(license);
+        } else {
+            this.validateLegacyKey(license);
+        }
     }
 
-    private validateLegacyKey(license: string): boolean {
+    private validateLegacyKey(license: string) {
         const expiryDate = LicenseManager.extractExpiry(license);
 
         if (isNaN(expiryDate.getTime())) {
-            doOnce(this.outputInvalidLicenseKey, 'outputInvalidLicenseKey');
-            return false;
+            this.outputInvalidLicenseKey();
+            return;
         }
 
         const gridReleaseDate = LicenseManager.getGridReleaseDate();
@@ -254,33 +257,24 @@ export class LicenseManager {
         if (gridReleaseDate >= expiryDate) {
             const formattedExpiryDate = LicenseManager.formatDate(expiryDate);
             const formattedReleaseDate = LicenseManager.formatDate(gridReleaseDate);
-            doOnce(
-                () => this.outputIncompatibleVersion(formattedExpiryDate, formattedReleaseDate),
-                'outputIncompatibleVersion'
-            );
-            return false;
+            this.outputIncompatibleVersion(formattedExpiryDate, formattedReleaseDate);
         }
-
-        return true;
     }
 
-    private validateForTrial(license: string): boolean {
+    private validateForTrial(license: string) {
         const expiryDate = LicenseManager.extractExpiry(license);
 
         if (isNaN(expiryDate.getTime())) {
-            doOnce(this.outputInvalidLicenseKey, 'outputInvalidLicenseKey');
-            return false;
+            this.outputInvalidLicenseKey();
+            return;
         }
 
         const now = new Date();
 
         if (expiryDate <= now) {
             const formattedExpiryDate = LicenseManager.formatDate(expiryDate);
-            doOnce(() => this.outputExpiredTrialKey(formattedExpiryDate), 'outputExpiredTrialKey');
-            return false;
+            this.outputExpiredTrialKey(formattedExpiryDate);
         }
-
-        return true;
     }
 
     private padText(str: string, width: number, { char = ' ', center }: { char?: string; center?: boolean } = {}) {
