@@ -306,6 +306,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         });
 
         this.updateSeriesItemTypes();
+
+        this.animationState.transition('updateData');
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
@@ -864,11 +866,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 lineNode.checkPathDirty();
             },
         });
-    }
-
-    override animateReadyUpdate(data: WaterfallAnimationData) {
-        super.animateReadyUpdate(data);
-        this.resetConnectorLinesPath(data);
     }
 
     override animateReadyResize(data: WaterfallAnimationData) {

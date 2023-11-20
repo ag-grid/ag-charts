@@ -211,7 +211,6 @@ export abstract class CartesianSeries<
                 ready: {
                     updateData: 'waiting',
                     clear: 'clearing',
-                    update: (data) => this.animateReadyUpdate(data),
                     highlight: (data) => this.animateReadyHighlight(data),
                     highlightMarkers: (data) => this.animateReadyHighlightMarkers(data),
                     resize: (data) => this.animateReadyResize(data),
@@ -912,14 +911,12 @@ export abstract class CartesianSeries<
     }
 
     protected animateEmptyUpdateReady(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
-        this.resetAllAnimation(data);
-    }
-
-    protected animateReadyUpdate(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
+        this.ctx.animationManager.skipCurrentBatch();
         this.resetAllAnimation(data);
     }
 
     protected animateWaitingUpdateReady(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
+        this.ctx.animationManager.skipCurrentBatch();
         this.resetAllAnimation(data);
     }
 
@@ -942,6 +939,7 @@ export abstract class CartesianSeries<
     }
 
     protected animateClearingUpdateEmpty(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
+        this.ctx.animationManager.skipCurrentBatch();
         this.resetAllAnimation(data);
     }
 
