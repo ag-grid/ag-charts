@@ -9,8 +9,7 @@ import type { Library } from '@ag-grid-types';
 
 interface Props {
     isDev: boolean;
-    pageName: string;
-    exampleName: string;
+    title: string;
 
     modifiedTimeMs: number;
     isEnterprise: boolean;
@@ -26,8 +25,7 @@ interface Props {
 }
 
 const {
-    pageName,
-    exampleName,
+    title,
     isDev,
     modifiedTimeMs,
     isEnterprise,
@@ -44,11 +42,7 @@ const startFile = pathJoin(appLocation, entryFileName);
 
 <html lang="en">
     <head>
-        <MetaData
-            isDev={isDev}
-            title={`React example - ${pageName} - ${exampleName}`}
-            modifiedTimeMs={modifiedTimeMs}
-        />
+        <MetaData isDev={isDev} title={`React Example - ${title}`} modifiedTimeMs={modifiedTimeMs} />
         <ExampleStyle rootId="root" />
         <Styles baseUrl={appLocation} files={styleFiles} />
     </head>
