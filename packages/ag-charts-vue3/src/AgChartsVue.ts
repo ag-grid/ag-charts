@@ -2,7 +2,7 @@ import { toRaw } from '@vue/reactivity';
 import { h } from 'vue';
 import { Options, Vue } from 'vue-class-component';
 
-import { AgChart, AgChartInstance, AgChartOptions } from 'ag-charts-community';
+import { AgChartInstance, AgChartOptions, AgCharts } from 'ag-charts-community';
 
 @Options({
     props: {
@@ -34,7 +34,7 @@ export class AgChartsVue extends Vue {
     public mounted() {
         const options = this.applyContainerIfNotSet(this.options);
 
-        this.chart = AgChart.create(options);
+        this.chart = AgCharts.create(options);
 
         this.$watch(
             'options',
@@ -67,7 +67,7 @@ export class AgChartsVue extends Vue {
 
     public processChanges(currentValue: any, previousValue: any) {
         if (this.isCreated && this.chart) {
-            AgChart.update(this.chart, toRaw(this.applyContainerIfNotSet(toRaw(this.options))));
+            AgCharts.update(this.chart, toRaw(this.applyContainerIfNotSet(toRaw(this.options))));
         }
     }
 

@@ -1,7 +1,7 @@
 import type { AgChartCallbackParams } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
-import type { CssColor, FontSize, Opacity, PixelSize, TextOverflow, TextWrap } from '../../chart/types';
+import type { CssColor, FontSize, Opacity, OverflowStrategy, PixelSize, TextWrap } from '../../chart/types';
 import type { FillOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 
@@ -35,7 +35,7 @@ export interface AgSunburstSeriesBaseLabelOptions<TDatum>
 
     wrapping?: TextWrap;
 
-    overflow?: TextOverflow;
+    overflowStrategy?: OverflowStrategy;
 }
 
 export interface AgSunburstSeriesLabelOptions<TDatum> extends AgSunburstSeriesBaseLabelOptions<TDatum> {
@@ -92,6 +92,8 @@ export interface AgSunburstSeriesOptionsKeys {
     sizeKey?: string;
     /** The name of the node key containing the color value. This value (along with `colorRange` config) will be used to determine the segment color. */
     colorKey?: string;
+    sizeName?: string;
+    colorName?: string;
 }
 
 /** The parameters of the sunburst series formatter function */

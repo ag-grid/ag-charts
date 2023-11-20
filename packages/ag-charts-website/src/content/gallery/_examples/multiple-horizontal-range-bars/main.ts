@@ -4,82 +4,54 @@ import { getData } from './data';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
-    data: getData(),
     title: {
-        text: 'Smartphone Production Cost Vs Retail Price',
+        text: 'Product Export and Import Amounts by Country',
     },
     subtitle: {
-        text: 'Production cost range vs retail price range of top-selling phone brands on the market in 2023',
+        text: 'Trade Activities Across Selected Products',
         spacing: 30,
     },
     footnote: {
-        text: 'Costs include essential components like core processors, display, memory, and camera module but exclude marketing, research, distribution, staff, accessories, packaging, and software.',
+        text: '2023 import and export amounts in USD based on international trade records',
         spacing: 30,
     },
-    series: [
-        {
-            type: 'range-bar',
-            direction: 'horizontal',
-            xKey: 'smartphone',
-            xName: 'Smartphone',
-            yLowKey: 'lowCost',
-            yHighKey: 'highCost',
-            yLowName: 'Lowest Cost',
-            yHighName: 'Highest Cost',
-            yName: 'Production Cost Range',
-        },
-        {
-            type: 'range-bar',
-            direction: 'horizontal',
-            xKey: 'smartphone',
-            xName: 'Smartphone',
-            yLowKey: 'lowRetail',
-            yHighKey: 'highRetail',
-            yLowName: 'Lowest Price',
-            yHighName: 'Highest Price',
-            yName: 'Retail Price Range',
-        },
-        {
-            type: 'bubble',
-            yKey: 'smartphone',
-            xKey: 'profitMargin',
-            xName: 'Profil Margin',
-            yName: 'Profit Margin %',
-            sizeKey: 'profitMargin',
-            labelKey: 'profitMargin',
-            label: {
-                formatter: ({ value }) => `${(+value).toFixed(0)}%`,
-            },
-        },
-    ],
+    series: Object.entries(getData()).map(([country, data]) => ({
+        data,
+        type: 'range-bar',
+        direction: 'horizontal',
+        xKey: 'product',
+        xName: 'Smartphone',
+        yLowKey: 'exportAmount',
+        yHighKey: 'importAmount',
+        yLowName: 'Lowest Cost',
+        yHighName: 'Highest Cost',
+        yName: country,
+    })),
     axes: [
         {
             type: 'category',
-            position: 'left',
-            keys: ['smartphone'],
-            groupPaddingInner: 0,
-            paddingInner: 0.9,
+            position: 'right',
+            groupPaddingInner: 0.2,
+            paddingInner: 0.5,
             paddingOuter: 0.8,
+            line: {
+                width: 0,
+            },
+            gridLine: {
+                enabled: true,
+            },
         },
         {
             type: 'number',
             position: 'top',
-            keys: ['profitMargin'],
-            label: {
-                formatter: ({ value }) => `${value}%`,
+            nice: false,
+            min: 0,
+            max: 35000000,
+            tick: {
+                values: [3000000, 32000000],
             },
-        },
-        {
-            type: 'number',
-            position: 'bottom',
-            keys: ['lowRetail', 'highRetail', 'lowCost', 'highCost'],
             label: {
-                formatter: ({ value }) =>
-                    `${(+value).toLocaleString('en-US', {
-                        style: 'currency',
-                        currency: 'USD',
-                        maximumFractionDigits: 0,
-                    })}`,
+                formatter: ({ value }) => `${value / 1000000}M`,
             },
         },
     ],

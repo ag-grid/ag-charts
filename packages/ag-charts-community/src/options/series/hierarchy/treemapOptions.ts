@@ -4,9 +4,9 @@ import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type {
     CssColor,
     FontSize,
+    OverflowStrategy,
     PixelSize,
     TextAlign,
-    TextOverflow,
     TextWrap,
     VerticalAlign,
 } from '../../chart/types';
@@ -45,6 +45,8 @@ export interface AgTreemapSeriesGroupLayout<TDatum> {
     textAlign?: TextAlign;
     /** The distance between the edges of the outer-most title to the edges of the group */
     padding?: PixelSize;
+    /** Gap between adjacent groups */
+    gap?: PixelSize;
     /** Whether the group can be highlighted */
     interactive?: boolean;
 }
@@ -64,7 +66,7 @@ export interface AgTreemapSeriesTileBaseLabelOptions<TDatum>
 
     wrapping?: TextWrap;
 
-    overflow?: TextOverflow;
+    overflowStrategy?: OverflowStrategy;
 }
 
 export interface AgTreemapSeriesTileLabelOptions<TDatum> extends AgTreemapSeriesTileBaseLabelOptions<TDatum> {
@@ -85,6 +87,8 @@ export interface AgTreemapSeriesTileLayout<TDatum> {
     verticalAlign?: VerticalAlign;
     /** Distance between the tile edges and the text */
     padding?: PixelSize;
+    /** Gap between adjacent tiles */
+    gap?: PixelSize;
 }
 
 export interface AgTreemapSeriesTileHighlightStyle<TDatum> extends AgTreemapSeriesTileStyle {
@@ -107,9 +111,9 @@ export interface AgTreemapSeriesHighlightStyle<TDatum> extends AgSeriesHighlight
 
 export interface AgTreemapSeriesThemeableOptions<TDatum = any>
     extends Omit<AgBaseSeriesThemeableOptions, 'highlightStyle'> {
-    /** The colours to cycle through for the fills of the sectors. */
+    /** The colours to cycle through for the fills of the groups and tiles. */
     fills?: CssColor[];
-    /** The colours to cycle through for the strokes of the sectors. */
+    /** The colours to cycle through for the strokes of the groups and tiles. */
     strokes?: CssColor[];
     /** The color range to interpolate. */
     colorRange?: CssColor[];
@@ -117,8 +121,6 @@ export interface AgTreemapSeriesThemeableOptions<TDatum = any>
     group?: AgTreemapSeriesGroupOptions<TDatum>;
     /** Options for leaf nodes (i.e. nodes WITHOUT children) */
     tile?: AgTreemapSeriesTileOptions<TDatum>;
-    /** Spacing between tiles */
-    tileSpacing?: PixelSize;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgTreemapSeriesTooltipRendererParams<TDatum>>;
     /** A callback function for adjusting the styles of a particular treemap tile based on the input parameters */
@@ -146,6 +148,8 @@ export interface AgTreemapSeriesOptionsKeys {
     sizeKey?: string;
     /** The name of the node key containing the color value. This value (along with `colorRange` config) will be used to determine the tile color. */
     colorKey?: string;
+    sizeName?: string;
+    colorName?: string;
 }
 
 /** The parameters of the treemap series formatter function */

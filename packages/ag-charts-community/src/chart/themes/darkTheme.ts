@@ -87,16 +87,13 @@ export class DarkTheme extends ChartTheme {
             DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
             DarkTheme.getWaterfallSeriesDefaultTotalColors().stroke
         );
-        result.properties.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [
-            DEFAULT_DARK_FILLS.BLUE,
-            DEFAULT_DARK_FILLS.ORANGE,
-        ]);
         result.properties.set(DEFAULT_POLAR_SERIES_STROKE, DEFAULT_DARK_BACKGROUND_FILL);
 
         result.properties.set(DEFAULT_LABEL_COLOUR, 'white');
         result.properties.set(DEFAULT_MUTED_LABEL_COLOUR, '#7D91A0');
         result.properties.set(DEFAULT_AXIS_GRID_COLOUR, '#545A6E');
         result.properties.set(DEFAULT_CROSS_LINES_COLOUR, 'white');
+        result.properties.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, ['#AB644C', '#66AB57']);
         result.properties.set(DEFAULT_BACKGROUND_COLOUR, DEFAULT_DARK_BACKGROUND_FILL);
         result.properties.set(DEFAULT_INSIDE_SERIES_LABEL_COLOUR, DEFAULT_DARK_BACKGROUND_FILL);
 

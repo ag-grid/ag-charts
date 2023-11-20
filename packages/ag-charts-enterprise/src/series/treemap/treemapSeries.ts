@@ -30,7 +30,7 @@ const {
     VERTICAL_ALIGN,
 } = _ModuleSupport;
 const { Rect, Label, Group, BBox, Selection, Text } = _Scene;
-const { Color, Logger, isEqual } = _Util;
+const { Color, Logger, isEqual, sanitizeHtml } = _Util;
 
 type Side = 'left' | 'right' | 'top' | 'bottom';
 
@@ -66,6 +66,9 @@ class TreemapGroupLabel extends Label<AgTreemapSeriesLabelFormatterParams> {
 class TreemapSeriesGroup {
     readonly label = new TreemapGroupLabel();
 
+    @Validate(OPT_NUMBER())
+    gap: number = 0;
+
     @Validate(BOOLEAN)
     interactive: boolean = true;
 
@@ -100,6 +103,9 @@ class TreemapSeriesTile {
     readonly label = new TreemapTileLabel();
 
     readonly secondaryLabel = new AutoSizeableLabel<AgTreemapSeriesLabelFormatterParams>();
+
+    @Validate(OPT_NUMBER())
+    gap: number = 0;
 
     @Validate(OPT_STRING)
     fill?: string = undefined;
@@ -247,8 +253,11 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
 
     readonly tooltip = new SeriesTooltip<AgTreemapSeriesTooltipRendererParams<any>>();
 
-    @Validate(NUMBER(0))
-    tileSpacing = 0;
+    @Validate(OPT_STRING)
+    sizeName?: string = undefined;
+
+    @Validate(OPT_STRING)
+    colorName?: string = undefined;
 
     @Validate(OPT_STRING)
     labelKey?: string = undefined;
@@ -315,24 +324,12 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
     override async processData() {
         super.processData();
 
-        const { data, childrenKey, colorKey, labelKey, secondaryLabelKey, sizeKey, tile, group } = this;
+        const { data, childrenKey, colorKey, colorName, labelKey, secondaryLabelKey, sizeKey, sizeName, tile, group } =
+            this;
 
         if (data == null || data.length === 0) {
             this.labelData = undefined;
             return;
-        }
-
-        const hasInvalidFontSize = (label: AutoSizeableLabel<AgTreemapSeriesLabelFormatterParams> | undefined) => {
-            return (
-                label != null &&
-                label.minimumFontSize != null &&
-                label.fontSize &&
-                label.minimumFontSize > label.fontSize
-            );
-        };
-
-        if (hasInvalidFontSize(this.tile.label) || hasInvalidFontSize(this.tile.secondaryLabel)) {
-            Logger.warnOnce(`minimumFontSize should be set to a value less than or equal to the font size`);
         }
 
         const defaultLabelFormatter = (value: any) => {
@@ -352,10 +349,21 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
             const labelStyle = isLeaf ? tile.label : group.label;
             let label: string | undefined;
             if (datum != null && depth != null && labelKey != null && labelStyle.enabled) {
-                const value = datum[labelKey] ?? '';
+                const value = datum[labelKey];
                 label = this.getLabelText(
                     labelStyle,
-                    { depth, datum, childrenKey, colorKey, labelKey, secondaryLabelKey, sizeKey, value },
+                    {
+                        depth,
+                        datum,
+                        childrenKey,
+                        colorKey,
+                        colorName,
+                        labelKey,
+                        secondaryLabelKey,
+                        sizeKey,
+                        sizeName,
+                        value,
+                    },
                     defaultLabelFormatter
                 );
             }
@@ -365,10 +373,21 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
 
             let secondaryLabel: string | undefined;
             if (isLeaf && datum != null && depth != null && secondaryLabelKey != null && tile.secondaryLabel.enabled) {
-                const value = datum[secondaryLabelKey] ?? '';
+                const value = datum[secondaryLabelKey];
                 secondaryLabel = this.getLabelText(
                     tile.secondaryLabel,
-                    { depth, datum, childrenKey, colorKey, labelKey, secondaryLabelKey, sizeKey, value },
+                    {
+                        depth,
+                        datum,
+                        childrenKey,
+                        colorKey,
+                        colorName,
+                        labelKey,
+                        secondaryLabelKey,
+                        sizeKey,
+                        sizeName,
+                        value,
+                    },
                     defaultLabelFormatter
                 );
             }
@@ -402,6 +421,8 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
             const sortedIndex = sortedChildrenIndices[index];
             return children[sortedIndex];
         };
+
+        const allLeafNodes = sortedChildrenIndices.every((index) => childAt(index).children.length === 0);
 
         const targetTileAspectRatio = 1; // The width and height will tend to this ratio
         const padding = datum != null ? this.getNodePadding(node, bbox) : { top: 0, right: 0, bottom: 0, left: 0 };
@@ -451,7 +472,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
                 const height = isVertical ? stackThickness : length;
 
                 const childBbox = new BBox(x, y, width, height);
-                this.applyGap(innerBox, childBbox);
+                this.applyGap(innerBox, childBbox, allLeafNodes);
                 this.squarify(child, childBbox, outputBoxes);
 
                 partitionSum -= childSize;
@@ -482,14 +503,14 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
             const width = partition.width * (isVertical ? part : 1);
             const height = partition.height * (isVertical ? 1 : part);
             const childBox = new BBox(x, y, width, height);
-            this.applyGap(innerBox, childBox);
+            this.applyGap(innerBox, childBox, allLeafNodes);
             this.squarify(child, childBox, outputBoxes);
             start += isVertical ? width : height;
         }
     }
 
-    private applyGap(innerBox: _Scene.BBox, childBox: _Scene.BBox) {
-        const gap = this.tileSpacing / 2;
+    private applyGap(innerBox: _Scene.BBox, childBox: _Scene.BBox, allLeafNodes: boolean) {
+        const gap = allLeafNodes ? this.tile.gap * 0.5 : this.group.gap * 0.5;
         const getBounds = (box: _Scene.BBox): Record<Side, number> => ({
             left: box.x,
             top: box.y,
@@ -801,7 +822,16 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
     }
 
     getTooltipHtml(node: _ModuleSupport.HierarchyNode): string {
-        const { tooltip, colorKey, labelKey, secondaryLabelKey, sizeKey, id: seriesId } = this;
+        const {
+            tooltip,
+            colorKey,
+            colorName = colorKey,
+            labelKey,
+            secondaryLabelKey,
+            sizeKey,
+            sizeName = sizeKey,
+            id: seriesId,
+        } = this;
         const { datum, depth } = node;
         const isLeaf = node.children.length === 0;
         const interactive = isLeaf || this.group.interactive;
@@ -814,14 +844,34 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
         const format = this.getTileFormat(node, false);
         const color = format?.fill ?? node.fill;
 
-        const defaults: AgTooltipRendererResult = {
-            title,
-            backgroundColor: color,
-        };
-
         if (!tooltip.renderer && !tooltip.format && !title) {
             return '';
         }
+
+        const contentArray: string[] = [];
+
+        const datumSecondaryLabel = secondaryLabelKey != null ? datum[secondaryLabelKey] : undefined;
+        if (datumSecondaryLabel != null) {
+            contentArray.push(sanitizeHtml(datumSecondaryLabel));
+        }
+
+        const datumSize = sizeKey != null ? datum[sizeKey] : undefined;
+        if (datumSize != null) {
+            contentArray.push(`${sizeName!}: ${sanitizeHtml(datumSize)}`);
+        }
+
+        const datumColor = colorKey != null ? datum[colorKey] : undefined;
+        if (datumColor != null) {
+            contentArray.push(`${colorName!}: ${sanitizeHtml(datumColor)}`);
+        }
+
+        const content = contentArray.join('<br>');
+
+        const defaults: AgTooltipRendererResult = {
+            title,
+            backgroundColor: color,
+            content,
+        };
 
         return tooltip.toTooltipHtml(defaults, {
             depth,

@@ -3,6 +3,7 @@ import type { ModuleContext } from '../../../module/moduleContext';
 import { ColorScale } from '../../../scale/colorScale';
 import type { PointLabelDatum } from '../../../util/labelPlacement';
 import { OPT_COLOR_STRING_ARRAY, OPT_STRING, Validate } from '../../../util/validation';
+import { DEFAULT_FILLS, DEFAULT_STROKES } from '../../themes/defaultColors';
 import { Series, SeriesNodePickMode } from '../series';
 import type { ISeries, SeriesNodeDatum } from '../seriesTypes';
 
@@ -79,10 +80,10 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
     colorKey?: string = undefined;
 
     @Validate(OPT_COLOR_STRING_ARRAY)
-    fills?: string[] = undefined;
+    fills: string[] = Object.values(DEFAULT_FILLS);
 
     @Validate(OPT_COLOR_STRING_ARRAY)
-    strokes?: string[] = undefined;
+    strokes: string[] = Object.values(DEFAULT_STROKES);
 
     @Validate(OPT_COLOR_STRING_ARRAY)
     colorRange?: string[] = undefined;

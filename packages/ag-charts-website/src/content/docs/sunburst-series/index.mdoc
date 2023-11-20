@@ -2,6 +2,168 @@
 title: 'Sunburst Series'
 ---
 
-TODO
+A Sunburst Series is used to render hierarchical data structures or trees. Each node in the
+tree is represented by a segment on a radial circle, with the area of the sum of values.
+
+## Simple Sunburst
 
 {% chartExampleRunner title="Organizational Chart" name="org-chart" type="generated" /%}
+
+The Sunburst Series is designed to display a single series and is created using the `sunburst` series type.
+
+```js
+series: [
+    {
+        type: 'sunburst',
+        labelKey: 'name',
+    },
+];
+```
+
+The data passed in should be an array of nodes, with each node optionally containing children.
+
+```js
+let data = [
+    {
+        name: 'Mariah Vaughan',
+        children: [
+            {
+                name: 'Bushra Thomas',
+                children: [
+                    { name: 'Cyrus Henderson' },
+                    { name: 'Dora Jordan' },
+                    { name: 'Skyla Downs' },
+                    { name: "Elissa O'Sullivan" },
+                ],
+            },
+        ],
+        // ...
+    },
+    {
+        name: 'Nathanael Villa',
+        // ...
+    },
+];
+```
+
+The `labelKey` defines what will appear as the title for each sector.
+
+{% note %}
+Legend toggling is disabled in Sunburst Series.
+{% /note %}
+
+## Sizing
+
+By default, the segments corresponding to leaf nodes will have the same angle.
+
+However, the treemap is best suited to providing size values to provide relative sizing between these rectangles.
+
+{% chartExampleRunner title="Custom Sizing" name="sizing" type="generated" /%}
+
+The `sizeKey` can be used to provide a numeric value to adjust the relative sizing.
+
+```js
+series: [
+    {
+        type: 'sunburst',
+        labelKey: 'name',
+        sizeKey: 'size',
+    },
+];
+```
+
+Only the sizes of leaf nodes will be accounted for when computing the relative sizes. When sizes are used, the nodes will be re-ordered so larger nodes appear towards the top left corner.
+
+## Colour Scales
+
+Sectors can also be coloured using a scale. This lets you add an extra dimension of information to your chart.
+
+{% chartExampleRunner title="Colour Range" name="color-range" type="generated" /%}
+
+Colouring can be customised by the `colorKey` and `colorRange` values in the series options.
+
+```j
+series: [
+    {
+        type: 'sunburst',
+        labelKey: 'name',
+        sizeKey: 'gdp',
+        colorKey: 'gdpChange',
+        colorRange: ['#FF7043', '#66BB6A'],
+    },
+],
+```
+
+In this configuration:
+
+-   `colorKey` supplies numeric values for the colour scale
+-   `colorRange` supplies the colours for the colour scale (optional)
+
+## Other Colours
+
+It's possible to override the default colours, or the colours on root node basis.
+
+{% chartExampleRunner title="Other Colours" name="other-colors" type="generated" /%}
+
+```js
+series: [
+    {
+        type: 'treemap',
+        colorRange: ['#FF7043', '#66BB6A'],
+        fills: ['#D32F2F', '#FF5722', '#283593'],
+        // ...
+    },
+];
+```
+
+In this configuration:
+
+-   `fills` and `strokes` are an array of colours to use for the fills and strokes, where node receives the colour indexed by the index of its root node
+    -   Note when a `colorRange` is used, the `strokes` array is ignored, and a translucent black is used instead
+
+## Labels
+
+All segments can contain both labels and secondary labels, which can be shrunk to fit in the available space.
+
+{% chartExampleRunner title="Labels" name="labels" type="generated" /%}
+
+```js
+series: [
+    {
+        type: 'sunburst',
+        labelKey: 'name',
+        secondaryLabelKey: 'gdpChange',
+        sizeKey: 'gdp',
+        colorKey: 'gdpChange',
+        colorRange: ['#FF7043', '#66BB6A'],
+        label: {
+            fontSize: 14,
+            minimumFontSize: 9,
+            spacing: 2,
+            padding: 3,
+        },
+        secondaryLabel: {
+            formatter: ({ value }) => (value != null ? percentageFormatter.format(value) : undefined),
+        },
+        // ...
+    },
+],
+```
+
+In this configuration:
+
+-   `fontSize` sets the size of the font
+-   `minimumFontSize` will enable the font size to shrink down to the given value if there is not enough space
+-   `spacing` controls the amount of space below a label
+-   `padding` adds space between the edge of a sector and its contents
+-   `formatter` allows customising the value of a label using a function
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgSunburstSeriesOptions" label="Sunburst Series" %}
+{% apiReference id="AgSunburstSeriesOptions" /%}
+{% /tabItem %}
+
+{% /tabs %}

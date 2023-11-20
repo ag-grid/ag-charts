@@ -6,16 +6,6 @@ enterprise: true
 A Treemap Series is used to render hierarchical data structures or trees. Each node in the
 tree is represented by a rectangle, with the area of the rectangle representing the value.
 
-<!--
-The bigger the value, the bigger the rectangle is relative to its siblings. Parent nodes
-are represented by rectangles with areas that are the totals of their children.
-
-If the nodes have no value, then their area is divided equally among siblings within their parent node.
-
-The Treemap Series uses a popular "squarified" tiling algorithm which tries to keep
-each node's rectangle as square as possible.
--->
-
 ## Simple Treemap
 
 {% chartExampleRunner title="Simple Treemap" name="simple-treemap" type="generated" /%}
@@ -36,24 +26,18 @@ The data passed in should be an array of nodes, with each node optionally contai
 ```js
 let data = [
     {
-        name: 'Mariah Vaughan',
+        title: 'Pensions',
         children: [
-            {
-                name: 'Bushra Thomas',
-                children: [
-                    { name: 'Cyrus Henderson' },
-                    { name: 'Dora Jordan' },
-                    { name: 'Skyla Downs' },
-                    { name: "Elissa O'Sullivan" },
-                ],
-            },
+            { title: 'Sickness and disability', total: 61.2, change: 8.7 },
+            { title: 'Old age', total: 141.8, change: 17.9 },
+            { title: 'Survivors', total: 1.4, change: 0 },
         ],
-        // ...
     },
     {
-        name: 'Nathanael Villa',
+        title: 'Health Care',
         // ...
     },
+    // ...
 ];
 ```
 
@@ -79,6 +63,7 @@ series: [
         type: 'treemap',
         labelKey: 'name',
         sizeKey: 'size',
+        // ...
     },
 ];
 ```
@@ -99,8 +84,9 @@ series: [
         type: 'treemap',
         labelKey: 'name',
         sizeKey: 'size',
-        colorKey: 'numberFiles',
+        colorKey: 'change',
         colorRange: ['rgb(63, 145, 79)', 'rgb(253, 149, 63)'],
+        // ...
     },
 ],
 ```
@@ -120,11 +106,13 @@ It's possible to override the default colours, or the colours on a group or tile
 series: [
     {
         type: 'treemap',
+        // ...
         colorRange: ['rgb(63, 145, 79)', 'rgb(253, 149, 63)'],
         fills: ['#455A64'],
         group: {
             stroke: '#37474F',
         },
+        // ...
     },
 ];
 ```
@@ -151,12 +139,13 @@ series: [
         type: 'treemap',
         labelKey: 'name',
         secondaryLabelKey: 'size',
+        // ...
         group: {
             label: {
                 fontSize: 18,
                 spacing: 2,
             },
-            padding: 5,
+            // ...
         },
         tile: {
             label: {
@@ -167,8 +156,8 @@ series: [
             secondaryLabel: {
                 formatter: (params) => formatSize(params.datum),
             },
-            padding: 10,
         },
+        // ...
     },
 ];
 ```
@@ -191,13 +180,18 @@ Various spacing values can be adjusted to tweak the layout of the chart.
 series: [
     {
         type: 'treemap',
+        // ...
         group: {
+            // ...
             padding: 10,
+            gap: 5,
         },
         tile: {
+            // ...
             padding: 10,
+            gap: 2,
         },
-        tileSpacing: 5,
+        // ...
     },
 ],
 ```
@@ -205,8 +199,9 @@ series: [
 In this configuration:
 
 -   `group.padding` adjusts the padding between the edge of the group, its title, and the inner nodes
+-   `group.gap` adjusts the gap between adjacent tiles where one or more nodes in the parent node are group nodes
 -   `tile.padding` adjusts the padding between the edge of the tile and its labels
--   `tileSpacing` adjusts the space between groups and tiles
+-   `tile.gap` adjusts the gap between adjacent tiles where all nodes in the parent node are leaf nodes
 
 ## API Reference
 

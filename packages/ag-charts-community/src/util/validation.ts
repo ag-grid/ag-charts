@@ -58,10 +58,17 @@ export const ARRAY = (length?: number, predicate?: ValidatePredicate) => {
 export const OPT_ARRAY = (length?: number) => {
     return predicateWithMessage((v: any, ctx) => OPTIONAL(v, ctx, ARRAY(length)), 'expecting an optional Array');
 };
+
 export const NON_EMPTY_ARRAY = predicateWithMessage(
     (v: any) => Array.isArray(v) && v.length > 0,
     `expecting a non-empty Array`
 );
+export const OPT_NON_EMPTY_ARRAY = () => {
+    return predicateWithMessage(
+        (v: any, ctx) => OPTIONAL(v, ctx, NON_EMPTY_ARRAY),
+        'expecting an optional non-empty Array'
+    );
+};
 
 export const AND = (...predicates: ValidatePredicate[]) => {
     return predicateWithMessage(
@@ -286,10 +293,10 @@ export const TEXT_WRAP = predicateWithMessage(
     `expecting a text wrap strategy keyword such as 'never', 'always', 'hyphenate', or 'on-space'`
 );
 
-const TEXT_OVERFLOWS = ['ellipsis', 'never'];
-export const TEXT_OVERFLOW = predicateWithMessage(
-    (v: any) => TEXT_OVERFLOWS.includes(v),
-    `expecting a text wrap strategy keyword such as 'ellipsis', or 'never'`
+const OVERFLOW_STRAGEGIES = ['ellipsis', 'hide'];
+export const OVERFLOW_STRATEGY = predicateWithMessage(
+    (v: any) => OVERFLOW_STRAGEGIES.includes(v),
+    `expecting an overflow strategy keyword such as 'ellipsis', or 'hide'`
 );
 
 const TEXT_ALIGNS = ['left', 'center', 'right'];

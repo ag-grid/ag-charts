@@ -45,6 +45,7 @@ import { Label } from '../../label';
 import { Layers } from '../../layers';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import { Circle } from '../../marker/circle';
+import { DEFAULT_FILLS, DEFAULT_STROKES } from '../../themes/defaultColors';
 import type { SeriesNodeEventTypes } from '../series';
 import {
     HighlightStyle,
@@ -255,10 +256,10 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
     legendItemKey?: string = undefined;
 
     @Validate(COLOR_STRING_ARRAY)
-    fills: string[] = ['#c16068', '#a2bf8a', '#ebcc87', '#80a0c3', '#b58dae', '#85c0d1'];
+    fills: string[] = Object.values(DEFAULT_FILLS);
 
     @Validate(COLOR_STRING_ARRAY)
-    strokes: string[] = ['#874349', '#718661', '#a48f5f', '#5a7088', '#7f637a', '#5d8692'];
+    strokes: string[] = Object.values(DEFAULT_STROKES);
 
     @Validate(NUMBER(0, 1))
     fillOpacity = 1;

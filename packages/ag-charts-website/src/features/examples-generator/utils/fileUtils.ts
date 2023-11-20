@@ -2,6 +2,7 @@ import type { InternalFramework } from '@ag-grid-types';
 import { getIsDev } from '@utils/env';
 import { isTypescriptInternalFramework } from '@utils/pages';
 import { pathJoin } from '@utils/pathJoin';
+import { existsSync } from 'node:fs';
 import fs from 'node:fs/promises';
 
 import type { TransformTsFileExt } from '../types';
@@ -134,6 +135,28 @@ export const getFileContents = ({ folderUrl, fileName }: { folderUrl: URL; fileN
     const filePath = pathJoin(folderUrl.pathname, fileName);
 
     return fs.readFile(filePath, 'utf-8');
+};
+
+export const getProvidedExampleFolder = ({
+    folderUrl,
+    internalFramework,
+}: {
+    folderUrl: URL;
+    internalFramework: InternalFramework;
+}) => {
+    return new URL(pathJoin(folderUrl, 'provided/modules', internalFramework));
+};
+
+export const getProvidedExampleFiles = ({
+    folderUrl,
+    internalFramework,
+}: {
+    folderUrl: URL;
+    internalFramework: InternalFramework;
+}) => {
+    const providedFolder = getProvidedExampleFolder({ folderUrl, internalFramework });
+
+    return existsSync(providedFolder) ? fs.readdir(providedFolder) : [];
 };
 
 export const getFileList = async ({ folderUrl, fileList }: { folderUrl: URL; fileList: string[] }) => {

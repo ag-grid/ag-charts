@@ -4,19 +4,28 @@ import { toMatchImageSnapshot } from 'jest-image-snapshot';
 import type { AgChartInstance } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
-    clickAction,
     deproxy,
     extractImageData,
-    hoverAction,
     setupMockCanvas,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
 import { AgCharts } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
-import type { BulletSeries } from './bulletSeries';
 
 expect.extend({ toMatchImageSnapshot });
+
+type TChart = Parameters<typeof waitForChartStability>[0];
+type TCtx = ReturnType<typeof setupMockCanvas>;
+
+const compare = async (chart: TChart | AgChartInstance | undefined, ctx: TCtx) => {
+    expect(chart).toBeDefined();
+    if (chart === undefined) return;
+
+    await waitForChartStability(chart as TChart);
+    const imageData = extractImageData(ctx);
+    expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 });
+};
 
 describe('BulletSeries', () => {
     let chart: AgChartInstance | undefined;
@@ -34,17 +43,17 @@ describe('BulletSeries', () => {
         expect(console.warn).not.toBeCalled();
     });
 
-    const compare = async () => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 });
+    const getTooltipHtml = (): string => {
+        const series = (chart as any)['series'][0];
+        const datum = (chart as any)['series'][0].contextNodeData[0].nodeData[0];
+        return series.getTooltipHtml(datum);
     };
 
-    const getTooltipHtml = (): string => {
+    const hoverOnBullet = async () => {
         const series = chart['series'][0];
-        const datum = chart['series'][0].contextNodeData[0].nodeData[0];
-        return series.getTooltipHtml(datum);
+        const item = series['contextNodeData'][0].nodeData[0];
+        const { x, y } = series.rootGroup.inverseTransformPoint(item.midPoint.x, item.midPoint.y);
+        await hoverAction(x, y)(chart);
     };
 
     const opts = prepareEnterpriseTestOptions({});
@@ -60,7 +69,7 @@ describe('BulletSeries', () => {
                 },
             ],
         });
-        await compare();
+        await compare(chart, ctx);
     });
 
     it('should render a vertical bullet by default', async () => {
@@ -78,7 +87,7 @@ describe('BulletSeries', () => {
                 },
             ],
         });
-        await compare();
+        await compare(chart, ctx);
     });
 
     it('should render a horizontal bullet as expected', async () => {
@@ -97,7 +106,7 @@ describe('BulletSeries', () => {
                 },
             ],
         });
-        await compare();
+        await compare(chart, ctx);
     });
 
     it('should clip everything to scale.max', async () => {
@@ -114,7 +123,7 @@ describe('BulletSeries', () => {
                 },
             ],
         });
-        await compare();
+        await compare(chart, ctx);
     });
 
     it('should extend final color to scale.max', async () => {
@@ -131,7 +140,7 @@ describe('BulletSeries', () => {
                 },
             ],
         });
-        await compare();
+        await compare(chart, ctx);
     });
 
     it('should use explicit axis max', async () => {
@@ -147,7 +156,7 @@ describe('BulletSeries', () => {
                 },
             ],
         });
-        await compare();
+        await compare(chart, ctx);
     });
 
     it('should process first datum only', async () => {
@@ -162,6 +171,25 @@ describe('BulletSeries', () => {
                 },
             ],
         });
+        await compare(chart, ctx);
+    });
+
+    it('should not render crosshair', async () => {
+        chart = deproxy(
+            AgCharts.create({
+                ...opts,
+                series: [
+                    {
+                        type: 'bullet',
+                        data: [{ income: 1 }],
+                        scale: { max: 2 },
+                        valueKey: 'income',
+                    },
+                ],
+            })
+        );
+        await waitForChartStability(chart);
+        await hoverOnBullet();
         await compare();
     });
 
@@ -230,3 +258,42 @@ describe('BulletSeries', () => {
         );
     });
 });
+
+/* eslint-disable no-console */
+describe('BulletSeriesValidation', () => {
+    let chart: AgChartInstance | undefined;
+    const ctx = setupMockCanvas();
+
+    beforeEach(() => {
+        console.warn = jest.fn();
+    });
+
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+    });
+
+    const opts = prepareEnterpriseTestOptions({});
+
+    it('should ignore empty colorRange arrays', async () => {
+        chart = AgCharts.create({
+            ...opts,
+            series: [
+                {
+                    type: 'bullet',
+                    data: [{ income: 11 }],
+                    scale: { max: 20 },
+                    valueKey: 'income',
+                    colorRanges: [],
+                },
+            ],
+        });
+
+        expect(console.warn).toBeCalledTimes(1);
+        expect(console.warn).toBeCalledWith(
+            'AG Charts - Property [colorRanges] of [BulletSeries] cannot be set to [[]]; expecting an optional non-empty Array, ignoring.'
+        );
+        await compare(chart, ctx);
+    });
+});
+/* eslint-enable no-console */

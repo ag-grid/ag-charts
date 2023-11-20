@@ -69,3 +69,11 @@ export const DEV_FILE_BASE_PATH = '/dev';
 export const ASTRO_ALGOLIA_APP_ID = import.meta.env?.PUBLIC_ASTRO_ALGOLIA_APP_ID;
 
 export const ASTRO_ALGOLIA_SEARCH_KEY = import.meta.env?.PUBLIC_ASTRO_ALGOLIA_SEARCH_KEY;
+
+export const GRID_URL = SITE_URL
+    ? SITE_URL.includes('localhost:4600')
+        ? 'https://localhost:8000'
+        : SITE_URL.includes('testing.ag-grid.com')
+        ? 'https://build.ag-grid.com'
+        : 'https://ag-grid.com'
+    : undefined;

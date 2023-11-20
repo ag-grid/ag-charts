@@ -40,4 +40,4 @@ fi
 mv $WORKING_DIR_ROOT/charts_tmp $PUBLIC_HTML_PATH
 
 # we don't copy the archives - it's too big
-mv $WORKING_DIR_ROOT/charts_$TIMESTAMP/archive $PUBLIC_HTML_PATH/
+#mv $WORKING_DIR_ROOT/charts_$TIMESTAMP/archive $PUBLIC_HTML_PATH/
