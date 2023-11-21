@@ -1,33 +1,13 @@
-import {
-    AgBarSeriesOptions,
-    AgCategoryAxisOptions,
-    AgChartCaptionOptions,
-    AgChartLegendOptions,
-    AgChartOptions,
-    AgChartSubtitleOptions,
-    AgChartThemeName,
-    AgCharts,
-    AgLineSeriesOptions,
-    AgNumberAxisOptions,
-} from 'ag-charts-community';
-
-// Chart Data Interface
-interface IData {
-    month: 'Jan' | 'Feb' | 'Mar' | 'Apr' | 'May' | 'Jun' | 'Jul' | 'Aug' | 'Sep' | 'Oct' | 'Nov' | 'Dec';
-    avgTemp: number;
-    iceCreamSales: number;
-}
-
 // Chart Options Configuration
-const options: AgChartOptions = {
+const options = {
     // Container: HTML Element to hold the chart
-    container: document.getElementById('myChart') as HTMLElement,
+    container: document.getElementById('myChart'),
     // Chart Title
-    title: { text: 'Ice Cream Sales and Avg Temp' } as AgChartCaptionOptions,
+    title: { text: 'Ice Cream Sales and Avg Temp' },
     // Chart Subtitle
-    subtitle: { text: 'UK Data from 2022' } as AgChartSubtitleOptions,
+    subtitle: { text: 'UK Data from 2022' },
     // Theme: Style to apply to the chart
-    theme: 'ag-vivid-dark' as AgChartThemeName,
+    theme: 'ag-vivid-dark',
     // Data: Data to be displayed within the chart
     data: [
         { month: 'Jan', avgTemp: 2.3, iceCreamSales: 162 },
@@ -36,11 +16,11 @@ const options: AgChartOptions = {
         { month: 'Jul', avgTemp: 22.8, iceCreamSales: 1254 },
         { month: 'Sep', avgTemp: 14.5, iceCreamSales: 950 },
         { month: 'Nov', avgTemp: 8.9, iceCreamSales: 200 },
-    ] as IData[],
+    ],
     // Series: Defines which chart type and data to use
     series: [
-        { type: 'bar', xKey: 'month', yKey: 'iceCreamSales', yName: 'Ice Cream Sales' } as AgBarSeriesOptions,
-        { type: 'line', xKey: 'month', yKey: 'avgTemp', yName: 'Average Temperature' } as AgLineSeriesOptions,
+        { type: 'bar', xKey: 'month', yKey: 'iceCreamSales', yName: 'Ice Cream Sales' },
+        { type: 'line', xKey: 'month', yKey: 'avgTemp', yName: 'Average Temperature' },
     ],
     // Axes: Configure the axes for the chart
     axes: [
@@ -48,13 +28,13 @@ const options: AgChartOptions = {
         {
             type: 'category',
             position: 'bottom',
-        } as AgCategoryAxisOptions,
+        },
         // Use left axis for 'iceCreamSales' series
         {
             type: 'number',
             position: 'left',
             keys: ['iceCreamSales'],
-        } as AgNumberAxisOptions,
+        },
         // Use right axis for 'avgTemp' series
         {
             type: 'number',
@@ -66,14 +46,14 @@ const options: AgChartOptions = {
                     return params.value + ' °C';
                 },
             },
-        } as AgNumberAxisOptions,
+        },
     ],
     // Legend: Matches visual elements to their corresponding series or data categories.
     legend: {
         enabled: true,
         position: 'right',
-    } as AgChartLegendOptions,
+    },
 };
 
 // Create the chart using the Chart Options defined above
-AgCharts.create(options);
+agCharts.AgCharts.create(options);

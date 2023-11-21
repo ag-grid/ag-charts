@@ -21,7 +21,7 @@ const ChartExample = () => {
     });
 
     return (
-        // AgCharsReact component with options passed as prop
+        // AgChartsReact component with options passed as prop
         <AgChartsReact options={chartOptions} />
     );
 };
