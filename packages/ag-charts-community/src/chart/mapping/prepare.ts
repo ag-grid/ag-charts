@@ -196,18 +196,10 @@ function validateSoloSeries<T extends AgChartOptions>(options: T): T {
         );
         series = series.slice(0, 1);
     } else {
-        let userIndex = 1;
-        for (let i = 1; i < series.length; ) {
-            if (isSoloSeries(series[i].type)) {
-                Logger.warn(
-                    `series[${userIndex}] of type '${series[i].type}' is incompatible with other series types. Ignoring series[${userIndex}]`
-                );
-                series.splice(i, 1);
-            } else {
-                i++;
-            }
-            userIndex += 1;
-        }
+        const rejects = Array.from(new Set(series.filter((s) => isSoloSeries(s.type)).map((s) => s.type)));
+        Logger.warnOnce(`Unable to mix these series types with the lead series type: ${rejects}`);
+
+        series = series.filter((s) => !isSoloSeries(s.type));
     }
 
     return { ...options, series };

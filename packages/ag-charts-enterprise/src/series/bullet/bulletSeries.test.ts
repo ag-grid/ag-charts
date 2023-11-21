@@ -394,14 +394,9 @@ describe('BulletSeriesValidation', () => {
             ],
         });
 
-        expect(console.warn).toBeCalledTimes(2);
-        expect(console.warn).nthCalledWith(
-            1,
-            `AG Charts - series[2] of type 'bullet' is incompatible with other series types. Ignoring series[2]`
-        );
-        expect(console.warn).nthCalledWith(
-            2,
-            `AG Charts - series[3] of type 'bullet' is incompatible with other series types. Ignoring series[3]`
+        expect(console.warn).toBeCalledTimes(1);
+        expect(console.warn).toBeCalledWith(
+            'AG Charts - Unable to mix these series types with the lead series type: bullet'
         );
         await compare(chart, ctx);
     });
