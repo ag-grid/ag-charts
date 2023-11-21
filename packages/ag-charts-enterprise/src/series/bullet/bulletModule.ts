@@ -13,6 +13,7 @@ export const BulletModule: _ModuleSupport.SeriesModule<'bullet'> = {
     packageType: 'enterprise',
     chartTypes: ['cartesian'],
     identifier: 'bullet',
+    solo: true,
     optionConstructors: { 'series[].colorRanges': BulletColorRange },
     instanceConstructor: BulletSeries,
     seriesDefaults: BULLET_DEFAULTS,

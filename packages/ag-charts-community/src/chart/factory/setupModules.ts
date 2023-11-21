@@ -39,6 +39,7 @@ export function setupModules() {
                 m.themeTemplate,
                 m.enterpriseThemeTemplate,
                 m.paletteFactory,
+                m.solo,
                 m.stackable,
                 m.groupable,
                 m.stackedByDefault,

@@ -18,6 +18,7 @@ import {
     getSeriesDefaults,
     getSeriesPaletteFactory,
     isDefaultAxisSwapNeeded,
+    isSoloSeries,
 } from '../factory/seriesTypes';
 import type { ChartTheme } from '../themes/chartTheme';
 import { resolveModuleConflicts, swapAxes } from './defaults';
@@ -174,17 +175,14 @@ function sanityCheckOptions<T extends AgChartOptions>(options: T) {
     });
 }
 
-function validateSoloSeries<T extends AgChartOptions>(options: T): T {
-    function isSoloSeries(series: SeriesOptionsTypes) {
-        return series.type === 'bullet';
+function hasSoloSeries(options: SeriesOptionsTypes[]) {
+    for (const series of options) {
+        if (isSoloSeries(series.type)) return true;
     }
-    function hasSoloSeries(options: SeriesOptionsTypes[]) {
-        for (const series of options) {
-            if (isSoloSeries(series)) return true;
-        }
-        return false;
-    }
+    return false;
+}
 
+function validateSoloSeries<T extends AgChartOptions>(options: T): T {
     if (options.series === undefined || options.series.length <= 1 || !hasSoloSeries(options.series)) {
         return options;
     }
@@ -192,7 +190,7 @@ function validateSoloSeries<T extends AgChartOptions>(options: T): T {
     // If the first series is a solo-series, remove all trailing series.
     // If the frist series is not a solo-series, remove all solo-series.
     let series = [...options.series];
-    if (isSoloSeries(series[0])) {
+    if (isSoloSeries(series[0].type)) {
         Logger.warn(
             `series[0] of type '${series[0].type}' is incompatible with other series types. Only processing series[0]`
         );
@@ -200,7 +198,7 @@ function validateSoloSeries<T extends AgChartOptions>(options: T): T {
     } else {
         let userIndex = 1;
         for (let i = 1; i < series.length; ) {
-            if (isSoloSeries(series[i])) {
+            if (isSoloSeries(series[i].type)) {
                 Logger.warn(
                     `series[${userIndex}] of type '${series[i].type}' is incompatible with other series types. Ignoring series[${userIndex}]`
                 );
