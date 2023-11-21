@@ -110,6 +110,7 @@ function NavItemContainer({
                     tabIndex={0}
                     className={classnames(gridStyles.sectionHeader, 'button-style-none', {
                         [gridStyles.active]: isActive,
+                        [styles.active]: isActive,
                     })}
                     aria-expanded={isActive}
                     aria-controls={`#${toElementId(title)}`}
@@ -130,6 +131,7 @@ function NavItemContainer({
                     href={linkUrl}
                     className={classnames(gridStyles.sectionHeader, {
                         [gridStyles.activeMenuItem]: activeMenuItem === menuItem,
+                        [styles.activeMenuItem]: activeMenuItem === menuItem,
                     })}
                 >
                     {icon && <Icon name={icon} svgClasses={styles.menuIcon} />}

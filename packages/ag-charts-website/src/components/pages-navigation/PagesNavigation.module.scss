@@ -107,6 +107,10 @@ button .menuIcon {
         opacity $default-transition-timing;
 }
 
+.activeMenuItem .menuIcon {
+    fill: var(--active-color) !important;
+}
+
 a :global(.icon).menuIcon {
     --icon-size: 1.75em;
 
@@ -120,13 +124,5 @@ a :global(.icon).menuIcon {
 
     #{$darkmode-selector} & {
         fill: var(--secondary-text-color);
-    }
-}
-
-a :global(.icon).activeMenuIcon {
-    fill: var(--active-color);
-
-    #{$darkmode-selector} & {
-        fill: var(--active-color);
     }
 }
