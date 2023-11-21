@@ -1,9 +1,11 @@
 'use strict';
 
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { AgChartsReact } from 'ag-charts-react';
+
 import { AgChartOptions, AgChartThemeName, AgCharts } from 'ag-charts-community';
+import { AgChartsReact } from 'ag-charts-react';
+
 import { getData } from './data';
 
 const ChartExample = () => {
@@ -21,7 +23,7 @@ const ChartExample = () => {
                 calloutLabelKey: 'label',
             },
         ],
-    }); 
+    });
 
     const setThemeDefault = useCallback(() => {
         const clone = { ...options };
