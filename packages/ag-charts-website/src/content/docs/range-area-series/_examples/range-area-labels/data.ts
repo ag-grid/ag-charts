@@ -48,7 +48,7 @@ export function getData() {
         {
             date: 'Nov 10',
             high: 1361,
-            low: -361,
+            low: -511,
         },
         {
             date: 'Nov 11',
