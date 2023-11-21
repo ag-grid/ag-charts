@@ -5,7 +5,7 @@ ZIP_PREFIX=`date +%Y%m%d`
 echo "Creating Staging Archive"
 FILENAME=charts-staging_"$ZIP_PREFIX"_v"$VERSION".zip
 cd ./dist/packages/ag-charts-website
-zip -r ../../../$FILENAME .
+zip -qr ../../../$FILENAME .
 
 rm -rf /var/www/charts/*
 mv ../../../$FILENAME /var/www/charts/
