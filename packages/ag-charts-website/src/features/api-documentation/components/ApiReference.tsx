@@ -26,6 +26,8 @@ export const ApiReferenceConfigContext = createContext<ApiReferenceConfig>({});
 
 export interface ApiReferenceConfig {
     prioritise?: string[];
+    include?: string[];
+    exclude?: string[];
     hideHeader?: boolean;
     hideRequired?: boolean;
     specialTypes?: SpecialTypesMap;
@@ -50,6 +52,8 @@ interface ApiReferenceRowOptions {
 export function ApiReferenceWithContext({
     reference,
     prioritise,
+    include,
+    exclude,
     hideHeader,
     hideRequired,
     keepExpanded,
@@ -57,7 +61,7 @@ export function ApiReferenceWithContext({
 }: ApiReferenceOptions & ApiReferenceConfig & { reference: ApiReferenceType }) {
     return (
         <ApiReferenceContext.Provider value={reference}>
-            <ApiReferenceConfigContext.Provider value={{ prioritise, hideHeader, hideRequired }}>
+            <ApiReferenceConfigContext.Provider value={{ prioritise, include, exclude, hideHeader, hideRequired }}>
                 <ApiReference {...props} />
             </ApiReferenceConfigContext.Provider>
         </ApiReferenceContext.Provider>
@@ -108,7 +112,7 @@ function NodeFactory({ member, anchorId, prefixPath = [], ...props }: ApiReferen
     const location = useLocation();
 
     const hasMembers = interfaceRef && 'members' in interfaceRef;
-    const hasNestedPages = config?.specialTypes?.[getMemberType(member)] === 'NestedPage';
+    const hasNestedPages = config.specialTypes?.[getMemberType(member)] === 'NestedPage';
 
     useEffect(() => {
         const hash = location?.hash.substring(1);
