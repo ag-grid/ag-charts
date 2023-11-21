@@ -27,7 +27,7 @@ function transformer(sourceFile: string, dataFile?: string, themeName?: ThemeNam
         });
     });
 
-    const optionsNode = optionsExpression.get(0).node;
+    const optionsNode = optionsExpression.length >= 1 ? optionsExpression.get(0).node : { properties: [] };
 
     // Remove padding
     optionsNode.properties = optionsNode.properties.filter((property: any) => property.key?.name !== 'padding');
@@ -148,7 +148,7 @@ function transformer(sourceFile: string, dataFile?: string, themeName?: ThemeNam
     optionsExpressionProperties.push(paddingPropertyNode);
 
     const code = root.toSource();
-    const options = parseExampleOptions('options', code, dataFile, { agCharts });
+    const options = optionsExpression.length >= 1 ?parseExampleOptions('options', code, dataFile, { agCharts }) : undefined;
 
     return { code, options };
 }
