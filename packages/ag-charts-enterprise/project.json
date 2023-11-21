@@ -22,7 +22,6 @@
         "tsConfig": "packages/ag-charts-enterprise/tsconfig.lib.json",
         "rollupConfig": "packages/ag-charts-enterprise/rollup.config.cjs",
         "project": "packages/ag-charts-enterprise/package.json",
-        "deleteOutputPath": false,
         "compiler": "tsc",
         "format": ["cjs", "esm"]
       },
@@ -44,7 +43,6 @@
         "tsConfig": "packages/ag-charts-enterprise/tsconfig.lib.json",
         "rollupConfig": "packages/ag-charts-enterprise/rollup.umd.config.cjs",
         "project": "packages/ag-charts-enterprise/package.json",
-        "deleteOutputPath": false,
         "compiler": "tsc",
         "format": ["cjs"]
       },
