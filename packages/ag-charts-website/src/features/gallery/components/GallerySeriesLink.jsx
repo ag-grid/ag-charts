@@ -15,7 +15,7 @@ export const GallerySeriesLink = ({ series }) => {
     const url = urlWithPrefix({ url: `./${series.toLowerCase()}-series`, framework: frameworkFromInternalFramework });
 
     return (
-        <a href={url} class={classnames(styles.seriesLink, 'font-size-medium')}>
+        <a href={url} className={classnames(styles.seriesLink, 'font-size-medium')}>
             View {series.toLowerCase()} charts documentation
             <Icon svgClasses={styles.arrowIcon} name="arrowRight" />
         </a>

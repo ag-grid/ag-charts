@@ -34,8 +34,6 @@ export const DOCS_EXAMPLES = {
     'histogram-with-specified-bins': loadExampleOptions('histogram-with-specified-bins'),
     'line-with-gaps': loadExampleOptions('line-with-gaps'),
     'log-axis': loadExampleOptions('log-axis'),
-    'market-index-sunburst': loadExampleOptions('market-index-sunburst'),
-    'market-index-treemap': loadExampleOptions('market-index-treemap'),
     'per-marker-customisation': loadExampleOptions('per-marker-customisation'),
     'pie-in-a-doughnut': loadExampleOptions('pie-in-a-doughnut'),
     'pie-with-variable-radius': loadExampleOptions('pie-with-variable-radius'),
@@ -49,10 +47,12 @@ export const DOCS_EXAMPLES = {
     'simple-line': loadExampleOptions('simple-line'),
     'simple-pie': loadExampleOptions('simple-pie'),
     'simple-scatter': loadExampleOptions('simple-scatter'),
+    'simple-sunburst': loadExampleOptions('simple-sunburst'),
     'stacked-area': loadExampleOptions('stacked-area'),
     'stacked-bar': loadExampleOptions('stacked-bar'),
     'stacked-column': loadExampleOptions('stacked-column'),
     'time-axis-with-irregular-intervals': loadExampleOptions('time-axis-with-irregular-intervals'),
+    'treemap-with-color-range': loadExampleOptions('treemap-with-color-range'),
     'xy-histogram-with-mean-aggregation': loadExampleOptions('xy-histogram-with-mean-aggregation'),
 };
 
@@ -84,8 +84,8 @@ export const ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAMPLE: AgCartesianChartOpt
     DOCS_EXAMPLES['100--stacked-area'];
 export const AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE: AgCartesianChartOptions =
     DOCS_EXAMPLES['area-with-negative-values'];
-export const MARKET_INDEX_SUNBURST_GRAPH_EXAMPLE: AgChartOptions = DOCS_EXAMPLES['market-index-sunburst'];
-export const MARKET_INDEX_TREEMAP_GRAPH_EXAMPLE: AgChartOptions = DOCS_EXAMPLES['market-index-treemap'];
+export const SIMPLE_SUNBURST_EXAMPLE: AgChartOptions = DOCS_EXAMPLES['simple-sunburst'];
+export const TREEMAP_WITH_COLOR_RANGE_EXAMPLE: AgChartOptions = DOCS_EXAMPLES['treemap-with-color-range'];
 export const SIMPLE_HISTOGRAM_CHART_EXAMPLE: AgChartOptions = DOCS_EXAMPLES['simple-histogram'];
 export const HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE: AgChartOptions = DOCS_EXAMPLES['histogram-with-specified-bins'];
 export const XY_HISTOGRAM_WITH_MEAN_EXAMPLE: AgCartesianChartOptions =

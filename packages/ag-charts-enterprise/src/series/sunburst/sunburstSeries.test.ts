@@ -52,7 +52,7 @@ describe('SunburstChart', () => {
         });
 
         const SIMPLIFIED_EXAMPLE = {
-            ...GALLERY_EXAMPLES.MARKET_INDEX_SUNBURST_GRAPH_EXAMPLE.options,
+            ...GALLERY_EXAMPLES.SIMPLE_SUNBURST_EXAMPLE.options,
         };
 
         it('should render a complex chart', async () => {

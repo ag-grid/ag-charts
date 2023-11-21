@@ -23,7 +23,7 @@ export const TreemapSeriesModule: _ModuleSupport.SeriesModule<'treemap'> = {
                 fontWeight: NORMAL,
                 fontSize: 12,
                 fontFamily: DEFAULT_FONT_FAMILY,
-                spacing: 3,
+                spacing: 4,
             },
             fill: undefined, // Override default fill
             stroke: undefined, // Override default stroke

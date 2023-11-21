@@ -1,13 +1,5 @@
 export const data = [
     {
-        title: 'Pensions',
-        children: [
-            { title: 'Sickness and disability', total: 61.2, change: 8.7 },
-            { title: 'Old age', total: 141.8, change: 17.9 },
-            { title: 'Survivors', total: 1.4, change: 0 },
-        ],
-    },
-    {
         title: 'Health Care',
         children: [
             { title: 'Medical service', total: 205.6, change: 9.4 },
@@ -16,59 +8,11 @@ export const data = [
         ],
     },
     {
-        title: 'Education',
+        title: 'Pensions',
         children: [
-            { title: 'Pre-primary and primary education', total: 1.3, change: 0.2 },
-            { title: 'Secondary education', total: 43.3, change: 0.4 },
-            { title: 'Tertiary education', total: 5.1, change: 0.5 },
-            { title: 'Education not definable by level', total: 1.9, change: 0.8 },
-            { title: 'Subsidiary services to education', total: 0.8, change: 0 },
-            { title: 'R&D Education', total: 2.7, change: -0.3 },
-            { title: 'Education n.e.c.', total: 2.8, change: 0 },
-        ],
-    },
-    {
-        title: 'Defence',
-        children: [
-            { title: 'Military defence', total: 50.4, change: 0 },
-            { title: 'Foreign military aid', total: 0.4, change: -2.2 },
-            { title: 'Foreign economic aid', total: 6.6, change: 1.5 },
-            { title: 'R&D Defence', total: 2.6, change: 0.3 },
-            { title: 'Defence n.e.c.', total: 0.2, change: 0 },
-        ],
-    },
-    {
-        title: 'Welfare',
-        children: [
-            { title: 'Family and children', total: 16.8, change: 1.7 },
-            { title: 'Unemployment', total: 1.1, change: 0.1 },
-            { title: 'Housing', total: 6.2, change: -0.5 },
-            { title: 'Social exclusion n.e.c.', total: 65.4, change: 9.4 },
-            { title: 'Social protection n.e.c.', total: 15.1, change: 3.5 },
-        ],
-    },
-    {
-        title: 'Protection',
-        children: [
-            { title: 'Police services', total: 5.5, change: -0.3 },
-            { title: 'Fire-protection services', total: 0.6, change: 0 },
-            { title: 'Law courts', total: 8.2, change: 0.3 },
-            { title: 'Prisons', total: 7.7, change: 1.6 },
-            { title: 'R&D Public order and safety', total: 1, change: -2.6 },
-            { title: 'Public order and safety n.e.c.', total: 1.2, change: 0 },
-        ],
-    },
-    {
-        title: 'Transport',
-        children: [{ title: 'Transport', total: 33.7, change: 1.6 }],
-    },
-    {
-        title: 'General Government',
-        children: [
-            { title: 'Executive and legislative organs, finan', total: 19.8, change: -2.3 },
-            { title: 'General services', total: 1.5, change: 0 },
-            { title: 'R&D General public services', total: 0.5, change: 0.2 },
-            { title: 'General public services n.e.c.', total: 0.7, change: 0.3 },
+            { title: 'Sickness and disability', total: 61.2, change: 8.7 },
+            { title: 'Old age', total: 141.8, change: 17.9 },
+            { title: 'Survivors', total: 1.4, change: 0 },
         ],
     },
     {
@@ -100,7 +44,63 @@ export const data = [
         ],
     },
     {
+        title: 'Welfare',
+        children: [
+            { title: 'Family and children', total: 16.8, change: 1.7 },
+            { title: 'Unemployment', total: 1.1, change: 0.1 },
+            { title: 'Housing', total: 6.2, change: -0.5 },
+            { title: 'Social exclusion n.e.c.', total: 65.4, change: 9.4 },
+            { title: 'Social protection n.e.c.', total: 15.1, change: 3.5 },
+        ],
+    },
+    {
         title: 'Interest',
         children: [{ title: 'Public debt transactions', total: 76.9, change: -29.9 }],
+    },
+    {
+        title: 'Defence',
+        children: [
+            { title: 'Military defence', total: 50.4, change: 0 },
+            { title: 'Foreign military aid', total: 0.4, change: -2.2 },
+            { title: 'Foreign economic aid', total: 6.6, change: 1.5 },
+            { title: 'R&D Defence', total: 2.6, change: 0.3 },
+            { title: 'Defence n.e.c.', total: 0.2, change: 0 },
+        ],
+    },
+    {
+        title: 'Education',
+        children: [
+            { title: 'Pre-primary and primary education', total: 1.3, change: 0.2 },
+            { title: 'Secondary education', total: 43.3, change: 0.4 },
+            { title: 'Tertiary education', total: 5.1, change: 0.5 },
+            { title: 'Education not definable by level', total: 1.9, change: 0.8 },
+            { title: 'Subsidiary services to education', total: 0.8, change: 0 },
+            { title: 'R&D Education', total: 2.7, change: -0.3 },
+            { title: 'Education n.e.c.', total: 2.8, change: 0 },
+        ],
+    },
+    {
+        title: 'Transport',
+        children: [{ title: 'Transport', total: 33.7, change: 1.6 }],
+    },
+    {
+        title: 'Protection',
+        children: [
+            { title: 'Police services', total: 5.5, change: -0.3 },
+            { title: 'Fire-protection services', total: 0.6, change: 0 },
+            { title: 'Law courts', total: 8.2, change: 0.3 },
+            { title: 'Prisons', total: 7.7, change: 1.6 },
+            { title: 'R&D Public order and safety', total: 1, change: -2.6 },
+            { title: 'Public order and safety n.e.c.', total: 1.2, change: 0 },
+        ],
+    },
+    {
+        title: 'General Government',
+        children: [
+            { title: 'Executive and legislative organs, finan', total: 19.8, change: -2.3 },
+            { title: 'General services', total: 1.5, change: 0 },
+            { title: 'R&D General public services', total: 0.5, change: 0.2 },
+            { title: 'General public services n.e.c.', total: 0.7, change: 0.3 },
+        ],
     },
 ];

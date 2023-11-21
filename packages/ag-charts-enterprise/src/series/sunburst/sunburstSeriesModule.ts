@@ -21,6 +21,7 @@ export const SunburstSeriesModule: _ModuleSupport.SeriesModule<'sunburst'> = {
             color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
             overflowStrategy: 'ellipsis',
             wrapping: 'never',
+            spacing: 2,
         },
         secondaryLabel: {
             fontSize: 8,
