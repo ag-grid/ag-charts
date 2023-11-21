@@ -73,7 +73,7 @@ export const ASTRO_ALGOLIA_SEARCH_KEY = import.meta.env?.PUBLIC_ASTRO_ALGOLIA_SE
 export const GRID_URL = SITE_URL
     ? SITE_URL.includes('localhost:4600')
         ? 'https://localhost:8000'
-        : SITE_URL.includes('staging.ag-grid.com')
+        : SITE_URL.includes('charts-staging.ag-grid.com')
         ? 'https://build.ag-grid.com'
         : 'https://ag-grid.com'
     : undefined;
