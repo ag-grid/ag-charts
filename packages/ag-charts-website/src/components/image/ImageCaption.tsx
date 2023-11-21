@@ -16,6 +16,7 @@ interface Props {
     height: string;
     minWidth: string;
     maxWidth: string;
+    filterDarkmode: boolean;
 }
 
 /**
@@ -34,6 +35,7 @@ const ImageCaption = ({
     height,
     maxWidth,
     minWidth,
+    filterDarkmode = false,
 }: Props) => {
     const imgSrc = getImageUrl({
         pageName,
@@ -69,6 +71,7 @@ const ImageCaption = ({
             className={classnames(styles.imageCaption, {
                 [styles.centered]: centered,
                 [styles.constrained]: constrained,
+                [styles.filterDarkmode]: filterDarkmode,
             })}
             style={style}
         >

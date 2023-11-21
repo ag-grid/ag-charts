@@ -71,6 +71,7 @@ export default defineMarkdocConfig({
                 height: { type: String },
                 minWidth: { type: String },
                 maxWidth: { type: String },
+                filterDarkmode: { type: Boolean },
             },
         },
         flex: {
