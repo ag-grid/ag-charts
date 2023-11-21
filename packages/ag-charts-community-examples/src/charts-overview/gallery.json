@@ -123,13 +123,13 @@
     "Sunburst": {
         "Market Index Sunburst": {
             "description": "A sunburst of a snapshot of the S&P 500 stock market index.",
-            "example": "market-index-sunburst"
+            "example": "simple-sunburst"
         }
     },
     "Treemap": {
         "Market Index Treemap": {
             "description": "A treemap of a snapshot of the S&P 500 stock market index.",
-            "example": "market-index-treemap"
+            "example": "treemap-with-color-range"
         }
     },
     "Feature Highlights": {

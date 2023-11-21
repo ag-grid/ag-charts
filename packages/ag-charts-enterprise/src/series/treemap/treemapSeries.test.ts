@@ -52,8 +52,8 @@ describe('HierarchyChart', () => {
         });
 
         const SIMPLIFIED_EXAMPLE = {
-            ...GALLERY_EXAMPLES.MARKET_INDEX_TREEMAP_GRAPH_EXAMPLE.options,
-            data: GALLERY_EXAMPLES.MARKET_INDEX_TREEMAP_GRAPH_EXAMPLE.options.data.slice(0, 1),
+            ...GALLERY_EXAMPLES.TREEMAP_WITH_COLOR_RANGE_EXAMPLE.options,
+            data: GALLERY_EXAMPLES.TREEMAP_WITH_COLOR_RANGE_EXAMPLE.options.data.slice(0, 1),
         };
 
         it('should render a complex chart', async () => {

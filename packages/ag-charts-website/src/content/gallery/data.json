@@ -49,10 +49,10 @@
             "seriesExampleName": "stacked-radial-bar"
         },
         {
-            "seriesExampleName": "market-index-sunburst"
+            "seriesExampleName": "simple-sunburst"
         },
         {
-            "seriesExampleName": "market-index-treemap"
+            "seriesExampleName": "treemap-with-color-range"
         }
     ],
     "series": [
@@ -510,7 +510,7 @@
                 {
                     "title": "Market Index Sunburst",
                     "description": "A sunburst of a snapshot of the S&P 500 stock market index.",
-                    "name": "market-index-sunburst"
+                    "name": "simple-sunburst"
                 }
             ]
         },
@@ -523,7 +523,7 @@
                 {
                     "title": "Market Index Treemap",
                     "description": "A treemap of a snapshot of the S&P 500 stock market index.",
-                    "name": "market-index-treemap"
+                    "name": "treemap-with-color-range"
                 }
             ]
         },

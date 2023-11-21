@@ -42,7 +42,13 @@ export const GalleryExampleLink: FunctionComponent<Props> = ({ label, exampleNam
             href={getPageUrl(exampleName)}
             style={linkStyle}
         >
-            <img src={imageUrl} alt={label} />
+            <img
+                src={imageUrl}
+                alt={label}
+                // Set explicit width and height so the layout doesn't jump around as the page is loading
+                width={600}
+                height={375}
+            />
             <span>{label}</span>
         </a>
     );

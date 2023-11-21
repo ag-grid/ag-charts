@@ -29,6 +29,7 @@
 
     img {
         width: 100%;
+        height: auto; /* unset explicit height to use intrinsic sizing */
         padding: $size-3;
     }
 

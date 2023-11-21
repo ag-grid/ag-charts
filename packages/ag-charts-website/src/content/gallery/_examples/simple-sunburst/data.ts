@@ -1,0 +1,75 @@
+export const data = [
+    {
+        name: 'United Kingdom',
+        children: [
+            { name: 'Hornsea Project Two', capacity: 1386, commissioned: 2022 },
+            { name: 'Hornsea Project One', capacity: 1218, commissioned: 2019 },
+            { name: 'Seagreen', capacity: 1075, commissioned: 2023 },
+            { name: 'Moray East', capacity: 950, commissioned: 2022 },
+            { name: 'Triton Knoll', capacity: 857, commissioned: 2021 },
+            { name: 'East Anglia ONE', capacity: 714, commissioned: 2020 },
+            { name: 'Walney Extension', capacity: 659, commissioned: 2018 },
+            { name: 'London Array', capacity: 630, commissioned: 2013 },
+            { name: 'Beatrice', capacity: 588, commissioned: 2019 },
+            { name: 'Gwynt y Môr', capacity: 576, commissioned: 2015 },
+            { name: 'Race Bank', capacity: 573, commissioned: 2018 },
+            { name: 'Greater Gabbard', capacity: 504, commissioned: 2012 },
+            { name: 'Dudgeon', capacity: 402, commissioned: 2017 },
+            { name: 'Rampion', capacity: 400, commissioned: 2018 },
+        ],
+    },
+    {
+        name: 'China',
+        children: [
+            { name: 'Jiangsu Qidong H1+H2', capacity: 503, commissioned: 2021 },
+            { name: 'CGN Shanwei Jiazi I', capacity: 503, commissioned: 2022 },
+            { name: 'Jieyang Shenquan II', capacity: 502, commissioned: 2022 },
+            { name: 'Shandong Bozhong B2', capacity: 501.5, commissioned: 2023 },
+            { name: 'Shandong Bozhong A', capacity: 501, commissioned: 2022 },
+            { name: 'Huadian Yangjiang Qingzhou III', capacity: 500.6, commissioned: 2022 },
+            { name: 'CGN Shanwei Houhu', capacity: 500.5, commissioned: 2021 },
+            { name: 'CGN Shanwei Jiazi II', capacity: 403, commissioned: 2022 },
+            { name: 'CGN Yangjiang Nanpeng Island', capacity: 401.5, commissioned: 2020 },
+            { name: 'Binhai North H2', capacity: 400, commissioned: 2018 },
+            { name: 'CTGNE Yangjiang Shapa - phase II', capacity: 400, commissioned: 2021 },
+            { name: 'Rudong H6', capacity: 400, commissioned: 2021 },
+            { name: 'Rudong H10', capacity: 400, commissioned: 2021 },
+            { name: 'SPIC Rudong H7', capacity: 400, commissioned: 2021 },
+            { name: 'SPIC Rudong H4', capacity: 400, commissioned: 2021 },
+        ],
+    },
+    {
+        name: 'Germany',
+        children: [
+            { name: 'Gode Wind (phases 1+2)', capacity: 582, commissioned: 2017 },
+            { name: 'Hohe See', capacity: 497, commissioned: 2019 },
+            { name: 'Borkum Riffgrund 2', capacity: 450, commissioned: 2019 },
+            { name: 'Veja Mate', capacity: 402, commissioned: 2017 },
+            { name: 'BARD Offshore 1', capacity: 400, commissioned: 2013 },
+            { name: 'Global Tech I', capacity: 400, commissioned: 2015 },
+        ],
+    },
+    {
+        name: 'Netherlands',
+        children: [
+            { name: 'Borssele I & II', capacity: 752, commissioned: 2020 },
+            { name: 'Borssele III & IV', capacity: 731.5, commissioned: 2021 },
+            { name: 'Gemini Wind Farm', capacity: 600, commissioned: 2017 },
+        ],
+    },
+    {
+        name: 'Denmark',
+        children: [
+            { name: 'Kriegers Flak', capacity: 605, commissioned: 2021 },
+            { name: 'Horns Rev 3', capacity: 407, commissioned: 2019 },
+            { name: 'Anholt', capacity: 400, commissioned: 2013 },
+        ],
+    },
+    {
+        name: 'France',
+        children: [
+            { name: 'Saint-Brieuc', capacity: 496, commissioned: 2023 },
+            { name: 'Saint-Nazaire', capacity: 480, commissioned: 2022 },
+        ],
+    },
+];
