@@ -82,6 +82,17 @@
         "update": {},
         "production": {}
       }
+    },
+    "clean": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{workspaceRoot}",
+        "commands": [
+          {
+            "command": "rimraf dist/ 'packages/*/dist/'"
+          }
+        ]
+      }
     }
   },
   "implicitDependencies": [
