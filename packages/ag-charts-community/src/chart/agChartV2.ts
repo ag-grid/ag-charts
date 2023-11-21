@@ -1,6 +1,7 @@
 import type { ModuleInstance } from '../module/baseModule';
 import type { LegendModule, RootModule } from '../module/coreModules';
-import { LicenseManager, enterpriseModule } from '../module/enterpriseModule';
+import type { LicenseManager } from '../module/enterpriseModule';
+import { enterpriseModule } from '../module/enterpriseModule';
 import { type Module, REGISTERED_MODULES, hasRegisteredEnterpriseModules } from '../module/module';
 import type { AxisOptionModule, SeriesOptionModule } from '../module/optionModules';
 import type {
