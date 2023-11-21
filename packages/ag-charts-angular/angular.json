@@ -43,9 +43,5 @@
                 }
             }
         }
-    },
-    "defaultProject": "ag-charts-angular",
-    "cli": {
-        "defaultCollection": "@angular-eslint/schematics"
     }
 }
