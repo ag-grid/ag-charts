@@ -54,6 +54,7 @@ const isApiLayout = apiMenuItems.some((item) => {
         }
         <meta name="generator" content={Astro.generator} />
         <title>{title}</title>
+        <link rel="sitemap" type="application/xml" title="Sitemap" href={urlWithBaseUrl("/sitemap-index.xml")} />
 
         <script is:inline>
             const htmlEl = document.querySelector('html');

@@ -1,11 +1,13 @@
 import markdoc from '@astrojs/markdoc';
 import react from '@astrojs/react';
+import sitemap from '@astrojs/sitemap';
 import { defineConfig } from 'astro/config';
 import { loadEnv } from 'vite';
 import svgr from 'vite-plugin-svgr';
 
 import agHotModuleReload from './src/astro/plugins/agHotModuleReload';
 import { getDevFileList } from './src/utils/pages';
+import { getSitemapConfig } from './src/utils/sitemap';
 
 const DEFAULT_BASE_URL = '/';
 const { PUBLIC_SITE_URL, PUBLIC_BASE_URL = DEFAULT_BASE_URL } = loadEnv(process.env.NODE_ENV, process.cwd(), '');
@@ -37,5 +39,5 @@ export default defineConfig({
             },
         },
     },
-    integrations: [react(), markdoc()],
+    integrations: [react(), markdoc(), sitemap(getSitemapConfig())],
 });
