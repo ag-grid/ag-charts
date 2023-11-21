@@ -641,12 +641,13 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
 
             const format = this.getTileFormat(node, highlighted);
 
-            const fill =
-                format?.fill ??
-                highlightedFill ??
-                (isLeaf
-                    ? tile.fill ?? node.fill
-                    : group.fill ?? DEFAULT_GROUP_FILLS[Math.min(node.depth ?? 0, DEFAULT_GROUP_FILLS.length)]);
+            let fill = format?.fill ?? highlightedFill;
+            if (isLeaf) {
+                fill ??= tile.fill ?? node.fill;
+            } else {
+                const defaultFill = DEFAULT_GROUP_FILLS[Math.min(node.depth ?? 0, DEFAULT_GROUP_FILLS.length)];
+                fill ??= group.fill ?? defaultFill;
+            }
             const fillOpacity =
                 format?.fillOpacity ?? highlightedFillOpacity ?? (isLeaf ? tile.fillOpacity : group.fillOpacity);
             const stroke = format?.stroke ?? highlightedStroke ?? (isLeaf ? tile.stroke ?? node.stroke : group.stroke);
@@ -859,7 +860,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
         const contentArray: string[] = [];
 
         const datumSecondaryLabel = secondaryLabelKey != null ? datum[secondaryLabelKey] : undefined;
-        if (datumSecondaryLabel != null) {
+        if (datumSecondaryLabel != null && secondaryLabelKey !== colorKey && secondaryLabelKey !== sizeKey) {
             contentArray.push(sanitizeHtml(datumSecondaryLabel));
         }
 
