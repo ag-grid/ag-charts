@@ -572,7 +572,13 @@
             "name": "Bullet",
             "icon": "chartsBullet",
             "enterprise": true,
-            "examples": []
+            "examples": [
+                {
+                    "title": "Bullet Graphs",
+                    "description": "A Bullet Series presents a single data point within a predefined range, commonly used to illustrate the relationship of a key value to a target or comparative values.",
+                    "name": "5-bullets"
+                }
+            ]
         }
     ]
 }
