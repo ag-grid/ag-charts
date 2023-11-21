@@ -6,32 +6,33 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'Range Column Missing Data',
+        text: 'London Property Average Price Range',
+    },
+    subtitle: {
+        text: '2000 - 2020',
     },
     series: [
         {
             type: 'range-area',
             xKey: 'date',
-            xName: 'Date',
-            yLowKey: 'low',
-            yHighKey: 'high',
-            marker: {
-                size: 20,
-            },
+            yLowKey: 'flatsAndMaisonettes',
+            yHighKey: 'detachedHouses',
         },
     ],
     axes: [
         {
-            type: 'number',
             position: 'left',
+            type: 'number',
+            title: {
+                text: 'Average Price',
+            },
+            label: {
+                formatter: ({ value }) => `£${(+value).toLocaleString()}`,
+            },
         },
         {
-            type: 'time',
             position: 'bottom',
-            nice: false,
-            crosshair: {
-                enabled: false,
-            },
+            type: 'time',
         },
     ],
 };
@@ -40,9 +41,12 @@ let chart = AgCharts.create(options);
 
 function missingYValues() {
     const data = getData();
-    data[2].high = undefined;
-    data[5].low = undefined;
-    options.data = data;
+    options.data = data.map((d) => {
+        const year = d.date.getFullYear();
+        if (year === 2005 || year === 2018) {
+            return { ...d, flatsAndMaisonettes: undefined, detachedHouses: undefined };
+        } else return d;
+    });
 
     AgCharts.update(chart, options);
 }
@@ -50,8 +54,12 @@ function missingYValues() {
 function missingXValue() {
     const data = getData();
 
-    data[6].date = undefined;
-    options.data = data;
+    options.data = data.map((d) => {
+        const year = d.date.getFullYear();
+        if (year === 2005 || year === 2006 || year === 2017 || year === 2018) {
+            return { ...d, date: undefined };
+        } else return d;
+    });
 
     AgCharts.update(chart, options);
 }
