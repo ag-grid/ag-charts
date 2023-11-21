@@ -207,6 +207,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             ],
             dataVisible: this.visible,
         });
+
+        this.animationState.transition('updateData');
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
@@ -774,7 +776,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     ) {
         const { contextData, paths } = animationData;
 
-        super.resetAllAnimation(animationData);
+        super.animateWaitingUpdateReady(animationData);
         this.updateAreaPaths(paths, contextData);
     }
 }

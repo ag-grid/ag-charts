@@ -127,6 +127,8 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
             colorScale.range = colorRange;
             colorScale.update();
         }
+
+        this.animationState.transition('updateData');
     }
 
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
