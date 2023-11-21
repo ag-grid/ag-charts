@@ -9,6 +9,7 @@ import VueTemplate from '../framework-templates/VueTemplate.astro';
 import type { GeneratedContents } from '@features/examples-generator/types';
 import AngularTemplate from '../framework-templates/AngularTemplate.astro';
 import PostInitMessageScript from '@features/example-runner/components/PostInitMessageScript.astro';
+import { toTitle } from '@utils/toTitle';
 
 interface Props {
     internalFramework: InternalFramework;
@@ -44,7 +45,7 @@ const boilerPlateUrl = relativePath
       });
 
 const timeNow = Date.now();
-const title = `${pageName} - ${exampleName}`;
+const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
 ---
 
 {

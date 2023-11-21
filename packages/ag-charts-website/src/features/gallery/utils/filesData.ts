@@ -94,14 +94,8 @@ export const getChartExampleTitle = ({
         galleryData,
         exampleName,
     });
-    const chartSeriesName = example?.title;
-    const pageName = `${chartSeriesName} Chart`;
-    const displayExampleName = getExampleName({
-        galleryData,
-        exampleName,
-    });
 
-    return `${pageName} - ${displayExampleName}`;
+    return example?.title;
 };
 
 export const getGalleryExamples = ({ galleryData }: { galleryData: GalleryData }) => {
