@@ -1,0 +1,13 @@
+diff --git a/node_modules/astro/dist/core/build/static-build.js b/node_modules/astro/dist/core/build/static-build.js
+index c80c10d..abf3411 100644
+--- a/node_modules/astro/dist/core/build/static-build.js
++++ b/node_modules/astro/dist/core/build/static-build.js
+@@ -268,7 +268,7 @@ export const ${e.n} = noop;`;
+ }
+ async function cleanServerOutput(opts) {
+   const out = getOutDirWithinCwd(opts.settings.config.outDir);
+-  const files = await glob("**/*.mjs", {
++  const files = await glob(['!dev/**/*.mjs', '**/*.mjs'], {
+     cwd: fileURLToPath(out)
+   });
+   if (files.length) {
