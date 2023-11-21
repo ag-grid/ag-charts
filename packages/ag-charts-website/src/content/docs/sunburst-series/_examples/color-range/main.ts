@@ -21,7 +21,7 @@ const options: AgChartOptions = {
             labelKey: 'name',
             sizeKey: 'gdp',
             colorKey: 'gdpChange',
-            colorRange: ['#FF7043', '#66BB6A'],
+            colorRange: ['rgb(63, 145, 79)', 'rgb(253, 149, 63)'],
             tooltip: {
                 renderer: (params) => {
                     const { gdp, gdpChange } = params.datum;

@@ -334,9 +334,16 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
             const angleData = this.angleData[index];
             if (depth == null || angleData == null) return undefined;
 
-            const innerRadius = depth * radiusScale;
-            const outerRadius = (depth + 1) * radiusScale;
-            const { start: startAngle, end: endAngle } = angleData;
+            const innerRadius = depth * radiusScale + baseInset;
+            const outerRadius = (depth + 1) * radiusScale - baseInset;
+            const innerAngleOffset = innerRadius > baseInset ? baseInset / innerRadius : baseInset;
+            const outerAngleOffset = outerRadius > baseInset ? baseInset / outerRadius : baseInset;
+            const innerStartAngle = angleData.start + innerAngleOffset;
+            const innerEndAngle = angleData.end + innerAngleOffset;
+            const deltaInnerAngle = innerEndAngle - innerStartAngle;
+            const outerStartAngle = angleData.start + outerAngleOffset;
+            const outerEndAngle = angleData.end + outerAngleOffset;
+            const deltaOuterAngle = outerEndAngle - outerStartAngle;
 
             const sizeFittingHeight = (height: number) => {
                 const isCenterCircle = depth === 0 && node.parent?.sumSize === node.sumSize;
@@ -348,9 +355,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
                 const parallelHeight = height;
                 const availableWidthUntilItHitsTheOuterRadius =
                     2 * Math.sqrt(outerRadius ** 2 - (innerRadius + parallelHeight) ** 2);
-                const deltaAngle = endAngle - startAngle;
                 const availableWidthUntilItHitsTheStraightEdges =
-                    deltaAngle < Math.PI ? 2 * innerRadius * Math.tan(deltaAngle * 0.5) : Infinity;
+                    deltaInnerAngle < Math.PI ? 2 * innerRadius * Math.tan(deltaInnerAngle * 0.5) : Infinity;
                 const parallelWidth = Math.min(
                     availableWidthUntilItHitsTheOuterRadius,
                     availableWidthUntilItHitsTheStraightEdges
@@ -363,10 +369,10 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
                     perpendicularHeight = height;
                     perpendicularWidth =
                         Math.sqrt(outerRadius ** 2 - (perpendicularHeight / 2) ** 2) -
-                        height / (2 * Math.tan(deltaAngle * 0.5));
+                        height / (2 * Math.tan(deltaOuterAngle * 0.5));
                 } else {
                     // Outer wedge - fit the height to the sector, then fit the width
-                    perpendicularHeight = 2 * innerRadius * Math.tan(deltaAngle * 0.5);
+                    perpendicularHeight = 2 * innerRadius * Math.tan(deltaInnerAngle * 0.5);
                     perpendicularWidth = Math.sqrt(outerRadius ** 2 - (perpendicularHeight / 2) ** 2) - innerRadius;
                 }
 
@@ -401,15 +407,14 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
                     break;
                 case LabelPlacement.Parallel: {
                     const opticalCentering = 0.58; // Between 0 and 1 - there's no maths behind this, just what visually looks good
-                    const insetOuterRadius = outerRadius - baseInset;
-                    const idealRadius = insetOuterRadius - (radiusScale - height) * opticalCentering;
-                    const maximumRadius = Math.sqrt((insetOuterRadius - padding) ** 2 - (width / 2) ** 2);
+                    const idealRadius = outerRadius - (radiusScale - height) * opticalCentering;
+                    const maximumRadius = Math.sqrt((outerRadius - padding) ** 2 - (width / 2) ** 2);
                     radius = Math.min(idealRadius, maximumRadius);
                     break;
                 }
                 case LabelPlacement.Perpendicular:
                     if (depth === 0) {
-                        const minimumRadius = height / (2 * Math.tan((endAngle - startAngle) * 0.5)) + width * 0.5;
+                        const minimumRadius = height / (2 * Math.tan(deltaInnerAngle * 0.5)) + width * 0.5;
                         const maximumRadius = Math.sqrt(outerRadius ** 2 - (height * 0.5) ** 2) - width * 0.5;
                         radius = (minimumRadius + maximumRadius) * 0.5;
                     } else {

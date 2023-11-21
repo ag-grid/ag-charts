@@ -196,6 +196,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup
             x: processedData.reduced?.smallestKeyInterval ?? Infinity,
             y: Infinity,
         };
+
+        this.animationState.transition('updateData');
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection) {

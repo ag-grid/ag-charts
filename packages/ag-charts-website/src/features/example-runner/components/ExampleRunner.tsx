@@ -14,6 +14,7 @@ import styles from './ExampleRunner.module.scss';
 interface Props {
     id: string;
     exampleUrl?: string;
+    exampleRunnerExampleUrl?: string;
     exampleType?: ExampleType;
     initialShowCode?: boolean;
     externalLinkButton?: ReactElement;
@@ -29,6 +30,7 @@ const DEFAULT_HEIGHT = 500;
 export const ExampleRunner: FunctionComponent<Props> = ({
     id,
     exampleUrl,
+    exampleRunnerExampleUrl,
     exampleType,
     initialShowCode,
     externalLinkButton,
@@ -51,7 +53,7 @@ export const ExampleRunner: FunctionComponent<Props> = ({
                     aria-labelledby={`${showCode ? 'Preview' : 'Code'} tab`}
                     style={{ height: exampleHeight, width: '100%' }}
                 >
-                    <ExampleIFrame isHidden={showCode} url={exampleUrl!} />
+                    <ExampleIFrame isHidden={showCode} url={exampleRunnerExampleUrl!} />
                     {exampleFiles && (
                         <CodeViewer
                             id={id}

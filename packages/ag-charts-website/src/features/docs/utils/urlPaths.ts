@@ -29,6 +29,21 @@ export const getExampleUrl = ({
 };
 
 /**
+ * Dynamic path where docs example runner examples are
+ */
+export const getExampleRunnerExampleUrl = ({
+    internalFramework,
+    pageName,
+    exampleName,
+}: {
+    internalFramework: InternalFramework;
+    pageName: string;
+    exampleName: string;
+}) => {
+    return pathJoin(SITE_BASE_URL, internalFramework, pageName, 'examples', exampleName, 'example-runner');
+};
+
+/**
  * Dynamic path where examples are with relative path for script files
  */
 export const getExampleWithRelativePathUrl = ({

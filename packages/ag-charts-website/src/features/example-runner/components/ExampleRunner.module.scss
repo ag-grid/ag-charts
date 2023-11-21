@@ -10,6 +10,12 @@
     }
 }
 
+iframe {
+    #{$darkmode-selector} & {
+        background: #182732;
+    }
+}
+
 .tabsContainer {
     container-type: inline-size;
 }

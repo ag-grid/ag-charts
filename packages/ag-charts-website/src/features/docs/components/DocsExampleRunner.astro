@@ -19,7 +19,7 @@ const framework = pathSegments[DOCS_FRAMEWORK_PATH_INDEX];
 const pageName = pathSegments[DOCS_PAGE_NAME_PATH_INDEX];
 ---
 
-<ExampleRunnerContainer exampleHeight={options?.exampleHeight}>
+<ExampleRunnerContainer exampleHeight={options?.exampleHeight} pageName={pageName} exampleName={name}>
     <DocsExampleRunner
         client:only
         title={title}

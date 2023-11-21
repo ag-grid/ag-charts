@@ -20,8 +20,6 @@ const options: AgChartOptions = {
             type: 'sunburst',
             labelKey: 'name',
             sizeKey: 'gdp',
-            colorKey: 'gdpChange',
-            colorRange: ['#FF7043', '#66BB6A'],
             fills: ['#D32F2F', '#FF5722', '#283593'],
             tooltip: {
                 renderer: (params) => {

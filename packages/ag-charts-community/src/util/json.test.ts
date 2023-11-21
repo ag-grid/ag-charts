@@ -116,14 +116,14 @@ describe('json module', () => {
 
             it('should correctly diff dictionary of functions (added)', () => {
                 const source = { listeners: {} };
-                const target = { listeners: { seriesNodeClick: (t) => console.log(t) } };
+                const target = { listeners: { seriesNodeClick: (t: unknown) => console.log(t) } };
 
                 const diff = jsonDiff(source, target as any) as any;
                 expect(diff).toStrictEqual(target);
             });
 
             it('should correctly diff dictionary of functions (removed)', () => {
-                const source = { listeners: { seriesNodeClick: (t) => console.log(t) } };
+                const source = { listeners: { seriesNodeClick: (t: unknown) => console.log(t) } };
                 const target = { listeners: { seriesNodeClick: undefined } };
 
                 const diff = jsonDiff(source, target as any) as any;
@@ -131,7 +131,7 @@ describe('json module', () => {
             });
 
             it('should correctly diff dictionary of functions when no difference', () => {
-                const seriesNodeClick = (t) => console.log(t);
+                const seriesNodeClick = (t: unknown) => console.log(t);
                 const source = { legend: { listeners: { seriesNodeClick } } };
                 const target = { legend: { listeners: { seriesNodeClick } } };
 
@@ -288,7 +288,7 @@ describe('json module', () => {
 
             it('should correctly merge dictionary of functions', () => {
                 const source = {};
-                const target = { seriesNodeClick: (t) => console.log(t) };
+                const target = { seriesNodeClick: (t: unknown) => console.log(t) };
 
                 const merge = jsonMerge([source, target]) as any;
                 expect(merge).toHaveProperty('seriesNodeClick');
@@ -296,7 +296,7 @@ describe('json module', () => {
             });
 
             it('should correctly merge dictionary of functions when no difference', () => {
-                const seriesNodeClick = (t) => console.log(t);
+                const seriesNodeClick = (t: unknown) => console.log(t);
                 const source = { legend: { listeners: { seriesNodeClick } } };
                 const target = { listeners: { seriesNodeClick } };
 

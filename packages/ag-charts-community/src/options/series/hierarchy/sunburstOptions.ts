@@ -46,7 +46,7 @@ export interface AgSunburstSeriesLabelOptions<TDatum> extends AgSunburstSeriesBa
 export interface AgSunburstSeriesThemeableOptions<TDatum = any>
     extends Omit<AgBaseSeriesThemeableOptions, 'highlightStyle'> {
     /** Options for the label in a sector */
-    label?: AgSunburstSeriesBaseLabelOptions<TDatum>;
+    label?: AgSunburstSeriesLabelOptions<TDatum>;
     /* Options for a secondary, smaller label in a sector - displayed under the primary label */
     secondaryLabel?: AgSunburstSeriesBaseLabelOptions<TDatum>;
     /** Spacing between the sectors */
