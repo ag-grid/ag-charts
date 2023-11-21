@@ -25,8 +25,7 @@
   },
   "homepage": "https://charts.ag-grid.com/",
   "private": false,
-  "main": "./dist/ag-charts-angular/bundles/ag-charts-angular.umd.js",
-  "module": "./dist/ag-charts-angular/fesm2015/ag-charts-angular.js",
+  "module": "./dist/ag-charts-angular/fesm2015/ag-charts-angular.mjs",
   "typings": "./dist/ag-charts-angular/ag-charts-angular.d.ts",
   "dependencies": {
     "@angular/animations": "^14.3.0",

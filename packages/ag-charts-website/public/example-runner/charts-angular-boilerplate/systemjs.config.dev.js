@@ -83,8 +83,8 @@
                 defaultExtension: 'ts',
             },
             'ag-charts-angular': {
-                main: './fesm2015/ag-charts-angular.js',
-                defaultExtension: 'js',
+                main: './fesm2015/ag-charts-angular.mjs',
+                defaultExtension: 'mjs',
             },
             'ag-charts-community': {
                 main: './dist/package/main.cjs.js',

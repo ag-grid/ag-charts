@@ -3,5 +3,6 @@
     "dest": "../../dist/ag-charts-angular",
     "lib": {
         "entryFile": "src/public-api.ts"
-    }
+    },
+    "allowedNonPeerDependencies": ["ag-charts-community"]
 }
