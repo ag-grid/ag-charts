@@ -88,9 +88,14 @@ export function normalizeType(refType: TypeNode, includeGenerics?: boolean): str
 }
 
 export function processMembers(interfaceRef: InterfaceNode | TypeLiteralNode | EnumNode, config: ApiReferenceConfig) {
-    const { members } = interfaceRef;
-    const { prioritise } = config;
+    let { members } = interfaceRef;
+    const { prioritise, include, exclude } = config;
     const isInterface = interfaceRef.kind === 'interface';
+    if (include?.length || exclude?.length) {
+        members = members.filter(
+            (member) => !exclude?.includes(member.name) && (include?.includes(member.name) ?? true)
+        );
+    }
     if (prioritise) {
         return members.sort((a, b) => (prioritise.includes(a.name) ? -1 : prioritise.includes(b.name) ? 1 : 0));
     }

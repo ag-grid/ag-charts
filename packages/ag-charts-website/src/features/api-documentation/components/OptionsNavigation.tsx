@@ -130,14 +130,14 @@ function NavProperty({
     const memberType = getMemberType(member);
     const interfaceRef = reference?.get(memberType);
     const isInterface = interfaceRef?.kind === 'interface';
-    const isInterfaceArray = config?.specialTypes?.[memberType] === 'InterfaceArray';
-    const hasNestedPages = config?.specialTypes?.[memberType] === 'NestedPage';
+    const isInterfaceArray = config.specialTypes?.[memberType] === 'InterfaceArray';
+    const hasNestedPages = config.specialTypes?.[memberType] === 'NestedPage';
     const expandable = isInterface || isInterfaceArray;
 
-    const navData = getNavigationDataFromPath(path, config?.specialTypes);
+    const navData = getNavigationDataFromPath(path, config.specialTypes);
 
     const [isExpanded, toggleExpanded] = useAutoExpand(() =>
-        config?.keepExpanded?.includes(member.name)
+        config.keepExpanded?.includes(member.name)
             ? true
             : isInterfaceArray
             ? typeof selection?.selection.pageInterface === 'string' &&
@@ -228,7 +228,7 @@ function NavTypedUnionProperty({
     const selection = useContext(SelectionContext);
     const reference = useContext(ApiReferenceContext);
     const config = useContext(ApiReferenceConfigContext);
-    const navData = getNavigationDataFromPath(path, config?.specialTypes);
+    const navData = getNavigationDataFromPath(path, config.specialTypes);
     const interfaceRef = reference?.get(navData.pageInterface);
 
     const [isExpanded, toggleExpanded] = useAutoExpand(
