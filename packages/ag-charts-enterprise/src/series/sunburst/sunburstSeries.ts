@@ -568,7 +568,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
         const contentArray: string[] = [];
 
         const datumSecondaryLabel = secondaryLabelKey != null ? datum[secondaryLabelKey] : undefined;
-        if (datumSecondaryLabel != null) {
+        if (datumSecondaryLabel != null && secondaryLabelKey !== colorKey && secondaryLabelKey !== sizeKey) {
             contentArray.push(sanitizeHtml(datumSecondaryLabel));
         }
 

@@ -178,6 +178,9 @@ class TreemapSeriesHighlightStyle extends HighlightStyle {
     readonly tile = new TreemapSeriesTileHighlightStyle();
 }
 
+// We don't expose a way to define your own colours on a per-depth basis yet
+const DEFAULT_GROUP_FILLS = ['#2A343C', '#36414A', '#424E57', '#4F5B64', '#5C6770'];
+
 enum TextNodeTag {
     Primary,
     Secondary,
@@ -638,10 +641,16 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
 
             const format = this.getTileFormat(node, highlighted);
 
-            const fill = format?.fill ?? highlightedFill ?? (isLeaf ? tile.fill : group.fill) ?? node.fill;
+            let fill = format?.fill ?? highlightedFill;
+            if (isLeaf) {
+                fill ??= tile.fill ?? node.fill;
+            } else {
+                const defaultFill = DEFAULT_GROUP_FILLS[Math.min(node.depth ?? 0, DEFAULT_GROUP_FILLS.length)];
+                fill ??= group.fill ?? defaultFill;
+            }
             const fillOpacity =
                 format?.fillOpacity ?? highlightedFillOpacity ?? (isLeaf ? tile.fillOpacity : group.fillOpacity);
-            const stroke = format?.stroke ?? highlightedStroke ?? (isLeaf ? tile.stroke : group.stroke) ?? node.stroke;
+            const stroke = format?.stroke ?? highlightedStroke ?? (isLeaf ? tile.stroke ?? node.stroke : group.stroke);
             const strokeWidth =
                 format?.strokeWidth ?? highlightedStrokeWidth ?? (isLeaf ? tile.strokeWidth : group.strokeWidth);
             const strokeOpacity =
@@ -851,7 +860,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
         const contentArray: string[] = [];
 
         const datumSecondaryLabel = secondaryLabelKey != null ? datum[secondaryLabelKey] : undefined;
-        if (datumSecondaryLabel != null) {
+        if (datumSecondaryLabel != null && secondaryLabelKey !== colorKey && secondaryLabelKey !== sizeKey) {
             contentArray.push(sanitizeHtml(datumSecondaryLabel));
         }
 

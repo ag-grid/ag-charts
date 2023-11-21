@@ -1,16 +1,8 @@
 import type { AgChartCallbackParams } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
-import type {
-    CssColor,
-    FontSize,
-    OverflowStrategy,
-    PixelSize,
-    TextAlign,
-    TextWrap,
-    VerticalAlign,
-} from '../../chart/types';
-import type { FillOptions, StrokeOptions } from '../cartesian/commonOptions';
+import type { CssColor, PixelSize, TextAlign, VerticalAlign } from '../../chart/types';
+import type { AutomaticLabelLayout, FillOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 
 /* All the label properties that can be changed without affecting the layout */
@@ -61,13 +53,8 @@ export interface AgTreemapSeriesGroupOptions<TDatum>
         AgTreemapSeriesGroupLayout<TDatum> {}
 
 export interface AgTreemapSeriesTileBaseLabelOptions<TDatum>
-    extends AgChartLabelOptions<TDatum, AgTreemapSeriesLabelFormatterParams<TDatum>> {
-    minimumFontSize?: FontSize;
-
-    wrapping?: TextWrap;
-
-    overflowStrategy?: OverflowStrategy;
-}
+    extends AgChartLabelOptions<TDatum, AgTreemapSeriesLabelFormatterParams<TDatum>>,
+        AutomaticLabelLayout {}
 
 export interface AgTreemapSeriesTileLabelOptions<TDatum> extends AgTreemapSeriesTileBaseLabelOptions<TDatum> {
     /** The distance between the label and secondary label, if both are present */
@@ -79,7 +66,7 @@ export interface AgTreemapSeriesTileStyle extends FillOptions, StrokeOptions {}
 export interface AgTreemapSeriesTileLayout<TDatum> {
     /** Options for the label in a tile */
     label?: AgTreemapSeriesTileLabelOptions<TDatum>;
-    /* Options for a secondary, smaller label in a tile - displayed under the primary label */
+    /** Options for a secondary, smaller label in a tile - displayed under the primary label */
     secondaryLabel?: AgTreemapSeriesTileBaseLabelOptions<TDatum>;
     /** Horizontal position of the label */
     textAlign?: TextAlign;
@@ -92,9 +79,9 @@ export interface AgTreemapSeriesTileLayout<TDatum> {
 }
 
 export interface AgTreemapSeriesTileHighlightStyle<TDatum> extends AgTreemapSeriesTileStyle {
-    /* Options for the label in a tile */
+    /** Options for the label in a tile */
     label?: AgTreemapSeriesLabelHighlightOptions<TDatum>;
-    /* Options for a secondary, smaller label in a tile - displayed under the primary label */
+    /** Options for a secondary, smaller label in a tile - displayed under the primary label */
     secondaryLabel?: AgTreemapSeriesLabelHighlightOptions<TDatum>;
 }
 
@@ -125,7 +112,7 @@ export interface AgTreemapSeriesThemeableOptions<TDatum = any>
     tooltip?: AgSeriesTooltip<AgTreemapSeriesTooltipRendererParams<TDatum>>;
     /** A callback function for adjusting the styles of a particular treemap tile based on the input parameters */
     formatter?: (params: AgTreemapSeriesFormatterParams<TDatum>) => AgTreemapSeriesStyle;
-    /** */
+    /** Style overrides when a node is hovered */
     highlightStyle?: AgTreemapSeriesHighlightStyle<TDatum>;
 }
 

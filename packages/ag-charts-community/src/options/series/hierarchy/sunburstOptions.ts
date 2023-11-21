@@ -1,8 +1,8 @@
 import type { AgChartCallbackParams } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
-import type { CssColor, FontSize, Opacity, OverflowStrategy, PixelSize, TextWrap } from '../../chart/types';
-import type { FillOptions, StrokeOptions } from '../cartesian/commonOptions';
+import type { CssColor, Opacity, PixelSize } from '../../chart/types';
+import type { AutomaticLabelLayout, FillOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 
 /* All the label properties that can be changed without affecting the layout */
@@ -25,18 +25,13 @@ export interface AgSunburstSeriesTooltipRendererParams<TDatum>
 export interface AgSunburstSeriesHighlightStyle<TDatum> extends AgSeriesHighlightStyle, FillOptions, StrokeOptions {
     /** Options for the label in a sector */
     label?: AgSunburstSeriesLabelHighlightOptions<TDatum>;
-    /* Options for a secondary, smaller label in a sector - displayed under the primary label */
+    /** Options for a secondary, smaller label in a sector - displayed under the primary label */
     secondaryLabel?: AgSunburstSeriesLabelHighlightOptions<TDatum>;
 }
 
 export interface AgSunburstSeriesBaseLabelOptions<TDatum>
-    extends AgChartLabelOptions<TDatum, AgSunburstSeriesLabelFormatterParams<TDatum>> {
-    minimumFontSize?: FontSize;
-
-    wrapping?: TextWrap;
-
-    overflowStrategy?: OverflowStrategy;
-}
+    extends AgChartLabelOptions<TDatum, AgSunburstSeriesLabelFormatterParams<TDatum>>,
+        AutomaticLabelLayout {}
 
 export interface AgSunburstSeriesLabelOptions<TDatum> extends AgSunburstSeriesBaseLabelOptions<TDatum> {
     /** The distance between the label and secondary label, if both are present */
@@ -47,7 +42,7 @@ export interface AgSunburstSeriesThemeableOptions<TDatum = any>
     extends Omit<AgBaseSeriesThemeableOptions, 'highlightStyle'> {
     /** Options for the label in a sector */
     label?: AgSunburstSeriesLabelOptions<TDatum>;
-    /* Options for a secondary, smaller label in a sector - displayed under the primary label */
+    /** Options for a secondary, smaller label in a sector - displayed under the primary label */
     secondaryLabel?: AgSunburstSeriesBaseLabelOptions<TDatum>;
     /** Spacing between the sectors */
     sectorSpacing?: number;
@@ -67,9 +62,9 @@ export interface AgSunburstSeriesThemeableOptions<TDatum = any>
     colorRange?: CssColor[];
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgSunburstSeriesTooltipRendererParams<TDatum>>;
-    /** A callback function for adjusting the styles of a particular sunburst tile based on the input parameters */
+    /** A callback function for adjusting the styles of a particular sunburst sector based on the input parameters */
     formatter?: (params: AgSunburstSeriesFormatterParams<TDatum>) => AgSunburstSeriesStyle;
-    /** */
+    /** Style overrides when a node is hovered */
     highlightStyle?: AgSunburstSeriesHighlightStyle<TDatum>;
 }
 
@@ -103,7 +98,7 @@ export interface AgSunburstSeriesFormatterParams<TDatum = any>
         AgSunburstSeriesStyle {
     /** The depth of the datum in the hierarchy. */
     depth: number;
-    /** `true` if the tile is highlighted by hovering */
+    /** `true` if the sector is highlighted by hovering */
     readonly highlighted: boolean;
 }
 
