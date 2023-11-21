@@ -1,19 +1,24 @@
 ---
 import { ReactComponent as LoadingLogo } from '@images/inline-svgs/ag-grid-logomark-loading.svg';
+import RemoveLogoOnInitScript from './RemoveLogoOnInitScript.astro';
+import { getLoadingLogoId } from '@features/example-runner/utils/getLoadingLogoId';
 
 interface Props {
     exampleHeight?: number;
+    pageName: string;
+    exampleName: string;
 }
 
 const DEFAULT_HEIGHT = 500;
 const FRAME_WRAPPER_HEIGHT = 48 + 26;
 
-const exampleHeight = Astro.props.exampleHeight || DEFAULT_HEIGHT;
+const { exampleHeight = DEFAULT_HEIGHT, pageName, exampleName } = Astro.props as Props;
 const minHeight = exampleHeight + FRAME_WRAPPER_HEIGHT;
+const loadingLogoId = getLoadingLogoId({ pageName, exampleName });
 ---
 
 <div class="container" style={{ minHeight: `${minHeight}px` }}>
-    <LoadingLogo />
+    <LoadingLogo id={loadingLogoId} />
     <slot />
 </div>
 
@@ -29,3 +34,5 @@ const minHeight = exampleHeight + FRAME_WRAPPER_HEIGHT;
         }
     }
 </style>
+
+<RemoveLogoOnInitScript pageName={pageName} exampleName={exampleName} />

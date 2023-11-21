@@ -9,7 +9,12 @@ import { getFrameworkFromInternalFramework } from '@utils/framework';
 import { useEffect, useState } from 'react';
 import { QueryClient, QueryClientProvider, useQuery } from 'react-query';
 
-import { getExampleContentsUrl, getExampleUrl, getExampleWithRelativePathUrl } from '../utils/urlPaths';
+import {
+    getExampleContentsUrl,
+    getExampleRunnerExampleUrl,
+    getExampleUrl,
+    getExampleWithRelativePathUrl,
+} from '../utils/urlPaths';
 
 interface Props {
     name: string;
@@ -51,6 +56,7 @@ const DocsExampleRunnerInner = ({ name, title, exampleType, options, framework, 
     const internalFramework = useStore($internalFramework);
     const [initialSelectedFile, setInitialSelectedFile] = useState();
     const [exampleUrl, setExampleUrl] = useState<string>();
+    const [exampleRunnerExampleUrl, setExampleRunnerExampleUrl] = useState<string>();
     const [plunkrHtmlUrl, setPlunkrHtmlUrl] = useState<string>();
     const [exampleFiles, setExampleFiles] = useState();
     const [exampleBoilerPlateFiles, setExampleBoilerPlateFiles] = useState();
@@ -92,6 +98,13 @@ const DocsExampleRunnerInner = ({ name, title, exampleType, options, framework, 
 
         setExampleUrl(
             getExampleUrl({
+                internalFramework,
+                pageName,
+                exampleName,
+            })
+        );
+        setExampleRunnerExampleUrl(
+            getExampleRunnerExampleUrl({
                 internalFramework,
                 pageName,
                 exampleName,
@@ -148,6 +161,7 @@ const DocsExampleRunnerInner = ({ name, title, exampleType, options, framework, 
         <ExampleRunner
             id={id}
             exampleUrl={exampleUrl}
+            exampleRunnerExampleUrl={exampleRunnerExampleUrl}
             exampleType={exampleType}
             exampleHeight={options?.exampleHeight}
             exampleFiles={exampleFiles}
