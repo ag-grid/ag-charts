@@ -2,6 +2,7 @@ import { arraysEqual } from '../../util/array';
 import { memo } from '../../util/memo';
 import { isNegative } from '../../util/number';
 import type {
+    DatumPropertyDefinition,
     GroupValueProcessorDefinition,
     ProcessedData,
     ProcessorOutputPropertyDefinition,
@@ -168,31 +169,50 @@ export function normalisePropertyTo(
     };
 }
 
-export function animationValidation(scope: ScopeProvider): ProcessorOutputPropertyDefinition {
+export function animationValidation(
+    scope: ScopeProvider,
+    valueKeyIds: string[] = []
+): ProcessorOutputPropertyDefinition {
     return {
         type: 'processor',
         scopes: [scope.id],
         property: 'animationValidation',
         calculate(result: ProcessedData<any>) {
-            const { keys } = result.defs;
+            const { keys, values } = result.defs;
             const { input, data } = result;
             let uniqueKeys = true;
             let orderedKeys = true;
 
-            for (let k = 0; (uniqueKeys || orderedKeys) && k < keys.length; k++) {
-                if (keys[k].valueType === 'category') {
-                    const keyValues = result.domain.keys[k];
+            const valueKeys: [number, DatumPropertyDefinition<unknown>][] = [];
+            for (let k = 0; k < values.length; k++) {
+                if (!values[k].scopes?.some((s) => s === scope.id)) continue;
+                if (!valueKeyIds.some((v) => values[k].id === v)) continue;
+
+                valueKeys.push([k, values[k]]);
+            }
+
+            const processKey = (idx: number, def: DatumPropertyDefinition<unknown>, type: 'keys' | 'values') => {
+                if (def.valueType === 'category') {
+                    const keyValues = result.domain[type][idx];
                     uniqueKeys &&= keyValues.length === input.count;
-                    continue;
+                    return;
                 }
 
-                let lastValue = data[0]?.keys[k];
+                let lastValue = data[0]?.[type][idx];
                 for (let d = 1; (uniqueKeys || orderedKeys) && d < data.length; d++) {
-                    const keyValue = data[d].keys[k];
+                    const keyValue = data[d][type][idx];
                     orderedKeys &&= lastValue <= keyValue;
                     uniqueKeys &&= lastValue !== keyValue;
                     lastValue = keyValue;
                 }
+            };
+            for (let k = 0; (uniqueKeys || orderedKeys) && k < keys.length; k++) {
+                processKey(k, keys[k], 'keys');
+            }
+
+            for (let k = 0; (uniqueKeys || orderedKeys) && k < valueKeys.length; k++) {
+                const [idx, key] = valueKeys[k];
+                processKey(idx, key, 'values');
             }
 
             return { uniqueKeys, orderedKeys };
