@@ -16,17 +16,18 @@ import {
 import { AutoSizeableLabel, formatLabels } from '../util/labelFormatter';
 
 const {
-    HighlightStyle,
-    SeriesNodeClickEvent,
-    SeriesTooltip,
-    Validate,
-    NUMBER,
     BOOLEAN,
+    fromToMotion,
+    HighlightStyle,
+    NUMBER,
     OPT_COLOR_STRING,
     OPT_FUNCTION,
     OPT_NUMBER,
     OPT_STRING,
+    SeriesNodeClickEvent,
+    SeriesTooltip,
     TEXT_ALIGN,
+    Validate,
     VERTICAL_ALIGN,
 } = _ModuleSupport;
 const { Rect, Label, Group, BBox, Selection, Text } = _Scene;
@@ -231,16 +232,13 @@ const verticalAlignFactors: Record<VerticalAlign, number | undefined> = {
     bottom: 1,
 };
 
-export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport.HierarchyNode> {
+export class TreemapSeries extends _ModuleSupport.HierarchySeries<_Scene.Group> {
     static className = 'TreemapSeries';
     static type = 'treemap' as const;
 
     protected override readonly NodeClickEvent = TreemapSeriesNodeClickEvent;
 
-    private groupSelection: _Scene.Selection<_Scene.Group, _ModuleSupport.HierarchyNode> = Selection.select(
-        this.contentGroup,
-        Group
-    );
+    groupSelection = Selection.select(this.contentGroup, Group);
     private highlightSelection: _Scene.Selection<_Scene.Group, _ModuleSupport.HierarchyNode> = Selection.select(
         this.highlightGroup,
         Group
@@ -534,11 +532,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
         return [];
     }
 
-    async update() {
-        await this.updateSelections();
-        await this.updateNodes();
-    }
-
     async updateSelections() {
         if (!this.nodeDataRefresh) {
             return;
@@ -826,10 +819,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
         });
     }
 
-    override getSeriesDomain(_direction: _ModuleSupport.ChartAxisDirection): any[] {
-        return [NaN, NaN];
-    }
-
     getTooltipHtml(node: _ModuleSupport.HierarchyNode): string {
         const {
             tooltip,
@@ -895,8 +884,24 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
         });
     }
 
-    getLegendData() {
-        // Override point for subclasses.
-        return [];
+    override animateEmptyUpdateReady({ datumSelections }: any) {
+        fromToMotion<_Scene.Group, any, _ModuleSupport.HierarchyNode>(
+            this.id,
+            'nodes',
+            this.ctx.animationManager,
+            datumSelections,
+            {
+                toFn(_group, _datum, _status) {
+                    return { opacity: 1 };
+                },
+                fromFn(group, datum, status) {
+                    if (status === 'unknown' && datum != null && group.previousDatum == null) {
+                        return { opacity: 0 };
+                    } else {
+                        return { opacity: 1 };
+                    }
+                },
+            }
+        );
     }
 }

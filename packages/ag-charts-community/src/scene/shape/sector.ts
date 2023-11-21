@@ -57,8 +57,10 @@ export class Sector extends Path {
                 path.arc(centerX, centerY, innerRadius, endAngle, startAngle, true);
             }
         } else {
-            const innerRadius = Math.min(this.innerRadius + inset, this.outerRadius - inset);
-            const outerRadius = Math.max(this.innerRadius + inset, this.outerRadius - inset);
+            const innerRadius = Math.max(this.innerRadius + inset, 0);
+            const outerRadius = Math.max(this.outerRadius - inset, 0);
+            if (innerRadius >= outerRadius) return;
+
             const innerAngleOffset = innerRadius > 0 ? inset / innerRadius : 0;
             const outerAngleOffset = outerRadius > 0 ? inset / outerRadius : 0;
             const sweep = Math.abs(endAngle - startAngle);

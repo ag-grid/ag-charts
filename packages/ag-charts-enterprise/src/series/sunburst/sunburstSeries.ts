@@ -11,8 +11,17 @@ import {
 
 import { AutoSizeableLabel, formatLabels } from '../util/labelFormatter';
 
-const { HighlightStyle, SeriesTooltip, Validate, OPT_COLOR_STRING, OPT_FUNCTION, OPT_NUMBER, NUMBER, OPT_STRING } =
-    _ModuleSupport;
+const {
+    fromToMotion,
+    HighlightStyle,
+    NUMBER,
+    OPT_COLOR_STRING,
+    OPT_FUNCTION,
+    OPT_NUMBER,
+    OPT_STRING,
+    SeriesTooltip,
+    Validate,
+} = _ModuleSupport;
 const { Sector, Group, Selection, Text } = _Scene;
 const { sanitizeHtml } = _Util;
 
@@ -86,16 +95,13 @@ enum TextNodeTag {
     Secondary,
 }
 
-export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport.HierarchyNode> {
+export class SunburstSeries extends _ModuleSupport.HierarchySeries<_Scene.Group> {
     static className = 'SunburstSeries';
     static type = 'sunburst' as const;
 
     readonly tooltip = new SeriesTooltip<AgSunburstSeriesTooltipRendererParams<any>>();
 
-    private groupSelection: _Scene.Selection<_Scene.Group, _ModuleSupport.HierarchyNode> = Selection.select(
-        this.contentGroup,
-        Group
-    );
+    groupSelection = Selection.select(this.contentGroup, Group);
     private highlightSelection: _Scene.Selection<_Scene.Group, _ModuleSupport.HierarchyNode> = Selection.select(
         this.highlightGroup,
         Group
@@ -507,11 +513,6 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
         });
     }
 
-    override async update() {
-        await this.updateSelections();
-        await this.updateNodes();
-    }
-
     private getSectorFormat(node: _ModuleSupport.HierarchyNode, isHighlighted: boolean): AgSunburstSeriesStyle {
         const { datum, fill, stroke, depth } = node;
         const {
@@ -607,11 +608,24 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
         return [];
     }
 
-    override getSeriesDomain() {
-        return [NaN, NaN];
-    }
-
-    override getLegendData() {
-        return [];
+    override animateEmptyUpdateReady({ datumSelections }: any) {
+        fromToMotion<_Scene.Group, any, _ModuleSupport.HierarchyNode>(
+            this.id,
+            'nodes',
+            this.ctx.animationManager,
+            datumSelections,
+            {
+                toFn(_group, _datum, _status) {
+                    return { scalingX: 1, scalingY: 1 };
+                },
+                fromFn(group, datum, status) {
+                    if (status === 'unknown' && datum != null && group.previousDatum == null) {
+                        return { scalingX: 0, scalingY: 0 };
+                    } else {
+                        return { scalingX: 1, scalingY: 1 };
+                    }
+                },
+            }
+        );
     }
 }

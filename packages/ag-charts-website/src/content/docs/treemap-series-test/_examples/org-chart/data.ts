@@ -1,9 +1,10 @@
-export const data = [
+export const getData = () => [
     {
         title: 'Health Care',
         children: [
             { title: 'Medical service', total: 205.6, change: 9.4 },
             { title: 'Public health services', total: 9.5, change: -0.2 },
+            { title: 'R&D Health', total: 1.6, change: -0.3 },
         ],
     },
     {
@@ -11,6 +12,7 @@ export const data = [
         children: [
             { title: 'Sickness and disability', total: 61.2, change: 8.7 },
             { title: 'Old age', total: 141.8, change: 17.9 },
+            { title: 'Survivors', total: 1.4, change: 0 },
         ],
     },
     {
