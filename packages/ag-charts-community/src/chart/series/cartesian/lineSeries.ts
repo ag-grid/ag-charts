@@ -139,7 +139,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
             }
         }
         if (animationEnabled) {
-            props.push(animationValidation(this));
+            props.push(animationValidation(this, isContinuousX ? ['xValue'] : []));
         }
 
         props.push(
