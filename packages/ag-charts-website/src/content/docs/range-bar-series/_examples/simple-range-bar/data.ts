@@ -1,59 +1,12 @@
 export function getData() {
     return [
-        {
-            date: 'Nov 1',
-            high: 1900,
-            low: 900,
-        },
-        {
-            date: 'Nov 2',
-            high: 1345,
-            low: 345,
-        },
-        {
-            date: 'Nov 3',
-            high: 1393,
-            low: 393,
-        },
-        {
-            date: 'Nov 4',
-            high: 1108,
-            low: -108,
-        },
-        {
-            date: 'Nov 5',
-            high: 1154,
-            low: -154,
-        },
-        {
-            date: 'Nov 6',
-            high: 1135,
-            low: 135,
-        },
-        {
-            date: 'Nov 7',
-            high: 1178,
-            low: 178,
-        },
-        {
-            date: 'Nov 8',
-            high: 1286,
-            low: 286,
-        },
-        {
-            date: 'Nov 9',
-            high: 1119,
-            low: -119,
-        },
-        {
-            date: 'Nov 10',
-            high: 1361,
-            low: -361,
-        },
-        {
-            date: 'Nov 11',
-            high: 1203,
-            low: -203,
-        },
+        { department: 'Finance', low: 75, high: 110 },
+        { department: 'Engineering', low: 75, high: 125 },
+        { department: 'Marketing', low: 55, high: 75 },
+        { department: 'Sales', low: 60, high: 85 },
+        { department: 'Legal', low: 70, high: 100 },
+        { department: 'Operations', low: 55, high: 80 },
+        { department: 'Research', low: 60, high: 80 },
+        { department: 'Development', low: 70, high: 90 },
     ];
 }
