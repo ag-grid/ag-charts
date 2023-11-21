@@ -1,40 +1,5 @@
 import { Logger } from './logger';
-
-type LiteralProperties = 'shape' | 'data';
-type SkippableProperties = 'axes' | 'series' | 'container';
-type IsLiteralProperty<T, K extends keyof T> = K extends LiteralProperties
-    ? true
-    : T[K] extends Array<any>
-    ? true
-    : false;
-type IsSkippableProperty<T, K extends keyof T> = K extends SkippableProperties ? true : false;
-
-// Needs to be recursive when we move to TS 4.x+; only supports a maximum level of nesting right now.
-type DeepPartial<T> = {
-    [P1 in keyof T]?: IsSkippableProperty<T, P1> extends true
-        ? any
-        : IsLiteralProperty<T, P1> extends true
-        ? T[P1]
-        : {
-              [P2 in keyof T[P1]]?: IsSkippableProperty<T[P1], P2> extends true
-                  ? any
-                  : IsLiteralProperty<T[P1], P2> extends true
-                  ? T[P1][P2]
-                  : {
-                        [P3 in keyof T[P1][P2]]?: IsSkippableProperty<T[P1][P2], P3> extends true
-                            ? any
-                            : IsLiteralProperty<T[P1][P2], P3> extends true
-                            ? T[P1][P2][P3]
-                            : {
-                                  [P4 in keyof T[P1][P2][P3]]?: IsSkippableProperty<T[P1][P2][P3], P4> extends true
-                                      ? any
-                                      : IsLiteralProperty<T[P1][P2][P3], P4> extends true
-                                      ? T[P1][P2][P3][P4]
-                                      : Partial<T[P1][P2][P3][P4]>;
-                              };
-                    };
-          };
-};
+import type { DeepPartial } from './types';
 
 const CLASS_INSTANCE_TYPE = 'class-instance';
 
@@ -268,7 +233,7 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
 ): Target {
     const {
         path = undefined,
-        matcherPath = path ? path.replace(/(\[[0-9+]+\])/i, '[]') : undefined,
+        matcherPath = path ? path.replace(/(\[[0-9+]+])/i, '[]') : undefined,
         skip = [],
         constructors = {},
         constructedArrays = new WeakMap(),
@@ -394,13 +359,14 @@ export function jsonWalk(
             jsonWalk(element, visit, opts, ...(jsons ?? []).map((o) => o?.[index]));
         });
         return;
-    } else if (jsonType !== 'object') {
+    }
+    if (jsonType !== 'object') {
         return;
     }
 
     visit(jsonType, json, ...jsons);
     for (const property in json) {
-        if (skip.indexOf(property) >= 0) {
+        if (skip.includes(property)) {
             continue;
         }
 
@@ -424,19 +390,24 @@ type RestrictedClassification = 'array' | 'object' | 'primitive';
 function classify(value: any): Classification | null {
     if (value == null) {
         return null;
-    } else if (isBrowser && value instanceof HTMLElement) {
+    }
+    if (isBrowser && value instanceof HTMLElement) {
         return 'primitive';
-    } else if (Array.isArray(value)) {
+    }
+    if (Array.isArray(value)) {
         return 'array';
-    } else if (value instanceof Date) {
+    }
+    if (value instanceof Date) {
         return 'primitive';
-    } else if (typeof value === 'object' && value.constructor === Object) {
+    }
+    if (typeof value === 'object' && value.constructor === Object) {
         return 'object';
-    } else if (typeof value === 'function') {
+    }
+    if (typeof value === 'function') {
         return 'function';
-    } else if (typeof value === 'object' && value.constructor != null) {
+    }
+    if (typeof value === 'object' && value.constructor != null) {
         return CLASS_INSTANCE_TYPE;
     }
-
     return 'primitive';
 }
