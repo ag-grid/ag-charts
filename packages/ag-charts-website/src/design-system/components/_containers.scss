@@ -42,7 +42,6 @@
         overflow-x: auto;
 
         #{$darkmode-selector} & {
-            background-color: var(--background-100);
             border-top-right-radius: 8px;
             border-top-left-radius: 8px;
             border-right: 1px solid #121f29;
