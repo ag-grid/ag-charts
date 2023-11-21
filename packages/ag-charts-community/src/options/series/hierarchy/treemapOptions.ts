@@ -62,10 +62,27 @@ export interface AgTreemapSeriesGroupOptions<TDatum>
 
 export interface AgTreemapSeriesTileBaseLabelOptions<TDatum>
     extends AgChartLabelOptions<TDatum, AgTreemapSeriesLabelFormatterParams<TDatum>> {
+    /**
+     * If the label does not fit in the container, setting this will allow the label to pick a font size between its normal `fontSize` and `minimumFontSize`
+     * to fit within the container
+     */
     minimumFontSize?: FontSize;
 
+    /**
+     * Text wrapping strategy for labels.
+     * `'always'` will always wrap text to fit within the tile.
+     * `'hyphenate'` is similar to `'always'`, but inserts a hyphen (`-`) if forced to wrap in the middle of a word.
+     * `'on-space'` will only wrap on white space. If there is no possibility to wrap a line on space and satisfy the tile dimensions, the text will be truncated.
+     * `'never'` disables text wrapping.
+     * Default: `'on-space'`
+     */
     wrapping?: TextWrap;
 
+    /**
+     * Adjusts the behaviour of labels when they overflow
+     * - `'ellipsis'` will truncate the text to fit, appending an ellipsis (...)
+     * - `'hide'` only displays the label if it completely fits within its bounds, and removes it if it would overflow
+     */
     overflowStrategy?: OverflowStrategy;
 }
 
@@ -79,7 +96,7 @@ export interface AgTreemapSeriesTileStyle extends FillOptions, StrokeOptions {}
 export interface AgTreemapSeriesTileLayout<TDatum> {
     /** Options for the label in a tile */
     label?: AgTreemapSeriesTileLabelOptions<TDatum>;
-    /* Options for a secondary, smaller label in a tile - displayed under the primary label */
+    /** Options for a secondary, smaller label in a tile - displayed under the primary label */
     secondaryLabel?: AgTreemapSeriesTileBaseLabelOptions<TDatum>;
     /** Horizontal position of the label */
     textAlign?: TextAlign;
@@ -92,9 +109,9 @@ export interface AgTreemapSeriesTileLayout<TDatum> {
 }
 
 export interface AgTreemapSeriesTileHighlightStyle<TDatum> extends AgTreemapSeriesTileStyle {
-    /* Options for the label in a tile */
+    /** Options for the label in a tile */
     label?: AgTreemapSeriesLabelHighlightOptions<TDatum>;
-    /* Options for a secondary, smaller label in a tile - displayed under the primary label */
+    /** Options for a secondary, smaller label in a tile - displayed under the primary label */
     secondaryLabel?: AgTreemapSeriesLabelHighlightOptions<TDatum>;
 }
 
@@ -125,7 +142,7 @@ export interface AgTreemapSeriesThemeableOptions<TDatum = any>
     tooltip?: AgSeriesTooltip<AgTreemapSeriesTooltipRendererParams<TDatum>>;
     /** A callback function for adjusting the styles of a particular treemap tile based on the input parameters */
     formatter?: (params: AgTreemapSeriesFormatterParams<TDatum>) => AgTreemapSeriesStyle;
-    /** */
+    /** Style overrides when a node is hovered */
     highlightStyle?: AgTreemapSeriesHighlightStyle<TDatum>;
 }
 

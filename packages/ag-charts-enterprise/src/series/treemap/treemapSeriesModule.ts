@@ -18,7 +18,7 @@ export const TreemapSeriesModule: _ModuleSupport.SeriesModule<'treemap'> = {
         group: {
             label: {
                 enabled: true,
-                color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
+                color: 'white', // The grey background is the same for all themes, so the label always needs to be white
                 fontStyle: undefined,
                 fontWeight: NORMAL,
                 fontSize: 12,
@@ -27,7 +27,7 @@ export const TreemapSeriesModule: _ModuleSupport.SeriesModule<'treemap'> = {
             },
             fill: undefined, // Override default fill
             stroke: undefined, // Override default stroke
-            strokeWidth: 1,
+            strokeWidth: 0,
             padding: 6,
             gap: 4,
             textAlign: 'left',
@@ -66,7 +66,7 @@ export const TreemapSeriesModule: _ModuleSupport.SeriesModule<'treemap'> = {
         highlightStyle: {
             group: {
                 label: {
-                    color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
+                    color: 'white',
                 },
                 fill: undefined,
                 stroke: `rgba(0, 0, 0, 0.4)`,

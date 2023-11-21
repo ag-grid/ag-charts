@@ -25,16 +25,33 @@ export interface AgSunburstSeriesTooltipRendererParams<TDatum>
 export interface AgSunburstSeriesHighlightStyle<TDatum> extends AgSeriesHighlightStyle, FillOptions, StrokeOptions {
     /** Options for the label in a sector */
     label?: AgSunburstSeriesLabelHighlightOptions<TDatum>;
-    /* Options for a secondary, smaller label in a sector - displayed under the primary label */
+    /** Options for a secondary, smaller label in a sector - displayed under the primary label */
     secondaryLabel?: AgSunburstSeriesLabelHighlightOptions<TDatum>;
 }
 
 export interface AgSunburstSeriesBaseLabelOptions<TDatum>
     extends AgChartLabelOptions<TDatum, AgSunburstSeriesLabelFormatterParams<TDatum>> {
+    /**
+     * If the label does not fit in the container, setting this will allow the label to pick a font size between its normal `fontSize` and `minimumFontSize`
+     * to fit within the container
+     */
     minimumFontSize?: FontSize;
 
+    /**
+     * Text wrapping strategy for labels.
+     * `'always'` will always wrap text to fit within the tile.
+     * `'hyphenate'` is similar to `'always'`, but inserts a hyphen (`-`) if forced to wrap in the middle of a word.
+     * `'on-space'` will only wrap on white space. If there is no possibility to wrap a line on space and satisfy the tile dimensions, the text will be truncated.
+     * `'never'` disables text wrapping.
+     * Default: `'on-space'`
+     */
     wrapping?: TextWrap;
 
+    /**
+     * Adjusts the behaviour of labels when they overflow
+     * - `'ellipsis'` will truncate the text to fit, appending an ellipsis (...)
+     * - `'hide'` only displays the label if it completely fits within its bounds, and removes it if it would overflow
+     */
     overflowStrategy?: OverflowStrategy;
 }
 
@@ -47,7 +64,7 @@ export interface AgSunburstSeriesThemeableOptions<TDatum = any>
     extends Omit<AgBaseSeriesThemeableOptions, 'highlightStyle'> {
     /** Options for the label in a sector */
     label?: AgSunburstSeriesLabelOptions<TDatum>;
-    /* Options for a secondary, smaller label in a sector - displayed under the primary label */
+    /** Options for a secondary, smaller label in a sector - displayed under the primary label */
     secondaryLabel?: AgSunburstSeriesBaseLabelOptions<TDatum>;
     /** Spacing between the sectors */
     sectorSpacing?: number;
@@ -67,9 +84,9 @@ export interface AgSunburstSeriesThemeableOptions<TDatum = any>
     colorRange?: CssColor[];
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgSunburstSeriesTooltipRendererParams<TDatum>>;
-    /** A callback function for adjusting the styles of a particular sunburst tile based on the input parameters */
+    /** A callback function for adjusting the styles of a particular sunburst sector based on the input parameters */
     formatter?: (params: AgSunburstSeriesFormatterParams<TDatum>) => AgSunburstSeriesStyle;
-    /** */
+    /** Style overrides when a node is hovered */
     highlightStyle?: AgSunburstSeriesHighlightStyle<TDatum>;
 }
 
@@ -103,7 +120,7 @@ export interface AgSunburstSeriesFormatterParams<TDatum = any>
         AgSunburstSeriesStyle {
     /** The depth of the datum in the hierarchy. */
     depth: number;
-    /** `true` if the tile is highlighted by hovering */
+    /** `true` if the sector is highlighted by hovering */
     readonly highlighted: boolean;
 }
 
