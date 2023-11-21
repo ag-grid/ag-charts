@@ -1,8 +1,15 @@
 import type { AgChartOptions } from '../options/chart/chartBuilderOptions';
 
+export interface LicenseManager {
+    validateLicense: () => void;
+    isDisplayWatermark: () => boolean;
+    getWatermarkMessage: () => string;
+}
+
 interface EnterpriseModuleOptions {
     isEnterprise: boolean;
-    licenseManager?: (options: AgChartOptions) => void;
+    licenseManager?: (options: AgChartOptions) => LicenseManager;
+    injectWatermark?: (document: Document, parentElement: HTMLElement, text: string) => void;
 }
 
 export const enterpriseModule: EnterpriseModuleOptions = {
