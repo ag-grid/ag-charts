@@ -4,9 +4,8 @@ import { getGeneratedGalleryContents } from '../utils/examplesGenerator';
 import { getExampleUrl } from '../utils/urlPaths';
 import FrameworkTemplate from '@features/example-runner/components/FrameworkTemplate.astro';
 import { GALLERY_INTERNAL_FRAMEWORK } from '../constants';
-import { getSeriesTypeName, getExampleName } from '../utils/filesData';
+import { getExampleName, getSeriesTypeSlug } from '../utils/filesData';
 import type { GeneratedContents } from '@features/examples-generator/types';
-
 interface Props {
     exampleName: string;
     /**
@@ -14,12 +13,21 @@ interface Props {
      */
     relativePath?: boolean;
     /**
+     * Whether to add a script to post an `init` message to the parent
+     */
+    addInitMessageScript?: boolean;
+    /**
      * Override to be used for generated contents
      */
     generatedContents?: GeneratedContents;
 }
 
-const { exampleName, relativePath, generatedContents: generatedContentsOverride } = Astro.props as Props;
+const {
+    exampleName,
+    relativePath,
+    addInitMessageScript,
+    generatedContents: generatedContentsOverride,
+} = Astro.props as Props;
 
 const internalFramework = GALLERY_INTERNAL_FRAMEWORK;
 const generatedContents = generatedContentsOverride
@@ -33,11 +41,10 @@ const exampleUrl = getExampleUrl({
 });
 
 const galleryDataEntry = await getEntry('gallery', 'data');
-const chartSeriesName = getSeriesTypeName({
+const pageName = getSeriesTypeSlug({
     galleryData: galleryDataEntry.data,
     exampleName,
 });
-const pageName = `${chartSeriesName} Chart`;
 const displayExampleName = getExampleName({
     galleryData: galleryDataEntry.data,
     exampleName,
@@ -51,4 +58,5 @@ const displayExampleName = getExampleName({
     exampleUrl={exampleUrl}
     generatedContents={generatedContents!}
     relativePath={relativePath}
+    addInitMessageScript={addInitMessageScript}
 />

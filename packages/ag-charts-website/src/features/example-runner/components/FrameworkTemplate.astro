@@ -8,6 +8,8 @@ import ReactTemplate from '../framework-templates/ReactTemplate.astro';
 import VueTemplate from '../framework-templates/VueTemplate.astro';
 import type { GeneratedContents } from '@features/examples-generator/types';
 import AngularTemplate from '../framework-templates/AngularTemplate.astro';
+import PostInitMessageScript from '@features/example-runner/components/PostInitMessageScript.astro';
+import { toTitle } from '@utils/toTitle';
 
 interface Props {
     internalFramework: InternalFramework;
@@ -19,9 +21,14 @@ interface Props {
      * Whether to use relative paths for script files references
      */
     relativePath?: boolean;
+    /**
+     * Whether to add a script to post an `init` message to the parent
+     */
+    addInitMessageScript?: boolean;
 }
 
-const { internalFramework, pageName, exampleName, exampleUrl, generatedContents, relativePath } = Astro.props as Props;
+const { internalFramework, pageName, exampleName, exampleUrl, generatedContents, relativePath, addInitMessageScript } =
+    Astro.props as Props;
 
 const isDev = getIsDev();
 
@@ -38,6 +45,7 @@ const boilerPlateUrl = relativePath
       });
 
 const timeNow = Date.now();
+const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
 ---
 
 {
@@ -52,15 +60,16 @@ const timeNow = Date.now();
     internalFramework === 'vanilla' && (
         <JavascriptTemplate
             isDev={isDev}
-            pageName={pageName}
-            exampleName={exampleName}
+            title={title}
             modifiedTimeMs={timeNow}
             isEnterprise={isEnterprise}
             scriptFiles={scriptFiles}
             styleFiles={styleFiles}
             indexFragment={indexFragment!}
             appLocation={appLocation}
-        />
+        >
+            {addInitMessageScript && <PostInitMessageScript pageName={pageName} exampleName={exampleName} />}
+        </JavascriptTemplate>
     )
 }
 
@@ -68,8 +77,7 @@ const timeNow = Date.now();
     internalFramework === 'typescript' && (
         <TypescriptTemplate
             isDev={isDev}
-            pageName={pageName}
-            exampleName={exampleName}
+            title={title}
             modifiedTimeMs={timeNow}
             isEnterprise={isEnterprise}
             entryFileName={entryFileName!}
@@ -78,7 +86,9 @@ const timeNow = Date.now();
             appLocation={appLocation}
             library={library}
             boilerplatePath={boilerPlateUrl}
-        />
+        >
+            {addInitMessageScript && <PostInitMessageScript pageName={pageName} exampleName={exampleName} />}
+        </TypescriptTemplate>
     )
 }
 
@@ -86,8 +96,7 @@ const timeNow = Date.now();
     ['react', 'reactFunctional', 'reactFunctionalTs'].includes(internalFramework) && (
         <ReactTemplate
             isDev={isDev}
-            pageName={pageName}
-            exampleName={exampleName}
+            title={title}
             modifiedTimeMs={timeNow}
             isEnterprise={isEnterprise}
             entryFileName={entryFileName!}
@@ -96,7 +105,9 @@ const timeNow = Date.now();
             appLocation={appLocation}
             library={library}
             boilerplatePath={boilerPlateUrl}
-        />
+        >
+            {addInitMessageScript && <PostInitMessageScript pageName={pageName} exampleName={exampleName} />}
+        </ReactTemplate>
     )
 }
 
@@ -104,8 +115,7 @@ const timeNow = Date.now();
     internalFramework === 'angular' && (
         <AngularTemplate
             isDev={isDev}
-            pageName={pageName}
-            exampleName={exampleName}
+            title={title}
             modifiedTimeMs={timeNow}
             isEnterprise={isEnterprise}
             entryFileName={entryFileName!}
@@ -114,7 +124,9 @@ const timeNow = Date.now();
             appLocation={appLocation}
             library={library}
             boilerplatePath={boilerPlateUrl}
-        />
+        >
+            {addInitMessageScript && <PostInitMessageScript pageName={pageName} exampleName={exampleName} />}
+        </AngularTemplate>
     )
 }
 
@@ -122,8 +134,7 @@ const timeNow = Date.now();
     (internalFramework === 'vue' || internalFramework === 'vue3') && (
         <VueTemplate
             isDev={isDev}
-            pageName={pageName}
-            exampleName={exampleName}
+            title={title}
             modifiedTimeMs={timeNow}
             isEnterprise={isEnterprise}
             entryFileName={entryFileName!}
@@ -133,6 +144,8 @@ const timeNow = Date.now();
             library={library}
             boilerplatePath={boilerPlateUrl}
             vueFramework={internalFramework}
-        />
+        >
+            {addInitMessageScript && <PostInitMessageScript pageName={pageName} exampleName={exampleName} />}
+        </VueTemplate>
     )
 }

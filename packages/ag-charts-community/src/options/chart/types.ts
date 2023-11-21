@@ -45,6 +45,11 @@ export type TextAlign = 'left' | 'center' | 'right';
  */
 export type TextWrap = 'never' | 'always' | 'hyphenate' | 'on-space';
 
+/**
+ * Adjusts the behaviour of labels when they overflow
+ * - `'ellipsis'` will truncate the text to fit, appending an ellipsis (...)
+ * - `'hide'` only displays the label if it completely fits within its bounds, and removes it if it would overflow
+ */
 export type OverflowStrategy = 'ellipsis' | 'hide';
 
 /** Define a range within which an interaction can trigger on a point with one of:

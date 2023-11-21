@@ -10,8 +10,7 @@ import { Scripts } from './lib/Scripts';
 
 interface Props {
     isDev: boolean;
-    pageName: string;
-    exampleName: string;
+    title: string;
 
     modifiedTimeMs: number;
     isEnterprise: boolean;
@@ -25,8 +24,7 @@ interface Props {
 }
 
 const {
-    pageName,
-    exampleName,
+    title,
     isDev,
     modifiedTimeMs,
     isEnterprise,
@@ -43,12 +41,8 @@ const startFile = pathJoin(appLocation, entryFileName);
 
 <html lang="en">
     <head>
-        <MetaData
-            isDev={isDev}
-            title={`Angular - ${pageName} - ${exampleName}`}
-            modifiedTimeMs={modifiedTimeMs}
-        />
-        <ExampleStyle rootId="app"/>
+        <MetaData isDev={isDev} title={`Angular Example - ${title}`} modifiedTimeMs={modifiedTimeMs} />
+        <ExampleStyle rootId="app" />
         <Styles
             baseUrl={appLocation}
             files={isDev && styleFiles
@@ -83,5 +77,6 @@ const startFile = pathJoin(appLocation, entryFileName);
                 ? styleFiles.filter((file: string) => file.includes('style.css') || file.includes('styles.css'))
                 : []}
         />
+        <slot />
     </body>
 </html>

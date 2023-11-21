@@ -19,14 +19,17 @@ const options: AgChartOptions = {
         {
             type: 'sunburst',
             labelKey: 'name',
-            secondaryLabelKey: 'gdpChange',
             sizeKey: 'gdp',
-            colorKey: 'gdpChange',
-            colorRange: ['#FF7043', '#66BB6A'],
-            fills: ['#D32F2F', '#FF5722', '#283593'],
+            secondaryLabelKey: 'gdpChange',
+            label: {
+                fontSize: 14,
+                minimumFontSize: 9,
+                spacing: 2,
+            },
             secondaryLabel: {
                 formatter: ({ value }) => (value != null ? percentageFormatter.format(value) : undefined),
             },
+            padding: 3,
             tooltip: {
                 renderer: (params) => {
                     const { gdp, gdpChange } = params.datum;

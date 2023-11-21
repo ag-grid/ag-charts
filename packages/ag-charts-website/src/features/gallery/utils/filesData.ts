@@ -1,7 +1,8 @@
-import type { GalleryData } from '@ag-grid-types';
+import type { GalleryData, GalleryExample } from '@ag-grid-types';
 import { getContentRootFileUrl, getPublicFileUrl } from '@utils/pages';
 import { pathJoin } from '@utils/pathJoin';
 import { readFileSync } from 'fs';
+import GithubSlugger from 'github-slugger';
 
 import { getPageHashUrl } from './urlPaths';
 
@@ -44,7 +45,20 @@ export const getSeriesTypeName = ({ galleryData, exampleName }: { galleryData: G
     return foundSeries?.title;
 };
 
-export const getExampleName = ({ galleryData, exampleName }: { galleryData: GalleryData; exampleName: string }) => {
+export const getSeriesTypeSlug = ({ galleryData, exampleName }: { galleryData: GalleryData; exampleName: string }) => {
+    const slugger = new GithubSlugger();
+    const name = getSeriesTypeName({ galleryData, exampleName });
+    const slug = name ? slugger.slug(name) : undefined;
+    return slug;
+};
+
+export const getExample = ({
+    galleryData,
+    exampleName,
+}: {
+    galleryData: GalleryData;
+    exampleName: string;
+}): undefined | GalleryExample => {
     const { series } = galleryData;
     let result;
     series.forEach(({ examples }) => {
@@ -53,11 +67,20 @@ export const getExampleName = ({ galleryData, exampleName }: { galleryData: Gall
         });
 
         if (foundExample) {
-            result = foundExample.title;
+            result = foundExample;
         }
     });
 
     return result;
+};
+
+export const getExampleName = ({ galleryData, exampleName }: { galleryData: GalleryData; exampleName: string }) => {
+    const example = getExample({
+        galleryData,
+        exampleName,
+    });
+
+    return example?.name;
 };
 
 export const getChartExampleTitle = ({
@@ -67,17 +90,12 @@ export const getChartExampleTitle = ({
     galleryData: GalleryData;
     exampleName: string;
 }) => {
-    const chartSeriesName = getSeriesTypeName({
-        galleryData,
-        exampleName,
-    });
-    const pageName = `${chartSeriesName} Chart`;
-    const displayExampleName = getExampleName({
+    const example = getExample({
         galleryData,
         exampleName,
     });
 
-    return `${pageName} - ${displayExampleName}`;
+    return example?.title;
 };
 
 export const getGalleryExamples = ({ galleryData }: { galleryData: GalleryData }) => {

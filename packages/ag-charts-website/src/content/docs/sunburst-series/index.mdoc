@@ -82,14 +82,15 @@ Sectors can also be coloured using a scale. This lets you add an extra dimension
 
 Colouring can be customised by the `colorKey` and `colorRange` values in the series options.
 
-```j
+```js
 series: [
     {
         type: 'sunburst',
         labelKey: 'name',
         sizeKey: 'gdp',
         colorKey: 'gdpChange',
-        colorRange: ['#FF7043', '#66BB6A'],
+        colorRange: ['rgb(63, 145, 79)', 'rgb(253, 149, 63)'],
+        // ...
     },
 ],
 ```
@@ -108,8 +109,9 @@ It's possible to override the default colours, or the colours on root node basis
 ```js
 series: [
     {
-        type: 'treemap',
-        colorRange: ['#FF7043', '#66BB6A'],
+        type: 'sunburst',
+        labelKey: 'name',
+        sizeKey: 'gdp',
         fills: ['#D32F2F', '#FF5722', '#283593'],
         // ...
     },

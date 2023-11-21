@@ -45,6 +45,8 @@ export interface AgTreemapSeriesGroupLayout<TDatum> {
     textAlign?: TextAlign;
     /** The distance between the edges of the outer-most title to the edges of the group */
     padding?: PixelSize;
+    /** Gap between adjacent groups */
+    gap?: PixelSize;
     /** Whether the group can be highlighted */
     interactive?: boolean;
 }
@@ -85,6 +87,8 @@ export interface AgTreemapSeriesTileLayout<TDatum> {
     verticalAlign?: VerticalAlign;
     /** Distance between the tile edges and the text */
     padding?: PixelSize;
+    /** Gap between adjacent tiles */
+    gap?: PixelSize;
 }
 
 export interface AgTreemapSeriesTileHighlightStyle<TDatum> extends AgTreemapSeriesTileStyle {
@@ -117,8 +121,6 @@ export interface AgTreemapSeriesThemeableOptions<TDatum = any>
     group?: AgTreemapSeriesGroupOptions<TDatum>;
     /** Options for leaf nodes (i.e. nodes WITHOUT children) */
     tile?: AgTreemapSeriesTileOptions<TDatum>;
-    /** Spacing between tiles */
-    tileSpacing?: PixelSize;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgTreemapSeriesTooltipRendererParams<TDatum>>;
     /** A callback function for adjusting the styles of a particular treemap tile based on the input parameters */

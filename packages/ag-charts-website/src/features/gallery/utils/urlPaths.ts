@@ -8,6 +8,18 @@ export const getExampleUrl = ({ exampleName, isFullPath }: { exampleName: string
     return isFullPath ? fullPath : path;
 };
 
+export const getExampleRunnerExampleUrl = ({
+    exampleName,
+    isFullPath,
+}: {
+    exampleName: string;
+    isFullPath?: boolean;
+}) => {
+    const path = pathJoin(SITE_BASE_URL, 'gallery', 'examples', exampleName, 'example-runner');
+    const fullPath = pathJoin(import.meta.env?.PUBLIC_SITE_URL, path);
+    return isFullPath ? fullPath : path;
+};
+
 export const getPlainExampleImageUrl = ({ exampleName, theme }: { exampleName: string; theme: ThemeName }) => {
     const imageUrl = pathJoin(SITE_BASE_URL, 'gallery', 'examples', `${exampleName}/${theme}-plain.png`);
     return imageUrl;

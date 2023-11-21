@@ -4,7 +4,12 @@ import { useEffect, useState } from 'react';
 import { QueryClient, QueryClientProvider, useQuery } from 'react-query';
 
 import { GALLERY_EXAMPLE_TYPE, GALLERY_INTERNAL_FRAMEWORK } from '../constants';
-import { getExampleContentsUrl, getExampleUrl, getExampleWithRelativePathUrl } from '../utils/urlPaths';
+import {
+    getExampleContentsUrl,
+    getExampleRunnerExampleUrl,
+    getExampleUrl,
+    getExampleWithRelativePathUrl,
+} from '../utils/urlPaths';
 
 interface Props {
     title: string;
@@ -25,6 +30,7 @@ const queryOptions = {
 const GalleryExampleRunnerInner = ({ title, exampleName }: Props) => {
     const [initialSelectedFile, setInitialSelectedFile] = useState();
     const [exampleUrl, setExampleUrl] = useState<string>();
+    const [exampleRunnerExampleUrl, setExampleRunnerExampleUrl] = useState<string>();
     const [plunkrHtmlUrl, setPlunkrHtmlUrl] = useState<string>();
     const [exampleFiles, setExampleFiles] = useState();
     const [exampleBoilerPlateFiles, setExampleBoilerPlateFiles] = useState();
@@ -58,8 +64,18 @@ const GalleryExampleRunnerInner = ({ title, exampleName }: Props) => {
     );
 
     useEffect(() => {
+        if (!exampleName) {
+            return;
+        }
+
         setExampleUrl(
             getExampleUrl({
+                exampleName,
+            })
+        );
+
+        setExampleRunnerExampleUrl(
+            getExampleRunnerExampleUrl({
                 exampleName,
             })
         );
@@ -110,6 +126,7 @@ const GalleryExampleRunnerInner = ({ title, exampleName }: Props) => {
         <ExampleRunner
             id={id}
             exampleUrl={exampleUrl}
+            exampleRunnerExampleUrl={exampleRunnerExampleUrl}
             exampleType={exampleType}
             exampleFiles={exampleFiles}
             initialSelectedFile={initialSelectedFile}

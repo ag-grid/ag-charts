@@ -11,19 +11,15 @@ const options: AgChartOptions = {
             labelKey: 'title',
             secondaryLabelKey: 'total',
             sizeKey: 'total',
-            colorKey: 'change',
-            colorRange: ['rgb(63, 145, 79)', 'rgb(253, 149, 63)'],
-            fills: ['#455A64'],
             group: {
                 label: {
                     fontSize: 18,
                     spacing: 2,
                 },
-                stroke: '#37474F',
             },
             tile: {
                 label: {
-                    fontSize: 16,
+                    fontSize: 24,
                     minimumFontSize: 9,
                     spacing: 8,
                 },

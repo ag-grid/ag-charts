@@ -1,0 +1,27 @@
+---
+import { getLoadingLogoId } from '@features/example-runner/utils/getLoadingLogoId';
+interface Props {
+    pageName: string;
+    exampleName: string;
+}
+
+const { pageName, exampleName } = Astro.props as Props;
+const loadingLogoId = getLoadingLogoId({ pageName, exampleName });
+---
+
+<script
+    define:vars={{
+        pageName,
+        exampleName,
+        loadingLogoId,
+    }}
+>
+    window.addEventListener('message', ({ data }) => {
+        if (data?.type === 'init') {
+            const isExample = pageName === data.pageName && exampleName === data.exampleName;
+            if (isExample) {
+                document.getElementById(loadingLogoId)?.remove();
+            }
+        }
+    });
+</script>
