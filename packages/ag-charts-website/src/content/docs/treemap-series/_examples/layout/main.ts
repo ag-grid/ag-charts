@@ -9,29 +9,12 @@ const options: AgChartOptions = {
         {
             type: 'treemap',
             labelKey: 'title',
-            secondaryLabelKey: 'total',
             sizeKey: 'total',
-            colorKey: 'change',
-            colorRange: ['rgb(234, 82, 80)', 'rgb(67, 153, 83)'],
-            fills: ['#455A64'],
             group: {
-                label: {
-                    fontSize: 18,
-                    spacing: 4,
-                },
-                stroke: '#37474F',
-                padding: 10,
+                padding: 12,
                 gap: 5,
             },
             tile: {
-                label: {
-                    fontSize: 16,
-                    minimumFontSize: 9,
-                    spacing: 8,
-                },
-                secondaryLabel: {
-                    formatter: (params) => `£${params.value.toFixed(1)}bn`,
-                },
                 padding: 10,
                 gap: 2,
             },

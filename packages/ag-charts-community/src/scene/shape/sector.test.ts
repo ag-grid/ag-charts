@@ -23,6 +23,7 @@ describe('Sector', () => {
         const INSET_CASES: Partial<Sector>[] = [
             { startAngle: 0, endAngle: 1, innerRadius: 0, outerRadius: 30, inset: 5 },
             { startAngle: 0, endAngle: 2, innerRadius: 0, outerRadius: 30, inset: 5 },
+            { startAngle: 0, endAngle: 4, innerRadius: 0, outerRadius: 30, inset: 5 },
             { startAngle: 0, endAngle: 2 * Math.PI, innerRadius: 0, outerRadius: 30, inset: 5 },
         ];
         const STROKE_TC_PARAMS: Partial<Sector> = {

@@ -78,7 +78,7 @@ Tiles can also be coloured using a scale. This lets you add an extra dimension o
 
 Colouring can be customised by the `colorKey` and `colorRange` values in the series options.
 
-```j
+```js
 series: [
     {
         type: 'treemap',
@@ -106,12 +106,32 @@ It's possible to override the default colours, or the colours on a group or tile
 series: [
     {
         type: 'treemap',
-        // ...
-        colorRange: ['rgb(63, 145, 79)', 'rgb(253, 149, 63)'],
-        fills: ['#455A64'],
-        group: {
-            stroke: '#37474F',
-        },
+        labelKey: 'name',
+        sizeKey: 'total',
+        fills: [
+            '#FF3D00',
+            '#FF9100',
+            '#FFC400',
+            '#FFEA00',
+            '#C6FF00',
+            '#76FF03',
+            '#00E676',
+            '#1DE9B6',
+            '#00E5FF',
+            '#00B0FF',
+        ],
+        strokes: [
+            '#FF6E40',
+            '#FFAB40',
+            '#FFD740',
+            '#FFFF00',
+            '#EEFF41',
+            '#B2FF59',
+            '#69F0AE',
+            '#64FFDA',
+            '#18FFFF',
+            '#40C4FF',
+        ],
         // ...
     },
 ];
@@ -121,7 +141,6 @@ In this configuration:
 
 -   `fills` and `strokes` are an array of colours to use for the fills and strokes, where node receives the colour indexed by the index of its root node
     -   Note when a `colorRange` is used, the `strokes` array is ignored, and a translucent black is used instead
--   `group.stroke` overrides the stroke colour
 
 ## Labels
 
@@ -139,13 +158,12 @@ series: [
         type: 'treemap',
         labelKey: 'name',
         secondaryLabelKey: 'size',
-        // ...
+        sizeKey: 'total',
         group: {
             label: {
                 fontSize: 18,
                 spacing: 2,
             },
-            // ...
         },
         tile: {
             label: {
@@ -180,14 +198,13 @@ Various spacing values can be adjusted to tweak the layout of the chart.
 series: [
     {
         type: 'treemap',
-        // ...
+        labelKey: 'title',
+        sizeKey: 'total',
         group: {
-            // ...
-            padding: 10,
+            padding: 12,
             gap: 5,
         },
         tile: {
-            // ...
             padding: 10,
             gap: 2,
         },
@@ -202,6 +219,10 @@ In this configuration:
 -   `group.gap` adjusts the gap between adjacent tiles where one or more nodes in the parent node are group nodes
 -   `tile.padding` adjusts the padding between the edge of the tile and its labels
 -   `tile.gap` adjusts the gap between adjacent tiles where all nodes in the parent node are leaf nodes
+
+{% note %}
+The default tile gap is set to `-1` so the borders overlap.
+{% /note %}
 
 ## API Reference
 

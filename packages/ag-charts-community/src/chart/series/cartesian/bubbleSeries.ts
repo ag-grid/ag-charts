@@ -172,6 +172,8 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
             colorScale.range = colorRange;
             colorScale.update();
         }
+
+        this.animationState.transition('updateData');
     }
 
     override getSeriesDomain(direction: ChartAxisDirection): any[] {

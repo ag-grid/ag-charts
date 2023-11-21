@@ -6,6 +6,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     deproxy,
     extractImageData,
+    hoverAction,
     setupMockCanvas,
     waitForChartStability,
 } from 'ag-charts-community-test';
@@ -190,7 +191,7 @@ describe('BulletSeries', () => {
         );
         await waitForChartStability(chart);
         await hoverOnBullet();
-        await compare();
+        await compare(chart, ctx);
     });
 
     test('tooltip valueKey only', async () => {
