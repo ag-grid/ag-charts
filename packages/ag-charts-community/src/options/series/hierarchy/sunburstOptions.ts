@@ -1,8 +1,8 @@
 import type { AgChartCallbackParams } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
-import type { CssColor, FontSize, Opacity, OverflowStrategy, PixelSize, TextWrap } from '../../chart/types';
-import type { FillOptions, StrokeOptions } from '../cartesian/commonOptions';
+import type { CssColor, Opacity, PixelSize } from '../../chart/types';
+import type { AutomaticLabelLayout, FillOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 
 /* All the label properties that can be changed without affecting the layout */
@@ -30,30 +30,8 @@ export interface AgSunburstSeriesHighlightStyle<TDatum> extends AgSeriesHighligh
 }
 
 export interface AgSunburstSeriesBaseLabelOptions<TDatum>
-    extends AgChartLabelOptions<TDatum, AgSunburstSeriesLabelFormatterParams<TDatum>> {
-    /**
-     * If the label does not fit in the container, setting this will allow the label to pick a font size between its normal `fontSize` and `minimumFontSize`
-     * to fit within the container
-     */
-    minimumFontSize?: FontSize;
-
-    /**
-     * Text wrapping strategy for labels.
-     * `'always'` will always wrap text to fit within the tile.
-     * `'hyphenate'` is similar to `'always'`, but inserts a hyphen (`-`) if forced to wrap in the middle of a word.
-     * `'on-space'` will only wrap on white space. If there is no possibility to wrap a line on space and satisfy the tile dimensions, the text will be truncated.
-     * `'never'` disables text wrapping.
-     * Default: `'on-space'`
-     */
-    wrapping?: TextWrap;
-
-    /**
-     * Adjusts the behaviour of labels when they overflow
-     * - `'ellipsis'` will truncate the text to fit, appending an ellipsis (...)
-     * - `'hide'` only displays the label if it completely fits within its bounds, and removes it if it would overflow
-     */
-    overflowStrategy?: OverflowStrategy;
-}
+    extends AgChartLabelOptions<TDatum, AgSunburstSeriesLabelFormatterParams<TDatum>>,
+        AutomaticLabelLayout {}
 
 export interface AgSunburstSeriesLabelOptions<TDatum> extends AgSunburstSeriesBaseLabelOptions<TDatum> {
     /** The distance between the label and secondary label, if both are present */
