@@ -148,7 +148,8 @@ function transformer(sourceFile: string, dataFile?: string, themeName?: ThemeNam
     optionsExpressionProperties.push(paddingPropertyNode);
 
     const code = root.toSource();
-    const options = optionsExpression.length >= 1 ?parseExampleOptions('options', code, dataFile, { agCharts }) : undefined;
+    const options =
+        optionsExpression.length >= 1 ? parseExampleOptions('options', code, dataFile, { agCharts }) : undefined;
 
     return { code, options };
 }
