@@ -56,14 +56,15 @@ However, the sunburst is best suited to providing size values to provide relativ
 
 {% chartExampleRunner title="Custom Sizing" name="sizing" type="generated" /%}
 
-The `sizeKey` can be used to provide a numeric value to adjust the relative sizing.
+The `sizeKey` can be used to provide a numeric value to adjust the relative sizing. Additionally, the optional `sizeName` property can be set to set the title that appears next to the value in tooltips.
 
 ```js
 series: [
     {
         type: 'sunburst',
         labelKey: 'name',
-        sizeKey: 'size',
+        sizeKey: 'gdp',
+        sizeName: 'GDP',
     },
 ];
 ```
@@ -82,7 +83,9 @@ series: [
         type: 'sunburst',
         labelKey: 'name',
         sizeKey: 'gdp',
+        sizeName: 'GDP',
         colorKey: 'gdpChange',
+        colorName: 'Change',
         colorRange: ['rgb(63, 145, 79)', 'rgb(253, 149, 63)'],
     },
 ],
@@ -91,6 +94,7 @@ series: [
 In this configuration:
 
 -   `colorKey` supplies numeric values for the colour scale
+-   `colorName` sets the title that appears next to the colour value in tooltips
 -   `colorRange` supplies the colours for the colour scale (optional)
 
 ## Other Colours
@@ -103,6 +107,7 @@ series: [
         type: 'sunburst',
         labelKey: 'name',
         sizeKey: 'gdp',
+        sizeName: 'GDP',
         fills: ['#D32F2F', '#FF5722', '#283593'],
     },
 ];
@@ -126,7 +131,9 @@ series: [
         labelKey: 'name',
         secondaryLabelKey: 'gdpChange',
         sizeKey: 'gdp',
+        sizeName: 'GDP',
         colorKey: 'gdpChange',
+        colorName: 'Change',
         colorRange: ['#FF7043', '#66BB6A'],
         label: {
             fontSize: 14,
