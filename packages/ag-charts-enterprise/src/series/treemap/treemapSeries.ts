@@ -621,7 +621,7 @@ export class TreemapSeries<
 
             const format = this.getTileFormat(node, highlighted);
 
-            let fill = format?.fill ?? highlightedFill ?? this.getNodeFill(node);
+            const fill = format?.fill ?? highlightedFill ?? this.getNodeFill(node);
             const fillOpacity =
                 format?.fillOpacity ?? highlightedFillOpacity ?? (isLeaf ? tile.fillOpacity : group.fillOpacity);
             const stroke = format?.stroke ?? highlightedStroke ?? (isLeaf ? tile.stroke ?? node.stroke : group.stroke);
