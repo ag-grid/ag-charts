@@ -37,10 +37,10 @@ export type TextAlign = 'left' | 'center' | 'right';
 
 /**
  * Text wrapping strategy for labels.
- * `'always'` will always wrap text to fit within the tile.
- * `'hyphenate'` is similar to `'always'`, but inserts a hyphen (`-`) if forced to wrap in the middle of a word.
- * `'on-space'` will only wrap on white space. If there is no possibility to wrap a line on space and satisfy the tile dimensions, the text will be truncated.
- * `'never'` disables text wrapping.
+ * - `'always'` will always wrap text to fit within the tile.
+ * - `'hyphenate'` is similar to `'always'`, but inserts a hyphen (`-`) if forced to wrap in the middle of a word.
+ * - `'on-space'` will only wrap on white space. If there is no possibility to wrap a line on space and satisfy the tile dimensions, the text will be truncated.
+ * - `'never'` disables text wrapping.
  * Default: `'on-space'`
  */
 export type TextWrap = 'never' | 'always' | 'hyphenate' | 'on-space';
@@ -52,8 +52,9 @@ export type TextWrap = 'never' | 'always' | 'hyphenate' | 'on-space';
  */
 export type OverflowStrategy = 'ellipsis' | 'hide';
 
-/** Define a range within which an interaction can trigger on a point with one of:
- * - A distance in pixels from a point within which the event can be triggered.
+/**
+ * Define a range within which an interaction can trigger on a point with one of:
+ * A distance in pixels from a point within which the event can be triggered.
  * - `'exact'` triggers when the event occurs directly over a point.
  * - `'nearest'` always tracks the nearest point anywhere on the chart.
  */
