@@ -46,6 +46,29 @@ const frameworksData = [
     },
 ];
 
+const benefits = [
+    {
+        title: 'Bring your own Framework',
+        icon: 'code',
+    },
+    {
+        title: 'Unbeatable Performance',
+        icon: 'flash',
+    },
+    {
+        title: 'Completely Customisable',
+        icon: 'colorPalette',
+    },
+    {
+        title: 'Animate everything',
+        icon: 'movement',
+    },
+    {
+        title: 'Zoom & Enhance',
+        icon: 'zoomArea',
+    },
+];
+
 const galleryDataEntry = await getEntry('gallery', 'data');
 const galleryData: GalleryData = galleryDataEntry?.data;
 const defaultExampleName = galleryData.homepage[0].seriesExampleName;
@@ -118,6 +141,19 @@ const isEnterprise = true;
     </div>
 
     <div class={styles.homepageBenefits}>
-        <div class:list={[styles.benefitsInner, 'page-margin']}></div>
+        <div class:list={[styles.benefitsInner, 'page-margin']}>
+            <ul class="list-style-none">
+                {
+                    benefits.map((benefit) => {
+                        return (
+                            <li>
+                                <Icon name={benefit.icon} />
+                                <span class="font-size-large">{benefit.title}</span>
+                            </li>
+                        );
+                    })
+                }
+            </ul>
+        </div>
     </div>
 </Layout>
