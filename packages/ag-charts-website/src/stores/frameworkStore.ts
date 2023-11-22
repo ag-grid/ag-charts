@@ -9,7 +9,7 @@ export type FrameworkContext = {
 };
 
 const LOCALSTORAGE_PREFIX = 'documentation';
-const DEFAULT_INTERNAL_FRAMEWORK: InternalFramework = 'vanilla';
+const DEFAULT_INTERNAL_FRAMEWORK: InternalFramework = 'reactFunctional';
 
 export const $internalFramework = persistentAtom<InternalFramework>(
     `${LOCALSTORAGE_PREFIX}:internalFramework`,
