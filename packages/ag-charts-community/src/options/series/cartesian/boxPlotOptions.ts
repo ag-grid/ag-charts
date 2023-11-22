@@ -12,16 +12,26 @@ import type {
 
 interface BoxPlotUniqueOptions {
     // required
+    /** The key to use to retrieve minimum values from the data. */
     minKey: string;
+    /** The key to use to retrieve lower quartile values from the data. */
     q1Key: string;
+    /** The key to use to retrieve median values from the data. */
     medianKey: string;
+    /** The key to use to retrieve upper quartile values from the data. */
     q3Key: string;
+    /** The key to use to retrieve maximum values from the data. */
     maxKey: string;
     // optional
+    /** A human-readable description of minimum values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     minName?: string;
+    /** A human-readable description of lower quartile values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     q1Name?: string;
+    /** A human-readable description of median values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     medianName?: string;
+    /** A human-readable description of upper quartile values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     q3Name?: string;
+    /** A human-readable description of maximum values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     maxName?: string;
 }
 

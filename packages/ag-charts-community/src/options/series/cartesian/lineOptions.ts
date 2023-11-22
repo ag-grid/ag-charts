@@ -18,6 +18,7 @@ export interface AgLineSeriesThemeableOptions<TDatum = any>
     extends StrokeOptions,
         LineDashOptions,
         AgBaseSeriesThemeableOptions {
+    /** Configuration for the markers used in the series. */
     marker?: AgSeriesMarkerOptions<AgLineSeriesOptionsKeys, TDatum>;
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
     title?: string;

@@ -9,7 +9,7 @@ Error Bars visually represent the variability or uncertainty of data, indicating
 
 {% chartExampleRunner title="Single Error Bars" name="single-error-bars" type="generated" /%}
 
-This example adds Error Bars to a [Bar Series](./bar-series/) through the `errorBar` series option:
+This example adds Error Bars to a [Bar Series](./bar-series/) using the `errorBar` series option:
 
 ```js
 series: [
@@ -38,7 +38,7 @@ Error Bars are only supported in [Bar](./bar-series/), [Line](./line-series/) an
 
 {% chartExampleRunner title="Double Error Bars" name="double-error-bars" type="generated" /%}
 
-This example adds Double Error Bars to a Line Series through the `errorBar` series option:
+This example adds Double Error Bars to a Line Series using the `errorBar` series option:
 
 ```js
 series: [
@@ -63,7 +63,7 @@ In this configuration:
 -   `errorBar.yLowerKey` and `errorBar.yUpperKey` denote the y-axis bounds.
 
 A custom [Tooltip](./tooltips/) is also provided to the series `tooltip` option
-to display the x and y axis bounds. The X & Y keys and names are availabe to the
+to display the x and y axis bounds. The X & Y keys and names are available to the
 renderer when Error Bars are enabled.
 
 {% note %}
@@ -102,7 +102,7 @@ The default Cap length is determined based on the type of series:
 {% /note %}
 
 [Formatters](./formatters) can also be used for customisation using
-`errorBar.formatter` or `errorBar.cap.formatter` properties. The Parameters
+`errorBar.formatter` or `errorBar.cap.formatter` properties. The `params` object
 includes properties from the Series and Error Bars.
 
 ## API Reference

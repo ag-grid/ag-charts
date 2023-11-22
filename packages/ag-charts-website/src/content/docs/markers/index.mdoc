@@ -2,17 +2,20 @@
 title: 'Series Markers'
 ---
 
-Data points in `line`, `area` and `scatter` series can be represented by markers.
+Data points in `line`, `area`, `scatter` and `bubble` series can be represented by markers.
 
-Marker attributes such as `shape`, `size`, `fill` and `stroke` are configurable via the chart `options`:
+Marker attributes such as `shape`, `size`, `fill` and `stroke` are configurable within each series.
 
 ```js
-marker: {
-    shape: 'square', // defaults to 'circle'
-    size: 20,
-    fill: 'red',
-    stroke: 'maroon'
-}
+series: [
+    //...
+    marker: {
+        shape: 'square', // defaults to 'circle'
+        size: 20,
+        fill: 'red',
+        stroke: 'maroon'
+    }
+]
 ```
 
 Please see the [API reference](#api-reference) for the list of all available options.

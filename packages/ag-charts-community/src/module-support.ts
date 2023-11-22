@@ -62,6 +62,7 @@ export * from './motion/animation';
 export * as Motion from './motion/easing';
 export * from './motion/states';
 export * from './motion/resetMotion';
+export * from './motion/fromToMotion';
 export { resetIds } from './util/id';
 
 export { ChartUpdateType } from './chart/chartUpdateType';

@@ -11,8 +11,17 @@ import {
 
 import { AutoSizeableLabel, formatLabels } from '../util/labelFormatter';
 
-const { HighlightStyle, SeriesTooltip, Validate, OPT_COLOR_STRING, OPT_FUNCTION, OPT_NUMBER, NUMBER, OPT_STRING } =
-    _ModuleSupport;
+const {
+    fromToMotion,
+    HighlightStyle,
+    NUMBER,
+    OPT_COLOR_STRING,
+    OPT_FUNCTION,
+    OPT_NUMBER,
+    OPT_STRING,
+    SeriesTooltip,
+    Validate,
+} = _ModuleSupport;
 const { Sector, Group, Selection, Text } = _Scene;
 const { sanitizeHtml } = _Util;
 
@@ -86,16 +95,15 @@ enum TextNodeTag {
     Secondary,
 }
 
-export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport.HierarchyNode> {
+export class SunburstSeries<
+    TDatum extends _ModuleSupport.SeriesNodeDatum = _ModuleSupport.SeriesNodeDatum,
+> extends _ModuleSupport.HierarchySeries<_Scene.Group, TDatum> {
     static className = 'SunburstSeries';
     static type = 'sunburst' as const;
 
     readonly tooltip = new SeriesTooltip<AgSunburstSeriesTooltipRendererParams<any>>();
 
-    private groupSelection: _Scene.Selection<_Scene.Group, _ModuleSupport.HierarchyNode> = Selection.select(
-        this.contentGroup,
-        Group
-    );
+    groupSelection = Selection.select(this.contentGroup, Group);
     private highlightSelection: _Scene.Selection<_Scene.Group, _ModuleSupport.HierarchyNode> = Selection.select(
         this.highlightGroup,
         Group
@@ -159,7 +167,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
         this.labelData = Array.from(this.rootNode, ({ datum, depth }) => {
             let label: string | undefined;
             if (datum != null && depth != null && labelKey != null && this.label.enabled) {
-                const value = datum[labelKey];
+                const value = (datum as any)[labelKey];
                 label = this.getLabelText(
                     this.label,
                     {
@@ -183,7 +191,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
 
             let secondaryLabel: string | undefined;
             if (datum != null && depth != null && secondaryLabelKey != null && this.secondaryLabel.enabled) {
-                const value = datum[secondaryLabelKey];
+                const value = (datum as any)[secondaryLabelKey];
                 secondaryLabel = this.getLabelText(
                     this.secondaryLabel,
                     {
@@ -504,11 +512,6 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
         });
     }
 
-    override async update() {
-        await this.updateSelections();
-        await this.updateNodes();
-    }
-
     private getSectorFormat(node: _ModuleSupport.HierarchyNode, isHighlighted: boolean): AgSunburstSeriesStyle {
         const { datum, fill, stroke, depth } = node;
         const {
@@ -604,7 +607,26 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
         return [];
     }
 
-    override getSeriesDomain() {
-        return [NaN, NaN];
+    protected override animateEmptyUpdateReady({
+        datumSelections,
+    }: _ModuleSupport.HierarchyAnimationData<_Scene.Group, TDatum>) {
+        fromToMotion<_Scene.Group, Pick<_Scene.Group, 'scalingX' | 'scalingY'>, _ModuleSupport.HierarchyNode<TDatum>>(
+            this.id,
+            'nodes',
+            this.ctx.animationManager,
+            datumSelections,
+            {
+                toFn(_group, _datum, _status) {
+                    return { scalingX: 1, scalingY: 1 };
+                },
+                fromFn(group, datum, status) {
+                    if (status === 'unknown' && datum != null && group.previousDatum == null) {
+                        return { scalingX: 0, scalingY: 0 };
+                    } else {
+                        return { scalingX: 1, scalingY: 1 };
+                    }
+                },
+            }
+        );
     }
 }

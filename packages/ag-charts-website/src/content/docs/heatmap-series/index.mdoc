@@ -34,6 +34,8 @@ In this configuration:
 
 Series items colours can be customised via the `colorRange` configuration array.
 
+{% chartExampleRunner title="Customising Colour Range" name="customising-color-range" type="generated" /%}
+
 ```js
 series: [
     {
@@ -46,11 +48,9 @@ series: [
 ],
 ```
 
-The example below demonstrates Colour Range customisations.
-
-{% chartExampleRunner title="Customising Colour Range" name="customising-color-range" type="generated" /%}
-
 Colour Range can also have more than 2 values.
+
+{% chartExampleRunner title="Colour Range With Many Values" name="color-range-with-many-values" type="generated" /%}
 
 ```js
 series: [
@@ -64,11 +64,11 @@ series: [
 ],
 ```
 
-{% chartExampleRunner title="Colour Range With Many Values" name="color-range-with-many-values" type="generated" /%}
+### Labels
 
-## Labels
+If `label.enabled` is set to `true`, the labels will show the numeric value from `colorKey`.
 
-There is a way to display labels for the Heatmap items. If `label.enabled` is set to `true`, the labels will show a numeric value from `colorKey`.
+{% chartExampleRunner title="Heatmap Label" name="customising-labels" type="generated" /%}
 
 ```js
 colorKey: 'temperature',
@@ -77,7 +77,7 @@ label: {
 },
 ```
 
-A label formatter can be used to customise the labels.
+A label `formatter` can be used to customise the label text.
 
 ```js
 colorKey: 'temperature',
@@ -90,13 +90,11 @@ label: {
 },
 ```
 
-This configuration generates labels as shown in the example below.
-
-{% chartExampleRunner title="Heatmap Label" name="customising-labels" type="generated" /%}
-
 ## Gradient Legend
 
-The Gradient Legend helps for better understanding of colour coding of the Heatmap Series. In order to add a Gradient Legend, `gradientLegend.enabled = true` should be added to the root of the chart options.
+The Gradient Legend aids in matching the colour coding of the Heatmap Series to the underlying values, and is enabled by default.
+
+{% chartExampleRunner title="Gradient Legend" name="gradient-legend" type="generated" /%}
 
 ```js
 series: [
@@ -112,28 +110,27 @@ gradientLegend: {
 },
 ```
 
-{% chartExampleRunner title="Gradient Legend" name="gradient-legend" type="generated" /%}
-
 ### Position
-
-By default the Gradient Legend is placed at the bottom of the chart. But it can be positioned to the side using the `position` config:
-
-```js
-gradientLegend: {
-    enabled: true,
-    position: 'right',
-},
-```
 
 {% chartExampleRunner title="Gradient Legend Position" name="gradient-legend-position" type="generated" /%}
 
-### Controlling The Size of The Legend
-
-There are a few options to control the size of the bar on the Gradient Legend.
+By default the Gradient Legend is placed at the bottom of the chart. Use the `position` option to change this.
 
 ```js
 gradientLegend: {
-    enabled: true,
+   position: 'right',
+   reverseOrder: true
+},
+```
+
+In the above example, `reverseOrder` is used to change the direction of the Gradient Legend to display the values from top to bottom.
+
+### Size
+
+{% chartExampleRunner title="Gradient Legend Size" name="gradient-legend-size" type="generated" /%}
+
+```js
+gradientLegend: {
     gradient: {
         thickness: 50,
         preferredLength: 400,
@@ -141,18 +138,19 @@ gradientLegend: {
 },
 ```
 
--   `thickness` controls the thickness (or width) of the gradient bar.
--   `preferredLength` sets the initial length of the bar. It is called _preferred_, because if the Legend or its labels appear outside of the chart, the bar will shrink.
+In the above configuration:
 
-{% chartExampleRunner title="Gradient Legend Size" name="gradient-legend-size" type="generated" /%}
+-   `thickness` controls the thickness (or width) of the gradient bar.
+-   `preferredLength` sets the initial length of the gradient bar. It is only _preferred_, as the Gradient Legend is constrained by the container edges.
 
 ### Labels
 
-There are a number of properties that affect font, colour and padding of the labels.
+It is possible to customise the font, colour and padding of the labels by using the `stop` options.
+
+{% chartExampleRunner title="Gradient Legend Labels" name="gradient-legend-labels" type="generated" /%}
 
 ```js
 gradientLegend: {
-    enabled: true,
     stop: {
         label: {
             fontSize: 20,
@@ -165,8 +163,6 @@ gradientLegend: {
     },
 },
 ```
-
-{% chartExampleRunner title="Gradient Legend Labels" name="gradient-legend-labels" type="generated" /%}
 
 ## API Reference
 
