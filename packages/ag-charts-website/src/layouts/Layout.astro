@@ -4,10 +4,6 @@ import { getFavIconsData, getAppleTouchIconsData } from '@utils/favicons';
 import SiteHeader from '@components/site-header/SiteHeader.astro';
 import '@design-system/design-system.scss';
 import { Footer } from '@components/footer/Footer';
-import { TopBar } from '@components/top-bar/TopBar';
-import { FRAMEWORKS } from '@constants';
-import { getFrameworkFromPath } from '@features/docs/utils/urlPaths';
-import { getIsDev, getIsStaging } from '@utils/env';
 import type { ApiMenuItem } from '@ag-grid-types';
 import { urlWithBaseUrl } from '@utils/pages';
 import { ApiTopBar } from '@components/top-bar/ApiTopBar';
@@ -24,18 +20,10 @@ const metadata = await getEntry('metadata', 'metadata');
 const {
     title = metadata.data.title,
     description = metadata.data.description,
-    showTopBar,
     showSearchBar,
-    suppressFrameworkSelector,
 } = Astro.props;
 
 const path = Astro.url.pathname;
-
-const frameworks = FRAMEWORKS;
-const framework = getFrameworkFromPath(path);
-
-const isDev = getIsDev();
-const isStaging = getIsStaging();
 
 const menuData = await getEntry('menu', 'data');
 const apiMenuItems = menuData.data.api.items as ApiMenuItem[];
