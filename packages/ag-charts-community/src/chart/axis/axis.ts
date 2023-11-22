@@ -581,7 +581,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         caption.enabled = title.enabled;
         caption.wrapping = title.wrapping;
 
-        if (title.enabled && this.line.enabled) {
+        if (title.enabled) {
             const titleNode = caption.node;
             const { tickSpace } = params;
             const padding = (title.spacing ?? 0) + tickSpace;
@@ -632,11 +632,9 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         const boxes: BBox[] = [];
 
-        if (this.line.enabled) {
-            const { x, y1, y2 } = this.getAxisLineCoordinates();
-            const lineBox = new BBox(x, y1, 0, y2 - y1);
-            boxes.push(lineBox);
-        }
+        const { x, y1, y2 } = this.getAxisLineCoordinates();
+        const lineBox = new BBox(x, y1, 0, y2 - y1);
+        boxes.push(lineBox);
 
         const { tick } = this;
         if (tick.enabled) {
@@ -691,7 +689,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         };
 
         const { title } = this;
-        if (title?.enabled && this.line.enabled) {
+        if (title?.enabled) {
             const caption = new Caption();
             let tickSpace = 0;
             if (tickData.ticks.length > 0) {
@@ -1375,7 +1373,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         let tickSpace = 0;
         const { anyTickVisible } = params;
-        if (title.enabled && this.line.enabled && anyTickVisible) {
+        if (title.enabled && anyTickVisible) {
             const tickBBox = Group.computeBBox([tickLineGroup, tickLabelGroup, lineNode]);
             const tickWidth = rotation === 0 ? tickBBox.width : tickBBox.height;
             if (Math.abs(tickWidth) < Infinity) {
