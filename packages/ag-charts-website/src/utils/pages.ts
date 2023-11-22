@@ -1,5 +1,6 @@
 import type { InternalFramework, Library } from '@ag-grid-types';
 import type { CollectionEntry } from 'astro:content';
+import fs from 'fs/promises';
 import glob from 'glob';
 
 import { DEV_FILE_BASE_PATH, SITE_BASE_URL, TYPESCRIPT_INTERNAL_FRAMEWORKS } from '../constants';
@@ -63,6 +64,41 @@ export const getContentRootFileUrl = ({ isDev = getIsDev() }: { isDev?: boolean 
         : // Relative to `/dist/packages/ag-charts-website/chunks/pages` folder (Nx specific)
           '../../../../../packages/ag-charts-website/src/content';
     return new URL(contentRoot, import.meta.url);
+};
+
+export const getDebugFolderUrl = ({ isDev = getIsDev() }: { isDev?: boolean } = { isDev: getIsDev() }): URL => {
+    const contentRoot = isDev
+        ? // Relative to the folder of this file
+          '../pages/debug'
+        : // Relative to `/dist/packages/ag-charts-website/chunks/pages` folder (Nx specific)
+          '../../../../../packages/ag-charts-website/src/pages/debug';
+    return new URL(contentRoot, import.meta.url);
+};
+
+export const getDebugPageUrls = async ({
+    allFiles,
+}: {
+    /**
+     * Get all files, by default only returns `.astro` pages
+     */
+    allFiles?: boolean;
+} = {}) => {
+    const debugFolder = getDebugFolderUrl();
+    const pages = await fs.readdir(debugFolder);
+    const filteredPages = allFiles
+        ? pages
+        : pages.filter((pageName) => {
+              return pageName.match(/\.astro$/);
+          });
+
+    const pagePathPromises = filteredPages
+        .map(async (pageName) => {
+            const pageNameWithoutExt = pageName.replace(/\.[^.]+$/, '');
+            return urlWithBaseUrl(pathJoin('/debug', pageNameWithoutExt));
+        })
+        .flat();
+
+    return Promise.all(pagePathPromises);
 };
 
 /**
