@@ -1,12 +1,13 @@
 @use '../../../design-system' as *;
 
 .link {
+    --link-border-color: var(--background-500);
+
     position: relative;
     display: flex;
     flex-direction: column;
     border-radius: var(--border-radius);
-    border: 1px solid var(--bright-blue-gray);
-    background-color: var(--default-background-color) !important;
+    border: 1px solid var(--link-border-color);
 
     &::after {
         $border-width: 2px;
@@ -39,6 +40,12 @@
         padding: $size-1 $size-2;
         font-size: 12px;
         line-height: var(--line-height-tight);
-        border-top: 1px solid var(--bright-blue-gray);
+        border-top: 1px solid var(--link-border-color);
+    }
+
+    #{$darkmode-selector} & {
+        --link-border-color: color-mix(in srgb, var(--default-background-color), white 10%);
+
+        background-color: #182732;
     }
 }

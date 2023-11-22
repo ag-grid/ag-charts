@@ -26,21 +26,10 @@ export const GalleryExampleLink: FunctionComponent<Props> = ({ label, exampleNam
         setIsDarkTheme(theme.indexOf('dark') > -1);
     }, [theme]);
 
-    const lightLinkStyle = {
-        backgroundColor: '#fff',
-    };
-
-    const darkLinkStyle = {
-        backgroundColor: '#15181c',
-    };
-
-    const linkStyle = isDarkTheme ? darkLinkStyle : lightLinkStyle;
-
     return (
         <a
             className={classnames(styles.link, className, 'font-size-responsive', 'font-size-small', 'text-secondary')}
             href={getPageUrl(exampleName)}
-            style={linkStyle}
         >
             <img
                 src={imageUrl}
