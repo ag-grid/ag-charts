@@ -885,7 +885,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_Scene.Group> 
     }
 
     override animateEmptyUpdateReady({ datumSelections }: any) {
-        fromToMotion<_Scene.Group, any, _ModuleSupport.HierarchyNode>(
+        fromToMotion<_Scene.Group, Pick<_Scene.Group, 'opacity'>, _ModuleSupport.HierarchyNode>(
             this.id,
             'nodes',
             this.ctx.animationManager,

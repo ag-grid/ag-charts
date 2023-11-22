@@ -1,4 +1,4 @@
-import type { Point } from '../../../integrated-charts-scene';
+import type { BBox, Point } from '../../../integrated-charts-scene';
 import type { ModuleContext } from '../../../module/moduleContext';
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
@@ -84,7 +84,7 @@ export class HierarchyNode<TDatum = Record<string, any>> implements SeriesNodeDa
 
 export abstract class HierarchySeries<
     TNode extends Node = Group,
-    TDatum extends SeriesNodeDatum = any,
+    TDatum extends SeriesNodeDatum = SeriesNodeDatum,
 > extends Series<TDatum> {
     @Validate(OPT_STRING)
     childrenKey?: string = 'children';
@@ -114,6 +114,8 @@ export abstract class HierarchySeries<
     protected animationResetFns?: {
         datum?: (node: TNode, datum: HierarchyNode<TDatum>) => AnimationValue & Partial<TNode>;
     };
+
+    private nodeDataDependencies?: { seriesRectWidth: number; seriesRectHeight: number } = undefined;
 
     constructor(moduleCtx: ModuleContext) {
         super({
@@ -255,12 +257,18 @@ export abstract class HierarchySeries<
 
     protected abstract updateNodes(): Promise<void>;
 
-    override async update(): Promise<void> {
+    override async update({ seriesRect }: { seriesRect?: BBox }): Promise<void> {
         await this.updateSelections();
         await this.updateNodes();
 
         const animationData = this.getAnimationData();
-        const resize = false;
+        const newNodeDataDependencies = {
+            seriesRectWidth: seriesRect?.width,
+            seriesRectHeight: seriesRect?.height,
+        };
+        const resize =
+            this.nodeDataDependencies?.seriesRectWidth !== newNodeDataDependencies.seriesRectWidth ||
+            this.nodeDataDependencies?.seriesRectHeight !== newNodeDataDependencies.seriesRectHeight;
         if (resize) {
             this.animationState.transition('resize', animationData);
         }
