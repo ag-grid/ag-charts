@@ -23,7 +23,6 @@ const options: AgChartOptions = {
         { type: 'number', position: 'right', keys: ['avgTemp'] },
     ],
     legend: {
-        enabled: true,
         position: 'right',
     },
 };

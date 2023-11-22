@@ -51,7 +51,6 @@ const ChartExample = () => {
         ],
         // Legend: Matches visual elements to their corresponding series or data categories.
         legend: {
-            enabled: true,
             position: 'right',
         },
     });

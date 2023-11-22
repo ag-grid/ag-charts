@@ -64,7 +64,6 @@ const options: AgChartOptions = {
     ],
     // Legend: Matches visual elements to their corresponding series or data categories.
     legend: {
-        enabled: true,
         position: 'right',
     } as AgChartLegendOptions,
 };

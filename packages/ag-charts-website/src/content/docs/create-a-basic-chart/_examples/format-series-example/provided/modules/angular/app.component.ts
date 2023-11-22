@@ -78,7 +78,6 @@ export class AppComponent {
             ],
             // Legend: Matches visual elements to their corresponding series or data categories.
             legend: {
-                enabled: true,
                 position: 'right',
             } as AgChartLegendOptions,
         };
