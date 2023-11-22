@@ -15,6 +15,7 @@ const SERIES_DEFAULTS: Record<string, any> = {};
 const SERIES_THEME_TEMPLATES: Record<string, {}> = {};
 const ENTERPRISE_SERIES_THEME_TEMPLATES: Record<string, {}> = {};
 const SERIES_PALETTE_FACTORIES: Record<string, SeriesPaletteFactory> = {};
+const SOLO_SERIES_TYPES = new Set<SeriesOptionsTypes['type']>();
 const STACKABLE_SERIES_TYPES = new Set<SeriesOptionsTypes['type']>();
 const GROUPABLE_SERIES_TYPES = new Set<SeriesOptionsTypes['type']>();
 const STACKED_BY_DEFAULT_SERIES_TYPES = new Set<string>();
@@ -29,6 +30,7 @@ export function registerSeries(
     theme: {},
     enterpriseTheme: {} | undefined,
     paletteFactory: SeriesPaletteFactory | undefined,
+    solo: boolean | undefined,
     stackable: boolean | undefined,
     groupable: boolean | undefined,
     stackedByDefault: boolean | undefined,
@@ -42,6 +44,9 @@ export function registerSeries(
 
     if (paletteFactory) {
         addSeriesPaletteFactory(seriesType, paletteFactory);
+    }
+    if (solo) {
+        addSoloSeriesType(seriesType);
     }
     if (stackable) {
         addStackableSeriesType(seriesType);
@@ -104,6 +109,10 @@ export function getSeriesPaletteFactory(seriesType: string) {
     return SERIES_PALETTE_FACTORIES[seriesType];
 }
 
+export function isSoloSeries(seriesType: SeriesOptionsTypes['type']) {
+    return SOLO_SERIES_TYPES.has(seriesType);
+}
+
 export function isStackableSeries(seriesType: SeriesOptionsTypes['type']) {
     return STACKABLE_SERIES_TYPES.has(seriesType);
 }
@@ -118,6 +127,10 @@ export function isSeriesStackedByDefault(seriesType: string) {
 
 export function addGroupableSeriesType(seriesType: SeriesOptionsTypes['type']) {
     GROUPABLE_SERIES_TYPES.add(seriesType);
+}
+
+export function addSoloSeriesType(seriesType: SeriesOptionsTypes['type']) {
+    SOLO_SERIES_TYPES.add(seriesType);
 }
 
 export function addStackableSeriesType(seriesType: SeriesOptionsTypes['type']) {

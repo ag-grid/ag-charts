@@ -19,6 +19,7 @@ import {
     getSeriesDefaults,
     getSeriesPaletteFactory,
     isDefaultAxisSwapNeeded,
+    isSoloSeries,
 } from '../factory/seriesTypes';
 import type { ChartTheme } from '../themes/chartTheme';
 import { resolveModuleConflicts, swapAxes } from './defaults';
@@ -86,7 +87,7 @@ export function prepareOptions<T extends AgChartOptions>(options: T): T {
         checkSeriesType(seriesType);
     }
 
-    options = { ...options, type };
+    options = validateSoloSeries({ ...options, type });
 
     let defaultSeriesType = 'line';
     if (isAgCartesianChartOptions(options)) {
@@ -183,6 +184,36 @@ function sanityCheckOptions<T extends AgChartOptions>(options: T) {
             );
         }
     });
+}
+
+function hasSoloSeries(options: SeriesOptionsTypes[]) {
+    for (const series of options) {
+        if (isSoloSeries(series.type)) return true;
+    }
+    return false;
+}
+
+function validateSoloSeries<T extends AgChartOptions>(options: T): T {
+    if (options.series === undefined || options.series.length <= 1 || !hasSoloSeries(options.series)) {
+        return options;
+    }
+
+    // If the first series is a solo-series, remove all trailing series.
+    // If the frist series is not a solo-series, remove all solo-series.
+    let series = [...options.series];
+    if (isSoloSeries(series[0].type)) {
+        Logger.warn(
+            `series[0] of type '${series[0].type}' is incompatible with other series types. Only processing series[0]`
+        );
+        series = series.slice(0, 1);
+    } else {
+        const rejects = Array.from(new Set(series.filter((s) => isSoloSeries(s.type)).map((s) => s.type)));
+        Logger.warnOnce(`Unable to mix these series types with the lead series type: ${rejects}`);
+
+        series = series.filter((s) => !isSoloSeries(s.type));
+    }
+
+    return { ...options, series };
 }
 
 function mergeSeriesOptions<T extends SeriesOptionsTypes>(
