@@ -571,13 +571,6 @@
             ]
         },
         {
-            "title": "Icicle",
-            "name": "icicle",
-            "icon": "chartsIcicle",
-            "enterprise": true,
-            "examples": []
-        },
-        {
             "title": "Bullet",
             "name": "Bullet",
             "icon": "chartsBullet",
