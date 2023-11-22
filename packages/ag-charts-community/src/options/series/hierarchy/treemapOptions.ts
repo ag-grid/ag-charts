@@ -135,7 +135,9 @@ export interface AgTreemapSeriesOptionsKeys {
     sizeKey?: string;
     /** The name of the node key containing the color value. This value (along with `colorRange` config) will be used to determine the tile color. */
     colorKey?: string;
+    /** A human-readable description of the size values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     sizeName?: string;
+    /** A human-readable description of the color values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     colorName?: string;
 }
 
