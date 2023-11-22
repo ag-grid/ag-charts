@@ -43,7 +43,7 @@ const options = {
             // Format the label applied to this axis (append ' °C')
             label: {
                 formatter: (params) => {
-                    return params.value + ' °C';
+                    return params.value != 'NaN' ? params.value + ' °C' : '';
                 },
             },
         },
