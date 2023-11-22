@@ -288,7 +288,9 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         return [{ itemId: radiusKey, nodeData, labelData: nodeData }];
     }
 
-    async update() {
+    async update({ seriesRect }: { seriesRect?: _Scene.BBox }) {
+        const resize = this.checkResize(seriesRect);
+
         await this.maybeRefreshNodeData();
 
         this.contentGroup.translationX = this.centerX;
@@ -305,6 +307,9 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         this.updateMarkers(this.highlightSelection, true);
         this.updateLabels();
 
+        if (resize) {
+            this.animationState.transition('resize');
+        }
         this.animationState.transition('update');
     }
 
@@ -638,12 +643,13 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         seriesLabelFadeInAnimation(this, 'labels', animationManager, [labelSelection]);
     }
 
-    override animateWaitingUpdateReady() {
-        this.ctx.animationManager.skipCurrentBatch();
+    override animateWaitingUpdateReady(data: _ModuleSupport.PolarAnimationData) {
+        super.animateReadyResize(data);
         this.resetPaths();
     }
 
-    override animateReadyResize() {
+    override animateReadyResize(data: _ModuleSupport.PolarAnimationData) {
+        super.animateReadyResize(data);
         this.resetPaths();
     }
 

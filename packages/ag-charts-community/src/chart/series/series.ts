@@ -14,6 +14,7 @@ import { Group } from '../../scene/group';
 import type { ZIndexSubOrder } from '../../scene/node';
 import type { Point } from '../../scene/point';
 import { createId } from '../../util/id';
+import { jsonDiff } from '../../util/json';
 import type { PlacedLabel, PointLabelDatum } from '../../util/labelPlacement';
 import { Listeners } from '../../util/listeners';
 import { mergeDefaults } from '../../util/object';
@@ -829,5 +830,20 @@ export abstract class Series<
 
     getMinRect(): BBox | undefined {
         return undefined;
+    }
+
+    protected nodeDataDependencies: { seriesRectWidth?: number; seriesRectHeight?: number } = {};
+    protected checkResize(newSeriesRect?: BBox) {
+        const newNodeDataDependencies = {
+            seriesRectWidth: newSeriesRect?.width,
+            seriesRectHeight: newSeriesRect?.height,
+        };
+        const resize = jsonDiff(this.nodeDataDependencies, newNodeDataDependencies) != null;
+        if (resize) {
+            this.nodeDataDependencies = newNodeDataDependencies;
+            this.markNodeDataDirty();
+        }
+
+        return resize;
     }
 }

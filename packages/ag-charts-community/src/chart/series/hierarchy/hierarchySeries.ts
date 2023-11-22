@@ -136,8 +136,6 @@ export abstract class HierarchySeries<
         datum?: (node: TNode, datum: HierarchyNode<TDatum>) => AnimationValue & Partial<TNode>;
     };
 
-    private nodeDataDependencies?: { seriesRectWidth: number; seriesRectHeight: number } = undefined;
-
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,
@@ -306,22 +304,7 @@ export abstract class HierarchySeries<
         await this.updateNodes();
 
         const animationData = this.getAnimationData();
-        const newNodeDataDependencies =
-            seriesRect != null
-                ? {
-                      seriesRectWidth: seriesRect?.width,
-                      seriesRectHeight: seriesRect?.height,
-                  }
-                : undefined;
-
-        const resize =
-            this.nodeDataDependencies != null &&
-            newNodeDataDependencies != null &&
-            (this.nodeDataDependencies.seriesRectWidth !== newNodeDataDependencies.seriesRectWidth ||
-                this.nodeDataDependencies.seriesRectHeight !== newNodeDataDependencies.seriesRectHeight);
-
-        this.nodeDataDependencies = newNodeDataDependencies;
-
+        const resize = this.checkResize(seriesRect);
         if (resize) {
             this.animationState.transition('resize', animationData);
         }

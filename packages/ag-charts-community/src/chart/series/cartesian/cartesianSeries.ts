@@ -11,7 +11,6 @@ import { Selection } from '../../../scene/selection';
 import { Path } from '../../../scene/shape/path';
 import { Text } from '../../../scene/shape/text';
 import { Debug } from '../../../util/debug';
-import { jsonDiff } from '../../../util/json';
 import type { PointLabelDatum } from '../../../util/labelPlacement';
 import { OPT_STRING, Validate } from '../../../util/validation';
 import { CategoryAxis } from '../../axis/categoryAxis';
@@ -150,8 +149,6 @@ export abstract class CartesianSeries<
 
     protected override readonly NodeClickEvent = CartesianSeriesNodeClickEvent;
 
-    protected nodeDataDependencies: { seriesRectWidth?: number; seriesRectHeight?: number } = {};
-
     private highlightSelection = Selection.select(this.highlightNode, () =>
         this.opts.hasMarkers ? this.markerFactory() : this.nodeFactory()
     ) as Selection<TNode, TDatum>;
@@ -251,16 +248,7 @@ export abstract class CartesianSeries<
         const { series } = this.ctx.highlightManager?.getActiveHighlight() ?? {};
         const seriesHighlighted = series ? series === this : undefined;
 
-        const newNodeDataDependencies = {
-            seriesRectWidth: seriesRect?.width,
-            seriesRectHeight: seriesRect?.height,
-        };
-        const resize = jsonDiff(this.nodeDataDependencies, newNodeDataDependencies) != null;
-        if (resize) {
-            this.nodeDataDependencies = newNodeDataDependencies;
-            this.markNodeDataDirty();
-        }
-
+        const resize = this.checkResize(seriesRect);
         const highlightItems = await this.updateHighlightSelection(seriesHighlighted);
 
         await this.updateSelections(visible);
