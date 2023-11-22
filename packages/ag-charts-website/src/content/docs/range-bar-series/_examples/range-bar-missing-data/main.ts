@@ -6,7 +6,7 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'Range Column Missing Data',
+        text: 'Range Bar Missing Data',
     },
     series: [
         {

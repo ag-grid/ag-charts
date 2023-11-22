@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, time } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -6,16 +6,34 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'Average High and Low Temperatures',
+        text: 'London Property Average Price Range',
+    },
+    subtitle: {
+        text: '2000 - 2020',
     },
     series: [
         {
             type: 'range-area',
-            xKey: 'month',
-            xName: 'Month',
-            yLowKey: 'low',
-            yHighKey: 'high',
-        } as any,
+            xKey: 'date',
+            yLowKey: 'flatsAndMaisonettes',
+            yHighKey: 'detachedHouses',
+        },
+    ],
+    axes: [
+        {
+            position: 'left',
+            type: 'number',
+            title: {
+                text: 'Average Price',
+            },
+            label: {
+                formatter: ({ value }) => `£${(+value).toLocaleString()}`,
+            },
+        },
+        {
+            position: 'bottom',
+            type: 'time',
+        },
     ],
 };
 

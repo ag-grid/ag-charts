@@ -6,7 +6,13 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'Range Area Labels',
+        text: 'Range Area Markers and Labels',
+    },
+    seriesArea: {
+        padding: {
+            left: 30,
+            right: 30,
+        },
     },
     series: [
         {
@@ -16,9 +22,10 @@ const options: AgChartOptions = {
             yLowKey: 'low',
             yHighKey: 'high',
             marker: {
-                size: 5,
+                size: 7,
             },
             label: {
+                padding: 17,
                 formatter: ({ itemId, value }) => {
                     return `${itemId === 'low' ? 'L' : 'H'}: ${value.toFixed(0)}`;
                 },

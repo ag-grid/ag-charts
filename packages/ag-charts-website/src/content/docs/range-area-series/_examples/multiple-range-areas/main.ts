@@ -1,54 +1,54 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, time } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const options: AgCartesianChartOptions = {
+const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: `Wind Electricity Capacity`,
+        text: 'London Property Average Price Range',
     },
     subtitle: {
-        text: `2022 - 2024`,
+        text: '2000 - 2020',
     },
     series: [
         {
             type: 'range-area',
-            xKey: 'location',
-            xName: 'Geographical Region',
-            yLowKey: '2022',
-            yHighKey: '2023',
-            yName: 'Onshore Wind Capacity 2022 - 2023',
-            fill: '#205C37',
-            stroke: '#205C37',
+            xKey: 'date',
+            yLowKey: 'flatsAndMaisonettes',
+            yHighKey: 'terracedHouses',
+            xName: 'Date',
+            yName: 'Flats & Terraced',
+            yLowName: 'Flats & Maisonettes',
+            yHighName: 'Terraced',
         },
         {
             type: 'range-area',
-            xKey: 'location',
-            xName: 'Geographical Region',
-            yLowKey: '2023',
-            yHighKey: '2024',
-            yName: 'Onshore Wind Capacity 2023 - 2024',
-            fill: '#D1C0A8',
-            stroke: '#D1C0A8',
+            xKey: 'date',
+            yLowKey: 'semiDetachedHouses',
+            yHighKey: 'detachedHouses',
+            xName: 'Date',
+            yName: 'Semi-detached & Detached',
+            yLowName: 'Semi-detached',
+            yHighName: 'Detached',
         },
     ],
     axes: [
         {
-            type: 'category',
-            position: 'bottom',
-        },
-        {
-            type: 'number',
             position: 'left',
+            type: 'number',
             title: {
-                text: 'GW',
+                text: 'Average Price',
+            },
+            label: {
+                formatter: ({ value }) => `£${(+value).toLocaleString()}`,
             },
         },
+        {
+            position: 'bottom',
+            type: 'time',
+        },
     ],
-    footnote: {
-        text: 'Renewable Energy Market',
-    },
 };
 
 AgCharts.create(options);

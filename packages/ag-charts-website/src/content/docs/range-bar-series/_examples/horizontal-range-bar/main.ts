@@ -6,14 +6,16 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'Range Bar - Horizontal',
+        text: 'Salary Ranges By Department',
+    },
+    subtitle: {
+        text: 'Low and High Salary Brackets Across Various Departments (in thousands)',
     },
     series: [
         {
             type: 'range-bar',
             direction: 'horizontal',
-            xKey: 'date',
-            xName: 'Date',
+            xKey: 'department',
             yLowKey: 'low',
             yHighKey: 'high',
         },
