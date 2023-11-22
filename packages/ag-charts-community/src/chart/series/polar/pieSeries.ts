@@ -16,6 +16,7 @@ import { Line } from '../../../scene/shape/line';
 import { Sector } from '../../../scene/shape/sector';
 import { Text } from '../../../scene/shape/text';
 import { normalizeAngle180, toRadians } from '../../../util/angle';
+import { jsonDiff } from '../../../util/json';
 import { mod, toFixed } from '../../../util/number';
 import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
@@ -644,8 +645,13 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         return Math.max(this.radius * this.outerRadiusRatio + this.outerRadiusOffset, 0);
     }
 
-    updateRadiusScale() {
-        this.radiusScale.range = [this.getInnerRadius(), this.getOuterRadius()];
+    updateRadiusScale(resize: boolean) {
+        const newRange = [this.getInnerRadius(), this.getOuterRadius()];
+        this.radiusScale.range = newRange;
+
+        if (resize) {
+            this.previousRadiusScale.range = newRange;
+        }
 
         this.nodeData = this.nodeData.map(({ radius, ...d }) => {
             return {
@@ -671,9 +677,18 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
     async update({ seriesRect }: { seriesRect: BBox }) {
         const { title } = this;
 
+        const newNodeDataDependencies = {
+            seriesRectWidth: seriesRect?.width,
+            seriesRectHeight: seriesRect?.height,
+        };
+        const resize = jsonDiff(this.nodeDataDependencies, newNodeDataDependencies) != null;
+        if (resize) {
+            this.nodeDataDependencies = newNodeDataDependencies;
+        }
+
         await this.maybeRefreshNodeData();
         this.updateTitleNodes();
-        this.updateRadiusScale();
+        this.updateRadiusScale(resize);
 
         this.contentGroup.translationX = this.centerX;
         this.contentGroup.translationY = this.centerY;
@@ -1147,7 +1162,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
 
         await this.maybeRefreshNodeData();
 
-        this.updateRadiusScale();
+        this.updateRadiusScale(false);
         this.computeCalloutLabelCollisionOffsets();
 
         const textBoxes: BBox[] = [];
