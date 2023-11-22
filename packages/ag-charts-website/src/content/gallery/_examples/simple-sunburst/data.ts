@@ -1,75 +1,74 @@
 export const data = [
     {
-        name: 'United Kingdom',
+        name: 'terser',
         children: [
-            { name: 'Hornsea Project Two', capacity: 1386, commissioned: 2022 },
-            { name: 'Hornsea Project One', capacity: 1218, commissioned: 2019 },
-            { name: 'Seagreen', capacity: 1075, commissioned: 2023 },
-            { name: 'Moray East', capacity: 950, commissioned: 2022 },
-            { name: 'Triton Knoll', capacity: 857, commissioned: 2021 },
-            { name: 'East Anglia ONE', capacity: 714, commissioned: 2020 },
-            { name: 'Walney Extension', capacity: 659, commissioned: 2018 },
-            { name: 'London Array', capacity: 630, commissioned: 2013 },
-            { name: 'Beatrice', capacity: 588, commissioned: 2019 },
-            { name: 'Gwynt y Môr', capacity: 576, commissioned: 2015 },
-            { name: 'Race Bank', capacity: 573, commissioned: 2018 },
-            { name: 'Greater Gabbard', capacity: 504, commissioned: 2012 },
-            { name: 'Dudgeon', capacity: 402, commissioned: 2017 },
-            { name: 'Rampion', capacity: 400, commissioned: 2018 },
+            { name: 'dist', children: [{ name: 'bundle.min.js', size: 1912 }] },
+            {
+                name: 'lib',
+                children: [
+                    {
+                        name: 'compress',
+                        children: [
+                            { name: 'index.js', size: 280 },
+                            { name: 'tighten-body.js', size: 120 },
+                        ],
+                    },
+                    { name: 'parse.js', size: 248 },
+                    { name: 'ast.js', size: 192 },
+                    { name: 'output.js', size: 160 },
+                    { name: 'mozilla-ast.js', size: 120 },
+                ],
+            },
+            { name: 'tools', children: [{ name: 'domprops.js', size: 336 }] },
         ],
     },
     {
-        name: 'China',
+        name: 'ajv',
         children: [
-            { name: 'Jiangsu Qidong H1+H2', capacity: 503, commissioned: 2021 },
-            { name: 'CGN Shanwei Jiazi I', capacity: 503, commissioned: 2022 },
-            { name: 'Jieyang Shenquan II', capacity: 502, commissioned: 2022 },
-            { name: 'Shandong Bozhong B2', capacity: 501.5, commissioned: 2023 },
-            { name: 'Shandong Bozhong A', capacity: 501, commissioned: 2022 },
-            { name: 'Huadian Yangjiang Qingzhou III', capacity: 500.6, commissioned: 2022 },
-            { name: 'CGN Shanwei Houhu', capacity: 500.5, commissioned: 2021 },
-            { name: 'CGN Shanwei Jiazi II', capacity: 403, commissioned: 2022 },
-            { name: 'CGN Yangjiang Nanpeng Island', capacity: 401.5, commissioned: 2020 },
-            { name: 'Binhai North H2', capacity: 400, commissioned: 2018 },
-            { name: 'CTGNE Yangjiang Shapa - phase II', capacity: 400, commissioned: 2021 },
-            { name: 'Rudong H6', capacity: 400, commissioned: 2021 },
-            { name: 'Rudong H10', capacity: 400, commissioned: 2021 },
-            { name: 'SPIC Rudong H7', capacity: 400, commissioned: 2021 },
-            { name: 'SPIC Rudong H4', capacity: 400, commissioned: 2021 },
+            {
+                name: 'dist',
+                children: [
+                    { name: 'ajv.bundle.js', size: 536 },
+                    { name: 'ajv.min.js', size: 240 },
+                ],
+            },
         ],
     },
     {
-        name: 'Germany',
+        name: 'source-map',
         children: [
-            { name: 'Gode Wind (phases 1+2)', capacity: 582, commissioned: 2017 },
-            { name: 'Hohe See', capacity: 497, commissioned: 2019 },
-            { name: 'Borkum Riffgrund 2', capacity: 450, commissioned: 2019 },
-            { name: 'Veja Mate', capacity: 402, commissioned: 2017 },
-            { name: 'BARD Offshore 1', capacity: 400, commissioned: 2013 },
-            { name: 'Global Tech I', capacity: 400, commissioned: 2015 },
+            {
+                name: 'dist',
+                children: [
+                    { name: 'source-map.debug.js', size: 536 },
+                    { name: 'source-map.js', size: 216 },
+                ],
+            },
+        ],
+    },
+    { name: 'neo-async', children: [{ name: 'async.js', size: 464 }] },
+    { name: 'acorn', children: [{ name: 'dist', children: [{ name: 'acorn.js', size: 456 }] }] },
+    {
+        name: 'electron-to-chromium',
+        children: [
+            { name: 'full-versions.js', size: 136 },
+            { name: 'full-chromium-versions.js', size: 96 },
         ],
     },
     {
-        name: 'Netherlands',
+        name: '@webassemblyjs',
         children: [
-            { name: 'Borssele I & II', capacity: 752, commissioned: 2020 },
-            { name: 'Borssele III & IV', capacity: 731.5, commissioned: 2021 },
-            { name: 'Gemini Wind Farm', capacity: 600, commissioned: 2017 },
+            { name: 'wasm-parser', children: [{ name: 'lib', children: [{ name: 'decoder.js', size: 120 }] }] },
+            { name: 'ast', children: [{ name: 'lib', children: [{ name: 'nodes.js', size: 88 }] }] },
         ],
     },
+    { name: 'source-map-support', children: [{ name: 'browser-source-map-support.js', size: 112 }] },
     {
-        name: 'Denmark',
-        children: [
-            { name: 'Kriegers Flak', capacity: 605, commissioned: 2021 },
-            { name: 'Horns Rev 3', capacity: 407, commissioned: 2019 },
-            { name: 'Anholt', capacity: 400, commissioned: 2013 },
-        ],
+        name: 'uri-js',
+        children: [{ name: 'dist', children: [{ name: 'es5', children: [{ name: 'uri.all.js', size: 112 }] }] }],
     },
     {
-        name: 'France',
-        children: [
-            { name: 'Saint-Brieuc', capacity: 496, commissioned: 2023 },
-            { name: 'Saint-Nazaire', capacity: 480, commissioned: 2022 },
-        ],
+        name: '@xtuc',
+        children: [{ name: 'long', children: [{ name: 'src', children: [{ name: 'long.js', size: 88 }] }] }],
     },
 ];

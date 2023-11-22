@@ -9,21 +9,20 @@ const options: AgChartOptions = {
         {
             type: 'sunburst',
             labelKey: 'name',
-            secondaryLabelKey: 'capacity',
-            sizeKey: 'capacity',
-            colorKey: 'commissioned',
-            colorRange: ['#AFB42B', '#8BC34A'],
-            fills: ['#7CB342'],
+            secondaryLabelKey: 'size',
+            sizeKey: 'size',
             secondaryLabel: {
-                formatter: ({ value }) => (value != null ? `${value?.toFixed(0)} MW` : undefined),
+                formatter: ({ value }) => (value != null ? `${value?.toFixed(0)} kb` : undefined),
+            },
+            tooltip: {
+                renderer: ({ datum }) => ({
+                    content: datum.size != null ? `Size: ${datum.size?.toFixed(0)} kb` : undefined,
+                }),
             },
         },
     ],
     title: {
-        text: 'Offshore Wind Farms by Country.',
-    },
-    subtitle: {
-        text: 'Wind farms with at least 400 MW capacity.',
+        text: 'Webpack dependencies',
     },
 };
 
