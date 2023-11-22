@@ -52,6 +52,7 @@ export abstract class PolarSeries<TDatum extends SeriesNodeDatum, TNode extends 
     radius: number = 0;
 
     protected animationState: StateMachine<PolarAnimationState, PolarAnimationEvent>;
+    protected nodeDataDependencies: { seriesRectWidth?: number; seriesRectHeight?: number } = {};
 
     constructor({
         useLabelLayer = false,
