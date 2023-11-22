@@ -1115,6 +1115,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             this.defaultTickMinSpacing,
             rangeWithBleed / ContinuousScale.defaultMaxTickCount
         );
+        const clampMaxTickCount = !isNaN(maxSpacing);
 
         if (isNaN(minSpacing)) {
             minSpacing = defaultMinSpacing;
@@ -1133,11 +1134,15 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         }
 
         // Clamps the min spacing between ticks to be no more than the min distance between datums
-        const minRectDistance = minRect ? Math.max(minRect.width, minRect.height) : 1;
+        const minRectDistance = minRect
+            ? this.direction === ChartAxisDirection.X
+                ? minRect.width
+                : minRect.height
+            : 1;
         const maxTickCount = clamp(
             1,
             Math.floor(rangeWithBleed / minSpacing),
-            Math.floor(rangeWithBleed / minRectDistance)
+            clampMaxTickCount ? Math.floor(rangeWithBleed / minRectDistance) : Infinity
         );
         const minTickCount = Math.min(maxTickCount, Math.ceil(rangeWithBleed / maxSpacing));
         const defaultTickCount = clamp(minTickCount, ContinuousScale.defaultTickCount, maxTickCount);
