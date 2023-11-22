@@ -3,16 +3,7 @@
 .homepageHero {
     --text-color: var(--white);
 
-    padding-top: $size-5;
     background-color: var(--dark-blue-600);
-
-    @media screen and (min-width: $breakpoint-hero-small) {
-        padding-top: $size-7;
-    }
-
-    @media screen and (min-width: $breakpoint-hero-large) {
-        padding-top: $size-8;
-    }
 
     #{$darkmode-selector} & {
         background-color: #121f29;
@@ -33,7 +24,17 @@
     flex: 1;
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
     text-align: center;
+    padding-top: $size-5;
+
+    @media screen and (min-width: $breakpoint-hero-small) {
+        padding-top: $size-7;
+    }
+
+    @media screen and (min-width: $breakpoint-hero-large) {
+        padding-top: $size-8;
+    }
 
     @media screen and (min-width: $breakpoint-hero-large) {
         text-align: unset;
@@ -78,6 +79,10 @@
             max-width: unset;
         }
     }
+
+    button :global(.icon) {
+        --icon-size: 1.3333em;
+    }
 }
 
 .heroChart {
@@ -92,6 +97,44 @@
     @media screen and (min-width: $breakpoint-hero-large) {
         aspect-ratio: 16/9;
         height: 416px;
+    }
+}
+
+.galleryScroller {
+    position: relative;
+    aspect-ratio: 16/9;
+    height: max(416px, 33vh);
+    background-image: url('../../images/gallery-light@0.5x.jpg');
+    background-repeat: repeat-y;
+    background-size: 100% auto;
+    animation-duration: 30s;
+    animation-direction: reverse;
+    animation-name: scroll-hero;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+
+    &::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        left: 0;
+        height: $size-4;
+        background-image: linear-gradient(transparent, var(--default-background-color));
+    }
+
+    #{$darkmode-selector} & {
+        background-image: url('../../images/gallery-dark@0.5x.jpg');
+    }
+}
+
+@keyframes scroll-hero {
+    from {
+        background-position: 0 0;
+    }
+
+    to {
+        background-position: 0 100%;
     }
 }
 
@@ -139,169 +182,13 @@
     }
 }
 
-.homepageSeries {
-    padding-top: $size-7;
-    padding-bottom: $size-9;
-}
-
-.seriesInner {
-    display: flex;
-    flex-wrap: wrap;
-
-    h2 {
-        width: 100%;
-        margin-bottom: $size-6 !important;
-        text-align: center;
-        opacity: 0.6;
-    }
-}
-
-.homepageBenefits {
-    background-color: var(--background-200);
-    padding-top: $size-7;
+.homepageGrid {
+    padding-top: $size-8;
     padding-bottom: $size-8;
 
     #{$darkmode-selector} & {
-        padding-top: $size-8;
-        padding-bottom: $size-9;
-        background-color: var(--default-background-color);
-        border-top: 1px solid #394755;
-        border-bottom: 1px solid #394755;
-    }
-}
-
-.benefitsInner {
-    ul {
-        @media screen and (min-width: 820px) {
-            display: flex;
-            gap: $size-2;
-        }
-    }
-
-    li {
-        text-align: center;
-        margin-bottom: $size-4 !important;
-
-        @media screen and (min-width: 820px) {
-            width: 33.33%;
-            margin-bottom: 0 !important;
-        }
-    }
-
-    :global(.icon) {
-        --icon-size: #{$size-6};
-        --text-color: var(--auro-metal);
-
-        margin-bottom: $size-1;
-
-        @media screen and (min-width: 820px) {
-            --icon-size: #{$size-7};
-        }
-    }
-
-    p {
-        text-align: left;
-    }
-}
-
-.homepageDevEx {
-    padding-top: $size-9;
-    padding-bottom: $size-7;
-
-    #{$darkmode-selector} & {
-        padding-bottom: $size-9;
-        border-bottom: 1px solid #394755;
-    }
-}
-
-.devExInner {
-    display: flex;
-    flex-wrap: wrap;
-    gap: $size-4 0;
-
-    @media screen and (min-width: 1400px) {
-        gap: $size-4;
-    }
-}
-
-.devExExample {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    border-radius: var(--border-radius);
-    border: 1px solid var(--border-color);
-    overflow: hidden;
-
-    @media screen and (min-width: 820px) {
-        flex-direction: row;
-    }
-
-    @media screen and (min-width: 1400px) {
-        width: 66.66%;
-    }
-
-    .tmpImgOuter {
-        width: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        @media screen and (min-width: 820px) {
-            width: 50%;
-        }
-    }
-
-    img {
-        width: 90%;
-    }
-
-    :global(.code) {
-        width: 100%;
-        margin-bottom: 0;
-        border: none !important;
-        border-top: 1px solid var(--border-color) !important;
-        border-radius: 0 !important;
-
-        @media screen and (min-width: 820px) {
-            width: max(50%, 540px);
-            border-top: none !important;
-            border-left: 1px solid var(--border-color) !important;
-        }
-
-        @media screen and (min-width: 1400px) {
-            width: 540px;
-        }
-    }
-
-    #{$darkmode-selector} & {
-        border-color: 1px solid rgba(255, 255, 255, 0.1);
-
-        :global(.code) {
-            border-color: 1px solid rgba(255, 255, 255, 0.1) !important;
-        }
-    }
-}
-
-.devExCopy {
-    width: 100%;
-    text-align: center;
-
-    @media screen and (min-width: 1400px) {
-        width: 30%;
-        text-align: left;
-    }
-
-    h3 {
-        line-height: var(--line-height-tight);
-    }
-}
-
-.homepageGrid {
-    padding-top: $size-8;
-    padding-bottom: $size-10;
-
-    #{$darkmode-selector} & {
         padding-top: $size-9;
+        padding-bottom: $size-9;
     }
 }
 
@@ -333,9 +220,21 @@
     margin-left: $size-2;
 
     @media screen and (min-width: 920px) {
+        $logo-scale: 1.3;
+
         max-width: 320px;
         margin-bottom: $size-1;
         margin-left: -$size-1;
+
+        :global(.logotype) {
+            width: 154px * $logo-scale;
+            height: 40px * $logo-scale;
+        }
+
+        :global(.logomark) {
+            width: 64px * $logo-scale;
+            height: 48px * $logo-scale;
+        }
     }
 }
 
@@ -354,5 +253,37 @@
         width: 100%;
         border-radius: 4px;
         box-shadow: 2px 0 2px 0 rgba(0, 0, 0, 0.15);
+    }
+}
+
+.homepageBenefits {
+    background-color: var(--background-200);
+    padding-top: $size-7;
+    padding-bottom: $size-10;
+
+    #{$darkmode-selector} & {
+        padding-top: $size-8;
+        background-color: var(--default-background-color);
+        border-top: 1px solid #394755;
+        border-bottom: 1px solid #394755;
+    }
+}
+
+.benefitsInner {
+    ul {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: $size-5;
+    }
+
+    li {
+        --icon-size: #{$size-6};
+
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: $size-2;
     }
 }

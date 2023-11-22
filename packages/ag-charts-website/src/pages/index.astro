@@ -46,26 +46,28 @@ const frameworksData = [
     },
 ];
 
-const devExCode = `const options = {
-  container: document.getElementById('chart'),
-  data: [
-    { label: 'Android', value: 56.9 },
-    { label: 'iOS', value: 22.5 },
-    { label: 'BlackBerry', value: 6.8 },
-    { label: 'Symbian', value: 8.5 },
-    { label: 'Windows', value: 2.6 },
-  ],
-  series: [
+const benefits = [
     {
-      type: 'pie',
-      angleKey: 'value',
-      calloutLabelKey: 'label',
-      sectorLabelKey: 'value',
+        title: 'Bring your own Framework',
+        icon: 'code',
     },
-  ],
-};
-
-agCharts.AgCharts.create(options);`;
+    {
+        title: 'Unbeatable Performance',
+        icon: 'flash',
+    },
+    {
+        title: 'Completely Customisable',
+        icon: 'colorPalette',
+    },
+    {
+        title: 'Animate everything',
+        icon: 'movement',
+    },
+    {
+        title: 'Zoom & Enhance',
+        icon: 'zoomArea',
+    },
+];
 
 const galleryDataEntry = await getEntry('gallery', 'data');
 const galleryData: GalleryData = galleryDataEntry?.data;
@@ -94,14 +96,10 @@ const isEnterprise = true;
                 <h2 class="font-size-medium normal-weight-text">
                     The professional choice for developers building enterprise applications
                 </h2>
+                <button>See the charts <Icon name="chevronRight" /></button>
             </div>
-            <div class={styles.heroChart}>
-                <HomepageExampleRunner
-                    internalFramework={heroInternalFramework}
-                    pageName={heroDocsPageName}
-                    exampleName={heroDocsExampleName}
-                />
-            </div>
+
+            <div class={styles.galleryScroller}></div>
         </div>
     </div>
 
@@ -109,74 +107,6 @@ const isEnterprise = true;
         <div class:list={[styles.frameworksInner, 'page-margin']}>
             <span class:list={[styles.frameworksLabel, 'text-secondary']}>Get&nbsp;started</span>
             <FrameworkSelector data={frameworksData} isFullWidth />
-        </div>
-    </div>
-
-    <div class={styles.homepageSeries}>
-        <div class:list={[styles.seriesInner, 'page-margin']}>
-            <h2 class="font-size-gargantuan text-secondary">More series than you can shake a stick at...</h2>
-            <HomepageSeriesSelector client:load defaultExampleName={defaultExampleName} galleryData={galleryData} />
-        </div>
-    </div>
-
-    <div class={styles.homepageBenefits}>
-        <div class:list={[styles.benefitsInner, 'page-margin']}>
-            <!-- ChatGPT content to be replaced -->
-            <ul class="list-style-none">
-                <li>
-                    <Icon name="docs-rendering" />
-                    <h3>Versatile and Customizable</h3>
-                    <p>
-                        AG-Charts offers a wide range of chart types and extensive customization options, allowing
-                        developers to create visually appealing and tailored data visualizations that seamlessly match
-                        their application's design and needs.
-                    </p>
-                </li>
-                <li>
-                    <Icon name="docs-sparklines" />
-                    <h3>High Performance</h3>
-                    <p>
-                        AG-Charts is optimized for efficiency, ensuring smooth rendering and interaction with large
-                        datasets, making it suitable for real-time updates and handling big data without sacrificing
-                        performance.
-                    </p>
-                </li>
-                <li>
-                    <Icon name="docs-api" />
-                    <h3>Easy Integration</h3>
-                    <p>
-                        Compatible with popular web development frameworks and various data formats, AG-Charts
-                        seamlessly integrates into existing applications, offering flexibility in data sources and
-                        simplifying chart implementation.
-                    </p>
-                </li>
-            </ul>
-        </div>
-    </div>
-
-    <div class={styles.homepageDevEx}>
-        <div class:list={[styles.devExInner, 'page-margin']}>
-            {/* [TODO] add linenumbers */}
-            <div class={styles.devExExample}>
-                <div class={styles.tmpImgOuter}>
-                    <img src="images/TMP-homepage-pie-tmp-image.png" alt="TEMP IMAGE" />
-                </div>
-
-                <Code code={devExCode} />
-            </div>
-            <div class={styles.devExCopy}>
-                <h3 class="font-size-massive">
-                    Your first chart in 20 lines...<br />The next 200 charts just as easy.
-                </h3>
-                <p class="font-size-large">
-                    Get started quickly with our simple guide, then customise every aspect of our charts with our
-                    <a href="./options/">robust API</a>.
-                </p>
-                <p class="font-size-large">
-                    Learn at speed with our comprehensive <a href="./documentation">documentation</a>, packed with
-                    examples, refrences, and sandboxes.
-                </p>
-            </div>
         </div>
     </div>
 
@@ -203,6 +133,23 @@ const isEnterprise = true;
             <div class={styles.gridExample}>
                 <video src="videos/integrated-charts.mp4" muted autoplay loop></video>
             </div>
+        </div>
+    </div>
+
+    <div class={styles.homepageBenefits}>
+        <div class:list={[styles.benefitsInner, 'page-margin']}>
+            <ul class="list-style-none">
+                {
+                    benefits.map((benefit) => {
+                        return (
+                            <li>
+                                <Icon name={benefit.icon} />
+                                <span class="font-size-large">{benefit.title}</span>
+                            </li>
+                        );
+                    })
+                }
+            </ul>
         </div>
     </div>
 </Layout>
