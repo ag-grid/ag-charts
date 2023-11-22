@@ -5,11 +5,12 @@ import type {
     AgChartOptions,
     AgChartThemePalette,
     AgTooltipPositionOptions,
+    AgTooltipPositionType,
 } from '../../options/agChartOptions';
+import { AgTooltipPositionTypes } from '../../options/agChartOptions';
 import type { JsonMergeOptions } from '../../util/json';
 import { DELETE, jsonMerge, jsonWalk } from '../../util/json';
 import { Logger } from '../../util/logger';
-import { partialAssign } from '../../util/object';
 import type { DeepPartial } from '../../util/types';
 import { AXIS_TYPES } from '../factory/axisTypes';
 import { CHART_TYPES } from '../factory/chartTypes';
@@ -59,12 +60,25 @@ export const noDataCloneMergeOptions: JsonMergeOptions = {
 };
 
 function getGlobalTooltipPositionOptions(position: unknown): AgTooltipPositionOptions {
+    // Note: we do not need to show a warning message if the validation fails. These global tooltip options
+    // are already processed at the root of the chart options. Logging a message here would trigger duplicate
+    // validation warnings.
     if (position === undefined || typeof position !== 'object' || position === null) {
         return {};
     }
+    const { type, xOffset, yOffset } = position as { type?: unknown; xOffset?: unknown; yOffset?: unknown };
 
-    const result = {};
-    partialAssign<AgTooltipPositionOptions>(['type', 'xOffset', 'yOffset'], result, position);
+    const result: AgTooltipPositionOptions = {};
+    const allowedTypes: readonly string[] = AgTooltipPositionTypes;
+    if (typeof type === 'string' && allowedTypes.includes(type)) {
+        result.type = type as AgTooltipPositionType;
+    }
+    if (typeof xOffset === 'number' && !isNaN(xOffset) && isFinite(xOffset)) {
+        result.xOffset = xOffset;
+    }
+    if (typeof yOffset === 'number' && !isNaN(yOffset) && isFinite(yOffset)) {
+        result.yOffset = yOffset;
+    }
     return result;
 }
 
