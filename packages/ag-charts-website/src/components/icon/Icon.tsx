@@ -140,7 +140,6 @@ export const ICON_MAP = {
     movement: CarbonIcon.Movement,
     zoomArea: CarbonIcon.ZoomArea,
     colorPalette: CarbonIcon.ColorPalette,
-    colorPalette: CarbonIcon.ColorPalette,
     newTab: NewTabIcon,
     ...SOCIALS_ICON_MAP,
     ...DOCS_CATEGORIES_ICON_MAP,
