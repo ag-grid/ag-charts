@@ -246,6 +246,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     private destroyFns: Function[] = [];
 
+    private minRect?: BBox;
+
     constructor(
         protected readonly moduleCtx: ModuleContext,
         readonly scale: S
@@ -275,15 +277,21 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         this.assignCrossLineArrayConstructor(this._crossLines);
 
         let previousSize: { width: number; height: number } | undefined = undefined;
-        this.destroyFns = [
+        this.destroyFns.push(
             moduleCtx.layoutService.addListener('layout-complete', (e) => {
                 // Fire resize animation action if chart canvas size changes.
                 if (previousSize != null && jsonDiff(e.chart, previousSize) != null) {
                     this.animationState.transition('resize');
                 }
                 previousSize = { ...e.chart };
-            }),
-        ];
+            })
+        );
+
+        this.destroyFns.push(
+            moduleCtx.updateService.addListener('update-complete', (e) => {
+                this.minRect = e.minRect;
+            })
+        );
     }
 
     private attachCrossLine(crossLine: CrossLine) {
@@ -1100,10 +1108,12 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         maxTickCount: number;
         defaultTickCount: number;
     } {
-        const availableRange = this.calculateVisibleRange();
+        const { minRect } = this;
+
+        const rangeWithBleed = this.calculateRangeWithBleed();
         const defaultMinSpacing = Math.max(
             this.defaultTickMinSpacing,
-            availableRange / ContinuousScale.defaultMaxTickCount
+            rangeWithBleed / ContinuousScale.defaultMaxTickCount
         );
 
         if (isNaN(minSpacing)) {
@@ -1111,7 +1121,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         }
 
         if (isNaN(maxSpacing)) {
-            maxSpacing = availableRange;
+            maxSpacing = rangeWithBleed;
         }
 
         if (minSpacing > maxSpacing) {
@@ -1122,8 +1132,14 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             }
         }
 
-        const maxTickCount = Math.max(1, Math.floor(availableRange / minSpacing));
-        const minTickCount = Math.min(maxTickCount, Math.ceil(availableRange / maxSpacing));
+        // Clamps the min spacing between ticks to be no more than the min distance between datums
+        const minRectDistance = minRect ? Math.max(minRect.width, minRect.height) : 1;
+        const maxTickCount = clamp(
+            1,
+            Math.floor(rangeWithBleed / minSpacing),
+            Math.floor(rangeWithBleed / minRectDistance)
+        );
+        const minTickCount = Math.min(maxTickCount, Math.ceil(rangeWithBleed / maxSpacing));
         const defaultTickCount = clamp(minTickCount, ContinuousScale.defaultTickCount, maxTickCount);
 
         return { minTickCount, maxTickCount, defaultTickCount };
@@ -1184,7 +1200,11 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         return max - min;
     }
 
-    protected calculateVisibleRange() {
+    /**
+     * Calculates the available range with an additional "bleed" beyond the canvas that encompasses the full axis when
+     * the visible range is only a portion of the axis.
+     */
+    protected calculateRangeWithBleed() {
         const { visibleRange } = this;
         const visibleScale = 1 / (visibleRange[1] - visibleRange[0]);
 
