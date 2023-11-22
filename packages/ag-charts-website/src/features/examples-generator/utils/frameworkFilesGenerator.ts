@@ -45,36 +45,6 @@ type ConfigGenerator = ({
     ignoreDarkMode?: boolean;
 }) => FrameworkFiles | Promise<FrameworkFiles>;
 
-const createReactFilesGenerator =
-    ({
-        sourceGenerator,
-        internalFramework,
-    }: {
-        sourceGenerator: (bindings: any, componentFilenames: string[]) => () => string;
-        internalFramework: InternalFramework;
-    }): ConfigGenerator =>
-    async ({ bindings, indexHtml, otherScriptFiles }) => {
-        const entryFileName = getEntryFileName(internalFramework)!;
-        const mainFileName = getMainFileName(internalFramework)!;
-        const boilerPlateFiles = await getBoilerPlateFiles(internalFramework);
-
-        const getSource = sourceGenerator(deepCloneObject(bindings), []);
-        const indexJsx = getSource();
-
-        return {
-            files: {
-                ...otherScriptFiles,
-                [entryFileName]: indexJsx,
-                'index.html': indexHtml,
-            },
-            boilerPlateFiles,
-            // Other files, not including entry file
-            scriptFiles: Object.keys(otherScriptFiles),
-            entryFileName,
-            mainFileName,
-        };
-    };
-
 const createVueFilesGenerator =
     ({
         sourceGenerator,
@@ -201,10 +171,28 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainFileName,
         };
     },
-    reactFunctional: createReactFilesGenerator({
-        sourceGenerator: vanillaToReactFunctional,
-        internalFramework: 'reactFunctional',
-    }),
+    reactFunctional: async ({ bindings, indexHtml, otherScriptFiles }) => {
+        const internalFramework = 'reactFunctional';
+        const entryFileName = getEntryFileName(internalFramework)!;
+        const mainFileName = getMainFileName(internalFramework)!;
+        const boilerPlateFiles = await getBoilerPlateFiles(internalFramework);
+
+        const getSource = vanillaToReactFunctional(deepCloneObject(bindings), []);
+        const indexJsx = getSource();
+
+        return {
+            files: {
+                ...otherScriptFiles,
+                [entryFileName]: indexJsx,
+                'index.html': indexHtml,
+            },
+            boilerPlateFiles,
+            // Other files, not including entry file
+            scriptFiles: Object.keys(otherScriptFiles),
+            entryFileName,
+            mainFileName,
+        };
+    },
     reactFunctionalTs: async ({ typedBindings, indexHtml, otherScriptFiles, ignoreDarkMode }) => {
         const internalFramework: InternalFramework = 'reactFunctionalTs';
         const entryFileName = getEntryFileName(internalFramework)!;
