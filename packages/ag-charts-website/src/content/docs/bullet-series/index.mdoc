@@ -43,6 +43,10 @@ In this configuration:
 -   `colorRange` define the quantitantive categories of the scale. The optional
     `stop` key defaults to `scale.max`.
 
+{% note %}
+Bullet Series only works with positive numbers for both the value and target.
+{% /note %}
+
 ## Horizontal Bullet
 
 {% chartExampleRunner title="Horizontal Bullet" name="horizontal-bullet" type="generated" /%}
@@ -69,47 +73,8 @@ To create a Horizontal bullet Series, set `direction: 'horizontal'`.
 
 ## Multiple Bullets
 
-{% chartExampleRunner title="Multiple Bullet" name="5-bullets" type="generated" /%}
-
 Only a single Bullet Series can be drawn per Chart. To draw multiple Bullet
 Series use multiple [Chart Instances](./create-a-basic-chart):
-
-```js
-AgCharts.create({
-    container: document.getElementById('myChart1'),
-    title: { text: 'Return Of Investment (ROI) %' },
-    data: [{ target: 15, actual: 11 }],
-    series: [{ type: 'bullet' /* ... */ }],
-});
-
-AgCharts.create({
-    container: document.getElementById('myChart2'),
-    title: { text: 'Debt-to-Equity' },
-    data: [{ target: 0.5, actual: 0.7 }],
-    series: [{ type: 'bullet' /* ... */ }],
-});
-
-AgCharts.create({
-    container: document.getElementById('myChart3'),
-    title: { text: 'Profit Margin %' },
-    data: [{ target: 20, actual: 16.2 }],
-    series: [{ type: 'bullet' /* ... */ }],
-});
-
-AgCharts.create({
-    container: document.getElementById('myChart4'),
-    title: { text: 'Cash Flow (US$)' },
-    data: [{ target: 500000, actual: 468100 }],
-    series: [{ type: 'bullet' /* ... */ }],
-});
-
-AgCharts.create({
-    container: document.getElementById('myChart5'),
-    title: { text: 'Earnings Before Interest, Taxes, Depreciation, and Amortization (EBITDA) Margin' },
-    data: [{ target: 25, actual: 21.7 }],
-    series: [{ type: 'bullet' /* ... */ }],
-});
-```
 
 ## API Reference
 
