@@ -33,7 +33,7 @@ import { createId } from '../../util/id';
 import type { PointLabelDatum } from '../../util/labelPlacement';
 import { axisLabelsOverlap } from '../../util/labelPlacement';
 import { Logger } from '../../util/logger';
-import { clamp } from '../../util/number';
+import { clamp, round } from '../../util/number';
 import { BOOLEAN, STRING_ARRAY, Validate } from '../../util/validation';
 import { Caption } from '../caption';
 import type { ChartAxis, ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
@@ -1022,7 +1022,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         maxTickCount: number;
         primaryTickCount?: number;
     }) {
-        const { scale } = this;
+        const { scale, visibleRange } = this;
 
         let rawTicks: any[] = [];
 
@@ -1052,7 +1052,12 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         let labelCount = 0;
         const tickIdCounts = new Map<string, number>();
-        for (let i = 0; i < rawTicks.length; i++) {
+
+        // Only get the ticks within a sliding window of the visible range to improve performance
+        const start = Math.max(0, Math.floor(visibleRange[0] * rawTicks.length));
+        const end = Math.min(rawTicks.length, Math.ceil(visibleRange[1] * rawTicks.length));
+
+        for (let i = start; i < end; i++) {
             const rawTick = rawTicks[i];
             const translationY = scale.convert(rawTick) + halfBandwidth;
 
@@ -1183,7 +1188,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const { visibleRange } = this;
         const visibleScale = 1 / (visibleRange[1] - visibleRange[0]);
 
-        return this.calculateAvailableRange() * visibleScale;
+        return round(this.calculateAvailableRange() * visibleScale, 2);
     }
 
     protected calculateDomain() {
