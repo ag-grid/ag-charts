@@ -7,6 +7,7 @@ import { Footer } from '@components/footer/Footer';
 import type { ApiMenuItem } from '@ag-grid-types';
 import { urlWithBaseUrl } from '@utils/pages';
 import { ApiTopBar } from '@components/top-bar/ApiTopBar';
+import { getIsProduction } from '@utils/env';
 
 export interface Props {
     title?: string;
@@ -25,6 +26,7 @@ const {
 
 const path = Astro.url.pathname;
 
+const isProduction = getIsProduction();
 const menuData = await getEntry('menu', 'data');
 const apiMenuItems = menuData.data.api.items as ApiMenuItem[];
 
@@ -52,6 +54,7 @@ const isApiLayout = apiMenuItems.some((item) => {
                 <link rel="apple-touch-icon" sizes={`${size}x${size}`} href={icon} />
             ))
         }
+        {!isProduction && <meta name="robots" content="noindex" />}
         <meta name="generator" content={Astro.generator} />
         <title>{title}</title>
         <link rel="sitemap" type="application/xml" title="Sitemap" href={urlWithBaseUrl("/sitemap-index.xml")} />
