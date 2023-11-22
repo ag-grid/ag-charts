@@ -1,7 +1,7 @@
 import type { SeriesNodeDatum } from '../series/seriesTypes';
 import { BaseManager } from './baseManager';
 
-interface HighlightNodeDatum extends SeriesNodeDatum {
+export interface HighlightNodeDatum extends SeriesNodeDatum {
     readonly xKey?: string;
     readonly yKey?: string;
     readonly colorValue?: number;

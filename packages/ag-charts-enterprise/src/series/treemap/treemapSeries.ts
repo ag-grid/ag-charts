@@ -238,9 +238,6 @@ export class TreemapSeries<
     sizeName?: string = undefined;
 
     @Validate(OPT_STRING)
-    colorName?: string = undefined;
-
-    @Validate(OPT_STRING)
     labelKey?: string = undefined;
 
     @Validate(OPT_STRING)
@@ -571,6 +568,16 @@ export class TreemapSeries<
         return result ?? {};
     }
 
+    private getNodeFill(node: _ModuleSupport.HierarchyNode) {
+        const isLeaf = node.children.length === 0;
+        if (isLeaf) {
+            return this.tile.fill ?? node.fill;
+        } else {
+            const defaultFill = DEFAULT_GROUP_FILLS[Math.min(node.depth ?? 0, DEFAULT_GROUP_FILLS.length)];
+            return this.group.fill ?? defaultFill;
+        }
+    }
+
     async updateNodes() {
         const { rootNode, data, highlightStyle, tile, group } = this;
         const { seriesRect } = this.chart ?? {};
@@ -614,13 +621,7 @@ export class TreemapSeries<
 
             const format = this.getTileFormat(node, highlighted);
 
-            let fill = format?.fill ?? highlightedFill;
-            if (isLeaf) {
-                fill ??= tile.fill ?? node.fill;
-            } else {
-                const defaultFill = DEFAULT_GROUP_FILLS[Math.min(node.depth ?? 0, DEFAULT_GROUP_FILLS.length)];
-                fill ??= group.fill ?? defaultFill;
-            }
+            const fill = format?.fill ?? highlightedFill ?? this.getNodeFill(node);
             const fillOpacity =
                 format?.fillOpacity ?? highlightedFillOpacity ?? (isLeaf ? tile.fillOpacity : group.fillOpacity);
             const stroke = format?.stroke ?? highlightedStroke ?? (isLeaf ? tile.stroke ?? node.stroke : group.stroke);
@@ -820,7 +821,7 @@ export class TreemapSeries<
         const title = labelKey != null ? datum[labelKey] : undefined;
 
         const format = this.getTileFormat(node, false);
-        const color = format?.fill ?? node.fill;
+        const color = format?.fill ?? this.getNodeFill(node);
 
         if (!tooltip.renderer && !tooltip.format && !title) {
             return '';

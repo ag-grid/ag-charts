@@ -9,6 +9,8 @@ import type { Node } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
 import type { PointLabelDatum } from '../../../util/labelPlacement';
 import { OPT_COLOR_STRING_ARRAY, OPT_STRING, Validate } from '../../../util/validation';
+import type { HighlightNodeDatum } from '../../interaction/highlightManager';
+import type { ChartLegendType, GradientLegendDatum } from '../../legendDatum';
 import { DEFAULT_FILLS, DEFAULT_STROKES } from '../../themes/defaultColors';
 import { Series, SeriesNodePickMode } from '../series';
 import type { ISeries, SeriesNodeDatum } from '../seriesTypes';
@@ -24,7 +26,9 @@ export interface HierarchyAnimationData<TNode extends Node, TDatum> {
     datumSelections: Selection<TNode, HierarchyNode<TDatum>>[];
 }
 
-export class HierarchyNode<TDatum = Record<string, any>> implements SeriesNodeDatum {
+export class HierarchyNode<TDatum = Record<string, any>>
+    implements SeriesNodeDatum, Pick<HighlightNodeDatum, 'colorValue'>
+{
     static Walk = {
         PreOrder: 0,
         PostOrder: 1,
@@ -37,6 +41,7 @@ export class HierarchyNode<TDatum = Record<string, any>> implements SeriesNodeDa
         public readonly index: number,
         public readonly datum: TDatum | undefined,
         public readonly size: number,
+        public readonly colorValue: number | undefined,
         public readonly fill: string | undefined,
         public readonly stroke: string | undefined,
         public readonly sumSize: number,
@@ -95,6 +100,9 @@ export abstract class HierarchySeries<
     @Validate(OPT_STRING)
     colorKey?: string = undefined;
 
+    @Validate(OPT_STRING)
+    colorName?: string = undefined;
+
     @Validate(OPT_COLOR_STRING_ARRAY)
     fills: string[] = Object.values(DEFAULT_FILLS);
 
@@ -104,7 +112,20 @@ export abstract class HierarchySeries<
     @Validate(OPT_COLOR_STRING_ARRAY)
     colorRange?: string[] = undefined;
 
-    rootNode = new HierarchyNode<TDatum>(this, 0, undefined, 0, undefined, undefined, 0, undefined, undefined, []);
+    rootNode = new HierarchyNode<TDatum>(
+        this,
+        0,
+        undefined,
+        0,
+        undefined,
+        undefined,
+        undefined,
+        0,
+        undefined,
+        undefined,
+        []
+    );
+    colorDomain: number[] = [0, 0];
     maxDepth = 0;
 
     protected animationState: StateMachine<HierarchyAnimationState, HierarchyAnimationEvent>;
@@ -156,10 +177,6 @@ export abstract class HierarchySeries<
         );
     }
 
-    getLabelData(): PointLabelDatum[] {
-        return [];
-    }
-
     override hasData() {
         return Array.isArray(this.data) && this.data.length > 0;
     }
@@ -202,7 +219,19 @@ export abstract class HierarchySeries<
             }
 
             return appendChildren(
-                new HierarchyNode<TDatum>(this, index, datum, size, undefined, undefined, sumSize, depth, parent, []),
+                new HierarchyNode<TDatum>(
+                    this,
+                    index,
+                    datum,
+                    size,
+                    color,
+                    undefined,
+                    undefined,
+                    sumSize,
+                    depth,
+                    parent,
+                    []
+                ),
                 children
             );
         };
@@ -220,14 +249,28 @@ export abstract class HierarchySeries<
         };
 
         const rootNode = appendChildren(
-            new HierarchyNode<TDatum>(this, 0, undefined, 0, undefined, undefined, 0, undefined, undefined, []),
+            new HierarchyNode<TDatum>(
+                this,
+                0,
+                undefined,
+                0,
+                undefined,
+                undefined,
+                undefined,
+                0,
+                undefined,
+                undefined,
+                []
+            ),
             this.data
         );
+
+        const colorDomain = [minColor, maxColor];
 
         let colorScale: ColorScale | undefined;
         if (colorRange != null && Number.isFinite(minColor) && Number.isFinite(maxColor)) {
             colorScale = new ColorScale();
-            colorScale.domain = [minColor, maxColor];
+            colorScale.domain = colorDomain;
             colorScale.range = colorRange;
             colorScale.update();
         }
@@ -251,6 +294,7 @@ export abstract class HierarchySeries<
 
         this.rootNode = rootNode;
         this.maxDepth = maxDepth;
+        this.colorDomain = colorDomain;
     }
 
     protected abstract updateSelections(): Promise<void>;
@@ -342,20 +386,34 @@ export abstract class HierarchySeries<
         }
     }
 
+    override getLabelData(): PointLabelDatum[] {
+        return [];
+    }
+
     override getSeriesDomain() {
         return [NaN, NaN];
     }
 
-    getLegendData() {
-        // Override point for subclasses.
-        return [];
+    override getLegendData(legendType: ChartLegendType): GradientLegendDatum[] {
+        return legendType === 'gradient' && this.colorKey != null && this.colorRange != null
+            ? [
+                  {
+                      legendType: 'gradient',
+                      enabled: this.visible,
+                      seriesId: this.id,
+                      colorName: this.colorName,
+                      colorDomain: this.colorDomain,
+                      colorRange: this.colorRange,
+                  },
+              ]
+            : [];
     }
 
-    getDatumIdFromData(node: HierarchyNode) {
+    protected getDatumIdFromData(node: HierarchyNode) {
         return `${node.index}`;
     }
 
-    getDatumId(node: HierarchyNode) {
+    protected getDatumId(node: HierarchyNode) {
         return this.getDatumIdFromData(node);
     }
 }

@@ -331,13 +331,13 @@ export class GradientLegend {
         const { arrow, reverseOrder } = this;
 
         const highlighted = this.highlightManager.getActiveHighlight();
-        if (!highlighted) {
+        const colorValue = highlighted?.colorValue;
+        if (highlighted == null || colorValue == null) {
             arrow.visible = false;
             return;
         }
 
         let t: number;
-        const colorValue = highlighted.colorValue ?? 0;
         const i = colorDomain.findIndex((d) => colorValue < d);
         if (i === 0) {
             t = 0;

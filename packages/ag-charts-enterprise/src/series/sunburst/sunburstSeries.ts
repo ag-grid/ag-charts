@@ -123,9 +123,6 @@ export class SunburstSeries<
     sizeName?: string = undefined;
 
     @Validate(OPT_STRING)
-    colorName?: string = undefined;
-
-    @Validate(OPT_STRING)
     labelKey?: string = undefined;
 
     @Validate(OPT_STRING)

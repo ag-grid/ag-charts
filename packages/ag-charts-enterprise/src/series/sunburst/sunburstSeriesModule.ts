@@ -12,7 +12,11 @@ export const SunburstSeriesModule: _ModuleSupport.SeriesModule<'sunburst'> = {
 
     identifier: 'sunburst',
     instanceConstructor: SunburstSeries,
-    seriesDefaults: {},
+    seriesDefaults: {
+        gradientLegend: {
+            enabled: true,
+        },
+    },
     themeTemplate: {
         __extends__: EXTENDS_SERIES_DEFAULTS,
         label: {

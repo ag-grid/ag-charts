@@ -7,6 +7,7 @@ HierarchyNode {
       "children": [
         HierarchyNode {
           "children": [],
+          "colorValue": undefined,
           "depth": 1,
           "fill": "#5090dc",
           "index": 2,
@@ -20,6 +21,7 @@ HierarchyNode {
         },
         HierarchyNode {
           "children": [],
+          "colorValue": undefined,
           "depth": 1,
           "fill": "#5090dc",
           "index": 3,
@@ -33,6 +35,7 @@ HierarchyNode {
         },
         HierarchyNode {
           "children": [],
+          "colorValue": undefined,
           "depth": 1,
           "fill": "#5090dc",
           "index": 4,
@@ -45,6 +48,7 @@ HierarchyNode {
           "sumSize": 3,
         },
       ],
+      "colorValue": undefined,
       "depth": 0,
       "fill": "#5090dc",
       "index": 1,
@@ -60,6 +64,7 @@ HierarchyNode {
       "children": [
         HierarchyNode {
           "children": [],
+          "colorValue": undefined,
           "depth": 1,
           "fill": "#ffa03a",
           "index": 6,
@@ -75,6 +80,7 @@ HierarchyNode {
           "children": [
             HierarchyNode {
               "children": [],
+              "colorValue": undefined,
               "depth": 2,
               "fill": "#ffa03a",
               "index": 8,
@@ -88,6 +94,7 @@ HierarchyNode {
             },
             HierarchyNode {
               "children": [],
+              "colorValue": undefined,
               "depth": 2,
               "fill": "#ffa03a",
               "index": 9,
@@ -101,6 +108,7 @@ HierarchyNode {
             },
             HierarchyNode {
               "children": [],
+              "colorValue": undefined,
               "depth": 2,
               "fill": "#ffa03a",
               "index": 10,
@@ -113,6 +121,7 @@ HierarchyNode {
               "sumSize": 6,
             },
           ],
+          "colorValue": undefined,
           "depth": 1,
           "fill": "#ffa03a",
           "index": 7,
@@ -128,6 +137,7 @@ HierarchyNode {
           "children": [
             HierarchyNode {
               "children": [],
+              "colorValue": undefined,
               "depth": 2,
               "fill": "#ffa03a",
               "index": 12,
@@ -140,6 +150,7 @@ HierarchyNode {
               "sumSize": 7,
             },
           ],
+          "colorValue": undefined,
           "depth": 1,
           "fill": "#ffa03a",
           "index": 11,
@@ -152,6 +163,7 @@ HierarchyNode {
           "sumSize": 10,
         },
       ],
+      "colorValue": undefined,
       "depth": 0,
       "fill": "#ffa03a",
       "index": 5,
@@ -164,6 +176,7 @@ HierarchyNode {
       "sumSize": 33,
     },
   ],
+  "colorValue": undefined,
   "depth": undefined,
   "fill": undefined,
   "index": 0,
