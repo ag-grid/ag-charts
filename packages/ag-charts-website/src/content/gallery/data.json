@@ -508,9 +508,14 @@
             "enterprise": true,
             "examples": [
                 {
-                    "title": "Market Index Sunburst",
-                    "description": "A sunburst of a snapshot of the S&P 500 stock market index.",
+                    "title": "Simple Sunburst",
+                    "description": "A sunburst with varying node sizes.",
                     "name": "simple-sunburst"
+                },
+                {
+                    "title": "Sunburst with Colour Range",
+                    "description": "A sunburst with segment colour using a colour range.",
+                    "name": "sunburst-with-color-range"
                 }
             ]
         },
@@ -521,8 +526,13 @@
             "enterprise": true,
             "examples": [
                 {
-                    "title": "Market Index Treemap",
-                    "description": "A treemap of a snapshot of the S&P 500 stock market index.",
+                    "title": "Simple Treemap",
+                    "description": "A treemap with varying node sizes.",
+                    "name": "simple-treemap"
+                },
+                {
+                    "title": "Treemap with Colour Range",
+                    "description": "A treemap with each tile colour using a colour range.",
                     "name": "treemap-with-color-range"
                 }
             ]

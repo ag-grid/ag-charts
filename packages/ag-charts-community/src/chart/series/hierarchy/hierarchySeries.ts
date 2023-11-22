@@ -262,13 +262,22 @@ export abstract class HierarchySeries<
         await this.updateNodes();
 
         const animationData = this.getAnimationData();
-        const newNodeDataDependencies = {
-            seriesRectWidth: seriesRect?.width,
-            seriesRectHeight: seriesRect?.height,
-        };
+        const newNodeDataDependencies =
+            seriesRect != null
+                ? {
+                      seriesRectWidth: seriesRect?.width,
+                      seriesRectHeight: seriesRect?.height,
+                  }
+                : undefined;
+
         const resize =
-            this.nodeDataDependencies?.seriesRectWidth !== newNodeDataDependencies.seriesRectWidth ||
-            this.nodeDataDependencies?.seriesRectHeight !== newNodeDataDependencies.seriesRectHeight;
+            this.nodeDataDependencies != null &&
+            newNodeDataDependencies != null &&
+            (this.nodeDataDependencies.seriesRectWidth !== newNodeDataDependencies.seriesRectWidth ||
+                this.nodeDataDependencies.seriesRectHeight !== newNodeDataDependencies.seriesRectHeight);
+
+        this.nodeDataDependencies = newNodeDataDependencies;
+
         if (resize) {
             this.animationState.transition('resize', animationData);
         }

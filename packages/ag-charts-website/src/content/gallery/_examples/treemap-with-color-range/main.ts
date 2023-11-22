@@ -49,10 +49,10 @@ const options: AgChartOptions = {
         },
     ],
     title: {
-        text: 'S&P 500 index stocks categorized by sectors and industries.',
+        text: 'S&P 500 index stocks categorized by sectors and industries',
     },
     subtitle: {
-        text: 'Area represents market cap. Color represents change from the day before.',
+        text: 'Area represents market cap. Color represents change from the day before',
     },
 };
 
