@@ -1,6 +1,12 @@
-import type { Point } from '../../../integrated-charts-scene';
+import type { BBox, Point } from '../../../integrated-charts-scene';
 import type { ModuleContext } from '../../../module/moduleContext';
+import type { AnimationValue } from '../../../motion/animation';
+import { resetMotion } from '../../../motion/resetMotion';
+import { StateMachine } from '../../../motion/states';
 import { ColorScale } from '../../../scale/colorScale';
+import type { Group } from '../../../scene/group';
+import type { Node } from '../../../scene/node';
+import type { Selection } from '../../../scene/selection';
 import type { PointLabelDatum } from '../../../util/labelPlacement';
 import { OPT_COLOR_STRING_ARRAY, OPT_STRING, Validate } from '../../../util/validation';
 import { DEFAULT_FILLS, DEFAULT_STROKES } from '../../themes/defaultColors';
@@ -11,7 +17,14 @@ type Mutable<T> = {
     -readonly [k in keyof T]: T[k];
 };
 
-export class HierarchyNode implements SeriesNodeDatum {
+type HierarchyAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
+type HierarchyAnimationEvent = 'update' | 'updateData' | 'highlight' | 'resize' | 'clear';
+
+export interface HierarchyAnimationData<TNode extends Node, TDatum> {
+    datumSelections: Selection<TNode, HierarchyNode<TDatum>>[];
+}
+
+export class HierarchyNode<TDatum = Record<string, any>> implements SeriesNodeDatum {
     static Walk = {
         PreOrder: 0,
         PostOrder: 1,
@@ -22,20 +35,20 @@ export class HierarchyNode implements SeriesNodeDatum {
     constructor(
         public readonly series: ISeries<any>,
         public readonly index: number,
-        public readonly datum: Record<string, any> | undefined,
+        public readonly datum: TDatum | undefined,
         public readonly size: number,
         public readonly fill: string | undefined,
         public readonly stroke: string | undefined,
         public readonly sumSize: number,
         public readonly depth: number | undefined,
-        public readonly parent: HierarchyNode | undefined,
-        public readonly children: HierarchyNode[]
+        public readonly parent: HierarchyNode<TDatum> | undefined,
+        public readonly children: HierarchyNode<TDatum>[]
     ) {
         this.midPoint = { x: 0, y: 0 };
     }
 
-    contains(other: HierarchyNode): boolean {
-        let current: HierarchyNode | undefined = other;
+    contains(other: HierarchyNode<TDatum>): boolean {
+        let current: HierarchyNode<TDatum> | undefined = other;
         // Index check is a performance optimization - it does not affect correctness
         while (current != null && current.index >= this.index) {
             if (current === this) {
@@ -46,7 +59,7 @@ export class HierarchyNode implements SeriesNodeDatum {
         return false;
     }
 
-    walk(callback: (node: HierarchyNode) => void, order = HierarchyNode.Walk.PreOrder) {
+    walk(callback: (node: HierarchyNode<TDatum>) => void, order = HierarchyNode.Walk.PreOrder) {
         if (order === HierarchyNode.Walk.PreOrder) {
             callback(this);
         }
@@ -60,7 +73,7 @@ export class HierarchyNode implements SeriesNodeDatum {
         }
     }
 
-    *[Symbol.iterator](): Iterator<HierarchyNode> {
+    *[Symbol.iterator](): Iterator<HierarchyNode<TDatum>> {
         yield this;
 
         for (const child of this.children) {
@@ -69,7 +82,10 @@ export class HierarchyNode implements SeriesNodeDatum {
     }
 }
 
-export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<S> {
+export abstract class HierarchySeries<
+    TNode extends Node = Group,
+    TDatum extends SeriesNodeDatum = SeriesNodeDatum,
+> extends Series<TDatum> {
     @Validate(OPT_STRING)
     childrenKey?: string = 'children';
 
@@ -88,8 +104,18 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
     @Validate(OPT_COLOR_STRING_ARRAY)
     colorRange?: string[] = undefined;
 
-    rootNode = new HierarchyNode(this, 0, undefined, 0, undefined, undefined, 0, undefined, undefined, []);
+    rootNode = new HierarchyNode<TDatum>(this, 0, undefined, 0, undefined, undefined, 0, undefined, undefined, []);
     maxDepth = 0;
+
+    protected animationState: StateMachine<HierarchyAnimationState, HierarchyAnimationEvent>;
+
+    protected abstract groupSelection: Selection<TNode, HierarchyNode<TDatum>>;
+
+    protected animationResetFns?: {
+        datum?: (node: TNode, datum: HierarchyNode<TDatum>) => AnimationValue & Partial<TNode>;
+    };
+
+    private nodeDataDependencies?: { seriesRectWidth: number; seriesRectHeight: number } = undefined;
 
     constructor(moduleCtx: ModuleContext) {
         super({
@@ -97,6 +123,37 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
             contentGroupVirtual: false,
         });
+
+        this.animationState = new StateMachine<HierarchyAnimationState, HierarchyAnimationEvent>(
+            'empty',
+            {
+                empty: {
+                    update: {
+                        target: 'ready',
+                        action: (data) => this.animateEmptyUpdateReady(data),
+                    },
+                },
+                ready: {
+                    updateData: 'waiting',
+                    clear: 'clearing',
+                    highlight: (data) => this.animateReadyHighlight(data),
+                    resize: (data) => this.animateReadyResize(data),
+                },
+                waiting: {
+                    update: {
+                        target: 'ready',
+                        action: (data) => this.animateWaitingUpdateReady(data),
+                    },
+                },
+                clearing: {
+                    update: {
+                        target: 'empty',
+                        action: (data) => this.animateClearingUpdateEmpty(data),
+                    },
+                },
+            },
+            () => this.checkProcessedDataAnimatable()
+        );
     }
 
     getLabelData(): PointLabelDatum[] {
@@ -121,7 +178,7 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
         let maxColor = -Infinity;
         const colors: (number | undefined)[] = new Array((this.data?.length ?? 0) + 1).fill(undefined);
 
-        const createNode = (datum: any, parent: HierarchyNode): HierarchyNode => {
+        const createNode = (datum: any, parent: HierarchyNode<TDatum>): HierarchyNode<TDatum> => {
             const index = getIndex();
             const depth = parent.depth != null ? parent.depth + 1 : 0;
             const children = childrenKey != null ? datum[childrenKey] : undefined;
@@ -145,13 +202,16 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
             }
 
             return appendChildren(
-                new HierarchyNode(this, index, datum, size, undefined, undefined, sumSize, depth, parent, []),
+                new HierarchyNode<TDatum>(this, index, datum, size, undefined, undefined, sumSize, depth, parent, []),
                 children
             );
         };
 
-        const appendChildren = (node: Mutable<HierarchyNode>, data: S[] | undefined): HierarchyNode => {
-            data?.forEach((datum) => {
+        const appendChildren = (
+            node: Mutable<HierarchyNode<TDatum>>,
+            data: TDatum[] | undefined
+        ): HierarchyNode<TDatum> => {
+            data?.forEach((datum: TDatum) => {
                 const child = createNode(datum, node);
                 node.children.push(child);
                 node.sumSize += child.sumSize;
@@ -160,7 +220,7 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
         };
 
         const rootNode = appendChildren(
-            new HierarchyNode(this, 0, undefined, 0, undefined, undefined, 0, undefined, undefined, []),
+            new HierarchyNode<TDatum>(this, 0, undefined, 0, undefined, undefined, 0, undefined, undefined, []),
             this.data
         );
 
@@ -173,7 +233,7 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
         }
 
         rootNode.children.forEach((child, index) => {
-            child.walk((node: Mutable<HierarchyNode>) => {
+            child.walk((node: Mutable<HierarchyNode<TDatum>>) => {
                 let fill: string | undefined;
 
                 const color = colors[node.index];
@@ -191,6 +251,95 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
 
         this.rootNode = rootNode;
         this.maxDepth = maxDepth;
+    }
+
+    protected abstract updateSelections(): Promise<void>;
+
+    protected abstract updateNodes(): Promise<void>;
+
+    override async update({ seriesRect }: { seriesRect?: BBox }): Promise<void> {
+        await this.updateSelections();
+        await this.updateNodes();
+
+        const animationData = this.getAnimationData();
+        const newNodeDataDependencies = {
+            seriesRectWidth: seriesRect?.width,
+            seriesRectHeight: seriesRect?.height,
+        };
+        const resize =
+            this.nodeDataDependencies?.seriesRectWidth !== newNodeDataDependencies.seriesRectWidth ||
+            this.nodeDataDependencies?.seriesRectHeight !== newNodeDataDependencies.seriesRectHeight;
+        if (resize) {
+            this.animationState.transition('resize', animationData);
+        }
+        this.animationState.transition('update', animationData);
+    }
+
+    protected resetAllAnimation(data: HierarchyAnimationData<TNode, TDatum>) {
+        const datum = this.animationResetFns?.datum;
+
+        // Stop any running animations by prefix convention.
+        this.ctx.animationManager.stopByAnimationGroupId(this.id);
+
+        if (datum != null) {
+            resetMotion(data.datumSelections, datum);
+        }
+    }
+
+    protected animateEmptyUpdateReady(data: HierarchyAnimationData<TNode, TDatum>) {
+        this.ctx.animationManager.skipCurrentBatch();
+        this.resetAllAnimation(data);
+    }
+
+    protected animateWaitingUpdateReady(data: HierarchyAnimationData<TNode, TDatum>) {
+        this.ctx.animationManager.skipCurrentBatch();
+        this.resetAllAnimation(data);
+    }
+
+    protected animateReadyHighlight(data: Selection<TNode, HierarchyNode<TDatum>>) {
+        const datum = this.animationResetFns?.datum;
+        if (datum != null) {
+            resetMotion([data], datum);
+        }
+    }
+    protected animateReadyResize(data: HierarchyAnimationData<TNode, TDatum>) {
+        this.resetAllAnimation(data);
+    }
+
+    protected animateClearingUpdateEmpty(data: HierarchyAnimationData<TNode, TDatum>) {
+        this.ctx.animationManager.skipCurrentBatch();
+        this.resetAllAnimation(data);
+    }
+
+    protected animationTransitionClear() {
+        this.animationState.transition('clear', this.getAnimationData());
+    }
+
+    private getAnimationData() {
+        const animationData: HierarchyAnimationData<TNode, TDatum> = {
+            datumSelections: [this.groupSelection],
+        };
+
+        return animationData;
+    }
+
+    protected isProcessedDataAnimatable() {
+        return true;
+    }
+
+    protected checkProcessedDataAnimatable() {
+        if (!this.isProcessedDataAnimatable()) {
+            this.ctx.animationManager.skipCurrentBatch();
+        }
+    }
+
+    override getSeriesDomain() {
+        return [NaN, NaN];
+    }
+
+    getLegendData() {
+        // Override point for subclasses.
+        return [];
     }
 
     getDatumIdFromData(node: HierarchyNode) {
