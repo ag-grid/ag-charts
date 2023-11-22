@@ -24,7 +24,6 @@ const {
     OPT_FUNCTION,
     OPT_NUMBER,
     OPT_STRING,
-    SeriesNodeClickEvent,
     SeriesTooltip,
     TEXT_ALIGN,
     Validate,
@@ -38,25 +37,6 @@ type Side = 'left' | 'right' | 'top' | 'bottom';
 interface LabelData {
     label: string | undefined;
     secondaryLabel: string | undefined;
-}
-
-class TreemapSeriesNodeClickEvent<
-    TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
-> extends SeriesNodeClickEvent<_ModuleSupport.HierarchyNode, TEvent> {
-    readonly childrenKey?: string;
-    readonly colorKey?: string;
-    readonly labelKey?: string;
-    readonly secondaryLabelKey?: string;
-    readonly sizeKey?: string;
-    constructor(type: TEvent, nativeEvent: MouseEvent, datum: _ModuleSupport.HierarchyNode, series: TreemapSeries) {
-        super(type, nativeEvent, datum, series);
-        this.childrenKey = series.childrenKey;
-        this.colorKey = series.colorKey;
-        this.labelKey = series.labelKey;
-        this.secondaryLabelKey = series.secondaryLabelKey;
-        this.secondaryLabelKey = series.secondaryLabelKey;
-        this.sizeKey = series.sizeKey;
-    }
 }
 
 class TreemapGroupLabel extends Label<AgTreemapSeriesLabelFormatterParams> {
@@ -232,11 +212,11 @@ const verticalAlignFactors: Record<VerticalAlign, number | undefined> = {
     bottom: 1,
 };
 
-export class TreemapSeries extends _ModuleSupport.HierarchySeries<_Scene.Group> {
+export class TreemapSeries<
+    TDatum extends _ModuleSupport.SeriesNodeDatum = _ModuleSupport.SeriesNodeDatum,
+> extends _ModuleSupport.HierarchySeries<_Scene.Group, TDatum> {
     static className = 'TreemapSeries';
     static type = 'treemap' as const;
-
-    protected override readonly NodeClickEvent = TreemapSeriesNodeClickEvent;
 
     groupSelection = Selection.select(this.contentGroup, Group);
     private highlightSelection: _Scene.Selection<_Scene.Group, _ModuleSupport.HierarchyNode> = Selection.select(
@@ -350,7 +330,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_Scene.Group> 
             const labelStyle = isLeaf ? tile.label : group.label;
             let label: string | undefined;
             if (datum != null && depth != null && labelKey != null && labelStyle.enabled) {
-                const value = datum[labelKey];
+                const value = (datum as any)[labelKey];
                 label = this.getLabelText(
                     labelStyle,
                     {
@@ -374,7 +354,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_Scene.Group> 
 
             let secondaryLabel: string | undefined;
             if (isLeaf && datum != null && depth != null && secondaryLabelKey != null && tile.secondaryLabel.enabled) {
-                const value = datum[secondaryLabelKey];
+                const value = (datum as any)[secondaryLabelKey];
                 secondaryLabel = this.getLabelText(
                     tile.secondaryLabel,
                     {
@@ -884,8 +864,10 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_Scene.Group> 
         });
     }
 
-    override animateEmptyUpdateReady({ datumSelections }: any) {
-        fromToMotion<_Scene.Group, Pick<_Scene.Group, 'opacity'>, _ModuleSupport.HierarchyNode>(
+    protected override animateEmptyUpdateReady({
+        datumSelections,
+    }: _ModuleSupport.HierarchyAnimationData<_Scene.Group, TDatum>) {
+        fromToMotion<_Scene.Group, Pick<_Scene.Group, 'opacity'>, _ModuleSupport.HierarchyNode<TDatum>>(
             this.id,
             'nodes',
             this.ctx.animationManager,

@@ -95,7 +95,9 @@ enum TextNodeTag {
     Secondary,
 }
 
-export class SunburstSeries extends _ModuleSupport.HierarchySeries<_Scene.Group> {
+export class SunburstSeries<
+    TDatum extends _ModuleSupport.SeriesNodeDatum = _ModuleSupport.SeriesNodeDatum,
+> extends _ModuleSupport.HierarchySeries<_Scene.Group, TDatum> {
     static className = 'SunburstSeries';
     static type = 'sunburst' as const;
 
@@ -168,7 +170,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_Scene.Group>
         this.labelData = Array.from(this.rootNode, ({ datum, depth }) => {
             let label: string | undefined;
             if (datum != null && depth != null && labelKey != null && this.label.enabled) {
-                const value = datum[labelKey];
+                const value = (datum as any)[labelKey];
                 label = this.getLabelText(
                     this.label,
                     {
@@ -192,7 +194,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_Scene.Group>
 
             let secondaryLabel: string | undefined;
             if (datum != null && depth != null && secondaryLabelKey != null && this.secondaryLabel.enabled) {
-                const value = datum[secondaryLabelKey];
+                const value = (datum as any)[secondaryLabelKey];
                 secondaryLabel = this.getLabelText(
                     this.secondaryLabel,
                     {
@@ -608,8 +610,10 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_Scene.Group>
         return [];
     }
 
-    override animateEmptyUpdateReady({ datumSelections }: any) {
-        fromToMotion<_Scene.Group, Pick<_Scene.Node, 'scalingX' | 'scalingY'>, _ModuleSupport.HierarchyNode>(
+    protected override animateEmptyUpdateReady({
+        datumSelections,
+    }: _ModuleSupport.HierarchyAnimationData<_Scene.Group, TDatum>) {
+        fromToMotion<_Scene.Group, Pick<_Scene.Group, 'scalingX' | 'scalingY'>, _ModuleSupport.HierarchyNode<TDatum>>(
             this.id,
             'nodes',
             this.ctx.animationManager,
