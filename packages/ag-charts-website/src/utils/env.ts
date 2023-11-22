@@ -1,3 +1,5 @@
+import { PRODUCTION_SITE_URL, SITE_URL, STAGING_SITE_URL } from '../constants';
+
 export const getIsDev = () => import.meta.env?.DEV;
-export const getIsStaging = () => import.meta.env?.PUBLIC_SITE_URL === 'https://testing.ag-grid.com';
-export const getIsProduction = () => import.meta.env?.PUBLIC_SITE_URL === 'https://charts.ag-grid.com';
+export const getIsStaging = () => SITE_URL === STAGING_SITE_URL;
+export const getIsProduction = () => SITE_URL === PRODUCTION_SITE_URL;

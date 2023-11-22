@@ -51,9 +51,12 @@ export const SITE_BASE_URL =
 /*
  * Site URL
  *
- * ie http://localhost:4600 for dev, https://testing.ag-grid.com for staging
+ * ie http://localhost:4600 for dev, https://charts-staging.ag-grid.com for staging
  */
 export const SITE_URL = import.meta.env?.SITE_URL || import.meta.env?.PUBLIC_SITE_URL;
+
+export const STAGING_SITE_URL = 'https://charts-staging.ag-grid.com';
+export const PRODUCTION_SITE_URL = 'https://charts.ag-grid.com';
 
 /**
  * Number of URL segments in `SITE_BASE_URL`
@@ -72,7 +75,7 @@ export const ASTRO_ALGOLIA_SEARCH_KEY = import.meta.env?.PUBLIC_ASTRO_ALGOLIA_SE
 export const GRID_URL = SITE_URL
     ? SITE_URL.includes('localhost:4600')
         ? 'https://localhost:8000'
-        : SITE_URL.includes('charts-staging.ag-grid.com')
+        : SITE_URL.includes(STAGING_SITE_URL)
         ? 'https://build.ag-grid.com'
         : 'https://ag-grid.com'
     : undefined;
