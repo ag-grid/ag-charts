@@ -115,9 +115,6 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
     sizeName?: string = undefined;
 
     @Validate(OPT_STRING)
-    colorName?: string = undefined;
-
-    @Validate(OPT_STRING)
     labelKey?: string = undefined;
 
     @Validate(OPT_STRING)
@@ -609,9 +606,5 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_ModuleSuppor
 
     override getSeriesDomain() {
         return [NaN, NaN];
-    }
-
-    override getLegendData() {
-        return [];
     }
 }

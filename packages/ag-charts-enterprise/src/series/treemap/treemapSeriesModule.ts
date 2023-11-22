@@ -12,7 +12,11 @@ export const TreemapSeriesModule: _ModuleSupport.SeriesModule<'treemap'> = {
 
     identifier: 'treemap',
     instanceConstructor: TreemapSeries,
-    seriesDefaults: {},
+    seriesDefaults: {
+        gradientLegend: {
+            enabled: true,
+        },
+    },
     themeTemplate: {
         __extends__: EXTENDS_SERIES_DEFAULTS,
         group: {

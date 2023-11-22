@@ -260,9 +260,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
     sizeName?: string = undefined;
 
     @Validate(OPT_STRING)
-    colorName?: string = undefined;
-
-    @Validate(OPT_STRING)
     labelKey?: string = undefined;
 
     @Validate(OPT_STRING)
@@ -598,6 +595,16 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
         return result ?? {};
     }
 
+    private getNodeFill(node: _ModuleSupport.HierarchyNode) {
+        const isLeaf = node.children.length === 0;
+        if (isLeaf) {
+            return this.tile.fill ?? node.fill;
+        } else {
+            const defaultFill = DEFAULT_GROUP_FILLS[Math.min(node.depth ?? 0, DEFAULT_GROUP_FILLS.length)];
+            return this.group.fill ?? defaultFill;
+        }
+    }
+
     async updateNodes() {
         const { rootNode, data, highlightStyle, tile, group } = this;
         const { seriesRect } = this.chart ?? {};
@@ -641,13 +648,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
 
             const format = this.getTileFormat(node, highlighted);
 
-            let fill = format?.fill ?? highlightedFill;
-            if (isLeaf) {
-                fill ??= tile.fill ?? node.fill;
-            } else {
-                const defaultFill = DEFAULT_GROUP_FILLS[Math.min(node.depth ?? 0, DEFAULT_GROUP_FILLS.length)];
-                fill ??= group.fill ?? defaultFill;
-            }
+            let fill = format?.fill ?? highlightedFill ?? this.getNodeFill(node);
             const fillOpacity =
                 format?.fillOpacity ?? highlightedFillOpacity ?? (isLeaf ? tile.fillOpacity : group.fillOpacity);
             const stroke = format?.stroke ?? highlightedStroke ?? (isLeaf ? tile.stroke ?? node.stroke : group.stroke);
@@ -851,7 +852,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
         const title = labelKey != null ? datum[labelKey] : undefined;
 
         const format = this.getTileFormat(node, false);
-        const color = format?.fill ?? node.fill;
+        const color = format?.fill ?? this.getNodeFill(node);
 
         if (!tooltip.renderer && !tooltip.format && !title) {
             return '';
@@ -893,10 +894,5 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<_ModuleSupport
             color,
             seriesId,
         });
-    }
-
-    getLegendData() {
-        // Override point for subclasses.
-        return [];
     }
 }

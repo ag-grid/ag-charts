@@ -3,6 +3,8 @@ import type { ModuleContext } from '../../../module/moduleContext';
 import { ColorScale } from '../../../scale/colorScale';
 import type { PointLabelDatum } from '../../../util/labelPlacement';
 import { OPT_COLOR_STRING_ARRAY, OPT_STRING, Validate } from '../../../util/validation';
+import type { HighlightNodeDatum } from '../../interaction/highlightManager';
+import type { ChartLegendType, GradientLegendDatum } from '../../legendDatum';
 import { DEFAULT_FILLS, DEFAULT_STROKES } from '../../themes/defaultColors';
 import { Series, SeriesNodePickMode } from '../series';
 import type { ISeries, SeriesNodeDatum } from '../seriesTypes';
@@ -11,7 +13,7 @@ type Mutable<T> = {
     -readonly [k in keyof T]: T[k];
 };
 
-export class HierarchyNode implements SeriesNodeDatum {
+export class HierarchyNode implements SeriesNodeDatum, Pick<HighlightNodeDatum, 'colorValue'> {
     static Walk = {
         PreOrder: 0,
         PostOrder: 1,
@@ -24,6 +26,7 @@ export class HierarchyNode implements SeriesNodeDatum {
         public readonly index: number,
         public readonly datum: Record<string, any> | undefined,
         public readonly size: number,
+        public readonly colorValue: number | undefined,
         public readonly fill: string | undefined,
         public readonly stroke: string | undefined,
         public readonly sumSize: number,
@@ -79,6 +82,9 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
     @Validate(OPT_STRING)
     colorKey?: string = undefined;
 
+    @Validate(OPT_STRING)
+    colorName?: string = undefined;
+
     @Validate(OPT_COLOR_STRING_ARRAY)
     fills: string[] = Object.values(DEFAULT_FILLS);
 
@@ -88,7 +94,8 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
     @Validate(OPT_COLOR_STRING_ARRAY)
     colorRange?: string[] = undefined;
 
-    rootNode = new HierarchyNode(this, 0, undefined, 0, undefined, undefined, 0, undefined, undefined, []);
+    rootNode = new HierarchyNode(this, 0, undefined, 0, undefined, undefined, undefined, 0, undefined, undefined, []);
+    colorDomain: number[] = [0, 0];
     maxDepth = 0;
 
     constructor(moduleCtx: ModuleContext) {
@@ -101,6 +108,21 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
 
     getLabelData(): PointLabelDatum[] {
         return [];
+    }
+
+    override getLegendData(legendType: ChartLegendType): GradientLegendDatum[] {
+        return legendType === 'gradient' && this.colorKey != null && this.colorRange != null
+            ? [
+                  {
+                      legendType: 'gradient',
+                      enabled: this.visible,
+                      seriesId: this.id,
+                      colorName: this.colorName,
+                      colorDomain: this.colorDomain,
+                      colorRange: this.colorRange,
+                  },
+              ]
+            : [];
     }
 
     override hasData() {
@@ -145,7 +167,7 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
             }
 
             return appendChildren(
-                new HierarchyNode(this, index, datum, size, undefined, undefined, sumSize, depth, parent, []),
+                new HierarchyNode(this, index, datum, size, color, undefined, undefined, sumSize, depth, parent, []),
                 children
             );
         };
@@ -160,14 +182,16 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
         };
 
         const rootNode = appendChildren(
-            new HierarchyNode(this, 0, undefined, 0, undefined, undefined, 0, undefined, undefined, []),
+            new HierarchyNode(this, 0, undefined, 0, undefined, undefined, undefined, 0, undefined, undefined, []),
             this.data
         );
+
+        const colorDomain = [minColor, maxColor];
 
         let colorScale: ColorScale | undefined;
         if (colorRange != null && Number.isFinite(minColor) && Number.isFinite(maxColor)) {
             colorScale = new ColorScale();
-            colorScale.domain = [minColor, maxColor];
+            colorScale.domain = colorDomain;
             colorScale.range = colorRange;
             colorScale.update();
         }
@@ -191,6 +215,7 @@ export abstract class HierarchySeries<S extends SeriesNodeDatum> extends Series<
 
         this.rootNode = rootNode;
         this.maxDepth = maxDepth;
+        this.colorDomain = colorDomain;
     }
 
     getDatumIdFromData(node: HierarchyNode) {
