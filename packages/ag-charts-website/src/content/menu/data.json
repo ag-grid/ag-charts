@@ -258,12 +258,6 @@
                         "isEnterprise": true
                     },
                     {
-                        "title": "Icicle",
-                        "icon": "chartsIcicle",
-                        "path": "icicle-series",
-                        "isEnterprise": true
-                    },
-                    {
                         "title": "Nightingale",
                         "icon": "chartsNightingale",
                         "path": "nightingale-series",
