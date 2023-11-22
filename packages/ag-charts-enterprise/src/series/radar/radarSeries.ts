@@ -24,7 +24,6 @@ const {
     seriesLabelFadeInAnimation,
     markerFadeInAnimation,
     resetMarkerFn,
-    diff,
     animationValidation,
     ADD_PHASE,
 } = _ModuleSupport;
@@ -174,9 +173,6 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
 
         const animationEnabled = !this.ctx.animationManager.isSkipped();
         const extraProps = [];
-        if (animationEnabled && this.processedData) {
-            extraProps.push(diff(this.processedData));
-        }
         if (animationEnabled) {
             extraProps.push(animationValidation(this));
         }
