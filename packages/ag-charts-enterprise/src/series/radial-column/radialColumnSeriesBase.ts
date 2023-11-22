@@ -387,7 +387,8 @@ export abstract class RadialColumnSeriesBase<
         return NaN;
     }
 
-    async update() {
+    async update({ seriesRect }: { seriesRect?: _Scene.BBox }) {
+        const resize = this.checkResize(seriesRect);
         await this.maybeRefreshNodeData();
 
         this.contentGroup.translationX = this.centerX;
@@ -403,6 +404,9 @@ export abstract class RadialColumnSeriesBase<
         this.updateSectorSelection(this.highlightSelection, true);
         this.updateLabels();
 
+        if (resize) {
+            this.animationState.transition('resize');
+        }
         this.animationState.transition('update');
     }
 

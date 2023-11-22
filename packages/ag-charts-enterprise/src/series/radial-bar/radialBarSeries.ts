@@ -351,7 +351,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         return [{ itemId: radiusKey, nodeData, labelData: nodeData }];
     }
 
-    async update() {
+    async update({ seriesRect }: { seriesRect?: _Scene.BBox }) {
+        const resize = this.checkResize(seriesRect);
         await this.maybeRefreshNodeData();
 
         this.contentGroup.translationX = this.centerX;
@@ -367,6 +368,9 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         this.updateSectorSelection(this.highlightSelection, true);
         this.updateLabels();
 
+        if (resize) {
+            this.animationState.transition('resize');
+        }
         this.animationState.transition('update');
     }
 
