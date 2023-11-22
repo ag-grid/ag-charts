@@ -3,7 +3,6 @@ import { getDarkModeSnippet } from '@components/site-header/getDarkModeSnippet';
 
 import { ANGULAR_GENERATED_MAIN_FILE_NAME } from '../constants';
 import { vanillaToAngular } from '../transformation-scripts/chart-vanilla-to-angular';
-import { vanillaToReact } from '../transformation-scripts/chart-vanilla-to-react';
 import { vanillaToReactFunctional } from '../transformation-scripts/chart-vanilla-to-react-functional';
 import { vanillaToReactFunctionalTs } from '../transformation-scripts/chart-vanilla-to-react-functional-ts';
 import { vanillaToVue } from '../transformation-scripts/chart-vanilla-to-vue';
@@ -202,10 +201,6 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainFileName,
         };
     },
-    react: createReactFilesGenerator({
-        sourceGenerator: vanillaToReact,
-        internalFramework: 'react',
-    }),
     reactFunctional: createReactFilesGenerator({
         sourceGenerator: vanillaToReactFunctional,
         internalFramework: 'reactFunctional',

@@ -22,7 +22,6 @@ export const getFrameworkFromInternalFramework = (internalFramework: InternalFra
         case 'typescript':
         case 'vanilla':
             return 'javascript';
-        case 'react':
         case 'reactFunctionalTs':
         case 'reactFunctional':
             return 'react';
@@ -47,12 +46,10 @@ export const getFrameworkFromInternalFramework = (internalFramework: InternalFra
  */
 export const getInternalFramework = ({
     framework,
-    useFunctionalReact,
     useVue3,
     useTypescript,
 }: {
     framework: string;
-    useFunctionalReact?: boolean;
     useVue3?: boolean;
     useTypescript?: boolean;
 }): InternalFramework => {
@@ -62,14 +59,14 @@ export const getInternalFramework = ({
         case 'javascript':
             return useTypescript ? 'typescript' : 'vanilla';
         case 'react':
-            return useFunctionalReact ? (useTypescript ? 'reactFunctionalTs' : 'reactFunctional') : 'react';
+            return useTypescript ? 'reactFunctionalTs' : 'reactFunctional';
         default:
             return framework as InternalFramework;
     }
 };
 
 export const isReactInternalFramework = (internalFramework: InternalFramework) => {
-    const reactInternalFrameworks: InternalFramework[] = ['react', 'reactFunctional', 'reactFunctionalTs'];
+    const reactInternalFrameworks: InternalFramework[] = ['reactFunctional', 'reactFunctionalTs'];
     if (!internalFramework) {
         return false;
     }

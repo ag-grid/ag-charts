@@ -7,7 +7,6 @@ describe('getFrameworkFromInternalFramework', () => {
         ${'other'}             | ${'other'}
         ${'vanilla'}           | ${'javascript'}
         ${'typescript'}        | ${'javascript'}
-        ${'react'}             | ${'react'}
         ${'reactFunctional'}   | ${'react'}
         ${'reactFunctionalTs'} | ${'react'}
         ${'angular'}           | ${'angular'}
@@ -25,7 +24,6 @@ describe('isReactInternalFramework', () => {
         ${'other'}             | ${false}
         ${'vanilla'}           | ${false}
         ${'typescript'}        | ${false}
-        ${'react'}             | ${true}
         ${'reactFunctional'}   | ${true}
         ${'reactFunctionalTs'} | ${true}
         ${'angular'}           | ${false}
@@ -43,7 +41,6 @@ describe('isVueInternalFramework', () => {
         ${'other'}             | ${false}
         ${'vanilla'}           | ${false}
         ${'typescript'}        | ${false}
-        ${'react'}             | ${false}
         ${'reactFunctional'}   | ${false}
         ${'reactFunctionalTs'} | ${false}
         ${'angular'}           | ${false}

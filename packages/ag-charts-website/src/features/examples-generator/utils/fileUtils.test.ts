@@ -7,7 +7,6 @@ describe('getEntryFileName', () => {
         ${'other'}             | ${undefined}
         ${'vanilla'}           | ${'main.js'}
         ${'typescript'}        | ${'main.ts'}
-        ${'react'}             | ${'index.jsx'}
         ${'reactFunctional'}   | ${'index.jsx'}
         ${'reactFunctionalTs'} | ${'index.tsx'}
         ${'angular'}           | ${'main.ts'}
@@ -25,7 +24,6 @@ describe('getMainFileName', () => {
         ${'other'}             | ${undefined}
         ${'vanilla'}           | ${'main.js'}
         ${'typescript'}        | ${'main.ts'}
-        ${'react'}             | ${'index.jsx'}
         ${'reactFunctional'}   | ${'index.jsx'}
         ${'reactFunctionalTs'} | ${'index.tsx'}
         ${'angular'}           | ${'app.component.ts'}
@@ -43,7 +41,6 @@ describe('getBoilerPlateName', () => {
         ${'other'}             | ${undefined}
         ${'vanilla'}           | ${undefined}
         ${'typescript'}        | ${'charts-typescript-boilerplate'}
-        ${'react'}             | ${'charts-react-boilerplate'}
         ${'reactFunctional'}   | ${'charts-react-boilerplate'}
         ${'reactFunctionalTs'} | ${'charts-react-ts-boilerplate'}
         ${'angular'}           | ${'charts-angular-boilerplate'}
@@ -61,7 +58,6 @@ describe('getTransformTsFileExt', () => {
         ${'other'}             | ${'.js'}
         ${'vanilla'}           | ${'.js'}
         ${'typescript'}        | ${undefined}
-        ${'react'}             | ${'.js'}
         ${'reactFunctional'}   | ${'.js'}
         ${'reactFunctionalTs'} | ${'.tsx'}
         ${'angular'}           | ${undefined}

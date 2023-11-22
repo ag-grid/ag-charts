@@ -3,7 +3,6 @@ import { persistentAtom, persistentMap } from '@nanostores/persistent';
 import { getInternalFramework } from '@utils/framework';
 
 export type FrameworkContext = {
-    useFunctionalReact: string;
     useTypescript: string;
     useVue3: string;
 };
@@ -17,7 +16,6 @@ export const $internalFramework = persistentAtom<InternalFramework>(
     { listen: false }
 );
 export const $frameworkContext = persistentMap<FrameworkContext>(`${LOCALSTORAGE_PREFIX}:context`, {
-    useFunctionalReact: 'true',
     useTypescript: 'false',
     useVue3: 'false',
 });
@@ -31,14 +29,9 @@ export const setInternalFramework = (internalFramework: InternalFramework) => {
         $frameworkContext.setKey('useTypescript', 'false');
     } else if (internalFramework === 'typescript') {
         $frameworkContext.setKey('useTypescript', 'true');
-    } else if (internalFramework === 'react') {
-        $frameworkContext.setKey('useFunctionalReact', 'false');
-        $frameworkContext.setKey('useTypescript', 'false');
     } else if (internalFramework === 'reactFunctional') {
-        $frameworkContext.setKey('useFunctionalReact', 'true');
         $frameworkContext.setKey('useTypescript', 'false');
     } else if (internalFramework === 'reactFunctionalTs') {
-        $frameworkContext.setKey('useFunctionalReact', 'true');
         $frameworkContext.setKey('useTypescript', 'true');
     } else if (internalFramework === 'vue') {
         $frameworkContext.setKey('useVue3', 'false');
@@ -65,7 +58,6 @@ export const getFrameworkContextKey = (key: keyof FrameworkContext): boolean => 
 export const updateInternalFrameworkBasedOnFramework = (framework: Framework) => {
     const internalFramework = getInternalFramework({
         framework,
-        useFunctionalReact: getFrameworkContextKey('useFunctionalReact'),
         useVue3: getFrameworkContextKey('useVue3'),
         useTypescript: getFrameworkContextKey('useTypescript'),
     });
