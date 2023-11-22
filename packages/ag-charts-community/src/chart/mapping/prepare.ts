@@ -9,6 +9,7 @@ import type {
 import type { JsonMergeOptions } from '../../util/json';
 import { DELETE, jsonMerge, jsonWalk } from '../../util/json';
 import { Logger } from '../../util/logger';
+import { partialAssign } from '../../util/object';
 import type { DeepPartial } from '../../util/types';
 import { AXIS_TYPES } from '../factory/axisTypes';
 import { CHART_TYPES } from '../factory/chartTypes';
@@ -56,13 +57,23 @@ export const noDataCloneMergeOptions: JsonMergeOptions = {
     avoidDeepClone: ['data'],
 };
 
+function getGlobalTooltipPositionOptions(position: unknown): AgTooltipPositionOptions {
+    if (position === undefined || typeof position !== 'object' || position === null) {
+        return {};
+    }
+
+    const result = {};
+    partialAssign<AgTooltipPositionOptions>(['type', 'xOffset', 'yOffset'], result, position);
+    return result;
+}
+
 export function prepareOptions<T extends AgChartOptions>(options: T): T {
     sanityCheckOptions(options);
 
     // Determine type and ensure it's explicit in the options config.
     const type = optionsType(options);
 
-    const globalTooltipPositionOptions = options.tooltip?.position ?? {};
+    const globalTooltipPositionOptions = getGlobalTooltipPositionOptions(options.tooltip?.position);
 
     const checkSeriesType = (type?: string) => {
         if (type != null && !(isSeriesOptionType(type) || getSeriesDefaults(type))) {
