@@ -59,6 +59,7 @@ const isApiLayout = apiMenuItems.some((item) => {
         <title>{title}</title>
         <link rel="sitemap" type="application/xml" title="Sitemap" href={urlWithBaseUrl("/sitemap-index.xml")} />
 
+        {isProduction && <script defer data-domain="charts.ag-grid.com" src="https://plausible.io/js/script.js"></script>}
         <script is:inline>
             const htmlEl = document.querySelector('html');
             const localDarkmode = localStorage['documentation:darkmode'];
