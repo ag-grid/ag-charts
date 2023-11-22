@@ -171,7 +171,7 @@ describe('PolarSeries', () => {
                 animate(1200, ratio);
                 AgCharts.update(chart, {
                     ...options,
-                    data: options.data!.filter((d) => d.os !== 'iOS' && d.os !== 'Symbian'),
+                    data: options.data!.slice(0, options.data!.length - 2),
                 });
                 await compare();
             });
@@ -190,7 +190,7 @@ describe('PolarSeries', () => {
 
                 chart = AgCharts.create({
                     ...options,
-                    data: options.data!.filter((d) => d.os !== 'iOS' && d.os !== 'Symbian'),
+                    data: options.data!.slice(0, options.data!.length - 2),
                 });
                 await waitForChartStability(chart);
 
