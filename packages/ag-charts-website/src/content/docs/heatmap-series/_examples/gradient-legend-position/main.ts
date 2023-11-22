@@ -23,8 +23,8 @@ const options: AgChartOptions = {
         },
     ],
     gradientLegend: {
-        enabled: true,
         position: 'right',
+        reverseOrder: true,
     },
 };
 

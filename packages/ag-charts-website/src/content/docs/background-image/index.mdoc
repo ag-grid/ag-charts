@@ -3,13 +3,14 @@ title: 'Background Image'
 enterprise: true
 ---
 
-This section describes how to add a background image to a chart.
+A Background Image can be used for branding or watermarking a chart.
 
-## Background Image parameters
+## Displaying an Image
 
-The `url` is required for the background image.
+To display a background image on a chart, simply provide a `url` for the `background.image` property.
+This could be a base64 encoded png or svg, or an external link to these files.
 
-It is positioned in the center by default. The `left`, `top`, `right` and `bottom` properties specify the position of the image and the distance to the chart border. The `width` and `height` properties override the size of the image.
+{% chartExampleRunner title="Background Image" name="background-image" type="generated" /%}
 
 ```js
 background: {
@@ -23,13 +24,20 @@ background: {
 },
 ```
 
-{% chartExampleRunner title="Background Image" name="background-image" type="generated" /%}
+## Position and size
 
-### API Reference
+The image is positioned in the center of the chart container by default.
+
+Use the `left`, `top`, `right` and `bottom` properties to specify the position of the image by defining the pixel distance between the image and the edge of the chart container. See the [API Reference](#reference-AgChartBackground-image) for more details.
+
+The `width` and `height` properties override the size of the image.
+
+## API Reference
 
 {% tabs %}
 
 {% tabItem id="AgChartBackground" label="Background" %}
+
 {% apiReference id="AgChartBackground" /%}
 {% /tabItem %}
 

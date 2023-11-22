@@ -23,7 +23,6 @@ const options: AgChartOptions = {
         },
     ],
     gradientLegend: {
-        enabled: true,
         gradient: {
             thickness: 50,
             preferredLength: 400,

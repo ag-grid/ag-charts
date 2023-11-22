@@ -1,8 +1,10 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-community';
 
+import { getData } from './data';
+
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
-    data: [{ value: 56.9 }, { value: 22.5 }, { value: 6.8 }, { value: 8.5 }, { value: 2.6 }, { value: 1.9 }],
+    data: getData(),
     series: [
         {
             type: 'pie',
