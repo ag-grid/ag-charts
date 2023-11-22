@@ -43,10 +43,6 @@ let data = [
 
 The `labelKey` defines what will appear as the title for each tile.
 
-{% note %}
-Legend toggling is disabled in Treemap Series.
-{% /note %}
-
 ## Sizing
 
 By default, each leaf node's rectangle will have approximately the same area.
@@ -63,7 +59,7 @@ series: [
         type: 'treemap',
         labelKey: 'name',
         sizeKey: 'size',
-        // ...
+        sizeName: 'Size',
     },
 ];
 ```
@@ -84,9 +80,10 @@ series: [
         type: 'treemap',
         labelKey: 'name',
         sizeKey: 'size',
+        sizeName: 'Size',
         colorKey: 'change',
+        colorName: 'Change',
         colorRange: ['rgb(63, 145, 79)', 'rgb(253, 149, 63)'],
-        // ...
     },
 ],
 ```
@@ -108,31 +105,31 @@ series: [
         type: 'treemap',
         labelKey: 'name',
         sizeKey: 'total',
+        sizeName: 'Total',
         fills: [
-            '#FF3D00',
-            '#FF9100',
-            '#FFC400',
-            '#FFEA00',
-            '#C6FF00',
-            '#76FF03',
-            '#00E676',
-            '#1DE9B6',
-            '#00E5FF',
-            '#00B0FF',
+            '#F4511E',
+            '#FB8C00',
+            '#FFB300',
+            '#FDD835',
+            '#C0CA33',
+            '#7CB342',
+            '#43A047',
+            '#00897B',
+            '#00ACC1',
+            '#039BE5',
         ],
         strokes: [
-            '#FF6E40',
-            '#FFAB40',
-            '#FFD740',
-            '#FFFF00',
-            '#EEFF41',
-            '#B2FF59',
-            '#69F0AE',
-            '#64FFDA',
-            '#18FFFF',
-            '#40C4FF',
+            '#E64A19',
+            '#F57C00',
+            '#FFA000',
+            '#FBC02D',
+            '#AFB42B',
+            '#689F38',
+            '#388E3C',
+            '#00796B',
+            '#0097A7',
+            '#0288D1',
         ],
-        // ...
     },
 ];
 ```
@@ -159,6 +156,7 @@ series: [
         labelKey: 'name',
         secondaryLabelKey: 'size',
         sizeKey: 'total',
+        sizeName: 'Total',
         group: {
             label: {
                 fontSize: 18,
@@ -175,7 +173,6 @@ series: [
                 formatter: (params) => formatSize(params.datum),
             },
         },
-        // ...
     },
 ];
 ```
@@ -200,6 +197,7 @@ series: [
         type: 'treemap',
         labelKey: 'title',
         sizeKey: 'total',
+        sizeName: 'Total',
         group: {
             padding: 12,
             gap: 5,
@@ -208,7 +206,6 @@ series: [
             padding: 10,
             gap: 2,
         },
-        // ...
     },
 ],
 ```

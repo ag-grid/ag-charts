@@ -10,41 +10,31 @@ const options: AgChartOptions = {
             type: 'treemap',
             labelKey: 'title',
             sizeKey: 'total',
+            sizeName: 'Total',
             fills: [
-                '#FF3D00',
-                '#FF9100',
-                '#FFC400',
-                '#FFEA00',
-                '#C6FF00',
-                '#76FF03',
-                '#00E676',
-                '#1DE9B6',
-                '#00E5FF',
-                '#00B0FF',
+                '#F4511E',
+                '#FB8C00',
+                '#FFB300',
+                '#FDD835',
+                '#C0CA33',
+                '#7CB342',
+                '#43A047',
+                '#00897B',
+                '#00ACC1',
+                '#039BE5',
             ],
             strokes: [
-                '#FF6E40',
-                '#FFAB40',
-                '#FFD740',
-                '#FFFF00',
-                '#EEFF41',
-                '#B2FF59',
-                '#69F0AE',
-                '#64FFDA',
-                '#18FFFF',
-                '#40C4FF',
+                '#E64A19',
+                '#F57C00',
+                '#FFA000',
+                '#FBC02D',
+                '#AFB42B',
+                '#689F38',
+                '#388E3C',
+                '#00796B',
+                '#0097A7',
+                '#0288D1',
             ],
-            tooltip: {
-                renderer: (params) => {
-                    const { total, change } = params.datum;
-                    if (total != null && change != null) {
-                        const changeString = `${change > 0 ? '+' : '-'}£${Math.abs(change).toFixed(1)}bn`;
-                        return { content: `£${total.toFixed(1)}bn (${changeString} from 2023)` };
-                    } else {
-                        return {};
-                    }
-                },
-            },
         },
     ],
     title: {

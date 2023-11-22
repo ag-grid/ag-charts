@@ -6,7 +6,7 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'Daily Step Count',
+        text: 'Weekly Step Count',
     },
     series: [
         {
@@ -20,6 +20,8 @@ const options: AgChartOptions = {
 
             colorKey: 'steps',
             colorName: 'Steps',
+
+            colorRange: ['#fc8d59', '#91cf60'],
 
             strokeWidth: 2,
         },

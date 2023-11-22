@@ -10,19 +10,10 @@ const options: AgChartOptions = {
             type: 'treemap',
             labelKey: 'title',
             sizeKey: 'total',
+            sizeName: 'Total',
             colorKey: 'change',
+            colorName: 'Change',
             colorRange: ['rgb(234, 82, 80)', 'rgb(67, 153, 83)'],
-            tooltip: {
-                renderer: (params) => {
-                    const { total, change } = params.datum;
-                    if (total != null && change != null) {
-                        const changeString = `${change > 0 ? '+' : '-'}£${Math.abs(change).toFixed(1)}bn`;
-                        return { content: `£${total.toFixed(1)}bn (${changeString} from 2023)` };
-                    } else {
-                        return {};
-                    }
-                },
-            },
         },
     ],
     title: {

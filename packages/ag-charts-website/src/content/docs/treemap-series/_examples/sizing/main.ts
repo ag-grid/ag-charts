@@ -10,16 +10,7 @@ const options: AgChartOptions = {
             type: 'treemap',
             labelKey: 'title',
             sizeKey: 'total',
-            tooltip: {
-                renderer: (params) => {
-                    const { total } = params.datum;
-                    if (total != null) {
-                        return { content: `£${total.toFixed(1)}bn` };
-                    } else {
-                        return {};
-                    }
-                },
-            },
+            sizeName: 'Total',
         },
     ],
     title: {

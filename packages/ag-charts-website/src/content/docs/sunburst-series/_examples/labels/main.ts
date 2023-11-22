@@ -20,6 +20,7 @@ const options: AgChartOptions = {
             type: 'sunburst',
             labelKey: 'name',
             sizeKey: 'gdp',
+            sizeName: 'GDP',
             secondaryLabelKey: 'gdpChange',
             label: {
                 fontSize: 14,
@@ -30,21 +31,6 @@ const options: AgChartOptions = {
                 formatter: ({ value }) => (value != null ? percentageFormatter.format(value) : undefined),
             },
             padding: 3,
-            tooltip: {
-                renderer: (params) => {
-                    const { gdp, gdpChange } = params.datum;
-                    if (gdp != null && gdpChange != null) {
-                        const gdpFormat = gdpFormatter.format(gdp);
-                        const gdpChangeFormat = percentageFormatter.format(gdpChange);
-
-                        return {
-                            content: `${gdpFormat} trillion USD (${gdpChangeFormat} since 2023)`,
-                        };
-                    } else {
-                        return {};
-                    }
-                },
-            },
         },
     ],
     title: {

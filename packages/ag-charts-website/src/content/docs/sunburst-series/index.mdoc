@@ -48,10 +48,6 @@ let data = [
 
 The `labelKey` defines what will appear as the title for each sector.
 
-{% note %}
-Legend toggling is disabled in Sunburst Series.
-{% /note %}
-
 ## Sizing
 
 By default, the segments corresponding to leaf nodes will have the same angle.
@@ -88,7 +84,6 @@ series: [
         sizeKey: 'gdp',
         colorKey: 'gdpChange',
         colorRange: ['rgb(63, 145, 79)', 'rgb(253, 149, 63)'],
-        // ...
     },
 ],
 ```
@@ -109,7 +104,6 @@ series: [
         labelKey: 'name',
         sizeKey: 'gdp',
         fills: ['#D32F2F', '#FF5722', '#283593'],
-        // ...
     },
 ];
 ```
@@ -143,7 +137,6 @@ series: [
         secondaryLabel: {
             formatter: ({ value }) => (value != null ? percentageFormatter.format(value) : undefined),
         },
-        // ...
     },
 ],
 ```
