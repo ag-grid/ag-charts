@@ -5,12 +5,6 @@ import { getData } from './data';
 const options: AgChartOptions = {
     container: document.querySelector('#myChart') as HTMLElement,
     data: getData(),
-    theme: {
-        palette: {
-            fills: ['#c16068', '#a2bf8a', '#80a0c3'],
-            strokes: ['#c16068', '#a2bf8a', '#80a0c3'],
-        },
-    },
     title: {
         text: 'Cattle Holdings and Beef Exports (UK)',
         fontSize: 18,
@@ -24,16 +18,12 @@ const options: AgChartOptions = {
             xKey: 'year',
             yKey: 'male',
             yName: 'Male cattle',
-            grouped: true,
-            strokeWidth: 0,
         },
         {
             type: 'bar',
             xKey: 'year',
             yKey: 'female',
             yName: 'Female cattle',
-            grouped: true,
-            strokeWidth: 0,
         },
         {
             type: 'line',
