@@ -9,6 +9,7 @@ export interface AgRadarSeriesThemeableOptions<TDatum = any>
     extends StrokeOptions,
         LineDashOptions,
         AgBaseSeriesThemeableOptions {
+    /** Configuration for the markers used in the series. */
     marker?: AgSeriesMarkerOptions<TDatum, AgRadialSeriesOptionsKeys>;
     /** Configuration for the labels shown on top of data points. */
     label?: AgChartLabelOptions<TDatum, AgRadarSeriesLabelFormatterParams>;
