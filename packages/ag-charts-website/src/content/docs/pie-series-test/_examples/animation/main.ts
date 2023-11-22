@@ -9,6 +9,8 @@ const data = [
     { label: 'Windows', value: 1.9 },
 ];
 
+const moreLabels = ['SteamOS', 'ChromeOS', 'Palm OS'];
+
 const filter = (...labels: string[]) => {
     return (d: (typeof data)[number]) => labels.includes(d.label);
 };
@@ -18,7 +20,7 @@ const options: AgChartOptions = {
     animation: {
         enabled: true,
     },
-    data: data.filter(filter('Android', 'BlackBerry', 'Bada')),
+    data: [...data],
     series: [
         {
             type: 'pie',
@@ -38,7 +40,7 @@ const options: AgChartOptions = {
 const chart = AgCharts.create(options);
 
 function reset() {
-    options.data = data.filter(filter('Android', 'BlackBerry', 'Bada'));
+    options.data = [...data];
     AgCharts.update(chart, options as any);
 }
 
@@ -58,17 +60,32 @@ function randomise() {
     AgCharts.update(chart, options);
 }
 
-function add() {
-    const newData = [...data];
+function add(position: 'start' | 'end' = 'end') {
+    const nextLabel = [...data.map(({ label }) => label), ...moreLabels].find(
+        (l) => !options.data?.some((d) => d.label === l)
+    );
+    if (!nextLabel) return;
+
+    const newDatum = { label: nextLabel, value: Math.random() * 5 + 0.5 };
+    const newData = [...(options.data ?? [])];
+    newData.splice(position === 'start' ? 0 : newData.length, 0, newDatum);
+
     options.data = newData;
     AgCharts.update(chart, options);
 }
 
-function remove() {
+function remove(position: 'start' | 'end' = 'end') {
     const newData = [...(options.data ?? [])];
-    const indexToRemove = randomIndex(newData);
+    newData.splice(position === 'start' ? 0 : -1, 1);
 
-    newData.splice(indexToRemove, 1);
+    options.data = newData;
+    AgCharts.update(chart, options);
+}
+
+function shuffle() {
+    const newData = [...(options.data ?? [])];
+    newData.sort(() => Math.random() - 0.5);
+
     options.data = newData;
     AgCharts.update(chart, options);
 }

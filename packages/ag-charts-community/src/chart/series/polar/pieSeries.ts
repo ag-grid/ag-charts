@@ -758,7 +758,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
                 // between normal and highlighted cases.
                 nodeData = nodeData.map((datum) => ({ ...datum, sectorFormat: { ...datum.sectorFormat } }));
             }
-            selection.update(nodeData, undefined, (datum) => this.getDatumId(datum));
+            selection.update(nodeData);
             if (this.ctx.animationManager.isSkipped()) {
                 selection.cleanup();
             }
@@ -1514,7 +1514,10 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
 
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
-        if (processedData?.defs.keys.length === 0 || !processedData?.reduced?.animationValidation?.uniqueKeys) {
+        const supportedDiff = (diff?.moved.length ?? 0) === 0;
+        const hasKeys = (processedData?.defs.keys.length ?? 0) > 0;
+        const hasUniqueKeys = processedData?.reduced?.animationValidation?.uniqueKeys ?? true;
+        if (!supportedDiff || !hasKeys || !hasUniqueKeys) {
             this.ctx.animationManager.skipCurrentBatch();
         }
 
