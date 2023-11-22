@@ -23,9 +23,8 @@ const SELECTOR_CONFIG: Record<SelectorType, SelectorConfig> = {
     react: {
         label: 'Language',
         labelValues: {
-            Classes: 'react',
-            Hooks: 'reactFunctional',
-            'Hooks TS': 'reactFunctionalTs',
+            Javascript: 'reactFunctional',
+            Typescript: 'reactFunctionalTs',
         },
     },
     vue: {

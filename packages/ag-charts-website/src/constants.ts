@@ -5,7 +5,6 @@ export const FRAMEWORKS: readonly Framework[] = ['react', 'angular', 'vue', 'jav
 export const INTERNAL_FRAMEWORKS: readonly InternalFramework[] = [
     'vanilla',
     'typescript',
-    'react',
     'reactFunctional',
     'reactFunctionalTs',
     'angular',

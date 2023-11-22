@@ -23,7 +23,6 @@ export const getBoilerPlateName = (internalFramework: InternalFramework) => {
     const boilerPlateTemplate = (boilerPlateKey: string) => `charts-${boilerPlateKey}-boilerplate`;
 
     switch (internalFramework) {
-        case 'react':
         case 'reactFunctional':
             return boilerPlateTemplate('react');
         case 'reactFunctionalTs':
@@ -85,7 +84,6 @@ export const getFrameworkFromInternalFramework = (internalFramework: InternalFra
         case 'typescript':
         case 'vanilla':
             return 'javascript';
-        case 'react':
         case 'reactFunctionalTs':
         case 'reactFunctional':
             return 'react';
@@ -105,7 +103,6 @@ export const getEntryFileName = (internalFramework: InternalFramework) => {
         case 'typescript':
         case 'angular':
             return 'main.ts';
-        case 'react':
         case 'reactFunctional':
             return 'index.jsx';
         case 'reactFunctionalTs':
