@@ -10,6 +10,11 @@ export function isNegative(a: number) {
     return Math.sign(a) < 0 || Object.is(a, -0);
 }
 
+export function round(value: number, decimals: number = 2) {
+    const pow = Math.pow(10, decimals);
+    return Math.round(value * pow) / pow;
+}
+
 /**
  * `Number.toFixed(n)` always formats a number so that it has `n` digits after the decimal point.
  * For example, `Number(0.00003427).toFixed(2)` returns `0.00`.
