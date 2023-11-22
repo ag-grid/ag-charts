@@ -15,6 +15,13 @@ import {
     AgNumberAxisOptions,
 } from 'ag-charts-community';
 
+// Chart Data Interface
+interface IData {
+    month: 'Jan' | 'Feb' | 'Mar' | 'Apr' | 'May' | 'Jun' | 'Jul' | 'Aug' | 'Sep' | 'Oct' | 'Nov' | 'Dec';
+    avgTemp: number;
+    iceCreamSales: number;
+}
+
 @Component({
     selector: 'my-app',
     standalone: true,
@@ -48,7 +55,12 @@ export class AppComponent {
             // Series: Defines which chart type and data to use
             series: [
                 { type: 'bar', xKey: 'month', yKey: 'iceCreamSales', yName: 'Ice Cream Sales' } as AgBarSeriesOptions,
-                { type: 'line', xKey: 'month', yKey: 'avgTemp', yName: 'Average Temperature' } as AgLineSeriesOptions,
+                {
+                    type: 'line',
+                    xKey: 'month',
+                    yKey: 'avgTemp',
+                    yName: 'Average Temperature (°C)',
+                } as AgLineSeriesOptions,
             ],
             // Axes: Configure the axes for the chart
             axes: [

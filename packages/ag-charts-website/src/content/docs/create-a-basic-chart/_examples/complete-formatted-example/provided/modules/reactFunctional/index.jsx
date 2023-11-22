@@ -27,7 +27,7 @@ const ChartExample = () => {
         // Series: Defines which chart type and data to use
         series: [
             { type: 'bar', xKey: 'month', yKey: 'iceCreamSales', yName: 'Ice Cream Sales' },
-            { type: 'line', xKey: 'month', yKey: 'avgTemp', yName: 'Average Temperature' },
+            { type: 'line', xKey: 'month', yKey: 'avgTemp', yName: 'Average Temperature (°C)' },
         ],
         // Axes: Configure the axes for the chart
         axes: [
