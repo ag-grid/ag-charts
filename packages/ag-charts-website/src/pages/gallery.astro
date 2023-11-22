@@ -151,18 +151,17 @@ const { series } = galleryData;
         padding: 2px;
 
         :global(.icon) {
-            opacity: 0.75;
-            transition:
-                opacity $default-transition-timing,
-                fill $default-transition-timing;
+            fill: color-mix(in srgb, var(--text-color) 75%, transparent);
+            transition: fill $default-transition-timing;
         }
 
         &:hover {
             --text-color: var(--link-hover-color);
+
             background: rgba(56, 146, 249, 0.06);
 
             :global(.icon) {
-                opacity: 1;
+                fill: var(--text-color);
             }
         }
     }
