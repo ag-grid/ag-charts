@@ -132,15 +132,13 @@ export function removeUsedEnterpriseOptions<T extends AgChartOptions>(options: T
             }
         }
     }
-    for (const enterpriseOption of usedOptions) {
+    if (usedOptions.length > 0) {
         Logger.warnOnce(
             [
-                `AG Charts: unable to use ${enterpriseOption} as package 'ag-charts-enterprise' has not been imported.`,
-                'Check that you have imported the package:',
-                '',
-                '    import "ag-charts-enterprise";',
-                '',
-                'For more info see: https://charts.ag-grid.com/javascript/installation/',
+                `unable to use enterprise features as package 'ag-charts-enterprise' has not been loaded; affected options provided are:`,
+                ...usedOptions,
+                ``,
+                'See: https://charts.ag-grid.com/javascript/installation/',
             ].join('\n')
         );
     }
