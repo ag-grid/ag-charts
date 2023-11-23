@@ -112,7 +112,6 @@
 
 .galleryScroller {
     position: relative;
-    aspect-ratio: 16/9;
     height: max(416px, 33vh);
     background-image: url('../../images/gallery-light@0.5x.jpg');
     background-repeat: repeat-y;
@@ -138,6 +137,10 @@
         &::after {
             background-image: linear-gradient(transparent, var(--default-background-color));
         }
+    }
+
+    @media screen and (min-width: $breakpoint-hero-large) {
+        aspect-ratio: 16/9;
     }
 }
 
