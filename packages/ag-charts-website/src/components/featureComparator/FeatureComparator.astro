@@ -3,13 +3,10 @@ import { Icon } from '@components/icon/Icon';
 import { FeatureTitle } from './FeatureTitle';
 import styles from './FeatureComparator.module.scss';
 import { createStyle } from '../../utils/styles';
-import menuContent from '../../content/menu/data.json';
+import { getEntry } from 'astro:content'
 const { direction, alignItems, justifyContent } = Astro.props;
 
-const containerStyle = createStyle({
-    'align-items': alignItems,
-    'justify-content': justifyContent,
-});
+const { data: menuContent } = await getEntry('menu', 'data');
 
 const features = [
     ...menuContent.main.items.slice(1),
@@ -18,7 +15,7 @@ const features = [
 
 ---
 
-<table class:list={[styles.featureTable]}>
+<table class={styles.featureTable}>
     <tr>
         <th></th>
         <th>Community</th>

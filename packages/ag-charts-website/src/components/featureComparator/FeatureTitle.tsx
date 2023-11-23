@@ -11,7 +11,7 @@ type FeatureTitleProps = {
 };
 
 export const FeatureTitle = ({ title, isRoot, path, isEnterprise }: FeatureTitleProps) => {
-    const textClassName = isRoot ? styles.featureGroup : styles.feature;
+    const textClassName = isRoot ? styles.featureGroup : undefined;
     return (
         <div className={styles.featureTitleContainer}>
             {path ? (
