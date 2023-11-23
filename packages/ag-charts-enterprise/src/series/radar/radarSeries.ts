@@ -644,7 +644,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
     }
 
     override animateWaitingUpdateReady(data: _ModuleSupport.PolarAnimationData) {
-        super.animateReadyResize(data);
+        super.animateWaitingUpdateReady(data);
         this.resetPaths();
     }
 
