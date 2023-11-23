@@ -24,9 +24,15 @@ const options: AgChartOptions = {
         },
     ],
     gradientLegend: {
-        gradient: {
-            thickness: 50,
-            preferredLength: 400,
+        stop: {
+            label: {
+                fontSize: 20,
+                fontStyle: 'italic',
+                fontWeight: 'bold',
+                fontFamily: 'serif',
+                color: 'red',
+            },
+            padding: 20,
         },
     },
     title: {

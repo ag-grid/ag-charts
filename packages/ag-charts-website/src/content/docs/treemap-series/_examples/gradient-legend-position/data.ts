@@ -4,15 +4,13 @@ export const data = [
         children: [
             { title: 'Medical service', total: 205.6, change: 9.4 },
             { title: 'Public health services', total: 9.5, change: -0.2 },
-            { title: 'R&D Health', total: 1.6, change: -0.3 },
         ],
     },
     {
         title: 'Pensions',
         children: [
             { title: 'Sickness and disability', total: 61.2, change: 8.7 },
-            { title: 'Old age', total: 141.8, change: 17.9 },
-            { title: 'Survivors', total: 1.4, change: 0 },
+            { title: 'Old age', total: 141.8, change: 20 },
         ],
     },
     {
@@ -20,7 +18,7 @@ export const data = [
         children: [
             { title: 'General economic, commercial and labour', total: 18.8, change: -2.8 },
             { title: 'Agriculture, forestry, fishing and hunt', total: 6.5, change: 0.3 },
-            { title: 'Fuel and energy', total: 8.8, change: -34.1 },
+            { title: 'Fuel and energy', total: 8.8, change: -40 },
             { title: 'Communication', total: 0.2, change: -0.1 },
             { title: 'Other industries', total: 0.2, change: -0.1 },
             { title: 'R&D Economic affairs', total: 12.6, change: 5.4 },

@@ -10,7 +10,7 @@ export const data = [
         title: 'Pensions',
         children: [
             { title: 'Sickness and disability', total: 61.2, change: 8.7 },
-            { title: 'Old age', total: 141.8, change: 17.9 },
+            { title: 'Old age', total: 141.8, change: 20 },
         ],
     },
     {
@@ -18,7 +18,7 @@ export const data = [
         children: [
             { title: 'General economic, commercial and labour', total: 18.8, change: -2.8 },
             { title: 'Agriculture, forestry, fishing and hunt', total: 6.5, change: 0.3 },
-            { title: 'Fuel and energy', total: 8.8, change: -34.1 },
+            { title: 'Fuel and energy', total: 8.8, change: -40 },
             { title: 'Communication', total: 0.2, change: -0.1 },
             { title: 'Other industries', total: 0.2, change: -0.1 },
             { title: 'R&D Economic affairs', total: 12.6, change: 5.4 },

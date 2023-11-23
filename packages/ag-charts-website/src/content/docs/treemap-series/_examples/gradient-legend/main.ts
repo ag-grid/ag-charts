@@ -9,8 +9,6 @@ const options: AgChartOptions = {
         {
             type: 'treemap',
             labelKey: 'title',
-            sizeKey: 'total',
-            sizeName: 'Total',
             colorKey: 'change',
             colorName: 'Change',
         },

@@ -19,8 +19,6 @@ const options: AgChartOptions = {
         {
             type: 'sunburst',
             labelKey: 'name',
-            sizeKey: 'gdp',
-            sizeName: 'GDP',
             colorKey: 'gdpChange',
             colorName: 'Change',
         },
