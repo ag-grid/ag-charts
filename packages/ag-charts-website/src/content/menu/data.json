@@ -69,6 +69,10 @@
                     {
                         "title": "Installation",
                         "path": "installation"
+                    },
+                    {
+                        "title": "Upgrading to Enterprise",
+                        "path": "licensing"
                     }
                 ]
             },

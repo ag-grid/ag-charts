@@ -1,0 +1,16 @@
+@use '../../design-system' as *;
+
+.featureTitleContainer {
+    display: flex;
+    align-items: center;
+    gap: $size-1;
+}
+
+.enterpriseIcon {
+    --icon-size: #{$size-2};
+    --text-color: red;
+}
+
+.featureGroup {
+    font-size: var(--font-size-extra-large);
+}

@@ -1,0 +1,23 @@
+@use '../../design-system' as *;
+
+.featureTable td {
+    vertical-align: middle;
+}
+
+.enterpriseIcon {
+    --icon-size: #{$size-2};
+    --text-color: red;
+}
+
+.featureAvailableIcon {
+    --text-color: #28a745;
+}
+
+.featureNotAvailableIcon {
+    --text-color: #dc3545;
+}
+
+.featureNotAvailableIcon,
+.featureAvailableIcon {
+    --icon-size: #{$size-3};
+}
