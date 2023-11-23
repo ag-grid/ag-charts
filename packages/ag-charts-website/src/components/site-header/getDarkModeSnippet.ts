@@ -54,14 +54,20 @@ const DARK_MODE_SNIPPETS = {
         document.querySelector('html').setAttribute('data-dark-mode', localStorage['documentation:darkmode'] === 'true');
         window.addEventListener('message', (event) => {
             if (event.data && event.data.type === 'color-scheme-change') {
-                this.options.baseTheme = event.data.darkmode ? 'ag-default-dark' : 'ag-default'
+                this.options = {
+                    ...this.options,
+                    theme: {
+                        ...this.options,
+                        baseTheme: event.data.darkmode ? 'ag-default-dark' : 'ag-default'
+                    }
+                };
                 document.querySelector('html').setAttribute('data-dark-mode', event.data.darkmode);
             }
         });`,
     reactFunctional: () => `
         options.theme = {
-            baseTheme: localStorage['documentation:darkmode'] === 'true' ? 'ag-default-dark' : 'ag-default',
-            ...options.theme
+            ...options.theme,
+            baseTheme: localStorage['documentation:darkmode'] === 'true' ? 'ag-default-dark' : 'ag-default'
         }
         document.querySelector('html').setAttribute('data-dark-mode', localStorage['documentation:darkmode'] === 'true');
         window.addEventListener('message', (event) => {
@@ -78,8 +84,8 @@ const DARK_MODE_SNIPPETS = {
         });`,
     reactFunctionalTs: () => `
         options.theme = {
-            baseTheme: localStorage['documentation:darkmode'] === 'true' ? 'ag-default-dark' : 'ag-default',
-            ...options.theme
+            ...options.theme,
+            baseTheme: localStorage['documentation:darkmode'] === 'true' ? 'ag-default-dark' : 'ag-default'
         }
         document.querySelector('html').setAttribute('data-dark-mode', localStorage['documentation:darkmode'] === 'true');
         window.addEventListener('message', (event) => {
