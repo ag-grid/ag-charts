@@ -28,6 +28,7 @@ const options: AgChartOptions = {
                     };
                 },
             },
+            target: { strokeWidth: 5, stroke: 'red' },
         },
     ],
     axes: [
