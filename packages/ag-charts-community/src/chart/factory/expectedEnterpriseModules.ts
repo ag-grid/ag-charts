@@ -47,6 +47,18 @@ const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
     { type: 'series-option', optionsKey: 'errorBar', chartTypes: ['cartesian'], identifier: 'error-bars' },
 ];
 
+export function isEnterpriseSeriesType(type: string) {
+    return EXPECTED_ENTERPRISE_MODULES.some((s) => s.type === 'series' && s.identifier === type);
+}
+
+export function getEnterpriseSeriesChartTypes(type: string) {
+    return EXPECTED_ENTERPRISE_MODULES.find((s) => s.type === 'series' && s.identifier === type)?.chartTypes;
+}
+
+export function isEnterpriseSeriesTypeLoaded(type: string) {
+    return (EXPECTED_ENTERPRISE_MODULES.find((s) => s.type === 'series' && s.identifier === type)?.useCount ?? 0) > 0;
+}
+
 export function verifyIfModuleExpected(module: Module<any>) {
     if (module.packageType !== 'enterprise') {
         throw new Error('AG Charts - internal configuration error, only enterprise modules need verification.');
@@ -77,7 +89,7 @@ export function removeUsedEnterpriseOptions<T extends AgChartOptions>(options: T
     const usedOptions: string[] = [];
     const optionsChartType = getChartType(optionsType(options));
     for (const { type, chartTypes, optionsKey, optionsInnerKey, identifier } of EXPECTED_ENTERPRISE_MODULES) {
-        if (!chartTypes.includes(optionsChartType)) continue;
+        if (optionsChartType !== 'unknown' && !chartTypes.includes(optionsChartType)) continue;
 
         if (type === 'root' || type === 'legend') {
             const optionValue = options[optionsKey as keyof T] as any;

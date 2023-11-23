@@ -14,7 +14,7 @@ import { Logger } from '../../util/logger';
 import type { DeepPartial } from '../../util/types';
 import { AXIS_TYPES } from '../factory/axisTypes';
 import { CHART_TYPES } from '../factory/chartTypes';
-import { removeUsedEnterpriseOptions } from '../factory/expectedEnterpriseModules';
+import { isEnterpriseSeriesType, removeUsedEnterpriseOptions } from '../factory/expectedEnterpriseModules';
 import {
     executeCustomDefaultsFunctions,
     getSeriesDefaults,
@@ -91,7 +91,7 @@ export function prepareOptions<T extends AgChartOptions>(options: T): T {
     const globalTooltipPositionOptions = getGlobalTooltipPositionOptions(options.tooltip?.position);
 
     const checkSeriesType = (type?: string) => {
-        if (type != null && !(isSeriesOptionType(type) || getSeriesDefaults(type))) {
+        if (type != null && !(isSeriesOptionType(type) || isEnterpriseSeriesType(type) || getSeriesDefaults(type))) {
             throw new Error(`AG Charts - unknown series type: ${type}; expected one of: ${CHART_TYPES.seriesTypes}`);
         }
     };
@@ -285,9 +285,9 @@ function prepareTheme<T extends AgChartOptions>(options: T) {
 
     return {
         theme,
-        axesThemes: themeConfig['axes'] ?? {},
+        axesThemes: themeConfig?.['axes'] ?? {},
         seriesThemes: seriesThemes,
-        cleanedTheme: jsonMerge([themeConfig, { axes: DELETE, series: DELETE }]),
+        cleanedTheme: jsonMerge([themeConfig ?? {}, { axes: DELETE, series: DELETE }]),
         userPalette,
     };
 }
