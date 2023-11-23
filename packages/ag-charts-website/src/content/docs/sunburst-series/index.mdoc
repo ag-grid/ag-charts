@@ -73,7 +73,7 @@ series: [
 
 Sectors can also be coloured using a scale. This lets you add an extra dimension of information to your chart.
 
-{% chartExampleRunner title="Colour Range" name="color-range" type="generated" /%}
+{% chartExampleRunner title="Colour Scale" name="color-scale" type="generated" /%}
 
 Colouring can be customised by the `colorKey` and `colorRange` values in the series options.
 
@@ -155,6 +155,83 @@ In this configuration:
 -   `spacing` controls the amount of space below a label
 -   `padding` adds space between the edge of a sector and its contents
 -   `formatter` allows customising the value of a label using a function
+
+## Gradient Legend
+
+The Gradient Legend aids in matching the colour coding of the Heatmap Series to the underlying values, and is enabled by default.
+
+{% chartExampleRunner title="Gradient Legend" name="gradient-legend" type="generated" /%}
+
+```js
+series: [
+    {
+        type: 'sunburst',
+        labelKey: 'name',
+        sizeKey: 'gdp',
+        sizeName: 'GDP',
+        colorKey: 'gdpChange',
+        colorName: 'Change',
+        colorRange: ['rgb(63, 145, 79)', 'rgb(253, 149, 63)'],
+    },
+],
+gradientLegend: {
+    enabled: true,
+},
+```
+
+### Position
+
+{% chartExampleRunner title="Gradient Legend Position" name="gradient-legend-position" type="generated" /%}
+
+By default the Gradient Legend is placed at the bottom of the chart. Use the `position` option to change this.
+
+```js
+gradientLegend: {
+   position: 'right',
+   reverseOrder: true
+},
+```
+
+In the above example, `reverseOrder` is used to change the direction of the Gradient Legend to display the values from top to bottom.
+
+### Size
+
+{% chartExampleRunner title="Gradient Legend Size" name="gradient-legend-size" type="generated" /%}
+
+```js
+gradientLegend: {
+    gradient: {
+        thickness: 50,
+        preferredLength: 400,
+    },
+},
+```
+
+In the above configuration:
+
+-   `thickness` controls the thickness (or width) of the gradient bar.
+-   `preferredLength` sets the initial length of the gradient bar. It is only _preferred_, as the Gradient Legend is constrained by the container edges.
+
+### Labels
+
+It is possible to customise the font, colour and padding of the labels by using the `stop` options.
+
+{% chartExampleRunner title="Gradient Legend Labels" name="gradient-legend-labels" type="generated" /%}
+
+```js
+gradientLegend: {
+    stop: {
+        label: {
+            fontSize: 20,
+            fontStyle: 'italic',
+            fontWeight: 'bold',
+            fontFamily: 'serif',
+            color: 'red',
+        },
+        padding: 20,
+    },
+},
+```
 
 ## API Reference
 
