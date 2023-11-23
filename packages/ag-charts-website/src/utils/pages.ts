@@ -6,6 +6,7 @@ import glob from 'glob';
 import { DEV_FILE_BASE_PATH, SITE_BASE_URL, TYPESCRIPT_INTERNAL_FRAMEWORKS } from '../constants';
 import { getIsDev } from './env';
 import { pathJoin } from './pathJoin';
+import { urlWithBaseUrl } from './urlWithBaseUrl';
 
 export type DocsPage =
     | CollectionEntry<'docs'>
@@ -111,20 +112,6 @@ const getRootUrl = (): URL => {
         : // Relative to `/dist/packages/ag-charts-website/chunks/pages` folder (Nx specific)
           '../../../../../';
     return new URL(root, import.meta.url);
-};
-
-export const urlWithBaseUrl = (url: string = '') => {
-    const regex = /^\/(.*)/gm;
-    const substitution = `${SITE_BASE_URL}$1`;
-
-    return url.match(regex) ? url.replace(regex, substitution) : url;
-};
-
-export const getPathFromUrlPathname = (pathname: string) => {
-    const regex = new RegExp(`^${SITE_BASE_URL}(.*)`);
-    const substitution = '$1';
-
-    return pathname.replace(regex, substitution);
 };
 
 // TODO: Figure out published packages

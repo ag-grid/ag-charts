@@ -2,20 +2,21 @@
 title: 'Installation'
 ---
 
-Learn how to add AG Charts to your webapp.
+Learn how to add AG Charts to your application.
 
 ## Overview
 
-Adding AG Charts to your webapp is simple and follows standard NPM conventions.
-
+Adding AG Charts to your application is simple and follows standard Node.js conventions for modular Javascript.
 {% if isFramework("javascript") %}
-For Javascript projects we also provide a pre-built UMD bundle for direct use.
+For Javascript projects not building bundles we also provide a pre-built UMD bundle for direct use.
 {% /if %}
 
-## Using a Bundler
+## Adding to Your Bundled Project
 
-This is the recommended approach for modern webapp development. We expect most users will be using a tool such as
-`rollup`, `webpack`, `esbuild`, `vite` or the many other options to bundle their webapp.
+This is the recommended approach for modern application development. We expect most users will be using a tool such as
+`rollup`, `webpack`, `esbuild`, `vite` or the many other options to bundle their application.
+
+### Install NPM Package
 
 {% tabs %}
 {% tabItem id="js-npm" label="NPM" %}
@@ -23,10 +24,12 @@ This is the recommended approach for modern webapp development. We expect most u
 {% if isFramework("javascript") %}
 
 ```bash
-# Install AG Charts community edition (or skip if installing Enterprise).
+# Pick one package only, the enterprise edition depends on community.
+
+# Install AG Charts community edition.
 npm install ag-charts-community
 
-# Install AG Charts enterprise edition (optional).
+# Install AG Charts enterprise edition.
 npm install ag-charts-enterprise
 ```
 
@@ -71,10 +74,12 @@ npm install ag-charts-enterprise
 {% if isFramework("javascript") %}
 
 ```bash
-# Install AG Charts community edition (or skip if installing Enterprise).
+# Pick one package only, the enterprise edition depends on community.
+
+# Install AG Charts community edition.
 yarn add ag-charts-community
 
-# Install AG Charts enterprise edition (optional).
+# Install AG Charts enterprise edition.
 yarn add ag-charts-enterprise
 ```
 
@@ -115,13 +120,70 @@ yarn add ag-charts-enterprise
 {% /tabItem %}
 {% /tabs %}
 
+### Use the Charts API
+
+You can then use the [Charts API](./api-create-update) to create and update chart instances:
+
+{% if isFramework("javascript") %}
+
+```javascript
+import { AgCharts } from 'ag-charts-community';
+
+AgCharts.create(/* chart options /*);
+```
+
+{% /if %}
+{% if isFramework("react") %}
+
+```jsx
+import { AgChartsReact } from 'ag-charts-react';
+
+const MyChart = (options) => {
+  return <AgChartsReact options={options} />;
+};
+```
+
+{% /if %}
+
+{% if isFramework("angular") %}
+
+```javascript
+import { AgChartsAngularModule } from 'ag-charts-angular';
+
+@Component({
+    selector: 'my-app',
+    standalone: true,
+    imports: [AgChartsAngularModule],
+    template: `<ag-charts-angular style="height: 100%" [options]="options"></ag-charts-angular> `,
+})
+export class MyAppComponent {
+    /* ... */
+}
+```
+
+{% /if %}
+
+{% if isFramework("vue") %}
+
+```javascript
+import { AgChartsVue } from 'ag-charts-vue3';
+
+const MyChart = {
+    template: `<ag-charts-vue :options="options"></ag-charts-vue>`,
+    components: { 'ag-charts-vue': AgChartsVue },
+    /* ... */
+};
+```
+
+{% /if %}
+
 ### Enabling Enterprise Features
 
 Enterprise Charts features are enabled by loading the `ag-charts-enterprise` module and setting your license key before
-using the [API](./api-create-update).
+using the [Charts API](./api-create-update).
 
 {% tabs %}
-{% tabItem id="enterprise-load-ts" label="Typescript" %}
+{% tabItem id="enterprise-load-ts" label="Typescript / ES Modules" %}
 
 ```javascript
 import { AgCharts } from 'ag-charts-enterprise';
@@ -130,7 +192,7 @@ AgCharts.setLicenseKey('your license key');
 ```
 
 {% /tabItem %}
-{% tabItem id="enterprise-load-cjs" label="Common JS Syntax" %}
+{% tabItem id="enterprise-load-cjs" label="Common JS" %}
 
 ```javascript
 const agCharts = require('ag-charts-enterprise');
@@ -139,18 +201,9 @@ agCharts.AgCharts.setLicenseKey('your license key');
 ```
 
 {% /tabItem %}
-{% tabItem id="enterprise-load-esm" label="ES Syntax" %}
-
-```javascript
-import { AgCharts } from 'ag-charts-enterprise';
-
-AgCharts.setLicenseKey('your license key');
-```
-
-{% /tabItem %}
 {% /tabs %}
 
-## Without a Bundler
+## Without a Bundled Project
 
 {% if isFramework("react") %}
 We don't support pre-built bundles for React - see the [Javascript](../javascript/installation) documentation for more information.
@@ -166,18 +219,20 @@ We don't support pre-built bundles for Vue - see the [Javascript](../javascript/
 
 {% if isFramework("javascript") %}
 
-Add a `<script>` element the `<head>` of your main HTML page:
+We provide a UMD bundle for direct inclusion in an application's HTML by adding a `<script>` element the `<head>` tag:
 
 ```html
-<!-- Pick one tag only, the enterprise edition bundles community too. -->
-<!-- AG Charts community edition. -->
-<script src="https://cdn.jsdelivr.net/npm/ag-charts-community@9.0.0/dist/umd/ag-charts-community.js"></script>
+<head>
+    <!-- Pick one tag only, the enterprise edition bundles community too. -->
+    <!-- AG Charts community edition. -->
+    <script src="https://cdn.jsdelivr.net/npm/ag-charts-community@9.0.0/dist/umd/ag-charts-community.js"></script>
 
-<!-- AG Charts enterprise edition. -->
-<script src="https://cdn.jsdelivr.net/npm/ag-charts-enterprise@9.0.0/dist/umd/ag-charts-enterprise.js"></script>
+    <!-- AG Charts enterprise edition. -->
+    <script src="https://cdn.jsdelivr.net/npm/ag-charts-enterprise@9.0.0/dist/umd/ag-charts-enterprise.js"></script>
+</head>
 ```
 
-The main AG Charts API is then available as `agCharts`:
+The [Charts API](./api-create-update) is then available via the global `agCharts`:
 
 ```html
 <script>
@@ -191,7 +246,7 @@ The main AG Charts API is then available as `agCharts`:
 ### Enabling Enterprise Features
 
 Enterprise Charts features are enabled by loading the `ag-charts-enterprise.js` bundle and setting your license key before
-using the [API](./api-create-update).
+using the [Charts API](./api-create-update).
 
 ```html
 <script>

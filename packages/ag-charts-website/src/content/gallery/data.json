@@ -317,7 +317,7 @@
         {
             "title": "Range Bar",
             "name": "range-bar",
-            "icon": "chartsRange",
+            "icon": "chartsRangeBar",
             "enterprise": true,
             "examples": [
                 {
@@ -355,7 +355,7 @@
         {
             "title": "Range Area",
             "name": "range-area",
-            "icon": "chartsRange",
+            "icon": "chartsRangeArea",
             "enterprise": true,
             "examples": [
                 {
