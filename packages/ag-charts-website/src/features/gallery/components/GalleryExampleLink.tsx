@@ -13,31 +13,24 @@ interface Props {
 
 export const GalleryExampleLink: FunctionComponent<Props> = ({ label, exampleName, className }) => {
     const { theme } = useTheme();
-    const [imageUrl, setImageUrl] = useState<string>();
-    const [isDarkTheme, setIsDarkTheme] = useState<boolean>();
 
-    useEffect(() => {
-        setImageUrl(
-            getPlainExampleImageUrl({
-                exampleName,
-                theme,
-            })
-        );
-        setIsDarkTheme(theme.indexOf('dark') > -1);
-    }, [theme]);
+    const imageUrl = getPlainExampleImageUrl({ exampleName, theme, ext: 'png' });
 
     return (
         <a
             className={classnames(styles.link, className, 'font-size-responsive', 'font-size-small', 'text-secondary')}
             href={getPageUrl(exampleName)}
         >
-            <img
-                src={imageUrl}
-                alt={label}
-                // Set explicit width and height so the layout doesn't jump around as the page is loading
-                width={600}
-                height={375}
-            />
+            <picture>
+                <source srcSet={getPlainExampleImageUrl({ exampleName, theme, ext: 'webp' })} type="image/webp" />
+                <img
+                    src={getPlainExampleImageUrl({ exampleName, theme, ext: 'png' })}
+                    alt={label}
+                    // Set explicit width and height so the layout doesn't jump around as the page is loading
+                    width={600}
+                    height={375}
+                />
+            </picture>
             <span>{label}</span>
         </a>
     );

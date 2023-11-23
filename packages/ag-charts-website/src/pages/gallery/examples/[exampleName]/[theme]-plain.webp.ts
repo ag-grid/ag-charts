@@ -18,5 +18,5 @@ export async function getStaticPaths() {
 }
 
 export async function get({ params }: { params: Params }) {
-    return await generateExample({ ...params, format: 'png' });
+    return await generateExample({ ...params, format: 'webp' });
 }

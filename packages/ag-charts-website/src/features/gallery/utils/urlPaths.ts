@@ -20,8 +20,16 @@ export const getExampleRunnerExampleUrl = ({
     return isFullPath ? fullPath : path;
 };
 
-export const getPlainExampleImageUrl = ({ exampleName, theme }: { exampleName: string; theme: ThemeName }) => {
-    const imageUrl = pathJoin(SITE_BASE_URL, 'gallery', 'examples', `${exampleName}/${theme}-plain.png`);
+export const getPlainExampleImageUrl = ({
+    exampleName,
+    theme,
+    ext,
+}: {
+    exampleName: string;
+    theme: ThemeName;
+    ext: 'png' | 'webp';
+}) => {
+    const imageUrl = pathJoin(SITE_BASE_URL, 'gallery', 'examples', `${exampleName}/${theme}-plain.${ext}`);
     return imageUrl;
 };
 
