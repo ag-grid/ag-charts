@@ -49,6 +49,9 @@ export default defineMarkdocConfig({
                 options: { type: Object },
             },
         },
+        featureComparator: {
+            render: component('./src/components/featureComparator/FeatureComparator.astro'),
+        },
         note: {
             render: component('./src/components/alert/Note'),
         },
