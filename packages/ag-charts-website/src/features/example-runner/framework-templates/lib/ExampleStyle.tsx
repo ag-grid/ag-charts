@@ -27,7 +27,7 @@ export const ExampleStyle = ({ rootId }: { rootId?: string }) => (
             overflow: auto;
         }
 
-        button:not(#myGrid button, #myChart button, button[class*='ag-'], .ag-chart-context-menu__menu) {
+        button:not(#myGrid button, #myChart button, button[class*='ag-'], .ag-chart-context-menu button) {
             --background-color: transparent;
             --text-color: #212529;
             --border-color: rgba(187, 187, 187, 0.3);
@@ -51,11 +51,11 @@ export const ExampleStyle = ({ rootId }: { rootId?: string }) => (
             transition: background-color .25s ease-in-out;
         }
 
-        button:not(#myGrid button, #myChart button, button[class*='ag-'], .ag-chart-context-menu__menu):hover {
+        button:not(#myGrid button, #myChart button, button[class*='ag-'], .ag-chart-context-menu button):hover {
           background-color: var(--hover-background-color);
         }
 
-        html[data-dark-mode=true] button:not(#myGrid button, #myChart button, button[class*='ag-'], .ag-chart-context-menu__menu) {
+        html[data-dark-mode=true] button:not(#myGrid button, #myChart button, button[class*='ag-'], .ag-chart-context-menu button) {
 
           --text-color: #f8f9fa;
           --border-color: rgba(255,255,255, 0.2);
