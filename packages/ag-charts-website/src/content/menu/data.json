@@ -41,15 +41,15 @@
             },
             {
                 "title": "Chart API",
-                "path": "/javascript/api-create-update"
+                "path": "/[framework]/api-create-update"
             },
             {
                 "title": "Events API",
-                "path": "/javascript/events"
+                "path": "/[framework]/events"
             },
             {
                 "title": "Download API",
-                "path": "/javascript/api-download"
+                "path": "/[framework]/api-download"
             }
         ]
     },
