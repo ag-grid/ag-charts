@@ -1129,7 +1129,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             this.defaultTickMinSpacing,
             rangeWithBleed / ContinuousScale.defaultMaxTickCount
         );
-        const clampMaxTickCount = !isNaN(maxSpacing);
+        let clampMaxTickCount = !isNaN(maxSpacing);
 
         if (isNaN(minSpacing)) {
             minSpacing = defaultMinSpacing;
@@ -1153,6 +1153,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                 ? minRect.width
                 : minRect.height
             : 1;
+        clampMaxTickCount &&= minRectDistance < defaultMinSpacing;
+
         const maxTickCount = clamp(
             1,
             Math.floor(rangeWithBleed / minSpacing),
