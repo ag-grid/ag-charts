@@ -510,6 +510,7 @@ function applySeries(chart: Chart, options: AgChartOptions) {
         return false;
     }
 
+    debug(`AgChartV2.applySeries() - creating new series instances`);
     chart.series = createSeries(chart, optSeries);
     return true;
 }

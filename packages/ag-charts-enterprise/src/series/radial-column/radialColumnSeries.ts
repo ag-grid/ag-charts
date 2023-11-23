@@ -9,6 +9,7 @@ const { ChartAxisDirection, OPT_NUMBER, PolarAxis, Validate } = _ModuleSupport;
 
 export class RadialColumnSeries extends RadialColumnSeriesBase<RadialColumnShape> {
     static className = 'RadialColumnSeries';
+    static type = 'radial-column' as const;
 
     @Validate(OPT_NUMBER(0, 1))
     columnWidthRatio?: number;
