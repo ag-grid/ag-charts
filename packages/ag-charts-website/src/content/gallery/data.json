@@ -580,6 +580,11 @@
                     "title": "Simple Bullet Series",
                     "description": "A Bullet Series presents a single data point within a predefined range, commonly used to illustrate the relationship of a key value to a target or comparative values.",
                     "name": "simple-bullet"
+                },
+                {
+                    "title": "Horizontal Bullet Series",
+                    "description": "A Bullet Series presents a single data point within a predefined range, commonly used to illustrate the relationship of a key value to a target or comparative values.",
+                    "name": "horizontal-bullet"
                 }
             ]
         }
