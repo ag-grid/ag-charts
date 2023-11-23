@@ -51,8 +51,6 @@ const options: AgChartOptions = {
 let chart = AgCharts.create(options);
 
 function setProfit(profit: number) {
-    if (options.data !== undefined) {
-        options.data[0].profit = profit;
-        AgCharts.update(chart, options);
-    }
+    options.data = [{ profit, targetProfit: 35 }];
+    AgCharts.update(chart, options);
 }
