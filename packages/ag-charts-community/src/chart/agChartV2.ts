@@ -25,6 +25,7 @@ import { getJsonApplyOptions } from './chartOptions';
 import { AgChartInstanceProxy } from './chartProxy';
 import { ChartUpdateType } from './chartUpdateType';
 import { getAxis } from './factory/axisTypes';
+import { isEnterpriseSeriesType, isEnterpriseSeriesTypeLoaded } from './factory/expectedEnterpriseModules';
 import { getLegendKeys } from './factory/legendTypes';
 import { registerInbuiltModules } from './factory/registerInbuiltModules';
 import { getSeries } from './factory/seriesTypes';
@@ -553,7 +554,11 @@ function createSeries(chart: Chart, options: SeriesOptionsTypes[]): Series<any>[
     let index = 0;
     for (const seriesOptions of options ?? []) {
         const path = `series[${index++}]`;
-        const seriesInstance = getSeries(seriesOptions.type ?? 'unknown', moduleContext);
+        const type = seriesOptions.type ?? 'unknown';
+        if (isEnterpriseSeriesType(type) && !isEnterpriseSeriesTypeLoaded(type)) {
+            continue;
+        }
+        const seriesInstance = getSeries(type, moduleContext);
         applySeriesOptionModules(seriesInstance, seriesOptions);
         applySeriesValues(seriesInstance, seriesOptions, { path, index });
         series.push(seriesInstance);

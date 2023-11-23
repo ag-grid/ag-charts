@@ -1,16 +1,12 @@
 /* eslint-disable sonarjs/no-collapsible-if */
 import type { Module } from '../../module-support';
-import type { AgChartOptions } from '../../options/chart/chartBuilderOptions';
-import { Logger } from '../../util/logger';
-import { optionsType } from '../mapping/types';
-import { getChartType } from './chartTypes';
 
 type EnterpriseModuleStub = Pick<Module<any>, 'type' | 'identifier' | 'optionsKey' | 'chartTypes'> & {
     useCount?: number;
     optionsInnerKey?: string;
 };
 
-const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
+export const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
     { type: 'root', optionsKey: 'animation', chartTypes: ['cartesian', 'polar', 'hierarchy'] },
     {
         type: 'root',
@@ -47,6 +43,31 @@ const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
     { type: 'series-option', optionsKey: 'errorBar', chartTypes: ['cartesian'], identifier: 'error-bars' },
 ];
 
+export function isEnterpriseSeriesType(type: string) {
+    return EXPECTED_ENTERPRISE_MODULES.some((s) => s.type === 'series' && s.identifier === type);
+}
+
+export function getEnterpriseSeriesChartTypes(type: string) {
+    return EXPECTED_ENTERPRISE_MODULES.find((s) => s.type === 'series' && s.identifier === type)?.chartTypes;
+}
+
+export function isEnterpriseSeriesTypeLoaded(type: string) {
+    return (EXPECTED_ENTERPRISE_MODULES.find((s) => s.type === 'series' && s.identifier === type)?.useCount ?? 0) > 0;
+}
+
+export function isEnterpriseCartesian(seriesType: string) {
+    const type = getEnterpriseSeriesChartTypes(seriesType)?.find((v) => v === 'cartesian');
+    return type === 'cartesian';
+}
+export function isEnterprisePolar(seriesType: string) {
+    const type = getEnterpriseSeriesChartTypes(seriesType)?.find((v) => v === 'polar');
+    return type === 'polar';
+}
+export function isEnterpriseHierarchy(seriesType: string) {
+    const type = getEnterpriseSeriesChartTypes(seriesType)?.find((v) => v === 'hierarchy');
+    return type === 'hierarchy';
+}
+
 export function verifyIfModuleExpected(module: Module<any>) {
     if (module.packageType !== 'enterprise') {
         throw new Error('AG Charts - internal configuration error, only enterprise modules need verification.');
@@ -71,65 +92,4 @@ export function verifyIfModuleExpected(module: Module<any>) {
 
 export function getUnusedExpectedModules() {
     return EXPECTED_ENTERPRISE_MODULES.filter(({ useCount }) => useCount == null || useCount === 0);
-}
-
-export function removeUsedEnterpriseOptions<T extends AgChartOptions>(options: T) {
-    const usedOptions: string[] = [];
-    const optionsChartType = getChartType(optionsType(options));
-    for (const { type, chartTypes, optionsKey, optionsInnerKey, identifier } of EXPECTED_ENTERPRISE_MODULES) {
-        if (!chartTypes.includes(optionsChartType)) continue;
-
-        if (type === 'root' || type === 'legend') {
-            const optionValue = options[optionsKey as keyof T] as any;
-            if (optionValue != null) {
-                if (!optionsInnerKey) {
-                    usedOptions.push(optionsKey);
-                    delete options[optionsKey as keyof T];
-                } else if (optionValue[optionsInnerKey]) {
-                    usedOptions.push(`${optionsKey}.${optionsInnerKey}`);
-                    delete optionValue[optionsInnerKey];
-                }
-            }
-        } else if (type === 'axis') {
-            if ('axes' in options && options.axes?.some((axis) => axis.type === identifier)) {
-                usedOptions.push(`axis[type=${identifier}]`);
-                options.axes = (options.axes as any).filter((axis: any) => axis.type !== identifier);
-            }
-        } else if (type === 'axis-option') {
-            if ('axes' in options && options.axes?.some((axis) => axis[optionsKey as keyof typeof axis])) {
-                usedOptions.push(`axis.${optionsKey}`);
-                options.axes.forEach((axis) => {
-                    if (axis[optionsKey as keyof typeof axis]) {
-                        delete axis[optionsKey as keyof typeof axis];
-                    }
-                });
-            }
-        } else if (type === 'series') {
-            if (options.series?.some((series) => series.type === identifier)) {
-                usedOptions.push(`series[type=${identifier}]`);
-                options.series = (options.series as any).filter((series: any) => series.type !== identifier);
-            }
-        } else if (type === 'series-option') {
-            if (options.series?.some((series) => series[optionsKey as keyof typeof series])) {
-                usedOptions.push(`series.${optionsKey}`);
-                options.series.forEach((series) => {
-                    if (series[optionsKey as keyof typeof series]) {
-                        delete series[optionsKey as keyof typeof series];
-                    }
-                });
-            }
-        }
-    }
-    for (const enterpriseOption of usedOptions) {
-        Logger.warnOnce(
-            [
-                `AG Charts: unable to use ${enterpriseOption} as package 'ag-charts-enterprise' has not been imported.`,
-                'Check that you have imported the package:',
-                '',
-                '    import "ag-charts-enterprise";',
-                '',
-                'For more info see: https://charts.ag-grid.com/javascript/installation/',
-            ].join('\n')
-        );
-    }
 }

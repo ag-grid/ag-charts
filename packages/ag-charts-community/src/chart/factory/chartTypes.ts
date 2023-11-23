@@ -47,6 +47,6 @@ export function getChartDefaults(chartType: ChartType) {
     return DEFAULTS[chartType] ?? {};
 }
 
-export function getChartType(seriesType: string) {
+export function getChartType(seriesType: string): ChartType | 'unknown' {
     return TYPES[seriesType] ?? 'unknown';
 }

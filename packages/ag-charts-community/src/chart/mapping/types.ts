@@ -7,6 +7,7 @@ import type {
 import { Logger } from '../../util/logger';
 import { AXIS_TYPES } from '../factory/axisTypes';
 import { CHART_TYPES } from '../factory/chartTypes';
+import { isEnterpriseCartesian, isEnterpriseHierarchy, isEnterprisePolar } from '../factory/expectedEnterpriseModules';
 
 export type AxesOptionsTypes = NonNullable<AgCartesianChartOptions['axes']>[number];
 export type SeriesOptionsTypes = NonNullable<AgChartOptions['series']>[number];
@@ -29,7 +30,7 @@ export function isAgCartesianChartOptions(input: AgChartOptions): input is AgCar
         return true;
     }
 
-    return CHART_TYPES.isCartesian(specifiedType);
+    return CHART_TYPES.isCartesian(specifiedType) || isEnterpriseCartesian(specifiedType);
 }
 
 export function isAgHierarchyChartOptions(input: AgChartOptions): input is AgHierarchyChartOptions {
@@ -43,7 +44,7 @@ export function isAgHierarchyChartOptions(input: AgChartOptions): input is AgHie
         return true;
     }
 
-    return CHART_TYPES.isHierarchy(specifiedType);
+    return CHART_TYPES.isHierarchy(specifiedType) || isEnterpriseHierarchy(specifiedType);
 }
 
 export function isAgPolarChartOptions(input: AgChartOptions): input is AgPolarChartOptions {
@@ -57,7 +58,7 @@ export function isAgPolarChartOptions(input: AgChartOptions): input is AgPolarCh
         return true;
     }
 
-    return CHART_TYPES.isPolar(specifiedType);
+    return CHART_TYPES.isPolar(specifiedType) || isEnterprisePolar(specifiedType);
 }
 
 export function isSeriesOptionType(input?: string): input is NonNullable<SeriesOptionsTypes['type']> {
