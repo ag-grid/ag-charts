@@ -80,8 +80,18 @@
         }
     }
 
-    button :global(.icon) {
-        --icon-size: 1.3333em;
+    a {
+        padding-left: $size-4;
+
+        :global(.icon) {
+            --icon-size: 1.3333em;
+
+            transition: transform 0.33s ease-in-out;
+        }
+
+        &:hover :global(.icon) {
+            transform: translateX(4px);
+        }
     }
 }
 
