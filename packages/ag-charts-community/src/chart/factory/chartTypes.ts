@@ -1,5 +1,4 @@
 import { jsonMerge } from '../../util/json';
-import { getEnterpriseSeriesChartTypes } from './expectedEnterpriseModules';
 
 export type ChartType = 'cartesian' | 'polar' | 'hierarchy';
 
@@ -13,16 +12,13 @@ export const CHART_TYPES = {
     },
 
     isCartesian(seriesType: string) {
-        const type = TYPES[seriesType] ?? getEnterpriseSeriesChartTypes(seriesType)?.find((v) => v === 'cartesian');
-        return type === 'cartesian';
+        return TYPES[seriesType] === 'cartesian';
     },
     isPolar(seriesType: string) {
-        const type = TYPES[seriesType] ?? getEnterpriseSeriesChartTypes(seriesType)?.find((v) => v === 'polar');
-        return type === 'polar';
+        return TYPES[seriesType] === 'polar';
     },
     isHierarchy(seriesType: string) {
-        const type = TYPES[seriesType] ?? getEnterpriseSeriesChartTypes(seriesType)?.find((v) => v === 'hierarchy');
-        return type === 'hierarchy';
+        return TYPES[seriesType] === 'hierarchy';
     },
 
     get seriesTypes() {

@@ -14,7 +14,8 @@ import { Logger } from '../../util/logger';
 import type { DeepPartial } from '../../util/types';
 import { AXIS_TYPES } from '../factory/axisTypes';
 import { CHART_TYPES } from '../factory/chartTypes';
-import { isEnterpriseSeriesType, removeUsedEnterpriseOptions } from '../factory/expectedEnterpriseModules';
+import { isEnterpriseSeriesType } from '../factory/expectedEnterpriseModules';
+import { removeUsedEnterpriseOptions } from '../factory/processEnterpriseOptions';
 import {
     executeCustomDefaultsFunctions,
     getSeriesDefaults,
