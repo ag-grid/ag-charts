@@ -74,7 +74,7 @@ export function scaleZoomCenter(zoom: DefinedZoomState, sx: number, sy: number):
 }
 
 /**
- * Scale a single zoom axis about its anchor, ignoring `pointer` anchors.
+ * Scale a single zoom axis about its anchor.
  */
 export function scaleZoomAxisWithAnchor(
     newState: _ModuleSupport.ZoomState,

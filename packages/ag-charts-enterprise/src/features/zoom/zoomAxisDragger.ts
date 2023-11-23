@@ -67,7 +67,7 @@ export class ZoomAxisDragger {
         const target = pointToRatio(bbox, coords.x2, coords.y2);
 
         if (direction === _ModuleSupport.ChartAxisDirection.X) {
-            const scaleX = target.x - origin.x;
+            const scaleX = (target.x - origin.x) * (oldZoom.x.max - oldZoom.x.min);
 
             newZoom.x.max += scaleX;
             newZoom.x = scaleZoomAxisWithAnchor(newZoom.x, oldZoom.x, anchor, origin.x);
@@ -76,7 +76,7 @@ export class ZoomAxisDragger {
             return newZoom.x;
         }
 
-        const scaleY = target.y - origin.y;
+        const scaleY = (target.y - origin.y) * (oldZoom.y.max - oldZoom.y.min);
 
         newZoom.y.max -= scaleY;
         newZoom.y = scaleZoomAxisWithAnchor(newZoom.y, oldZoom.y, anchor, origin.y);
