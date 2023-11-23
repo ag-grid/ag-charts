@@ -2,7 +2,14 @@ import { type _ModuleSupport, _Theme } from 'ag-charts-community';
 
 import { TreemapSeries } from './treemapSeries';
 
-const { NORMAL, EXTENDS_SERIES_DEFAULTS, DEFAULT_FONT_FAMILY, DEFAULT_INSIDE_SERIES_LABEL_COLOUR } = _Theme;
+const {
+    NORMAL,
+    EXTENDS_SERIES_DEFAULTS,
+    DEFAULT_FONT_FAMILY,
+    DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
+    DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
+    DEFAULT_BACKGROUND_CONTRAST_COLOR_RANGE,
+} = _Theme;
 
 export const TreemapSeriesModule: _ModuleSupport.SeriesModule<'treemap'> = {
     type: 'series',
@@ -34,7 +41,7 @@ export const TreemapSeriesModule: _ModuleSupport.SeriesModule<'treemap'> = {
             stroke: undefined, // Override default stroke
             strokeWidth: 0,
             padding: 6,
-            gap: 4,
+            gap: 2,
             textAlign: 'left',
         },
         tile: {
@@ -93,7 +100,13 @@ export const TreemapSeriesModule: _ModuleSupport.SeriesModule<'treemap'> = {
     paletteFactory: ({ takeColors, colorsCount, themeTemplateParameters }) => {
         const { properties } = themeTemplateParameters;
         const { fills, strokes } = takeColors(colorsCount);
-        const defaultColorRange = properties.get(_Theme.DEFAULT_DIVERGING_SERIES_COLOUR_RANGE);
-        return { fills, strokes, colorRange: defaultColorRange };
+        const defaultColorRange = properties.get(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE);
+        const groupFills = properties.get(DEFAULT_BACKGROUND_CONTRAST_COLOR_RANGE);
+        return {
+            fills,
+            strokes,
+            colorRange: defaultColorRange,
+            undocumentedGroupFills: groupFills,
+        };
     },
 };

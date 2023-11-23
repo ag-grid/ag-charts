@@ -18,6 +18,7 @@ import {
     DEFAULT_AXIS_GRID_COLOUR,
     DEFAULT_AXIS_LINE_COLOUR,
     DEFAULT_BACKGROUND_COLOUR,
+    DEFAULT_BACKGROUND_CONTRAST_COLOR_RANGE,
     DEFAULT_CROSS_LINES_COLOUR,
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
     DEFAULT_FONT_FAMILY,
@@ -522,7 +523,18 @@ export class ChartTheme {
         properties.set(DEFAULT_INSIDE_SERIES_LABEL_COLOUR, DEFAULT_BACKGROUND_FILL);
         properties.set(DEFAULT_BACKGROUND_COLOUR, DEFAULT_BACKGROUND_FILL);
         properties.set(DEFAULT_SHADOW_COLOUR, 'rgba(0, 0, 0, 0.5)');
-        properties.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, ['rgb(247,144,110)', 'rgb(140,236,121)']);
+        properties.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [
+            DEFAULT_FILLS.ORANGE,
+            DEFAULT_FILLS.YELLOW,
+            DEFAULT_FILLS.GREEN,
+        ]);
+        properties.set(DEFAULT_BACKGROUND_CONTRAST_COLOR_RANGE, [
+            '#2A343C',
+            '#36414A',
+            '#424E57',
+            '#4F5B64',
+            '#5C6770',
+        ]);
         properties.set(DEFAULT_POLAR_SERIES_STROKE, DEFAULT_BACKGROUND_FILL);
         properties.set(DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS, ChartTheme.getWaterfallSeriesDefaultPositiveColors());
         properties.set(DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS, ChartTheme.getWaterfallSeriesDefaultNegativeColors());

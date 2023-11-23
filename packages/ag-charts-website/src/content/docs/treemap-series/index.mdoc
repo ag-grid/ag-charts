@@ -83,7 +83,7 @@ series: [
         sizeName: 'Size',
         colorKey: 'change',
         colorName: 'Change',
-        colorRange: ['rgb(63, 145, 79)', 'rgb(253, 149, 63)'],
+        colorRange: ['#43A047', '#FF5722'],
     },
 ],
 ```
@@ -108,18 +108,6 @@ series: [
         sizeKey: 'total',
         sizeName: 'Total',
         fills: [
-            '#F4511E',
-            '#FB8C00',
-            '#FFB300',
-            '#FDD835',
-            '#C0CA33',
-            '#7CB342',
-            '#43A047',
-            '#00897B',
-            '#00ACC1',
-            '#039BE5',
-        ],
-        strokes: [
             '#E64A19',
             '#F57C00',
             '#FFA000',
@@ -130,6 +118,18 @@ series: [
             '#00796B',
             '#0097A7',
             '#0288D1',
+        ],
+        strokes: [
+            '#D84315',
+            '#EF6C00',
+            '#FF8F00',
+            '#F9A825',
+            '#9E9D24',
+            '#558B2F',
+            '#2E7D32',
+            '#00695C',
+            '#00838F',
+            '#0277BD',
         ],
     },
 ];
@@ -224,7 +224,7 @@ The default tile gap is set to `-1` so the borders overlap.
 
 ## Gradient Legend
 
-The Gradient Legend aids in matching the colour coding of the Heatmap Series to the underlying values, and is enabled by default.
+The gradient legend aids in matching the colour coding of the treemap series to the underlying values, and is enabled by default.
 
 {% chartExampleRunner title="Gradient Legend" name="gradient-legend" type="generated" /%}
 
@@ -233,11 +233,8 @@ series: [
     {
         type: 'treemap',
         labelKey: 'title',
-        sizeKey: 'total',
-        sizeName: 'Total',
         colorKey: 'change',
         colorName: 'Change',
-        colorRange: ['rgb(234, 82, 80)', 'rgb(67, 153, 83)'],
     },
 ],
 gradientLegend: {
@@ -249,7 +246,7 @@ gradientLegend: {
 
 {% chartExampleRunner title="Gradient Legend Position" name="gradient-legend-position" type="generated" /%}
 
-By default the Gradient Legend is placed at the bottom of the chart. Use the `position` option to change this.
+By default the gradient legend is placed at the bottom of the chart. Use the `position` option to change this.
 
 ```js
 gradientLegend: {
@@ -258,7 +255,7 @@ gradientLegend: {
 },
 ```
 
-In the above example, `reverseOrder` is used to change the direction of the Gradient Legend to display the values from top to bottom.
+In the above example, `reverseOrder` is used to change the direction of the gradient legend to display the values from top to bottom.
 
 ### Size
 
@@ -276,7 +273,7 @@ gradientLegend: {
 In the above configuration:
 
 -   `thickness` controls the thickness (or width) of the gradient bar.
--   `preferredLength` sets the initial length of the gradient bar. It is only _preferred_, as the Gradient Legend is constrained by the container edges.
+-   `preferredLength` sets the initial length of the gradient bar. It is only _preferred_, as the gradient legend is constrained by the container edges.
 
 ### Labels
 

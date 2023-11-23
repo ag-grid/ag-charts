@@ -23,7 +23,7 @@ const options: AgChartOptions = {
             sizeName: 'GDP',
             colorKey: 'gdpChange',
             colorName: 'Change',
-            colorRange: ['rgb(63, 145, 79)', 'rgb(253, 149, 63)'],
+            colorRange: ['#FF9800', '#8BC34A'],
         },
     ],
     title: {

@@ -158,9 +158,6 @@ class TreemapSeriesHighlightStyle extends HighlightStyle {
     readonly tile = new TreemapSeriesTileHighlightStyle();
 }
 
-// We don't expose a way to define your own colours on a per-depth basis yet
-const DEFAULT_GROUP_FILLS = ['#2A343C', '#36414A', '#424E57', '#4F5B64', '#5C6770'];
-
 enum TextNodeTag {
     Primary,
     Secondary,
@@ -244,6 +241,9 @@ export class TreemapSeries<
 
     @Validate(OPT_FUNCTION)
     formatter?: (params: AgTreemapSeriesFormatterParams) => AgTreemapSeriesStyle = undefined;
+
+    // We haven't decided how to expose this yet, but we need to have this property so it can change between light and dark themes
+    undocumentedGroupFills: string[] = [];
 
     private groupTitleHeight(node: _ModuleSupport.HierarchyNode, bbox: _Scene.BBox): number | undefined {
         const label = this.labelData?.[node.index]?.label;
@@ -572,7 +572,8 @@ export class TreemapSeries<
         if (isLeaf) {
             return this.tile.fill ?? node.fill;
         } else {
-            const defaultFill = DEFAULT_GROUP_FILLS[Math.min(node.depth ?? 0, DEFAULT_GROUP_FILLS.length)];
+            const { undocumentedGroupFills } = this;
+            const defaultFill = undocumentedGroupFills[Math.min(node.depth ?? 0, undocumentedGroupFills.length)];
             return this.group.fill ?? defaultFill;
         }
     }
