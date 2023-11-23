@@ -20,7 +20,6 @@ const options: AgChartOptions = {
             scale: { max: 350000 },
             tooltip: {
                 renderer: ({ datum, valueKey, valueName, targetKey, targetName }) => {
-                    datum = datum[0]; // TODO(olegat) fix this bug
                     const value = formatNumber(datum[valueKey]);
                     const target = formatNumber(targetKey ? datum[targetKey] : NaN);
                     return {
