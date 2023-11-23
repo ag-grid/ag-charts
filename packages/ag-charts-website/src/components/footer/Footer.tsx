@@ -1,5 +1,5 @@
 import { SITE_BASE_URL } from '@constants';
-import { urlWithBaseUrl } from '@utils/pages';
+import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import classNames from 'classnames';
 
 import { Icon } from '../icon/Icon';

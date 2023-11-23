@@ -1,6 +1,7 @@
 import type { ApiMenuItem } from '@ag-grid-types';
-import { getPathFromUrlPathname, urlWithBaseUrl } from '@utils/pages';
+import { getPathFromUrlPathname } from '@utils/getPathFromUrlPathname';
 import { pathJoin } from '@utils/pathJoin';
+import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import classnames from 'classnames';
 import type { FunctionComponent } from 'react';
 

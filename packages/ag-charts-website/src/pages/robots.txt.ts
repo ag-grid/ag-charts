@@ -1,8 +1,8 @@
 import { SITE_URL } from '@constants';
 import { getIsProduction } from '@utils/env';
-import { urlWithBaseUrl } from '@utils/pages';
 import { pathJoin } from '@utils/pathJoin';
 import { getSitemapIgnorePaths } from '@utils/sitemapPages';
+import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import type { APIContext } from 'astro';
 
 // Disallow the entire site on dev
