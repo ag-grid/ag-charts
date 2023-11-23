@@ -258,6 +258,10 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
             visible: this.visible,
         };
         for (const { datum, values } of processedData.data) {
+            if (!Array.isArray(datum) || datum.length < 1) {
+                continue;
+            }
+
             const xValue = this.valueName ?? this.valueKey;
             const yValue = Math.min(maxValue, values[0][valueIndex]);
             const y = yScale.convert(yValue);
@@ -292,7 +296,7 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
 
             const nodeData: BulletNodeDatum = {
                 series: this,
-                datum,
+                datum: datum[0],
                 xKey: valueKey,
                 xValue,
                 yKey: valueKey,
