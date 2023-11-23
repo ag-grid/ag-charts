@@ -21,8 +21,6 @@ const options: AgChartOptions = {
             colorKey: 'steps',
             colorName: 'Steps',
 
-            colorRange: ['#fc8d59', '#91cf60'],
-
             strokeWidth: 2,
         },
     ],

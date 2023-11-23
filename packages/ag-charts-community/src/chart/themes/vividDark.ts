@@ -1,6 +1,7 @@
 import type { AgChartThemePalette } from '../../options/agChartOptions';
 import { DarkTheme } from './darkTheme';
 import {
+    DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
     DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
     DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
     DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
@@ -72,6 +73,12 @@ export class VividDark extends DarkTheme {
             VividDark.getWaterfallSeriesDefaultNegativeColors()
         );
         result.properties.set(DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS, VividDark.getWaterfallSeriesDefaultTotalColors());
+
+        result.properties.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [
+            VIVID_DARK_FILLS.GREEN,
+            VIVID_DARK_FILLS.YELLOW,
+            VIVID_DARK_FILLS.ORANGE,
+        ]);
 
         result.properties.set(
             DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,

@@ -13,7 +13,7 @@ const options: AgChartOptions = {
             sizeName: 'Total',
             colorKey: 'change',
             colorName: 'Change',
-            colorRange: ['rgb(234, 82, 80)', 'rgb(67, 153, 83)'],
+            colorRange: ['#43A047', '#FF5722'],
         },
     ],
     title: {

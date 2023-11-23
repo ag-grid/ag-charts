@@ -23,11 +23,9 @@ const options: AgChartOptions = {
             },
             tile: {
                 label: {
-                    color: '#34495e',
                     overflowStrategy: 'hide',
                 },
                 secondaryLabel: {
-                    color: '#34495e',
                     overflowStrategy: 'hide',
                     formatter(params) {
                         return params.value.toFixed(2) + '%';
@@ -36,18 +34,15 @@ const options: AgChartOptions = {
                 strokeWidth: 0,
                 gap: 1,
             },
-            highlightStyle: {
-                tile: {
-                    label: {
-                        color: '#34495e',
-                    },
-                    secondaryLabel: {
-                        color: '#34495e',
-                    },
-                },
-            },
         },
     ],
+    gradientLegend: {
+        stop: {
+            label: {
+                formatter: ({ value }) => `${Number(value).toFixed(0)}%`,
+            },
+        },
+    },
     title: {
         text: 'S&P 500 index stocks categorized by sectors and industries',
     },

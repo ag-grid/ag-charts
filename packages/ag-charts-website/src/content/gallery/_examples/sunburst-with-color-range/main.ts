@@ -2,6 +2,8 @@ import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { data } from './data';
 
+const formatNumber = (value: number) => `£${(value / 1e3).toFixed(0)}k`;
+
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data,
@@ -12,17 +14,16 @@ const options: AgChartOptions = {
             sizeKey: 'sales',
             sizeName: 'Sales',
             colorKey: 'revenue',
-            colorName: 'revenue',
-            label: {
-                color: '#34495e',
-            },
-            highlightStyle: {
-                label: {
-                    color: '#34495e',
-                },
-            },
+            colorName: 'Revenue',
         },
     ],
+    gradientLegend: {
+        stop: {
+            label: {
+                formatter: ({ value }) => formatNumber(Number(value)),
+            },
+        },
+    },
     title: {
         text: 'Sales department',
     },
