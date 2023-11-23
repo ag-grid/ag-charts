@@ -1514,7 +1514,8 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
 
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
-        const supportedDiff = (diff?.moved.length ?? 0) === 0;
+        const supportedDiff =
+            (diff?.moved.length ?? 0) === 0 && diff?.addedIndices.every((i) => !diff.removedIndices.includes(i));
         const hasKeys = (processedData?.defs.keys.length ?? 0) > 0;
         const hasUniqueKeys = processedData?.reduced?.animationValidation?.uniqueKeys ?? true;
         if (!supportedDiff || !hasKeys || !hasUniqueKeys) {
