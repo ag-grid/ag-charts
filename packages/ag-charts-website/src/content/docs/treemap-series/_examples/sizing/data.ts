@@ -1,10 +1,7 @@
 export const data = [
     {
         title: 'Health Care',
-        children: [
-            { title: 'Medical service', total: 205.6, change: 9.4 },
-            { title: 'Public health services', total: 9.5, change: -0.2 },
-        ],
+        children: [{ title: 'Medical service', total: 205.6, change: 9.4 }],
     },
     {
         title: 'Pensions',
@@ -45,7 +42,6 @@ export const data = [
         title: 'Welfare',
         children: [
             { title: 'Family and children', total: 16.8, change: 1.7 },
-            { title: 'Unemployment', total: 1.1, change: 0.1 },
             { title: 'Housing', total: 6.2, change: -0.5 },
             { title: 'Social exclusion n.e.c.', total: 65.4, change: 9.4 },
             { title: 'Social protection n.e.c.', total: 15.1, change: 3.5 },
