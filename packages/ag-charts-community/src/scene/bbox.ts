@@ -104,11 +104,14 @@ export class BBox implements DistantObject {
                     this.x += amt;
                     this.width -= amt * 2;
                     break;
-                default:
+                case undefined:
                     this.x += amt;
                     this.width -= amt * 2;
                     this.y += amt;
                     this.height -= amt * 2;
+                    break;
+                default:
+                // Unknown position - do nothing.
             }
         };
 
