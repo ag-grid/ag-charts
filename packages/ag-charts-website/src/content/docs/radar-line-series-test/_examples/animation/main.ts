@@ -19,10 +19,6 @@ const options: AgChartOptions = {
         },
     ],
     legend: {},
-    animation: {
-        enabled: false,
-        // duration: 3000
-    },
 };
 
 const chart = AgCharts.create(options);
