@@ -39,6 +39,10 @@
         "title": "The Company",
         "links": [
             {
+                "name": "AG Grid",
+                "url": "https://ag-grid.com/"
+            },
+            {
                 "name": "About",
                 "url": "https://ag-grid.com/about/"
             },
