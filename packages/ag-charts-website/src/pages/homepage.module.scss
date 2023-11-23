@@ -118,7 +118,6 @@
     background-repeat: repeat-y;
     background-size: 100% auto;
     animation-duration: 30s;
-    animation-direction: reverse;
     animation-name: scroll-hero;
     animation-iteration-count: infinite;
     animation-timing-function: linear;
@@ -129,12 +128,16 @@
         bottom: 0;
         right: 0;
         left: 0;
-        height: $size-4;
-        background-image: linear-gradient(transparent, var(--default-background-color));
+        height: $size-6;
+        background-image: linear-gradient(transparent, var(--dark-blue-600));
     }
 
     #{$darkmode-selector} & {
         background-image: url('../../images/gallery-dark@0.5x.jpg');
+
+        &::after {
+            background-image: linear-gradient(transparent, var(--default-background-color));
+        }
     }
 }
 

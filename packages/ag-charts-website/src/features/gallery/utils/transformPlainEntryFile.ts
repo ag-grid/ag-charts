@@ -18,6 +18,7 @@ function transformer(sourceFile: string, dataFile?: string, themeName?: ThemeNam
         .find(j.ObjectExpression);
 
     // Find and remove properties in the 'options' object
+    // Add 'title' to remove titles for images for homepage scrolling hero
     const propertiesToRemove = ['subtitle', 'footnote', 'legend', 'gradientLegend'];
 
     optionsExpression.forEach((path) => {
