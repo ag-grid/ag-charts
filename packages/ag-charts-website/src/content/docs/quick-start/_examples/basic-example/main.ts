@@ -1,9 +1,15 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgBarSeriesOptions, AgChartOptions, AgCharts } from 'ag-charts-community';
+
+interface IData {
+    // Chart Data Interface
+    month: 'Jan' | 'Feb' | 'Mar' | 'Apr' | 'May' | 'Jun' | 'Jul' | 'Aug' | 'Sep' | 'Oct' | 'Nov' | 'Dec';
+    avgTemp: number;
+    iceCreamSales: number;
+}
 
 // Chart Options
 const options: AgChartOptions = {
-    // Container: HTML Element to hold the chart
-    container: document.getElementById('myChart') as HTMLElement,
+    container: document.getElementById('myChart') as HTMLElement, // Container: HTML Element to hold the chart
     // Data: Data to be displayed in the chart
     data: [
         { month: 'Jan', avgTemp: 2.3, iceCreamSales: 162 },
@@ -12,9 +18,9 @@ const options: AgChartOptions = {
         { month: 'Jul', avgTemp: 22.8, iceCreamSales: 1254 },
         { month: 'Sep', avgTemp: 14.5, iceCreamSales: 950 },
         { month: 'Nov', avgTemp: 8.9, iceCreamSales: 200 },
-    ],
+    ] as IData[],
     // Series: Defines which chart type and data to use
-    series: [{ type: 'bar', xKey: 'month', yKey: 'iceCreamSales' }],
+    series: [{ type: 'bar', xKey: 'month', yKey: 'iceCreamSales' } as AgBarSeriesOptions],
 };
 
 // Create Chart

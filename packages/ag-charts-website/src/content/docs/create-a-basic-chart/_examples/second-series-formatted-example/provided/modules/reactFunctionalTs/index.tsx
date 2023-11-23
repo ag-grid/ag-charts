@@ -33,7 +33,7 @@ const ChartExample = () => {
         // Chart Subtitle
         subtitle: { text: 'UK Data from 2022' } as AgChartSubtitleOptions,
         // Theme: Style to apply to the chart
-        theme: 'ag-vivid-dark' as AgChartThemeName,
+        theme: 'ag-material-dark' as AgChartThemeName,
         // Data: Data to be displayed within the chart
         data: [
             { month: 'Jan', avgTemp: 2.3, iceCreamSales: 162 },

@@ -19,7 +19,7 @@ const App = {
                 // Chart Subtitle
                 subtitle: { text: 'UK Data from 2022' },
                 // Theme: Style to apply to the chart
-                theme: 'ag-vivid-dark',
+                theme: 'ag-material-dark',
                 // Data: Data to be displayed within the chart
                 data: [
                     { month: 'Jan', avgTemp: 2.3, iceCreamSales: 162 },

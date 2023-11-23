@@ -10,7 +10,11 @@ Create a chart with AG Charts in 60 seconds.
 
 Install the AG Charts library:
 
-<!-- REACT Installation -->
+{% tabs %}
+
+{% tabItem id="js-npm" label="NPM" %}
+
+<!-- REACT NPM Installation -->
 
 {% if isFramework("react") %}
 
@@ -20,7 +24,7 @@ npm install ag-charts-react
 
 {% /if %}
 
-<!-- ANGULAR Installation -->
+<!-- ANGULAR NPM Installation -->
 
 {% if isFramework("angular") %}
 
@@ -30,7 +34,7 @@ npm install ag-charts-angular
 
 {% /if %}
 
-<!-- VUE Installation -->
+<!-- VUE NPM Installation -->
 
 {% if isFramework("vue") %}
 
@@ -39,6 +43,44 @@ npm install ag-charts-vue3
 ```
 
 {% /if %}
+
+{% /tabItem %}
+
+{% tabItem id="js-yarn" label="Yarn" %}
+
+<!-- REACT Yarn Installation -->
+
+{% if isFramework("react") %}
+
+```bash
+yarn add ag-charts-react
+```
+
+{% /if %}
+
+<!-- ANGULAR NPM Installation -->
+
+{% if isFramework("angular") %}
+
+```bash
+yarn add ag-charts-angular
+```
+
+{% /if %}
+
+<!-- VUE NPM Installation -->
+
+{% if isFramework("vue") %}
+
+```bash
+yarn add ag-charts-vue3
+```
+
+{% /if %}
+
+{% /tabItem %}
+
+{% /tabs %}
 
 {% /if %}
 
@@ -229,7 +271,7 @@ Replace your `app.vue` (or root component) with the following code:
 
 When you run your app, you should see a basic chart:
 
-{% chartExampleRunner title="Basic Chart Example" name="basic-example" type="mixed" /%}
+{% chartExampleRunner title="Basic Chart Example" name="basic-example" type="generated" /%}
 
 ## Next Steps
 

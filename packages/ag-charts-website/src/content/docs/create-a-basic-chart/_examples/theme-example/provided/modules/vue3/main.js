@@ -15,7 +15,7 @@ const App = {
             // Container: HTML Element to hold the chart
             container: document.getElementById('myChart'),
             // Theme: Style to apply to the chart
-            theme: 'ag-vivid-dark',
+            theme: 'ag-material-dark',
             // Data: Data to be displayed within the chart
             data: [
                 { month: 'Jan', avgTemp: 2.3, iceCreamSales: 162 },

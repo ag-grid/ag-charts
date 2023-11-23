@@ -19,25 +19,35 @@ By the end of this tutorial, you will have a basic combination chart, using a da
 
 ## Chart Basics
 
-Complete our [Quick Start](quick-start) or fork our [CodeSandbox Example](#TODO) to start with a basic chart, comprised of:
+Complete our [Quick Start](../quick-start) to start with a basic chart, comprised of:
 
--   **Chart Options:** Object which contains the chart configuration options, including **data**, and **series** properties:
+{% if isFramework("javascript") %}
+
+-   **Chart Options:** Object which contains the chart configuration options, including the **container**, **data**, and **series** properties:
     -   **Container:** The HTML element in which the chart should be rendered.
     -   **Data:** The data to display within a chart (_typically_ an array of data-points).
     -   **Series:** The type of chart to display, and the data to use. For cartesian charts, a minimum of three properties are required:
         -   **Type:** Defines the type of chart to display (e.g. Line, Bar, etc...).
         -   **xKey:** The data to use for the X axis.
         -   **yKey:** The data to use for the Y axis.
-
-{% if isFramework("javascript") %}
-
 -   **Create:** `AgCharts.create(chartOptions)` API for creating a new charts, using the Chart Options configurations.
+
+{% /if %}
+
+{% if isNotJavascriptFramework() %}
+
+-   **Chart Options:** Object which contains the chart configuration options, including **data**, and **series** properties:
+    -   **Data:** The data to display within a chart (_typically_ an array of data-points).
+    -   **Series:** The type of chart to display, and the data to use. For cartesian charts, a minimum of three properties are required:
+        -   **Type:** Defines the type of chart to display (e.g. Line, Bar, etc...).
+        -   **xKey:** The data to use for the X axis.
+        -   **yKey:** The data to use for the Y axis.
 
 {% /if %}
 
 Putting these things together creates a basic chart:
 
-{% chartExampleRunner title="Basic Example" name="basic-example" type="mixed" /%}
+{% chartExampleRunner title="Basic Example" name="basic-example" type="generated" /%}
 
 ## Combination Charts
 
@@ -101,7 +111,7 @@ const options = ref({
 
 Running the chart at this point will show two series on the same chart:
 
-{% chartExampleRunner title="Combination Charts Example" name="combination-charts-example" type="mixed" /%}
+{% chartExampleRunner title="Combination Charts Example" name="combination-charts-example" type="generated" /%}
 
 ### Configuring Secondary Axes
 
@@ -169,13 +179,13 @@ const options = ref({
 
 Let's breakdown whats happening here:
 
--   **Type:** The type of axis to use - one of [Category](axes-types#category), [Number](axes-types#number), [Time](axes-types#time) or [Log](axes-types#log).
+-   **Type:** The type of axis to use - one of [Category](../axes-types#category), [Number](../axes-types#number), [Time](../axes-types#time) or [Log](../axes-types#log).
 -   **Position:** The position on the chart where the axis should be rendered, e.g. 'top', 'bottom', 'right' or 'left'.
 -   **Keys:** Associates the axis with a given series, with the keys axis property linking the appropriate series to the axis.
 
 Now when we run our chart, we should see both series & two axes:
 
-{% chartExampleRunner title="Second Series Example" name="second-series-example" type="mixed" /%}
+{% chartExampleRunner title="Second Series Example" name="second-series-example" type="generated" /%}
 
 ## Styling
 
@@ -183,7 +193,7 @@ Now we have a chart complete with multiple series and axes, the last thing to do
 
 ### Choosing a Theme
 
-AG Charts provide a number of [Themes](themes) out of the box to easily control the style of the chart. To set a Theme, add the `theme` property to the `AgChartOptions` object, with the value as your chosen Theme:
+AG Charts provide a number of [Themes](../themes) out of the box to easily control the style of the chart. Each theme has a light & dark version, which controls the background of the chart. To set a Theme, add the `theme` property to the `AgChartOptions` object, with the value as your chosen Theme:
 
 {% if isFramework("javascript") %}
 
@@ -233,7 +243,7 @@ Running the code at this point will display a chart with your chosen Theme:
 
 {% chartExampleRunner title="Theme Example" name="theme-example" type="mixed" /%}
 
-_Note: Refer to the [Theme](../themes-api) API docs for a full list of properties that can be configured_
+_Note: Refer to the [Theme](../../themes-api) API docs for a full list of properties that can be configured_
 
 ### Titles
 
@@ -351,7 +361,7 @@ We should now see the Legend displayed on the right hand side of the chart, rath
 
 {% chartExampleRunner title="Legend Example" name="legend-example" type="mixed" /%}
 
-_Note: Refer to the [Legend](legend) docs for more info_
+_Note: Refer to the [Legend](../legend) docs for more info_
 
 ### Renaming Series
 
@@ -523,7 +533,7 @@ Now our chart should display formatted temperature values on the right-hand-side
 
 {% chartExampleRunner title="Second Series Formatted Example" name="second-series-formatted-example" type="mixed" /%}
 
-_Note: Refer to the [axes](../options/#reference-AgChartOptions-axes) API docs for a full list of properties that can be configured_
+_Note: Refer to the [axes](/options/#reference-AgChartOptions-axes) API docs for a full list of properties that can be configured_
 
 ## Test your Knowledge
 
@@ -537,7 +547,7 @@ _Note: Refer to the [axes](../options/#reference-AgChartOptions-axes) API docs f
 
 If you're stuck, check the source code of the example:
 
-{% chartExampleRunner title="Complete Formatted Example" name="complete-formatted-example" type="generated" /%}
+{% chartExampleRunner title="Complete Formatted Example" name="complete-formatted-example" type="mixed" /%}
 
 ## Summary
 

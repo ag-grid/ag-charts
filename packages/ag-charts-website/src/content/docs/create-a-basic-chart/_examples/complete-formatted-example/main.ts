@@ -11,8 +11,8 @@ import {
     AgNumberAxisOptions,
 } from 'ag-charts-community';
 
-// Chart Data Interface
 interface IData {
+    // Chart Data Interface
     month: 'Jan' | 'Feb' | 'Mar' | 'Apr' | 'May' | 'Jun' | 'Jul' | 'Aug' | 'Sep' | 'Oct' | 'Nov' | 'Dec';
     avgTemp: number;
     iceCreamSales: number;
@@ -20,8 +20,7 @@ interface IData {
 
 // Chart Options Configuration
 const options: AgChartOptions = {
-    // Container: HTML Element to hold the chart
-    container: document.getElementById('myChart') as HTMLElement,
+    container: document.getElementById('myChart') as HTMLElement, // Container: HTML Element to hold the chart
     // Chart Title
     title: { text: 'Ice Cream Sales and Avg Temp' } as AgChartCaptionOptions,
     // Chart Subtitle
