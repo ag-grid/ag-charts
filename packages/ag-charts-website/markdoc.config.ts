@@ -106,6 +106,7 @@ export default defineMarkdocConfig({
         tabs: {
             render: component('./src/components/tabs/TabsWithHtmlChildren.astro'),
             attributes: {
+                omitFromOverview: { type: Boolean, default: false },
                 tabItemIdPrefix: {
                     type: String,
                     default: DOCS_TAB_ITEM_ID_PREFIX,
