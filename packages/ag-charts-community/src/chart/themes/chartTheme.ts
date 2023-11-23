@@ -524,9 +524,9 @@ export class ChartTheme {
         properties.set(DEFAULT_BACKGROUND_COLOUR, DEFAULT_BACKGROUND_FILL);
         properties.set(DEFAULT_SHADOW_COLOUR, 'rgba(0, 0, 0, 0.5)');
         properties.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [
-            DEFAULT_FILLS.GREEN,
-            DEFAULT_FILLS.YELLOW,
             DEFAULT_FILLS.ORANGE,
+            DEFAULT_FILLS.YELLOW,
+            DEFAULT_FILLS.GREEN,
         ]);
         properties.set(DEFAULT_BACKGROUND_CONTRAST_COLOR_RANGE, [
             '#2A343C',

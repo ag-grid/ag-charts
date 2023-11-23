@@ -78,9 +78,9 @@ export class MaterialDark extends DarkTheme {
         );
 
         result.properties.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [
-            MATERIAL_DARK_FILLS.GREEN,
-            MATERIAL_DARK_FILLS.YELLOW,
             MATERIAL_DARK_FILLS.ORANGE,
+            MATERIAL_DARK_FILLS.YELLOW,
+            MATERIAL_DARK_FILLS.GREEN,
         ]);
 
         result.properties.set(

@@ -95,9 +95,9 @@ export class DarkTheme extends ChartTheme {
         result.properties.set(DEFAULT_AXIS_GRID_COLOUR, '#545A6E');
         result.properties.set(DEFAULT_CROSS_LINES_COLOUR, 'white');
         result.properties.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [
-            DEFAULT_DARK_FILLS.GREEN,
-            DEFAULT_DARK_FILLS.YELLOW,
             DEFAULT_DARK_FILLS.ORANGE,
+            DEFAULT_DARK_FILLS.YELLOW,
+            DEFAULT_DARK_FILLS.GREEN,
         ]);
         result.properties.set(DEFAULT_BACKGROUND_CONTRAST_COLOR_RANGE, [
             '#5C6770',

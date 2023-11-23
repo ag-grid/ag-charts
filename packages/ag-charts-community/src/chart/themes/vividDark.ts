@@ -75,9 +75,9 @@ export class VividDark extends DarkTheme {
         result.properties.set(DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS, VividDark.getWaterfallSeriesDefaultTotalColors());
 
         result.properties.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [
-            VIVID_DARK_FILLS.GREEN,
-            VIVID_DARK_FILLS.YELLOW,
             VIVID_DARK_FILLS.ORANGE,
+            VIVID_DARK_FILLS.YELLOW,
+            VIVID_DARK_FILLS.GREEN,
         ]);
 
         result.properties.set(

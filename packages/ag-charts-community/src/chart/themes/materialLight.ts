@@ -78,9 +78,9 @@ export class MaterialLight extends ChartTheme {
         );
 
         result.properties.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [
-            MATERIAL_LIGHT_FILLS.GREEN,
-            MATERIAL_LIGHT_FILLS.YELLOW,
             MATERIAL_LIGHT_FILLS.ORANGE,
+            MATERIAL_LIGHT_FILLS.YELLOW,
+            MATERIAL_LIGHT_FILLS.GREEN,
         ]);
 
         result.properties.set(

@@ -78,9 +78,9 @@ export class SheetsDark extends DarkTheme {
         );
 
         result.properties.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [
-            SHEETS_DARK_FILLS.GREEN,
-            SHEETS_DARK_FILLS.YELLOW,
             SHEETS_DARK_FILLS.ORANGE,
+            SHEETS_DARK_FILLS.YELLOW,
+            SHEETS_DARK_FILLS.GREEN,
         ]);
 
         result.properties.set(

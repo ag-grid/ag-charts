@@ -78,9 +78,9 @@ export class VividLight extends ChartTheme {
         );
 
         result.properties.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [
-            VIVID_FILLS.GREEN,
-            VIVID_FILLS.YELLOW,
             VIVID_FILLS.ORANGE,
+            VIVID_FILLS.YELLOW,
+            VIVID_FILLS.GREEN,
         ]);
 
         result.properties.set(

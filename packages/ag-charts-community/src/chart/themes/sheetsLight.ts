@@ -78,9 +78,9 @@ export class SheetsLight extends ChartTheme {
         );
 
         result.properties.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [
-            SHEETS_LIGHT_FILLS.GREEN,
-            SHEETS_LIGHT_FILLS.YELLOW,
             SHEETS_LIGHT_FILLS.ORANGE,
+            SHEETS_LIGHT_FILLS.YELLOW,
+            SHEETS_LIGHT_FILLS.GREEN,
         ]);
 
         result.properties.set(
