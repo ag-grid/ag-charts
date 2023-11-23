@@ -8,16 +8,28 @@ import { SiteLogo } from './SiteLogo';
 import Search from '../search/Search';
 import { getFrameworkFromPath } from '../../features/docs/utils/urlPaths';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
+import { isDynamicFrameworkPath, replaceDynamicFrameworkPath } from '@utils/framework';
 
 const { pathname } = Astro.url;
 const { data: menuData } = await getEntry('menu', 'data');
 const topNavItems = menuData.header.items;
 const framework = getFrameworkFromPath(pathname);
 const isDev = getIsDev();
-const apiPaths = menuData.api.items.map(({ path }) => ({
-    title: 'API',
-    path: urlWithBaseUrl(path),
-}));
+const apiPaths = menuData.api.items.flatMap(({ path }) => {
+    const pathWithBaseUrl = urlWithBaseUrl(path);
+
+    if (isDynamicFrameworkPath(pathWithBaseUrl)) {
+        return FRAMEWORKS.map((framework) => ({
+            title: 'API',
+            path: replaceDynamicFrameworkPath({ dynamicFrameworkPath: pathWithBaseUrl, framework }),
+        }));
+    }
+
+    return {
+        title: 'API',
+        path: urlWithBaseUrl(path),
+    };
+});
 const frameworkPaths = FRAMEWORKS.map((framework) => ({
     title: 'Docs',
     path: urlWithBaseUrl(framework),
@@ -29,6 +41,7 @@ const allPaths = [
     ...apiPaths,
     ...frameworkPaths,
 ];
+
 export interface Props {
     showSearchBar?: boolean;
 }

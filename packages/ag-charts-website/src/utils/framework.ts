@@ -1,5 +1,6 @@
 import type { Framework, InternalFramework } from '@ag-grid-types';
 import { FRAMEWORK_DISPLAY_TEXT } from '@constants';
+import { DOCS_FRAMEWORK_PATH_INDEX } from '@features/docs/constants';
 
 export const getFrameworkDisplayText = (framework: Framework): string => {
     return FRAMEWORK_DISPLAY_TEXT[framework];
@@ -82,3 +83,31 @@ export const isVueInternalFramework = (internalFramework: InternalFramework) => 
 
     return reactInternalFrameworks.includes(internalFramework);
 };
+
+export function replaceDynamicFrameworkPath({
+    dynamicFrameworkPath,
+    framework,
+}: {
+    dynamicFrameworkPath: string;
+    framework: Framework;
+}) {
+    return dynamicFrameworkPath.replace('[framework]', framework);
+}
+
+export function isDynamicFrameworkPath(path: string) {
+    return path.includes('[framework]');
+}
+
+export function isDynamicFrameworkPathMatch({
+    dynamicFrameworkPath,
+    pathToMatch,
+}: {
+    dynamicFrameworkPath: string;
+    pathToMatch: string;
+}) {
+    const pathSegments = pathToMatch.split('/');
+    const framework = pathSegments[DOCS_FRAMEWORK_PATH_INDEX] as Framework;
+    const itemWithFrameworkPath = replaceDynamicFrameworkPath({ dynamicFrameworkPath, framework });
+
+    return itemWithFrameworkPath === pathToMatch;
+}
