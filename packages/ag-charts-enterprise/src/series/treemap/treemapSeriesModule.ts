@@ -17,6 +17,7 @@ export const TreemapSeriesModule: _ModuleSupport.SeriesModule<'treemap'> = {
             enabled: true,
         },
     },
+    solo: true,
     themeTemplate: {
         __extends__: EXTENDS_SERIES_DEFAULTS,
         group: {

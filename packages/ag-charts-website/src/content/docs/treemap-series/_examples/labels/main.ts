@@ -11,6 +11,7 @@ const options: AgChartOptions = {
             labelKey: 'title',
             secondaryLabelKey: 'total',
             sizeKey: 'total',
+            sizeName: 'Total',
             group: {
                 label: {
                     fontSize: 18,
@@ -25,17 +26,6 @@ const options: AgChartOptions = {
                 },
                 secondaryLabel: {
                     formatter: (params) => `£${params.value.toFixed(1)}bn`,
-                },
-            },
-            tooltip: {
-                renderer: (params) => {
-                    const { total, change } = params.datum;
-                    if (total != null && change != null) {
-                        const changeString = `${change > 0 ? '+' : '-'}£${Math.abs(change).toFixed(1)}bn`;
-                        return { content: `£${total.toFixed(1)}bn (${changeString} from 2023)` };
-                    } else {
-                        return {};
-                    }
                 },
             },
         },

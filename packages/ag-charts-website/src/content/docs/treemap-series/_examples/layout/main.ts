@@ -10,6 +10,7 @@ const options: AgChartOptions = {
             type: 'treemap',
             labelKey: 'title',
             sizeKey: 'total',
+            sizeName: 'Total',
             group: {
                 padding: 12,
                 gap: 5,
@@ -17,17 +18,6 @@ const options: AgChartOptions = {
             tile: {
                 padding: 10,
                 gap: 2,
-            },
-            tooltip: {
-                renderer: (params) => {
-                    const { total, change } = params.datum;
-                    if (total != null && change != null) {
-                        const changeString = `${change > 0 ? '+' : '-'}£${Math.abs(change).toFixed(1)}bn`;
-                        return { content: `£${total.toFixed(1)}bn (${changeString} from 2023)` };
-                    } else {
-                        return {};
-                    }
-                },
             },
         },
     ],

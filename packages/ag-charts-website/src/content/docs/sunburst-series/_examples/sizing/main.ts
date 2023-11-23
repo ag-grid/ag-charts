@@ -16,20 +16,7 @@ const options: AgChartOptions = {
             type: 'sunburst',
             labelKey: 'name',
             sizeKey: 'gdp',
-            tooltip: {
-                renderer: (params) => {
-                    const { gdp } = params.datum;
-                    if (gdp != null) {
-                        const gdpFormat = gdpFormatter.format(gdp);
-
-                        return {
-                            content: `${gdpFormat} trillion USD`,
-                        };
-                    } else {
-                        return {};
-                    }
-                },
-            },
+            sizeName: 'GDP',
         },
     ],
     title: {

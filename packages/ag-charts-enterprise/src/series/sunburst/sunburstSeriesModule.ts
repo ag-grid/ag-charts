@@ -17,6 +17,7 @@ export const SunburstSeriesModule: _ModuleSupport.SeriesModule<'sunburst'> = {
             enabled: true,
         },
     },
+    solo: true,
     themeTemplate: {
         __extends__: EXTENDS_SERIES_DEFAULTS,
         label: {

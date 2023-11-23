@@ -21,18 +21,15 @@ const options: AgChartOptions = {
             labelKey: 'name',
             sizeKey: 'gdp',
             sizeName: 'GDP',
-            secondaryLabelKey: 'gdpChange',
-            label: {
-                fontSize: 14,
-                minimumFontSize: 9,
-                spacing: 2,
-            },
-            secondaryLabel: {
-                formatter: ({ value }) => (value != null ? percentageFormatter.format(value) : undefined),
-            },
-            padding: 3,
+            colorKey: 'gdpChange',
+            colorName: 'Change',
+            colorRange: ['rgb(63, 145, 79)', 'rgb(253, 149, 63)'],
         },
     ],
+    gradientLegend: {
+        position: 'right',
+        reverseOrder: true,
+    },
     title: {
         text: 'Top 10 countries by GDP',
     },

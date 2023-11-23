@@ -4,7 +4,7 @@ import { data } from './data';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
-    data: data,
+    data,
     series: [
         {
             type: 'treemap',
@@ -16,6 +16,10 @@ const options: AgChartOptions = {
             colorRange: ['rgb(234, 82, 80)', 'rgb(67, 153, 83)'],
         },
     ],
+    gradientLegend: {
+        position: 'right',
+        reverseOrder: true,
+    },
     title: {
         text: 'UK Government Budget',
     },

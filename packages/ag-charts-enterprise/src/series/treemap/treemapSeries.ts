@@ -17,7 +17,6 @@ import { AutoSizeableLabel, formatLabels } from '../util/labelFormatter';
 
 const {
     BOOLEAN,
-    fromToMotion,
     HighlightStyle,
     NUMBER,
     OPT_COLOR_STRING,
@@ -863,28 +862,5 @@ export class TreemapSeries<
             color,
             seriesId,
         });
-    }
-
-    protected override animateEmptyUpdateReady({
-        datumSelections,
-    }: _ModuleSupport.HierarchyAnimationData<_Scene.Group, TDatum>) {
-        fromToMotion<_Scene.Group, Pick<_Scene.Group, 'opacity'>, _ModuleSupport.HierarchyNode<TDatum>>(
-            this.id,
-            'nodes',
-            this.ctx.animationManager,
-            datumSelections,
-            {
-                toFn(_group, _datum, _status) {
-                    return { opacity: 1 };
-                },
-                fromFn(group, datum, status) {
-                    if (status === 'unknown' && datum != null && group.previousDatum == null) {
-                        return { opacity: 0 };
-                    } else {
-                        return { opacity: 1 };
-                    }
-                },
-            }
-        );
     }
 }

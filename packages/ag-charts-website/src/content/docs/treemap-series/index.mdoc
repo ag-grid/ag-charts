@@ -43,10 +43,6 @@ let data = [
 
 The `labelKey` defines what will appear as the title for each tile.
 
-{% note %}
-Legend toggling is disabled in Treemap Series.
-{% /note %}
-
 ## Sizing
 
 By default, each leaf node's rectangle will have approximately the same area.
@@ -55,7 +51,7 @@ However, the treemap is best suited to providing size values to provide relative
 
 {% chartExampleRunner title="Custom Sizing" name="sizing" type="generated" /%}
 
-The `sizeKey` can be used to provide a numeric value to adjust the relative sizing.
+The `sizeKey` can be used to provide a numeric value to adjust the relative sizing. Additionally, the optional `sizeName` property can be set to set the title that appears next to the value in tooltips.
 
 ```js
 series: [
@@ -63,7 +59,7 @@ series: [
         type: 'treemap',
         labelKey: 'name',
         sizeKey: 'size',
-        // ...
+        sizeName: 'Size',
     },
 ];
 ```
@@ -74,7 +70,7 @@ Only the sizes of leaf nodes will be accounted for when computing the relative s
 
 Tiles can also be coloured using a scale. This lets you add an extra dimension of information to your chart.
 
-{% chartExampleRunner title="Custom Colour Scale" name="color-scale" type="generated" /%}
+{% chartExampleRunner title="Colour Scale" name="color-scale" type="generated" /%}
 
 Colouring can be customised by the `colorKey` and `colorRange` values in the series options.
 
@@ -84,9 +80,10 @@ series: [
         type: 'treemap',
         labelKey: 'name',
         sizeKey: 'size',
+        sizeName: 'Size',
         colorKey: 'change',
+        colorName: 'Change',
         colorRange: ['rgb(63, 145, 79)', 'rgb(253, 149, 63)'],
-        // ...
     },
 ],
 ```
@@ -94,6 +91,7 @@ series: [
 In this configuration:
 
 -   `colorKey` supplies numeric values for the colour scale
+-   `colorName` sets the title that appears next to the colour value in tooltips
 -   `colorRange` supplies the colours for the colour scale (optional)
 
 ## Other Colours
@@ -108,31 +106,31 @@ series: [
         type: 'treemap',
         labelKey: 'name',
         sizeKey: 'total',
+        sizeName: 'Total',
         fills: [
-            '#FF3D00',
-            '#FF9100',
-            '#FFC400',
-            '#FFEA00',
-            '#C6FF00',
-            '#76FF03',
-            '#00E676',
-            '#1DE9B6',
-            '#00E5FF',
-            '#00B0FF',
+            '#F4511E',
+            '#FB8C00',
+            '#FFB300',
+            '#FDD835',
+            '#C0CA33',
+            '#7CB342',
+            '#43A047',
+            '#00897B',
+            '#00ACC1',
+            '#039BE5',
         ],
         strokes: [
-            '#FF6E40',
-            '#FFAB40',
-            '#FFD740',
-            '#FFFF00',
-            '#EEFF41',
-            '#B2FF59',
-            '#69F0AE',
-            '#64FFDA',
-            '#18FFFF',
-            '#40C4FF',
+            '#E64A19',
+            '#F57C00',
+            '#FFA000',
+            '#FBC02D',
+            '#AFB42B',
+            '#689F38',
+            '#388E3C',
+            '#00796B',
+            '#0097A7',
+            '#0288D1',
         ],
-        // ...
     },
 ];
 ```
@@ -159,6 +157,7 @@ series: [
         labelKey: 'name',
         secondaryLabelKey: 'size',
         sizeKey: 'total',
+        sizeName: 'Total',
         group: {
             label: {
                 fontSize: 18,
@@ -175,7 +174,6 @@ series: [
                 formatter: (params) => formatSize(params.datum),
             },
         },
-        // ...
     },
 ];
 ```
@@ -200,6 +198,7 @@ series: [
         type: 'treemap',
         labelKey: 'title',
         sizeKey: 'total',
+        sizeName: 'Total',
         group: {
             padding: 12,
             gap: 5,
@@ -208,7 +207,6 @@ series: [
             padding: 10,
             gap: 2,
         },
-        // ...
     },
 ],
 ```
@@ -223,6 +221,83 @@ In this configuration:
 {% note %}
 The default tile gap is set to `-1` so the borders overlap.
 {% /note %}
+
+## Gradient Legend
+
+The Gradient Legend aids in matching the colour coding of the Heatmap Series to the underlying values, and is enabled by default.
+
+{% chartExampleRunner title="Gradient Legend" name="gradient-legend" type="generated" /%}
+
+```js
+series: [
+    {
+        type: 'treemap',
+        labelKey: 'title',
+        sizeKey: 'total',
+        sizeName: 'Total',
+        colorKey: 'change',
+        colorName: 'Change',
+        colorRange: ['rgb(234, 82, 80)', 'rgb(67, 153, 83)'],
+    },
+],
+gradientLegend: {
+    enabled: true,
+},
+```
+
+### Position
+
+{% chartExampleRunner title="Gradient Legend Position" name="gradient-legend-position" type="generated" /%}
+
+By default the Gradient Legend is placed at the bottom of the chart. Use the `position` option to change this.
+
+```js
+gradientLegend: {
+   position: 'right',
+   reverseOrder: true
+},
+```
+
+In the above example, `reverseOrder` is used to change the direction of the Gradient Legend to display the values from top to bottom.
+
+### Size
+
+{% chartExampleRunner title="Gradient Legend Size" name="gradient-legend-size" type="generated" /%}
+
+```js
+gradientLegend: {
+    gradient: {
+        thickness: 50,
+        preferredLength: 400,
+    },
+},
+```
+
+In the above configuration:
+
+-   `thickness` controls the thickness (or width) of the gradient bar.
+-   `preferredLength` sets the initial length of the gradient bar. It is only _preferred_, as the Gradient Legend is constrained by the container edges.
+
+### Labels
+
+It is possible to customise the font, colour and padding of the labels by using the `stop` options.
+
+{% chartExampleRunner title="Gradient Legend Labels" name="gradient-legend-labels" type="generated" /%}
+
+```js
+gradientLegend: {
+    stop: {
+        label: {
+            fontSize: 20,
+            fontStyle: 'italic',
+            fontWeight: 'bold',
+            fontFamily: 'serif',
+            color: 'red',
+        },
+        padding: 20,
+    },
+},
+```
 
 ## API Reference
 
