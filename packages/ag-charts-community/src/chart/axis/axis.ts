@@ -247,6 +247,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     private destroyFns: Function[] = [];
 
     private minRect?: BBox;
+    private seriesRect?: BBox;
 
     constructor(
         protected readonly moduleCtx: ModuleContext,
@@ -284,6 +285,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                     this.animationState.transition('resize');
                 }
                 previousSize = { ...e.chart };
+                this.seriesRect = e.series.paddedRect;
             })
         );
 
@@ -1030,7 +1032,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         maxTickCount: number;
         primaryTickCount?: number;
     }) {
-        const { scale, visibleRange } = this;
+        const { scale, seriesRect, visibleRange } = this;
 
         let rawTicks: any[] = [];
 
@@ -1068,6 +1070,18 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         for (let i = start; i < end; i++) {
             const rawTick = rawTicks[i];
             const translationY = scale.convert(rawTick) + halfBandwidth;
+
+            // Do not render ticks outside the series rect. A clip rect would trim long labels, so instead hide ticks
+            // based on their translation.
+            if (seriesRect) {
+                if (this.direction === ChartAxisDirection.X && (translationY < 0 || translationY > seriesRect.width)) {
+                    continue;
+                }
+
+                if (this.direction === ChartAxisDirection.Y && (translationY < 0 || translationY > seriesRect.height)) {
+                    continue;
+                }
+            }
 
             const tickLabel = this.formatTick(rawTick, i);
 
