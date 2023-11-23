@@ -24,10 +24,11 @@ const getCurrentPageName = ({ path, allPaths }) => {
 const HeaderLinks = ({ currentPath, items, allPaths, isOpen, toggleIsOpen }) => {
     return (
         <ul className={classnames(gridStyles.navItemList, 'list-style-none')}>
-            {items.map(({ title, cssClass, path, url, icon }) => {
+            {items.map(({ title, path, url, icon }) => {
                 const linkClasses = classnames(gridStyles.navItem, {
                     [gridStyles.navItemActive]: title === getCurrentPageName({ path: currentPath, allPaths }),
-                    [gridStyles[cssClass]]: cssClass,
+                    [gridStyles.buttonItem]: title === 'Github',
+                    [gridStyles.githubItem]: title === 'Github',
                 });
                 const href = path ? pathJoin(SITE_BASE_URL, path) : url;
 

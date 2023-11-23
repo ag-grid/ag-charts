@@ -25,7 +25,7 @@
                 "title": "Github",
                 "url": "https://github.com/ag-grid/ag-grid",
                 "icon": "github",
-                "cssClass": "github-item"
+                "github": "true"
             }
         ]
     },
