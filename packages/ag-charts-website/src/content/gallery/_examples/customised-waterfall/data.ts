@@ -1,44 +1,59 @@
 export function getData() {
     return [
         {
-            financials: 'Income\nTax',
-            amount: 185,
+            date: new Date('2023-10-17'),
+            closePrice: 7675.21,
+            percentageChange: 0.58,
         },
         {
-            financials: 'VAT',
-            amount: 145,
+            date: new Date('2023-10-18'),
+            closePrice: 7588.0,
+            percentageChange: -1.14,
         },
         {
-            financials: 'NI',
-            amount: 134,
+            date: new Date('2023-10-19'),
+            closePrice: 7499.53,
+            percentageChange: -1.17,
         },
         {
-            financials: 'Corp\nTax',
-            amount: 55,
+            date: new Date('2023-10-20'),
+            closePrice: 7402.14,
+            percentageChange: -1.3,
         },
         {
-            financials: 'Council\nTax',
-            amount: 34,
+            date: new Date('2023-10-23'),
+            closePrice: 7374.83,
+            percentageChange: -0.37,
         },
         {
-            financials: 'Health',
-            amount: -155,
+            date: new Date('2023-10-24'),
+            closePrice: 7389.7,
+            percentageChange: 0.2,
         },
         {
-            financials: 'Education',
-            amount: -112,
+            date: new Date('2023-10-25'),
+            closePrice: 7414.34,
+            percentageChange: 0.33,
         },
         {
-            financials: 'Defence',
-            amount: -165,
+            date: new Date('2023-10-26'),
+            closePrice: 7354.57,
+            percentageChange: -0.81,
         },
         {
-            financials: 'Debt\nInterest',
-            amount: -163,
+            date: new Date('2023-10-27'),
+            closePrice: 7291.28,
+            percentageChange: -0.86,
         },
         {
-            financials: 'Housing',
-            amount: -91,
+            date: new Date('2023-10-30'),
+            closePrice: 7327.39,
+            percentageChange: 0.5,
+        },
+        {
+            date: new Date('2023-10-31'),
+            closePrice: 7321.72,
+            percentageChange: -0.08,
         },
     ];
 }
