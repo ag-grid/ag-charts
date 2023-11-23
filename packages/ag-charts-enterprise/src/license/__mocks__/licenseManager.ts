@@ -1,11 +1,11 @@
 export class LicenseManager {
-    static setLicenseKey(_licenseKey: string): void {}
-
     constructor() {}
 
     public validateLicense() {
         return true;
     }
+
+    public setLicenseKey(_licenseKey: string): void {}
 
     public isDisplayWatermark() {
         return false;

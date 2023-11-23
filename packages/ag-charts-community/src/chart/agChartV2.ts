@@ -68,13 +68,19 @@ export abstract class AgCharts {
     private static readonly INVALID_CHART_REF_MESSAGE = 'AG Charts - invalid chart reference passed';
     private static licenseManager?: LicenseManager;
     private static licenseChecked = false;
+    private static licenseKey?: string;
 
     private static licenseCheck(options: AgChartOptions) {
         if (this.licenseChecked) return;
 
         this.licenseManager = enterpriseModule.licenseManager?.(options);
+        this.licenseManager?.setLicenseKey(this.licenseKey);
         this.licenseManager?.validateLicense();
         this.licenseChecked = true;
+    }
+
+    public static setLicenseKey(licenseKey: string) {
+        this.licenseKey = licenseKey;
     }
 
     /**

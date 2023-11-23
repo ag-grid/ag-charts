@@ -4,7 +4,7 @@
 import { MD5 } from './md5';
 
 // move to general utils
-function missingOrEmpty<T>(value?: T[] | string | null): boolean {
+function missingOrEmpty<T>(value?: T[] | string | null): value is null | undefined {
     return value == null || value.length === 0;
 }
 
@@ -14,7 +14,7 @@ function exists(value: any, allowEmptyString = false): value is string {
 
 export class LicenseManager {
     private static RELEASE_INFORMATION: string = 'MTY4OTUzMzE0MDAzNw==';
-    private static licenseKey: string;
+    private licenseKey?: string;
     private watermarkMessage?: string;
 
     private md5: MD5;
@@ -28,17 +28,16 @@ export class LicenseManager {
     }
 
     public validateLicense(): void {
-        if (missingOrEmpty(LicenseManager.licenseKey)) {
+        const licenseKey = this.licenseKey;
+        if (missingOrEmpty(licenseKey)) {
             if (!this.isWebsiteUrl() || this.isForceWatermark()) {
                 this.outputMissingLicenseKey();
             }
-        } else if (LicenseManager.licenseKey.length > 32) {
-            if (LicenseManager.licenseKey.indexOf('For_Trialing_ag-Grid_Only') !== -1) {
+        } else if (licenseKey.length > 32) {
+            if (licenseKey.indexOf('For_Trialing_ag-Grid_Only') !== -1) {
                 this.outputInvalidLicenseKey();
             } else {
-                const { md5, license, version, isTrial } = LicenseManager.extractLicenseComponents(
-                    LicenseManager.licenseKey
-                );
+                const { md5, license, version, isTrial } = LicenseManager.extractLicenseComponents(licenseKey);
 
                 if (md5 === this.md5.md5(license)) {
                     if (exists(version)) {
@@ -53,6 +52,10 @@ export class LicenseManager {
         } else {
             this.outputInvalidLicenseKey();
         }
+    }
+
+    public setLicenseKey(licenseKey?: string): void {
+        this.licenseKey = licenseKey;
     }
 
     private static extractExpiry(license: string) {
@@ -210,10 +213,6 @@ export class LicenseManager {
             }
         }
         return t;
-    }
-
-    static setLicenseKey(licenseKey: string): void {
-        this.licenseKey = licenseKey;
     }
 
     private static extractBracketedInformation(licenseKey: string): [string | null, boolean | null] {

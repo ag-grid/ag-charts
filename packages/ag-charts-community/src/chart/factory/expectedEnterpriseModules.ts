@@ -128,7 +128,7 @@ export function removeUsedEnterpriseOptions<T extends AgChartOptions>(options: T
                 '',
                 '    import "ag-charts-enterprise";',
                 '',
-                'For more info see: https://www.ag-grid.com/ag-charts/javascript/quick-start/',
+                'For more info see: https://charts.ag-grid.com/javascript/installation/',
             ].join('\n')
         );
     }

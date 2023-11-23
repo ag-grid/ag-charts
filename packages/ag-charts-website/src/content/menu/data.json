@@ -65,6 +65,10 @@
                     {
                         "title": "Creating a Basic Chart",
                         "path": "create-a-basic-chart"
+                    },
+                    {
+                        "title": "Installation",
+                        "path": "installation"
                     }
                 ]
             },

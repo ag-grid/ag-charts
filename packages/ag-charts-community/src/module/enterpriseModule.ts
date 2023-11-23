@@ -1,6 +1,7 @@
 import type { AgChartOptions } from '../options/chart/chartBuilderOptions';
 
 export interface LicenseManager {
+    setLicenseKey: (key?: string) => void;
     validateLicense: () => void;
     isDisplayWatermark: () => boolean;
     getWatermarkMessage: () => string;

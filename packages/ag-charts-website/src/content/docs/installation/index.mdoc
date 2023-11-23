@@ -1,0 +1,202 @@
+---
+title: 'Installation'
+---
+
+Learn how to add AG Charts to your webapp.
+
+## Overview
+
+Adding AG Charts to your webapp is simple and follows standard NPM conventions.
+
+{% if isFramework("javascript") %}
+For Javascript projects we also provide a pre-built UMD bundle for direct use.
+{% /if %}
+
+## Using a Bundler
+
+This is the recommended approach for modern webapp development. We expect most users will be using a tool such as
+`rollup`, `webpack`, `esbuild`, `vite` or the many other options to bundle their webapp.
+
+{% tabs %}
+{% tabItem id="js-npm" label="NPM" %}
+
+{% if isFramework("javascript") %}
+
+```bash
+# Install AG Charts community edition (or skip if installing Enterprise).
+npm install ag-charts-community
+
+# Install AG Charts enterprise edition (optional).
+npm install ag-charts-enterprise
+```
+
+{% /if %}
+
+{% if isFramework("react") %}
+
+```bash
+npm install ag-charts-react
+
+# Install AG Charts enterprise edition (optional).
+npm install ag-charts-enterprise
+```
+
+{% /if %}
+
+{% if isFramework("angular") %}
+
+```bash
+npm install ag-charts-angular
+
+# Install AG Charts enterprise edition (optional).
+npm install ag-charts-enterprise
+```
+
+{% /if %}
+
+{% if isFramework("vue") %}
+
+```bash
+npm install ag-charts-vue3
+
+# Install AG Charts enterprise edition (optional).
+npm install ag-charts-enterprise
+```
+
+{% /if %}
+
+{% /tabItem %}
+{% tabItem id="js-yarn" label="Yarn" %}
+
+{% if isFramework("javascript") %}
+
+```bash
+# Install AG Charts community edition (or skip if installing Enterprise).
+yarn add ag-charts-community
+
+# Install AG Charts enterprise edition (optional).
+yarn add ag-charts-enterprise
+```
+
+{% /if %}
+{% if isFramework("react") %}
+
+```bash
+yarn add ag-charts-react
+
+# Install AG Charts enterprise edition (optional).
+yarn add ag-charts-enterprise
+```
+
+{% /if %}
+
+{% if isFramework("angular") %}
+
+```bash
+yarn add ag-charts-angular
+
+# Install AG Charts enterprise edition (optional).
+yarn add ag-charts-enterprise
+```
+
+{% /if %}
+
+{% if isFramework("vue") %}
+
+```bash
+yarn add ag-charts-vue3
+
+# Install AG Charts enterprise edition (optional).
+yarn add ag-charts-enterprise
+```
+
+{% /if %}
+
+{% /tabItem %}
+{% /tabs %}
+
+### Enabling Enterprise Features
+
+Enterprise Charts features are enabled by loading the `ag-charts-enterprise` module and setting your license key before
+using the [API](./api-create-update).
+
+{% tabs %}
+{% tabItem id="enterprise-load-ts" label="Typescript" %}
+
+```javascript
+import { AgCharts } from 'ag-charts-enterprise';
+
+AgCharts.setLicenseKey('your license key');
+```
+
+{% /tabItem %}
+{% tabItem id="enterprise-load-cjs" label="Common JS Syntax" %}
+
+```javascript
+const agCharts = require('ag-charts-enterprise');
+
+agCharts.AgCharts.setLicenseKey('your license key');
+```
+
+{% /tabItem %}
+{% tabItem id="enterprise-load-esm" label="ES Syntax" %}
+
+```javascript
+import { AgCharts } from 'ag-charts-enterprise';
+
+AgCharts.setLicenseKey('your license key');
+```
+
+{% /tabItem %}
+{% /tabs %}
+
+## Without a Bundler
+
+{% if isFramework("react") %}
+We don't support pre-built bundles for React - see the [Javascript](../javascript/installation) documentation for more information.
+{% /if %}
+
+{% if isFramework("angular") %}
+We don't support pre-built bundles for Angular - see the [Javascript](../javascript/installation) documentation for more information.
+{% /if %}
+
+{% if isFramework("vue") %}
+We don't support pre-built bundles for Vue - see the [Javascript](../javascript/installation) documentation for more information.
+{% /if %}
+
+{% if isFramework("javascript") %}
+
+Add a `<script>` element the `<head>` of your main HTML page:
+
+```html
+<!-- Pick one tag only, the enterprise edition bundles community too. -->
+<!-- AG Charts community edition. -->
+<script src="https://cdn.jsdelivr.net/npm/ag-charts-community@9.0.0/dist/umd/ag-charts-community.js"></script>
+
+<!-- AG Charts enterprise edition. -->
+<script src="https://cdn.jsdelivr.net/npm/ag-charts-enterprise@9.0.0/dist/umd/ag-charts-enterprise.js"></script>
+```
+
+The main AG Charts API is then available as `agCharts`:
+
+```html
+<script>
+    const options = {
+        /* ... */
+    };
+    agCharts.AgCharts.create(options);
+</script>
+```
+
+### Enabling Enterprise Features
+
+Enterprise Charts features are enabled by loading the `ag-charts-enterprise.js` bundle and setting your license key before
+using the [API](./api-create-update).
+
+```html
+<script>
+    agCharts.AgCharts.setLicenseKey('your license key');
+</script>
+```
+
+{% /if %}
