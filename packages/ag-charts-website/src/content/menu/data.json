@@ -293,13 +293,13 @@
                     },
                     {
                         "title": "Range Area",
-                        "icon": "chartsRange",
+                        "icon": "chartsRangeArea",
                         "path": "range-area-series",
                         "isEnterprise": true
                     },
                     {
                         "title": "Range Bar",
-                        "icon": "chartsRange",
+                        "icon": "chartsRangeBar",
                         "path": "range-bar-series",
                         "isEnterprise": true
                     },
