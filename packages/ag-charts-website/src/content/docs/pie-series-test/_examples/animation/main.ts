@@ -64,18 +64,15 @@ function addData(position: 'start' | 'mid' | 'end' | number = 'end', inData: any
     const nextLabel = [...data.map(({ label }) => label), ...moreLabels].find(
         (l) => !inData?.some((d) => d.label === l)
     );
-    if (!nextLabel) return;
+    if (!nextLabel) return inData;
 
     const newDatum = { label: nextLabel, value: Math.random() * 5 + 0.5 };
     const newData = [...(inData ?? [])];
-    const newPosition =
-        position === 'start'
-            ? 0
-            : position === 'mid'
-            ? Math.floor(newData.length / 2)
-            : position === 'end'
-            ? newData.length
-            : position;
+    let newPosition = 0;
+    if (typeof position === 'number') newPosition = position;
+    if (position === 'start') newPosition = 0;
+    if (position === 'mid') newPosition = Math.floor(newData.length / 2);
+    if (position === 'end') newPosition = newData.length;
     newData.splice(newPosition, 0, newDatum);
     return newData;
 }
@@ -87,14 +84,12 @@ function add(position: 'start' | 'mid' | 'end' = 'end') {
 
 function removeData(position: 'start' | 'mid' | 'end' | number = 'end', inData: any[]) {
     const newData = [...(inData ?? [])];
-    const index =
-        position === 'start'
-            ? 0
-            : position === 'mid'
-            ? Math.floor(newData.length / 2)
-            : position === 'end'
-            ? -1
-            : position;
+
+    let index = 0;
+    if (typeof position === 'number') index = position;
+    if (position === 'start') index = 0;
+    if (position === 'mid') index = Math.floor(newData.length / 2);
+    if (position === 'end') index = -1;
     newData.splice(index, 1);
 
     return newData;
@@ -105,7 +100,7 @@ function remove(position: 'start' | 'mid' | 'end' = 'end') {
     AgCharts.update(chart, options);
 }
 
-function change(position: 'start' | 'mid' | 'end' = 'end') {
+function change() {
     const index = Math.floor(options.data!.length / 2);
     options.data = removeData(index, addData(index + 1, options.data!));
     AgCharts.update(chart, options);
