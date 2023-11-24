@@ -26,7 +26,8 @@
             "glob": "packages/ag-charts-react/README.md",
             "input": ".",
             "output": "."
-          }
+          },
+          { "glob": "packages/ag-charts-react/LICENSE.txt", "input": ".", "output": "." }
         ],
         "format": ["cjs", "esm"]
       }
