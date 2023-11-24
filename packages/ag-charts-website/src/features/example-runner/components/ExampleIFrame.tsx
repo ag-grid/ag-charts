@@ -6,7 +6,7 @@ import styles from './ExampleIFrame.module.scss';
 
 interface Props {
     isHidden?: boolean;
-    url: string;
+    url?: string;
 }
 
 export const ExampleIFrame: FunctionComponent<Props> = ({ isHidden, url }) => {
@@ -17,7 +17,7 @@ export const ExampleIFrame: FunctionComponent<Props> = ({ isHidden, url }) => {
     useIntersectionObserver({
         elementRef: iFrameRef,
         onChange: ({ isIntersecting: newIsIntersecting }) => {
-            if (newIsIntersecting && iFrameRef.current && !iFrameRef.current.src) {
+            if (url != null && newIsIntersecting && iFrameRef.current && !iFrameRef.current.src) {
                 iFrameRef.current.src = url;
             }
             setIsIntersecting(newIsIntersecting);
