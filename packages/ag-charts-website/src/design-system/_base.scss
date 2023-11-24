@@ -65,6 +65,10 @@ html {
     }
 }
 
+html#{$darkmode-selector} {
+    color-scheme: dark;
+}
+
 #{$darkmode-selector} {
     #doc-content a {
         color: #3893f9;
@@ -76,5 +80,17 @@ html {
     #doc-content a:hover {
         color: #3893f9;
         text-decoration-color: #60aafe;
+    }
+
+    aside::-webkit-scrollbar,
+    .menu::-webkit-scrollbar {
+        background-color: var(--dark-bg-new);
+    }
+
+    aside::-webkit-scrollbar-thumb,
+    .menu::-webkit-scrollbar-thumb {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        border: 4px solid var(--dark-bg-new);
     }
 }
