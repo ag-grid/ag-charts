@@ -49,6 +49,7 @@ export interface AgLineSeriesOptions<TDatum = any>
         AgLineSeriesOptionsKeys,
         AgLineSeriesOptionsNames,
         AgLineSeriesThemeableOptions<TDatum> {
+    /** Configuration for the Line Series. */
     type?: 'line';
     /** Configuration for the Error Bars. */
     errorBar?: AgErrorBarOptions;

@@ -8,6 +8,7 @@ export interface AgRadarAreaSeriesThemeableOptions<DatumType = any>
 export interface AgRadarAreaSeriesOptions<DatumType = any>
     extends AgRadarAreaSeriesThemeableOptions<DatumType>,
         AgBaseRadarSeriesOptions<DatumType> {
+    /** Configuration for the Radar Area Series. */
     type: 'radar-area';
 }
 

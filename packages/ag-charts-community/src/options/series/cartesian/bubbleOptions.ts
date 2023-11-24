@@ -55,6 +55,6 @@ export interface AgBubbleSeriesOptions<TDatum = any>
         AgBubbleSeriesThemeableOptions<TDatum>,
         AgBubbleSeriesOptionsKeys,
         AgBubbleSeriesOptionsNames {
-    /** Configuration for Bubble series. */
+    /** Configuration for Bubble Series. */
     type: 'bubble';
 }

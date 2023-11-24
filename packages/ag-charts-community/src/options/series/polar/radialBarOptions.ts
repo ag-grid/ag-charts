@@ -12,7 +12,7 @@ export interface AgRadialBarSeriesOptions<TDatum = any>
         AgRadialSeriesOptionsKeys,
         AgRadialSeriesOptionsNames,
         AgBaseRadialSeriesThemeableOptions<TDatum> {
-    /** Configuration for Radial Bar series. */
+    /** Configuration for Radial Bar Series. */
     type: 'radial-bar';
     /** Whether to group together (adjacently) separate sectors. */
     grouped?: boolean;

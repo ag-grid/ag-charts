@@ -101,7 +101,7 @@ export interface AgRangeBarSeriesOptions<TDatum = any>
         AgRangeBarSeriesOptionsNames,
         AgRangeBarSeriesThemeableOptions<TDatum>,
         AgBaseSeriesOptions<TDatum> {
-    /** Configuration for the RangeBar series. */
+    /** Configuration for the Range Bar Series. */
     type: 'range-bar';
 }
 
