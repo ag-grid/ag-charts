@@ -1,4 +1,4 @@
-import type { Framework } from "@ag-grid-types";
+import type { Framework } from '@ag-grid-types';
 import { Icon } from '@components/icon/Icon';
 import { urlWithPrefix } from '@utils/urlWithPrefix';
 import classnames from 'classnames';
@@ -21,7 +21,9 @@ export const FeatureTitle = ({ title, isRoot, path, isEnterprise, framework }: F
                 <a
                     href={urlWithPrefix({ framework, url: path })}
                     className={classnames([styles.featureTitleLink, textClassName])}
-                >{title}</a>
+                >
+                    {title}
+                </a>
             ) : (
                 <span className={classnames([styles.featureTitleLink, textClassName])}>{title}</span>
             )}
