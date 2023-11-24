@@ -52,7 +52,7 @@ The `labelKey` defines what will appear as the title for each sector.
 
 By default, the segments corresponding to leaf nodes will have the same angle.
 
-However, the sunburst is best suited to providing size values to provide relative sizing between these sectors.
+However, the Sunburst Series is best suited to providing size values to provide relative sizing between these sectors.
 
 {% chartExampleRunner title="Custom Sizing" name="sizing" type="generated" /%}
 
@@ -155,7 +155,7 @@ In this configuration:
 
 ## Gradient Legend
 
-The gradient legend aids in matching the colour coding of the sunburst series to the underlying values, and is enabled by default.
+The Gradient Legend aids in matching the colour coding of the Sunburst Series to the underlying values, and is enabled by default.
 
 {% chartExampleRunner title="Gradient Legend" name="gradient-legend" type="generated" /%}
 
@@ -163,9 +163,8 @@ The gradient legend aids in matching the colour coding of the sunburst series to
 series: [
     {
         type: 'sunburst',
-        labelKey: 'name',
         colorKey: 'gdpChange',
-        colorName: 'Change',
+        // ...
     },
 ],
 gradientLegend: {
@@ -177,7 +176,7 @@ gradientLegend: {
 
 {% chartExampleRunner title="Gradient Legend Position" name="gradient-legend-position" type="generated" /%}
 
-By default the gradient legend is placed at the bottom of the chart. Use the `position` option to change this.
+By default the Gradient Legend is placed at the bottom of the chart. Use the `position` option to change this.
 
 ```js
 gradientLegend: {
@@ -186,7 +185,7 @@ gradientLegend: {
 },
 ```
 
-In the above example, `reverseOrder` is used to change the direction of the gradient legend to display the values from top to bottom.
+In the above example, `reverseOrder` is used to change the direction of the Gradient Legend to display the values from top to bottom.
 
 ### Size
 
@@ -204,7 +203,7 @@ gradientLegend: {
 In the above configuration:
 
 -   `thickness` controls the thickness (or width) of the gradient bar.
--   `preferredLength` sets the initial length of the gradient bar. It is only _preferred_, as the gradient legend is constrained by the container edges.
+-   `preferredLength` sets the initial length of the gradient bar. It is only _preferred_, as the Gradient Legend is constrained by the container edges.
 
 ### Labels
 
@@ -233,6 +232,10 @@ gradientLegend: {
 
 {% tabItem id="AgSunburstSeriesOptions" label="Sunburst Series" %}
 {% apiReference id="AgSunburstSeriesOptions" /%}
+{% /tabItem %}
+
+{% tabItem id="AgGradientLegendOptions" label="Gradient Legend" %}
+{% apiReference id="AgGradientLegendOptions" /%}
 {% /tabItem %}
 
 {% /tabs %}
