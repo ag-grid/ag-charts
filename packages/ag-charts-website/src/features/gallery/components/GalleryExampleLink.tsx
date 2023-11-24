@@ -13,10 +13,6 @@ interface Props {
 }
 
 export const GalleryExampleLink: FunctionComponent<Props> = ({ label, exampleName, className }) => {
-    const { theme } = useTheme();
-
-    const imageUrl = getPlainExampleImageUrl({ exampleName, theme, ext: 'png' });
-
     return (
         <a
             className={classnames(styles.link, className, 'font-size-responsive', 'font-size-small', 'text-secondary')}
