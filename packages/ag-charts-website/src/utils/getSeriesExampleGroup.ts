@@ -7,7 +7,7 @@ export function getSeriesExampleGroup({
     seriesExampleName: string;
     galleryData: GalleryData;
 }) {
-    const { series } = galleryData;
+    const series = galleryData.series.flat();
     return series.find(({ examples }) => {
         return Boolean(examples.find(({ name }) => name === seriesExampleName));
     });

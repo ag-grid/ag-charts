@@ -18,7 +18,7 @@ const { series } = galleryData;
         <div class="menu">
             <ul class="list-style-none">
                 {
-                    series.map((series: GalleryExampleChartType) => (
+                    series.flat().map((series: GalleryExampleChartType) => (
                         <li>
                             <a href={getPageHashUrl({ chartSeriesName: series.name, isRelative: true })}>
                                 <Icon client:only name={series.icon as IconName} />
@@ -40,16 +40,23 @@ const { series } = galleryData;
             <GalleryExampleThemeDropdown client:only />
             <div>
                 {
-                    series.map((series: GalleryExampleChartType) => (
-                        <div class="chart-type" id={series.name}>
+                    series.map((series: GalleryExampleChartType[]) => (
+                        <div class="chart-type">
                             <div class="gallery-list">
-                                {series.examples.map(({ title, name }: GalleryExample) => (
-                                    <GalleryExampleLink
-                                        client:visible
-                                        className="galleryExample"
-                                        label={title}
-                                        exampleName={name}
-                                    />
+                                {series.map(({ title, name, examples }) => (
+                                    <>
+                                        <h3 id={name} class="gallery-list-title">
+                                            {title}
+                                        </h3>
+                                        {examples.map(({ title, name }: GalleryExample) => (
+                                            <GalleryExampleLink
+                                                client:visible
+                                                className="galleryExample"
+                                                label={title}
+                                                exampleName={name}
+                                            />
+                                        ))}
+                                    </>
                                 ))}
                             </div>
                         </div>
@@ -221,6 +228,14 @@ const { series } = galleryData;
         flex-direction: row;
         flex-wrap: wrap;
         gap: var(--gallery-list-gap);
+    }
+
+    .gallery-list-title {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        clip-path: inset(50%);
+        overflow: hidden;
     }
 
     .galleryExample {
