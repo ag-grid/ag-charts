@@ -47,7 +47,7 @@ The `labelKey` defines what will appear as the title for each tile.
 
 By default, each leaf node's rectangle will have approximately the same area.
 
-However, the treemap is best suited to providing size values to provide relative sizing between these rectangles.
+However, the Treemap Series is best suited to providing size values to provide relative sizing between these rectangles.
 
 {% chartExampleRunner title="Custom Sizing" name="sizing" type="generated" /%}
 
@@ -100,6 +100,7 @@ It's possible to override the default colours, or the colours on a group or tile
 
 {% chartExampleRunner title="Other Colours" name="other-colors" type="generated" /%}
 
+<!-- prettier-ignore -->
 ```js
 series: [
     {
@@ -107,30 +108,8 @@ series: [
         labelKey: 'name',
         sizeKey: 'total',
         sizeName: 'Total',
-        fills: [
-            '#E64A19',
-            '#F57C00',
-            '#FFA000',
-            '#FBC02D',
-            '#AFB42B',
-            '#689F38',
-            '#388E3C',
-            '#00796B',
-            '#0097A7',
-            '#0288D1',
-        ],
-        strokes: [
-            '#D84315',
-            '#EF6C00',
-            '#FF8F00',
-            '#F9A825',
-            '#9E9D24',
-            '#558B2F',
-            '#2E7D32',
-            '#00695C',
-            '#00838F',
-            '#0277BD',
-        ],
+        fills: ['#E64A19', '#F57C00', '#FFA000', '#FBC02D', '#AFB42B', '#689F38', '#388E3C', '#00796B', '#0097A7', '#0288D1'],
+        strokes: ['#D84315', '#EF6C00', '#FF8F00', '#F9A825', '#9E9D24', '#558B2F', '#2E7D32', '#00695C', '#00838F', '#0277BD'],
     },
 ];
 ```
@@ -224,7 +203,7 @@ The default tile gap is set to `-1` so the borders overlap.
 
 ## Gradient Legend
 
-The gradient legend aids in matching the colour coding of the treemap series to the underlying values, and is enabled by default.
+The Gradient Legend aids in matching the colour coding of the treemap series to the underlying values, and is enabled by default.
 
 {% chartExampleRunner title="Gradient Legend" name="gradient-legend" type="generated" /%}
 
@@ -232,9 +211,8 @@ The gradient legend aids in matching the colour coding of the treemap series to 
 series: [
     {
         type: 'treemap',
-        labelKey: 'title',
         colorKey: 'change',
-        colorName: 'Change',
+        // ...
     },
 ],
 gradientLegend: {
@@ -246,7 +224,7 @@ gradientLegend: {
 
 {% chartExampleRunner title="Gradient Legend Position" name="gradient-legend-position" type="generated" /%}
 
-By default the gradient legend is placed at the bottom of the chart. Use the `position` option to change this.
+By default the Gradient Legend is placed at the bottom of the chart. Use the `position` option to change this.
 
 ```js
 gradientLegend: {
@@ -255,7 +233,7 @@ gradientLegend: {
 },
 ```
 
-In the above example, `reverseOrder` is used to change the direction of the gradient legend to display the values from top to bottom.
+In the above example, `reverseOrder` is used to change the direction of the Gradient Legend to display the values from top to bottom.
 
 ### Size
 
@@ -273,7 +251,7 @@ gradientLegend: {
 In the above configuration:
 
 -   `thickness` controls the thickness (or width) of the gradient bar.
--   `preferredLength` sets the initial length of the gradient bar. It is only _preferred_, as the gradient legend is constrained by the container edges.
+-   `preferredLength` sets the initial length of the gradient bar. It is only _preferred_, as the Gradient Legend is constrained by the container edges.
 
 ### Labels
 
@@ -302,6 +280,10 @@ gradientLegend: {
 
 {% tabItem id="AgTreemapSeriesOptions" label="Treemap Series" %}
 {% apiReference id="AgTreemapSeriesOptions" /%}
+{% /tabItem %}
+
+{% tabItem id="AgGradientLegendOptions" label="Gradient Legend" %}
+{% apiReference id="AgGradientLegendOptions" /%}
 {% /tabItem %}
 
 {% /tabs %}
