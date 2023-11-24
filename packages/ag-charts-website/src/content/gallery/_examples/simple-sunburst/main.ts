@@ -9,20 +9,21 @@ const options: AgChartOptions = {
         {
             type: 'sunburst',
             labelKey: 'name',
-            secondaryLabelKey: 'size',
-            sizeKey: 'size',
-            secondaryLabel: {
-                formatter: ({ value }) => (value != null ? `${value?.toFixed(0)} kb` : undefined),
+            secondaryLabelKey: 'capacity',
+            label: {
+                minimumFontSize: 7,
             },
-            tooltip: {
-                renderer: ({ datum }) => ({
-                    content: datum.size != null ? `Size: ${datum.size?.toFixed(0)} kb` : undefined,
-                }),
+            secondaryLabel: {
+                minimumFontSize: 5,
+                formatter: ({ value }) => (value != null ? `${value?.toFixed(0)} MW` : undefined),
             },
         },
     ],
     title: {
-        text: 'Webpack dependencies',
+        text: 'Offshore Wind Farms by Country.',
+    },
+    subtitle: {
+        text: 'Wind farms with at least 500 MW capacity.',
     },
 };
 

@@ -32,7 +32,7 @@ const options: AgChartOptions = {
                 enabled: false,
             },
             line: {
-                width: 0,
+                enabled: false,
             },
         },
         {

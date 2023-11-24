@@ -28,7 +28,7 @@ const options: AgChartOptions = {
                 enabled: true,
             },
             line: {
-                width: 0,
+                enabled: false,
             },
             tick: {
                 size: 15,

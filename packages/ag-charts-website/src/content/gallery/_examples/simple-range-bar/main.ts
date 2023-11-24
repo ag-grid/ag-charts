@@ -41,7 +41,7 @@ const options: AgChartOptions = {
                 ],
             },
             line: {
-                width: 0,
+                enabled: false,
             },
             gridLine: {
                 style: [

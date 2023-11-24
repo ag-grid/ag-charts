@@ -15,11 +15,12 @@ type FeatureTitleProps = {
 
 export const FeatureTitle = ({ title, isRoot, path, isEnterprise, framework }: FeatureTitleProps) => {
     const textClassName = isRoot ? styles.featureGroup : undefined;
+    const pathToUse = path ? './' + path.replace(/^\/+/, '') : undefined;
     return (
         <div className={styles.featureTitleContainer}>
-            {path ? (
+            {pathToUse ? (
                 <a
-                    href={urlWithPrefix({ framework, url: path })}
+                    href={urlWithPrefix({ framework, url: pathToUse })}
                     className={classnames([styles.featureTitleLink, textClassName])}
                 >
                     {title}

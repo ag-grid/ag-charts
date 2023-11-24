@@ -32,7 +32,7 @@ export const getFolderUrl = ({ exampleName }: { exampleName: string }) => {
 };
 
 export const getSeriesTypeName = ({ galleryData, exampleName }: { galleryData: GalleryData; exampleName: string }) => {
-    const { series } = galleryData;
+    const series = galleryData.series.flat();
 
     const foundSeries = series.find(({ examples }) => {
         const foundExample = examples.find(({ name }) => {
@@ -59,9 +59,9 @@ export const getExample = ({
     galleryData: GalleryData;
     exampleName: string;
 }): undefined | GalleryExample => {
-    const { series } = galleryData;
+    const series = galleryData.series.flat();
     let result;
-    series.forEach(({ examples }) => {
+    series.flat().forEach(({ examples }) => {
         const foundExample = examples.find(({ name }) => {
             return name === exampleName;
         });
@@ -99,7 +99,7 @@ export const getChartExampleTitle = ({
 };
 
 export const getGalleryExamples = ({ galleryData }: { galleryData: GalleryData }) => {
-    const { series } = galleryData;
+    const series = galleryData.series.flat();
 
     const allExamples = series.flatMap((series) => series.examples);
 
