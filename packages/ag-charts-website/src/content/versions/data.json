@@ -1,0 +1,28 @@
+[
+    {
+        "version": "30.2.0",
+        "date": "September 26th 2023",
+        "highlights": [
+            {
+                "text": "Advanced Filter Builder UI for building filter expressions",
+                "url": "https://www.ag-grid.com/javascript-data-grid/filter-advanced/#advanced-filter-builder"
+            },
+            {
+                "text": "Support for Custom Matching in Quick Filter",
+                "url": "https://www.ag-grid.com/javascript-data-grid/filter-quick/#quick-filter-matcher"
+            },
+            {
+                "text": "Typing, filtering, async population of values in Rich Select Editor",
+                "url": "https://www.ag-grid.com/javascript-data-grid/provided-cell-editors/#rich-select-cell-editor"
+            },
+            {
+                "text": "Dynamic Group Footer Rows",
+                "url": "https://www.ag-grid.com/javascript-data-grid/grouping-footers/#dynamic-group-footers"
+            },
+            {
+                "text": "Documentation examples on CodeSandbox",
+                "url": ""
+            }
+        ]
+    }
+]
