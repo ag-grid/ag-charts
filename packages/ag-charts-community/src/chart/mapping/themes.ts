@@ -101,6 +101,11 @@ function validateChartTheme(value: unknown): string | ChartTheme | AgChartTheme 
 }
 
 export function getChartTheme(unvalidatedValue: unknown): ChartTheme {
+    // unvalidatedValue is either a built-in theme (`string | ChartTheme`) or a user defined
+    // theme (`AgChartTheme`). In the latter case, we can't make any assumption about the
+    // property types, hence why the input parameter is `unknown`. This abnormal validation
+    // is tech debt; the ideal solution would be to integrate user themes with the @Validate
+    // decorator like other chart options.
     let value = validateChartTheme(unvalidatedValue);
 
     if (value instanceof ChartTheme) {
