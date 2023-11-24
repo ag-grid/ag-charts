@@ -1304,10 +1304,11 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     protected updateAxisLine() {
         const { line } = this;
+        // Without this the layout isn't consistent when enabling/disabling the line, padding configurations are not respected.
+        const strokeWidth = line.enabled ? line.width : 0;
         this.lineNode.setProperties({
             stroke: line.color,
-            strokeWidth: line.width,
-            visible: line.enabled,
+            strokeWidth,
         });
     }
 
