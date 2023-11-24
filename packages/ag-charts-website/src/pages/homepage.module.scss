@@ -173,9 +173,11 @@
         padding-top: $size-6;
     }
 
+    border-bottom: 1px solid transparent;
+
     #{$darkmode-selector} & {
         background-color: #121f29;
-        border-bottom: 1px solid #394755;
+        border-bottom-color: #394755;
     }
 }
 
@@ -211,11 +213,6 @@
 .homepageGrid {
     padding-top: $size-8;
     padding-bottom: $size-8;
-
-    #{$darkmode-selector} & {
-        padding-top: $size-9;
-        padding-bottom: $size-9;
-    }
 }
 
 .gridInner {
@@ -287,11 +284,14 @@
     padding-top: $size-7;
     padding-bottom: $size-10;
 
+    border-top: 1px solid transparent;
+    border-bottom: 1px solid transparent;
+
     #{$darkmode-selector} & {
         padding-top: $size-8;
         background-color: var(--default-background-color);
-        border-top: 1px solid #394755;
-        border-bottom: 1px solid #394755;
+        border-top-color: #394755;
+        border-bottom-color: #394755;
     }
 }
 

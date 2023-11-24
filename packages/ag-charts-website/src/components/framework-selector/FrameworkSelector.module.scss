@@ -10,9 +10,11 @@
     border-radius: var(--border-radius);
     background-color: var(--input-background-color);
 
+    border: 1px solid transparent;
+
     #{$darkmode-selector} & {
         --input-background-color: #192a35;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.1);
     }
 }
 
@@ -65,8 +67,10 @@
         width: auto;
     }
 
+    border: 1px solid transparent;
+
     #{$darkmode-selector} & {
-        border: 1px solid #354856;
+        border-color: 1px solid #354856;
     }
 }
 
@@ -141,9 +145,11 @@
         --font-size: var(--font-size-extra-large);
     }
 
+    border: 1px solid transparent;
+
     #{$darkmode-selector} & {
         background-color: rgba(255, 255, 255, 0.05);
-        border: 1px solid #394755;
+        border-color: #394755;
     }
 }
 
