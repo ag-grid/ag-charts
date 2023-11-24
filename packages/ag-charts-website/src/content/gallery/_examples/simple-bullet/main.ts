@@ -7,9 +7,9 @@ function formatNumber(value: number) {
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
-    data: [{ revenue: 326270, targetRevenue: 250000 }],
-    title: { text: 'Revenue (US $)' },
-    subtitle: { text: '2020 YTD' },
+    data: [{ revenue: 326_270, targetRevenue: 250_000 }],
+    title: { text: 'Revenue' },
+    subtitle: { text: '2020 YTD (US $)' },
     series: [
         {
             type: 'bullet',
@@ -17,7 +17,7 @@ const options: AgChartOptions = {
             valueName: 'Actual',
             targetKey: 'targetRevenue',
             targetName: 'Target',
-            scale: { max: 350000 },
+            scale: { max: 350_000 },
             tooltip: {
                 renderer: ({ datum, valueKey, valueName, targetKey, targetName }) => {
                     const value = formatNumber(datum[valueKey]);
@@ -29,6 +29,12 @@ const options: AgChartOptions = {
                 },
             },
             target: { strokeWidth: 5, stroke: 'red' },
+            colorRanges: [
+                { color: '#666666', stop: 100_000 },
+                { color: '#888888', stop: 200_000 },
+                { color: '#AAAAAA', stop: 300_000 },
+                { color: '#CCCCCC' },
+            ],
         },
     ],
     axes: [
