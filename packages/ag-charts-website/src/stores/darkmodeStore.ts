@@ -9,7 +9,6 @@ export const $darkmode = persistentAtom<boolean | undefined>(`${LOCALSTORAGE_PRE
 });
 
 const updateHtml = (darkmode: boolean | undefined) => {
-    console.log({ darkmode });
     if (typeof document === 'undefined') {
         return;
     }
@@ -34,7 +33,6 @@ const updateHtml = (darkmode: boolean | undefined) => {
     window.dispatchEvent(new CustomEvent('message', { detail: darkModeEvent }));
 };
 
-console.log('HELLO');
 $darkmode.listen(updateHtml);
 updateHtml($darkmode.get() ?? window?.matchMedia('(prefers-color-scheme: dark)')?.matches);
 
