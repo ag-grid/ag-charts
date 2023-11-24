@@ -7,7 +7,7 @@ const options: AgChartOptions = {
     data,
     series: [
         {
-            type: 'sunburst',
+            type: 'treemap',
             labelKey: 'name',
         },
     ],
