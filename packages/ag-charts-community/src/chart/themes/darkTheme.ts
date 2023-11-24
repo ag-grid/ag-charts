@@ -100,11 +100,11 @@ export class DarkTheme extends ChartTheme {
             DEFAULT_DARK_FILLS.GREEN,
         ]);
         result.properties.set(DEFAULT_BACKGROUND_CONTRAST_COLOR_RANGE, [
-            '#5C6770',
-            '#4F5B64',
-            '#424E57',
-            '#36414A',
-            '#2A343C',
+            '#29343c',
+            '#444f58',
+            '#616c75',
+            '#7f8a94',
+            '#9eaab4',
         ]);
         result.properties.set(DEFAULT_BACKGROUND_COLOUR, DEFAULT_DARK_BACKGROUND_FILL);
         result.properties.set(DEFAULT_INSIDE_SERIES_LABEL_COLOUR, DEFAULT_DARK_BACKGROUND_FILL);
