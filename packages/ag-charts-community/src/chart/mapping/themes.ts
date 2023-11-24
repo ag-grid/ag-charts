@@ -56,8 +56,8 @@ function validateChartThemeObject(unknownObject: object | null): AgChartTheme | 
     let valid = true;
     const { baseTheme, palette, overrides } = unknownObject as Unvalidate<AgChartTheme>;
 
-    if (baseTheme !== undefined && typeof baseTheme !== 'string') {
-        Logger.warn(`invalid theme.baseTheme type ${typeof baseTheme}, expected string.`);
+    if (baseTheme !== undefined && typeof baseTheme !== 'string' && typeof baseTheme !== 'object') {
+        Logger.warn(`invalid theme.baseTheme type ${typeof baseTheme}, expected (string | object).`);
         valid = false;
     }
     if (overrides !== undefined && typeof overrides !== 'object') {
@@ -71,12 +71,12 @@ function validateChartThemeObject(unknownObject: object | null): AgChartTheme | 
                 Logger.warn(`theme.overrides.fills must be a defined array`);
                 valid = false;
             }
-            if (strokes === undefined) {
+            if (!Array.isArray(strokes)) {
                 Logger.warn(`theme.overrides.strokes must be a defined array`);
                 valid = false;
             }
         }
-    } else {
+    } else if (palette !== undefined) {
         Logger.warn(`invalid theme.palette type ${typeof palette}, expected object.`);
         valid = false;
     }

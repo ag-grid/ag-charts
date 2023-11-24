@@ -87,7 +87,10 @@ describe('ThemesValidation', () => {
         await waitForChartStability(chart);
 
         expect(console.warn).toBeCalledTimes(3);
-        expect(console.warn).nthCalledWith(1, 'AG Charts - invalid theme.baseTheme type number, expected string.');
+        expect(console.warn).nthCalledWith(
+            1,
+            'AG Charts - invalid theme.baseTheme type number, expected (string | object).'
+        );
         expect(console.warn).nthCalledWith(2, 'AG Charts - invalid theme.overrides type boolean, expected object.');
         expect(console.warn).nthCalledWith(3, 'AG Charts - invalid theme.palette type string, expected object.');
     });
