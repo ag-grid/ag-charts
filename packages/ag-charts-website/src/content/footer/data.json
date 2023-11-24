@@ -21,7 +21,7 @@
         "links": [
             {
                 "name": "Stack Overflow",
-                "url": "https://stackoverflow.com/questions/tagged/ag-grid",
+                "url": "https://stackoverflow.com/questions/tagged/ag-charts",
                 "newTab": true
             },
             {
@@ -65,7 +65,7 @@
         "links": [
             {
                 "name": "Github",
-                "url": "https://github.com/ag-grid/ag-grid",
+                "url": "https://github.com/ag-grid/ag-charts",
                 "iconName": "github"
             },
             {
