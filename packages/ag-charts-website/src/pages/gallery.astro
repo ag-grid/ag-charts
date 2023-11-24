@@ -69,14 +69,43 @@ const { series } = galleryData;
 
 <script>
     import { smoothScrollIntoView } from '@utils/smoothScrollIntoView';
+    import { initScrolledHeadingTriggers } from '@utils/initScrolledHeadingTriggers';
+    import type { MarkdownHeading } from 'astro';
 
+    const ACTIVE_CLASSNAME = 'active';
+    const headings = [] as MarkdownHeading[];
+    const headingAnchors = document.querySelectorAll('a[href^="#"]') as NodeListOf<HTMLAnchorElement>;
     // Add smooth scrolling for menu anchor links
-    document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+    headingAnchors.forEach((anchor: HTMLAnchorElement) => {
+        const href = anchor.getAttribute('href');
+        const id = href?.substring(1);
+
         anchor.addEventListener('click', function (e) {
             e.preventDefault();
-            const id = anchor.getAttribute('href').substring(1);
             smoothScrollIntoView({ id });
         });
+
+        headings.push({
+            slug: id!,
+            depth: 1,
+            text: anchor?.text.trim(),
+        });
+    });
+
+    function clearAllActiveClasses() {
+        headingAnchors.forEach((anchor) => {
+            anchor.classList.remove(ACTIVE_CLASSNAME);
+        });
+    }
+
+    initScrolledHeadingTriggers({
+        headings,
+        onScrollTrigger: ({ topVisibleId }) => {
+            const visible = document.querySelector(`a[href='#${topVisibleId}']`);
+
+            clearAllActiveClasses();
+            visible?.classList.add(ACTIVE_CLASSNAME);
+        },
     });
 </script>
 
@@ -163,7 +192,8 @@ const { series } = galleryData;
             transition: fill $default-transition-timing;
         }
 
-        &:hover {
+        &:hover,
+        &:global(.active) {
             --text-color: var(--link-hover-color);
 
             background: rgba(56, 146, 249, 0.06);
@@ -232,10 +262,7 @@ const { series } = galleryData;
 
     .gallery-list-title {
         position: absolute;
-        width: 1px;
-        height: 1px;
-        clip-path: inset(50%);
-        overflow: hidden;
+        visibility: hidden;
     }
 
     .galleryExample {
