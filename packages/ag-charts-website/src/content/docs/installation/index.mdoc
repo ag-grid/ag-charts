@@ -126,13 +126,29 @@ You can then use the [Charts API](./api-create-update) to create and update char
 
 {% if isFramework("javascript") %}
 
+{% tabs omitFromOverview=true %}
+{% tabItem id="community-api-ts" label="Typescript / ES Modules" %}
+
 ```javascript
 import { AgCharts } from 'ag-charts-community';
 
 AgCharts.create(/* chart options /*);
 ```
 
+{% /tabItem %}
+{% tabItem id="community-api-cjs" label="Common JS" %}
+
+```javascript
+const agCharts = require('ag-charts-community');
+
+agCharts.AgCharts.create(/* chart options */);
+```
+
+{% /tabItem %}
+{% /tabs %}
+
 {% /if %}
+
 {% if isFramework("react") %}
 
 ```jsx
