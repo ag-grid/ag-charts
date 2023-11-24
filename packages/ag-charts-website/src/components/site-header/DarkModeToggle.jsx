@@ -1,4 +1,3 @@
-import { setDarkmode } from '@stores/darkmodeStore';
 import { useDarkmode } from '@utils/hooks/useDarkmode';
 import classNames from 'classnames';
 import React from 'react';
@@ -7,7 +6,7 @@ import { Icon } from '../icon/Icon';
 import gridHeaderStyles from './gridSiteHeader.module.scss';
 
 export const DarkModeToggle = () => {
-    const darkmode = useDarkmode();
+    const [darkmode, setDarkmode] = useDarkmode();
 
     return (
         <li className={classNames(gridHeaderStyles.navItem, gridHeaderStyles.buttonItem)}>

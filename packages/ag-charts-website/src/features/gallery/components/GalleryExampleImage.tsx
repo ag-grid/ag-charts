@@ -1,7 +1,7 @@
-import { useTheme } from '@utils/hooks/useTheme';
 import classNames from 'classnames';
 import { type FunctionComponent } from 'react';
 
+import { useTheme } from '../../../utils/hooks/useTheme';
 import { getPlainExampleImageUrl } from '../utils/urlPaths';
 import styles from './GalleryExampleImage.module.scss';
 
@@ -12,7 +12,7 @@ interface Props {
 }
 
 export const GalleryExampleImage: FunctionComponent<Props> = ({ label, exampleName, className }) => {
-    const { themeName: theme } = useTheme();
+    const [theme] = useTheme();
 
     const style: any = {
         '--image-webp': `url(${getPlainExampleImageUrl({ exampleName, theme, ext: 'webp' })})`,
