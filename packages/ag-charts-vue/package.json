@@ -2,7 +2,7 @@
   "name": "ag-charts-vue",
   "description": "AG Charts Vue Component",
   "version": "9.0.0-beta.20231121.1401",
-  "author": "Sean Landsman <sean@thelandsmans.com>",
+  "author": "AG Grid <info@ag-grid.com>",
   "license": "MIT",
   "main": "main.js",
   "typings": "main.d.ts",

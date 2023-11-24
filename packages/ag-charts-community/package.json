@@ -31,7 +31,7 @@
     "vue",
     "vuejs"
   ],
-  "author": "Sean Landsman <sean@thelandsmans.com>",
+  "author": "AG Grid <info@ag-grid.com>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/ag-grid/ag-charts/issues"
