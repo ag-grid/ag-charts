@@ -18,6 +18,7 @@ export interface Props {
 }
 
 const metadata = await getEntry('metadata', 'metadata');
+const { data: footerItems } = await getEntry('footer', 'data');
 
 const {
     title = metadata.data.title,
@@ -98,7 +99,7 @@ const isApiLayout = apiMenuItems.some((item) => {
 
             <slot />
         </div>
-        <Footer path={path} />
+        <Footer path={path} footerItems={footerItems} />
 
         <style lang="scss">
             @use '../design-system' as *;
