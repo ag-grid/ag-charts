@@ -99,7 +99,7 @@ const options: AgChartOptions = {
             type: 'category',
             position: 'left',
             line: {
-                width: 0,
+                enabled: false,
             },
             tick: {
                 values: [2013, 2023],

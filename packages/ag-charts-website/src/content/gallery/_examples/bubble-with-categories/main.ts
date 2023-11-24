@@ -38,15 +38,14 @@ const options: AgChartOptions = {
                 enabled: true,
             },
             line: {
-                // enabled: false, // using this breaks layout calculations and incorrect padding
-                width: 0, // TODO: FIX
+                enabled: false,
             },
         },
         {
             position: 'left',
             type: 'category',
             line: {
-                width: 0, // TODO: FIX
+                enabled: false,
             },
         },
     ],

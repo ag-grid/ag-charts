@@ -89,7 +89,7 @@ const options: AgChartOptions = {
                 formatter: (params) => `${params.value / 1000}K`,
             },
             line: {
-                width: 0,
+                enabled: false,
             },
         },
     ],

@@ -35,7 +35,7 @@ const options: AgChartOptions = {
             paddingInner: 0.5,
             paddingOuter: 0.8,
             line: {
-                width: 0,
+                enabled: false,
             },
             gridLine: {
                 enabled: true,
