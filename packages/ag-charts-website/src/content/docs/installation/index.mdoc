@@ -18,18 +18,18 @@ This is the recommended approach for modern application development. We expect m
 
 ### Install NPM Package
 
-{% tabs %}
+{% tabs omitFromOverview=true %}
 {% tabItem id="js-npm" label="NPM" %}
 
 {% if isFramework("javascript") %}
 
 ```bash
-# Pick one package only, the enterprise edition depends on community.
+# Pick one package only, the Enterprise edition depends on Community.
 
-# Install AG Charts community edition.
+# Install AG Charts Community edition.
 npm install ag-charts-community
 
-# Install AG Charts enterprise edition.
+# Install AG Charts Enterprise edition.
 npm install ag-charts-enterprise
 ```
 
@@ -40,7 +40,7 @@ npm install ag-charts-enterprise
 ```bash
 npm install ag-charts-react
 
-# Install AG Charts enterprise edition (optional).
+# Install AG Charts Enterprise edition (optional).
 npm install ag-charts-enterprise
 ```
 
@@ -51,7 +51,7 @@ npm install ag-charts-enterprise
 ```bash
 npm install ag-charts-angular
 
-# Install AG Charts enterprise edition (optional).
+# Install AG Charts Enterprise edition (optional).
 npm install ag-charts-enterprise
 ```
 
@@ -62,7 +62,7 @@ npm install ag-charts-enterprise
 ```bash
 npm install ag-charts-vue3
 
-# Install AG Charts enterprise edition (optional).
+# Install AG Charts Enterprise edition (optional).
 npm install ag-charts-enterprise
 ```
 
@@ -74,12 +74,12 @@ npm install ag-charts-enterprise
 {% if isFramework("javascript") %}
 
 ```bash
-# Pick one package only, the enterprise edition depends on community.
+# Pick one package only, the Enterprise edition depends on Community.
 
-# Install AG Charts community edition.
+# Install AG Charts Community edition.
 yarn add ag-charts-community
 
-# Install AG Charts enterprise edition.
+# Install AG Charts Enterprise edition.
 yarn add ag-charts-enterprise
 ```
 
@@ -89,7 +89,7 @@ yarn add ag-charts-enterprise
 ```bash
 yarn add ag-charts-react
 
-# Install AG Charts enterprise edition (optional).
+# Install AG Charts Enterprise edition (optional).
 yarn add ag-charts-enterprise
 ```
 
@@ -100,7 +100,7 @@ yarn add ag-charts-enterprise
 ```bash
 yarn add ag-charts-angular
 
-# Install AG Charts enterprise edition (optional).
+# Install AG Charts Enterprise edition (optional).
 yarn add ag-charts-enterprise
 ```
 
@@ -111,7 +111,7 @@ yarn add ag-charts-enterprise
 ```bash
 yarn add ag-charts-vue3
 
-# Install AG Charts enterprise edition (optional).
+# Install AG Charts Enterprise edition (optional).
 yarn add ag-charts-enterprise
 ```
 
@@ -126,13 +126,29 @@ You can then use the [Charts API](./api-create-update) to create and update char
 
 {% if isFramework("javascript") %}
 
+{% tabs omitFromOverview=true %}
+{% tabItem id="community-api-ts" label="Typescript / ES Modules" %}
+
 ```javascript
 import { AgCharts } from 'ag-charts-community';
 
 AgCharts.create(/* chart options /*);
 ```
 
+{% /tabItem %}
+{% tabItem id="community-api-cjs" label="Common JS" %}
+
+```javascript
+const agCharts = require('ag-charts-community');
+
+agCharts.AgCharts.create(/* chart options */);
+```
+
+{% /tabItem %}
+{% /tabs %}
+
 {% /if %}
+
 {% if isFramework("react") %}
 
 ```jsx
@@ -182,7 +198,7 @@ const MyChart = {
 Enterprise Charts features are enabled by loading the `ag-charts-enterprise` module and setting your license key before
 using the [Charts API](./api-create-update).
 
-{% tabs %}
+{% tabs omitFromOverview=true %}
 {% tabItem id="enterprise-load-ts" label="Typescript / ES Modules" %}
 
 ```javascript
@@ -223,11 +239,11 @@ We provide a UMD bundle for direct inclusion in an application's HTML by adding 
 
 ```html
 <head>
-    <!-- Pick one tag only, the enterprise edition bundles community too. -->
-    <!-- AG Charts community edition. -->
+    <!-- Pick one tag only, the Enterprise edition bundles Community too. -->
+    <!-- AG Charts Community edition. -->
     <script src="https://cdn.jsdelivr.net/npm/ag-charts-community@9.0.0/dist/umd/ag-charts-community.js"></script>
 
-    <!-- AG Charts enterprise edition. -->
+    <!-- AG Charts Enterprise edition. -->
     <script src="https://cdn.jsdelivr.net/npm/ag-charts-enterprise@9.0.0/dist/umd/ag-charts-enterprise.js"></script>
 </head>
 ```

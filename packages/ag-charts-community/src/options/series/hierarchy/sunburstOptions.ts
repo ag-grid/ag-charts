@@ -72,7 +72,7 @@ export interface AgSunburstSeriesOptions<TDatum = any>
     extends Omit<AgBaseSeriesOptions<TDatum>, 'highlightStyle'>,
         AgSunburstSeriesOptionsKeys,
         AgSunburstSeriesThemeableOptions<TDatum> {
-    /** Configuration for the sunburst series. */
+    /** Configuration for the Sunburst Series. */
     type: 'sunburst';
 }
 

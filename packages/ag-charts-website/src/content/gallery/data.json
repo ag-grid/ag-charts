@@ -56,542 +56,598 @@
         }
     ],
     "series": [
-        {
-            "title": "Bar",
-            "name": "bar",
-            "icon": "chartsBar",
-            "enterprise": false,
-            "examples": [
-                {
-                    "title": "Simple Bar",
-                    "description": "Bar charts (also known as vertical <a href='./simple-bar/'>bar charts</a>) represent data using vertical bars, with the height of each bar proportional to the value being plotted. They can be used to plot both nominal and ordinal data, and are simple to interpret. They work best where the number of data points is limited.",
-                    "name": "simple-bar"
-                },
-                {
-                    "title": "Grouped Stacked Bar",
-                    "description": "Bar charts (also known as vertical <a href='./simple-bar/'>bar charts</a>) represent data using vertical bars, with the height of each bar proportional to the value being plotted. They can be used to plot both nominal and ordinal data, and are simple to interpret. They work best where the number of data points is limited.",
-                    "name": "grouped-stacked-bar"
-                },
-                {
-                    "title": "Stacked Bar",
-                    "description": "Stacked Bar charts allow part-to-whole comparisons, with series stacked on top of each other in the vertical <a href='./simple-bar/'>bars</a>.",
-                    "name": "stacked-bar"
-                },
-                {
-                    "title": "Simple Horizontal Bar",
-                    "description": "Horizontal Bar charts represent data using horizontal bars, with the length of each bar proportional to the value being plotted. They are useful for categorical data, and are simple to interpret. They work best where the number of data points is limited.",
-                    "name": "simple-horizontal-bar"
-                },
-                {
-                    "title": "Stacked Horizontal Bar",
-                    "description": "Stacked Horizontal Bar charts allow part-to-whole comparisons, with series stacked from left to right in the horizontal <a href='./simple-bar/'>bars</a>. They make it easy to compare combined bar lengths.",
-                    "name": "stacked-horizontal-bar"
-                },
-                {
-                    "title": "Grouped Horizontal Bar",
-                    "description": "Grouped Horizontal Bar charts (also known as clustered bar charts) show multiple series with the <a href='./simple-bar/'>bars</a> grouped by category, to allow for easier comparisons across different series.",
-                    "name": "grouped-horizontal-bar"
-                }
-            ]
-        },
-        {
-            "title": "Line",
-            "name": "line",
-            "icon": "chartsLine",
-            "enterprise": false,
-            "examples": [
-                {
-                    "title": "Simple Line",
-                    "description": "Line charts represent each series as a separate line. They are useful to show change or trends over time, and are able to better present more data points than <a href='./simple-bar/'>bar</a> charts.",
-                    "name": "simple-line"
-                },
-                {
-                    "title": "Line With Gaps",
-                    "description": "When data is missing in some line series compared to others, these gaps in the data are reflected in the lines.",
-                    "name": "line-with-gaps"
-                },
-                {
-                    "title": "Multiple Line Series",
-                    "description": "Line charts represent each series as a separate line. They are useful to show change or trends over time, and are able to better present more data points than <a href='./simple-bar/'>bar</a> charts.",
-                    "name": "multiple-line-series"
-                },
-                {
-                    "title": "Line With Time Axis",
-                    "description": "Line charts represent each series as a separate line. They are useful to show change or trends over time, and are able to better present more data points than <a href='./simple-bar/'>bar</a> charts.",
-                    "name": "line-legend-pagination"
-                },
-                {
-                    "title": "Line With Large Data",
-                    "description": "When data is missing in some line series compared to others, these gaps in the data are reflected in the lines.",
-                    "name": "multiple-line-series-large-data"
-                },
-                {
-                    "title": "Line With Labels",
-                    "description": "Line charts represent each series as a separate line. They are useful to show change or trends over time, and are able to better present more data points than <a href='./simple-bar/'>bar</a> charts.",
-                    "name": "line-with-labels"
-                }
-            ]
-        },
-        {
-            "title": "Area",
-            "name": "area",
-            "icon": "chartsArea",
-            "enterprise": false,
-            "examples": [
-                {
-                    "title": "Simple Area",
-                    "description": "Area charts plot series using a line with the area below the line filled. They are useful to show changes over time, and are easy to interpret.",
-                    "name": "simple-area"
-                },
-                {
-                    "title": "Area With Labels",
-                    "description": "<a href='./simple-area/'>Area charts</a> can also be used with negative values, with the area between the line and the axis being filled.",
-                    "name": "area-with-labels"
-                },
-                {
-                    "title": "Stacked Area",
-                    "description": "Stacked area charts plot multiple <a href='./simple-area/'>area</a> series stacked on top of each other, showing how part-to-whole relationships change over time.",
-                    "name": "stacked-area"
-                },
-                {
-                    "title": "Area With Markers",
-                    "description": "<a href='./simple-area/'>Area charts</a> can also be used with negative values, with the area between the line and the axis being filled.",
-                    "name": "area-with-markers"
-                },
-                {
-                    "title": "100% Stacked Area",
-                    "description": "100% stacked area charts show the relative percentage of multiple series in <a href='./stacked-area/'>stacked areas</a>, where the cumulative area always totals to 100%.",
-                    "name": "100--stacked-area"
-                },
-                {
-                    "title": "Area With Negative Values",
-                    "description": "<a href='./simple-area/'>Area charts</a> can also be used with negative values, with the area between the line and the axis being filled.",
-                    "name": "area-with-negative-values"
-                }
-            ]
-        },
-        {
-            "title": "Scatter",
-            "name": "scatter",
-            "icon": "chartsScatter",
-            "enterprise": false,
-            "examples": [
-                {
-                    "title": "Simple Scatter",
-                    "description": "Scatter charts (also known as scatter plots or XY charts) show the relationship between two variables, placing one variable on each axis, and can be useful for demonstrating any correlation between the variables.",
-                    "name": "simple-scatter"
-                },
-                {
-                    "title": "Multiple Scatter Series",
-                    "description": "Scatter charts (also known as scatter plots or XY charts) show the relationship between two variables, placing one variable on each axis, and can be useful for demonstrating any correlation between the variables.",
-                    "name": "multiple-scatter-series"
-                },
-                {
-                    "title": "Scatter With Large Data",
-                    "description": "Scatter charts (also known as scatter plots or XY charts) show the relationship between two variables, placing one variable on each axis, and can be useful for demonstrating any correlation between the variables.",
-                    "name": "scatter-with-large-data"
-                },
-                {
-                    "title": "Scatter With Custom Markers",
-                    "description": "Scatter charts (also known as scatter plots or XY charts) show the relationship between two variables, placing one variable on each axis, and can be useful for demonstrating any correlation between the variables.",
-                    "name": "scatter-with-custom-markers"
-                },
-                {
-                    "title": "Scatter With Labels",
-                    "description": "Scatter charts (also known as scatter plots or XY charts) show the relationship between two variables, placing one variable on each axis, and can be useful for demonstrating any correlation between the variables.",
-                    "name": "scatter-with-labels"
-                },
-                {
-                    "title": "Scatter With Multiple Axes",
-                    "description": "Scatter charts (also known as scatter plots or XY charts) show the relationship between two variables, placing one variable on each axis, and can be useful for demonstrating any correlation between the variables.",
-                    "name": "scatter-with-multiple-axes"
-                }
-            ]
-        },
-        {
-            "title": "Bubble",
-            "name": "bubble",
-            "icon": "chartsBubble",
-            "enterprise": false,
-            "examples": [
-                {
-                    "title": "Simple Bubble",
-                    "description": "The axes of scatter and bubble charts can be extended to plot positive and negative values.",
-                    "name": "bubble-with-negative-values"
-                },
-                {
-                    "title": "Multiple Bubble Series",
-                    "description": "The axes of scatter and bubble charts can be extended to plot positive and negative values.",
-                    "name": "multiple-bubble-series"
-                },
-                {
-                    "title": "Bubble With Large Data",
-                    "description": "The axes of scatter and bubble charts can be extended to plot positive and negative values.",
-                    "name": "bubble-with-large-data"
-                },
-                {
-                    "title": "Bubble With Categories",
-                    "description": "The axes of scatter and bubble charts can show categories in addition to values.",
-                    "name": "bubble-with-categories"
-                },
-                {
-                    "title": "Bubble With Custom Markers",
-                    "description": "The axes of scatter and bubble charts can show categories in addition to values.",
-                    "name": "bubble-with-custom-markers"
-                },
-                {
-                    "title": "Bubble With Labels",
-                    "description": "The axes of scatter and bubble charts can show categories in addition to values.",
-                    "name": "bubble-with-labels"
-                }
-            ]
-        },
-        {
-            "title": "Pie",
-            "name": "pie",
-            "icon": "chartsPie",
-            "enterprise": false,
-            "examples": [
-                {
-                    "title": "Simple Pie",
-                    "description": "Pie charts are used to express a part-to-whole relationship, where all the slices combine to represent 100%. They work best for a small number of categories.",
-                    "name": "simple-pie"
-                },
-                {
-                    "title": "Pie With Variable Radius",
-                    "description": "Pie sectors radius can be encoded by an additional numeric scale.",
-                    "name": "pie-with-variable-radius"
-                },
-                {
-                    "title": "Pie In A Doughnut",
-                    "description": "There can be multiple levels of Pie/Doughnut charts. It can be used when comparing shares for different periods.",
-                    "name": "pie-in-a-doughnut"
-                }
-            ]
-        },
-        {
-            "title": "Doughnut",
-            "name": "doughnut",
-            "icon": "chartsDoughnut",
-            "enterprise": false,
-            "examples": [
-                {
-                    "title": "Simple Doughnut",
-                    "description": "Doughnut charts are similar to <a href='./simple-pie/'>pie charts</a>, being used to express a part-to-whole relationship, but allow for multiple series to be shown on the same chart for comparison.",
-                    "name": "simple-doughnut"
-                },
-                {
-                    "title": "Doughnut With Variable Radius",
-                    "description": "Doughnut charts are similar to <a href='./simple-pie/'>pie charts</a>, being used to express a part-to-whole relationship, but allow for multiple series to be shown on the same chart for comparison.",
-                    "name": "doughnut-with-variable-radius"
-                },
-                {
-                    "title": "Multiple Doughnuts",
-                    "description": "Doughnut charts are similar to <a href='./simple-pie/'>pie charts</a>, being used to express a part-to-whole relationship, but allow for multiple series to be shown on the same chart for comparison.",
-                    "name": "multiple-doughnuts"
-                }
-            ]
-        },
-        {
-            "title": "Histogram",
-            "name": "histogram",
-            "icon": "chartsHistogram",
-            "examples": [
-                {
-                    "title": "Simple Histogram",
-                    "description": "Histograms show your data grouped into bins, revealing underlying trends. A standard histogram plots the population size of each bin against the y-axis. Here we show the distribution of car engine sizes, using the <code>engine-size</code> field from the available data.",
-                    "name": "simple-histogram"
-                },
-                {
-                    "title": "Histogram With Specified Bins",
-                    "description": "Rather than using the automatically generated fixed-width bins, it is possible to explicitly specify bins. In this case the bins can be different widths. In the example below the data is split into light, medium, and heavy vehicles, and we also demonstrate custom tooltips to give names to these categories.",
-                    "name": "histogram-with-specified-bins"
-                },
-                {
-                    "title": "XY Histogram With Mean Aggregation",
-                    "description": "Here we bin the data by car engine size, but plot the average highway MPG in the y-axis, revealing the relationship between these two fields. We also plot the same data as a scatter series to illustrate the aggregation.",
-                    "name": "xy-histogram-with-mean-aggregation"
-                }
-            ]
-        },
-        {
-            "title": "Range Bar",
-            "name": "range-bar",
-            "icon": "chartsRangeBar",
-            "enterprise": true,
-            "examples": [
-                {
-                    "title": "Simple Range Bar",
-                    "description": "Range Bar charts (also known as vertical <a href='./simple-bar/'> range bar charts</a>) represent data using vertical bars, with the height of each bar proportional to the range value being plotted. They work best where the number of data points is limited.",
-                    "name": "simple-range-bar"
-                },
-                {
-                    "title": "Range Bar With Labels",
-                    "description": "Range Bar charts (also known as vertical <a href='./simple-bar/'> range bar charts</a>) represent data using vertical bars, with the height of each bar proportional to the range value being plotted. They work best where the number of data points is limited.",
-                    "name": "range-bar-with-labels"
-                },
-                {
-                    "title": "Multiple Range Bars",
-                    "description": "Range Bar charts (also known as vertical <a href='./simple-bar/'> range bar charts</a>) represent data using vertical bars, with the height of each bar proportional to the range value being plotted. They work best where the number of data points is limited.",
-                    "name": "multiple-range-bars"
-                },
-                {
-                    "title": "Horizontal Range Bar",
-                    "description": "Horizontal Bar charts represent data using horizontal bars, with the length of each bar proportional to the range value being plotted. They work best where the number of data points is limited.",
-                    "name": "horizontal-range-bar"
-                },
-                {
-                    "title": "Horizontal Range Bar With Labels",
-                    "description": "Horizontal Bar charts represent data using horizontal bars, with the length of each bar proportional to the range value being plotted. They work best where the number of data points is limited.",
-                    "name": "horizontal-range-bar-with-labels"
-                },
-                {
-                    "title": "Multiple Horizontal Range Bar",
-                    "description": "Horizontal Bar charts represent data using horizontal bars, with the length of each bar proportional to the range value being plotted. They work best where the number of data points is limited.",
-                    "name": "multiple-horizontal-range-bars"
-                }
-            ]
-        },
-        {
-            "title": "Range Area",
-            "name": "range-area",
-            "icon": "chartsRangeArea",
-            "enterprise": true,
-            "examples": [
-                {
-                    "title": "Simple Range Area",
-                    "description": "A Range Area Series shows an area between high and low data values. It's used to monitor data consistency or variability.",
-                    "name": "simple-range-area"
-                },
-                {
-                    "title": "Multiple Range Areas",
-                    "description": "A Range Area Series shows an area between high and low data values. It's used to monitor data consistency or variability.",
-                    "name": "multiple-range-areas"
-                },
-                {
-                    "title": "Range Area With Labels",
-                    "description": "A Range Area Series shows an area between high and low data values. It's used to monitor data consistency or variability.",
-                    "name": "range-area-with-labels"
-                }
-            ]
-        },
-        {
-            "title": "Box Plot",
-            "name": "box-plot",
-            "icon": "chartsBoxPlot",
-            "enterprise": true,
-            "examples": [
-                {
-                    "title": "Simple Box Plot",
-                    "description": "A Box Plot Series, also known as a Box-and-Whisker Plot, visually summarises a dataset's distribution through its median and quartiles.",
-                    "name": "simple-box-plot"
-                },
-                {
-                    "title": "Multiple Box Plots",
-                    "description": "A Box Plot Series, also known as a Box-and-Whisker Plot, visually summarises a dataset's distribution through its median and quartiles.",
-                    "name": "multiple-box-plots"
-                },
-                {
-                    "title": "Horizontal Box Plot",
-                    "description": "A Box Plot Series, also known as a Box-and-Whisker Plot, visually summarises a dataset's distribution through its median and quartiles.",
-                    "name": "horizontal-box-plot"
-                }
-            ]
-        },
-        {
-            "title": "Heatmap",
-            "name": "heatmap",
-            "icon": "chartsHeatmap",
-            "enterprise": true,
-            "examples": [
-                {
-                    "title": "Simple Heatmap",
-                    "description": "A Heatmap Series is using the colour-coding to represent numeric values in a form of a colourful matrix.",
-                    "name": "simple-heatmap"
-                },
-                {
-                    "title": "Calendar Heatmap",
-                    "description": "A Heatmap Series is using the colour-coding to represent numeric values in a form of a colourful matrix.",
-                    "name": "calendar-heatmap"
-                }
-            ]
-        },
-        {
-            "title": "Waterfall",
-            "name": "waterfall",
-            "icon": "chartsWaterfall",
-            "enterprise": true,
-            "examples": [
-                {
-                    "title": "Simple Waterfall",
-                    "description": "A Waterfall Series shows the cumulative effect of sequential positive or negative data values. It utilises rising and falling bars to create a cascading waterfall effect.",
-                    "name": "simple-waterfall"
-                },
-                {
-                    "title": "Horizontal Waterfall",
-                    "description": "A Waterfall Series shows the cumulative effect of sequential positive or negative data values. It utilises rising and falling bars to create a cascading waterfall effect.",
-                    "name": "horizontal-waterfall"
-                },
-                {
-                    "title": "Customised Waterfall",
-                    "description": "A Waterfall Series shows the cumulative effect of sequential positive or negative data values. It utilises rising and falling bars to create a cascading waterfall effect.",
-                    "name": "customised-waterfall"
-                }
-            ]
-        },
-        {
-            "title": "Radar",
-            "name": "radar",
-            "icon": "chartsRadar",
-            "enterprise": true,
-            "examples": [
-                {
-                    "title": "Simple Radar Line",
-                    "description": "A Radar Line Series is typically used to contrast different datasets across shared categories for easy visual comparison.",
-                    "name": "simple-radar-line"
-                },
-                {
-                    "title": "Radar With Markers",
-                    "description": "A Radar Line Series is typically used to contrast different datasets across shared categories for easy visual comparison.",
-                    "name": "radar-with-markers"
-                },
-                {
-                    "title": "Simple Radar Area",
-                    "description": "A Radar Area Series shows the magnitude of various datasets within shared categories, making it easier to gauge area-based trends.",
-                    "name": "simple-radar-area"
-                }
-            ]
-        },
-        {
-            "title": "Nightingale",
-            "name": "nightingale",
-            "icon": "chartsNightingale",
-            "enterprise": true,
-            "examples": [
-                {
-                    "title": "Simple Nightingale",
-                    "description": "A Nightingale Series represents data as radial segments, with one segment per category value. It can simplify the comparison of datasets across multiple categories, providing a concise depiction of data trends.",
-                    "name": "simple-nightingale"
-                }
-            ]
-        },
-        {
-            "title": "Radial Column",
-            "name": "radial-column",
-            "icon": "chartsRadialColumn",
-            "enterprise": true,
-            "examples": [
-                {
-                    "title": "Simple Radial Column",
-                    "description": "A Radial Column Series visualises data through rectangular columns arranged along a polar axis.",
-                    "name": "simple-radial-column"
-                }
-            ]
-        },
-        {
-            "title": "Radial Bar",
-            "name": "radial-bar",
-            "icon": "chartsRadialBar",
-            "enterprise": true,
-            "examples": [
-                {
-                    "title": "Stacked Radial Bar",
-                    "description": "A Radial Bar Series visualises data through rectangular bars arranged along a polar axis.",
-                    "name": "stacked-radial-bar"
-                }
-            ]
-        },
-        {
-            "title": "Sunburst",
-            "name": "sunburst",
-            "icon": "chartsSunburst",
-            "enterprise": true,
-            "examples": [
-                {
-                    "title": "Simple Sunburst",
-                    "description": "A sunburst with varying node sizes.",
-                    "name": "simple-sunburst"
-                },
-                {
-                    "title": "Sunburst with Colour Range",
-                    "description": "A sunburst with segment colour using a colour range.",
-                    "name": "sunburst-with-color-range"
-                }
-            ]
-        },
-        {
-            "title": "Treemap",
-            "name": "treemap",
-            "icon": "chartsTreemap",
-            "enterprise": true,
-            "examples": [
-                {
-                    "title": "Simple Treemap",
-                    "description": "A treemap with varying node sizes.",
-                    "name": "simple-treemap"
-                },
-                {
-                    "title": "Treemap with Colour Range",
-                    "description": "A treemap with each tile colour using a colour range.",
-                    "name": "treemap-with-color-range"
-                }
-            ]
-        },
-        {
-            "title": "Combination",
-            "name": "combination",
-            "icon": "chartsCombination",
-            "enterprise": false,
-            "examples": [
-                {
-                    "title": "Bar And Line Combination",
-                    "description": "A combination chart combines two or more series types allowing for flexible data visualisations. They are ideal for making visual comparisons of different sets of data in a single chart.",
-                    "name": "bar-line-combination"
-                },
-                {
-                    "title": "Histogram And Scatter Combination",
-                    "description": "A combination chart combines two or more series types allowing for flexible data visualisations. They are ideal for making visual comparisons of different sets of data in a single chart.",
-                    "name": "histogram-scatter-combination"
-                },
-                {
-                    "title": "Range Bar And Line Combination",
-                    "description": "A combination chart combines two or more series types allowing for flexible data visualisations. They are ideal for making visual comparisons of different sets of data in a single chart.",
-                    "name": "range-bar-line-combination"
-                },
-                {
-                    "title": "Horizontal Range Bar And Scatter Combination",
-                    "description": "A combination chart combines two or more series types allowing for flexible data visualisations. They are ideal for making visual comparisons of different sets of data in a single chart.",
-                    "name": "horizontal-range-bar-scatter-combination"
-                },
-                {
-                    "title": "Box Plot",
-                    "description": "A combination chart combines two or more series types allowing for flexible data visualisations. They are ideal for making visual comparisons of different sets of data in a single chart.",
-                    "name": "box-plot-scatter-combination"
-                }
-            ]
-        },
-        {
-            "title": "Bullet",
-            "name": "Bullet",
-            "icon": "chartsBullet",
-            "enterprise": true,
-            "examples": [
-                {
-                    "title": "Simple Bullet Series",
-                    "description": "A Bullet Series presents a single data point within a predefined range, commonly used to illustrate the relationship of a key value to a target or comparative values.",
-                    "name": "simple-bullet"
-                },
-                {
-                    "title": "Horizontal Bullet Series",
-                    "description": "A Bullet Series presents a single data point within a predefined range, commonly used to illustrate the relationship of a key value to a target or comparative values.",
-                    "name": "horizontal-bullet"
-                },
-                {
-                    "title": "Bullet Series Customisation",
-                    "description": "A Bullet Series presents a single data point within a predefined range, commonly used to illustrate the relationship of a key value to a target or comparative values.",
-                    "name": "bullet-customization"
-                }
-            ]
-        }
+        [
+            {
+                "title": "Bar",
+                "name": "bar",
+                "icon": "chartsBar",
+                "enterprise": false,
+                "examples": [
+                    {
+                        "title": "Simple Bar",
+                        "description": "Bar charts (also known as vertical <a href='./simple-bar/'>bar charts</a>) represent data using vertical bars, with the height of each bar proportional to the value being plotted. They can be used to plot both nominal and ordinal data, and are simple to interpret. They work best where the number of data points is limited.",
+                        "name": "simple-bar"
+                    },
+                    {
+                        "title": "Grouped Stacked Bar",
+                        "description": "Bar charts (also known as vertical <a href='./simple-bar/'>bar charts</a>) represent data using vertical bars, with the height of each bar proportional to the value being plotted. They can be used to plot both nominal and ordinal data, and are simple to interpret. They work best where the number of data points is limited.",
+                        "name": "grouped-stacked-bar"
+                    },
+                    {
+                        "title": "Stacked Bar",
+                        "description": "Stacked Bar charts allow part-to-whole comparisons, with series stacked on top of each other in the vertical <a href='./simple-bar/'>bars</a>.",
+                        "name": "stacked-bar"
+                    },
+                    {
+                        "title": "Simple Horizontal Bar",
+                        "description": "Horizontal Bar charts represent data using horizontal bars, with the length of each bar proportional to the value being plotted. They are useful for categorical data, and are simple to interpret. They work best where the number of data points is limited.",
+                        "name": "simple-horizontal-bar"
+                    },
+                    {
+                        "title": "Stacked Horizontal Bar",
+                        "description": "Stacked Horizontal Bar charts allow part-to-whole comparisons, with series stacked from left to right in the horizontal <a href='./simple-bar/'>bars</a>. They make it easy to compare combined bar lengths.",
+                        "name": "stacked-horizontal-bar"
+                    },
+                    {
+                        "title": "Grouped Horizontal Bar",
+                        "description": "Grouped Horizontal Bar charts (also known as clustered bar charts) show multiple series with the <a href='./simple-bar/'>bars</a> grouped by category, to allow for easier comparisons across different series.",
+                        "name": "grouped-horizontal-bar"
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "title": "Line",
+                "name": "line",
+                "icon": "chartsLine",
+                "enterprise": false,
+                "examples": [
+                    {
+                        "title": "Simple Line",
+                        "description": "Line charts represent each series as a separate line. They are useful to show change or trends over time, and are able to better present more data points than <a href='./simple-bar/'>bar</a> charts.",
+                        "name": "simple-line"
+                    },
+                    {
+                        "title": "Line With Gaps",
+                        "description": "When data is missing in some line series compared to others, these gaps in the data are reflected in the lines.",
+                        "name": "line-with-gaps"
+                    },
+                    {
+                        "title": "Multiple Line Series",
+                        "description": "Line charts represent each series as a separate line. They are useful to show change or trends over time, and are able to better present more data points than <a href='./simple-bar/'>bar</a> charts.",
+                        "name": "multiple-line-series"
+                    },
+                    {
+                        "title": "Line With Time Axis",
+                        "description": "Line charts represent each series as a separate line. They are useful to show change or trends over time, and are able to better present more data points than <a href='./simple-bar/'>bar</a> charts.",
+                        "name": "line-legend-pagination"
+                    },
+                    {
+                        "title": "Line With Large Data",
+                        "description": "When data is missing in some line series compared to others, these gaps in the data are reflected in the lines.",
+                        "name": "multiple-line-series-large-data"
+                    },
+                    {
+                        "title": "Line With Labels",
+                        "description": "Line charts represent each series as a separate line. They are useful to show change or trends over time, and are able to better present more data points than <a href='./simple-bar/'>bar</a> charts.",
+                        "name": "line-with-labels"
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "title": "Area",
+                "name": "area",
+                "icon": "chartsArea",
+                "enterprise": false,
+                "examples": [
+                    {
+                        "title": "Simple Area",
+                        "description": "Area charts plot series using a line with the area below the line filled. They are useful to show changes over time, and are easy to interpret.",
+                        "name": "simple-area"
+                    },
+                    {
+                        "title": "Area With Labels",
+                        "description": "<a href='./simple-area/'>Area charts</a> can also be used with negative values, with the area between the line and the axis being filled.",
+                        "name": "area-with-labels"
+                    },
+                    {
+                        "title": "Stacked Area",
+                        "description": "Stacked area charts plot multiple <a href='./simple-area/'>area</a> series stacked on top of each other, showing how part-to-whole relationships change over time.",
+                        "name": "stacked-area"
+                    },
+                    {
+                        "title": "Area With Markers",
+                        "description": "<a href='./simple-area/'>Area charts</a> can also be used with negative values, with the area between the line and the axis being filled.",
+                        "name": "area-with-markers"
+                    },
+                    {
+                        "title": "100% Stacked Area",
+                        "description": "100% stacked area charts show the relative percentage of multiple series in <a href='./stacked-area/'>stacked areas</a>, where the cumulative area always totals to 100%.",
+                        "name": "100--stacked-area"
+                    },
+                    {
+                        "title": "Area With Negative Values",
+                        "description": "<a href='./simple-area/'>Area charts</a> can also be used with negative values, with the area between the line and the axis being filled.",
+                        "name": "area-with-negative-values"
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "title": "Scatter",
+                "name": "scatter",
+                "icon": "chartsScatter",
+                "enterprise": false,
+                "examples": [
+                    {
+                        "title": "Simple Scatter",
+                        "description": "Scatter charts (also known as scatter plots or XY charts) show the relationship between two variables, placing one variable on each axis, and can be useful for demonstrating any correlation between the variables.",
+                        "name": "simple-scatter"
+                    },
+                    {
+                        "title": "Multiple Scatter Series",
+                        "description": "Scatter charts (also known as scatter plots or XY charts) show the relationship between two variables, placing one variable on each axis, and can be useful for demonstrating any correlation between the variables.",
+                        "name": "multiple-scatter-series"
+                    },
+                    {
+                        "title": "Scatter With Large Data",
+                        "description": "Scatter charts (also known as scatter plots or XY charts) show the relationship between two variables, placing one variable on each axis, and can be useful for demonstrating any correlation between the variables.",
+                        "name": "scatter-with-large-data"
+                    },
+                    {
+                        "title": "Scatter With Custom Markers",
+                        "description": "Scatter charts (also known as scatter plots or XY charts) show the relationship between two variables, placing one variable on each axis, and can be useful for demonstrating any correlation between the variables.",
+                        "name": "scatter-with-custom-markers"
+                    },
+                    {
+                        "title": "Scatter With Labels",
+                        "description": "Scatter charts (also known as scatter plots or XY charts) show the relationship between two variables, placing one variable on each axis, and can be useful for demonstrating any correlation between the variables.",
+                        "name": "scatter-with-labels"
+                    },
+                    {
+                        "title": "Scatter With Multiple Axes",
+                        "description": "Scatter charts (also known as scatter plots or XY charts) show the relationship between two variables, placing one variable on each axis, and can be useful for demonstrating any correlation between the variables.",
+                        "name": "scatter-with-multiple-axes"
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "title": "Bubble",
+                "name": "bubble",
+                "icon": "chartsBubble",
+                "enterprise": false,
+                "examples": [
+                    {
+                        "title": "Simple Bubble",
+                        "description": "The axes of scatter and bubble charts can be extended to plot positive and negative values.",
+                        "name": "bubble-with-negative-values"
+                    },
+                    {
+                        "title": "Multiple Bubble Series",
+                        "description": "The axes of scatter and bubble charts can be extended to plot positive and negative values.",
+                        "name": "multiple-bubble-series"
+                    },
+                    {
+                        "title": "Bubble With Large Data",
+                        "description": "The axes of scatter and bubble charts can be extended to plot positive and negative values.",
+                        "name": "bubble-with-large-data"
+                    },
+                    {
+                        "title": "Bubble With Categories",
+                        "description": "The axes of scatter and bubble charts can show categories in addition to values.",
+                        "name": "bubble-with-categories"
+                    },
+                    {
+                        "title": "Bubble With Custom Markers",
+                        "description": "The axes of scatter and bubble charts can show categories in addition to values.",
+                        "name": "bubble-with-custom-markers"
+                    },
+                    {
+                        "title": "Bubble With Labels",
+                        "description": "The axes of scatter and bubble charts can show categories in addition to values.",
+                        "name": "bubble-with-labels"
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "title": "Pie",
+                "name": "pie",
+                "icon": "chartsPie",
+                "enterprise": false,
+                "examples": [
+                    {
+                        "title": "Simple Pie",
+                        "description": "Pie charts are used to express a part-to-whole relationship, where all the slices combine to represent 100%. They work best for a small number of categories.",
+                        "name": "simple-pie"
+                    },
+                    {
+                        "title": "Pie With Variable Radius",
+                        "description": "Pie sectors radius can be encoded by an additional numeric scale.",
+                        "name": "pie-with-variable-radius"
+                    },
+                    {
+                        "title": "Pie In A Doughnut",
+                        "description": "There can be multiple levels of Pie/Doughnut charts. It can be used when comparing shares for different periods.",
+                        "name": "pie-in-a-doughnut"
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "title": "Doughnut",
+                "name": "doughnut",
+                "icon": "chartsDoughnut",
+                "enterprise": false,
+                "examples": [
+                    {
+                        "title": "Simple Doughnut",
+                        "description": "Doughnut charts are similar to <a href='./simple-pie/'>pie charts</a>, being used to express a part-to-whole relationship, but allow for multiple series to be shown on the same chart for comparison.",
+                        "name": "simple-doughnut"
+                    },
+                    {
+                        "title": "Doughnut With Variable Radius",
+                        "description": "Doughnut charts are similar to <a href='./simple-pie/'>pie charts</a>, being used to express a part-to-whole relationship, but allow for multiple series to be shown on the same chart for comparison.",
+                        "name": "doughnut-with-variable-radius"
+                    },
+                    {
+                        "title": "Multiple Doughnuts",
+                        "description": "Doughnut charts are similar to <a href='./simple-pie/'>pie charts</a>, being used to express a part-to-whole relationship, but allow for multiple series to be shown on the same chart for comparison.",
+                        "name": "multiple-doughnuts"
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "title": "Histogram",
+                "name": "histogram",
+                "icon": "chartsHistogram",
+                "examples": [
+                    {
+                        "title": "Simple Histogram",
+                        "description": "Histograms show your data grouped into bins, revealing underlying trends. A standard histogram plots the population size of each bin against the y-axis. Here we show the distribution of car engine sizes, using the <code>engine-size</code> field from the available data.",
+                        "name": "simple-histogram"
+                    },
+                    {
+                        "title": "Histogram With Specified Bins",
+                        "description": "Rather than using the automatically generated fixed-width bins, it is possible to explicitly specify bins. In this case the bins can be different widths. In the example below the data is split into light, medium, and heavy vehicles, and we also demonstrate custom tooltips to give names to these categories.",
+                        "name": "histogram-with-specified-bins"
+                    },
+                    {
+                        "title": "XY Histogram With Mean Aggregation",
+                        "description": "Here we bin the data by car engine size, but plot the average highway MPG in the y-axis, revealing the relationship between these two fields. We also plot the same data as a scatter series to illustrate the aggregation.",
+                        "name": "xy-histogram-with-mean-aggregation"
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "title": "Range Bar",
+                "name": "range-bar",
+                "icon": "chartsRangeBar",
+                "enterprise": true,
+                "examples": [
+                    {
+                        "title": "Simple Range Bar",
+                        "description": "Range Bar charts (also known as vertical <a href='./simple-bar/'> range bar charts</a>) represent data using vertical bars, with the height of each bar proportional to the range value being plotted. They work best where the number of data points is limited.",
+                        "name": "simple-range-bar"
+                    },
+                    {
+                        "title": "Range Bar With Labels",
+                        "description": "Range Bar charts (also known as vertical <a href='./simple-bar/'> range bar charts</a>) represent data using vertical bars, with the height of each bar proportional to the range value being plotted. They work best where the number of data points is limited.",
+                        "name": "range-bar-with-labels"
+                    },
+                    {
+                        "title": "Multiple Range Bars",
+                        "description": "Range Bar charts (also known as vertical <a href='./simple-bar/'> range bar charts</a>) represent data using vertical bars, with the height of each bar proportional to the range value being plotted. They work best where the number of data points is limited.",
+                        "name": "multiple-range-bars"
+                    },
+                    {
+                        "title": "Horizontal Range Bar",
+                        "description": "Horizontal Bar charts represent data using horizontal bars, with the length of each bar proportional to the range value being plotted. They work best where the number of data points is limited.",
+                        "name": "horizontal-range-bar"
+                    },
+                    {
+                        "title": "Horizontal Range Bar With Labels",
+                        "description": "Horizontal Bar charts represent data using horizontal bars, with the length of each bar proportional to the range value being plotted. They work best where the number of data points is limited.",
+                        "name": "horizontal-range-bar-with-labels"
+                    },
+                    {
+                        "title": "Multiple Horizontal Range Bar",
+                        "description": "Horizontal Bar charts represent data using horizontal bars, with the length of each bar proportional to the range value being plotted. They work best where the number of data points is limited.",
+                        "name": "multiple-horizontal-range-bars"
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "title": "Range Area",
+                "name": "range-area",
+                "icon": "chartsRangeArea",
+                "enterprise": true,
+                "examples": [
+                    {
+                        "title": "Simple Range Area",
+                        "description": "A Range Area Series shows an area between high and low data values. It's used to monitor data consistency or variability.",
+                        "name": "simple-range-area"
+                    },
+                    {
+                        "title": "Multiple Range Areas",
+                        "description": "A Range Area Series shows an area between high and low data values. It's used to monitor data consistency or variability.",
+                        "name": "multiple-range-areas"
+                    },
+                    {
+                        "title": "Range Area With Labels",
+                        "description": "A Range Area Series shows an area between high and low data values. It's used to monitor data consistency or variability.",
+                        "name": "range-area-with-labels"
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "title": "Box Plot",
+                "name": "box-plot",
+                "icon": "chartsBoxPlot",
+                "enterprise": true,
+                "examples": [
+                    {
+                        "title": "Simple Box Plot",
+                        "description": "A Box Plot Series, also known as a Box-and-Whisker Plot, visually summarises a dataset's distribution through its median and quartiles.",
+                        "name": "simple-box-plot"
+                    },
+                    {
+                        "title": "Multiple Box Plots",
+                        "description": "A Box Plot Series, also known as a Box-and-Whisker Plot, visually summarises a dataset's distribution through its median and quartiles.",
+                        "name": "multiple-box-plots"
+                    },
+                    {
+                        "title": "Horizontal Box Plot",
+                        "description": "A Box Plot Series, also known as a Box-and-Whisker Plot, visually summarises a dataset's distribution through its median and quartiles.",
+                        "name": "horizontal-box-plot"
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "title": "Heatmap",
+                "name": "heatmap",
+                "icon": "chartsHeatmap",
+                "enterprise": true,
+                "examples": [
+                    {
+                        "title": "Simple Heatmap",
+                        "description": "A Heatmap Series is using the colour-coding to represent numeric values in a form of a colourful matrix.",
+                        "name": "simple-heatmap"
+                    },
+                    {
+                        "title": "Calendar Heatmap",
+                        "description": "A Heatmap Series is using the colour-coding to represent numeric values in a form of a colourful matrix.",
+                        "name": "calendar-heatmap"
+                    },
+                    {
+                        "title": "Heatmap with Labels",
+                        "description": "A Heatmap Series is using the colour-coding to represent numeric values in a form of a colourful matrix.",
+                        "name": "heatmap-with-labels"
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "title": "Waterfall",
+                "name": "waterfall",
+                "icon": "chartsWaterfall",
+                "enterprise": true,
+                "examples": [
+                    {
+                        "title": "Simple Waterfall",
+                        "description": "A Waterfall Series shows the cumulative effect of sequential positive or negative data values. It utilises rising and falling bars to create a cascading waterfall effect.",
+                        "name": "simple-waterfall"
+                    },
+                    {
+                        "title": "Horizontal Waterfall",
+                        "description": "A Waterfall Series shows the cumulative effect of sequential positive or negative data values. It utilises rising and falling bars to create a cascading waterfall effect.",
+                        "name": "horizontal-waterfall"
+                    },
+                    {
+                        "title": "Customised Waterfall",
+                        "description": "A Waterfall Series shows the cumulative effect of sequential positive or negative data values. It utilises rising and falling bars to create a cascading waterfall effect.",
+                        "name": "customised-waterfall"
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "title": "Radar Line",
+                "name": "radar-line",
+                "icon": "chartsRadar",
+                "enterprise": true,
+                "examples": [
+                    {
+                        "title": "Simple Radar Line",
+                        "description": "A Radar Line Series is typically used to contrast different datasets across shared categories for easy visual comparison.",
+                        "name": "simple-radar-line"
+                    },
+                    {
+                        "title": "Radar With Markers",
+                        "description": "A Radar Line Series is typically used to contrast different datasets across shared categories for easy visual comparison.",
+                        "name": "radar-with-markers"
+                    }
+                ]
+            },
+            {
+                "title": "Radar Area",
+                "name": "radar-area",
+                "icon": "chartsRadar",
+                "enterprise": true,
+                "examples": [
+                    {
+                        "title": "Simple Radar Area",
+                        "description": "A Radar Area Series shows the magnitude of various datasets within shared categories, making it easier to gauge area-based trends.",
+                        "name": "simple-radar-area"
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "title": "Nightingale",
+                "name": "nightingale",
+                "icon": "chartsNightingale",
+                "enterprise": true,
+                "examples": [
+                    {
+                        "title": "Simple Nightingale",
+                        "description": "A Nightingale Series represents data as radial segments, with one segment per category value. It can simplify the comparison of datasets across multiple categories, providing a concise depiction of data trends.",
+                        "name": "simple-nightingale"
+                    }
+                ]
+            },
+            {
+                "title": "Radial Column",
+                "name": "radial-column",
+                "icon": "chartsRadialColumn",
+                "enterprise": true,
+                "examples": [
+                    {
+                        "title": "Simple Radial Column",
+                        "description": "A Radial Column Series visualises data through rectangular columns arranged along a polar axis.",
+                        "name": "simple-radial-column"
+                    }
+                ]
+            },
+            {
+                "title": "Radial Bar",
+                "name": "radial-bar",
+                "icon": "chartsRadialBar",
+                "enterprise": true,
+                "examples": [
+                    {
+                        "title": "Stacked Radial Bar",
+                        "description": "A Radial Bar Series visualises data through rectangular bars arranged along a polar axis.",
+                        "name": "stacked-radial-bar"
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "title": "Sunburst",
+                "name": "sunburst",
+                "icon": "chartsSunburst",
+                "enterprise": true,
+                "examples": [
+                    {
+                        "title": "Simple Sunburst",
+                        "description": "A sunburst with varying node sizes.",
+                        "name": "simple-sunburst"
+                    },
+                    {
+                        "title": "Sunburst with Nesting",
+                        "description": "A sunburst with with multiple levels.",
+                        "name": "sunburst-with-nesting"
+                    },
+                    {
+                        "title": "Sunburst with Colour Range",
+                        "description": "A sunburst with segment colour using a colour range.",
+                        "name": "sunburst-with-color-range"
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "title": "Treemap",
+                "name": "treemap",
+                "icon": "chartsTreemap",
+                "enterprise": true,
+                "examples": [
+                    {
+                        "title": "Simple Treemap",
+                        "description": "A treemap with varying node sizes.",
+                        "name": "simple-treemap"
+                    },
+                    {
+                        "title": "Treemap with Nesting",
+                        "description": "A treemap with multiple levels.",
+                        "name": "treemap-with-nesting"
+                    },
+                    {
+                        "title": "Treemap with Colour Range",
+                        "description": "A treemap with each tile colour using a colour range.",
+                        "name": "treemap-with-color-range"
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "title": "Combination",
+                "name": "combination",
+                "icon": "chartsCombination",
+                "enterprise": false,
+                "examples": [
+                    {
+                        "title": "Bar And Line Combination",
+                        "description": "A combination chart combines two or more series types allowing for flexible data visualisations. They are ideal for making visual comparisons of different sets of data in a single chart.",
+                        "name": "bar-line-combination"
+                    },
+                    {
+                        "title": "Histogram And Scatter Combination",
+                        "description": "A combination chart combines two or more series types allowing for flexible data visualisations. They are ideal for making visual comparisons of different sets of data in a single chart.",
+                        "name": "histogram-scatter-combination"
+                    },
+                    {
+                        "title": "Range Bar And Line Combination",
+                        "description": "A combination chart combines two or more series types allowing for flexible data visualisations. They are ideal for making visual comparisons of different sets of data in a single chart.",
+                        "name": "range-bar-line-combination"
+                    },
+                    {
+                        "title": "Horizontal Range Bar And Scatter Combination",
+                        "description": "A combination chart combines two or more series types allowing for flexible data visualisations. They are ideal for making visual comparisons of different sets of data in a single chart.",
+                        "name": "horizontal-range-bar-scatter-combination"
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "title": "Bullet",
+                "name": "bullet",
+                "icon": "chartsBullet",
+                "enterprise": true,
+                "examples": [
+                    {
+                        "title": "Simple Bullet Series",
+                        "description": "A Bullet Series presents a single data point within a predefined range, commonly used to illustrate the relationship of a key value to a target or comparative values.",
+                        "name": "simple-bullet"
+                    },
+                    {
+                        "title": "Horizontal Bullet Series",
+                        "description": "A Bullet Series presents a single data point within a predefined range, commonly used to illustrate the relationship of a key value to a target or comparative values.",
+                        "name": "horizontal-bullet"
+                    },
+                    {
+                        "title": "Bullet Series Customisation",
+                        "description": "A Bullet Series presents a single data point within a predefined range, commonly used to illustrate the relationship of a key value to a target or comparative values.",
+                        "name": "bullet-customization"
+                    }
+                ]
+            }
+        ]
     ]
 }

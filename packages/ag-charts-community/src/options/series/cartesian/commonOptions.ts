@@ -35,10 +35,10 @@ export interface FillOptions {
 }
 
 /**
- * Represents options for stroking shapes in a chart.
+ * Represents options for the stroke drawn around shapes in a chart.
  */
 export interface StrokeOptions {
-    /** The color for stroking shapes. */
+    /** The color for the stroke around shapes. */
     stroke?: CssColor;
     /** The width of the stroke in pixels. */
     strokeWidth?: PixelSize;

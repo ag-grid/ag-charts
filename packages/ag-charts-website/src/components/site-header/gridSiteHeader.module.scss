@@ -14,8 +14,10 @@
         z-index: 4;
     }
 
+    border-bottom: 1px solid transparent;
+
     #{$darkmode-selector} & {
-        border-bottom: 1px solid #3b4754;
+        border-bottom-color: #3b4754;
     }
 }
 

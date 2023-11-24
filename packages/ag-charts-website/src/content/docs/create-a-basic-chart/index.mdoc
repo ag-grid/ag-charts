@@ -8,18 +8,18 @@ An introduction to the key concepts of AG Charts
 
 In this tutorial you will:
 
-1. [Create a simple bar chart](#chart-basics)
-2. [Add an additional line series to the bar chart](#combination-charts)
+1. [Create a Simple Bar chart](#chart-basics)
+2. [Add an additional Line Series to the Bar Series](#combination-charts)
 3. [Style the chart with Themes, titles, Legend, and formatted data](#styling)
 4. [Format the axes](#formatting-axes)
 
-By the end of this tutorial, you will have a basic combination chart, using a dark Theme, with formatted values - Try it out for yourself by hovering elements to display tooltips, or toggling series visibility by clicking the Legend elements:
+By the end of this tutorial, you will have a Line and Bar combination chart, with a Legend, title and formatted values. Try it out for yourself by hovering elements to display tooltips, or toggling series visibility by clicking the Legend elements in the example below.
 
-{% chartExampleRunner title="Complete Formatted Example" name="complete-formatted-example" type="mixed" /%}
+{% chartExampleRunner title="Complete Formatted Example" name="complete-formatted-example" type="generated" /%}
 
 ## Chart Basics
 
-Complete our [Quick Start](../quick-start) (or open the example below in CodeSandbox) to start with a basic chart, comprised of:
+Complete our [Quick Start](quick-start) (or open the example below in Plunker) to start with a basic chart, comprised of:
 
 {% if isFramework("javascript") %}
 
@@ -45,13 +45,13 @@ Complete our [Quick Start](../quick-start) (or open the example below in CodeSan
 
 {% /if %}
 
-Putting these things together creates a basic chart:
+Putting these things together creates a basic chart.
 
 {% chartExampleRunner title="Basic Example" name="basic-example" type="generated" /%}
 
 ## Combination Charts
 
-A chart can have more than one series, which can be useful when comparing datasets. To add another series to the chart, simply add another object to the series array, referencing the data to use:
+A chart can have more than one series, which can be useful when comparing datasets. To add another series to the chart, simply add another object to the series array, referencing the data to use.
 
 {% if isFramework("javascript") %}
 
@@ -109,13 +109,13 @@ const options = ref({
 
 {% /if %}
 
-Running the chart at this point will show two series on the same chart:
+Running the chart at this point will show the two series in the same chart.
 
 {% chartExampleRunner title="Combination Charts Example" name="combination-charts-example" type="generated" /%}
 
 ### Configuring Secondary Axes
 
-The chart above shows both series on a single chart, but given that the data-sets are quite different, it would make more sense to have a secondary axis for the second series. To do this, we need to configure three Axes: bottom, left & right:
+The chart above shows both series in a single chart, but given that the data-sets are quite different, it would make more sense to have a secondary axis for the second series. To do this, we need to configure three Axes: bottom, left and right.
 
 {% if isFramework("javascript") %}
 
@@ -183,7 +183,7 @@ Let's breakdown whats happening here:
 -   **Position:** The position on the chart where the axis should be rendered, e.g. 'top', 'bottom', 'right' or 'left'.
 -   **Keys:** Associates the axis with a given series, with the keys axis property linking the appropriate series to the axis.
 
-Now when we run our chart, we should see both series & two axes:
+Now when we run our chart, we should see both series and two axes.
 
 {% chartExampleRunner title="Second Series Example" name="second-series-example" type="generated" /%}
 
@@ -191,63 +191,9 @@ Now when we run our chart, we should see both series & two axes:
 
 Now we have a chart complete with multiple series and axes, the last thing to do is style the chart.
 
-### Choosing a Theme
-
-AG Charts provide a number of [Themes](../themes) out of the box to easily control the style of the chart. Each theme has a light & dark version, which controls the background of the chart. To set a Theme, add the `theme` property to the `AgChartOptions` object, with the value as your chosen Theme:
-
-{% if isFramework("javascript") %}
-
-```js
-const options = {
-    theme: 'ag-material-dark',
-    // ...
-};
-```
-
-{% /if %}
-
-{% if isFramework("react") %}
-
-```js
-const [chartOptions, setChartOptions] = useState({
-    theme: 'ag-material-dark',
-    // ...
-};
-```
-
-{% /if %}
-
-{% if isFramework("angular") %}
-
-```js
-this.chartOptions = {
-    theme: 'ag-material-dark',
-    // ...
-};
-```
-
-{% /if %}
-
-{% if isFramework("vue") %}
-
-```js
-const options = ref({
-    theme: 'ag-material-dark',
-    // ...
-};
-```
-
-{% /if %}
-
-Running the code at this point will display a chart with your chosen Theme:
-
-{% chartExampleRunner title="Theme Example" name="theme-example" type="mixed" /%}
-
-_Note: Refer to the [Theme](../../themes-api) API docs for a full list of properties that can be configured_
-
 ### Titles
 
-Titles and subtitles can also be added to the chart via the `title` and `subtitle` properties:
+Titles and subtitles can also be added to the chart via the `title` and `subtitle` properties.
 
 {% if isFramework("javascript") %}
 
@@ -297,13 +243,13 @@ const options = ref({
 
 {% /if %}
 
-{% chartExampleRunner title="Titles Example" name="title-example" type="mixed" /%}
+{% chartExampleRunner title="Titles Example" name="title-example" type="generated" /%}
 
 _Note: Refer to the [title](/options/#reference-AgChartOptions-title) and [subtitle](/options/#reference-AgChartOptions-subtitle) API docs for a full list of properties that can be configured_
 
 ### Legend
 
-You may have noticed that the chart added a Legend when we added a second series to our chart. We can configure the Legend using the `legend` property, to adjust its size, position, etc:
+You may have noticed that the chart added a Legend when we added a second series to our chart. We can configure the Legend using the `legend` property, including adjusting its size and position.
 
 {% if isFramework("javascript") %}
 
@@ -357,15 +303,15 @@ const options = ref({
 
 {% /if %}
 
-We should now see the Legend displayed on the right hand side of the chart, rather than underneath it:
+We should now see the Legend displayed on the right hand side of the chart, rather than underneath it.
 
-{% chartExampleRunner title="Legend Example" name="legend-example" type="mixed" /%}
+{% chartExampleRunner title="Legend Example" name="legend-example" type="generated" /%}
 
-_Note: Refer to the [Legend](../legend) docs for more info_
+_Note: Refer to the [Legend](legend) docs for more info_
 
 ### Renaming Series
 
-As you can see, our Legend & Tooltips use the property name from the data directly. We can show something more human readable by adding the `yName` property to our series:
+As you can see, our Legend and Tooltips use the property name from the data directly. We can show something more human readable by adding the `yName` property to our series.
 
 {% if isFramework("javascript") %}
 
@@ -423,15 +369,15 @@ const options = ref({
 
 {% /if %}
 
-Now we should see our Legend & Tooltips using the `yName` value as opposed to the `yKey`:
+Now we should see our Legend and Tooltips using the `yName` value as opposed to the `yKey`.
 
-{% chartExampleRunner title="Formatting Series Example" name="format-series-example" type="mixed" /%}
+{% chartExampleRunner title="Formatting Series Example" name="format-series-example" type="generated" /%}
 
 ### Formatting Axes
 
-The last thing to do is format our axes labels to make the chart more readable by using a `formatter` on the `label` property of the axis.
+The last thing to do is format our axes labels to make the chart more readable. We can do this by using a `formatter` on the `label` property of the axis.
 
-The value of the formatter property should be a function that accepts the axis data and returns a formatted value. For example, we can format our right-side Y axes to include ' °C' with the following function:
+The `formatter` should be a function that receives the axis label data and returns a `String` to display. For example, we can format our right axes to include ' °C' with the following function:
 
 {% if isFramework("javascript") %}
 
@@ -529,25 +475,25 @@ this.chartOptions = {
 
 {% /if %}
 
-Now our chart should display formatted temperature values on the right-hand-side axis:
+Now our chart should display formatted temperature values on the right axis.
 
-{% chartExampleRunner title="Second Series Formatted Example" name="second-series-formatted-example" type="mixed" /%}
+{% chartExampleRunner title="Second Series Formatted Example" name="second-series-formatted-example" type="generated" /%}
 
 _Note: Refer to the [axes](/options/#reference-AgChartOptions-axes) API docs for a full list of properties that can be configured_
 
 ## Test your Knowledge
 
-1. Change the Theme to use 'ag-vivid-dark'
+1. Add the `theme: 'ag-vivid-dark'` property to the chart.
 
     _Hint: Theme is a property of `AgChartOptions`_
 
-2. Change the 'avgTemp' legend item label to 'Average Temperature (°C)'
+2. Change the 'avgTemp' legend item label to 'Average Temperature (°C)'.
 
     _Hint: use the `yName` property on the 'avgTemp' series_
 
-If you're stuck, check the source code of the example:
+If you're stuck, check the source code of the example.
 
-{% chartExampleRunner title="Complete Formatted Example" name="complete-formatted-example" type="mixed" /%}
+{% chartExampleRunner title="Complete Formatted Example" name="complete-formatted-example" type="generated" /%}
 
 ## Summary
 
@@ -557,4 +503,4 @@ Congratulations, you've completed our introductory tutorial! By now, you should 
 -   **Data:** The data to be displayed within the chart.
 -   **Series:** Controls the chart type (series) and links it to the data. Multiple series can be used to create combination charts.
 -   **Axes:** Controls the Axes and links it to the data.
--   **Styling & Formatting:** Controls the look and feel of the chart through Themes, formatters, series properties, etc...
+-   **Styling & Formatting:** Controls the look and feel of the chart through formatters and series properties, etc...

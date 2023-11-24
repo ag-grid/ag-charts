@@ -527,11 +527,11 @@ export class ChartTheme {
             DEFAULT_FILLS.GREEN,
         ]);
         properties.set(DEFAULT_BACKGROUND_CONTRAST_COLOR_RANGE, [
-            '#2A343C',
-            '#36414A',
-            '#424E57',
-            '#4F5B64',
-            '#5C6770',
+            '#9eaab4',
+            '#7f8a94',
+            '#616c75',
+            '#444f58',
+            '#29343c',
         ]);
         properties.set(DEFAULT_POLAR_SERIES_STROKE, DEFAULT_BACKGROUND_FILL);
         properties.set(DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS, ChartTheme.getWaterfallSeriesDefaultPositiveColors());

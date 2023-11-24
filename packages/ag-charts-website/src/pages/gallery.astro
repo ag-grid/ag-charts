@@ -18,7 +18,7 @@ const { series } = galleryData;
         <div class="menu">
             <ul class="list-style-none">
                 {
-                    series.map((series: GalleryExampleChartType) => (
+                    series.flat().map((series: GalleryExampleChartType) => (
                         <li>
                             <a href={getPageHashUrl({ chartSeriesName: series.name, isRelative: true })}>
                                 <Icon client:only name={series.icon as IconName} />
@@ -40,16 +40,23 @@ const { series } = galleryData;
             <GalleryExampleThemeDropdown client:only />
             <div>
                 {
-                    series.map((series: GalleryExampleChartType) => (
-                        <div class="chart-type" id={series.name}>
+                    series.map((series: GalleryExampleChartType[]) => (
+                        <div class="chart-type">
                             <div class="gallery-list">
-                                {series.examples.map(({ title, name }: GalleryExample) => (
-                                    <GalleryExampleLink
-                                        client:visible
-                                        className="galleryExample"
-                                        label={title}
-                                        exampleName={name}
-                                    />
+                                {series.map(({ title, name, examples }) => (
+                                    <>
+                                        <h3 id={name} class="gallery-list-title">
+                                            {title}
+                                        </h3>
+                                        {examples.map(({ title, name }: GalleryExample) => (
+                                            <GalleryExampleLink
+                                                client:visible
+                                                className="galleryExample"
+                                                label={title}
+                                                exampleName={name}
+                                            />
+                                        ))}
+                                    </>
                                 ))}
                             </div>
                         </div>
@@ -62,14 +69,43 @@ const { series } = galleryData;
 
 <script>
     import { smoothScrollIntoView } from '@utils/smoothScrollIntoView';
+    import { initScrolledHeadingTriggers } from '@utils/initScrolledHeadingTriggers';
+    import type { MarkdownHeading } from 'astro';
 
+    const ACTIVE_CLASSNAME = 'active';
+    const headings = [] as MarkdownHeading[];
+    const headingAnchors = document.querySelectorAll('a[href^="#"]') as NodeListOf<HTMLAnchorElement>;
     // Add smooth scrolling for menu anchor links
-    document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+    headingAnchors.forEach((anchor: HTMLAnchorElement) => {
+        const href = anchor.getAttribute('href');
+        const id = href?.substring(1);
+
         anchor.addEventListener('click', function (e) {
             e.preventDefault();
-            const id = anchor.getAttribute('href').substring(1);
             smoothScrollIntoView({ id });
         });
+
+        headings.push({
+            slug: id!,
+            depth: 1,
+            text: anchor?.text.trim(),
+        });
+    });
+
+    function clearAllActiveClasses() {
+        headingAnchors.forEach((anchor) => {
+            anchor.classList.remove(ACTIVE_CLASSNAME);
+        });
+    }
+
+    initScrolledHeadingTriggers({
+        headings,
+        onScrollTrigger: ({ topVisibleId }) => {
+            const visible = document.querySelector(`a[href='#${topVisibleId}']`);
+
+            clearAllActiveClasses();
+            visible?.classList.add(ACTIVE_CLASSNAME);
+        },
     });
 </script>
 
@@ -156,7 +192,8 @@ const { series } = galleryData;
             transition: fill $default-transition-timing;
         }
 
-        &:hover {
+        &:hover,
+        &:global(.active) {
             --text-color: var(--link-hover-color);
 
             background: rgba(56, 146, 249, 0.06);
@@ -197,6 +234,7 @@ const { series } = galleryData;
     }
 
     .content {
+        flex: 1;
         padding: $site-header-height var(--horizontal-padding) $size-8;
 
         @media screen and (min-width: $breakpoint-gallery-small) {
@@ -221,6 +259,11 @@ const { series } = galleryData;
         flex-direction: row;
         flex-wrap: wrap;
         gap: var(--gallery-list-gap);
+    }
+
+    .gallery-list-title {
+        position: absolute;
+        visibility: hidden;
     }
 
     .galleryExample {

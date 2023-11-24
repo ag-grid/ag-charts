@@ -1,8 +1,9 @@
 import { useTheme } from '@utils/hooks/useTheme';
 import classnames from 'classnames';
-import { type FunctionComponent, useEffect, useState } from 'react';
+import { type FunctionComponent } from 'react';
 
 import { getPageUrl, getPlainExampleImageUrl } from '../utils/urlPaths';
+import { GalleryExampleImage } from './GalleryExampleImage';
 import styles from './GalleryExampleLink.module.scss';
 
 interface Props {
@@ -12,32 +13,12 @@ interface Props {
 }
 
 export const GalleryExampleLink: FunctionComponent<Props> = ({ label, exampleName, className }) => {
-    const { theme } = useTheme();
-    const [imageUrl, setImageUrl] = useState<string>();
-    const [isDarkTheme, setIsDarkTheme] = useState<boolean>();
-
-    useEffect(() => {
-        setImageUrl(
-            getPlainExampleImageUrl({
-                exampleName,
-                theme,
-            })
-        );
-        setIsDarkTheme(theme.indexOf('dark') > -1);
-    }, [theme]);
-
     return (
         <a
             className={classnames(styles.link, className, 'font-size-responsive', 'font-size-small', 'text-secondary')}
             href={getPageUrl(exampleName)}
         >
-            <img
-                src={imageUrl}
-                alt={label}
-                // Set explicit width and height so the layout doesn't jump around as the page is loading
-                width={600}
-                height={375}
-            />
+            <GalleryExampleImage label={label} exampleName={exampleName} />
             <span>{label}</span>
         </a>
     );

@@ -3,6 +3,7 @@ import type { ReactElement } from 'react';
 interface Props {
     id?: string;
     label: string;
+    omitFromOverview?: boolean;
     children: ReactElement;
 }
 

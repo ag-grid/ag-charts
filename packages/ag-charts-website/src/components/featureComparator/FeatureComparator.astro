@@ -1,4 +1,5 @@
 ---
+import { getFrameworkFromPath } from '@features/docs/utils/urlPaths';
 import { Icon } from '@components/icon/Icon';
 import { FeatureTitle } from './FeatureTitle';
 import styles from './FeatureComparator.module.scss';
@@ -12,6 +13,9 @@ const features = [
     ...menuContent.main.items.slice(1),
     ...menuContent.charts.items,
 ];
+
+const { pathname } = Astro.url;
+const framework = getFrameworkFromPath(pathname);
 
 ---
 
@@ -27,7 +31,12 @@ const features = [
             <>
                 <tr>
                     <td colspan="3">
-                        <FeatureTitle title={title} path={path} isRoot={isRootNode} isEnterprise={isEnterprise} />
+                        <FeatureTitle
+                            title={title}
+                            isRoot={isRootNode}
+                            isEnterprise={isEnterprise}
+                            framework={framework}
+                        />
                     </td>
                 </tr>
                 <>
@@ -35,7 +44,12 @@ const features = [
                         items.map((node) => (
                             <tr>
                                 <td>
-                                    <FeatureTitle title={node.title} path={node.path} isEnterprise={node.isEnterprise} />
+                                    <FeatureTitle
+                                        title={node.title}
+                                        path={node.path}
+                                        isEnterprise={node.isEnterprise}
+                                        framework={framework}
+                                    />
                                 </td>
                                 <td>{node.isEnterprise ? <Icon name="cross" svgClasses={[styles.featureNotAvailableIcon]} /> : <Icon name="tick" svgClasses={[styles.featureAvailableIcon]} />}</td>
                                 <td><Icon name="tick" svgClasses={[styles.featureAvailableIcon]} /></td>

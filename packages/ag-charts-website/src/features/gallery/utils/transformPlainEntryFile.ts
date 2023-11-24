@@ -158,6 +158,6 @@ export function transformPlainEntryFile(
     entryFile: string,
     dataFile?: string,
     themeName?: ThemeName
-): { code: string; options: {} } {
+): { code: string; options: agCharts.AgChartOptions } {
     return transformer(entryFile, dataFile, themeName);
 }

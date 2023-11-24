@@ -58,6 +58,9 @@ function getMarkdocTabs(content: string) {
     const astTabs = ast.children.filter(isTabsTag);
     const tabs = astTabs
         .map((tab) => {
+            if (tab.attributes['omitFromOverview'] === true) {
+                return;
+            }
             const parentHeadingAst = getParentHeadingFromIndex({ tab, ast });
             if (!parentHeadingAst) {
                 return;
