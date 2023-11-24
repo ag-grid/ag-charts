@@ -12,10 +12,16 @@ function exists(value: any, allowEmptyString = false): value is string {
     return value != null && (value !== '' || allowEmptyString);
 }
 
+const LICENSE_TYPES = {
+    '01': 'GRID',
+    '02': 'CHARTS',
+    '0102': 'BOTH',
+};
+
 export class LicenseManager {
-    private static RELEASE_INFORMATION: string = 'MTY4OTUzMzE0MDAzNw==';
+    private static RELEASE_INFORMATION: string = 'MTcwMDc2MzcxODkzNg==';
     private licenseKey?: string;
-    private watermarkMessage?: string;
+    private watermarkMessage: string | undefined = undefined;
 
     private md5: MD5;
     private document?: Document;
@@ -28,34 +34,20 @@ export class LicenseManager {
     }
 
     public validateLicense(): void {
-        const licenseKey = this.licenseKey;
-        if (missingOrEmpty(licenseKey)) {
+        const licenseDetails = this.getLicenseDetails(this.licenseKey!);
+        if (licenseDetails.missing) {
             if (!this.isWebsiteUrl() || this.isForceWatermark()) {
                 this.outputMissingLicenseKey();
             }
-        } else if (licenseKey.length > 32) {
-            if (licenseKey.indexOf('For_Trialing_ag-Grid_Only') !== -1) {
-                this.outputInvalidLicenseKey();
-            } else {
-                const { md5, license, version, isTrial } = LicenseManager.extractLicenseComponents(licenseKey);
-
-                if (md5 === this.md5.md5(license)) {
-                    if (exists(version)) {
-                        this.validateLicenseKeyForVersion(version, !!isTrial, license);
-                    } else {
-                        this.validateLegacyKey(license);
-                    }
-                } else {
-                    this.outputInvalidLicenseKey();
-                }
-            }
-        } else {
-            this.outputInvalidLicenseKey();
+        } else if (!licenseDetails.valid) {
+            this.outputInvalidLicenseKey(licenseDetails.incorrectLicenseType, licenseDetails.licenseType);
+        } else if (licenseDetails.isTrial && licenseDetails.trialExpired) {
+            this.outputExpiredTrialKey(licenseDetails.expiry);
+        } else if (licenseDetails.expired) {
+            const chartsReleaseDate = LicenseManager.getchartsReleaseDate();
+            const formattedReleaseDate = LicenseManager.formatDate(chartsReleaseDate);
+            this.outputIncompatibleVersion(licenseDetails.expiry, formattedReleaseDate);
         }
-    }
-
-    public setLicenseKey(licenseKey?: string): void {
-        this.licenseKey = licenseKey;
     }
 
     private static extractExpiry(license: string) {
@@ -70,34 +62,89 @@ export class LicenseManager {
         let cleanedLicenseKey = licenseKey.replace(/[\u200B-\u200D\uFEFF]/g, '');
         cleanedLicenseKey = cleanedLicenseKey.replace(/\r?\n|\r/g, '');
 
+        // the hash that follows the key is 32 chars long
+        if (licenseKey.length <= 32) {
+            return { md5: null, license: licenseKey, version: null, isTrial: null };
+        }
+
         const hashStart = cleanedLicenseKey.length - 32;
         const md5 = cleanedLicenseKey.substring(hashStart);
         const license = cleanedLicenseKey.substring(0, hashStart);
-        const [version, isTrial] = LicenseManager.extractBracketedInformation(cleanedLicenseKey);
-        return { md5, license, version, isTrial };
+        const [version, isTrial, type] = LicenseManager.extractBracketedInformation(cleanedLicenseKey);
+        return { md5, license, version, isTrial, type };
     }
 
     public getLicenseDetails(licenseKey: string) {
-        const { md5, license, version, isTrial } = LicenseManager.extractLicenseComponents(licenseKey);
-        let valid = md5 === this.md5.md5(license) && licenseKey.indexOf('For_Trialing_ag-Grid_Only') === -1;
-        let trialExpired: null | boolean = null;
+        if (missingOrEmpty(licenseKey)) {
+            return {
+                licenseKey,
+                valid: false,
+                missing: true,
+            };
+        }
 
+        const chartsReleaseDate = LicenseManager.getchartsReleaseDate();
+        const { md5, license, version, isTrial, type } = LicenseManager.extractLicenseComponents(licenseKey);
+        let valid = md5 === this.md5.md5(license) && licenseKey.indexOf('For_Trialing_ag-Grid_Only') === -1;
+        let trialExpired: undefined | boolean = undefined;
+        let expired: undefined | boolean = undefined;
         let expiry: Date | null = null;
+        let incorrectLicenseType: undefined | boolean = undefined;
+        let licenseType: undefined | string = undefined;
+
+        function handleTrial() {
+            const now = new Date();
+            trialExpired = expiry! < now;
+            expired = undefined;
+        }
+
         if (valid) {
             expiry = LicenseManager.extractExpiry(license);
             valid = !isNaN(expiry.getTime());
 
-            if (isTrial) {
-                const now = new Date();
-                trialExpired = expiry < now;
+            if (valid) {
+                expired = chartsReleaseDate > expiry;
+
+                switch (version) {
+                    case 'legacy':
+                    case '2': {
+                        if (isTrial) {
+                            handleTrial();
+                        }
+                        break;
+                    }
+                    case '3': {
+                        if (missingOrEmpty(type)) {
+                            valid = false;
+                        } else {
+                            if (type !== LICENSE_TYPES['02'] && type !== LICENSE_TYPES['0102']) {
+                                valid = false;
+                                incorrectLicenseType = true;
+                                licenseType = type;
+                            } else if (isTrial) {
+                                handleTrial();
+                            }
+                        }
+                    }
+                }
             }
+        }
+
+        if (!valid) {
+            return {
+                licenseKey,
+                valid,
+                incorrectLicenseType,
+                licenseType,
+            };
         }
 
         return {
             licenseKey,
             valid,
-            expiry: valid ? LicenseManager.formatDate(expiry) : null,
-            version: version ? version : 'legacy',
+            expiry: LicenseManager.formatDate(expiry),
+            expired,
+            version,
             isTrial,
             trialExpired,
         };
@@ -115,31 +162,29 @@ export class LicenseManager {
     }
 
     private getHostname(): string {
-        const win = this.document?.defaultView ?? typeof window != 'undefined' ? window : undefined;
-        if (!win) {
-            return 'localhost';
-        }
+        const win = this.document!.defaultView || window;
+        const loc = win.location;
+        const { hostname = '' } = loc;
 
-        const { hostname = '' } = win.location;
         return hostname;
     }
 
     private isForceWatermark(): boolean {
-        const win = this.document?.defaultView ?? typeof window != 'undefined' ? window : undefined;
-        if (!win) {
-            return false;
-        }
+        const win = this.document!.defaultView || window;
+        const loc = win.location;
+        const { pathname } = loc;
 
-        const { pathname } = win.location;
         return pathname ? pathname.indexOf('forceWatermark') !== -1 : false;
     }
 
     private isWebsiteUrl(): boolean {
-        return this.getHostname().match(/^((?:\w+\.)?ag-grid\.com)$/) !== null;
+        const hostname = this.getHostname();
+        return hostname.match(/^((?:\w+\.)?ag-grid\.com)$/) !== null;
     }
 
     private isLocalhost(): boolean {
-        return this.getHostname().match(/^(?:127\.0\.0\.1|localhost)$/) !== null;
+        const hostname = this.getHostname();
+        return hostname.match(/^(?:127\.0\.0\.1|localhost)$/) !== null;
     }
 
     private static formatDate(date: any): string {
@@ -165,7 +210,7 @@ export class LicenseManager {
         return day + ' ' + monthNames[monthIndex] + ' ' + year;
     }
 
-    private static getGridReleaseDate() {
+    private static getchartsReleaseDate() {
         return new Date(parseInt(LicenseManager.decode(LicenseManager.RELEASE_INFORMATION), 10));
     }
 
@@ -215,176 +260,157 @@ export class LicenseManager {
         return t;
     }
 
-    private static extractBracketedInformation(licenseKey: string): [string | null, boolean | null] {
-        const matches = licenseKey
-            .split('[')
-            .filter((value) => value.indexOf(']') > -1)
-            .map((value) => value.split(']')[0]);
+    public setLicenseKey(licenseKey?: string): void {
+        this.licenseKey = licenseKey;
+    }
 
+    private static extractBracketedInformation(licenseKey: string): [string | null, boolean | null, string?] {
+        // legacy no trial key
+        if (!licenseKey.includes('[')) {
+            return ['legacy', false, undefined];
+        }
+
+        const matches = licenseKey.match(/\[(.*?)\]/g)!.map((match) => match.replace('[', '').replace(']', ''));
         if (!matches || matches.length === 0) {
-            return [null, null];
+            return ['legacy', false, undefined];
         }
 
         const isTrial = matches.filter((match) => match === 'TRIAL').length === 1;
-        const version = matches.filter((match) => match.indexOf('v') === 0).map((match) => match.replace(/^v/, ''))[0];
+        const rawVersion = matches.filter((match) => match.indexOf('v') === 0)[0];
+        const version = rawVersion ? rawVersion.replace('v', '') : 'legacy';
+        const type = (LICENSE_TYPES as any)[matches.filter((match) => (LICENSE_TYPES as any)[match])[0]];
 
-        return [version, isTrial];
+        return [version, isTrial, type];
     }
 
-    private validateLicenseKeyForVersion(version: string, isTrial: boolean, license: string) {
-        if (version !== '2') {
-            return;
-        }
-
-        if (isTrial) {
-            this.validateForTrial(license);
-        } else {
-            this.validateLegacyKey(license);
-        }
-    }
-
-    private validateLegacyKey(license: string) {
-        const expiryDate = LicenseManager.extractExpiry(license);
-
-        if (isNaN(expiryDate.getTime())) {
-            this.outputInvalidLicenseKey();
-            return;
-        }
-
-        const gridReleaseDate = LicenseManager.getGridReleaseDate();
-
-        if (gridReleaseDate >= expiryDate) {
-            const formattedExpiryDate = LicenseManager.formatDate(expiryDate);
-            const formattedReleaseDate = LicenseManager.formatDate(gridReleaseDate);
-            this.outputIncompatibleVersion(formattedExpiryDate, formattedReleaseDate);
-        }
-    }
-
-    private validateForTrial(license: string) {
-        const expiryDate = LicenseManager.extractExpiry(license);
-
-        if (isNaN(expiryDate.getTime())) {
-            this.outputInvalidLicenseKey();
-            return;
-        }
-
-        const now = new Date();
-
-        if (expiryDate <= now) {
-            const formattedExpiryDate = LicenseManager.formatDate(expiryDate);
-            this.outputExpiredTrialKey(formattedExpiryDate);
-        }
-    }
-
-    private padText(str: string, width: number, { char = ' ', center }: { char?: string; center?: boolean } = {}) {
-        const padSpace = Math.max(0, width - str.length);
-        if (center) {
-            return char.repeat(Math.floor(padSpace / 2)) + str + char.repeat(Math.ceil(padSpace / 2));
-        }
-        return str + char.repeat(padSpace);
-    }
-
-    private padLine(str: string, width: number, options?: { center?: boolean }) {
-        return `* ${this.padText(str, width - 4, options)} *`;
-    }
-
-    private outputInvalidLicenseKey() {
-        const lineWidth = 115;
+    private outputInvalidLicenseKey(incorrectLicenseType?: boolean, licenseType?: string) {
         console.error(
-            [
-                '*'.repeat(lineWidth),
-                this.padText(' AG Charts Enterprise License ', lineWidth, { char: '*', center: true }),
-                this.padText(' Invalid License ', lineWidth, { char: '*', center: true }),
-                this.padLine(
-                    'Your license for AG Charts Enterprise is not valid - please contact info@ag-grid.com to obtain a valid license.',
-                    lineWidth
-                ),
-                '*'.repeat(lineWidth),
-                '*'.repeat(lineWidth),
-            ].join('\n')
+            '*****************************************************************************************************************'
+        );
+        console.error(
+            '***************************************** AG Charts Enterprise License *******************************************'
+        );
+        console.error(
+            '********************************************* Invalid License ***************************************************'
+        );
+        if (exists(incorrectLicenseType) && incorrectLicenseType && licenseType === 'GRID') {
+            console.error(
+                '* The license supplied is for AG Grid Enterprise Only and does not cover AG Charts Enterprise                    *'
+            );
+        }
+        console.error(
+            '* Your license for AG Charts Enterprise is not valid - please contact info@ag-grid.com to obtain a valid license. *'
+        );
+        console.error(
+            '*****************************************************************************************************************'
+        );
+        console.error(
+            '*****************************************************************************************************************'
         );
 
         this.watermarkMessage = 'Invalid License';
     }
 
     private outputExpiredTrialKey(formattedExpiryDate: string) {
-        const lineWidth = 112;
         console.error(
-            [
-                '*'.repeat(lineWidth),
-                this.padText(' AG Charts Enterprise License ', lineWidth, { char: '*', center: true }),
-                this.padText(' Trial Period Expired ', lineWidth, { char: '*', center: true }),
-                this.padLine(`Your license for AG Charts Enterprise expired on ${formattedExpiryDate}.`, lineWidth),
-                this.padLine('Please email info@ag-grid.com to purchase a license.', lineWidth),
-                '*'.repeat(lineWidth),
-                '*'.repeat(lineWidth),
-            ].join('\n')
+            '****************************************************************************************************************'
+        );
+        console.error(
+            '***************************************** AG Charts Enterprise License *******************************************'
+        );
+        console.error(
+            '*****************************************   Trial Period Expired.    *******************************************'
+        );
+        console.error(
+            `* Your license for AG Charts Enterprise expired on ${formattedExpiryDate}.                                                *`
+        );
+        console.error(
+            '* Please email info@ag-grid.com to purchase a license.                                                         *'
+        );
+        console.error(
+            '****************************************************************************************************************'
+        );
+        console.error(
+            '****************************************************************************************************************'
         );
 
         this.watermarkMessage = 'Trial Period Expired';
     }
 
     private outputMissingLicenseKey() {
-        const lineWidth = 112;
         console.error(
-            [
-                '*'.repeat(lineWidth),
-                this.padText(' AG Charts Enterprise License ', lineWidth, { char: '*', center: true }),
-                this.padText(' License Key Not Found ', lineWidth, { char: '*', center: true }),
-                this.padLine('All AG Charts Enterprise features are unlocked.', lineWidth),
-                this.padLine(
-                    'This is an evaluation only version, it is not licensed for development projects intended for production.',
-                    lineWidth
-                ),
-                this.padLine(
-                    'If you want to hide the watermark, please email info@ag-grid.com for a trial license.',
-                    lineWidth
-                ),
-                '*'.repeat(lineWidth),
-                '*'.repeat(lineWidth),
-            ].join('\n')
+            '****************************************************************************************************************'
+        );
+        console.error(
+            '***************************************** AG Charts Enterprise License *******************************************'
+        );
+        console.error(
+            '****************************************** License Key Not Found ***********************************************'
+        );
+        console.error(
+            '* All AG Charts Enterprise features are unlocked.                                                                *'
+        );
+        console.error(
+            '* This is an evaluation only version, it is not licensed for development projects intended for production.     *'
+        );
+        console.error(
+            '* If you want to hide the watermark, please email info@ag-grid.com for a trial license.                        *'
+        );
+        console.error(
+            '****************************************************************************************************************'
+        );
+        console.error(
+            '****************************************************************************************************************'
         );
 
         this.watermarkMessage = 'For Trial Use Only';
     }
 
     private outputIncompatibleVersion(formattedExpiryDate: string, formattedReleaseDate: string) {
-        const lineWidth = 124;
         console.error(
-            [
-                '*'.repeat(lineWidth),
-                '*'.repeat(lineWidth),
-                this.padLine('AG Charts Enterprise License', lineWidth, { center: true }),
-                this.padLine('License not compatible with installed version of AG Charts Enterprise', lineWidth, {
-                    center: true,
-                }),
-                this.padLine('', lineWidth),
-                this.padLine(
-                    'Your AG Charts License entitles you to all versions of AG Charts that we release within the time covered by your license',
-                    lineWidth
-                ),
-                this.padLine(
-                    '- typically we provide one year licenses which entitles you to all releases / updates of AG Charts within that year.',
-                    lineWidth
-                ),
-                this.padLine(
-                    'Your license has an end (expiry) date which stops the license key working with versions of AG Charts released after the',
-                    lineWidth
-                ),
-                this.padLine(
-                    `license end date. The license key that you have expires on ${formattedExpiryDate}, however the version of AG Charts you`,
-                    lineWidth
-                ),
-                this.padLine(`are trying to use was released on ${formattedReleaseDate}.`, lineWidth),
-                this.padLine('', lineWidth),
-                this.padLine(
-                    'Please contact info@ag-grid.com to renew your subscription to new versions and get a new license key to work with this',
-                    lineWidth
-                ),
-                this.padLine('version of AG Charts.', lineWidth),
-                '*'.repeat(lineWidth),
-                '*'.repeat(lineWidth),
-            ].join('\n')
+            '****************************************************************************************************************************'
+        );
+        console.error(
+            '****************************************************************************************************************************'
+        );
+        console.error(
+            '*                                             AG Charts Enterprise License                                                   *'
+        );
+        console.error(
+            '*                           License not compatible with installed version of AG Charts Enterprise.                           *'
+        );
+        console.error(
+            '*                                                                                                                          *'
+        );
+        console.error(
+            `* Your AG Charts License entitles you to all versions of AG Charts that we release within the time covered by your license     *`
+        );
+        console.error(
+            `* - typically we provide one year licenses which entitles you to all releases / updates of AG Charts within that year.       *`
+        );
+        console.error(
+            `* Your license has an end (expiry) date which stops the license key working with versions of AG Charts released after the    *`
+        );
+        console.error(
+            `* license end date. The license key that you have expires on ${formattedExpiryDate}, however the version of AG Charts you    *`
+        );
+        console.error(
+            `* are trying to use was released on ${formattedReleaseDate}.                                                               *`
+        );
+        console.error(
+            '*                                                                                                                          *'
+        );
+        console.error(
+            '* Please contact info@ag-grid.com to renew your subscription to new versions and get a new license key to work with this   *'
+        );
+        console.error(
+            '* version of AG Charts.                                                                                                      *'
+        );
+        console.error(
+            '****************************************************************************************************************************'
+        );
+        console.error(
+            '****************************************************************************************************************************'
         );
 
         this.watermarkMessage = 'License Expired';
