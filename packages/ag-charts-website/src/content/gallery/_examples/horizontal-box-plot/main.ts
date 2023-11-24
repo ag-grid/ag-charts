@@ -28,8 +28,36 @@ const options: AgChartOptions = {
             q3Name: 'Q3',
             maxKey: 'max',
             maxName: 'Max',
+            strokeWidth: 1,
+        },
+    ],
+    axes: [
+        {
+            position: 'left',
+            type: 'category',
+            groupPaddingInner: 0,
+            paddingInner: 0.7,
+            paddingOuter: 0.2,
+            gridLine: {
+                enabled: true,
+            },
+            line: {
+                enabled: false,
+            },
+            label: {
+                padding: 10,
+            },
+        },
+        {
+            position: 'bottom',
+            type: 'number',
+            line: {
+                enabled: false,
+            },
+            gridLine: {
+                enabled: false,
+            },
         },
     ],
 };
-
 AgCharts.create(options);

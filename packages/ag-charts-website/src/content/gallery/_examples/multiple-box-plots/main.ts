@@ -2,24 +2,25 @@ import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+const data = getData();
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
-        text: 'Migration Flows to Europe',
+        text: 'Europe — Mixed Migration Flows',
     },
     subtitle: {
-        text: 'Quarterly Overview (April - June 2023)',
+        text: 'Quarterly Overview',
     },
     footnote: {
         text: 'Source: UN International Organization for Migration',
     },
-    data: getData(),
     series: [
         {
+            data: data['Jan - Mar 2023'],
             type: 'box-plot',
             xKey: 'countryOfArrival',
             xName: 'Country Of Arrival',
-            yName: 'Monthly Arrivals',
+            yName: 'Jan - Mar 2023',
             minKey: 'min',
             q1Key: 'q1',
             medianKey: 'median',
@@ -27,10 +28,29 @@ const options: AgChartOptions = {
             maxKey: 'max',
             strokeOpacity: 0,
             whisker: {
-                strokeOpacity: 0.9,
+                strokeOpacity: 1,
             },
             cap: {
-                lengthRatio: 0.8,
+                lengthRatio: 0,
+            },
+        },
+        {
+            data: data['April - June 2023'],
+            type: 'box-plot',
+            xKey: 'countryOfArrival',
+            xName: 'Country Of Arrival',
+            yName: 'April - June 2023',
+            minKey: 'min',
+            q1Key: 'q1',
+            medianKey: 'median',
+            q3Key: 'q3',
+            maxKey: 'max',
+            strokeOpacity: 0,
+            whisker: {
+                strokeOpacity: 1,
+            },
+            cap: {
+                lengthRatio: 0,
             },
         },
     ],
@@ -38,8 +58,7 @@ const options: AgChartOptions = {
         {
             position: 'bottom',
             type: 'category',
-            groupPaddingInner: 0,
-            paddingInner: 0.7,
+            paddingInner: 0.5,
             paddingOuter: 0.2,
             gridLine: {
                 enabled: true,
@@ -57,8 +76,8 @@ const options: AgChartOptions = {
             line: {
                 enabled: false,
             },
-            tick: {
-                values: [105, 385, 2714],
+            label: {
+                enabled: false,
             },
         },
     ],
