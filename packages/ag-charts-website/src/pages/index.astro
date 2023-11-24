@@ -99,6 +99,7 @@ const isEnterprise = true;
                         series.map((series) =>
                             series.examples.map(({ title, name }) => (
                                 <GalleryExampleImage
+                                    client:load // Remove this when we merge https://github.com/ag-grid/ag-charts/pull/623
                                     id={`$${series.name}:${title}`}
                                     label={title}
                                     exampleName={name}
