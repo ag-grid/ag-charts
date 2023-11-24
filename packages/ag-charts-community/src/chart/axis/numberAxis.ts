@@ -58,6 +58,8 @@ export class NumberAxis extends CartesianAxis<LinearScale | LogScale, number> {
             throw new Error('AG Charts - dataDomain not calculated, cannot perform tick calculation.');
         }
 
+        if (this.dataDomain.domain.length === 0) return [];
+
         const [d, ticks] = calculateNiceSecondaryAxis(this.dataDomain.domain, primaryTickCount ?? 0);
 
         this.scale.nice = false;
