@@ -1,4 +1,4 @@
-@use '../../../design-system' as *;
+@use '../design-system' as *;
 
 .toolPanel {
     text-align: center;
@@ -10,4 +10,6 @@
     flex-direction: row;
     align-items: center;
     justify-content: flex-end;
+
+    min-height: 38px;
 }
