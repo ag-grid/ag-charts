@@ -162,7 +162,13 @@ export class LicenseManager {
     }
 
     private getHostname(): string {
+        if(!this.document) {
+            return 'localhost';
+        }
         const win = this.document!.defaultView || window;
+        if (!win) {
+            return 'localhost';
+        }
         const loc = win.location;
         const { hostname = '' } = loc;
 
@@ -170,10 +176,15 @@ export class LicenseManager {
     }
 
     private isForceWatermark(): boolean {
-        const win = this.document!.defaultView || window;
-        const loc = win.location;
-        const { pathname } = loc;
+        if(!this.document) {
+            return false;
+        }
+        const win = this.document?.defaultView ?? typeof window != 'undefined' ? window : undefined;
+        if (!win) {
+            return false;
+        }
 
+        const { pathname } = win.location;
         return pathname ? pathname.indexOf('forceWatermark') !== -1 : false;
     }
 
