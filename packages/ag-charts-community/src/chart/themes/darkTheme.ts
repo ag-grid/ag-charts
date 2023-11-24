@@ -3,7 +3,6 @@ import { ChartTheme } from './chartTheme';
 import {
     DEFAULT_AXIS_GRID_COLOUR,
     DEFAULT_BACKGROUND_COLOUR,
-    DEFAULT_BACKGROUND_CONTRAST_COLOR_RANGE,
     DEFAULT_CROSS_LINES_COLOUR,
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
     DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
@@ -98,13 +97,6 @@ export class DarkTheme extends ChartTheme {
             DEFAULT_DARK_FILLS.ORANGE,
             DEFAULT_DARK_FILLS.YELLOW,
             DEFAULT_DARK_FILLS.GREEN,
-        ]);
-        result.properties.set(DEFAULT_BACKGROUND_CONTRAST_COLOR_RANGE, [
-            '#29343c',
-            '#444f58',
-            '#616c75',
-            '#7f8a94',
-            '#9eaab4',
         ]);
         result.properties.set(DEFAULT_BACKGROUND_COLOUR, DEFAULT_DARK_BACKGROUND_FILL);
         result.properties.set(DEFAULT_INSIDE_SERIES_LABEL_COLOUR, DEFAULT_DARK_BACKGROUND_FILL);
