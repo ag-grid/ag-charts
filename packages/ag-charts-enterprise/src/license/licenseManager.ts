@@ -108,9 +108,7 @@ export class LicenseManager {
                 switch (version) {
                     case 'legacy':
                     case '2': {
-                        if (isTrial) {
-                            handleTrial();
-                        }
+                        valid = false;
                         break;
                     }
                     case '3': {
