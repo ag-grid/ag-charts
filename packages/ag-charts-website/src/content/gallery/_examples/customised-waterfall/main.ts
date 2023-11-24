@@ -6,32 +6,91 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'UK Government Budget',
+        text: 'FTSE 100 Index',
     },
     subtitle: {
-        text: 'All values in £ billions',
+        text: 'October (2023)',
+    },
+    footnote: {
+        text: 'Net Variation: -4.12%',
     },
     series: [
         {
             type: 'waterfall',
-            xKey: 'financials',
-            xName: 'Financials',
-            yKey: 'amount',
-            yName: 'Amount',
-            item: {
-                total: {
-                    name: 'Total / Subtotal',
-                },
+            xKey: 'date',
+            xName: 'Date',
+            yKey: 'percentageChange',
+            yName: 'Change',
+            line: {
+                lineDash: [2],
+                strokeOpacity: 0.5,
             },
             totals: [
-                { totalType: 'subtotal', index: 4, axisLabel: 'Total\nRevenue' },
                 {
-                    totalType: 'subtotal',
-                    index: 9,
-                    axisLabel: 'Total\nExpenditure',
+                    totalType: 'total',
+                    index: 10,
+                    axisLabel: 'Net\nVariation',
                 },
-                { totalType: 'total', index: 9, axisLabel: 'Total\nBorrowing' },
             ],
+            item: {
+                positive: {
+                    name: '+',
+                    label: {
+                        formatter: ({ value }) => `↑${value}`,
+                    },
+                    fillOpacity: 0.7,
+                    strokeWidth: 1,
+                },
+                negative: {
+                    name: '-',
+                    label: {
+                        formatter: ({ value }) => `↓${value}`,
+                    },
+                    fillOpacity: 0.7,
+                    strokeWidth: 1,
+                },
+                total: {
+                    label: {
+                        placement: 'inside',
+                        fontSize: 11,
+                        formatter: ({ value }) => `↓${Math.abs(value)}`,
+                    },
+                    fillOpacity: 0.3,
+                },
+            },
+        },
+    ],
+    axes: [
+        {
+            position: 'right',
+            type: 'number',
+            label: {
+                padding: 20,
+                formatter: ({ value }) => `${value}%`,
+            },
+        },
+        {
+            position: 'bottom',
+            type: 'category',
+            line: {
+                enabled: false,
+            },
+            label: {
+                padding: 20,
+                formatter: ({ value }) =>
+                    `${
+                        value === 'Net\nVariation'
+                            ? value
+                            : new Date(value).toLocaleString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric',
+                              })
+                    }`,
+            },
+            tick: {
+                size: 0,
+                minSpacing: 100,
+            },
         },
     ],
 };
