@@ -1,8 +1,7 @@
-import { useTheme } from '@utils/hooks/useTheme';
 import classnames from 'classnames';
 import { type FunctionComponent } from 'react';
 
-import { getPageUrl, getPlainExampleImageUrl } from '../utils/urlPaths';
+import { getPageUrl } from '../utils/urlPaths';
 import { GalleryExampleImage } from './GalleryExampleImage';
 import styles from './GalleryExampleLink.module.scss';
 
@@ -13,10 +12,6 @@ interface Props {
 }
 
 export const GalleryExampleLink: FunctionComponent<Props> = ({ label, exampleName, className }) => {
-    const { theme } = useTheme();
-
-    const imageUrl = getPlainExampleImageUrl({ exampleName, theme, ext: 'png' });
-
     return (
         <a
             className={classnames(styles.link, className, 'font-size-responsive', 'font-size-small', 'text-secondary')}

@@ -1,7 +1,6 @@
-import { useTheme } from '@utils/hooks/useTheme';
-import { type ChangeEvent, type FunctionComponent, useMemo } from 'react';
+import { type ThemeName, useTheme } from '@utils/hooks/useTheme';
+import { type ChangeEvent, type FunctionComponent } from 'react';
 
-import { ThemeName } from '../../../stores/themeStore';
 import styles from './GalleryExampleThemeDropdown.module.scss';
 
 export const GalleryExampleThemeDropdown: FunctionComponent = () => {

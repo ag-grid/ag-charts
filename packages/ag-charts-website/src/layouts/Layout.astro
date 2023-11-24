@@ -69,7 +69,7 @@ const isApiLayout = apiMenuItems.some((item) => {
         {isProduction && <script defer data-domain="charts.ag-grid.com" src="https://plausible.io/js/script.js"></script>}
         <script is:inline>
             const htmlEl = document.querySelector('html');
-            const localDarkmode = localStorage['documentation:darkmode'];
+            const localDarkmode = localStorage['documentation:darkmodetheme'];
             const isOSDarkmode = (
                 window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
             ).toString();
