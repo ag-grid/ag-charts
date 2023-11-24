@@ -627,7 +627,7 @@
         [
             {
                 "title": "Bullet",
-                "name": "Bullet",
+                "name": "bullet",
                 "icon": "chartsBullet",
                 "enterprise": true,
                 "examples": [
