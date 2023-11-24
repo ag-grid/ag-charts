@@ -162,7 +162,7 @@ export class LicenseManager {
     }
 
     private getHostname(): string {
-        if(!this.document) {
+        if (!this.document) {
             return 'localhost';
         }
         const win = this.document!.defaultView || window;
@@ -176,7 +176,7 @@ export class LicenseManager {
     }
 
     private isForceWatermark(): boolean {
-        if(!this.document) {
+        if (!this.document) {
             return false;
         }
         const win = this.document?.defaultView ?? typeof window != 'undefined' ? window : undefined;
