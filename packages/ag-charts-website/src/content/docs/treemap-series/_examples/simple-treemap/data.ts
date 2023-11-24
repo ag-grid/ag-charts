@@ -1,16 +1,5 @@
 export const data = [
     {
-        title: 'Health Care',
-        children: [{ title: 'Medical service', total: 205.6, change: 9.4 }],
-    },
-    {
-        title: 'Pensions',
-        children: [
-            { title: 'Sickness and disability', total: 61.2, change: 8.7 },
-            { title: 'Old age', total: 141.8, change: 20 },
-        ],
-    },
-    {
         title: 'Other Spending',
         children: [
             { title: 'General economic, commercial and labour', total: 18.8, change: -2.8 },
@@ -39,29 +28,6 @@ export const data = [
         ],
     },
     {
-        title: 'Welfare',
-        children: [
-            { title: 'Family and children', total: 16.8, change: 1.7 },
-            { title: 'Housing', total: 6.2, change: -0.5 },
-            { title: 'Social exclusion n.e.c.', total: 65.4, change: 9.4 },
-            { title: 'Social protection n.e.c.', total: 15.1, change: 3.5 },
-        ],
-    },
-    {
-        title: 'Interest',
-        children: [{ title: 'Public debt transactions', total: 76.9, change: -29.9 }],
-    },
-    {
-        title: 'Defence',
-        children: [
-            { title: 'Military defence', total: 50.4, change: 0 },
-            { title: 'Foreign military aid', total: 0.4, change: -2.2 },
-            { title: 'Foreign economic aid', total: 6.6, change: 1.5 },
-            { title: 'R&D Defence', total: 2.6, change: 0.3 },
-            { title: 'Defence n.e.c.', total: 0.2, change: 0 },
-        ],
-    },
-    {
         title: 'Education',
         children: [
             { title: 'Pre-primary and primary education', total: 1.3, change: 0.2 },
@@ -72,10 +38,6 @@ export const data = [
             { title: 'R&D Education', total: 2.7, change: -0.3 },
             { title: 'Education n.e.c.', total: 2.8, change: 0 },
         ],
-    },
-    {
-        title: 'Transport',
-        children: [{ title: 'Transport', total: 33.7, change: 1.6 }],
     },
     {
         title: 'Protection',
@@ -89,6 +51,16 @@ export const data = [
         ],
     },
     {
+        title: 'Defence',
+        children: [
+            { title: 'Military defence', total: 50.4, change: 0 },
+            { title: 'Foreign military aid', total: 0.4, change: -2.2 },
+            { title: 'Foreign economic aid', total: 6.6, change: 1.5 },
+            { title: 'R&D Defence', total: 2.6, change: 0.3 },
+            { title: 'Defence n.e.c.', total: 0.2, change: 0 },
+        ],
+    },
+    {
         title: 'General Government',
         children: [
             { title: 'Executive and legislative organs, finan', total: 19.8, change: -2.3 },
@@ -96,5 +68,33 @@ export const data = [
             { title: 'R&D General public services', total: 0.5, change: 0.2 },
             { title: 'General public services n.e.c.', total: 0.7, change: 0.3 },
         ],
+    },
+    {
+        title: 'Welfare',
+        children: [
+            { title: 'Family and children', total: 16.8, change: 1.7 },
+            { title: 'Housing', total: 6.2, change: -0.5 },
+            { title: 'Social exclusion n.e.c.', total: 65.4, change: 9.4 },
+            { title: 'Social protection n.e.c.', total: 15.1, change: 3.5 },
+        ],
+    },
+    {
+        title: 'Pensions',
+        children: [
+            { title: 'Sickness and disability', total: 61.2, change: 8.7 },
+            { title: 'Old age', total: 141.8, change: 20 },
+        ],
+    },
+    {
+        title: 'Health Care',
+        children: [{ title: 'Medical service', total: 205.6, change: 9.4 }],
+    },
+    {
+        title: 'Interest',
+        children: [{ title: 'Public debt transactions', total: 76.9, change: -29.9 }],
+    },
+    {
+        title: 'Transport',
+        children: [{ title: 'Transport', total: 33.7, change: 1.6 }],
     },
 ];
