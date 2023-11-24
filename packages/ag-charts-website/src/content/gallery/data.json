@@ -387,14 +387,14 @@
                     "name": "simple-box-plot"
                 },
                 {
+                    "title": "Multiple Box Plots",
+                    "description": "A Box Plot Series, also known as a Box-and-Whisker Plot, visually summarises a dataset's distribution through its median and quartiles.",
+                    "name": "multiple-box-plots"
+                },
+                {
                     "title": "Horizontal Box Plot",
                     "description": "A Box Plot Series, also known as a Box-and-Whisker Plot, visually summarises a dataset's distribution through its median and quartiles.",
                     "name": "horizontal-box-plot"
-                },
-                {
-                    "title": "Box Plot Outliers",
-                    "description": "A Box Plot Series, also known as a Box-and-Whisker Plot, visually summarises a dataset's distribution through its median and quartiles.",
-                    "name": "box-plot-outliers"
                 }
             ]
         },
