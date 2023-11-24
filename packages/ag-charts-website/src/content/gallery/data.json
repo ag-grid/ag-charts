@@ -397,56 +397,6 @@
         ],
         [
             {
-                "title": "Box Plot",
-                "name": "box-plot",
-                "icon": "chartsBoxPlot",
-                "enterprise": true,
-                "examples": [
-                    {
-                        "title": "Simple Box Plot",
-                        "description": "A Box Plot Series, also known as a Box-and-Whisker Plot, visually summarises a dataset's distribution through its median and quartiles.",
-                        "name": "simple-box-plot"
-                    },
-                    {
-                        "title": "Multiple Box Plots",
-                        "description": "A Box Plot Series, also known as a Box-and-Whisker Plot, visually summarises a dataset's distribution through its median and quartiles.",
-                        "name": "multiple-box-plots"
-                    },
-                    {
-                        "title": "Horizontal Box Plot",
-                        "description": "A Box Plot Series, also known as a Box-and-Whisker Plot, visually summarises a dataset's distribution through its median and quartiles.",
-                        "name": "horizontal-box-plot"
-                    }
-                ]
-            }
-        ],
-        [
-            {
-                "title": "Heatmap",
-                "name": "heatmap",
-                "icon": "chartsHeatmap",
-                "enterprise": true,
-                "examples": [
-                    {
-                        "title": "Simple Heatmap",
-                        "description": "A Heatmap Series is using the colour-coding to represent numeric values in a form of a colourful matrix.",
-                        "name": "simple-heatmap"
-                    },
-                    {
-                        "title": "Calendar Heatmap",
-                        "description": "A Heatmap Series is using the colour-coding to represent numeric values in a form of a colourful matrix.",
-                        "name": "calendar-heatmap"
-                    },
-                    {
-                        "title": "Heatmap with Labels",
-                        "description": "A Heatmap Series is using the colour-coding to represent numeric values in a form of a colourful matrix.",
-                        "name": "heatmap-with-labels"
-                    }
-                ]
-            }
-        ],
-        [
-            {
                 "title": "Waterfall",
                 "name": "waterfall",
                 "icon": "chartsWaterfall",
@@ -466,6 +416,31 @@
                         "title": "Customised Waterfall",
                         "description": "A Waterfall Series shows the cumulative effect of sequential positive or negative data values. It utilises rising and falling bars to create a cascading waterfall effect.",
                         "name": "customised-waterfall"
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "title": "Box Plot",
+                "name": "box-plot",
+                "icon": "chartsBoxPlot",
+                "enterprise": true,
+                "examples": [
+                    {
+                        "title": "Simple Box Plot",
+                        "description": "A Box Plot Series, also known as a Box-and-Whisker Plot, visually summarises a dataset's distribution through its median and quartiles.",
+                        "name": "simple-box-plot"
+                    },
+                    {
+                        "title": "Multiple Box Plots",
+                        "description": "A Box Plot Series, also known as a Box-and-Whisker Plot, visually summarises a dataset's distribution through its median and quartiles.",
+                        "name": "multiple-box-plots"
+                    },
+                    {
+                        "title": "Horizontal Box Plot",
+                        "description": "A Box Plot Series, also known as a Box-and-Whisker Plot, visually summarises a dataset's distribution through its median and quartiles.",
+                        "name": "horizontal-box-plot"
                     }
                 ]
             }
@@ -590,6 +565,31 @@
                         "title": "Treemap with Colour Range",
                         "description": "A treemap with each tile colour using a colour range.",
                         "name": "treemap-with-color-range"
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "title": "Heatmap",
+                "name": "heatmap",
+                "icon": "chartsHeatmap",
+                "enterprise": true,
+                "examples": [
+                    {
+                        "title": "Simple Heatmap",
+                        "description": "A Heatmap Series is using the colour-coding to represent numeric values in a form of a colourful matrix.",
+                        "name": "simple-heatmap"
+                    },
+                    {
+                        "title": "Calendar Heatmap",
+                        "description": "A Heatmap Series is using the colour-coding to represent numeric values in a form of a colourful matrix.",
+                        "name": "calendar-heatmap"
+                    },
+                    {
+                        "title": "Heatmap with Labels",
+                        "description": "A Heatmap Series is using the colour-coding to represent numeric values in a form of a colourful matrix.",
+                        "name": "heatmap-with-labels"
                     }
                 ]
             }
