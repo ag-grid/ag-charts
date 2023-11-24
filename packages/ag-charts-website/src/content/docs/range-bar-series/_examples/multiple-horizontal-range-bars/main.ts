@@ -82,7 +82,7 @@ const options: AgChartOptions = {
                 formatter: ({ value }) => `${value}%`,
             },
             line: {
-                width: 0,
+                enabled: false,
             },
         },
         {
@@ -98,7 +98,7 @@ const options: AgChartOptions = {
                     })}`,
             },
             line: {
-                width: 0,
+                enabled: false,
             },
         },
     ],

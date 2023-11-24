@@ -288,8 +288,7 @@ export class ChartTheme {
             ...ChartTheme.getAxisDefaults(),
             line: {
                 ...ChartTheme.getAxisDefaults().line,
-                // enabled: false, TODO: fix breaking tests when this is set, use width: 0 for now
-                width: 0,
+                enabled: false,
             },
         },
         log: {
@@ -297,8 +296,7 @@ export class ChartTheme {
             base: 10,
             line: {
                 ...ChartTheme.getAxisDefaults().line,
-                // enabled: false, TODO: fix breaking tests when this is set, use width: 0 for now
-                width: 0,
+                enabled: false,
             },
         },
         category: {
