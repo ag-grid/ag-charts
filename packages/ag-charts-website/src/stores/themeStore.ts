@@ -1,27 +1,17 @@
 import { persistentAtom } from '@nanostores/persistent';
 
-export type ThemeName =
-    | 'ag-default'
-    | 'ag-default-dark'
-    | 'ag-sheets'
-    | 'ag-sheets-dark'
-    | 'ag-polychroma'
-    | 'ag-polychroma-dark'
-    | 'ag-vivid'
-    | 'ag-vivid-dark'
-    | 'ag-material'
-    | 'ag-material-dark';
+export type BaseThemeName = 'ag-default' | 'ag-sheets' | 'ag-polychroma' | 'ag-vivid' | 'ag-material';
 
 const LOCALSTORAGE_PREFIX = 'documentation';
-const DEFAULT_INTERNAL_THEME: ThemeName = 'ag-default';
+const DEFAULT_INTERNAL_THEME: BaseThemeName = 'ag-default';
 
-export const $theme = persistentAtom<ThemeName>(`${LOCALSTORAGE_PREFIX}:theme`, DEFAULT_INTERNAL_THEME, {
+export const $theme = persistentAtom<BaseThemeName>(`${LOCALSTORAGE_PREFIX}:basetheme`, DEFAULT_INTERNAL_THEME, {
     listen: false,
 });
 
-export const setTheme = (themeName: ThemeName) => {
+export const setTheme = (themeName: BaseThemeName) => {
     // Update theme
     $theme.set(themeName);
 };
 
-export const getTheme = (): ThemeName => $theme.get();
+export const getTheme = (): BaseThemeName => $theme.get();

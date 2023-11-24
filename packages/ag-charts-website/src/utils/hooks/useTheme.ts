@@ -1,34 +1,25 @@
-import { getDarkModeTheme } from '@features/gallery/utils/getDarkModeTheme';
-import { useStore } from '@nanostores/react';
-import { $darkmode } from '@stores/darkmodeStore';
-import { $theme, type ThemeName, setTheme } from '@stores/themeStore';
-import { useCallback, useEffect, useMemo } from 'react';
+import { $darkmode, type DarkModeTheme, getDarkmode, setDarkmode } from '@stores/darkmodeStore';
+import { $theme, type BaseThemeName, setTheme } from '@stores/themeStore';
+import { useEffect } from 'react';
+
+import { useStoreSsr } from './useStoreSsr';
 
 export function useTheme() {
-    const darkmode = useStore($darkmode);
-    const theme = useStore($theme);
-    const displayName = useMemo(() => theme.replace('-dark', ''), [theme]);
+    const darkmode = useStoreSsr<DarkModeTheme>($darkmode, 'unknown');
+    const themeName = useStoreSsr<BaseThemeName>($theme, 'ag-default');
 
-    const updateDarkModeTheme = useCallback(
-        (newTheme: ThemeName) => {
-            const isDarkMode = typeof darkmode === 'string' ? darkmode === 'true' : darkmode;
-            const newDarkModeTheme = getDarkModeTheme(newTheme, isDarkMode);
-
-            if (newDarkModeTheme !== theme) {
-                setTheme(newDarkModeTheme);
-            }
-        },
-        [darkmode, theme]
-    );
-
-    // Update theme if darkmode changes
     useEffect(() => {
-        updateDarkModeTheme(theme);
-    }, [darkmode, theme]);
+        if (getDarkmode() === 'unknown') {
+            const darkMode = window.matchMedia('(prefers-color-scheme: dark)')?.matches === true;
+            setDarkmode(darkMode);
+        }
+    }, []);
+
+    const theme = darkmode === 'dark' ? `${themeName}-dark` : themeName;
 
     return {
         theme,
-        displayName,
-        updateDarkModeTheme,
+        themeName,
+        setThemeName: setTheme,
     };
 }

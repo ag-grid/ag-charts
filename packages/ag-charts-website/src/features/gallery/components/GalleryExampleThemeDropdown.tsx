@@ -5,15 +5,15 @@ import { ThemeName } from '../../../stores/themeStore';
 import styles from './GalleryExampleThemeDropdown.module.scss';
 
 export const GalleryExampleThemeDropdown: FunctionComponent = () => {
-    const { updateDarkModeTheme, theme, displayName } = useTheme();
+    const { setThemeName, themeName } = useTheme();
 
     const applyTheme = (event: ChangeEvent<HTMLSelectElement>) => {
-        updateDarkModeTheme(event.target.value as ThemeName);
+        setThemeName(event.target.value as ThemeName);
     };
 
     return (
         <div className={styles.toolPanel}>
-            <select id="theme-select" value={displayName} onChange={applyTheme}>
+            <select id="theme-select" value={themeName} onChange={applyTheme}>
                 <option value="ag-default">ag-default</option>
                 <option value="ag-sheets">ag-sheets</option>
                 <option value="ag-polychroma">ag-polychroma</option>
