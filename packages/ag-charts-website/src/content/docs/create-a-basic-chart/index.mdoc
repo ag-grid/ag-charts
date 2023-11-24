@@ -19,7 +19,7 @@ By the end of this tutorial, you will have a Line and Bar combination chart, wit
 
 ## Chart Basics
 
-Complete our [Quick Start](quick-start) (or open the example below in Plunker) to start with a basic chart, comprised of:
+Complete our [Quick Start](./quick-start/) (or open the example below in Plunker) to start with a basic chart, comprised of:
 
 {% if isFramework("javascript") %}
 
@@ -179,7 +179,7 @@ const options = ref({
 
 Let's breakdown whats happening here:
 
--   **Type:** The type of axis to use - one of [Category](../axes-types#category), [Number](../axes-types#number), [Time](../axes-types#time) or [Log](../axes-types#log).
+-   **Type:** The type of axis to use - one of [Category](./axes-types#category/), [Number](./axes-types#number/), [Time](./axes-types#time/) or [Log](./axes-types#log/).
 -   **Position:** The position on the chart where the axis should be rendered, e.g. 'top', 'bottom', 'right' or 'left'.
 -   **Keys:** Associates the axis with a given series, with the keys axis property linking the appropriate series to the axis.
 
@@ -200,7 +200,7 @@ Titles and subtitles can also be added to the chart via the `title` and `subtitl
 ```js
 const options = {
     title: { text: 'Ice Cream Sales' },
-    subtitle: { text: 'UK Data from 2022' },
+    subtitle: { text: 'Data from 2022' },
     // ...
 };
 ```
@@ -212,7 +212,7 @@ const options = {
 ```js
 const [chartOptions, setChartOptions] = useState({
     title: { text: 'Ice Cream Sales' },
-    subtitle: { text: 'UK Data from 2022' },
+    subtitle: { text: 'Data from 2022' },
     // ...
 };
 ```
@@ -224,7 +224,7 @@ const [chartOptions, setChartOptions] = useState({
 ```ts
 this.chartOptions = {
     title: { text: 'Ice Cream Sales' },
-    subtitle: { text: 'UK Data from 2022' },
+    subtitle: { text: 'Data from 2022' },
     // ...
 };
 ```
@@ -236,7 +236,7 @@ this.chartOptions = {
 ```ts
 const options = ref({
     title: { text: 'Ice Cream Sales' },
-    subtitle: { text: 'UK Data from 2022' },
+    subtitle: { text: 'Data from 2022' },
     // ...
 };
 ```
@@ -245,7 +245,7 @@ const options = ref({
 
 {% chartExampleRunner title="Titles Example" name="title-example" type="generated" /%}
 
-_Note: Refer to the [title](/options/#reference-AgChartOptions-title) and [subtitle](/options/#reference-AgChartOptions-subtitle) API docs for a full list of properties that can be configured_
+_Note: Refer to the [title](/options/#reference-AgChartOptions-title/) and [subtitle](./options/#reference-AgChartOptions-subtitle/) API docs for a full list of properties that can be configured_
 
 ### Legend
 
@@ -307,7 +307,7 @@ We should now see the Legend displayed on the right hand side of the chart, rath
 
 {% chartExampleRunner title="Legend Example" name="legend-example" type="generated" /%}
 
-_Note: Refer to the [Legend](legend) docs for more info_
+_Note: Refer to the [Legend](./legend/) docs for more info_
 
 ### Renaming Series
 
@@ -479,13 +479,13 @@ Now our chart should display formatted temperature values on the right axis.
 
 {% chartExampleRunner title="Second Series Formatted Example" name="second-series-formatted-example" type="generated" /%}
 
-_Note: Refer to the [axes](/options/#reference-AgChartOptions-axes) API docs for a full list of properties that can be configured_
+_Note: Refer to the [axes](/options/#reference-AgChartOptions-axes/) API docs for a full list of properties that can be configured_
 
 ## Test your Knowledge
 
-1. Add the `theme: 'ag-vivid-dark'` property to the chart.
+1. Format the left axis using `toLocaleString()`
 
-    _Hint: Theme is a property of `AgChartOptions`_
+    _Hint: Add a formatter to the `axes.label` property_
 
 2. Change the 'avgTemp' legend item label to 'Average Temperature (°C)'.
 
