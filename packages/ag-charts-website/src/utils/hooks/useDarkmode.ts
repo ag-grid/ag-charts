@@ -1,9 +1,9 @@
-import { $darkmode, type DarkModeTheme, setDarkmode } from '@stores/darkmodeStore';
+import { $darkmode, setDarkmode } from '@stores/darkmodeStore';
 
 import { useStoreSsr } from './useStoreSsr';
 
 export const useDarkmode = () => {
-    const darkmode = useStoreSsr<DarkModeTheme>($darkmode, 'unknown');
+    const darkmode = useStoreSsr<boolean | undefined>($darkmode, undefined);
 
-    return [darkmode === 'true', setDarkmode] as const;
+    return [darkmode, setDarkmode] as const;
 };

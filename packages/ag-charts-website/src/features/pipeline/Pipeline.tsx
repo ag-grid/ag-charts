@@ -151,7 +151,7 @@ export const Pipeline = ({ location, currentFramework }) => {
     const URLFilterSearchQuery = useState(extractFilterTerm(location))[0];
     const searchBarEl = useRef(null);
 
-    const darkMode = useDarkmode();
+    const [darkMode] = useDarkmode();
 
     useEffect(() => {
         fetch('/pipeline/pipeline.json')

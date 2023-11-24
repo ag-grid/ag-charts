@@ -2,13 +2,14 @@ import { persistentAtom } from '@nanostores/persistent';
 
 const LOCALSTORAGE_PREFIX = 'documentation';
 
-export type DarkModeTheme = 'true' | 'false';
-
-export const $darkmode = persistentAtom<DarkModeTheme | undefined>(`${LOCALSTORAGE_PREFIX}:darkmode`, undefined, {
+export const $darkmode = persistentAtom<boolean | undefined>(`${LOCALSTORAGE_PREFIX}:darkmode`, undefined, {
     listen: false,
+    encode: (value) => (value ? 'true' : 'false'),
+    decode: (value) => value === 'true',
 });
 
-const updateHtml = (darkmode: DarkModeTheme | undefined) => {
+const updateHtml = (darkmode: boolean | undefined) => {
+    console.log({ darkmode });
     if (typeof document === 'undefined') {
         return;
     }
@@ -17,18 +18,30 @@ const updateHtml = (darkmode: DarkModeTheme | undefined) => {
 
     // Using .no-transitions class so that there are no animations between light/dark modes
     htmlEl.classList.add('no-transitions');
-    htmlEl.dataset.darkMode = darkmode ?? 'false';
+    htmlEl.dataset.darkMode = darkmode === true ? 'true' : 'false';
     htmlEl.offsetHeight; // Trigger a reflow, flushing the CSS changes
     htmlEl.classList.remove('no-transitions');
+
+    const darkModeEvent = { type: 'color-scheme-change', darkmode };
+
+    // post message for example runner to listen for user initiated color scheme changes
+    const iframes = document.querySelectorAll('.exampleRunner') || [];
+    iframes.forEach((iframe) => {
+        iframe.contentWindow.postMessage(darkModeEvent);
+    });
+
+    // Send on event on page for charts that are embeded on the page
+    window.dispatchEvent(new CustomEvent('message', { detail: darkModeEvent }));
 };
 
+console.log('HELLO');
 $darkmode.listen(updateHtml);
-updateHtml($darkmode.get());
+updateHtml($darkmode.get() ?? window?.matchMedia('(prefers-color-scheme: dark)')?.matches);
 
 export const setDarkmode = (darkmode: boolean) => {
-    $darkmode.set(darkmode ? 'true' : 'false');
+    $darkmode.set(darkmode);
 };
 
-export const getDarkmode = (): DarkModeTheme | undefined => {
+export const getDarkmode = (): boolean | undefined => {
     return $darkmode.get();
 };
