@@ -99,7 +99,7 @@ export interface AgRangeAreaSeriesOptions<TDatum = any>
         AgRangeAreaSeriesOptionsKeys,
         AgRangeAreaSeriesOptionsNames,
         AgRangeAreaSeriesThemeableOptions<TDatum> {
-    /** Configuration for the RangeArea series. */
+    /** Configuration for the Range Area Series. */
     type: 'range-area';
 }
 

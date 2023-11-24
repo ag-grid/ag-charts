@@ -72,7 +72,7 @@ export interface AgBarSeriesOptions<TDatum = any>
         AgBarSeriesOptionsKeys,
         AgBarSeriesOptionsNames,
         AgBarSeriesThemeableOptions<TDatum> {
-    /** Configuration for bar series. */
+    /** Configuration for the Bar Series. */
     type: 'bar';
     /** Whether to group together (adjacently) separate bars. */
     grouped?: boolean;

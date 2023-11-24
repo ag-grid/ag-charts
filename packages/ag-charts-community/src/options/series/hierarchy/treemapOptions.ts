@@ -120,7 +120,7 @@ export interface AgTreemapSeriesOptions<TDatum = any>
     extends Omit<AgBaseSeriesOptions<TDatum>, 'highlightStyle'>,
         AgTreemapSeriesOptionsKeys,
         AgTreemapSeriesThemeableOptions<TDatum> {
-    /** Configuration for the treemap series. */
+    /** Configuration for the Treemap Series. */
     type: 'treemap';
 }
 
