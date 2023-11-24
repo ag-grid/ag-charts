@@ -13,13 +13,13 @@ In this tutorial you will:
 3. [Style the chart with Themes, titles, Legend, and formatted data](#styling)
 4. [Format the axes](#formatting-axes)
 
-By the end of this tutorial, you will have a basic combination chart, using a dark Theme, with formatted values - Try it out for yourself by hovering elements to display tooltips, or toggling series visibility by clicking the Legend elements:
+By the end of this tutorial, you will have a basic line & bar combination chart, with a legend, title and formatted values - Try it out for yourself by hovering elements to display tooltips, or toggling series visibility by clicking the Legend elements:
 
-{% chartExampleRunner title="Complete Formatted Example" name="complete-formatted-example" type="mixed" /%}
+{% chartExampleRunner title="Complete Formatted Example" name="complete-formatted-example" type="generated" /%}
 
 ## Chart Basics
 
-Complete our [Quick Start](../quick-start) (or open the example below in CodeSandbox) to start with a basic chart, comprised of:
+Complete our [Quick Start](../quick-start) (or open the example below in Plunker) to start with a basic chart, comprised of:
 
 {% if isFramework("javascript") %}
 
@@ -191,60 +191,6 @@ Now when we run our chart, we should see both series & two axes:
 
 Now we have a chart complete with multiple series and axes, the last thing to do is style the chart.
 
-### Choosing a Theme
-
-AG Charts provide a number of [Themes](../themes) out of the box to easily control the style of the chart. Each theme has a light & dark version, which controls the background of the chart. To set a Theme, add the `theme` property to the `AgChartOptions` object, with the value as your chosen Theme:
-
-{% if isFramework("javascript") %}
-
-```js
-const options = {
-    theme: 'ag-material-dark',
-    // ...
-};
-```
-
-{% /if %}
-
-{% if isFramework("react") %}
-
-```js
-const [chartOptions, setChartOptions] = useState({
-    theme: 'ag-material-dark',
-    // ...
-};
-```
-
-{% /if %}
-
-{% if isFramework("angular") %}
-
-```js
-this.chartOptions = {
-    theme: 'ag-material-dark',
-    // ...
-};
-```
-
-{% /if %}
-
-{% if isFramework("vue") %}
-
-```js
-const options = ref({
-    theme: 'ag-material-dark',
-    // ...
-};
-```
-
-{% /if %}
-
-Running the code at this point will display a chart with your chosen Theme:
-
-{% chartExampleRunner title="Theme Example" name="theme-example" type="mixed" /%}
-
-_Note: Refer to the [Theme](../../themes-api) API docs for a full list of properties that can be configured_
-
 ### Titles
 
 Titles and subtitles can also be added to the chart via the `title` and `subtitle` properties:
@@ -297,7 +243,7 @@ const options = ref({
 
 {% /if %}
 
-{% chartExampleRunner title="Titles Example" name="title-example" type="mixed" /%}
+{% chartExampleRunner title="Titles Example" name="title-example" type="generated" /%}
 
 _Note: Refer to the [title](/options/#reference-AgChartOptions-title) and [subtitle](/options/#reference-AgChartOptions-subtitle) API docs for a full list of properties that can be configured_
 
@@ -359,7 +305,7 @@ const options = ref({
 
 We should now see the Legend displayed on the right hand side of the chart, rather than underneath it:
 
-{% chartExampleRunner title="Legend Example" name="legend-example" type="mixed" /%}
+{% chartExampleRunner title="Legend Example" name="legend-example" type="generated" /%}
 
 _Note: Refer to the [Legend](../legend) docs for more info_
 
@@ -425,7 +371,7 @@ const options = ref({
 
 Now we should see our Legend & Tooltips using the `yName` value as opposed to the `yKey`:
 
-{% chartExampleRunner title="Formatting Series Example" name="format-series-example" type="mixed" /%}
+{% chartExampleRunner title="Formatting Series Example" name="format-series-example" type="generated" /%}
 
 ### Formatting Axes
 
@@ -531,13 +477,13 @@ this.chartOptions = {
 
 Now our chart should display formatted temperature values on the right-hand-side axis:
 
-{% chartExampleRunner title="Second Series Formatted Example" name="second-series-formatted-example" type="mixed" /%}
+{% chartExampleRunner title="Second Series Formatted Example" name="second-series-formatted-example" type="generated" /%}
 
 _Note: Refer to the [axes](/options/#reference-AgChartOptions-axes) API docs for a full list of properties that can be configured_
 
 ## Test your Knowledge
 
-1. Change the Theme to use 'ag-vivid-dark'
+1. Add the `theme: 'ag-vivid-dark'` property to the chart
 
     _Hint: Theme is a property of `AgChartOptions`_
 
@@ -547,7 +493,7 @@ _Note: Refer to the [axes](/options/#reference-AgChartOptions-axes) API docs for
 
 If you're stuck, check the source code of the example:
 
-{% chartExampleRunner title="Complete Formatted Example" name="complete-formatted-example" type="mixed" /%}
+{% chartExampleRunner title="Complete Formatted Example" name="complete-formatted-example" type="generated" /%}
 
 ## Summary
 

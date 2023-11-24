@@ -2,7 +2,6 @@ import {
     AgBarSeriesOptions,
     AgCategoryAxisOptions,
     AgChartOptions,
-    AgChartThemeName,
     AgCharts,
     AgLineSeriesOptions,
     AgNumberAxisOptions,
@@ -18,8 +17,6 @@ interface IData {
 // Chart Options Configuration
 const options: AgChartOptions = {
     container: document.getElementById('myChart') as HTMLElement, // Container: HTML Element to hold the chart
-    // Theme: Style to apply to the chart
-    theme: 'ag-material' as AgChartThemeName,
     // Data: Data to be displayed within the chart
     data: [
         { month: 'Jan', avgTemp: 2.3, iceCreamSales: 162 },
