@@ -4,9 +4,7 @@ import Layout from '@layouts/Layout.astro';
 import { FrameworkSelector } from '../components/framework-selector/FrameworkSelector';
 import { Icon } from '@components/icon/Icon';
 import type { GalleryData } from '@ag-grid-types';
-import Code from '@components/Code';
-import HomepageExampleRunner from '@features/homepage/components/HomepageExampleRunner.astro';
-import { HomepageSeriesSelector } from '@features/homepage/components/HomepageSeriesSelector';
+import { GalleryExampleImage } from '@features/gallery/components/GalleryExampleImage';
 import { pathJoin } from '@utils/pathJoin';
 import { SITE_BASE_URL } from '@constants';
 import { getCacheBustingUrl, getChartEnterpriseScriptPath, getChartScriptPath } from '@utils/chartLibraryPaths';
@@ -71,11 +69,7 @@ const benefits = [
 
 const galleryDataEntry = await getEntry('gallery', 'data');
 const galleryData: GalleryData = galleryDataEntry?.data;
-const defaultExampleName = galleryData.homepage[0].seriesExampleName;
-
-const heroInternalFramework = 'vanilla';
-const heroDocsPageName = 'homepage';
-const heroDocsExampleName = 'hero-chart';
+const series = galleryData.series.flat();
 
 const modifiedTimeMs = Date.now();
 const siteUrl = Astro.site ? pathJoin(Astro.site, SITE_BASE_URL) : '/';
@@ -99,7 +93,22 @@ const isEnterprise = true;
                 <a href="/gallery" class="button">See the charts <Icon name="chevronRight" /></a>
             </div>
 
-            <div class={styles.galleryScroller}></div>
+            <div class={styles.galleryScroller}>
+                <div class={styles.galleryScrollerInner}>
+                    {
+                        series.map((series) =>
+                            series.examples.map(({ title, name }) => (
+                                <GalleryExampleImage
+                                    id={`$${series.name}:${title}`}
+                                    label={title}
+                                    exampleName={name}
+                                    className={styles.galleryScrollerExample}
+                                />
+                            ))
+                        )
+                    }
+                </div>
+            </div>
         </div>
     </div>
 

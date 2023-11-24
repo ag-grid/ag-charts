@@ -113,13 +113,7 @@
 .galleryScroller {
     position: relative;
     height: max(416px, 33vh);
-    background-image: url('../../images/gallery-light@0.5x.jpg');
-    background-repeat: repeat-y;
-    background-size: 100% auto;
-    animation-duration: 30s;
-    animation-name: scroll-hero;
-    animation-iteration-count: infinite;
-    animation-timing-function: linear;
+    overflow: hidden;
 
     &::after {
         content: '';
@@ -132,8 +126,6 @@
     }
 
     #{$darkmode-selector} & {
-        background-image: url('../../images/gallery-dark@0.5x.jpg');
-
         &::after {
             background-image: linear-gradient(transparent, var(--default-background-color));
         }
@@ -144,13 +136,31 @@
     }
 }
 
+.galleryScrollerInner {
+    display: grid;
+    grid: auto-flow auto auto auto / 1fr 1fr 1fr;
+    gap: 6px;
+    animation-duration: 30s;
+    animation-name: scroll-hero;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+}
+
 @keyframes scroll-hero {
     from {
-        background-position: 0 0;
+        transform: translateY(0);
     }
 
     to {
-        background-position: 0 100%;
+        transform: translateY(-100%);
+    }
+}
+
+.galleryScrollerExample {
+    background: white;
+
+    #{$darkmode-selector} & {
+        background: #182732;
     }
 }
 
