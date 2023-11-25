@@ -612,39 +612,9 @@
                         "name": "histogram-scatter-combination"
                     },
                     {
-                        "title": "Range Bar And Line Combination",
-                        "description": "A combination chart combines two or more series types allowing for flexible data visualisations. They are ideal for making visual comparisons of different sets of data in a single chart.",
-                        "name": "range-bar-line-combination"
-                    },
-                    {
                         "title": "Horizontal Range Bar And Scatter Combination",
                         "description": "A combination chart combines two or more series types allowing for flexible data visualisations. They are ideal for making visual comparisons of different sets of data in a single chart.",
                         "name": "horizontal-range-bar-scatter-combination"
-                    }
-                ]
-            }
-        ],
-        [
-            {
-                "title": "Bullet",
-                "name": "bullet",
-                "icon": "chartsBullet",
-                "enterprise": true,
-                "examples": [
-                    {
-                        "title": "Simple Bullet Series",
-                        "description": "A Bullet Series presents a single data point within a predefined range, commonly used to illustrate the relationship of a key value to a target or comparative values.",
-                        "name": "simple-bullet"
-                    },
-                    {
-                        "title": "Horizontal Bullet Series",
-                        "description": "A Bullet Series presents a single data point within a predefined range, commonly used to illustrate the relationship of a key value to a target or comparative values.",
-                        "name": "horizontal-bullet"
-                    },
-                    {
-                        "title": "Bullet Series Customisation",
-                        "description": "A Bullet Series presents a single data point within a predefined range, commonly used to illustrate the relationship of a key value to a target or comparative values.",
-                        "name": "bullet-customization"
                     }
                 ]
             }
