@@ -4,6 +4,7 @@ import ExampleRunnerContainer from '@features/example-runner/components/ExampleR
 import { GalleryExampleRunner } from './GalleryExampleRunner';
 import { getChartExampleTitle, getSeriesTypeSlug } from '../utils/filesData';
 import { GALLERY_EXAMPLE_NAME_PATH_INDEX } from '../constants';
+import { getLoadingIFrameId } from '@features/example-runner/utils/getLoadingLogoId';
 
 const pathSegments = Astro.url.pathname.split('/');
 const exampleName = pathSegments[GALLERY_EXAMPLE_NAME_PATH_INDEX];
@@ -17,8 +18,9 @@ const pageName = getSeriesTypeSlug({
     galleryData: galleryDataEntry.data,
     exampleName,
 });
+const loadingIFrameId = getLoadingIFrameId({ pageName, exampleName });
 ---
 
 <ExampleRunnerContainer pageName={pageName} exampleName={exampleName}>
-    <GalleryExampleRunner client:load title={title} exampleName={exampleName} />
+    <GalleryExampleRunner client:load title={title} exampleName={exampleName} loadingIFrameId={loadingIFrameId} />
 </ExampleRunnerContainer>

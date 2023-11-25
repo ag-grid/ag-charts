@@ -55,6 +55,10 @@ export const ExampleStyle = ({ rootId }: { rootId?: string }) => (
           background-color: var(--hover-background-color);
         }
 
+        html[data-dark-mode=true] body {
+            background: #182732;
+        }
+
         html[data-dark-mode=true] button:not(#myGrid button, #myChart button, button[class*='ag-'], .ag-chart-context-menu button) {
 
           --text-color: #f8f9fa;

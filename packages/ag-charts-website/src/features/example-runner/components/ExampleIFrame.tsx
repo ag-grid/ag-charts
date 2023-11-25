@@ -7,9 +7,10 @@ import styles from './ExampleIFrame.module.scss';
 interface Props {
     isHidden?: boolean;
     url?: string;
+    loadingIFrameId: string;
 }
 
-export const ExampleIFrame: FunctionComponent<Props> = ({ isHidden, url }) => {
+export const ExampleIFrame: FunctionComponent<Props> = ({ isHidden, url, loadingIFrameId }) => {
     const [isIntersecting, setIsIntersecting] = useState(false);
     const iFrameRef = useRef<HTMLIFrameElement>(null);
 
@@ -40,7 +41,12 @@ export const ExampleIFrame: FunctionComponent<Props> = ({ isHidden, url }) => {
             })}
         >
             {/*`exampleRunner` class is used by the dark mode toggle to post a message to this iFrame*/}
-            <iframe ref={iFrameRef} className={classnames('exampleRunner', styles.iframe)} />
+            <iframe
+                id={loadingIFrameId}
+                ref={iFrameRef}
+                className={classnames('exampleRunner', styles.iframe)}
+                style={{ visibility: 'hidden' }}
+            />
         </div>
     );
 };

@@ -1,6 +1,7 @@
 import type { Framework } from '@ag-grid-types';
 import { ExampleRunner } from '@features/example-runner/components/ExampleRunner';
 import type { ExampleOptions } from '@features/example-runner/types';
+import { getLoadingIFrameId } from '@features/example-runner/utils/getLoadingLogoId';
 import type { ExampleType } from '@features/examples-generator/types';
 import { OpenInPlunkr } from '@features/plunkr/components/OpenInPlunkr';
 import { useStore } from '@nanostores/react';
@@ -63,6 +64,7 @@ const DocsExampleRunnerInner = ({ name, title, exampleType, options, framework, 
 
     const exampleName = name;
     const id = `example-${name}`;
+    const loadingIFrameId = getLoadingIFrameId({ pageName, exampleName: name });
 
     const {
         isLoading: contentsIsLoading,
@@ -169,6 +171,7 @@ const DocsExampleRunnerInner = ({ name, title, exampleType, options, framework, 
             initialSelectedFile={initialSelectedFile}
             internalFramework={internalFramework}
             externalLinkButton={externalLinkButton}
+            loadingIFrameId={loadingIFrameId}
         />
     );
 };

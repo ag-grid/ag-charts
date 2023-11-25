@@ -1,5 +1,5 @@
 ---
-import { getLoadingLogoId } from '@features/example-runner/utils/getLoadingLogoId';
+import { getLoadingLogoId, getLoadingIFrameId } from '@features/example-runner/utils/getLoadingLogoId';
 interface Props {
     pageName: string;
     exampleName: string;
@@ -7,6 +7,7 @@ interface Props {
 
 const { pageName, exampleName } = Astro.props as Props;
 const loadingLogoId = getLoadingLogoId({ pageName, exampleName });
+const loadingIFrameId = getLoadingIFrameId({ pageName, exampleName });
 ---
 
 <script
@@ -14,13 +15,21 @@ const loadingLogoId = getLoadingLogoId({ pageName, exampleName });
         pageName,
         exampleName,
         loadingLogoId,
+        loadingIFrameId,
     }}
 >
     window.addEventListener('message', ({ data }) => {
+        const isExample = pageName === data?.pageName && exampleName === data?.exampleName;
+        if (!isExample) return;
+
         if (data?.type === 'init') {
-            const isExample = pageName === data.pageName && exampleName === data.exampleName;
-            if (isExample) {
-                document.getElementById(loadingLogoId)?.remove();
+            document.getElementById(loadingLogoId)?.remove();
+            const iframe = document.getElementById(loadingIFrameId);
+            if (!iframe) return;
+
+            iframe.style.visibility = 'visible';
+            if (document.documentElement.dataset['darkMode'] === 'true') {
+                iframe.contentDocument.documentElement.dataset.darkMode = true;
             }
         }
     });
