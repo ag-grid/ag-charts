@@ -16,6 +16,8 @@ export interface Props {
     showTopBar?: boolean;
     showSearchBar?: boolean;
     showDocsNav?: boolean;
+    hideHeader?: boolean;
+    hideFooter?: boolean;
 }
 
 const { data: metadata } = await getEntry('metadata', 'metadata');
@@ -26,6 +28,8 @@ const {
     description = metadata.description,
     showSearchBar,
     showDocsNav,
+    hideHeader,
+    hideFooter
 } = Astro.props;
 
 const path = Astro.url.pathname;
@@ -97,7 +101,7 @@ const isApiLayout = apiMenuItems.some((item) => {
             height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>}
 
         <div class="mainContainer">
-            <SiteHeader showSearchBar={showSearchBar} showDocsNav={showDocsNav}/>
+            {!hideHeader && <SiteHeader showSearchBar={showSearchBar} showDocsNav={showDocsNav}/>}
             { isApiLayout && (
                 // Update page scroll offset when API top bar is sticky
                 <style>
@@ -113,7 +117,7 @@ const isApiLayout = apiMenuItems.some((item) => {
 
             <slot />
         </div>
-        <Footer path={path} footerItems={footerItems} />
+        {!hideFooter && <Footer path={path} footerItems={footerItems} />}
 
         <style lang="scss">
             @use '../design-system' as *;
