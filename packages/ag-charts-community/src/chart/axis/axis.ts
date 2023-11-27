@@ -247,7 +247,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     private destroyFns: Function[] = [];
 
     private minRect?: BBox;
-    private seriesRect?: BBox;
 
     constructor(
         protected readonly moduleCtx: ModuleContext,
@@ -285,7 +284,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                     this.animationState.transition('resize');
                 }
                 previousSize = { ...e.chart };
-                this.seriesRect = e.series.paddedRect;
             })
         );
 
@@ -1030,7 +1028,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         maxTickCount: number;
         primaryTickCount?: number;
     }) {
-        const { scale, seriesRect, visibleRange } = this;
+        const { scale, visibleRange } = this;
 
         let rawTicks: any[] = [];
 
@@ -1055,7 +1053,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         // `ticks instanceof NumericTicks` doesn't work here, so we feature detect.
         this.fractionDigits = (rawTicks as any).fractionDigits >= 0 ? (rawTicks as any).fractionDigits : 0;
 
-        const halfBandwidth = (this.scale.bandwidth ?? 0) / 2;
+        const halfBandwidth = (scale.bandwidth ?? 0) / 2;
         const ticks: TickDatum[] = [];
 
         let labelCount = 0;
@@ -1065,21 +1063,18 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const start = Math.max(0, Math.floor(visibleRange[0] * rawTicks.length));
         const end = Math.min(rawTicks.length, Math.ceil(visibleRange[1] * rawTicks.length));
 
+        let [rangeMin, rangeMax] = scale.range;
+        if (rangeMin > rangeMax) {
+            [rangeMin, rangeMax] = [rangeMax, rangeMin];
+        }
         for (let i = start; i < end; i++) {
             const rawTick = rawTicks[i];
             const translationY = scale.convert(rawTick) + halfBandwidth;
 
-            // Do not render ticks outside the series rect. A clip rect would trim long labels, so instead hide ticks
+            // Do not render ticks outside the scale range. A clip rect would trim long labels, so instead hide ticks
             // based on their translation.
-            if (seriesRect) {
-                if (this.direction === ChartAxisDirection.X && (translationY < 0 || translationY > seriesRect.width)) {
-                    continue;
-                }
-
-                if (this.direction === ChartAxisDirection.Y && (translationY < 0 || translationY > seriesRect.height)) {
-                    continue;
-                }
-            }
+            if (rangeMin != null && translationY < rangeMin) continue;
+            if (rangeMax != null && translationY > rangeMax) continue;
 
             const tickLabel = this.formatTick(rawTick, i);
 
