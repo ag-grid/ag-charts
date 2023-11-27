@@ -290,3 +290,17 @@ const { series } = galleryData;
         }
     }
 </style>
+
+<style lang="scss" is:global>
+    @use '../design-system' as *;
+
+    .site-header {
+        position: fixed !important;
+        width: 100%;
+        z-index: 2;
+    }
+
+    .icon {
+        transition: fill $default-transition-timing;
+    }
+</style>
