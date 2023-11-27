@@ -181,9 +181,9 @@ export const Pipeline = ({ location, currentFramework }) => {
                     <section className={styles.header}>
                         <Alert type="idea">
                             <p>
-                                The AG Charts pipeline lists the feature requests and active bugs in our product backlog.
-                                Use it to see the items scheduled for our next release or to look up the status of a
-                                specific item. If you can’t find the item you’re looking for, check the{' '}
+                                The AG Charts pipeline lists the feature requests and active bugs in our product
+                                backlog. Use it to see the items scheduled for our next release or to look up the status
+                                of a specific item. If you can’t find the item you’re looking for, check the{' '}
                                 <a href={`${SITE_URL}${SITE_BASE_URL ?? ''}${currentFramework}/changelog/`}>
                                     Changelog
                                 </a>{' '}
