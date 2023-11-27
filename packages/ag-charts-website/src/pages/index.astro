@@ -44,29 +44,6 @@ const frameworksData = [
     },
 ];
 
-const benefits = [
-    {
-        title: 'Bring your own Framework',
-        icon: 'code',
-    },
-    {
-        title: 'Unbeatable Performance',
-        icon: 'flash',
-    },
-    {
-        title: 'Completely Customisable',
-        icon: 'colorPalette',
-    },
-    {
-        title: 'Animate everything',
-        icon: 'movement',
-    },
-    {
-        title: 'Zoom & Enhance',
-        icon: 'zoomArea',
-    },
-];
-
 const galleryDataEntry = await getEntry('gallery', 'data');
 const galleryData: GalleryData = galleryDataEntry?.data;
 const series = galleryData.series.flat();
@@ -120,6 +97,16 @@ const isEnterprise = true;
         </div>
     </div>
 
+    <div class={styles.homepageBenefits}>
+        <div class:list={[styles.benefitsInner, 'page-margin']}>
+            <video src="videos/chart-features.mp4" muted autoplay loop></video>
+            <div class={styles.benefitsCopy}>
+              <h2>Charts Charts Charts</h2>
+              <p class="font-size-large">Atque voluptatem odio molestiae aut possimus quis eum nam. Et qui ipsam reprehenderit est sed itaque accusamus est. Optio est ipsa pariatur et libero earum debitis dicta dolores. Facere quia dolorum ut officiis ea libero nesciunt cumque et. Autem sit totam et nihil sequi incidunt et. Voluptas reiciendis eos recusandae quam provident quae molestiae.</p>
+          </div>
+        </div>
+    </div>
+
     <div class={styles.homepageGrid}>
         <div class:list={[styles.gridInner, 'page-margin']}>
             <div class={styles.gridCopy}>
@@ -143,23 +130,6 @@ const isEnterprise = true;
             <div class={styles.gridExample}>
                 <video src="videos/integrated-charts.mp4" muted autoplay loop></video>
             </div>
-        </div>
-    </div>
-
-    <div class={styles.homepageBenefits}>
-        <div class:list={[styles.benefitsInner, 'page-margin']}>
-            <ul class="list-style-none">
-                {
-                    benefits.map((benefit) => {
-                        return (
-                            <li>
-                                <Icon name={benefit.icon} />
-                                <span class="font-size-large">{benefit.title}</span>
-                            </li>
-                        );
-                    })
-                }
-            </ul>
         </div>
     </div>
 </Layout>

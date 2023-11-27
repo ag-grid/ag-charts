@@ -111,8 +111,10 @@
 }
 
 .galleryScroller {
+    --scroller-height: max(416px, 33vh);
+
     position: relative;
-    height: max(416px, 33vh);
+    height: var(--scroller-height);
     overflow: hidden;
 
     &::after {
@@ -143,6 +145,7 @@
     animation-duration: 30s;
     animation-name: scroll-hero;
     animation-iteration-count: infinite;
+    animation-direction: alternate;
     animation-timing-function: linear;
 }
 
@@ -152,7 +155,7 @@
     }
 
     to {
-        transform: translateY(-100%);
+        transform: translateY(calc(-100% + var(--scroller-height)));
     }
 }
 
@@ -212,7 +215,7 @@
 
 .homepageGrid {
     padding-top: $size-8;
-    padding-bottom: $size-8;
+    padding-bottom: $size-10;
 }
 
 .gridInner {
@@ -275,14 +278,16 @@
     video {
         width: 100%;
         border-radius: 4px;
-        box-shadow: 2px 0 2px 0 rgba(0, 0, 0, 0.15);
+        box-shadow:
+            0 4px 8px 0 rgba(0, 0, 0, 0.1),
+            0 2px 4px 0 rgba(0, 0, 0, 0.15);
     }
 }
 
 .homepageBenefits {
     background-color: var(--background-200);
     padding-top: $size-7;
-    padding-bottom: $size-10;
+    padding-bottom: $size-8;
 
     border-top: 1px solid transparent;
     border-bottom: 1px solid transparent;
@@ -296,20 +301,29 @@
 }
 
 .benefitsInner {
-    ul {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: center;
-        gap: $size-5;
+    display: flex;
+    flex-wrap: wrap;
+    gap: $size-4 $size-7;
+
+    video {
+        width: 100%;
+        border-radius: 4px;
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.1);
     }
 
-    li {
-        --icon-size: #{$size-6};
+    div {
+        text-align: center;
+    }
 
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: $size-2;
+    @media screen and (min-width: 920px) {
+        flex-wrap: nowrap;
+
+        video {
+            width: 40%;
+        }
+
+        div {
+            text-align: left;
+        }
     }
 }
