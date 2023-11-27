@@ -29,7 +29,7 @@ export const Version = ({ date, version, blogUrl, highlights }: VersionProps) =>
                             What's new →
                         </a>
                     </div>
-                    <span class={styles.line}></span>
+                    <span className={styles.line}></span>
                 </header>
 
                 <p className={styles['font-size-small']}>

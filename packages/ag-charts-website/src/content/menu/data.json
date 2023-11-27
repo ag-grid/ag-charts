@@ -77,15 +77,6 @@
                 ]
             },
             {
-                "title": "Migration",
-                "items": [
-                    {
-                        "title": "Upgrade to AG Charts 9",
-                        "path": "migration-v9"
-                    }
-                ]
-            },
-            {
                 "title": "Axis Configuration",
                 "path": "axes",
                 "items": [
@@ -201,6 +192,15 @@
                         "title": "Background Image",
                         "path": "background-image",
                         "isEnterprise": true
+                    }
+                ]
+            },
+            {
+                "title": "Migration",
+                "items": [
+                    {
+                        "title": "Upgrade to AG Charts 9",
+                        "path": "migration-v9"
                     }
                 ]
             }
