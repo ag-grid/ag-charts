@@ -53,7 +53,7 @@ const { showSearchBar } = Astro.props;
     <div class:list={gridStyles.headerInner}>
         <SiteLogo client:load />
 
-        {showSearchBar && <Search client:only currentFramework={framework} isDev={isDev} />}
+        {showSearchBar && <Search client:load currentFramework={framework} isDev={isDev} />}
 
         <HeaderNav currentPath={pathname} items={topNavItems} allPaths={allPaths} client:load>
             <li class:list={[gridStyles.navItem, gridStyles.buttonItem, 'darkModeItem']}>
