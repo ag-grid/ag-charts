@@ -289,6 +289,7 @@ describe('BulletSeriesValidation', () => {
                 },
             ],
         });
+        await waitForChartStability(chart);
 
         expect(console.warn).toBeCalledTimes(1);
         expect(console.warn).toBeCalledWith(
@@ -326,6 +327,7 @@ describe('BulletSeriesValidation', () => {
                 },
             ],
         });
+        await waitForChartStability(chart);
 
         expect(console.warn).toBeCalledTimes(1);
         expect(console.warn).toBeCalledWith(
@@ -356,6 +358,7 @@ describe('BulletSeriesValidation', () => {
                 { type: 'bar', xKey: 'yr', yKey: 'b' },
             ],
         });
+        await waitForChartStability(chart);
 
         expect(console.warn).toBeCalledTimes(1);
         expect(console.warn).toBeCalledWith(
@@ -393,10 +396,63 @@ describe('BulletSeriesValidation', () => {
                 },
             ],
         });
+        await waitForChartStability(chart);
 
         expect(console.warn).toBeCalledTimes(1);
         expect(console.warn).toBeCalledWith(
             'AG Charts - Unable to mix these series types with the lead series type: bullet'
+        );
+        await compare(chart, ctx);
+    });
+
+    test('warning negative value', async () => {
+        chart = AgCharts.create({
+            ...opts,
+            series: [{ type: 'bullet', data: [{ v: -1 }], valueKey: 'v' }],
+        });
+        await waitForChartStability(chart);
+
+        expect(console.warn).toBeCalledTimes(1);
+        expect(console.warn).toBeCalledWith('AG Charts - negative values are not supported, clipping to 0.');
+        await compare(chart, ctx);
+    });
+
+    test('warning negative target', async () => {
+        chart = AgCharts.create({
+            ...opts,
+            series: [{ type: 'bullet', data: [{ v: 11, t: -1 }], valueKey: 'v', targetKey: 't' }],
+        });
+        await waitForChartStability(chart);
+
+        expect(console.warn).toBeCalledTimes(1);
+        expect(console.warn).toBeCalledWith('AG Charts - negative targets are not supported, ignoring.');
+        await compare(chart, ctx);
+    });
+
+    test('warning negative max', async () => {
+        chart = AgCharts.create({
+            ...opts,
+            series: [{ type: 'bullet', data: [{ v: 11 }], valueKey: 'v', scale: { max: -1 } }],
+        });
+        await waitForChartStability(chart);
+
+        expect(console.warn).toBeCalledTimes(1);
+        expect(console.warn).toBeCalledWith(
+            'AG Charts - Property [max] of [BulletScale] cannot be set to [-1]; expecting an optional finite Number greater than or equal to 0, ignoring.'
+        );
+        await compare(chart, ctx);
+    });
+
+    test('warning negative colorRange stop', async () => {
+        chart = AgCharts.create({
+            ...opts,
+            series: [{ type: 'bullet', data: [{ v: 11 }], valueKey: 'v', colorRanges: [{ color: 'blue', stop: -1 }] }],
+        });
+        await waitForChartStability(chart);
+
+        expect(console.warn).toBeCalledTimes(1);
+        expect(console.warn).toBeCalledWith(
+            'AG Charts - Property [stop] of [BulletColorRange] cannot be set to [-1]; expecting an optional finite Number greater than or equal to 0, ignoring.'
         );
         await compare(chart, ctx);
     });
