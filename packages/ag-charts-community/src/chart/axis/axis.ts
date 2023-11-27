@@ -241,7 +241,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     protected axisContext?: AxisContext;
 
-    private animationManager: AnimationManager;
+    protected animationManager: AnimationManager;
     private animationState: StateMachine<AxisAnimationState, AxisAnimationEvent>;
 
     private destroyFns: Function[] = [];
@@ -1534,7 +1534,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         );
     }
 
-    private resetSelectionNodes() {
+    protected resetSelectionNodes() {
         const { gridLineGroupSelection, tickLineGroupSelection, tickLabelGroupSelection, lineNode } = this;
 
         const selectionCtx = prepareAxisAnimationContext(this);

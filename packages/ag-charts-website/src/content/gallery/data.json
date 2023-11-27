@@ -65,17 +65,17 @@
                 "examples": [
                     {
                         "title": "Simple Bar",
-                        "description": "Bar charts (also known as vertical <a href='./simple-bar/'>bar charts</a>) represent data using vertical bars, with the height of each bar proportional to the value being plotted. They can be used to plot both nominal and ordinal data, and are simple to interpret. They work best where the number of data points is limited.",
+                        "description": "Bar charts (also known as vertical <a href='../simple-bar/'>bar charts</a>) represent data using vertical bars, with the height of each bar proportional to the value being plotted. They can be used to plot both nominal and ordinal data, and are simple to interpret. They work best where the number of data points is limited.",
                         "name": "simple-bar"
                     },
                     {
                         "title": "Grouped Stacked Bar",
-                        "description": "Bar charts (also known as vertical <a href='./simple-bar/'>bar charts</a>) represent data using vertical bars, with the height of each bar proportional to the value being plotted. They can be used to plot both nominal and ordinal data, and are simple to interpret. They work best where the number of data points is limited.",
+                        "description": "Bar charts (also known as vertical <a href='../simple-bar/'>bar charts</a>) represent data using vertical bars, with the height of each bar proportional to the value being plotted. They can be used to plot both nominal and ordinal data, and are simple to interpret. They work best where the number of data points is limited.",
                         "name": "grouped-stacked-bar"
                     },
                     {
                         "title": "Stacked Bar",
-                        "description": "Stacked Bar charts allow part-to-whole comparisons, with series stacked on top of each other in the vertical <a href='./simple-bar/'>bars</a>.",
+                        "description": "Stacked Bar charts allow part-to-whole comparisons, with series stacked on top of each other in the vertical <a href='../simple-bar/'>bars</a>.",
                         "name": "stacked-bar"
                     },
                     {
@@ -85,12 +85,12 @@
                     },
                     {
                         "title": "Stacked Horizontal Bar",
-                        "description": "Stacked Horizontal Bar charts allow part-to-whole comparisons, with series stacked from left to right in the horizontal <a href='./simple-bar/'>bars</a>. They make it easy to compare combined bar lengths.",
+                        "description": "Stacked Horizontal Bar charts allow part-to-whole comparisons, with series stacked from left to right in the horizontal <a href='../simple-bar/'>bars</a>. They make it easy to compare combined bar lengths.",
                         "name": "stacked-horizontal-bar"
                     },
                     {
                         "title": "Grouped Horizontal Bar",
-                        "description": "Grouped Horizontal Bar charts (also known as clustered bar charts) show multiple series with the <a href='./simple-bar/'>bars</a> grouped by category, to allow for easier comparisons across different series.",
+                        "description": "Grouped Horizontal Bar charts (also known as clustered bar charts) show multiple series with the <a href='../simple-bar/'>bars</a> grouped by category, to allow for easier comparisons across different series.",
                         "name": "grouped-horizontal-bar"
                     }
                 ]
@@ -105,7 +105,7 @@
                 "examples": [
                     {
                         "title": "Simple Line",
-                        "description": "Line charts represent each series as a separate line. They are useful to show change or trends over time, and are able to better present more data points than <a href='./simple-bar/'>bar</a> charts.",
+                        "description": "Line charts represent each series as a separate line. They are useful to show change or trends over time, and are able to better present more data points than <a href='../simple-bar/'>bar</a> charts.",
                         "name": "simple-line"
                     },
                     {
@@ -115,12 +115,12 @@
                     },
                     {
                         "title": "Multiple Line Series",
-                        "description": "Line charts represent each series as a separate line. They are useful to show change or trends over time, and are able to better present more data points than <a href='./simple-bar/'>bar</a> charts.",
+                        "description": "Line charts represent each series as a separate line. They are useful to show change or trends over time, and are able to better present more data points than <a href='../simple-bar/'>bar</a> charts.",
                         "name": "multiple-line-series"
                     },
                     {
                         "title": "Line With Time Axis",
-                        "description": "Line charts represent each series as a separate line. They are useful to show change or trends over time, and are able to better present more data points than <a href='./simple-bar/'>bar</a> charts.",
+                        "description": "Line charts represent each series as a separate line. They are useful to show change or trends over time, and are able to better present more data points than <a href='../simple-bar/'>bar</a> charts.",
                         "name": "line-legend-pagination"
                     },
                     {
@@ -130,7 +130,7 @@
                     },
                     {
                         "title": "Line With Labels",
-                        "description": "Line charts represent each series as a separate line. They are useful to show change or trends over time, and are able to better present more data points than <a href='./simple-bar/'>bar</a> charts.",
+                        "description": "Line charts represent each series as a separate line. They are useful to show change or trends over time, and are able to better present more data points than <a href='../simple-bar/'>bar</a> charts.",
                         "name": "line-with-labels"
                     }
                 ]
@@ -150,27 +150,27 @@
                     },
                     {
                         "title": "Area With Labels",
-                        "description": "<a href='./simple-area/'>Area charts</a> can also be used with negative values, with the area between the line and the axis being filled.",
+                        "description": "<a href='../simple-area/'>Area charts</a> can also be used with negative values, with the area between the line and the axis being filled.",
                         "name": "area-with-labels"
                     },
                     {
                         "title": "Stacked Area",
-                        "description": "Stacked area charts plot multiple <a href='./simple-area/'>area</a> series stacked on top of each other, showing how part-to-whole relationships change over time.",
+                        "description": "Stacked area charts plot multiple <a href='../simple-area/'>area</a> series stacked on top of each other, showing how part-to-whole relationships change over time.",
                         "name": "stacked-area"
                     },
                     {
                         "title": "Area With Markers",
-                        "description": "<a href='./simple-area/'>Area charts</a> can also be used with negative values, with the area between the line and the axis being filled.",
+                        "description": "<a href='../simple-area/'>Area charts</a> can also be used with negative values, with the area between the line and the axis being filled.",
                         "name": "area-with-markers"
                     },
                     {
                         "title": "100% Stacked Area",
-                        "description": "100% stacked area charts show the relative percentage of multiple series in <a href='./stacked-area/'>stacked areas</a>, where the cumulative area always totals to 100%.",
+                        "description": "100% stacked area charts show the relative percentage of multiple series in <a href='../stacked-area/'>stacked areas</a>, where the cumulative area always totals to 100%.",
                         "name": "100--stacked-area"
                     },
                     {
                         "title": "Area With Negative Values",
-                        "description": "<a href='./simple-area/'>Area charts</a> can also be used with negative values, with the area between the line and the axis being filled.",
+                        "description": "<a href='../simple-area/'>Area charts</a> can also be used with negative values, with the area between the line and the axis being filled.",
                         "name": "area-with-negative-values"
                     }
                 ]
@@ -290,17 +290,17 @@
                 "examples": [
                     {
                         "title": "Simple Doughnut",
-                        "description": "Doughnut charts are similar to <a href='./simple-pie/'>pie charts</a>, being used to express a part-to-whole relationship, but allow for multiple series to be shown on the same chart for comparison.",
+                        "description": "Doughnut charts are similar to <a href='../simple-pie/'>pie charts</a>, being used to express a part-to-whole relationship, but allow for multiple series to be shown on the same chart for comparison.",
                         "name": "simple-doughnut"
                     },
                     {
                         "title": "Doughnut With Variable Radius",
-                        "description": "Doughnut charts are similar to <a href='./simple-pie/'>pie charts</a>, being used to express a part-to-whole relationship, but allow for multiple series to be shown on the same chart for comparison.",
+                        "description": "Doughnut charts are similar to <a href='../simple-pie/'>pie charts</a>, being used to express a part-to-whole relationship, but allow for multiple series to be shown on the same chart for comparison.",
                         "name": "doughnut-with-variable-radius"
                     },
                     {
                         "title": "Multiple Doughnuts",
-                        "description": "Doughnut charts are similar to <a href='./simple-pie/'>pie charts</a>, being used to express a part-to-whole relationship, but allow for multiple series to be shown on the same chart for comparison.",
+                        "description": "Doughnut charts are similar to <a href='../simple-pie/'>pie charts</a>, being used to express a part-to-whole relationship, but allow for multiple series to be shown on the same chart for comparison.",
                         "name": "multiple-doughnuts"
                     }
                 ]
@@ -339,17 +339,17 @@
                 "examples": [
                     {
                         "title": "Simple Range Bar",
-                        "description": "Range Bar charts (also known as vertical <a href='./simple-bar/'> range bar charts</a>) represent data using vertical bars, with the height of each bar proportional to the range value being plotted. They work best where the number of data points is limited.",
+                        "description": "Range Bar charts (also known as vertical <a href='../simple-bar/'> range bar charts</a>) represent data using vertical bars, with the height of each bar proportional to the range value being plotted. They work best where the number of data points is limited.",
                         "name": "simple-range-bar"
                     },
                     {
                         "title": "Range Bar With Labels",
-                        "description": "Range Bar charts (also known as vertical <a href='./simple-bar/'> range bar charts</a>) represent data using vertical bars, with the height of each bar proportional to the range value being plotted. They work best where the number of data points is limited.",
+                        "description": "Range Bar charts (also known as vertical <a href='../simple-bar/'> range bar charts</a>) represent data using vertical bars, with the height of each bar proportional to the range value being plotted. They work best where the number of data points is limited.",
                         "name": "range-bar-with-labels"
                     },
                     {
                         "title": "Multiple Range Bars",
-                        "description": "Range Bar charts (also known as vertical <a href='./simple-bar/'> range bar charts</a>) represent data using vertical bars, with the height of each bar proportional to the range value being plotted. They work best where the number of data points is limited.",
+                        "description": "Range Bar charts (also known as vertical <a href='../simple-bar/'> range bar charts</a>) represent data using vertical bars, with the height of each bar proportional to the range value being plotted. They work best where the number of data points is limited.",
                         "name": "multiple-range-bars"
                     },
                     {
