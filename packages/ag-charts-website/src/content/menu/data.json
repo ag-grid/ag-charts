@@ -77,6 +77,15 @@
                 ]
             },
             {
+                "title": "Migration",
+                "items": [
+                    {
+                        "title": "Upgrade to AG Charts 9",
+                        "path": "migration-v9"
+                    }
+                ]
+            },
+            {
                 "title": "Axis Configuration",
                 "path": "axes",
                 "items": [

@@ -37,7 +37,6 @@ const options: AgChartOptions = {
         {
             type: 'number',
             position: 'right',
-            spacing: 40,
             gridLine: {
                 enabled: false,
             },

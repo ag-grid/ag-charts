@@ -1,53 +1,31 @@
 [
     {
-        "version": "31.0.0",
+        "version": "9.0.0",
         "date": "November 26th 2023",
         "highlights": [
             {
-                "text": "New Series Types",
-                "url": "https://www.ag-grid.com/javascript-data-grid/filter-advanced/#advanced-filter-builder"
+                "text": "New Enterprise Series Types",
+                "url": "https://charts.ag-grid.com/gallery/"
             },
             {
-                "text": "Updated Themes",
-                "url": "https://www.ag-grid.com/javascript-data-grid/filter-quick/#quick-filter-matcher"
+                "text": "Zoom",
+                "url": "https://charts.ag-grid.com/react/zoom/"
             },
             {
-                "text": "Background Image",
-                "url": "https://www.ag-grid.com/javascript-data-grid/provided-cell-editors/#rich-select-cell-editor"
+                "text": "Context Menu",
+                "url": "https://charts.ag-grid.com/react/context-menu/"
             },
             {
-                "text": "Context Menu with context specific actions",
-                "url": "https://www.ag-grid.com/javascript-data-grid/grouping-footers/#dynamic-group-footers"
+                "text": "Crosshairs",
+                "url": "https://charts.ag-grid.com/react/axes-crosshairs/"
             },
             {
-                "text": "Documentation examples on CodeSandbox",
-                "url": ""
-            }
-        ]
-    },
-    {
-        "version": "30.0.0",
-        "date": "September 26th 2023",
-        "highlights": [
-            {
-                "text": "Advanced Filter Builder UI for building filter expressions",
-                "url": "https://www.ag-grid.com/javascript-data-grid/filter-advanced/#advanced-filter-builder"
+                "text": "Initial Load and Data Update Animation",
+                "url": "https://charts.ag-grid.com/react/animation/"
             },
             {
-                "text": "Support for Custom Matching in Quick Filter",
-                "url": "https://www.ag-grid.com/javascript-data-grid/filter-quick/#quick-filter-matcher"
-            },
-            {
-                "text": "Typing, filtering, async population of values in Rich Select Editor",
-                "url": "https://www.ag-grid.com/javascript-data-grid/provided-cell-editors/#rich-select-cell-editor"
-            },
-            {
-                "text": "Dynamic Group Footer Rows",
-                "url": "https://www.ag-grid.com/javascript-data-grid/grouping-footers/#dynamic-group-footers"
-            },
-            {
-                "text": "Documentation examples on CodeSandbox",
-                "url": ""
+                "text": "Error Bars",
+                "url": "https://charts.ag-grid.com/react/error-bars/"
             }
         ]
     }
