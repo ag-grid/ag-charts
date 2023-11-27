@@ -209,8 +209,7 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
     {
       "highlightStyle": {
         "item": {
-          "fill": "white",
-          "fillOpacity": 0.33,
+          "fill": "rgba(255,255,255, 0.33)",
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
@@ -264,8 +263,7 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
     {
       "highlightStyle": {
         "item": {
-          "fill": "white",
-          "fillOpacity": 0.33,
+          "fill": "rgba(255,255,255, 0.33)",
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
@@ -319,8 +317,7 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
     {
       "highlightStyle": {
         "item": {
-          "fill": "white",
-          "fillOpacity": 0.33,
+          "fill": "rgba(255,255,255, 0.33)",
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
@@ -673,8 +670,7 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "white",
-          "fillOpacity": 0.33,
+          "fill": "rgba(255,255,255, 0.33)",
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
@@ -732,8 +728,7 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "white",
-          "fillOpacity": 0.33,
+          "fill": "rgba(255,255,255, 0.33)",
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
@@ -789,8 +784,7 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
     {
       "highlightStyle": {
         "item": {
-          "fill": "white",
-          "fillOpacity": 0.33,
+          "fill": "rgba(255,255,255, 0.33)",
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
@@ -1682,8 +1676,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "white",
-          "fillOpacity": 0.33,
+          "fill": "rgba(255,255,255, 0.33)",
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
@@ -1740,8 +1733,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "white",
-          "fillOpacity": 0.33,
+          "fill": "rgba(255,255,255, 0.33)",
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
@@ -1798,8 +1790,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "white",
-          "fillOpacity": 0.33,
+          "fill": "rgba(255,255,255, 0.33)",
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
@@ -1856,8 +1847,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "white",
-          "fillOpacity": 0.33,
+          "fill": "rgba(255,255,255, 0.33)",
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
@@ -1914,8 +1904,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "white",
-          "fillOpacity": 0.33,
+          "fill": "rgba(255,255,255, 0.33)",
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
@@ -1972,8 +1961,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "white",
-          "fillOpacity": 0.33,
+          "fill": "rgba(255,255,255, 0.33)",
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
@@ -2030,8 +2018,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "white",
-          "fillOpacity": 0.33,
+          "fill": "rgba(255,255,255, 0.33)",
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
@@ -2088,8 +2075,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "white",
-          "fillOpacity": 0.33,
+          "fill": "rgba(255,255,255, 0.33)",
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
@@ -2376,8 +2362,7 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
     {
       "highlightStyle": {
         "item": {
-          "fill": "white",
-          "fillOpacity": 0.33,
+          "fill": "rgba(255,255,255, 0.33)",
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
@@ -2653,8 +2638,7 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
     {
       "highlightStyle": {
         "item": {
-          "fill": "white",
-          "fillOpacity": 0.33,
+          "fill": "rgba(255,255,255, 0.33)",
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
@@ -2708,8 +2692,7 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
     {
       "highlightStyle": {
         "item": {
-          "fill": "white",
-          "fillOpacity": 0.33,
+          "fill": "rgba(255,255,255, 0.33)",
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
@@ -2763,8 +2746,7 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
     {
       "highlightStyle": {
         "item": {
-          "fill": "white",
-          "fillOpacity": 0.33,
+          "fill": "rgba(255,255,255, 0.33)",
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
@@ -2818,8 +2800,7 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
     {
       "highlightStyle": {
         "item": {
-          "fill": "white",
-          "fillOpacity": 0.33,
+          "fill": "rgba(255,255,255, 0.33)",
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
@@ -3664,8 +3645,7 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "white",
-          "fillOpacity": 0.33,
+          "fill": "rgba(255,255,255, 0.33)",
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
@@ -3955,7 +3935,6 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
       "highlightStyle": {
         "item": {
           "fill": "#0ab9ff",
-          "fillOpacity": 0.33,
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
@@ -4237,8 +4216,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
     {
       "highlightStyle": {
         "item": {
-          "fill": "white",
-          "fillOpacity": 0.33,
+          "fill": "rgba(255,255,255, 0.33)",
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
@@ -4513,8 +4491,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
     {
       "highlightStyle": {
         "item": {
-          "fill": "white",
-          "fillOpacity": 0.33,
+          "fill": "rgba(255,255,255, 0.33)",
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
@@ -7122,8 +7099,7 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
     {
       "highlightStyle": {
         "item": {
-          "fill": "white",
-          "fillOpacity": 0.33,
+          "fill": "rgba(255,255,255, 0.33)",
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
@@ -9047,8 +9023,7 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "fillOpacity": 0.8,
       "highlightStyle": {
         "item": {
-          "fill": "white",
-          "fillOpacity": 0.33,
+          "fill": "rgba(255,255,255, 0.33)",
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
@@ -9113,8 +9088,7 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "fillOpacity": 0.8,
       "highlightStyle": {
         "item": {
-          "fill": "white",
-          "fillOpacity": 0.33,
+          "fill": "rgba(255,255,255, 0.33)",
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
@@ -9179,8 +9153,7 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "fillOpacity": 0.8,
       "highlightStyle": {
         "item": {
-          "fill": "white",
-          "fillOpacity": 0.33,
+          "fill": "rgba(255,255,255, 0.33)",
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
@@ -9245,8 +9218,7 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "fillOpacity": 0.8,
       "highlightStyle": {
         "item": {
-          "fill": "white",
-          "fillOpacity": 0.33,
+          "fill": "rgba(255,255,255, 0.33)",
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
@@ -9544,8 +9516,7 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
-          "fill": "white",
-          "fillOpacity": 0.33,
+          "fill": "rgba(255,255,255, 0.33)",
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
@@ -9739,7 +9710,7 @@ exports[`prepare #prepareOptions for SIMPLE_DOUGHNUT_CHART_EXAMPLE it should pre
       ],
       "highlightStyle": {
         "item": {
-          "fill": "white",
+          "fill": "rgba(255,255,255, 0.33)",
           "fillOpacity": 0,
           "stroke": "#535455",
           "strokeWidth": 1,
@@ -10299,7 +10270,7 @@ exports[`prepare #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare 
       ],
       "highlightStyle": {
         "item": {
-          "fill": "white",
+          "fill": "rgba(255,255,255, 0.33)",
           "fillOpacity": 0,
           "stroke": "#535455",
           "strokeWidth": 1,
@@ -10583,8 +10554,7 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
     {
       "highlightStyle": {
         "item": {
-          "fill": "white",
-          "fillOpacity": 0.33,
+          "fill": "rgba(255,255,255, 0.33)",
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
