@@ -14,7 +14,7 @@
     @media screen and (min-width: $breakpoint-site-header-small) {
         display: block;
         background-color: var(--site-nav-background);
-        margin-left: $size-2;
+        margin-left: auto;
         background-color: unset;
         overflow: visible;
     }

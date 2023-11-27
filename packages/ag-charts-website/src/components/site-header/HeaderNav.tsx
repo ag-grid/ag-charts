@@ -92,7 +92,7 @@ const HeaderNavLarge = ({
     children: ReactElement;
 }) => {
     return (
-        <div className={styles.mainNavLargeContainer}>
+        <div className={classnames(gridStyles.mainNav, styles.mainNavLargeContainer)}>
             <nav className={styles.mainNavLarge}>
                 <HeaderLinks currentPath={currentPath} items={items} allPaths={allPaths}>
                     {children}

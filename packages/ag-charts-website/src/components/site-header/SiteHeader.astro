@@ -1,5 +1,6 @@
 ---
 import { getIsDev } from '../../utils/env';
+import { Icon } from '@components/icon/Icon';
 import { HeaderNav } from './HeaderNav';
 import { getEntry } from 'astro:content';
 import { FRAMEWORKS } from '@constants';
@@ -46,12 +47,30 @@ const allPaths = [
 export interface Props {
     showSearchBar?: boolean;
 }
-const { showSearchBar } = Astro.props;
+const { showSearchBar, showDocsNav } = Astro.props;
 ---
 
 <header class:list={[gridStyles.header, 'site-header']}>
     <div class:list={gridStyles.headerInner}>
         <SiteLogo client:load />
+
+        {
+            showDocsNav && (
+                <button
+                    id="top-bar-docs-button"
+                    class:list={[gridStyles.mobileNavButton, 'button-input']}
+                    type="button"
+                    data-toggle="collapse"
+                    data-target="#side-nav"
+                    aria-controls="side-nav"
+                    aria-expanded="false"
+                    aria-label="Toggle navigation"
+                >
+                    <span>Docs</span>
+                    <Icon name="collapseCategories" />
+                </button>
+            )
+        }
 
         {showSearchBar && <Search client:load currentFramework={framework} isDev={isDev} />}
 
