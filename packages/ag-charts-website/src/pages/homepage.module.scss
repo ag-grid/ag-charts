@@ -233,6 +233,9 @@
     text-align: center;
 
     @media screen and (min-width: 920px) {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
         width: 40%;
         margin-bottom: 0;
         padding-right: $size-4;
@@ -275,12 +278,22 @@
         width: 60%;
     }
 
-    video {
+    img {
         width: 100%;
-        border-radius: 4px;
-        box-shadow:
-            0 4px 8px 0 rgba(0, 0, 0, 0.1),
-            0 2px 4px 0 rgba(0, 0, 0, 0.15);
+    }
+
+    .gridExampleDark {
+        display: none;
+    }
+
+    #{$darkmode-selector} & {
+        .gridExampleLight {
+            display: none;
+        }
+
+        .gridExampleDark {
+            display: inline;
+        }
     }
 }
 
