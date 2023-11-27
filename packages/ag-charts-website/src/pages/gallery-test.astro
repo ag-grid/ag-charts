@@ -239,11 +239,14 @@ const { series } = galleryData;
             display: contents;
         }
 
+        .content {
+            max-width: 1400px;
+        }
+
         .content > div {
             display: flex;
             flex-wrap: wrap;
             gap: $size-3;
-            margin-top: $size-3;
         }
 
         :global(.galleryExample) {

@@ -14,7 +14,6 @@ const { series } = galleryData;
 ---
 
 <Layout title="AG Charts Gallery">
-    <!-- Add class `homepage-image-gen` to modify gallery styles to create images for homepage scrolling hero -->
     <div class="gallery-outer font-size-responsive font-size-small">
         <div class="menu">
             <ul class="list-style-none">
@@ -289,52 +288,5 @@ const { series } = galleryData;
         @media screen and (min-width: 2500px) {
             --columns: 5;
         }
-    }
-</style>
-
-<!-- Used to create images for the homepage scrolling gallery hero section -->
-<style lang="scss">
-    @use '../design-system' as *;
-
-    .homepage-image-gen {
-        background-color: var(--dark-blue-600) !important;
-
-        :global([data-dark-mode='true']) & {
-            background-color: transparent !important;
-        }
-
-        .chart-type,
-        .gallery-list {
-            display: contents;
-        }
-
-        .content > div {
-            display: flex;
-            flex-wrap: wrap;
-            gap: $size-3;
-            margin-top: $size-3;
-        }
-
-        :global(.galleryExample) {
-            background-color: var(--default-background-color);
-        }
-
-        :global(.galleryExample span) {
-            display: none !important;
-        }
-    }
-</style>
-
-<style lang="scss" is:global>
-    @use '../design-system' as *;
-
-    .site-header {
-        position: fixed !important;
-        width: 100%;
-        z-index: 2;
-    }
-
-    .icon {
-        transition: fill $default-transition-timing;
     }
 </style>
