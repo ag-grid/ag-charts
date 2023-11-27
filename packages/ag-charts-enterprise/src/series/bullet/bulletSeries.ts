@@ -42,7 +42,7 @@ export class BulletColorRange {
     @Validate(COLOR_STRING)
     color: string = 'lightgrey';
 
-    @Validate(OPT_NUMBER())
+    @Validate(OPT_NUMBER(0))
     stop?: number = undefined;
 }
 
@@ -262,8 +262,12 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
                 continue;
             }
 
+            if (values[0][valueIndex] < 0) {
+                _Util.Logger.warnOnce('negative values are not supported, clipping to 0.');
+            }
+
             const xValue = this.valueName ?? this.valueKey;
-            const yValue = Math.min(maxValue, values[0][valueIndex]);
+            const yValue = Math.min(maxValue, Math.max(0, values[0][valueIndex]));
             const y = yScale.convert(yValue);
             const barWidth = widthRatio * multiplier;
             const bottomY = yScale.convert(0);
@@ -279,7 +283,11 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
             }
 
             let target;
-            if (this.targetKey) {
+            if (values[0][targetIndex] < 0) {
+                _Util.Logger.warnOnce('negative targets are not supported, ignoring.');
+            }
+
+            if (this.targetKey && values[0][targetIndex] >= 0) {
                 const targetLineLength = lengthRatio * multiplier;
                 const targetValue = Math.min(maxValue, values[0][targetIndex]);
                 if (!isNaN(targetValue) && targetValue !== undefined) {
