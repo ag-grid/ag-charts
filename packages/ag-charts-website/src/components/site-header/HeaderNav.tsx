@@ -1,27 +1,38 @@
-import { FRAMEWORKS, SITE_BASE_URL } from '@constants';
-import breakpoints from '@design-system/breakpoint.module.scss';
+import type { MenuItem } from '@ag-grid-types';
+import { SITE_BASE_URL } from '@constants';
 import { ReactComponent as MenuIcon } from '@images/inline-svgs/menu-icon.svg';
-import { useWindowSize } from '@utils/hooks/useWindowSize';
 import { pathJoin } from '@utils/pathJoin';
 import classnames from 'classnames';
-import { useState } from 'react';
+import { type ReactElement, useState } from 'react';
 
 import { Collapsible } from '../Collapsible';
 import { Icon } from '../icon/Icon';
-import { DarkModeToggle } from './DarkModeToggle';
+import styles from './HeaderNav.module.scss';
 import gridStyles from './gridSiteHeader.module.scss';
 
-const SITE_HEADER_SMALL_WIDTH = parseInt(breakpoints['site-header-small'], 10);
-
-const getCurrentPageName = ({ path, allPaths }) => {
-    const match = allPaths.find((link) => path.includes(link.path));
+const getCurrentPageName = ({ path, allPaths }: { path: string; allPaths: MenuItem[] }) => {
+    const match = allPaths.find((link) => path.includes(link.path!));
 
     if (match) {
         return match.title;
     }
 };
 
-const HeaderLinks = ({ currentPath, items, allPaths, isOpen, toggleIsOpen }) => {
+const HeaderLinks = ({
+    currentPath,
+    items,
+    allPaths,
+    isOpen,
+    toggleIsOpen,
+    children,
+}: {
+    currentPath: string;
+    items: MenuItem[];
+    allPaths: MenuItem[];
+    isOpen?: boolean;
+    toggleIsOpen?: () => void;
+    children: ReactElement;
+}) => {
     return (
         <ul className={classnames(gridStyles.navItemList, 'list-style-none')}>
             {items.map(({ title, path, url, icon }) => {
@@ -39,7 +50,7 @@ const HeaderLinks = ({ currentPath, items, allPaths, isOpen, toggleIsOpen }) => 
                             href={href}
                             onClick={() => {
                                 if (isOpen) {
-                                    toggleIsOpen();
+                                    toggleIsOpen && toggleIsOpen();
                                 }
                             }}
                             aria-label={`AG Grid ${title}`}
@@ -51,17 +62,17 @@ const HeaderLinks = ({ currentPath, items, allPaths, isOpen, toggleIsOpen }) => 
                 );
             })}
 
-            <DarkModeToggle />
+            {children}
         </ul>
     );
 };
 
-const HeaderExpandButton = ({ isOpen, toggleIsOpen }) => (
+const HeaderExpandButton = ({ isOpen, toggleIsOpen }: { isOpen: boolean; toggleIsOpen: () => void }) => (
     <button
         className={gridStyles.mobileMenuButton}
         type="button"
-        aria-controls="main-nav"
-        aria-expanded={isOpen.toString()}
+        aria-controls={styles.mainNavSmall}
+        aria-expanded={isOpen}
         aria-label="Toggle navigation"
         onClick={() => toggleIsOpen()}
     >
@@ -69,10 +80,75 @@ const HeaderExpandButton = ({ isOpen, toggleIsOpen }) => (
     </button>
 );
 
-export const HeaderNav = ({ currentPath, items, allPaths }) => {
+const HeaderNavLarge = ({
+    currentPath,
+    items,
+    allPaths,
+    children,
+}: {
+    currentPath: string;
+    items: MenuItem[];
+    allPaths: MenuItem[];
+    children: ReactElement;
+}) => {
+    return (
+        <div className={classnames(gridStyles.mainNav, styles.mainNavLargeContainer)}>
+            <nav className={styles.mainNavLarge}>
+                <HeaderLinks currentPath={currentPath} items={items} allPaths={allPaths}>
+                    {children}
+                </HeaderLinks>
+            </nav>
+        </div>
+    );
+};
+
+const HeaderNavSmall = ({
+    currentPath,
+    items,
+    allPaths,
+    isOpen,
+    toggleIsOpen,
+    children,
+}: {
+    currentPath: string;
+    items: MenuItem[];
+    allPaths: MenuItem[];
+    isOpen: boolean;
+    toggleIsOpen: () => void;
+    children: ReactElement;
+}) => {
+    return (
+        <>
+            <HeaderExpandButton isOpen={isOpen} toggleIsOpen={toggleIsOpen} />
+            <Collapsible id={styles.mainNavSmall} isOpen={isOpen}>
+                <nav className={gridStyles.mainNav}>
+                    <HeaderLinks
+                        currentPath={currentPath}
+                        items={items}
+                        allPaths={allPaths}
+                        isOpen={isOpen}
+                        toggleIsOpen={toggleIsOpen}
+                    >
+                        {children}
+                    </HeaderLinks>
+                </nav>
+            </Collapsible>
+        </>
+    );
+};
+
+export const HeaderNav = ({
+    currentPath,
+    items,
+    allPaths,
+    children,
+}: {
+    currentPath: string;
+    items: MenuItem[];
+    allPaths: MenuItem[];
+    children: ReactElement;
+}) => {
     const [isOpen, setIsOpen] = useState(false);
-    const { width } = useWindowSize();
-    const isDesktop = width >= SITE_HEADER_SMALL_WIDTH;
 
     const toggleIsOpen = () => {
         setIsOpen((currentIsOpen) => {
@@ -82,18 +158,18 @@ export const HeaderNav = ({ currentPath, items, allPaths }) => {
 
     return (
         <>
-            <HeaderExpandButton isOpen={isOpen} toggleIsOpen={toggleIsOpen} />
-            <Collapsible id="main-nav" isDisabled={isDesktop} isOpen={isOpen}>
-                <nav id={isDesktop ? 'main-nav' : undefined} className={gridStyles.mainNav}>
-                    <HeaderLinks
-                        currentPath={currentPath}
-                        items={items}
-                        allPaths={allPaths}
-                        isOpen={isOpen}
-                        toggleIsOpen={toggleIsOpen}
-                    />
-                </nav>
-            </Collapsible>
+            <HeaderNavLarge currentPath={currentPath} items={items} allPaths={allPaths}>
+                {children}
+            </HeaderNavLarge>
+            <HeaderNavSmall
+                currentPath={currentPath}
+                items={items}
+                allPaths={allPaths}
+                isOpen={isOpen}
+                toggleIsOpen={toggleIsOpen}
+            >
+                {children}
+            </HeaderNavSmall>
         </>
     );
 };

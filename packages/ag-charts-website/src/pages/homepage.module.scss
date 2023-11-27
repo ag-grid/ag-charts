@@ -24,20 +24,32 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
     text-align: center;
     padding-top: $size-5;
+    padding-bottom: $size-5;
 
     @media screen and (min-width: $breakpoint-hero-small) {
-        padding-top: $size-7;
+        padding-top: $size-5;
     }
 
     @media screen and (min-width: $breakpoint-hero-large) {
-        padding-top: $size-8;
+        align-items: flex-start;
+        padding-top: $size-6;
     }
 
     @media screen and (min-width: $breakpoint-hero-large) {
         text-align: unset;
+    }
+
+    #{$darkmode-selector} & {
+        @media screen and (min-width: $breakpoint-hero-small) {
+            padding-top: $size-7;
+        }
+
+        @media screen and (min-width: $breakpoint-hero-large) {
+            padding-top: $size-8;
+        }
     }
 
     h1,
@@ -111,21 +123,45 @@
 }
 
 .galleryScroller {
-    position: relative;
-    height: max(416px, 33vh);
-    overflow: hidden;
+    --scroller-height: max(416px, 33vh);
 
+    position: relative;
+    height: var(--scroller-height);
+    overflow: hidden;
+    background-image: url('../../images/homepage-scroll-light.webp');
+    background-size: 100% auto;
+    animation-name: scroll-hero;
+    animation-duration: 30s;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+
+    &::before,
     &::after {
         content: '';
         position: absolute;
-        bottom: 0;
         right: 0;
         left: 0;
         height: $size-6;
+    }
+
+    &::before {
+        top: 0;
+        background-image: linear-gradient(var(--dark-blue-600), transparent);
+        z-index: 1;
+    }
+
+    &::after {
+        bottom: 0;
         background-image: linear-gradient(transparent, var(--dark-blue-600));
     }
 
     #{$darkmode-selector} & {
+        background-image: url('../../images/homepage-scroll-dark.webp');
+
+        &::before {
+            background-image: linear-gradient(var(--default-background-color), transparent);
+        }
+
         &::after {
             background-image: linear-gradient(transparent, var(--default-background-color));
         }
@@ -133,26 +169,20 @@
 
     @media screen and (min-width: $breakpoint-hero-large) {
         aspect-ratio: 16/9;
-    }
-}
 
-.galleryScrollerInner {
-    display: grid;
-    grid: auto-flow auto auto auto / 1fr 1fr 1fr;
-    gap: 6px;
-    animation-duration: 30s;
-    animation-name: scroll-hero;
-    animation-iteration-count: infinite;
-    animation-timing-function: linear;
+        &::before {
+            display: none;
+        }
+    }
 }
 
 @keyframes scroll-hero {
     from {
-        transform: translateY(0);
+        background-position-y: 0;
     }
 
     to {
-        transform: translateY(-100%);
+        background-position-y: -100%;
     }
 }
 
@@ -212,7 +242,7 @@
 
 .homepageGrid {
     padding-top: $size-8;
-    padding-bottom: $size-8;
+    padding-bottom: $size-10;
 }
 
 .gridInner {
@@ -230,6 +260,9 @@
     text-align: center;
 
     @media screen and (min-width: 920px) {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
         width: 40%;
         margin-bottom: 0;
         padding-right: $size-4;
@@ -272,17 +305,29 @@
         width: 60%;
     }
 
-    video {
+    img {
         width: 100%;
-        border-radius: 4px;
-        box-shadow: 2px 0 2px 0 rgba(0, 0, 0, 0.15);
+    }
+
+    .gridExampleDark {
+        display: none;
+    }
+
+    #{$darkmode-selector} & {
+        .gridExampleLight {
+            display: none;
+        }
+
+        .gridExampleDark {
+            display: inline;
+        }
     }
 }
 
 .homepageBenefits {
     background-color: var(--background-200);
     padding-top: $size-7;
-    padding-bottom: $size-10;
+    padding-bottom: $size-8;
 
     border-top: 1px solid transparent;
     border-bottom: 1px solid transparent;
@@ -296,20 +341,29 @@
 }
 
 .benefitsInner {
-    ul {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: center;
-        gap: $size-5;
+    display: flex;
+    flex-wrap: wrap;
+    gap: $size-4 $size-7;
+
+    video {
+        width: 100%;
+        border-radius: 4px;
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.1);
     }
 
-    li {
-        --icon-size: #{$size-6};
+    div {
+        text-align: center;
+    }
 
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: $size-2;
+    @media screen and (min-width: 920px) {
+        flex-wrap: nowrap;
+
+        video {
+            width: 40%;
+        }
+
+        div {
+            text-align: left;
+        }
     }
 }

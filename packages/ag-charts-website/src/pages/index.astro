@@ -44,29 +44,6 @@ const frameworksData = [
     },
 ];
 
-const benefits = [
-    {
-        title: 'Bring your own Framework',
-        icon: 'code',
-    },
-    {
-        title: 'Unbeatable Performance',
-        icon: 'flash',
-    },
-    {
-        title: 'Completely Customisable',
-        icon: 'colorPalette',
-    },
-    {
-        title: 'Animate everything',
-        icon: 'movement',
-    },
-    {
-        title: 'Zoom & Enhance',
-        icon: 'zoomArea',
-    },
-];
-
 const galleryDataEntry = await getEntry('gallery', 'data');
 const galleryData: GalleryData = galleryDataEntry?.data;
 const series = galleryData.series.flat();
@@ -93,23 +70,7 @@ const isEnterprise = true;
                 <a href="/gallery" class="button">See the charts <Icon name="chevronRight" /></a>
             </div>
 
-            <div class={styles.galleryScroller}>
-                <div class={styles.galleryScrollerInner}>
-                    {
-                        series.map((series) =>
-                            series.examples.map(({ title, name }) => (
-                                <GalleryExampleImage
-                                    client:load // Remove this when we merge https://github.com/ag-grid/ag-charts/pull/623
-                                    id={`$${series.name}:${title}`}
-                                    label={title}
-                                    exampleName={name}
-                                    className={styles.galleryScrollerExample}
-                                />
-                            ))
-                        )
-                    }
-                </div>
-            </div>
+            <div class={styles.galleryScroller}></div>
         </div>
     </div>
 
@@ -117,6 +78,21 @@ const isEnterprise = true;
         <div class:list={[styles.frameworksInner, 'page-margin']}>
             <span class:list={[styles.frameworksLabel, 'text-secondary']}>Get&nbsp;started</span>
             <FrameworkSelector data={frameworksData} isFullWidth />
+        </div>
+    </div>
+
+    <div class={styles.homepageBenefits}>
+        <div class:list={[styles.benefitsInner, 'page-margin']}>
+            <video src="videos/chart-features.mp4" muted autoplay loop></video>
+            <div class={styles.benefitsCopy}>
+                <h2>Charts Charts Charts</h2>
+                <p class="font-size-large">
+                    Atque voluptatem odio molestiae aut possimus quis eum nam. Et qui ipsam reprehenderit est sed itaque
+                    accusamus est. Optio est ipsa pariatur et libero earum debitis dicta dolores. Facere quia dolorum ut
+                    officiis ea libero nesciunt cumque et. Autem sit totam et nihil sequi incidunt et. Voluptas
+                    reiciendis eos recusandae quam provident quae molestiae.
+                </p>
+            </div>
         </div>
     </div>
 
@@ -133,33 +109,23 @@ const isEnterprise = true;
                     the best javascript grid in the world.
                 </p>
                 <p class="font-size-large">
-                    Designed to work seamlessly with <b>AG Grid</b>, <b>AG Charts</b> can make your data heavy
-                    applications even more beautiful and insightful. Use <b>AG Grid</b> & <b>AG Charts</b> enterprise
-                    together to get access to best
-                    <a href="https://ag-grid.com/javascript-data-grid/integrated-charts/">intergrated charting</a>
-                     available bar none.
+                    Use <b>AG Grid Enterprise</b> & <b>AG Charts</b> together for the gold standard in <a
+                        href="https://ag-grid.com/javascript-data-grid/integrated-charts/">integrated charting</a
+                    >.
                 </p>
             </div>
             <div class={styles.gridExample}>
-                <video src="videos/integrated-charts.mp4" muted autoplay loop></video>
+                <img
+                    class={styles.gridExampleLight}
+                    src="images/integrated-charts-light.png"
+                    alt="AG Charts & AG Grid - integrated charts"
+                />
+                <img
+                    class={styles.gridExampleDark}
+                    src="images/integrated-charts-dark.png"
+                    alt="AG Charts & AG Grid - integrated charts"
+                />
             </div>
-        </div>
-    </div>
-
-    <div class={styles.homepageBenefits}>
-        <div class:list={[styles.benefitsInner, 'page-margin']}>
-            <ul class="list-style-none">
-                {
-                    benefits.map((benefit) => {
-                        return (
-                            <li>
-                                <Icon name={benefit.icon} />
-                                <span class="font-size-large">{benefit.title}</span>
-                            </li>
-                        );
-                    })
-                }
-            </ul>
         </div>
     </div>
 </Layout>

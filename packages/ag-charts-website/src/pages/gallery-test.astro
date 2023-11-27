@@ -1,120 +1,52 @@
 ---
 import { getEntry } from 'astro:content';
 import Layout from '@layouts/Layout.astro';
-import { Icon, IconName } from '@components/icon/Icon';
-import { getPageHashUrl } from '@features/gallery/utils/urlPaths';
 import type { GalleryData, GalleryExample, GalleryExampleChartType } from '@ag-grid-types';
 import { GalleryExampleLink } from '@features/gallery/components/GalleryExampleLink';
-import { GalleryExampleThemeDropdown } from '@features/gallery/components/GalleryExampleThemeDropdown';
-import styles from './gallery.module.scss';
+
+/**
+ * Test gallery page to create images for homepage scrolling hero
+ */
 
 const galleryDataEntry = await getEntry('gallery', 'data');
 const galleryData: GalleryData = galleryDataEntry?.data;
 const { series } = galleryData;
 ---
 
-<Layout title="AG Charts Gallery">
-    <div class="gallery-outer font-size-responsive font-size-small">
-        <div class="menu">
-            <ul class="list-style-none">
-                {
-                    series.flat().map((series: GalleryExampleChartType) => (
-                        <li>
-                            <a href={getPageHashUrl({ chartSeriesName: series.name, isRelative: true })}>
-                                <Icon client:only name={series.icon as IconName} />
-                                <span class="name">{series.title}</span>
-                                {series.enterprise && (
-                                    <span class="enterpriseIcon">
-                                        <Icon client:only name="enterprise" />
-                                    </span>
-                                )}
-                            </a>
-                        </li>
-                    ))
-                }
-            </ul>
-            <div class="menu-scroll-indicator"></div>
-        </div>
-
+<Layout title="AG Charts Gallery" hideFooter={true}>
+    <div class="gallery-outer homepage-image-gen font-size-responsive font-size-small">
         <div class="content">
-            <div class={styles.toolPanel}>
-                <GalleryExampleThemeDropdown client:only="react" />
-            </div>
-            <div>
-                {
-                    series.map((series: GalleryExampleChartType[]) => (
-                        <div class="chart-type">
-                            <div class="gallery-list">
-                                {series.map(({ title, name, examples }) => (
-                                    <>
-                                        <h3 id={name} class="gallery-list-title">
-                                            {title}
-                                        </h3>
-                                        {examples.map(({ title, name }: GalleryExample) => (
-                                            <GalleryExampleLink
-                                                client:visible
-                                                className="galleryExample"
-                                                label={title}
-                                                exampleName={name}
-                                            />
-                                        ))}
-                                    </>
-                                ))}
-                            </div>
+            {
+                series.map((series: GalleryExampleChartType[]) => (
+                    <div class="chart-type">
+                        <div class="gallery-list">
+                            {series.map(({ title, name, examples }) => (
+                                <>
+                                    <h3 id={name} class="gallery-list-title">
+                                        {title}
+                                    </h3>
+                                    {examples.map(({ title, name }: GalleryExample) => (
+                                        <GalleryExampleLink
+                                            client:visible
+                                            className="galleryExample"
+                                            label={title}
+                                            exampleName={name}
+                                        />
+                                    ))}
+                                </>
+                            ))}
                         </div>
-                    ))
-                }
-            </div>
+                    </div>
+                ))
+            }
         </div>
     </div>
 </Layout>
 
-<script>
-    import { smoothScrollIntoView } from '@utils/smoothScrollIntoView';
-    import { initScrolledHeadingTriggers } from '@utils/initScrolledHeadingTriggers';
-    import type { MarkdownHeading } from 'astro';
-
-    const ACTIVE_CLASSNAME = 'active';
-    const headings = [] as MarkdownHeading[];
-    const headingAnchors = document.querySelectorAll('a[href^="#"]') as NodeListOf<HTMLAnchorElement>;
-    // Add smooth scrolling for menu anchor links
-    headingAnchors.forEach((anchor: HTMLAnchorElement) => {
-        const href = anchor.getAttribute('href');
-        const id = href?.substring(1);
-
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            smoothScrollIntoView({ id });
-        });
-
-        headings.push({
-            slug: id!,
-            depth: 1,
-            text: anchor?.text.trim(),
-        });
-    });
-
-    function clearAllActiveClasses() {
-        headingAnchors.forEach((anchor) => {
-            anchor.classList.remove(ACTIVE_CLASSNAME);
-        });
-    }
-
-    initScrolledHeadingTriggers({
-        headings,
-        onScrollTrigger: ({ topVisibleId }) => {
-            const visible = document.querySelector(`a[href='#${topVisibleId}']`);
-
-            clearAllActiveClasses();
-            visible?.classList.add(ACTIVE_CLASSNAME);
-        },
-    });
-</script>
-
 <style lang="scss">
     @use '../design-system' as *;
 
-    $site-header-height: 64px;
+    $site-header-height: 180px;
 
     .enterpriseIcon {
         --text-color: red;
@@ -287,6 +219,42 @@ const { series } = galleryData;
 
         @media screen and (min-width: 2500px) {
             --columns: 5;
+        }
+    }
+</style>
+
+<!-- Used to create images for the homepage scrolling gallery hero section -->
+<style lang="scss">
+    @use '../design-system' as *;
+
+    .homepage-image-gen {
+        background-color: var(--dark-blue-600) !important;
+
+        :global([data-dark-mode='true']) & {
+            background-color: transparent !important;
+        }
+
+        .chart-type,
+        .gallery-list {
+            display: contents;
+        }
+
+        .content {
+            max-width: 1400px;
+        }
+
+        .content > div {
+            display: flex;
+            flex-wrap: wrap;
+            gap: $size-3;
+        }
+
+        :global(.galleryExample) {
+            background-color: var(--default-background-color);
+        }
+
+        :global(.galleryExample span) {
+            display: none !important;
         }
     }
 </style>
