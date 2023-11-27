@@ -156,8 +156,7 @@ export class ChartTheme {
             showInLegend: true,
             highlightStyle: {
                 item: {
-                    fill: 'white',
-                    fillOpacity: 0.33,
+                    fill: 'rgba(255,255,255, 0.33)',
                     stroke: `rgba(0, 0, 0, 0.4)`,
                     strokeWidth: 2,
                 },
