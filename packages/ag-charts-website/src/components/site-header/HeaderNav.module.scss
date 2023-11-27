@@ -1,0 +1,33 @@
+@use '../../design-system/' as *;
+
+.mainNavLargeContainer {
+    display: flex;
+}
+
+.mainNavLarge {
+    --text-color: var(--white);
+    --link-color: var(--white);
+    --link-hover-color: var(--white);
+
+    display: none;
+
+    @media screen and (min-width: $breakpoint-site-header-small) {
+        display: block;
+        background-color: var(--site-nav-background);
+        margin-left: $size-2;
+        background-color: unset;
+        overflow: visible;
+    }
+
+    @media screen and (min-width: $breakpoint-site-header-large) {
+        margin-left: auto;
+    }
+}
+
+#mainNavSmall {
+    width: 100%;
+
+    @media screen and (min-width: $breakpoint-site-header-small) {
+        display: none;
+    }
+}

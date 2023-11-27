@@ -54,6 +54,6 @@ const { showSearchBar } = Astro.props;
 
         {showSearchBar && <Search client:only currentFramework={framework} isDev={isDev} />}
 
-        <HeaderNav currentPath={pathname} items={topNavItems} allPaths={allPaths} client:only />
+        <HeaderNav currentPath={pathname} items={topNavItems} allPaths={allPaths} client:load />
     </div>
 </header>
