@@ -7,11 +7,13 @@ export const validateUrl = (url: string) => {
 
     if (!url.includes(':') && !url.startsWith('#')) {
         if (!/^(\.|\.\.)?\//.test(url)) {
+            // eslint-disable-next-line no-console
             console.warn(
                 `Expected url "${url}" to start with either a slash (/), a dot slash (./), or a dot dot slash (../)`
             );
         }
         if (!url.split('#')[0].endsWith('/')) {
+            // eslint-disable-next-line no-console
             console.warn(`Expected url "${url}" to end with a trailing slash (/)`);
         }
     }
