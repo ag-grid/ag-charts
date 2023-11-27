@@ -9,6 +9,7 @@ import Search from '../search/Search';
 import { getFrameworkFromPath } from '../../features/docs/utils/urlPaths';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import { isDynamicFrameworkPath, replaceDynamicFrameworkPath } from '@utils/framework';
+import { DarkModeToggle } from './DarkModeToggle';
 
 const { pathname } = Astro.url;
 const { data: menuData } = await getEntry('menu', 'data');
@@ -54,6 +55,16 @@ const { showSearchBar } = Astro.props;
 
         {showSearchBar && <Search client:only currentFramework={framework} isDev={isDev} />}
 
-        <HeaderNav currentPath={pathname} items={topNavItems} allPaths={allPaths} client:load />
+        <HeaderNav currentPath={pathname} items={topNavItems} allPaths={allPaths} client:load>
+            <li class:list={[gridStyles.navItem, gridStyles.buttonItem, 'darkModeItem']}>
+                <DarkModeToggle client:only />
+            </li>
+        </HeaderNav>
     </div>
 </header>
+
+<style lang="scss">
+    .darkModeItem {
+        min-width: 48px;
+    }
+</style>

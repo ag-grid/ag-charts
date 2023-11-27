@@ -3,11 +3,10 @@ import { SITE_BASE_URL } from '@constants';
 import { ReactComponent as MenuIcon } from '@images/inline-svgs/menu-icon.svg';
 import { pathJoin } from '@utils/pathJoin';
 import classnames from 'classnames';
-import { useState } from 'react';
+import { type ReactElement, useState } from 'react';
 
 import { Collapsible } from '../Collapsible';
 import { Icon } from '../icon/Icon';
-import { DarkModeToggle } from './DarkModeToggle';
 import styles from './HeaderNav.module.scss';
 import gridStyles from './gridSiteHeader.module.scss';
 
@@ -25,12 +24,14 @@ const HeaderLinks = ({
     allPaths,
     isOpen,
     toggleIsOpen,
+    children,
 }: {
     currentPath: string;
     items: MenuItem[];
     allPaths: MenuItem[];
     isOpen?: boolean;
     toggleIsOpen?: () => void;
+    children: ReactElement;
 }) => {
     return (
         <ul className={classnames(gridStyles.navItemList, 'list-style-none')}>
@@ -61,7 +62,7 @@ const HeaderLinks = ({
                 );
             })}
 
-            <DarkModeToggle />
+            {children}
         </ul>
     );
 };
@@ -83,15 +84,19 @@ const HeaderNavLarge = ({
     currentPath,
     items,
     allPaths,
+    children,
 }: {
     currentPath: string;
     items: MenuItem[];
     allPaths: MenuItem[];
+    children: ReactElement;
 }) => {
     return (
         <div className={styles.mainNavLargeContainer}>
             <nav className={styles.mainNavLarge}>
-                <HeaderLinks currentPath={currentPath} items={items} allPaths={allPaths} />
+                <HeaderLinks currentPath={currentPath} items={items} allPaths={allPaths}>
+                    {children}
+                </HeaderLinks>
             </nav>
         </div>
     );
@@ -103,12 +108,14 @@ const HeaderNavSmall = ({
     allPaths,
     isOpen,
     toggleIsOpen,
+    children,
 }: {
     currentPath: string;
     items: MenuItem[];
     allPaths: MenuItem[];
     isOpen: boolean;
     toggleIsOpen: () => void;
+    children: ReactElement;
 }) => {
     return (
         <>
@@ -121,7 +128,9 @@ const HeaderNavSmall = ({
                         allPaths={allPaths}
                         isOpen={isOpen}
                         toggleIsOpen={toggleIsOpen}
-                    />
+                    >
+                        {children}
+                    </HeaderLinks>
                 </nav>
             </Collapsible>
         </>
@@ -132,10 +141,12 @@ export const HeaderNav = ({
     currentPath,
     items,
     allPaths,
+    children,
 }: {
     currentPath: string;
     items: MenuItem[];
     allPaths: MenuItem[];
+    children: ReactElement;
 }) => {
     const [isOpen, setIsOpen] = useState(false);
 
@@ -147,14 +158,18 @@ export const HeaderNav = ({
 
     return (
         <>
-            <HeaderNavLarge currentPath={currentPath} items={items} allPaths={allPaths} />
+            <HeaderNavLarge currentPath={currentPath} items={items} allPaths={allPaths}>
+                {children}
+            </HeaderNavLarge>
             <HeaderNavSmall
                 currentPath={currentPath}
                 items={items}
                 allPaths={allPaths}
                 isOpen={isOpen}
                 toggleIsOpen={toggleIsOpen}
-            />
+            >
+                {children}
+            </HeaderNavSmall>
         </>
     );
 };
