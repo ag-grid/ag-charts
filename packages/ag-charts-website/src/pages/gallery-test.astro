@@ -13,7 +13,7 @@ const galleryData: GalleryData = galleryDataEntry?.data;
 const { series } = galleryData;
 ---
 
-<Layout title="AG Charts Gallery" hideHeader={true} hideFooter={true}>
+<Layout title="AG Charts Gallery" hideFooter={true}>
     <div class="gallery-outer homepage-image-gen font-size-responsive font-size-small">
         <div class="content">
             {
@@ -46,7 +46,7 @@ const { series } = galleryData;
 <style lang="scss">
     @use '../design-system' as *;
 
-    $site-header-height: 0;
+    $site-header-height: 180px;
 
     .enterpriseIcon {
         --text-color: red;
