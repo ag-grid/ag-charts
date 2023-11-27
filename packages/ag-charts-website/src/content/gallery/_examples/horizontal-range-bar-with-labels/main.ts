@@ -34,12 +34,12 @@ const options: AgChartOptions = {
                 placement: 'outside',
                 color: 'rgb(118,118,118)',
                 formatter: ({ itemId, datum, yHighKey, yLowKey }) => {
-                    const increase = datum[0][yHighKey] - datum[0][yLowKey];
+                    const increase = datum[yHighKey] - datum[yLowKey];
                     return itemId === 'high' ? `↑£${increase / 1000}K` : '';
                 },
             },
             formatter: ({ datum, yHighKey, yLowKey }) => ({
-                fillOpacity: (datum[0][yHighKey] - datum[0][yLowKey]) / 100000,
+                fillOpacity: (datum[yHighKey] - datum[yLowKey]) / 100000,
             }),
             strokeWidth: 1,
             lineDash: [3, 5],

@@ -26,7 +26,7 @@ const options: AgChartOptions = {
             yLowKey: 'low',
             yHighKey: 'high',
             formatter: ({ datum, xKey }) => {
-                const isSecondExam = datum[0][xKey].slice(-1) === '2';
+                const isSecondExam = datum[xKey].slice(-1) === '2';
                 return {
                     fillOpacity: isSecondExam ? 1 : 0.5,
                 };

@@ -23,7 +23,7 @@ const options: AgChartOptions = {
             yHighKey: 'high',
             formatter: ({ datum, yHighKey }) => {
                 return {
-                    fillOpacity: getOpacity(datum[0][yHighKey], yHighKey as Key, 0.4, 1),
+                    fillOpacity: getOpacity(datum[yHighKey], yHighKey as Key, 0.4, 1),
                 };
             },
             label: {
