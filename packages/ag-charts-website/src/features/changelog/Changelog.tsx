@@ -317,7 +317,7 @@ export const Changelog = () => {
         <>
             {!IS_SSR && (
                 <div className={classnames('page-margin', styles.container)}>
-                    <h1>AG Grid Changelog</h1>
+                    <h1>AG Charts Changelog</h1>
 
                     <section className={styles.header}>
                         <Alert type="idea">
