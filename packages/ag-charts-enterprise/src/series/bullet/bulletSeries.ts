@@ -321,9 +321,7 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
         return [context];
     }
 
-    override getLegendData(legendType: _ModuleSupport.ChartLegendType) {
-        // TODO(olegat)
-        legendType as any;
+    override getLegendData(_legendType: _ModuleSupport.ChartLegendType) {
         return [];
     }
 
@@ -354,7 +352,6 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
     }
 
     protected override isLabelEnabled() {
-        // TODO(olegat)
         return false;
     }
 
