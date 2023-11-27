@@ -128,6 +128,12 @@
     position: relative;
     height: var(--scroller-height);
     overflow: hidden;
+    background-image: url('../../images/homepage-scroll-light.webp');
+    background-size: 100% auto;
+    animation-name: scroll-hero;
+    animation-duration: 30s;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
 
     &::before,
     &::after {
@@ -150,6 +156,8 @@
     }
 
     #{$darkmode-selector} & {
+        background-image: url('../../images/homepage-scroll-dark.webp');
+
         &::before {
             background-image: linear-gradient(var(--default-background-color), transparent);
         }
@@ -161,27 +169,20 @@
 
     @media screen and (min-width: $breakpoint-hero-large) {
         aspect-ratio: 16/9;
-    }
-}
 
-.galleryScrollerInner {
-    display: grid;
-    grid: auto-flow auto auto auto / 1fr 1fr 1fr;
-    gap: 6px;
-    animation-duration: 30s;
-    animation-name: scroll-hero;
-    animation-iteration-count: infinite;
-    animation-direction: alternate;
-    animation-timing-function: linear;
+        &::before {
+            display: none;
+        }
+    }
 }
 
 @keyframes scroll-hero {
     from {
-        transform: translateY(0);
+        background-position-y: 0;
     }
 
     to {
-        transform: translateY(calc(-100% + var(--scroller-height)));
+        background-position-y: -100%;
     }
 }
 
