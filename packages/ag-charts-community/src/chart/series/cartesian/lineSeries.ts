@@ -329,6 +329,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
 
         if (this.marker.isDirty()) {
             markerSelection.clear();
+            markerSelection.cleanup();
         }
 
         return markerSelection.update(nodeData, undefined, (datum) => this.getDatumId(datum));

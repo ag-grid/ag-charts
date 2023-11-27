@@ -546,11 +546,10 @@ export class AreaSeries extends CartesianSeries<
 
         if (this.marker.isDirty()) {
             markerSelection.clear();
+            markerSelection.cleanup();
         }
 
-        return markerSelection.update(data, (marker) => {
-            marker.tag = AreaSeriesTag.Marker;
-        });
+        return markerSelection.update(data);
     }
 
     protected override async updateMarkerNodes(opts: {
