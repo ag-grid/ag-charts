@@ -1,4 +1,4 @@
-name: Sonar Scanner
+name: Sonar Scanner (Release)
 
 env:
     NX_REJECT_UNKNOWN_LOCAL_CACHE: 0
