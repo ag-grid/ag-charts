@@ -203,27 +203,32 @@ function MainPagesNavigation({
 }) {
     const mainMenuItems = menuData.main.items;
     return (
-        <ul className={classnames(styles.menuInner, gridStyles.menuInner, 'list-style-none')}>
-            {mainMenuItems?.map((menuItem) => {
-                const { title, path } = menuItem;
-                const isActive = menuItem === activeTopLevelMenuItem;
+        <>
+            <div className={styles.whatsNewLink}>
+                <a href="/whats-new">What's New</a>
+            </div>
+            <ul className={classnames(styles.menuInner, gridStyles.menuInner, 'list-style-none')}>
+                {mainMenuItems?.map((menuItem) => {
+                    const { title, path } = menuItem;
+                    const isActive = menuItem === activeTopLevelMenuItem;
 
-                const toggleActive = () => {
-                    setActiveTopLevelMenuItem(isActive ? undefined : menuItem);
-                };
+                    const toggleActive = () => {
+                        setActiveTopLevelMenuItem(isActive ? undefined : menuItem);
+                    };
 
-                return (
-                    <NavItemContainer
-                        key={`${title}-${path}`}
-                        framework={framework}
-                        menuItem={menuItem}
-                        isActive={isActive}
-                        toggleActive={toggleActive}
-                        activeMenuItem={activeMenuItem}
-                    />
-                );
-            })}
-        </ul>
+                    return (
+                        <NavItemContainer
+                            key={`${title}-${path}`}
+                            framework={framework}
+                            menuItem={menuItem}
+                            isActive={isActive}
+                            toggleActive={toggleActive}
+                            activeMenuItem={activeMenuItem}
+                        />
+                    );
+                })}
+            </ul>
+        </>
     );
 }
 
