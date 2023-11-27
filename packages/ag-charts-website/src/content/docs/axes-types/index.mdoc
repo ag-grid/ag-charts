@@ -9,8 +9,8 @@ the relationships between data points on the graph. This section discusses the d
 
 A category axis is used to display distinct categories or groups of data in a chart.
 
-The category axis shows discrete categories or groups of data, unlike the [Number](./axes-types/#number) or
-[Time](./axes-types/#time) axes which use a continuous scale. For instance, in a bar chart of sales per product, the
+The category axis shows discrete categories or groups of data, unlike the [Number](#number) or
+[Time](#time) axes which use a continuous scale. For instance, in a bar chart of sales per product, the
 category axis shows the products as different groups, and the number axis displays the corresponding sale value for each group.
 
 If no `axes` are supplied, a category axis will be used as the x-axis by default. However, it can also
@@ -25,16 +25,16 @@ axes: [
 ];
 ```
 
-The category axis will attempt to render an [Axis Tick](./axes-ticks/), [Axis Label](./axis-labels/) and
-[Grid Line](./axis-grid-lines/) for each category with even spacing.
+The category axis will attempt to render an [Axis Tick](./axes-ticks/), [Axis Label](./axes-labels/) and
+[Grid Line](./axes-grid-lines/) for each category with even spacing.
 
-For a full list of configuration options see [Category Axis Options](#category-axis-options).
+For a full list of configuration options see [Category Axis Options](#reference-AgCategoryAxisOptions).
 
 ## Number
 
 A number axis is used to display continuous numerical values in a chart.
 
-The number axis displays continuous numerical values, unlike the [Category](./axes-types/#category) axis which displays
+The number axis displays continuous numerical values, unlike the [Category](#reference-AgCategoryAxisOptions) axis which displays
 discrete categories or groups of data. This means that while categories are spaced out evenly, the distance between values
 in a number axis will depend on their magnitude.
 
@@ -53,7 +53,7 @@ axes: [
 ];
 ```
 
-For a full list of configuration options see [Number Axis Options](#number-axis-options).
+For a full list of configuration options see [Number Axis Options](#reference-AgNumberAxisOptions).
 
 ## Time
 
@@ -74,7 +74,7 @@ simplest time axis config looks like this:
 }
 ```
 
-For a full list of configuration options see [Time Axis Options](#time-axis-options).
+For a full list of configuration options see [Time Axis Options](#reference-AgTimeAxisOptions).
 
 ## Log
 
@@ -118,7 +118,7 @@ you to change the base to any number you like, for example `Math.E` for natural 
 }
 ```
 
-For a full list of configuration options see [Log Axis Options](#log-axis-options).
+For a full list of configuration options see [Log Axis Options](#reference-AgLogAxisOptions).
 
 These configurations above are demonstrated in the following example:
 
