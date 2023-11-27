@@ -147,15 +147,21 @@
     "pack": {
       "executor": "nx:run-commands",
       "dependsOn": ["build"],
-      "outputs": ["{workspaceRoot}/dist/packages/ag-charts-community.tgz"],
+      "outputs": [
+        "{workspaceRoot}/dist/packages/ag-charts-community.tgz",
+        "{workspaceRoot}/dist/packages/contents/ag-charts-community"
+      ],
       "options": {
         "cwd": "packages/ag-charts-community",
         "commands": [
           {
-            "command": "mkdir -p ../../dist/packages/"
+            "command": "mkdir -p ../../dist/packages/contents/ag-charts-community"
           },
           {
             "command": "yarn pack -f ../../dist/packages/ag-charts-community.tgz"
+          },
+          {
+            "command": "tar -xzf ../../dist/packages/ag-charts-community.tgz -C ../../dist/packages/contents/ag-charts-community/"
           }
         ]
       }

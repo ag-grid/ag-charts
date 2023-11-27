@@ -20,15 +20,21 @@
     "pack": {
       "executor": "nx:run-commands",
       "dependsOn": ["build"],
-      "outputs": ["{workspaceRoot}/dist/packages/ag-charts-vue.tgz"],
+      "outputs": [
+        "{workspaceRoot}/dist/packages/ag-charts-vue.tgz",
+        "{workspaceRoot}/dist/packages/contents/ag-charts-vue"
+      ],
       "options": {
         "cwd": "packages/ag-charts-vue",
         "commands": [
           {
-            "command": "mkdir -p ../../dist/packages/"
+            "command": "mkdir -p ../../dist/packages/contents/ag-charts-vue"
           },
           {
             "command": "yarn pack -f ../../dist/packages/ag-charts-vue.tgz"
+          },
+          {
+            "command": "tar -xf ../../dist/packages/ag-charts-vue.tgz -C ../../dist/packages/contents/ag-charts-vue"
           }
         ]
       }

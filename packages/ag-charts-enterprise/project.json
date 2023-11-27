@@ -118,15 +118,21 @@
     "pack": {
       "executor": "nx:run-commands",
       "dependsOn": ["build"],
-      "outputs": ["{workspaceRoot}/dist/packages/ag-charts-enterprise.tgz"],
+      "outputs": [
+        "{workspaceRoot}/dist/packages/ag-charts-enterprise.tgz",
+        "{workspaceRoot}/dist/packages/contents/ag-charts-enterprise"
+      ],
       "options": {
         "cwd": "packages/ag-charts-enterprise",
         "commands": [
           {
-            "command": "mkdir -p ../../dist/packages/"
+            "command": "mkdir -p ../../dist/packages/contents/ag-charts-enterprise"
           },
           {
             "command": "yarn pack -f ../../dist/packages/ag-charts-enterprise.tgz"
+          },
+          {
+            "command": "tar -xf ../../dist/packages/ag-charts-enterprise.tgz -C ../../dist/packages/contents/ag-charts-enterprise"
           }
         ]
       }
