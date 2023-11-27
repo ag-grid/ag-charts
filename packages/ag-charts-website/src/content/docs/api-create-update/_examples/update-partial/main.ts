@@ -1,4 +1,10 @@
-import { AgAreaSeriesOptions, AgChartLegendPosition, AgCharts } from 'ag-charts-community';
+import {
+    AgAreaSeriesOptions,
+    AgChartLegendPosition,
+    AgChartOptions,
+    AgChartTheme,
+    AgCharts,
+} from 'ag-charts-community';
 
 import { getData } from './data';
 
@@ -19,7 +25,7 @@ const legend = {
     position: positions[1],
 };
 
-let chart = AgCharts.create({
+const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Browser Usage Statistics',
@@ -30,7 +36,9 @@ let chart = AgCharts.create({
     data: getData(),
     series,
     legend,
-});
+};
+
+let chart = AgCharts.create(options);
 
 function reverseSeries() {
     const series = chart.getOptions().series as AgAreaSeriesOptions[];
@@ -55,7 +63,9 @@ function rotateLegend() {
 }
 
 function changeTheme() {
+    const theme = chart.getOptions()?.theme as AgChartTheme;
+    const markersEnabled = theme?.overrides?.area?.series?.marker?.enabled ?? false;
     AgCharts.updateDelta(chart, {
-        theme: { overrides: { area: { series: { marker: { enabled: true } } } } },
+        theme: { overrides: { area: { series: { marker: { enabled: !markersEnabled } } } } },
     });
 }
