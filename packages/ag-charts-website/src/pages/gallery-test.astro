@@ -1,12 +1,8 @@
 ---
 import { getEntry } from 'astro:content';
 import Layout from '@layouts/Layout.astro';
-import { Icon, IconName } from '@components/icon/Icon';
-import { getPageHashUrl } from '@features/gallery/utils/urlPaths';
 import type { GalleryData, GalleryExample, GalleryExampleChartType } from '@ag-grid-types';
 import { GalleryExampleLink } from '@features/gallery/components/GalleryExampleLink';
-import { GalleryExampleThemeDropdown } from '@features/gallery/components/GalleryExampleThemeDropdown';
-import styles from './gallery.module.scss';
 
 /**
  * Test gallery page to create images for homepage scrolling hero
