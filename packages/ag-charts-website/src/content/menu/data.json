@@ -200,7 +200,7 @@
                 "items": [
                     {
                         "title": "Upgrade to AG Charts 9",
-                        "path": "migration-v9"
+                        "path": "upgrade-to-ag-charts-9"
                     }
                 ]
             }

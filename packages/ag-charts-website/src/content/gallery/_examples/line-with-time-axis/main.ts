@@ -2,6 +2,13 @@ import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+const tooltip = {
+    renderer: ({ datum, xKey, yKey }) => {
+        const date = Intl.DateTimeFormat('en-GB', { year: 'numeric', month: 'short' }).format(datum[xKey]);
+        return { content: `${date}: ${datum[yKey].toFixed(0)}` };
+    },
+};
+
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
@@ -29,30 +36,35 @@ const options: AgChartOptions = {
             xKey: 'year',
             yKey: 'Onshore wind',
             yName: 'Onshore Wind',
+            tooltip,
         },
         {
             type: 'line',
             xKey: 'year',
             yKey: 'Offshore wind',
             yName: 'Offshore Wind',
+            tooltip,
         },
         {
             type: 'line',
             xKey: 'year',
             yKey: 'Solar photovoltaics',
             yName: 'Solar Photovoltaics',
+            tooltip,
         },
         {
             type: 'line',
             xKey: 'year',
             yKey: 'Plant biomass',
             yName: 'Plant Biomass',
+            tooltip,
         },
         {
             type: 'line',
             xKey: 'year',
             yKey: 'Landfill gas',
             yName: 'Landfill Gas',
+            tooltip,
         },
     ],
     axes: [
@@ -62,6 +74,11 @@ const options: AgChartOptions = {
             min: new Date(2000, 0, 1),
             max: new Date(2022, 0, 1),
             nice: false,
+            crosshair: {
+                label: {
+                    format: `%b %Y`,
+                },
+            },
             crossLines: [
                 {
                     type: 'line',
