@@ -132,7 +132,10 @@
             "command": "yarn pack -f ../../dist/packages/ag-charts-enterprise.tgz"
           },
           {
-            "command": "tar -xf ../../dist/packages/ag-charts-enterprise.tgz -C ../../dist/packages/contents/ag-charts-enterprise"
+            "command": "tar -xzf ../../dist/packages/ag-charts-enterprise.tgz -C ../../dist/packages/contents/ag-charts-enterprise"
+          },
+          {
+            "command": "node ../../tools/sanity-check-package.js ../../dist/packages/contents/ag-charts-enterprise/package"
           }
         ]
       }

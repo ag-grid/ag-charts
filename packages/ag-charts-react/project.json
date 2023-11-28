@@ -63,7 +63,10 @@
             "command": "yarn pack -f ../../dist/packages/ag-charts-react.tgz"
           },
           {
-            "command": "tar -xf ../../dist/packages/ag-charts-react.tgz -C ../../dist/packages/contents/ag-charts-react"
+            "command": "tar -xzf ../../dist/packages/ag-charts-react.tgz -C ../../dist/packages/contents/ag-charts-react"
+          },
+          {
+            "command": "node ../../tools/sanity-check-package.js ../../dist/packages/contents/ag-charts-react/package"
           }
         ]
       }

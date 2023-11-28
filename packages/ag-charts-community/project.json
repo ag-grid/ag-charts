@@ -162,6 +162,9 @@
           },
           {
             "command": "tar -xzf ../../dist/packages/ag-charts-community.tgz -C ../../dist/packages/contents/ag-charts-community/"
+          },
+          {
+            "command": "node ../../tools/sanity-check-package.js ../../dist/packages/contents/ag-charts-community/package"
           }
         ]
       }
