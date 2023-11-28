@@ -39,6 +39,13 @@ function check(type, field, filename) {
     }
 }
 
+function checkOneExists(...filenames) {
+    if (!filenames.some((f) => fs.existsSync(path.join(dir, f)))) {
+        console.warn(`Didn't find any files with name(s): ${filenames.join(' / ')}`);
+        exitStatus = 1;
+    }
+}
+
 const exportMap = {
     require: 'cjs',
     import: 'esm',
@@ -75,6 +82,9 @@ for (const field in ['module']) {
 if (packageJson.exports != null) {
     checkExports(packageJson.exports);
 }
+
+checkOneExists('README.md');
+checkOneExists('LICENSE.txt', 'LICENSE.html');
 
 if (exitStatus === 0) {
     console.log(`No problems found with package in ${dir}`);
