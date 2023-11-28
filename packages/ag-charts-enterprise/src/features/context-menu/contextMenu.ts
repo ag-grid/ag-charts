@@ -93,6 +93,8 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.coverElement = this.container.appendChild(ctx.document.createElement('div'));
         this.coverElement.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__cover`);
 
+        this.hide();
+
         // TODO: hmmm...
         this.coverElement.onclick = () => this.hide();
         this.coverElement.oncontextmenu = (event) => {
