@@ -4,9 +4,6 @@ import { $internalFramework } from '@stores/frameworkStore';
 import { getFrameworkFromInternalFramework } from '@utils/framework';
 import Layout from '../layouts/Layout.astro';
 import { PagesNavigation } from '@components/pages-navigation/PagesNavigation';
-import { Header } from '@features/docs/components/Header';
-import { getFrameworkDisplayText } from '@utils/framework';
-import type { Framework } from '@ag-grid-types';
 import { getDocsPages } from '@features/docs/utils/pageData';
 import { Version } from '../components/version/Version';
 
@@ -14,10 +11,6 @@ export async function getStaticPaths() {
     const pages = await getCollection('docs');
     return getDocsPages(pages);
 }
-
-const { page } = Astro.props;
-const pageName = Astro.params.pageName as Framework;
-const path = Astro.url.pathname;
 
 const menuEntry = await getEntry('menu', 'data');
 const versionsContent = await getEntry('versions', 'data');
@@ -35,12 +28,13 @@ const framework = getFrameworkFromInternalFramework($internalFramework.get());
                 <p>See what's new in recent AG Charts versions.</p>
                 <div class={'versions'}>
                     {
-                        versionsData.map((versionInfo, index) => (
+                        versionsData.map((versionInfo) => (
                             <Version
-                                key={index}
                                 version={versionInfo.version}
                                 date={versionInfo.date}
                                 highlights={versionInfo.highlights}
+                                buttonURL={versionInfo.buttonURL}
+                                majorMinor={versionInfo.majorMinor}
                             />
                         ))
                     }

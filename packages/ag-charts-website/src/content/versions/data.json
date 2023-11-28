@@ -27,6 +27,8 @@
                 "text": "Error Bars",
                 "url": "https://charts.ag-grid.com/react/error-bars/"
             }
-        ]
+        ],
+        "buttonURL": "/javascript/upgrade-to-ag-charts-9/",
+        "majorMinor": true
     }
 ]
