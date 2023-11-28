@@ -18,7 +18,6 @@ export const defaultContextMenuCss = `
     position: fixed;
     left: 0px;
     top: 0px;
-    background: rgba(255, 255, 255, 0.5);
 }
 
 .${DEFAULT_CONTEXT_MENU_CLASS}__menu {
