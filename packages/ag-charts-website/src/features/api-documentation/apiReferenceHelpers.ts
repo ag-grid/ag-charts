@@ -83,7 +83,6 @@ export function normalizeType(refType: TypeNode, includeGenerics?: boolean): str
                 'Avoid using type-literals in user facing typings as nameless types break the generated docs.\nYou should use an interface or a type-alias instead.'
             );
         default:
-            console.log(refType);
             throw Error(`Unknown type encountered: ${refType}`);
     }
 }
