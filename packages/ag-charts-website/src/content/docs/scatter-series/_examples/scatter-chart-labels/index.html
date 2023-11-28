@@ -1,8 +1,7 @@
 <div class="wrapper">
     <div id="toolPanel">
-        <div class="slider">
-            <label for="sliderInput"><strong>Label font size:&nbsp;</strong></label>
-            <span id="fontSizeSliderValue">12</span>
+        <div class="sliders">
+            <label for="sliderInput">Label font size</label>
             <input
                 type="range"
                 id="sliderInput"
@@ -13,6 +12,7 @@
                 oninput="updateFontSize(event)"
                 onchange="updateFontSize(event)"
             />
+            <span id="fontSizeSliderValue">12</span>
         </div>
     </div>
     <div id="myChart"></div>
