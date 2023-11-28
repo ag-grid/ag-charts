@@ -1,4 +1,5 @@
 import { ExampleRunner } from '@features/example-runner/components/ExampleRunner';
+import { removeGeneratedAstroTags } from '@features/example-runner/utils/removeGeneratedAstroTags';
 import { OpenInPlunkr } from '@features/plunkr/components/OpenInPlunkr';
 import { useEffect, useState } from 'react';
 import { QueryClient, QueryClientProvider, useQuery } from 'react-query';
@@ -57,7 +58,9 @@ const GalleryExampleRunnerInner = ({ title, exampleName, loadingIFrameId }: Prop
                 getExampleUrl({
                     exampleName,
                 })
-            ).then((res) => res.text());
+            )
+                .then((res) => res.text())
+                .then((html) => removeGeneratedAstroTags(html));
 
             return Promise.all([getContents, getExampleFileHtml]);
         },
