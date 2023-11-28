@@ -5,7 +5,7 @@
   "main": "main.js",
   "module": "./dist/index.js",
   "type": "module",
-  "types": "./dist/src/index.d.ts",
+  "typings": "./index.cjs.d.ts",
   "repository": {
     "type": "git",
     "url": "https://github.com/ag-grid/ag-charts.git"

@@ -26,7 +26,7 @@
   "homepage": "https://charts.ag-grid.com/",
   "private": false,
   "module": "./dist/ag-charts-angular/fesm2015/ag-charts-angular.mjs",
-  "typings": "./dist/ag-charts-angular/ag-charts-angular.d.ts",
+  "typings": "./dist/ag-charts-angular/index.d.ts",
   "dependencies": {
     "@angular/animations": "^14.3.0",
     "@angular/common": "^14.3.0",
