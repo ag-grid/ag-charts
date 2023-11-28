@@ -1,13 +1,7 @@
 ---
-import { getEntry } from 'astro:content';
 import Layout from '@layouts/Layout.astro';
 import { FrameworkSelector } from '../components/framework-selector/FrameworkSelector';
 import { Icon } from '@components/icon/Icon';
-import type { GalleryData } from '@ag-grid-types';
-import { GalleryExampleImage } from '@features/gallery/components/GalleryExampleImage';
-import { pathJoin } from '@utils/pathJoin';
-import { SITE_BASE_URL } from '@constants';
-import { getCacheBustingUrl, getChartEnterpriseScriptPath, getChartScriptPath } from '@utils/chartLibraryPaths';
 import { urlWithPrefix } from '@utils/urlWithPrefix';
 import styles from './homepage.module.scss';
 import { ReactComponent as GridLogoType } from '@images/inline-svgs/ag-grid-logotype.svg';
@@ -43,23 +37,9 @@ const frameworksData = [
         }),
     },
 ];
-
-const galleryDataEntry = await getEntry('gallery', 'data');
-const galleryData: GalleryData = galleryDataEntry?.data;
-const series = galleryData.series.flat();
-
-const modifiedTimeMs = Date.now();
-const siteUrl = Astro.site ? pathJoin(Astro.site, SITE_BASE_URL) : '/';
-const chartScriptPath = getCacheBustingUrl(getChartScriptPath(siteUrl), modifiedTimeMs);
-const chartScriptEnterprisePath = getCacheBustingUrl(getChartEnterpriseScriptPath(siteUrl), modifiedTimeMs);
-
-const isEnterprise = true;
 ---
 
 <Layout>
-    <script src={chartScriptPath}></script>
-    {isEnterprise && <script src={chartScriptEnterprisePath} />}
-
     <div class={styles.homepageHero}>
         <div class:list={[styles.heroInner, 'page-margin']}>
             <div class={styles.heroHeadings}>
@@ -114,7 +94,6 @@ const isEnterprise = true;
                     <GridLogoType />
                     <GridLogoMark />
                 </div>
-                <!-- Dummy copy, to be reviewed -->
                 <p class="font-size-large">
                     See how <a href="https://ag-grid.com/"><b>AG Grid</b></a> uses <b>AG Charts</b> to provide a
                     seamless
