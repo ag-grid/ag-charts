@@ -3,12 +3,14 @@ import { type _ModuleSupport, _Theme } from 'ag-charts-community';
 import { TreemapSeries } from './treemapSeries';
 
 const {
-    NORMAL,
-    EXTENDS_SERIES_DEFAULTS,
-    DEFAULT_FONT_FAMILY,
-    DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
-    DEFAULT_BACKGROUND_CONTRAST_COLOR_RANGE,
+    DEFAULT_FONT_FAMILY,
+    DEFAULT_HIERARCHY_FILLS,
+    DEFAULT_HIERARCHY_STROKES,
+    DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
+    EXTENDS_SERIES_DEFAULTS,
+    DEFAULT_LABEL_COLOUR,
+    NORMAL,
 } = _Theme;
 
 export const TreemapSeriesModule: _ModuleSupport.SeriesModule<'treemap'> = {
@@ -16,7 +18,6 @@ export const TreemapSeriesModule: _ModuleSupport.SeriesModule<'treemap'> = {
     optionsKey: 'series[]',
     packageType: 'enterprise',
     chartTypes: ['hierarchy'],
-
     identifier: 'treemap',
     instanceConstructor: TreemapSeries,
     seriesDefaults: {
@@ -30,7 +31,7 @@ export const TreemapSeriesModule: _ModuleSupport.SeriesModule<'treemap'> = {
         group: {
             label: {
                 enabled: true,
-                color: 'white', // The grey background is the same for all themes, so the label always needs to be white
+                color: DEFAULT_LABEL_COLOUR,
                 fontStyle: undefined,
                 fontWeight: NORMAL,
                 fontSize: 12,
@@ -39,8 +40,8 @@ export const TreemapSeriesModule: _ModuleSupport.SeriesModule<'treemap'> = {
             },
             fill: undefined, // Override default fill
             stroke: undefined, // Override default stroke
-            strokeWidth: 0,
-            padding: 6,
+            strokeWidth: 1,
+            padding: 4,
             gap: 2,
             textAlign: 'left',
         },
@@ -70,15 +71,15 @@ export const TreemapSeriesModule: _ModuleSupport.SeriesModule<'treemap'> = {
             },
             fill: undefined, // Override default fill
             stroke: undefined, // Override default stroke
-            strokeWidth: 1,
+            strokeWidth: 0,
             padding: 3,
-            gap: -1,
+            gap: 1,
         },
         // Override defaults
         highlightStyle: {
             group: {
                 label: {
-                    color: 'white',
+                    color: DEFAULT_LABEL_COLOUR,
                 },
                 fill: undefined,
                 stroke: `rgba(0, 0, 0, 0.4)`,
@@ -101,12 +102,14 @@ export const TreemapSeriesModule: _ModuleSupport.SeriesModule<'treemap'> = {
         const { properties } = themeTemplateParameters;
         const { fills, strokes } = takeColors(colorsCount);
         const defaultColorRange = properties.get(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE);
-        const groupFills = properties.get(DEFAULT_BACKGROUND_CONTRAST_COLOR_RANGE);
+        const groupFills = properties.get(DEFAULT_HIERARCHY_FILLS);
+        const groupStrokes = properties.get(DEFAULT_HIERARCHY_STROKES);
         return {
             fills,
             strokes,
             colorRange: defaultColorRange,
             undocumentedGroupFills: groupFills,
+            undocumentedGroupStrokes: groupStrokes,
         };
     },
 };
