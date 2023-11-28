@@ -196,7 +196,7 @@ const POSITION_BOTTOM_RIGHT_COORDINATES: CoordinatesFn = ({ yDirection, xStart, 
     }
 };
 
-export const labeldDirectionHandling: Record<CrossLineLabelPosition, PositionCalcFns> = {
+export const labelDirectionHandling: Record<CrossLineLabelPosition, PositionCalcFns> = {
     top: { c: POSITION_TOP_COORDINATES },
     bottom: { c: POSITION_BOTTOM_COORDINATES },
     left: { c: POSITION_LEFT_COORDINATES },

@@ -39,7 +39,7 @@ import {
     POSITION_TOP_COORDINATES,
     calculateLabelChartPadding,
     calculateLabelTranslation,
-    labeldDirectionHandling,
+    labelDirectionHandling,
 } from './crossLineLabelPosition';
 
 const CROSSLINE_LABEL_POSITIONS = [
@@ -291,7 +291,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
         if (this.label.enabled) {
             const yDirection = direction === ChartAxisDirection.Y;
 
-            const { c = POSITION_TOP_COORDINATES } = labeldDirectionHandling[position] ?? {};
+            const { c = POSITION_TOP_COORDINATES } = labelDirectionHandling[position] ?? {};
             const { x: labelX, y: labelY } = c({
                 yDirection,
                 xStart,
