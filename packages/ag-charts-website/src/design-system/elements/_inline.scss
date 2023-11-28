@@ -31,15 +31,9 @@ code#{$exclude-grid-selector} {
     border: 1px solid rgba(black, 0.1);
 
     #{$darkmode-selector} & {
-        -webkit-font-smoothing: subpixel-antialiased;
-
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        background-color: transparent;
+        border-color: rgba(255, 255, 255, 0.1);
         color: var(--default-text-color);
         background-color: #121f29;
-        padding: 2px 6px;
-        font-size: 13px;
-        letter-spacing: 0.5px;
     }
 }
 
