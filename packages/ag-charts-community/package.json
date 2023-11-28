@@ -8,7 +8,7 @@
   "exports": {
     "import": "./dist/package/main.esm.js",
     "require": "./dist/package/main.cjs.js",
-    "types": "./dist/package/src/main.cjs.d.ts",
+    "types": "./dist/package/main.cjs.d.ts",
     "default": "./dist/package/main.cjs.js"
   },
   "scripts": {

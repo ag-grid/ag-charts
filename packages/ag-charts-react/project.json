@@ -19,7 +19,7 @@
         "project": "packages/ag-charts-react/package.json",
         "entryFile": "packages/ag-charts-react/src/index.ts",
         "external": ["react", "react-dom", "react/jsx-runtime"],
-        "rollupConfig": "@nx/react/plugins/bundle-rollup",
+        "rollupConfig": "packages/ag-charts-react/rollup.config.cjs",
         "compiler": "babel",
         "assets": [
           {
