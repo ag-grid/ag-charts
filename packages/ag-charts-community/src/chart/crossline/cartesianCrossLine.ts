@@ -4,6 +4,7 @@ import type {
     FontStyle,
     FontWeight,
 } from '../../options/agChartOptions';
+import { BandScale } from '../../scale/bandScale';
 import { ContinuousScale } from '../../scale/continuousScale';
 import type { Scale } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
@@ -244,6 +245,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
         }
 
         const bandwidth = scale.bandwidth ?? 0;
+        const padding = scale instanceof BandScale ? scale.padding * bandwidth : 0;
         const clippedRangeClamper = (x: number) =>
             Math.max(Math.min(...clippedRange), Math.min(Math.max(...clippedRange), x));
 
@@ -251,12 +253,12 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
         let [yStart, yEnd] = this.getRange();
 
         let [clampedYStart, clampedYEnd] = [
-            Number(scale.convert(yStart, { clampMode: 'clamped' })),
-            scale.convert(yEnd, { clampMode: 'clamped' }) + bandwidth,
+            Number(scale.convert(yStart, { clampMode: 'clamped' })) - padding,
+            scale.convert(yEnd, { clampMode: 'clamped' }) + bandwidth + padding,
         ];
         clampedYStart = clippedRangeClamper(clampedYStart);
         clampedYEnd = clippedRangeClamper(clampedYEnd);
-        [yStart, yEnd] = [Number(scale.convert(yStart)), scale.convert(yEnd) + bandwidth];
+        [yStart, yEnd] = [Number(scale.convert(yStart)) - padding, scale.convert(yEnd) + bandwidth + padding];
 
         const validRange =
             !isNaN(clampedYStart) &&
