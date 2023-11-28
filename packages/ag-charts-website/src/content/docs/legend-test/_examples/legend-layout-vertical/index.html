@@ -1,8 +1,7 @@
 <div class="wrapper">
     <div id="toolPanel">
-        <div class="slider">
-            <label for="sliderInput"><strong>Height:</strong></label>
-            <span id="sliderValue">300</span>
+        <div class="sliders">
+            <label for="sliderInput">Height</label>
             <input
                 type="range"
                 id="sliderInput"
@@ -12,6 +11,7 @@
                 oninput="updateHeight(event)"
                 onchange="updateHeight(event)"
             />
+            <span id="sliderValue">300</span>
         </div>
     </div>
     <div id="myChart"></div>
