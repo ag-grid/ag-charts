@@ -323,9 +323,9 @@
                         "name": "histogram-with-specified-bins"
                     },
                     {
-                        "title": "XY Histogram With Mean Aggregation",
-                        "description": "Here we bin the data by car engine size, but plot the average highway MPG in the y-axis, revealing the relationship between these two fields. We also plot the same data as a scatter series to illustrate the aggregation.",
-                        "name": "xy-histogram-with-mean-aggregation"
+                        "title": "Histogram With Missing Bins",
+                        "description": "Here we bin the data by car engine size, but plot the average highway MPG in the y-axis, revealing the relationship between these two fields.",
+                        "name": "histogram-with-missing-bins"
                     }
                 ]
             }
