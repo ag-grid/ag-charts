@@ -34,7 +34,10 @@
             "command": "yarn pack -f ../../dist/packages/ag-charts-vue3.tgz"
           },
           {
-            "command": "tar -xf ../../dist/packages/ag-charts-vue3.tgz -C ../../dist/packages/contents/ag-charts-vue3"
+            "command": "tar -xzf ../../dist/packages/ag-charts-vue3.tgz -C ../../dist/packages/contents/ag-charts-vue3"
+          },
+          {
+            "command": "node ../../tools/sanity-check-package.js ../../dist/packages/contents/ag-charts-vue3/package"
           }
         ]
       }

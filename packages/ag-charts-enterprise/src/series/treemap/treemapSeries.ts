@@ -245,6 +245,9 @@ export class TreemapSeries<
     // We haven't decided how to expose this yet, but we need to have this property so it can change between light and dark themes
     undocumentedGroupFills: string[] = [];
 
+    // We haven't decided how to expose this yet, but we need to have this property so it can change between light and dark themes
+    undocumentedGroupStrokes: string[] = [];
+
     private groupTitleHeight(node: _ModuleSupport.HierarchyNode, bbox: _Scene.BBox): number | undefined {
         const label = this.labelData?.[node.index]?.label;
 
@@ -578,6 +581,17 @@ export class TreemapSeries<
         }
     }
 
+    private getNodeStroke(node: _ModuleSupport.HierarchyNode) {
+        const isLeaf = node.children.length === 0;
+        if (isLeaf) {
+            return this.tile.stroke ?? node.stroke;
+        } else {
+            const { undocumentedGroupStrokes } = this;
+            const defaultStroke = undocumentedGroupStrokes[Math.min(node.depth ?? 0, undocumentedGroupStrokes.length)];
+            return this.group.stroke ?? defaultStroke;
+        }
+    }
+
     async updateNodes() {
         const { rootNode, data, highlightStyle, tile, group } = this;
         const { seriesRect } = this.chart ?? {};
@@ -624,7 +638,7 @@ export class TreemapSeries<
             const fill = format?.fill ?? highlightedFill ?? this.getNodeFill(node);
             const fillOpacity =
                 format?.fillOpacity ?? highlightedFillOpacity ?? (isLeaf ? tile.fillOpacity : group.fillOpacity);
-            const stroke = format?.stroke ?? highlightedStroke ?? (isLeaf ? tile.stroke ?? node.stroke : group.stroke);
+            const stroke = format?.stroke ?? highlightedStroke ?? this.getNodeStroke(node);
             const strokeWidth =
                 format?.strokeWidth ?? highlightedStrokeWidth ?? (isLeaf ? tile.strokeWidth : group.strokeWidth);
             const strokeOpacity =

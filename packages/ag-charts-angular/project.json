@@ -29,7 +29,10 @@
             "command": "yarn pack -f ../../dist/packages/ag-charts-angular.tgz"
           },
           {
-            "command": "tar -xf ../../dist/packages/ag-charts-angular.tgz -C ../../dist/packages/contents/ag-charts-angular"
+            "command": "tar -xzf ../../dist/packages/ag-charts-angular.tgz -C ../../dist/packages/contents/ag-charts-angular"
+          },
+          {
+            "command": "node ../../tools/sanity-check-package.js ../../dist/packages/contents/ag-charts-angular/package"
           }
         ]
       }

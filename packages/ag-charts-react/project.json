@@ -19,7 +19,7 @@
         "project": "packages/ag-charts-react/package.json",
         "entryFile": "packages/ag-charts-react/src/index.ts",
         "external": ["react", "react-dom", "react/jsx-runtime"],
-        "rollupConfig": "@nx/react/plugins/bundle-rollup",
+        "rollupConfig": "packages/ag-charts-react/rollup.config.cjs",
         "compiler": "babel",
         "assets": [
           {
@@ -63,7 +63,10 @@
             "command": "yarn pack -f ../../dist/packages/ag-charts-react.tgz"
           },
           {
-            "command": "tar -xf ../../dist/packages/ag-charts-react.tgz -C ../../dist/packages/contents/ag-charts-react"
+            "command": "tar -xzf ../../dist/packages/ag-charts-react.tgz -C ../../dist/packages/contents/ag-charts-react"
+          },
+          {
+            "command": "node ../../tools/sanity-check-package.js ../../dist/packages/contents/ag-charts-react/package"
           }
         ]
       }

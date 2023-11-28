@@ -2,10 +2,10 @@
   "name": "ag-charts-react",
   "version": "9.0.0-beta.20231127.1730",
   "description": "AG Charts React Component",
-  "main": "main.js",
-  "module": "./dist/index.js",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
   "type": "module",
-  "types": "./dist/src/index.d.ts",
+  "types": "./dist/index.d.ts",
   "repository": {
     "type": "git",
     "url": "https://github.com/ag-grid/ag-charts.git"
