@@ -32,7 +32,7 @@ const options: AgChartOptions = {
     legend,
 };
 
-let chart = AgCharts.create(options);
+const chart = AgCharts.create(options);
 
 function reverseSeries() {
     options.series = series.reverse();

@@ -11,7 +11,7 @@ const options: AgCartesianChartOptions = {
     ],
 };
 
-var chart = AgCharts.create(options);
+const chart = AgCharts.create(options);
 
 function setYNames() {
     (options.series![0] as AgBarSeriesOptions).yName = 'Sweaters Made';

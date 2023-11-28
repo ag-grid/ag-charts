@@ -51,7 +51,7 @@ const options: AgCartesianChartOptions = {
     ],
 };
 
-let chart = AgCharts.create(options);
+const chart = AgCharts.create(options);
 
 function missingYValues() {
     const data = getData();

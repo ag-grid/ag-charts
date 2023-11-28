@@ -21,7 +21,7 @@ const options: AgCartesianChartOptions = {
     ],
 };
 
-var chart = AgCharts.create(options);
+const chart = AgCharts.create(options);
 
 function renderer(params: AgCartesianSeriesTooltipRendererParams) {
     return `<div class="ag-chart-tooltip-title" style="background-color: ${params.color}">

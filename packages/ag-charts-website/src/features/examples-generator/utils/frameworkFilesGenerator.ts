@@ -102,7 +102,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             const chartAPI = 'agCharts.AgCharts';
 
             if (!mainJs.includes(`chart = ${chartAPI}`)) {
-                mainJs = mainJs.replace(`${chartAPI}`, `var chart = ${chartAPI}`);
+                mainJs = mainJs.replace(`${chartAPI}`, `const chart = ${chartAPI}`);
             }
 
             mainJs =
@@ -149,7 +149,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         if (!ignoreDarkMode) {
             const chartAPI = 'AgCharts';
             if (!mainTsx.includes(`chart = ${chartAPI}`)) {
-                mainTsx = mainTsx.replace(`${chartAPI}.create(options);`, `var chart = ${chartAPI}.create(options);`);
+                mainTsx = mainTsx.replace(`${chartAPI}.create(options);`, `const chart = ${chartAPI}.create(options);`);
             }
 
             mainTsx =

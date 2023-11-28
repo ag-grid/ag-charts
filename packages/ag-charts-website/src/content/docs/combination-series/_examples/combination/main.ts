@@ -91,7 +91,7 @@ const options: AgCartesianChartOptions = {
     ] as AgCartesianAxisOptions[],
 };
 
-var chart = AgCharts.create(options);
+const chart = AgCharts.create(options);
 
 function barLine() {
     options.series = BAR_AND_LINE;

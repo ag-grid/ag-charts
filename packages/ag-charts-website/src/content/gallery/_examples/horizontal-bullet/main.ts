@@ -48,7 +48,7 @@ const options: AgChartOptions = {
     height: 160,
 };
 
-let chart = AgCharts.create(options);
+const chart = AgCharts.create(options);
 
 function setProfit(profit: number) {
     options.data = [{ profit, targetProfit: 35 }];

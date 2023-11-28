@@ -93,7 +93,7 @@ const options: AgCartesianChartOptions = {
     },
 };
 
-var chart = AgCharts.create(options);
+const chart = AgCharts.create(options);
 
 function updateLegendPosition(value: AgChartLegendPosition) {
     options.legend!.position = value;

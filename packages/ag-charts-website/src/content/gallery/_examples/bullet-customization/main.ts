@@ -69,7 +69,7 @@ const options: AgChartOptions = {
     height: 115,
 };
 
-let chart = AgCharts.create(options);
+const chart = AgCharts.create(options);
 
 function setBudget(maxExpenses: number) {
     options.data = [{ expenses: 1_674_300, maxExpenses }];

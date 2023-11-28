@@ -32,4 +32,4 @@ const options: AgChartOptions = {
     ],
 };
 
-var chart = AgCharts.create(options);
+const chart = AgCharts.create(options);

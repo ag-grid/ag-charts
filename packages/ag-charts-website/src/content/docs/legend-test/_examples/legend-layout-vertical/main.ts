@@ -38,7 +38,7 @@ const options: AgChartOptions = {
     },
 };
 
-var chart = AgCharts.create(options);
+const chart = AgCharts.create(options);
 
 function updateHeight(event: any) {
     var value = +event.target.value;
