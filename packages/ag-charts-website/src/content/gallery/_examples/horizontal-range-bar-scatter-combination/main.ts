@@ -48,7 +48,7 @@ const options: AgChartOptions = {
             sizeKey: 'profitMargin',
             labelKey: 'profitMargin',
             label: {
-                formatter: ({ value }) => `${(+value).toFixed(0)}%`,
+                formatter: ({ value }) => `${Number(value).toFixed(0)}%`,
             },
         },
     ],
@@ -75,7 +75,7 @@ const options: AgChartOptions = {
             keys: ['lowRetail', 'highRetail', 'lowCost', 'highCost'],
             label: {
                 formatter: ({ value }) =>
-                    `${(+value).toLocaleString('en-US', {
+                    `${Number(value).toLocaleString('en-US', {
                         style: 'currency',
                         currency: 'USD',
                         maximumFractionDigits: 0,

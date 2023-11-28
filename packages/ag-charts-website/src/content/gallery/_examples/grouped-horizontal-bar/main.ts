@@ -19,7 +19,7 @@ const options: AgChartOptions = {
             yKey: 'menDelta',
             yName: 'Male',
             label: {
-                formatter: ({ value }) => `${value.toFixed(0)}`,
+                formatter: ({ value }) => value.toFixed(0),
             },
         },
         {
@@ -29,7 +29,7 @@ const options: AgChartOptions = {
             yKey: 'womenDelta',
             yName: 'Female',
             label: {
-                formatter: ({ value }) => `${value.toFixed(0)}`,
+                formatter: ({ value }) => value.toFixed(0),
             },
         },
     ],
