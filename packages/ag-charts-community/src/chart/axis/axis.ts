@@ -1028,7 +1028,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         maxTickCount: number;
         primaryTickCount?: number;
     }) {
-        const { scale, visibleRange } = this;
+        const { range, scale, visibleRange } = this;
 
         let rawTicks: any[] = [];
 
@@ -1063,18 +1063,13 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const start = Math.max(0, Math.floor(visibleRange[0] * rawTicks.length));
         const end = Math.min(rawTicks.length, Math.ceil(visibleRange[1] * rawTicks.length));
 
-        let [rangeMin, rangeMax] = scale.range;
-        if (rangeMin > rangeMax) {
-            [rangeMin, rangeMax] = [rangeMax, rangeMin];
-        }
         for (let i = start; i < end; i++) {
             const rawTick = rawTicks[i];
             const translationY = scale.convert(rawTick) + halfBandwidth;
 
-            // Do not render ticks outside the scale range. A clip rect would trim long labels, so instead hide ticks
-            // based on their translation.
-            if (rangeMin != null && translationY < rangeMin) continue;
-            if (rangeMax != null && translationY > rangeMax) continue;
+            // Do not render ticks outside the range with a small tolerance. A clip rect would trim long labels, so
+            // instead hide ticks based on their translation.
+            if (range.length > 0 && !this.inRange(translationY, 0, 0.001)) continue;
 
             const tickLabel = this.formatTick(rawTick, i);
 
