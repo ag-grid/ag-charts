@@ -121,7 +121,7 @@
                     {
                         "title": "Line With Time Axis",
                         "description": "Line charts represent each series as a separate line. They are useful to show change or trends over time, and are able to better present more data points than <a href='../simple-bar/'>bar</a> charts.",
-                        "name": "line-legend-pagination"
+                        "name": "line-with-time-axis"
                     },
                     {
                         "title": "Line With Large Data",
