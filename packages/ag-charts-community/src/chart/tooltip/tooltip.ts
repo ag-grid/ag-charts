@@ -26,8 +26,6 @@ const defaultTooltipCss = `
     z-index: 99999;
     font: 12px Verdana, sans-serif;
     color: rgb(70, 70, 70);
-    background: white;
-    border-radius: 2px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
 }
 
@@ -45,25 +43,28 @@ const defaultTooltipCss = `
 }
 
 .${DEFAULT_TOOLTIP_CLASS}-title {
+    position: relative;
     padding: 8px 14px;
     border-top-left-radius: 2px;
     border-top-right-radius: 2px;
     color: white;
     background-color: #888888;
+    z-index: 1;
+}
+
+.${DEFAULT_TOOLTIP_CLASS}-title:only-child {
+    border-bottom-left-radius: 2px;
+    border-bottom-right-radius: 2px;
 }
 
 .${DEFAULT_TOOLTIP_CLASS}-content {
     padding: 6px 14px;
     line-height: 1.7em;
+    background: white;
     border-bottom-left-radius: 2px;
     border-bottom-right-radius: 2px;
     border: 1px solid rgba(0, 0, 0, 0.15);
     overflow: hidden;
-}
-
-.${DEFAULT_TOOLTIP_CLASS}-content:empty {
-    padding: 0;
-    height: 7px;
 }
 
 .${DEFAULT_TOOLTIP_CLASS}-arrow::before {
@@ -152,7 +153,9 @@ export function toTooltipHtml(input: string | AgTooltipRendererResult, defaults?
         style="color: ${color}; background-color: ${backgroundColor}">${title}</div>`
         : '';
 
-    return `${titleHtml}<div class="${DEFAULT_TOOLTIP_CLASS}-content">${content}</div>`;
+    const contentHtml = content ? `<div class="${DEFAULT_TOOLTIP_CLASS}-content">${content}</div>` : '';
+
+    return `${titleHtml}${contentHtml}`;
 }
 
 const POSITION_TYPES = ['pointer', 'node'];
