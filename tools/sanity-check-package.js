@@ -3,16 +3,14 @@ const path = require('path');
 
 const dir = process.argv[2];
 if (!fs.readdirSync(dir)) {
-    console.error('Can\'t find direction: ' + dir);
+    console.error("Can't find direction: " + dir);
     process.exit(1);
-    return;
 }
 
 const packageJsonFile = fs.readFileSync(path.join(dir, 'package.json'));
 if (!packageJsonFile) {
-    console.error('Can\'t find package.json: ' + dir);
+    console.error("Can't find package.json: " + dir);
     process.exit(1);
-    return;
 }
 
 const packageJson = JSON.parse(packageJsonFile.toString());
@@ -25,12 +23,12 @@ function check(type, field, filename) {
         exitStatus = 1;
     }
 
-    if (type === 'cjs' && (!filename.endsWith('.cjs.js') && !filename.endsWith('.cjs'))) {
+    if (type === 'cjs' && !filename.endsWith('.cjs.js') && !filename.endsWith('.cjs')) {
         console.warn(`Field '${field}' has reference to non CJS file: ${filename}`);
         exitStatus = 1;
     }
 
-    if (type === 'esm' && (!filename.endsWith('.esm.js') && !filename.endsWith('.mjs'))) {
+    if (type === 'esm' && !filename.endsWith('.esm.js') && !filename.endsWith('.mjs')) {
         console.warn(`Field '${field}' has reference to non ESM file: ${filename}`);
         exitStatus = 1;
     }
@@ -39,14 +37,13 @@ function check(type, field, filename) {
         console.warn(`Field '${field}' has invalid file reference: ${filename}`);
         exitStatus = 1;
     }
-
 }
 
 const exportMap = {
-    'require': 'cjs',
-    'import': 'esm',
-    'default': 'cjs',
-    'types': 'types',
+    require: 'cjs',
+    import: 'esm',
+    default: 'cjs',
+    types: 'types',
 };
 
 function checkExports(exports) {
