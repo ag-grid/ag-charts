@@ -45,7 +45,7 @@ const options: AgPolarChartOptions = {
         {
             ...sharedSeriesOptions,
             data: getData2022(),
-            innerRadiusRatio: 0.6,
+            innerRadiusRatio: 0.7,
             title: {
                 text: 'September 2022',
             },
