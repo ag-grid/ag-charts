@@ -17,7 +17,7 @@
         { "seriesExampleName": "simple-radial-column" },
         { "seriesExampleName": "stacked-radial-bar" },
         { "seriesExampleName": "simple-sunburst" },
-        { "seriesExampleName": "treemap-with-color-range "}
+        { "seriesExampleName": "treemap-with-color-range" }
     ],
     "series": [
         [
