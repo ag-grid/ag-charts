@@ -9,7 +9,7 @@ const options: AgChartOptions = {
         text: 'Changes in Prison Population',
     },
     footnote: {
-        text: 'Source: Ministry of Justice, HM Prison Service, and Her Majesty’s Prison and Probation Service',
+        text: 'Source: Ministry of Justice, HM Prison Service, and HM’s Prison and Probation Service',
     },
     series: [
         {
