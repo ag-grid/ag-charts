@@ -15,33 +15,42 @@ if (!packageJsonFile) {
 
 const packageJson = JSON.parse(packageJsonFile.toString());
 
-function check(type, field, filename) {
-    if (!(typeof filename === 'string')) return;
+let exitStatus = 0;
 
+async function check(type, field, filename) {
+    if (!(typeof filename === 'string')) return;
+    const fullFilename = path.join(dir, filename);
+
+    let success = true;
     if (type === 'types' && !filename.endsWith('.d.ts')) {
-        console.warn(`Field '${field}' has reference to non '.d.ts' file.`);
-        exitStatus = 1;
+        console.warn(`[${packageJson.name}] ${filename}: Field '${field}' has reference to non '.d.ts' file.`);
+        success = false;
     }
 
     if (type === 'cjs' && !filename.endsWith('.cjs.js') && !filename.endsWith('.cjs')) {
-        console.warn(`Field '${field}' has reference to non CJS file: ${filename}`);
-        exitStatus = 1;
+        console.warn(`[${packageJson.name}] ${filename}: Field '${field}' has reference to non CJS file: ${filename}`);
+        success = false;
     }
 
     if (type === 'esm' && !filename.endsWith('.esm.js') && !filename.endsWith('.mjs')) {
-        console.warn(`Field '${field}' has reference to non ESM file: ${filename}`);
-        exitStatus = 1;
+        console.warn(`[${packageJson.name}] ${filename}: Field '${field}' has reference to non ESM file: ${filename}`);
+        success = false;
     }
 
     if (!fs.existsSync(path.join(dir, filename))) {
-        console.warn(`Field '${field}' has invalid file reference: ${filename}`);
+        console.warn(`[${packageJson.name}] ${filename}: Field '${field}' has invalid file reference: ${filename}`);
+        success = false;
+    }
+    if (success) {
+        console.log(`[${packageJson.name}] ${filename} check success.`);
+    } else {
         exitStatus = 1;
     }
 }
 
 function checkOneExists(...filenames) {
     if (!filenames.some((f) => fs.existsSync(path.join(dir, f)))) {
-        console.warn(`Didn't find any files with name(s): ${filenames.join(' / ')}`);
+        console.warn(`[${packageJson.name}]: Didn't find any files with name(s): ${filenames.join(' / ')}`);
         exitStatus = 1;
     }
 }
@@ -53,41 +62,44 @@ const exportMap = {
     types: 'types',
 };
 
-function checkExports(exports) {
+async function checkExports(exports) {
     for (const key in exports) {
         if (typeof exports[key] === 'object') {
-            checkExports(exports[key]);
+            await checkExports(exports[key]);
             continue;
         }
 
         const type = exportMap[key] ?? 'unknown';
-        check(type, key, exports[key]);
+        await check(type, key, exports[key]);
     }
 }
 
-let exitStatus = 0;
-for (const field in ['types', 'typing']) {
+async function run() {
+    for (const field of ['types', 'typing']) {
     const filename = packageJson[field];
-    check('types', field, filename);
+        await check('types', field, filename);
 }
-for (const field in ['main']) {
+    for (const field of ['main']) {
     const filename = packageJson[field];
-    check('cjs', field, filename);
+        await check('cjs', field, filename);
 }
-for (const field in ['module']) {
+    for (const field of ['module']) {
     const filename = packageJson[field];
-    check('esm', field, filename);
+        await check('esm', field, filename);
 }
 
 if (packageJson.exports != null) {
-    checkExports(packageJson.exports);
+        await checkExports(packageJson.exports);
 }
 
 checkOneExists('README.md');
 checkOneExists('LICENSE.txt', 'LICENSE.html');
 
 if (exitStatus === 0) {
-    console.log(`No problems found with package in ${dir}`);
+        console.log(`[${packageJson.name}]: No problems found with package in ${dir}`);
+    }
 }
 
-process.exit(exitStatus);
+run()
+    .then(() => process.exit(exitStatus))
+    .catch(() => process.exit(1));
