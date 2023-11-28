@@ -37,7 +37,11 @@ export interface AgBarSeriesTooltipRendererParams<TDatum = any>
 }
 
 export interface AgBarSeriesThemeableOptions<TDatum = any> extends AgBarSeriesStyle, AgBaseSeriesThemeableOptions {
-    /** Bar rendering direction. NOTE: This option affects the layout direction of X and Y data values. */
+    /**
+     * Bar rendering direction.
+     *
+     * NOTE: This option affects the layout direction of X and Y data values.
+     */
     direction?: 'horizontal' | 'vertical';
     /** Configuration for the shadow used behind the chart series. */
     shadow?: AgDropShadowOptions;
