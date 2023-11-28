@@ -412,7 +412,11 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         const content = sanitizeHtml(xString + ': ' + yString);
 
         const baseStyle = mergeDefaults({ fill: marker.stroke }, marker.getStyle(), { strokeWidth: this.strokeWidth });
-        const { fill: color } = this.getMarkerStyle(marker, { datum, xKey, yKey, highlighted: false }, baseStyle);
+        const { fill: color } = this.getMarkerStyle(
+            marker,
+            { datum: nodeDatum, xKey, yKey, highlighted: false },
+            baseStyle
+        );
 
         return tooltip.toTooltipHtml(
             { title, content, backgroundColor: color },
