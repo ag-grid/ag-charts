@@ -13,7 +13,7 @@
         "breakingChangesNotes": null,
         "documentationUrl": null
     },
-  {
+    {
         "key": "AG-9592",
         "issueType": "Bug",
         "componentsByName": ["Grid"],
