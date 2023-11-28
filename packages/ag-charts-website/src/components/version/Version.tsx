@@ -26,15 +26,13 @@ export const Version = ({ date, version, blogUrl, highlights }: VersionProps) =>
                     <div className={styles.flex}>
                         <b className={styles['font-size-large']}>Version {version}</b>
                         <a className={styles.bloglink} href={blogHref}>
-                            What's new →
+                            Read more →
                         </a>
                     </div>
                     <span className={styles.line}></span>
                 </header>
 
-                <p className={styles['font-size-small']}>
-                    {isMajor ? 'Major' : 'Minor'} release with new features and bug fixes.
-                </p>
+                <p className={styles['font-size-small']}>Feature Highlights</p>
 
                 {highlights && highlights.length > 0 && (
                     <ul className={styles['list-style-none']}>

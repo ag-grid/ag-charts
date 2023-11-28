@@ -32,8 +32,6 @@
             position: sticky;
             top: $top-bar-height;
             height: calc(100vh - #{$top-bar-height}) !important;
-            overflow-x: hidden !important;
-            overflow-y: auto !important;
         }
     }
 }
@@ -74,9 +72,8 @@
 }
 
 .enterpriseIcon {
-    --text-color: red;
-    --button-text-color: red;
-
+    --text-color: #dc3545;
+    --button-text-color: #dc3545;
     position: relative;
     margin-left: $size-half;
     color: transparent;

@@ -8,8 +8,7 @@ import { Header } from '@features/docs/components/Header';
 import { getFrameworkDisplayText } from '@utils/framework';
 import type { Framework } from '@ag-grid-types';
 import { getDocsPages } from '@features/docs/utils/pageData';
-import { Version } from "../components/version/Version";
-
+import { Version } from '../components/version/Version';
 
 export async function getStaticPaths() {
     const pages = await getCollection('docs');
@@ -24,34 +23,27 @@ const menuEntry = await getEntry('menu', 'data');
 const versionsContent = await getEntry('versions', 'data');
 const versionsData: any[] = versionsContent ? versionsContent.data : [];
 const framework = getFrameworkFromInternalFramework($internalFramework.get());
-
 ---
 
-<Layout title={'What\'s new'} showTopBar={true} showSearchBar={true}>
+<Layout title={"What's new"} showTopBar={true} showSearchBar={true}>
     <div class={'contentViewport'}>
-        <PagesNavigation
-            client:load
-            menuData={menuEntry.data}
-            pageName={'whats-new'}
-            framework={framework}
-        />
+        <PagesNavigation client:load menuData={menuEntry.data} pageName={'whats-new'} framework={framework} />
 
-        <div
-            id="doc-content"
-            class="docPage"
-        >
+        <div id="doc-content" class="docPage">
             <div class="pageSections">
-                <h1>What's new in AG Charts</h1>
-                <p>See what's been updated in our latest version</p>
+                <h1>What's New in AG Charts</h1>
+                <p>See what's new in recent AG Charts versions.</p>
                 <div class={'versions'}>
-                    {versionsData.map((versionInfo, index) => (
-                        <Version
-                            key={index}
-                            version={versionInfo.version}
-                            date={versionInfo.date}
-                            highlights={versionInfo.highlights}
-                        />
-                    ))}
+                    {
+                        versionsData.map((versionInfo, index) => (
+                            <Version
+                                key={index}
+                                version={versionInfo.version}
+                                date={versionInfo.date}
+                                highlights={versionInfo.highlights}
+                            />
+                        ))
+                    }
                 </div>
             </div>
         </div>
