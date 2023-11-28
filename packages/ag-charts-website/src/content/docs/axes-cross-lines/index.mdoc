@@ -77,34 +77,35 @@ Cross Lines are also available for Polar Axes. These have the same configuration
 
 ```js
 axes: [
-{
-    type: 'angle-category',
-    shape: 'circle',
-    crossLines: [{
-        type: 'range',
-        range: ['Technical Skills', 'Communication'],
-        label: {
-            text: 'Valuable Skills',
-        },
-    }],
-},
-{
-    type: 'radius-number',
-    shape: 'circle',
-    crossLines: [
-        {
-            type: 'line',
-            stroke: 'red',
-            value: 6,
-            label: {
-                text: 'Minimal\nRequirement',
-                positionAngle: 180,
+    {
+        type: 'angle-category',
+        shape: 'circle',
+        crossLines: [
+            {
+                type: 'range',
+                range: ['Technical Skills', 'Communication'],
+                label: {
+                    text: 'Valuable Skills',
+                },
+            }
+        ],
+    },
+    {
+        type: 'radius-number',
+        shape: 'circle',
+        crossLines: [
+            {
+                type: 'line',
+                stroke: 'red',
+                value: 6,
+                label: {
+                    text: 'Minimal\nRequirement',
+                    positionAngle: 180,
+                },
             },
-        },
-
-    ],
-},
-],
+        ],
+    },
+];
 ```
 
 ## API Reference
