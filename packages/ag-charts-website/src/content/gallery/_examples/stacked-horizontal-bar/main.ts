@@ -110,7 +110,7 @@ const options: AgChartOptions = {
         },
         {
             type: 'number',
-            position: 'top',
+            position: 'bottom',
             nice: false,
             min: -40,
             max: 60,
@@ -132,7 +132,7 @@ const options: AgChartOptions = {
                     fillOpacity: 0,
                     label: {
                         text: 'L O S S E S',
-                        position: 'insideBottom', //?? something is off with layout
+                        position: 'top',
                     },
                 },
                 {
@@ -142,7 +142,7 @@ const options: AgChartOptions = {
                     fillOpacity: 0,
                     label: {
                         text: 'W I N S',
-                        position: 'insideBottom', //?? something is off with label positioning
+                        position: 'top',
                     },
                 },
             ],
