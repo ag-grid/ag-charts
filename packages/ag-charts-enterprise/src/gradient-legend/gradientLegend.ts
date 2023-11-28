@@ -54,7 +54,10 @@ class GradientLegendStop {
 }
 
 class GradientBar {
+    @Validate(NUMBER(0))
     thickness = 16;
+
+    @Validate(NUMBER(0))
     preferredLength = 100;
 }
 
