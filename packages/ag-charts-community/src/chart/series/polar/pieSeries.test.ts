@@ -56,7 +56,7 @@ describe('Doughnut', () => {
     prepareTestOptions(options);
 
     test('multiple', async () => {
-        chart = AgCharts.create( {
+        chart = AgCharts.create({
             ...options,
             series: [
                 {
