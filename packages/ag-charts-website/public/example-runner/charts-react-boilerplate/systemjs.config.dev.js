@@ -54,6 +54,7 @@
         meta: {
             '*.jsx': {
                 babelOptions: {
+                    es2015: false,
                     react: true,
                 },
             },
