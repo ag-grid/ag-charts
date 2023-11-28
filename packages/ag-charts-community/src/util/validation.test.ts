@@ -55,7 +55,21 @@ describe('validation module', () => {
             it('should not set TestValidate.num to null with warning', () => {
                 (test as any).num = null;
 
-                expect(console.warn).toHaveBeenCalledWith(expect.stringMatching(/cannot be set to/));
+                expect(console.warn).toHaveBeenCalledWith(expect.stringMatching(/cannot be set to \[null\]/));
+                expect(test.num).toBe(undefined);
+            });
+
+            it('should not set TestValidate.num to Infinity with warning', () => {
+                (test as any).num = Infinity;
+
+                expect(console.warn).toHaveBeenCalledWith(expect.stringMatching(/cannot be set to \[Infinity\]/));
+                expect(test.num).toBe(undefined);
+            });
+
+            it('should not set TestValidate.num to NaN with warning', () => {
+                (test as any).num = NaN;
+
+                expect(console.warn).toHaveBeenCalledWith(expect.stringMatching(/cannot be set to \[NaN\]/));
                 expect(test.num).toBe(undefined);
             });
 
