@@ -38,6 +38,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         changeValue(newValue) {
             if (newValue) {
                 this.updateZoom(unitZoomState());
+                this.registerContextMenuActions();
             }
         },
     })
@@ -135,7 +136,9 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         this.scene.root?.appendChild(selectionRect);
         this.destroyFns.push(() => this.scene.root?.removeChild(selectionRect));
+    }
 
+    private registerContextMenuActions() {
         // Add context menu zoom actions
         ContextMenu.registerDefaultAction({
             id: CONTEXT_ZOOM_ACTION_ID,
@@ -147,7 +150,23 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             label: 'Pan to here',
             action: (params) => this.onContextMenuPanToHere(params),
         });
-        ContextMenu.disableAction(CONTEXT_PAN_ACTION_ID);
+
+        const zoom = definedZoomState(this.zoomManager.getZoom());
+        this.toggleContextMenuActions(zoom);
+    }
+
+    private toggleContextMenuActions(zoom: DefinedZoomState) {
+        if (this.isMinZoom(zoom)) {
+            ContextMenu.disableAction(CONTEXT_ZOOM_ACTION_ID);
+        } else {
+            ContextMenu.enableAction(CONTEXT_ZOOM_ACTION_ID);
+        }
+
+        if (this.isMaxZoom(zoom)) {
+            ContextMenu.disableAction(CONTEXT_PAN_ACTION_ID);
+        } else {
+            ContextMenu.enableAction(CONTEXT_PAN_ACTION_ID);
+        }
     }
 
     private onDoubleClick(event: _ModuleSupport.InteractionEvent<'dblclick'>) {
@@ -456,17 +475,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             return;
         }
 
-        if (this.isMinZoom(zoom)) {
-            ContextMenu.disableAction(CONTEXT_ZOOM_ACTION_ID);
-        } else {
-            ContextMenu.enableAction(CONTEXT_ZOOM_ACTION_ID);
-        }
-
-        if (this.isMaxZoom(zoom)) {
-            ContextMenu.disableAction(CONTEXT_PAN_ACTION_ID);
-        } else {
-            ContextMenu.enableAction(CONTEXT_PAN_ACTION_ID);
-        }
+        this.toggleContextMenuActions(zoom);
 
         this.zoomManager.updateZoom(ZOOM_ID, zoom);
     }
