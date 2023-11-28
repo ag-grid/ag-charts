@@ -61,7 +61,7 @@ const options: AgChartOptions = {
                 enabled: false,
             },
             label: {
-                formatter: ({ value }) => `${(+value).toLocaleString()}`,
+                formatter: ({ value }) => Number(value).toLocaleString(),
             },
         },
     ],

@@ -2,8 +2,7 @@ import { AgBarSeriesTooltipRendererParams, AgChartOptions, AgCharts } from 'ag-c
 
 import { getData } from './data';
 
-type YKey = keyof Omit<(typeof data)[number], 'type'>;
-const data = getData();
+const data: any[] = getData();
 
 const tooltip = {
     renderer: ({ datum, xKey, yKey }: AgBarSeriesTooltipRendererParams) => ({
@@ -24,7 +23,7 @@ const options: AgChartOptions = {
                         formatter: ({ value }) => `${Math.abs(value)}`,
                     },
                     formatter: ({ datum, yKey }) => ({
-                        fillOpacity: getOpacity(Math.abs(datum[yKey]), yKey as YKey, 0.4, 1),
+                        fillOpacity: getOpacity(Math.abs(datum[yKey]), yKey, 0.4, 1),
                     }),
                 },
             },
@@ -153,13 +152,13 @@ const options: AgChartOptions = {
     },
 };
 
-function getOpacity(value: number, key: YKey, minOpacity: number, maxOpacity: number) {
+function getOpacity(value: number, key: string, minOpacity: number, maxOpacity: number) {
     const [min, max] = getDomain(key);
     let alpha = Math.round(((value - min) / (max - min)) * 10) / 10;
     return map(alpha, 0, 1, minOpacity, maxOpacity);
 }
 
-function getDomain(key: YKey) {
+function getDomain(key: string) {
     const min = Math.min(...data.map((d) => Math.abs(d[key])));
     const max = Math.max(...data.map((d) => Math.abs(d[key])));
     return [min, max];
