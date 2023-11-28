@@ -5,28 +5,25 @@ import { getData } from './data';
 const data = getData();
 const seasons = ['Spring', 'Summer', 'Autumn', 'Winter'];
 
-const rainDropFactory = () => {
-    class RainDrop extends Marker {
-        updatePath() {
-            const { x, y, path, size } = this;
+class RainDrop extends Marker {
+    updatePath() {
+        const { x, y, path, size } = this;
 
-            path.clear();
+        path.clear();
 
-            const halfSize = size / 2;
-            const quarterSize = size / 4;
-            const startX = x;
-            const startY = y - quarterSize;
+        const halfSize = size / 2;
+        const quarterSize = size / 4;
+        const startX = x;
+        const startY = y - quarterSize;
 
-            path.moveTo(startX, startY);
+        path.moveTo(startX, startY);
 
-            path.cubicCurveTo(startX, y, x - halfSize, y + halfSize, x, y + quarterSize + halfSize);
-            path.cubicCurveTo(x + halfSize, y + halfSize, x, y, startX, startY);
+        path.cubicCurveTo(startX, y, x - halfSize, y + halfSize, x, y + quarterSize + halfSize);
+        path.cubicCurveTo(x + halfSize, y + halfSize, x, y, startX, startY);
 
-            path.closePath();
-        }
+        path.closePath();
     }
-    return RainDrop;
-};
+}
 
 const tooltip = {
     renderer: ({ datum, xKey, yKey }: AgCartesianSeriesTooltipRendererParams) => {
@@ -58,7 +55,7 @@ const options: AgChartOptions = {
             marker: {
                 size: 3,
                 maxSize: 25,
-                shape: rainDropFactory(),
+                shape: RainDrop,
             },
             tooltip,
         },
