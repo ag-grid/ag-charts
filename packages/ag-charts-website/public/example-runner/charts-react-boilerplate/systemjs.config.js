@@ -54,6 +54,7 @@
             '*.jsx': {
                 babelOptions: {
                     react: true,
+                    es2015: false,
                 },
             },
             '*.css': { loader: 'css' },

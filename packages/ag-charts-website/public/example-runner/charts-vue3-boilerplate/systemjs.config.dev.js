@@ -52,9 +52,7 @@
         meta: {
             '*.js': {
                 babelOptions: {
-                    stage1: true,
-                    stage2: true,
-                    es2015: true,
+                    es2015: false,
                 },
             },
             '*.css': { loader: 'css' },
