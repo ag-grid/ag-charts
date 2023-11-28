@@ -1,12 +1,5 @@
 import type { InternalFramework } from '@ag-grid-types';
-import {
-    DEV_FILE_BASE_PATH,
-    SITE_BASE_URL,
-    agChartsAngularVersion,
-    agChartsReactVersion,
-    agChartsVersion,
-    agChartsVueVersion,
-} from '@constants';
+import { DEV_FILE_BASE_PATH, NPM_CDN, PUBLISHED_URLS, SITE_BASE_URL } from '@constants';
 import { isBuildServerBuild, isPreProductionBuild, isUsingPublishedPackages } from '@utils/pages';
 import { pathJoin } from '@utils/pathJoin';
 
@@ -53,17 +46,8 @@ const buildAndArchivesConfiguration: Configuration = {
     },
 };
 
-const NPM_CDN = 'https://cdn.jsdelivr.net/npm';
-
 const publishedConfiguration = {
-    chartMap: {
-        'ag-charts-react': `${NPM_CDN}/ag-charts-react@${agChartsReactVersion}/`,
-        'ag-charts-angular': `${NPM_CDN}/ag-charts-angular@${agChartsAngularVersion}/`,
-        'ag-charts-vue': `${NPM_CDN}/ag-charts-vue@${agChartsVueVersion}/`,
-        'ag-charts-vue3': `${NPM_CDN}/ag-charts-vue3@${agChartsVueVersion}/`,
-        'ag-charts-community': `${NPM_CDN}/ag-charts-community@${agChartsVersion}/dist/umd/ag-charts-community.js`,
-        'ag-charts-enterprise': `${NPM_CDN}/ag-charts-enterprise@${agChartsVersion}/dist/umd/ag-charts-enterprise.js`,
-    },
+    chartMap: PUBLISHED_URLS,
     chartPaths: {},
 };
 

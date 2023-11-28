@@ -27,6 +27,16 @@ export const agChartsReactVersion = import.meta.env?.PUBLIC_PACKAGE_VERSION ?? '
 export const agChartsAngularVersion = import.meta.env?.PUBLIC_PACKAGE_VERSION ?? 'unknown';
 export const agChartsVueVersion = import.meta.env?.PUBLIC_PACKAGE_VERSION ?? 'unknown';
 
+export const NPM_CDN = 'https://cdn.jsdelivr.net/npm';
+export const PUBLISHED_URLS = {
+    'ag-charts-react': `${NPM_CDN}/ag-charts-react@${agChartsReactVersion}/`,
+    'ag-charts-angular': `${NPM_CDN}/ag-charts-angular@${agChartsAngularVersion}/`,
+    'ag-charts-vue': `${NPM_CDN}/ag-charts-vue@${agChartsVueVersion}/`,
+    'ag-charts-vue3': `${NPM_CDN}/ag-charts-vue3@${agChartsVueVersion}/`,
+    'ag-charts-community': `${NPM_CDN}/ag-charts-community@${agChartsVersion}/dist/umd/ag-charts-community.js`,
+    'ag-charts-enterprise': `${NPM_CDN}/ag-charts-enterprise@${agChartsVersion}/dist/umd/ag-charts-enterprise.js`,
+};
+
 export const DOCS_TAB_ITEM_ID_PREFIX = 'reference-';
 
 /**
