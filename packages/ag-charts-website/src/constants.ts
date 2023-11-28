@@ -74,3 +74,8 @@ export const GRID_URL = SITE_URL
         ? 'https://build.ag-grid.com'
         : 'https://ag-grid.com'
     : undefined;
+
+/**
+ * Skip generating the gallery images, to speed up the build process
+ */
+export const SKIP_GALLERY_IMAGE_GENERATION = import.meta.env?.SKIP_GALLERY_IMAGE_GENERATION;
