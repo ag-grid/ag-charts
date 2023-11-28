@@ -30,6 +30,7 @@ type AxisLabelDatum = {
     rotation: number;
     rotationCenterX: number;
     translationY: number;
+    range: number[];
 };
 
 export function prepareAxisAnimationContext(axis: { range: number[] }): AxisAnimationContext {
@@ -54,21 +55,22 @@ function normaliseEndRotation(start: number, end: number) {
     return end - fullCircle;
 }
 
-type WithTranslationY = { translationY: number };
+type WithTranslationY = { translationY: number; range?: number[] };
 export function prepareAxisAnimationFunctions<T extends AxisNodeDatum>(ctx: AxisAnimationContext) {
-    const { min, max } = ctx;
-    const outOfBounds = (datum: { translationY: number }) => {
+    const outOfBounds = (datum: WithTranslationY) => {
+        const min = Math.min(...(datum.range ?? [ctx.min]));
+        const max = Math.max(...(datum.range ?? [ctx.max]));
         const translationY = Math.round(datum.translationY);
         return translationY < min || translationY > max;
     };
     const calculateStatus = (
         datum: WithTranslationY,
-        node: WithTranslationY,
+        nodeDatum: WithTranslationY,
         status: NodeUpdateState
     ): NodeUpdateState => {
         if (status !== 'removed' && outOfBounds(datum)) {
             return 'removed';
-        } else if (status !== 'added' && outOfBounds(node)) {
+        } else if (status !== 'added' && outOfBounds(nodeDatum)) {
             return 'added';
         }
         return status;
@@ -76,7 +78,7 @@ export function prepareAxisAnimationFunctions<T extends AxisNodeDatum>(ctx: Axis
     const fromBase = (node: Line | Text, datum: WithTranslationY, status: NodeUpdateState) => {
         // Default to starting at the same position that the node is currently in.
         const source = { translationY: Math.round(node.translationY), opacity: node.opacity };
-        status = calculateStatus(datum, node, status);
+        status = calculateStatus(datum, node.datum, status);
 
         if (status === 'added') {
             source.translationY = Math.round(datum.translationY);
@@ -114,7 +116,7 @@ export function prepareAxisAnimationFunctions<T extends AxisNodeDatum>(ctx: Axis
                 rotation,
                 rotationCenterX: datum.rotationCenterX,
             };
-        }) as FromToMotionPropFn<Text, Partial<AxisLabelDatum>, AxisLabelDatum>,
+        }) as FromToMotionPropFn<Text, Partial<Omit<AxisLabelDatum, 'range'>>, AxisLabelDatum>,
         toFn: ((node: Text, datum: AxisLabelDatum, status: NodeUpdateState) => {
             let rotation;
             if (status === 'added' || status === 'removed') {
@@ -130,7 +132,7 @@ export function prepareAxisAnimationFunctions<T extends AxisNodeDatum>(ctx: Axis
                 rotationCenterX: datum.rotationCenterX,
                 finish: { rotation: datum.rotation },
             };
-        }) as FromToMotionPropFn<Text, Partial<AxisLabelDatum>, AxisLabelDatum>,
+        }) as FromToMotionPropFn<Text, Partial<Omit<AxisLabelDatum, 'range'>>, AxisLabelDatum>,
     };
     const line = {
         fromFn: (node: Line, datum: AxisLineDatum) => {

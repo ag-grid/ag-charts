@@ -82,6 +82,7 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
             combinedRotation: number;
             textBaseline: CanvasTextBaseline;
             textAlign: CanvasTextAlign;
+            range: number[];
         }
     ) {
         super.updateSelections(lineData, data, params);

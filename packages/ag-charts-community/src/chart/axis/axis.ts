@@ -118,6 +118,7 @@ export type LabelNodeDatum = {
     x: number;
     y: number;
     translationY: number;
+    range: number[];
 };
 
 type TickData = { rawTicks: any[]; ticks: TickDatum[]; labelCount: number };
@@ -485,7 +486,12 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const lineData = this.getAxisLineCoordinates();
         const { tickData, combinedRotation, textBaseline, textAlign, ...ticksResult } = this.tickGenerationResult;
         const previousTicks = this.tickLabelGroupSelection.nodes().map((node) => node.datum.tickId);
-        this.updateSelections(lineData, tickData.ticks, { combinedRotation, textAlign, textBaseline });
+        this.updateSelections(lineData, tickData.ticks, {
+            combinedRotation,
+            textAlign,
+            textBaseline,
+            range: this.scale.range,
+        });
 
         if (this.animationManager.isSkipped()) {
             this.resetSelectionNodes();
@@ -533,10 +539,11 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             combinedRotation: number;
             textBaseline: CanvasTextBaseline;
             textAlign: CanvasTextAlign;
+            range: number[];
         }
     ): LabelNodeDatum {
         const { label } = this;
-        const { combinedRotation, textBaseline, textAlign } = params;
+        const { combinedRotation, textBaseline, textAlign, range } = params;
         const text = datum.tickLabel;
         const sideFlag = label.getSideFlag();
         const tickSize = this.tick.size;
@@ -558,6 +565,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             visible,
             x: labelX,
             y: 0,
+            range,
         };
     }
 
@@ -653,6 +661,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                     combinedRotation,
                     textAlign,
                     textBaseline,
+                    range: this.scale.range,
                 });
                 if (!labelProps.visible) {
                     return;
@@ -1272,6 +1281,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             combinedRotation: number;
             textBaseline: CanvasTextBaseline;
             textAlign: CanvasTextAlign;
+            range: number[];
         }
     ) {
         this.lineNode.datum = lineData;
@@ -1514,7 +1524,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             'line-paths',
             animationManager,
             [this.gridLineGroupSelection, this.tickLineGroupSelection],
-            fns.tick,
+            fns.tick as any,
             (_, d) => d.tickId,
             diff
         );
@@ -1523,7 +1533,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             'tick-labels',
             animationManager,
             [this.tickLabelGroupSelection],
-            fns.label,
+            fns.label as any,
             (_, d) => d.tickId,
             diff
         );
@@ -1535,7 +1545,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const selectionCtx = prepareAxisAnimationContext(this);
         resetMotion([this.axisGroup], resetAxisGroupFn());
         resetMotion([gridLineGroupSelection, tickLineGroupSelection], resetAxisSelectionFn(selectionCtx));
-        resetMotion([tickLabelGroupSelection], resetAxisLabelSelectionFn());
+        resetMotion([tickLabelGroupSelection], resetAxisLabelSelectionFn() as any);
         resetMotion([lineNode], resetAxisLineSelectionFn());
     }
 
