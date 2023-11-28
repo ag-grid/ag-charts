@@ -177,13 +177,13 @@ const options = ref({
 
 {% /if %}
 
-Let's breakdown whats happening here:
+Let's breakdown what's happening here:
 
 -   **Type:** The type of axis to use - one of [Category](./axes-types/#category), [Number](./axes-types/#number), [Time](./axes-types/#time) or [Log](./axes-types/#log).
 -   **Position:** The position on the chart where the axis should be rendered, e.g. 'top', 'bottom', 'right' or 'left'.
 -   **Keys:** Associates the axis with a given series, with the keys axis property linking the appropriate series to the axis.
 
-Now when we run our chart, we should see both series and two axes.
+Now when we run our chart, we should see both series and three axes.
 
 {% chartExampleRunner title="Second Series Example" name="second-series-example" type="generated" /%}
 
@@ -392,7 +392,7 @@ const options = {
             label: {
                 // Label value as a formatter function
                 formatter: (params) => {
-                    return params.value != 'NaN' ? params.value + ' °C' : '';
+                    return params.value + ' °C';
                 },
             },
         },
@@ -416,7 +416,7 @@ const [chartOptions, setChartOptions] = useState({
             label: {
                 // Label value as a formatter function
                 formatter: (params) => {
-                    return params.value != 'NaN' ? params.value + ' °C' : '';
+                    return params.value + ' °C';
                 },
             },
         },
@@ -440,7 +440,7 @@ this.chartOptions = {
             label: {
                 // Label value as a formatter function
                 formatter: (params) => {
-                    return params.value != 'NaN' ? params.value + ' °C' : '';
+                    return params.value + ' °C';
                 },
             },
         },
@@ -464,7 +464,7 @@ this.chartOptions = {
             label: {
                 // Label value as a formatter function
                 formatter: (params) => {
-                    return params.value != 'NaN' ? params.value + ' °C' : '';
+                    return params.value + ' °C';
                 },
             },
         },

@@ -79,7 +79,7 @@ const options: AgChartOptions = {
     ],
 };
 
-var chart = AgCharts.create(options);
+const chart = AgCharts.create(options);
 
 function updateFontSize(event: any) {
     var value = +event.target.value;

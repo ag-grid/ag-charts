@@ -36,7 +36,7 @@ exports[`transformPlainEntryFile > Adjust padding 1`] = `
     left: 20
   }
 };
-var chart = agCharts.AgCharts.create(options);"
+const chart = agCharts.AgCharts.create(options);"
 `;
 
 exports[`transformPlainEntryFile > Remove axes titles 1`] = `
@@ -90,7 +90,7 @@ exports[`transformPlainEntryFile > Remove axes titles 1`] = `
     left: 20
   }
 };
-var chart = agCharts.AgCharts.create(options);"
+const chart = agCharts.AgCharts.create(options);"
 `;
 
 exports[`transformPlainEntryFile > default entry file 1`] = `
@@ -127,7 +127,7 @@ exports[`transformPlainEntryFile > default entry file 1`] = `
     left: 20
   }
 };
-var chart = agCharts.AgCharts.create(options);"
+const chart = agCharts.AgCharts.create(options);"
 `;
 
 exports[`transformPlainEntryFile > disable legend 1`] = `
@@ -164,7 +164,7 @@ exports[`transformPlainEntryFile > disable legend 1`] = `
     left: 20
   }
 };
-var chart = agCharts.AgCharts.create(options);"
+const chart = agCharts.AgCharts.create(options);"
 `;
 
 exports[`transformPlainEntryFile > remove footnote 1`] = `
@@ -201,7 +201,7 @@ exports[`transformPlainEntryFile > remove footnote 1`] = `
     left: 20
   }
 };
-var chart = agCharts.AgCharts.create(options);"
+const chart = agCharts.AgCharts.create(options);"
 `;
 
 exports[`transformPlainEntryFile > remove subtitle 1`] = `
@@ -238,5 +238,5 @@ exports[`transformPlainEntryFile > remove subtitle 1`] = `
     left: 20
   }
 };
-var chart = agCharts.AgCharts.create(options);"
+const chart = agCharts.AgCharts.create(options);"
 `;

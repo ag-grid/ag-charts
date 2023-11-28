@@ -25,7 +25,7 @@ const options: AgChartOptions = {
     legend: { position: 'top' },
 };
 
-let chart = AgCharts.create(options);
+const chart = AgCharts.create(options);
 
 function download() {
     AgCharts.download(chart);

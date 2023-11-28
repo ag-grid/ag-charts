@@ -26,7 +26,7 @@ const options: AgChartOptions = {
     },
 };
 
-var chart = AgCharts.create(options);
+const chart = AgCharts.create(options);
 
 function updateLegendItemPaddingX(event: any) {
     var value = +event.target.value;

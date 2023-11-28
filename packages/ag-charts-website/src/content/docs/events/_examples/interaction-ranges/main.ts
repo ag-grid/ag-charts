@@ -48,7 +48,7 @@ let options: AgCartesianChartOptions = {
     ],
 };
 
-var chart = AgCharts.create(options);
+const chart = AgCharts.create(options);
 
 function exact() {
     if (!options.series) return;
