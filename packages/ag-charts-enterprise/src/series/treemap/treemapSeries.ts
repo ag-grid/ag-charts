@@ -862,6 +862,7 @@ export class TreemapSeries<
 
         const defaults: AgTooltipRendererResult = {
             title,
+            color: isLeaf ? this.tile.label.color : this.group.label.color,
             backgroundColor: color,
             content,
         };

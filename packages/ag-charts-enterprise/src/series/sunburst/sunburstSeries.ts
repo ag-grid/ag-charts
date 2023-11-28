@@ -586,6 +586,7 @@ export class SunburstSeries<
 
         const defaults: AgTooltipRendererResult = {
             title,
+            color: this.label.color,
             backgroundColor: color,
             content,
         };
