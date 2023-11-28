@@ -2,15 +2,6 @@ import { AgChartOptions, AgCharts, AgLineSeriesTooltipRendererParams } from 'ag-
 
 import { getData } from './data';
 
-const tooltip = {
-    renderer: ({ title, datum, xKey, yKey, xName, yName }: AgLineSeriesTooltipRendererParams) => ({
-        title,
-        content: `${xName} ${datum[xKey].toFixed(0)}: ${Math.floor(datum[yKey] / 60)}h ${Math.round(
-            datum[yKey] % 60
-        )}m`,
-    }),
-};
-
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -20,6 +11,14 @@ const options: AgChartOptions = {
                 series: {
                     marker: {
                         size: 5,
+                    },
+                    tooltip: {
+                        renderer: ({ title, datum, xKey, yKey, xName, yName }: AgLineSeriesTooltipRendererParams) => ({
+                            title,
+                            content: `${xName} ${datum[xKey].toFixed(0)}: ${Math.floor(datum[yKey] / 60)}h ${Math.round(
+                                datum[yKey] % 60
+                            )}m`,
+                        }),
                     },
                 },
             },
@@ -41,7 +40,6 @@ const options: AgChartOptions = {
             xName: 'Age',
             yKey: 'timeSpentAlone',
             yName: 'Alone',
-            tooltip,
         },
         {
             type: 'line',
@@ -49,7 +47,6 @@ const options: AgChartOptions = {
             xName: 'Age',
             yKey: 'timeSpentWithFriends',
             yName: 'With Friends',
-            tooltip,
         },
         {
             type: 'line',
@@ -57,7 +54,6 @@ const options: AgChartOptions = {
             xName: 'Age',
             yKey: 'timeSpentWithChildren',
             yName: 'With Children',
-            tooltip,
         },
         {
             type: 'line',
@@ -65,7 +61,6 @@ const options: AgChartOptions = {
             xName: 'Age',
             yKey: 'timeSpentWithFamily',
             yName: 'With Family',
-            tooltip,
         },
         {
             type: 'line',
@@ -73,7 +68,6 @@ const options: AgChartOptions = {
             xName: 'Age',
             yKey: 'timeSpentWithPartner',
             yName: 'With Partner',
-            tooltip,
         },
         {
             type: 'line',
@@ -81,7 +75,6 @@ const options: AgChartOptions = {
             xName: 'Age',
             yKey: 'timeSpentWithCoworkers',
             yName: 'With Coworkers',
-            tooltip,
         },
     ],
     axes: [

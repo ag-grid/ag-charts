@@ -8,12 +8,6 @@ import {
 import { getData } from './data';
 
 const numFormatter = new Intl.NumberFormat('en-US');
-const tooltip = {
-    renderer: ({ title, datum, xKey, yKey }: AgCartesianSeriesTooltipRendererParams): AgTooltipRendererResult => ({
-        title,
-        content: `${datum[xKey]}: ${numFormatter.format(datum[yKey])}`,
-    }),
-};
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
@@ -28,6 +22,17 @@ const options: AgChartOptions = {
                     label: {
                         enabled: true,
                         formatter: ({ value }) => `${numFormatter.format(value)}`,
+                    },
+                    tooltip: {
+                        renderer: ({
+                            title,
+                            datum,
+                            xKey,
+                            yKey,
+                        }: AgCartesianSeriesTooltipRendererParams): AgTooltipRendererResult => ({
+                            title,
+                            content: `${datum[xKey]}: ${numFormatter.format(datum[yKey])}`,
+                        }),
                     },
                 },
             },
@@ -51,7 +56,6 @@ const options: AgChartOptions = {
             yName: 'Early',
             stacked: true,
             normalizedTo: 100,
-            tooltip,
         },
         {
             type: 'bar',
@@ -60,7 +64,6 @@ const options: AgChartOptions = {
             yName: 'Morning peak',
             stacked: true,
             normalizedTo: 100,
-            tooltip,
         },
         {
             type: 'bar',
@@ -69,7 +72,6 @@ const options: AgChartOptions = {
             yName: 'Between peak',
             stacked: true,
             normalizedTo: 100,
-            tooltip,
         },
         {
             type: 'bar',
@@ -78,7 +80,6 @@ const options: AgChartOptions = {
             yName: 'Afternoon peak',
             stacked: true,
             normalizedTo: 100,
-            tooltip,
         },
         {
             type: 'bar',
@@ -87,7 +88,6 @@ const options: AgChartOptions = {
             yName: 'Evening',
             stacked: true,
             normalizedTo: 100,
-            tooltip,
         },
     ],
     axes: [

@@ -2,14 +2,6 @@ import { AgCartesianSeriesTooltipRendererParams, AgChartOptions, AgCharts } from
 
 import { getData } from './data';
 
-const tooltip = {
-    renderer: ({ datum, xKey, yKey }: AgCartesianSeriesTooltipRendererParams) => {
-        return {
-            content: `${datum[xKey]}: $${Math.round(datum[yKey] / 1000000)}M`,
-        };
-    },
-};
-
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -24,6 +16,13 @@ const options: AgChartOptions = {
             area: {
                 series: {
                     strokeWidth: 2,
+                    tooltip: {
+                        renderer: ({ datum, xKey, yKey }: AgCartesianSeriesTooltipRendererParams) => {
+                            return {
+                                content: `${datum[xKey]}: $${Math.round(datum[yKey] / 1000000)}M`,
+                            };
+                        },
+                    },
                 },
             },
         },
@@ -34,14 +33,12 @@ const options: AgChartOptions = {
             xKey: 'industry',
             yKey: 'targetRevenue',
             yName: 'Target',
-            tooltip,
         },
         {
             type: 'area',
             xKey: 'industry',
             yKey: 'actualRevenue',
             yName: 'Actual',
-            tooltip,
             marker: {
                 shape: 'circle',
                 formatter: ({ datum, xKey }) => {

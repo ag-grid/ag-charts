@@ -4,12 +4,6 @@ import { getData } from './data';
 
 const data: any[] = getData();
 
-const tooltip = {
-    renderer: ({ datum, xKey, yKey }: AgBarSeriesTooltipRendererParams) => ({
-        content: `${datum[xKey]}: ${Math.abs(datum[yKey])}`,
-    }),
-};
-
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     theme: {
@@ -25,6 +19,11 @@ const options: AgChartOptions = {
                     formatter: ({ datum, yKey }) => ({
                         fillOpacity: getOpacity(Math.abs(datum[yKey]), yKey, 0.4, 1),
                     }),
+                    tooltip: {
+                        renderer: ({ datum, xKey, yKey }: AgBarSeriesTooltipRendererParams) => ({
+                            content: `${datum[xKey]}: ${Math.abs(datum[yKey])}`,
+                        }),
+                    },
                 },
             },
         },
@@ -45,7 +44,6 @@ const options: AgChartOptions = {
             yKey: 'crWon',
             yName: 'Cristiano Ronaldo - Games Won',
             stacked: true,
-            tooltip,
         },
         {
             type: 'bar',
@@ -54,7 +52,6 @@ const options: AgChartOptions = {
             yKey: 'lmWon',
             yName: 'Lionel Messi - Games Won',
             stacked: true,
-            tooltip,
         },
         {
             type: 'bar',
@@ -63,7 +60,6 @@ const options: AgChartOptions = {
             yKey: 'kbWon',
             yName: 'Karim Benzema - Games Won',
             stacked: true,
-            tooltip,
         },
         {
             type: 'bar',
@@ -72,7 +68,6 @@ const options: AgChartOptions = {
             yKey: 'crLost',
             yName: 'Cristiano Ronaldo - Games Lost',
             stacked: true,
-            tooltip,
         },
         {
             type: 'bar',
@@ -81,7 +76,6 @@ const options: AgChartOptions = {
             yKey: 'lmLost',
             yName: 'Lionel Messi - Games Lost',
             stacked: true,
-            tooltip,
         },
         {
             type: 'bar',
@@ -90,7 +84,6 @@ const options: AgChartOptions = {
             yKey: 'kbLost',
             yName: 'Karim Benzema - Games Lost',
             stacked: true,
-            tooltip,
         },
     ],
     axes: [
