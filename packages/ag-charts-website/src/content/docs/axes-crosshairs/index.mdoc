@@ -26,7 +26,7 @@ axes: [
 
 {% chartExampleRunner title="Enabling Crosshairs" name="enabling-crosshairs" type="generated" /%}
 
-## Crosshair Snap
+## Snap
 
 By default, the crosshair will snap to the position of the highlighted node.
 
@@ -46,7 +46,7 @@ axes: [
 
 {% chartExampleRunner title="Crosshair Snap False" name="crosshair-snap" type="generated" /%}
 
-## Crosshair Styles
+## Styles
 
 Crosshair styles such as `stroke`, `strokeWidth` and `lineDash` are customisable via `AgCrosshairOptions`.
 
@@ -60,7 +60,7 @@ crosshair: {
 
 {% chartExampleRunner title="Crosshair Styles" name="crosshair-styles" type="generated" /%}
 
-## Crosshair Label
+## Label
 
 The crosshair label will be displayed along the axis by default. The label can be removed via the crosshair `label` option as shown in the code snippet below:
 
@@ -72,7 +72,7 @@ crosshair: {
 },
 ```
 
-## Crosshair Label Position
+### Label Position
 
 The label position relative to the crosshair can be modified using the `xOffset` and `yOffset` properties in `crosshair.label` options as shown below:
 
@@ -87,7 +87,7 @@ crosshair: {
 
 {% chartExampleRunner title="Crosshair Label Offset" name="crosshair-label-offset" type="generated" /%}
 
-## Crosshair Label Format
+### Label Format
 
 The `crosshair.label.format` property can be used to format the crosshair label.
 
@@ -101,9 +101,7 @@ Notice how when you click on one of the buttons in the example to change the pro
 
 {% chartExampleRunner title="Crosshair Label Format" name="crosshair-label-format" type="generated" /%}
 
-## Crosshair Label Renderer
-
-### Default Label
+### Default Label Renderer
 
 The default crosshair label is customisable using the crosshair label `renderer` option as shown below:
 
@@ -157,9 +155,9 @@ This is shown in the example below. Note that:
 
 {% chartExampleRunner title="Crosshair Default Label With Custom CSS" name="crosshair-default-label-custom-css" type="generated" /%}
 
-### Custom Label
+### Custom Label Renderer
 
-Alternatively, the `renderer` function could return a `string` representing HTML content, which can be used to provide a completely custom label:
+A completely custom label can be provided by using the `renderer` function to return a `string` representing HTML content:
 
 ```js
 const labelRenderer = ({ value, fractionDigits }) => {
