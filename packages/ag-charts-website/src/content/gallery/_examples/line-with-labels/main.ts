@@ -36,19 +36,16 @@ const options: AgChartOptions = {
     axes: [
         {
             position: 'bottom',
-            type: 'number',
-            tick: {
-                enabled: false,
-            },
+            type: 'category',
             label: {
                 enabled: false,
             },
-            gridLine: {
+            line: {
                 enabled: false,
             },
-            nice: false,
-            min: 2011.5,
-            max: 2022.5,
+            crosshair: {
+                enabled: true,
+            },
         },
         {
             position: 'left',
@@ -83,6 +80,13 @@ const options: AgChartOptions = {
                     },
                 },
             ],
+            crosshair: {
+                label: {
+                    renderer: ({ value }) => ({
+                        text: formatTime(value),
+                    }),
+                },
+            },
         },
     ],
     seriesArea: {
