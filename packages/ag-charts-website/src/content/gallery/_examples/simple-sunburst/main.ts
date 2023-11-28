@@ -15,7 +15,7 @@ const options: AgChartOptions = {
             },
             secondaryLabel: {
                 minimumFontSize: 5,
-                formatter: ({ value }) => (value != null ? `${value?.toFixed(0)} MW` : undefined),
+                formatter: ({ value }) => (value != null ? `${value.toFixed(0)} MW` : undefined),
             },
         },
     ],

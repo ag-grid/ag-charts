@@ -12,11 +12,11 @@ const options: AgChartOptions = {
             secondaryLabelKey: 'size',
             sizeKey: 'size',
             secondaryLabel: {
-                formatter: ({ value }) => (value != null ? `${value?.toFixed(0)} kb` : undefined),
+                formatter: ({ value }) => (value != null ? `${value.toFixed(0)} kb` : undefined),
             },
             tooltip: {
                 renderer: ({ datum }) => ({
-                    content: datum.size != null ? `Size: ${datum.size?.toFixed(0)} kb` : undefined,
+                    content: datum.size != null ? `Size: ${datum.size.toFixed(0)} kb` : undefined,
                 }),
             },
         },
