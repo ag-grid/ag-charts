@@ -5,6 +5,7 @@ tools
 .npmignore
 .prettierignore
 .swcrc
+.dependency-cruiser.js
 jest.*
 tsconfig.*
 project.json
