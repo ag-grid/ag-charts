@@ -1,4 +1,5 @@
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
+import type { Ratio } from '../../chart/types';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 import type { AgBarSeriesStyle } from './barOptions';
 import type { LineDashOptions, StrokeOptions } from './commonOptions';
@@ -22,7 +23,7 @@ export interface AgBulletSeriesStyle extends AgBarSeriesStyle {}
 
 export interface AgBulletSeriesTargetStyle extends StrokeOptions, LineDashOptions {
     /* Length of target line relative to the width/height of the series area. */
-    lengthRatio?: number;
+    lengthRatio?: Ratio;
 }
 
 export interface AgBulletScaleOptions {
@@ -32,7 +33,7 @@ export interface AgBulletScaleOptions {
 
 export interface AgBulletSeriesThemeableOptions extends AgBulletSeriesStyle, AgBaseSeriesThemeableOptions {
     /** Width of the bar relative to the width/height of the series area. */
-    widthRatio?: number;
+    widthRatio?: Ratio;
     /** Styling options for the target node. */
     target?: AgBulletSeriesTargetStyle;
 }

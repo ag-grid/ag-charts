@@ -357,8 +357,9 @@ export function formatNode(node: ts.Node) {
             return output;
 
         default:
-            // data structure used for locating and debugging undefined node kinds
-            return { _unknown: ts.SyntaxKind[node.kind], _output: printNode(node) };
+            // data structure used for locating and debugging undefined node kinds - uncomment when needed
+            // return { _unknown: ts.SyntaxKind[node.kind], _output: printNode(node) };
+            throw Error(`Unknown node kind "${ts.SyntaxKind[node.kind]}"\n${printNode(node)}`);
     }
 }
 
