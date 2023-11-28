@@ -386,7 +386,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                     barAlongX,
                     yLowValue,
                     yHighValue,
-                    datum,
+                    datum: datum[datumIndex],
                     series: this,
                 });
 
