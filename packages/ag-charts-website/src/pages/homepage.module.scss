@@ -329,13 +329,11 @@
     padding-top: $size-7;
     padding-bottom: $size-8;
 
-    border-top: 1px solid transparent;
     border-bottom: 1px solid transparent;
 
     #{$darkmode-selector} & {
         padding-top: $size-8;
         background-color: var(--default-background-color);
-        border-top-color: #394755;
         border-bottom-color: #394755;
     }
 }
@@ -364,6 +362,20 @@
 
         div {
             text-align: left;
+        }
+    }
+
+    .videoDark {
+        display: none;
+    }
+
+    #{$darkmode-selector} & {
+        .videoLight {
+            display: none;
+        }
+
+        .videoDark {
+            display: inline-block;
         }
     }
 }

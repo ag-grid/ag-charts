@@ -83,7 +83,8 @@ const isEnterprise = true;
 
     <div class={styles.homepageBenefits}>
         <div class:list={[styles.benefitsInner, 'page-margin']}>
-            <video src="videos/chart-features.mp4" muted autoplay loop></video>
+            <video class={styles.videoLight} src="videos/chart-features-light.mp4" muted autoplay loop></video>
+            <video class={styles.videoDark} src="videos/chart-features-dark.mp4" muted autoplay loop></video>
             <div class={styles.benefitsCopy}>
                 <h2>Charts Charts Charts</h2>
                 <p class="font-size-large">
@@ -105,9 +106,10 @@ const isEnterprise = true;
                 </div>
                 <!-- Dummy copy, to be reviewed -->
                 <p class="font-size-large">
-                    See how <a href="https://ag-grid.com/"><b>AG Grid</b></a> uses <b>AG Charts</b> to provide a seamless
+                    See how <a href="https://ag-grid.com/"><b>AG Grid</b></a> uses <b>AG Charts</b> to provide a
+                    seamless
                     <a href="https://ag-grid.com/javascript-data-grid/integrated-charts/">Integrated Charting</a>
-                    experience from within the grid.
+                     experience from within the grid.
                 </p>
             </div>
             <div class={styles.gridExample}>
