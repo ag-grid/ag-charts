@@ -1,5 +1,8 @@
 const fs = require('fs');
 const path = require('path');
+const tsNode = require('ts-node');
+
+tsNode.register();
 
 const dir = process.argv[2];
 if (!fs.readdirSync(dir)) {
@@ -27,9 +30,16 @@ async function check(type, field, filename) {
         success = false;
     }
 
-    if (type === 'cjs' && !filename.endsWith('.cjs.js') && !filename.endsWith('.cjs')) {
-        console.warn(`[${packageJson.name}] ${filename}: Field '${field}' has reference to non CJS file: ${filename}`);
-        success = false;
+    if (type === 'cjs') {
+        if (
+            (!filename.endsWith('.cjs') && !filename.endsWith('.cjs.js') && !filename.endsWith('.js')) ||
+            filename.includes('.esm')
+        ) {
+            console.warn(
+                `[${packageJson.name}] ${filename}: Field '${field}' has reference to non CJS file: ${filename}`
+            );
+            success = false;
+        }
     }
 
     if (type === 'esm' && !filename.endsWith('.esm.js') && !filename.endsWith('.mjs')) {
@@ -41,6 +51,20 @@ async function check(type, field, filename) {
         console.warn(`[${packageJson.name}] ${filename}: Field '${field}' has invalid file reference: ${filename}`);
         success = false;
     }
+
+    // try {
+    //     if (type === 'esm') {
+    //         const tmp = await import('../' + fullFilename);
+    //     } else if (type === 'cjs') {
+    //         require('../' + fullFilename);
+    //     } else if (type === 'types') {
+    //         const tmp = await import('../' + fullFilename);
+    //     }
+    // } catch (e) {
+    //     console.warn(`[${packageJson.name}] ${filename} check failure`, e);
+    //     success = false;
+    // }
+
     if (success) {
         console.log(`[${packageJson.name}] ${filename} check success.`);
     } else {
@@ -76,26 +100,26 @@ async function checkExports(exports) {
 
 async function run() {
     for (const field of ['types', 'typing']) {
-    const filename = packageJson[field];
+        const filename = packageJson[field];
         await check('types', field, filename);
-}
+    }
     for (const field of ['main']) {
-    const filename = packageJson[field];
+        const filename = packageJson[field];
         await check('cjs', field, filename);
-}
+    }
     for (const field of ['module']) {
-    const filename = packageJson[field];
+        const filename = packageJson[field];
         await check('esm', field, filename);
-}
+    }
 
-if (packageJson.exports != null) {
+    if (packageJson.exports != null) {
         await checkExports(packageJson.exports);
-}
+    }
 
-checkOneExists('README.md');
-checkOneExists('LICENSE.txt', 'LICENSE.html');
+    checkOneExists('README.md');
+    checkOneExists('LICENSE.txt', 'LICENSE.html');
 
-if (exitStatus === 0) {
+    if (exitStatus === 0) {
         console.log(`[${packageJson.name}]: No problems found with package in ${dir}`);
     }
 }
