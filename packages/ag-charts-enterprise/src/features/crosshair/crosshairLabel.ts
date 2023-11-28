@@ -6,40 +6,32 @@ type AgCrosshairLabelRendererResult = any;
 const { ActionOnSet, Validate, NUMBER, BOOLEAN, OPT_STRING, OPT_FUNCTION } = _ModuleSupport;
 const { BBox } = _Scene;
 
+const DEFAULT_LABEL_CLASS = 'ag-crosshair-label';
+
 export const defaultLabelCss = `
-.ag-crosshair-label {
+.${DEFAULT_LABEL_CLASS} {
     position: absolute;
     left: 0px;
     top: 0px;
     user-select: none;
     pointer-events: none;
-    border-radius: 2px;
     font: 12px Verdana, sans-serif;
-    line-height: 1.7em;
     overflow: hidden;
     white-space: nowrap;
     z-index: 99999;
+    box-sizing: border-box;
+}
+
+.${DEFAULT_LABEL_CLASS}-content {
+    padding: 0 7px;
+    border-radius: 2px;
+    line-height: 1.7em;
     background-color: rgb(71,71,71);
     color: rgb(255, 255, 255);
 }
 
-.ag-crosshair-label-content {
-    padding: 0 7px;
-    opacity: 1;
-}
-
-.ag-crosshair-label-title {
-    padding-left: 7px;
-    opacity: 1;
-}
-
-.ag-crosshair-label-hidden {
+.${DEFAULT_LABEL_CLASS}-hidden {
     top: -10000px !important;
-}
-
-.ag-crosshair-label {
-    box-sizing: border-box;
-    overflow: hidden;
 }
 `;
 
@@ -47,8 +39,6 @@ export interface LabelMeta {
     x: number;
     y: number;
 }
-
-export const DEFAULT_LABEL_CLASS = 'ag-crosshair-label';
 
 export class CrosshairLabel {
     private static labelDocuments: Document[] = [];
@@ -161,25 +151,13 @@ export class CrosshairLabel {
         const {
             text = defaults.text ?? '',
             color = defaults.color,
-            backgroundColor = undefined,
+            backgroundColor = defaults.backgroundColor,
             opacity = defaults.opacity ?? 1,
         } = input;
 
-        let contentHtml;
-
-        if (color) {
-            contentHtml = `<span class="${DEFAULT_LABEL_CLASS}-content" style="color: ${color}">${text}</span>`;
-        } else {
-            contentHtml = `<span class="${DEFAULT_LABEL_CLASS}-content">${text}</span>`;
-        }
-
-        let style = `opacity: ${opacity}`;
-        if (backgroundColor) {
-            style += `; background-color: ${backgroundColor.toLowerCase()}`;
-        }
-
-        return `<div class="${DEFAULT_LABEL_CLASS}-wrapper" style="${style}">
-                    ${contentHtml}
+        const style = `opacity: ${opacity}; background-color: ${backgroundColor?.toLowerCase()}; color: ${color}`;
+        return `<div class="${DEFAULT_LABEL_CLASS}-content" style="${style}">
+                    <span>${text}</span>
                 </div>`;
     }
 }
