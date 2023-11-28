@@ -24,7 +24,7 @@ const Collapsible: FunctionComponent<Props> = ({
     isEmptyContent,
 }) => {
     const [showNotes, setShowNotes] = useState(true);
-    const [showMore, setShowMore] = useState(false);
+    const [showMore, setShowMore] = useState(true);
 
     const collapsibleHandler = () => {
         setShowNotes((prevShowNotes) => !prevShowNotes);
@@ -84,10 +84,10 @@ const Collapsible: FunctionComponent<Props> = ({
                                 setShowMore(!showMore);
                             }}
                         >
-                            {showMore ? 'Show less' : 'Show more'}
-                            <span>
-                                <Icon name={showMore ? 'chevronUp' : 'chevronDown'} />
-                            </span>
+                            {/*{showMore ? 'Show less' : 'Show more'}*/}
+                            {/*<span>*/}
+                            {/*    <Icon name={showMore ? 'chevronUp' : 'chevronDown'} />*/}
+                            {/*</span>*/}
                         </a>
                     ) : null}
                 </div>
