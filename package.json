@@ -5,7 +5,7 @@
   "scripts": {
     "init": "yarn install",
     "new-version": "./tools/bump-versions.sh",
-    "package": "nx pack --prod",
+    "package": "nx pack --prod && nx pack:verify --prod",
     "clean": "rimraf dist/ packages/*/dist packages/*/lib",
     "postinstall": "patch-package"
   },
