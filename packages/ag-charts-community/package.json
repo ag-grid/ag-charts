@@ -1,6 +1,6 @@
 {
   "name": "ag-charts-community",
-  "version": "9.0.0-beta.20231128",
+  "version": "9.0.0-beta.20231128.1359",
   "description": "Advanced Charting / Charts supporting Javascript / Typescript / React / Angular / Vue",
   "main": "./dist/package/main.cjs.js",
   "types": "./dist/package/main.cjs.d.ts",
