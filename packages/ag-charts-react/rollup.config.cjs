@@ -10,6 +10,5 @@ module.exports = (config) => {
     output.entryFileNames = fixName(output.entryFileNames);
     output.chunkFileNames = fixName(output.chunkFileNames);
 
-    console.log({ output });
     return { output, ...result };
 };
