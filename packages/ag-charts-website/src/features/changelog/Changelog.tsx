@@ -333,6 +333,8 @@ export const Changelog = () => {
     );
 
     const releaseNotesMarkdownContent = fixVersion === ALL_FIX_VERSIONS ? undefined : markdownContent;
+    const hideExpander = fixVersion === ALL_FIX_VERSIONS || releaseNotesMarkdownContent;
+
     return (
         <>
             {!IS_SSR && (
@@ -352,7 +354,7 @@ export const Changelog = () => {
                             versions={versions}
                             fixVersion={fixVersion}
                             onChange={switchDisplayedFixVersion}
-                            hideExpander={fixVersion === ALL_FIX_VERSIONS || !releaseNotesMarkdownContent}
+                            hideExpander={hideExpander}
                         />
                     </section>
 

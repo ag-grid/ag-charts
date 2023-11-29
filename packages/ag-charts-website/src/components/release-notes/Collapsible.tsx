@@ -84,10 +84,10 @@ const Collapsible: FunctionComponent<Props> = ({
                                 setShowMore(!showMore);
                             }}
                         >
-                            {/*{showMore ? 'Show less' : 'Show more'}*/}
-                            {/*<span>*/}
-                            {/*    <Icon name={showMore ? 'chevronUp' : 'chevronDown'} />*/}
-                            {/*</span>*/}
+                            {showMore ? 'Show less' : 'Show more'}
+                            <span>
+                                <Icon name={showMore ? 'chevronUp' : 'chevronDown'} />
+                            </span>
                         </a>
                     ) : null}
                 </div>
