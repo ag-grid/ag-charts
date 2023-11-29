@@ -1,9 +1,9 @@
-import { PUBLISHED_URLS, USE_PUBLISHED_PACKAGES } from '../constants';
+import { PUBLISHED_UMD_URLS, USE_PUBLISHED_PACKAGES } from '../constants';
 import { pathJoin } from './pathJoin';
 
 export const getChartScriptPath = (sitePrefix?: string) => {
     if (USE_PUBLISHED_PACKAGES) {
-        return PUBLISHED_URLS['ag-charts-community'];
+        return PUBLISHED_UMD_URLS['ag-charts-community'];
     }
     const sitePrefixUrl = sitePrefix ? sitePrefix : '';
     return pathJoin(sitePrefixUrl, '/dev/ag-charts-community/dist/umd/ag-charts-community.js');
@@ -11,7 +11,7 @@ export const getChartScriptPath = (sitePrefix?: string) => {
 
 export const getChartEnterpriseScriptPath = (sitePrefix?: string) => {
     if (USE_PUBLISHED_PACKAGES) {
-        return PUBLISHED_URLS['ag-charts-enterprise'];
+        return PUBLISHED_UMD_URLS['ag-charts-enterprise'];
     }
     const sitePrefixUrl = sitePrefix ? sitePrefix : '';
     return pathJoin(sitePrefixUrl, '/dev/ag-charts-enterprise/dist/umd/ag-charts-enterprise.js');
