@@ -7,6 +7,7 @@ import { getCollection, getEntry } from 'astro:content';
 
 import { getDebugPageUrls } from './pages';
 import { isTestPage } from './sitemap';
+import { urlWithBaseUrl } from './urlWithBaseUrl';
 
 const getDocsExamplePaths = async () => {
     const pages = await getCollection('docs');
@@ -53,21 +54,23 @@ const getGalleryExamplePaths = async () => {
     return galleryExamplePaths;
 };
 
-const getTestExamplePages = async () => {
+const getTestPages = async () => {
     const pages = await getCollection('docs');
-    return getDocsPages(pages)
+    const docsTestPages = getDocsPages(pages)
         .map(({ params }) => {
             const { framework, pageName } = params;
             return getExamplePageUrl({ framework, path: pageName });
         })
         .filter(isTestPage);
+
+    return docsTestPages.concat(urlWithBaseUrl('/gallery-test'));
 };
 
 export async function getSitemapIgnorePaths() {
     const paths = await Promise.all([
         getDocsExamplePaths(),
         getGalleryExamplePaths(),
-        getTestExamplePages(),
+        getTestPages(),
         getDebugPageUrls(),
     ]);
 
