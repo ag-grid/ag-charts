@@ -131,7 +131,7 @@
     background-image: url('../../images/homepage-scroll-light.webp');
     background-size: 100% auto;
     animation-name: scroll-hero;
-    animation-duration: 30s;
+    animation-duration: 120s;
     animation-iteration-count: infinite;
     animation-timing-function: linear;
 
@@ -168,7 +168,7 @@
     }
 
     @media screen and (min-width: $breakpoint-hero-large) {
-        aspect-ratio: 16/9;
+        width: 720px;
 
         &::before {
             display: none;
@@ -182,7 +182,7 @@
     }
 
     to {
-        background-position-y: -100%;
+        background-position-y: 500%;
     }
 }
 
