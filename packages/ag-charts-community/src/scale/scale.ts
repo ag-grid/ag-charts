@@ -19,4 +19,5 @@ export interface Scale<D, R, I = number> {
     tickFormat?(params: ScaleTickFormatParams): (x: any) => string;
     getDomain?(): D[];
     bandwidth?: number;
+    step?: number;
 }
