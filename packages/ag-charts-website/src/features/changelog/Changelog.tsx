@@ -387,7 +387,7 @@ export const Changelog = () => {
                         onFirstDataRendered={() => {
                             applyFixVersionFilter();
                         }}
-                        theme={darkMode ? 'ag-theme-alpine-dark' : 'ag-theme-alpine'}
+                        theme={darkMode ? 'ag-theme-quartz-dark' : 'ag-theme-quartz'}
                     />
                 </div>
             )}
