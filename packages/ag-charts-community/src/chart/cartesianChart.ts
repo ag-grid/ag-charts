@@ -64,6 +64,7 @@ export class CartesianChart extends Chart {
         return shrinkRect;
     }
 
+    private _lastCrossLineIds?: string[] = undefined;
     private _lastAxisWidths: Partial<Record<AgCartesianAxisPosition, number>> = {
         top: 0,
         bottom: 0,
@@ -75,10 +76,26 @@ export class CartesianChart extends Chart {
         series: true,
     };
     updateAxes(inputShrinkRect: BBox) {
-        // Start with a good approximation from the last update - this should mean that in many resize
-        // cases that only a single pass is needed \o/.
-        const axisWidths = { ...this._lastAxisWidths };
-        const visibility = { ...this._lastVisibility };
+        // FIXME - the crosslines get regenerated when switching between light/dark mode.
+        // Ideally, even in this case this updateAxes logic would still work. But there's more work to make that happen.
+        const crossLineIds = this.axes.flatMap((axis) => axis.crossLines ?? []).map((crossLine) => crossLine.id);
+        const axesValid =
+            this._lastCrossLineIds != null &&
+            this._lastCrossLineIds.length === crossLineIds.length &&
+            this._lastCrossLineIds.every((id, index) => crossLineIds[index] === id);
+
+        let axisWidths: typeof this._lastAxisWidths;
+        let visibility: typeof this._lastVisibility;
+        if (axesValid) {
+            // Start with a good approximation from the last update - this should mean that in many resize
+            // cases that only a single pass is needed \o/.
+            axisWidths = { ...this._lastAxisWidths };
+            visibility = { ...this._lastVisibility };
+        } else {
+            axisWidths = { top: 0, bottom: 0, left: 0, right: 0 };
+            visibility = { crossLines: true, series: true };
+            this._lastCrossLineIds = crossLineIds;
+        }
 
         // Clean any positions which aren't valid with the current axis status (otherwise we end up
         // never being able to find a stable result).
