@@ -174,11 +174,11 @@ export interface AgBaseChartThemeOverrides {
 // Use Typescript function types to verify that all series types are present in the manually
 // maintained AgBaseChartThemeOverrides type.
 type VerifyAgBaseChartThemeOverrides<T = AgBaseChartOptions> = {
-    [K in NonNullable<AgCartesianSeriesOptions['type']>]?: {} & T;
+    [K in NonNullable<AgCartesianSeriesOptions['type']>]?: T;
 } & {
-    [K in NonNullable<AgPolarSeriesOptions['type']>]?: {} & T;
+    [K in NonNullable<AgPolarSeriesOptions['type']>]?: T;
 } & {
-    [K in NonNullable<AgHierarchySeriesOptions['type']>]?: {} & T;
+    [K in NonNullable<AgHierarchySeriesOptions['type']>]?: T;
 } & {
     common?: Partial<T>;
 };
