@@ -222,7 +222,7 @@ export const Pipeline = ({ location, currentFramework }) => {
                         masterDetail={true}
                         rowData={rowData}
                         onGridReady={gridReady}
-                        theme={darkMode ? 'ag-theme-alpine-dark' : 'ag-theme-alpine'}
+                        theme={darkMode ? 'ag-theme-quartz-dark' : 'ag-theme-quartz'}
                     />
                 </div>
             )}
