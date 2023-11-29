@@ -9,7 +9,11 @@ if (depToUpdate == null || version == null) {
 
 console.log(`Updating references to ${depToUpdate}@${version}`);
 
-const packageDirectories = JSON.parse(fs.readFileSync('package.json').toString())?.workspaces?.packages;
+const packageDirectories = [
+    ...JSON.parse(fs.readFileSync('package.json').toString())?.workspaces?.packages,
+    '.',
+    './packages/ag-charts-angular/projects/ag-charts-angular',
+];
 for (const packageDir of packageDirectories) {
     const packageJsonFilename = `${packageDir}/package.json`;
     if (!fs.existsSync(packageJsonFilename)) continue;
