@@ -9,6 +9,7 @@ NEW_VERSION="$1"
 TOOLS_DIR=$(dirname $0)
 
 PACKAGES=(
+    ag-charts
     ag-charts-community
     ag-charts-enterprise
     ag-charts-angular

@@ -3,6 +3,7 @@ import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import { defineConfig } from 'astro/config';
 import { loadEnv } from 'vite';
+import mkcert from 'vite-plugin-mkcert';
 import svgr from 'vite-plugin-svgr';
 
 import agHotModuleReload from './src/astro/plugins/agHotModuleReload';
@@ -22,7 +23,7 @@ export default defineConfig({
     base: PUBLIC_BASE_URL,
     outDir: OUTPUT_DIR,
     vite: {
-        plugins: [svgr(), agHotModuleReload()],
+        plugins: [mkcert(), svgr(), agHotModuleReload()],
         resolve: {
             conditions: ['require'],
         },
@@ -30,6 +31,7 @@ export default defineConfig({
             exclude: ['ag-charts-community', 'ag-charts-enterprise'],
         },
         server: {
+            https: true,
             fs: {
                 allow: [
                     '.',
