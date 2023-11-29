@@ -1,4 +1,4 @@
-import { isDesktop } from '../../util/userAgent';
+import { hasConstrainedCanvasMemory } from '../../util/userAgent';
 
 export type Size = { width: number; height: number };
 
@@ -173,7 +173,7 @@ export class HdpiCanvas {
      */
     private setPixelRatio(ratio?: number) {
         let pixelRatio = ratio ?? this.window.devicePixelRatio;
-        if (!isDesktop()) {
+        if (hasConstrainedCanvasMemory()) {
             // Mobile browsers have stricter memory limits, we reduce rendering resolution to
             // improve stability on mobile browsers. iOS Safari 12->16 are pain-points since they
             // have memory allocation quirks - see https://bugs.webkit.org/show_bug.cgi?id=195325.
