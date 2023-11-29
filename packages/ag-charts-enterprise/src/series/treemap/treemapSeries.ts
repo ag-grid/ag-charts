@@ -683,9 +683,9 @@ export class TreemapSeries<
                     meta: null,
                 };
                 const formatting = formatLabels(
-                    labelDatum?.label,
+                    labelDatum.label,
                     this.tile.label,
-                    labelDatum?.secondaryLabel,
+                    labelDatum.secondaryLabel,
                     this.tile.secondaryLabel,
                     { spacing: tile.label.spacing, padding: tile.padding },
                     () => layout
@@ -708,6 +708,7 @@ export class TreemapSeries<
                             ? {
                                   text: label.text,
                                   fontSize: label.fontSize,
+                                  lineHeight: label.lineHeight,
                                   style: this.tile.label,
                                   x: labelX,
                                   y: labelYStart - (height - label.height) * 0.5,
@@ -718,6 +719,7 @@ export class TreemapSeries<
                             ? {
                                   text: secondaryLabel.text,
                                   fontSize: secondaryLabel.fontSize,
+                                  lineHeight: secondaryLabel.fontSize,
                                   style: this.tile.secondaryLabel,
                                   x: labelX,
                                   y: labelYStart + (height - secondaryLabel.height) * 0.5,
@@ -740,6 +742,7 @@ export class TreemapSeries<
                     label: {
                         text,
                         fontSize: group.label.fontSize,
+                        lineHeight: AutoSizeableLabel.lineHeight(group.label.fontSize),
                         style: this.group.label,
                         x: bbox.x + padding + innerWidth * textAlignFactor,
                         y: bbox.y + padding + groupTitleHeight * 0.5,
@@ -779,6 +782,7 @@ export class TreemapSeries<
 
             text.text = label.text;
             text.fontSize = label.fontSize;
+            text.lineHeight = label.lineHeight;
 
             text.fontStyle = label.style.fontStyle;
             text.fontFamily = label.style.fontFamily;

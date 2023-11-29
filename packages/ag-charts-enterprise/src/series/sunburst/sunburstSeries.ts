@@ -457,6 +457,7 @@ export class SunburstSeries<
 
             text.text = label.text;
             text.fontSize = label.fontSize;
+            text.lineHeight = label.lineHeight;
 
             text.fontStyle = labelStyle.fontStyle;
             text.fontFamily = labelStyle.fontFamily;
