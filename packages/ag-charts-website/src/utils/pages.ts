@@ -54,30 +54,45 @@ export const DEV_FILE_PATH_MAP: Record<string, string> = {
         'packages/ag-charts-angular/dist/ag-charts-angular/fesm2015/ag-charts-angular.mjs',
 };
 
-export const getPublicFileUrl = ({ isDev = getIsDev() }: { isDev?: boolean } = { isDev: getIsDev() }): URL => {
-    const contentRoot = isDev
+/**
+ * The root url where the monorepo exists
+ */
+const getRootUrl = (): URL => {
+    const root = getIsDev()
         ? // Relative to the folder of this file
-          '../../public'
+          '../../../../'
         : // Relative to `/dist/packages/ag-charts-website/chunks/pages` folder (Nx specific)
-          '../../../../../packages/ag-charts-website/public';
+          '../../../../../';
+    return new URL(root, import.meta.url);
+};
+
+/**
+ * The `ag-charts-website` root url where the monorepo exists
+ */
+const getWebsiteRootUrl = ({ isDev = getIsDev() }: { isDev?: boolean } = { isDev: getIsDev() }): URL => {
+    const root = isDev
+        ? // Relative to the folder of this file
+          '../../'
+        : // Relative to `/dist/packages/ag-charts-website/chunks/pages` folder (Nx specific)
+          '../../../../../packages/ag-charts-website/';
+    return new URL(root, import.meta.url);
+};
+
+export const getPublicFileUrl = ({ isDev }: { isDev?: boolean } = {}): URL => {
+    const websiteRoot = getWebsiteRootUrl({ isDev });
+    const contentRoot = pathJoin(websiteRoot, 'public');
     return new URL(contentRoot, import.meta.url);
 };
 
-export const getContentRootFileUrl = ({ isDev = getIsDev() }: { isDev?: boolean } = { isDev: getIsDev() }): URL => {
-    const contentRoot = isDev
-        ? // Relative to the folder of this file
-          '../content'
-        : // Relative to `/dist/packages/ag-charts-website/chunks/pages` folder (Nx specific)
-          '../../../../../packages/ag-charts-website/src/content';
+export const getContentRootFileUrl = ({ isDev }: { isDev?: boolean } = {}): URL => {
+    const websiteRoot = getWebsiteRootUrl({ isDev });
+    const contentRoot = pathJoin(websiteRoot, 'src/content');
     return new URL(contentRoot, import.meta.url);
 };
 
-export const getDebugFolderUrl = ({ isDev = getIsDev() }: { isDev?: boolean } = { isDev: getIsDev() }): URL => {
-    const contentRoot = isDev
-        ? // Relative to the folder of this file
-          '../pages/debug'
-        : // Relative to `/dist/packages/ag-charts-website/chunks/pages` folder (Nx specific)
-          '../../../../../packages/ag-charts-website/src/pages/debug';
+export const getDebugFolderUrl = ({ isDev }: { isDev?: boolean } = {}): URL => {
+    const websiteRoot = getWebsiteRootUrl({ isDev });
+    const contentRoot = pathJoin(websiteRoot, 'src/pages/debug');
     return new URL(contentRoot, import.meta.url);
 };
 
@@ -105,18 +120,6 @@ export const getDebugPageUrls = async ({
         .flat();
 
     return Promise.all(pagePathPromises);
-};
-
-/**
- * The root url where the monorepo exists
- */
-const getRootUrl = (): URL => {
-    const root = getIsDev()
-        ? // Relative to the folder of this file
-          '../../../../'
-        : // Relative to `/dist/packages/ag-charts-website/chunks/pages` folder (Nx specific)
-          '../../../../../';
-    return new URL(root, import.meta.url);
 };
 
 // TODO: Figure out published packages
