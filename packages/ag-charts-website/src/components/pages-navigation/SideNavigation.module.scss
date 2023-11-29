@@ -51,8 +51,10 @@
     --nav-line-color: var(--neutral-300);
 
     position: relative;
+    list-style: none;
     padding-top: $size-1;
     padding-bottom: $size-6;
+    padding-left: 0;
     box-shadow: inset 1px 0 0 0 var(--nav-line-color);
     z-index: -2;
 
@@ -66,7 +68,11 @@
 
     position: relative;
     padding-left: $size-2;
-    margin-bottom: $size-1;
+    margin: var(--item-gap) 0;
+
+    &:first-child {
+        margin: 0 0 var(--item-gap);
+    }
 }
 
 .sideNav a {
@@ -77,6 +83,7 @@
 
     display: inline-block;
     padding: 0;
+    white-space: nowrap;
     color: var(--neutral-600);
     transition: color $default-transition-timing;
 
@@ -128,32 +135,28 @@
 
 .sideNav .level1 {
     font-size: var(--font-size-large);
-    margin-bottom: var(--item-gap) !important;
-}
-
-.sideNav .level2 {
-    margin-bottom: var(--item-gap) !important;
 }
 
 .sideNav .level3 {
-    margin-bottom: calc(var(--item-gap) / 1.75) !important;
-    padding-left: $size-4;
+    --item-gap: 0.5em;
 }
 
 .sideNav .level1 + .level3,
 .sideNav .level2 + .level3 {
-    margin-top: calc(var(--item-gap) * -0.4);
+    margin-top: calc(var(--item-gap) * -0.7);
 }
 
-.sideNav .level3 + .level2 {
-    margin-top: var(--item-gap);
+.sideNav .level3,
+.sideNav .level4,
+.sideNav .level5,
+.sideNav .level6 {
+    padding-left: $size-4;
 }
 
 .sideNav .level4,
 .sideNav .level5,
 .sideNav .level6 {
+    --item-gap: 0.4375em;
     font-size: var(--font-size-extra-small);
-    margin-bottom: calc(var(--item-gap) / 2);
-    padding-left: $size-4;
     opacity: 0.8;
 }

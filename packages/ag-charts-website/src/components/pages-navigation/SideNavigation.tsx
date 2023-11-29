@@ -1,56 +1,42 @@
-import { addNonBreakingSpaceBetweenLastWords } from '@utils/addNonBreakingSpaceBetweenLastWords';
-import { navigate } from '@utils/navigation';
-import { smoothScrollIntoView } from '@utils/smoothScrollIntoView';
+import { navigate, scrollIntoViewById } from '@utils/navigation';
 import type { MarkdownHeading } from 'astro';
 import classnames from 'classnames';
-import type { FunctionComponent } from 'react';
+import { useScrollSpy } from 'src/components/pages-navigation/useScrollSpy';
 
 import styles from './SideNavigation.module.scss';
-import { useSideNavigationScrolling } from './useSideNavigationScrolling';
 
 interface Props {
-    title: string;
-    pageHeadings: MarkdownHeading[];
+    headings: MarkdownHeading[];
 }
 
-export const SideNavigation: FunctionComponent<Props> = ({ title, pageHeadings }) => {
-    const hasHeadings = pageHeadings.length > 0;
-    const topHeading = {
-        slug: 'top',
-        depth: 1,
-        text: title,
-    };
-    const headings = [topHeading].concat(pageHeadings);
+export function SideNavigation({ headings }: Props) {
+    const menuRef = useScrollSpy({ headings });
 
-    useSideNavigationScrolling({ headings });
+    if (headings.length < 2) {
+        return null;
+    }
 
     return (
-        <nav id="side-menu" className={classnames(styles.sideNav, 'font-size-responsive')}>
+        <nav ref={menuRef} className={classnames(styles.sideNav, 'font-size-responsive')}>
             <div>
-                {hasHeadings && (
-                    <ul className="list-style-none">
-                        {headings.map((heading) => {
-                            const id = heading.slug;
-                            const href = `#${id}`;
-                            return (
-                                <li key={`${title}_${id}`} className={styles[`level${heading.depth}`]}>
-                                    <a
-                                        className="nav-link"
-                                        href={href}
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            smoothScrollIntoView({ id });
-                                            navigate(`#${id}`);
-                                        }}
-                                    >
-                                        {addNonBreakingSpaceBetweenLastWords(heading.text)}
-                                    </a>
-                                </li>
-                            );
-                        })}
-                    </ul>
-                )}
+                <ul>
+                    {headings.map(({ slug, depth, text }) => (
+                        <li key={slug} className={styles[`level${depth}`]}>
+                            <a
+                                href={`#${slug}`}
+                                className="nav-link"
+                                onClick={(event) => {
+                                    event.preventDefault();
+                                    scrollIntoViewById(slug);
+                                    navigate({ hash: slug });
+                                }}
+                            >
+                                {text}
+                            </a>
+                        </li>
+                    ))}
+                </ul>
             </div>
         </nav>
     );
-};
+}
