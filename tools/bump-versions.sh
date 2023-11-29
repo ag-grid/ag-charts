@@ -22,5 +22,8 @@ for package in ${PACKAGES[@]}; do
     node ${TOOLS_DIR}/update-package-json-deps.js $package "$NEW_VERSION"
 done
 
+echo >./packages/ag-charts-community/src/version.ts "// DO NOT UPDATE MANUALLY: Generated from script during build time
+export const VERSION = '${NEW_VERSION}';"
+
 # Ensure consistent package.json formatting.
 npx prettier -w $(git status -s | grep package.json | awk '{ print $2 }')
