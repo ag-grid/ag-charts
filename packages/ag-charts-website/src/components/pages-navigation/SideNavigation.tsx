@@ -1,7 +1,8 @@
+import { useScrollSpy } from '@components/pages-navigation/useScrollSpy';
+import { addNonBreakingSpaceBetweenLastWords } from '@utils/addNonBreakingSpaceBetweenLastWords';
 import { navigate, scrollIntoViewById } from '@utils/navigation';
 import type { MarkdownHeading } from 'astro';
 import classnames from 'classnames';
-import { useScrollSpy } from 'src/components/pages-navigation/useScrollSpy';
 
 import styles from './SideNavigation.module.scss';
 
@@ -31,7 +32,7 @@ export function SideNavigation({ headings }: Props) {
                                     navigate({ hash: slug });
                                 }}
                             >
-                                {text}
+                                {addNonBreakingSpaceBetweenLastWords(text)}
                             </a>
                         </li>
                     ))}
