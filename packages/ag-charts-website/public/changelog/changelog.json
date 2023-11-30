@@ -3455,7 +3455,7 @@
         "moreInformation": null,
         "deprecationNotes": null,
         "breakingChangesNotes": null,
-        "documentationUrl": "https://build.ag-grid.com/javascript-data-grid/grouping-sticky-groups/"
+        "documentationUrl": "https://grid-staging.ag-grid.com/javascript-data-grid/grouping-sticky-groups/"
     },
     {
         "key": "AG-6846",
