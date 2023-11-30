@@ -46,7 +46,7 @@
     "typescript": "^5.3.2",
     "vite": "~4.3.9",
     "vite-plugin-mkcert": "^1.17.1",
-    "vite-plugin-svgr": "^3.2.0",
+    "vite-plugin-svgr": "^4.2.0",
     "@ag-grid-community/client-side-row-model": "latest",
     "@ag-grid-community/react": "latest",
     "@ag-grid-enterprise/column-tool-panel": "latest",
@@ -60,4 +60,3 @@
     "puppeteer-core": "7.1.0"
   }
 }
-
