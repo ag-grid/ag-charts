@@ -42,8 +42,13 @@ export class NightingaleSeries extends RadialColumnSeriesBase<_Scene.Sector> {
             node.endAngle = datum.endAngle;
         }
 
-        const strokeWidth =
-            format?.strokeWidth ?? (highlight ? this.highlightStyle.item.strokeWidth : undefined) ?? this.strokeWidth;
+        const appliedHighlightStyle = highlight ? this.highlightStyle.item : undefined;
+
+        const hasStroke = (format?.stroke ?? appliedHighlightStyle?.stroke ?? this.stroke) != null;
+
+        const strokeWidth = hasStroke
+            ? format?.strokeWidth ?? (highlight ? appliedHighlightStyle?.strokeWidth : undefined) ?? this.strokeWidth
+            : 0;
         node.inset = (this.sectorSpacing + strokeWidth) / 2;
     }
 

@@ -30,8 +30,8 @@ export interface CategoryLegendDatum extends BaseChartLegendDatum {
     itemId: any; // sub-component ID
     marker: {
         shape?: string | (new () => Marker);
-        fill: string;
-        stroke: string;
+        fill?: string;
+        stroke?: string;
         fillOpacity: number;
         strokeOpacity: number;
         strokeWidth: number;

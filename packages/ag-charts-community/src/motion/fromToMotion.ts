@@ -25,12 +25,11 @@ export type ExtraOpts<T> = {
     start?: Partial<T>;
     finish?: Partial<T>;
 };
-export type FromToMotionPropFn<N extends Node, T extends Record<string, string | number> & Partial<N>, D> = (
-    node: N,
-    datum: D,
-    state: NodeUpdateState,
-    ctx: FromToMotionPropFnContext<N>
-) => T & ExtraOpts<N>;
+export type FromToMotionPropFn<
+    N extends Node,
+    T extends Record<string, string | number | undefined> & Partial<N>,
+    D,
+> = (node: N, datum: D, state: NodeUpdateState, ctx: FromToMotionPropFnContext<N>) => T & ExtraOpts<N>;
 type IntermediateFn<N extends Node, D> = (
     node: N,
     datum: D,
@@ -61,7 +60,7 @@ export type FromToDiff = Pick<ProcessedOutputDiff, 'added' | 'removed'>;
  *                   specified iff diff is specified
  * @param diff optional diff from a DataModel to use to detect added/moved/removed cases
  */
-export function fromToMotion<N extends Node, T extends Record<string, string | number> & Partial<N>, D>(
+export function fromToMotion<N extends Node, T extends Record<string, string | number | undefined> & Partial<N>, D>(
     groupId: string,
     subId: string,
     animationManager: AnimationManager,

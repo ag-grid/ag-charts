@@ -9774,9 +9774,7 @@ exports[`prepare #prepareOptions for SIMPLE_DOUGHNUT_CHART_EXAMPLE it should pre
       "showInLegend": true,
       "strokeOpacity": 1,
       "strokeWidth": 0,
-      "strokes": [
-        "white",
-      ],
+      "strokes": [],
       "title": {
         "color": "rgb(140, 140, 140)",
         "enabled": true,
@@ -10314,9 +10312,7 @@ exports[`prepare #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare 
       "showInLegend": true,
       "strokeOpacity": 1,
       "strokeWidth": 0,
-      "strokes": [
-        "white",
-      ],
+      "strokes": [],
       "title": {
         "color": "rgb(140, 140, 140)",
         "enabled": true,

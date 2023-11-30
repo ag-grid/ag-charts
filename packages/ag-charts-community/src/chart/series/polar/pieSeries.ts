@@ -106,7 +106,7 @@ interface PieNodeDatum extends SeriesNodeDatum {
         readonly text: string;
     };
 
-    readonly sectorFormat: Required<AgPieSeriesFormat>;
+    readonly sectorFormat: { [key in keyof Required<AgPieSeriesFormat>]: AgPieSeriesFormat[key] };
     readonly legendItem?: { key: string; text: string };
     readonly legendItemValue?: string;
 }
@@ -602,9 +602,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity } = mergeDefaults(
             isDatumHighlighted && this.highlightStyle.item,
             {
-                fill: fills[formatIndex % fills.length],
+                fill: fills.length > 0 ? fills[formatIndex % fills.length] : undefined,
                 fillOpacity: this.fillOpacity,
-                stroke: strokes[formatIndex % strokes.length],
+                stroke: strokes.length > 0 ? strokes[formatIndex % strokes.length] : undefined,
                 strokeWidth: this.getStrokeWidth(this.strokeWidth),
                 strokeOpacity: this.getOpacity(),
             }
@@ -852,7 +852,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
             sector.lineDashOffset = this.lineDashOffset;
             sector.fillShadow = this.shadow;
             sector.lineJoin = 'round';
-            sector.inset = (this.sectorSpacing + format.strokeWidth!) / 2;
+            sector.inset = (this.sectorSpacing + (format.stroke != null ? format.strokeWidth! : 0)) / 2;
         };
 
         this.itemSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false));
