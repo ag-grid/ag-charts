@@ -1,8 +1,9 @@
-import { useStore } from '@nanostores/react';
-import { $darkmode } from '@stores/darkmodeStore';
+import { $darkmode, setDarkmode } from '@stores/darkmodeStore';
+
+import { useStoreSsr } from './useStoreSsr';
 
 export const useDarkmode = () => {
-    const darkmode = useStore($darkmode);
+    const darkmode = useStoreSsr<boolean | undefined>($darkmode, undefined);
 
-    return darkmode === 'true';
+    return [darkmode, setDarkmode] as const;
 };
