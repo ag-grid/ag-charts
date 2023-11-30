@@ -45,7 +45,7 @@ const options: AgChartOptions = {
     ],
 };
 
-var chart = AgCharts.create(options);
+const chart = AgCharts.create(options);
 
 function listUnitsSoldByBrand(brands: Record<string, number>) {
     var result = '';

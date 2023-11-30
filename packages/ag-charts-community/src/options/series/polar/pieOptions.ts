@@ -38,7 +38,7 @@ export interface AgPieTitleOptions extends Toggleable, FontOptions {
     /** The text to display. */
     text?: string;
     /** Spacing added to help position the text. */
-    spacing?: number;
+    spacing?: PixelSize;
     /** Whether the title text should be shown in the legend. */
     showInLegend?: boolean;
 }
@@ -118,7 +118,7 @@ export interface AgPieSeriesOptions<TDatum = any>
         AgPieSeriesOptionsKeys,
         AgPieSeriesOptionsNames,
         AgBaseSeriesOptions<TDatum> {
-    /** Configuration for pie/doughnut series. */
+    /** Configuration for Pie/Doughnut Series. */
     type: 'pie';
     /** Configuration for the text lines to display inside the series, typically used when rendering a doughnut chart */
     innerLabels?: AgDoughnutInnerLabel[];

@@ -18,6 +18,7 @@ import { ReactComponent as RowsIcon } from '@images/inline-svgs/rows.svg';
 import { ReactComponent as StackBlitzIcon } from '@images/inline-svgs/stack-blitz.svg';
 import { ReactComponent as TakeControlIcon } from '@images/inline-svgs/take-control-icon.svg';
 import { ReactComponent as TickIcon } from '@images/inline-svgs/tick.svg';
+import { ReactComponent as XLogoIcon } from '@images/inline-svgs/x-logo.svg';
 import classNames from 'classnames';
 
 import styles from './Icon.module.scss';
@@ -28,6 +29,7 @@ import styles from './Icon.module.scss';
 const SOCIALS_ICON_MAP = {
     github: CarbonIcon.LogoGithub,
     twitter: CarbonIcon.LogoTwitter,
+    xLogo: XLogoIcon,
     youtube: CarbonIcon.LogoYoutube,
     linkedin: CarbonIcon.LogoLinkedin,
 };

@@ -240,6 +240,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
 
         if (this.marker.isDirty()) {
             markerSelection.clear();
+            markerSelection.cleanup();
         }
 
         const data = enabled ? nodeData : [];

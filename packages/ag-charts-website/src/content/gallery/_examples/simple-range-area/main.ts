@@ -2,6 +2,13 @@ import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+const tooltip = {
+    renderer: ({ datum, xKey, yHighKey, yLowKey }) => {
+        const date = Intl.DateTimeFormat('en-GB', { year: 'numeric', month: 'short' }).format(datum[xKey]);
+        return { content: `${date}: ${datum[yLowKey]} - ${datum[yHighKey]}` };
+    },
+};
+
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -29,6 +36,7 @@ const options: AgChartOptions = {
                         : '';
                 },
             },
+            tooltip,
         },
     ],
     axes: [
@@ -47,6 +55,12 @@ const options: AgChartOptions = {
             },
             title: {
                 text: 'Year',
+            },
+            crosshair: {
+                snap: true,
+                label: {
+                    format: '%b %Y',
+                },
             },
         },
         {

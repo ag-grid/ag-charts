@@ -26,16 +26,23 @@ export function Validate(predicate: ValidatePredicate) {
         const targetClassName = targetClass ? `of [${targetClass}] ` : '';
         if (predicate.message) {
             Logger.warn(
-                `Property [${cleanKey}] ${targetClassName}cannot be set to [${JSON.stringify(v)}]; ${
+                `Property [${cleanKey}] ${targetClassName}cannot be set to [${stringify(v)}]; ${
                     predicate.message
                 }, ignoring.`
             );
         } else {
-            Logger.warn(`Property [${cleanKey}] ${targetClassName}cannot be set to [${JSON.stringify(v)}], ignoring.`);
+            Logger.warn(`Property [${cleanKey}] ${targetClassName}cannot be set to [${stringify(v)}], ignoring.`);
         }
 
         return BREAK_TRANSFORM_CHAIN;
     });
+}
+
+function stringify(value: any): string {
+    if (typeof value === 'number' && isNaN(value)) return 'NaN';
+    if (value === Infinity) return 'Infinity';
+    if (value === -Infinity) return '-Infinity';
+    return JSON.stringify(value);
 }
 
 export function predicateWithMessage(predicate: ValidatePredicate, message: string): ValidatePredicate {

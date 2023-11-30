@@ -22,16 +22,23 @@ const path = Astro.url.pathname;
 const { title, enterprise, hideSideMenu, hidePageMenu } = page.data;
 
 const { Content, headings } = await page.render();
-const extendedHeadings = addTabsToHeadings({
-    markdocContent: page.body,
-    headings,
-    getTabItemSlug: ({ id }) => `${DOCS_TAB_ITEM_ID_PREFIX}${id}`,
-});
+const extendedHeadings = [{ slug: 'top', depth: 1, text: title }].concat(
+    addTabsToHeadings({
+        headings,
+        markdocContent: page.body,
+        getTabItemSlug: (id) => `${DOCS_TAB_ITEM_ID_PREFIX}${id}`,
+    })
+);
 
 const menuEntry = await getEntry('menu', 'data');
 ---
 
-<Layout title={`${getFrameworkDisplayText(currentFramework)} Charts: ${title}`} showTopBar={true} showSearchBar={true}>
+<Layout
+    title={`${getFrameworkDisplayText(currentFramework)} Charts: ${title}`}
+    showTopBar={true}
+    showSearchBar={true}
+    showDocsNav={true}
+>
     <div class:list={[hidePageMenu && 'noLeftMenu', 'contentViewport']}>
         {
             !hidePageMenu && (
@@ -61,7 +68,7 @@ const menuEntry = await getEntry('menu', 'data');
             </div>
         </div>
 
-        {!hideSideMenu && <SideNavigation client:load title={title} pageHeadings={extendedHeadings} />}
+        {!hideSideMenu && <SideNavigation client:load headings={extendedHeadings} />}
     </div>
 </Layout>
 

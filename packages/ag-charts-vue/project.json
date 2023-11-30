@@ -25,10 +25,36 @@
         "cwd": "packages/ag-charts-vue",
         "commands": [
           {
-            "command": "mkdir -p ../../dist/packages/"
+            "command": "mkdir -p ../../dist/packages"
           },
           {
             "command": "yarn pack -f ../../dist/packages/ag-charts-vue.tgz"
+          }
+        ]
+      }
+    },
+    "pack:extract": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["pack"],
+      "outputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-vue/"],
+      "options": {
+        "commands": [
+          {
+            "command": "mkdir -p dist/packages/contents/ag-charts-vue"
+          },
+          {
+            "command": "tar -xzf dist/packages/ag-charts-vue.tgz -C dist/packages/contents/ag-charts-vue/"
+          }
+        ]
+      }
+    },
+    "pack:verify": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["pack:extract"],
+      "options": {
+        "commands": [
+          {
+            "command": "node tools/sanity-check-package.js dist/packages/contents/ag-charts-vue/package"
           }
         ]
       }

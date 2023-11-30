@@ -14,7 +14,6 @@ const options: AgChartOptions = {
         },
     ],
     tooltip: {
-        showArrow: false,
         position: {
             type: 'pointer',
             xOffset: 80,
@@ -23,4 +22,4 @@ const options: AgChartOptions = {
     },
 };
 
-var chart = AgCharts.create(options);
+const chart = AgCharts.create(options);

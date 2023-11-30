@@ -15,14 +15,21 @@ export interface Props {
     description?: string;
     showTopBar?: boolean;
     showSearchBar?: boolean;
+    showDocsNav?: boolean;
+    hideHeader?: boolean;
+    hideFooter?: boolean;
 }
 
-const metadata = await getEntry('metadata', 'metadata');
+const { data: metadata } = await getEntry('metadata', 'metadata');
+const { data: footerItems } = await getEntry('footer', 'data');
 
 const {
-    title = metadata.data.title,
-    description = metadata.data.description,
+    title = metadata.title,
+    description = metadata.description,
     showSearchBar,
+    showDocsNav,
+    hideHeader,
+    hideFooter
 } = Astro.props;
 
 const path = Astro.url.pathname;
@@ -66,7 +73,16 @@ const isApiLayout = apiMenuItems.some((item) => {
         <title>{title}</title>
         <link rel="sitemap" type="application/xml" title="Sitemap" href={urlWithBaseUrl("/sitemap-index.xml")} />
 
-        {isProduction && <script defer data-domain="charts.ag-grid.com" src="https://plausible.io/js/script.js"></script>}
+        {isProduction && <Fragment>
+            <script is:inline define:vars={{
+                googleTagManagerId: metadata.googleTagManagerId
+            }}>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+            new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+            j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+            'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+            })(window,document,'script','dataLayer',googleTagManagerId);</script>
+            <script defer data-domain="charts.ag-grid.com" src="https://plausible.io/js/script.js"></script>
+        </Fragment>}
         <script is:inline>
             const htmlEl = document.querySelector('html');
             const localDarkmode = localStorage['documentation:darkmode'];
@@ -81,8 +97,11 @@ const isApiLayout = apiMenuItems.some((item) => {
         </script>
     </head>
     <body>
+        {isProduction && <noscript><iframe src={`https://www.googletagmanager.com/ns.html?id=${metadata.googleTagManagerId}`}
+            height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>}
+
         <div class="mainContainer">
-            <SiteHeader showSearchBar={showSearchBar} />
+            {!hideHeader && <SiteHeader showSearchBar={showSearchBar} showDocsNav={showDocsNav}/>}
             { isApiLayout && (
                 // Update page scroll offset when API top bar is sticky
                 <style>
@@ -98,7 +117,7 @@ const isApiLayout = apiMenuItems.some((item) => {
 
             <slot />
         </div>
-        <Footer path={path} />
+        {!hideFooter && <Footer path={path} footerItems={footerItems} />}
 
         <style lang="scss">
             @use '../design-system' as *;

@@ -2,8 +2,7 @@ import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const data = getData();
-type Key = keyof Omit<(typeof data)[number], 'department'>;
+const data: any[] = getData();
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
@@ -23,7 +22,7 @@ const options: AgChartOptions = {
             yHighKey: 'high',
             formatter: ({ datum, yHighKey }) => {
                 return {
-                    fillOpacity: getOpacity(datum[0][yHighKey], yHighKey as Key, 0.4, 1),
+                    fillOpacity: getOpacity(datum[yHighKey], yHighKey, 0.4, 1),
                 };
             },
             label: {
@@ -62,13 +61,13 @@ const options: AgChartOptions = {
     },
 };
 
-function getOpacity(value: number, key: Key, minOpacity: number, maxOpacity: number) {
+function getOpacity(value: number, key: string, minOpacity: number, maxOpacity: number) {
     const [min, max] = getDomain(key);
     let alpha = Math.round(((value - min) / (max - min)) * 10) / 10;
     return map(alpha, 0, 1, minOpacity, maxOpacity);
 }
 
-function getDomain(key: Key) {
+function getDomain(key: string) {
     const min = Math.min(...data.map((d) => d[key]));
     const max = Math.max(...data.map((d) => d[key]));
     return [min, max];

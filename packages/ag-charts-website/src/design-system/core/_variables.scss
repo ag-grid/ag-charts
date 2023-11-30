@@ -299,7 +299,7 @@ $dark-scales: (
         '400': color-mix(in srgb, #fd5c00 calc(100% / 7 * 4), var(--default-background-color)),
         '500': color-mix(in srgb, #fd5c00 calc(100% / 7 * 5), var(--default-background-color)),
         '600': color-mix(in srgb, #fd5c00 calc(100% / 7 * 6), var(--default-background-color)),
-        '700': #fd5c00,
+        '700': #ff8c00,
         '800': color-mix(in srgb, #fd5c00, #ffb400),
         '900': #ffb400,
     ),

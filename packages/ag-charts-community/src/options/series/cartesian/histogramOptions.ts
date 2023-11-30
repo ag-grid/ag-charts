@@ -49,13 +49,13 @@ export interface AgHistogramSeriesOptions<TDatum = any>
         AgHistogramSeriesOptionsKeys,
         AgHistogramSeriesOptionsNames,
         AgHistogramSeriesThemeableOptions<TDatum> {
-    /** Configuration for histogram series. */
+    /** Configuration for Histogram Series. */
     type: 'histogram';
     /** For variable width bins, if true the histogram will represent the aggregated `yKey` values using the area of the bar. Otherwise, the height of the var represents the value as per a normal bar chart. This is useful for keeping an undistorted curve displayed when using variable-width bins. */
     areaPlot?: boolean;
     /** Set the bins explicitly. The bins need not be of equal width. Note that `bins` is ignored if `binCount` is also supplied. */
     bins?: [number, number][];
-    /** The number of bins to try to split the x axis into. Clashes with the `bins` setting. */
+    /** The number of bins to try to split the x-axis into. Clashes with the `bins` setting. */
     binCount?: number;
     /** Dictates how the bins are aggregated. If set to 'sum', the value shown for the bins will be the total of the yKey values. If set to 'mean', it will display the average yKey value of the bin. */
     aggregation?: 'count' | 'sum' | 'mean';

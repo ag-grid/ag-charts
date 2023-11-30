@@ -18,10 +18,11 @@ import {
     DEFAULT_AXIS_GRID_COLOUR,
     DEFAULT_AXIS_LINE_COLOUR,
     DEFAULT_BACKGROUND_COLOUR,
-    DEFAULT_BACKGROUND_CONTRAST_COLOR_RANGE,
     DEFAULT_CROSS_LINES_COLOUR,
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
     DEFAULT_FONT_FAMILY,
+    DEFAULT_HIERARCHY_FILLS,
+    DEFAULT_HIERARCHY_STROKES,
     DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
     DEFAULT_INVERTED_LABEL_COLOUR,
     DEFAULT_LABEL_COLOUR,
@@ -156,8 +157,7 @@ export class ChartTheme {
             showInLegend: true,
             highlightStyle: {
                 item: {
-                    fill: 'white',
-                    fillOpacity: 0.33,
+                    fill: 'rgba(255,255,255, 0.33)',
                     stroke: `rgba(0, 0, 0, 0.4)`,
                     strokeWidth: 2,
                 },
@@ -526,13 +526,8 @@ export class ChartTheme {
             DEFAULT_FILLS.YELLOW,
             DEFAULT_FILLS.GREEN,
         ]);
-        properties.set(DEFAULT_BACKGROUND_CONTRAST_COLOR_RANGE, [
-            '#2A343C',
-            '#36414A',
-            '#424E57',
-            '#4F5B64',
-            '#5C6770',
-        ]);
+        properties.set(DEFAULT_HIERARCHY_FILLS, ['#ffffff', '#e0e5ea', '#c1ccd5', '#a3b4c1', '#859cad']);
+        properties.set(DEFAULT_HIERARCHY_STROKES, ['#ffffff', '#c5cbd1', '#a4b1bd', '#8498a9', '#648096']);
         properties.set(DEFAULT_POLAR_SERIES_STROKE, DEFAULT_BACKGROUND_FILL);
         properties.set(DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS, ChartTheme.getWaterfallSeriesDefaultPositiveColors());
         properties.set(DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS, ChartTheme.getWaterfallSeriesDefaultNegativeColors());

@@ -27,7 +27,7 @@ const options: AgChartOptions = {
                 text: 'Average Price',
             },
             label: {
-                formatter: ({ value }) => `£${(+value).toLocaleString()}`,
+                formatter: ({ value }) => `£${Number(value).toLocaleString()}`,
             },
         },
         {
@@ -37,7 +37,7 @@ const options: AgChartOptions = {
     ],
 };
 
-let chart = AgCharts.create(options);
+const chart = AgCharts.create(options);
 
 function missingYValues() {
     const data = getData();

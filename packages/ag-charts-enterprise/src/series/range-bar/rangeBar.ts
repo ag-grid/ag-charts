@@ -353,66 +353,68 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const xIndex = dataModel.resolveProcessedDataIndexById(this, `xValue`).index;
 
         processedData?.data.forEach(({ keys, datum, values }, dataIndex) => {
-            const xDatum = keys[xIndex];
-            const x = Math.round(xScale.convert(xDatum)) + groupScale.convert(String(groupIndex));
+            for (let datumIndex = 0; datumIndex < datum.length; datumIndex++) {
+                const xDatum = keys[xIndex];
+                const x = Math.round(xScale.convert(xDatum)) + groupScale.convert(String(groupIndex));
 
-            const rawLowValue = values[0][yLowIndex];
-            const rawHighValue = values[0][yHighIndex];
+                const rawLowValue = values[datumIndex][yLowIndex];
+                const rawHighValue = values[datumIndex][yHighIndex];
 
-            const yLowValue = Math.min(rawLowValue, rawHighValue);
-            const yHighValue = Math.max(rawLowValue, rawHighValue);
-            const yLow = Math.round(yScale.convert(yLowValue));
-            const yHigh = Math.round(yScale.convert(yHighValue));
+                const yLowValue = Math.min(rawLowValue, rawHighValue);
+                const yHighValue = Math.max(rawLowValue, rawHighValue);
+                const yLow = Math.round(yScale.convert(yLowValue));
+                const yHigh = Math.round(yScale.convert(yHighValue));
 
-            const y = yHigh;
-            const bottomY = yLow;
-            const barHeight = Math.max(strokeWidth, Math.abs(bottomY - y));
+                const y = yHigh;
+                const bottomY = yLow;
+                const barHeight = Math.max(strokeWidth, Math.abs(bottomY - y));
 
-            const rect: Bounds = {
-                x: barAlongX ? bottomY : x,
-                y: barAlongX ? x : y,
-                width: barAlongX ? barHeight : barWidth,
-                height: barAlongX ? barWidth : barHeight,
-            };
+                const rect: Bounds = {
+                    x: barAlongX ? bottomY : x,
+                    y: barAlongX ? x : y,
+                    width: barAlongX ? barHeight : barWidth,
+                    height: barAlongX ? barWidth : barHeight,
+                };
 
-            const nodeMidPoint = {
-                x: rect.x + rect.width / 2,
-                y: rect.y + rect.height / 2,
-            };
+                const nodeMidPoint = {
+                    x: rect.x + rect.width / 2,
+                    y: rect.y + rect.height / 2,
+                };
 
-            const labelData: RangeBarNodeDatum['labels'] = this.createLabelData({
-                rect,
-                barAlongX,
-                yLowValue,
-                yHighValue,
-                datum,
-                series: this,
-            });
+                const labelData: RangeBarNodeDatum['labels'] = this.createLabelData({
+                    rect,
+                    barAlongX,
+                    yLowValue,
+                    yHighValue,
+                    datum: datum[datumIndex],
+                    series: this,
+                });
 
-            const nodeDatum: RangeBarNodeDatum = {
-                index: dataIndex,
-                series: this,
-                itemId,
-                datum,
-                xValue: xDatum,
-                yLowValue: rawLowValue,
-                yHighValue: rawHighValue,
-                yLowKey,
-                yHighKey,
-                xKey,
-                x: rect.x,
-                y: rect.y,
-                width: rect.width,
-                height: rect.height,
-                midPoint: nodeMidPoint,
-                fill,
-                stroke,
-                strokeWidth,
-                labels: labelData,
-            };
+                const nodeDatum: RangeBarNodeDatum = {
+                    index: dataIndex,
+                    series: this,
+                    itemId,
+                    datum: datum[datumIndex],
+                    xValue: xDatum,
+                    yLowValue: rawLowValue,
+                    yHighValue: rawHighValue,
+                    yLowKey,
+                    yHighKey,
+                    xKey,
+                    x: rect.x,
+                    y: rect.y,
+                    width: rect.width,
+                    height: rect.height,
+                    midPoint: nodeMidPoint,
+                    fill,
+                    stroke,
+                    strokeWidth,
+                    labels: labelData,
+                };
 
-            context.nodeData.push(nodeDatum);
-            context.labelData.push(...labelData);
+                context.nodeData.push(nodeDatum);
+                context.labelData.push(...labelData);
+            }
         });
 
         return [context];

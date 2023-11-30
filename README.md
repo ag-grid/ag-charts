@@ -1,60 +1,80 @@
-> **Note**
-> We are currently getting everything setup here for our next major release - the [`ag-grid` repository](https://github.com/ag-grid/ag-grid) hosts current and historic releases of `ag-charts-community`, please follow support procedures in that repository for now.
-
-![AG Charts canvas-based charting trusted by the community, built for enterprise](./.github/github-banner.png 'AG Charts')
+<picture><source media="(prefers-color-scheme: dark)" srcset="./.github/banner-dark.png"><source media="(prefers-color-scheme: light)" srcset="./.github/banner-light.png"><img alt="AG Charts canvas-based charting trusted by the community, built for enterprise." src="./.github/banner-light.png"></picture>
 
 [![Github Stars](https://img.shields.io/github/stars/ag-grid/ag-charts?style=social)](https://github.com/ag-grid/ag-charts) [![Twitter](https://img.shields.io/twitter/follow/ag_grid?style=social)](https://twitter.com/ag_grid)
 
-| Module               |                                                                                                                                                                                                                                                                                                                                                                                                                                                    Info |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| ag-charts-community  |  [![npm](https://img.shields.io/npm/dm/ag-charts-community)](https://www.npmjs.com/package/ag-charts-community) <br> [![Bundle Phobia](https://badgen.net/bundlephobia/minzip/ag-charts-community)](https://bundlephobia.com/result?p=ag-charts-community) <br> [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ag-charts-community&metric=alert_status)](https://sonarcloud.io/dashboard?id=ag-charts-community) <br> |
-| ag-charts-enterprise | [![npm](https://img.shields.io/npm/dm/ag-charts-enterprise)](https://www.npmjs.com/package/ag-charts-enterprise) <br> [![Bundle Phobia](https://badgen.net/bundlephobia/minzip/ag-charts-enterprise)](https://bundlephobia.com/result?p=ag-charts-enterprise) <br> [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ag-charts-enterprise&metric=alert_status)](https://sonarcloud.io/dashboard?id=ag-charts-enterprise) |
+| Module               |                                                                                                                                                                                                                                                                                                        Info |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+| ag-charts-community  | [![npm](https://img.shields.io/npm/dm/ag-charts-community)](https://www.npmjs.com/package/ag-charts-community) <br> [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ag-charts-community&metric=alert_status)](https://sonarcloud.io/dashboard?id=ag-charts-community) <br> |
+| ag-charts-enterprise |    [![npm](https://img.shields.io/npm/dm/ag-charts-enterprise)](https://www.npmjs.com/package/ag-charts-enterprise) <br> [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ag-charts-community&metric=alert_status)](https://sonarcloud.io/dashboard?id=ag-charts-community) |
 
 # AG Charts
 
-AG Charts is a fully-featured and highly customizable JavaScript charting library.
+AG Charts is a fully-featured and highly customizable JavaScript charting library. The professional choice for developers building enterprise applications
+
+It delivers [outstanding performance](https://charts.ag-grid.com/?utm_source=ag-grid-readme&utm_medium=repository&utm_campaign=github), has no third-party dependencies and [integrates smoothly with all major JavaScript frameworks](https://charts.ag-grid.com/javascript/quick-start?utm_source=ag-grid-readme&utm_medium=repository&utm_campaign=github).
+
+## Examples
+
+<picture><source media="(prefers-color-scheme: dark)" srcset="./.github/example-1-dark.png"><source media="(prefers-color-scheme: light)" srcset="./.github/example-1-light.png"><img alt="Image of AG Charts showing stacked horizontal bar." src="./.github/example-1-light.png"></picture>
+
+<picture><source media="(prefers-color-scheme: dark)" srcset="./.github/example-2-dark.png"><source media="(prefers-color-scheme: light)" srcset="./.github/example-2-light.png"><img alt="Image of AG Charts showing vertical range bar." src="./.github/example-2-light.png"></picture>
 
 ## Features
 
 Here are some of the features that make AG Charts stand out:
 
--   modern, lightweight and performant
--   thin, easy-to-use wrappers for all popular frameworks: React, Angular, Vue
--   framework agnostic, easy to use from plain JavaScript or TypeScript
--   zero dependencies
--   support for all common chart types:
-    -   Line Charts
-    -   Bar/Column Charts
-    -   Area Charts
-    -   Scatter/Bubble Charts
-    -   Pie/Doughnut Charts
--   reactive - property changes are automatically batched to take effect on next frame
--   simple, clean API
--   interactive documentation
+-   Modern, lightweight and performant
+-   Thin, easy-to-use wrappers for all popular frameworks: React, Angular, Vue
+-   Framework agnostic, easy to use from plain JavaScript or TypeScript
+-   Zero dependencies
+-   Support for many chart types:
+    -   Line
+    -   Bar
+    -   Area
+    -   Scatter
+    -   Bubble
+    -   Pie
+    -   Doughnut
+    -   Histogram
+    -   Box Plot \*
+    -   Heatmap \*
+    -   Nightingale \*
+    -   Range
+        -   Bar \*
+        -   Area \*
+    -   Radar
+        -   Area \*
+        -   Line \*
+        -   Bar \*
+        -   Column \*
+    -   Bullet \*
+-   Reactive - property changes are automatically batched to take effect on next frame
+-   Simple, clean API
+-   Interactive documentation
 
-Visit [our official docs](https://www.ag-grid.com/javascript-charts/overview/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github) for full documentation.
+\* The features marked with an asterisk are available in the [Enterprise version](https://charts.ag-grid.com/license-pricing/?utm_source=ag-grid-readme&utm_medium=repository&utm_campaign=github) only.
 
-## Looking for a framework specific solution?
-
--   [Get Started with Angular](https://www.ag-grid.com/angular-charts/overview/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)
--   [Get Started with React](https://www.ag-grid.com/react-charts/overview/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)
--   [Get Started with Vue](https://www.ag-grid.com/vue-charts/overview/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)
+Check out the [developer documentation](https://charts.ag-grid.com/javascript/?utm_source=ag-grid-readme&utm_medium=repository&utm_campaign=github) for a complete list of features or visit [our official docs](https://charts.ag-grid.com/gallery/?utm_source=ag-grid-readme&utm_medium=repository&utm_campaign=github) for tutorials and feature demos.
 
 ## Getting started
 
-### Install dependencies
+### Looking for a framework specific solution?
 
-```sh
-$ npm install --save ag-charts-community
-```
+-   [Get Started with React](https://charts.ag-grid.com/react/quick-start/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)
+-   [Get Started with Angular](https://charts.ag-grid.com/angular/quick-start/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)
+-   [Get Started with Vue](https://charts.ag-grid.com/vue/quick-start/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)
+-   [Get Started without a framework](https://charts.ag-grid.com/javascript/quick-start/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)
 
-### Usage
+### Installation
 
-Please refer to our [Getting Started](https://www.ag-grid.com/javascript-charts/getting-started/) Tutorial.
+-   [Installation for React](https://charts.ag-grid.com/react/installation/).
+-   [Installation for Angular](https://charts.ag-grid.com/angular/installation/).
+-   [Installation for Vue](https://charts.ag-grid.com/vue/installation/).
+-   [Installation without a framework](https://charts.ag-grid.com/javascript/installation/).
 
 ## Issue Reporting
 
-If you have found a bug, please report it to the `ag-grid` repository's [issues](https://github.com/ag-grid/ag-grid/issues) section. If you're using the Enterprise version, please use the [private ticketing](https://ag-grid.zendesk.com/) system to do that.
+If you have found a bug, please report it in this repository's [issues](https://github.com/ag-grid/ag-charts/issues) section. If you're using the Enterprise version, please use the [private ticketing](https://ag-grid.zendesk.com/) system to do that.
 
 ## Asking Questions
 

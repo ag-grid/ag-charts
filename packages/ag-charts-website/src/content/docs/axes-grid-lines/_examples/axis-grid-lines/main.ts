@@ -50,7 +50,7 @@ const options: AgCartesianChartOptions = {
     ],
 };
 
-var chart = AgCharts.create(options);
+const chart = AgCharts.create(options);
 
 function useGridStyle1() {
     var gridStyle = [

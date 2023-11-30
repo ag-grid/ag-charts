@@ -22,17 +22,24 @@ export const FRAMEWORK_DISPLAY_TEXT: Record<Framework, string> = {
     vue: 'Vue',
 };
 
-export const agGridVersion = '30.0.0';
-export const agGridEnterpriseVersion = '30.0.0';
-export const agGridReactVersion = '30.0.0';
-export const agGridAngularVersion = '30.0.0';
-export const agGridVueVersion = '30.0.0';
-export const agGridVue3Version = '30.0.0';
+export const agChartsVersion = import.meta.env?.PUBLIC_PACKAGE_VERSION ?? 'unknown';
+export const agChartsReactVersion = import.meta.env?.PUBLIC_PACKAGE_VERSION ?? 'unknown';
+export const agChartsAngularVersion = import.meta.env?.PUBLIC_PACKAGE_VERSION ?? 'unknown';
+export const agChartsVueVersion = import.meta.env?.PUBLIC_PACKAGE_VERSION ?? 'unknown';
 
-export const agChartsVersion = '8.0.0';
-export const agChartsReactVersion = '8.0.0';
-export const agChartsAngularVersion = '8.0.0';
-export const agChartsVueVersion = '8.0.0';
+export const NPM_CDN = 'https://cdn.jsdelivr.net/npm';
+export const PUBLISHED_URLS = {
+    'ag-charts-react': `${NPM_CDN}/ag-charts-react@${agChartsReactVersion}/`,
+    'ag-charts-angular': `${NPM_CDN}/ag-charts-angular@${agChartsAngularVersion}/`,
+    'ag-charts-vue': `${NPM_CDN}/ag-charts-vue@${agChartsVueVersion}/`,
+    'ag-charts-vue3': `${NPM_CDN}/ag-charts-vue3@${agChartsVueVersion}/`,
+    'ag-charts-community': `${NPM_CDN}/ag-charts-community@${agChartsVersion}/dist/package/main.cjs.js`,
+    'ag-charts-enterprise': `${NPM_CDN}/ag-charts-enterprise@${agChartsVersion}/dist/package/main.cjs.js`,
+};
+export const PUBLISHED_UMD_URLS = {
+    'ag-charts-community': `${NPM_CDN}/ag-charts-community@${agChartsVersion}/dist/umd/ag-charts-community.js`,
+    'ag-charts-enterprise': `${NPM_CDN}/ag-charts-enterprise@${agChartsVersion}/dist/umd/ag-charts-enterprise.js`,
+};
 
 export const DOCS_TAB_ITEM_ID_PREFIX = 'reference-';
 
@@ -58,6 +65,7 @@ export const SITE_URL = import.meta.env?.SITE_URL || import.meta.env?.PUBLIC_SIT
 
 export const STAGING_SITE_URL = 'https://charts-staging.ag-grid.com';
 export const PRODUCTION_SITE_URL = 'https://charts.ag-grid.com';
+export const USE_PUBLISHED_PACKAGES = ['1', 'true'].includes(import.meta.env?.PUBLIC_USE_PUBLISHED_PACKAGES);
 
 /**
  * Number of URL segments in `SITE_BASE_URL`
@@ -80,3 +88,8 @@ export const GRID_URL = SITE_URL
         ? 'https://build.ag-grid.com'
         : 'https://ag-grid.com'
     : undefined;
+
+/**
+ * Skip generating the gallery images, to speed up the build process
+ */
+export const SKIP_GALLERY_IMAGE_GENERATION = import.meta.env?.SKIP_GALLERY_IMAGE_GENERATION;

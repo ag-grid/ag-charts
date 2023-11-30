@@ -298,6 +298,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
 
         if (this.marker.isDirty()) {
             markerSelection.clear();
+            markerSelection.cleanup();
         }
 
         const data = this.marker.enabled ? nodeData : [];

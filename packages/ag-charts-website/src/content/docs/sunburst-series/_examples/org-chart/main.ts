@@ -12,7 +12,7 @@ const options: AgChartOptions = {
         },
     ],
     title: {
-        text: 'Organizational Chart',
+        text: 'Organisational Chart',
     },
 };
 

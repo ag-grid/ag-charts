@@ -27,7 +27,7 @@ const options: AgCartesianChartOptions & { axes: AgNumberAxisThemeOptions[] } = 
     ],
 };
 
-var chart = AgCharts.create(options);
+const chart = AgCharts.create(options);
 
 function resetTickConfig() {
     options.axes![0].tick = {};

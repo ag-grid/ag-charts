@@ -24,7 +24,7 @@ const Collapsible: FunctionComponent<Props> = ({
     isEmptyContent,
 }) => {
     const [showNotes, setShowNotes] = useState(true);
-    const [showMore, setShowMore] = useState(false);
+    const [showMore, setShowMore] = useState(true);
 
     const collapsibleHandler = () => {
         setShowNotes((prevShowNotes) => !prevShowNotes);
@@ -43,7 +43,7 @@ const Collapsible: FunctionComponent<Props> = ({
             >
                 <div>
                     {title && !isEmptyContent && title}
-                    {!hideExpander && (
+                    {!isEmptyContent && (
                         <span className={classNames(styles.collapseIndicator, showNotes ? styles.isOpen : undefined)}>
                             <Icon name="chevronRight" />
                         </span>

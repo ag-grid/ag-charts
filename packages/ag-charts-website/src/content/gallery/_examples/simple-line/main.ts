@@ -63,9 +63,6 @@ const options: AgChartOptions = {
             title: {
                 text: 'Price in Pence',
             },
-            label: {
-                autoRotate: true,
-            },
         },
     ],
 };

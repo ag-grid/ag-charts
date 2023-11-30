@@ -71,10 +71,7 @@ const options: AgCartesianChartOptions = {
 const chart = AgCharts.create(options);
 
 function crosshairLabelFormat() {
-    const crosshair = options.axes?.[0]?.crosshair;
-    if (!crosshair) {
-        return;
-    }
+    const crosshair = options.axes![0].crosshair!;
     crosshair.label = {
         format: `%b %Y`,
     };
@@ -82,29 +79,23 @@ function crosshairLabelFormat() {
 }
 
 function axisLabelFormat() {
-    const axes0 = options.axes?.[0];
-    if (!axes0) {
-        return;
+    const axes0 = options.axes![0]!;
+    const crosshair = axes0.crosshair!;
+    if (crosshair.label && crosshair.label.format) {
+        delete axes0.crosshair!.label!.format;
     }
-    if (axes0.crosshair?.label?.format) {
-        delete axes0.crosshair.label.format;
-    }
-    axes0.label = {
-        format: `%Y`,
-    };
+    axes0.label = { format: `%Y` };
     AgCharts.update(chart, options);
 }
 
 function defaultFormat() {
-    const axes0 = options.axes?.[0];
-    if (!axes0) {
-        return;
+    const axes0 = options.axes![0]!;
+    const crosshair = axes0.crosshair!;
+    if (crosshair.label && crosshair.label.format) {
+        delete axes0.crosshair!.label!.format;
     }
-    if (axes0.crosshair?.label?.format) {
-        delete axes0.crosshair.label.format;
-    }
-    if (axes0.label?.format) {
-        delete axes0.label.format;
+    if (axes0.label && axes0.label.format) {
+        delete axes0.label!.format;
     }
     AgCharts.update(chart, options);
 }

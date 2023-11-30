@@ -7,7 +7,7 @@ tree is represented by a segment on a radial circle, with the area of the sum of
 
 ## Simple Sunburst
 
-{% chartExampleRunner title="Organizational Chart" name="org-chart" type="generated" /%}
+{% chartExampleRunner title="Organisational Chart" name="org-chart" type="generated" /%}
 
 The Sunburst Series is designed to display a single series and is created using the `sunburst` series type.
 
@@ -116,7 +116,10 @@ series: [
 In this configuration:
 
 -   `fills` and `strokes` are an array of colours to use for the fills and strokes, where node receives the colour indexed by the index of its root node
-    -   Note when a `colorRange` is used, the `strokes` array is ignored, and a translucent black is used instead
+
+{% note %}
+When a `colorRange` is used, the `fills` and `strokes` arrays are ignored
+{% /note %}
 
 ## Labels
 

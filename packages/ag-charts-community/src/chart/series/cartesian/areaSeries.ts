@@ -546,11 +546,10 @@ export class AreaSeries extends CartesianSeries<
 
         if (this.marker.isDirty()) {
             markerSelection.clear();
+            markerSelection.cleanup();
         }
 
-        return markerSelection.update(data, (marker) => {
-            marker.tag = AreaSeriesTag.Marker;
-        });
+        return markerSelection.update(data);
     }
 
     protected override async updateMarkerNodes(opts: {
@@ -631,7 +630,11 @@ export class AreaSeries extends CartesianSeries<
             stroke: this.stroke,
             strokeWidth: this.strokeWidth,
         });
-        const { fill: color } = this.getMarkerStyle(marker, { datum, xKey, yKey, highlighted: false }, baseStyle);
+        const { fill: color } = this.getMarkerStyle(
+            marker,
+            { datum: nodeDatum, xKey, yKey, highlighted: false },
+            baseStyle
+        );
 
         return tooltip.toTooltipHtml(
             { title, content, backgroundColor: color },

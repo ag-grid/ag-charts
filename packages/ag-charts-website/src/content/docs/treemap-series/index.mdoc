@@ -117,7 +117,10 @@ series: [
 In this configuration:
 
 -   `fills` and `strokes` are an array of colours to use for the fills and strokes, where node receives the colour indexed by the index of its root node
-    -   Note when a `colorRange` is used, the `strokes` array is ignored, and a translucent black is used instead
+
+{% note %}
+When a `colorRange` is used, the `fills` and `strokes` arrays are ignored
+{% /note %}
 
 ## Labels
 
@@ -197,13 +200,15 @@ In this configuration:
 -   `tile.padding` adjusts the padding between the edge of the tile and its labels
 -   `tile.gap` adjusts the gap between adjacent tiles where all nodes in the parent node are leaf nodes
 
-{% note %}
-The default tile gap is set to `-1` so the borders overlap.
-{% /note %}
+## Hierarchy Levels
+
+Treemap Series supports multiple levels within a hierarchy.
+
+{% chartExampleRunner title="Nesting" name="nesting" type="generated" /%}
 
 ## Gradient Legend
 
-The Gradient Legend aids in matching the colour coding of the treemap series to the underlying values, and is enabled by default.
+The Gradient Legend aids in matching the colour coding of the Treemap Series to the underlying values, and is enabled by default.
 
 {% chartExampleRunner title="Gradient Legend" name="gradient-legend" type="generated" /%}
 

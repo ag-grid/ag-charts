@@ -49,7 +49,7 @@ export interface AgScatterSeriesOptions<TDatum = any>
         AgScatterSeriesOptionsKeys,
         AgScatterSeriesOptionsNames,
         AgScatterSeriesThemeableOptions<TDatum> {
-    /** Configuration for the scatter series.  */
+    /** Configuration for the Scatter Series.  */
     type: 'scatter';
     /** Configuration for the Error Bars. */
     errorBar?: AgErrorBarOptions;

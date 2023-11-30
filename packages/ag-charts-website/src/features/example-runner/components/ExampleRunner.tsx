@@ -23,6 +23,7 @@ interface Props {
     initialSelectedFile?: string;
     internalFramework: InternalFramework;
     hideInternalFrameworkSelection?: boolean;
+    loadingIFrameId: string;
 }
 
 const DEFAULT_HEIGHT = 500;
@@ -39,6 +40,7 @@ export const ExampleRunner: FunctionComponent<Props> = ({
     initialSelectedFile,
     internalFramework,
     hideInternalFrameworkSelection,
+    loadingIFrameId,
 }) => {
     const [showCode, setShowCode] = useState(initialShowCode);
 
@@ -53,7 +55,11 @@ export const ExampleRunner: FunctionComponent<Props> = ({
                     aria-labelledby={`${showCode ? 'Preview' : 'Code'} tab`}
                     style={{ height: exampleHeight, width: '100%' }}
                 >
-                    <ExampleIFrame isHidden={showCode} url={exampleRunnerExampleUrl!} />
+                    <ExampleIFrame
+                        isHidden={showCode}
+                        url={exampleRunnerExampleUrl!}
+                        loadingIFrameId={loadingIFrameId}
+                    />
                     {exampleFiles && (
                         <CodeViewer
                             id={id}

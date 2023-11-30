@@ -204,24 +204,25 @@ export class Text extends Shape {
         }
     }
 
-    static wrap(
+    static wrapLines(
         text: string,
         maxWidth: number,
         maxHeight: number,
         textProps: TextSizeProperties,
         wrapping: TextWrap,
-        overflow: OverflowStrategy = 'ellipsis'
-    ): string {
+        overflow: OverflowStrategy
+    ): string[] | undefined {
         const canOverflow = overflow !== 'hide';
         const font = getFont(textProps);
         const measurer = createTextMeasurer(font);
         const lines: string[] = text.split(/\r?\n/g);
 
         if (lines.length === 0) {
-            return '';
+            return undefined;
         }
         if (wrapping === 'never') {
-            return Text.truncateLine(lines[0], maxWidth, measurer, canOverflow ? 'auto' : 'never') ?? '';
+            const line = Text.truncateLine(lines[0], maxWidth, measurer, canOverflow ? 'auto' : 'never');
+            return line != null ? [line] : undefined;
         }
 
         const result: string[] = [];
@@ -239,16 +240,28 @@ export class Text extends Shape {
             );
 
             if (wrappedLine == null) {
-                return '';
+                return undefined;
             }
 
-            result.push(wrappedLine.result);
+            result.push(...wrappedLine.result);
             cumulativeHeight = wrappedLine.cumulativeHeight;
             if (wrappedLine.truncated) {
                 break;
             }
         }
-        return result.join('\n').trim();
+        return result;
+    }
+
+    static wrap(
+        text: string,
+        maxWidth: number,
+        maxHeight: number,
+        textProps: TextSizeProperties,
+        wrapping: TextWrap,
+        overflow: OverflowStrategy = 'ellipsis'
+    ): string {
+        const lines = Text.wrapLines(text, maxWidth, maxHeight, textProps, wrapping, overflow);
+        return lines != null ? lines.join('\n').trim() : '';
     }
 
     private static wrapLine(
@@ -260,24 +273,24 @@ export class Text extends Shape {
         wrapping: TextWrap,
         cumulativeHeight: number,
         canOverflow: boolean
-    ): { result: string; truncated: boolean; cumulativeHeight: number } | undefined {
+    ): { result: string[]; truncated: boolean; cumulativeHeight: number } | undefined {
         text = text.trim();
         if (!text) {
-            return { result: '', truncated: false, cumulativeHeight };
+            return { result: [], truncated: false, cumulativeHeight };
         }
 
         const initialSize = measurer.size(text);
         if (initialSize.width <= maxWidth) {
             // Text fits into a single line
             return {
-                result: text,
+                result: [text],
                 truncated: false,
                 cumulativeHeight: cumulativeHeight + initialSize.height,
             };
         }
         if (initialSize.height > maxHeight || measurer.width('W') > maxWidth) {
             // Not enough space for a single line or character
-            return canOverflow ? { result: '', truncated: true, cumulativeHeight } : undefined;
+            return canOverflow ? { result: [], truncated: true, cumulativeHeight } : undefined;
         }
 
         const words = text.split(/\s+/g);
@@ -309,7 +322,7 @@ export class Text extends Shape {
             }
         }
 
-        const wrappedText = lines.map((ln) => ln.join(' ')).join('\n');
+        const wrappedText = lines.map((ln) => ln.join(' '));
         return { result: wrappedText, truncated: wrapResult.linesTruncated, cumulativeHeight };
     }
 

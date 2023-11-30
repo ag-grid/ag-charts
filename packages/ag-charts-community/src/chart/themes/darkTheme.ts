@@ -3,9 +3,10 @@ import { ChartTheme } from './chartTheme';
 import {
     DEFAULT_AXIS_GRID_COLOUR,
     DEFAULT_BACKGROUND_COLOUR,
-    DEFAULT_BACKGROUND_CONTRAST_COLOR_RANGE,
     DEFAULT_CROSS_LINES_COLOUR,
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
+    DEFAULT_HIERARCHY_FILLS,
+    DEFAULT_HIERARCHY_STROKES,
     DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
     DEFAULT_LABEL_COLOUR,
     DEFAULT_MUTED_LABEL_COLOUR,
@@ -99,13 +100,8 @@ export class DarkTheme extends ChartTheme {
             DEFAULT_DARK_FILLS.YELLOW,
             DEFAULT_DARK_FILLS.GREEN,
         ]);
-        result.properties.set(DEFAULT_BACKGROUND_CONTRAST_COLOR_RANGE, [
-            '#5C6770',
-            '#4F5B64',
-            '#424E57',
-            '#36414A',
-            '#2A343C',
-        ]);
+        result.properties.set(DEFAULT_HIERARCHY_FILLS, ['#192834', '#253746', '#324859', '#3f596c', '#4d6a80']);
+        result.properties.set(DEFAULT_HIERARCHY_STROKES, ['#192834', '#3b5164', '#496275', '#577287', '#668399']);
         result.properties.set(DEFAULT_BACKGROUND_COLOUR, DEFAULT_DARK_BACKGROUND_FILL);
         result.properties.set(DEFAULT_INSIDE_SERIES_LABEL_COLOUR, DEFAULT_DARK_BACKGROUND_FILL);
 

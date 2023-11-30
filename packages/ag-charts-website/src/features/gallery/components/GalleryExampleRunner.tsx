@@ -1,4 +1,5 @@
 import { ExampleRunner } from '@features/example-runner/components/ExampleRunner';
+import { removeGeneratedAstroTags } from '@features/example-runner/utils/removeGeneratedAstroTags';
 import { OpenInPlunkr } from '@features/plunkr/components/OpenInPlunkr';
 import { useEffect, useState } from 'react';
 import { QueryClient, QueryClientProvider, useQuery } from 'react-query';
@@ -14,6 +15,7 @@ import {
 interface Props {
     title: string;
     exampleName: string;
+    loadingIFrameId: string;
 }
 
 // NOTE: Not on the layout level, as that is generated at build time, and queryClient needs to be
@@ -27,7 +29,7 @@ const queryOptions = {
     refetchOnReconnect: false,
 };
 
-const GalleryExampleRunnerInner = ({ title, exampleName }: Props) => {
+const GalleryExampleRunnerInner = ({ title, exampleName, loadingIFrameId }: Props) => {
     const [initialSelectedFile, setInitialSelectedFile] = useState();
     const [exampleUrl, setExampleUrl] = useState<string>();
     const [exampleRunnerExampleUrl, setExampleRunnerExampleUrl] = useState<string>();
@@ -56,7 +58,9 @@ const GalleryExampleRunnerInner = ({ title, exampleName }: Props) => {
                 getExampleUrl({
                     exampleName,
                 })
-            ).then((res) => res.text());
+            )
+                .then((res) => res.text())
+                .then((html) => removeGeneratedAstroTags(html));
 
             return Promise.all([getContents, getExampleFileHtml]);
         },
@@ -134,6 +138,7 @@ const GalleryExampleRunnerInner = ({ title, exampleName }: Props) => {
             externalLinkButton={externalLinkButton}
             hideInternalFrameworkSelection={true}
             exampleHeight={620}
+            loadingIFrameId={loadingIFrameId}
         />
     );
 };

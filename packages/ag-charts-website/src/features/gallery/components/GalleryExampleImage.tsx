@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import { type FunctionComponent } from 'react';
 
-import { useTheme } from '../../../utils/hooks/useTheme';
+import { type BaseThemeName, useTheme } from '../../../utils/hooks/useTheme';
 import { getPlainExampleImageUrl } from '../utils/urlPaths';
 import styles from './GalleryExampleImage.module.scss';
 
@@ -9,6 +9,7 @@ interface Props {
     label: string;
     exampleName: string;
     className?: string;
+    themeName?: BaseThemeName;
 }
 
 export const GalleryExampleImage: FunctionComponent<Props> = ({ label, exampleName, className }) => {

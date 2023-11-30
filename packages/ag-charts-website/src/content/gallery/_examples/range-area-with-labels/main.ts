@@ -59,7 +59,7 @@ const options: AgChartOptions = {
                 size: 14,
             },
             gridLine: {
-                enabed: true,
+                enabled: true,
             },
         },
     ],

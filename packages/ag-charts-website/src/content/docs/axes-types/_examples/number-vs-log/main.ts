@@ -29,7 +29,7 @@ const options: AgCartesianChartOptions = {
     ],
 };
 
-var chart = AgCharts.create(options);
+const chart = AgCharts.create(options);
 
 function useNumberAxis() {
     options.axes = [

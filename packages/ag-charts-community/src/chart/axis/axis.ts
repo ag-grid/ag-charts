@@ -118,6 +118,7 @@ export type LabelNodeDatum = {
     x: number;
     y: number;
     translationY: number;
+    range: number[];
 };
 
 type TickData = { rawTicks: any[]; ticks: TickDatum[]; labelCount: number };
@@ -241,13 +242,12 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     protected axisContext?: AxisContext;
 
-    private animationManager: AnimationManager;
+    protected animationManager: AnimationManager;
     private animationState: StateMachine<AxisAnimationState, AxisAnimationEvent>;
 
     private destroyFns: Function[] = [];
 
     private minRect?: BBox;
-    private seriesRect?: BBox;
 
     constructor(
         protected readonly moduleCtx: ModuleContext,
@@ -285,7 +285,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                     this.animationState.transition('resize');
                 }
                 previousSize = { ...e.chart };
-                this.seriesRect = e.series.paddedRect;
             })
         );
 
@@ -487,7 +486,12 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const lineData = this.getAxisLineCoordinates();
         const { tickData, combinedRotation, textBaseline, textAlign, ...ticksResult } = this.tickGenerationResult;
         const previousTicks = this.tickLabelGroupSelection.nodes().map((node) => node.datum.tickId);
-        this.updateSelections(lineData, tickData.ticks, { combinedRotation, textAlign, textBaseline });
+        this.updateSelections(lineData, tickData.ticks, {
+            combinedRotation,
+            textAlign,
+            textBaseline,
+            range: this.scale.range,
+        });
 
         if (this.animationManager.isSkipped()) {
             this.resetSelectionNodes();
@@ -535,10 +539,11 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             combinedRotation: number;
             textBaseline: CanvasTextBaseline;
             textAlign: CanvasTextAlign;
+            range: number[];
         }
     ): LabelNodeDatum {
         const { label } = this;
-        const { combinedRotation, textBaseline, textAlign } = params;
+        const { combinedRotation, textBaseline, textAlign, range } = params;
         const text = datum.tickLabel;
         const sideFlag = label.getSideFlag();
         const tickSize = this.tick.size;
@@ -560,6 +565,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             visible,
             x: labelX,
             y: 0,
+            range,
         };
     }
 
@@ -655,6 +661,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                     combinedRotation,
                     textAlign,
                     textBaseline,
+                    range: this.scale.range,
                 });
                 if (!labelProps.visible) {
                     return;
@@ -1030,7 +1037,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         maxTickCount: number;
         primaryTickCount?: number;
     }) {
-        const { scale, seriesRect, visibleRange } = this;
+        const { range, scale, visibleRange } = this;
 
         let rawTicks: any[] = [];
 
@@ -1055,7 +1062,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         // `ticks instanceof NumericTicks` doesn't work here, so we feature detect.
         this.fractionDigits = (rawTicks as any).fractionDigits >= 0 ? (rawTicks as any).fractionDigits : 0;
 
-        const halfBandwidth = (this.scale.bandwidth ?? 0) / 2;
+        const halfBandwidth = (scale.bandwidth ?? 0) / 2;
         const ticks: TickDatum[] = [];
 
         let labelCount = 0;
@@ -1069,17 +1076,9 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             const rawTick = rawTicks[i];
             const translationY = scale.convert(rawTick) + halfBandwidth;
 
-            // Do not render ticks outside the series rect. A clip rect would trim long labels, so instead hide ticks
-            // based on their translation.
-            if (seriesRect) {
-                if (this.direction === ChartAxisDirection.X && (translationY < 0 || translationY > seriesRect.width)) {
-                    continue;
-                }
-
-                if (this.direction === ChartAxisDirection.Y && (translationY < 0 || translationY > seriesRect.height)) {
-                    continue;
-                }
-            }
+            // Do not render ticks outside the range with a small tolerance. A clip rect would trim long labels, so
+            // instead hide ticks based on their translation.
+            if (range.length > 0 && !this.inRange(translationY, 0, 0.001)) continue;
 
             const tickLabel = this.formatTick(rawTick, i);
 
@@ -1282,6 +1281,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             combinedRotation: number;
             textBaseline: CanvasTextBaseline;
             textAlign: CanvasTextAlign;
+            range: number[];
         }
     ) {
         this.lineNode.datum = lineData;
@@ -1524,7 +1524,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             'line-paths',
             animationManager,
             [this.gridLineGroupSelection, this.tickLineGroupSelection],
-            fns.tick,
+            fns.tick as any,
             (_, d) => d.tickId,
             diff
         );
@@ -1533,19 +1533,19 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             'tick-labels',
             animationManager,
             [this.tickLabelGroupSelection],
-            fns.label,
+            fns.label as any,
             (_, d) => d.tickId,
             diff
         );
     }
 
-    private resetSelectionNodes() {
+    protected resetSelectionNodes() {
         const { gridLineGroupSelection, tickLineGroupSelection, tickLabelGroupSelection, lineNode } = this;
 
         const selectionCtx = prepareAxisAnimationContext(this);
         resetMotion([this.axisGroup], resetAxisGroupFn());
         resetMotion([gridLineGroupSelection, tickLineGroupSelection], resetAxisSelectionFn(selectionCtx));
-        resetMotion([tickLabelGroupSelection], resetAxisLabelSelectionFn());
+        resetMotion([tickLabelGroupSelection], resetAxisLabelSelectionFn() as any);
         resetMotion([lineNode], resetAxisLineSelectionFn());
     }
 

@@ -177,17 +177,15 @@ export const Pipeline = ({ location, currentFramework }) => {
         <>
             {!IS_SSR && (
                 <div className={classnames('page-margin', styles.container)}>
-                    <h1>AG Grid Pipeline</h1>
+                    <h1>AG Charts Pipeline</h1>
                     <section className={styles.header}>
                         <Alert type="idea">
                             <p>
-                                The AG Grid pipeline lists the feature requests and active bugs in our product backlog.
-                                Use it to see the items scheduled for our next release or to look up the status of a
-                                specific item. If you can’t find the item you’re looking for, check the{' '}
-                                <a href={`${SITE_URL}${SITE_BASE_URL ?? ''}${currentFramework}/changelog/`}>
-                                    Changelog
-                                </a>{' '}
-                                containing the list of completed items.
+                                The AG Charts pipeline lists the feature requests and active bugs in our product
+                                backlog. Use it to see the items scheduled for our next release or to look up the status
+                                of a specific item. If you can’t find the item you’re looking for, check the{' '}
+                                <a href={`${SITE_URL}${SITE_BASE_URL ?? ''}changelog/`}>Changelog</a> containing the
+                                list of completed items.
                             </p>
                         </Alert>
                     </section>
@@ -224,7 +222,7 @@ export const Pipeline = ({ location, currentFramework }) => {
                         masterDetail={true}
                         rowData={rowData}
                         onGridReady={gridReady}
-                        theme={darkMode ? 'ag-theme-alpine-dark' : 'ag-theme-alpine'}
+                        theme={darkMode ? 'ag-theme-quartz-dark' : 'ag-theme-quartz'}
                     />
                 </div>
             )}

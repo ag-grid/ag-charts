@@ -9,7 +9,7 @@ const options: AgChartOptions = {
         text: 'Changes in Prison Population',
     },
     footnote: {
-        text: 'Source: Ministry of Justice, HM Prison Service, and Her Majesty’s Prison and Probation Service',
+        text: 'Source: Ministry of Justice, HM Prison Service, and HM’s Prison and Probation Service',
     },
     series: [
         {
@@ -19,7 +19,7 @@ const options: AgChartOptions = {
             yKey: 'menDelta',
             yName: 'Male',
             label: {
-                formatter: ({ value }) => `${value.toFixed(0)}`,
+                formatter: ({ value }) => value.toFixed(0),
             },
         },
         {
@@ -29,7 +29,7 @@ const options: AgChartOptions = {
             yKey: 'womenDelta',
             yName: 'Female',
             label: {
-                formatter: ({ value }) => `${value.toFixed(0)}`,
+                formatter: ({ value }) => value.toFixed(0),
             },
         },
     ],

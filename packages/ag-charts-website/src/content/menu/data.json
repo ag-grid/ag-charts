@@ -23,7 +23,7 @@
             },
             {
                 "title": "Github",
-                "url": "https://github.com/ag-grid/ag-grid",
+                "url": "https://github.com/ag-grid/ag-charts",
                 "icon": "github",
                 "github": "true"
             }
@@ -192,6 +192,15 @@
                         "title": "Background Image",
                         "path": "background-image",
                         "isEnterprise": true
+                    }
+                ]
+            },
+            {
+                "title": "Migration",
+                "items": [
+                    {
+                        "title": "Upgrade to AG Charts 9",
+                        "path": "upgrade-to-ag-charts-9"
                     }
                 ]
             }

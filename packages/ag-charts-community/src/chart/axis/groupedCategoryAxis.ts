@@ -3,7 +3,6 @@ import type { AgAxisCaptionFormatterParams } from '../../options/agChartOptions'
 import { BandScale } from '../../scale/bandScale';
 import { BBox } from '../../scene/bbox';
 import { Matrix } from '../../scene/matrix';
-import type { Point } from '../../scene/point';
 import { Selection } from '../../scene/selection';
 import { Line } from '../../scene/shape/line';
 import { Text } from '../../scene/shape/text';
@@ -89,11 +88,6 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
             );
         }
     }
-
-    override readonly translation: Point = {
-        x: 0,
-        y: 0,
-    };
 
     override readonly line = new AxisLine();
 
@@ -195,6 +189,8 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
         this.updateSeparators();
         this.updateAxisLines();
         this.updateCategoryGridLines();
+
+        this.resetSelectionNodes();
 
         return undefined;
     }

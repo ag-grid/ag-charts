@@ -44,7 +44,7 @@ zoom: {
 
 Zooming can be enabled for either the `x` or `y` axis, or for both at the same time with `xy` using the `axes` property. By default, zooming is only enabled on the `x` axis.
 
-In the example below, we enable zoom on the `y` axis.
+In the example below, we enable zoom on the `y` axis. By also providing a `axis[].tick.minSpacing` and `axis[].tick.maxSpacing`, the axis ticks update with the zoom.
 
 ```ts
 zoom: {
@@ -134,7 +134,7 @@ When both the zoom and context menu are enabled, additional zoom actions are add
 
 ## Navigator
 
-The zoom module can not be enabled in conjunction with the [navigator](./navigator) module. To use zoom you must ensure you have disabled navigator first.
+The zoom module can not be enabled in conjunction with the [navigator](./navigator/) module. To use zoom you must ensure you have disabled navigator first.
 
 ## API Reference
 

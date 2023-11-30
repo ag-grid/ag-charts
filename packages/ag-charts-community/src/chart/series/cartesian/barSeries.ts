@@ -203,7 +203,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
             extraProps.push(animationValidation(this));
         }
 
-        const visibleProps = !this.visible && animationEnabled ? { forceValue: 0 } : {};
+        const visibleProps = !this.visible ? { forceValue: 0 } : {};
         const { processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 keyProperty(this, xKey, isContinuousX, { id: 'xValue' }),

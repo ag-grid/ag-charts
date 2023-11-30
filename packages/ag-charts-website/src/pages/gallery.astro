@@ -6,6 +6,7 @@ import { getPageHashUrl } from '@features/gallery/utils/urlPaths';
 import type { GalleryData, GalleryExample, GalleryExampleChartType } from '@ag-grid-types';
 import { GalleryExampleLink } from '@features/gallery/components/GalleryExampleLink';
 import { GalleryExampleThemeDropdown } from '@features/gallery/components/GalleryExampleThemeDropdown';
+import styles from './gallery.module.scss';
 
 const galleryDataEntry = await getEntry('gallery', 'data');
 const galleryData: GalleryData = galleryDataEntry?.data;
@@ -13,7 +14,6 @@ const { series } = galleryData;
 ---
 
 <Layout title="AG Charts Gallery">
-    <!-- Add class `homepage-image-gen` to modify gallery styles to create images for homepage scrolling hero -->
     <div class="gallery-outer font-size-responsive font-size-small">
         <div class="menu">
             <ul class="list-style-none">
@@ -37,7 +37,9 @@ const { series } = galleryData;
         </div>
 
         <div class="content">
-            <GalleryExampleThemeDropdown client:only />
+            <div class={styles.toolPanel}>
+                <GalleryExampleThemeDropdown client:only="react" />
+            </div>
             <div>
                 {
                     series.map((series: GalleryExampleChartType[]) => (
@@ -68,16 +70,34 @@ const { series } = galleryData;
 </Layout>
 
 <script>
-    import { smoothScrollIntoView } from '@utils/smoothScrollIntoView';
+    import { scrollIntoViewById } from '@utils/navigation';
+    import { scrollspy } from 'src/utils/scrollspy';
+    import type { MarkdownHeading } from 'astro';
 
-    // Add smooth scrolling for menu anchor links
-    document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+    const navAnchors = document.querySelectorAll<HTMLAnchorElement>('a[href^="#"]');
+    const headings = [] as MarkdownHeading[];
+
+    navAnchors.forEach((anchor) => {
+        const id = anchor.getAttribute('href')!.substring(1);
+
+        // Add smooth scrolling for menu anchor links
         anchor.addEventListener('click', function (e) {
             e.preventDefault();
-            const id = anchor.getAttribute('href').substring(1);
-            smoothScrollIntoView({ id });
+            scrollIntoViewById(id);
         });
+
+        headings.push({ slug: id, depth: 1, text: anchor.text.trim() });
     });
+
+    scrollspy(
+        headings,
+        (slug) => {
+            for (const navItem of navAnchors) {
+                navItem.classList.toggle('active', navItem.getAttribute('href') === `#${slug}`);
+            }
+        },
+        { offset: 120 }
+    );
 </script>
 
 <style lang="scss">
@@ -163,7 +183,8 @@ const { series } = galleryData;
             transition: fill $default-transition-timing;
         }
 
-        &:hover {
+        &:hover,
+        &:global(.active) {
             --text-color: var(--link-hover-color);
 
             background: rgba(56, 146, 249, 0.06);
@@ -204,6 +225,7 @@ const { series } = galleryData;
     }
 
     .content {
+        flex: 1;
         padding: $site-header-height var(--horizontal-padding) $size-8;
 
         @media screen and (min-width: $breakpoint-gallery-small) {
@@ -232,10 +254,7 @@ const { series } = galleryData;
 
     .gallery-list-title {
         position: absolute;
-        width: 1px;
-        height: 1px;
-        clip-path: inset(50%);
-        overflow: hidden;
+        visibility: hidden;
     }
 
     .galleryExample {
@@ -257,39 +276,6 @@ const { series } = galleryData;
 
         @media screen and (min-width: 2500px) {
             --columns: 5;
-        }
-    }
-</style>
-
-<!-- Used to create images for the homepage scrolling gallery hero section -->
-<style lang="scss">
-    @use '../design-system' as *;
-
-    .homepage-image-gen {
-        background-color: var(--dark-blue-600) !important;
-
-        :global([data-dark-mode='true']) & {
-            background-color: transparent !important;
-        }
-
-        .chart-type,
-        .gallery-list {
-            display: contents;
-        }
-
-        .content > div {
-            display: flex;
-            flex-wrap: wrap;
-            gap: $size-3;
-            margin-top: $size-3;
-        }
-
-        :global(.galleryExample) {
-            background-color: var(--default-background-color);
-        }
-
-        :global(.galleryExample span) {
-            display: none !important;
         }
     }
 </style>

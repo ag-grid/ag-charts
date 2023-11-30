@@ -1,6 +1,6 @@
 {
   "name": "ag-charts-angular",
-  "version": "9.0.0-beta.20231121.1401",
+  "version": "9.0.0-beta.20231128.2222",
   "scripts": {
     "ng": "ng",
     "build": "ng build",
@@ -18,7 +18,7 @@
     "chart",
     "angular"
   ],
-  "author": "Sean Landsman <sean@thelandsmans.com>",
+  "author": "AG Grid <info@ag-grid.com>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/ag-grid/ag-charts/issues"
@@ -26,7 +26,7 @@
   "homepage": "https://charts.ag-grid.com/",
   "private": false,
   "module": "./dist/ag-charts-angular/fesm2015/ag-charts-angular.mjs",
-  "typings": "./dist/ag-charts-angular/ag-charts-angular.d.ts",
+  "typings": "./dist/ag-charts-angular/index.d.ts",
   "dependencies": {
     "@angular/animations": "^14.3.0",
     "@angular/common": "^14.3.0",
@@ -36,7 +36,7 @@
     "@angular/platform-browser": "^14.3.0",
     "@angular/platform-browser-dynamic": "^14.3.0",
     "@angular/router": "^14.3.0",
-    "ag-charts-community": "9.0.0-beta.20231121.1401",
+    "ag-charts-community": "9.0.0-beta.20231128.2222",
     "rxjs": "~7.5.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.11.4"

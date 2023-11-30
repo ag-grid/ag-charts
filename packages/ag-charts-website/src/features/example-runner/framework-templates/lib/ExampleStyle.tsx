@@ -1,12 +1,14 @@
 import React from 'react';
 
+const css = String.raw;
+
 /**
  * These are the CSS styles shared by all examples.
  */
-export const ExampleStyle = ({ rootId }: { rootId?: string }) => (
-    <style media="only screen">
-        {`
-        html, body${rootId ? `, #${rootId}` : ''} {
+export const ExampleStyle = ({ rootId }: { rootId?: string }) => {
+    const styles = css`
+        html,
+        body${rootId ? `, #${rootId}` : ''} {
             height: 100%;
             width: 100%;
             margin: 0;
@@ -14,12 +16,20 @@ export const ExampleStyle = ({ rootId }: { rootId?: string }) => (
             -webkit-overflow-scrolling: touch;
         }
 
-        html {
+        :root {
             position: absolute;
             top: 0;
             left: 0;
             padding: 0;
             overflow: auto;
+            font-family: -apple-system, 'system-ui', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
+                'Liberation Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+                'Noto Color Emoji';
+        }
+
+        :root[data-dark-mode='true'] {
+            background: #182732;
+            color: white;
         }
 
         body {
@@ -31,7 +41,7 @@ export const ExampleStyle = ({ rootId }: { rootId?: string }) => (
             --background-color: transparent;
             --text-color: #212529;
             --border-color: rgba(187, 187, 187, 0.3);
-            --hover-background-color: rgba(0,0,0, 0.1);
+            --hover-background-color: rgba(0, 0, 0, 0.1);
 
             appearance: none;
             border: 2px solid var(--border-color);
@@ -43,24 +53,25 @@ export const ExampleStyle = ({ rootId }: { rootId?: string }) => (
             display: inline-block;
             font-size: 14px;
             font-weight: 500;
-            letter-spacing: .01em;
+            letter-spacing: 0.01em;
             padding: 0.375em 1em 0.5em;
             white-space: nowrap;
             margin-right: 6px;
             margin-bottom: 8px;
-            transition: background-color .25s ease-in-out;
+            transition: background-color 0.25s ease-in-out;
         }
 
         button:not(#myGrid button, #myChart button, button[class*='ag-'], .ag-chart-context-menu button):hover {
-          background-color: var(--hover-background-color);
+            background-color: var(--hover-background-color);
         }
 
-        html[data-dark-mode=true] button:not(#myGrid button, #myChart button, button[class*='ag-'], .ag-chart-context-menu button) {
-
-          --text-color: #f8f9fa;
-          --border-color: rgba(255,255,255, 0.2);
-          --hover-background-color: #2a343e;
+        :root[data-dark-mode='true']
+            button:not(#myGrid button, #myChart button, button[class*='ag-'], .ag-chart-context-menu button) {
+            --text-color: #f8f9fa;
+            --border-color: rgba(255, 255, 255, 0.2);
+            --hover-background-color: #2a343e;
         }
-    `}
-    </style>
-);
+    `;
+
+    return <style media="only screen" dangerouslySetInnerHTML={{ __html: styles }}></style>;
+};

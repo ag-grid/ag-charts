@@ -1,4 +1,9 @@
-import type { AgChartTheme, AgChartThemeName, AgChartThemeOverrides } from '../../options/agChartOptions';
+import type {
+    AgChartTheme,
+    AgChartThemeName,
+    AgChartThemeOverrides,
+    AgChartThemePalette,
+} from '../../options/agChartOptions';
 import { jsonMerge } from '../../util/json';
 import { Logger } from '../../util/logger';
 import { ChartTheme } from '../themes/chartTheme';
@@ -42,12 +47,72 @@ export const themes: ThemeMap = {
     ...lightThemes,
 };
 
-export function getChartTheme(value?: string | ChartTheme | AgChartTheme): ChartTheme {
+type Unvalidate<T> = { [K in keyof T]?: unknown };
+function validateChartThemeObject(unknownObject: object | null): AgChartTheme | undefined {
+    if (unknownObject === null) {
+        return undefined;
+    }
+
+    let valid = true;
+    const { baseTheme, palette, overrides } = unknownObject as Unvalidate<AgChartTheme>;
+
+    if (baseTheme !== undefined && typeof baseTheme !== 'string' && typeof baseTheme !== 'object') {
+        Logger.warn(`invalid theme.baseTheme type ${typeof baseTheme}, expected (string | object).`);
+        valid = false;
+    }
+    if (overrides !== undefined && typeof overrides !== 'object') {
+        Logger.warn(`invalid theme.overrides type ${typeof overrides}, expected object.`);
+        valid = false;
+    }
+    if (typeof palette === 'object') {
+        if (palette !== null) {
+            const { fills, strokes } = palette as Unvalidate<AgChartThemePalette>;
+            if (!Array.isArray(fills)) {
+                Logger.warn(`theme.overrides.fills must be a defined array`);
+                valid = false;
+            }
+            if (!Array.isArray(strokes)) {
+                Logger.warn(`theme.overrides.strokes must be a defined array`);
+                valid = false;
+            }
+        }
+    } else if (palette !== undefined) {
+        Logger.warn(`invalid theme.palette type ${typeof palette}, expected object.`);
+        valid = false;
+    }
+
+    if (valid) {
+        return unknownObject as AgChartTheme;
+    }
+    return undefined;
+}
+
+function validateChartTheme(value: unknown): string | ChartTheme | AgChartTheme | undefined {
+    if (value === undefined || typeof value === 'string' || value instanceof ChartTheme) {
+        return value;
+    }
+
+    if (typeof value === 'object') {
+        return validateChartThemeObject(value);
+    }
+
+    Logger.warn(`invalid theme value type ${typeof value}, expected object.`);
+    return undefined;
+}
+
+export function getChartTheme(unvalidatedValue: unknown): ChartTheme {
+    // unvalidatedValue is either a built-in theme (`string | ChartTheme`) or a user defined
+    // theme (`AgChartTheme`). In the latter case, we can't make any assumption about the
+    // property types, hence why the input parameter is `unknown`. This abnormal validation
+    // is tech debt; the ideal solution would be to integrate user themes with the @Validate
+    // decorator like other chart options.
+    let value = validateChartTheme(unvalidatedValue);
+
     if (value instanceof ChartTheme) {
         return value;
     }
 
-    if (typeof value === 'string') {
+    if (value === undefined || typeof value === 'string') {
         const stockTheme = themes[value as AgChartThemeName];
         if (stockTheme) {
             return stockTheme();
@@ -55,8 +120,6 @@ export function getChartTheme(value?: string | ChartTheme | AgChartTheme): Chart
         Logger.warnOnce(`the theme [${value}] is invalid, using [ag-default] instead.`);
         return lightTheme();
     }
-
-    value = value as AgChartTheme;
 
     // Flatten recursive themes.
     const overrides: AgChartThemeOverrides[] = [];

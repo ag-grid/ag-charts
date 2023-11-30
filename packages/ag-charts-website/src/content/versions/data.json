@@ -1,0 +1,34 @@
+[
+    {
+        "version": "9.0.0",
+        "date": "November 29th 2023",
+        "highlights": [
+            {
+                "text": "New Enterprise Series Types",
+                "url": "https://charts.ag-grid.com/gallery/"
+            },
+            {
+                "text": "Zoom",
+                "url": "https://charts.ag-grid.com/react/zoom/"
+            },
+            {
+                "text": "Context Menu",
+                "url": "https://charts.ag-grid.com/react/context-menu/"
+            },
+            {
+                "text": "Crosshairs",
+                "url": "https://charts.ag-grid.com/react/axes-crosshairs/"
+            },
+            {
+                "text": "Initial Load and Data Update Animation",
+                "url": "https://charts.ag-grid.com/react/animation/"
+            },
+            {
+                "text": "Error Bars",
+                "url": "https://charts.ag-grid.com/react/error-bars/"
+            }
+        ],
+        "buttonURL": "/javascript/upgrade-to-ag-charts-9/",
+        "majorMinor": true
+    }
+]

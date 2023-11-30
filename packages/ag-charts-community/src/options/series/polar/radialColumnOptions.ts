@@ -32,7 +32,7 @@ export interface AgRadialColumnSeriesThemeableOptions<TDatum = any> extends AgBa
 export interface AgRadialColumnSeriesOptions<TDatum = any>
     extends AgRadialColumnSeriesThemeableOptions<TDatum>,
         AgBaseRadialColumnSeriesOptions<TDatum> {
-    /** Configuration for Radial Column series. */
+    /** Configuration for Radial Column Series. */
     type: 'radial-column';
 }
 

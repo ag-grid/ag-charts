@@ -28,6 +28,15 @@ export function useLocation() {
     return location;
 }
 
+const gridToChartVersion = (gridVersion: string) => {
+    const versionParts = gridVersion.split('.');
+
+    // the first charts release was on grid version 22 - we'll keep in lock step release wise going forward so this
+    // works
+    const chartMajorVersion = parseInt(versionParts[0]) - 22;
+    return `${chartMajorVersion}.${versionParts[1]}.${versionParts[2]}`;
+};
+
 // @ts-ignore
 export const Changelog = () => {
     const extractFixVersionParameter = (location: any) => {
@@ -76,8 +85,11 @@ export const Changelog = () => {
         fetch(`/changelog/changelog.json`)
             .then((response) => response.json())
             .then((data) => {
-                const gridVersions = [ALL_FIX_VERSIONS, ...data.map((row: any) => row.versions[0])];
-                setVersions([...new Set(gridVersions)]);
+                const chartVersions = [
+                    ALL_FIX_VERSIONS,
+                    ...data.map((row: any) => row.versions[0]).map(gridToChartVersion),
+                ];
+                setVersions([...new Set(chartVersions)]);
                 setRowData(data);
             });
         fetch(`/changelog/releaseVersionNotes.json`)
@@ -124,6 +136,8 @@ export const Changelog = () => {
                         .join(' ');
                     setMarkdownContent(undefined);
                 }
+            } else {
+                setMarkdownContent(undefined);
             }
             setCurrentReleaseNotes(currentReleaseNotesHtml);
         }
@@ -287,6 +301,11 @@ export const Changelog = () => {
                 width: 145,
                 resizable: true,
                 filter: 'agSetColumnFilter',
+                valueGetter: (params: any) => {
+                    const version =
+                        params.data.versions && params.data.versions.length === 1 ? params.data.versions[0] : '';
+                    return gridToChartVersion(version);
+                },
                 filterParams: {
                     comparator: (a: any, b: any) => {
                         const valA = parseInt(a);
@@ -313,11 +332,14 @@ export const Changelog = () => {
         []
     );
 
+    const releaseNotesMarkdownContent = fixVersion === ALL_FIX_VERSIONS ? undefined : markdownContent;
+    const hideExpander = fixVersion === ALL_FIX_VERSIONS || releaseNotesMarkdownContent;
+
     return (
         <>
             {!IS_SSR && (
                 <div className={classnames('page-margin', styles.container)}>
-                    <h1>AG Grid Changelog</h1>
+                    <h1>AG Charts Changelog</h1>
 
                     <section className={styles.header}>
                         <Alert type="idea">
@@ -327,12 +349,12 @@ export const Changelog = () => {
                         </Alert>
 
                         <ReleaseVersionNotes
-                            releaseNotes={fixVersion === ALL_FIX_VERSIONS ? undefined : currentReleaseNotes}
-                            markdownContent={fixVersion === ALL_FIX_VERSIONS ? undefined : markdownContent}
+                            releaseNotes={fixVersion === ALL_FIX_VERSIONS ? undefined : releaseNotesMarkdownContent}
+                            markdownContent={markdownContent}
                             versions={versions}
                             fixVersion={fixVersion}
                             onChange={switchDisplayedFixVersion}
-                            hideExpander={fixVersion === ALL_FIX_VERSIONS}
+                            hideExpander={hideExpander}
                         />
                     </section>
 
@@ -367,7 +389,7 @@ export const Changelog = () => {
                         onFirstDataRendered={() => {
                             applyFixVersionFilter();
                         }}
-                        theme={darkMode ? 'ag-theme-alpine-dark' : 'ag-theme-alpine'}
+                        theme={darkMode ? 'ag-theme-quartz-dark' : 'ag-theme-quartz'}
                     />
                 </div>
             )}

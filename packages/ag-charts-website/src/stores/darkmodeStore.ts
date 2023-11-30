@@ -24,9 +24,9 @@ const updateHtml = (darkmode: boolean | undefined) => {
     const darkModeEvent = { type: 'color-scheme-change', darkmode };
 
     // post message for example runner to listen for user initiated color scheme changes
-    const iframes = document.querySelectorAll('.exampleRunner') || [];
-    iframes.forEach((iframe) => {
-        iframe.contentWindow.postMessage(darkModeEvent);
+    const iframes = document.querySelectorAll<HTMLIFrameElement>('.exampleRunner');
+    iframes?.forEach((iframe) => {
+        iframe.contentWindow?.postMessage(darkModeEvent);
     });
 
     // Send on event on page for charts that are embeded on the page

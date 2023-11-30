@@ -1,5 +1,3 @@
-'use strict';
-
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { AgChartsReact } from 'ag-charts-react';

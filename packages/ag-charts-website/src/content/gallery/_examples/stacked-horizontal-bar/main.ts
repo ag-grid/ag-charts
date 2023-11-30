@@ -2,14 +2,7 @@ import { AgBarSeriesTooltipRendererParams, AgChartOptions, AgCharts } from 'ag-c
 
 import { getData } from './data';
 
-type YKey = keyof Omit<(typeof data)[number], 'type'>;
-const data = getData();
-
-const tooltip = {
-    renderer: ({ datum, xKey, yKey }: AgBarSeriesTooltipRendererParams) => ({
-        content: `${datum[xKey]}: ${Math.abs(datum[yKey])}`,
-    }),
-};
+const data: any[] = getData();
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
@@ -24,8 +17,13 @@ const options: AgChartOptions = {
                         formatter: ({ value }) => `${Math.abs(value)}`,
                     },
                     formatter: ({ datum, yKey }) => ({
-                        fillOpacity: getOpacity(Math.abs(datum[yKey]), yKey as YKey, 0.4, 1),
+                        fillOpacity: getOpacity(Math.abs(datum[yKey]), yKey, 0.4, 1),
                     }),
+                    tooltip: {
+                        renderer: ({ datum, xKey, yKey }: AgBarSeriesTooltipRendererParams) => ({
+                            content: `${datum[xKey]}: ${Math.abs(datum[yKey])}`,
+                        }),
+                    },
                 },
             },
         },
@@ -46,7 +44,6 @@ const options: AgChartOptions = {
             yKey: 'crWon',
             yName: 'Cristiano Ronaldo - Games Won',
             stacked: true,
-            tooltip,
         },
         {
             type: 'bar',
@@ -55,7 +52,6 @@ const options: AgChartOptions = {
             yKey: 'lmWon',
             yName: 'Lionel Messi - Games Won',
             stacked: true,
-            tooltip,
         },
         {
             type: 'bar',
@@ -64,7 +60,6 @@ const options: AgChartOptions = {
             yKey: 'kbWon',
             yName: 'Karim Benzema - Games Won',
             stacked: true,
-            tooltip,
         },
         {
             type: 'bar',
@@ -73,7 +68,6 @@ const options: AgChartOptions = {
             yKey: 'crLost',
             yName: 'Cristiano Ronaldo - Games Lost',
             stacked: true,
-            tooltip,
         },
         {
             type: 'bar',
@@ -82,7 +76,6 @@ const options: AgChartOptions = {
             yKey: 'lmLost',
             yName: 'Lionel Messi - Games Lost',
             stacked: true,
-            tooltip,
         },
         {
             type: 'bar',
@@ -91,7 +84,6 @@ const options: AgChartOptions = {
             yKey: 'kbLost',
             yName: 'Karim Benzema - Games Lost',
             stacked: true,
-            tooltip,
         },
     ],
     axes: [
@@ -110,7 +102,7 @@ const options: AgChartOptions = {
         },
         {
             type: 'number',
-            position: 'top',
+            position: 'bottom',
             nice: false,
             min: -40,
             max: 60,
@@ -132,7 +124,7 @@ const options: AgChartOptions = {
                     fillOpacity: 0,
                     label: {
                         text: 'L O S S E S',
-                        position: 'insideBottom', //?? something is off with layout
+                        position: 'top',
                     },
                 },
                 {
@@ -142,7 +134,7 @@ const options: AgChartOptions = {
                     fillOpacity: 0,
                     label: {
                         text: 'W I N S',
-                        position: 'insideBottom', //?? something is off with label positioning
+                        position: 'top',
                     },
                 },
             ],
@@ -153,13 +145,13 @@ const options: AgChartOptions = {
     },
 };
 
-function getOpacity(value: number, key: YKey, minOpacity: number, maxOpacity: number) {
+function getOpacity(value: number, key: string, minOpacity: number, maxOpacity: number) {
     const [min, max] = getDomain(key);
     let alpha = Math.round(((value - min) / (max - min)) * 10) / 10;
     return map(alpha, 0, 1, minOpacity, maxOpacity);
 }
 
-function getDomain(key: YKey) {
+function getDomain(key: string) {
     const min = Math.min(...data.map((d) => Math.abs(d[key])));
     const max = Math.max(...data.map((d) => Math.abs(d[key])));
     return [min, max];

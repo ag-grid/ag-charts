@@ -586,7 +586,7 @@ export const SUNBURST_SERIES_LABELS: AgHierarchyChartOptions = {
         },
     ],
     title: {
-        text: 'Organizational Chart',
+        text: 'Organisational Chart',
     },
     subtitle: {
         text: 'of a top secret startup',
@@ -614,7 +614,7 @@ export const TREEMAP_SERIES_LABELS: AgHierarchyChartOptions = {
         },
     ],
     title: {
-        text: 'Organizational Chart',
+        text: 'Organisational Chart',
     },
     subtitle: {
         text: 'of a top secret startup',

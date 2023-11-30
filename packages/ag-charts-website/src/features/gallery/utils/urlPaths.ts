@@ -53,12 +53,12 @@ export const getExampleWithRelativePathUrl = ({ exampleName }: { exampleName: st
 };
 
 export const getPageUrl = (pageName: string) => {
-    return pathJoin(SITE_BASE_URL, 'gallery', pageName);
+    return pathJoin(SITE_BASE_URL, 'gallery', pageName) + '/';
 };
 
 export const getPageHashUrl = ({ chartSeriesName, isRelative }: { chartSeriesName: string; isRelative?: boolean }) => {
     const hash = `#${chartSeriesName}`;
-    return isRelative ? hash : pathJoin(SITE_BASE_URL, 'gallery', hash);
+    return isRelative ? hash : pathJoin(SITE_BASE_URL, 'gallery', hash) + '/';
 };
 
 export const getExampleContentsUrl = ({ exampleName }: { exampleName: string }) => {

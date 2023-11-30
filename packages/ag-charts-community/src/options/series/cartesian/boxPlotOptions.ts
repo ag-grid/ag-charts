@@ -76,6 +76,7 @@ export interface AgBoxPlotSeriesOptions<DatumType = any>
         AgBaseSeriesOptions<DatumType>,
         BoxPlotUniqueOptions,
         Omit<AxisOptions, 'yKey'> {
+    /** Configuration for the Box Plot Series. */
     type: 'box-plot';
     /** Whether to group together (adjacently) separate columns. */
     grouped?: boolean;

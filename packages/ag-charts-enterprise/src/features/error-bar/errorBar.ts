@@ -364,7 +364,8 @@ export class ErrorBars
     }
 
     private getHighlightStyle(): AgErrorBarThemeableOptions {
-        return this.makeStyle(this.cartesianSeries.highlightStyle.item);
+        // FIXME - at some point we should allow customising this
+        return this.makeStyle(this.getWhiskerProperties());
     }
 
     private restyleHightlightChange(

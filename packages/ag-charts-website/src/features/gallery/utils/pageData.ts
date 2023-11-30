@@ -1,4 +1,5 @@
 import type { GalleryData } from '@ag-grid-types';
+import { SKIP_GALLERY_IMAGE_GENERATION } from '@constants';
 
 import { getGeneratedGalleryContentsFileList } from './examplesGenerator';
 import { getGalleryExamples } from './filesData';
@@ -38,6 +39,10 @@ export function getGalleryExamplePages({ galleryData }: { galleryData: GalleryDa
 }
 
 export function getGalleryExampleThemePages({ galleryData }: { galleryData: GalleryData }) {
+    if (SKIP_GALLERY_IMAGE_GENERATION) {
+        return [];
+    }
+
     const galleryExamples = getGalleryExamples({ galleryData });
     const themes = [
         'ag-default',

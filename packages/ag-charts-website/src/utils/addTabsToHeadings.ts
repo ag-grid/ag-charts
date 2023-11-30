@@ -1,120 +1,70 @@
 import Markdoc, { type Node } from '@markdoc/markdoc';
+import type { MarkdownHeading } from 'astro';
 import GithubSlugger from 'github-slugger';
-import type { Heading } from 'src/types/markdoc';
 
 const TABS_TAG_NAME = 'tabs';
 const TAB_ITEM_TAG_NAME = 'tabItem';
 
-interface ParentHeading {
-    depth: number;
-    text: string;
-    slug: string;
-}
-
-function isTabsTag({ type, tag }: Node) {
+function isTabsTag({ tag, type }: Node) {
     return type === 'tag' && tag === TABS_TAG_NAME;
 }
 
-function isTabItemTag({ type, tag }: Node) {
+function isTabItemTag({ tag, type }: Node) {
     return type === 'tag' && tag === TAB_ITEM_TAG_NAME;
-}
-
-function getParentHeadingFromIndex({ tab, ast }: { tab: Node; ast: Node }) {
-    const astChildren = ast.children;
-    const tabIndex = astChildren.findIndex((child: Node) => {
-        return child === tab;
-    });
-
-    let heading;
-    for (let i = tabIndex - 1; i >= 0; i--) {
-        const node = astChildren[i];
-        if (node.type === 'heading') {
-            heading = node;
-            break;
-        }
-    }
-
-    return heading;
-}
-
-function getParentHeadingData(parentHeadingAst: Node): ParentHeading {
-    const slugger = new GithubSlugger();
-    const parentHeadingText = parentHeadingAst.children[0].children[0].attributes.content;
-    const parentHeadingSlug = slugger.slug(parentHeadingText);
-
-    return {
-        depth: parentHeadingAst.attributes.level,
-        text: parentHeadingText,
-        slug: parentHeadingSlug,
-    };
 }
 
 /**
  * Extract markdoc `{% tabs %}` tag data from content
  */
 function getMarkdocTabs(content: string) {
-    const ast = Markdoc.parse(content);
+    const root = Markdoc.parse(content);
+    const slugger = new GithubSlugger();
+    let lastHeading: Node;
 
-    const astTabs = ast.children.filter(isTabsTag);
-    const tabs = astTabs
-        .map((tab) => {
-            if (tab.attributes['omitFromOverview'] === true) {
+    return root.children
+        .map((node) => {
+            if (node.type === 'heading') {
+                lastHeading = node;
+            }
+
+            if (!isTabsTag(node) || !lastHeading || node.attributes.omitFromOverview) {
                 return;
             }
-            const parentHeadingAst = getParentHeadingFromIndex({ tab, ast });
-            if (!parentHeadingAst) {
-                return;
-            }
-            const parentHeading = getParentHeadingData(parentHeadingAst);
-            const tabItemsAst = tab.children.filter(isTabItemTag);
-            const tabItems = tabItemsAst.map(({ attributes }) => attributes);
 
-            return {
-                parentHeading,
-                tabItems,
-            };
+            const { level } = lastHeading.attributes;
+            const { content } = lastHeading.children[0].children[0].attributes;
+            const heading: MarkdownHeading = { slug: slugger.slug(content), depth: level, text: content.trim() };
+            const tabItems = node.children.filter(isTabItemTag).map(({ attributes }) => attributes);
+
+            return { heading, tabItems };
         })
-        .filter(Boolean);
-
-    return tabs;
+        .filter(<T>(val: T | undefined): val is T => val != null);
 }
 
 export function addTabsToHeadings({
-    markdocContent,
     headings,
+    markdocContent,
     getTabItemSlug,
 }: {
+    headings: MarkdownHeading[];
     markdocContent: string;
-    headings: Heading[];
-    getTabItemSlug: (params: { id: string; parentHeading: ParentHeading }) => string;
+    getTabItemSlug: (id: string) => string;
 }) {
-    const tabs = getMarkdocTabs(markdocContent);
-    let extendedHeadings = headings.slice();
+    const headingsClone = headings.slice();
 
-    tabs.forEach((tab) => {
-        const { parentHeading } = tab!;
-        const headingIndex = extendedHeadings.findIndex(({ slug }) => {
-            return slug === parentHeading.slug;
-        });
+    for (const tab of getMarkdocTabs(markdocContent)) {
+        const tabHeadingIndex = headingsClone.findIndex(({ slug }) => slug === tab.heading.slug);
 
-        if (headingIndex >= 0) {
-            const depth = parentHeading.depth + 1;
-            const tabItemHeadings: Heading[] =
-                tab?.tabItems.map(({ id, label }) => {
-                    return {
-                        depth,
-                        text: label,
-                        slug: getTabItemSlug({ parentHeading, id }),
-                    };
-                }) || [];
-            const insertIndex = headingIndex + 1;
+        if (tabHeadingIndex === -1) continue;
 
-            extendedHeadings = extendedHeadings
-                .slice(0, insertIndex)
-                .concat(tabItemHeadings)
-                .concat(extendedHeadings.slice(insertIndex));
-        }
-    });
+        const tabItemsHeading: MarkdownHeading[] = tab.tabItems.map(({ id, label }) => ({
+            slug: getTabItemSlug(id),
+            depth: tab.heading.depth + 1,
+            text: label,
+        }));
 
-    return extendedHeadings;
+        headingsClone.splice(tabHeadingIndex + 1, 0, ...tabItemsHeading);
+    }
+
+    return headingsClone;
 }

@@ -79,7 +79,7 @@ export interface AgWaterfallSeriesOptions<TDatum = any>
         AgWaterfallSeriesOptionsKeys,
         AgWaterfallSeriesOptionsNames,
         AgWaterfallSeriesThemeableOptions<TDatum> {
-    /** Configuration for the Waterfall series. */
+    /** Configuration for the Waterfall Series. */
     type: 'waterfall';
     /** Configuration of total and subtotal values. */
     totals?: WaterfallSeriesTotalMeta[];

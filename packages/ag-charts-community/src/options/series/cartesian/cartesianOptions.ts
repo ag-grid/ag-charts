@@ -45,7 +45,7 @@ export interface AgBaseCartesianChartOptions {
 
 export interface AgNumberAxisOptions extends AgBaseCartesianAxisOptions {
     type: 'number';
-    /** If 'true', the range will be rounded up to ensure nice equal spacing between the ticks. */
+    /** If `true`, the range will be rounded up to ensure nice equal spacing between the ticks. */
     nice?: boolean;
     /** User override for the automatically determined min value (based on series data). */
     min?: number;
@@ -57,7 +57,7 @@ export interface AgNumberAxisOptions extends AgBaseCartesianAxisOptions {
 
 export interface AgLogAxisOptions extends AgBaseCartesianAxisOptions {
     type: 'log';
-    /** If 'true', the range will be rounded up to ensure nice equal spacing between the ticks. */
+    /** If `true`, the range will be rounded up to ensure nice equal spacing between the ticks. */
     nice?: boolean;
     /** User override for the automatically determined min value (based on series data). This value can be any non-zero number less than the configured `max` value. */
     min?: number;
@@ -92,7 +92,7 @@ export interface AgGroupedCategoryAxisOptions extends AgBaseCartesianAxisOptions
 
 export interface AgTimeAxisOptions extends AgBaseCartesianAxisOptions {
     type: 'time';
-    /** If 'true', the range will be rounded up to ensure nice equal spacing between the ticks. */
+    /** If `true`, the range will be rounded up to ensure nice equal spacing between the ticks. */
     nice?: boolean;
     /** Configuration for the axis ticks. */
     tick?: AgAxisTimeTickOptions;
@@ -170,9 +170,9 @@ export interface AgTimeAxisThemeOptions
 export interface AgCartesianCrossLineOptions extends AgBaseCrossLineOptions<AgCartesianCrossLineLabelOptions> {}
 
 export interface AgCartesianCrossLineLabelOptions extends AgBaseCrossLineLabelOptions {
-    /** The position of the crossLine label. */
+    /** The position of the cross-line label. */
     position?: AgCrossLineLabelPosition;
-    /** The rotation of the crossLine label in degrees. */
+    /** The rotation of the cross-line label in degrees. */
     rotation?: number;
 }
 
@@ -180,7 +180,7 @@ export interface AgAxisCategoryTickOptions extends AgAxisBaseTickOptions {}
 
 export interface AgAxisNumberTickOptions extends AgAxisBaseTickOptions {
     /** Maximum gap in pixels between tick lines. */
-    maxSpacing?: number;
+    maxSpacing?: PixelSize;
     /** The step value between ticks specified as a number. If the configured interval results in too many ticks given the chart size, it will be ignored.
      */
     interval?: number;
@@ -188,7 +188,7 @@ export interface AgAxisNumberTickOptions extends AgAxisBaseTickOptions {
 
 export interface AgAxisTimeTickOptions extends AgAxisBaseTickOptions {
     /** Maximum gap in pixels between tick lines. */
-    maxSpacing?: number;
+    maxSpacing?: PixelSize;
     /** The step value between ticks specified as a TimeInterval or a number. If the configured interval results in dense ticks given the data domain, the ticks will be removed.
      */
     interval?: any;

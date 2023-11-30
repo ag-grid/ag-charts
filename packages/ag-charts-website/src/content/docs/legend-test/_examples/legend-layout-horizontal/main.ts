@@ -35,7 +35,7 @@ const options: AgChartOptions = {
     ],
 };
 
-var chart = AgCharts.create(options);
+const chart = AgCharts.create(options);
 
 function updateWidth(event: any) {
     var value = +event.target.value;

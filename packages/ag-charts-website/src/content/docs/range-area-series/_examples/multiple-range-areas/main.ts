@@ -41,7 +41,7 @@ const options: AgChartOptions = {
                 text: 'Average Price',
             },
             label: {
-                formatter: ({ value }) => `£${(+value).toLocaleString()}`,
+                formatter: ({ value }) => `£${Number(value).toLocaleString()}`,
             },
         },
         {

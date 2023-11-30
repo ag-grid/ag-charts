@@ -43,10 +43,9 @@ const options: AgChartOptions = {
         areaPlot: true,
         tooltip: {
             renderer: ({ datum: { domain }, xName }) => {
-                const score = `${domain.join(' - ')}`;
                 return {
                     title: `Grade: ${xName}`,
-                    content: `Score: ${score}`,
+                    content: `Score: ${domain.join(' - ')}`,
                 };
             },
         },

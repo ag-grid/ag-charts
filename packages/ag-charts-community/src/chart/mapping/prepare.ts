@@ -7,7 +7,6 @@ import type {
     AgTooltipPositionOptions,
     AgTooltipPositionType,
 } from '../../options/agChartOptions';
-import { AgTooltipPositionTypes } from '../../options/agChartOptions';
 import type { JsonMergeOptions } from '../../util/json';
 import { DELETE, jsonMerge, jsonWalk } from '../../util/json';
 import { Logger } from '../../util/logger';
@@ -70,9 +69,12 @@ function getGlobalTooltipPositionOptions(position: unknown): AgTooltipPositionOp
     const { type, xOffset, yOffset } = position as { type?: unknown; xOffset?: unknown; yOffset?: unknown };
 
     const result: AgTooltipPositionOptions = {};
-    const allowedTypes: readonly string[] = AgTooltipPositionTypes;
-    if (typeof type === 'string' && allowedTypes.includes(type)) {
-        result.type = type as AgTooltipPositionType;
+
+    const AgTooltipPositionTypeMap: { [K in AgTooltipPositionType]: true } = { pointer: true, node: true };
+    const isTooltipPositionType = (value: string): value is AgTooltipPositionType =>
+        Object.keys(AgTooltipPositionTypeMap).includes(value);
+    if (typeof type === 'string' && isTooltipPositionType(type)) {
+        result.type = type;
     }
     if (typeof xOffset === 'number' && !isNaN(xOffset) && isFinite(xOffset)) {
         result.xOffset = xOffset;

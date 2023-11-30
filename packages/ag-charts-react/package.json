@@ -1,11 +1,11 @@
 {
   "name": "ag-charts-react",
-  "version": "9.0.0-beta.20231121.1401",
+  "version": "9.0.0-beta.20231128.2222",
   "description": "AG Charts React Component",
-  "main": "main.js",
-  "module": "./dist/index.js",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
   "type": "module",
-  "types": "./dist/src/index.d.ts",
+  "types": "./dist/index.d.ts",
   "repository": {
     "type": "git",
     "url": "https://github.com/ag-grid/ag-charts.git"
@@ -17,7 +17,7 @@
     "chart",
     "react"
   ],
-  "author": "Sean Landsman <sean@thelandsmans.com>",
+  "author": "AG Grid <info@ag-grid.com>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/ag-grid/ag-charts/issues"
@@ -27,7 +27,7 @@
     "prop-types": "^15.6.2"
   },
   "devDependencies": {
-    "ag-charts-community": "9.0.0-beta.20231121.1401",
+    "ag-charts-community": "9.0.0-beta.20231128.2222",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "babel-preset-react-app": "^9.0.1",
@@ -43,7 +43,7 @@
     "rimraf": "3.0.2"
   },
   "peerDependencies": {
-    "ag-charts-community": "9.0.0-beta.20231121.1401",
+    "ag-charts-community": "9.0.0-beta.20231128.2222",
     "react": "^16.3.0 || ^17.0.0 || ^18.0.0",
     "react-dom": "^16.3.0 || ^17.0.0 || ^18.0.0"
   },

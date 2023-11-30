@@ -1,16 +1,17 @@
+import type { FooterItem } from '@ag-grid-types';
 import { SITE_BASE_URL } from '@constants';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import classNames from 'classnames';
 
 import { Icon } from '../icon/Icon';
 import styles from './Footer.module.scss';
-import footerItems from './footer-items.json';
 
 interface FooterProps {
     path: string;
+    footerItems: FooterItem[];
 }
 
-const MenuColumns = () =>
+const MenuColumns = ({ footerItems }: { footerItems: FooterItem[] }) =>
     footerItems.map(({ title, links }) => (
         <div key={title} className={styles.menuColumn}>
             <h4 className="thin-text">{title}</h4>
@@ -27,11 +28,11 @@ const MenuColumns = () =>
         </div>
     ));
 
-export const Footer = ({ path }: FooterProps) => (
+export const Footer = ({ path, footerItems }: FooterProps) => (
     <footer className={styles.footer}>
         <div className="page-margin">
             <div className={styles.row}>
-                <MenuColumns />
+                <MenuColumns footerItems={footerItems} />
             </div>
             <div className={styles.row}>
                 <p className="font-size-small thin-text">

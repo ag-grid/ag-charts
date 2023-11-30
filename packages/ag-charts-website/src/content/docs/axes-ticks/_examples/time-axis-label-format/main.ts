@@ -64,7 +64,7 @@ const options: AgCartesianChartOptions & { axes: AgTimeAxisThemeOptions[] } = {
     ],
 };
 
-var chart = AgCharts.create(options);
+const chart = AgCharts.create(options);
 
 function useOneMonthInterval() {
     options.axes![0].tick!.interval = time.month;

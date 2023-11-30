@@ -1,0 +1,87 @@
+---
+import { getCollection, getEntry } from 'astro:content';
+import { $internalFramework } from '@stores/frameworkStore';
+import { getFrameworkFromInternalFramework } from '@utils/framework';
+import Layout from '../layouts/Layout.astro';
+import { PagesNavigation } from '@components/pages-navigation/PagesNavigation';
+import { getDocsPages } from '@features/docs/utils/pageData';
+import { Version } from '../components/version/Version';
+
+export async function getStaticPaths() {
+    const pages = await getCollection('docs');
+    return getDocsPages(pages);
+}
+
+const menuEntry = await getEntry('menu', 'data');
+const versionsContent = await getEntry('versions', 'data');
+const versionsData: any[] = versionsContent ? versionsContent.data : [];
+const framework = getFrameworkFromInternalFramework($internalFramework.get());
+---
+
+<Layout title={"What's new"} showTopBar={true} showSearchBar={true}>
+    <div class={'contentViewport'}>
+        <PagesNavigation client:load menuData={menuEntry.data} pageName={'whats-new'} framework={framework} />
+
+        <div id="doc-content" class="docPage">
+            <div class="pageSections">
+                <h1>What's New in AG Charts</h1>
+                <p>See what's new in recent AG Charts versions.</p>
+                <div class={'versions'}>
+                    {
+                        versionsData.map((versionInfo) => (
+                            <Version
+                                version={versionInfo.version}
+                                date={versionInfo.date}
+                                highlights={versionInfo.highlights}
+                                buttonURL={versionInfo.buttonURL}
+                                majorMinor={versionInfo.majorMinor}
+                            />
+                        ))
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</Layout>
+
+<style lang="scss">
+    @use '../design-system' as *;
+    @import '../styles/docs.module.scss';
+
+    .versions {
+        max-width: var(--max-page-width);
+        display: grid;
+        grid-template-columns: repeat(3, minmax(300px, 1fr));
+        grid-gap: 16px;
+        margin-top: 32px;
+        margin-bottom: 32px;
+    }
+
+    @media (max-width: 1200px) {
+        .versions {
+            display: flex;
+            flex-direction: column;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important;
+        }
+    }
+
+    .contentViewport {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+
+        @media (min-width: $breakpoint-docs-nav-medium) {
+            flex-direction: row;
+        }
+
+        @media (min-width: $breakpoint-docs-nav-large) {
+            &.noLeftMenu {
+                padding-left: max(var(--horizontal-margin), calc(50vw - var(--max-page-width) / 2));
+            }
+
+            .docPage {
+                padding-left: 0;
+            }
+        }
+    }
+</style>

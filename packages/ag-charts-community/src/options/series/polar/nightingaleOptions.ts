@@ -6,7 +6,7 @@ export type AgNightingaleSeriesThemeableOptions<TDatum = any> = AgBaseRadialSeri
 export interface AgNightingaleSeriesOptions<TDatum = any>
     extends AgNightingaleSeriesThemeableOptions<TDatum>,
         AgBaseRadialColumnSeriesOptions<TDatum> {
-    /** Configuration for Nightingale series. */
+    /** Configuration for Nightingale Series. */
     type: 'nightingale';
 }
 

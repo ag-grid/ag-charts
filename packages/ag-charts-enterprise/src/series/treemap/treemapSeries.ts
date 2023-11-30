@@ -245,6 +245,9 @@ export class TreemapSeries<
     // We haven't decided how to expose this yet, but we need to have this property so it can change between light and dark themes
     undocumentedGroupFills: string[] = [];
 
+    // We haven't decided how to expose this yet, but we need to have this property so it can change between light and dark themes
+    undocumentedGroupStrokes: string[] = [];
+
     private groupTitleHeight(node: _ModuleSupport.HierarchyNode, bbox: _Scene.BBox): number | undefined {
         const label = this.labelData?.[node.index]?.label;
 
@@ -578,6 +581,17 @@ export class TreemapSeries<
         }
     }
 
+    private getNodeStroke(node: _ModuleSupport.HierarchyNode) {
+        const isLeaf = node.children.length === 0;
+        if (isLeaf) {
+            return this.tile.stroke ?? node.stroke;
+        } else {
+            const { undocumentedGroupStrokes } = this;
+            const defaultStroke = undocumentedGroupStrokes[Math.min(node.depth ?? 0, undocumentedGroupStrokes.length)];
+            return this.group.stroke ?? defaultStroke;
+        }
+    }
+
     async updateNodes() {
         const { rootNode, data, highlightStyle, tile, group } = this;
         const { seriesRect } = this.chart ?? {};
@@ -624,7 +638,7 @@ export class TreemapSeries<
             const fill = format?.fill ?? highlightedFill ?? this.getNodeFill(node);
             const fillOpacity =
                 format?.fillOpacity ?? highlightedFillOpacity ?? (isLeaf ? tile.fillOpacity : group.fillOpacity);
-            const stroke = format?.stroke ?? highlightedStroke ?? (isLeaf ? tile.stroke ?? node.stroke : group.stroke);
+            const stroke = format?.stroke ?? highlightedStroke ?? this.getNodeStroke(node);
             const strokeWidth =
                 format?.strokeWidth ?? highlightedStrokeWidth ?? (isLeaf ? tile.strokeWidth : group.strokeWidth);
             const strokeOpacity =
@@ -669,9 +683,9 @@ export class TreemapSeries<
                     meta: null,
                 };
                 const formatting = formatLabels(
-                    labelDatum?.label,
+                    labelDatum.label,
                     this.tile.label,
-                    labelDatum?.secondaryLabel,
+                    labelDatum.secondaryLabel,
                     this.tile.secondaryLabel,
                     { spacing: tile.label.spacing, padding: tile.padding },
                     () => layout
@@ -694,6 +708,7 @@ export class TreemapSeries<
                             ? {
                                   text: label.text,
                                   fontSize: label.fontSize,
+                                  lineHeight: label.lineHeight,
                                   style: this.tile.label,
                                   x: labelX,
                                   y: labelYStart - (height - label.height) * 0.5,
@@ -704,6 +719,7 @@ export class TreemapSeries<
                             ? {
                                   text: secondaryLabel.text,
                                   fontSize: secondaryLabel.fontSize,
+                                  lineHeight: secondaryLabel.fontSize,
                                   style: this.tile.secondaryLabel,
                                   x: labelX,
                                   y: labelYStart + (height - secondaryLabel.height) * 0.5,
@@ -726,6 +742,7 @@ export class TreemapSeries<
                     label: {
                         text,
                         fontSize: group.label.fontSize,
+                        lineHeight: AutoSizeableLabel.lineHeight(group.label.fontSize),
                         style: this.group.label,
                         x: bbox.x + padding + innerWidth * textAlignFactor,
                         y: bbox.y + padding + groupTitleHeight * 0.5,
@@ -765,6 +782,7 @@ export class TreemapSeries<
 
             text.text = label.text;
             text.fontSize = label.fontSize;
+            text.lineHeight = label.lineHeight;
 
             text.fontStyle = label.style.fontStyle;
             text.fontFamily = label.style.fontFamily;
@@ -848,6 +866,7 @@ export class TreemapSeries<
 
         const defaults: AgTooltipRendererResult = {
             title,
+            color: isLeaf ? this.tile.label.color : this.group.label.color,
             backgroundColor: color,
             content,
         };

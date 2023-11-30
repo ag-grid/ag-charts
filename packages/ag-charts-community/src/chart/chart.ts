@@ -610,15 +610,16 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 await this.processData();
                 this.disablePointer(true);
                 splits['🏭'] = performance.now();
-            // eslint-disable-next-line no-fallthrough
+            // fallthrough
+
             case ChartUpdateType.PERFORM_LAYOUT:
                 if (this.checkUpdateShortcut(ChartUpdateType.PERFORM_LAYOUT)) break;
                 if (!this.checkFirstAutoSize(seriesToUpdate)) break;
 
                 await this.processLayout();
                 splits['⌖'] = performance.now();
+            // fallthrough
 
-            // eslint-disable-next-line no-fallthrough
             case ChartUpdateType.SERIES_UPDATE:
                 if (this.checkUpdateShortcut(ChartUpdateType.SERIES_UPDATE)) break;
 
@@ -627,25 +628,27 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 await Promise.all(seriesUpdates);
 
                 splits['🤔'] = performance.now();
-            // eslint-disable-next-line no-fallthrough
+            // fallthrough
+
             case ChartUpdateType.TOOLTIP_RECALCULATION:
                 if (this.checkUpdateShortcut(ChartUpdateType.TOOLTIP_RECALCULATION)) break;
 
                 const tooltipMeta = this.tooltipManager.getTooltipMeta(this.id);
                 const isHovered = tooltipMeta?.event?.type === 'hover';
-                if (performUpdateType < ChartUpdateType.SERIES_UPDATE && isHovered) {
+                if (performUpdateType <= ChartUpdateType.SERIES_UPDATE && isHovered) {
                     this.handlePointer(tooltipMeta.event as InteractionEvent<'hover'>);
                 }
                 splits['↖'] = performance.now();
+            // fallthrough
 
-            // eslint-disable-next-line no-fallthrough
             case ChartUpdateType.SCENE_RENDER:
                 if (this.checkUpdateShortcut(ChartUpdateType.SCENE_RENDER)) break;
 
                 extraDebugStats['updateShortcutCount'] = this.updateShortcutCount;
                 await this.scene.render({ debugSplitTimes: splits, extraDebugStats });
                 this.extraDebugStats = {};
-            // eslint-disable-next-line no-fallthrough
+            // fallthrough
+
             case ChartUpdateType.NONE:
                 // Do nothing.
                 this.updateShortcutCount = 0;

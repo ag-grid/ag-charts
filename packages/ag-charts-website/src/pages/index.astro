@@ -1,13 +1,7 @@
 ---
-import { getEntry } from 'astro:content';
 import Layout from '@layouts/Layout.astro';
 import { FrameworkSelector } from '../components/framework-selector/FrameworkSelector';
 import { Icon } from '@components/icon/Icon';
-import type { GalleryData } from '@ag-grid-types';
-import { GalleryExampleImage } from '@features/gallery/components/GalleryExampleImage';
-import { pathJoin } from '@utils/pathJoin';
-import { SITE_BASE_URL } from '@constants';
-import { getCacheBustingUrl, getChartEnterpriseScriptPath, getChartScriptPath } from '@utils/chartLibraryPaths';
 import { urlWithPrefix } from '@utils/urlWithPrefix';
 import styles from './homepage.module.scss';
 import { ReactComponent as GridLogoType } from '@images/inline-svgs/ag-grid-logotype.svg';
@@ -43,46 +37,9 @@ const frameworksData = [
         }),
     },
 ];
-
-const benefits = [
-    {
-        title: 'Bring your own Framework',
-        icon: 'code',
-    },
-    {
-        title: 'Unbeatable Performance',
-        icon: 'flash',
-    },
-    {
-        title: 'Completely Customisable',
-        icon: 'colorPalette',
-    },
-    {
-        title: 'Animate everything',
-        icon: 'movement',
-    },
-    {
-        title: 'Zoom & Enhance',
-        icon: 'zoomArea',
-    },
-];
-
-const galleryDataEntry = await getEntry('gallery', 'data');
-const galleryData: GalleryData = galleryDataEntry?.data;
-const series = galleryData.series.flat();
-
-const modifiedTimeMs = Date.now();
-const siteUrl = Astro.site ? pathJoin(Astro.site, SITE_BASE_URL) : '/';
-const chartScriptPath = getCacheBustingUrl(getChartScriptPath(siteUrl), modifiedTimeMs);
-const chartScriptEnterprisePath = getCacheBustingUrl(getChartEnterpriseScriptPath(siteUrl), modifiedTimeMs);
-
-const isEnterprise = true;
 ---
 
 <Layout>
-    <script src={chartScriptPath}></script>
-    {isEnterprise && <script src={chartScriptEnterprisePath} />}
-
     <div class={styles.homepageHero}>
         <div class:list={[styles.heroInner, 'page-margin']}>
             <div class={styles.heroHeadings}>
@@ -93,22 +50,7 @@ const isEnterprise = true;
                 <a href="/gallery" class="button">See the charts <Icon name="chevronRight" /></a>
             </div>
 
-            <div class={styles.galleryScroller}>
-                <div class={styles.galleryScrollerInner}>
-                    {
-                        series.map((series) =>
-                            series.examples.map(({ title, name }) => (
-                                <GalleryExampleImage
-                                    id={`$${series.name}:${title}`}
-                                    label={title}
-                                    exampleName={name}
-                                    className={styles.galleryScrollerExample}
-                                />
-                            ))
-                        )
-                    }
-                </div>
-            </div>
+            <div class={styles.galleryScroller}></div>
         </div>
     </div>
 
@@ -119,6 +61,32 @@ const isEnterprise = true;
         </div>
     </div>
 
+    <div class={styles.homepageBenefits}>
+        <div class:list={[styles.benefitsInner, 'page-margin']}>
+            <video class={styles.videoLight} src="videos/chart-features-light.mp4" muted autoplay loop></video>
+            <video class={styles.videoDark} src="videos/chart-features-dark.mp4" muted autoplay loop></video>
+            <div class={styles.benefitsCopy}>
+                <h2>Data Visualisation, made easy</h2>
+                <p class="font-size-large">
+                    Create interactive, animated, high-performance charts & graphs with <b>AG Charts</b> JavaScript
+                    Charting library, from the makers of <a href="https://ag-grid.com/">AG Grid</a>.
+                </p>
+
+                <p class="font-size-large">
+                    Built for <a href="/javascript/quick-start/">JavaScript</a>, <a href="/react/quick-start">React</a>,
+
+
+                    <a href="/angular/quick-start">Angular</a> & <a href="/vue/quick-start/">Vue</a> with support for
+                    over 20 chart types, including <a href="/javascript/pie-series/">Pie</a>, <a
+                        href="/javascript/bar-series/">Stacked Bar</a
+                    >, <a href="/javascript/doughnut-series/">Doughnut</a>, <a href="/javascript/waterfall-series/"
+                        >Waterfall</a
+                    > and more.
+                </p>
+            </div>
+        </div>
+    </div>
+
     <div class={styles.homepageGrid}>
         <div class:list={[styles.gridInner, 'page-margin']}>
             <div class={styles.gridCopy}>
@@ -126,39 +94,25 @@ const isEnterprise = true;
                     <GridLogoType />
                     <GridLogoMark />
                 </div>
-                <!-- Dummy copy, to be reviewed -->
                 <p class="font-size-large">
-                    <b>AG Charts</b> was created by the amazing team behind <a href="ag-grid.com"><b>AG Grid</b></a>,
-                    the best javascript grid in the world.
-                </p>
-                <p class="font-size-large">
-                    Designed to work seamlessly with <b>AG Grid</b>, <b>AG Charts</b> can make your data heavy
-                    applications even more beautiful and insightful. Use <b>AG Grid</b> & <b>AG Charts</b> enterprise
-                    together to get access to best
-                    <a href="https://ag-grid.com/javascript-data-grid/integrated-charts/">intergrated charting</a>
-                     available bar none.
+                    See how <a href="https://ag-grid.com/"><b>AG Grid</b></a> uses <b>AG Charts</b> to provide a
+                    seamless
+                    <a href="https://ag-grid.com/javascript-data-grid/integrated-charts/">Integrated Charting</a>
+                     experience from within the grid.
                 </p>
             </div>
             <div class={styles.gridExample}>
-                <video src="videos/integrated-charts.mp4" muted autoplay loop></video>
+                <img
+                    class={styles.gridExampleLight}
+                    src="images/integrated-charts-light.png"
+                    alt="AG Charts & AG Grid - integrated charts"
+                />
+                <img
+                    class={styles.gridExampleDark}
+                    src="images/integrated-charts-dark.png"
+                    alt="AG Charts & AG Grid - integrated charts"
+                />
             </div>
-        </div>
-    </div>
-
-    <div class={styles.homepageBenefits}>
-        <div class:list={[styles.benefitsInner, 'page-margin']}>
-            <ul class="list-style-none">
-                {
-                    benefits.map((benefit) => {
-                        return (
-                            <li>
-                                <Icon name={benefit.icon} />
-                                <span class="font-size-large">{benefit.title}</span>
-                            </li>
-                        );
-                    })
-                }
-            </ul>
         </div>
     </div>
 </Layout>

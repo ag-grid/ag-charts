@@ -33,6 +33,20 @@
         "production": {}
       }
     },
+    "pack:extract": {
+      "executor": "nx:noop",
+      "dependsOn": ["^pack:extract"],
+      "configurations": {
+        "production": {}
+      }
+    },
+    "pack:verify": {
+      "executor": "nx:noop",
+      "dependsOn": ["^pack:verify"],
+      "configurations": {
+        "production": {}
+      }
+    },
     "dev": {
       "executor": "nx:run-commands",
       "options": {

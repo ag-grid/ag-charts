@@ -8,6 +8,26 @@ export interface IColor {
     readonly a: number;
 }
 
+const srgbToLinear = (value: number) => {
+    const sign = value < 0 ? -1 : 1;
+    const abs = Math.abs(value);
+
+    if (abs <= 0.04045) return value / 12.92;
+
+    return sign * ((abs + 0.055) / 1.055) ** 2.4;
+};
+
+const srgbFromLinear = (value: number) => {
+    const sign = value < 0 ? -1 : 1;
+    const abs = Math.abs(value);
+
+    if (abs > 0.0031308) {
+        return sign * (1.055 * abs ** (1 / 2.4) - 0.055);
+    }
+
+    return 12.92 * value;
+};
+
 export class Color implements IColor {
     readonly r: number;
     readonly g: number;
@@ -214,6 +234,11 @@ export class Color implements IColor {
         return new Color(rgb[0], rgb[1], rgb[2], alpha);
     }
 
+    static fromOKLCH(l: number, c: number, h: number, alpha = 1): Color {
+        const rgb = Color.OKLCHtoRGB(l, c, h);
+        return new Color(rgb[0], rgb[1], rgb[2], alpha);
+    }
+
     private static padHex(str: string): string {
         // Can't use `padStart(2, '0')` here because of IE.
         return str.length === 1 ? '0' + str : str;
@@ -255,6 +280,49 @@ export class Color implements IColor {
 
     toHSB(): [number, number, number] {
         return Color.RGBtoHSB(this.r, this.g, this.b);
+    }
+
+    static didDebug = false;
+
+    static RGBtoOKLCH(r: number, g: number, b: number): [number, number, number] {
+        const LSRGB0 = srgbToLinear(r);
+        const LSRGB1 = srgbToLinear(g);
+        const LSRGB2 = srgbToLinear(b);
+
+        const LMS0 = Math.cbrt(0.4122214708 * LSRGB0 + 0.5363325363 * LSRGB1 + 0.0514459929 * LSRGB2);
+        const LMS1 = Math.cbrt(0.2119034982 * LSRGB0 + 0.6806995451 * LSRGB1 + 0.1073969566 * LSRGB2);
+        const LMS2 = Math.cbrt(0.0883024619 * LSRGB0 + 0.2817188376 * LSRGB1 + 0.6299787005 * LSRGB2);
+
+        const OKLAB0 = 0.2104542553 * LMS0 + 0.793617785 * LMS1 - 0.0040720468 * LMS2;
+        const OKLAB1 = 1.9779984951 * LMS0 - 2.428592205 * LMS1 + 0.4505937099 * LMS2;
+        const OKLAB2 = 0.0259040371 * LMS0 + 0.7827717662 * LMS1 - 0.808675766 * LMS2;
+
+        const hue = (Math.atan2(OKLAB2, OKLAB1) * 180) / Math.PI;
+        const OKLCH0 = OKLAB0;
+        const OKLCH1 = Math.hypot(OKLAB1, OKLAB2);
+        const OKLCH2 = hue >= 0 ? hue : hue + 360;
+
+        return [OKLCH0, OKLCH1, OKLCH2];
+    }
+
+    static OKLCHtoRGB(l: number, c: number, h: number): [number, number, number] {
+        const OKLAB0 = l;
+        const OKLAB1 = c * Math.cos((h * Math.PI) / 180);
+        const OKLAB2 = c * Math.sin((h * Math.PI) / 180);
+
+        const LMS0 = (OKLAB0 + 0.3963377774 * OKLAB1 + 0.2158037573 * OKLAB2) ** 3;
+        const LMS1 = (OKLAB0 - 0.1055613458 * OKLAB1 - 0.0638541728 * OKLAB2) ** 3;
+        const LMS2 = (OKLAB0 - 0.0894841775 * OKLAB1 - 1.291485548 * OKLAB2) ** 3;
+
+        const LSRGB0 = 4.0767416621 * LMS0 - 3.3077115913 * LMS1 + 0.2309699292 * LMS2;
+        const LSRGB1 = -1.2684380046 * LMS0 + 2.6097574011 * LMS1 - 0.3413193965 * LMS2;
+        const LSRGB2 = -0.0041960863 * LMS0 - 0.7034186147 * LMS1 + 1.707614701 * LMS2;
+
+        const SRGB0 = srgbFromLinear(LSRGB0);
+        const SRGB1 = srgbFromLinear(LSRGB1);
+        const SRGB2 = srgbFromLinear(LSRGB2);
+
+        return [SRGB0, SRGB1, SRGB2];
     }
 
     static RGBtoHSL(r: number, g: number, b: number): [number, number, number] {

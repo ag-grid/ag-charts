@@ -40,6 +40,9 @@ export default defineMarkdocConfig({
                 href: { type: String, required: true },
             },
         },
+        enterpriseIcon: {
+            render: component('./src/components/icon/EnterpriseIcon.astro'),
+        },
         chartExampleRunner: {
             render: component('./src/features/docs/components/DocsExampleRunner.astro'),
             attributes: {
@@ -75,20 +78,6 @@ export default defineMarkdocConfig({
                 minWidth: { type: String },
                 maxWidth: { type: String },
                 filterDarkmode: { type: Boolean },
-            },
-        },
-        flex: {
-            render: component('./src/components/flex/Flex.astro'),
-            attributes: {
-                direction: { type: String, matches: ['row', 'column'] },
-                alignItems: {
-                    type: String,
-                    matches: ['center', 'start', 'end', 'self-start', 'self-end', 'flex-start', 'flex-end'],
-                },
-                justifyContent: {
-                    type: String,
-                    matches: ['center', 'start', 'end', 'self-start', 'self-end', 'flex-start', 'flex-end'],
-                },
             },
         },
         apiReference: {
