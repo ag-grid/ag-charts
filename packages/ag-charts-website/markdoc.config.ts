@@ -80,20 +80,6 @@ export default defineMarkdocConfig({
                 filterDarkmode: { type: Boolean },
             },
         },
-        flex: {
-            render: component('./src/components/flex/Flex.astro'),
-            attributes: {
-                direction: { type: String, matches: ['row', 'column'] },
-                alignItems: {
-                    type: String,
-                    matches: ['center', 'start', 'end', 'self-start', 'self-end', 'flex-start', 'flex-end'],
-                },
-                justifyContent: {
-                    type: String,
-                    matches: ['center', 'start', 'end', 'self-start', 'self-end', 'flex-start', 'flex-end'],
-                },
-            },
-        },
         apiReference: {
             render: component('./src/features/api-documentation/ApiReference.astro'),
             attributes: {
