@@ -22,7 +22,7 @@ export async function getStaticPaths() {
     return exampleFiles;
 }
 
-export async function get({ params }: { params: Params }) {
+export async function GET({ params }: { params: Params }) {
     const { internalFramework, pageName, exampleName, fileName } = params;
 
     const contentRoot = getContentRootFileUrl();

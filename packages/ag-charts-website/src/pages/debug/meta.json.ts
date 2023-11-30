@@ -1,6 +1,6 @@
 import { execSync } from 'child_process';
 
-export async function get() {
+export async function GET() {
     const removeNewlineRegex = /\n/gm;
     const buildDate = new Date();
     const hash = execSync('git rev-parse HEAD').toString().replace(removeNewlineRegex, '');

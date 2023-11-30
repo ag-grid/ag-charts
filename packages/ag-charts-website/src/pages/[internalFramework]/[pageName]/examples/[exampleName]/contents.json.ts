@@ -14,7 +14,7 @@ export async function getStaticPaths() {
     return examples;
 }
 
-export async function get(context: APIContext) {
+export async function GET(context: APIContext) {
     const { internalFramework, pageName, exampleName } = context.params;
 
     const generatedContents = await getGeneratedContents({

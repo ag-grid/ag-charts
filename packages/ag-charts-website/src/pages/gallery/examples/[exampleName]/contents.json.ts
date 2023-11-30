@@ -11,7 +11,7 @@ export async function getStaticPaths() {
     return pages;
 }
 
-export async function get(context: APIContext) {
+export async function GET(context: APIContext) {
     const { exampleName } = context.params;
 
     const generatedContents = await getGeneratedContents({
