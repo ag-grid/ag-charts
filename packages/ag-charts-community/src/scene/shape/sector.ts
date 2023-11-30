@@ -40,7 +40,8 @@ export class Sector extends Path {
         const { angleOffset, inset } = this;
         const startAngle = this.startAngle + angleOffset;
         const endAngle = this.endAngle + angleOffset;
-        const fullPie = Math.abs(this.endAngle - this.startAngle) >= 2 * Math.PI;
+        const sweep = startAngle <= endAngle ? endAngle - startAngle : Math.PI * 2 - (startAngle - endAngle);
+        const fullPie = sweep >= 2 * Math.PI;
         const centerX = this.centerX;
         const centerY = this.centerY;
 
@@ -61,7 +62,6 @@ export class Sector extends Path {
             const outerRadius = Math.max(this.innerRadius + inset, this.outerRadius - inset);
             const innerAngleOffset = innerRadius > 0 ? inset / innerRadius : 0;
             const outerAngleOffset = outerRadius > 0 ? inset / outerRadius : 0;
-            const sweep = Math.abs(endAngle - startAngle);
 
             const outerAngleExceeded = sweep < 2 * outerAngleOffset;
             if (outerAngleExceeded) return;
@@ -77,7 +77,7 @@ export class Sector extends Path {
                 // y = inset = (x - inset * sin(sweep)) * tan(sweep) - solve for x
                 // This formula has limits (i.e. sweep being >= a quarter turn),
                 // but the bounds for x should be [innerRadius, outerRadius)
-                const x = Math.abs(sweep) < Math.PI * 0.5 ? (inset * (1 + Math.cos(sweep))) / Math.sin(sweep) : NaN;
+                const x = sweep < Math.PI * 0.5 ? (inset * (1 + Math.cos(sweep))) / Math.sin(sweep) : NaN;
                 // r = sqrt(x**2 + y**2)
                 let r: number;
                 if (x > 0 && x < outerRadius) {
@@ -88,7 +88,7 @@ export class Sector extends Path {
                     // Formula limits exceeded - just use the inner radius
                     r = innerRadius;
                 }
-                const midAngle = (startAngle + endAngle) * 0.5;
+                const midAngle = startAngle + sweep * 0.5;
                 path.moveTo(centerX + r * Math.cos(midAngle), centerY + r * Math.sin(midAngle));
             } else {
                 path.moveTo(
