@@ -2,9 +2,13 @@ import { type OverflowStrategy, type TextWrap, _ModuleSupport, _Scene, _Util } f
 
 const { Validate, OPT_NUMBER, TEXT_WRAP, OVERFLOW_STRATEGY } = _ModuleSupport;
 const { Logger } = _Util;
-const { Text, Label, BBox } = _Scene;
+const { Text, Label } = _Scene;
 
 export class AutoSizeableLabel<FormatterParams> extends Label<FormatterParams> {
+    static lineHeight(fontSize: number): number {
+        return Math.ceil(fontSize * Text.defaultLineHeightRatio);
+    }
+
     @Validate(TEXT_WRAP)
     wrapping: TextWrap = 'on-space';
 
@@ -99,6 +103,7 @@ type LayoutParams = {
 type LabelFormatting = {
     text: string;
     fontSize: number;
+    lineHeight: number;
     width: number;
     height: number;
 };
@@ -171,12 +176,12 @@ export function formatStackedLabels<Meta, FormatterParams>(
     let label: LabelFormatting | undefined;
     let secondaryLabel: LabelFormatting | undefined;
 
-    const infiniteBBox = new BBox(-Infinity, -Infinity, Infinity, Infinity);
-
     return maximumValueSatisfying<StackedLabelFormatting<Meta>>(0, fontSizeCandidates.length - 1, (index) => {
         const { labelFontSize, secondaryLabelFontSize } = fontSizeCandidates[index];
         const allowTruncation = index === 0;
-        const sizeFitting = sizeFittingHeight(labelFontSize + secondaryLabelFontSize + heightAdjust);
+        const labelLineHeight = AutoSizeableLabel.lineHeight(labelFontSize);
+        const secondaryLabelLineHeight = AutoSizeableLabel.lineHeight(secondaryLabelFontSize);
+        const sizeFitting = sizeFittingHeight(labelLineHeight + secondaryLabelLineHeight + heightAdjust);
         const availableWidth = sizeFitting.width - widthAdjust;
         const availableHeight = sizeFitting.height - heightAdjust;
 
@@ -186,7 +191,7 @@ export function formatStackedLabels<Meta, FormatterParams>(
 
         if (label == null || label.fontSize !== labelFontSize) {
             labelTextSizeProps.fontSize = labelFontSize;
-            const labelText = Text.wrap(
+            const labelLines = Text.wrapLines(
                 labelValue,
                 availableWidth,
                 availableHeight,
@@ -195,24 +200,34 @@ export function formatStackedLabels<Meta, FormatterParams>(
                 allowTruncation ? labelProps.overflowStrategy : 'hide'
             );
 
-            const hasValidText = labelText.length !== 0 && labelText !== Text.ellipsis;
+            if (labelLines != null) {
+                const labelText = labelLines.join('\n');
 
-            labelTextNode.text = labelText;
-            labelTextNode.fontSize = labelFontSize;
-            const { width, height } = hasValidText ? labelTextNode.computeBBox() : infiniteBBox;
-            const labelWidth = width;
-            const labelHeight = Math.max(height, labelFontSize);
+                labelTextNode.text = labelText;
+                labelTextNode.fontSize = labelFontSize;
+                labelTextNode.lineHeight = labelFontSize;
+                const labelWidth = labelTextNode.computeBBox().width;
+                const labelHeight = labelLines.length * labelLineHeight;
 
-            label = { text: labelText, fontSize: labelFontSize, width: labelWidth, height: labelHeight };
+                label = {
+                    text: labelText,
+                    fontSize: labelFontSize,
+                    lineHeight: labelLineHeight,
+                    width: labelWidth,
+                    height: labelHeight,
+                };
+            } else {
+                label = undefined;
+            }
         }
 
-        if (label.width > availableWidth || label.height > availableHeight) {
+        if (label == null || label.width > availableWidth || label.height > availableHeight) {
             return undefined;
         }
 
         if (secondaryLabel == null || secondaryLabel.fontSize !== secondaryLabelFontSize) {
             secondaryLabelTextSizeProps.fontSize = secondaryLabelFontSize;
-            const secondaryLabelText = Text.wrap(
+            const secondaryLabelLines = Text.wrapLines(
                 secondaryLabelValue,
                 availableWidth,
                 availableHeight,
@@ -221,20 +236,29 @@ export function formatStackedLabels<Meta, FormatterParams>(
                 allowTruncation ? secondaryLabelProps.overflowStrategy : 'hide'
             );
 
-            const hasValidText = secondaryLabelText.length !== 0 && secondaryLabelText !== Text.ellipsis;
+            if (secondaryLabelLines != null) {
+                const secondaryLabelText = secondaryLabelLines.join('\n');
 
-            secondaryLabelTextNode.text = secondaryLabelText;
-            secondaryLabelTextNode.fontSize = secondaryLabelFontSize;
-            const { width, height } = hasValidText ? secondaryLabelTextNode.computeBBox() : infiniteBBox;
-            const secondaryLabelWidth = width;
-            const secondaryLabelHeight = Math.max(height, secondaryLabelFontSize);
+                secondaryLabelTextNode.text = secondaryLabelText;
+                secondaryLabelTextNode.fontSize = secondaryLabelFontSize;
+                secondaryLabelTextNode.lineHeight = secondaryLabelLineHeight;
+                const secondaryLabelWidth = secondaryLabelTextNode.computeBBox().width;
+                const secondaryLabelHeight = secondaryLabelLines.length * secondaryLabelLineHeight;
 
-            secondaryLabel = {
-                text: secondaryLabelText,
-                fontSize: secondaryLabelFontSize,
-                width: secondaryLabelWidth,
-                height: secondaryLabelHeight,
-            };
+                secondaryLabel = {
+                    text: secondaryLabelText,
+                    fontSize: secondaryLabelFontSize,
+                    lineHeight: secondaryLabelLineHeight,
+                    width: secondaryLabelWidth,
+                    height: secondaryLabelHeight,
+                };
+            } else {
+                secondaryLabel = undefined;
+            }
+        }
+
+        if (secondaryLabel == null) {
+            return undefined;
         }
 
         const totalLabelHeight = label.height + secondaryLabel.height;
@@ -273,7 +297,8 @@ export function formatSingleLabel<Meta, FormatterParams>(
     };
 
     return maximumValueSatisfying<[LabelFormatting, Meta]>(minimumFontSize, props.fontSize, (fontSize) => {
-        const sizeFitting = sizeFittingHeight(fontSize + sizeAdjust);
+        const lineHeight = AutoSizeableLabel.lineHeight(fontSize);
+        const sizeFitting = sizeFittingHeight(lineHeight + sizeAdjust);
         const availableWidth = sizeFitting.width - sizeAdjust;
         const availableHeight = sizeFitting.height - sizeAdjust;
 
@@ -284,7 +309,7 @@ export function formatSingleLabel<Meta, FormatterParams>(
         const allowTruncation = fontSize === minimumFontSize;
 
         textSizeProps.fontSize = fontSize;
-        const text = Text.wrap(
+        const lines = Text.wrapLines(
             value,
             availableWidth,
             availableHeight,
@@ -293,21 +318,23 @@ export function formatSingleLabel<Meta, FormatterParams>(
             allowTruncation ? props.overflowStrategy : 'hide'
         );
 
-        if (text.length === 0 || text === Text.ellipsis) {
+        if (lines == null) {
             return undefined;
         }
 
+        const text = lines.join('\n');
         textNode.text = text;
         textNode.fontSize = fontSize;
+        textNode.lineHeight = lineHeight;
         const size = textNode.computeBBox();
-        const width = size.width;
-        const height = Math.max(size.height, fontSize);
+        const width = textNode.computeBBox().width;
+        const height = lineHeight * lines.length;
 
         if (size.width > availableWidth || height > availableHeight) {
             return undefined;
         }
 
-        return [{ text, fontSize, width, height }, sizeFitting.meta];
+        return [{ text, fontSize, lineHeight, width, height }, sizeFitting.meta];
     });
 }
 

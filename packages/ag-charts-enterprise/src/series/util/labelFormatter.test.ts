@@ -11,14 +11,14 @@ import {
 const { Text } = _Scene;
 
 describe('treeMapLabelFormatter', () => {
-    let wrap: jest.SpyInstance<ReturnType<typeof Text.wrap>, Parameters<typeof Text.wrap>> = undefined!;
+    let wrapLines: jest.SpyInstance<ReturnType<typeof Text.wrapLines>, Parameters<typeof Text.wrapLines>> = undefined!;
     let computeBBox: jest.SpyInstance<
         ReturnType<typeof Text.prototype.computeBBox>,
         Parameters<typeof Text.prototype.computeBBox>
     > = undefined!;
 
     beforeEach(() => {
-        wrap = jest.spyOn(Text, 'wrap');
+        wrapLines = jest.spyOn(Text, 'wrapLines');
         computeBBox = jest.spyOn(Text.prototype, 'computeBBox');
     });
 
@@ -103,7 +103,7 @@ describe('treeMapLabelFormatter', () => {
 
     describe('formatSingleLabel', () => {
         it('formats a label without shrinking within large bounds', () => {
-            wrap.mockImplementation((text) => text);
+            wrapLines.mockImplementation((text) => [text]);
             computeBBox.mockImplementation(function (this: _Scene.Text) {
                 return { width: this.fontSize, height: this.fontSize } as _Scene.BBox;
             });
@@ -118,13 +118,14 @@ describe('treeMapLabelFormatter', () => {
             expect(format).toEqual({
                 text: 'Hello',
                 fontSize: 20,
+                lineHeight: 23,
                 width: 20,
-                height: 20,
+                height: 23,
             });
         });
 
         it('shrinks a label to fit within smaller bounds', () => {
-            wrap.mockImplementation((text) => text);
+            wrapLines.mockImplementation((text) => [text]);
             computeBBox.mockImplementation(function (this: _Scene.Text) {
                 return { width: this.fontSize, height: this.fontSize } as _Scene.BBox;
             });
@@ -138,14 +139,15 @@ describe('treeMapLabelFormatter', () => {
             )!;
             expect(format).toEqual({
                 text: 'Hello',
-                fontSize: 15,
-                width: 15,
+                fontSize: 13,
+                lineHeight: 15,
+                width: 13,
                 height: 15,
             });
         });
 
         it('ignores minimumFontSizes greater than fontSize', () => {
-            wrap.mockImplementation((text) => text);
+            wrapLines.mockImplementation((text) => [text]);
             computeBBox.mockImplementation(function (this: _Scene.Text) {
                 return { width: this.fontSize, height: this.fontSize } as _Scene.BBox;
             });
@@ -160,15 +162,16 @@ describe('treeMapLabelFormatter', () => {
             expect(format).toEqual({
                 text: 'Hello',
                 fontSize: 20,
+                lineHeight: 23,
                 width: 20,
-                height: 20,
+                height: 23,
             });
         });
     });
 
     describe('formatStackedLabels', () => {
         it('formats stacked labels without shrinking within large bounds', () => {
-            wrap.mockImplementation((text) => text);
+            wrapLines.mockImplementation((text) => [text]);
             computeBBox.mockImplementation(function (this: _Scene.Text) {
                 return { width: this.fontSize, height: this.fontSize } as _Scene.BBox;
             });
@@ -184,24 +187,26 @@ describe('treeMapLabelFormatter', () => {
             );
             expect(format).toEqual({
                 width: 20,
-                height: 40,
+                height: 45,
                 label: {
                     text: 'Hello',
                     fontSize: 20,
+                    lineHeight: 23,
                     width: 20,
-                    height: 20,
+                    height: 23,
                 },
                 secondaryLabel: {
                     text: 'World',
                     fontSize: 10,
+                    lineHeight: 12,
                     width: 10,
-                    height: 10,
+                    height: 12,
                 },
             });
         });
 
         it('shrinks stacked labels to fit within smaller bounds', () => {
-            wrap.mockImplementation((text) => text);
+            wrapLines.mockImplementation((text) => [text]);
             computeBBox.mockImplementation(function (this: _Scene.Text) {
                 return { width: this.fontSize, height: this.fontSize } as _Scene.BBox;
             });
@@ -220,18 +225,20 @@ describe('treeMapLabelFormatter', () => {
                 () => ({ width: 50, height })
             );
             expect(format).toEqual({
-                width: 14,
+                width: 12,
                 height: 30,
                 label: {
                     text: 'Hello',
-                    fontSize: 14,
-                    width: 14,
+                    fontSize: 12,
+                    lineHeight: 14,
+                    width: 12,
                     height: 14,
                 },
                 secondaryLabel: {
                     text: 'World',
-                    fontSize: 6,
-                    width: 6,
+                    fontSize: 5,
+                    lineHeight: 6,
+                    width: 5,
                     height: 6,
                 },
             });
@@ -239,7 +246,7 @@ describe('treeMapLabelFormatter', () => {
         });
 
         it('ignores minimumFontSizes greater than fontSize', () => {
-            wrap.mockImplementation((text) => text);
+            wrapLines.mockImplementation((text) => [text]);
             computeBBox.mockImplementation(function (this: _Scene.Text) {
                 return { width: this.fontSize, height: this.fontSize } as _Scene.BBox;
             });
@@ -255,18 +262,20 @@ describe('treeMapLabelFormatter', () => {
             );
             expect(format).toEqual({
                 width: 20,
-                height: 40,
+                height: 45,
                 label: {
                     text: 'Hello',
                     fontSize: 20,
+                    lineHeight: 23,
                     width: 20,
-                    height: 20,
+                    height: 23,
                 },
                 secondaryLabel: {
                     text: 'World',
                     fontSize: 10,
+                    lineHeight: 12,
                     width: 10,
-                    height: 10,
+                    height: 12,
                 },
             });
         });
@@ -274,7 +283,7 @@ describe('treeMapLabelFormatter', () => {
 
     describe('formatLabels', () => {
         it('formats the secondaryLabel on its own if and only if the primary label is not present', () => {
-            wrap.mockImplementation((text) => text);
+            wrapLines.mockImplementation((text) => [text]);
             computeBBox.mockImplementation(function (this: _Scene.Text) {
                 return { width: 1, height: 1 } as _Scene.BBox;
             });
