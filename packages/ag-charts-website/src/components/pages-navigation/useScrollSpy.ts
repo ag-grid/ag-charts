@@ -3,7 +3,7 @@ import type { MarkdownHeading } from 'astro';
 import { useEffect, useRef } from 'react';
 import { scrollspy } from 'src/utils/scrollspy';
 
-export function useScrollSpy({ headings }: { headings: MarkdownHeading[] }) {
+export function useScrollSpy({ headings, offset = 120 }: { headings: MarkdownHeading[]; offset?: number }) {
     const menuRef = useRef<HTMLElement>(null);
     const location = useLocation();
 
@@ -14,7 +14,7 @@ export function useScrollSpy({ headings }: { headings: MarkdownHeading[] }) {
         }
     }
 
-    useEffect(() => scrollspy(headings, handleScrollSpy, { offset: 120 }), [location?.hash, headings]);
+    useEffect(() => scrollspy(headings, handleScrollSpy, { offset }), [location?.hash, headings]);
 
     return menuRef;
 }

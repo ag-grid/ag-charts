@@ -21,10 +21,11 @@ export function scrollspy(
         let lastOffsetTop: number | undefined;
 
         for (const [slug, node] of entries) {
+            // don't break if we reached the bottom of the scroll container
             if (node.offsetTop > scrollTop + (offset ?? 0) && scrollTop + clientHeight < scrollHeight) {
                 break;
             }
-            // duplicate node's offsetTop indicates a multiple tab headings
+            // duplicate node's offsetTop indicates multiple tab headings
             if (node.offsetTop !== lastOffsetTop || node.querySelector('button.active')) {
                 selectedSlug = slug;
                 lastOffsetTop = node.offsetTop;
