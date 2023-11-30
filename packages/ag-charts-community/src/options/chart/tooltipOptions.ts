@@ -1,5 +1,5 @@
 import type { AgChartCallbackParams } from './callbackOptions';
-import type { CssColor, InteractionRange, PixelSize } from './types';
+import type { CssColor, Duration, InteractionRange, PixelSize } from './types';
 
 export interface AgChartTooltipOptions {
     /** Set to `false` to disable tooltips for all series in the chart. */
@@ -13,7 +13,7 @@ export interface AgChartTooltipOptions {
     /** The position of the tooltip. */
     position?: AgTooltipPositionOptions;
     /** The time interval (in milliseconds) after which the tooltip is shown. */
-    delay?: number;
+    delay?: Duration;
 }
 
 export type AgTooltipPositionType = 'pointer' | 'node';
