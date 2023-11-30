@@ -31,7 +31,7 @@ export type PixelSize = number;
 export type Ratio = number;
 
 /** Alias to denote that a value is a duration in milliseconds */
-export type Duration = number;
+export type DurationMs = number;
 
 /** Alias to denote that a value is an angle in degrees */
 export type Degree = number;
