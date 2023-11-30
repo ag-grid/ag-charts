@@ -24,7 +24,5 @@ export async function get({ params }: { params: Params }) {
     const entryFile = files[entryFileName!];
     const { code } = transformPlainEntryFile(entryFile, files['data.js']);
 
-    return {
-        body: code,
-    };
+    return new Response(JSON.stringify(code));
 }

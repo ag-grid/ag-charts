@@ -7,7 +7,7 @@ export async function get() {
     const shortHash = execSync('git rev-parse --short HEAD').toString().replace(removeNewlineRegex, '');
     const gitDate = execSync('git --no-pager log -1 --format="%ai"').toString().replace(removeNewlineRegex, '');
 
-    const response = {
+    const body = {
         buildDate,
         git: {
             hash,
@@ -15,9 +15,11 @@ export async function get() {
             date: gitDate,
         },
     };
-    const body = JSON.stringify(response);
 
-    return {
-        body,
-    };
+    return new Response(JSON.stringify(body), {
+        status: 200,
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
 }
