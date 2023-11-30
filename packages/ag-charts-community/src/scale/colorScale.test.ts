@@ -1,8 +1,19 @@
 import { expect, test } from '@jest/globals';
 
+import { Color } from '../util/color';
 import { ColorScale } from './colorScale';
 
 describe('colorScale', () => {
+    beforeEach(() => {
+        // It's too much effort to compute values in the OKLCH space
+        // Use HSL instead, reordering components so it's "equivalent"
+        Color.fromOKLCH = (l, c, h) => Color.fromHSL(h, c, l);
+        Color.RGBtoOKLCH = (r, g, b) => {
+            const [h, s, l] = Color.RGBtoHSL(r, g, b);
+            return [l, s, h];
+        };
+    });
+
     test('domain', () => {
         const scale = new ColorScale();
 
