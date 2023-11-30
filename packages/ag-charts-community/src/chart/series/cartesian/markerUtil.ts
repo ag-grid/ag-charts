@@ -3,6 +3,7 @@ import type { NodeUpdateState } from '../../../motion/fromToMotion';
 import { FROM_TO_MIXINS, fromToMotion, staticFromToMotion } from '../../../motion/fromToMotion';
 import type { Node } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
+import { clamp } from '../../../util/number';
 import type { AnimationManager } from '../../interaction/animationManager';
 import type { Marker } from '../../marker/marker';
 import * as easing from './../../../motion/easing';
@@ -43,15 +44,14 @@ export function markerSwipeScaleInAnimation<T extends CartesianSeriesNodeDatum>(
     markerSelections: Selection<Node, T>[],
     seriesWidth: number
 ) {
-    // Improves consistency with matching parallel animations.
-    const tweakFactor = 0.1;
-
     const fromFn = (_: Node, datum: T) => {
         const x = datum.midPoint?.x ?? seriesWidth;
         // Calculate a delay that depends on the X position of the datum, so that nodes appear
-        // gradually from left to right. Use easeInOut to match any parallel swipe animations.
-        const delayRatio = easing.easeInOut(x / seriesWidth) - tweakFactor;
-        const delay = Math.max(Math.min(delayRatio, 1), 0);
+        // gradually from left to right.
+        //
+        // Parallel swipe animations use the function x = easeOut(time). But in this case, we
+        // know the x value and need to calculate the time delay. So use the inverse function:
+        const delay = clamp(0, easing.inverseEaseOut(x / seriesWidth), 1);
         return { scalingX: 0, scalingY: 0, animationDelay: delay, animationDuration: QUICK_TRANSITION };
     };
     const toFn = () => {
