@@ -1,6 +1,7 @@
 import type { AgChartCallbackParams } from '../../chart/callbackOptions';
-import type { AgChartLabelOptions } from '../../chart/labelOptions';
+import type { AgChartAutoSizedLabelOptions, AgChartAutoSizedSecondaryLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
+import type { PixelSize, TextAlign, VerticalAlign } from '../../chart/types';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { FillOptions, StrokeOptions } from './commonOptions';
@@ -25,8 +26,16 @@ export interface AgHeatmapSeriesTooltipRendererParams extends AgCartesianSeriesT
 }
 
 export interface AgHeatmapSeriesThemeableOptions<TDatum = any> extends StrokeOptions, AgBaseSeriesThemeableOptions {
-    /** Configuration for the labels shown inside the cells. */
-    label?: AgChartLabelOptions<TDatum, AgHeatmapSeriesLabelFormatterParams>;
+    /** Options for the label in a cells */
+    label?: AgChartAutoSizedLabelOptions<TDatum, AgHeatmapSeriesLabelFormatterParams>;
+    /** Options for a secondary, smaller label in a cells - displayed under the primary label */
+    secondaryLabel?: AgChartAutoSizedSecondaryLabelOptions<TDatum, AgHeatmapSeriesLabelFormatterParams>;
+    /** Minimum distance between text and the edges of the sectors */
+    padding?: PixelSize;
+    /** Horizontal position of the label */
+    textAlign?: TextAlign;
+    /** Vertical position of the label */
+    verticalAlign?: VerticalAlign;
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
     title?: string;
     /** Function used to return formatting for individual heatmap cells, based on the given parameters. If the current cell is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
@@ -36,6 +45,10 @@ export interface AgHeatmapSeriesThemeableOptions<TDatum = any> extends StrokeOpt
 }
 
 export interface AgHeatmapSeriesOptionsKeys {
+    /** The name of the node key containing the label. */
+    labelKey?: string;
+    /** The name of the node key containing a secondary label. */
+    secondaryLabelKey?: string;
     /** The key to use to retrieve x-values from the data. */
     xKey: string;
     /** The key to use to retrieve y-values from the data. */

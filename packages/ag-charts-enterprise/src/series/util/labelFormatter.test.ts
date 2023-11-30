@@ -111,8 +111,15 @@ describe('treeMapLabelFormatter', () => {
             const [format] = formatSingleLabel(
                 'Hello',
                 // @ts-expect-error Fix typechecking here
-                { fontSize: 20, minimumFontSize: 10, wrapping: 'never', overflowStrategy: 'hide' },
-                { padding: 10, spacing: 10 },
+                {
+                    enabled: true,
+                    fontSize: 20,
+                    minimumFontSize: 10,
+                    wrapping: 'never',
+                    overflowStrategy: 'hide',
+                    spacing: 10,
+                },
+                { padding: 10 },
                 () => ({ width: 1000, height: 1000 })
             )!;
             expect(format).toEqual({
@@ -133,8 +140,15 @@ describe('treeMapLabelFormatter', () => {
             const [format] = formatSingleLabel(
                 'Hello',
                 // @ts-expect-error Fix typechecking here
-                { fontSize: 20, minimumFontSize: 10, wrapping: 'never', overflowStrategy: 'hide' },
-                { padding: 10, spacing: 10 },
+                {
+                    enabled: true,
+                    fontSize: 20,
+                    minimumFontSize: 10,
+                    wrapping: 'never',
+                    overflowStrategy: 'hide',
+                    spacing: 10,
+                },
+                { padding: 10 },
                 () => ({ width: 35, height: 35 })
             )!;
             expect(format).toEqual({
@@ -155,7 +169,13 @@ describe('treeMapLabelFormatter', () => {
             const [format] = formatSingleLabel(
                 'Hello',
                 // @ts-expect-error Fix typechecking here
-                { fontSize: 20, minimumFontSize: 30, wrapping: 'never', overflowStrategy: 'hide' },
+                {
+                    enabled: true,
+                    fontSize: 20,
+                    minimumFontSize: 30,
+                    wrapping: 'never',
+                    overflowStrategy: 'hide',
+                },
                 { padding: 10, spacing: 10 },
                 () => ({ width: 1000, height: 1000 })
             )!;
@@ -179,10 +199,23 @@ describe('treeMapLabelFormatter', () => {
             const format = formatStackedLabels(
                 'Hello',
                 // @ts-expect-error Fix typechecking here
-                { fontSize: 20, minimumFontSize: 10, wrapping: 'never', overflowStrategy: 'hide' },
+                {
+                    enabled: true,
+                    fontSize: 20,
+                    minimumFontSize: 10,
+                    wrapping: 'never',
+                    overflowStrategy: 'hide',
+                    spacing: 10,
+                },
                 'World',
-                { fontSize: 10, minimumFontSize: 5, wrapping: 'never', overflowStrategy: 'hide' },
-                { padding: 10, spacing: 10 },
+                {
+                    enabled: true,
+                    fontSize: 10,
+                    minimumFontSize: 5,
+                    wrapping: 'never',
+                    overflowStrategy: 'hide',
+                },
+                { padding: 10 },
                 () => ({ width: 1000, height: 1000 })
             );
             expect(format).toEqual({
@@ -218,10 +251,23 @@ describe('treeMapLabelFormatter', () => {
             const format = formatStackedLabels(
                 'Hello',
                 // @ts-expect-error Fix typechecking here
-                { fontSize: 20, minimumFontSize: 10, wrapping: 'never', overflowStrategy: 'hide' },
+                {
+                    enabled: true,
+                    fontSize: 20,
+                    minimumFontSize: 10,
+                    wrapping: 'never',
+                    overflowStrategy: 'hide',
+                    spacing,
+                },
                 'World',
-                { fontSize: 10, minimumFontSize: 5, wrapping: 'never', overflowStrategy: 'hide' },
-                { padding, spacing },
+                {
+                    enabled: true,
+                    fontSize: 10,
+                    minimumFontSize: 5,
+                    wrapping: 'never',
+                    overflowStrategy: 'hide',
+                },
+                { padding },
                 () => ({ width: 50, height })
             );
             expect(format).toEqual({
@@ -254,10 +300,23 @@ describe('treeMapLabelFormatter', () => {
             const format = formatStackedLabels(
                 'Hello',
                 // @ts-expect-error Fix typechecking here
-                { fontSize: 20, minimumFontSize: 30, wrapping: 'never', overflowStrategy: 'hide' },
+                {
+                    enabled: true,
+                    fontSize: 20,
+                    minimumFontSize: 30,
+                    wrapping: 'never',
+                    overflowStrategy: 'hide',
+                    spacing: 10,
+                },
                 'World',
-                { fontSize: 10, minimumFontSize: 20, wrapping: 'never', overflowStrategy: 'hide' },
-                { padding: 10, spacing: 10 },
+                {
+                    enabled: true,
+                    fontSize: 10,
+                    minimumFontSize: 20,
+                    wrapping: 'never',
+                    overflowStrategy: 'hide',
+                },
+                { padding: 10 },
                 () => ({ width: 1000, height: 1000 })
             );
             expect(format).toEqual({
@@ -291,10 +350,23 @@ describe('treeMapLabelFormatter', () => {
             const output = formatLabels(
                 undefined,
                 // @ts-expect-error Fix typechecking here
-                { fontSize: 20, minimumFontSize: 10, wrapping: 'never', overflowStrategy: 'hide' },
+                {
+                    enabled: true,
+                    fontSize: 20,
+                    minimumFontSize: 10,
+                    wrapping: 'never',
+                    overflowStrategy: 'hide',
+                    spacing: 10,
+                },
                 'World',
-                { fontSize: 10, minimumFontSize: 5, wrapping: 'never', overflowStrategy: 'hide' },
-                { padding: 10, spacing: 10 },
+                {
+                    enabled: true,
+                    fontSize: 10,
+                    minimumFontSize: 5,
+                    wrapping: 'never',
+                    overflowStrategy: 'hide',
+                },
+                { padding: 10 },
                 () => ({ width: Infinity, height: Infinity })
             );
 

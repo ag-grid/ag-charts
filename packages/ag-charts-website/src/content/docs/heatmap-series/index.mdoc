@@ -66,29 +66,45 @@ series: [
 
 ### Labels
 
-If `label.enabled` is set to `true`, the labels will show the numeric value from `colorKey`.
+To annotate the chart with up to two labels per node, use `labelKey` and `secondaryLabelKey` (if appliciable).
 
 {% chartExampleRunner title="Heatmap Label" name="customising-labels" type="generated" /%}
 
 ```js
-colorKey: 'temperature',
-label: {
-    enabled: true,
-},
+{
+    labelKey: 'temperature',
+    secondaryLabelKey: 'change',
+}
 ```
 
 A label `formatter` can be used to customise the label text.
 
 ```js
-colorKey: 'temperature',
-label: {
-    enabled: true,
-    formatter: ({ datum, colorKey }) => {
-        const value = datum[colorKey];
-        return `${value.toFixed(0)}°C`;
+{
+    labelKey: 'temperature',
+    secondaryLabelKey: 'change',
+    label: {
+        fontSize: 12,
+        minimumFontSize: 6,
+        spacing: 0,
+        formatter: ({ value }) => `${value.toFixed(0)}°C`
     },
-},
+    secondaryLabel: {
+        fontSize: 8,
+        minimumFontSize: 5,
+        formatter: ({ value }) => `${value > 0 ? '+' : '-'}${Math.abs(value * 100).toFixed(0)}%`,
+    },
+    padding: 2
+}
 ```
+
+In this configuration:
+
+-   `fontSize` sets the size of the font
+-   `minimumFontSize` will enable the font size to shrink down to the given value if there is not enough space
+-   `spacing` controls the amount of space below a label
+-   `padding` adds space between the edge of a sector and its contents
+-   `formatter` allows customising the value of a label using a function
 
 ## Gradient Legend
 

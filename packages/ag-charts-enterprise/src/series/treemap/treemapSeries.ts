@@ -13,7 +13,7 @@ import {
     _Util,
 } from 'ag-charts-community';
 
-import { AutoSizeableLabel, formatLabels } from '../util/labelFormatter';
+import { AutoSizeableSecondaryLabel, AutoSizedLabel, formatLabels } from '../util/labelFormatter';
 
 const {
     BOOLEAN,
@@ -74,15 +74,10 @@ class TreemapSeriesGroup {
     padding: number = 0;
 }
 
-class TreemapTileLabel extends AutoSizeableLabel<AgTreemapSeriesLabelFormatterParams> {
-    @Validate(NUMBER())
-    spacing: number = 0;
-}
-
 class TreemapSeriesTile {
-    readonly label = new TreemapTileLabel();
+    readonly label = new AutoSizedLabel<AgTreemapSeriesLabelFormatterParams>();
 
-    readonly secondaryLabel = new AutoSizeableLabel<AgTreemapSeriesLabelFormatterParams>();
+    readonly secondaryLabel = new AutoSizeableSecondaryLabel<AgTreemapSeriesLabelFormatterParams>();
 
     @Validate(OPT_NUMBER())
     gap: number = 0;
@@ -113,7 +108,7 @@ class TreemapSeriesTile {
 }
 
 class TreemapSeriesGroupHighlightStyle {
-    readonly label = new AutoSizeableLabel<AgTreemapSeriesLabelFormatterParams>();
+    readonly label = new AutoSizedLabel<AgTreemapSeriesLabelFormatterParams>();
 
     @Validate(OPT_STRING)
     fill?: string = undefined;
@@ -132,9 +127,9 @@ class TreemapSeriesGroupHighlightStyle {
 }
 
 class TreemapSeriesTileHighlightStyle {
-    readonly label = new AutoSizeableLabel<AgTreemapSeriesLabelFormatterParams>();
+    readonly label = new AutoSizedLabel<AgTreemapSeriesLabelFormatterParams>();
 
-    readonly secondaryLabel = new AutoSizeableLabel<AgTreemapSeriesLabelFormatterParams>();
+    readonly secondaryLabel = new AutoSizeableSecondaryLabel<AgTreemapSeriesLabelFormatterParams>();
 
     @Validate(OPT_STRING)
     fill?: string = undefined;
@@ -328,7 +323,7 @@ export class TreemapSeries<
 
             const labelStyle = isLeaf ? tile.label : group.label;
             let label: string | undefined;
-            if (datum != null && depth != null && labelKey != null && labelStyle.enabled) {
+            if (datum != null && depth != null && labelKey != null) {
                 const value = (datum as any)[labelKey];
                 label = this.getLabelText(
                     labelStyle,
@@ -352,7 +347,7 @@ export class TreemapSeries<
             }
 
             let secondaryLabel: string | undefined;
-            if (isLeaf && datum != null && depth != null && secondaryLabelKey != null && tile.secondaryLabel.enabled) {
+            if (isLeaf && datum != null && depth != null && secondaryLabelKey != null) {
                 const value = (datum as any)[secondaryLabelKey];
                 secondaryLabel = this.getLabelText(
                     tile.secondaryLabel,
@@ -687,7 +682,7 @@ export class TreemapSeries<
                     this.tile.label,
                     labelDatum.secondaryLabel,
                     this.tile.secondaryLabel,
-                    { spacing: tile.label.spacing, padding: tile.padding },
+                    { padding: tile.padding },
                     () => layout
                 );
                 if (formatting == null) return undefined;
@@ -742,7 +737,7 @@ export class TreemapSeries<
                     label: {
                         text,
                         fontSize: group.label.fontSize,
-                        lineHeight: AutoSizeableLabel.lineHeight(group.label.fontSize),
+                        lineHeight: AutoSizedLabel.lineHeight(group.label.fontSize),
                         style: this.group.label,
                         x: bbox.x + padding + innerWidth * textAlignFactor,
                         y: bbox.y + padding + groupTitleHeight * 0.5,
