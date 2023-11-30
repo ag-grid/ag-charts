@@ -2,6 +2,10 @@ export function clamp(min: number, value: number, max: number) {
     return Math.min(max, Math.max(min, value));
 }
 
+export function clampArray(value: number, array: number[]) {
+    return clamp(Math.min(...array), value, Math.max(...array));
+}
+
 export function isEqual(a: number, b: number, epsilon: number = 1e-10) {
     return Math.abs(a - b) < epsilon;
 }
