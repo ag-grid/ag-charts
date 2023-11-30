@@ -2,27 +2,27 @@ import { Color } from '../util/color';
 import { Logger } from '../util/logger';
 import type { Scale } from './scale';
 
-type HSLA = { h: number; s: number; l: number; a: number };
+type OKLCHA = { l: number; c: number; h: number; a: number };
 
-const convertColorStringToHsla = (v: string): HSLA => {
+const convertColorStringToOklcha = (v: string): OKLCHA => {
     const color = Color.fromString(v);
-    const [h, s, l] = Color.RGBtoHSL(color.r, color.g, color.b);
-    return { h, s, l, a: color.a };
+    const [l, c, h] = Color.RGBtoOKLCH(color.r, color.g, color.b);
+    return { l, c, h, a: color.a };
 };
 
-const interpolateHsla = (x: HSLA, y: HSLA, d: number): Color => {
+const interpolateOklch = (x: OKLCHA, y: OKLCHA, d: number): Color => {
     d = Math.min(Math.max(d, 0), 1);
     let h: number;
-    let s: number;
+    let c: number;
     if (Number.isNaN(x.h) && Number.isNaN(y.h)) {
         h = 0;
-        s = 0;
+        c = 0;
     } else if (Number.isNaN(x.h)) {
         h = y.h;
-        s = y.s;
+        c = y.c;
     } else if (Number.isNaN(y.h)) {
         h = x.h;
-        s = x.s;
+        c = x.c;
     } else {
         const xH = x.h;
         let yH = y.h;
@@ -33,20 +33,20 @@ const interpolateHsla = (x: HSLA, y: HSLA, d: number): Color => {
             yH += 360;
         }
         h = xH * (1 - d) + yH * d;
-        s = x.s * (1 - d) + y.s * d;
+        c = x.c * (1 - d) + y.c * d;
     }
 
     const l = x.l * (1 - d) + y.l * d;
     const a = x.a * (1 - d) + y.a * d;
 
-    return Color.fromHSL(h, s, l, a);
+    return Color.fromOKLCH(l, c, h, a);
 };
 
 export class ColorScale implements Scale<number, string, number> {
     domain = [0, 1];
     range = ['red', 'blue'];
 
-    private parsedRange = this.range.map(convertColorStringToHsla);
+    private parsedRange = this.range.map(convertColorStringToOklcha);
 
     update() {
         const { domain, range } = this;
@@ -76,7 +76,7 @@ export class ColorScale implements Scale<number, string, number> {
             }
         }
 
-        this.parsedRange = this.range.map(convertColorStringToHsla);
+        this.parsedRange = this.range.map(convertColorStringToOklcha);
     }
 
     convert(x: number) {
@@ -115,6 +115,6 @@ export class ColorScale implements Scale<number, string, number> {
 
         const c0 = parsedRange[index];
         const c1 = parsedRange[index + 1];
-        return interpolateHsla(c0, c1, q).toRgbaString();
+        return interpolateOklch(c0, c1, q).toRgbaString();
     }
 }
