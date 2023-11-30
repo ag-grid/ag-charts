@@ -56,6 +56,10 @@ export class ModuleMap<M extends Module<C, I>, C, I extends ModuleInstance = Mod
         return this.modules[module.optionsKey] != null;
     }
 
+    values() {
+        return Object.values(this.modules).map((value) => value.instance);
+    }
+
     *[Symbol.iterator](): IterableIterator<I> {
         for (const { instance } of Object.values(this.modules)) {
             yield instance;
