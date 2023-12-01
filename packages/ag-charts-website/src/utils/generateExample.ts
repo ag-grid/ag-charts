@@ -77,7 +77,7 @@ async function borrowFromPool() {
         throw new Error('No JSDOM instance available to borrow.');
     }
 
-    return pool.splice(0, 1)[0];
+    return pool.shift();
 }
 
 function returnToPool(poolEntry: ReturnType<typeof buildPoolEntry>) {
