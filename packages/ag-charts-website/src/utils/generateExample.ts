@@ -3,7 +3,6 @@ import { transformPlainEntryFile } from '@features/gallery/utils/transformPlainE
 import type { ThemeName } from '@stores/themeStore';
 import { getEntry } from 'astro:content';
 import { JSDOM } from 'jsdom';
-import sharp from 'sharp';
 
 import { AgCharts } from 'ag-charts-community';
 // eslint-disable-next-line @nx/enforce-module-boundaries
@@ -20,7 +19,6 @@ export const prerender = true;
 interface Params {
     exampleName: string;
     theme: ThemeName;
-    format: 'png' | 'webp';
 }
 
 export async function getStaticPaths() {
@@ -77,20 +75,20 @@ async function borrowFromPool() {
         throw new Error('No JSDOM instance available to borrow.');
     }
 
-    return pool.shift();
+    return pool.shift()!;
 }
 
 function returnToPool(poolEntry: ReturnType<typeof buildPoolEntry>) {
     pool.push(poolEntry);
 }
 
-export async function generateExample({ exampleName, theme, format }: Params) {
+export async function generateExample({ exampleName, theme }: Params) {
     const poolEntry = await borrowFromPool();
     const [jsdom, mockCtx, chartProxy] = poolEntry;
 
     try {
         // eslint-disable-next-line no-console
-        console.log(`Generating [${exampleName}] with theme [${theme}] in format [${format}]`);
+        console.log(`Generating [${exampleName}] with theme [${theme}]`);
         const { entryFileName, files = {} } =
             (await getGeneratedGalleryContents({
                 exampleName,
@@ -143,20 +141,7 @@ export async function generateExample({ exampleName, theme, format }: Params) {
 
         const buffer = mockCtx.ctx.nodeCanvas?.toBuffer();
 
-        let result: Buffer;
-        switch (format) {
-            case 'png':
-                result = await sharp(buffer).png().toBuffer();
-                break;
-            case 'webp':
-                result = await sharp(buffer).webp().toBuffer();
-                break;
-        }
-
-        return {
-            body: result,
-            encoding: 'binary',
-        };
+        return buffer;
     } catch (e) {
         throw new Error(`Unable to render example [${exampleName}] with theme [${theme}]: ${e}`, { cause: e });
     } finally {
