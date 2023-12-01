@@ -45,7 +45,7 @@ export interface AgChartThemePalette {
 
 export interface AgBaseChartThemeOptions {
     /** The palette to use. If specified, this replaces the palette from the base theme. */
-    palette?: AgChartThemePalette;
+    palette?: Partial<AgChartThemePalette>;
     /** Configuration from this object is merged over the defaults specified in the base theme. */
     overrides?: AgBaseChartThemeOverrides;
 }

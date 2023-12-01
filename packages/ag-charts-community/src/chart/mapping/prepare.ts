@@ -26,7 +26,7 @@ import type { ChartTheme } from '../themes/chartTheme';
 import { resolveModuleConflicts, swapAxes } from './defaults';
 import type { SeriesOptions } from './prepareSeries';
 import { processSeriesOptions } from './prepareSeries';
-import { getChartTheme } from './themes';
+import { getChartTheme, resolvePartialPalette } from './themes';
 import {
     type AxesOptionsTypes,
     type SeriesOptionsTypes,
@@ -257,8 +257,9 @@ function prepareMainOptions<T extends AgChartOptions>(
     options: T,
     conflictOverrides: DeepPartial<T>
 ) {
-    const { theme, cleanedTheme, axesThemes, seriesThemes, userPalette } = prepareTheme(options);
+    const { theme, cleanedTheme, axesThemes, seriesThemes, userPalette: partialPalette } = prepareTheme(options);
 
+    const userPalette = resolvePartialPalette(partialPalette, theme.palette);
     const context: PreparationContext = { colourIndex: 0, palette: theme.palette, userPalette, theme };
 
     defaultOverrides = theme.templateTheme(defaultOverrides);

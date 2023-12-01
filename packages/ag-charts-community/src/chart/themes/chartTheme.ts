@@ -12,6 +12,7 @@ import { AXIS_TYPES, getAxisThemeTemplate } from '../factory/axisTypes';
 import { CHART_TYPES, type ChartType, getChartDefaults } from '../factory/chartTypes';
 import { getLegendThemeTemplates } from '../factory/legendTypes';
 import { getSeriesThemeTemplate } from '../factory/seriesTypes';
+import { resolvePartialPalette } from '../mapping/themes';
 import { BOTTOM, FONT_SIZE, NORMAL } from './constants';
 import { DEFAULT_FILLS, DEFAULT_STROKES } from './defaultColors';
 import {
@@ -359,7 +360,9 @@ export class ChartTheme {
                 }
             });
         }
-        this.palette = palette ?? this.getPalette();
+
+        const basePalette = this.getPalette();
+        this.palette = resolvePartialPalette(palette, basePalette) ?? basePalette;
 
         this.config = Object.freeze(this.templateTheme(defaults));
     }
