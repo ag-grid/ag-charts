@@ -354,7 +354,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
                 title,
                 color,
                 seriesId,
-                ...this.getModuleTooltipParams(datum),
+                ...this.getModuleTooltipParams(),
             }
         );
     }

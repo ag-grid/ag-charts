@@ -573,7 +573,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
                 title,
                 seriesId,
                 stackGroup,
-                ...this.getModuleTooltipParams(datum),
+                ...this.getModuleTooltipParams(),
             }
         );
     }
