@@ -69,7 +69,7 @@ async function borrowFromPool() {
     while (pool.length === 0 && count < 5) {
         // eslint-disable-next-line no-console
         console.log('Waiting for pool to become available...');
-        await new Promise((resolve) => setTimeout(resolve, (10 * count) ^ 2));
+        await new Promise((resolve) => setTimeout(resolve, (10 * count) ** 2));
         count++;
     }
 
