@@ -1,6 +1,7 @@
 import type { GalleryData } from '@ag-grid-types';
 import { SKIP_GALLERY_IMAGE_GENERATION } from '@constants';
 
+import type { ThemeName } from '../../../stores/themeStore';
 import { getGeneratedGalleryContentsFileList } from './examplesGenerator';
 import { getGalleryExamples } from './filesData';
 
@@ -44,7 +45,7 @@ export function getGalleryExampleThemePages({ galleryData }: { galleryData: Gall
     }
 
     const galleryExamples = getGalleryExamples({ galleryData });
-    const themes = [
+    const themes: ThemeName[] = [
         'ag-default',
         'ag-default-dark',
         'ag-sheets',

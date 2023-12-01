@@ -117,7 +117,7 @@ export class BBox implements DistantObject {
 
         if (typeof amount === 'number') {
             apply(position, amount);
-        } else {
+        } else if (typeof amount === 'object') {
             Object.entries(amount).forEach(([pos, amt]) => apply(pos as typeof position, amt));
         }
 
