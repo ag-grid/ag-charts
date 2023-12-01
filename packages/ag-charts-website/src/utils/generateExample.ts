@@ -11,6 +11,7 @@ import 'ag-charts-enterprise';
 
 // eslint-disable-next-line @nx/enforce-module-boundaries
 import * as mockCanvas from '../../../ag-charts-community/src/chart/test/mock-canvas';
+import { THUMBNAIL_POOL_SIZE } from '../constants';
 import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '../features/gallery/constants';
 import { getGeneratedGalleryContents } from '../features/gallery/utils/examplesGenerator';
 
@@ -28,7 +29,7 @@ export async function getStaticPaths() {
     return pages;
 }
 
-export async function generateExample({ exampleName, theme, format }: Params) {
+function buildPoolEntry() {
     const jsdom = new JSDOM('<html><head><style></style></head><body><div id="myChart"></div></body></html>');
 
     const mockCtx = mockCanvas.setup({
@@ -39,9 +40,55 @@ export async function generateExample({ exampleName, theme, format }: Params) {
         mockText: false,
     });
 
+    const options = {
+        animation: { enabled: false },
+        document: jsdom.window.document,
+        window: jsdom.window,
+        width: DEFAULT_THUMBNAIL_WIDTH,
+        height: DEFAULT_THUMBNAIL_HEIGHT,
+    } as any;
+
+    const chartProxy = AgCharts.create(options);
+
+    return [jsdom, mockCtx, chartProxy] as const;
+}
+
+const pool: ReturnType<typeof buildPoolEntry>[] = [];
+
+function initPool() {
+    console.log(`Creating thumbnail pool of size ${THUMBNAIL_POOL_SIZE}`);
+    for (let i = 0; i < THUMBNAIL_POOL_SIZE; i++) {
+        pool.push(buildPoolEntry());
+    }
+}
+initPool();
+
+async function borrowFromPool() {
+    let count = 0;
+    while (pool.length === 0 && count < 5) {
+        console.log('Waiting for pool to become available...');
+        await new Promise((resolve) => setTimeout(resolve, (10 * count) ^ 2));
+        count++;
+    }
+
+    if (pool.length === 0) {
+        throw new Error('No JSDOM instance available to borrow.');
+    }
+
+    return pool.splice(0, 1)[0];
+}
+
+function returnToPool(poolEntry: ReturnType<typeof buildPoolEntry>) {
+    pool.push(poolEntry);
+}
+
+export async function generateExample({ exampleName, theme, format }: Params) {
+    const poolEntry = await borrowFromPool();
+    const [jsdom, mockCtx, chartProxy] = poolEntry;
+
     try {
         // eslint-disable-next-line no-console
-        console.log(`Generating [${exampleName}] with theme [${theme}]`);
+        console.log(`Generating [${exampleName}] with theme [${theme}] in format [${format}]`);
         const { entryFileName, files = {} } =
             (await getGeneratedGalleryContents({
                 exampleName,
@@ -88,7 +135,7 @@ export async function generateExample({ exampleName, theme, format }: Params) {
             padding,
         } as any;
 
-        const chartProxy = AgCharts.create(options);
+        AgCharts.update(chartProxy, options);
         const chart = (chartProxy as any).chart;
         await chart.waitForUpdate(5_000);
 
@@ -104,15 +151,13 @@ export async function generateExample({ exampleName, theme, format }: Params) {
                 break;
         }
 
-        chart.destroy();
-
         return {
             body: result,
             encoding: 'binary',
         };
     } catch (e) {
-        throw new Error(`Unable to render example [${exampleName}] with theme [${theme}]: ${e}`);
+        throw new Error(`Unable to render example [${exampleName}] with theme [${theme}]: ${e}`, { cause: e });
     } finally {
-        mockCanvas.teardown(mockCtx);
+        returnToPool(poolEntry);
     }
 }

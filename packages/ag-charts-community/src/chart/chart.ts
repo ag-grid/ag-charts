@@ -215,7 +215,17 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     padding = new Padding(20);
 
-    seriesArea = new SeriesArea();
+    _seriesArea = new SeriesArea();
+    get seriesArea() {
+        return this._seriesArea;
+    }
+    set seriesArea(newArea: SeriesArea) {
+        if (!newArea) {
+            this._seriesArea = new SeriesArea();
+        } else {
+            this._seriesArea = newArea;
+        }
+    }
 
     @ActionOnSet<Chart>({
         newValue(value) {
