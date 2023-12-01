@@ -1,4 +1,4 @@
-import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, PixelSize } from './types';
+import type { CssColor, Degree, FontFamily, FontSize, FontStyle, FontWeight, PixelSize } from './types';
 
 export interface AgAxisBoundSeries {
     /** Key used by the series for values on the related axis. */
@@ -105,13 +105,11 @@ export interface AgBaseAxisLabelOptions {
     /** The colour to use for the labels */
     color?: CssColor;
     /** The rotation of the axis labels in degrees. Note: for integrated charts the default is 335 degrees, unless the axis shows grouped or default categories (indexes). The first row of labels in a grouped category axis is rotated perpendicular to the axis line. */
-    rotation?: number;
+    rotation?: Degree;
     /** Avoid axis label collision by automatically reducing the number of ticks displayed. If set to `false`, axis labels may collide. */
     avoidCollisions?: boolean;
     /** Minimum gap in pixels between the axis labels before being removed to avoid collisions. */
     minSpacing?: PixelSize;
-    // mirrored?: boolean;
-    // parallel?: boolean;
     /** Format string used when rendering labels. */
     format?: string;
     /** Function used to render axis labels. If `value` is a number, `fractionDigits` will also be provided, which indicates the number of fractional digits used in the step between ticks; for example, a tick step of `0.0005` would have `fractionDigits` set to `4` */

@@ -1,7 +1,7 @@
 import type { AgAxisCategoryTickOptions, AgAxisNumberTickOptions } from '../series/cartesian/cartesianOptions';
 import type { AgBaseAxisLabelOptions, AgBaseAxisOptions } from './axisOptions';
 import type { AgBaseCrossLineOptions } from './crossLineOptions';
-import type { Ratio } from './types';
+import type { Degree, Ratio } from './types';
 
 export type AgPolarAxisType = 'angle-category' | 'angle-number' | 'radius-category' | 'radius-number';
 export type AgPolarAxisShape = 'polygon' | 'circle';
@@ -13,9 +13,9 @@ export interface AgAngleCategoryAxisOptions extends AgBaseAxisOptions<AgAngleAxi
     /** Shape of axis. Default: `polygon` */
     shape?: AgPolarAxisShape;
     /** Angle in degrees to start ticks positioning from. */
-    startAngle?: number;
+    startAngle?: Degree;
     /** Angle in degrees to end ticks positioning at. It should be greater than `startAngle`. */
-    endAngle?: number;
+    endAngle?: Degree;
     /** Add cross lines or regions corresponding to data values. */
     crossLines?: AgAngleCrossLineOptions[];
     /**
@@ -35,9 +35,9 @@ export interface AgAngleNumberAxisOptions extends AgBaseAxisOptions<AgAngleAxisL
     /** Configuration for the axis ticks. */
     tick?: AgAxisNumberTickOptions;
     /** Angle in degrees to start ticks positioning from. */
-    startAngle?: number;
+    startAngle?: Degree;
     /** Angle in degrees to end ticks positioning at. It should be greater than `startAngle`. */
-    endAngle?: number;
+    endAngle?: Degree;
     /** Add cross lines or regions corresponding to data values. */
     crossLines?: AgAngleCrossLineOptions[];
     /** If `true`, the range will be rounded up to ensure nice equal spacing between the ticks. */

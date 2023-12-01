@@ -12,7 +12,7 @@ import type {
     AgCrossLineThemeOptions,
 } from '../../chart/crossLineOptions';
 import type { AgCrosshairOptions } from '../../chart/crosshairOptions';
-import type { PixelSize, Ratio } from '../../chart/types';
+import type { Degree, PixelSize, Ratio } from '../../chart/types';
 import type { AgCartesianSeriesOptions } from './cartesianSeriesTypes';
 
 /** Configuration for axes in cartesian charts. */
@@ -33,7 +33,7 @@ export interface AgCartesianAxisLabelOptions extends AgBaseAxisLabelOptions {
     /** If specified and axis labels may collide, they are rotated so that they are positioned at the supplied angle. This is enabled by default for category. If the `rotation` property is specified, it takes precedence. */
     autoRotate?: boolean;
     /** If autoRotate is enabled, specifies the rotation angle to use when autoRotate is activated. Defaults to an angle of 335 degrees if unspecified. */
-    autoRotateAngle?: number;
+    autoRotateAngle?: Degree;
 }
 
 export interface AgBaseCartesianChartOptions {
@@ -173,7 +173,7 @@ export interface AgCartesianCrossLineLabelOptions extends AgBaseCrossLineLabelOp
     /** The position of the cross-line label. */
     position?: AgCrossLineLabelPosition;
     /** The rotation of the cross-line label in degrees. */
-    rotation?: number;
+    rotation?: Degree;
 }
 
 export interface AgAxisCategoryTickOptions extends AgAxisBaseTickOptions {}
@@ -181,15 +181,13 @@ export interface AgAxisCategoryTickOptions extends AgAxisBaseTickOptions {}
 export interface AgAxisNumberTickOptions extends AgAxisBaseTickOptions {
     /** Maximum gap in pixels between tick lines. */
     maxSpacing?: PixelSize;
-    /** The step value between ticks specified as a number. If the configured interval results in too many ticks given the chart size, it will be ignored.
-     */
+    /** The step value between ticks specified as a number. If the configured interval results in too many ticks given the chart size, it will be ignored. */
     interval?: number;
 }
 
 export interface AgAxisTimeTickOptions extends AgAxisBaseTickOptions {
     /** Maximum gap in pixels between tick lines. */
     maxSpacing?: PixelSize;
-    /** The step value between ticks specified as a TimeInterval or a number. If the configured interval results in dense ticks given the data domain, the ticks will be removed.
-     */
+    /** The step value between ticks specified as a TimeInterval or a number. If the configured interval results in dense ticks given the data domain, the ticks will be removed. */
     interval?: any;
 }
