@@ -951,9 +951,15 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
 
         const { seriesRect } = this;
+        const { top, right, bottom, left } = this.seriesArea.padding;
         const labels: PlacedLabel[][] =
             seriesRect && data.length > 0
-                ? placeLabels(data, { x: 0, y: 0, width: seriesRect.width, height: seriesRect.height })
+                ? placeLabels(data, {
+                      x: -left,
+                      y: -top,
+                      width: seriesRect.width + left + right,
+                      height: seriesRect.height + top + bottom,
+                  })
                 : [];
         return new Map(labels.map((l, i) => [visibleSeries[i], l]));
     }
