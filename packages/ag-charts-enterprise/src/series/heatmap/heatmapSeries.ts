@@ -10,7 +10,7 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
-import { AutoSizeableSecondaryLabel, AutoSizedLabel, formatLabels } from '../util/labelFormatter';
+import { AutoSizedLabel, formatLabels } from '../util/labelFormatter';
 
 const {
     AND,
@@ -85,8 +85,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
 
     readonly label = new AutoSizedLabel<AgHeatmapSeriesLabelFormatterParams>();
 
-    readonly secondaryLabel = new AutoSizeableSecondaryLabel<AgHeatmapSeriesLabelFormatterParams>();
-
     @Validate(OPT_STRING)
     title?: string = undefined;
 
@@ -101,12 +99,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
 
     @Validate(OPT_STRING)
     yName?: string = undefined;
-
-    @Validate(OPT_STRING)
-    labelKey?: string = undefined;
-
-    @Validate(OPT_STRING)
-    secondaryLabelKey?: string = undefined;
 
     @Validate(OPT_STRING)
     colorKey?: string = undefined;
@@ -163,17 +155,13 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
 
         const { isContinuousX, isContinuousY } = this.isContinuous();
 
-        const { colorScale, colorRange, colorKey, labelKey, secondaryLabelKey } = this;
+        const { colorScale, colorRange, colorKey } = this;
 
         const { dataModel, processedData } = await this.requestDataModel<any>(dataController, data ?? [], {
             props: [
                 valueProperty(this, xKey, isContinuousX, { id: 'xValue' }),
                 valueProperty(this, yKey, isContinuousY, { id: 'yValue' }),
                 ...(colorKey ? [valueProperty(this, colorKey, true, { id: 'colorValue' })] : []),
-                ...(labelKey ? [valueProperty(this, labelKey, false, { id: 'labelValue' })] : []),
-                ...(secondaryLabelKey
-                    ? [valueProperty(this, secondaryLabelKey, false, { id: 'secondaryLabelValue' })]
-                    : []),
             ],
         });
 
@@ -236,10 +224,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
         const colorDataIdx = this.colorKey
             ? dataModel.resolveProcessedDataIndexById(this, `colorValue`).index
             : undefined;
-        const labelIdx = this.labelKey ? dataModel.resolveProcessedDataIndexById(this, `labelValue`).index : undefined;
-        const secondaryLabelIdx = this.secondaryLabelKey
-            ? dataModel.resolveProcessedDataIndexById(this, `secondaryLabelValue`).index
-            : undefined;
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -251,8 +235,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
             xName = '',
             yKey = '',
             yName = '',
-            labelKey = '',
-            secondaryLabelKey = '',
             colorKey = '',
             colorName = '',
             textAlign,
@@ -281,9 +263,9 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
             const fill = colorScaleValid && colorValue != null ? colorScale.convert(colorValue) : this.colorRange[0];
 
             const labelText =
-                labelIdx != null
+                colorValue != null
                     ? this.getLabelText(this.label, {
-                          value: values[labelIdx],
+                          value: colorValue,
                           datum,
                           colorKey,
                           colorName,
@@ -291,32 +273,14 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
                           yKey,
                           xName,
                           yName,
-                          labelKey,
-                          secondaryLabelKey,
-                      })
-                    : undefined;
-
-            const secondaryLabelText =
-                secondaryLabelIdx != null
-                    ? this.getLabelText(this.secondaryLabel, {
-                          value: values[secondaryLabelIdx],
-                          datum,
-                          colorKey,
-                          colorName,
-                          xKey,
-                          yKey,
-                          xName,
-                          yName,
-                          labelKey,
-                          secondaryLabelKey,
                       })
                     : undefined;
 
             const labels = formatLabels(
                 labelText,
                 this.label,
-                secondaryLabelText,
-                this.secondaryLabel,
+                undefined,
+                this.label,
                 { padding: this.padding },
                 sizeFittingHeight
             );
@@ -344,30 +308,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
                 const { fontStyle, fontFamily, fontWeight, color } = this.label;
                 const x = point.x + textAlignFactor * (width - 2 * padding);
                 const y = point.y + verticalAlignFactor * (height - 2 * padding) - (labels.height - labelHeight) * 0.5;
-
-                labelData.push({
-                    series: this,
-                    itemId: yKey,
-                    datum,
-                    text,
-                    fontSize,
-                    lineHeight,
-                    fontStyle,
-                    fontFamily,
-                    fontWeight,
-                    color,
-                    textAlign,
-                    verticalAlign,
-                    x,
-                    y,
-                });
-            }
-
-            if (labels?.secondaryLabel != null) {
-                const { text, fontSize, lineHeight, height: labelHeight } = labels.secondaryLabel;
-                const { fontStyle, fontFamily, fontWeight, color } = this.secondaryLabel;
-                const x = point.x + textAlignFactor * (width - 2 * padding);
-                const y = point.y + verticalAlignFactor * (height - 2 * padding) + (labels.height - labelHeight) * 0.5;
 
                 labelData.push({
                     series: this,

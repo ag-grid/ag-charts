@@ -21,21 +21,13 @@ const options: AgChartOptions = {
             colorKey: 'temperature',
             colorName: 'Temperature',
 
-            labelKey: 'temperature',
-            secondaryLabelKey: 'change',
-
             label: {
-                fontSize: 12,
-                minimumFontSize: 6,
-                spacing: 0,
-                formatter: ({ value }) => `${value.toFixed(0)}°C`,
+                enabled: true,
+                formatter: ({ datum, colorKey = '' }) => {
+                    const value = datum[colorKey];
+                    return `${value.toFixed(0)}°C`;
+                },
             },
-            secondaryLabel: {
-                fontSize: 8,
-                minimumFontSize: 5,
-                formatter: ({ value }) => `${value > 0 ? '+' : '-'}${Math.abs(value * 100).toFixed(0)}%`,
-            },
-            padding: 2,
         },
     ],
 };

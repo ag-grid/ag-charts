@@ -45,10 +45,6 @@ export interface AgHeatmapSeriesThemeableOptions<TDatum = any> extends StrokeOpt
 }
 
 export interface AgHeatmapSeriesOptionsKeys {
-    /** The name of the node key containing the label. */
-    labelKey?: string;
-    /** The name of the node key containing a secondary label. */
-    secondaryLabelKey?: string;
     /** The key to use to retrieve x-values from the data. */
     xKey: string;
     /** The key to use to retrieve y-values from the data. */
