@@ -1,4 +1,5 @@
-import { readFile } from 'fs/promises';
+import { getFileContents } from '@utils/getFileContents';
+import { getRootUrl } from '@utils/pages';
 import * as prettier from 'prettier';
 
 /**
@@ -42,7 +43,10 @@ const prettierParsers: { [T in PrettierExtension]: string } = {
 };
 
 async function getPrettierConfig(extension: PrettierExtension) {
-    const prettierRC = await readFile('.prettierrc', 'utf8');
+    const prettierRC = await getFileContents({
+        folderUrl: getRootUrl(),
+        fileName: '.prettierrc',
+    });
     const json = JSON.parse(prettierRC);
 
     const prettierConfig: any = {};

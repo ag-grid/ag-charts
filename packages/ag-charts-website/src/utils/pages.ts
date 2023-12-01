@@ -57,7 +57,7 @@ export const DEV_FILE_PATH_MAP: Record<string, string> = {
 /**
  * The root url where the monorepo exists
  */
-const getRootUrl = (): URL => {
+export const getRootUrl = (): URL => {
     const root = getIsDev()
         ? // Relative to the folder of this file
           '../../../../'
