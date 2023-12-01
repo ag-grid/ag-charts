@@ -1,8 +1,12 @@
 import type { AgChartCallbackParams } from '../../chart/callbackOptions';
-import type { AgChartLabelOptions } from '../../chart/labelOptions';
+import type {
+    AgChartAutoSizedLabelOptions,
+    AgChartAutoSizedSecondaryLabelOptions,
+    AgChartLabelOptions,
+} from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { CssColor, Opacity, PixelSize } from '../../chart/types';
-import type { AutomaticLabelLayout, FillOptions, StrokeOptions } from '../cartesian/commonOptions';
+import type { FillOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 
 /* All the label properties that can be changed without affecting the layout */
@@ -16,7 +20,7 @@ export interface AgSunburstSeriesTooltipRendererParams<TDatum>
         AgSunburstSeriesOptionsKeys {
     /** The depth of the datum in the hierarchy. */
     depth: number;
-    /** The title of the sunburst segment.ß */
+    /** The title of the sunburst segment. */
     title?: string;
     /** The computed fill color of the sunburst segment. */
     color?: CssColor;
@@ -29,21 +33,12 @@ export interface AgSunburstSeriesHighlightStyle<TDatum> extends AgSeriesHighligh
     secondaryLabel?: AgSunburstSeriesLabelHighlightOptions<TDatum>;
 }
 
-export interface AgSunburstSeriesBaseLabelOptions<TDatum>
-    extends AgChartLabelOptions<TDatum, AgSunburstSeriesLabelFormatterParams<TDatum>>,
-        AutomaticLabelLayout {}
-
-export interface AgSunburstSeriesLabelOptions<TDatum> extends AgSunburstSeriesBaseLabelOptions<TDatum> {
-    /** The distance between the label and secondary label, if both are present */
-    spacing?: PixelSize;
-}
-
 export interface AgSunburstSeriesThemeableOptions<TDatum = any>
     extends Omit<AgBaseSeriesThemeableOptions, 'highlightStyle'> {
     /** Options for the label in a sector */
-    label?: AgSunburstSeriesLabelOptions<TDatum>;
+    label?: AgChartAutoSizedLabelOptions<TDatum, AgSunburstSeriesLabelFormatterParams<TDatum>>;
     /** Options for a secondary, smaller label in a sector - displayed under the primary label */
-    secondaryLabel?: AgSunburstSeriesBaseLabelOptions<TDatum>;
+    secondaryLabel?: AgChartAutoSizedSecondaryLabelOptions<TDatum, AgSunburstSeriesLabelFormatterParams<TDatum>>;
     /** Spacing between the sectors */
     sectorSpacing?: PixelSize;
     /** Minimum distance between text and the edges of the sectors */
