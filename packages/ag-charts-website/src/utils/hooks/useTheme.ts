@@ -1,34 +1,11 @@
-import { getDarkModeTheme } from '@features/gallery/utils/getDarkModeTheme';
-import { useStore } from '@nanostores/react';
-import { $darkmode } from '@stores/darkmodeStore';
-import { $theme, type ThemeName, setTheme } from '@stores/themeStore';
-import { useCallback, useEffect, useMemo } from 'react';
+import { $theme, type BaseThemeName, type ThemeName, setTheme } from '@stores/themeStore';
 
-export function useTheme() {
-    const darkmode = useStore($darkmode);
-    const theme = useStore($theme);
-    const displayName = useMemo(() => theme.replace('-dark', ''), [theme]);
+import { useStoreSsr } from './useStoreSsr';
 
-    const updateDarkModeTheme = useCallback(
-        (newTheme: ThemeName) => {
-            const isDarkMode = typeof darkmode === 'string' ? darkmode === 'true' : darkmode;
-            const newDarkModeTheme = getDarkModeTheme(newTheme, isDarkMode);
+export type { BaseThemeName, ThemeName };
 
-            if (newDarkModeTheme !== theme) {
-                setTheme(newDarkModeTheme);
-            }
-        },
-        [darkmode, theme]
-    );
+export const useTheme = () => {
+    const theme = useStoreSsr<BaseThemeName>($theme, 'ag-default');
 
-    // Update theme if darkmode changes
-    useEffect(() => {
-        updateDarkModeTheme(theme);
-    }, [darkmode, theme]);
-
-    return {
-        theme,
-        displayName,
-        updateDarkModeTheme,
-    };
-}
+    return [theme, setTheme] as const;
+};

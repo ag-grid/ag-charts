@@ -8,6 +8,7 @@ const noDataOverlay = () => {
         '        background: hsl(45deg, 100%, 90%);',
         '        border: 2px solid hsl(0deg, 100%, 75%);',
         '        box-sizing: border-box;',
+        '        color: black;',
         '        display: flex;',
         '        height: calc(100% - 16px);',
         '        justify-content: center;',

@@ -8,7 +8,7 @@ import styles from './license-pricing.module.scss';
 const IS_SSR = typeof window === 'undefined';
 
 export const LicensePricing = () => {
-    const darkMode = useDarkmode();
+    const [darkMode] = useDarkmode();
 
     return (
         <>

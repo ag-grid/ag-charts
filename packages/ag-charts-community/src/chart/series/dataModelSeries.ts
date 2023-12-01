@@ -20,6 +20,11 @@ export abstract class DataModelSeries<
         return { isContinuousX, isContinuousY };
     }
 
+    private getModulePropertyDefinitions() {
+        const modules = this.moduleMap.values();
+        return modules.map((mod) => mod.getPropertyDefinitions(this.isContinuous())).flat();
+    }
+
     // Request data, but with message dispatching to series-options (modules).
     protected async requestDataModel<
         D extends object,
@@ -28,10 +33,8 @@ export abstract class DataModelSeries<
     >(dataController: DataController, data: D[] | undefined, opts: DataModelOptions<K, any>) {
         // Merge properties of this series with properties of all the attached series-options
         const props = opts.props;
-        const listenerProps: (typeof props)[] = this.dispatch('data-prerequest', this.isContinuous()) ?? [];
-        for (const moreProps of listenerProps) {
-            props.push(...moreProps);
-        }
+        const moduleProps = this.getModulePropertyDefinitions() as typeof props;
+        props.push(...moduleProps);
 
         const { dataModel, processedData } = await dataController.request<D, K, G>(this.id, data ?? [], {
             ...opts,

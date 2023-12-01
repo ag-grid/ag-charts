@@ -2,7 +2,7 @@ import type { AgAxisCategoryTickOptions, AgAxisNumberTickOptions } from '../seri
 import type { AgAxisCaptionOptions, AgBaseAxisOptions } from './axisOptions';
 import type { AgBaseCrossLineLabelOptions, AgBaseCrossLineOptions } from './crossLineOptions';
 import type { AgPolarAxisShape } from './polarAxisOptions';
-import type { Ratio } from './types';
+import type { Degree, Ratio } from './types';
 
 export interface AgRadiusNumberAxisOptions extends AgBaseAxisOptions {
     type: 'radius-number';
@@ -13,7 +13,7 @@ export interface AgRadiusNumberAxisOptions extends AgBaseAxisOptions {
     /** User override for the automatically determined max value (based on series data). */
     max?: number;
     /** The rotation angle of axis line and labels in degrees. */
-    positionAngle?: number;
+    positionAngle?: Degree;
     /** Configuration for the axis ticks. */
     tick?: AgAxisNumberTickOptions;
     /** Shape of axis. Default: `polygon` */
@@ -29,7 +29,7 @@ export interface AgRadiusNumberAxisOptions extends AgBaseAxisOptions {
 export interface AgRadiusCategoryAxisOptions extends AgBaseAxisOptions {
     type: 'radius-category';
     /** The rotation angle of axis line and labels in degrees. */
-    positionAngle?: number;
+    positionAngle?: Degree;
     /** Configuration for the axis ticks. */
     tick?: AgAxisCategoryTickOptions;
     /** Configuration for the title shown next to the axis. */
@@ -58,5 +58,5 @@ export interface AgRadiusCategoryAxisOptions extends AgBaseAxisOptions {
 export interface AgRadiusCrossLineOptions extends AgBaseCrossLineOptions<AgRadiusCrossLineLabelOptions> {}
 
 export interface AgRadiusCrossLineLabelOptions extends AgBaseCrossLineLabelOptions {
-    positionAngle?: number;
+    positionAngle?: Degree;
 }

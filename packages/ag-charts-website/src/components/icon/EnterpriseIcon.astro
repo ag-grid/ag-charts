@@ -1,0 +1,30 @@
+---
+import { Icon } from '@components/icon/Icon';
+---
+
+<span class="enterpriseIcon">(e)<Icon name="enterprise" /></span>
+
+<style lang="scss">
+    @use '../../design-system' as *;
+
+    .enterpriseIcon {
+        --text-color: #dc3545;
+        --button-text-color: #dc3545;
+        position: relative;
+        margin-right: -$size-half;
+        color: transparent;
+
+        :global(svg) {
+            --icon-size: 1.15em;
+
+            position: absolute;
+            left: 0;
+            margin: 0;
+            transform: translate(-0.05em, 0.175em);
+
+            .seriesTypesNav & {
+                transform: translate(-0.05em, 0.475em);
+            }
+        }
+    }
+</style>

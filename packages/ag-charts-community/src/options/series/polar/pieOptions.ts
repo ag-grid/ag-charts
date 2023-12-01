@@ -2,7 +2,7 @@ import type { AgChartCallbackParams } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { CssColor, Opacity, PixelSize, Ratio } from '../../chart/types';
+import type { CssColor, Degree, Opacity, PixelSize, Ratio } from '../../chart/types';
 import type { FillOptions, FontOptions, LineDashOptions, StrokeOptions, Toggleable } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
@@ -10,7 +10,7 @@ export interface AgPieSeriesLabelOptions<TDatum, TParams> extends AgChartLabelOp
     /** Distance in pixels between the callout line and the label text. */
     offset?: PixelSize;
     /** Minimum angle in degrees required for a sector to show a label. */
-    minAngle?: number;
+    minAngle?: Degree;
     /** Avoid callout label collision and overflow by automatically moving colliding labels or reducing the pie radius. If set to `false`, callout labels may collide with each other and the pie radius will not change to prevent clipping of callout labels. */
     avoidCollisions?: boolean;
 }
@@ -88,7 +88,7 @@ export interface AgPieSeriesThemeableOptions<TDatum = any> extends AgBaseSeriesT
     /** The width in pixels of the stroke for the sectors. */
     strokeWidth?: PixelSize;
     /** The rotation of the pie series in degrees. */
-    rotation?: number;
+    rotation?: Degree;
     /** The offset in pixels of the outer radius of the series. Used to construct doughnut charts. */
     outerRadiusOffset?: PixelSize;
     /** The ratio of the outer radius of the series. Used to adjust the outer radius proportionally to the automatically calculated value. */

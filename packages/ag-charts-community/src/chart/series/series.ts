@@ -527,17 +527,14 @@ export abstract class Series<
         return [main, subIndex];
     }
 
-    private seriesListeners = new Listeners<SeriesEventType, (event: any) => any>();
+    private seriesListeners = new Listeners<SeriesEventType, (event: any) => void>();
 
-    public addListener<T extends SeriesEventType, E extends BaseSeriesEvent<T>, R = void>(
-        type: T,
-        listener: (event: E) => R
-    ) {
+    public addListener<T extends SeriesEventType, E extends BaseSeriesEvent<T>>(type: T, listener: (event: E) => void) {
         return this.seriesListeners.addListener(type, listener);
     }
 
-    protected dispatch<T extends SeriesEventType, E extends BaseSeriesEvent<T>, R>(type: T, event: E): R[] | undefined {
-        return this.seriesListeners.dispatch(type, event);
+    protected dispatch<T extends SeriesEventType, E extends BaseSeriesEvent<T>>(type: T, event: E): void {
+        this.seriesListeners.dispatch(type, event);
     }
 
     addChartEventListeners(): void {
@@ -591,9 +588,9 @@ export abstract class Series<
     // The union of the series domain ('community') and series-option domains ('enterprise').
     getDomain(direction: ChartAxisDirection): any[] {
         const seriesDomain: any[] = this.getSeriesDomain(direction);
-        const moduleDomains: any[][] = this.dispatch('data-getDomain', { direction }) ?? [];
+        const moduleDomains: any[][] = this.moduleMap.values().map((mod) => mod.getDomain(direction));
         // Flatten the 2D moduleDomains into a 1D array and concatenate it with seriesDomain
-        return moduleDomains.reduce((total, current) => total.concat(current), seriesDomain);
+        return seriesDomain.concat(moduleDomains.flat());
     }
 
     // Get the 'community' domain (excluding any additional data from series-option modules).
@@ -668,8 +665,8 @@ export abstract class Series<
         return SeriesHighlight.This;
     }
 
-    protected getModuleTooltipParams(datum: object): object {
-        const params: object[] = this.dispatch('tooltip-getParams', { datum }) ?? [];
+    protected getModuleTooltipParams(): object {
+        const params: object[] = this.moduleMap.values().map((mod) => mod.getTooltipParams());
         return params.reduce((total, current) => {
             return { ...current, ...total };
         }, {});

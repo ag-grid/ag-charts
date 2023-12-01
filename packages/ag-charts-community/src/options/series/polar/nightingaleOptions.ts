@@ -1,10 +1,7 @@
 import type { AgBaseRadialColumnSeriesOptions } from './radialColumnOptions';
 import type { AgBaseRadialSeriesThemeableOptions } from './radialOptions';
 
-export interface AgNightingaleSeriesThemeableOptions<TDatum = any> extends AgBaseRadialSeriesThemeableOptions<TDatum> {
-    /** The spacing between sectors */
-    sectorSpacing?: number;
-}
+export interface AgNightingaleSeriesThemeableOptions<TDatum = any> extends AgBaseRadialSeriesThemeableOptions<TDatum> {}
 
 export interface AgNightingaleSeriesOptions<TDatum = any>
     extends AgNightingaleSeriesThemeableOptions<TDatum>,

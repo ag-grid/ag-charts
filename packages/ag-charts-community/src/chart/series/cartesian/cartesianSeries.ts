@@ -509,10 +509,10 @@ export abstract class CartesianSeries<
     }
 
     protected getHighlightLabelData(labelData: TLabel[], highlightedItem: TDatum): TLabel[] | undefined {
-        const labelItem = labelData.find(
+        const labelItems = labelData.filter(
             (ld) => ld.datum === highlightedItem.datum && ld.itemId === highlightedItem.itemId
         );
-        return labelItem ? [labelItem] : undefined;
+        return labelItems.length !== 0 ? labelItems : undefined;
     }
 
     protected getHighlightData(_nodeData: TDatum[], highlightedItem: TDatum): TDatum[] | undefined {

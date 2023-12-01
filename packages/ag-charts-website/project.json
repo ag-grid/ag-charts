@@ -80,12 +80,6 @@
           "fix": true
         }
       }
-    },
-    "check": {
-      "executor": "@nxtensions/astro:check"
-    },
-    "sync": {
-      "executor": "@nxtensions/astro:sync"
     }
   },
   "implicitDependencies": [

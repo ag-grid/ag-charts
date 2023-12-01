@@ -1,6 +1,6 @@
 import { Logger } from './logger';
 
-type Handler = (...args: any[]) => any;
+type Handler = (...args: any[]) => void;
 
 export type Listener<H extends Handler, Meta = unknown> = {
     symbol?: Symbol;
@@ -36,28 +36,14 @@ export class Listeners<EventType extends string, EventHandler extends Handler, M
         }
     }
 
-    public dispatch<R = never>(eventType: EventType, ...params: Parameters<EventHandler>): R[] | undefined {
-        // This is a utility class to store all the results of Listeners (or do nothing
-        // if R = void).
-        class ResultArray<R> {
-            results?: R[] = undefined;
-
-            push(result?: R) {
-                if (result === undefined) return;
-
-                this.results ??= [];
-                this.results.push(result);
-            }
-        }
-        const results: ResultArray<R> = new ResultArray<R>();
+    public dispatch(eventType: EventType, ...params: Parameters<EventHandler>): void {
         for (const listener of this.getListenersByType(eventType)) {
             try {
-                results.push(listener.handler(...params));
+                listener.handler(...params);
             } catch (e) {
                 Logger.errorOnce(e);
             }
         }
-        return results.results;
     }
 
     public dispatchWrapHandlers(

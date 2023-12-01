@@ -363,8 +363,8 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
     }) {
         let { labelData } = opts;
         const { labelSelection } = opts;
-        const { shape, enabled } = this.marker;
-        labelData = shape && enabled ? labelData : [];
+        const { enabled } = this.label;
+        labelData = enabled ? labelData : [];
 
         return labelSelection.update(labelData);
     }
@@ -429,7 +429,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
                 title,
                 color,
                 seriesId,
-                ...this.getModuleTooltipParams(datum),
+                ...this.getModuleTooltipParams(),
             }
         );
     }

@@ -1,8 +1,12 @@
 import type { AgChartCallbackParams } from '../../chart/callbackOptions';
-import type { AgChartLabelOptions } from '../../chart/labelOptions';
+import type {
+    AgChartAutoSizedLabelOptions,
+    AgChartAutoSizedSecondaryLabelOptions,
+    AgChartLabelOptions,
+} from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { CssColor, PixelSize, TextAlign, VerticalAlign } from '../../chart/types';
-import type { AutomaticLabelLayout, FillOptions, StrokeOptions } from '../cartesian/commonOptions';
+import type { FillOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 
 /* All the label properties that can be changed without affecting the layout */
@@ -52,22 +56,13 @@ export interface AgTreemapSeriesGroupOptions<TDatum>
     extends AgTreemapSeriesGroupStyle,
         AgTreemapSeriesGroupLayout<TDatum> {}
 
-export interface AgTreemapSeriesTileBaseLabelOptions<TDatum>
-    extends AgChartLabelOptions<TDatum, AgTreemapSeriesLabelFormatterParams<TDatum>>,
-        AutomaticLabelLayout {}
-
-export interface AgTreemapSeriesTileLabelOptions<TDatum> extends AgTreemapSeriesTileBaseLabelOptions<TDatum> {
-    /** The distance between the label and secondary label, if both are present */
-    spacing?: PixelSize;
-}
-
 export interface AgTreemapSeriesTileStyle extends FillOptions, StrokeOptions {}
 
 export interface AgTreemapSeriesTileLayout<TDatum> {
     /** Options for the label in a tile */
-    label?: AgTreemapSeriesTileLabelOptions<TDatum>;
+    label?: AgChartAutoSizedLabelOptions<TDatum, AgTreemapSeriesLabelFormatterParams<TDatum>>;
     /** Options for a secondary, smaller label in a tile - displayed under the primary label */
-    secondaryLabel?: AgTreemapSeriesTileBaseLabelOptions<TDatum>;
+    secondaryLabel?: AgChartAutoSizedSecondaryLabelOptions<TDatum, AgTreemapSeriesLabelFormatterParams<TDatum>>;
     /** Horizontal position of the label */
     textAlign?: TextAlign;
     /** Vertical position of the label */

@@ -106,6 +106,12 @@ export class BandScale<D> implements Scale<D, number, number> {
         return this._bandwidth;
     }
 
+    private _step: number = 1;
+    get step(): number {
+        this.refresh();
+        return this._step;
+    }
+
     private _rawBandwidth: number = 1;
     get rawBandwidth(): number {
         this.refresh();
@@ -174,6 +180,7 @@ export class BandScale<D> implements Scale<D, number, number> {
 
         this._bandwidth = bandwidth;
         this._rawBandwidth = rawBandwidth;
+        this._step = step;
         this.ordinalRange = values;
     }
 }

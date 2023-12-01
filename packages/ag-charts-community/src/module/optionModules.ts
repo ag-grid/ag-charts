@@ -1,3 +1,5 @@
+import type { ChartAxisDirection } from '../chart/chartAxisDirection';
+import type { PropertyDefinition } from '../chart/data/dataModel';
 import type { SeriesNodeDatum } from '../chart/series/seriesTypes';
 import type { AgCartesianSeriesOptions } from '../options/series/cartesian/cartesianSeriesTypes';
 import type { AgHierarchySeriesOptions } from '../options/series/hierarchy/hierarchyOptions';
@@ -23,6 +25,10 @@ export interface SeriesOptionInstance extends ModuleInstance {
     pickNodeExact(point: Point): PickNodeDatumResult;
     pickNodeNearest(point: Point): PickNodeDatumResult;
     pickNodeMainAxisFirst(point: Point): PickNodeDatumResult;
+
+    getPropertyDefinitions(opts: { isContinuousX: boolean; isContinuousY: boolean }): PropertyDefinition<unknown>[];
+    getDomain(direction: ChartAxisDirection): any[];
+    getTooltipParams(): object;
 }
 
 export interface SeriesOptionModule<M extends SeriesOptionInstance = SeriesOptionInstance> extends BaseModule {

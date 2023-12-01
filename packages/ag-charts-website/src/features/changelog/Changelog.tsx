@@ -79,7 +79,7 @@ export const Changelog = () => {
         }
     }, [gridApi, fixVersion, versions]);
 
-    const darkMode = useDarkmode();
+    const [darkMode] = useDarkmode();
 
     useEffect(() => {
         fetch(`/changelog/changelog.json`)

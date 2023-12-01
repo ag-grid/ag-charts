@@ -9,7 +9,7 @@ import {
     _Util,
 } from 'ag-charts-community';
 
-import { AutoSizeableLabel, formatLabels } from '../util/labelFormatter';
+import { AutoSizeableSecondaryLabel, AutoSizedLabel, formatLabels } from '../util/labelFormatter';
 
 const {
     fromToMotion,
@@ -47,15 +47,10 @@ const getAngleData = (
     return angleData;
 };
 
-class SunburstLabel extends AutoSizeableLabel<AgSunburstSeriesLabelFormatterParams> {
-    @Validate(NUMBER())
-    spacing: number = 0;
-}
-
 class SunburstSeriesTileHighlightStyle extends HighlightStyle {
-    readonly label = new AutoSizeableLabel<AgSunburstSeriesLabelFormatterParams>();
+    readonly label = new AutoSizedLabel<AgSunburstSeriesLabelFormatterParams>();
 
-    readonly secondaryLabel = new AutoSizeableLabel<AgSunburstSeriesLabelFormatterParams>();
+    readonly secondaryLabel = new AutoSizedLabel<AgSunburstSeriesLabelFormatterParams>();
 
     @Validate(OPT_STRING)
     fill?: string = undefined;
@@ -115,9 +110,9 @@ export class SunburstSeries<
 
     override readonly highlightStyle = new SunburstSeriesTileHighlightStyle();
 
-    readonly label = new SunburstLabel();
+    readonly label = new AutoSizedLabel<AgSunburstSeriesLabelFormatterParams<TDatum>>();
 
-    readonly secondaryLabel = new AutoSizeableLabel<AgSunburstSeriesLabelFormatterParams>();
+    readonly secondaryLabel = new AutoSizeableSecondaryLabel<AgSunburstSeriesLabelFormatterParams<TDatum>>();
 
     @Validate(OPT_STRING)
     sizeName?: string = undefined;
@@ -166,7 +161,7 @@ export class SunburstSeries<
 
         this.labelData = Array.from(this.rootNode, ({ datum, depth }) => {
             let label: string | undefined;
-            if (datum != null && depth != null && labelKey != null && this.label.enabled) {
+            if (datum != null && depth != null && labelKey != null) {
                 const value = (datum as any)[labelKey];
                 label = this.getLabelText(
                     this.label,
@@ -190,7 +185,7 @@ export class SunburstSeries<
             }
 
             let secondaryLabel: string | undefined;
-            if (datum != null && depth != null && secondaryLabelKey != null && this.secondaryLabel.enabled) {
+            if (datum != null && depth != null && secondaryLabelKey != null) {
                 const value = (datum as any)[secondaryLabelKey];
                 secondaryLabel = this.getLabelText(
                     this.secondaryLabel,
@@ -391,7 +386,7 @@ export class SunburstSeries<
                 this.label,
                 labelDatum?.secondaryLabel,
                 this.secondaryLabel,
-                { spacing: this.label.spacing, padding },
+                { padding },
                 sizeFittingHeight
             );
 

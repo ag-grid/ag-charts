@@ -1,10 +1,10 @@
 import { type OverflowStrategy, type TextWrap, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-const { Validate, OPT_NUMBER, TEXT_WRAP, OVERFLOW_STRATEGY } = _ModuleSupport;
+const { Validate, OPT_NUMBER, NUMBER, TEXT_WRAP, OVERFLOW_STRATEGY } = _ModuleSupport;
 const { Logger } = _Util;
 const { Text, Label } = _Scene;
 
-export class AutoSizeableLabel<FormatterParams> extends Label<FormatterParams> {
+class BaseAutoSizedLabel<FormatterParams> extends Label<FormatterParams> {
     static lineHeight(fontSize: number): number {
         return Math.ceil(fontSize * Text.defaultLineHeightRatio);
     }
@@ -19,14 +19,21 @@ export class AutoSizeableLabel<FormatterParams> extends Label<FormatterParams> {
     minimumFontSize?: number = undefined;
 }
 
+export class AutoSizedLabel<FormatterParams> extends BaseAutoSizedLabel<FormatterParams> {
+    @Validate(NUMBER())
+    spacing: number = 0;
+}
+
+export class AutoSizeableSecondaryLabel<FormatterParams> extends BaseAutoSizedLabel<FormatterParams> {}
+
 type FontSizeCandidate = {
     labelFontSize: number;
     secondaryLabelFontSize: number;
 };
 
 export function generateLabelSecondaryLabelFontSizeCandidates<FormatterParams>(
-    label: AutoSizeableLabel<FormatterParams>,
-    secondaryLabel: AutoSizeableLabel<FormatterParams>
+    label: BaseAutoSizedLabel<FormatterParams>,
+    secondaryLabel: BaseAutoSizedLabel<FormatterParams>
 ): FontSizeCandidate[] {
     const { fontSize: labelFontSize, minimumFontSize: labelMinimumFontSize = labelFontSize } = label;
     const {
@@ -96,7 +103,6 @@ export function maximumValueSatisfying<T>(
 }
 
 type LayoutParams = {
-    spacing: number;
     padding: number;
 };
 
@@ -108,7 +114,7 @@ type LabelFormatting = {
     height: number;
 };
 
-type StackedLabelFormatting<Meta> = {
+export type StackedLabelFormatting<Meta> = {
     width: number;
     height: number;
     meta: Meta;
@@ -135,12 +141,14 @@ type SizeFittingHeightFn<Meta> = (height: number) => {
 
 export function formatStackedLabels<Meta, FormatterParams>(
     labelValue: string,
-    labelProps: AutoSizeableLabel<FormatterParams>,
+    labelProps: AutoSizedLabel<FormatterParams>,
     secondaryLabelValue: string,
-    secondaryLabelProps: AutoSizeableLabel<FormatterParams>,
-    { spacing, padding }: LayoutParams,
+    secondaryLabelProps: AutoSizeableSecondaryLabel<FormatterParams>,
+    { padding }: LayoutParams,
     sizeFittingHeight: SizeFittingHeightFn<Meta>
 ) {
+    const { spacing } = labelProps;
+
     const widthAdjust = 2 * padding;
     const heightAdjust = 2 * padding + spacing;
     const minimumHeight =
@@ -179,13 +187,13 @@ export function formatStackedLabels<Meta, FormatterParams>(
     return maximumValueSatisfying<StackedLabelFormatting<Meta>>(0, fontSizeCandidates.length - 1, (index) => {
         const { labelFontSize, secondaryLabelFontSize } = fontSizeCandidates[index];
         const allowTruncation = index === 0;
-        const labelLineHeight = AutoSizeableLabel.lineHeight(labelFontSize);
-        const secondaryLabelLineHeight = AutoSizeableLabel.lineHeight(secondaryLabelFontSize);
+        const labelLineHeight = AutoSizedLabel.lineHeight(labelFontSize);
+        const secondaryLabelLineHeight = AutoSizeableSecondaryLabel.lineHeight(secondaryLabelFontSize);
         const sizeFitting = sizeFittingHeight(labelLineHeight + secondaryLabelLineHeight + heightAdjust);
         const availableWidth = sizeFitting.width - widthAdjust;
         const availableHeight = sizeFitting.height - heightAdjust;
 
-        if (labelFontSize + secondaryLabelFontSize > availableHeight) {
+        if (labelLineHeight + secondaryLabelLineHeight > availableHeight) {
             return undefined;
         }
 
@@ -279,7 +287,7 @@ export function formatStackedLabels<Meta, FormatterParams>(
 
 export function formatSingleLabel<Meta, FormatterParams>(
     value: string,
-    props: AutoSizeableLabel<FormatterParams>,
+    props: BaseAutoSizedLabel<FormatterParams>,
     { padding }: LayoutParams,
     sizeFittingHeight: SizeFittingHeightFn<Meta>
 ): [LabelFormatting, Meta] | undefined {
@@ -297,12 +305,12 @@ export function formatSingleLabel<Meta, FormatterParams>(
     };
 
     return maximumValueSatisfying<[LabelFormatting, Meta]>(minimumFontSize, props.fontSize, (fontSize) => {
-        const lineHeight = AutoSizeableLabel.lineHeight(fontSize);
+        const lineHeight = AutoSizedLabel.lineHeight(fontSize);
         const sizeFitting = sizeFittingHeight(lineHeight + sizeAdjust);
         const availableWidth = sizeFitting.width - sizeAdjust;
         const availableHeight = sizeFitting.height - sizeAdjust;
 
-        if (fontSize > availableHeight) {
+        if (lineHeight > availableHeight) {
             return undefined;
         }
 
@@ -338,18 +346,21 @@ export function formatSingleLabel<Meta, FormatterParams>(
     });
 }
 
-function hasInvalidFontSize<FormatterParams>(label: AutoSizeableLabel<FormatterParams> | undefined) {
+function hasInvalidFontSize<FormatterParams>(label: BaseAutoSizedLabel<FormatterParams> | undefined) {
     return label != null && label.minimumFontSize != null && label.fontSize && label.minimumFontSize > label.fontSize;
 }
 
 export function formatLabels<Meta = never, FormatterParams = any>(
-    labelValue: string | undefined,
-    labelProps: AutoSizeableLabel<FormatterParams>,
-    secondaryLabelValue: string | undefined,
-    secondaryLabelProps: AutoSizeableLabel<FormatterParams>,
+    baseLabelValue: string | undefined,
+    labelProps: AutoSizedLabel<FormatterParams>,
+    baseSecondaryLabelValue: string | undefined,
+    secondaryLabelProps: AutoSizeableSecondaryLabel<FormatterParams>,
     layoutParams: LayoutParams,
     sizeFittingHeight: SizeFittingHeightFn<Meta>
 ): StackedLabelFormatting<Meta> | undefined {
+    const labelValue = labelProps.enabled ? baseLabelValue : undefined;
+    const secondaryLabelValue = secondaryLabelProps.enabled ? baseSecondaryLabelValue : undefined;
+
     if (hasInvalidFontSize(labelProps) || hasInvalidFontSize(secondaryLabelProps)) {
         Logger.warnOnce(`minimumFontSize should be set to a value less than or equal to the font size`);
     }

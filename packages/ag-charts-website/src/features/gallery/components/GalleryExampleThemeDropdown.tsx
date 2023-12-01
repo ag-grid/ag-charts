@@ -1,17 +1,15 @@
-import { useTheme } from '@utils/hooks/useTheme';
-import { type ChangeEvent, type FunctionComponent, useMemo } from 'react';
-
-import { ThemeName } from '../../../stores/themeStore';
+import { type BaseThemeName, useTheme } from '@utils/hooks/useTheme';
+import { type ChangeEvent, type FunctionComponent } from 'react';
 
 export const GalleryExampleThemeDropdown: FunctionComponent = () => {
-    const { updateDarkModeTheme, theme, displayName } = useTheme();
+    const [theme, setTheme] = useTheme();
 
     const applyTheme = (event: ChangeEvent<HTMLSelectElement>) => {
-        updateDarkModeTheme(event.target.value as ThemeName);
+        setTheme(event.target.value as BaseThemeName);
     };
 
     return (
-        <select id="theme-select" value={displayName} onChange={applyTheme}>
+        <select id="theme-select" value={theme} onChange={applyTheme}>
             <option value="ag-default">ag-default</option>
             <option value="ag-sheets">ag-sheets</option>
             <option value="ag-polychroma">ag-polychroma</option>

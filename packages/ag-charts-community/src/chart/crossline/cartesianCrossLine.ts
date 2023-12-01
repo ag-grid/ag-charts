@@ -4,6 +4,7 @@ import type {
     FontStyle,
     FontWeight,
 } from '../../options/agChartOptions';
+import { BandScale } from '../../scale/bandScale';
 import { ContinuousScale } from '../../scale/continuousScale';
 import type { Scale } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
@@ -13,6 +14,7 @@ import type { Point } from '../../scene/point';
 import { Range } from '../../scene/shape/range';
 import { Text } from '../../scene/shape/text';
 import { createId } from '../../util/id';
+import { clampArray, isEqual } from '../../util/number';
 import {
     NUMBER,
     OPTIONAL,
@@ -38,7 +40,7 @@ import {
     POSITION_TOP_COORDINATES,
     calculateLabelChartPadding,
     calculateLabelTranslation,
-    labeldDirectionHandling,
+    labelDirectionHandling,
 } from './crossLineLabelPosition';
 
 const CROSSLINE_LABEL_POSITIONS = [
@@ -244,23 +246,24 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
         }
 
         const bandwidth = scale.bandwidth ?? 0;
-        const clippedRangeClamper = (x: number) =>
-            Math.max(Math.min(...clippedRange), Math.min(Math.max(...clippedRange), x));
+        const step = scale.step ?? 0;
+        const padding = scale instanceof BandScale ? (step - bandwidth) / 2 : 0;
 
         const [xStart, xEnd] = [0, sideFlag * gridLength];
         let [yStart, yEnd] = this.getRange();
 
         let [clampedYStart, clampedYEnd] = [
-            Number(scale.convert(yStart, { clampMode: 'clamped' })),
-            scale.convert(yEnd, { clampMode: 'clamped' }) + bandwidth,
+            Number(scale.convert(yStart, { clampMode: 'clamped' })) - padding,
+            scale.convert(yEnd, { clampMode: 'clamped' }) + bandwidth + padding,
         ];
-        clampedYStart = clippedRangeClamper(clampedYStart);
-        clampedYEnd = clippedRangeClamper(clampedYEnd);
+        clampedYStart = clampArray(clampedYStart, clippedRange);
+        clampedYEnd = clampArray(clampedYEnd, clippedRange);
         [yStart, yEnd] = [Number(scale.convert(yStart)), scale.convert(yEnd) + bandwidth];
 
+        if (yStart - padding >= clampedYStart) yStart -= padding;
+        if (yEnd + padding <= clampedYEnd) yEnd += padding;
+
         const validRange =
-            !isNaN(clampedYStart) &&
-            !isNaN(clampedYEnd) &&
             (yStart === clampedYStart || yEnd === clampedYEnd || clampedYStart !== clampedYEnd) &&
             Math.abs(clampedYEnd - clampedYStart) > 0;
 
@@ -268,17 +271,14 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
             const reverse = clampedYStart !== Math.min(clampedYStart, clampedYEnd);
 
             if (reverse) {
-                [clampedYStart, clampedYEnd] = [
-                    Math.min(clampedYStart, clampedYEnd),
-                    Math.max(clampedYStart, clampedYEnd),
-                ];
+                [clampedYStart, clampedYEnd] = [clampedYEnd, clampedYStart];
                 [yStart, yEnd] = [yEnd, yStart];
             }
         }
 
         this.isRange = validRange;
-        this.startLine = !isNaN(yStart) && strokeWidth > 0 && yStart === clampedYStart;
-        this.endLine = !isNaN(yEnd) && strokeWidth > 0 && yEnd === clampedYEnd;
+        this.startLine = strokeWidth > 0 && isEqual(yStart, clampedYStart);
+        this.endLine = strokeWidth > 0 && isEqual(yEnd, clampedYEnd);
 
         if (!validRange && !this.startLine && !this.endLine) {
             return false;
@@ -289,7 +289,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
         if (this.label.enabled) {
             const yDirection = direction === ChartAxisDirection.Y;
 
-            const { c = POSITION_TOP_COORDINATES } = labeldDirectionHandling[position] ?? {};
+            const { c = POSITION_TOP_COORDINATES } = labelDirectionHandling[position] ?? {};
             const { x: labelX, y: labelY } = c({
                 yDirection,
                 xStart,

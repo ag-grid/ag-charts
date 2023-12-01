@@ -3,8 +3,14 @@ import type {
     AgHeatmapSeriesFormatterParams,
     AgHeatmapSeriesLabelFormatterParams,
     AgHeatmapSeriesTooltipRendererParams,
+    FontStyle,
+    FontWeight,
+    TextAlign,
+    VerticalAlign,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+
+import { AutoSizedLabel, formatLabels } from '../util/labelFormatter';
 
 const {
     AND,
@@ -14,21 +20,38 @@ const {
     ChartAxisDirection,
     COLOR_STRING_ARRAY,
     NON_EMPTY_ARRAY,
+    NUMBER,
     OPT_NUMBER,
     OPT_STRING,
     OPT_FUNCTION,
     OPT_COLOR_STRING,
+    TEXT_ALIGN,
+    VERTICAL_ALIGN,
 } = _ModuleSupport;
-const { Rect } = _Scene;
+const { Rect, PointerEvents } = _Scene;
 const { ColorScale } = _Scale;
 const { sanitizeHtml, Color, Logger } = _Util;
 
 interface HeatmapNodeDatum extends Required<_ModuleSupport.CartesianSeriesNodeDatum> {
-    readonly label: _Util.MeasuredLabel;
     readonly width: number;
     readonly height: number;
     readonly fill: string;
     readonly colorValue: any;
+}
+
+interface HeatmapLabelDatum extends _Scene.Point {
+    series: _ModuleSupport.CartesianSeriesNodeDatum['series'];
+    datum: any;
+    itemId?: string;
+    text: string;
+    fontSize: number;
+    lineHeight: number;
+    fontStyle: FontStyle | undefined;
+    fontFamily: string;
+    fontWeight: FontWeight | undefined;
+    color: string;
+    textAlign: TextAlign;
+    verticalAlign: VerticalAlign;
 }
 
 class HeatmapSeriesNodeClickEvent<
@@ -42,13 +65,25 @@ class HeatmapSeriesNodeClickEvent<
     }
 }
 
-export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, HeatmapNodeDatum> {
+const textAlignFactors: Record<TextAlign, number> = {
+    left: -0.5,
+    center: 0,
+    right: -0.5,
+};
+
+const verticalAlignFactors: Record<VerticalAlign, number> = {
+    top: -0.5,
+    middle: 0,
+    bottom: -0.5,
+};
+
+export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, HeatmapNodeDatum, HeatmapLabelDatum> {
     static className = 'HeatmapSeries';
     static type = 'heatmap' as const;
 
     protected override readonly NodeClickEvent = HeatmapSeriesNodeClickEvent;
 
-    readonly label = new _Scene.Label<AgHeatmapSeriesLabelFormatterParams>();
+    readonly label = new AutoSizedLabel<AgHeatmapSeriesLabelFormatterParams>();
 
     @Validate(OPT_STRING)
     title?: string = undefined;
@@ -79,6 +114,15 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
 
     @Validate(OPT_NUMBER(0))
     strokeWidth: number = 0;
+
+    @Validate(TEXT_ALIGN)
+    textAlign: TextAlign = 'center';
+
+    @Validate(VERTICAL_ALIGN)
+    verticalAlign: VerticalAlign = 'middle';
+
+    @Validate(NUMBER(0))
+    padding: number = 0;
 
     @Validate(OPT_FUNCTION)
     formatter?: (params: AgHeatmapSeriesFormatterParams<any>) => AgHeatmapSeriesFormat = undefined;
@@ -140,7 +184,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
             return false;
         }
 
-        const colorDataIdx = dataModel.resolveProcessedDataIndexById(this, `colorValue`).index;
+        const colorDataIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue').index;
         const dataCount = processedData.data.length;
         const colorDataMissing = dataCount === 0 || dataCount === processedData.defs.values[colorDataIdx].missing;
         return !colorDataMissing;
@@ -177,41 +221,71 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
 
         const xDataIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`).index;
         const yDataIdx = dataModel.resolveProcessedDataIndexById(this, `yValue`).index;
-        const colorDataIdx = this.colorKey ? dataModel.resolveProcessedDataIndexById(this, `colorValue`).index : -1;
+        const colorDataIdx = this.colorKey
+            ? dataModel.resolveProcessedDataIndexById(this, `colorValue`).index
+            : undefined;
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
         const xOffset = (xScale.bandwidth ?? 0) / 2;
         const yOffset = (yScale.bandwidth ?? 0) / 2;
-        const { colorScale, label, xKey = '', yKey = '', colorKey = '', colorName = '' } = this;
+        const {
+            colorScale,
+            xKey = '',
+            xName = '',
+            yKey = '',
+            yName = '',
+            colorKey = '',
+            colorName = '',
+            textAlign,
+            verticalAlign,
+            padding,
+        } = this;
         const colorScaleValid = this.isColorScaleValid();
         const nodeData: HeatmapNodeDatum[] = [];
+        const labelData: HeatmapLabelDatum[] = [];
 
         const width = xScale.bandwidth ?? 10;
         const height = yScale.bandwidth ?? 10;
 
-        const font = label.getFont();
+        const textAlignFactor = (width - 2 * padding) * textAlignFactors[textAlign];
+        const verticalAlignFactor = (height - 2 * padding) * verticalAlignFactors[verticalAlign];
+
+        const sizeFittingHeight = () => ({ width, height, meta: null });
+
         for (const { values, datum } of this.processedData?.data ?? []) {
             const xDatum = values[xDataIdx];
             const yDatum = values[yDataIdx];
             const x = xScale.convert(xDatum) + xOffset;
             const y = yScale.convert(yDatum) + yOffset;
 
-            const colorValue = colorKey ? values[colorDataIdx] : undefined;
-            const fill = colorScaleValid ? colorScale.convert(colorValue) : this.colorRange[0];
+            const colorValue = colorDataIdx != null ? values[colorDataIdx] : undefined;
+            const fill = colorScaleValid && colorValue != null ? colorScale.convert(colorValue) : this.colorRange[0];
 
-            const labelText = this.getLabelText(this.label, {
-                value: colorValue,
-                datum,
-                colorKey,
-                colorName,
-                xKey,
-                yKey,
-                xName: this.xName,
-                yName: this.yName,
-            });
+            const labelText =
+                colorValue != null
+                    ? this.getLabelText(this.label, {
+                          value: colorValue,
+                          datum,
+                          colorKey,
+                          colorName,
+                          xKey,
+                          yKey,
+                          xName,
+                          yName,
+                      })
+                    : undefined;
 
-            const size = _Scene.HdpiCanvas.getTextSize(labelText, font);
+            const labels = formatLabels(
+                labelText,
+                this.label,
+                undefined,
+                this.label,
+                { padding: this.padding },
+                sizeFittingHeight
+            );
+
+            const point = { x, y, size: 0 };
 
             nodeData.push({
                 series: this,
@@ -222,28 +296,47 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
                 yValue: yDatum,
                 colorValue,
                 datum,
-                point: { x, y, size: 0 },
+                point,
                 width,
                 height,
                 fill,
-                label: { text: labelText, ...size },
                 midPoint: { x, y },
             });
+
+            if (labels?.label != null) {
+                const { text, fontSize, lineHeight, height: labelHeight } = labels.label;
+                const { fontStyle, fontFamily, fontWeight, color } = this.label;
+                const x = point.x + textAlignFactor * (width - 2 * padding);
+                const y = point.y + verticalAlignFactor * (height - 2 * padding) - (labels.height - labelHeight) * 0.5;
+
+                labelData.push({
+                    series: this,
+                    itemId: yKey,
+                    datum,
+                    text,
+                    fontSize,
+                    lineHeight,
+                    fontStyle,
+                    fontFamily,
+                    fontWeight,
+                    color,
+                    textAlign,
+                    verticalAlign,
+                    x,
+                    y,
+                });
+            }
         }
 
         return [
             {
                 itemId: this.yKey ?? this.id,
                 nodeData,
-                labelData: nodeData,
+                labelData,
                 scales: super.calculateScaling(),
                 visible: this.visible,
             },
         ];
-    }
-
-    override getLabelData(): _Util.PointLabelDatum[] {
-        return this.contextNodeData?.reduce<_Util.PointLabelDatum[]>((r, n) => r.concat(n.labelData), []);
     }
 
     protected override nodeFactory() {
@@ -286,6 +379,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
         const [visibleMin, visibleMax] = xAxis?.visibleRange ?? [];
         const isZoomed = visibleMin !== 0 || visibleMax !== 1;
         const crisp = !isZoomed;
+
         datumSelection.each((rect, datum) => {
             const { point, width, height } = datum;
 
@@ -326,8 +420,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
     }
 
     protected async updateLabelSelection(opts: {
-        labelData: HeatmapNodeDatum[];
-        labelSelection: _Scene.Selection<_Scene.Text, HeatmapNodeDatum>;
+        labelData: HeatmapLabelDatum[];
+        labelSelection: _Scene.Selection<_Scene.Text, HeatmapLabelDatum>;
     }) {
         const { labelData, labelSelection } = opts;
         const { enabled } = this.label;
@@ -336,26 +430,24 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
         return labelSelection.update(data);
     }
 
-    protected async updateLabelNodes(opts: { labelSelection: _Scene.Selection<_Scene.Text, HeatmapNodeDatum> }) {
-        const { labelSelection } = opts;
-        const { label } = this;
+    protected async updateLabelNodes(opts: { labelSelection: _Scene.Selection<_Scene.Text, HeatmapLabelDatum> }) {
+        opts.labelSelection.each((text, datum) => {
+            text.text = datum.text;
+            text.fontSize = datum.fontSize;
+            text.lineHeight = datum.lineHeight;
 
-        labelSelection.each((text, datum) => {
-            if (datum.label.width > datum.width || datum.label.height > datum.height) {
-                text.visible = false;
-                return;
-            }
-            text.visible = true;
-            text.text = datum.label.text;
-            text.fill = label.color;
-            text.x = datum.midPoint.x;
-            text.y = datum.midPoint.y;
-            text.fontStyle = label.fontStyle;
-            text.fontWeight = label.fontWeight;
-            text.fontSize = label.fontSize;
-            text.fontFamily = label.fontFamily;
-            text.textAlign = 'center';
-            text.textBaseline = 'middle';
+            text.fontStyle = datum.fontStyle;
+            text.fontFamily = datum.fontFamily;
+            text.fontWeight = datum.fontWeight;
+            text.fill = datum.color;
+
+            text.textAlign = datum.textAlign;
+            text.textBaseline = datum.verticalAlign;
+
+            text.x = datum.x;
+            text.y = datum.y;
+
+            text.pointerEvents = PointerEvents.None;
         });
     }
 
@@ -388,7 +480,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
             xValue,
             yValue,
             colorValue,
-            label: { text: labelText },
+            // label: { text: labelText },
         } = nodeDatum;
         const fill = this.isColorScaleValid() ? colorScale.convert(colorValue) : this.colorRange[0];
 
@@ -418,8 +510,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
             `<b>${sanitizeHtml(yName || yKey)}</b>: ${yString}`;
 
         if (colorKey) {
-            content =
-                `<b>${sanitizeHtml(colorName || colorKey)}</b>: ${sanitizeHtml(labelText || colorValue)}<br>` + content;
+            content = `<b>${sanitizeHtml(colorName || colorKey)}</b>: ${sanitizeHtml(colorValue)}<br>` + content;
         }
 
         return tooltip.toTooltipHtml(

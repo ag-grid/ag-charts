@@ -11,7 +11,11 @@ import { getDevFileList } from './src/utils/pages';
 import { getSitemapConfig } from './src/utils/sitemap';
 
 const DEFAULT_BASE_URL = '/';
-const { PUBLIC_SITE_URL, PUBLIC_BASE_URL = DEFAULT_BASE_URL } = loadEnv(process.env.NODE_ENV, process.cwd(), '');
+const {
+    PUBLIC_SITE_URL,
+    PUBLIC_BASE_URL = DEFAULT_BASE_URL,
+    PUBLIC_HTTPS_SERVER,
+} = loadEnv(process.env.NODE_ENV, process.cwd(), '');
 
 const OUTPUT_DIR = '../../dist/packages/ag-charts-website';
 
@@ -31,7 +35,7 @@ export default defineConfig({
             exclude: ['ag-charts-community', 'ag-charts-enterprise'],
         },
         server: {
-            https: true,
+            https: ['1', 'true'].includes(PUBLIC_HTTPS_SERVER),
             fs: {
                 allow: [
                     '.',

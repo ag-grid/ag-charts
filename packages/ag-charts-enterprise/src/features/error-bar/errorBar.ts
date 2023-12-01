@@ -47,12 +47,8 @@ type AnyScale = _Scale.Scale<any, any, any>;
 type HighlightNodeDatum = NonNullable<_ModuleSupport.HighlightChangeEvent['currentHighlight']>;
 type PickNodeDatumResult = _ModuleSupport.PickNodeDatumResult;
 type Point = _Scene.Point;
-
-type SeriesDataPrerequestEvent = _ModuleSupport.SeriesDataPrerequestEvent;
 type SeriesDataProcessedEvent = _ModuleSupport.SeriesDataProcessedEvent;
-type SeriesDataGetDomainEvent = _ModuleSupport.SeriesDataGetDomainEvent;
 type SeriesDataUpdateEvent = _ModuleSupport.SeriesDataUpdateEvent;
-type SeriesTooltipGetParamsEvent = _ModuleSupport.SeriesTooltipGetParamsEvent;
 type SeriesVisibilityEvent = _ModuleSupport.SeriesVisibilityEvent;
 
 class ErrorBarCap implements NonNullable<AgErrorBarOptions['cap']> {
@@ -86,7 +82,7 @@ class ErrorBarCap implements NonNullable<AgErrorBarOptions['cap']> {
 
 export class ErrorBars
     extends _ModuleSupport.BaseModuleInstance
-    implements _ModuleSupport.ModuleInstance, AgErrorBarOptions
+    implements _ModuleSupport.ModuleInstance, _ModuleSupport.SeriesOptionInstance, AgErrorBarOptions
 {
     @Validate(OPT_STRING)
     yLowerKey?: string = undefined;
@@ -159,11 +155,8 @@ export class ErrorBars
 
         const series = this.cartesianSeries;
         this.destroyFns.push(
-            series.addListener('data-prerequest', (e: SeriesDataPrerequestEvent) => this.onPrerequestData(e)),
             series.addListener('data-processed', (e: SeriesDataProcessedEvent) => this.onDataProcessed(e)),
-            series.addListener('data-getDomain', (e: SeriesDataGetDomainEvent) => this.onGetDomain(e)),
             series.addListener('data-update', (e: SeriesDataUpdateEvent) => this.onDataUpdate(e)),
-            series.addListener('tooltip-getParams', (e: SeriesTooltipGetParamsEvent) => this.onTooltipGetParams(e)),
             series.addListener('visibility-changed', (e: SeriesVisibilityEvent) => this.onToggleSeriesItem(e)),
             ctx.highlightManager.addListener('highlight-change', (event) => this.onHighlightChange(event)),
             () => annotationGroup.removeChild(this.groupNode),
@@ -171,11 +164,11 @@ export class ErrorBars
         );
     }
 
-    private onPrerequestData(event: SeriesDataPrerequestEvent) {
+    getPropertyDefinitions(opts: { isContinuousX: boolean; isContinuousY: boolean }) {
         const props: _ModuleSupport.PropertyDefinition<unknown>[] = [];
         const { cartesianSeries } = this;
         const { xLowerKey, xUpperKey, yLowerKey, yUpperKey, xErrorsID, yErrorsID } = this.getMaybeFlippedKeys();
-        const { isContinuousX, isContinuousY } = event;
+        const { isContinuousX, isContinuousY } = opts;
         if (yLowerKey !== undefined && yUpperKey !== undefined) {
             props.push(
                 valueProperty(cartesianSeries, yLowerKey, isContinuousY, { id: yErrorsID }),
@@ -196,10 +189,10 @@ export class ErrorBars
         this.processedData = event.processedData;
     }
 
-    private onGetDomain(event: SeriesDataGetDomainEvent) {
+    getDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
         const { xLowerKey, xUpperKey, xErrorsID, yLowerKey, yUpperKey, yErrorsID } = this.getMaybeFlippedKeys();
         let hasAxisErrors: boolean = false;
-        if (event.direction == ChartAxisDirection.X) {
+        if (direction == ChartAxisDirection.X) {
             hasAxisErrors = xLowerKey !== undefined && xUpperKey != undefined;
         } else {
             hasAxisErrors = yLowerKey !== undefined && yUpperKey != undefined;
@@ -207,13 +200,14 @@ export class ErrorBars
 
         if (hasAxisErrors) {
             const { dataModel, processedData, cartesianSeries } = this;
-            const axis = cartesianSeries.axes[event.direction];
-            const id = { x: xErrorsID, y: yErrorsID }[event.direction];
+            const axis = cartesianSeries.axes[direction];
+            const id = { x: xErrorsID, y: yErrorsID }[direction];
             if (dataModel !== undefined && processedData !== undefined) {
                 const domain = dataModel.getDomain(cartesianSeries, id, 'value', processedData);
                 return fixNumericExtent(domain as any, axis);
             }
         }
+        return [];
     }
 
     private onDataUpdate(event: SeriesDataUpdateEvent) {
@@ -323,7 +317,7 @@ export class ErrorBars
         return this.groupNode.nearestSquared(point);
     }
 
-    private onTooltipGetParams(_event: SeriesTooltipGetParamsEvent) {
+    getTooltipParams() {
         const { xLowerKey, xUpperKey, yLowerKey, yUpperKey } = this;
         let { xLowerName, xUpperName, yLowerName, yUpperName } = this;
         xLowerName ??= xLowerKey;
