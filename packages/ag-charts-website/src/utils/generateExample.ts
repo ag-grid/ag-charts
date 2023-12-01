@@ -56,6 +56,7 @@ function buildPoolEntry() {
 const pool: ReturnType<typeof buildPoolEntry>[] = [];
 
 function initPool() {
+    // eslint-disable-next-line no-console
     console.log(`Creating thumbnail pool of size ${THUMBNAIL_POOL_SIZE}`);
     for (let i = 0; i < THUMBNAIL_POOL_SIZE; i++) {
         pool.push(buildPoolEntry());
@@ -66,6 +67,7 @@ initPool();
 async function borrowFromPool() {
     let count = 0;
     while (pool.length === 0 && count < 5) {
+        // eslint-disable-next-line no-console
         console.log('Waiting for pool to become available...');
         await new Promise((resolve) => setTimeout(resolve, (10 * count) ^ 2));
         count++;
