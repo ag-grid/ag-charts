@@ -7,6 +7,7 @@ import type {
 import { ColorScale } from '../../../scale/colorScale';
 import { HdpiCanvas } from '../../../scene/canvas/hdpiCanvas';
 import { Group } from '../../../scene/group';
+import { PointerEvents } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
 import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
@@ -285,7 +286,9 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
                 },
             })
         );
-        return labelSelection.update(placedNodeDatum);
+        return labelSelection.update(placedNodeDatum, (text) => {
+            text.pointerEvents = PointerEvents.None;
+        });
     }
 
     protected async updateLabelNodes(opts: { labelSelection: Selection<Text, ScatterNodeDatum> }) {
