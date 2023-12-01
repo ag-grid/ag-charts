@@ -4,15 +4,15 @@ import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesB
 import { RadialColumnSeriesBase } from '../radial-column/radialColumnSeriesBase';
 import { prepareNightingaleAnimationFunctions, resetNightingaleSelectionFn } from './nightingaleUtil';
 
-const { NUMBER, Validate } = _ModuleSupport;
 const { Sector } = _Scene;
 
 export class NightingaleSeries extends RadialColumnSeriesBase<_Scene.Sector> {
     static className = 'NightingaleSeries';
     static type = 'nightingale' as const;
 
-    @Validate(NUMBER(0))
-    sectorSpacing = 1;
+    // TODO: Enable once the options contract has been revisited
+    // @Validate(NUMBER(0))
+    // sectorSpacing = 1;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super(moduleCtx, { animationResetFns: { item: resetNightingaleSelectionFn } });
@@ -31,7 +31,7 @@ export class NightingaleSeries extends RadialColumnSeriesBase<_Scene.Sector> {
         node: _Scene.Sector,
         datum: RadialColumnNodeDatum,
         highlight: boolean,
-        format: AgRadialSeriesFormat | undefined
+        _format: AgRadialSeriesFormat | undefined
     ) {
         node.centerX = 0;
         node.centerY = 0;
@@ -42,9 +42,10 @@ export class NightingaleSeries extends RadialColumnSeriesBase<_Scene.Sector> {
             node.endAngle = datum.endAngle;
         }
 
-        const strokeWidth =
-            format?.strokeWidth ?? (highlight ? this.highlightStyle.item.strokeWidth : undefined) ?? this.strokeWidth;
-        node.inset = (this.sectorSpacing + strokeWidth) / 2;
+        // TODO: Enable once the options contract has been revisited
+        // const strokeWidth =
+        //     format?.strokeWidth ?? (highlight ? this.highlightStyle.item.strokeWidth : undefined) ?? this.strokeWidth;
+        // node.inset = (this.sectorSpacing + strokeWidth) / 2;
     }
 
     protected override getColumnTransitionFunctions() {

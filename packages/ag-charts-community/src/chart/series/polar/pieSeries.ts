@@ -851,7 +851,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
             sector.lineDash = this.lineDash;
             sector.lineDashOffset = this.lineDashOffset;
             sector.fillShadow = this.shadow;
-            sector.lineJoin = 'round';
             sector.inset = (this.sectorSpacing + format.strokeWidth!) / 2;
         };
 
