@@ -33,7 +33,7 @@ export class SizeMonitor {
                     this.checkClientSize(element, entry);
                 });
             };
-            this.pollerHandler = window.setInterval(step, 100);
+            this.pollerHandler = document.defaultView?.setInterval(step, 100);
         }
 
         this.ready = true;
