@@ -26,14 +26,9 @@ const options: AgChartOptions = {
             colorKey: 'revenue',
             colorName: 'Revenue',
 
-            labelKey: 'revenue',
-            secondaryLabelKey: 'change',
-
             label: {
-                formatter: ({ value }) => `£${value.toFixed(1)}m`,
-            },
-            secondaryLabel: {
-                formatter: ({ value }) => `${value > 0 ? '+' : '-'}${Math.abs(value * 100).toFixed(0)}%`,
+                enabled: true,
+                formatter: ({ value }) => formatNumber(value, 1),
             },
         },
     ],
