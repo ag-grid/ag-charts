@@ -41,6 +41,8 @@ export class Sector extends Path {
         const startAngle = this.startAngle + angleOffset;
         const endAngle = this.endAngle + angleOffset;
         const sweep = startAngle <= endAngle ? endAngle - startAngle : Math.PI * 2 - (startAngle - endAngle);
+        const innerRadius = Math.max(Math.min(this.innerRadius, this.outerRadius) + inset, 0);
+        const outerRadius = Math.max(Math.max(this.innerRadius, this.outerRadius) - inset, 0);
         const fullPie = sweep >= 2 * Math.PI;
         const centerX = this.centerX;
         const centerY = this.centerY;
@@ -48,18 +50,12 @@ export class Sector extends Path {
         path.clear();
 
         if (fullPie) {
-            const baseInnerRadius = this.innerRadius <= 0 ? 0 : this.innerRadius + inset;
-            const innerRadius = Math.min(baseInnerRadius, this.outerRadius - inset);
-            const outerRadius = Math.max(baseInnerRadius, this.outerRadius - inset);
-
             path.arc(centerX, centerY, outerRadius, startAngle, endAngle);
-            if (innerRadius > 0) {
+            if (innerRadius > inset) {
                 path.moveTo(centerX + innerRadius * Math.cos(endAngle), centerY + innerRadius * Math.sin(endAngle));
                 path.arc(centerX, centerY, innerRadius, endAngle, startAngle, true);
             }
         } else {
-            const innerRadius = Math.min(this.innerRadius + inset, this.outerRadius - inset);
-            const outerRadius = Math.max(this.innerRadius + inset, this.outerRadius - inset);
             const innerAngleOffset = innerRadius > 0 ? inset / innerRadius : 0;
             const outerAngleOffset = outerRadius > 0 ? inset / outerRadius : 0;
 
