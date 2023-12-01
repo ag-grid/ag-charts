@@ -121,14 +121,7 @@
       "outputs": ["{workspaceRoot}/dist/packages/ag-charts-enterprise.tgz"],
       "options": {
         "cwd": "packages/ag-charts-enterprise",
-        "commands": [
-          {
-            "command": "mkdir -p ../../dist/packages"
-          },
-          {
-            "command": "yarn pack -f ../../dist/packages/ag-charts-enterprise.tgz"
-          }
-        ]
+        "commands": ["mkdir -p ../../dist/packages", "yarn pack -f ../../dist/packages/ag-charts-enterprise.tgz"]
       }
     },
     "pack:extract": {
@@ -137,12 +130,8 @@
       "outputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-enterprise/"],
       "options": {
         "commands": [
-          {
-            "command": "mkdir -p dist/packages/contents/ag-charts-enterprise"
-          },
-          {
-            "command": "tar -xzf dist/packages/ag-charts-enterprise.tgz -C dist/packages/contents/ag-charts-enterprise/"
-          }
+          "mkdir -p dist/packages/contents/ag-charts-enterprise",
+          "tar -xzf dist/packages/ag-charts-enterprise.tgz -C dist/packages/contents/ag-charts-enterprise/"
         ]
       }
     },
@@ -150,11 +139,7 @@
       "executor": "nx:run-commands",
       "dependsOn": ["pack:extract"],
       "options": {
-        "commands": [
-          {
-            "command": "node tools/sanity-check-package.js dist/packages/contents/ag-charts-enterprise/package"
-          }
-        ]
+        "commands": ["node tools/sanity-check-package.js dist/packages/contents/ag-charts-enterprise/package"]
       }
     }
   },

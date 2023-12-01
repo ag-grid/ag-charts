@@ -52,21 +52,11 @@
       "options": {
         "parallel": true,
         "commands": [
-          {
-            "command": "while true ; do nx watch -d -p ag-charts-community,ag-charts-enterprise -- nx run ag-charts-enterprise:build:package --configuration watch ; done"
-          },
-          {
-            "command": "while true ; do nx watch -d -p ag-charts-community,ag-charts-enterprise -- nx run ag-charts-enterprise:build:umd --configuration watch ; done"
-          },
-          {
-            "command": "while true ; do nx watch -d -p ag-charts-community -- nx run ag-charts-community:build:umd --configuration watch ; done"
-          },
-          {
-            "command": "while true ; do nx watch -d -p ag-charts-community -- nx run ag-charts-community:docs-resolved-interfaces ; done"
-          },
-          {
-            "command": "nx run ag-charts-website:dev --configuration watch"
-          }
+          "while true ; do nx watch -d -p ag-charts-community,ag-charts-enterprise -- nx run ag-charts-enterprise:build:package --configuration watch ; done",
+          "while true ; do nx watch -d -p ag-charts-community,ag-charts-enterprise -- nx run ag-charts-enterprise:build:umd --configuration watch ; done",
+          "while true ; do nx watch -d -p ag-charts-community -- nx run ag-charts-community:build:umd --configuration watch ; done",
+          "while true ; do nx watch -d -p ag-charts-community -- nx run ag-charts-community:docs-resolved-interfaces ; done",
+          "nx run ag-charts-website:dev --configuration watch"
         ]
       },
       "configurations": {
@@ -79,16 +69,6 @@
         }
       }
     },
-    "format-check": {
-      "executor": "nx:run-commands",
-      "options": {
-        "commands": [
-          {
-            "command": "nx format:check --all"
-          }
-        ]
-      }
-    },
     "blt": {
       "executor": "nx:noop",
       "dependsOn": ["build", "lint", "format-check", "test"],
@@ -97,17 +77,7 @@
         "production": {}
       }
     },
-    "clean": {
-      "executor": "nx:run-commands",
-      "options": {
-        "cwd": "{workspaceRoot}",
-        "commands": [
-          {
-            "command": "rimraf dist/ 'packages/*/dist/'"
-          }
-        ]
-      }
-    }
+    "clean": { "command": "rimraf dist/ 'packages/*/dist/'" }
   },
   "implicitDependencies": [
     "ag-charts-community",

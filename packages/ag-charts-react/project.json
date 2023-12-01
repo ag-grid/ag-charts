@@ -52,14 +52,7 @@
       "outputs": ["{workspaceRoot}/dist/packages/ag-charts-react.tgz"],
       "options": {
         "cwd": "packages/ag-charts-react",
-        "commands": [
-          {
-            "command": "mkdir -p ../../dist/packages"
-          },
-          {
-            "command": "yarn pack -f ../../dist/packages/ag-charts-react.tgz"
-          }
-        ]
+        "commands": ["mkdir -p ../../dist/packages", "yarn pack -f ../../dist/packages/ag-charts-react.tgz"]
       }
     },
     "pack:extract": {
@@ -68,12 +61,8 @@
       "outputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-react/"],
       "options": {
         "commands": [
-          {
-            "command": "mkdir -p dist/packages/contents/ag-charts-react"
-          },
-          {
-            "command": "tar -xzf dist/packages/ag-charts-react.tgz -C dist/packages/contents/ag-charts-react/"
-          }
+          "mkdir -p dist/packages/contents/ag-charts-react",
+          "tar -xzf dist/packages/ag-charts-react.tgz -C dist/packages/contents/ag-charts-react/"
         ]
       }
     },
@@ -81,11 +70,7 @@
       "executor": "nx:run-commands",
       "dependsOn": ["pack:extract"],
       "options": {
-        "commands": [
-          {
-            "command": "node tools/sanity-check-package.js dist/packages/contents/ag-charts-react/package"
-          }
-        ]
+        "commands": ["node tools/sanity-check-package.js dist/packages/contents/ag-charts-react/package"]
       }
     }
   }

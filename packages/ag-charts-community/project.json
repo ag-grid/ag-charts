@@ -106,11 +106,7 @@
       "executor": "nx:run-commands",
       "options": {
         "cwd": "packages/ag-charts-community",
-        "commands": [
-          {
-            "command": "npx depcruise src"
-          }
-        ]
+        "commands": ["npx depcruise src"]
       }
     },
     "lint": {
@@ -150,14 +146,7 @@
       "outputs": ["{workspaceRoot}/dist/packages/ag-charts-community.tgz"],
       "options": {
         "cwd": "packages/ag-charts-community",
-        "commands": [
-          {
-            "command": "mkdir -p ../../dist/packages"
-          },
-          {
-            "command": "yarn pack -f ../../dist/packages/ag-charts-community.tgz"
-          }
-        ]
+        "commands": ["mkdir -p ../../dist/packages", "yarn pack -f ../../dist/packages/ag-charts-community.tgz"]
       }
     },
     "pack:extract": {
@@ -166,12 +155,8 @@
       "outputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-community/"],
       "options": {
         "commands": [
-          {
-            "command": "mkdir -p dist/packages/contents/ag-charts-community"
-          },
-          {
-            "command": "tar -xzf dist/packages/ag-charts-community.tgz -C dist/packages/contents/ag-charts-community/"
-          }
+          "mkdir -p dist/packages/contents/ag-charts-community",
+          "tar -xzf dist/packages/ag-charts-community.tgz -C dist/packages/contents/ag-charts-community/"
         ]
       }
     },
@@ -179,11 +164,7 @@
       "executor": "nx:run-commands",
       "dependsOn": ["pack:extract"],
       "options": {
-        "commands": [
-          {
-            "command": "node tools/sanity-check-package.js dist/packages/contents/ag-charts-community/package"
-          }
-        ]
+        "commands": ["node tools/sanity-check-package.js dist/packages/contents/ag-charts-community/package"]
       }
     }
   },

@@ -23,14 +23,7 @@
       "outputs": ["{workspaceRoot}/dist/packages/ag-charts-vue3.tgz"],
       "options": {
         "cwd": "packages/ag-charts-vue3",
-        "commands": [
-          {
-            "command": "mkdir -p ../../dist/packages"
-          },
-          {
-            "command": "yarn pack -f ../../dist/packages/ag-charts-vue3.tgz"
-          }
-        ]
+        "commands": ["mkdir -p ../../dist/packages", "yarn pack -f ../../dist/packages/ag-charts-vue3.tgz"]
       }
     },
     "pack:extract": {
@@ -39,12 +32,8 @@
       "outputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-vue3/"],
       "options": {
         "commands": [
-          {
-            "command": "mkdir -p dist/packages/contents/ag-charts-vue3"
-          },
-          {
-            "command": "tar -xzf dist/packages/ag-charts-vue3.tgz -C dist/packages/contents/ag-charts-vue3/"
-          }
+          "mkdir -p dist/packages/contents/ag-charts-vue3",
+          "tar -xzf dist/packages/ag-charts-vue3.tgz -C dist/packages/contents/ag-charts-vue3/"
         ]
       }
     },
@@ -52,11 +41,7 @@
       "executor": "nx:run-commands",
       "dependsOn": ["pack:extract"],
       "options": {
-        "commands": [
-          {
-            "command": "node tools/sanity-check-package.js dist/packages/contents/ag-charts-vue3/package"
-          }
-        ]
+        "commands": ["node tools/sanity-check-package.js dist/packages/contents/ag-charts-vue3/package"]
       }
     }
   },
