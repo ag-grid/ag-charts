@@ -14,6 +14,7 @@ export class SizeMonitor {
     private static ready = false;
     private static documentReady = false;
     private static readyEventFn?: EventListener;
+    private static ownerDocument?: Document;
     private static queuedObserveRequests: [HTMLElement, OnSizeChange][] = [];
 
     private static pollerHandler?: number;
@@ -36,6 +37,7 @@ export class SizeMonitor {
             this.pollerHandler = document.defaultView?.setInterval(step, 100);
         }
 
+        this.ownerDocument = document;
         this.ready = true;
 
         this.documentReady = document.readyState !== 'loading';
@@ -68,12 +70,13 @@ export class SizeMonitor {
             this.pollerHandler = undefined;
         }
         if (this.readyEventFn) {
-            document.removeEventListener('DOMContentLoaded', this.readyEventFn);
+            this.ownerDocument?.removeEventListener('DOMContentLoaded', this.readyEventFn);
             this.readyEventFn = undefined;
         }
         this.resizeObserver?.disconnect();
         this.resizeObserver = undefined;
         this.ready = false;
+        this.ownerDocument = undefined;
     }
 
     private static checkSize(entry: Entry | undefined, element: HTMLElement, width: number, height: number) {
