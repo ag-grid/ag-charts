@@ -298,6 +298,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
     @Validate(NUMBER(0))
     strokeWidth = 1;
 
+    @Validate(NUMBER(0))
+    sectorSpacing = 1;
+
     shadow?: DropShadow = undefined;
 
     override readonly highlightStyle = new HighlightStyle();
@@ -848,7 +851,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
             sector.lineDash = this.lineDash;
             sector.lineDashOffset = this.lineDashOffset;
             sector.fillShadow = this.shadow;
-            sector.lineJoin = 'round';
+            sector.inset = (this.sectorSpacing + format.strokeWidth!) / 2;
         };
 
         this.itemSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false));

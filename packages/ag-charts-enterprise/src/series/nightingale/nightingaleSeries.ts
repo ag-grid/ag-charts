@@ -1,5 +1,4 @@
-import type { _ModuleSupport } from 'ag-charts-community';
-import { _Scene } from 'ag-charts-community';
+import { type AgRadialSeriesFormat, type _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesBase';
 import { RadialColumnSeriesBase } from '../radial-column/radialColumnSeriesBase';
@@ -10,6 +9,10 @@ const { Sector } = _Scene;
 export class NightingaleSeries extends RadialColumnSeriesBase<_Scene.Sector> {
     static className = 'NightingaleSeries';
     static type = 'nightingale' as const;
+
+    // TODO: Enable once the options contract has been revisited
+    // @Validate(NUMBER(0))
+    // sectorSpacing = 1;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super(moduleCtx, { animationResetFns: { item: resetNightingaleSelectionFn } });
@@ -24,7 +27,12 @@ export class NightingaleSeries extends RadialColumnSeriesBase<_Scene.Sector> {
         return new Sector();
     }
 
-    protected updateItemPath(node: _Scene.Sector, datum: RadialColumnNodeDatum, highlight: boolean) {
+    protected updateItemPath(
+        node: _Scene.Sector,
+        datum: RadialColumnNodeDatum,
+        highlight: boolean,
+        _format: AgRadialSeriesFormat | undefined
+    ) {
         node.centerX = 0;
         node.centerY = 0;
         if (highlight) {
@@ -33,6 +41,11 @@ export class NightingaleSeries extends RadialColumnSeriesBase<_Scene.Sector> {
             node.startAngle = datum.startAngle;
             node.endAngle = datum.endAngle;
         }
+
+        // TODO: Enable once the options contract has been revisited
+        // const strokeWidth =
+        //     format?.strokeWidth ?? (highlight ? this.highlightStyle.item.strokeWidth : undefined) ?? this.strokeWidth;
+        // node.inset = (this.sectorSpacing + strokeWidth) / 2;
     }
 
     protected override getColumnTransitionFunctions() {

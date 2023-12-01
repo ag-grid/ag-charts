@@ -1,7 +1,7 @@
 import type { AgBaseRadialColumnSeriesOptions } from './radialColumnOptions';
 import type { AgBaseRadialSeriesThemeableOptions } from './radialOptions';
 
-export type AgNightingaleSeriesThemeableOptions<TDatum = any> = AgBaseRadialSeriesThemeableOptions<TDatum>;
+export interface AgNightingaleSeriesThemeableOptions<TDatum = any> extends AgBaseRadialSeriesThemeableOptions<TDatum> {}
 
 export interface AgNightingaleSeriesOptions<TDatum = any>
     extends AgNightingaleSeriesThemeableOptions<TDatum>,

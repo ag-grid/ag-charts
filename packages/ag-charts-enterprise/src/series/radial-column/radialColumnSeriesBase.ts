@@ -410,7 +410,12 @@ export abstract class RadialColumnSeriesBase<
         this.animationState.transition('update');
     }
 
-    protected abstract updateItemPath(node: ItemPathType, datum: RadialColumnNodeDatum, highlight: boolean): void;
+    protected abstract updateItemPath(
+        node: ItemPathType,
+        datum: RadialColumnNodeDatum,
+        highlight: boolean,
+        format: AgRadialSeriesFormat | undefined
+    ): void;
 
     protected updateSectorSelection(
         selection: _Scene.Selection<ItemPathType, RadialColumnNodeDatum>,
@@ -448,7 +453,7 @@ export abstract class RadialColumnSeriesBase<
                   })
                 : undefined;
 
-            this.updateItemPath(node, datum, highlight);
+            this.updateItemPath(node, datum, highlight, format);
             node.fill = format?.fill ?? fill;
             node.fillOpacity = format?.fillOpacity ?? fillOpacity;
             node.stroke = format?.stroke ?? stroke;
