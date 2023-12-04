@@ -12,9 +12,6 @@ const options: AgChartOptions = {
     subtitle: {
         text: 'USA 1987',
     },
-    footnote: {
-        text: 'Source: UCI',
-    },
     series: [
         {
             type: 'histogram',
@@ -23,6 +20,8 @@ const options: AgChartOptions = {
             yKey: 'highway-mpg',
             yName: 'Highway MPG',
             aggregation: 'mean',
+            strokeWidth: 2,
+            strokeOpacity: 0,
         },
         {
             type: 'scatter',
@@ -30,6 +29,10 @@ const options: AgChartOptions = {
             xName: 'Engine Size',
             yKey: 'highway-mpg',
             yName: 'Highway MPG',
+            marker: {
+                strokeWidth: 0,
+                fillOpacity: 1,
+            },
         },
     ],
     axes: [
@@ -38,18 +41,32 @@ const options: AgChartOptions = {
             type: 'number',
             nice: false,
             gridLine: {
-                enabled: false,
+                style: [
+                    {
+                        stroke: 'rgb(216,216,216)',
+                        lineDash: [2],
+                    },
+                ],
             },
             title: {
                 enabled: true,
-                text: 'Engine Size (Cubic Inches)',
+                text: 'Engine Size',
             },
         },
         {
             position: 'left',
             type: 'number',
-            title: {
-                text: 'Highway MPG',
+            nice: false,
+            gridLine: {
+                style: [
+                    {
+                        stroke: 'rgb(216,216,216)',
+                        lineDash: [2],
+                    },
+                ],
+            },
+            label: {
+                enabled: false,
             },
         },
     ],
