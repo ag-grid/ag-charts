@@ -1,4 +1,3 @@
-import { isReal } from 'packages/ag-charts-community/src/util/number';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import type {
@@ -14,6 +13,7 @@ import type { Selection } from '../../../scene/selection';
 import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
 import { sanitizeHtml, tickStep, ticks } from '../../../sparklines-util';
+import { isReal } from '../../../util/number';
 import {
     BOOLEAN,
     NUMBER,
