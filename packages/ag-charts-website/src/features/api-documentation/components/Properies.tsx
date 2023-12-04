@@ -26,7 +26,7 @@ export function PropertyTitle({ name, anchorId, prefixPath, required }: Property
         <h6 className={classnames(styles.name, 'side-menu-exclude')}>
             <PropertyNamePrefix prefixPath={prefixPath} />
             <PropertyName isRequired={required}>{name}</PropertyName>
-            <LinkIcon href={`#${anchorId}`} onClick={handleClick} />
+            <LinkIcon href={`#${anchorId}`} onClick={handleClick} className={styles.linkIcon} />
         </h6>
     );
 }
