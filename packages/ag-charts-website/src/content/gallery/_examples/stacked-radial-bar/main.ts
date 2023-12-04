@@ -25,6 +25,8 @@ const options: AgChartOptions = {
             angleKey: 'hardware',
             angleName: 'Hardware',
             stacked: true,
+            strokeWidth: 1,
+            fillOpacity: 0.3,
         },
         {
             type: 'radial-bar',
@@ -32,6 +34,22 @@ const options: AgChartOptions = {
             angleKey: 'services',
             angleName: 'Services',
             stacked: true,
+        },
+    ],
+    axes: [
+        {
+            type: 'radius-category',
+            innerRadiusRatio: 0.1,
+            paddingInner: 0.5,
+        },
+        {
+            type: 'angle-number',
+            line: {
+                enabled: false,
+            },
+            label: {
+                enabled: false,
+            },
         },
     ],
 };
