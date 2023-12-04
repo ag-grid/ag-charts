@@ -73,6 +73,17 @@ const CHART_TYPE_SPECIFIC_COMMON_OPTIONS = Object.values(CHART_TYPE_CONFIG).redu
     (keyof AgCommonThemeableChartOptions)[]
 >((r, { commonOptions }) => [...r, ...commonOptions], []);
 
+export function resolvePartialPalette(
+    partialPalette: Partial<AgChartThemePalette> | null,
+    basePalette: AgChartThemePalette
+): AgChartThemePalette | null {
+    if (partialPalette == null) return null;
+    return {
+        fills: partialPalette.fills ?? basePalette.fills,
+        strokes: partialPalette.strokes ?? basePalette.strokes,
+    };
+}
+
 export class ChartTheme {
     readonly palette: AgChartThemePalette;
 
@@ -359,7 +370,9 @@ export class ChartTheme {
                 }
             });
         }
-        this.palette = palette ?? this.getPalette();
+
+        const basePalette = this.getPalette();
+        this.palette = resolvePartialPalette(palette, basePalette) ?? basePalette;
 
         this.config = Object.freeze(this.templateTheme(defaults));
     }

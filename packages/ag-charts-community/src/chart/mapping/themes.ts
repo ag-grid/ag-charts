@@ -67,12 +67,12 @@ function validateChartThemeObject(unknownObject: object | null): AgChartTheme | 
     if (typeof palette === 'object') {
         if (palette !== null) {
             const { fills, strokes } = palette as Unvalidate<AgChartThemePalette>;
-            if (!Array.isArray(fills)) {
-                Logger.warn(`theme.overrides.fills must be a defined array`);
+            if (fills !== undefined && !Array.isArray(fills)) {
+                Logger.warn(`theme.overrides.fills must be undefined or an array`);
                 valid = false;
             }
-            if (!Array.isArray(strokes)) {
-                Logger.warn(`theme.overrides.strokes must be a defined array`);
+            if (strokes !== undefined && !Array.isArray(strokes)) {
+                Logger.warn(`theme.overrides.strokes must be undefined or an array`);
                 valid = false;
             }
         }
