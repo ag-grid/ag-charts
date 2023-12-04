@@ -1,7 +1,8 @@
+import { Logger } from '../util/logger';
 import { format } from '../util/numberFormat';
 import generateTicks, { range } from '../util/ticks';
-import { NUMBER, Validate } from '../util/validation';
 import { ContinuousScale } from './continuousScale';
+import { Invalidating } from './invalidating';
 
 const identity = (x: any) => x;
 
@@ -19,7 +20,7 @@ export class LogScale extends ContinuousScale<number> {
         return d;
     }
 
-    @Validate(NUMBER(0))
+    @Invalidating
     base = 10;
 
     protected override transform(x: any) {
@@ -29,7 +30,14 @@ export class LogScale extends ContinuousScale<number> {
         return this.domain[0] >= 0 ? Math.exp(x) : -Math.exp(-x);
     }
 
-    protected override cacheProps: Array<keyof this> = ['domain', 'range', 'nice', 'tickCount', 'base'];
+    protected override refresh(): void {
+        if (this.base <= 0) {
+            this.base = 0;
+            Logger.warnOnce('expecting a finite Number greater than to 0');
+        }
+
+        super.refresh();
+    }
 
     update() {
         if (!this.domain || this.domain.length < 2) {

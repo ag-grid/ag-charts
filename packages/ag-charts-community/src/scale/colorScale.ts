@@ -1,5 +1,6 @@
 import { Color } from '../util/color';
 import { Logger } from '../util/logger';
+import { Invalidating } from './invalidating';
 import type { Scale } from './scale';
 
 type OKLCHA = { l: number; c: number; h: number; a: number };
@@ -43,7 +44,11 @@ const interpolateOklch = (x: OKLCHA, y: OKLCHA, d: number): Color => {
 };
 
 export class ColorScale implements Scale<number, string, number> {
+    private invalid = true;
+
+    @Invalidating
     domain = [0, 1];
+    @Invalidating
     range = ['red', 'blue'];
 
     private parsedRange = this.range.map(convertColorStringToOklcha);
@@ -80,6 +85,8 @@ export class ColorScale implements Scale<number, string, number> {
     }
 
     convert(x: number) {
+        this.refresh();
+
         const { domain, range, parsedRange } = this;
         const d0 = domain[0];
         const d1 = domain[domain.length - 1];
@@ -116,5 +123,16 @@ export class ColorScale implements Scale<number, string, number> {
         const c0 = parsedRange[index];
         const c1 = parsedRange[index + 1];
         return interpolateOklch(c0, c1, q).toRgbaString();
+    }
+
+    protected refresh() {
+        if (!this.invalid) return;
+
+        this.invalid = false;
+        this.update();
+
+        if (this.invalid) {
+            Logger.warnOnce('Expected update to not invalidate scale');
+        }
     }
 }

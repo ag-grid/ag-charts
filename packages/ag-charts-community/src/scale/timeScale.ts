@@ -52,16 +52,6 @@ function toNumber(x: any) {
 export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
     readonly type = 'time';
 
-    protected override cacheProps: Array<keyof this> = [
-        'domain',
-        'range',
-        'nice',
-        'tickCount',
-        'interval',
-        'minTickCount',
-        'maxTickCount',
-    ];
-
     private year: CountableTimeInterval = timeYear;
     private month: CountableTimeInterval = timeMonth;
     private week: CountableTimeInterval = timeWeek;

@@ -1,3 +1,5 @@
+import { Logger } from '../util/logger';
+import { Invalidating } from './invalidating';
 import type { Scale } from './scale';
 
 function clamp(x: number, min: number, max: number) {
@@ -10,24 +12,19 @@ function clamp(x: number, min: number, max: number) {
 export class BandScale<D> implements Scale<D, number, number> {
     readonly type = 'band';
 
-    interval?: number;
+    private invalid = true;
 
-    private cache: any = null;
-    private cacheProps: string[] = ['_domain', 'range', '_paddingInner', '_paddingOuter', 'round', 'interval'];
-    private didChange() {
-        const { cache } = this;
-        const didChange = !cache || this.cacheProps.some((p) => this[p as keyof BandScale<any>] !== cache[p]);
-        if (didChange) {
-            this.cache = {};
-            this.cacheProps.forEach((p) => (this.cache[p] = this[p as keyof BandScale<any>]));
-            return true;
-        }
-        return false;
-    }
+    @Invalidating
+    interval: number = 1;
 
     private refresh() {
-        if (this.didChange()) {
-            this.update();
+        if (!this.invalid) return;
+
+        this.invalid = false;
+        this.update();
+
+        if (this.invalid) {
+            Logger.warnOnce('Expected update to not invalidate scale');
         }
     }
 
@@ -49,6 +46,8 @@ export class BandScale<D> implements Scale<D, number, number> {
      */
     private _domain: D[] = [];
     set domain(values: D[]) {
+        this.invalid = true;
+
         const domain: D[] = [];
 
         this.index = new Map<D, number>();
@@ -70,6 +69,7 @@ export class BandScale<D> implements Scale<D, number, number> {
         return this._domain;
     }
 
+    @Invalidating
     range: number[] = [0, 1];
 
     ticks(): D[] {
@@ -150,6 +150,7 @@ export class BandScale<D> implements Scale<D, number, number> {
         return this._paddingOuter;
     }
 
+    @Invalidating
     round = false;
 
     update() {
