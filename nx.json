@@ -1,5 +1,6 @@
 {
-  "plugins": ["@nxtensions/astro"],
+  "$schema": "./node_modules/nx/schemas/nx-schema.json",
+  "plugins": ["@nxtensions/astro", "./plugins/example-generator"],
   "affected": {
     "defaultBase": "latest"
   },
