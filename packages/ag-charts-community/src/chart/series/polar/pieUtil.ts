@@ -10,8 +10,8 @@ type AnimatableSectorDatum = {
     startAngle: number;
     endAngle: number;
     sectorFormat: {
-        fill: string;
-        stroke: string;
+        fill?: string;
+        stroke?: string;
     };
 };
 

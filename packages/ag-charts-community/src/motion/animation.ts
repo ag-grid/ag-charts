@@ -29,7 +29,7 @@ export const LABEL_PHASE: AnimationTiming = {
     animationDelay: 1,
 };
 
-export type AnimationValue = number | string | Record<string, number | string>;
+export type AnimationValue = number | string | undefined | Record<string, number | string | undefined>;
 
 export enum RepeatType {
     Loop = 'loop',
@@ -220,10 +220,13 @@ export class Animation<T extends AnimationValue> implements IAnimation<T> {
             return this.interpolateValue(from, to);
         }
         type InterpolatorTuple = [string, (d: number) => number | string];
-        const interpolatorEntries: InterpolatorTuple[] = Object.keys(to).map((key) => [
-            key,
-            this.interpolateValue((from as typeof to)[key], to[key]),
-        ]);
+        const interpolatorEntries: InterpolatorTuple[] = [];
+        for (const key in to) {
+            const interpolator = this.interpolateValue((from as typeof to)[key], to[key]);
+            if (interpolator != null) {
+                interpolatorEntries.push([key, interpolator]);
+            }
+        }
         return (d: number) => {
             const result: Record<string, number | string> = {};
             for (const [key, interpolator] of interpolatorEntries) {
@@ -234,6 +237,10 @@ export class Animation<T extends AnimationValue> implements IAnimation<T> {
     }
 
     private interpolateValue(a: any, b: any) {
+        if (a === undefined || b === undefined) {
+            return undefined;
+        }
+
         try {
             switch (typeof a) {
                 case 'number':
