@@ -6,63 +6,103 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'Cattle Holdings and Beef Exports (UK)',
+        text: 'Ad Campaign Impact',
+    },
+    subtitle: {
+        text: 'Yearly Percentage Change in Advertisement Engagement',
     },
     footnote: {
-        text: 'Source: Department for Environment, Food & Rural Affairs; Agriculture and Horticulture Development Board',
+        text: '2018 to 2023',
+    },
+    theme: {
+        overrides: {
+            line: {
+                series: {
+                    marker: {
+                        enabled: false,
+                    },
+                    lineDash: [5, 8],
+                },
+            },
+            bar: {
+                series: {
+                    fillOpacity: 0.9,
+                },
+            },
+        },
     },
     series: [
         {
             type: 'bar',
             xKey: 'year',
-            yKey: 'male',
-            yName: 'Male cattle',
+            yKey: 'desktop',
+            yName: 'Desktop',
         },
         {
             type: 'bar',
             xKey: 'year',
-            yKey: 'female',
-            yName: 'Female cattle',
+            yKey: 'phone',
+            yName: 'Phone',
         },
         {
             type: 'line',
             xKey: 'year',
-            yKey: 'exportedTonnes',
-            yName: 'Beef exports',
+            yKey: 'tv',
+            yName: 'TV',
+        },
+        {
+            type: 'line',
+            xKey: 'year',
+            yKey: 'tablet',
+            yName: 'Tablet',
+        },
+        {
+            type: 'line',
+            xKey: 'year',
+            yKey: 'radio',
+            yName: 'Radio',
+        },
+        {
+            type: 'line',
+            xKey: 'year',
+            yKey: 'billboard',
+            yName: 'Billboard',
         },
     ],
     axes: [
         {
             type: 'category',
-            position: 'bottom',
+            position: 'top',
+            paddingInner: 0.4,
+            line: {
+                enabled: false,
+            },
+            gridLine: {
+                enabled: true,
+            },
         },
         {
             type: 'number',
             position: 'left',
-            keys: ['male', 'female'],
-            title: {
-                text: 'Number of cattle',
-            },
             label: {
-                formatter: (params) => {
-                    return params.value / 1000 + 'M';
-                },
+                enabled: false,
             },
-        },
-        {
-            type: 'number',
-            position: 'right',
-            keys: ['exportedTonnes'],
-            title: {
-                text: 'Exports (tonnes)',
+            tick: {
+                size: 0,
+                values: [0],
             },
-            label: {
-                formatter: (params) => {
-                    return params.value / 1000 + 'k';
-                },
+            gridLine: {
+                width: 2,
             },
         },
     ],
+    legend: {
+        item: {
+            marker: {
+                shape: 'circle',
+            },
+        },
+    },
 };
 
 AgCharts.create(options);
