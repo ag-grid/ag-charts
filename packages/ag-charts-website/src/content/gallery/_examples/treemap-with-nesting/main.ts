@@ -9,6 +9,10 @@ const options: AgChartOptions = {
         {
             type: 'treemap',
             labelKey: 'name',
+            group: {
+                strokeWidth: 0,
+                fillOpacity: 0.5,
+            },
         },
     ],
     title: {
