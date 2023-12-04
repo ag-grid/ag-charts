@@ -27,8 +27,27 @@ const options: AgChartOptions = {
             colorName: 'Revenue',
 
             label: {
-                enabled: true,
+                color: 'white',
                 formatter: ({ value }) => formatNumber(value, 1),
+            },
+        },
+    ],
+    axes: [
+        {
+            position: 'right',
+            type: 'category',
+            tick: {
+                size: 20,
+            },
+        },
+        {
+            position: 'bottom',
+            type: 'category',
+            label: {
+                enabled: false,
+            },
+            line: {
+                enabled: false,
             },
         },
     ],
