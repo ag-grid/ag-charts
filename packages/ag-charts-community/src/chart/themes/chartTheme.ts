@@ -12,7 +12,6 @@ import { AXIS_TYPES, getAxisThemeTemplate } from '../factory/axisTypes';
 import { CHART_TYPES, type ChartType, getChartDefaults } from '../factory/chartTypes';
 import { getLegendThemeTemplates } from '../factory/legendTypes';
 import { getSeriesThemeTemplate } from '../factory/seriesTypes';
-import { resolvePartialPalette } from '../mapping/themes';
 import { BOTTOM, FONT_SIZE, NORMAL } from './constants';
 import { DEFAULT_FILLS, DEFAULT_STROKES } from './defaultColors';
 import {
@@ -73,6 +72,17 @@ const CHART_TYPE_CONFIG: { [k in ChartType]: ChartTypeConfig } = {
 const CHART_TYPE_SPECIFIC_COMMON_OPTIONS = Object.values(CHART_TYPE_CONFIG).reduce<
     (keyof AgCommonThemeableChartOptions)[]
 >((r, { commonOptions }) => [...r, ...commonOptions], []);
+
+export function resolvePartialPalette(
+    partialPalette: Partial<AgChartThemePalette> | null,
+    basePalette: AgChartThemePalette
+): AgChartThemePalette | null {
+    if (partialPalette == null) return null;
+    return {
+        fills: partialPalette.fills ?? basePalette.fills,
+        strokes: partialPalette.strokes ?? basePalette.strokes,
+    };
+}
 
 export class ChartTheme {
     readonly palette: AgChartThemePalette;

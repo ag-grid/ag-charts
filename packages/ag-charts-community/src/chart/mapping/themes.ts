@@ -146,14 +146,3 @@ export function getChartTheme(unvalidatedValue: unknown): ChartTheme {
 
     return new baseTheme.constructor(flattenedTheme);
 }
-
-export function resolvePartialPalette(
-    partialPalette: Partial<AgChartThemePalette> | null,
-    basePalette: AgChartThemePalette
-): AgChartThemePalette | null {
-    if (partialPalette == null) return null;
-    return {
-        fills: partialPalette.fills ?? basePalette.fills,
-        strokes: partialPalette.strokes ?? basePalette.strokes,
-    };
-}

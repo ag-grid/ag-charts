@@ -22,11 +22,11 @@ import {
     isDefaultAxisSwapNeeded,
     isSoloSeries,
 } from '../factory/seriesTypes';
-import type { ChartTheme } from '../themes/chartTheme';
+import { ChartTheme, resolvePartialPalette } from '../themes/chartTheme';
 import { resolveModuleConflicts, swapAxes } from './defaults';
 import type { SeriesOptions } from './prepareSeries';
 import { processSeriesOptions } from './prepareSeries';
-import { getChartTheme, resolvePartialPalette } from './themes';
+import { getChartTheme } from './themes';
 import {
     type AxesOptionsTypes,
     type SeriesOptionsTypes,
