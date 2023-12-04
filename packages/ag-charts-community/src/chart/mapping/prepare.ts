@@ -22,7 +22,7 @@ import {
     isDefaultAxisSwapNeeded,
     isSoloSeries,
 } from '../factory/seriesTypes';
-import { ChartTheme, resolvePartialPalette } from '../themes/chartTheme';
+import { type ChartTheme, resolvePartialPalette } from '../themes/chartTheme';
 import { resolveModuleConflicts, swapAxes } from './defaults';
 import type { SeriesOptions } from './prepareSeries';
 import { processSeriesOptions } from './prepareSeries';
