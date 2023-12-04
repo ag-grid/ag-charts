@@ -147,6 +147,34 @@ const EXAMPLES_NO_SERIES: Record<string, TestCase> = {
             seriesTypes: ['bar', 'bar', 'line'],
         }),
     },
+    COMBO_SERIES_AREA_PADDING: {
+        options: axesExamples.COMBO_SERIES_AREA_PADDING,
+        assertions: cartesianChartAssertions({
+            axisTypes: ['category', 'number', 'number'],
+            seriesTypes: ['bar', 'bar', 'line'],
+        }),
+    },
+    COMBO_SERIES_AREA_PADDING_WITHOUT_TITLES: {
+        options: axesExamples.COMBO_SERIES_AREA_PADDING_WITHOUT_TITLES,
+        assertions: cartesianChartAssertions({
+            axisTypes: ['category', 'number', 'number'],
+            seriesTypes: ['bar', 'bar', 'line'],
+        }),
+    },
+    COMBO_SERIES_AREA_PADDING_WITHOUT_LABELS: {
+        options: axesExamples.COMBO_SERIES_AREA_PADDING_WITHOUT_LABELS,
+        assertions: cartesianChartAssertions({
+            axisTypes: ['category', 'number', 'number'],
+            seriesTypes: ['bar', 'bar', 'line'],
+        }),
+    },
+    COMBO_SERIES_AREA_PADDING_WITHOUT_LABELS_OR_TITLES: {
+        options: axesExamples.COMBO_SERIES_AREA_PADDING_WITHOUT_LABELS_OR_TITLES,
+        assertions: cartesianChartAssertions({
+            axisTypes: ['category', 'number', 'number'],
+            seriesTypes: ['bar', 'bar', 'line'],
+        }),
+    },
     AREA_CHART_NO_SERIES: {
         options: axesExamples.AREA_CHART_NO_SERIES,
         assertions: cartesianChartAssertions({

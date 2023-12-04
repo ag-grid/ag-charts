@@ -569,12 +569,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         };
     }
 
-    private setTitleProps(
-        caption: Caption,
-        params: {
-            tickSpace: number;
-        }
-    ) {
+    private setTitleProps(caption: Caption, params: { spacing: number }) {
         const { title } = this;
         if (!title) {
             caption.enabled = false;
@@ -591,8 +586,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         if (title.enabled) {
             const titleNode = caption.node;
-            const { tickSpace } = params;
-            const padding = (title.spacing ?? 0) + tickSpace;
+            const padding = (title.spacing ?? 0) + params.spacing;
             const sideFlag = this.label.getSideFlag();
 
             const parallelFlipRotation = normalizeAngle360(this.rotation);
@@ -641,7 +635,12 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const boxes: BBox[] = [];
 
         const { x, y1, y2 } = this.getAxisLineCoordinates();
-        const lineBox = new BBox(x, y1, 0, y2 - y1);
+        const lineBox = new BBox(
+            x + Math.min(sideFlag * this.seriesAreaPadding, 0),
+            y1,
+            this.seriesAreaPadding,
+            y2 - y1
+        );
         boxes.push(lineBox);
 
         const { tick } = this;
@@ -700,15 +699,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const { title } = this;
         if (title?.enabled) {
             const caption = new Caption();
-            let tickSpace = 0;
-            if (tickData.ticks.length > 0) {
-                const contentBox = BBox.merge(boxes);
-                const tickWidth = contentBox.width;
-                if (isFinite(tickWidth)) {
-                    tickSpace += tickWidth;
-                }
-            }
-            this.setTitleProps(caption, { tickSpace });
+            const spacing = BBox.merge(boxes).width;
+            this.setTitleProps(caption, { spacing });
             const titleNode = caption.node;
             const titleBox = titleNode.computeTransformedBBox()!;
             if (titleBox) {
@@ -1388,16 +1380,13 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             return;
         }
 
-        let tickSpace = 0;
-        const { anyTickVisible } = params;
-        if (title.enabled && anyTickVisible) {
+        let spacing = 0;
+        if (title.enabled && params.anyTickVisible) {
             const tickBBox = Group.computeBBox([tickLineGroup, tickLabelGroup, lineNode]);
             const tickWidth = rotation === 0 ? tickBBox.width : tickBBox.height;
-            if (Math.abs(tickWidth) < Infinity) {
-                tickSpace += tickWidth;
-            }
+            spacing += tickWidth + (!this.tickLabelGroup.visible ? this.seriesAreaPadding : 0);
         }
-        this.setTitleProps(_titleCaption, { tickSpace });
+        this.setTitleProps(_titleCaption, { spacing });
     }
 
     // For formatting (nice rounded) tick values.
