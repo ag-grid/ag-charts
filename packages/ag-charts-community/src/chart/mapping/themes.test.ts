@@ -1,10 +1,18 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
-import type { AgChartOptions, AgChartTheme, AgChartThemePalette } from '../../options/agChartOptions';
+import type {
+    AgBarSeriesOptions,
+    AgCartesianSeriesOptions,
+    AgChartOptions,
+    AgChartTheme,
+    AgChartThemeName,
+    AgChartThemePalette,
+} from '../../options/agChartOptions';
 import { AgCharts } from '../agChartV2';
 import type { Chart } from '../chart';
-import { prepareTestOptions, waitForChartStability } from '../test/utils';
+import { deproxy, prepareTestOptions, waitForChartStability } from '../test/utils';
+import { themes } from './themes';
 
 expect.extend({ toMatchImageSnapshot });
 
@@ -14,21 +22,50 @@ describe('ThemesValidation', () => {
         console.warn = jest.fn();
     });
 
+    const getPalette = (themeName: AgChartThemeName): AgChartThemePalette | undefined => {
+        const ctr = themes[themeName];
+        if (ctr !== undefined) {
+            return ctr().palette;
+        }
+    };
+
+    const getActualPalette = (chart: Chart) => {
+        let result = undefined;
+        for (const series of deproxy(chart).processedOptions.series ?? []) {
+            result ??= { fills: [] as string[], strokes: [] as string[] };
+
+            expect(series.type).toEqual('bar');
+            const barseries = series as AgBarSeriesOptions;
+            if (barseries.fill !== undefined) {
+                result.fills.push(barseries.fill);
+            }
+            if (barseries.stroke !== undefined) {
+                result.strokes.push(barseries.stroke);
+            }
+        }
+        return result;
+    };
+
     const opts: AgChartOptions = {
         ...prepareTestOptions({}),
         data: [
-            { label: 'Android', v1: 5.67, v2: 8.63, v3: 8.14, v4: 6.45, v5: 1.37 },
-            { label: 'iOS', v1: 7.01, v2: 8.04, v3: 1.338, v4: 6.78, v5: 5.45 },
-            { label: 'BlackBerry', v1: 7.54, v2: 1.98, v3: 9.88, v4: 1.38, v5: 4.44 },
-            { label: 'Symbian', v1: 9.27, v2: 4.21, v3: 2.53, v4: 6.31, v5: 4.44 },
-            { label: 'Windows', v1: 2.8, v2: 1.908, v3: 7.48, v4: 5.29, v5: 8.8 },
+            { n: 'A', v0: 4.2, v1: 5.6, v2: 8.6, v3: 8.1, v4: 6.4, v5: 1.3, v6: 6.4, v7: 1.3, v8: 2.2, v9: 8.7 },
+            { n: 'B', v0: 1.8, v1: 7.1, v2: 8.4, v3: 1.3, v4: 6.8, v5: 5.5, v6: 2.7, v7: 4.8, v8: 4.8, v9: 5.2 },
+            { n: 'C', v0: 7.1, v1: 7.4, v2: 1.9, v3: 9.8, v4: 1.3, v5: 4.4, v6: 8.3, v7: 9.5, v8: 1.3, v9: 0.9 },
+            { n: 'D', v0: 3.5, v1: 9.2, v2: 4.2, v3: 2.5, v4: 6.3, v5: 4.4, v6: 5.9, v7: 2.2, v8: 6.8, v9: 0.1 },
+            { n: 'E', v0: 9.0, v1: 2.8, v2: 1.9, v3: 7.4, v4: 5.9, v5: 8.1, v6: 0.6, v7: 7.6, v8: 3.0, v9: 3.4 },
         ],
         series: [
-            { type: 'bar', xKey: 'label', yKey: 'v1', stacked: true, yName: 'Reliability' },
-            { type: 'bar', xKey: 'label', yKey: 'v2', stacked: true, yName: 'Ease of use' },
-            { type: 'bar', xKey: 'label', yKey: 'v3', stacked: true, yName: 'Performance' },
-            { type: 'bar', xKey: 'label', yKey: 'v4', stacked: true, yName: 'Price' },
-            { type: 'bar', xKey: 'label', yKey: 'v5', stacked: true, yName: 'Market share' },
+            { type: 'bar', xKey: 'n', yKey: 'v0', stacked: true },
+            { type: 'bar', xKey: 'n', yKey: 'v1', stacked: true },
+            { type: 'bar', xKey: 'n', yKey: 'v2', stacked: true },
+            { type: 'bar', xKey: 'n', yKey: 'v3', stacked: true },
+            { type: 'bar', xKey: 'n', yKey: 'v4', stacked: true },
+            { type: 'bar', xKey: 'n', yKey: 'v5', stacked: true },
+            { type: 'bar', xKey: 'n', yKey: 'v6', stacked: true },
+            { type: 'bar', xKey: 'n', yKey: 'v7', stacked: true },
+            { type: 'bar', xKey: 'n', yKey: 'v8', stacked: true },
+            { type: 'bar', xKey: 'n', yKey: 'v9', stacked: true },
         ],
     };
 
@@ -43,7 +80,7 @@ describe('ThemesValidation', () => {
         expect(console.warn).toBeCalledWith('AG Charts - invalid theme value type boolean, expected object.');
     });
 
-    it('should show 1 warning for missing strokes', async () => {
+    test('missing strokes', async () => {
         const chart = AgCharts.create({
             ...opts,
             theme: {
@@ -55,11 +92,11 @@ describe('ThemesValidation', () => {
         }) as Chart;
         await waitForChartStability(chart);
 
-        expect(console.warn).toBeCalledTimes(1);
-        expect(console.warn).toBeCalledWith('AG Charts - theme.overrides.strokes must be a defined array');
+        expect(console.warn).toBeCalledTimes(0);
+        expect(getActualPalette(chart)?.strokes).toEqual(getPalette('ag-default-dark')?.strokes);
     });
 
-    it('should show 1 warning for missing fills', async () => {
+    test('missing fills', async () => {
         const chart = AgCharts.create({
             ...opts,
             theme: {
@@ -71,8 +108,8 @@ describe('ThemesValidation', () => {
         }) as Chart;
         await waitForChartStability(chart);
 
-        expect(console.warn).toBeCalledTimes(1);
-        expect(console.warn).toBeCalledWith('AG Charts - theme.overrides.fills must be a defined array');
+        expect(console.warn).toBeCalledTimes(0);
+        expect(getActualPalette(chart)?.fills).toEqual(getPalette('ag-default-dark')?.fills);
     });
 
     it('should show 3 warnings for invalid types', async () => {
@@ -109,8 +146,8 @@ describe('ThemesValidation', () => {
         await waitForChartStability(chart);
 
         expect(console.warn).toBeCalledTimes(2);
-        expect(console.warn).nthCalledWith(1, 'AG Charts - theme.overrides.fills must be a defined array');
-        expect(console.warn).nthCalledWith(2, 'AG Charts - theme.overrides.strokes must be a defined array');
+        expect(console.warn).nthCalledWith(1, 'AG Charts - theme.overrides.fills must be undefined or an array');
+        expect(console.warn).nthCalledWith(2, 'AG Charts - theme.overrides.strokes must be undefined or an array');
     });
 });
 /* eslint-enable no-console */
