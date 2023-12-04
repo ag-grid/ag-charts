@@ -17,7 +17,7 @@ for (const packageDir of packageDirectories) {
     let updated = false;
     const packageJson = JSON.parse(fs.readFileSync(packageJsonFilename).toString());
     if (packageJson.name === depToUpdate) {
-        updated |= packageJson.version !== version;
+        updated ||= packageJson.version !== version;
         packageJson.version = version;
     }
 

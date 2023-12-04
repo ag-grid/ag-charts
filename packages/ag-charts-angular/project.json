@@ -17,14 +17,10 @@
       "dependsOn": ["build"],
       "outputs": ["{workspaceRoot}/dist/packages/ag-charts-angular.tgz"],
       "options": {
-        "cwd": "packages/ag-charts-angular",
+        "cwd": "packages/ag-charts-angular/dist/ag-charts-angular",
         "commands": [
-          {
-            "command": "mkdir -p ../../dist/packages"
-          },
-          {
-            "command": "yarn pack -f ../../dist/packages/ag-charts-angular.tgz"
-          }
+          "mkdir -p ../../../../dist/packages",
+          "yarn pack -f ../../../../dist/packages/ag-charts-angular.tgz"
         ]
       }
     },
