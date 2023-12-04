@@ -14,12 +14,46 @@ const options: AgChartOptions = {
             angleKey: 'department',
             radiusKey: 'quality',
             radiusName: 'Quality',
+            lineDash: [4],
+            strokeWidth: 1,
         },
         {
             type: 'radar-line',
             angleKey: 'department',
             radiusKey: 'efficiency',
             radiusName: 'Efficiency',
+            lineDash: [4],
+            strokeWidth: 1,
+        },
+        {
+            type: 'radar-line',
+            angleKey: 'department',
+            radiusKey: 'customerSatisfaction',
+            radiusName: 'Customer Satisfaction',
+            strokeWidth: 1,
+            marker: {
+                enabled: false,
+            },
+        },
+    ],
+    axes: [
+        {
+            type: 'angle-category',
+            gridLine: {
+                enabled: false,
+            },
+        },
+        {
+            type: 'radius-number',
+            gridLine: {
+                enabled: true,
+            },
+            line: {
+                enabled: false,
+            },
+            label: {
+                enabled: false,
+            },
         },
     ],
 };
