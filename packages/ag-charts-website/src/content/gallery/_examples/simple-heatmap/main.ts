@@ -22,6 +22,25 @@ const options: AgChartOptions = {
             colorName: 'Temperature',
         },
     ],
+    axes: [
+        {
+            position: 'left',
+            type: 'category',
+            label: {
+                enabled: false,
+            },
+            line: {
+                enabled: false,
+            },
+        },
+        {
+            position: 'bottom',
+            type: 'category',
+            line: {
+                enabled: false,
+            },
+        },
+    ],
 };
 
 AgCharts.create(options);

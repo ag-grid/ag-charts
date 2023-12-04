@@ -21,12 +21,28 @@ const options: AgChartOptions = {
             colorKey: 'steps',
             colorName: 'Steps',
 
-            strokeWidth: 2,
+            strokeWidth: 1,
         },
     ],
     gradientLegend: {
         enabled: false,
     },
+    axes: [
+        {
+            position: 'left',
+            type: 'category',
+            label: {
+                enabled: false,
+            },
+        },
+        {
+            position: 'top',
+            type: 'category',
+            line: {
+                enabled: false,
+            },
+        },
+    ],
 };
 
 AgCharts.create(options);

@@ -546,14 +546,14 @@
                         "name": "simple-heatmap"
                     },
                     {
-                        "title": "Calendar Heatmap",
-                        "description": "",
-                        "name": "calendar-heatmap"
-                    },
-                    {
                         "title": "Heatmap with Labels",
                         "description": "",
                         "name": "heatmap-with-labels"
+                    },
+                    {
+                        "title": "Calendar Heatmap",
+                        "description": "",
+                        "name": "calendar-heatmap"
                     }
                 ]
             }

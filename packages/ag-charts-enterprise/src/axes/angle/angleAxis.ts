@@ -154,6 +154,7 @@ export abstract class AngleAxis<
             path.closePath();
         }
 
+        node.visible = this.line.enabled;
         node.stroke = this.line.color;
         node.strokeWidth = this.line.width;
         node.fill = undefined;
