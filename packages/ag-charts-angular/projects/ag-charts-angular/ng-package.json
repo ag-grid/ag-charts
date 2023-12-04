@@ -4,5 +4,6 @@
     "lib": {
         "entryFile": "src/public-api.ts"
     },
-    "allowedNonPeerDependencies": ["ag-charts-community"]
+    "allowedNonPeerDependencies": ["ag-charts-community"],
+    "assets": ["./LICENSE.txt"]
 }
