@@ -14,6 +14,10 @@ export function isNegative(a: number) {
     return Math.sign(a) < 0 || Object.is(a, -0);
 }
 
+export function isReal(a: number) {
+    return isFinite(a) && !isNaN(a);
+}
+
 export function round(value: number, decimals: number = 2) {
     const pow = Math.pow(10, decimals);
     return Math.round(value * pow) / pow;

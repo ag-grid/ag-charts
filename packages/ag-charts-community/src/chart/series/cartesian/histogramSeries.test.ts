@@ -249,4 +249,46 @@ describe('HistogramSeries', () => {
             });
         }
     });
+
+    // See https://ag-grid.atlassian.net/browse/AG-8641
+    describe('explicit binCount', () => {
+        test('with 0 decimal places', async () => {
+            const options: AgChartOptions = {
+                data: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((x) => {
+                    return { x };
+                }),
+                series: [{ type: 'histogram', xKey: 'x', binCount: 10 }],
+            };
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        test('with 1 decimal places', async () => {
+            const options: AgChartOptions = {
+                data: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((x) => {
+                    return { x: x / 10 };
+                }),
+                series: [{ type: 'histogram', xKey: 'x', binCount: 10 }],
+            };
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        test('with 2 decimal places', async () => {
+            const options: AgChartOptions = {
+                data: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((x) => {
+                    return { x: x / 100 };
+                }),
+                series: [{ type: 'histogram', xKey: 'x', binCount: 10 }],
+            };
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+    });
 });

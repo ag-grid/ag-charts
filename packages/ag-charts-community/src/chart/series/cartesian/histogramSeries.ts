@@ -13,6 +13,7 @@ import type { Selection } from '../../../scene/selection';
 import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
 import { sanitizeHtml, tickStep, ticks } from '../../../sparklines-util';
+import { isReal } from '../../../util/number';
 import {
     BOOLEAN,
     NUMBER,
@@ -150,8 +151,8 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramNodeDatum> {
     // the bins. Returns bins in format[[min1, max1], [min2, max2], ... ].
     private deriveBins(xDomain: [number, number]): [number, number][] {
         if (this.binCount === undefined) {
-            const binStarts = ticks(xDomain[0], xDomain[1], defaultBinCount);
-            const binSize = tickStep(xDomain[0], xDomain[1], defaultBinCount);
+            const binStarts = ticks(xDomain[0], xDomain[1], this.binCount ?? defaultBinCount);
+            const binSize = tickStep(xDomain[0], xDomain[1], this.binCount ?? defaultBinCount);
             const firstBinEnd = binStarts[0];
 
             const expandStartToBin: (n: number) => [number, number] = (n) => [n, n + binSize];
@@ -174,10 +175,11 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramNodeDatum> {
 
     private getBins(start: number, stop: number, step: number, count: number): [number, number][] {
         const bins: [number, number][] = [];
+        const precision = this.calculatePrecision(step);
 
         for (let i = 0; i < count; i++) {
-            const a = Math.round((start + i * step) * 10) / 10;
-            let b = Math.round((start + (i + 1) * step) * 10) / 10;
+            const a = Math.round((start + i * step) * precision) / precision;
+            let b = Math.round((start + (i + 1) * step) * precision) / precision;
             if (i === count - 1) {
                 b = Math.max(b, stop);
             }
@@ -186,6 +188,17 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramNodeDatum> {
         }
 
         return bins;
+    }
+
+    private calculatePrecision(step: number): number {
+        let precision = 10;
+        if (isReal(step) && step > 0) {
+            while (step < 1) {
+                precision *= 10;
+                step *= 10;
+            }
+        }
+        return precision;
     }
 
     private calculateNiceStart(a: number, b: number, segments: number): { start: number; binSize: number } {
