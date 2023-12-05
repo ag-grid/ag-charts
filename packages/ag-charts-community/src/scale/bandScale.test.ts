@@ -41,28 +41,28 @@ test('inner padding', () => {
     const scale = new BandScale();
 
     scale.domain = ['A', 'B', 'C', 'D', 'E'];
-    scale.range = [0, 500];
-    scale.paddingInner = 1;
+    scale.range = [0, 600];
+    scale.paddingInner = 5 / 8;
 
     expect(scale.convert('A')).toBe(0);
-    expect(scale.convert('B')).toBe(125);
-    expect(scale.convert('C')).toBe(250);
-    expect(scale.convert('D')).toBe(375);
-    expect(scale.convert('E')).toBe(500);
+    expect(scale.convert('B')).toBe(130);
+    expect(scale.convert('C')).toBe(260);
+    expect(scale.convert('D')).toBe(390);
+    expect(scale.convert('E')).toBe(520);
 });
 
 test('outer padding', () => {
     const scale = new BandScale();
 
     scale.domain = ['A', 'B', 'C', 'D', 'E'];
-    scale.range = [0, 500];
-    scale.paddingOuter = 0.06;
+    scale.range = [0, 600];
+    scale.paddingOuter = 0.5;
 
-    expect(scale.convert('A')).toBe(5.859375);
-    expect(scale.convert('B')).toBe(103.515625);
-    expect(scale.convert('C')).toBe(201.171875);
-    expect(scale.convert('D')).toBe(298.828125);
-    expect(scale.convert('E')).toBe(396.484375);
+    expect(scale.convert('A')).toBe(50);
+    expect(scale.convert('B')).toBe(150);
+    expect(scale.convert('C')).toBe(250);
+    expect(scale.convert('D')).toBe(350);
+    expect(scale.convert('E')).toBe(450);
 });
 
 test('padding', () => {
@@ -73,13 +73,13 @@ test('padding', () => {
     scale.paddingInner = 1;
     scale.paddingOuter = 0.5;
 
-    expect(scale.convert('A')).toBe(50);
-    expect(scale.convert('B')).toBe(150);
-    expect(scale.convert('C')).toBe(250);
-    expect(scale.convert('D')).toBe(350);
-    expect(scale.convert('E')).toBe(450);
+    expect(scale.convert('A')).toBe(25);
+    expect(scale.convert('B')).toBe(125);
+    expect(scale.convert('C')).toBe(225);
+    expect(scale.convert('D')).toBe(325);
+    expect(scale.convert('E')).toBe(425);
 
-    expect(scale.bandwidth).toBe(0);
+    expect(scale.bandwidth).toBe(50);
 });
 
 test('round', () => {
@@ -90,11 +90,11 @@ test('round', () => {
     scale.paddingOuter = 0.06;
     scale.round = true;
 
-    expect(scale.convert('A')).toBe(8);
-    expect(scale.convert('B')).toBe(105);
-    expect(scale.convert('C')).toBe(202);
-    expect(scale.convert('D')).toBe(299);
-    expect(scale.convert('E')).toBe(396);
+    expect(scale.convert('A')).toBe(7);
+    expect(scale.convert('B')).toBe(104);
+    expect(scale.convert('C')).toBe(201);
+    expect(scale.convert('D')).toBe(298);
+    expect(scale.convert('E')).toBe(395);
 
     expect(scale.bandwidth).toBe(97);
 });

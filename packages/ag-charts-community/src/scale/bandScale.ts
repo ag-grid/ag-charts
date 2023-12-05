@@ -130,6 +130,7 @@ export class BandScale<D> implements Scale<D, number, number> {
     /**
      * The ratio of the range that is reserved for space between bands.
      */
+    @Invalidating
     private _paddingInner = 0;
     set paddingInner(value: number) {
         this._paddingInner = clamp(value, 0, 1);
@@ -142,6 +143,7 @@ export class BandScale<D> implements Scale<D, number, number> {
      * The ratio of the range that is reserved for space before the first
      * and after the last band.
      */
+    @Invalidating
     private _paddingOuter = 0;
     set paddingOuter(value: number) {
         this._paddingOuter = clamp(value, 0, 1);
@@ -165,18 +167,22 @@ export class BandScale<D> implements Scale<D, number, number> {
         const [r0, r1] = this.range;
         const width = r1 - r0;
 
-        const rawStep = width / Math.max(1, count + 2 * paddingOuter - paddingInner);
-        const step = round ? Math.floor(rawStep) : rawStep;
-        const fullBandWidth = step * (count - paddingInner);
-        const x0 = r0 + (width - fullBandWidth) / 2;
-        const start = round ? Math.round(x0) : x0;
-        const bw = step * (1 - paddingInner);
-        const bandwidth = round ? Math.round(bw) : bw;
-        const rawBandwidth = rawStep * (1 - paddingInner);
+        const totalContributions = count + (count - 1) * paddingInner + 2 * paddingOuter;
+        const scale = width / totalContributions;
 
+        const rawBandwidth = scale;
+        const bandwidth = round ? Math.trunc(rawBandwidth) : rawBandwidth;
+        const step = round ? Math.trunc(paddingInner * scale) : paddingInner * scale;
+        const inset = round ? Math.trunc(paddingOuter * scale) : paddingOuter * scale;
+
+        const uncounted = round ? width - (bandwidth * count + step * (count - 1) + 2 * inset) : 0;
+
+        let currentValue = r0 + inset + Math.trunc(uncounted / 2);
         const values: number[] = [];
-        for (let i = 0; i < count; i++) {
-            values.push(start + step * i);
+        for (let i = 0; i < count; i += 1) {
+            const value = round ? Math.trunc(currentValue) : currentValue;
+            values.push(value);
+            currentValue += bandwidth + step;
         }
 
         this._bandwidth = bandwidth;
