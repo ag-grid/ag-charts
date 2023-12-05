@@ -1,5 +1,7 @@
 import type { FunctionComponent } from 'react';
 
+import { getCssVarValue } from './getCssVarValue';
+
 const colors = {
     base: ['white', 'black'],
     gray: ['25', '50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950'],
@@ -26,6 +28,10 @@ const Color: FunctionComponent = ({ colorName }) => {
                 className="bottom"
                 style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', padding: '0.5rem' }}
             >
+                <span>
+                    <b>{getCssVarValue(cssVar)}</b>
+                </span>
+
                 <code>{cssVar}</code>
                 <code>{sassVar}</code>
             </div>
