@@ -1,5 +1,6 @@
 import type { FunctionComponent } from 'react';
 
+import styles from './StyleGuide.module.scss';
 import { getCssVarValue } from './getCssVarValue';
 
 const colors = {
@@ -13,21 +14,9 @@ const Color: FunctionComponent = ({ colorName }) => {
     const sassVar = `$color-${colorName}`;
 
     return (
-        <div
-            className="swatch"
-            style={{
-                width: '12rem',
-                border: '1px solid #ddd',
-                borderRadius: '0.5rem',
-                overflow: 'hidden',
-                marginBottom: '1rem',
-            }}
-        >
-            <div className="top" style={{ backgroundColor: `var(${cssVar})`, height: '4rem' }}></div>
-            <div
-                className="bottom"
-                style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', padding: '0.5rem' }}
-            >
+        <div className={styles.swatch}>
+            <div className={styles.swatchTop} style={{ backgroundColor: `var(${cssVar})` }}></div>
+            <div className={styles.swatchBottom}>
                 <span>
                     <b>{getCssVarValue(cssVar)}</b>
                 </span>
