@@ -29290,7 +29290,7 @@ function applySeriesValues(target, options, { path, index } = {}) {
 }
 
 // DO NOT UPDATE MANUALLY: Generated from script during build time
-const VERSION = '9.0.0';
+const VERSION = '9.0.1';
 
 const themes = Object.entries(themes$1).reduce((obj, [name, factory]) => {
     obj[name] = factory();

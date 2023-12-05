@@ -1,12 +1,6 @@
 {
   "name": "ag-charts-angular",
-  "version": "9.0.0",
-  "scripts": {
-    "ng": "ng",
-    "build": "ng build",
-    "build-prod": "npm run build",
-    "lint": "# ng lint"
-  },
+  "version": "9.0.1",
   "repository": {
     "type": "git",
     "url": "https://github.com/ag-grid/ag-charts.git"
@@ -18,50 +12,37 @@
     "chart",
     "angular"
   ],
-  "author": "AG Grid <info@ag-grid.com>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/ag-grid/ag-charts/issues"
   },
   "homepage": "https://charts.ag-grid.com/",
-  "private": false,
-  "module": "./dist/ag-charts-angular/fesm2015/ag-charts-angular.mjs",
-  "typings": "./dist/ag-charts-angular/index.d.ts",
-  "dependencies": {
-    "@angular/animations": "^14.3.0",
-    "@angular/common": "^14.3.0",
-    "@angular/compiler": "^14.3.0",
-    "@angular/core": "^14.3.0",
-    "@angular/forms": "^14.3.0",
-    "@angular/platform-browser": "^14.3.0",
-    "@angular/platform-browser-dynamic": "^14.3.0",
-    "@angular/router": "^14.3.0",
-    "ag-charts-community": "9.0.0",
-    "rxjs": "~7.5.0",
-    "tslib": "^2.3.0",
-    "zone.js": "~0.11.4"
+  "peerDependencies": {
+    "@angular/common": ">= 14.0.0",
+    "@angular/core": ">= 14.0.0"
   },
-  "devDependencies": {
-    "@angular-devkit/build-angular": "^14.2.12",
-    "@angular-eslint/builder": "12.7.0",
-    "@angular-eslint/eslint-plugin": "12.7.0",
-    "@angular-eslint/eslint-plugin-template": "12.7.0",
-    "@angular-eslint/schematics": "12.7.0",
-    "@angular-eslint/template-parser": "12.7.0",
-    "@angular/cli": "^14.2.12",
-    "@angular/compiler-cli": "^14.3.0",
-    "@types/jasmine": "~4.0.0",
-    "@types/node": "^18.18.10",
-    "@typescript-eslint/eslint-plugin": "4.28.2",
-    "@typescript-eslint/parser": "4.28.2",
-    "eslint": "^7.26.0",
-    "jasmine-core": "~4.3.0",
-    "karma": "~6.4.0",
-    "karma-chrome-launcher": "~3.1.0",
-    "karma-coverage": "~2.2.0",
-    "karma-jasmine": "~5.1.0",
-    "karma-jasmine-html-reporter": "~2.0.0",
-    "ng-packagr": "^14.2.2",
-    "typescript": "~4.7.4"
-  }
+  "dependencies": {
+    "tslib": "^2.3.0",
+    "ag-charts-community": "9.0.1"
+  },
+  "module": "fesm2015/ag-charts-angular.mjs",
+  "es2020": "fesm2020/ag-charts-angular.mjs",
+  "esm2020": "esm2020/ag-charts-angular.mjs",
+  "fesm2020": "fesm2020/ag-charts-angular.mjs",
+  "fesm2015": "fesm2015/ag-charts-angular.mjs",
+  "typings": "index.d.ts",
+  "exports": {
+    "./package.json": {
+      "default": "./package.json"
+    },
+    ".": {
+      "types": "./index.d.ts",
+      "esm2020": "./esm2020/ag-charts-angular.mjs",
+      "es2020": "./fesm2020/ag-charts-angular.mjs",
+      "es2015": "./fesm2015/ag-charts-angular.mjs",
+      "node": "./fesm2015/ag-charts-angular.mjs",
+      "default": "./fesm2020/ag-charts-angular.mjs"
+    }
+  },
+  "sideEffects": false
 }
