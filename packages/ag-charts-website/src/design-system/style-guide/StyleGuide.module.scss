@@ -1,0 +1,45 @@
+// General style guide
+// ===============================================
+.styleGuide {
+    padding-top: 6rem;
+    padding-bottom: 24rem;
+}
+
+// Color
+// ===============================================
+.swatch {
+    width: 12rem;
+    margin-bottom: 1rem;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+}
+
+.swatchTop {
+    height: 4rem;
+}
+
+.swatchBottom {
+    display: flex;
+    flex-direction: column;
+    padding: 0.5rem;
+    gap: 0.25rem;
+}
+
+// Text
+// ===============================================
+.textList {
+    display: flex;
+    gap: 2rem;
+}
+
+.textItem {
+    margin-bottom: 1rem;
+}
+
+.textExample {
+    max-width: 440px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
