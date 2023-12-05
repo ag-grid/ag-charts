@@ -50,7 +50,7 @@
         margin-bottom: $size-1;
     }
 
-    :global(a.docs-header-icon) {
+    .linkIcon {
         font-size: var(--font-size-large);
     }
 }
@@ -64,7 +64,7 @@
         border-top: 1px solid var(--border-color);
     }
 
-    &:hover a:global(.docs-header-icon) {
+    &:hover .linkIcon {
         opacity: 0.5;
     }
 
@@ -121,11 +121,11 @@
         font-size: var(--font-size-medium);
     }
 
-    :hover :global(a.docs-header-icon) {
+    :hover .linkIcon {
         opacity: 0.5;
     }
 
-    :global(a.docs-header-icon) {
+    .linkIcon {
         position: absolute;
         bottom: -0.125em;
     }

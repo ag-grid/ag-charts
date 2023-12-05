@@ -26,12 +26,7 @@ const { series } = galleryData;
                                         {title}
                                     </h3>
                                     {examples.map(({ title, name }: GalleryExample) => (
-                                        <GalleryExampleLink
-                                            client:visible
-                                            className="galleryExample"
-                                            label={title}
-                                            exampleName={name}
-                                        />
+                                        <GalleryExampleLink client:visible label={title} exampleName={name} />
                                     ))}
                                 </>
                             ))}
@@ -198,28 +193,6 @@ const { series } = galleryData;
     .gallery-list-title {
         position: absolute;
         visibility: hidden;
-    }
-
-    .galleryExample {
-        --columns: 1;
-
-        width: calc(100% / var(--columns) - var(--gallery-list-gap) / var(--columns) * (var(--columns) - 1));
-
-        @media screen and (min-width: 720px) {
-            --columns: 2;
-        }
-
-        @media screen and (min-width: 1120px) {
-            --columns: 3;
-        }
-
-        @media screen and (min-width: 2000px) {
-            --columns: 4;
-        }
-
-        @media screen and (min-width: 2500px) {
-            --columns: 5;
-        }
     }
 </style>
 

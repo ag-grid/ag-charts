@@ -19,10 +19,12 @@ export async function get({ params }: { params: Params }) {
         (await getGeneratedPlainGalleryContents({
             exampleName,
         })) || {};
-    const response = generatedContents;
-    const body = JSON.stringify(response);
+    const body = generatedContents;
 
-    return {
-        body,
-    };
+    return new Response(JSON.stringify(body), {
+        status: 200,
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
 }

@@ -1,4 +1,5 @@
 import type { InternalFramework } from '@ag-grid-types';
+import { getFileContents } from '@utils/getFileContents';
 import fs from 'node:fs/promises';
 
 import { getIsDev } from '../../utils/env';
@@ -7,7 +8,6 @@ import chartVanillaSrcParser from './transformation-scripts/chart-vanilla-src-pa
 import type { GeneratedContents } from './types.d';
 import {
     getEntryFileName,
-    getFileContents,
     getIsEnterprise,
     getProvidedExampleFiles,
     getProvidedExampleFolder,

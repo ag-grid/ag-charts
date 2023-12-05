@@ -42,7 +42,5 @@ export async function get({ params }: { params: Params }) {
     const file = files && files[fileName];
     const body = file ? file : createErrorBody({ availableFiles: files });
 
-    return {
-        body,
-    };
+    return new Response(body);
 }

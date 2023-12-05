@@ -1,6 +1,6 @@
 @use '../../design-system/' as *;
 
-:global(.docs-header-icon) {
+.docsHeaderIcon {
     position: relative;
     padding-left: 0;
     margin-left: $size-1;
@@ -16,9 +16,24 @@
         visibility: visible;
         fill: var(--azure-blue);
     }
+
+    &:hover {
+        opacity: 1;
+    }
 }
 
-// Increase specificity for hover state
-:global(.mainContainer) a:global(.docs-header-icon):hover {
-    opacity: 1;
+// Half highlight icon if hovering over container heading element
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    &:hover .docsHeaderIcon {
+        opacity: 0.5;
+
+        &:hover {
+            opacity: 1;
+        }
+    }
 }

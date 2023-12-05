@@ -10,16 +10,18 @@ import agHotModuleReload from './src/astro/plugins/agHotModuleReload';
 import { getDevFileList } from './src/utils/pages';
 import { getSitemapConfig } from './src/utils/sitemap';
 
+const { NODE_ENV } = process.env;
+
 const DEFAULT_BASE_URL = '/';
 const {
     PUBLIC_SITE_URL,
     PUBLIC_BASE_URL = DEFAULT_BASE_URL,
     PUBLIC_HTTPS_SERVER,
-} = loadEnv(process.env.NODE_ENV, process.cwd(), '');
+} = loadEnv(NODE_ENV, process.cwd(), '');
 
 const OUTPUT_DIR = '../../dist/packages/ag-charts-website';
 
-console.log('Astro configuration', JSON.stringify({ PUBLIC_SITE_URL, PUBLIC_BASE_URL, OUTPUT_DIR }, null, 2));
+console.log('Astro configuration', JSON.stringify({ NODE_ENV, PUBLIC_SITE_URL, PUBLIC_BASE_URL, OUTPUT_DIR }, null, 2));
 
 // https://astro.build/config
 export default defineConfig({
