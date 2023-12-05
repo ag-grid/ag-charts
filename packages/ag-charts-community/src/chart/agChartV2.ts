@@ -18,6 +18,7 @@ import { jsonApply, jsonDiff, jsonMerge } from '../util/json';
 import { Logger } from '../util/logger';
 import type { TypedEventListener } from '../util/observable';
 import type { DeepPartial } from '../util/types';
+import { AxisPositionGuesser } from './axis/axisUtil';
 import { CartesianChart } from './cartesianChart';
 import type { Chart, ChartExtendedOptions, ChartSpecialOverrides } from './chart';
 import type { ChartAxis } from './chartAxis';
@@ -580,7 +581,7 @@ function applySeriesOptionModules(series: Series<any>, options: AgBaseSeriesOpti
 }
 
 function createAxis(chart: Chart, options: AgBaseAxisOptions[]): ChartAxis[] {
-    const axes: ChartAxis[] = [];
+    const guesser: AxisPositionGuesser = new AxisPositionGuesser();
     const skip = ['axes[].type'];
     const moduleContext = chart.getModuleContext();
 
@@ -591,10 +592,10 @@ function createAxis(chart: Chart, options: AgBaseAxisOptions[]): ChartAxis[] {
         applyAxisModules(axis, axisOptions);
         applyOptionValues(axis, axisOptions, { path, skip });
 
-        axes.push(axis);
+        guesser.push(axis, axisOptions);
     }
 
-    return axes;
+    return guesser.guessInvalidPositions();
 }
 
 function applyAxisModules(axis: ChartAxis, options: AgBaseAxisOptions) {
