@@ -284,6 +284,58 @@ export const COMBO_CATEGORY_NUMBER_AXIS_NO_SERIES_FIXED_DOMAIN: AgChartOptions =
     }),
 };
 
+export const COMBO_SERIES_AREA_PADDING: AgChartOptions = {
+    ...COMBO_CATEGORY_NUMBER_AXIS_NO_SERIES,
+    seriesArea: {
+        padding: {
+            left: 50,
+            right: 50,
+            bottom: 50,
+        },
+    },
+    axes: COMBO_CATEGORY_NUMBER_AXIS_NO_SERIES.axes?.map((a) => {
+        if (a.position === 'left' && a.type === 'number') {
+            return { ...a, min: 0, max: 4000 };
+        } else if (a.position === 'right' && a.type === 'number') {
+            return { ...a, min: 100000, max: 140000 };
+        }
+        return a;
+    }),
+};
+
+export const COMBO_SERIES_AREA_PADDING_WITHOUT_TITLES: AgChartOptions = {
+    ...COMBO_SERIES_AREA_PADDING,
+    axes: COMBO_SERIES_AREA_PADDING.axes?.map((axis) => ({
+        ...axis,
+        title: {
+            enabled: false,
+        },
+    })),
+};
+
+export const COMBO_SERIES_AREA_PADDING_WITHOUT_LABELS: AgChartOptions = {
+    ...COMBO_SERIES_AREA_PADDING,
+    axes: COMBO_SERIES_AREA_PADDING.axes?.map((axis) => ({
+        ...axis,
+        label: {
+            enabled: false,
+        },
+    })),
+};
+
+export const COMBO_SERIES_AREA_PADDING_WITHOUT_LABELS_OR_TITLES: AgChartOptions = {
+    ...COMBO_SERIES_AREA_PADDING,
+    axes: COMBO_SERIES_AREA_PADDING.axes?.map((axis) => ({
+        ...axis,
+        title: {
+            enabled: false,
+        },
+        label: {
+            enabled: false,
+        },
+    })),
+};
+
 export const AREA_CHART_NO_SERIES: AgChartOptions = {
     ...examples.STACKED_AREA_GRAPH_EXAMPLE,
     series: examples.STACKED_AREA_GRAPH_EXAMPLE.series?.map((s) => ({ ...s, visible: false })),
