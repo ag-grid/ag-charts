@@ -27,6 +27,7 @@ const defaultTooltipCss = `
     font: 12px Verdana, sans-serif;
     color: rgb(70, 70, 70);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+    white-space: pre-wrap;
 }
 
 .${DEFAULT_TOOLTIP_CLASS}-no-interaction {
