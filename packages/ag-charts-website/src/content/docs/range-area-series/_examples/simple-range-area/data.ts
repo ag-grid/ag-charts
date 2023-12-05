@@ -1,7 +1,7 @@
 export function getData() {
     return [
         {
-            date: new Date('Jan 2000'),
+            date: new Date('2000-01-01'),
             allPropertyTypes: 130411,
             detachedHouses: 280980,
             semiDetachedHouses: 165413,
@@ -9,7 +9,7 @@ export function getData() {
             flatsAndMaisonettes: 115506,
         },
         {
-            date: new Date('Feb 2000'),
+            date: new Date('2000-02-01'),
             allPropertyTypes: 132705,
             detachedHouses: 279796,
             semiDetachedHouses: 165391,
@@ -17,7 +17,7 @@ export function getData() {
             flatsAndMaisonettes: 118641,
         },
         {
-            date: new Date('Mar 2000'),
+            date: new Date('2000-03-01'),
             allPropertyTypes: 134286,
             detachedHouses: 284608,
             semiDetachedHouses: 168433,
@@ -25,7 +25,7 @@ export function getData() {
             flatsAndMaisonettes: 119340,
         },
         {
-            date: new Date('Apr 2000'),
+            date: new Date('2000-04-01'),
             allPropertyTypes: 140670,
             detachedHouses: 293946,
             semiDetachedHouses: 174235,
@@ -33,7 +33,7 @@ export function getData() {
             flatsAndMaisonettes: 126608,
         },
         {
-            date: new Date('May 2000'),
+            date: new Date('2000-05-01'),
             allPropertyTypes: 140862,
             detachedHouses: 297670,
             semiDetachedHouses: 176792,
@@ -41,7 +41,7 @@ export function getData() {
             flatsAndMaisonettes: 125794,
         },
         {
-            date: new Date('Jun 2000'),
+            date: new Date('2000-06-01'),
             allPropertyTypes: 143542,
             detachedHouses: 298774,
             semiDetachedHouses: 179057,
@@ -49,7 +49,7 @@ export function getData() {
             flatsAndMaisonettes: 128870,
         },
         {
-            date: new Date('Jul 2000'),
+            date: new Date('2000-07-01'),
             allPropertyTypes: 146228,
             detachedHouses: 313017,
             semiDetachedHouses: 183384,
@@ -57,7 +57,7 @@ export function getData() {
             flatsAndMaisonettes: 130434,
         },
         {
-            date: new Date('Aug 2000'),
+            date: new Date('2000-08-01'),
             allPropertyTypes: 147284,
             detachedHouses: 311885,
             semiDetachedHouses: 184296,
@@ -65,7 +65,7 @@ export function getData() {
             flatsAndMaisonettes: 132453,
         },
         {
-            date: new Date('Sep 2000'),
+            date: new Date('2000-09-01'),
             allPropertyTypes: 147316,
             detachedHouses: 314775,
             semiDetachedHouses: 183347,
@@ -73,7 +73,7 @@ export function getData() {
             flatsAndMaisonettes: 132409,
         },
         {
-            date: new Date('Oct 2000'),
+            date: new Date('2000-10-01'),
             allPropertyTypes: 145626,
             detachedHouses: 314817,
             semiDetachedHouses: 184698,
@@ -81,7 +81,7 @@ export function getData() {
             flatsAndMaisonettes: 129962,
         },
         {
-            date: new Date('Nov 2000'),
+            date: new Date('2000-11-01'),
             allPropertyTypes: 147666,
             detachedHouses: 314211,
             semiDetachedHouses: 182742,
@@ -89,7 +89,7 @@ export function getData() {
             flatsAndMaisonettes: 133810,
         },
         {
-            date: new Date('Dec 2000'),
+            date: new Date('2000-12-01'),
             allPropertyTypes: 147483,
             detachedHouses: 307562,
             semiDetachedHouses: 182542,
@@ -97,7 +97,7 @@ export function getData() {
             flatsAndMaisonettes: 133575,
         },
         {
-            date: new Date('Jan 2001'),
+            date: new Date('2001-01-01'),
             allPropertyTypes: 149543,
             detachedHouses: 313677,
             semiDetachedHouses: 185344,
@@ -105,7 +105,7 @@ export function getData() {
             flatsAndMaisonettes: 134820,
         },
         {
-            date: new Date('Feb 2001'),
+            date: new Date('2001-02-01'),
             allPropertyTypes: 149776,
             detachedHouses: 316859,
             semiDetachedHouses: 187191,
@@ -113,7 +113,7 @@ export function getData() {
             flatsAndMaisonettes: 134244,
         },
         {
-            date: new Date('Mar 2001'),
+            date: new Date('2001-03-01'),
             allPropertyTypes: 150941,
             detachedHouses: 312590,
             semiDetachedHouses: 186613,
@@ -121,7 +121,7 @@ export function getData() {
             flatsAndMaisonettes: 136351,
         },
         {
-            date: new Date('Apr 2001'),
+            date: new Date('2001-04-01'),
             allPropertyTypes: 152865,
             detachedHouses: 317568,
             semiDetachedHouses: 187982,
@@ -129,7 +129,7 @@ export function getData() {
             flatsAndMaisonettes: 137996,
         },
         {
-            date: new Date('May 2001'),
+            date: new Date('2001-05-01'),
             allPropertyTypes: 157156,
             detachedHouses: 320126,
             semiDetachedHouses: 192150,
@@ -137,7 +137,7 @@ export function getData() {
             flatsAndMaisonettes: 142572,
         },
         {
-            date: new Date('Jun 2001'),
+            date: new Date('2001-06-01'),
             allPropertyTypes: 158760,
             detachedHouses: 321946,
             semiDetachedHouses: 193754,
@@ -145,7 +145,7 @@ export function getData() {
             flatsAndMaisonettes: 144946,
         },
         {
-            date: new Date('Jul 2001'),
+            date: new Date('2001-07-01'),
             allPropertyTypes: 161122,
             detachedHouses: 337102,
             semiDetachedHouses: 199554,
@@ -153,7 +153,7 @@ export function getData() {
             flatsAndMaisonettes: 145315,
         },
         {
-            date: new Date('Aug 2001'),
+            date: new Date('2001-08-01'),
             allPropertyTypes: 164628,
             detachedHouses: 340860,
             semiDetachedHouses: 201833,
@@ -161,7 +161,7 @@ export function getData() {
             flatsAndMaisonettes: 149188,
         },
         {
-            date: new Date('Sep 2001'),
+            date: new Date('2001-09-01'),
             allPropertyTypes: 164820,
             detachedHouses: 344116,
             semiDetachedHouses: 202792,
@@ -169,7 +169,7 @@ export function getData() {
             flatsAndMaisonettes: 149093,
         },
         {
-            date: new Date('Oct 2001'),
+            date: new Date('2001-10-01'),
             allPropertyTypes: 166189,
             detachedHouses: 348354,
             semiDetachedHouses: 205977,
@@ -177,7 +177,7 @@ export function getData() {
             flatsAndMaisonettes: 149680,
         },
         {
-            date: new Date('Nov 2001'),
+            date: new Date('2001-11-01'),
             allPropertyTypes: 167214,
             detachedHouses: 346501,
             semiDetachedHouses: 206766,
@@ -185,7 +185,7 @@ export function getData() {
             flatsAndMaisonettes: 151527,
         },
         {
-            date: new Date('Dec 2001'),
+            date: new Date('2001-12-01'),
             allPropertyTypes: 167693,
             detachedHouses: 340664,
             semiDetachedHouses: 205384,
@@ -193,7 +193,7 @@ export function getData() {
             flatsAndMaisonettes: 153617,
         },
         {
-            date: new Date('Jan 2002'),
+            date: new Date('2002-01-01'),
             allPropertyTypes: 169841,
             detachedHouses: 352528,
             semiDetachedHouses: 210722,
@@ -201,7 +201,7 @@ export function getData() {
             flatsAndMaisonettes: 153883,
         },
         {
-            date: new Date('Feb 2002'),
+            date: new Date('2002-02-01'),
             allPropertyTypes: 170502,
             detachedHouses: 347520,
             semiDetachedHouses: 209278,
@@ -209,7 +209,7 @@ export function getData() {
             flatsAndMaisonettes: 154884,
         },
         {
-            date: new Date('Mar 2002'),
+            date: new Date('2002-03-01'),
             allPropertyTypes: 172749,
             detachedHouses: 351801,
             semiDetachedHouses: 211962,
@@ -217,7 +217,7 @@ export function getData() {
             flatsAndMaisonettes: 157187,
         },
         {
-            date: new Date('Apr 2002'),
+            date: new Date('2002-04-01'),
             allPropertyTypes: 178218,
             detachedHouses: 359916,
             semiDetachedHouses: 217092,
@@ -225,7 +225,7 @@ export function getData() {
             flatsAndMaisonettes: 163549,
         },
         {
-            date: new Date('May 2002'),
+            date: new Date('2002-05-01'),
             allPropertyTypes: 182805,
             detachedHouses: 367527,
             semiDetachedHouses: 223779,
@@ -233,7 +233,7 @@ export function getData() {
             flatsAndMaisonettes: 166997,
         },
         {
-            date: new Date('Jun 2002'),
+            date: new Date('2002-06-01'),
             allPropertyTypes: 186038,
             detachedHouses: 369726,
             semiDetachedHouses: 224529,
@@ -241,7 +241,7 @@ export function getData() {
             flatsAndMaisonettes: 171396,
         },
         {
-            date: new Date('Jul 2002'),
+            date: new Date('2002-07-01'),
             allPropertyTypes: 191162,
             detachedHouses: 389899,
             semiDetachedHouses: 233908,
@@ -249,7 +249,7 @@ export function getData() {
             flatsAndMaisonettes: 173793,
         },
         {
-            date: new Date('Aug 2002'),
+            date: new Date('2002-08-01'),
             allPropertyTypes: 195333,
             detachedHouses: 394662,
             semiDetachedHouses: 239197,
@@ -257,7 +257,7 @@ export function getData() {
             flatsAndMaisonettes: 177432,
         },
         {
-            date: new Date('Sep 2002'),
+            date: new Date('2002-09-01'),
             allPropertyTypes: 197045,
             detachedHouses: 399194,
             semiDetachedHouses: 242636,
@@ -265,7 +265,7 @@ export function getData() {
             flatsAndMaisonettes: 178855,
         },
         {
-            date: new Date('Oct 2002'),
+            date: new Date('2002-10-01'),
             allPropertyTypes: 199092,
             detachedHouses: 404694,
             semiDetachedHouses: 246998,
@@ -273,7 +273,7 @@ export function getData() {
             flatsAndMaisonettes: 179988,
         },
         {
-            date: new Date('Nov 2002'),
+            date: new Date('2002-11-01'),
             allPropertyTypes: 202527,
             detachedHouses: 412507,
             semiDetachedHouses: 248842,
@@ -281,7 +281,7 @@ export function getData() {
             flatsAndMaisonettes: 184228,
         },
         {
-            date: new Date('Dec 2002'),
+            date: new Date('2002-12-01'),
             allPropertyTypes: 203437,
             detachedHouses: 407963,
             semiDetachedHouses: 252359,
@@ -289,7 +289,7 @@ export function getData() {
             flatsAndMaisonettes: 184471,
         },
         {
-            date: new Date('Jan 2003'),
+            date: new Date('2003-01-01'),
             allPropertyTypes: 207162,
             detachedHouses: 419137,
             semiDetachedHouses: 254641,
@@ -297,7 +297,7 @@ export function getData() {
             flatsAndMaisonettes: 186926,
         },
         {
-            date: new Date('Feb 2003'),
+            date: new Date('2003-02-01'),
             allPropertyTypes: 206464,
             detachedHouses: 414982,
             semiDetachedHouses: 256602,
@@ -305,7 +305,7 @@ export function getData() {
             flatsAndMaisonettes: 186523,
         },
         {
-            date: new Date('Mar 2003'),
+            date: new Date('2003-03-01'),
             allPropertyTypes: 205573,
             detachedHouses: 415288,
             semiDetachedHouses: 255085,
@@ -313,7 +313,7 @@ export function getData() {
             flatsAndMaisonettes: 185407,
         },
         {
-            date: new Date('Apr 2003'),
+            date: new Date('2003-04-01'),
             allPropertyTypes: 207953,
             detachedHouses: 415921,
             semiDetachedHouses: 258067,
@@ -321,7 +321,7 @@ export function getData() {
             flatsAndMaisonettes: 188347,
         },
         {
-            date: new Date('May 2003'),
+            date: new Date('2003-05-01'),
             allPropertyTypes: 210583,
             detachedHouses: 418968,
             semiDetachedHouses: 261553,
@@ -329,7 +329,7 @@ export function getData() {
             flatsAndMaisonettes: 189359,
         },
         {
-            date: new Date('Jun 2003'),
+            date: new Date('2003-06-01'),
             allPropertyTypes: 208941,
             detachedHouses: 417655,
             semiDetachedHouses: 259215,
@@ -337,7 +337,7 @@ export function getData() {
             flatsAndMaisonettes: 188717,
         },
         {
-            date: new Date('Jul 2003'),
+            date: new Date('2003-07-01'),
             allPropertyTypes: 213806,
             detachedHouses: 426441,
             semiDetachedHouses: 266051,
@@ -345,7 +345,7 @@ export function getData() {
             flatsAndMaisonettes: 192154,
         },
         {
-            date: new Date('Aug 2003'),
+            date: new Date('2003-08-01'),
             allPropertyTypes: 212692,
             detachedHouses: 423770,
             semiDetachedHouses: 264469,
@@ -353,7 +353,7 @@ export function getData() {
             flatsAndMaisonettes: 190918,
         },
         {
-            date: new Date('Sep 2003'),
+            date: new Date('2003-09-01'),
             allPropertyTypes: 212901,
             detachedHouses: 428779,
             semiDetachedHouses: 266092,
@@ -361,7 +361,7 @@ export function getData() {
             flatsAndMaisonettes: 190449,
         },
         {
-            date: new Date('Oct 2003'),
+            date: new Date('2003-10-01'),
             allPropertyTypes: 214608,
             detachedHouses: 427660,
             semiDetachedHouses: 267387,
@@ -369,7 +369,7 @@ export function getData() {
             flatsAndMaisonettes: 192263,
         },
         {
-            date: new Date('Nov 2003'),
+            date: new Date('2003-11-01'),
             allPropertyTypes: 215556,
             detachedHouses: 425184,
             semiDetachedHouses: 267314,
@@ -377,7 +377,7 @@ export function getData() {
             flatsAndMaisonettes: 193463,
         },
         {
-            date: new Date('Dec 2003'),
+            date: new Date('2003-12-01'),
             allPropertyTypes: 216971,
             detachedHouses: 420852,
             semiDetachedHouses: 267879,
@@ -385,7 +385,7 @@ export function getData() {
             flatsAndMaisonettes: 196159,
         },
         {
-            date: new Date('Jan 2004'),
+            date: new Date('2004-01-01'),
             allPropertyTypes: 218855,
             detachedHouses: 434342,
             semiDetachedHouses: 271332,
@@ -393,7 +393,7 @@ export function getData() {
             flatsAndMaisonettes: 196490,
         },
         {
-            date: new Date('Feb 2004'),
+            date: new Date('2004-02-01'),
             allPropertyTypes: 219804,
             detachedHouses: 434984,
             semiDetachedHouses: 273084,
@@ -401,7 +401,7 @@ export function getData() {
             flatsAndMaisonettes: 196693,
         },
         {
-            date: new Date('Mar 2004'),
+            date: new Date('2004-03-01'),
             allPropertyTypes: 221324,
             detachedHouses: 432135,
             semiDetachedHouses: 271383,
@@ -409,7 +409,7 @@ export function getData() {
             flatsAndMaisonettes: 199326,
         },
         {
-            date: new Date('Apr 2004'),
+            date: new Date('2004-04-01'),
             allPropertyTypes: 225863,
             detachedHouses: 435578,
             semiDetachedHouses: 278620,
@@ -417,7 +417,7 @@ export function getData() {
             flatsAndMaisonettes: 202365,
         },
         {
-            date: new Date('May 2004'),
+            date: new Date('2004-05-01'),
             allPropertyTypes: 227330,
             detachedHouses: 430197,
             semiDetachedHouses: 279298,
@@ -425,7 +425,7 @@ export function getData() {
             flatsAndMaisonettes: 204628,
         },
         {
-            date: new Date('Jun 2004'),
+            date: new Date('2004-06-01'),
             allPropertyTypes: 230156,
             detachedHouses: 438283,
             semiDetachedHouses: 279444,
@@ -433,7 +433,7 @@ export function getData() {
             flatsAndMaisonettes: 205616,
         },
         {
-            date: new Date('Jul 2004'),
+            date: new Date('2004-07-01'),
             allPropertyTypes: 233877,
             detachedHouses: 447529,
             semiDetachedHouses: 288388,
@@ -441,7 +441,7 @@ export function getData() {
             flatsAndMaisonettes: 209501,
         },
         {
-            date: new Date('Aug 2004'),
+            date: new Date('2004-08-01'),
             allPropertyTypes: 234836,
             detachedHouses: 452951,
             semiDetachedHouses: 288655,
@@ -449,7 +449,7 @@ export function getData() {
             flatsAndMaisonettes: 210563,
         },
         {
-            date: new Date('Sep 2004'),
+            date: new Date('2004-09-01'),
             allPropertyTypes: 234134,
             detachedHouses: 451595,
             semiDetachedHouses: 288161,
@@ -457,7 +457,7 @@ export function getData() {
             flatsAndMaisonettes: 209748,
         },
         {
-            date: new Date('Oct 2004'),
+            date: new Date('2004-10-01'),
             allPropertyTypes: 232287,
             detachedHouses: 448530,
             semiDetachedHouses: 286511,
@@ -465,7 +465,7 @@ export function getData() {
             flatsAndMaisonettes: 207943,
         },
         {
-            date: new Date('Nov 2004'),
+            date: new Date('2004-11-01'),
             allPropertyTypes: 234718,
             detachedHouses: 449256,
             semiDetachedHouses: 287896,
@@ -473,7 +473,7 @@ export function getData() {
             flatsAndMaisonettes: 211065,
         },
         {
-            date: new Date('Dec 2004'),
+            date: new Date('2004-12-01'),
             allPropertyTypes: 230185,
             detachedHouses: 441332,
             semiDetachedHouses: 282435,
@@ -481,7 +481,7 @@ export function getData() {
             flatsAndMaisonettes: 206756,
         },
         {
-            date: new Date('Jan 2005'),
+            date: new Date('2005-01-01'),
             allPropertyTypes: 232422,
             detachedHouses: 448212,
             semiDetachedHouses: 284417,
@@ -489,7 +489,7 @@ export function getData() {
             flatsAndMaisonettes: 208376,
         },
         {
-            date: new Date('Feb 2005'),
+            date: new Date('2005-02-01'),
             allPropertyTypes: 231321,
             detachedHouses: 442730,
             semiDetachedHouses: 283523,
@@ -497,7 +497,7 @@ export function getData() {
             flatsAndMaisonettes: 207548,
         },
         {
-            date: new Date('Mar 2005'),
+            date: new Date('2005-03-01'),
             allPropertyTypes: 231263,
             detachedHouses: 440100,
             semiDetachedHouses: 282278,
@@ -505,7 +505,7 @@ export function getData() {
             flatsAndMaisonettes: 207511,
         },
         {
-            date: new Date('Apr 2005'),
+            date: new Date('2005-04-01'),
             allPropertyTypes: 235367,
             detachedHouses: 443176,
             semiDetachedHouses: 286920,
@@ -513,7 +513,7 @@ export function getData() {
             flatsAndMaisonettes: 211199,
         },
         {
-            date: new Date('May 2005'),
+            date: new Date('2005-05-01'),
             allPropertyTypes: 235685,
             detachedHouses: 447963,
             semiDetachedHouses: 288344,
@@ -521,7 +521,7 @@ export function getData() {
             flatsAndMaisonettes: 211479,
         },
         {
-            date: new Date('Jun 2005'),
+            date: new Date('2005-06-01'),
             allPropertyTypes: 235899,
             detachedHouses: 443028,
             semiDetachedHouses: 287519,
@@ -529,7 +529,7 @@ export function getData() {
             flatsAndMaisonettes: 211100,
         },
         {
-            date: new Date('Jul 2005'),
+            date: new Date('2005-07-01'),
             allPropertyTypes: 237872,
             detachedHouses: 449202,
             semiDetachedHouses: 290947,
@@ -537,7 +537,7 @@ export function getData() {
             flatsAndMaisonettes: 212892,
         },
         {
-            date: new Date('Aug 2005'),
+            date: new Date('2005-08-01'),
             allPropertyTypes: 237971,
             detachedHouses: 449857,
             semiDetachedHouses: 288600,
@@ -545,7 +545,7 @@ export function getData() {
             flatsAndMaisonettes: 213620,
         },
         {
-            date: new Date('Sep 2005'),
+            date: new Date('2005-09-01'),
             allPropertyTypes: 236916,
             detachedHouses: 451638,
             semiDetachedHouses: 290297,
@@ -553,7 +553,7 @@ export function getData() {
             flatsAndMaisonettes: 211176,
         },
         {
-            date: new Date('Oct 2005'),
+            date: new Date('2005-10-01'),
             allPropertyTypes: 234298,
             detachedHouses: 442924,
             semiDetachedHouses: 286183,
@@ -561,7 +561,7 @@ export function getData() {
             flatsAndMaisonettes: 209507,
         },
         {
-            date: new Date('Nov 2005'),
+            date: new Date('2005-11-01'),
             allPropertyTypes: 236561,
             detachedHouses: 445427,
             semiDetachedHouses: 288242,
@@ -569,7 +569,7 @@ export function getData() {
             flatsAndMaisonettes: 211694,
         },
         {
-            date: new Date('Dec 2005'),
+            date: new Date('2005-12-01'),
             allPropertyTypes: 238377,
             detachedHouses: 438936,
             semiDetachedHouses: 285358,
@@ -577,7 +577,7 @@ export function getData() {
             flatsAndMaisonettes: 215567,
         },
         {
-            date: new Date('Jan 2006'),
+            date: new Date('2006-01-01'),
             allPropertyTypes: 239846,
             detachedHouses: 454025,
             semiDetachedHouses: 291590,
@@ -585,7 +585,7 @@ export function getData() {
             flatsAndMaisonettes: 214584,
         },
         {
-            date: new Date('Feb 2006'),
+            date: new Date('2006-02-01'),
             allPropertyTypes: 239115,
             detachedHouses: 448642,
             semiDetachedHouses: 289915,
@@ -593,7 +593,7 @@ export function getData() {
             flatsAndMaisonettes: 214773,
         },
         {
-            date: new Date('Mar 2006'),
+            date: new Date('2006-03-01'),
             allPropertyTypes: 241380,
             detachedHouses: 454096,
             semiDetachedHouses: 292056,
@@ -601,7 +601,7 @@ export function getData() {
             flatsAndMaisonettes: 216507,
         },
         {
-            date: new Date('Apr 2006'),
+            date: new Date('2006-04-01'),
             allPropertyTypes: 245474,
             detachedHouses: 455431,
             semiDetachedHouses: 296200,
@@ -609,7 +609,7 @@ export function getData() {
             flatsAndMaisonettes: 220453,
         },
         {
-            date: new Date('May 2006'),
+            date: new Date('2006-05-01'),
             allPropertyTypes: 247591,
             detachedHouses: 460366,
             semiDetachedHouses: 297797,
@@ -617,7 +617,7 @@ export function getData() {
             flatsAndMaisonettes: 223018,
         },
         {
-            date: new Date('Jun 2006'),
+            date: new Date('2006-06-01'),
             allPropertyTypes: 251417,
             detachedHouses: 465913,
             semiDetachedHouses: 301279,
@@ -625,7 +625,7 @@ export function getData() {
             flatsAndMaisonettes: 226295,
         },
         {
-            date: new Date('Jul 2006'),
+            date: new Date('2006-07-01'),
             allPropertyTypes: 253883,
             detachedHouses: 473171,
             semiDetachedHouses: 306203,
@@ -633,7 +633,7 @@ export function getData() {
             flatsAndMaisonettes: 226972,
         },
         {
-            date: new Date('Aug 2006'),
+            date: new Date('2006-08-01'),
             allPropertyTypes: 256704,
             detachedHouses: 478540,
             semiDetachedHouses: 308896,
@@ -641,7 +641,7 @@ export function getData() {
             flatsAndMaisonettes: 230115,
         },
         {
-            date: new Date('Sep 2006'),
+            date: new Date('2006-09-01'),
             allPropertyTypes: 257541,
             detachedHouses: 483177,
             semiDetachedHouses: 310130,
@@ -649,7 +649,7 @@ export function getData() {
             flatsAndMaisonettes: 231214,
         },
         {
-            date: new Date('Oct 2006'),
+            date: new Date('2006-10-01'),
             allPropertyTypes: 259115,
             detachedHouses: 483203,
             semiDetachedHouses: 311206,
@@ -657,7 +657,7 @@ export function getData() {
             flatsAndMaisonettes: 233036,
         },
         {
-            date: new Date('Nov 2006'),
+            date: new Date('2006-11-01'),
             allPropertyTypes: 258814,
             detachedHouses: 484883,
             semiDetachedHouses: 312651,
@@ -665,7 +665,7 @@ export function getData() {
             flatsAndMaisonettes: 231582,
         },
         {
-            date: new Date('Dec 2006'),
+            date: new Date('2006-12-01'),
             allPropertyTypes: 264494,
             detachedHouses: 491261,
             semiDetachedHouses: 316458,
@@ -673,7 +673,7 @@ export function getData() {
             flatsAndMaisonettes: 238180,
         },
         {
-            date: new Date('Jan 2007'),
+            date: new Date('2007-01-01'),
             allPropertyTypes: 267658,
             detachedHouses: 496475,
             semiDetachedHouses: 319628,
@@ -681,7 +681,7 @@ export function getData() {
             flatsAndMaisonettes: 240937,
         },
         {
-            date: new Date('Feb 2007'),
+            date: new Date('2007-02-01'),
             allPropertyTypes: 270780,
             detachedHouses: 501729,
             semiDetachedHouses: 322708,
@@ -689,7 +689,7 @@ export function getData() {
             flatsAndMaisonettes: 245120,
         },
         {
-            date: new Date('Mar 2007'),
+            date: new Date('2007-03-01'),
             allPropertyTypes: 273479,
             detachedHouses: 506544,
             semiDetachedHouses: 325473,
@@ -697,7 +697,7 @@ export function getData() {
             flatsAndMaisonettes: 246442,
         },
         {
-            date: new Date('Apr 2007'),
+            date: new Date('2007-04-01'),
             allPropertyTypes: 278805,
             detachedHouses: 512600,
             semiDetachedHouses: 330825,
@@ -705,7 +705,7 @@ export function getData() {
             flatsAndMaisonettes: 251019,
         },
         {
-            date: new Date('May 2007'),
+            date: new Date('2007-05-01'),
             allPropertyTypes: 282726,
             detachedHouses: 515304,
             semiDetachedHouses: 334101,
@@ -713,7 +713,7 @@ export function getData() {
             flatsAndMaisonettes: 256149,
         },
         {
-            date: new Date('Jun 2007'),
+            date: new Date('2007-06-01'),
             allPropertyTypes: 285958,
             detachedHouses: 524980,
             semiDetachedHouses: 337493,
@@ -721,7 +721,7 @@ export function getData() {
             flatsAndMaisonettes: 258918,
         },
         {
-            date: new Date('Jul 2007'),
+            date: new Date('2007-07-01'),
             allPropertyTypes: 295694,
             detachedHouses: 547759,
             semiDetachedHouses: 350983,
@@ -729,7 +729,7 @@ export function getData() {
             flatsAndMaisonettes: 266890,
         },
         {
-            date: new Date('Aug 2007'),
+            date: new Date('2007-08-01'),
             allPropertyTypes: 297653,
             detachedHouses: 546248,
             semiDetachedHouses: 350162,
@@ -737,7 +737,7 @@ export function getData() {
             flatsAndMaisonettes: 269035,
         },
         {
-            date: new Date('Sep 2007'),
+            date: new Date('2007-09-01'),
             allPropertyTypes: 298414,
             detachedHouses: 552891,
             semiDetachedHouses: 351709,
@@ -745,7 +745,7 @@ export function getData() {
             flatsAndMaisonettes: 270506,
         },
         {
-            date: new Date('Oct 2007'),
+            date: new Date('2007-10-01'),
             allPropertyTypes: 298559,
             detachedHouses: 555873,
             semiDetachedHouses: 351538,
@@ -753,7 +753,7 @@ export function getData() {
             flatsAndMaisonettes: 270658,
         },
         {
-            date: new Date('Nov 2007'),
+            date: new Date('2007-11-01'),
             allPropertyTypes: 297648,
             detachedHouses: 560486,
             semiDetachedHouses: 354894,
@@ -761,7 +761,7 @@ export function getData() {
             flatsAndMaisonettes: 268479,
         },
         {
-            date: new Date('Dec 2007'),
+            date: new Date('2007-12-01'),
             allPropertyTypes: 297994,
             detachedHouses: 551709,
             semiDetachedHouses: 352333,
@@ -769,7 +769,7 @@ export function getData() {
             flatsAndMaisonettes: 270329,
         },
         {
-            date: new Date('Jan 2008'),
+            date: new Date('2008-01-01'),
             allPropertyTypes: 298596,
             detachedHouses: 562436,
             semiDetachedHouses: 354015,
@@ -777,7 +777,7 @@ export function getData() {
             flatsAndMaisonettes: 269578,
         },
         {
-            date: new Date('Feb 2008'),
+            date: new Date('2008-02-01'),
             allPropertyTypes: 295700,
             detachedHouses: 552961,
             semiDetachedHouses: 351217,
@@ -785,7 +785,7 @@ export function getData() {
             flatsAndMaisonettes: 267322,
         },
         {
-            date: new Date('Mar 2008'),
+            date: new Date('2008-03-01'),
             allPropertyTypes: 293605,
             detachedHouses: 547952,
             semiDetachedHouses: 349568,
@@ -793,7 +793,7 @@ export function getData() {
             flatsAndMaisonettes: 264226,
         },
         {
-            date: new Date('Apr 2008'),
+            date: new Date('2008-04-01'),
             allPropertyTypes: 294346,
             detachedHouses: 557690,
             semiDetachedHouses: 349515,
@@ -801,7 +801,7 @@ export function getData() {
             flatsAndMaisonettes: 265191,
         },
         {
-            date: new Date('May 2008'),
+            date: new Date('2008-05-01'),
             allPropertyTypes: 295163,
             detachedHouses: 550050,
             semiDetachedHouses: 350758,
@@ -809,7 +809,7 @@ export function getData() {
             flatsAndMaisonettes: 266306,
         },
         {
-            date: new Date('Jun 2008'),
+            date: new Date('2008-06-01'),
             allPropertyTypes: 290100,
             detachedHouses: 542550,
             semiDetachedHouses: 344894,
@@ -817,7 +817,7 @@ export function getData() {
             flatsAndMaisonettes: 260848,
         },
         {
-            date: new Date('Jul 2008'),
+            date: new Date('2008-07-01'),
             allPropertyTypes: 290261,
             detachedHouses: 546197,
             semiDetachedHouses: 343508,
@@ -825,7 +825,7 @@ export function getData() {
             flatsAndMaisonettes: 262734,
         },
         {
-            date: new Date('Aug 2008'),
+            date: new Date('2008-08-01'),
             allPropertyTypes: 281721,
             detachedHouses: 532326,
             semiDetachedHouses: 335791,
@@ -833,7 +833,7 @@ export function getData() {
             flatsAndMaisonettes: 253968,
         },
         {
-            date: new Date('Sep 2008'),
+            date: new Date('2008-09-01'),
             allPropertyTypes: 276487,
             detachedHouses: 524235,
             semiDetachedHouses: 326819,
@@ -841,7 +841,7 @@ export function getData() {
             flatsAndMaisonettes: 250460,
         },
         {
-            date: new Date('Oct 2008'),
+            date: new Date('2008-10-01'),
             allPropertyTypes: 266999,
             detachedHouses: 506702,
             semiDetachedHouses: 316158,
@@ -849,7 +849,7 @@ export function getData() {
             flatsAndMaisonettes: 242805,
         },
         {
-            date: new Date('Nov 2008'),
+            date: new Date('2008-11-01'),
             allPropertyTypes: 258647,
             detachedHouses: 493046,
             semiDetachedHouses: 308780,
@@ -857,7 +857,7 @@ export function getData() {
             flatsAndMaisonettes: 233135,
         },
         {
-            date: new Date('Dec 2008'),
+            date: new Date('2008-12-01'),
             allPropertyTypes: 253881,
             detachedHouses: 480437,
             semiDetachedHouses: 303686,
@@ -865,7 +865,7 @@ export function getData() {
             flatsAndMaisonettes: 228422,
         },
         {
-            date: new Date('Jan 2009'),
+            date: new Date('2009-01-01'),
             allPropertyTypes: 253093,
             detachedHouses: 484980,
             semiDetachedHouses: 300817,
@@ -873,7 +873,7 @@ export function getData() {
             flatsAndMaisonettes: 229353,
         },
         {
-            date: new Date('Feb 2009'),
+            date: new Date('2009-02-01'),
             allPropertyTypes: 249847,
             detachedHouses: 465160,
             semiDetachedHouses: 296380,
@@ -881,7 +881,7 @@ export function getData() {
             flatsAndMaisonettes: 226949,
         },
         {
-            date: new Date('Mar 2009'),
+            date: new Date('2009-03-01'),
             allPropertyTypes: 247264,
             detachedHouses: 460766,
             semiDetachedHouses: 291834,
@@ -889,7 +889,7 @@ export function getData() {
             flatsAndMaisonettes: 225466,
         },
         {
-            date: new Date('Apr 2009'),
+            date: new Date('2009-04-01'),
             allPropertyTypes: 245351,
             detachedHouses: 456683,
             semiDetachedHouses: 291883,
@@ -897,7 +897,7 @@ export function getData() {
             flatsAndMaisonettes: 222092,
         },
         {
-            date: new Date('May 2009'),
+            date: new Date('2009-05-01'),
             allPropertyTypes: 249991,
             detachedHouses: 462317,
             semiDetachedHouses: 295985,
@@ -905,7 +905,7 @@ export function getData() {
             flatsAndMaisonettes: 227052,
         },
         {
-            date: new Date('Jun 2009'),
+            date: new Date('2009-06-01'),
             allPropertyTypes: 253596,
             detachedHouses: 468537,
             semiDetachedHouses: 299623,
@@ -913,7 +913,7 @@ export function getData() {
             flatsAndMaisonettes: 229061,
         },
         {
-            date: new Date('Jul 2009'),
+            date: new Date('2009-07-01'),
             allPropertyTypes: 259793,
             detachedHouses: 484437,
             semiDetachedHouses: 310207,
@@ -921,7 +921,7 @@ export function getData() {
             flatsAndMaisonettes: 233071,
         },
         {
-            date: new Date('Aug 2009'),
+            date: new Date('2009-08-01'),
             allPropertyTypes: 262076,
             detachedHouses: 491850,
             semiDetachedHouses: 314236,
@@ -929,7 +929,7 @@ export function getData() {
             flatsAndMaisonettes: 234400,
         },
         {
-            date: new Date('Sep 2009'),
+            date: new Date('2009-09-01'),
             allPropertyTypes: 267501,
             detachedHouses: 497220,
             semiDetachedHouses: 316791,
@@ -937,7 +937,7 @@ export function getData() {
             flatsAndMaisonettes: 241515,
         },
         {
-            date: new Date('Oct 2009'),
+            date: new Date('2009-10-01'),
             allPropertyTypes: 268780,
             detachedHouses: 504815,
             semiDetachedHouses: 321628,
@@ -945,7 +945,7 @@ export function getData() {
             flatsAndMaisonettes: 240658,
         },
         {
-            date: new Date('Nov 2009'),
+            date: new Date('2009-11-01'),
             allPropertyTypes: 266837,
             detachedHouses: 501064,
             semiDetachedHouses: 318077,
@@ -953,7 +953,7 @@ export function getData() {
             flatsAndMaisonettes: 238347,
         },
         {
-            date: new Date('Dec 2009'),
+            date: new Date('2009-12-01'),
             allPropertyTypes: 270118,
             detachedHouses: 502617,
             semiDetachedHouses: 323927,
@@ -961,7 +961,7 @@ export function getData() {
             flatsAndMaisonettes: 241063,
         },
         {
-            date: new Date('Jan 2010'),
+            date: new Date('2010-01-01'),
             allPropertyTypes: 279724,
             detachedHouses: 525410,
             semiDetachedHouses: 335145,
@@ -969,7 +969,7 @@ export function getData() {
             flatsAndMaisonettes: 249180,
         },
         {
-            date: new Date('Feb 2010'),
+            date: new Date('2010-02-01'),
             allPropertyTypes: 278753,
             detachedHouses: 524431,
             semiDetachedHouses: 335551,
@@ -977,7 +977,7 @@ export function getData() {
             flatsAndMaisonettes: 247719,
         },
         {
-            date: new Date('Mar 2010'),
+            date: new Date('2010-03-01'),
             allPropertyTypes: 280472,
             detachedHouses: 532768,
             semiDetachedHouses: 335940,
@@ -985,7 +985,7 @@ export function getData() {
             flatsAndMaisonettes: 250903,
         },
         {
-            date: new Date('Apr 2010'),
+            date: new Date('2010-04-01'),
             allPropertyTypes: 281981,
             detachedHouses: 530526,
             semiDetachedHouses: 337788,
@@ -993,7 +993,7 @@ export function getData() {
             flatsAndMaisonettes: 251899,
         },
         {
-            date: new Date('May 2010'),
+            date: new Date('2010-05-01'),
             allPropertyTypes: 281762,
             detachedHouses: 532230,
             semiDetachedHouses: 337877,
@@ -1001,7 +1001,7 @@ export function getData() {
             flatsAndMaisonettes: 250835,
         },
         {
-            date: new Date('Jun 2010'),
+            date: new Date('2010-06-01'),
             allPropertyTypes: 284541,
             detachedHouses: 536235,
             semiDetachedHouses: 340019,
@@ -1009,7 +1009,7 @@ export function getData() {
             flatsAndMaisonettes: 253666,
         },
         {
-            date: new Date('Jul 2010'),
+            date: new Date('2010-07-01'),
             allPropertyTypes: 292772,
             detachedHouses: 560177,
             semiDetachedHouses: 351466,
@@ -1017,7 +1017,7 @@ export function getData() {
             flatsAndMaisonettes: 259349,
         },
         {
-            date: new Date('Aug 2010'),
+            date: new Date('2010-08-01'),
             allPropertyTypes: 290646,
             detachedHouses: 552684,
             semiDetachedHouses: 352306,
@@ -1025,7 +1025,7 @@ export function getData() {
             flatsAndMaisonettes: 257356,
         },
         {
-            date: new Date('Sep 2010'),
+            date: new Date('2010-09-01'),
             allPropertyTypes: 290093,
             detachedHouses: 559284,
             semiDetachedHouses: 350133,
@@ -1033,7 +1033,7 @@ export function getData() {
             flatsAndMaisonettes: 256612,
         },
         {
-            date: new Date('Oct 2010'),
+            date: new Date('2010-10-01'),
             allPropertyTypes: 286131,
             detachedHouses: 548402,
             semiDetachedHouses: 345578,
@@ -1041,7 +1041,7 @@ export function getData() {
             flatsAndMaisonettes: 253754,
         },
         {
-            date: new Date('Nov 2010'),
+            date: new Date('2010-11-01'),
             allPropertyTypes: 282290,
             detachedHouses: 545732,
             semiDetachedHouses: 343402,
@@ -1049,7 +1049,7 @@ export function getData() {
             flatsAndMaisonettes: 250196,
         },
         {
-            date: new Date('Dec 2010'),
+            date: new Date('2010-12-01'),
             allPropertyTypes: 285353,
             detachedHouses: 545247,
             semiDetachedHouses: 344640,
@@ -1057,7 +1057,7 @@ export function getData() {
             flatsAndMaisonettes: 253763,
         },
         {
-            date: new Date('Jan 2011'),
+            date: new Date('2011-01-01'),
             allPropertyTypes: 287983,
             detachedHouses: 561353,
             semiDetachedHouses: 347089,
@@ -1065,7 +1065,7 @@ export function getData() {
             flatsAndMaisonettes: 255214,
         },
         {
-            date: new Date('Feb 2011'),
+            date: new Date('2011-02-01'),
             allPropertyTypes: 285227,
             detachedHouses: 556285,
             semiDetachedHouses: 343860,
@@ -1073,7 +1073,7 @@ export function getData() {
             flatsAndMaisonettes: 253953,
         },
         {
-            date: new Date('Mar 2011'),
+            date: new Date('2011-03-01'),
             allPropertyTypes: 287092,
             detachedHouses: 559907,
             semiDetachedHouses: 342214,
@@ -1081,7 +1081,7 @@ export function getData() {
             flatsAndMaisonettes: 257165,
         },
         {
-            date: new Date('Apr 2011'),
+            date: new Date('2011-04-01'),
             allPropertyTypes: 293993,
             detachedHouses: 556813,
             semiDetachedHouses: 346657,
@@ -1089,7 +1089,7 @@ export function getData() {
             flatsAndMaisonettes: 264752,
         },
         {
-            date: new Date('May 2011'),
+            date: new Date('2011-05-01'),
             allPropertyTypes: 284722,
             detachedHouses: 539789,
             semiDetachedHouses: 342357,
@@ -1097,7 +1097,7 @@ export function getData() {
             flatsAndMaisonettes: 254026,
         },
         {
-            date: new Date('Jun 2011'),
+            date: new Date('2011-06-01'),
             allPropertyTypes: 285906,
             detachedHouses: 534579,
             semiDetachedHouses: 340812,
@@ -1105,7 +1105,7 @@ export function getData() {
             flatsAndMaisonettes: 256336,
         },
         {
-            date: new Date('Jul 2011'),
+            date: new Date('2011-07-01'),
             allPropertyTypes: 295843,
             detachedHouses: 555115,
             semiDetachedHouses: 350495,
@@ -1113,7 +1113,7 @@ export function getData() {
             flatsAndMaisonettes: 265623,
         },
         {
-            date: new Date('Aug 2011'),
+            date: new Date('2011-08-01'),
             allPropertyTypes: 294903,
             detachedHouses: 558789,
             semiDetachedHouses: 354046,
@@ -1121,7 +1121,7 @@ export function getData() {
             flatsAndMaisonettes: 261746,
         },
         {
-            date: new Date('Sep 2011'),
+            date: new Date('2011-09-01'),
             allPropertyTypes: 295358,
             detachedHouses: 566622,
             semiDetachedHouses: 353417,
@@ -1129,7 +1129,7 @@ export function getData() {
             flatsAndMaisonettes: 262610,
         },
         {
-            date: new Date('Oct 2011'),
+            date: new Date('2011-10-01'),
             allPropertyTypes: 292267,
             detachedHouses: 565503,
             semiDetachedHouses: 354002,
@@ -1137,7 +1137,7 @@ export function getData() {
             flatsAndMaisonettes: 259320,
         },
         {
-            date: new Date('Nov 2011'),
+            date: new Date('2011-11-01'),
             allPropertyTypes: 291036,
             detachedHouses: 559120,
             semiDetachedHouses: 348955,
@@ -1145,7 +1145,7 @@ export function getData() {
             flatsAndMaisonettes: 260317,
         },
         {
-            date: new Date('Dec 2011'),
+            date: new Date('2011-12-01'),
             allPropertyTypes: 292284,
             detachedHouses: 553602,
             semiDetachedHouses: 350948,
@@ -1153,7 +1153,7 @@ export function getData() {
             flatsAndMaisonettes: 261000,
         },
         {
-            date: new Date('Jan 2012'),
+            date: new Date('2012-01-01'),
             allPropertyTypes: 294360,
             detachedHouses: 554780,
             semiDetachedHouses: 352985,
@@ -1161,7 +1161,7 @@ export function getData() {
             flatsAndMaisonettes: 262346,
         },
         {
-            date: new Date('Feb 2012'),
+            date: new Date('2012-02-01'),
             allPropertyTypes: 292381,
             detachedHouses: 569459,
             semiDetachedHouses: 354995,
@@ -1169,7 +1169,7 @@ export function getData() {
             flatsAndMaisonettes: 257937,
         },
         {
-            date: new Date('Mar 2012'),
+            date: new Date('2012-03-01'),
             allPropertyTypes: 290379,
             detachedHouses: 544127,
             semiDetachedHouses: 345599,
@@ -1177,7 +1177,7 @@ export function getData() {
             flatsAndMaisonettes: 259216,
         },
         {
-            date: new Date('Apr 2012'),
+            date: new Date('2012-04-01'),
             allPropertyTypes: 299065,
             detachedHouses: 561806,
             semiDetachedHouses: 354724,
@@ -1185,7 +1185,7 @@ export function getData() {
             flatsAndMaisonettes: 267993,
         },
         {
-            date: new Date('May 2012'),
+            date: new Date('2012-05-01'),
             allPropertyTypes: 304081,
             detachedHouses: 570424,
             semiDetachedHouses: 361779,
@@ -1193,7 +1193,7 @@ export function getData() {
             flatsAndMaisonettes: 271470,
         },
         {
-            date: new Date('Jun 2012'),
+            date: new Date('2012-06-01'),
             allPropertyTypes: 306823,
             detachedHouses: 567821,
             semiDetachedHouses: 361738,
@@ -1201,7 +1201,7 @@ export function getData() {
             flatsAndMaisonettes: 274239,
         },
         {
-            date: new Date('Jul 2012'),
+            date: new Date('2012-07-01'),
             allPropertyTypes: 308962,
             detachedHouses: 580113,
             semiDetachedHouses: 366704,
@@ -1209,7 +1209,7 @@ export function getData() {
             flatsAndMaisonettes: 275099,
         },
         {
-            date: new Date('Aug 2012'),
+            date: new Date('2012-08-01'),
             allPropertyTypes: 310043,
             detachedHouses: 582142,
             semiDetachedHouses: 368878,
@@ -1217,7 +1217,7 @@ export function getData() {
             flatsAndMaisonettes: 275527,
         },
         {
-            date: new Date('Sep 2012'),
+            date: new Date('2012-09-01'),
             allPropertyTypes: 308469,
             detachedHouses: 579776,
             semiDetachedHouses: 365664,
@@ -1225,7 +1225,7 @@ export function getData() {
             flatsAndMaisonettes: 274948,
         },
         {
-            date: new Date('Oct 2012'),
+            date: new Date('2012-10-01'),
             allPropertyTypes: 310281,
             detachedHouses: 580841,
             semiDetachedHouses: 367792,
@@ -1233,7 +1233,7 @@ export function getData() {
             flatsAndMaisonettes: 277248,
         },
         {
-            date: new Date('Nov 2012'),
+            date: new Date('2012-11-01'),
             allPropertyTypes: 308540,
             detachedHouses: 579766,
             semiDetachedHouses: 366472,
@@ -1241,7 +1241,7 @@ export function getData() {
             flatsAndMaisonettes: 275027,
         },
         {
-            date: new Date('Dec 2012'),
+            date: new Date('2012-12-01'),
             allPropertyTypes: 313744,
             detachedHouses: 584430,
             semiDetachedHouses: 368743,
@@ -1249,7 +1249,7 @@ export function getData() {
             flatsAndMaisonettes: 280600,
         },
         {
-            date: new Date('Jan 2013'),
+            date: new Date('2013-01-01'),
             allPropertyTypes: 311364,
             detachedHouses: 585417,
             semiDetachedHouses: 371472,
@@ -1257,7 +1257,7 @@ export function getData() {
             flatsAndMaisonettes: 277251,
         },
         {
-            date: new Date('Feb 2013'),
+            date: new Date('2013-02-01'),
             allPropertyTypes: 313550,
             detachedHouses: 584924,
             semiDetachedHouses: 369428,
@@ -1265,7 +1265,7 @@ export function getData() {
             flatsAndMaisonettes: 280689,
         },
         {
-            date: new Date('Mar 2013'),
+            date: new Date('2013-03-01'),
             allPropertyTypes: 312289,
             detachedHouses: 587252,
             semiDetachedHouses: 369862,
@@ -1273,7 +1273,7 @@ export function getData() {
             flatsAndMaisonettes: 278831,
         },
         {
-            date: new Date('Apr 2013'),
+            date: new Date('2013-04-01'),
             allPropertyTypes: 320921,
             detachedHouses: 592752,
             semiDetachedHouses: 374400,
@@ -1281,7 +1281,7 @@ export function getData() {
             flatsAndMaisonettes: 288624,
         },
         {
-            date: new Date('May 2013'),
+            date: new Date('2013-05-01'),
             allPropertyTypes: 322324,
             detachedHouses: 600796,
             semiDetachedHouses: 379979,
@@ -1289,7 +1289,7 @@ export function getData() {
             flatsAndMaisonettes: 288559,
         },
         {
-            date: new Date('Jun 2013'),
+            date: new Date('2013-06-01'),
             allPropertyTypes: 324518,
             detachedHouses: 600375,
             semiDetachedHouses: 380448,
@@ -1297,7 +1297,7 @@ export function getData() {
             flatsAndMaisonettes: 290694,
         },
         {
-            date: new Date('Jul 2013'),
+            date: new Date('2013-07-01'),
             allPropertyTypes: 332988,
             detachedHouses: 612056,
             semiDetachedHouses: 388303,
@@ -1305,7 +1305,7 @@ export function getData() {
             flatsAndMaisonettes: 298764,
         },
         {
-            date: new Date('Aug 2013'),
+            date: new Date('2013-08-01'),
             allPropertyTypes: 335743,
             detachedHouses: 621017,
             semiDetachedHouses: 394860,
@@ -1313,7 +1313,7 @@ export function getData() {
             flatsAndMaisonettes: 299890,
         },
         {
-            date: new Date('Sep 2013'),
+            date: new Date('2013-09-01'),
             allPropertyTypes: 340494,
             detachedHouses: 627915,
             semiDetachedHouses: 394236,
@@ -1321,7 +1321,7 @@ export function getData() {
             flatsAndMaisonettes: 306464,
         },
         {
-            date: new Date('Oct 2013'),
+            date: new Date('2013-10-01'),
             allPropertyTypes: 340045,
             detachedHouses: 629328,
             semiDetachedHouses: 398386,
@@ -1329,7 +1329,7 @@ export function getData() {
             flatsAndMaisonettes: 305736,
         },
         {
-            date: new Date('Nov 2013'),
+            date: new Date('2013-11-01'),
             allPropertyTypes: 343749,
             detachedHouses: 631279,
             semiDetachedHouses: 401464,
@@ -1337,7 +1337,7 @@ export function getData() {
             flatsAndMaisonettes: 309270,
         },
         {
-            date: new Date('Dec 2013'),
+            date: new Date('2013-12-01'),
             allPropertyTypes: 352028,
             detachedHouses: 632546,
             semiDetachedHouses: 405661,
@@ -1345,7 +1345,7 @@ export function getData() {
             flatsAndMaisonettes: 319009,
         },
         {
-            date: new Date('Jan 2014'),
+            date: new Date('2014-01-01'),
             allPropertyTypes: 355830,
             detachedHouses: 651986,
             semiDetachedHouses: 413770,
@@ -1353,7 +1353,7 @@ export function getData() {
             flatsAndMaisonettes: 320787,
         },
         {
-            date: new Date('Feb 2014'),
+            date: new Date('2014-02-01'),
             allPropertyTypes: 357876,
             detachedHouses: 657774,
             semiDetachedHouses: 415632,
@@ -1361,7 +1361,7 @@ export function getData() {
             flatsAndMaisonettes: 323086,
         },
         {
-            date: new Date('Mar 2014'),
+            date: new Date('2014-03-01'),
             allPropertyTypes: 361400,
             detachedHouses: 656427,
             semiDetachedHouses: 417649,
@@ -1369,7 +1369,7 @@ export function getData() {
             flatsAndMaisonettes: 326778,
         },
         {
-            date: new Date('Apr 2014'),
+            date: new Date('2014-04-01'),
             allPropertyTypes: 375337,
             detachedHouses: 688122,
             semiDetachedHouses: 435644,
@@ -1377,7 +1377,7 @@ export function getData() {
             flatsAndMaisonettes: 337738,
         },
         {
-            date: new Date('May 2014'),
+            date: new Date('2014-05-01'),
             allPropertyTypes: 382705,
             detachedHouses: 692487,
             semiDetachedHouses: 441186,
@@ -1385,7 +1385,7 @@ export function getData() {
             flatsAndMaisonettes: 345723,
         },
         {
-            date: new Date('Jun 2014'),
+            date: new Date('2014-06-01'),
             allPropertyTypes: 387182,
             detachedHouses: 699099,
             semiDetachedHouses: 446329,
@@ -1393,7 +1393,7 @@ export function getData() {
             flatsAndMaisonettes: 349362,
         },
         {
-            date: new Date('Jul 2014'),
+            date: new Date('2014-07-01'),
             allPropertyTypes: 398737,
             detachedHouses: 728491,
             semiDetachedHouses: 465103,
@@ -1401,7 +1401,7 @@ export function getData() {
             flatsAndMaisonettes: 357492,
         },
         {
-            date: new Date('Aug 2014'),
+            date: new Date('2014-08-01'),
             allPropertyTypes: 404754,
             detachedHouses: 739313,
             semiDetachedHouses: 471552,
@@ -1409,7 +1409,7 @@ export function getData() {
             flatsAndMaisonettes: 362768,
         },
         {
-            date: new Date('Sep 2014'),
+            date: new Date('2014-09-01'),
             allPropertyTypes: 403670,
             detachedHouses: 738828,
             semiDetachedHouses: 468585,
@@ -1417,7 +1417,7 @@ export function getData() {
             flatsAndMaisonettes: 362757,
         },
         {
-            date: new Date('Oct 2014'),
+            date: new Date('2014-10-01'),
             allPropertyTypes: 402300,
             detachedHouses: 741040,
             semiDetachedHouses: 470849,
@@ -1425,7 +1425,7 @@ export function getData() {
             flatsAndMaisonettes: 360746,
         },
         {
-            date: new Date('Nov 2014'),
+            date: new Date('2014-11-01'),
             allPropertyTypes: 400803,
             detachedHouses: 743115,
             semiDetachedHouses: 472027,
@@ -1433,7 +1433,7 @@ export function getData() {
             flatsAndMaisonettes: 358450,
         },
         {
-            date: new Date('Dec 2014'),
+            date: new Date('2014-12-01'),
             allPropertyTypes: 402898,
             detachedHouses: 739606,
             semiDetachedHouses: 469349,
@@ -1441,7 +1441,7 @@ export function getData() {
             flatsAndMaisonettes: 362322,
         },
         {
-            date: new Date('Jan 2015'),
+            date: new Date('2015-01-01'),
             allPropertyTypes: 402847,
             detachedHouses: 743471,
             semiDetachedHouses: 471904,
@@ -1449,7 +1449,7 @@ export function getData() {
             flatsAndMaisonettes: 361840,
         },
         {
-            date: new Date('Feb 2015'),
+            date: new Date('2015-02-01'),
             allPropertyTypes: 404773,
             detachedHouses: 748417,
             semiDetachedHouses: 473702,
@@ -1457,7 +1457,7 @@ export function getData() {
             flatsAndMaisonettes: 363574,
         },
         {
-            date: new Date('Mar 2015'),
+            date: new Date('2015-03-01'),
             allPropertyTypes: 404706,
             detachedHouses: 746670,
             semiDetachedHouses: 474072,
@@ -1465,7 +1465,7 @@ export function getData() {
             flatsAndMaisonettes: 363615,
         },
         {
-            date: new Date('Apr 2015'),
+            date: new Date('2015-04-01'),
             allPropertyTypes: 410445,
             detachedHouses: 759614,
             semiDetachedHouses: 480438,
@@ -1473,7 +1473,7 @@ export function getData() {
             flatsAndMaisonettes: 367469,
         },
         {
-            date: new Date('May 2015'),
+            date: new Date('2015-05-01'),
             allPropertyTypes: 415817,
             detachedHouses: 758190,
             semiDetachedHouses: 485444,
@@ -1481,7 +1481,7 @@ export function getData() {
             flatsAndMaisonettes: 374213,
         },
         {
-            date: new Date('Jun 2015'),
+            date: new Date('2015-06-01'),
             allPropertyTypes: 419474,
             detachedHouses: 772089,
             semiDetachedHouses: 493081,
@@ -1489,7 +1489,7 @@ export function getData() {
             flatsAndMaisonettes: 373769,
         },
         {
-            date: new Date('Jul 2015'),
+            date: new Date('2015-07-01'),
             allPropertyTypes: 431644,
             detachedHouses: 787783,
             semiDetachedHouses: 506181,
@@ -1497,7 +1497,7 @@ export function getData() {
             flatsAndMaisonettes: 385416,
         },
         {
-            date: new Date('Aug 2015'),
+            date: new Date('2015-08-01'),
             allPropertyTypes: 436152,
             detachedHouses: 805864,
             semiDetachedHouses: 514997,
@@ -1505,7 +1505,7 @@ export function getData() {
             flatsAndMaisonettes: 387978,
         },
         {
-            date: new Date('Sep 2015'),
+            date: new Date('2015-09-01'),
             allPropertyTypes: 439729,
             detachedHouses: 820565,
             semiDetachedHouses: 517030,
@@ -1513,7 +1513,7 @@ export function getData() {
             flatsAndMaisonettes: 392127,
         },
         {
-            date: new Date('Oct 2015'),
+            date: new Date('2015-10-01'),
             allPropertyTypes: 440484,
             detachedHouses: 824799,
             semiDetachedHouses: 525228,
@@ -1521,7 +1521,7 @@ export function getData() {
             flatsAndMaisonettes: 389400,
         },
         {
-            date: new Date('Nov 2015'),
+            date: new Date('2015-11-01'),
             allPropertyTypes: 445485,
             detachedHouses: 828661,
             semiDetachedHouses: 528318,
@@ -1529,7 +1529,7 @@ export function getData() {
             flatsAndMaisonettes: 395612,
         },
         {
-            date: new Date('Dec 2015'),
+            date: new Date('2015-12-01'),
             allPropertyTypes: 450053,
             detachedHouses: 844884,
             semiDetachedHouses: 536465,
@@ -1537,7 +1537,7 @@ export function getData() {
             flatsAndMaisonettes: 398893,
         },
         {
-            date: new Date('Jan 2016'),
+            date: new Date('2016-01-01'),
             allPropertyTypes: 457466,
             detachedHouses: 846956,
             semiDetachedHouses: 546758,
@@ -1545,7 +1545,7 @@ export function getData() {
             flatsAndMaisonettes: 405793,
         },
         {
-            date: new Date('Feb 2016'),
+            date: new Date('2016-02-01'),
             allPropertyTypes: 457759,
             detachedHouses: 863896,
             semiDetachedHouses: 550400,
@@ -1553,7 +1553,7 @@ export function getData() {
             flatsAndMaisonettes: 403745,
         },
         {
-            date: new Date('Mar 2016'),
+            date: new Date('2016-03-01'),
             allPropertyTypes: 464647,
             detachedHouses: 873391,
             semiDetachedHouses: 549954,
@@ -1561,7 +1561,7 @@ export function getData() {
             flatsAndMaisonettes: 412842,
         },
         {
-            date: new Date('Apr 2016'),
+            date: new Date('2016-04-01'),
             allPropertyTypes: 461068,
             detachedHouses: 859832,
             semiDetachedHouses: 551600,
@@ -1569,7 +1569,7 @@ export function getData() {
             flatsAndMaisonettes: 407094,
         },
         {
-            date: new Date('May 2016'),
+            date: new Date('2016-05-01'),
             allPropertyTypes: 467485,
             detachedHouses: 864839,
             semiDetachedHouses: 557920,
@@ -1577,7 +1577,7 @@ export function getData() {
             flatsAndMaisonettes: 414351,
         },
         {
-            date: new Date('Jun 2016'),
+            date: new Date('2016-06-01'),
             allPropertyTypes: 468120,
             detachedHouses: 885121,
             semiDetachedHouses: 560281,
@@ -1585,7 +1585,7 @@ export function getData() {
             flatsAndMaisonettes: 413275,
         },
         {
-            date: new Date('Jul 2016'),
+            date: new Date('2016-07-01'),
             allPropertyTypes: 475530,
             detachedHouses: 893103,
             semiDetachedHouses: 572688,
@@ -1593,7 +1593,7 @@ export function getData() {
             flatsAndMaisonettes: 418347,
         },
         {
-            date: new Date('Aug 2016'),
+            date: new Date('2016-08-01'),
             allPropertyTypes: 471957,
             detachedHouses: 889075,
             semiDetachedHouses: 568552,
@@ -1601,7 +1601,7 @@ export function getData() {
             flatsAndMaisonettes: 415648,
         },
         {
-            date: new Date('Sep 2016'),
+            date: new Date('2016-09-01'),
             allPropertyTypes: 471767,
             detachedHouses: 883706,
             semiDetachedHouses: 565376,
@@ -1609,7 +1609,7 @@ export function getData() {
             flatsAndMaisonettes: 416967,
         },
         {
-            date: new Date('Oct 2016'),
+            date: new Date('2016-10-01'),
             allPropertyTypes: 471008,
             detachedHouses: 883336,
             semiDetachedHouses: 565977,
@@ -1617,7 +1617,7 @@ export function getData() {
             flatsAndMaisonettes: 417532,
         },
         {
-            date: new Date('Nov 2016'),
+            date: new Date('2016-11-01'),
             allPropertyTypes: 470854,
             detachedHouses: 886553,
             semiDetachedHouses: 562093,
@@ -1625,7 +1625,7 @@ export function getData() {
             flatsAndMaisonettes: 418660,
         },
         {
-            date: new Date('Dec 2016'),
+            date: new Date('2016-12-01'),
             allPropertyTypes: 472374,
             detachedHouses: 887005,
             semiDetachedHouses: 562272,
@@ -1633,7 +1633,7 @@ export function getData() {
             flatsAndMaisonettes: 419937,
         },
         {
-            date: new Date('Jan 2017'),
+            date: new Date('2017-01-01'),
             allPropertyTypes: 475619,
             detachedHouses: 893279,
             semiDetachedHouses: 568911,
@@ -1641,7 +1641,7 @@ export function getData() {
             flatsAndMaisonettes: 421834,
         },
         {
-            date: new Date('Feb 2017'),
+            date: new Date('2017-02-01'),
             allPropertyTypes: 476717,
             detachedHouses: 887959,
             semiDetachedHouses: 563242,
@@ -1649,7 +1649,7 @@ export function getData() {
             flatsAndMaisonettes: 427256,
         },
         {
-            date: new Date('Mar 2017'),
+            date: new Date('2017-03-01'),
             allPropertyTypes: 475442,
             detachedHouses: 893859,
             semiDetachedHouses: 566834,
@@ -1657,7 +1657,7 @@ export function getData() {
             flatsAndMaisonettes: 422917,
         },
         {
-            date: new Date('Apr 2017'),
+            date: new Date('2017-04-01'),
             allPropertyTypes: 479790,
             detachedHouses: 899133,
             semiDetachedHouses: 567701,
@@ -1665,7 +1665,7 @@ export function getData() {
             flatsAndMaisonettes: 428541,
         },
         {
-            date: new Date('May 2017'),
+            date: new Date('2017-05-01'),
             allPropertyTypes: 480902,
             detachedHouses: 890430,
             semiDetachedHouses: 571569,
@@ -1673,7 +1673,7 @@ export function getData() {
             flatsAndMaisonettes: 430111,
         },
         {
-            date: new Date('Jun 2017'),
+            date: new Date('2017-06-01'),
             allPropertyTypes: 480152,
             detachedHouses: 890539,
             semiDetachedHouses: 569116,
@@ -1681,7 +1681,7 @@ export function getData() {
             flatsAndMaisonettes: 428001,
         },
         {
-            date: new Date('Jul 2017'),
+            date: new Date('2017-07-01'),
             allPropertyTypes: 488527,
             detachedHouses: 903023,
             semiDetachedHouses: 582307,
@@ -1689,7 +1689,7 @@ export function getData() {
             flatsAndMaisonettes: 434837,
         },
         {
-            date: new Date('Aug 2017'),
+            date: new Date('2017-08-01'),
             allPropertyTypes: 487085,
             detachedHouses: 904655,
             semiDetachedHouses: 579880,
@@ -1697,7 +1697,7 @@ export function getData() {
             flatsAndMaisonettes: 432209,
         },
         {
-            date: new Date('Sep 2017'),
+            date: new Date('2017-09-01'),
             allPropertyTypes: 483833,
             detachedHouses: 913220,
             semiDetachedHouses: 578519,
@@ -1705,7 +1705,7 @@ export function getData() {
             flatsAndMaisonettes: 428892,
         },
         {
-            date: new Date('Oct 2017'),
+            date: new Date('2017-10-01'),
             allPropertyTypes: 481762,
             detachedHouses: 908782,
             semiDetachedHouses: 580410,
@@ -1713,7 +1713,7 @@ export function getData() {
             flatsAndMaisonettes: 426315,
         },
         {
-            date: new Date('Nov 2017'),
+            date: new Date('2017-11-01'),
             allPropertyTypes: 476290,
             detachedHouses: 892900,
             semiDetachedHouses: 573421,
@@ -1721,7 +1721,7 @@ export function getData() {
             flatsAndMaisonettes: 421807,
         },
         {
-            date: new Date('Dec 2017'),
+            date: new Date('2017-12-01'),
             allPropertyTypes: 476848,
             detachedHouses: 899100,
             semiDetachedHouses: 573194,
@@ -1729,7 +1729,7 @@ export function getData() {
             flatsAndMaisonettes: 421917,
         },
         {
-            date: new Date('Jan 2018'),
+            date: new Date('2018-01-01'),
             allPropertyTypes: 479772,
             detachedHouses: 895602,
             semiDetachedHouses: 576870,
@@ -1737,7 +1737,7 @@ export function getData() {
             flatsAndMaisonettes: 425766,
         },
         {
-            date: new Date('Feb 2018'),
+            date: new Date('2018-02-01'),
             allPropertyTypes: 477860,
             detachedHouses: 898057,
             semiDetachedHouses: 574508,
@@ -1745,7 +1745,7 @@ export function getData() {
             flatsAndMaisonettes: 423537,
         },
         {
-            date: new Date('Mar 2018'),
+            date: new Date('2018-03-01'),
             allPropertyTypes: 472357,
             detachedHouses: 890041,
             semiDetachedHouses: 572169,
@@ -1753,7 +1753,7 @@ export function getData() {
             flatsAndMaisonettes: 416546,
         },
         {
-            date: new Date('Apr 2018'),
+            date: new Date('2018-04-01'),
             allPropertyTypes: 477253,
             detachedHouses: 898928,
             semiDetachedHouses: 579191,
@@ -1761,7 +1761,7 @@ export function getData() {
             flatsAndMaisonettes: 420315,
         },
         {
-            date: new Date('May 2018'),
+            date: new Date('2018-05-01'),
             allPropertyTypes: 478485,
             detachedHouses: 903088,
             semiDetachedHouses: 581868,
@@ -1769,7 +1769,7 @@ export function getData() {
             flatsAndMaisonettes: 420076,
         },
         {
-            date: new Date('Jun 2018'),
+            date: new Date('2018-06-01'),
             allPropertyTypes: 479931,
             detachedHouses: 909153,
             semiDetachedHouses: 587607,
@@ -1777,7 +1777,7 @@ export function getData() {
             flatsAndMaisonettes: 421188,
         },
         {
-            date: new Date('Jul 2018'),
+            date: new Date('2018-07-01'),
             allPropertyTypes: 484724,
             detachedHouses: 929011,
             semiDetachedHouses: 591665,
@@ -1785,7 +1785,7 @@ export function getData() {
             flatsAndMaisonettes: 424322,
         },
         {
-            date: new Date('Aug 2018'),
+            date: new Date('2018-08-01'),
             allPropertyTypes: 479550,
             detachedHouses: 912509,
             semiDetachedHouses: 583664,
@@ -1793,7 +1793,7 @@ export function getData() {
             flatsAndMaisonettes: 420693,
         },
         {
-            date: new Date('Sep 2018'),
+            date: new Date('2018-09-01'),
             allPropertyTypes: 476545,
             detachedHouses: 912657,
             semiDetachedHouses: 583686,
@@ -1801,7 +1801,7 @@ export function getData() {
             flatsAndMaisonettes: 416752,
         },
         {
-            date: new Date('Oct 2018'),
+            date: new Date('2018-10-01'),
             allPropertyTypes: 480057,
             detachedHouses: 919012,
             semiDetachedHouses: 586432,
@@ -1809,7 +1809,7 @@ export function getData() {
             flatsAndMaisonettes: 420614,
         },
         {
-            date: new Date('Nov 2018'),
+            date: new Date('2018-11-01'),
             allPropertyTypes: 474347,
             detachedHouses: 913641,
             semiDetachedHouses: 580831,
@@ -1817,7 +1817,7 @@ export function getData() {
             flatsAndMaisonettes: 414526,
         },
         {
-            date: new Date('Dec 2018'),
+            date: new Date('2018-12-01'),
             allPropertyTypes: 473252,
             detachedHouses: 899415,
             semiDetachedHouses: 579876,
@@ -1825,7 +1825,7 @@ export function getData() {
             flatsAndMaisonettes: 415052,
         },
         {
-            date: new Date('Jan 2019'),
+            date: new Date('2019-01-01'),
             allPropertyTypes: 470067,
             detachedHouses: 909861,
             semiDetachedHouses: 578054,
@@ -1833,7 +1833,7 @@ export function getData() {
             flatsAndMaisonettes: 410934,
         },
         {
-            date: new Date('Feb 2019'),
+            date: new Date('2019-02-01'),
             allPropertyTypes: 466068,
             detachedHouses: 897130,
             semiDetachedHouses: 571003,
@@ -1841,7 +1841,7 @@ export function getData() {
             flatsAndMaisonettes: 407751,
         },
         {
-            date: new Date('Mar 2019'),
+            date: new Date('2019-03-01'),
             allPropertyTypes: 464162,
             detachedHouses: 879600,
             semiDetachedHouses: 566491,
@@ -1849,7 +1849,7 @@ export function getData() {
             flatsAndMaisonettes: 406906,
         },
         {
-            date: new Date('Apr 2019'),
+            date: new Date('2019-04-01'),
             allPropertyTypes: 469537,
             detachedHouses: 886952,
             semiDetachedHouses: 570672,
@@ -1857,7 +1857,7 @@ export function getData() {
             flatsAndMaisonettes: 411728,
         },
         {
-            date: new Date('May 2019'),
+            date: new Date('2019-05-01'),
             allPropertyTypes: 463628,
             detachedHouses: 877723,
             semiDetachedHouses: 567219,
@@ -1865,7 +1865,7 @@ export function getData() {
             flatsAndMaisonettes: 404483,
         },
         {
-            date: new Date('Jun 2019'),
+            date: new Date('2019-06-01'),
             allPropertyTypes: 470519,
             detachedHouses: 892527,
             semiDetachedHouses: 579285,
@@ -1873,7 +1873,7 @@ export function getData() {
             flatsAndMaisonettes: 410734,
         },
         {
-            date: new Date('Jul 2019'),
+            date: new Date('2019-07-01'),
             allPropertyTypes: 478505,
             detachedHouses: 900158,
             semiDetachedHouses: 581341,
@@ -1881,7 +1881,7 @@ export function getData() {
             flatsAndMaisonettes: 419875,
         },
         {
-            date: new Date('Aug 2019'),
+            date: new Date('2019-08-01'),
             allPropertyTypes: 472729,
             detachedHouses: 902797,
             semiDetachedHouses: 580661,
@@ -1889,7 +1889,7 @@ export function getData() {
             flatsAndMaisonettes: 409829,
         },
         {
-            date: new Date('Sep 2019'),
+            date: new Date('2019-09-01'),
             allPropertyTypes: 477146,
             detachedHouses: 901921,
             semiDetachedHouses: 578597,
@@ -1897,7 +1897,7 @@ export function getData() {
             flatsAndMaisonettes: 418324,
         },
         {
-            date: new Date('Oct 2019'),
+            date: new Date('2019-10-01'),
             allPropertyTypes: 472668,
             detachedHouses: 901258,
             semiDetachedHouses: 584448,
@@ -1905,7 +1905,7 @@ export function getData() {
             flatsAndMaisonettes: 411266,
         },
         {
-            date: new Date('Nov 2019'),
+            date: new Date('2019-11-01'),
             allPropertyTypes: 468757,
             detachedHouses: 904492,
             semiDetachedHouses: 580116,
@@ -1913,7 +1913,7 @@ export function getData() {
             flatsAndMaisonettes: 405653,
         },
         {
-            date: new Date('Dec 2019'),
+            date: new Date('2019-12-01'),
             allPropertyTypes: 479153,
             detachedHouses: 908784,
             semiDetachedHouses: 584771,
