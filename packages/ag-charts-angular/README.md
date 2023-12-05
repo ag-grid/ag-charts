@@ -1,4 +1,4 @@
-<<picture><source media="(prefers-color-scheme: dark)" srcset="../../.github/banner-dark.png"><source media="(prefers-color-scheme: light)" srcset="../../.github/banner-light.png"><img alt="AG Charts canvas-based charting trusted by the community, built for enterprise." src="../../.github/banner-light.png"></picture>
+<picture><source media="(prefers-color-scheme: dark)" srcset="../../.github/banner-dark.png"><source media="(prefers-color-scheme: light)" srcset="../../.github/banner-light.png"><img alt="AG Charts canvas-based charting trusted by the community, built for enterprise." src="../../.github/banner-light.png"></picture>
 
 [![Github Stars](https://img.shields.io/github/stars/ag-grid/ag-charts?style=social)](https://github.com/ag-grid/ag-charts) [![Twitter](https://img.shields.io/twitter/follow/ag_grid?style=social)](https://twitter.com/ag_grid)
 
