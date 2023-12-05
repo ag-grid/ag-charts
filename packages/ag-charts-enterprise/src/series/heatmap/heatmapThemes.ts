@@ -1,4 +1,4 @@
-import { AgHeatmapSeriesOptions, _Theme } from 'ag-charts-community';
+import { type AgHeatmapSeriesOptions, _Theme } from 'ag-charts-community';
 
 export const HEATMAP_SERIES_THEME: Partial<
     AgHeatmapSeriesOptions & { __extends__?: any; label: { __overrides__?: any } }
