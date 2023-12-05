@@ -1,7 +1,11 @@
+import type { PixelSize } from '../../agChartOptions';
 import type { AgBaseRadialColumnSeriesOptions } from './radialColumnOptions';
 import type { AgBaseRadialSeriesThemeableOptions } from './radialOptions';
 
-export interface AgNightingaleSeriesThemeableOptions<TDatum = any> extends AgBaseRadialSeriesThemeableOptions<TDatum> {}
+export interface AgNightingaleSeriesThemeableOptions<TDatum = any> extends AgBaseRadialSeriesThemeableOptions<TDatum> {
+    /** The minimum spacing between nightingale sectors. If axis padding is enabled, the sector spacing will be disabled on the radial edges. */
+    sectorSpacing?: PixelSize;
+}
 
 export interface AgNightingaleSeriesOptions<TDatum = any>
     extends AgNightingaleSeriesThemeableOptions<TDatum>,

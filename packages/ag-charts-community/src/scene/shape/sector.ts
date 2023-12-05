@@ -27,7 +27,15 @@ export class Sector extends Path {
     angleOffset: number = 0;
 
     @ScenePathChangeDetection()
-    inset: number = 0;
+    concentricEdgeInset: number = 0;
+
+    @ScenePathChangeDetection()
+    radialEdgeInset: number = 0;
+
+    set inset(value: number) {
+        this.concentricEdgeInset = value;
+        this.radialEdgeInset = value;
+    }
 
     override computeBBox(): BBox {
         const radius = this.outerRadius;
@@ -37,12 +45,12 @@ export class Sector extends Path {
     override updatePath(): void {
         const path = this.path;
 
-        const { angleOffset, inset } = this;
+        const { angleOffset, concentricEdgeInset, radialEdgeInset } = this;
         const startAngle = this.startAngle + angleOffset;
         const endAngle = this.endAngle + angleOffset;
         const sweep = startAngle <= endAngle ? endAngle - startAngle : Math.PI * 2 - (startAngle - endAngle);
-        const innerRadius = Math.max(Math.min(this.innerRadius, this.outerRadius) + inset, 0);
-        const outerRadius = Math.max(Math.max(this.innerRadius, this.outerRadius) - inset, 0);
+        const innerRadius = Math.max(Math.min(this.innerRadius, this.outerRadius) + concentricEdgeInset, 0);
+        const outerRadius = Math.max(Math.max(this.innerRadius, this.outerRadius) - concentricEdgeInset, 0);
         const fullPie = sweep >= 2 * Math.PI;
         const centerX = this.centerX;
         const centerY = this.centerY;
@@ -51,18 +59,18 @@ export class Sector extends Path {
 
         if (fullPie) {
             path.arc(centerX, centerY, outerRadius, startAngle, endAngle);
-            if (innerRadius > inset) {
+            if (innerRadius > concentricEdgeInset) {
                 path.moveTo(centerX + innerRadius * Math.cos(endAngle), centerY + innerRadius * Math.sin(endAngle));
                 path.arc(centerX, centerY, innerRadius, endAngle, startAngle, true);
             }
         } else {
-            const innerAngleOffset = innerRadius > 0 ? inset / innerRadius : 0;
-            const outerAngleOffset = outerRadius > 0 ? inset / outerRadius : 0;
+            const innerAngleOffset = innerRadius > 0 ? radialEdgeInset / innerRadius : 0;
+            const outerAngleOffset = outerRadius > 0 ? radialEdgeInset / outerRadius : 0;
 
             const outerAngleExceeded = sweep < 2 * outerAngleOffset;
             if (outerAngleExceeded) return;
 
-            const innerAngleExceeded = innerRadius <= inset || sweep < 2 * innerAngleOffset;
+            const innerAngleExceeded = innerRadius <= concentricEdgeInset || sweep < 2 * innerAngleOffset;
 
             if (innerAngleExceeded) {
                 // Draw a wedge on a cartesian co-ordinate with radius `sweep`
@@ -73,13 +81,13 @@ export class Sector extends Path {
                 // y = inset = (x - inset * sin(sweep)) * tan(sweep) - solve for x
                 // This formula has limits (i.e. sweep being >= a quarter turn),
                 // but the bounds for x should be [innerRadius, outerRadius)
-                const x = sweep < Math.PI * 0.5 ? (inset * (1 + Math.cos(sweep))) / Math.sin(sweep) : NaN;
+                const x = sweep < Math.PI * 0.5 ? (radialEdgeInset * (1 + Math.cos(sweep))) / Math.sin(sweep) : NaN;
                 // r = sqrt(x**2 + y**2)
                 let r: number;
                 if (x > 0 && x < outerRadius) {
                     // Even within the formula limits, floating point precision isn't always enough,
                     // so ensure we never go less than the inner radius
-                    r = Math.max(Math.hypot(inset, x), innerRadius);
+                    r = Math.max(Math.hypot(radialEdgeInset, x), innerRadius);
                 } else {
                     // Formula limits exceeded - just use the inner radius
                     r = innerRadius;
