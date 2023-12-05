@@ -1,26 +1,14 @@
 import { afterEach, beforeEach, describe, expect, jest, test } from '@jest/globals';
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
-import type { AgChartOptions } from '../../../options/agChartOptions';
+import type { AgPolarChartOptions } from '../../../options/agChartOptions';
 import { AgCharts } from '../../agChartV2';
 import type { Chart } from '../../chart';
 import {
-    DATA_FRACTIONAL_LOG_AXIS,
-    DATA_INVALID_DOMAIN_LOG_AXIS,
-    DATA_NEGATIVE_LOG_AXIS,
-    DATA_POSITIVE_LOG_AXIS,
-    DATA_ZERO_EXTENT_LOG_AXIS,
-} from '../../test/data';
-import * as examples from '../../test/examples';
-import type { TestCase } from '../../test/utils';
-import {
     IMAGE_SNAPSHOT_DEFAULTS,
-    cartesianChartAssertions,
     extractImageData,
     prepareTestOptions,
-    repeat,
     setupMockCanvas,
-    spyOnAnimationManager,
     waitForChartStability,
 } from '../../test/utils';
 
@@ -117,3 +105,42 @@ describe('Doughnut', () => {
         await compare();
     });
 });
+
+/* eslint-disable no-console */
+describe('Validation', () => {
+    let chart: Chart;
+
+    beforeEach(() => {
+        console.warn = jest.fn();
+        console.error = jest.fn();
+    });
+
+    afterEach(() => {
+        if (chart) {
+            chart.destroy();
+            (chart as unknown) = undefined;
+        }
+        expect(console.error).not.toBeCalled();
+        jest.restoreAllMocks();
+    });
+
+    setupMockCanvas();
+
+    const options: AgPolarChartOptions = {};
+    prepareTestOptions(options);
+
+    test('missing data warning', async () => {
+        chart = AgCharts.create({
+            ...options,
+            data: [{ cat: '1' }, { cat: '2' }, { fox: 'L' }, { cat: '4', dog: 10 }, { cat: '5', dog: 20 }],
+            series: [{ type: 'pie', calloutLabelKey: 'cat', angleKey: 'dog', sectorLabelKey: 'fox' }],
+        }) as Chart;
+        await waitForChartStability(chart);
+
+        expect(console.warn).toBeCalledTimes(3);
+        expect(console.warn).nthCalledWith(1, 'AG Charts - Missing 3 dog value(s)');
+        expect(console.warn).nthCalledWith(2, 'AG Charts - Missing 1 cat value(s)');
+        expect(console.warn).nthCalledWith(3, 'AG Charts - Missing 4 fox value(s)');
+    });
+});
+/* eslint-enable no-console */
