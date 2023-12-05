@@ -41,6 +41,8 @@ const hiddenInterfaces = [
     'Opacity',
     'PixelSize',
     'Ratio',
+    'Degree',
+    'DurationMs',
 ];
 
 export function cleanupName(name: string) {
