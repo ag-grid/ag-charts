@@ -25,5 +25,11 @@ done
 echo >./packages/ag-charts-community/src/version.ts "// DO NOT UPDATE MANUALLY: Generated from script during build time
 export const VERSION = '${NEW_VERSION}';"
 
+for envFile in ./packages/ag-charts-website/.env* ; do
+    echo "Updating ${envFile}"
+    sed -i '' '/PUBLIC_PACKAGE_VERSION=/ d' ${envFile}
+    echo "PUBLIC_PACKAGE_VERSION=${NEW_VERSION}" >>${envFile}
+done
+
 # Ensure consistent package.json formatting.
 npx prettier -w $(git status -s | grep package.json | awk '{ print $2 }')
