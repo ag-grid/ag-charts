@@ -1,5 +1,6 @@
 import { Logger } from '../util/logger';
 import type { TimeInterval } from '../util/time/interval';
+import { Invalidating } from './invalidating';
 import type { Scale, ScaleConvertParams } from './scale';
 
 export abstract class ContinuousScale<D extends number | Date, I = number> implements Scale<D, number, I> {
@@ -10,19 +11,29 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
         return value instanceof ContinuousScale;
     }
 
+    private invalid = true;
+
+    @Invalidating
+    domain: D[];
+    @Invalidating
+    range: number[];
+    @Invalidating
     nice = false;
-    interval?: I;
+    @Invalidating
+    interval?: I = undefined;
+    @Invalidating
     tickCount = ContinuousScale.defaultTickCount;
+    @Invalidating
     minTickCount = 0;
+    @Invalidating
     maxTickCount = Infinity;
-    niceDomain: any[] = [];
 
-    smallestBandwidthInterval?: number;
+    protected niceDomain: any[] = [];
 
-    protected constructor(
-        public domain: D[],
-        public range: number[]
-    ) {}
+    protected constructor(domain: D[], range: number[]) {
+        this.domain = domain;
+        this.range = range;
+    }
 
     protected transform(x: D) {
         return x;
@@ -133,25 +144,17 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
         return this.transformInvert(d);
     }
 
-    protected cache: any = null;
-    protected cacheProps: Array<keyof this> = ['domain', 'range', 'nice', 'tickCount', 'minTickCount', 'maxTickCount'];
-    protected didChange() {
-        const { cache } = this;
-        const didChange = !cache || this.cacheProps.some((p) => this[p] !== cache[p]);
-        if (didChange) {
-            this.cache = {};
-            this.cacheProps.forEach((p) => (this.cache[p] = this[p]));
-            return true;
-        }
-        return false;
-    }
-
     abstract update(): void;
     protected abstract updateNiceDomain(): void;
 
     protected refresh() {
-        if (this.didChange()) {
-            this.update();
+        if (!this.invalid) return;
+
+        this.invalid = false;
+        this.update();
+
+        if (this.invalid) {
+            Logger.warnOnce('Expected update to not invalidate scale');
         }
     }
 
