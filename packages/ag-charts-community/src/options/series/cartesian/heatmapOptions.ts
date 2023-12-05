@@ -1,5 +1,5 @@
 import type { AgChartCallbackParams } from '../../chart/callbackOptions';
-import type { AgChartAutoSizedLabelOptions, AgChartAutoSizedSecondaryLabelOptions } from '../../chart/labelOptions';
+import type { AgChartAutoSizedLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { PixelSize, TextAlign, VerticalAlign } from '../../chart/types';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
@@ -28,10 +28,8 @@ export interface AgHeatmapSeriesTooltipRendererParams extends AgCartesianSeriesT
 export interface AgHeatmapSeriesThemeableOptions<TDatum = any> extends StrokeOptions, AgBaseSeriesThemeableOptions {
     /** Options for the label in a cells */
     label?: AgChartAutoSizedLabelOptions<TDatum, AgHeatmapSeriesLabelFormatterParams>;
-    /** Options for a secondary, smaller label in a cells - displayed under the primary label */
-    secondaryLabel?: AgChartAutoSizedSecondaryLabelOptions<TDatum, AgHeatmapSeriesLabelFormatterParams>;
-    /** Minimum distance between text and the edges of the sectors */
-    padding?: PixelSize;
+    /** Minimum distance between text and the edges of the cells */
+    itemPadding?: PixelSize;
     /** Horizontal position of the label */
     textAlign?: TextAlign;
     /** Vertical position of the label */
