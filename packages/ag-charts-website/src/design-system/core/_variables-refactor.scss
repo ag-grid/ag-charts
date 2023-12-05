@@ -1,4 +1,7 @@
 :root {
+    --text-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
+        'Liberation Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+
     --color-white: #fff;
     --color-black: #000;
 
@@ -27,6 +30,37 @@
     --color-brand-800: #002e7e;
     --color-brand-900: #00246c;
     --color-brand-950: #001a5a;
+
+    --text-regular: 400;
+    --text-semibold: 600;
+    --text-bold: 700;
+
+    --text-2xs: var(--text-regular) 10px/1.2 var(--text-font-family);
+    --text-xs: var(--text-regular) 12px/1.6666 var(--text-font-family);
+    --text-sm: var(--text-regular) 14px/1.4 var(--text-font-family);
+    --text-base: var(--text-regular) 16px/1.4 var(--text-font-family);
+    --text-lg: var(--text-regular) 20px/1.2 var(--text-font-family);
+    --text-xl: var(--text-regular) 24px/1.2 var(--text-font-family);
+    --text-2xl: var(--text-regular) 32px/1.2 var(--text-font-family);
+    --text-3xl: var(--text-regular) 40px/1.1 var(--text-font-family);
+
+    --text-2xs-semibold: var(--text-semibold) 10px/1.2 var(--text-font-family);
+    --text-xs-semibold: var(--text-semibold) 12px/1.6666 var(--text-font-family);
+    --text-sm-semibold: var(--text-semibold) 14px/1.4 var(--text-font-family);
+    --text-base-semibold: var(--text-semibold) 16px/1.4 var(--text-font-family);
+    --text-lg-semibold: var(--text-semibold) 20px/1.2 var(--text-font-family);
+    --text-xl-semibold: var(--text-semibold) 24px/1.2 var(--text-font-family);
+    --text-2xl-semibold: var(--text-semibold) 32px/1.2 var(--text-font-family);
+    --text-3xl-semibold: var(--text-semibold) 40px/1.1 var(--text-font-family);
+
+    --text-2xs-bold: var(--text-bold) 10px/1.2 var(--text-font-family);
+    --text-xs-bold: var(--text-bold) 12px/1.6666 var(--text-font-family);
+    --text-sm-bold: var(--text-bold) 14px/1.4 var(--text-font-family);
+    --text-base-bold: var(--text-bold) 16px/1.4 var(--text-font-family);
+    --text-lg-bold: var(--text-bold) 20px/1.2 var(--text-font-family);
+    --text-xl-bold: var(--text-bold) 24px/1.2 var(--text-font-family);
+    --text-2xl-bold: var(--text-bold) 32px/1.2 var(--text-font-family);
+    --text-3xl-bold: var(--text-bold) 40px/1.1 var(--text-font-family);
 }
 
 $color-white: var(--color-white);
@@ -57,3 +91,34 @@ $color-brand-700: var(--color-brand-700);
 $color-brand-800: var(--color-brand-800);
 $color-brand-900: var(--color-brand-900);
 $color-brand-950: var(--color-brand-950);
+
+$text-regular: var(--text-regular);
+$text-semibold: var(--text-semibold);
+$text-bold: var(--text-bold);
+
+$text-2xs: var(--text-2xs);
+$text-xs: var(--text-xs);
+$text-sm: var(--text-sm);
+$text-base: var(--text-base);
+$text-lg: var(--text-lg);
+$text-xl: var(--text-xl);
+$text-2xl: var(--text-2xl);
+$text-3xl: var(--text-3xl);
+
+$text-2xs-semibold: var(--text-2xs-semibold);
+$text-xs-semibold: var(--text-xs-semibold);
+$text-sm-semibold: var(--text-sm-semibold);
+$text-base-semibold: var(--text-base-semibold);
+$text-lg-semibold: var(--text-lg-semibold);
+$text-xl-semibold: var(--text-xl-semibold);
+$text-2xl-semibold: var(--text-2xl-semibold);
+$text-3xl-semibold: var(--text-3xl-semibold);
+
+$text-2xs-bold: var(--text-2xs-bold);
+$text-xs-bold: var(--text-xs-bold);
+$text-sm-bold: var(--text-sm-bold);
+$text-base-bold: var(--text-base-bold);
+$text-lg-bold: var(--text-lg-bold);
+$text-xl-bold: var(--text-xl-bold);
+$text-2xl-bold: var(--text-2xl-bold);
+$text-3xl-bold: var(--text-3xl-bold);
