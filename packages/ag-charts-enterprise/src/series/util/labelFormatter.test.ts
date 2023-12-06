@@ -103,7 +103,7 @@ describe('treeMapLabelFormatter', () => {
 
     describe('formatSingleLabel', () => {
         it('formats a label without shrinking within large bounds', () => {
-            wrapLines.mockImplementation((text) => [text]);
+            wrapLines.mockImplementation((text) => ({ lines: [text], truncated: false }));
             computeBBox.mockImplementation(function (this: _Scene.Text) {
                 return { width: this.fontSize, height: this.fontSize } as _Scene.BBox;
             });
@@ -132,7 +132,7 @@ describe('treeMapLabelFormatter', () => {
         });
 
         it('shrinks a label to fit within smaller bounds', () => {
-            wrapLines.mockImplementation((text) => [text]);
+            wrapLines.mockImplementation((text) => ({ lines: [text], truncated: false }));
             computeBBox.mockImplementation(function (this: _Scene.Text) {
                 return { width: this.fontSize, height: this.fontSize } as _Scene.BBox;
             });
@@ -161,7 +161,7 @@ describe('treeMapLabelFormatter', () => {
         });
 
         it('ignores minimumFontSizes greater than fontSize', () => {
-            wrapLines.mockImplementation((text) => [text]);
+            wrapLines.mockImplementation((text) => ({ lines: [text], truncated: false }));
             computeBBox.mockImplementation(function (this: _Scene.Text) {
                 return { width: this.fontSize, height: this.fontSize } as _Scene.BBox;
             });
@@ -191,7 +191,7 @@ describe('treeMapLabelFormatter', () => {
 
     describe('formatStackedLabels', () => {
         it('formats stacked labels without shrinking within large bounds', () => {
-            wrapLines.mockImplementation((text) => [text]);
+            wrapLines.mockImplementation((text) => ({ lines: [text], truncated: false }));
             computeBBox.mockImplementation(function (this: _Scene.Text) {
                 return { width: this.fontSize, height: this.fontSize } as _Scene.BBox;
             });
@@ -239,7 +239,7 @@ describe('treeMapLabelFormatter', () => {
         });
 
         it('shrinks stacked labels to fit within smaller bounds', () => {
-            wrapLines.mockImplementation((text) => [text]);
+            wrapLines.mockImplementation((text) => ({ lines: [text], truncated: false }));
             computeBBox.mockImplementation(function (this: _Scene.Text) {
                 return { width: this.fontSize, height: this.fontSize } as _Scene.BBox;
             });
@@ -292,7 +292,7 @@ describe('treeMapLabelFormatter', () => {
         });
 
         it('ignores minimumFontSizes greater than fontSize', () => {
-            wrapLines.mockImplementation((text) => [text]);
+            wrapLines.mockImplementation((text) => ({ lines: [text], truncated: false }));
             computeBBox.mockImplementation(function (this: _Scene.Text) {
                 return { width: this.fontSize, height: this.fontSize } as _Scene.BBox;
             });
@@ -342,7 +342,7 @@ describe('treeMapLabelFormatter', () => {
 
     describe('formatLabels', () => {
         it('formats the secondaryLabel on its own if and only if the primary label is not present', () => {
-            wrapLines.mockImplementation((text) => [text]);
+            wrapLines.mockImplementation((text) => ({ lines: [text], truncated: false }));
             computeBBox.mockImplementation(function (this: _Scene.Text) {
                 return { width: 1, height: 1 } as _Scene.BBox;
             });

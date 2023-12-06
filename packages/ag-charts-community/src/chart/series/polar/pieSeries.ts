@@ -156,6 +156,10 @@ class PieSeriesCalloutLine {
 export class PieTitle extends Caption {
     @Validate(BOOLEAN)
     showInLegend = false;
+
+    constructor(moduleCtx: ModuleContext) {
+        super(moduleCtx);
+    }
 }
 
 export class DoughnutInnerLabel extends Label<AgPieSeriesLabelFormatterParams> {

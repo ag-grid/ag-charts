@@ -1,3 +1,4 @@
+import type { ModuleContext } from '../module-support';
 import { DropShadow } from '../scene/dropShadow';
 import type { JsonApplyParams } from '../util/json';
 import { AxisTitle } from './axis/axisTitle';
@@ -15,9 +16,6 @@ export function assignJsonApplyConstructedArray(array: any[], ctor: new () => an
 
 const JSON_APPLY_OPTIONS: JsonApplyParams = {
     constructors: {
-        title: Caption,
-        subtitle: Caption,
-        footnote: Caption,
         shadow: DropShadow,
         innerCircle: DoughnutInnerCircle,
         'axes[].title': AxisTitle,
@@ -30,10 +28,19 @@ const JSON_APPLY_OPTIONS: JsonApplyParams = {
     },
 };
 
-export function getJsonApplyOptions() {
+export function getJsonApplyOptions(ctx: ModuleContext) {
     return {
         constructors: {
             ...JSON_APPLY_OPTIONS.constructors,
+            title: function () {
+                return new Caption(ctx);
+            } as unknown as new () => any,
+            subtitle: function () {
+                return new Caption(ctx);
+            } as unknown as new () => any,
+            footnote: function () {
+                return new Caption(ctx);
+            } as unknown as new () => any,
             ...JSON_APPLY_PLUGINS.constructors,
         },
         constructedArrays: JSON_APPLY_PLUGINS.constructedArrays,
