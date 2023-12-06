@@ -35,30 +35,30 @@
     --text-semibold: 600;
     --text-bold: 700;
 
-    --text-2xs: var(--text-regular) 10px/1.2 var(--text-font-family);
-    --text-xs: var(--text-regular) 12px/1.6666 var(--text-font-family);
-    --text-sm: var(--text-regular) 14px/1.4 var(--text-font-family);
-    --text-base: var(--text-regular) 16px/1.4 var(--text-font-family);
-    --text-lg: var(--text-regular) 20px/1.2 var(--text-font-family);
-    --text-xl: var(--text-regular) 24px/1.2 var(--text-font-family);
-    --text-2xl: var(--text-regular) 32px/1.2 var(--text-font-family);
-    --text-3xl: var(--text-regular) 40px/1.1 var(--text-font-family);
-
-    --text-2xs-semibold: var(--text-semibold) 10px/1.2 var(--text-font-family);
-    --text-xs-semibold: var(--text-semibold) 12px/1.6666 var(--text-font-family);
-    --text-sm-semibold: var(--text-semibold) 14px/1.4 var(--text-font-family);
-    --text-base-semibold: var(--text-semibold) 16px/1.4 var(--text-font-family);
-    --text-lg-semibold: var(--text-semibold) 20px/1.2 var(--text-font-family);
-    --text-xl-semibold: var(--text-semibold) 24px/1.2 var(--text-font-family);
-    --text-2xl-semibold: var(--text-semibold) 32px/1.2 var(--text-font-family);
-    --text-3xl-semibold: var(--text-semibold) 40px/1.1 var(--text-font-family);
-
-    --text-2xs-bold: var(--text-bold) 10px/1.2 var(--text-font-family);
-    --text-xs-bold: var(--text-bold) 12px/1.6666 var(--text-font-family);
-    --text-sm-bold: var(--text-bold) 14px/1.4 var(--text-font-family);
-    --text-base-bold: var(--text-bold) 16px/1.4 var(--text-font-family);
-    --text-lg-bold: var(--text-bold) 20px/1.2 var(--text-font-family);
-    --text-xl-bold: var(--text-bold) 24px/1.2 var(--text-font-family);
-    --text-2xl-bold: var(--text-bold) 32px/1.2 var(--text-font-family);
-    --text-3xl-bold: var(--text-bold) 40px/1.1 var(--text-font-family);
+    --text-2xs: 10px/1.2 var(--text-font-family);
+    --text-xs: 12px/1.6666 var(--text-font-family);
+    --text-sm: 14px/1.4 var(--text-font-family);
+    --text-base: 16px/1.4 var(--text-font-family);
+    --text-lg: 20px/1.2 var(--text-font-family);
+    --text-xl: 24px/1.2 var(--text-font-family);
+    --text-2xl: 32px/1.2 var(--text-font-family);
+    --text-3xl: 40px/1.1 var(--text-font-family);
 }
+
+$spacing-size-1: 4px;
+$spacing-size-2: 8px;
+$spacing-size-3: 12px;
+$spacing-size-4: 16px;
+$spacing-size-5: 20px;
+$spacing-size-6: 24px;
+$spacing-size-8: 32px;
+$spacing-size-10: 40px;
+$spacing-size-12: 48px;
+$spacing-size-16: 64px;
+$spacing-size-20: 80px;
+$spacing-size-24: 96px;
+$spacing-size-32: 128px;
+$spacing-size-40: 160px;
+$spacing-size-48: 192px;
+$spacing-size-56: 224px;
+$spacing-size-64: 256px;

@@ -3,11 +3,7 @@ import type { FunctionComponent } from 'react';
 import styles from './StyleGuide.module.scss';
 import { getCssVarValue } from './getCssVarValue';
 
-const textStyles = {
-    regular: ['2xs', 'xs', 'sm', 'base', 'lg', 'xl', '2xl', '3xl'],
-    semibold: ['2xs', 'xs', 'sm', 'base', 'lg', 'xl', '2xl', '3xl'],
-    bold: ['2xs', 'xs', 'sm', 'base', 'lg', 'xl', '2xl', '3xl'],
-};
+const textStyles = ['2xs', 'xs', 'sm', 'base', 'lg', 'xl', '2xl', '3xl'];
 
 const Text: FunctionComponent = ({ textName }) => {
     return (
@@ -29,18 +25,18 @@ export const TextStyles: FunctionComponent = () => {
             <h2>Text</h2>
             <div className={styles.textList}>
                 <div>
-                    {textStyles.regular.map((textName) => {
+                    {textStyles.map((textName) => {
                         return <Text textName={textName} />;
                     })}
                 </div>
-                <div>
-                    {textStyles.semibold.map((textName) => {
-                        return <Text textName={`${textName}-semibold`} />;
+                <div style={{ fontWeight: 'var(--text-semibold)' }}>
+                    {textStyles.map((textName) => {
+                        return <Text textName={`${textName}`} />;
                     })}
                 </div>
-                <div>
-                    {textStyles.semibold.map((textName) => {
-                        return <Text textName={`${textName}-bold`} />;
+                <div style={{ fontWeight: 'var(--text-bold)' }}>
+                    {textStyles.map((textName) => {
+                        return <Text textName={`${textName}`} />;
                     })}
                 </div>
             </div>
