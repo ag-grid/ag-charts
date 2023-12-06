@@ -1,8 +1,25 @@
+import type { AgAxisBaseTickOptions, AgBaseAxisLabelOptions } from '../agChartOptions';
 import type { AgChartLegendPosition } from './legendOptions';
 import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, PixelSize } from './types';
 
 export interface AgGradientLegendLabelFormatterParams {
     value: string;
+}
+
+export interface AgGradientLegendIntervalOptions extends AgAxisBaseTickOptions {
+    /** Maximum gap in pixels between tick lines. */
+    maxSpacing?: PixelSize;
+    /** The step value between ticks specified as a number. If the configured interval results in too many ticks given the chart size, it will be ignored. */
+    step?: number;
+}
+
+export interface AgGradientLegendScaleOptions {
+    /** Options for the labels on the axis. */
+    label?: AgBaseAxisLabelOptions;
+    /** Distance between the gradient box and the labels. */
+    padding?: PixelSize;
+    /** Tick options */
+    interval?: AgGradientLegendIntervalOptions;
 }
 
 export interface AgGradientLegendOptions {
@@ -14,10 +31,15 @@ export interface AgGradientLegendOptions {
     gradient?: AgGradientLegendBarOptions;
     /** The spacing in pixels to use outside the legend. */
     spacing?: PixelSize;
-    /** Configuration for the legend gradient stops that consist of a color and a label. */
+    /**
+     * @deprecated
+     * Configuration for the legend gradient stops that consist of a color and a label.
+     * */
     stop?: AgGradientLegendStopOptions;
     /** Reverse the display order of legend items if `true`. */
     reverseOrder?: boolean;
+    /** Axis */
+    scale?: AgGradientLegendScaleOptions;
 }
 
 export interface AgGradientLegendBarOptions {

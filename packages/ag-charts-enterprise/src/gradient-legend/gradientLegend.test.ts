@@ -53,6 +53,11 @@ describe('Chart', () => {
         legend: {
             enabled: true,
         },
+        gradientLegend: {
+            gradient: {
+                preferredLength: 200,
+            },
+        },
     };
 
     const compare = async () => {

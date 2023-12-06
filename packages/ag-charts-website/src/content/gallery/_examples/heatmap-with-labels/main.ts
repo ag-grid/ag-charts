@@ -52,7 +52,7 @@ const options: AgChartOptions = {
         },
     ],
     gradientLegend: {
-        stop: {
+        scale: {
             label: {
                 formatter: ({ value }) => formatNumber(Number(value), 0),
             },
