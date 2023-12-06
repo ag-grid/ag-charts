@@ -1,10 +1,9 @@
-import { Debug } from 'packages/ag-charts-community/src/util/debug';
-
 import { QUICK_TRANSITION } from '../../../motion/animation';
 import type { NodeUpdateState } from '../../../motion/fromToMotion';
 import { FROM_TO_MIXINS, fromToMotion, staticFromToMotion } from '../../../motion/fromToMotion';
 import type { Node } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
+import { Debug } from '../../../util/debug';
 import { clamp } from '../../../util/number';
 import type { AnimationManager } from '../../interaction/animationManager';
 import type { Marker } from '../../marker/marker';
