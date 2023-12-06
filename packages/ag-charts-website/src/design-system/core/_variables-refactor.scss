@@ -80,6 +80,7 @@ $spacing-size-64: 256px;
     --color-fg-tertiary: var(--color-gray-600);
     --color-fg-quinary: var(--color-gray-400);
     --color-fg-disabled: var(--color-gray-400);
+    --color-fg-placeholder: var(--color-gray-500);
     --color-fg-white: var(--color-white);
 
     // Border colors
@@ -113,6 +114,14 @@ $spacing-size-64: 256px;
     --color-button-disabled-bg: var(--color-gray-100);
     --color-button-disabled-fg: var(--color-gray-400);
     --color-button-disabled-border: var(--color-gray-200);
+
+    // Input colors
+    --color-input-border: var(--color-border-primary);
+    --color-input-border-hover: var(--color-brand-300);
+    --color-input-shadow-focus: var(--color-brand-200);
+
+    --color-input-disabled-bg: var(--color-bg-disabled_subtle);
+    --color-input-disabled-fg: var(--color-fg-disabled);
 }
 
 html[data-dark-mode='true'] {
