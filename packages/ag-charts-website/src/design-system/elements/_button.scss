@@ -63,6 +63,7 @@ input[type='submit']#{$selector-exclude-grid},
         --button-border-color: var(--color-button-disabled-border);
         --button-focus-box-shadow-color: transparent;
 
+        pointer-events: none;
         cursor: default;
     }
 
