@@ -34,21 +34,21 @@ export const Colors: FunctionComponent = () => {
             <h4>Base</h4>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
                 {colors.base.map((clr) => {
-                    return <Color colorName={`${clr}`} />;
+                    return <Color key={clr} colorName={`${clr}`} />;
                 })}
             </div>
 
             <h4>Gray</h4>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
                 {colors.gray.map((clr) => {
-                    return <Color colorName={`gray-${clr}`} />;
+                    return <Color key={`gray-${clr}`} colorName={`gray-${clr}`} />;
                 })}
             </div>
 
             <h4>Brand</h4>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
                 {colors.brand.map((clr) => {
-                    return <Color colorName={`brand-${clr}`} />;
+                    return <Color key={`brand-${clr}`} colorName={`brand-${clr}`} />;
                 })}
             </div>
         </>
