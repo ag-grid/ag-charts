@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import * as ts from 'typescript';
 
-import { writeFile } from './executors-utils';
+import { writeFile } from '../../executors-utils';
 import { TypeMapper } from './types-utils';
 
 type OptionsMode = 'debug-interfaces' | 'docs-interfaces';

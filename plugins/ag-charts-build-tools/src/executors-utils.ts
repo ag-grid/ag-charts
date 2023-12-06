@@ -7,7 +7,7 @@ export function readFile(filePath: string) {
     return fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf-8') : null;
 }
 
-export function writeFile(filePath: string, data: unknown, indent = 2) {
+export function writeJSONFile(filePath: string, data: unknown, indent = 2) {
     const fileContent = readFile(filePath);
     const dataContent = JSON.stringify(data, null, indent);
 
@@ -16,6 +16,17 @@ export function writeFile(filePath: string, data: unknown, indent = 2) {
         const outputDir = path.dirname(filePath);
         fs.mkdirSync(outputDir, { recursive: true });
         fs.writeFileSync(filePath, dataContent);
+    }
+}
+
+export function writeFile(filePath: string, newContent: unknown, indent = 2) {
+    const fileContent = readFile(filePath)?.toString();
+
+    // Only write if content changed to avoid false-positive change detection.
+    if (typeof newContent === 'string' && fileContent !== newContent) {
+        const outputDir = path.dirname(filePath);
+        fs.mkdirSync(outputDir, { recursive: true });
+        fs.writeFileSync(filePath, newContent);
     }
 }
 

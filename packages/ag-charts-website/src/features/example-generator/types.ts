@@ -20,3 +20,14 @@ export interface GeneratedContents {
     providedExamples: FileContents;
     generatedFiles: FileContents;
 }
+
+export type InternalFramework =
+    | 'vanilla'
+    | 'typescript'
+    | 'reactFunctional'
+    | 'reactFunctionalTs'
+    | 'angular'
+    | 'vue'
+    | 'vue3';
+
+export const TYPESCRIPT_INTERNAL_FRAMEWORKS: InternalFramework[] = ['typescript', 'reactFunctionalTs', 'angular'];
