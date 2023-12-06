@@ -30,4 +30,13 @@ export type InternalFramework =
     | 'vue'
     | 'vue3';
 
+export const FRAMEWORKS: InternalFramework[] = [
+    'vanilla',
+    'typescript',
+    'reactFunctional',
+    'reactFunctionalTs',
+    'angular',
+    'vue',
+    'vue3',
+];
 export const TYPESCRIPT_INTERNAL_FRAMEWORKS: InternalFramework[] = ['typescript', 'reactFunctionalTs', 'angular'];

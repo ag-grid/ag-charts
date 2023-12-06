@@ -3,6 +3,7 @@ import path from 'path';
 
 import { writeFile } from '../../executors-utils';
 import { getGeneratedContents } from './generator/examplesGenerator';
+import { FRAMEWORKS } from './generator/types';
 
 type ExecutorOptions = {
     mode: 'dev' | 'prod';
@@ -28,14 +29,19 @@ export default async function (options: ExecutorOptions) {
 }
 
 async function generateFiles(options: ExecutorOptions) {
-    const result = await getGeneratedContents({
-        folderPath: options.examplePath,
-        internalFramework: 'vanilla',
-        isDev: options.mode === 'dev',
-    });
-    console.log({ result });
+    for (const ignoreDarkMode of [false, true]) {
+        const darkModePath = ignoreDarkMode ? 'dark-mode' : 'plain';
+        for (const internalFramework of FRAMEWORKS) {
+            const result = await getGeneratedContents({
+                folderPath: options.examplePath,
+                internalFramework,
+                ignoreDarkMode,
+                isDev: options.mode === 'dev',
+            });
 
-    for (const [filename, content] of Object.entries(result.files)) {
-        writeFile(path.join(options.outputPath, filename), content);
+            for (const [filename, content] of Object.entries(result.files)) {
+                writeFile(path.join(options.outputPath, darkModePath, internalFramework, filename), content);
+            }
+        }
     }
 }
