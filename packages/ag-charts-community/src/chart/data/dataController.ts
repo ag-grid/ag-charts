@@ -107,9 +107,6 @@ export class DataController {
         }
     }
 
-    /**
-     * Extract the datum and values from the nested scoped values for this request id.
-     */
     private extractScopedData(id: string, processedData: UngroupedData<any>) {
         const extractDatum = (datum: any): any => {
             if (Array.isArray(datum)) {

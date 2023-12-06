@@ -3757,6 +3757,586 @@ exports[`DataModel missing and invalid data processing should generated the expe
 }
 `;
 
+exports[`DataModel multiple data sources should generate the expected results 1`] = `
+{
+  "data": [
+    {
+      "datum": {
+        "chrome": 1.37,
+        "firefox": 53.7,
+        "ie": 64.97,
+        "safari": 2.79,
+        "test1": {
+          "chrome": 1.37,
+          "firefox": 26.85,
+          "ie": 64.97,
+          "safari": 2.79,
+        },
+        "test2": {
+          "chrome": 1.37,
+          "firefox": 53.7,
+          "ie": 64.97,
+          "safari": 2.79,
+        },
+        "year": "2009",
+      },
+      "keys": [
+        "2009",
+      ],
+      "values": [
+        {
+          "test1": 64.97,
+          "test2": 64.97,
+        },
+        {
+          "test1": 1.37,
+          "test2": 1.37,
+        },
+        {
+          "test1": 26.85,
+          "test2": 53.7,
+        },
+        {
+          "test1": 2.79,
+          "test2": 2.79,
+        },
+      ],
+    },
+    {
+      "datum": {
+        "chrome": undefined,
+        "firefox": 62.3,
+        "ie": 54.39,
+        "safari": 4.22,
+        "test1": {
+          "chrome": undefined,
+          "firefox": 31.15,
+          "ie": 54.39,
+          "safari": 4.22,
+        },
+        "test2": {
+          "chrome": undefined,
+          "firefox": 62.3,
+          "ie": 54.39,
+          "safari": 4.22,
+        },
+        "year": "2010",
+      },
+      "keys": [
+        "2010",
+      ],
+      "values": [
+        {
+          "test1": 54.39,
+          "test2": 54.39,
+        },
+        {
+          "test1": undefined,
+          "test2": undefined,
+        },
+        {
+          "test1": 31.15,
+          "test2": 62.3,
+        },
+        {
+          "test1": 4.22,
+          "test2": 4.22,
+        },
+      ],
+    },
+    {
+      "datum": {
+        "chrome": 15.01,
+        "firefox": undefined,
+        "ie": 44.03,
+        "safari": 5.94,
+        "test1": {
+          "chrome": 15.01,
+          "firefox": undefined,
+          "ie": 44.03,
+          "safari": 5.94,
+        },
+        "test2": {
+          "chrome": 15.01,
+          "firefox": undefined,
+          "ie": 44.03,
+          "safari": 5.94,
+        },
+        "year": "2011",
+      },
+      "keys": [
+        "2011",
+      ],
+      "values": [
+        {
+          "test1": 44.03,
+          "test2": 44.03,
+        },
+        {
+          "test1": 15.01,
+          "test2": 15.01,
+        },
+        {
+          "test1": undefined,
+          "test2": undefined,
+        },
+        {
+          "test1": 5.94,
+          "test2": 5.94,
+        },
+      ],
+    },
+    {
+      "datum": {
+        "chrome": 25.99,
+        "firefox": 45.38,
+        "ie": 34.27,
+        "safari": 8.09,
+        "test1": {
+          "chrome": 25.99,
+          "firefox": 22.69,
+          "ie": 34.27,
+          "safari": 8.09,
+        },
+        "test2": {
+          "chrome": 25.99,
+          "firefox": 45.38,
+          "ie": 34.27,
+          "safari": 8.09,
+        },
+        "year": "2012",
+      },
+      "keys": [
+        "2012",
+      ],
+      "values": [
+        {
+          "test1": 34.27,
+          "test2": 34.27,
+        },
+        {
+          "test1": 25.99,
+          "test2": 25.99,
+        },
+        {
+          "test1": 22.69,
+          "test2": 45.38,
+        },
+        {
+          "test1": 8.09,
+          "test2": 8.09,
+        },
+      ],
+    },
+    {
+      "datum": {
+        "chrome": 31.71,
+        "firefox": undefined,
+        "ie": 26.55,
+        "safari": undefined,
+        "test1": {
+          "chrome": 31.71,
+          "firefox": undefined,
+          "ie": 26.55,
+          "safari": undefined,
+        },
+        "test2": {
+          "chrome": 31.71,
+          "firefox": undefined,
+          "ie": 26.55,
+          "safari": undefined,
+        },
+        "year": "2013",
+      },
+      "keys": [
+        "2013",
+      ],
+      "values": [
+        {
+          "test1": 26.55,
+          "test2": 26.55,
+        },
+        {
+          "test1": 31.71,
+          "test2": 31.71,
+        },
+        {
+          "test1": undefined,
+          "test2": undefined,
+        },
+        {
+          "test1": undefined,
+          "test2": undefined,
+        },
+      ],
+    },
+    {
+      "datum": {
+        "chrome": 35.85,
+        "firefox": 29.54,
+        "ie": 17.75,
+        "safari": 12.63,
+        "test1": {
+          "chrome": 35.85,
+          "firefox": 14.77,
+          "ie": 17.75,
+          "safari": 12.63,
+        },
+        "test2": {
+          "chrome": 35.85,
+          "firefox": 29.54,
+          "ie": 17.75,
+          "safari": 12.63,
+        },
+        "year": "2014",
+      },
+      "keys": [
+        "2014",
+      ],
+      "values": [
+        {
+          "test1": 17.75,
+          "test2": 17.75,
+        },
+        {
+          "test1": 35.85,
+          "test2": 35.85,
+        },
+        {
+          "test1": 14.77,
+          "test2": 29.54,
+        },
+        {
+          "test1": 12.63,
+          "test2": 12.63,
+        },
+      ],
+    },
+    {
+      "datum": {
+        "chrome": 42.27,
+        "firefox": 23.64,
+        "ie": -13.3,
+        "safari": 13.79,
+        "test1": {
+          "chrome": 42.27,
+          "firefox": 11.82,
+          "ie": -13.3,
+          "safari": 13.79,
+        },
+        "test2": {
+          "chrome": 42.27,
+          "firefox": 23.64,
+          "ie": -13.3,
+          "safari": 13.79,
+        },
+        "year": "2015",
+      },
+      "keys": [
+        "2015",
+      ],
+      "values": [
+        {
+          "test1": -13.3,
+          "test2": -13.3,
+        },
+        {
+          "test1": 42.27,
+          "test2": 42.27,
+        },
+        {
+          "test1": 11.82,
+          "test2": 23.64,
+        },
+        {
+          "test1": 13.79,
+          "test2": 13.79,
+        },
+      ],
+    },
+    {
+      "datum": {
+        "chrome": 47.79,
+        "firefox": 17.94,
+        "ie": -8.94,
+        "safari": 12.9,
+        "test1": {
+          "chrome": 47.79,
+          "firefox": 8.97,
+          "ie": -8.94,
+          "safari": 12.9,
+        },
+        "test2": {
+          "chrome": 47.79,
+          "firefox": 17.94,
+          "ie": -8.94,
+          "safari": 12.9,
+        },
+        "year": "2016",
+      },
+      "keys": [
+        "2016",
+      ],
+      "values": [
+        {
+          "test1": -8.94,
+          "test2": -8.94,
+        },
+        {
+          "test1": 47.79,
+          "test2": 47.79,
+        },
+        {
+          "test1": 8.97,
+          "test2": 17.94,
+        },
+        {
+          "test1": 12.9,
+          "test2": 12.9,
+        },
+      ],
+    },
+    {
+      "datum": {
+        "chrome": 51.76,
+        "firefox": 13.5,
+        "ie": -4.77,
+        "safari": 14.54,
+        "test1": {
+          "chrome": 51.76,
+          "firefox": 6.75,
+          "ie": -4.77,
+          "safari": 14.54,
+        },
+        "test2": {
+          "chrome": 51.76,
+          "firefox": 13.5,
+          "ie": -4.77,
+          "safari": 14.54,
+        },
+        "year": "2017",
+      },
+      "keys": [
+        "2017",
+      ],
+      "values": [
+        {
+          "test1": -4.77,
+          "test2": -4.77,
+        },
+        {
+          "test1": 51.76,
+          "test2": 51.76,
+        },
+        {
+          "test1": 6.75,
+          "test2": 13.5,
+        },
+        {
+          "test1": 14.54,
+          "test2": 14.54,
+        },
+      ],
+    },
+    {
+      "datum": {
+        "chrome": 56.31,
+        "firefox": 11.32,
+        "ie": 3.2,
+        "safari": 14.44,
+        "test1": {
+          "chrome": 56.31,
+          "firefox": 5.66,
+          "ie": 3.2,
+          "safari": 14.44,
+        },
+        "test2": {
+          "chrome": 56.31,
+          "firefox": 11.32,
+          "ie": 3.2,
+          "safari": 14.44,
+        },
+        "year": "2018",
+      },
+      "keys": [
+        "2018",
+      ],
+      "values": [
+        {
+          "test1": 3.2,
+          "test2": 3.2,
+        },
+        {
+          "test1": 56.31,
+          "test2": 56.31,
+        },
+        {
+          "test1": 5.66,
+          "test2": 11.32,
+        },
+        {
+          "test1": 14.44,
+          "test2": 14.44,
+        },
+      ],
+    },
+    {
+      "datum": {
+        "chrome": 61.72,
+        "firefox": 9.32,
+        "ie": 2.7,
+        "safari": 15.23,
+        "test1": {
+          "chrome": 61.72,
+          "firefox": 4.66,
+          "ie": 2.7,
+          "safari": 15.23,
+        },
+        "test2": {
+          "chrome": 61.72,
+          "firefox": 9.32,
+          "ie": 2.7,
+          "safari": 15.23,
+        },
+        "year": "2019",
+      },
+      "keys": [
+        "2019",
+      ],
+      "values": [
+        {
+          "test1": 2.7,
+          "test2": 2.7,
+        },
+        {
+          "test1": 61.72,
+          "test2": 61.72,
+        },
+        {
+          "test1": 4.66,
+          "test2": 9.32,
+        },
+        {
+          "test1": 15.23,
+          "test2": 15.23,
+        },
+      ],
+    },
+  ],
+  "defs": {
+    "allScopesHaveSameDefs": true,
+    "keys": [
+      {
+        "index": 0,
+        "missing": 0,
+        "property": "year",
+        "scopes": [
+          "test1",
+          "test2",
+        ],
+        "type": "key",
+        "valueType": "category",
+      },
+    ],
+    "values": [
+      {
+        "groupId": undefined,
+        "id": undefined,
+        "index": 0,
+        "missing": 0,
+        "property": "ie",
+        "scopes": [
+          "test1",
+          "test2",
+        ],
+        "type": "value",
+        "valueType": "range",
+      },
+      {
+        "groupId": undefined,
+        "id": undefined,
+        "index": 1,
+        "missing": 0,
+        "property": "chrome",
+        "scopes": [
+          "test1",
+          "test2",
+        ],
+        "type": "value",
+        "valueType": "range",
+      },
+      {
+        "groupId": undefined,
+        "id": undefined,
+        "index": 2,
+        "missing": 0,
+        "property": "firefox",
+        "scopes": [
+          "test1",
+          "test2",
+        ],
+        "type": "value",
+        "valueType": "range",
+      },
+      {
+        "groupId": undefined,
+        "id": undefined,
+        "index": 3,
+        "missing": 0,
+        "property": "safari",
+        "scopes": [
+          "test1",
+          "test2",
+        ],
+        "type": "value",
+        "valueType": "range",
+      },
+    ],
+  },
+  "domain": {
+    "keys": [
+      [
+        "2009",
+        "2010",
+        "2011",
+        "2012",
+        "2013",
+        "2014",
+        "2015",
+        "2016",
+        "2017",
+        "2018",
+        "2019",
+      ],
+    ],
+    "values": [
+      [
+        -13.3,
+        64.97,
+      ],
+      [
+        1.37,
+        61.72,
+      ],
+      [
+        4.66,
+        62.3,
+      ],
+      [
+        2.79,
+        15.23,
+      ],
+    ],
+  },
+  "input": {
+    "count": 11,
+  },
+  "partialValidDataCount": 0,
+  "time": Any<Number>,
+  "type": "ungrouped",
+}
+`;
+
 exports[`DataModel repeated property processing should generated the expected results 1`] = `
 {
   "data": [
