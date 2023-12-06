@@ -42,7 +42,8 @@ input[type='submit']#{$exclude-grid-selector},
         transition: background-color 0.125s ease-in-out;
     }
 
-    &:focus-visible {
+    &:focus-visible,
+    &.focus {
         border-color: var(--button-hover-color);
         box-shadow: 0 0 0 4px var(--button-focus-box-shadow-color);
     }
@@ -122,12 +123,14 @@ input[type='submit']#{$exclude-grid-selector},
     box-shadow: none;
 
     &:hover,
-    &:active {
+    &:active,
+    &.hover {
         color: var(--button-text-color);
         background-color: transparent;
     }
 
-    &:focus-visible {
+    &:focus-visible,
+    &.focus {
         box-shadow: none;
     }
 }
@@ -139,7 +142,8 @@ input[type='submit']#{$exclude-grid-selector},
 
     transition: color $default-transition-timing;
 
-    &:hover {
+    &:hover,
+    &.hover {
         --button-text-color: var(--link-hover-color);
         --text-color: var(--link-hover-color);
     }
