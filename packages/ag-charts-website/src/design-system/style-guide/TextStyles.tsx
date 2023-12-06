@@ -26,17 +26,17 @@ export const TextStyles: FunctionComponent = () => {
             <div className={styles.textList}>
                 <div>
                     {textStyles.map((textName) => {
-                        return <Text textName={textName} />;
+                        return <Text key={textName} textName={textName} />;
                     })}
                 </div>
                 <div style={{ fontWeight: 'var(--text-semibold)' }}>
                     {textStyles.map((textName) => {
-                        return <Text textName={`${textName}`} />;
+                        return <Text key={`${textName}`} textName={`${textName}`} />;
                     })}
                 </div>
                 <div style={{ fontWeight: 'var(--text-bold)' }}>
                     {textStyles.map((textName) => {
-                        return <Text textName={`${textName}`} />;
+                        return <Text key={`${textName}`} textName={`${textName}`} />;
                     })}
                 </div>
             </div>

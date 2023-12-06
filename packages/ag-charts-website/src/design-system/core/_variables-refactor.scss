@@ -1,6 +1,43 @@
+// // Darkmode selector. To be used as an interpolated Sass parent selector
+// // #{$darkmode-selector} & {
+// //     [DARKMODE STYLES]
+// // }
+$darkmode-selector: "[data-dark-mode='true']";
+
+$spacing-size-1: 4px;
+$spacing-size-2: 8px;
+$spacing-size-3: 12px;
+$spacing-size-4: 16px;
+$spacing-size-5: 20px;
+$spacing-size-6: 24px;
+$spacing-size-8: 32px;
+$spacing-size-10: 40px;
+$spacing-size-12: 48px;
+$spacing-size-16: 64px;
+$spacing-size-20: 80px;
+$spacing-size-24: 96px;
+$spacing-size-32: 128px;
+$spacing-size-40: 160px;
+$spacing-size-48: 192px;
+$spacing-size-56: 224px;
+$spacing-size-64: 256px;
+
 :root {
     --text-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
         'Liberation Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+
+    --text-regular: 400;
+    --text-semibold: 600;
+    --text-bold: 700;
+
+    --text-2xs: 10px/1.2 var(--text-font-family);
+    --text-xs: 12px/1.6666 var(--text-font-family);
+    --text-sm: 14px/1.4 var(--text-font-family);
+    --text-base: 16px/1.4 var(--text-font-family);
+    --text-lg: 20px/1.2 var(--text-font-family);
+    --text-xl: 24px/1.2 var(--text-font-family);
+    --text-2xl: 32px/1.2 var(--text-font-family);
+    --text-3xl: 40px/1.1 var(--text-font-family);
 
     --color-white: #fff;
     --color-black: #000;
@@ -31,34 +68,45 @@
     --color-brand-900: #00246c;
     --color-brand-950: #001a5a;
 
-    --text-regular: 400;
-    --text-semibold: 600;
-    --text-bold: 700;
+    // Background colors
+    --color-bg-primary: var(--color-white);
+    --color-bg-secondary: var(--color-gray-200);
+    --color-bg-brand-solid: var(--color-brand-500);
+    --color-bg-disabled_subtle: var(--color-gray-50);
 
-    --text-2xs: 10px/1.2 var(--text-font-family);
-    --text-xs: 12px/1.6666 var(--text-font-family);
-    --text-sm: 14px/1.4 var(--text-font-family);
-    --text-base: 16px/1.4 var(--text-font-family);
-    --text-lg: 20px/1.2 var(--text-font-family);
-    --text-xl: 24px/1.2 var(--text-font-family);
-    --text-2xl: 32px/1.2 var(--text-font-family);
-    --text-3xl: 40px/1.1 var(--text-font-family);
+    // Foreground colors
+    --color-fg-primary: var(--color-gray-900);
+    --color-fg-secondary: var(--color-gray-700);
+    --color-fg-tertiary: var(--color-gray-600);
+    --color-fg-quinary: var(--color-gray-400);
+    --color-fg-disabled: var(--color-gray-400);
+    --color-fg-white: var(--color-white);
+
+    // Border colors
+    --color-border-primary: var(--color-gray-300);
+    --color-border-secondary: var(--color-gray-200);
+    --color-border-tertiary: var(--color-gray-100);
+    --color-border-disabled_subtle: var(--color-gray-200);
+
+    #{$darkmode-selector} & {
+        // Background colors
+        --color-bg-primary: var(--color-gray-900);
+        --color-bg-secondary: var(--color-gray-800);
+        --color-bg-brand-solid: var(--color-brand-500);
+        --color-bg-disabled_subtle: var(--color-gray-800);
+
+        // Foreground colors
+        --color-fg-primary: var(--color-white);
+        --color-fg-secondary: var(--color-gray-300);
+        --color-fg-tertiary: var(--color-gray-400);
+        --color-fg-quinary: var(--color-gray-500);
+        --color-fg-disabled: var(--color-gray-500);
+        --color-fg-white: var(--color-white);
+
+        // Border colors
+        --color-border-primary: var(--color-gray-700);
+        --color-border-secondary: var(--color-gray-800);
+        --color-border-tertiary: var(--color-gray-800);
+        --color-border-disabled_subtle: var(--color-gray-800);
+    }
 }
-
-$spacing-size-1: 4px;
-$spacing-size-2: 8px;
-$spacing-size-3: 12px;
-$spacing-size-4: 16px;
-$spacing-size-5: 20px;
-$spacing-size-6: 24px;
-$spacing-size-8: 32px;
-$spacing-size-10: 40px;
-$spacing-size-12: 48px;
-$spacing-size-16: 64px;
-$spacing-size-20: 80px;
-$spacing-size-24: 96px;
-$spacing-size-32: 128px;
-$spacing-size-40: 160px;
-$spacing-size-48: 192px;
-$spacing-size-56: 224px;
-$spacing-size-64: 256px;
