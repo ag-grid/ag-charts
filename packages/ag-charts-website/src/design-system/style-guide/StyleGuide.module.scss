@@ -57,6 +57,22 @@
 
 // Buttons
 // ===============================================
+.shadowsList {
+    display: flex;
+    gap: $spacing-size-8;
+
+    div {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: $spacing-size-32;
+        aspect-ratio: 1/1;
+        border-radius: 8px;
+    }
+}
+
+// Buttons
+// ===============================================
 .buttonExamples {
     display: flex;
     gap: $spacing-size-8;
@@ -69,13 +85,12 @@
     }
 }
 
-// Buttons
+// Inputs
 // ===============================================
 .inputsList {
-}
-
-.inputItem {
-    margin-bottom: $spacing-size-4;
+    div {
+        margin-bottom: $spacing-size-4;
+    }
 
     label {
         display: inline-block;
