@@ -358,6 +358,11 @@ function prepareAxis<T extends AxesOptionsTypes>(
             axis.gridLine.style = [];
         }
         axis.gridLine.style = axis.gridLine.style.map((userStyle, index) => {
+            // An empty gridLine (e.g. `gridLine: { style: [ {} ] }`) means "draw nothing". So ignore theme
+            // defaults if this is the case:
+            if (userStyle.stroke === undefined && userStyle.lineDash === undefined) {
+                return userStyle;
+            }
             // Themes will normally only have one element in gridLineStyle[], but cycle through the array
             // with `mod` anyway to make sure that we honour the theme's grid line style sequence.
             const themeStyle: typeof userStyle = gridLineStyle[mod(index, gridLineStyle.length)];

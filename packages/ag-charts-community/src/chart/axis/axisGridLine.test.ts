@@ -38,7 +38,7 @@ describe('GridLine', () => {
         await waitForChartStability(chart);
 
         const newImageData = extractImageData(ctx);
-        expect(newImageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        expect(newImageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 });
     };
 
     // AG-8777
@@ -57,6 +57,30 @@ describe('GridLine', () => {
                     type: 'number',
                     position: 'left',
                     gridLine: { style: [{ lineDash: [5, 5, 1] }] },
+                },
+            ],
+        }) as Chart;
+
+        await compare();
+    });
+
+    test('do not draw empty styles', async () => {
+        chart = AgCharts.create({
+            ...opts,
+            data: [{ x: 0, y: 0 }],
+            series: [{ xKey: 'x', yKey: 'y' }],
+            axes: [
+                {
+                    type: 'number',
+                    position: 'bottom',
+                    // Should draw no grid line
+                    gridLine: { style: [{}] },
+                },
+                {
+                    type: 'number',
+                    position: 'left',
+                    // Should draw only half of the grid lines
+                    gridLine: { style: [{}, { lineDash: [5, 5, 1] }] },
                 },
             ],
         }) as Chart;
