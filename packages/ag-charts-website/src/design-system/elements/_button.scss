@@ -64,6 +64,7 @@ input[type='submit']#{$exclude-grid-selector},
         --button-border-color: var(--color-button-disabled-border);
         --button-focus-box-shadow-color: transparent;
 
+        pointer-events: none;
         cursor: default;
     }
 

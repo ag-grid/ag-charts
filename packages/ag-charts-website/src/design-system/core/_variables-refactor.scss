@@ -162,4 +162,7 @@ html[data-dark-mode='true'] {
     --color-button-disabled-bg: var(--color-gray-800);
     --color-button-disabled-fg: var(--color-gray-500);
     --color-button-disabled-border: var(--color-gray-700);
+
+    // Input colors
+    --color-input-shadow-focus: var(--color-gray-700);
 }
