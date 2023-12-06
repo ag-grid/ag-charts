@@ -1,9 +1,9 @@
-import type { ModuleContext } from '../module-support';
 import type { ModuleInstance } from '../module/baseModule';
 import type { LegendModule, RootModule } from '../module/coreModules';
 import type { LicenseManager } from '../module/enterpriseModule';
 import { enterpriseModule } from '../module/enterpriseModule';
 import { type Module, REGISTERED_MODULES, hasRegisteredEnterpriseModules } from '../module/module';
+import type { ModuleContext } from '../module/moduleContext';
 import type { AxisOptionModule, SeriesOptionModule } from '../module/optionModules';
 import type {
     AgBaseAxisOptions,
@@ -391,8 +391,7 @@ function applyChartOptions(chart: Chart, processedOptions: ProcessedOptions, use
         registerListeners(chart, processedOptions.listeners);
     }
 
-    const moduleContext = chart.getModuleContext();
-    applyOptionValues(chart, moduleContext, processedOptions, { skip });
+    applyOptionValues(chart, chart.getModuleContext(), processedOptions, { skip });
 
     let forceNodeDataRefresh = false;
     let seriesRecreated = false;
