@@ -1,4 +1,4 @@
-import type { ModuleContext } from '../module-support';
+import type { ModuleContext } from '../module/moduleContext';
 import type { FontStyle, FontWeight, TextWrap } from '../options/agChartOptions';
 import { PointerEvents } from '../scene/node';
 import { Text } from '../scene/shape/text';

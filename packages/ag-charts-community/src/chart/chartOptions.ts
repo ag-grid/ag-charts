@@ -1,4 +1,4 @@
-import type { ModuleContext } from '../module-support';
+import type { ModuleContext } from '../module/moduleContext';
 import { DropShadow } from '../scene/dropShadow';
 import type { JsonApplyParams } from '../util/json';
 import { AxisTitle } from './axis/axisTitle';
