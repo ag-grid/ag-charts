@@ -31,3 +31,5 @@ export type InternalFramework =
     | 'vue3';
 
 export const TYPESCRIPT_INTERNAL_FRAMEWORKS: InternalFramework[] = ['typescript', 'reactFunctionalTs', 'angular'];
+
+export const isGeneratedExample = (type: ExampleType) => ['generated', 'mixed', 'typescript'].includes(type);

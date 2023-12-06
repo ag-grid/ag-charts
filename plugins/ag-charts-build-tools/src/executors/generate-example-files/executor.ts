@@ -30,7 +30,7 @@ export default async function (options: ExecutorOptions) {
 
 async function generateFiles(options: ExecutorOptions) {
     for (const ignoreDarkMode of [false, true]) {
-        const darkModePath = ignoreDarkMode ? 'dark-mode' : 'plain';
+        const darkModePath = ignoreDarkMode ? 'plain' : 'dark-mode';
         for (const internalFramework of FRAMEWORKS) {
             const result = await getGeneratedContents({
                 folderPath: options.examplePath,
@@ -39,9 +39,10 @@ async function generateFiles(options: ExecutorOptions) {
                 isDev: options.mode === 'dev',
             });
 
-            for (const [filename, content] of Object.entries(result.files)) {
-                writeFile(path.join(options.outputPath, darkModePath, internalFramework, filename), content);
-            }
+            writeFile(
+                path.join(options.outputPath, darkModePath, internalFramework, 'contents.json'),
+                JSON.stringify(result)
+            );
         }
     }
 }

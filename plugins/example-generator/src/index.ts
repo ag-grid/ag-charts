@@ -55,7 +55,7 @@ export const createNodes: CreateNodes = [
                             options: {
                                 mode: 'dev',
                                 examplePath: '{projectRoot}',
-                                outputPath: `dist/${parentProject}/_examples/${srcRelativeInputPath}`,
+                                outputPath: `dist/packages/${parentProject}/_examples/${srcRelativeInputPath}`,
                             },
                             configurations: {
                                 production: {
