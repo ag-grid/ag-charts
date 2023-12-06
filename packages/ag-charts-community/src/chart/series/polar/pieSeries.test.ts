@@ -17,9 +17,10 @@ expect.extend({ toMatchImageSnapshot });
 describe('Doughnut', () => {
     let chart: Chart;
 
+    /* eslint-disable no-console */
     beforeEach(() => {
-        // eslint-disable-next-line no-console
         console.warn = jest.fn();
+        console.error = jest.fn();
     });
 
     afterEach(() => {
@@ -27,10 +28,11 @@ describe('Doughnut', () => {
             chart.destroy();
             (chart as unknown) = undefined;
         }
-        // eslint-disable-next-line no-console
         expect(console.warn).not.toBeCalled();
+        expect(console.error).not.toBeCalled();
         jest.restoreAllMocks();
     });
+    /* eslint-enable no-console */
 
     const ctx = setupMockCanvas();
 
@@ -49,7 +51,7 @@ describe('Doughnut', () => {
             series: [
                 {
                     data: [
-                        { City: 'Berlin', value: 150, index: 0 },
+                        { city: 'Berlin', value: 150, index: 0 },
                         { city: 'Munich', value: 100, index: 1 },
                         { city: 'Hamburg', value: 180, index: 2 },
                         { city: 'London', value: 120, index: 3 },
