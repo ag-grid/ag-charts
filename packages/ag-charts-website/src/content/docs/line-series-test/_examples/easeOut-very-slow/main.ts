@@ -10,7 +10,7 @@ const STATIONS = [
 ];
 
 // Make the maker scale-in animation duration = 0.
-(window as any).agChartsDebug = ['animationImmediateMarkerSwipeScaleIn']
+(window as any).agChartsDebug = ['animationImmediateMarkerSwipeScaleIn'];
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
