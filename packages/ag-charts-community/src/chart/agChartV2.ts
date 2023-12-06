@@ -33,6 +33,7 @@ import { getSeries } from './factory/seriesTypes';
 import { setupModules } from './factory/setupModules';
 import { HierarchyChart } from './hierarchyChart';
 import { noDataCloneMergeOptions, prepareOptions } from './mapping/prepare';
+import { AxisPositionGuesser } from './mapping/prepareAxis';
 import type { SeriesOptions } from './mapping/prepareSeries';
 import {
     type SeriesOptionsTypes,
@@ -583,7 +584,7 @@ function applySeriesOptionModules(series: Series<any>, options: AgBaseSeriesOpti
 }
 
 function createAxis(chart: Chart, options: AgBaseAxisOptions[]): ChartAxis[] {
-    const axes: ChartAxis[] = [];
+    const guesser: AxisPositionGuesser = new AxisPositionGuesser();
     const skip = ['axes[].type'];
     const moduleContext = chart.getModuleContext();
 
@@ -594,10 +595,10 @@ function createAxis(chart: Chart, options: AgBaseAxisOptions[]): ChartAxis[] {
         applyAxisModules(axis, axisOptions);
         applyOptionValues(axis, moduleContext, axisOptions, { path, skip });
 
-        axes.push(axis);
+        guesser.push(axis, axisOptions);
     }
 
-    return axes;
+    return guesser.guessInvalidPositions();
 }
 
 function applyAxisModules(axis: ChartAxis, options: AgBaseAxisOptions) {
