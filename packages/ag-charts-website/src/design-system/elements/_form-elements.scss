@@ -63,17 +63,17 @@ input[type='email'],
 input[type='number'] {
     &#{$selector-exclude-grid} {
         padding: math.div(6em, 16) math.div(12em, 16);
-        line-height: var(--text-lh-base);
-        border-radius: var(--radius-sm);
+        line-height: var(--line-height-normal);
+        border-radius: 8px;
+        background-color: var(--input-background-color);
         border: 1px solid var(--color-input-border);
-        background-color: var(--color-bg-primary);
         outline: none;
         box-shadow:
             0 0 0 $spacing-size-1 transparent,
             var(--shadow-xs);
         transition:
-            border-color $transition-default-timing,
-            box-shadow $transition-default-timing;
+            border-color $default-transition-timing,
+            box-shadow $default-transition-timing;
 
         &::placeholder {
             color: var(--color-fg-placeholder);
@@ -90,9 +90,7 @@ input[type='number'] {
         &:focus:not(:disabled):not([readonly]),
         &:focus-visible:not(:disabled):not([readonly]),
         &.focus {
-            box-shadow:
-                0 0 0 $spacing-size-1 var(--color-input-shadow-focus),
-                var(--shadow-xs);
+            box-shadow: 0 0 0 4px var(--color-input-shadow-focus);
         }
 
         &:disabled,
@@ -152,25 +150,10 @@ input[type='checkbox']:not(.switch)#{$selector-exclude-grid} {
     &:hover:not(:disabled):not([readonly]),
     &.hover,
     &:focus-visible:not(:disabled):not([readonly]),
-    &.focus {
-        border-color: var(--color-input-border-hover);
-    }
-
     &:checked,
-    &:disabled,
-    &[disabled],
-    &.disabled {
-        background-image: var(--svg-tick);
-    }
-
-    &:disabled,
-    &[disabled],
-    &.disabled {
-        --svg-tick: url('data:image/svg+xml;utf8,<svg fill="none" stroke="%23eaecf0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M14.6673 6.5L8.25065 12.9167L5.33398 10"/></svg>');
-
-        #{$selector-darkmode} & {
-            --svg-tick: url('data:image/svg+xml;utf8,<svg fill="none" stroke="%23344054" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M14.6673 6.5L8.25065 12.9167L5.33398 10"/></svg>');
-        }
+    &.hover,
+    &.focus {
+        border-color: var(--input-primary-color);
     }
 }
 
@@ -211,14 +194,13 @@ input[type='radio']#{$selector-exclude-grid} {
         border: 1px solid var(--color-input-border-hover);
     }
 
-    &:checked:not(:disabled):not([readonly]) {
-        border: 6px solid var(--color-input-bg-checked);
-    }
-
-    &:disabled,
-    &[disabled],
-    &.disabled {
-        box-shadow: inset 0 0 0 1px var(--color-border-tertiary);
+    &:focus:not(:disabled):not([readonly]),
+    &:focus-visible:not(:disabled):not([readonly]),
+    &.focus {
+        box-shadow:
+            inset 0 0 0 0.125em var(--input-primary-color),
+            inset 0 0 0 0.25em var(--input-background-color),
+            0 0 0 4px var(--color-input-shadow-focus);
     }
 }
 
@@ -233,19 +215,16 @@ select#{$selector-exclude-grid} {
     background-color: var(--color-bg-primary);
     background-image: var(--svg-chevron-down);
     background-repeat: no-repeat;
-    background-position: center right 4px;
-    border: 1px solid var(--color-input-border);
+    background-position: center right;
+    border: 2px solid var(--color-input-border);
     outline: none;
     transition:
         border-color $transition-default-timing,
         box-shadow $transition-default-timing;
     cursor: pointer;
 
-    &:hover,
-    &.hover,
-    &:focus-visible,
-    &.focus {
-        border-color: var(--color-input-border-hover);
+    #{$darkmode-selector} & {
+        border: 1px solid var(--color-input-border);
     }
 
     &:focus-visible,
@@ -266,8 +245,16 @@ select#{$selector-exclude-grid} {
         }
     }
 
-    #{$selector-darkmode} & {
-        --svg-chevron-down: url('data:image/svg+xml;utf8,<svg fill="none" stroke="%23eaecf0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M6 9L12 15L18 9"/></svg>');
+    &:hover:not(:disabled):not([readonly]),
+    &:focus:not(:disabled):not([readonly]),
+    &:focus-visible:not(:disabled):not([readonly]),
+    &.hover,
+    &.focus {
+        border-color: var(--color-input-border-hover);
+    }
+
+    #{$darkmode-selector} & {
+        background-image: $svg-chevron-down-dark;
     }
 }
 
@@ -303,7 +290,7 @@ input[type='range']#{$selector-exclude-grid} {
     &:focus-visible:not(:disabled):not([readonly]),
     &.focus {
         border-color: var(--color-input-border-hover);
-        box-shadow: 0 0 0 $spacing-size-1 var(--color-input-shadow-focus);
+        box-shadow: 0 0 0 4px var(--color-input-shadow-focus);
     }
 
     // Using mixins as -webkit & -moz properties cannot be used as comma seperted list
@@ -369,8 +356,8 @@ input[type='range']#{$selector-exclude-grid} {
 
     input,
     select {
-        --color-border-primary: var(--color-input-error);
-        --color-input-border-hover: var(--color-input-error);
+        --border-color: var(--input-error-color);
+        --color-input-border-hover: var(--input-error-color);
     }
 
     .error {

@@ -3,6 +3,7 @@ import type { FunctionComponent } from 'react';
 
 import { Buttons } from './Buttons';
 import { Colors } from './Colors';
+import { Inputs } from './Inputs';
 import styles from './StyleGuide.module.scss';
 import { TextStyles } from './TextStyles';
 
@@ -14,6 +15,7 @@ export const StyleGuide: FunctionComponent = () => {
                 <Colors />
                 <TextStyles />
                 <Buttons />
+                <Inputs />
             </div>
         </>
     );
