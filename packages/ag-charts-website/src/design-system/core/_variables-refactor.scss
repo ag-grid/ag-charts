@@ -122,6 +122,20 @@ $spacing-size-64: 256px;
 
     --color-input-disabled-bg: var(--color-bg-disabled_subtle);
     --color-input-disabled-fg: var(--color-fg-disabled);
+
+    // Shadows
+    --color-shadow: color-mix(in srgb, var(--color-gray-950) 05%, transparent);
+
+    --shadow-xs: 0 1px 2px 0 color-mix(in srgb, var(--color-gray-950) 05%, transparent);
+    --shadow-sm: 0 1px 3px 0 color-mix(in srgb, var(--color-gray-950) 10%, transparent),
+        0 1px 2px -1px color-mix(in srgb, var(--color-gray-950) 10%, transparent);
+    --shadow-md: 0 4px 6px -1px color-mix(in srgb, var(--color-gray-950) 10%, transparent),
+        0 2px 4px -2px color-mix(in srgb, var(--color-gray-950) 10%, transparent);
+    --shadow-lg: 0 10px 15px -3px color-mix(in srgb, var(--color-gray-950) 10%, transparent),
+        0 4px 6px -4px color-mix(in srgb, var(--color-gray-950) 10%, transparent);
+    --shadow-xl: 0 20px 25px -5px color-mix(in srgb, var(--color-gray-950) 10%, transparent),
+        0 8px 10px -6px color-mix(in srgb, var(--color-gray-950) 10%, transparent);
+    --shadow-2xl: 0 25px 50px -12px color-mix(in srgb, var(--color-gray-950) 25%, transparent);
 }
 
 html[data-dark-mode='true'] {

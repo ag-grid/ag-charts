@@ -4,6 +4,7 @@ import type { FunctionComponent } from 'react';
 import { Buttons } from './Buttons';
 import { Colors } from './Colors';
 import { Inputs } from './Inputs';
+import { Shadows } from './Shadows';
 import styles from './StyleGuide.module.scss';
 import { TextStyles } from './TextStyles';
 
@@ -14,6 +15,7 @@ export const StyleGuide: FunctionComponent = () => {
                 <h1>STYLE GUIDE</h1>
                 <Colors />
                 <TextStyles />
+                <Shadows />
                 <Buttons />
                 <Inputs />
             </div>

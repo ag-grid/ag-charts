@@ -8,24 +8,24 @@ export const Inputs: FunctionComponent = () => {
             <h2>Inputs</h2>
 
             <div className={styles.inputsList}>
-                <div className={styles.inputItem}>
+                <div>
                     <label>Placeholder:</label>
                     <input type="text" placeholder="Enter email" />
                 </div>
-                <div className={styles.inputItem}>
+                <div>
                     <label>Filled:</label>
                     <input type="text" value="joe@ag-grid.com" />
                 </div>
-                <div className={styles.inputItem}>
+                <div>
                     <label>Hover:</label>
                     <input className="hover" type="text" value="joe@ag-grid.com" />
                 </div>
-                <div className={styles.inputItem}>
+                <div>
                     <label>Focused:</label>
                     <input className="focus" type="text" value="joe@ag-grid.com" />
                 </div>
 
-                <div className={styles.inputItem}>
+                <div>
                     <label>Disabled:</label>
                     <input className="disabled" type="text" value="joe@ag-grid.com" />
                 </div>
