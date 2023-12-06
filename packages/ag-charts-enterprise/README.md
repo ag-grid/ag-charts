@@ -15,9 +15,9 @@ It delivers [outstanding performance](https://charts.ag-grid.com/?utm_source=ag-
 
 ## Examples
 
-<picture><source media="(prefers-color-scheme: dark)" srcset="./../../.github/example-1-dark.png"><source media="(prefers-color-scheme: light)" srcset="./../../.github/example-1-light.png"><img alt="Image of AG Charts showing stacked horizontal bar." src="./../../.github/example-1-light.png"></picture>
+<picture><source media="(prefers-color-scheme: dark)" srcset="./.github/example-1-dark.png"><source media="(prefers-color-scheme: light)" srcset="./.github/example-1-light.png"><img alt="Image of AG Charts showing stacked horizontal bar." src="./.github/example-1-light.png"></picture>
 
-<picture><source media="(prefers-color-scheme: dark)" srcset="./../../.github/example-2-dark.png"><source media="(prefers-color-scheme: light)" srcset="./../../.github/example-2-light.png"><img alt="Image of AG Charts showing vertical range bar." src="./../../.github/example-2-light.png"></picture>
+<picture><source media="(prefers-color-scheme: dark)" srcset="./.github/example-2-dark.png"><source media="(prefers-color-scheme: light)" srcset="./.github/example-2-light.png"><img alt="Image of AG Charts showing vertical range bar." src="./.github/example-2-light.png"></picture>
 
 ## Features
 
