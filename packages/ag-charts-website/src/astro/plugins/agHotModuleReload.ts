@@ -3,7 +3,7 @@ import type { Plugin, ViteDevServer } from 'vite';
 
 import { getAllExamplesFileList } from '../../features/docs/utils/filesData';
 import { getIsDev } from '../../utils/env';
-import { getDevFileList } from '../../utils/pages';
+import { getDevFileList, getExampleRootFileUrl } from '../../utils/pages';
 
 export default function createAgHotModuleReload(): Plugin {
     return {
@@ -12,13 +12,13 @@ export default function createAgHotModuleReload(): Plugin {
             if (!getIsDev()) return;
 
             const devFiles = getDevFileList();
-            const exampleFiles = await getAllExamplesFileList();
+            const exampleFiles = getExampleRootFileUrl().pathname;
 
             const fullReload = (path: string) => {
                 server.ws.send({ type: 'full-reload', path });
             };
 
-            const watcher = chokidar.watch([...devFiles, ...exampleFiles]);
+            const watcher = chokidar.watch([...devFiles, exampleFiles]);
             watcher
                 .on('change', (path) => {
                     fullReload(path);

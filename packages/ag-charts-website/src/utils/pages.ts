@@ -90,6 +90,11 @@ export const getContentRootFileUrl = ({ isDev }: { isDev?: boolean } = {}): URL 
     return new URL(contentRoot, import.meta.url);
 };
 
+export const getExampleRootFileUrl = ({ isDev }: { isDev?: boolean } = {}): URL => {
+    const root = '../../../../dist/packages/ag-charts-website/_examples/';
+    return new URL(root, import.meta.url);
+};
+
 export const getDebugFolderUrl = ({ isDev }: { isDev?: boolean } = {}): URL => {
     const websiteRoot = getWebsiteRootUrl({ isDev });
     const contentRoot = pathJoin(websiteRoot, 'src/pages/debug');
