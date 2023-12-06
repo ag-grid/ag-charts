@@ -11,7 +11,6 @@ import type {
 import type { JsonMergeOptions } from '../../util/json';
 import { DELETE, jsonMerge, jsonWalk } from '../../util/json';
 import { Logger } from '../../util/logger';
-import { mod } from '../../util/number';
 import type { DeepPartial } from '../../util/types';
 import { AXIS_TYPES } from '../factory/axisTypes';
 import { CHART_TYPES } from '../factory/chartTypes';
@@ -365,7 +364,7 @@ function prepareAxis<T extends AxesOptionsTypes>(
             }
             // Themes will normally only have one element in gridLineStyle[], but cycle through the array
             // with `mod` anyway to make sure that we honour the theme's grid line style sequence.
-            const themeStyle: typeof userStyle = gridLineStyle[mod(index, gridLineStyle.length)];
+            const themeStyle: typeof userStyle = gridLineStyle[index % gridLineStyle.length];
             return jsonMerge([themeStyle, userStyle]);
         });
     }
