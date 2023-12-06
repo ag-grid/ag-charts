@@ -14,7 +14,6 @@ export const HEATMAP_SERIES_THEME: Partial<
         fontFamily: _Theme.DEFAULT_FONT_FAMILY,
         wrapping: 'on-space' as const,
         overflowStrategy: 'ellipsis' as const,
-        spacing: 2,
     },
     itemPadding: 3,
 };
