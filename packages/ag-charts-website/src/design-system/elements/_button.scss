@@ -45,9 +45,8 @@ input[type='submit']#{$selector-exclude-grid},
 
     &:focus-visible,
     &.focus {
-        box-shadow:
-            0 0 0 $spacing-size-1 var(--color-button-primary-shadow-focus),
-            var(--shadow-xs);
+        border-color: var(--button-hover-color);
+        box-shadow: 0 0 0 4px var(--button-focus-box-shadow-color);
     }
 
     &:disabled,
@@ -128,10 +127,9 @@ input[type='submit']#{$selector-exclude-grid},
     box-shadow: none;
 
     &:hover,
-    &.hover,
-    &:disabled,
-    &[disabled],
-    &.disabled {
+    &:active,
+    &.hover {
+        color: var(--button-text-color);
         background-color: transparent;
         border: none;
     }
@@ -150,8 +148,11 @@ input[type='submit']#{$selector-exclude-grid},
     color: var(--color-link);
     transition: color $transition-default-timing;
 
+    transition: color $default-transition-timing;
+
     &:hover,
     &.hover {
-        color: var(--color-link-hover);
+        --button-text-color: var(--link-hover-color);
+        --text-color: var(--link-hover-color);
     }
 }

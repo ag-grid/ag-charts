@@ -12,8 +12,6 @@ export const Buttons: FunctionComponent = () => {
                 <button>Primary</button>
                 <button className="button-secondary">Secondary</button>
                 <button className="button-tertiary">Tertiary</button>
-                <button className="button-as-link">Button as link</button>
-                <button className="button-style-none">Button style none</button>
             </div>
 
             <div className={styles.buttonExamples}>
@@ -21,8 +19,6 @@ export const Buttons: FunctionComponent = () => {
                 <button className="hover">Primary</button>
                 <button className="button-secondary hover">Secondary</button>
                 <button className="button-tertiary hover">Tertiary</button>
-                <button className="button-as-link hover">Button as link</button>
-                <button className="button-style-none hover">Button style none</button>
             </div>
 
             <div className={styles.buttonExamples}>
@@ -30,8 +26,6 @@ export const Buttons: FunctionComponent = () => {
                 <button className="focus">Primary</button>
                 <button className="button-secondary focus">Secondary</button>
                 <button className="button-tertiary focus">Tertiary</button>
-                <button className="button-as-link focus">Button as link</button>
-                <button className="button-style-none focus">Button style none</button>
             </div>
 
             <div className={styles.buttonExamples}>
@@ -42,12 +36,6 @@ export const Buttons: FunctionComponent = () => {
                 </button>
                 <button className="button-tertiary" disabled>
                     Tertiary
-                </button>
-                <button className="button-as-link" disabled>
-                    Button as link
-                </button>
-                <button className="button-style-none" disabled>
-                    Button style none
                 </button>
             </div>
         </>

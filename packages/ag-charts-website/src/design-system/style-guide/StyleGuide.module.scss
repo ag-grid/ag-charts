@@ -1,15 +1,26 @@
+@use '../core' as *;
+
 // General style guide
 // ===============================================
 .styleGuide {
     padding-top: 6rem;
     padding-bottom: 24rem;
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        margin-top: 3em;
+        margin-bottom: $spacing-size-2;
+    }
 }
 
 // Color
 // ===============================================
 .swatch {
     width: 12rem;
-    margin-bottom: 1rem;
     border-radius: var(--border-radius);
     border: 1px solid var(--border-color);
     overflow: hidden;
@@ -42,4 +53,18 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+// Buttons
+// ===============================================
+.buttonExamples {
+    display: flex;
+    gap: $spacing-size-8;
+    align-items: center;
+    margin-bottom: $spacing-size-8;
+
+    label {
+        text-align: right;
+        min-width: 80px;
+    }
 }
