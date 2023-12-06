@@ -199,7 +199,7 @@ export function formatStackedLabels<Meta, FormatterParams>(
 
         if (label == null || label.fontSize !== labelFontSize) {
             labelTextSizeProps.fontSize = labelFontSize;
-            const labelLines = Text.wrapLines(
+            const { lines: labelLines } = Text.wrapLines(
                 labelValue,
                 availableWidth,
                 availableHeight,
@@ -235,7 +235,7 @@ export function formatStackedLabels<Meta, FormatterParams>(
 
         if (secondaryLabel == null || secondaryLabel.fontSize !== secondaryLabelFontSize) {
             secondaryLabelTextSizeProps.fontSize = secondaryLabelFontSize;
-            const secondaryLabelLines = Text.wrapLines(
+            const { lines: secondaryLabelLines } = Text.wrapLines(
                 secondaryLabelValue,
                 availableWidth,
                 availableHeight,
@@ -317,7 +317,7 @@ export function formatSingleLabel<Meta, FormatterParams>(
         const allowTruncation = fontSize === minimumFontSize;
 
         textSizeProps.fontSize = fontSize;
-        const lines = Text.wrapLines(
+        const { lines } = Text.wrapLines(
             value,
             availableWidth,
             availableHeight,
