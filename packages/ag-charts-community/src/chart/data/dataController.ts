@@ -1,7 +1,13 @@
 import { Debug } from '../../util/debug';
 import { jsonDiff } from '../../util/json';
 import type { ChartMode } from '../chartMode';
-import type { DataModelOptions, DatumPropertyDefinition, ProcessedData, PropertyDefinition } from './dataModel';
+import type {
+    DataModelOptions,
+    DatumPropertyDefinition,
+    ProcessedData,
+    PropertyDefinition,
+    UngroupedData,
+} from './dataModel';
 import { DataModel } from './dataModel';
 
 interface RequestedProcessing<
@@ -78,14 +84,21 @@ export class DataController {
         for (const { opts, data, resultCbs, rejects, ids } of merged) {
             try {
                 const dataModel = new DataModel<any>({ ...opts, mode: this.mode });
-                const processedData = dataModel.processData(data);
+                const processedData = dataModel.processData(data, this.requested);
 
                 if (debugMode) {
                     (window as any).processedData.push(processedData);
                 }
 
                 if (processedData && processedData.partialValidDataCount === 0) {
-                    resultCbs.forEach((cb) => cb({ dataModel, processedData }));
+                    resultCbs.forEach((cb, requestIdx) => {
+                        let requestProcessedData = processedData;
+                        if (ids.length > 1) {
+                            const id = ids[requestIdx];
+                            requestProcessedData = this.extractScopedData(id, processedData);
+                        }
+                        cb({ dataModel, processedData: requestProcessedData });
+                    });
                 } else if (processedData) {
                     this.splitResult(dataModel, processedData, ids, resultCbs);
                 } else {
@@ -95,6 +108,34 @@ export class DataController {
                 rejects.forEach((cb) => cb(error));
             }
         }
+    }
+
+    /**
+     * Extract the datum and values from the nested scoped values for this request id.
+     */
+    private extractScopedData(id: string, processedData: UngroupedData<any>) {
+        const extractDatum = (datum: any): any => {
+            if (Array.isArray(datum)) {
+                return datum.map(extractDatum);
+            }
+            return { ...datum, ...datum[id] };
+        };
+
+        const extractValues = (values: any): any => {
+            if (Array.isArray(values)) {
+                return values.map(extractValues);
+            }
+            return values?.[id] ?? values;
+        };
+
+        return {
+            ...processedData,
+            data: processedData.data.map((datum) => ({
+                ...datum,
+                datum: extractDatum(datum.datum),
+                values: datum.values.map(extractValues),
+            })),
+        };
     }
 
     private mergeRequested(): MergedRequests<any, any, any>[] {
@@ -110,7 +151,7 @@ export class DataController {
             ({ opts, data }: RequestedProcessing<any, any, any>) =>
             (gr: RequestedProcessing<any, any, any>[]) => {
                 return (
-                    gr[0].data === data &&
+                    (opts.groupByData === false || gr[0].data === data) &&
                     gr[0].opts.groupByKeys === opts.groupByKeys &&
                     gr[0].opts.dataVisible === opts.dataVisible &&
                     gr[0].opts.groupByFn === opts.groupByFn &&
