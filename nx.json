@@ -39,7 +39,6 @@
       "cache": true
     },
     "build:umd": {
-      "dependsOn": ["^build:umd"],
       "inputs": ["production", "^production"],
       "cache": true
     },
