@@ -659,15 +659,16 @@ function applySeriesValues(
     const skip: string[] = ['series[].listeners', 'series[].seriesGrouping'];
     const jsonApplyOptions = getJsonApplyOptions(moduleContext);
     const ctrs = jsonApplyOptions.constructors ?? {};
+    // Allow context to be injected and meet the type requirements
+    class PieTitleWithContext extends PieTitle {
+        constructor() {
+            super(moduleContext);
+        }
+    }
     const seriesTypeOverrides = {
         constructors: {
             ...ctrs,
-            title:
-                target.type === 'pie'
-                    ? (function () {
-                          return new PieTitle(moduleContext);
-                      } as unknown as new () => any)
-                    : ctrs['title'],
+            title: target.type === 'pie' ? PieTitleWithContext : ctrs['title'],
         },
     };
 

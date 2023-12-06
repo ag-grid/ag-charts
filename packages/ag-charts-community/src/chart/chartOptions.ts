@@ -28,19 +28,19 @@ const JSON_APPLY_OPTIONS: JsonApplyParams = {
     },
 };
 
-export function getJsonApplyOptions(ctx: ModuleContext) {
+export function getJsonApplyOptions(ctx: ModuleContext): JsonApplyParams {
+    // Allow context to be injected and meet the type requirements
+    class CaptionWithContext extends Caption {
+        constructor() {
+            super(ctx);
+        }
+    }
     return {
         constructors: {
             ...JSON_APPLY_OPTIONS.constructors,
-            title: function () {
-                return new Caption(ctx);
-            } as unknown as new () => any,
-            subtitle: function () {
-                return new Caption(ctx);
-            } as unknown as new () => any,
-            footnote: function () {
-                return new Caption(ctx);
-            } as unknown as new () => any,
+            title: CaptionWithContext,
+            subtitle: CaptionWithContext,
+            footnote: CaptionWithContext,
             ...JSON_APPLY_PLUGINS.constructors,
         },
         constructedArrays: JSON_APPLY_PLUGINS.constructedArrays,
