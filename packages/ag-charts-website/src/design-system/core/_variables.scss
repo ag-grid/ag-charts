@@ -330,7 +330,7 @@ $dark-scales: (
 // Semantic colors based on abstract colors & color scales
 $semantic-colors: (
     // Background
-    'default-background-color': white,
+    'default-background-color': color-bg-primary,
     // Text
     'default-text-color': dark-gunmetal-gray,
     'text-color': default-text-color,
@@ -376,7 +376,7 @@ $semantic-colors: (
 // Semantic colors based on abstract colors
 $dark-semantic-colors: (
     // Background
-    'default-background-color': dark-bg-new,
+    'default-background-color': color-bg-primary,
     // Text
     'default-text-color': ghost-white,
     'text-color': default-text-color,
