@@ -13,6 +13,13 @@ input[type='submit']#{$selector-exclude-grid},
 .button,
 .button-secondary,
 .button-tertiary {
+    --button-color: var(--color-button-primary-bg);
+    --button-hover-color: var(--color-button-primary-bg-hover);
+    --button-active-color: var(--color-button-primary-bg-active);
+    --button-text-color: var(--color-button-primary-fg);
+    --button-border-color: var(--color-button-primary-border);
+    --button-focus-box-shadow-color: var(--color-button-primary-shadow-focus);
+
     appearance: none;
     display: inline-block;
     font-size: var(--text-fs-base);
@@ -28,6 +35,8 @@ input[type='submit']#{$selector-exclude-grid},
         var(--shadow-xs);
     cursor: pointer;
     outline: none;
+    border: 1px solid var(--button-border-color);
+    box-shadow: 0 0 0 4px transparent;
     transition:
         background-color $transition-default-timing,
         border $transition-default-timing,
@@ -45,17 +54,19 @@ input[type='submit']#{$selector-exclude-grid},
 
     &:focus-visible,
     &.focus {
-        border-color: var(--button-hover-color);
         box-shadow: 0 0 0 4px var(--button-focus-box-shadow-color);
     }
 
     &:disabled,
     &[disabled],
     &.disabled {
-        background-color: var(--color-button-disabled-bg);
-        color: var(--color-button-disabled-fg);
-        border: 1px solid var(--color-button-disabled-border);
-        pointer-events: none;
+        --button-color: var(--color-button-disabled-bg);
+        --button-hover-color: var(--color-button-disabled-bg);
+        --button-active-color: var(--color-button-disabled-bg);
+        --button-text-color: var(--color-button-disabled-fg);
+        --button-border-color: var(--color-button-disabled-border);
+        --button-focus-box-shadow-color: transparent;
+
         cursor: default;
     }
 
@@ -70,28 +81,40 @@ input[type='submit']#{$selector-exclude-grid},
 }
 
 .button-secondary {
-    background-color: var(--color-button-secondary-bg);
-    color: var(--color-button-secondary-fg);
-    border: 1px solid var(--color-button-secondary-border);
-
-    &:hover,
-    &.hover {
-        background-color: var(--color-button-secondary-bg-hover);
-    }
-
-    &:active {
-        background-color: var(--color-button-secondary-bg-active);
-    }
-
-    .icon {
-        fill: var(--color-button-secondary-fg);
-    }
+    --button-color: var(--color-button-secondary-bg);
+    --button-hover-color: var(--color-button-secondary-bg-hover);
+    --button-active-color: var(--color-button-secondary-bg-active);
+    --button-text-color: var(--color-button-secondary-fg);
+    --button-border-color: var(--color-button-secondary-border);
+    --button-focus-box-shadow-color: var(--color-button-secondary-shadow-focus);
 }
 
 .button-tertiary {
-    background-color: var(--color-button-tertiary-bg);
-    color: var(--color-button-tertiary-fg);
-    border: 1px solid var(--color-button-tertiary-border);
+    --button-color: var(--color-button-tertiary-bg);
+    --button-hover-color: var(--color-button-tertiary-bg-hover);
+    --button-active-color: var(--color-button-tertiary-bg-active);
+    --button-text-color: var(--color-button-tertiary-fg);
+    --button-border-color: var(--color-button-tertiary-border);
+    --button-focus-box-shadow-color: var(--color-button-tertiary-shadow-focus);
+}
+
+.button-secondary,
+.button-tertiary {
+    &:disabled,
+    &[disabled],
+    &.disabled {
+        --button-color: var(--color-bg-primary);
+        --button-hover-color: var(--color-bg-primary);
+    }
+}
+
+// Transition all the .button-input into .button-secondary / .button-tertiary and remove.
+.button-input {
+    --button-color: var(--input-background-color);
+    --button-hover-color: var(--input-background-color);
+    --button-active-color: var(--input-background-color);
+    --button-text-color: var(--default-text-color);
+    --button-focus-box-shadow-color: var(--input-focus-box-shadow-color);
 
     &:hover,
     &.hover {
