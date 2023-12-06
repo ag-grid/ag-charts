@@ -11,7 +11,6 @@ const colors = {
 
 const Color: FunctionComponent = ({ colorName }) => {
     const cssVar = `--color-${colorName}`;
-    const sassVar = `$color-${colorName}`;
 
     return (
         <div className={styles.swatch}>
@@ -22,7 +21,6 @@ const Color: FunctionComponent = ({ colorName }) => {
                 </span>
 
                 <code>{cssVar}</code>
-                <code>{sassVar}</code>
             </div>
         </div>
     );
