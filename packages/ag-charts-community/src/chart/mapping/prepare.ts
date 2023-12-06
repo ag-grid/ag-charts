@@ -1,16 +1,17 @@
 import { enterpriseModule } from '../../module/enterpriseModule';
 import type {
+    AgAxisGridLineOptions,
     AgCartesianChartOptions,
     AgCartesianCrossLineOptions,
     AgChartOptions,
     AgChartThemePalette,
     AgTooltipPositionOptions,
     AgTooltipPositionType,
-    CssColor,
 } from '../../options/agChartOptions';
 import type { JsonMergeOptions } from '../../util/json';
 import { DELETE, jsonMerge, jsonWalk } from '../../util/json';
 import { Logger } from '../../util/logger';
+import { mod } from '../../util/number';
 import type { DeepPartial } from '../../util/types';
 import { AXIS_TYPES } from '../factory/axisTypes';
 import { CHART_TYPES } from '../factory/chartTypes';
@@ -24,7 +25,6 @@ import {
     isSoloSeries,
 } from '../factory/seriesTypes';
 import { type ChartTheme, resolvePartialPalette } from '../themes/chartTheme';
-import { DEFAULT_AXIS_GRID_COLOUR } from '../themes/symbols';
 import { resolveModuleConflicts, swapAxes } from './defaults';
 import type { SeriesOptions } from './prepareSeries';
 import { processSeriesOptions } from './prepareSeries';
@@ -132,7 +132,6 @@ export function prepareOptions<T extends AgChartOptions>(options: T): T {
         options,
         conflictOverrides
     );
-    const defaultGridStroke = theme.getTemplateParameters().properties.get(DEFAULT_AXIS_GRID_COLOUR);
 
     // Special cases where we have arrays of elements which need their own defaults.
 
@@ -182,7 +181,7 @@ export function prepareOptions<T extends AgChartOptions>(options: T): T {
                 axesThemes[axisType]?.[axis.position ?? 'unknown'] ?? {},
                 axisDefaults,
             ]);
-            return prepareAxis(axis, axesTheme, defaultGridStroke);
+            return prepareAxis(axis, axesTheme);
         });
         prepareLegendEnabledOption(options, mergedOptions);
     }
@@ -337,8 +336,7 @@ function calculateSeriesPalette<T extends SeriesOptionsTypes>(context: Preparati
 
 function prepareAxis<T extends AxesOptionsTypes>(
     axis: T,
-    axisTheme: Omit<T, 'crossLines'> & { crossLines: AgCartesianCrossLineOptions },
-    defaultGridStroke: CssColor
+    axisTheme: { crossLines: AgCartesianCrossLineOptions; gridLine: AgAxisGridLineOptions }
 ): T {
     // Remove redundant theme overload keys.
     const removeOptions = { top: DELETE, bottom: DELETE, left: DELETE, right: DELETE } as any;
@@ -349,22 +347,22 @@ function prepareAxis<T extends AxesOptionsTypes>(
             Logger.warn('axis[].crossLines should be an array.');
             axis.crossLines = [];
         }
-
-        const { crossLines: crossLinesTheme } = axisTheme;
-        axis.crossLines = axis.crossLines.map((crossLine) => jsonMerge([crossLinesTheme, crossLine]));
+        axis.crossLines = axis.crossLines.map((crossLine) => jsonMerge([axisTheme.crossLines, crossLine]));
     }
 
-    if (axis.gridLine !== undefined) {
-        const { style } = axis.gridLine;
-        if (Array.isArray(style)) {
-            axis.gridLine.style = style.map((value) => {
-                const { stroke, lineDash } = value;
-                if (stroke === undefined && lineDash !== undefined) {
-                    return { stroke: defaultGridStroke, lineDash };
-                }
-                return value;
-            });
+    // Same thing grid lines (AG-8777)
+    const gridLineStyle = axisTheme.gridLine.style;
+    if (axis.gridLine?.style !== undefined && gridLineStyle !== undefined && gridLineStyle.length > 0) {
+        if (!Array.isArray(axis.gridLine.style)) {
+            Logger.warn('axis[].gridLine.style should be an array.');
+            axis.gridLine.style = [];
         }
+        axis.gridLine.style = axis.gridLine.style.map((userStyle, index) => {
+            // Themes will normally only have one element in gridLineStyle[], but cycle through the array
+            // with `mod` anyway to make sure that we honour the theme's grid line style sequence.
+            const themeStyle: typeof userStyle = gridLineStyle[mod(index, gridLineStyle.length)];
+            return jsonMerge([themeStyle, userStyle]);
+        });
     }
 
     const cleanTheme = { crossLines: DELETE };
