@@ -424,7 +424,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
             // If any 'angleRaw' values are missing, then we'll also be missing 'angleValue' values and
             // will log a warning anyway.
             if (valueDef.id !== 'angleRaw' && valueDef.missing !== undefined && valueDef.missing > 0) {
-                Logger.warn(`Missing ${valueDef.missing} ${String(valueDef.property)} value(s)`);
+                Logger.warnOnce(`Missing ${valueDef.missing} ${String(valueDef.property)} value(s)`);
             }
         }
 
