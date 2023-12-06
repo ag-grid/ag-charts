@@ -18,7 +18,6 @@ import { jsonApply, jsonDiff, jsonMerge } from '../util/json';
 import { Logger } from '../util/logger';
 import type { TypedEventListener } from '../util/observable';
 import type { DeepPartial } from '../util/types';
-import { AxisPositionGuesser } from './axis/axisUtil';
 import { CartesianChart } from './cartesianChart';
 import type { Chart, ChartExtendedOptions, ChartSpecialOverrides } from './chart';
 import type { ChartAxis } from './chartAxis';
@@ -33,6 +32,7 @@ import { getSeries } from './factory/seriesTypes';
 import { setupModules } from './factory/setupModules';
 import { HierarchyChart } from './hierarchyChart';
 import { noDataCloneMergeOptions, prepareOptions } from './mapping/prepare';
+import { AxisPositionGuesser } from './mapping/prepareAxis';
 import type { SeriesOptions } from './mapping/prepareSeries';
 import {
     type SeriesOptionsTypes,
