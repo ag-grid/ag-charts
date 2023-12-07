@@ -87,6 +87,11 @@ jobs:
               id: yarn_install
               run: yarn install --ci --prefer-offline
 
+            - name: yarn post-install
+              if: steps.cache.outputs.cache-hit == 'true'
+              id: yarn_postinstall
+              run: yarn postinstall
+
             - name: nx format:check
               id: format
               if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
