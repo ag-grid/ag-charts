@@ -622,10 +622,8 @@ export class DataModel<
             let value;
 
             const sourcesById: { [key: string]: { id: string; data: D[] } } = {};
-            if (sources) {
-                for (const source of sources) {
-                    sourcesById[source.id] = source;
-                }
+            for (const source of sources ?? []) {
+                sourcesById[source.id] = source;
             }
 
             for (const [valueDefIdx, def] of valueDefs.entries()) {
@@ -635,18 +633,18 @@ export class DataModel<
 
                     value = processValue(def, valueDatum, value);
 
-                    if (value !== INVALID_VALUE && values) {
-                        if (source !== undefined) {
-                            joinedDatum[source.id] ??= {};
-                            joinedDatum[source.id][def.property] = value;
-                        }
+                    if (value === INVALID_VALUE || !values) continue;
 
-                        if (def.scopes && def.scopes.length > 1) {
-                            values[valueDefIdx] ??= {};
-                            values[valueDefIdx][scope] = value;
-                        } else {
-                            values[valueDefIdx] = value;
-                        }
+                    if (source !== undefined) {
+                        joinedDatum[source.id] ??= {};
+                        joinedDatum[source.id][def.property] = value;
+                    }
+
+                    if (def.scopes && def.scopes.length > 1) {
+                        values[valueDefIdx] ??= {};
+                        values[valueDefIdx][scope] = value;
+                    } else {
+                        values[valueDefIdx] = value;
                     }
                 }
 
