@@ -213,4 +213,105 @@ describe('DataController', () => {
             ['test2', 'valueProp1-key'],
         ]);
     });
+
+    describe('with multiple data sources', () => {
+        it('should extract scoped data for each request with shared scopes', async () => {
+            const data1 = [
+                { keyProp1: '2020', valueProp1: 100 },
+                { keyProp1: '2021', valueProp1: 200 },
+                { keyProp1: '2022', valueProp1: 300 },
+            ];
+            const data2 = [
+                { keyProp1: '2020', valueProp1: 40 },
+                { keyProp1: '2021', valueProp1: 50 },
+                { keyProp1: '2022', valueProp1: 60 },
+            ];
+
+            const def = {
+                props: [
+                    {
+                        scopes: ['test1', 'test2'],
+                        id: 'keyProp1-key',
+                        property: 'keyProp1',
+                        type: 'key',
+                        valueType: 'category',
+                    },
+                    {
+                        scopes: ['test1', 'test2'],
+                        id: 'valueProp1-key',
+                        property: 'valueProp1',
+                        type: 'value',
+                        valueType: 'range',
+                    },
+                ],
+            };
+
+            const promise1 = controller.request('test1', data1, def);
+
+            const promise2 = controller.request('test2', data2, def);
+
+            await controller.execute();
+            const results = await Promise.all([promise1, promise2]);
+
+            expect(results[0].processedData.data[0].values).toEqual([100]);
+            expect(results[1].processedData.data[0].values).toEqual([40]);
+        });
+
+        it('should extract scoped data for each request with unique scopes', async () => {
+            const data1 = [
+                { keyProp1: '2020', valueProp1: 100 },
+                { keyProp1: '2021', valueProp1: 200 },
+                { keyProp1: '2022', valueProp1: 300 },
+            ];
+            const data2 = [
+                { keyProp1: '2020', valueProp1: 40 },
+                { keyProp1: '2021', valueProp1: 50 },
+                { keyProp1: '2022', valueProp1: 60 },
+            ];
+
+            const promise1 = controller.request('test1', data1, {
+                props: [
+                    {
+                        scopes: ['test1'],
+                        id: 'keyProp1-key',
+                        property: 'keyProp1',
+                        type: 'key',
+                        valueType: 'category',
+                    },
+                    {
+                        scopes: ['test1'],
+                        id: 'valueProp1-key',
+                        property: 'valueProp1',
+                        type: 'value',
+                        valueType: 'range',
+                    },
+                ],
+            });
+
+            const promise2 = controller.request('test2', data2, {
+                props: [
+                    {
+                        scopes: ['test2'],
+                        id: 'keyProp1-key',
+                        property: 'keyProp1',
+                        type: 'key',
+                        valueType: 'category',
+                    },
+                    {
+                        scopes: ['test2'],
+                        id: 'valueProp1-key',
+                        property: 'valueProp1',
+                        type: 'value',
+                        valueType: 'range',
+                    },
+                ],
+            });
+
+            await controller.execute();
+            const results = await Promise.all([promise1, promise2]);
+
+            expect(results[0].processedData.data[0].values).toEqual([100]);
+            expect(results[1].processedData.data[0].values).toEqual([40]);
+        });
+    });
 });

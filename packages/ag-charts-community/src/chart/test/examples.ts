@@ -957,6 +957,220 @@ export const GROUPED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions
     ],
 };
 
+export const GROUPED_COLUMN_CATEGORY_DATA_PER_SERIES: AgCartesianChartOptions = {
+    title: {
+        text: "Apple's revenue by product category",
+    },
+    subtitle: {
+        text: 'in billion U.S. dollars',
+    },
+    series: [
+        {
+            type: 'bar',
+            xKey: 'quarter',
+            yKey: 'iphone',
+            yName: 'iPhone',
+            data: DATA_APPLE_REVENUE_BY_PRODUCT,
+        },
+        {
+            type: 'bar',
+            xKey: 'quarter',
+            yKey: 'mac',
+            yName: 'Mac',
+            data: DATA_APPLE_REVENUE_BY_PRODUCT.map((d) => ({
+                ...d,
+                mac: d.iphone / 2,
+            })),
+        },
+        {
+            type: 'bar',
+            xKey: 'quarter',
+            yKey: 'iphone',
+            yName: 'iPad',
+            data: DATA_APPLE_REVENUE_BY_PRODUCT.map((d) => ({
+                ...d,
+                iphone: d.iphone / 3,
+            })),
+        },
+        {
+            type: 'bar',
+            xKey: 'quarter',
+            yKey: 'iphone',
+            yName: 'Wearables',
+            data: DATA_APPLE_REVENUE_BY_PRODUCT.map((d) => ({
+                ...d,
+                iphone: d.iphone / 4,
+            })),
+        },
+        {
+            type: 'bar',
+            xKey: 'quarter',
+            yKey: 'services',
+            yName: 'Services',
+            data: DATA_APPLE_REVENUE_BY_PRODUCT.map((d) => ({
+                ...d,
+                services: d.iphone / 5,
+            })),
+        },
+    ],
+    axes: [
+        {
+            type: 'category',
+            position: 'bottom',
+        },
+        {
+            type: 'number',
+            position: 'left',
+        },
+    ],
+};
+
+export const STACKED_COLUMN_CATEGORY_DATA_PER_SERIES: AgCartesianChartOptions = {
+    title: {
+        text: "Apple's revenue by product category",
+    },
+    subtitle: {
+        text: 'in billion U.S. dollars',
+    },
+    series: [
+        {
+            type: 'bar',
+            xKey: 'quarter',
+            yKey: 'iphone',
+            yName: 'iPhone',
+            data: DATA_APPLE_REVENUE_BY_PRODUCT,
+            stackGroup: 'devices',
+        },
+        {
+            type: 'bar',
+            xKey: 'quarter',
+            yKey: 'mac',
+            yName: 'Mac',
+            data: DATA_APPLE_REVENUE_BY_PRODUCT.map((d) => ({
+                ...d,
+                mac: d.iphone / 2,
+            })),
+            stackGroup: 'devices',
+        },
+        {
+            type: 'bar',
+            xKey: 'quarter',
+            yKey: 'ipad',
+            yName: 'iPad',
+            data: DATA_APPLE_REVENUE_BY_PRODUCT.map((d) => ({
+                ...d,
+                ipad: d.iphone / 3,
+            })),
+            stackGroup: 'devices',
+        },
+        {
+            type: 'bar',
+            xKey: 'quarter',
+            yKey: 'wearables',
+            yName: 'Wearables',
+            data: DATA_APPLE_REVENUE_BY_PRODUCT.map((d) => ({
+                ...d,
+                wearables: d.iphone / 4,
+            })),
+            stackGroup: 'other',
+        },
+        {
+            type: 'bar',
+            xKey: 'quarter',
+            yKey: 'services',
+            yName: 'Services',
+            data: DATA_APPLE_REVENUE_BY_PRODUCT.map((d) => ({
+                ...d,
+                services: d.iphone / 5,
+            })),
+            stackGroup: 'other',
+        },
+    ],
+    axes: [
+        {
+            type: 'category',
+            position: 'bottom',
+        },
+        {
+            type: 'number',
+            position: 'left',
+        },
+    ],
+};
+
+export const STACKED_COLUMN_CATEGORY_DATA_PER_SERIES_CLASHING: AgCartesianChartOptions = {
+    title: {
+        text: "Apple's revenue by product category",
+    },
+    subtitle: {
+        text: 'in billion U.S. dollars',
+    },
+    series: [
+        {
+            type: 'bar',
+            xKey: 'quarter',
+            yKey: 'iphone',
+            yName: 'iPhone',
+            data: DATA_APPLE_REVENUE_BY_PRODUCT,
+            stackGroup: 'devices',
+        },
+        {
+            type: 'bar',
+            xKey: 'quarter',
+            yKey: 'iphone',
+            yName: 'Mac',
+            data: DATA_APPLE_REVENUE_BY_PRODUCT.map((d) => ({
+                ...d,
+                iphone: d.iphone / 2,
+            })),
+            stackGroup: 'devices',
+        },
+        {
+            type: 'bar',
+            xKey: 'quarter',
+            yKey: 'ipad',
+            yName: 'iPad',
+            data: DATA_APPLE_REVENUE_BY_PRODUCT.map((d) => ({
+                ...d,
+                ipad: d.iphone / 3,
+            })),
+            stackGroup: 'devices',
+        },
+        {
+            type: 'bar',
+            xKey: 'quarter',
+            yKey: 'wearables',
+            yName: 'Wearables',
+            data: DATA_APPLE_REVENUE_BY_PRODUCT.map((d) => ({
+                ...d,
+                wearables: d.iphone / 4,
+            })),
+            stackGroup: 'other',
+        },
+        {
+            type: 'bar',
+            xKey: 'quarter',
+            yKey: 'wearables',
+            yName: 'Services',
+            data: DATA_APPLE_REVENUE_BY_PRODUCT.map((d) => ({
+                ...d,
+                wearables: d.iphone / 5,
+            })),
+            stackGroup: 'other',
+        },
+    ],
+    axes: [
+        {
+            type: 'category',
+            position: 'bottom',
+        },
+        {
+            type: 'number',
+            position: 'left',
+        },
+    ],
+};
+
 export const BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
     title: {
         text: 'Mean Sea Level (mm)',
