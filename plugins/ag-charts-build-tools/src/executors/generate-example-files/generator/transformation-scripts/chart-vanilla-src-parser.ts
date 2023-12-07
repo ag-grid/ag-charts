@@ -1,7 +1,7 @@
 import * as cheerio from 'cheerio';
 import type { SignatureDeclaration } from 'typescript';
 
-import type { ExampleSettings } from '../types.d';
+import type { ExampleSettings } from '../types';
 import {
     extractEventHandlers,
     extractImportStatements,

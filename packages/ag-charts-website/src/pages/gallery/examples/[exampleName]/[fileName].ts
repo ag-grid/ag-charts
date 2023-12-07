@@ -1,8 +1,9 @@
-import { getGeneratedGalleryContents } from '@features/gallery/utils/examplesGenerator';
 import { getGalleryExampleFiles } from '@features/gallery/utils/pageData';
 import { getIsDev } from '@utils/env';
 import { getContentRootFileUrl } from '@utils/pages';
 import { getEntry } from 'astro:content';
+
+import { getGeneratedContents } from '../../../../features/example-generator';
 
 interface Params {
     exampleName: string;
@@ -36,7 +37,8 @@ export async function get({ params }: { params: Params }) {
     };
 
     const { files = {} } =
-        (await getGeneratedGalleryContents({
+        (await getGeneratedContents({
+            type: 'gallery',
             exampleName,
         })) || {};
     const file = files && files[fileName];

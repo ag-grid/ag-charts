@@ -1,6 +1,3 @@
-import type { InternalFramework } from '@ag-grid-types';
-import { getDarkModeSnippet } from '@components/site-header/getDarkModeSnippet';
-
 import { ANGULAR_GENERATED_MAIN_FILE_NAME } from '../constants';
 import { vanillaToAngular } from '../transformation-scripts/chart-vanilla-to-angular';
 import { vanillaToReactFunctional } from '../transformation-scripts/chart-vanilla-to-react-functional';
@@ -8,9 +5,11 @@ import { vanillaToReactFunctionalTs } from '../transformation-scripts/chart-vani
 import { vanillaToVue } from '../transformation-scripts/chart-vanilla-to-vue';
 import { vanillaToVue3 } from '../transformation-scripts/chart-vanilla-to-vue3';
 import { readAsJsFile } from '../transformation-scripts/parser-utils';
+import type { InternalFramework } from '../types';
 import type { FileContents } from '../types';
 import { deepCloneObject } from './deepCloneObject';
 import { getBoilerPlateFiles, getEntryFileName, getMainFileName } from './fileUtils';
+import { getDarkModeSnippet } from './getDarkModeSnippet';
 
 interface FrameworkFiles {
     files: FileContents;
@@ -35,6 +34,7 @@ type ConfigGenerator = ({
     typedBindings,
     otherScriptFiles,
     ignoreDarkMode,
+    isDev,
 }: {
     entryFile: string;
     indexHtml: string;
@@ -43,6 +43,7 @@ type ConfigGenerator = ({
     typedBindings: any;
     otherScriptFiles: FileContents;
     ignoreDarkMode?: boolean;
+    isDev: boolean;
 }) => FrameworkFiles | Promise<FrameworkFiles>;
 
 const createVueFilesGenerator =
@@ -53,8 +54,8 @@ const createVueFilesGenerator =
         sourceGenerator: (bindings: any, componentFilenames: string[]) => () => string;
         internalFramework: InternalFramework;
     }): ConfigGenerator =>
-    async ({ bindings, indexHtml, otherScriptFiles }) => {
-        const boilerPlateFiles = await getBoilerPlateFiles(internalFramework);
+    async ({ bindings, indexHtml, otherScriptFiles, isDev }) => {
+        const boilerPlateFiles = await getBoilerPlateFiles(isDev, internalFramework);
 
         const getSource = sourceGenerator(deepCloneObject(bindings), []);
         const entryFileName = getEntryFileName(internalFramework)!;
@@ -122,13 +123,13 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainFileName,
         };
     },
-    typescript: async ({ entryFile, indexHtml, otherScriptFiles, bindings, ignoreDarkMode }) => {
+    typescript: async ({ entryFile, indexHtml, otherScriptFiles, bindings, ignoreDarkMode, isDev }) => {
         const internalFramework: InternalFramework = 'typescript';
         const entryFileName = getEntryFileName(internalFramework)!;
         const mainFileName = getMainFileName(internalFramework)!;
 
         const { externalEventHandlers } = bindings;
-        const boilerPlateFiles = await getBoilerPlateFiles(internalFramework);
+        const boilerPlateFiles = await getBoilerPlateFiles(isDev, internalFramework);
 
         // Attach external event handlers
         let externalEventHandlersCode;
@@ -171,11 +172,11 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainFileName,
         };
     },
-    reactFunctional: async ({ bindings, indexHtml, otherScriptFiles }) => {
+    reactFunctional: async ({ bindings, indexHtml, otherScriptFiles, isDev }) => {
         const internalFramework = 'reactFunctional';
         const entryFileName = getEntryFileName(internalFramework)!;
         const mainFileName = getMainFileName(internalFramework)!;
-        const boilerPlateFiles = await getBoilerPlateFiles(internalFramework);
+        const boilerPlateFiles = await getBoilerPlateFiles(isDev, internalFramework);
 
         const getSource = vanillaToReactFunctional(deepCloneObject(bindings), []);
         const indexJsx = getSource();
@@ -193,11 +194,11 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainFileName,
         };
     },
-    reactFunctionalTs: async ({ typedBindings, indexHtml, otherScriptFiles, ignoreDarkMode }) => {
+    reactFunctionalTs: async ({ typedBindings, indexHtml, otherScriptFiles, ignoreDarkMode, isDev }) => {
         const internalFramework: InternalFramework = 'reactFunctionalTs';
         const entryFileName = getEntryFileName(internalFramework)!;
         const mainFileName = getMainFileName(internalFramework)!;
-        const boilerPlateFiles = await getBoilerPlateFiles(internalFramework);
+        const boilerPlateFiles = await getBoilerPlateFiles(isDev, internalFramework);
 
         const getSource = vanillaToReactFunctionalTs(deepCloneObject(typedBindings), []);
         let indexTsx = getSource();
@@ -222,11 +223,11 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainFileName,
         };
     },
-    angular: async ({ typedBindings, otherScriptFiles }) => {
+    angular: async ({ typedBindings, otherScriptFiles, isDev }) => {
         const internalFramework: InternalFramework = 'angular';
         const entryFileName = getEntryFileName(internalFramework)!;
         const mainFileName = getMainFileName(internalFramework)!;
-        const boilerPlateFiles = await getBoilerPlateFiles(internalFramework);
+        const boilerPlateFiles = await getBoilerPlateFiles(isDev, internalFramework);
 
         const getSource = vanillaToAngular(deepCloneObject(typedBindings), []);
         const appComponent = getSource();

@@ -47,8 +47,12 @@
         "production": {}
       }
     },
+    "dev:setup": {
+      "command": "nx build ag-charts-website:generate-examples --parallel 8"
+    },
     "dev": {
       "executor": "nx:run-commands",
+      "dependsOn": ["dev:setup"],
       "options": {
         "parallel": true,
         "commands": [
@@ -56,6 +60,7 @@
           "while true ; do nx watch -d -p ag-charts-community,ag-charts-enterprise -- nx run ag-charts-enterprise:build:umd --configuration watch ; done",
           "while true ; do nx watch -d -p ag-charts-community -- nx run ag-charts-community:build:umd --configuration watch ; done",
           "while true ; do nx watch -d -p ag-charts-community -- nx run ag-charts-community:docs-resolved-interfaces ; done",
+          "while true ; do nx watch -p ag-charts-website-* -- nx build \\${NX_PROJECT_NAME}:generate-example; done",
           "nx run ag-charts-website:dev --configuration watch"
         ]
       },

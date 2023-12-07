@@ -1,5 +1,4 @@
-import { getDarkModeSnippet } from '@components/site-header/getDarkModeSnippet';
-
+import { getDarkModeSnippet } from '../utils/getDarkModeSnippet';
 import { getChartImports, wrapOptionsUpdateCode } from './chart-utils';
 import { templatePlaceholder } from './chart-vanilla-src-parser';
 import { getFunctionName, isInstanceMethod, removeFunctionKeyword } from './parser-utils';

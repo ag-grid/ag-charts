@@ -1,5 +1,4 @@
-import { getDarkModeSnippet } from '@components/site-header/getDarkModeSnippet';
-
+import { getDarkModeSnippet } from '../utils/getDarkModeSnippet';
 import { convertTemplate, getImport, toAssignment, toConst, toInput, toMember } from './angular-utils';
 import { wrapOptionsUpdateCode } from './chart-utils';
 import { templatePlaceholder } from './chart-vanilla-src-parser';

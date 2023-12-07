@@ -1,11 +1,16 @@
 import fs from 'fs/promises';
+import path from 'path';
 
 // NOTE: These imports can't be aliases because it is used by `astro.config.mjs`
 // and ts alias paths don't work there
 import { INTERNAL_FRAMEWORKS } from '../../../constants';
 import { getFolders } from '../../../utils/fs';
-import { type DocsPage, type InternalFrameworkExample, getContentRootFileUrl } from '../../../utils/pages';
-import { pathJoin } from '../../../utils/pathJoin';
+import {
+    type DocsPage,
+    type InternalFrameworkExample,
+    getContentRootFileUrl,
+    getExampleRootFileUrl,
+} from '../../../utils/pages';
 
 function ignoreUnderscoreFiles(page: DocsPage) {
     const pageFolders = page.slug.split('/');
@@ -13,18 +18,18 @@ function ignoreUnderscoreFiles(page: DocsPage) {
     return pageName && !pageName.startsWith('_');
 }
 
-export const getExamplesPathUrl = ({ pageName }: { pageName: string }) => {
+export const getExamplesPath = ({ pageName }: { pageName: string }) => {
     const contentRoot = getContentRootFileUrl();
-    const sourceExamplesPath = pathJoin(contentRoot.pathname, 'docs', pageName, '_examples');
+    const sourceExamplesPath = path.join(contentRoot.pathname, 'docs', pageName, '_examples');
 
-    return new URL(sourceExamplesPath, import.meta.url);
+    return sourceExamplesPath;
 };
 
-export const getFolderUrl = ({ pageName, exampleName }: { pageName: string; exampleName: string }) => {
-    const examplesFolderPath = getExamplesPathUrl({
+export const getFolderPath = ({ pageName, exampleName }: { pageName: string; exampleName: string }) => {
+    const examplesFolderPath = getExamplesPath({
         pageName,
-    }).pathname;
-    const exampleFolderPath = pathJoin(examplesFolderPath, exampleName);
+    });
+    const exampleFolderPath = path.join(examplesFolderPath, exampleName);
 
     return new URL(exampleFolderPath, import.meta.url);
 };
@@ -41,11 +46,11 @@ export const getInternalFrameworkExamples = async ({
     });
 
     const examplePromises = internalFrameworkPageNames.map(async ({ internalFramework, pageName }) => {
-        const docsExamplesPathUrl = getExamplesPathUrl({
+        const docsExamplesPath = getExamplesPath({
             pageName,
         });
 
-        const examples = await getFolders(docsExamplesPathUrl.pathname);
+        const examples = await getFolders(docsExamplesPath);
         return examples.map((exampleName) => {
             return {
                 internalFramework,
@@ -63,16 +68,16 @@ export const getPagesList = (pages: DocsPage[]) => {
 };
 
 export const getAllExamplesFileList = async () => {
-    const contentRoot = getContentRootFileUrl();
-    const pagesFolder = pathJoin(contentRoot.pathname, 'docs');
+    const contentRoot = getExampleRootFileUrl();
+    const pagesFolder = path.join(contentRoot.pathname, 'docs');
     const pages = await fs.readdir(pagesFolder);
 
     const examplesPromises = pages.map(async (pageName) => {
-        const examplesFolder = pathJoin(pagesFolder, pageName, '_examples');
+        const examplesFolder = path.join(pagesFolder, pageName, '_examples');
         const examples = await getFolders(examplesFolder);
 
         return examples.map((file) => {
-            return pathJoin(examplesFolder, file);
+            return path.join(examplesFolder, file);
         });
     });
     const exampleFolders = (await Promise.all(examplesPromises)).flat();
@@ -80,7 +85,7 @@ export const getAllExamplesFileList = async () => {
     const exampleFilesPromises = exampleFolders.map(async (exampleFolder) => {
         const exampleFiles = await fs.readdir(exampleFolder);
         return exampleFiles.map((exampleFile) => {
-            return pathJoin(exampleFolder, exampleFile);
+            return path.join(exampleFolder, exampleFile);
         });
     });
     const exampleFiles = (await Promise.all(exampleFilesPromises)).flat();

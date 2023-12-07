@@ -12,8 +12,8 @@ import 'ag-charts-enterprise';
 // eslint-disable-next-line @nx/enforce-module-boundaries
 import * as mockCanvas from '../../../ag-charts-community/src/chart/test/mock-canvas';
 import { THUMBNAIL_POOL_SIZE } from '../constants';
+import { getGeneratedContents } from '../features/example-generator';
 import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '../features/gallery/constants';
-import { getGeneratedGalleryContents } from '../features/gallery/utils/examplesGenerator';
 
 export const prerender = true;
 
@@ -92,7 +92,8 @@ export async function generateExample({ exampleName, theme, format }: Params) {
         // eslint-disable-next-line no-console
         console.log(`Generating [${exampleName}] with theme [${theme}] in format [${format}]`);
         const { entryFileName, files = {} } =
-            (await getGeneratedGalleryContents({
+            (await getGeneratedContents({
+                type: 'gallery',
                 exampleName,
                 ignoreDarkMode: true,
             })) || {};
