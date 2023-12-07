@@ -136,6 +136,8 @@ jobs:
             matrix:
                 shard: [1, 2, 3, 4]
         name: test (${{ matrix.shard }}/${{ strategy.job-total }})
+        env:
+            NX_PARALLEL: 1
         steps:
             - name: Checkout
               id: checkout
