@@ -73,14 +73,29 @@ $spacing-size-64: 256px;
     --text-semibold: 600;
     --text-bold: 700;
 
-    --text-2xs: 10px/1.2 var(--text-font-family);
-    --text-xs: 12px/1.6666 var(--text-font-family);
-    --text-sm: 14px/1.4 var(--text-font-family);
-    --text-base: 16px/1.4 var(--text-font-family);
-    --text-lg: 20px/1.2 var(--text-font-family);
-    --text-xl: 24px/1.2 var(--text-font-family);
-    --text-2xl: 32px/1.2 var(--text-font-family);
-    --text-3xl: 40px/1.1 var(--text-font-family);
+    --text-fs-2xs: 10px;
+    --text-lh-2xs: 1.2;
+
+    --text-fs-xs: 12px;
+    --text-lh-xs: 1.6666;
+
+    --text-fs-sm: 14px;
+    --text-lh-sm: 1.4;
+
+    --text-fs-base: 16px;
+    --text-lh-base: 1.4;
+
+    --text-fs-lg: 20px;
+    --text-lh-lg: 1.2;
+
+    --text-fs-xl: 24px;
+    --text-lh-xl: 1.2;
+
+    --text-fs-2xl: 32px;
+    --text-lh-2xl: 1.2;
+
+    --text-fs-3xl: 40px;
+    --text-lh-3xl: 1.1;
 
     // Abstract colors
     --color-white: #fff;
