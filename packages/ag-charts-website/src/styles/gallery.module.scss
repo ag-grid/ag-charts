@@ -1,0 +1,12 @@
+@use '../design-system' as *;
+
+.toolPanel {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin-top: $size-2;
+
+    @media screen and (min-width: $breakpoint-site-header-small) {
+        margin-top: 0;
+    }
+}
