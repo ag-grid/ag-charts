@@ -91,7 +91,7 @@ export const getContentRootFileUrl = ({ isDev }: { isDev?: boolean } = {}): URL 
 };
 
 export const getExampleRootFileUrl = ({ isDev = getIsDev() }: { isDev?: boolean } = {}): URL => {
-    const root = isDev ? '../../../..' : '../../../../..';
+    const root = getRootUrl().pathname;
     return new URL(`${root}/dist/generated-examples/ag-charts-website/`, import.meta.url);
 };
 
