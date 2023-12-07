@@ -7,27 +7,98 @@ export const Inputs: FunctionComponent = () => {
         <>
             <h2>Inputs</h2>
 
-            <div className={styles.inputsList}>
-                <div>
-                    <label>Placeholder:</label>
-                    <input type="text" placeholder="Enter email" />
-                </div>
-                <div>
-                    <label>Filled:</label>
-                    <input type="text" defaultValue="joe@ag-grid.com" />
-                </div>
-                <div>
-                    <label>Hover:</label>
-                    <input className="hover" type="text" defaultValue="joe@ag-grid.com" />
-                </div>
-                <div>
-                    <label>Focused:</label>
-                    <input className="focus" type="text" defaultValue="joe@ag-grid.com" />
+            <div className={styles.inputsOuter}>
+                <div className={styles.inputsList}>
+                    <div>
+                        <label>Placeholder:</label>
+                        <input type="text" placeholder="Enter email" />
+                    </div>
+                    <div>
+                        <label>Filled:</label>
+                        <input type="text" defaultValue="joe@ag-grid.com" />
+                    </div>
+                    <div>
+                        <label>Hover:</label>
+                        <input className="hover" type="text" defaultValue="joe@ag-grid.com" />
+                    </div>
+                    <div>
+                        <label>Focused:</label>
+                        <input className="focus" type="text" defaultValue="joe@ag-grid.com" />
+                    </div>
+
+                    <div>
+                        <label>Disabled:</label>
+                        <input className="disabled" type="text" defaultValue="joe@ag-grid.com" />
+                    </div>
                 </div>
 
-                <div>
-                    <label>Disabled:</label>
-                    <input className="disabled" type="text" defaultValue="joe@ag-grid.com" />
+                <div className={styles.checkboxList}>
+                    <div>
+                        <label>Default:</label>
+                        <input type="checkbox" />
+                    </div>
+                    <div>
+                        <label>Checked:</label>
+                        <input type="checkbox" checked />
+                    </div>
+                    <div>
+                        <label>Hover:</label>
+                        <input type="checkbox" className="hover" />
+                    </div>
+                    <div>
+                        <label>Focus:</label>
+                        <input type="checkbox" className="focus" />
+                    </div>
+                    <div>
+                        <label>Disabled:</label>
+                        <input type="checkbox" disabled />
+                    </div>
+                </div>
+
+                <div className={styles.radioList}>
+                    <div>
+                        <label>Default:</label>
+                        <input type="radio" />
+                    </div>
+                    <div>
+                        <label>Checked:</label>
+                        <input type="radio" checked />
+                    </div>
+                    <div>
+                        <label>Hover:</label>
+                        <input type="radio" className="hover" />
+                    </div>
+                    <div>
+                        <label>Focus:</label>
+                        <input type="radio" className="focus" />
+                    </div>
+                    <div>
+                        <label>Disabled:</label>
+                        <input type="radio" disabled />
+                    </div>
+                </div>
+
+                <div className={styles.switchList}>
+                    <div>
+                        <label>Default:</label>
+                        <input type="checkbox" className="switch" />
+                    </div>
+                    <div>
+                        <label>Checked:</label>
+                        <input type="checkbox" className="switch" checked />
+                    </div>
+                    <div>
+                        <label>Hover:</label>
+                        <input type="checkbox" className="switch hover" />
+                    </div>
+                    <div>
+                        <label>Focus:</label>
+                        <input type="checkbox" className="switch focus" />
+                    </div>
+                    <div>
+                        <label>Disabled:</label>
+                        <input type="checkbox" className="switch" disabled />
+                    </div>
                 </div>
             </div>
         </>
