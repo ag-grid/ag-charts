@@ -11,3 +11,17 @@ index c80c10d..abf3411 100644
      cwd: fileURLToPath(out)
    });
    if (files.length) {
+diff --git a/node_modules/astro/dist/runtime/server/render/common.js b/node_modules/astro/dist/runtime/server/render/common.js
+index ee22ac3..87087e8 100644
+--- a/node_modules/astro/dist/runtime/server/render/common.js
++++ b/node_modules/astro/dist/runtime/server/render/common.js
+@@ -38,7 +38,9 @@ function stringifyChunk(result, chunk) {
+         }
+         return renderAllHeadContent(result);
+       }
++      case "Buffer":
++        return chunk.toString();
+       default: {
+         if (chunk instanceof Response) {
+           return "";
+         }

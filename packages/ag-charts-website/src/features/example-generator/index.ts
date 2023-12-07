@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
+import { getIsDev } from '../../utils/env';
 import { getExampleRootFileUrl } from '../../utils/pages';
 import type { InternalFramework } from './types';
 
@@ -8,7 +9,6 @@ type GeneratedExampleParams = ExampleParams & (GalleryExampleParams | DocsExampl
 
 type ExampleParams = {
     exampleName: string;
-    framework: InternalFramework;
     ignoreDarkMode?: boolean;
 };
 
@@ -18,20 +18,23 @@ type GalleryExampleParams = {
 
 type DocsExampleParams = {
     type: 'docs';
+    framework: InternalFramework;
     pageName: string;
 };
 
 const getFolderPath = (params: GeneratedExampleParams) => {
-    const { exampleName, framework, ignoreDarkMode = false } = params;
+    const { exampleName, ignoreDarkMode = false } = params;
     const contentRoot = getExampleRootFileUrl();
 
     const result = [contentRoot.pathname, params.type];
+    const darkMode = ignoreDarkMode ? 'plain' : 'dark-mode';
     if (params.type === 'gallery') {
         result.push('_examples', exampleName);
+        result.push(darkMode, 'vanilla');
     } else {
         result.push(params.pageName, '_examples', exampleName);
+        result.push(darkMode, params.framework);
     }
-    result.push(ignoreDarkMode ? 'plain' : 'dark-mode', framework);
 
     return path.join(...result);
 };
@@ -48,13 +51,33 @@ type GeneratedContents = {
     scriptFiles: string[];
 };
 
+const cacheKeys: Record<string, object> = {};
+const cacheValues = new WeakMap<object, GeneratedContents>();
+
 const readContentJson = async (params: GeneratedExampleParams) => {
-    const folderPath = getFolderPath(params);
-
+    const useCache = !getIsDev();
     const jsonPath = getContentJsonPath(params);
-    const buffer = await fs.readFile(jsonPath);
 
-    return JSON.parse(buffer.toString('utf-8')) as GeneratedContents;
+    let result;
+
+    const cacheKey = cacheKeys[jsonPath] ?? { jsonPath };
+    if (useCache) {
+        if (cacheValues.has(cacheKey)) {
+            result = cacheValues.get(cacheKey);
+        }
+    }
+
+    if (!result) {
+        const buffer = await fs.readFile(jsonPath);
+        result = JSON.parse(buffer.toString('utf-8')) as GeneratedContents;
+    }
+
+    if (useCache) {
+        cacheKeys[jsonPath] = cacheKey;
+        cacheValues.set(cacheKey, result);
+    }
+
+    return result;
 };
 
 export const getGeneratedContentsFileList = async (params: GeneratedExampleParams) => {

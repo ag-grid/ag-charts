@@ -1,7 +1,6 @@
 import chokidar from 'chokidar';
 import type { Plugin, ViteDevServer } from 'vite';
 
-import { getAllExamplesFileList } from '../../features/docs/utils/filesData';
 import { getIsDev } from '../../utils/env';
 import { getDevFileList, getExampleRootFileUrl } from '../../utils/pages';
 

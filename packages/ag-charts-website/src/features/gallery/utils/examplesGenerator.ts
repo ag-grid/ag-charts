@@ -1,11 +1,10 @@
 import { getGeneratedContents } from '../../example-generator';
-import { GALLERY_INTERNAL_FRAMEWORK, PLAIN_ENTRY_FILE_NAME } from '../constants';
+import { PLAIN_ENTRY_FILE_NAME } from '../constants';
 import { transformPlainEntryFile } from './transformPlainEntryFile';
 
 export const getGeneratedPlainGalleryContents = async ({ exampleName }: { exampleName: string }) => {
     const generatedContents = await getGeneratedContents({
         type: 'gallery',
-        framework: GALLERY_INTERNAL_FRAMEWORK,
         exampleName,
         ignoreDarkMode: true,
     });
