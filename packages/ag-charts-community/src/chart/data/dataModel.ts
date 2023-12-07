@@ -614,7 +614,6 @@ export class DataModel<
                 if (key === INVALID_VALUE) break;
                 if (keys) {
                     keys[keyIdx++] = key;
-                    joinedDatum[def.property] = key;
                 }
             }
             if (key === INVALID_VALUE) continue;
@@ -630,17 +629,13 @@ export class DataModel<
             }
 
             for (const [valueDefIdx, def] of valueDefs.entries()) {
-                for (const scope of def.scopes ?? scopes ?? []) {
+                for (const scope of def.scopes ?? scopes) {
                     const source = sourcesById[scope];
                     const valueDatum = source?.data[datumIdx] ?? datum;
 
                     value = processValue(def, valueDatum, value);
 
-                    if (value === INVALID_VALUE) {
-                        for (const scope of def.scopes ?? scopes) {
-                            validScopes?.delete(scope);
-                        }
-                    } else if (values) {
+                    if (value !== INVALID_VALUE && values) {
                         if (source !== undefined) {
                             joinedDatum[source.id] ??= {};
                             joinedDatum[source.id][def.property] = value;
@@ -653,6 +648,14 @@ export class DataModel<
                             values[valueDefIdx] = value;
                         }
                     }
+                }
+
+                if (value === INVALID_VALUE) {
+                    if (allScopesHaveSameDefs) break;
+                    for (const scope of def.scopes ?? scopes) {
+                        validScopes?.delete(scope);
+                    }
+                    if (validScopes?.size === 0) break;
                 }
             }
 
