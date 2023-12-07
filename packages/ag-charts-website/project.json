@@ -80,17 +80,6 @@
           "fix": true
         }
       }
-    },
-    "test-example-gen": {
-      "executor": "ag-charts-build-tools:generate-example-files",
-      "inputs": ["{projectRoot}/src/content/docs/area-series/_examples/customised-area/**/*"],
-      "outputPath": "{options.output}",
-      "cache": true,
-      "options": {
-        "mode": "dev",
-        "examplePath": "{projectRoot}/src/content/docs/area-series/_examples/customised-area",
-        "outputPath": "dist/{projectRoot}/examples/area-series/customised-area"
-      }
     }
   },
   "implicitDependencies": [
