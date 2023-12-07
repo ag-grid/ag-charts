@@ -127,6 +127,19 @@ $spacing-size-64: 256px;
     --color-brand-900: #00246c;
     --color-brand-950: #001a5a;
 
+    --color-warning-25: #fffcf5;
+    --color-warning-50: #fffaeb;
+    --color-warning-100: #fef0c7;
+    --color-warning-200: #fedf89;
+    --color-warning-300: #fec84b;
+    --color-warning-400: #fdb022;
+    --color-warning-500: #f79009;
+    --color-warning-600: #dc6803;
+    --color-warning-700: #b54708;
+    --color-warning-800: #93370d;
+    --color-warning-900: #7a2e0e;
+    --color-warning-950: #4e1d09;
+
     // Background colors
     --color-bg-primary: var(--color-white);
     --color-bg-secondary: var(--color-gray-200);
@@ -182,6 +195,16 @@ $spacing-size-64: 256px;
     --color-input-disabled-bg: var(--color-bg-disabled_subtle);
     --color-input-disabled-fg: var(--color-fg-disabled);
 
+    // Warning colors
+    --color-util-warning-50: var(--color-warning-50);
+    --color-util-warning-100: var(--color-warning-100);
+    --color-util-warning-200: var(--color-warning-200);
+    --color-util-warning-300: var(--color-warning-300);
+    --color-util-warning-400: var(--color-warning-400);
+    --color-util-warning-500: var(--color-warning-500);
+    --color-util-warning-600: var(--color-warning-600);
+    --color-util-warning-700: var(--color-warning-700);
+
     // Shadows
     --shadow-xs: 0 1px 2px 0 color-mix(in srgb, var(--color-gray-950) 05%, transparent);
     --shadow-sm: 0 1px 3px 0 color-mix(in srgb, var(--color-gray-950) 10%, transparent),
@@ -236,4 +259,14 @@ html[data-dark-mode='true'] {
 
     // Input colors
     --color-input-shadow-focus: var(--color-gray-700);
+
+    // Warning colors
+    --color-util-warning-50: var(--color-warning-950);
+    --color-util-warning-100: var(--color-warning-900);
+    --color-util-warning-200: var(--color-warning-800);
+    --color-util-warning-300: var(--color-warning-700);
+    --color-util-warning-400: var(--color-warning-600);
+    --color-util-warning-500: var(--color-warning-500);
+    --color-util-warning-600: var(--color-warning-400);
+    --color-util-warning-700: var(--color-warning-300);
 }
