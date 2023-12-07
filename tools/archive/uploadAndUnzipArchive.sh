@@ -16,7 +16,8 @@ function checkFileExists {
     fi
 }
 
-VERSION=$1
+RAW_VERSION=$1
+VERSION=""${RAW_VERSION//./}""
 
 export SSH_LOCATION=$SSH_FILE
 
@@ -33,7 +34,7 @@ then
       exit 1;
 fi
 
-ARCHIVE="charts-release_`date +%Y%m%d`_$VERSION.zip"
+ARCHIVE="charts-release_`date +%Y%m%d`_v$VERSION.zip"
 
 # $3 is optional skipWarning argument
 if [ "$2" != "skipWarning" ]; then
