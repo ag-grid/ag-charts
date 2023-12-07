@@ -4,7 +4,7 @@ import path from 'path';
 import { readFile } from '../../../executors-utils';
 import { ANGULAR_GENERATED_MAIN_FILE_NAME, SOURCE_ENTRY_FILE_NAME } from './constants';
 import chartVanillaSrcParser from './transformation-scripts/chart-vanilla-src-parser';
-import type { InternalFramework } from './types';
+import type { InternalFramework, GeneratedContents } from './types';
 import type { GeneratedContents } from './types';
 import {
     getEntryFileName,
