@@ -68,6 +68,12 @@
     gap: 0.25rem;
 }
 
+.colorsList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
 // Text
 // ===============================================
 .textList {
