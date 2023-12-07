@@ -29,6 +29,25 @@
     }
 }
 
+// Radii
+// ===============================================
+.radiiList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--layout-gap);
+
+    code {
+        display: inline-block;
+        margin-bottom: 16px;
+    }
+}
+
+.radiiItem {
+    width: 4rem;
+    height: 4rem;
+    background-color: var(--color-brand-300);
+}
+
 // Color
 // ===============================================
 .swatch {

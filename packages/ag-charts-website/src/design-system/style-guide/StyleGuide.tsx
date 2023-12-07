@@ -5,6 +5,7 @@ import { Buttons } from './Buttons';
 import { Colors } from './Colors';
 import { Inputs } from './Inputs';
 import { Layout } from './Layout';
+import { Radii } from './Radii';
 import { Shadows } from './Shadows';
 import styles from './StyleGuide.module.scss';
 import { TextStyles } from './TextStyles';
@@ -15,6 +16,7 @@ export const StyleGuide: FunctionComponent = () => {
             <div className={classnames(styles.styleGuide, 'page-margin')}>
                 <h1>STYLE GUIDE</h1>
                 <Layout />
+                <Radii />
                 <TextStyles />
                 <Colors />
                 <Shadows />
