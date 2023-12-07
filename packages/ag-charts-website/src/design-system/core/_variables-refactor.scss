@@ -23,6 +23,36 @@ $spacing-size-56: 224px;
 $spacing-size-64: 256px;
 
 :root {
+    // Layout
+    --layout-gap: 32px;
+    --layout-max-width: 1400px;
+
+    --layout-width-1-4: calc((100% - var(--layout-gap) * (4 / 1 - 1)) / 4 * 1);
+    --layout-width-2-4: calc((100% - var(--layout-gap) * (4 / 2 - 1)) / 4 * 2);
+    --layout-width-3-4: calc((100% - var(--layout-gap) * (4 / 3 - 1)) / 4 * 3);
+    --layout-width-4-4: 100%;
+
+    --layout-width-1-6: calc((100% - var(--layout-gap) * (6 / 1 - 1)) / 6 * 1);
+    --layout-width-2-6: calc((100% - var(--layout-gap) * (6 / 2 - 1)) / 6 * 2);
+    --layout-width-3-6: calc((100% - var(--layout-gap) * (6 / 3 - 1)) / 6 * 3);
+    --layout-width-4-6: calc((100% - var(--layout-gap) * (6 / 4 - 1)) / 6 * 4);
+    --layout-width-5-6: calc((100% - var(--layout-gap) * (6 / 5 - 1)) / 6 * 5);
+    --layout-width-6-6: 100%;
+
+    --layout-width-1-12: calc((100% - var(--layout-gap) * (12 / 1 - 1)) / 12 * 1);
+    --layout-width-2-12: calc((100% - var(--layout-gap) * (12 / 2 - 1)) / 12 * 2);
+    --layout-width-3-12: calc((100% - var(--layout-gap) * (12 / 3 - 1)) / 12 * 3);
+    --layout-width-4-12: calc((100% - var(--layout-gap) * (12 / 4 - 1)) / 12 * 4);
+    --layout-width-5-12: calc((100% - var(--layout-gap) * (12 / 5 - 1)) / 12 * 5);
+    --layout-width-6-12: calc((100% - var(--layout-gap) * (12 / 6 - 1)) / 12 * 6);
+    --layout-width-7-12: calc((100% - var(--layout-gap) * (12 / 7 - 1)) / 12 * 7);
+    --layout-width-8-12: calc((100% - var(--layout-gap) * (12 / 8 - 1)) / 12 * 8);
+    --layout-width-9-12: calc((100% - var(--layout-gap) * (12 / 9 - 1)) / 12 * 9);
+    --layout-width-10-12: calc((100% - var(--layout-gap) * (12 / 10 - 1)) / 12 * 10);
+    --layout-width-11-12: calc((100% - var(--layout-gap) * (12 / 11 - 1)) / 12 * 11);
+    --layout-width-12-12: 100%;
+
+    // Typography
     --text-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
         'Liberation Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
@@ -39,6 +69,7 @@ $spacing-size-64: 256px;
     --text-2xl: 32px/1.2 var(--text-font-family);
     --text-3xl: 40px/1.1 var(--text-font-family);
 
+    // Abstract colors
     --color-white: #fff;
     --color-black: #000;
 
@@ -124,8 +155,6 @@ $spacing-size-64: 256px;
     --color-input-disabled-fg: var(--color-fg-disabled);
 
     // Shadows
-    --color-shadow: color-mix(in srgb, var(--color-gray-950) 05%, transparent);
-
     --shadow-xs: 0 1px 2px 0 color-mix(in srgb, var(--color-gray-950) 05%, transparent);
     --shadow-sm: 0 1px 3px 0 color-mix(in srgb, var(--color-gray-950) 10%, transparent),
         0 1px 2px -1px color-mix(in srgb, var(--color-gray-950) 10%, transparent);
