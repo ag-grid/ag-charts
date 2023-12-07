@@ -129,12 +129,19 @@
 .radioList,
 .switchList {
     div {
+        display: flex;
+        align-items: center;
         margin-bottom: $spacing-size-4;
+        min-height: $spacing-size-12;
     }
 
     label {
         display: inline-block;
         min-width: 100px;
         text-align: right;
+    }
+
+    input {
+        top: unset; // Fix for existing odd behavior.
     }
 }
