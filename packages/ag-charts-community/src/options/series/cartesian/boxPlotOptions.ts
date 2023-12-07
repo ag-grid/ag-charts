@@ -41,7 +41,7 @@ export interface AgBoxPlotCapOptions {
 
 export type AgBoxPlotWhiskerOptions = StrokeOptions & LineDashOptions;
 
-export type AgBoxPlotSeriesFormatterParams<DatumType> = AgSeriesFormatterParams<DatumType> &
+export type AgBoxPlotSeriesFormatterParams<TDatum> = AgSeriesFormatterParams<TDatum> &
     Readonly<BoxPlotUniqueOptions & Omit<AxisOptions, 'yKey'> & FillOptions & StrokeOptions>;
 
 export interface AgBoxPlotSeriesTooltipRendererParams
@@ -57,7 +57,7 @@ export interface AgBoxPlotSeriesStyles extends FillOptions, StrokeOptions, LineD
     whisker?: AgBoxPlotWhiskerOptions;
 }
 
-export interface AgBoxPlotSeriesThemeableOptions<DatumType = any>
+export interface AgBoxPlotSeriesThemeableOptions<TDatum = any>
     extends AgBaseSeriesThemeableOptions,
         AgBoxPlotSeriesStyles {
     /**
@@ -68,12 +68,12 @@ export interface AgBoxPlotSeriesThemeableOptions<DatumType = any>
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgCartesianSeriesTooltipRendererParams>;
     /** Function used to return formatting for individual columns, based on the given parameters. If the current column is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    formatter?: (params: AgBoxPlotSeriesFormatterParams<DatumType>) => AgBoxPlotSeriesStyles;
+    formatter?: (params: AgBoxPlotSeriesFormatterParams<TDatum>) => AgBoxPlotSeriesStyles;
 }
 
-export interface AgBoxPlotSeriesOptions<DatumType = any>
-    extends AgBoxPlotSeriesThemeableOptions<DatumType>,
-        AgBaseSeriesOptions<DatumType>,
+export interface AgBoxPlotSeriesOptions<TDatum = any>
+    extends AgBoxPlotSeriesThemeableOptions<TDatum>,
+        AgBaseSeriesOptions<TDatum>,
         BoxPlotUniqueOptions,
         Omit<AxisOptions, 'yKey'> {
     /** Configuration for the Box Plot Series. */

@@ -152,5 +152,5 @@ export interface AgBaseChartOptions<TDatum = any> extends AgBaseThemeableChartOp
      */
     container?: HTMLElement | null;
     /** A map of event names to event listeners. */
-    listeners?: AgBaseChartListeners;
+    listeners?: AgBaseChartListeners<TDatum>;
 }
