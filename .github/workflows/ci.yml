@@ -72,8 +72,9 @@ jobs:
             - name: Cache Nx
               uses: actions/cache@v3
               with:
-                  path: node_modules/.cache/nx
-                  key: cache-nx-${{ hashFiles('yarn.lock') }}-${{ github.sha }}
+                  path: .nx/cache
+                  key: cache-nx-v17-${{ hashFiles('yarn.lock') }}-${{ github.sha }}
+                  restore-keys: cache-nx-v17-${{ hashFiles('yarn.lock') }}-
             - name: Setup Node.js
               id: setup_node
               uses: actions/setup-node@v3
@@ -155,8 +156,9 @@ jobs:
             - name: Cache Nx
               uses: actions/cache@v3
               with:
-                  path: node_modules/.cache/nx
-                  key: cache-nx-${{ hashFiles('yarn.lock') }}-${{ github.sha }}
+                  path: .nx/cache
+                  key: cache-nx-v17-${{ hashFiles('yarn.lock') }}-${{ github.sha }}
+                  restore-keys: cache-nx-v17-${{ hashFiles('yarn.lock') }}-
             - name: nx test
               id: test
               run: yarn nx affected --base ${{ needs.execute_blt.outputs.nx_base }} -t test --configuration=ci --exclude all --shard=${{ matrix.shard }}/${{ strategy.job-total }}
