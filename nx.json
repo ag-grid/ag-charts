@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
-  "plugins": ["@nxtensions/astro", "./plugins/example-generator"],
+  "plugins": ["@nxtensions/astro", "./plugins/ag-charts-build-tools"],
   "affected": {
     "defaultBase": "latest"
   },

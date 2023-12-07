@@ -7,8 +7,8 @@
     "tslib": "2.6.0",
     "typescript": "^4.9.5"
   },
-  "type": "commonjs",
-  "main": "./src/index.js",
+  "type": "module",
+  "main": "./src/index.ts",
   "typings": "./src/index.d.ts",
   "executors": "./executors.json"
 }
