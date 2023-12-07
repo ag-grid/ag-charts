@@ -2,7 +2,8 @@ import type { GalleryData } from '@ag-grid-types';
 import { SKIP_GALLERY_IMAGE_GENERATION } from '@constants';
 
 import type { ThemeName } from '../../../stores/themeStore';
-import { getGeneratedGalleryContentsFileList } from './examplesGenerator';
+import { getGeneratedContentsFileList } from '../../example-generator';
+import { GALLERY_INTERNAL_FRAMEWORK } from '../constants';
 import { getGalleryExamples } from './filesData';
 
 export function getGalleryPages({ galleryData }: { galleryData: GalleryData }) {
@@ -74,7 +75,9 @@ export function getGalleryExampleThemePages({ galleryData }: { galleryData: Gall
 export async function getGalleryExampleFiles({ galleryData }: { galleryData: GalleryData }) {
     const galleryExamples = getGalleryExamples({ galleryData });
     const exampleFilesPromises = galleryExamples.map(async ({ exampleName }) => {
-        const exampleFileList = await getGeneratedGalleryContentsFileList({
+        const exampleFileList = await getGeneratedContentsFileList({
+            type: 'gallery',
+            framework: GALLERY_INTERNAL_FRAMEWORK,
             exampleName,
         });
 
