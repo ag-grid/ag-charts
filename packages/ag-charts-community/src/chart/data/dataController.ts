@@ -93,7 +93,10 @@ export class DataController {
                 if (processedData && processedData.partialValidDataCount === 0) {
                     resultCbs.forEach((cb, requestIdx) => {
                         const id = ids[requestIdx];
-                        const requestProcessedData = this.extractScopedData(id, processedData);
+                        let requestProcessedData = processedData;
+                        if (merged.length > 1 || ids.length > 1) {
+                            requestProcessedData = this.extractScopedData(id, processedData);
+                        }
                         cb({ dataModel, processedData: requestProcessedData });
                     });
                 } else if (processedData) {
