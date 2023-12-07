@@ -48,7 +48,7 @@
       }
     },
     "dev:setup": {
-      "command": "nx build ag-charts-website:generate-examples --parallel 8"
+      "command": "nx build ag-charts-website:generate-examples --batch"
     },
     "dev": {
       "executor": "nx:run-commands",

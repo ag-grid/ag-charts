@@ -15,18 +15,16 @@ type ExecutorOptions = {
 
 export default async function (options: ExecutorOptions) {
     try {
-        console.log(`Generating example [${options.examplePath}]`);
-
         await generateFiles(options);
 
-        return { success: true };
+        return { success: true, terminalOutput: `Generating example [${options.examplePath}]` };
     } catch (e) {
-        console.error(e, { options });
-        return { success: false };
+        const terminalOutput = `${e}`;
+        return { success: false, terminalOutput };
     }
 }
 
-async function generateFiles(options: ExecutorOptions) {
+export async function generateFiles(options: ExecutorOptions) {
     for (const ignoreDarkMode of [false, true]) {
         const darkModePath = ignoreDarkMode ? 'plain' : 'dark-mode';
         for (const internalFramework of FRAMEWORKS) {

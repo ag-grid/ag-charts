@@ -7,6 +7,7 @@
         },
         "generate-example-files": {
             "implementation": "./src/executors/generate-example-files/executor",
+            "batchImplementation": "./src/executors/generate-example-files/batch-executor",
             "schema": "./src/executors/generate-example-files/schema.json",
             "description": "generate-example-files executor"
         }
