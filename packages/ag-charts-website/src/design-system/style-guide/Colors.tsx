@@ -7,6 +7,7 @@ const colors = {
     base: ['white', 'black'],
     gray: ['25', '50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950'],
     brand: ['25', '50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950'],
+    warning: ['25', '50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950'],
     background: ['bg-primary', 'bg-secondary', 'bg-brand-solid', 'bg-disabled_subtle'],
     foreground: [
         'fg-primary',
@@ -45,6 +46,16 @@ const colors = {
         'button-disabled-border',
     ],
     input: ['input-border', 'input-border-hover', 'input-shadow-focus', 'input-disabled-bg', 'input-disabled-fg'],
+    utilWarning: [
+        'util-warning-50',
+        'util-warning-100',
+        'util-warning-200',
+        'util-warning-300',
+        'util-warning-400',
+        'util-warning-500',
+        'util-warning-600',
+        'util-warning-700',
+    ],
 };
 
 const Color: FunctionComponent = ({ colorName, showValue = false }) => {
@@ -92,6 +103,13 @@ export const Colors: FunctionComponent = () => {
                 })}
             </div>
 
+            <h4>Warning</h4>
+            <div className={styles.colorsList}>
+                {colors.warning.map((clr) => {
+                    return <Color key={`warning-${clr}`} colorName={`warning-${clr}`} showValue={true} />;
+                })}
+            </div>
+
             <h2>Semantic Colors</h2>
 
             <h4>Background</h4>
@@ -125,6 +143,13 @@ export const Colors: FunctionComponent = () => {
             <h4>Input</h4>
             <div className={styles.colorsList}>
                 {colors.input.map((clr) => {
+                    return <Color key={clr} colorName={`${clr}`} />;
+                })}
+            </div>
+
+            <h4>Utility Warning</h4>
+            <div className={styles.colorsList}>
+                {colors.utilWarning.map((clr) => {
                     return <Color key={clr} colorName={`${clr}`} />;
                 })}
             </div>
