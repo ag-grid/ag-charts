@@ -29,6 +29,20 @@
     }
 }
 
+// Spacing
+// ===============================================
+.spacingItem {
+    display: flex;
+    align-items: center;
+    gap: $spacing-size-4;
+    min-height: $spacing-size-8;
+
+    div {
+        height: $spacing-size-2;
+        background-color: var(--color-brand-300);
+    }
+}
+
 // Radii
 // ===============================================
 .radiiList {
