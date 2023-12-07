@@ -39,7 +39,7 @@ export const Inputs: FunctionComponent = () => {
                     </div>
                     <div>
                         <label>Checked:</label>
-                        <input type="checkbox" checked />
+                        <input type="checkbox" defaultChecked />
                     </div>
                     <div>
                         <label>Hover:</label>
@@ -62,7 +62,7 @@ export const Inputs: FunctionComponent = () => {
                     </div>
                     <div>
                         <label>Checked:</label>
-                        <input type="radio" checked />
+                        <input type="radio" defaultChecked />
                     </div>
                     <div>
                         <label>Hover:</label>
@@ -85,7 +85,7 @@ export const Inputs: FunctionComponent = () => {
                     </div>
                     <div>
                         <label>Checked:</label>
-                        <input type="checkbox" className="switch" checked />
+                        <input type="checkbox" className="switch" defaultChecked />
                     </div>
                     <div>
                         <label>Hover:</label>
