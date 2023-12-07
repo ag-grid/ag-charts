@@ -22,9 +22,9 @@ export const Radii: FunctionComponent = () => {
             <h2>Radii</h2>
 
             <div className={styles.radiiList}>
-                {radii.map((radius) => {
+                {radii.map((radius, k) => {
                     return (
-                        <div>
+                        <div key={k}>
                             <code>var(--{radius})</code>
                             <div className={styles.radiiItem} style={{ borderTopLeftRadius: `var(--${radius})` }}></div>
                         </div>
