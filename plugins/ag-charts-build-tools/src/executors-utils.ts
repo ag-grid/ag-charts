@@ -8,26 +8,19 @@ export function readFile(filePath: string) {
 }
 
 export function writeJSONFile(filePath: string, data: unknown, indent = 2) {
-    const fileContent = readFile(filePath);
     const dataContent = JSON.stringify(data, null, indent);
-
-    // Only write if content changed to avoid false-positive change detection.
-    if (fileContent !== dataContent) {
-        const outputDir = path.dirname(filePath);
-        fs.mkdirSync(outputDir, { recursive: true });
-        fs.writeFileSync(filePath, dataContent);
-    }
+    writeFile(filePath, dataContent);
 }
 
 export function writeFile(filePath: string, newContent: unknown, indent = 2) {
     const fileContent = readFile(filePath)?.toString();
 
     // Only write if content changed to avoid false-positive change detection.
-    if (typeof newContent === 'string' && fileContent !== newContent) {
-        const outputDir = path.dirname(filePath);
-        fs.mkdirSync(outputDir, { recursive: true });
-        fs.writeFileSync(filePath, newContent);
-    }
+    if (typeof newContent === 'string' && fileContent === newContent) return;
+
+    const outputDir = path.dirname(filePath);
+    fs.mkdirSync(outputDir, { recursive: true });
+    fs.writeFileSync(filePath, String(newContent));
 }
 
 export function parseFile(filePath: string) {

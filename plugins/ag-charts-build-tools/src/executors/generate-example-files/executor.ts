@@ -19,8 +19,6 @@ export default async function (options: ExecutorOptions) {
 
         await generateFiles(options);
 
-        console.log('Generation completed.');
-
         return { success: true };
     } catch (e) {
         console.error(e, { options });

@@ -47,7 +47,7 @@ export const createNodes: CreateNodes = [
                     tags: [`scope:${parentProject}`, 'type:generated-example'],
                     targets: {
                         'generate-example': {
-                            dependsOn: [],
+                            dependsOn: [{ projects: 'ag-charts-build-tools', target: 'build ' }],
                             executor: 'ag-charts-build-tools:generate-example-files',
                             inputs: ['{projectRoot}/**/*'],
                             outputPath: '{options.output}',

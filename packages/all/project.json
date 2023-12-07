@@ -47,8 +47,12 @@
         "production": {}
       }
     },
+    "dev:setup": {
+      "command": "nx build ag-charts-website:generate-examples --parallel 8"
+    },
     "dev": {
       "executor": "nx:run-commands",
+      "dependsOn": ["dev:setup"],
       "options": {
         "parallel": true,
         "commands": [
