@@ -3,6 +3,7 @@ import type { NodeUpdateState } from '../../../motion/fromToMotion';
 import { FROM_TO_MIXINS, fromToMotion, staticFromToMotion } from '../../../motion/fromToMotion';
 import type { Node } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
+import { Debug } from '../../../util/debug';
 import { clamp } from '../../../util/number';
 import type { AnimationManager } from '../../interaction/animationManager';
 import type { Marker } from '../../marker/marker';
@@ -52,7 +53,8 @@ export function markerSwipeScaleInAnimation<T extends CartesianSeriesNodeDatum>(
         // Parallel swipe animations use the function x = easeOut(time). But in this case, we
         // know the x value and need to calculate the time delay. So use the inverse function:
         const delay = clamp(0, easing.inverseEaseOut(x / seriesWidth), 1);
-        return { scalingX: 0, scalingY: 0, animationDelay: delay, animationDuration: QUICK_TRANSITION };
+        const animationDuration = Debug.check('animationImmediateMarkerSwipeScaleIn') ? 0 : QUICK_TRANSITION;
+        return { scalingX: 0, scalingY: 0, animationDelay: delay, animationDuration };
     };
     const toFn = () => {
         return { scalingX: 1, scalingY: 1 };
