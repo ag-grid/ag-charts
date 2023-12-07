@@ -61,7 +61,7 @@ scp -i $SSH_LOCATION -P $SSH_PORT $ARCHIVE $HOST:$CHARTS_PUBLIC_HTML_PATH/archiv
 
 # unzip archive
 echo "ssh -i $SSH_LOCATION -p $SSH_PORT $HOST \"cd $CHARTS_PUBLIC_HTML_PATH/archive/$VERSION && tar -m -xf $ARCHIVE\""
-ssh -i $SSH_LOCATION -p $SSH_PORT $HOST "cd $CHARTS_PUBLIC_HTML_PATH/archive/$VERSION && tar -m -xf $ARCHIVE"
+ssh -i $SSH_LOCATION -p $SSH_PORT $HOST "cd $CHARTS_PUBLIC_HTML_PATH/archive/$VERSION && unzip $ARCHIVE"
 
 #update folder permissions (default is 777 - change to 755)
 echo "ssh -i $SSH_LOCATION -p $SSH_PORT $HOST \"chmod -R 755 $CHARTS_PUBLIC_HTML_PATH/archive/$VERSION\""
