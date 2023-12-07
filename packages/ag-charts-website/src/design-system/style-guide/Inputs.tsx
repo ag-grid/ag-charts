@@ -14,20 +14,20 @@ export const Inputs: FunctionComponent = () => {
                 </div>
                 <div>
                     <label>Filled:</label>
-                    <input type="text" value="joe@ag-grid.com" />
+                    <input type="text" defaultValue="joe@ag-grid.com" />
                 </div>
                 <div>
                     <label>Hover:</label>
-                    <input className="hover" type="text" value="joe@ag-grid.com" />
+                    <input className="hover" type="text" defaultValue="joe@ag-grid.com" />
                 </div>
                 <div>
                     <label>Focused:</label>
-                    <input className="focus" type="text" value="joe@ag-grid.com" />
+                    <input className="focus" type="text" defaultValue="joe@ag-grid.com" />
                 </div>
 
                 <div>
                     <label>Disabled:</label>
-                    <input className="disabled" type="text" value="joe@ag-grid.com" />
+                    <input className="disabled" type="text" defaultValue="joe@ag-grid.com" />
                 </div>
             </div>
         </>
