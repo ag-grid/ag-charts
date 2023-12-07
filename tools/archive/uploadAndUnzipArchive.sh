@@ -17,12 +17,11 @@ function checkFileExists {
 }
 
 RAW_VERSION=$1
-VERSION=""${RAW_VERSION//./}""
 
 export SSH_LOCATION=$SSH_FILE
 
 # a few safety checks
-if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+if ! [[ "$RAW_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
 then
     echo "Version isn't in the expected format. Valid format is: Number.Number.number. For example 19.1.2";
     exit 1;
@@ -34,6 +33,7 @@ then
       exit 1;
 fi
 
+VERSION=""${RAW_VERSION//./}""
 ARCHIVE="charts-release_`date +%Y%m%d`_v$VERSION.zip"
 
 # $3 is optional skipWarning argument
