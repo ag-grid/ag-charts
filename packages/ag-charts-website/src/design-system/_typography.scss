@@ -1,9 +1,24 @@
 @use 'sass:math';
 @use 'core' as *;
 
-.text-2xs {
-    font-size: var(--text-fs-2xs);
-    line-height: var(--text-lh-2xs);
+html#{$exclude-grid-selector},
+h1#{$exclude-grid-selector},
+h2#{$exclude-grid-selector},
+h3#{$exclude-grid-selector},
+h4#{$exclude-grid-selector},
+h5#{$exclude-grid-selector},
+h6#{$exclude-grid-selector},
+.font-size-gargantuan,
+.font-size-gigantic,
+.font-size-massive,
+.font-size-extra-large,
+.font-size-large,
+.font-size-medium,
+.font-size-small,
+.font-size-extra-small {
+    font-family: var(--font-family);
+    font-size: var(--font-size);
+    line-height: var(--line-height);
 }
 
 h6#{$selector-exclude-grid},
@@ -56,7 +71,7 @@ h6#{$selector-exclude-grid},
 b#{$selector-exclude-grid},
 strong#{$selector-exclude-grid},
 .bold-text {
-    font-weight: var(--text-semibold);
+    font-weight: var(--text-bold);
 }
 
 .monospace-text {

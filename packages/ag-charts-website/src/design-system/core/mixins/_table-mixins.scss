@@ -22,7 +22,7 @@
 
     td {
         padding: 0;
-        line-height: var(--text-lh-tight);
+        line-height: var(--line-height-tight);
         font-weight: var(--text-bold);
 
         &:not(:last-child) {
@@ -32,7 +32,7 @@
 
     td[data-column]::before {
         content: attr(data-column) ': ';
-        font-weight: var(--font-weight-normal);
+        font-weight: var(--text-regular);
         color: var(--color-fg-secondary);
     }
 }

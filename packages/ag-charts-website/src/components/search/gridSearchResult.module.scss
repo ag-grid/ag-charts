@@ -66,7 +66,7 @@
 
     h4 {
         margin-bottom: $spacing-size-1;
-        font-weight: var(--font-weight-bold);
+        font-weight: var(--text-bold);
     }
 
     a:hover h4,
@@ -104,7 +104,7 @@
 
 :global(.ais-Highlight-highlighted),
 :global(.ais-Snippet-highlighted) {
-    color: var(--color-link);
+    color: var(--link-color);
     font-weight: var(--text-bold);
 }
 
@@ -114,7 +114,6 @@ button:global(.ais-InfiniteHits-loadMore) {
     border-top-right-radius: 0;
     border-top-left-radius: 0;
     font-weight: var(--text-regular);
-    color: var(--color-link);
     box-shadow: none;
     transition: background-color $transition-default-timing;
 

@@ -22,7 +22,7 @@ input[type='submit']#{$selector-exclude-grid},
 
     appearance: none;
     display: inline-block;
-    font-size: var(--text-fs-base);
+    font-size: var(--font-size);
     font-weight: var(--text-bold);
     padding: 0.375em 1em 0.5em;
     white-space: nowrap;

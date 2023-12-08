@@ -81,7 +81,8 @@
         }
 
         @media screen and (min-width: $breakpoint-hero-large) {
-            font-size: min(1.9vw, 30px);
+            --font-size: min(1.9vw, 30px);
+
             max-width: unset;
         }
     }
@@ -222,8 +223,10 @@
 }
 
 .frameworksLabel {
+    font-size: var(--font-size);
+
     @media screen and (min-width: 1020px) {
-        font-size: var(--text-fs-xl);
+        --font-size: var(--font-size-extra-large);
     }
     #{$darkmode-selector} & {
         color: var(--color-fg-primary);

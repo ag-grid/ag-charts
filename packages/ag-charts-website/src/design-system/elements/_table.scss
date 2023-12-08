@@ -35,7 +35,7 @@ td#{$exclude-grid-selector} {
 }
 
 table.small-header th {
-    font-weight: $font-weight-normal;
+    font-weight: var(--text-regular);
     padding-top: $spacing-size-1;
     padding-bottom: $spacing-size-1;
 }
