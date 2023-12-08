@@ -1,102 +1,30 @@
-import { getGalleryExampleThemePages } from '@features/gallery/utils/pageData';
-import { transformPlainEntryFile } from '@features/gallery/utils/transformPlainEntryFile';
-import type { ThemeName } from '@stores/themeStore';
-import { getEntry } from 'astro:content';
-import { JSDOM } from 'jsdom';
 import sharp from 'sharp';
 
-import { AgCharts } from 'ag-charts-community';
+import { type AgChartThemeName, AgCharts } from 'ag-charts-community';
 // eslint-disable-next-line @nx/enforce-module-boundaries
 import 'ag-charts-enterprise';
 
-// eslint-disable-next-line @nx/enforce-module-boundaries
-import * as mockCanvas from '../../../ag-charts-community/src/chart/test/mock-canvas';
-import { THUMBNAIL_POOL_SIZE } from '../constants';
-import { getGeneratedContents } from '../features/example-generator';
-import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '../features/gallery/constants';
+import type { GeneratedContents } from '../../generate-example-files/generator/types';
+import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from './constants';
+import { borrowFromPool, returnToPool } from './environment';
+import { transformPlainEntryFile } from './transformPlainEntryFile';
 
 export const prerender = true;
 
 interface Params {
-    exampleName: string;
-    theme: ThemeName;
+    name: string;
+    example: GeneratedContents;
+    theme: AgChartThemeName;
     format: 'png' | 'webp';
 }
 
-export async function getStaticPaths() {
-    const galleryDataEntry = await getEntry('gallery', 'data');
-    const pages = getGalleryExampleThemePages({ galleryData: galleryDataEntry.data });
-    return pages;
-}
+export async function generateExample({ name, example, theme, format }: Params) {
+    const { entryFileName, files = {} } = example;
 
-function buildPoolEntry() {
-    const jsdom = new JSDOM('<html><head><style></style></head><body><div id="myChart"></div></body></html>');
-
-    const mockCtx = mockCanvas.setup({
-        width: DEFAULT_THUMBNAIL_WIDTH,
-        height: DEFAULT_THUMBNAIL_HEIGHT,
-        document: jsdom.window.document,
-        window: jsdom.window as any,
-        mockText: false,
-    });
-
-    const options = {
-        animation: { enabled: false },
-        document: jsdom.window.document,
-        window: jsdom.window,
-        width: DEFAULT_THUMBNAIL_WIDTH,
-        height: DEFAULT_THUMBNAIL_HEIGHT,
-    } as any;
-
-    const chartProxy = AgCharts.create(options);
-
-    return [jsdom, mockCtx, chartProxy] as const;
-}
-
-const pool: ReturnType<typeof buildPoolEntry>[] = [];
-
-function initPool() {
-    // eslint-disable-next-line no-console
-    console.log(`Creating thumbnail pool of size ${THUMBNAIL_POOL_SIZE}`);
-    for (let i = 0; i < THUMBNAIL_POOL_SIZE; i++) {
-        pool.push(buildPoolEntry());
-    }
-}
-initPool();
-
-async function borrowFromPool() {
-    let count = 0;
-    while (pool.length === 0 && count < 5) {
-        // eslint-disable-next-line no-console
-        console.log('Waiting for pool to become available...');
-        await new Promise((resolve) => setTimeout(resolve, (10 * count) ** 2));
-        count++;
-    }
-
-    if (pool.length === 0) {
-        throw new Error('No JSDOM instance available to borrow.');
-    }
-
-    return pool.shift();
-}
-
-function returnToPool(poolEntry: ReturnType<typeof buildPoolEntry>) {
-    pool.push(poolEntry);
-}
-
-export async function generateExample({ exampleName, theme, format }: Params) {
     const poolEntry = await borrowFromPool();
     const [jsdom, mockCtx, chartProxy] = poolEntry;
 
     try {
-        // eslint-disable-next-line no-console
-        console.log(`Generating [${exampleName}] with theme [${theme}] in format [${format}]`);
-        const { entryFileName, files = {} } =
-            (await getGeneratedContents({
-                type: 'gallery',
-                exampleName,
-                ignoreDarkMode: true,
-            })) || {};
         const entryFile = files[entryFileName!];
         let {
             options,
@@ -154,12 +82,9 @@ export async function generateExample({ exampleName, theme, format }: Params) {
                 break;
         }
 
-        return {
-            body: result,
-            encoding: 'binary',
-        };
+        return result;
     } catch (e) {
-        throw new Error(`Unable to render example [${exampleName}] with theme [${theme}]: ${e}`, { cause: e });
+        throw new Error(`Unable to render example [${name}] with theme [${theme}]: ${e}`);
     } finally {
         returnToPool(poolEntry);
     }

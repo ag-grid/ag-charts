@@ -48,7 +48,7 @@ export const createNodes: CreateNodes = [
                             dependsOn: [{ projects: 'ag-charts-build-tools', target: 'build ' }],
                             executor: 'ag-charts-build-tools:generate-example-files',
                             inputs: ['{projectRoot}/**/*'],
-                            outputPath: '{options.output}',
+                            outputPath: '{options.outputPath}',
                             cache: true,
                             options: {
                                 mode: 'dev',
