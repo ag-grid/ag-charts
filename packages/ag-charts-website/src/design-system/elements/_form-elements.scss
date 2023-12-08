@@ -47,7 +47,7 @@ input[type='email']#{$exclude-grid-selector},
 input[type='checkbox']#{$exclude-grid-selector},
 input[type='number']#{$exclude-grid-selector},
 select#{$exclude-grid-selector} {
-    color: var(--default-text-color);
+    color: var(--color-fg-primary);
 
     &:disabled,
     &[readonly] {
@@ -220,7 +220,7 @@ select#{$exclude-grid-selector} {
 
     &:invalid,
     &[disabled] {
-        color: var(--secondary-text-color);
+        color: var(--color-fg-secondary);
     }
 
     &:hover:not(:disabled):not([readonly]),
@@ -334,7 +334,7 @@ input[type='range']#{$exclude-grid-selector} {
 
     input,
     select {
-        --border-color: var(--input-error-color);
+        --color-border-primary: var(--input-error-color);
         --color-input-border-hover: var(--input-error-color);
     }
 
@@ -346,5 +346,5 @@ input[type='range']#{$exclude-grid-selector} {
 
 .extra-info {
     margin-top: $spacing-size-1;
-    color: var(--secondary-text-color);
+    color: var(--color-fg-secondary);
 }

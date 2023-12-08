@@ -95,8 +95,8 @@
         border-collapse: collapse !important;
         border-radius: 0 !important;
         border: none !important;
-        border-bottom: 1px solid var(--border-color) !important;
-        border-top: 1px solid var(--border-color) !important;
+        border-bottom: 1px solid var(--color-border-primary) !important;
+        border-top: 1px solid var(--color-border-primary) !important;
     }
 
     thead,
@@ -109,7 +109,7 @@
     }
 
     tr {
-        border-top: 1px solid var(--border-color) !important;
+        border-top: 1px solid var(--color-border-primary) !important;
     }
 
     th,

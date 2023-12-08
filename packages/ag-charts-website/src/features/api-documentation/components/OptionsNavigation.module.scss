@@ -33,7 +33,7 @@
         z-index: 3;
         width: 100%;
         padding: $spacing-size-4 var(--horizontal-margin);
-        background-color: var(--default-background-color);
+        background-color: var(--color-bg-primary);
         border-bottom: 1px solid var(--neutral-200);
 
         @media screen and (min-width: $breakpoint-options-medium) {
@@ -210,7 +210,7 @@
 
 .searchIcon {
     --icon-size: 1.25em;
-    --text-color: var(--secondary-text-color);
+    --text-color: var(--color-fg-secondary);
 
     position: absolute;
     left: 0.625em;
@@ -222,7 +222,7 @@
     max-height: 168px;
     border-bottom-right-radius: var(--border-radius);
     border-bottom-left-radius: var(--border-radius);
-    background-color: var(--default-background-color);
+    background-color: var(--color-bg-primary);
     border: 2px solid var(--input-border-color);
     border-top: none;
     overflow: auto;

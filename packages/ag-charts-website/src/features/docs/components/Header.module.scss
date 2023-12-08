@@ -37,7 +37,7 @@
     display: none;
     font-size: var(--font-size-extra-large);
     font-weight: var(--font-weight-normal);
-    color: var(--secondary-text-color);
+    color: var(--color-fg-secondary);
     padding-bottom: 6px;
 
     @media screen and (min-width: $breakpoint-docs-search-medium) {
@@ -51,7 +51,7 @@
     bottom: 0.05em;
     font-size: var(--font-size-extra-large);
     font-weight: var(--font-weight-normal);
-    color: var(--secondary-text-color);
+    color: var(--color-fg-secondary);
 
     @media screen and (min-width: $breakpoint-docs-search-medium) {
         position: absolute;

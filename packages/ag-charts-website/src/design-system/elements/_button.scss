@@ -112,10 +112,10 @@ input[type='submit']#{$exclude-grid-selector},
     --button-color: var(--input-background-color);
     --button-hover-color: var(--input-background-color);
     --button-active-color: var(--input-background-color);
-    --button-text-color: var(--default-text-color);
+    --button-text-color: var(--color-fg-primary);
     --button-focus-box-shadow-color: var(--input-focus-box-shadow-color);
 
-    border: 2px solid var(--border-color);
+    border: 2px solid var(--color-border-primary);
     transition:
         border-color $default-transition-timing,
         box-shadow $default-transition-timing;
@@ -132,7 +132,7 @@ input[type='submit']#{$exclude-grid-selector},
 
 .button-style-none,
 .button-as-link {
-    --button-text-color: var(--default-text-color);
+    --button-text-color: var(--color-fg-primary);
 
     appearance: none;
     padding: 0;

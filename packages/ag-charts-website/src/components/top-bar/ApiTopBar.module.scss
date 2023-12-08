@@ -18,7 +18,7 @@
     }
 
     #{$darkmode-selector} & {
-        background: var(--default-background-color);
+        background: var(--color-bg-primary);
         border-bottom: 0.5px solid #394755;
     }
 }
@@ -71,7 +71,7 @@
         font-weight: 500;
 
         #{$darkmode-selector} & {
-            color: var(--default-text-color);
+            color: var(--color-fg-primary);
         }
 
         &:hover {

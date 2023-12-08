@@ -19,8 +19,8 @@
 }
 
 .option {
-    --link-color: var(--default-text-color);
-    --link-hover-color: var(--default-text-color);
+    --link-color: var(--color-fg-primary);
+    --link-hover-color: var(--color-fg-primary);
 
     display: flex;
     position: relative;

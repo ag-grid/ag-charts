@@ -28,7 +28,7 @@
 .propertyDescription {
     margin-top: -$spacing-size-2;
     margin-bottom: $spacing-size-6;
-    color: var(--secondary-text-color);
+    color: var(--color-fg-secondary);
 }
 
 .apiReference {
@@ -61,7 +61,7 @@
     scroll-margin-top: var(--anchor-offset, 0);
 
     &:where(:not(:first-child)) {
-        border-top: 1px solid var(--border-color);
+        border-top: 1px solid var(--color-border-primary);
     }
 
     &:hover .linkIcon {
@@ -106,7 +106,7 @@
 .name {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    --parent-properties-color: var(--secondary-text-color);
+    --parent-properties-color: var(--color-fg-secondary);
     --parent-properties-font-weight: var(--font-weight-normal);
 
     position: relative;
@@ -154,7 +154,7 @@
 
 .metaLabel {
     font-size: var(--font-size-extra-small);
-    color: var(--secondary-text-color);
+    color: var(--color-fg-secondary);
 }
 
 .metaValue {

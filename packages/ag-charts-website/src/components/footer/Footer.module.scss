@@ -11,11 +11,11 @@
     color: var(--text-color);
 
     #{$darkmode-selector} & {
-        --text-color: var(--default-text-color);
-        --link-color: var(--default-text-color);
-        --link-hover-color: var(--default-text-color);
+        --text-color: var(--color-fg-primary);
+        --link-color: var(--color-fg-primary);
+        --link-hover-color: var(--color-fg-primary);
 
-        background-color: var(--default-background-color);
+        background-color: var(--color-bg-primary);
         border-top: 1px solid var(--neutral-400);
     }
 

@@ -56,10 +56,10 @@
     --text-color: var(--dark-blue-300);
 
     #{$darkmode-selector} & {
-        --text-color: var(--default-text-color);
+        --text-color: var(--color-fg-primary);
 
         :global(.icon) {
-            --text-color: var(--default-text-color);
+            --text-color: var(--color-fg-primary);
         }
     }
 }
@@ -87,7 +87,7 @@
 
     #{$darkmode-selector} & {
         --alert-background-color: #262119;
-        --text-color: var(--default-text-color);
+        --text-color: var(--color-fg-primary);
 
         p {
             color: rgb(255, 249, 235);

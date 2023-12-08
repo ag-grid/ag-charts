@@ -26,7 +26,7 @@
 
     :global(.icon) {
         --icon-size: 1.25em;
-        --text-color: var(--secondary-text-color);
+        --text-color: var(--color-fg-secondary);
 
         position: absolute;
         left: 0.625em;

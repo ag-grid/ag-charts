@@ -42,11 +42,11 @@
 }
 
 .tooltip {
-    --tooltip-background: var(--default-text-color);
+    --tooltip-background: var(--color-fg-primary);
 
     position: absolute;
     display: block;
-    color: var(--default-background-color);
+    color: var(--color-bg-primary);
     top: -44px;
     padding: $spacing-size-1 $spacing-size-4;
     white-space: nowrap;
@@ -89,7 +89,7 @@
     #{$darkmode-selector} & {
         --tooltip-background: #202a34;
 
-        color: var(--default-text-color);
+        color: var(--color-fg-primary);
         box-shadow: 0 -4px 16px 0 rgba(0, 0, 0, 0.4);
     }
 }

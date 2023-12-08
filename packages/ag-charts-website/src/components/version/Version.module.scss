@@ -6,7 +6,7 @@
     justify-content: space-between;
     padding: $spacing-size-4 $spacing-size-4 0 $spacing-size-4;
     border-radius: 8px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--color-border-primary);
 
     #{$darkmode-selector} & {
         background: #122835;
@@ -21,7 +21,7 @@
         b {
             font-size: 1.25rem;
             font-weight: 600;
-            color: var(--default-text-color);
+            color: var(--color-fg-primary);
         }
 
         span {
@@ -95,7 +95,7 @@
 }
 
 .line {
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--color-border-primary);
 
     #{$darkmode-selector} & {
         border-bottom: 1px solid #394755;

@@ -1,7 +1,7 @@
 @use '../core' as *;
 
 .card {
-    --card-color: var(--border-color);
+    --card-color: var(--color-border-primary);
     --header-tint: 77.5%;
     --content-tint: 95%;
 
@@ -16,14 +16,14 @@
     .header,
     .top {
         padding: $spacing-size-2 $spacing-size-4;
-        background-color: color-mix(in srgb, var(--default-background-color) var(--header-tint), var(--card-color));
+        background-color: color-mix(in srgb, var(--color-bg-primary) var(--header-tint), var(--card-color));
     }
 
     .content,
     .bottom {
         flex-grow: 1;
         padding: $spacing-size-4;
-        background-color: color-mix(in srgb, var(--default-background-color) var(--content-tint), var(--card-color));
+        background-color: color-mix(in srgb, var(--color-bg-primary) var(--content-tint), var(--card-color));
     }
 }
 
@@ -35,10 +35,10 @@
         width: 100%;
         border-top-right-radius: var(--border-radius);
         border-top-left-radius: var(--border-radius);
-        border-top: 1px solid var(--border-color);
-        border-right: 1px solid var(--border-color);
-        border-left: 1px solid var(--border-color);
-        box-shadow: inset 0 -1px 0 0 var(--border-color);
+        border-top: 1px solid var(--color-border-primary);
+        border-right: 1px solid var(--color-border-primary);
+        border-left: 1px solid var(--color-border-primary);
+        box-shadow: inset 0 -1px 0 0 var(--color-border-primary);
         overflow-x: auto;
 
         #{$darkmode-selector} & {
@@ -47,7 +47,7 @@
             border-right: 1px solid #121f29;
             border-left: 1px solid #121f29;
             box-shadow: inset 0 0px 0 0;
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--color-border-primary);
         }
     }
 
@@ -78,7 +78,7 @@
 }
 
 .tabs-nav-link {
-    --button-text-color: var(--secondary-text-color);
+    --button-text-color: var(--color-fg-secondary);
 
     position: relative;
     display: inline-block;
@@ -133,9 +133,9 @@
     position: relative;
     border-bottom-right-radius: var(--border-radius);
     border-bottom-left-radius: var(--border-radius);
-    border-right: 1px solid var(--border-color);
-    border-bottom: 1px solid var(--border-color);
-    border-left: 1px solid var(--border-color);
+    border-right: 1px solid var(--color-border-primary);
+    border-bottom: 1px solid var(--color-border-primary);
+    border-left: 1px solid var(--color-border-primary);
     padding: $spacing-size-4;
     padding-top: $spacing-size-6;
 }

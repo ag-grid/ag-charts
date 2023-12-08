@@ -94,7 +94,7 @@
 
 button .menuIcon {
     --icon-size: 1.75em;
-    --button-text-color: var(--secondary-text-color);
+    --button-text-color: var(--color-fg-secondary);
 
     bottom: 0.15em;
     margin-right: $spacing-size-1;
@@ -111,7 +111,7 @@ button .menuIcon {
 a :global(.icon).menuIcon {
     --icon-size: 1.75em;
 
-    fill: var(--secondary-text-color);
+    fill: var(--color-fg-secondary);
     margin-bottom: $spacing-size-1;
     margin-right: $spacing-size-1;
     opacity: 0.75;
@@ -120,7 +120,7 @@ a :global(.icon).menuIcon {
         opacity $default-transition-timing;
 
     #{$darkmode-selector} & {
-        fill: var(--secondary-text-color);
+        fill: var(--color-fg-secondary);
     }
 }
 
@@ -142,6 +142,6 @@ a :global(.icon).menuIcon {
     width: fit-content;
 
     &:hover {
-        background-color: color-mix(in srgb, var(--link-color) 5%, var(--default-background-color));
+        background-color: color-mix(in srgb, var(--link-color) 5%, var(--color-bg-primary));
     }
 }

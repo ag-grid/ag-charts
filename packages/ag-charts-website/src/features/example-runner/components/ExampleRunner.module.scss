@@ -1,12 +1,12 @@
 @use '../../../design-system/' as *;
 
 .exampleOuter {
-    --example-border-color: color-mix(in srgb, var(--secondary-border-color), var(--border-color));
+    --example-border-color: color-mix(in srgb, var(--color-border-secondary), var(--color-border-primary));
 
     margin-bottom: $spacing-size-4;
 
     #{$darkmode-selector} & {
-        --example-border-color: color-mix(in srgb, var(--default-background-color), white 10%);
+        --example-border-color: color-mix(in srgb, var(--color-bg-primary), white 10%);
     }
 }
 
@@ -65,7 +65,7 @@ iframe {
     }
 
     svg {
-        --text-color: var(--secondary-text-color);
+        --text-color: var(--color-fg-secondary);
 
         opacity: 0.5;
         transition: opacity $default-transition-timing;

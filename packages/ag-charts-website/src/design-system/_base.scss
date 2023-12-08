@@ -17,8 +17,8 @@ html {
     font-size: var(--font-size);
     line-height: var(--line-height);
     font-weight: var(--font-weight);
-    background-color: var(--default-background-color);
-    color: var(--default-text-color);
+    background-color: var(--color-bg-primary);
+    color: var(--color-fg-primary);
     scroll-padding-top: var(--scroll-offset);
 
     @media (min-width: $breakpoint-docs-nav-medium) {
@@ -53,7 +53,7 @@ html {
     h4,
     h5,
     h6 {
-        color: var(--default-text-color);
+        color: var(--color-fg-primary);
     }
 
     #doc-content {

@@ -24,13 +24,13 @@
 
         &:hover,
         &:focus {
-            background-color: color-mix(in srgb, var(--link-hover-color) 5%, var(--default-background-color));
+            background-color: color-mix(in srgb, var(--link-hover-color) 5%, var(--color-bg-primary));
         }
 
         #{$darkmode-selector} & {
             &:hover,
             &:focus {
-                background-color: color-mix(in srgb, var(--link-hover-color) 10%, var(--default-background-color));
+                background-color: color-mix(in srgb, var(--link-hover-color) 10%, var(--color-bg-primary));
             }
         }
     }
@@ -42,7 +42,7 @@
     --menu-width: min(30vw, 250px);
     --font-size: 16px;
 
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--color-border-primary);
 
     @media screen and (max-width: $breakpoint-docs-nav-medium) {
         @include page-horizontal-margins();
@@ -57,7 +57,7 @@
         margin-right: var(--right-margin);
         padding-right: var(--menu-horizontal-margin);
         padding-left: var(--horizontal-margin);
-        // border-right: solid 0.5px var(--secondary-border-color);
+        // border-right: solid 0.5px var(--color-border-secondary);
         @supports (position: sticky) {
             position: sticky;
             top: $top-bar-height;
@@ -72,7 +72,7 @@
     }
 
     #{$darkmode-selector} & {
-        --secondary-border-color: #394755;
+        --color-border-secondary: #394755;
 
         border-bottom: none;
     }
@@ -96,13 +96,13 @@ ul.menuInner {
         margin-top: $spacing-size-4;
         margin-bottom: $spacing-size-4;
         height: 1px;
-        background-color: var(--border-color);
+        background-color: var(--color-border-primary);
     }
 
     h5 {
         padding-left: 6px;
         font-weight: var(--font-weight-bold);
-        color: var(--secondary-text-color);
+        color: var(--color-fg-secondary);
     }
 
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
@@ -216,7 +216,7 @@ button:not([class^='ag-']).sectionHeader {
     padding-top: 3px;
     padding-bottom: 3px;
     padding-left: $spacing-size-4;
-    color: var(--secondary-text-color);
+    color: var(--color-fg-secondary);
     border-left: 1px solid transparent;
     outline: none;
     transition:
@@ -242,7 +242,7 @@ button:not([class^='ag-']).sectionHeader {
     }
 
     &.activeItemParent {
-        color: color-mix(in oklch, var(--default-text-color) 66.66%, var(--secondary-text-color));
+        color: color-mix(in oklch, var(--color-fg-primary) 66.66%, var(--color-fg-secondary));
     }
 
     &:hover,
@@ -260,7 +260,7 @@ button:not([class^='ag-']).sectionHeader {
 .menuGroup li a {
     padding-top: 7px;
     padding-bottom: 7px;
-    border-left: 1px solid var(--border-color);
+    border-left: 1px solid var(--color-border-primary);
 }
 
 .menuGroup .groupLabel {
@@ -269,7 +269,7 @@ button:not([class^='ag-']).sectionHeader {
     padding-top: 5px;
     padding-bottom: 5px;
     padding-left: $spacing-size-4 + 2px;
-    border-left: 1px solid var(--border-color);
+    border-left: 1px solid var(--color-border-primary);
     color: var(--neutral-600);
     transition: color $default-transition-timing;
 

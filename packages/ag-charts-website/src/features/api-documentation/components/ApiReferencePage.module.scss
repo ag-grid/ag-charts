@@ -23,7 +23,7 @@
 
     @media screen and (min-width: $breakpoint-options-medium) {
         width: auto;
-        border-right: 1px solid var(--border-color);
+        border-right: 1px solid var(--color-border-primary);
     }
 }
 
@@ -46,15 +46,15 @@
         z-index: 1;
         padding-top: $spacing-size-8;
         padding-bottom: $spacing-size-8;
-        background-color: var(--default-background-color);
-        border-bottom: 1px solid var(--border-color);
+        background-color: var(--color-bg-primary);
+        border-bottom: 1px solid var(--color-border-primary);
 
         @media screen and (min-width: $breakpoint-docs-nav-medium) {
             top: calc(var(--header-nav-height) * 2 + 4px);
 
             #{$darkmode-selector} & {
                 top: calc(var(--header-nav-height) * 2 + 6px);
-                box-shadow: 0 -2px 0 0 var(--default-background-color);
+                box-shadow: 0 -2px 0 0 var(--color-bg-primary);
             }
         }
     }
