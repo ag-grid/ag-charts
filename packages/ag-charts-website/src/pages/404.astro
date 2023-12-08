@@ -9,17 +9,13 @@ import { PagesNavigation } from '@components/pages-navigation/PagesNavigation';
 const framework = getFrameworkFromPath(Astro.url.pathname);
 const isDocsPage = FRAMEWORKS.includes(framework);
 
-const hidePageMenu = !isDocsPage;
 const menuEntry = await getEntry('menu', 'data');
 ---
 
-<Layout title="Page Not Found">
-    <div class:list={[hidePageMenu && 'noLeftMenu', 'contentViewport']}>
-        {
-            !hidePageMenu && (
-                <PagesNavigation client:load menuData={menuEntry.data} framework={framework} pageName={'404'} />
-            )
-        }
+<Layout title="AG Charts: Page Not Found">
+    <div class={'contentViewport'}>
+        <PagesNavigation client:load menuData={menuEntry.data} framework={framework} pageName={'404'} />
+
         <div id="doc-content" class:list={['docPage', 'noSideMenu']}>
             <h1>Page Not Found</h1>
             <p>

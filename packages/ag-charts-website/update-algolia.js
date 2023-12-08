@@ -80,7 +80,14 @@ const extractTitle = (titleTag) => {
         sibling = sibling.nextSibling;
     }
 
-    return title;
+    return title
+        ? title
+              .replace('Angular Charts', '')
+              .replace('React Charts', '')
+              .replace('Vue Charts', '')
+              .replace('Javascript Charts', '')
+              .replace('ReactAngularVueJavaScript', '')
+        : title;
 };
 
 const convertToFrameworkUrl = (url, framework) => `/${framework}/${url}/`;

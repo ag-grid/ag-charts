@@ -164,6 +164,7 @@ export type DataModelOptions<K, Grouped extends boolean | undefined> = {
     readonly scopes?: string[];
     readonly props: PropertyDefinition<K>[];
     readonly groupByKeys?: Grouped;
+    readonly groupByData?: Grouped;
     readonly groupByFn?: GroupByFn;
     readonly dataVisible?: boolean;
     readonly mode?: ChartMode;
@@ -475,7 +476,10 @@ export class DataModel<
         return result;
     }
 
-    processData(data: D[]): (Grouped extends true ? GroupedData<D> : UngroupedData<D>) | undefined {
+    processData(
+        data: D[],
+        sources?: { id: string; data: D[] }[]
+    ): (Grouped extends true ? GroupedData<D> : UngroupedData<D>) | undefined {
         const {
             opts: { groupByKeys, groupByFn },
             aggregates,
@@ -494,7 +498,7 @@ export class DataModel<
             return undefined;
         }
 
-        let processedData: ProcessedData<D> = this.extractData(data);
+        let processedData: ProcessedData<D> = this.extractData(data, sources);
         if (groupByKeys) {
             processedData = this.groupData(processedData);
         } else if (groupByFn) {
@@ -585,7 +589,7 @@ export class DataModel<
         );
     }
 
-    private extractData(data: D[]): UngroupedData<D> {
+    private extractData(data: D[], sources?: { id: string; data: D[] }[]): UngroupedData<D> {
         const {
             keys: keyDefs,
             values: valueDefs,
@@ -597,7 +601,10 @@ export class DataModel<
         const resultData = new Array(dataVisible ? data.length : 0);
         let resultDataIdx = 0;
         let partialValidDataCount = 0;
-        for (const datum of data) {
+
+        for (const [datumIdx, datum] of data.entries()) {
+            const joinedDatum = { ...datum } as any;
+
             const validScopes = scopes.size > 0 ? new Set(scopes) : undefined;
             const keys = dataVisible ? new Array(keyDefs.length) : undefined;
             let keyIdx = 0;
@@ -612,27 +619,50 @@ export class DataModel<
             if (key === INVALID_VALUE) continue;
 
             const values = dataVisible && valueDefs.length > 0 ? new Array(valueDefs.length) : undefined;
-            let valueIdx = 0;
             let value;
-            for (const def of valueDefs) {
-                value = processValue(def, datum, value);
+
+            const sourcesById: { [key: string]: { id: string; data: D[] } } = {};
+            for (const source of sources ?? []) {
+                sourcesById[source.id] = source;
+            }
+
+            for (const [valueDefIdx, def] of valueDefs.entries()) {
+                for (const scope of def.scopes ?? scopes) {
+                    const source = sourcesById[scope];
+                    const valueDatum = source?.data[datumIdx] ?? datum;
+
+                    value = processValue(def, valueDatum, value);
+
+                    if (value === INVALID_VALUE || !values) continue;
+
+                    if (source !== undefined) {
+                        joinedDatum[source.id] ??= {};
+                        joinedDatum[source.id][def.property] = value;
+                    }
+
+                    if (def.scopes && def.scopes.length > 1) {
+                        values[valueDefIdx] ??= {};
+                        values[valueDefIdx][scope] = value;
+                    } else {
+                        values[valueDefIdx] = value;
+                    }
+                }
+
                 if (value === INVALID_VALUE) {
                     if (allScopesHaveSameDefs) break;
                     for (const scope of def.scopes ?? scopes) {
                         validScopes?.delete(scope);
                     }
-                    valueIdx++;
                     if (validScopes?.size === 0) break;
-                } else if (values) {
-                    values[valueIdx++] = value;
                 }
             }
+
             if (value === INVALID_VALUE && allScopesHaveSameDefs) continue;
             if (validScopes?.size === 0) continue;
 
             if (dataVisible) {
                 const result: UngroupedDataItem<D, any> = {
-                    datum,
+                    datum: joinedDatum,
                     keys: keys!,
                     values,
                 };

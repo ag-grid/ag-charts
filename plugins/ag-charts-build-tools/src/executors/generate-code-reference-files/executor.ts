@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import * as ts from 'typescript';
 
-import { writeFile } from './executors-utils';
+import { writeJSONFile } from '../../executors-utils';
 import { TypeMapper } from './types-utils';
 
 type OptionsMode = 'debug-interfaces' | 'docs-interfaces';
@@ -15,7 +15,7 @@ export default async function (options: ExecutorOptions) {
 
         generateFile(options);
 
-        console.log('Generation completed.');
+        console.log(`Generation completed - written to ${options.output}.`);
         console.log('-'.repeat(80));
 
         return { success: true };
@@ -31,10 +31,10 @@ function generateFile(options: ExecutorOptions) {
     switch (options.mode) {
         // flat version of the interfaces file, without resolving
         case 'debug-interfaces':
-            return writeFile(options.output, typeMapper.entries());
+            return writeJSONFile(options.output, typeMapper.entries());
 
         case 'docs-interfaces':
-            return writeFile(options.output, typeMapper.resolvedEntries());
+            return writeJSONFile(options.output, typeMapper.resolvedEntries());
 
         default:
             throw new Error(`Unsupported mode "${options.mode}"`);

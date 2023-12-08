@@ -730,7 +730,7 @@ export class TreemapSeries<
                 if (groupTitleHeight == null) return undefined;
 
                 const innerWidth = bbox.width - 2 * padding;
-                const text = Text.wrap(labelDatum.label, bbox.width - 2 * padding, Infinity, group.label, 'never');
+                const { text } = Text.wrap(labelDatum.label, bbox.width - 2 * padding, Infinity, group.label, 'never');
                 const textAlignFactor = textAlignFactors[textAlign] ?? 0.5;
 
                 return {

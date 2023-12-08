@@ -29,8 +29,8 @@ const categoryKey = (property: string) => ({
     type: 'key' as const,
     valueType: 'category' as const,
 });
-const scopedValue = (scope: string | undefined, property: string, groupId?: string, id?: string) => ({
-    scopes: scope ? [scope] : undefined,
+const scopedValue = (scope: string[] | string | undefined, property: string, groupId?: string, id?: string) => ({
+    scopes: Array.isArray(scope) ? scope : scope ? [scope] : undefined,
     property,
     type: 'value' as const,
     valueType: 'range' as const,
@@ -1089,6 +1089,41 @@ describe('DataModel', () => {
             });
 
             expect(dataModel.processData(data)).toMatchSnapshot({
+                time: expect.any(Number),
+            });
+        });
+    });
+
+    describe('multiple data sources', () => {
+        it('should generate the expected results', () => {
+            const dataModel = new DataModel<any, any>({
+                props: [
+                    {
+                        scopes: ['test1', 'test2'],
+                        property: 'year',
+                        type: 'key' as const,
+                        valueType: 'category' as const,
+                    },
+                    scopedValue(['test1', 'test2'], 'ie'),
+                    scopedValue(['test1', 'test2'], 'chrome'),
+                    scopedValue(['test1', 'test2'], 'firefox'),
+                    scopedValue(['test1', 'test2'], 'safari'),
+                ],
+            });
+
+            const data1 = DATA_BROWSER_MARKET_SHARE.map((d) => d);
+            const data2 = DATA_BROWSER_MARKET_SHARE.map((d) => ({
+                ...d,
+                firefox: d.firefox ? d.firefox * 2 : d.firefox,
+            }));
+
+            const processedData = dataModel.processData(data2, [
+                { id: 'test1', data: data1 },
+                { id: 'test2', data: data2 },
+            ]);
+
+            expect(processedData!.data[0].datum.firefox).toEqual(data2[0].firefox);
+            expect(processedData).toMatchSnapshot({
                 time: expect.any(Number),
             });
         });

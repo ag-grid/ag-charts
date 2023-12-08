@@ -16,7 +16,7 @@ const DEFAULT_BASE_URL = '/';
 const {
     PUBLIC_SITE_URL,
     PUBLIC_BASE_URL = DEFAULT_BASE_URL,
-    PUBLIC_HTTPS_SERVER,
+    PUBLIC_HTTPS_SERVER = '1',
 } = loadEnv(NODE_ENV, process.cwd(), '');
 
 const OUTPUT_DIR = '../../dist/packages/ag-charts-website';
@@ -37,7 +37,7 @@ export default defineConfig({
             exclude: ['ag-charts-community', 'ag-charts-enterprise'],
         },
         server: {
-            https: ['1', 'true'].includes(PUBLIC_HTTPS_SERVER),
+            https: !['0', 'false'].includes(PUBLIC_HTTPS_SERVER),
             fs: {
                 allow: [
                     '.',

@@ -1,4 +1,4 @@
-<picture><source media="(prefers-color-scheme: dark)" srcset="../../.github/banner-dark.png"><source media="(prefers-color-scheme: light)" srcset="../../.github/banner-light.png"><img alt="AG Charts canvas-based charting trusted by the community, built for enterprise." src="../../.github/banner-light.png"></picture>
+<picture><source media="(prefers-color-scheme: dark)" srcset="./.github/banner-dark.png"><source media="(prefers-color-scheme: light)" srcset="./.github/banner-light.png"><img alt="AG Charts canvas-based charting trusted by the community, built for enterprise." src="./.github/banner-light.png"></picture>
 
 [![Github Stars](https://img.shields.io/github/stars/ag-grid/ag-charts?style=social)](https://github.com/ag-grid/ag-charts) [![Twitter](https://img.shields.io/twitter/follow/ag_grid?style=social)](https://twitter.com/ag_grid)
 
@@ -15,9 +15,9 @@ It delivers [outstanding performance](https://charts.ag-grid.com/?utm_source=ag-
 
 ## Examples
 
-<picture><source media="(prefers-color-scheme: dark)" srcset="./../../.github/example-1-dark.png"><source media="(prefers-color-scheme: light)" srcset="./../../.github/example-1-light.png"><img alt="Image of AG Charts showing stacked horizontal bar." src="./../../.github/example-1-light.png"></picture>
+<picture><source media="(prefers-color-scheme: dark)" srcset="./.github/example-1-dark.png"><source media="(prefers-color-scheme: light)" srcset="./.github/example-1-light.png"><img alt="Image of AG Charts showing stacked horizontal bar." src="./.github/example-1-light.png"></picture>
 
-<picture><source media="(prefers-color-scheme: dark)" srcset="./../../.github/example-2-dark.png"><source media="(prefers-color-scheme: light)" srcset="./../../.github/example-2-light.png"><img alt="Image of AG Charts showing vertical range bar." src="./../../.github/example-2-light.png"></picture>
+<picture><source media="(prefers-color-scheme: dark)" srcset="./.github/example-2-dark.png"><source media="(prefers-color-scheme: light)" srcset="./.github/example-2-light.png"><img alt="Image of AG Charts showing vertical range bar." src="./.github/example-2-light.png"></picture>
 
 ## Features
 

@@ -211,22 +211,23 @@ export class Text extends Shape {
         textProps: TextSizeProperties,
         wrapping: TextWrap,
         overflow: OverflowStrategy
-    ): string[] | undefined {
+    ): { lines: string[] | undefined; truncated: boolean } {
         const canOverflow = overflow !== 'hide';
         const font = getFont(textProps);
         const measurer = createTextMeasurer(font);
         const lines: string[] = text.split(/\r?\n/g);
 
         if (lines.length === 0) {
-            return undefined;
+            return { lines: undefined, truncated: false };
         }
         if (wrapping === 'never') {
-            const line = Text.truncateLine(lines[0], maxWidth, measurer, canOverflow ? 'auto' : 'never');
-            return line != null ? [line] : undefined;
+            const { text, truncated } = Text.truncateLine(lines[0], maxWidth, measurer, canOverflow ? 'auto' : 'never');
+            return { lines: text != null ? [text] : undefined, truncated };
         }
 
-        const result: string[] = [];
+        const wrappedLines: string[] = [];
         let cumulativeHeight = 0;
+        let truncated = false;
         for (const line of lines) {
             const wrappedLine = Text.wrapLine(
                 line,
@@ -240,16 +241,17 @@ export class Text extends Shape {
             );
 
             if (wrappedLine == null) {
-                return undefined;
+                return { lines: undefined, truncated: false };
             }
 
-            result.push(...wrappedLine.result);
+            wrappedLines.push(...wrappedLine.result);
             cumulativeHeight = wrappedLine.cumulativeHeight;
             if (wrappedLine.truncated) {
+                truncated = true;
                 break;
             }
         }
-        return result;
+        return { lines: wrappedLines, truncated };
     }
 
     static wrap(
@@ -259,9 +261,9 @@ export class Text extends Shape {
         textProps: TextSizeProperties,
         wrapping: TextWrap,
         overflow: OverflowStrategy = 'ellipsis'
-    ): string {
-        const lines = Text.wrapLines(text, maxWidth, maxHeight, textProps, wrapping, overflow);
-        return lines != null ? lines.join('\n').trim() : '';
+    ): { text: string; truncated: boolean } {
+        const { lines, truncated } = Text.wrapLines(text, maxWidth, maxHeight, textProps, wrapping, overflow);
+        return { text: lines != null ? lines.join('\n').trim() : '', truncated };
     }
 
     private static wrapLine(
@@ -370,14 +372,14 @@ export class Text extends Shape {
         maxWidth: number,
         measurer: TextMeasurer,
         ellipsisMode: 'force' | 'never' | 'auto'
-    ) {
+    ): { text: string | undefined; truncated: boolean } {
         text = text.trimEnd();
 
         const lineWidth = measurer.width(text);
         if (lineWidth > maxWidth && ellipsisMode === 'never') {
-            return undefined;
+            return { text: undefined, truncated: false };
         } else if (lineWidth <= maxWidth && ellipsisMode !== 'force') {
-            return text;
+            return { text, truncated: false };
         }
 
         const ellipsisWidth = measurer.width(ellipsis);
@@ -389,9 +391,9 @@ export class Text extends Shape {
             truncWidth = measurer.width(trunc);
         }
         if (truncWidth + ellipsisWidth <= maxWidth) {
-            return `${trunc}${ellipsis}`;
+            return { text: `${trunc}${ellipsis}`, truncated: true };
         } else {
-            return undefined;
+            return { text: undefined, truncated: false };
         }
     }
 
@@ -430,12 +432,12 @@ export class Text extends Shape {
             }
 
             const lastLine = currentLine.join(' ');
-            const trunc = Text.truncateLine(lastLine, maxWidth, measurer, 'force');
-            if (trunc == null) {
+            const { text } = Text.truncateLine(lastLine, maxWidth, measurer, 'force');
+            if (text == null) {
                 return undefined;
             }
 
-            currentLine.splice(0, currentLine.length, trunc);
+            currentLine.splice(0, currentLine.length, text);
             linesTruncated = true;
             return getReturnValue();
         };
@@ -500,11 +502,11 @@ export class Text extends Shape {
                 if (!addNewLine()) {
                     return truncateLastLine();
                 }
-                const trunc = Text.truncateLine(word, maxWidth, measurer, 'force');
-                if (trunc == null) {
+                const { text } = Text.truncateLine(word, maxWidth, measurer, 'force');
+                if (text == null) {
                     return undefined;
                 }
-                currentLine.push(trunc);
+                currentLine.push(text);
                 if (i < words.length - 1) {
                     linesTruncated = true;
                 }

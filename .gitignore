@@ -40,6 +40,9 @@ testem.log
 .DS_Store
 Thumbs.db
 
-.astro
 packages/ag-charts-website/.env
 .nx/
+
+# Astro build generated files
+.astro
+src/env.d.ts

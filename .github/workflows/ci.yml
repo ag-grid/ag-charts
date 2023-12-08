@@ -67,13 +67,14 @@ jobs:
                       packages/*/node_modules/
                       !node_modules/.cache/
                       !packages/*/node_modules/.cache/
-                  key: node_modules-${{hashFiles('yarn.lock')}}
+                  key: node_modules-${{hashFiles('yarn.lock','patches/*.patch')}}
                   restore-keys: node_modules- # Take any latest cache if failed to find it for current yarn.lock
             - name: Cache Nx
               uses: actions/cache@v3
               with:
-                  path: node_modules/.cache/nx
-                  key: cache-nx-${{ hashFiles('yarn.lock') }}-${{ github.sha }}
+                  path: .nx/cache
+                  key: cache-nx-v17-${{ hashFiles('yarn.lock','patches/*.patch') }}-${{ github.sha }}
+                  restore-keys: cache-nx-v17-${{ hashFiles('yarn.lock','patches/*.patch') }}-
             - name: Setup Node.js
               id: setup_node
               uses: actions/setup-node@v3
@@ -135,6 +136,8 @@ jobs:
             matrix:
                 shard: [1, 2, 3, 4]
         name: test (${{ matrix.shard }}/${{ strategy.job-total }})
+        env:
+            NX_PARALLEL: 1
         steps:
             - name: Checkout
               id: checkout
@@ -150,13 +153,14 @@ jobs:
                       packages/*/node_modules/
                       !node_modules/.cache/
                       !packages/*/node_modules/.cache/
-                  key: node_modules-${{hashFiles('yarn.lock')}}
+                  key: node_modules-${{hashFiles('yarn.lock','patches/*.patch')}}
                   restore-keys: node_modules- # Take any latest cache if failed to find it for current yarn.lock
             - name: Cache Nx
               uses: actions/cache@v3
               with:
-                  path: node_modules/.cache/nx
-                  key: cache-nx-${{ hashFiles('yarn.lock') }}-${{ github.sha }}
+                  path: .nx/cache
+                  key: cache-nx-v17-${{ hashFiles('yarn.lock','patches/*.patch') }}-${{ github.sha }}
+                  restore-keys: cache-nx-v17-${{ hashFiles('yarn.lock','patches/*.patch') }}-
             - name: nx test
               id: test
               run: yarn nx affected --base ${{ needs.execute_blt.outputs.nx_base }} -t test --configuration=ci --exclude all --shard=${{ matrix.shard }}/${{ strategy.job-total }}

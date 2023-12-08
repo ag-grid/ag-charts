@@ -1,48 +1,14 @@
-import { getGeneratedContents, getGeneratedContentsFileList } from '@features/examples-generator/examplesGenerator';
-import type { GeneratedContents } from '@features/examples-generator/types';
-
-import { GALLERY_INTERNAL_FRAMEWORK, PLAIN_ENTRY_FILE_NAME } from '../constants';
-import { getFolderUrl } from './filesData';
+import { getGeneratedContents } from '../../example-generator';
+import { PLAIN_ENTRY_FILE_NAME } from '../constants';
 import { transformPlainEntryFile } from './transformPlainEntryFile';
 
-export const getGeneratedGalleryContentsFileList = async ({
-    exampleName,
-}: {
-    exampleName: string;
-}): Promise<string[]> => {
-    const folderUrl = getFolderUrl({
-        exampleName,
-    });
-
-    return getGeneratedContentsFileList({
-        internalFramework: GALLERY_INTERNAL_FRAMEWORK,
-        folderUrl,
-    });
-};
-
-export const getGeneratedGalleryContents = async ({
-    exampleName,
-    ignoreDarkMode,
-}: {
-    exampleName: string;
-    ignoreDarkMode?: boolean;
-}): Promise<GeneratedContents | undefined> => {
-    const folderUrl = getFolderUrl({
-        exampleName,
-    });
-
-    return getGeneratedContents({
-        internalFramework: GALLERY_INTERNAL_FRAMEWORK,
-        folderUrl,
-        ignoreDarkMode,
-    });
-};
-
 export const getGeneratedPlainGalleryContents = async ({ exampleName }: { exampleName: string }) => {
-    const generatedContents = await getGeneratedGalleryContents({
+    const generatedContents = await getGeneratedContents({
+        type: 'gallery',
         exampleName,
         ignoreDarkMode: true,
     });
+
     const { entryFileName, files = {} } = generatedContents || {};
     const { [entryFileName!]: entryFile, ...otherFiles } = files;
     const { code } = transformPlainEntryFile(entryFile, files['data.js']);

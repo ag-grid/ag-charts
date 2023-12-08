@@ -1,5 +1,5 @@
 import type { GalleryData, GalleryExample } from '@ag-grid-types';
-import { getContentRootFileUrl, getPublicFileUrl } from '@utils/pages';
+import { getContentRootFileUrl, getExampleRootFileUrl, getPublicFileUrl } from '@utils/pages';
 import { pathJoin } from '@utils/pathJoin';
 import { readFileSync } from 'fs';
 import GithubSlugger from 'github-slugger';
@@ -22,13 +22,6 @@ export const getPlainThumbnailFolderUrl = ({ isDev }: { isDev?: boolean }) => {
     const thumbnailFolderPath = pathJoin(publicPath.pathname, 'gallery', 'thumbnails');
 
     return new URL(thumbnailFolderPath, import.meta.url);
-};
-
-export const getFolderUrl = ({ exampleName }: { exampleName: string }) => {
-    const contentRoot = getContentRootFileUrl();
-    const sourceExamplesPath = pathJoin(contentRoot.pathname, 'gallery', '_examples', exampleName);
-
-    return new URL(sourceExamplesPath, import.meta.url);
 };
 
 export const getSeriesTypeName = ({ galleryData, exampleName }: { galleryData: GalleryData; exampleName: string }) => {

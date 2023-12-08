@@ -30,7 +30,7 @@ export abstract class DataModelSeries<
         D extends object,
         K extends keyof D & string = keyof D & string,
         G extends boolean | undefined = undefined,
-    >(dataController: DataController, data: D[] | undefined, opts: DataModelOptions<K, any>) {
+    >(dataController: DataController, data: D[] | undefined, opts: DataModelOptions<K, boolean | undefined>) {
         // Merge properties of this series with properties of all the attached series-options
         const props = opts.props;
         const moduleProps = this.getModulePropertyDefinitions() as typeof props;
