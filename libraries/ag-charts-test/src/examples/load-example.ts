@@ -1,7 +1,5 @@
+/* eslint-disable no-console */
 import * as fs from 'fs';
-
-import * as agCharts from '../../main';
-import { Logger } from '../../util/logger';
 
 const filters = [
     /AgCharts\.(create|update)/,
@@ -18,6 +16,7 @@ const cleanJs = (content: string) =>
         .join('\n');
 
 export function loadExampleOptions(
+    agCharts: { AgCharts: {}; time: {}; Marker: new () => any },
     name: string,
     evalReturn = 'options',
     exampleRootDir = `${process.cwd()}/dist/packages/ag-charts-community-examples/src/`,
@@ -32,8 +31,10 @@ export function loadExampleOptions(
         const exampleRunFn = Function('ag_charts_community_1', 'AgCharts', 'time', 'Marker', 'require', evalExpr);
         return exampleRunFn(agCharts, AgCharts, time, Marker, require);
     } catch (error: any) {
-        Logger.error(`unable to read example data for [${name}]; error: ${error.message}`);
-        Logger.log(evalExpr);
+        console.group();
+        console.error(`unable to read example data for [${name}]; error: ${error.message}`);
+        console.log(evalExpr);
+        console.groupEnd();
         return [];
     }
 }
