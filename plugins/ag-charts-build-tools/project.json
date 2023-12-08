@@ -5,7 +5,7 @@
   "projectType": "library",
   "targets": {
     "build": {
-      "executor": "@nx/js:tsc",
+      "executor": "@nx/js:swc",
       "outputs": ["{options.outputPath}"],
       "dependsOn": ["ag-charts-community:build:package", "ag-charts-enterprise:build:package"],
       "options": {

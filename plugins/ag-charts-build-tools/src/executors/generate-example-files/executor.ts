@@ -5,7 +5,7 @@ import { writeFile } from '../../executors-utils';
 import { getGeneratedContents } from './generator/examplesGenerator';
 import { FRAMEWORKS } from './generator/types';
 
-type ExecutorOptions = {
+export type ExecutorOptions = {
     mode: 'dev' | 'prod';
     outputPath: string;
     examplePath: string;

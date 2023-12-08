@@ -1,19 +1,20 @@
 {
     "executors": {
         "generate-code-reference-files": {
-            "implementation": "./dist/src/executors/generate-code-reference-files/executor",
-            "schema": "./dist/src/executors/generate-code-reference-files/schema.json",
+            "implementation": "./src/executors/generate-code-reference-files/executor",
+            "schema": "./src/executors/generate-code-reference-files/schema.json",
             "description": "generate-code-reference-files executor"
         },
         "generate-example-files": {
-            "implementation": "./dist/src/executors/generate-example-files/executor",
-            "batchImplementation": "./dist/src/executors/generate-example-files/batch-executor",
-            "schema": "./dist/src/executors/generate-example-files/schema.json",
+            "implementation": "./src/executors/generate-example-files/executor",
+            "batchImplementation": "./src/executors/generate-example-files/batch-executor",
+            "schema": "./src/executors/generate-example-files/schema.json",
             "description": "generate-example-files executor"
         },
         "generate-chart-thumbnail": {
             "implementation": "./dist/src/executors/generate-chart-thumbnail/executor",
-            "schema": "./dist/src/executors/generate-chart-thumbnail/schema.json",
+            "batchImplementation": "./dist/src/executors/generate-chart-thumbnail/batch-executor",
+            "schema": "./src/executors/generate-chart-thumbnail/schema.json",
             "description": "generate-chart-thumbnail executor"
         }
     }
