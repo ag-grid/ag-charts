@@ -1,4 +1,4 @@
-import type { AgTooltipRendererResult, InteractionRange } from '../../options/agChartOptions';
+import type { AgTooltipRendererResult, InteractionRange, TextWrap } from '../../options/agChartOptions';
 import { BBox } from '../../scene/bbox';
 import { injectStyle } from '../../util/dom';
 import {
@@ -7,6 +7,7 @@ import {
     NUMBER,
     OPT_BOOLEAN,
     OPT_STRING,
+    TEXT_WRAP,
     Validate,
     predicateWithMessage,
 } from '../../util/validation';
@@ -22,12 +23,31 @@ const defaultTooltipCss = `
     position: fixed;
     left: 0px;
     top: 0px;
-    white-space: nowrap;
     z-index: 99999;
     font: 12px Verdana, sans-serif;
     color: rgb(70, 70, 70);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
-    white-space: pre-wrap;
+}
+
+.${DEFAULT_TOOLTIP_CLASS}-wrap-always {
+    overflow-wrap: break-word;
+    word-break: break-word;
+    hyphens: none;
+}
+
+.${DEFAULT_TOOLTIP_CLASS}-wrap-hyphenate {
+    overflow-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
+}
+
+.${DEFAULT_TOOLTIP_CLASS}-wrap-on-space {
+    overflow-wrap: normal;
+    word-break: normal;
+}
+
+.${DEFAULT_TOOLTIP_CLASS}-wrap-never {
+    white-space: pre;
 }
 
 .${DEFAULT_TOOLTIP_CLASS}-no-interaction {
@@ -208,6 +228,9 @@ export class Tooltip {
     @Validate(INTERACTION_RANGE)
     range: InteractionRange = 'nearest';
 
+    @Validate(TEXT_WRAP)
+    wrapping: TextWrap = 'hyphenate';
+
     private lastVisibilityChange: number = Date.now();
 
     readonly position: TooltipPosition = new TooltipPosition();
@@ -307,6 +330,24 @@ export class Tooltip {
             }
             this.lastClass = newClass;
         }
+
+        this.updateWrapping();
+    }
+
+    private updateWrapping() {
+        const { element, wrapping } = this;
+        const wrappingOptions: Record<TextWrap, boolean> = {
+            always: false,
+            hyphenate: false,
+            'on-space': false,
+            never: false,
+        };
+
+        wrappingOptions[wrapping] = true;
+
+        Object.entries(wrappingOptions).forEach(([name, force]) => {
+            element.classList.toggle(`${DEFAULT_TOOLTIP_CLASS}-wrap-${name}`, force);
+        });
     }
 
     private showTimeout: number = 0;
