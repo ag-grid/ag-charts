@@ -4,22 +4,16 @@ import { getEntry } from 'astro:content';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import { FRAMEWORKS } from '../constants';
 import { getFrameworkFromPath } from '@features/docs/utils/urlPaths';
-import { PagesNavigation } from '@components/pages-navigation/PagesNavigation';
+import { PagesNavigationFromLocalStorage } from '@components/pages-navigation/PagesNavigationFromLocalStorage';
 
-const framework = getFrameworkFromPath(Astro.url.pathname);
-const isDocsPage = FRAMEWORKS.includes(framework);
-
-const hidePageMenu = !isDocsPage;
 const menuEntry = await getEntry('menu', 'data');
 ---
 
-<Layout title="Page Not Found">
-    <div class:list={[hidePageMenu && 'noLeftMenu', 'contentViewport']}>
-        {
-            !hidePageMenu && (
-                <PagesNavigation client:load menuData={menuEntry.data} framework={framework} pageName={'404'} />
-            )
-        }
+<Layout title="AG Charts: Page Not Found">
+    <div class={'contentViewport'}>
+        <!-- NOTE: 404 is used for all paths, so will need to get framework from localstorage -->
+        <PagesNavigationFromLocalStorage client:only menuData={menuEntry.data} pageName={'404'} />
+
         <div id="doc-content" class:list={['docPage', 'noSideMenu']}>
             <h1>Page Not Found</h1>
             <p>
