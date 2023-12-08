@@ -16,7 +16,7 @@ const cleanJs = (content: string) =>
         .join('\n');
 
 export function loadExampleOptions(
-    agCharts: { AgCharts: {}; time: {}; Marker: new () => any },
+    agCharts: { AgCharts: {}; time: {}; Marker: {} },
     name: string,
     evalReturn = 'options',
     exampleRootDir = `${process.cwd()}/dist/packages/ag-charts-community-examples/src/`,
