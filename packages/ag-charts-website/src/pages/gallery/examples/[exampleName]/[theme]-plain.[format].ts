@@ -2,7 +2,7 @@ import { getGalleryExampleThemePages } from '@features/gallery/utils/pageData';
 import type { ThemeName } from '@stores/themeStore';
 import { getEntry } from 'astro:content';
 
-import { generateExample } from '../../../../utils/generateExample';
+import { getThumbnailContents } from '../../../../features/example-generator';
 
 export const prerender = true;
 const formats = ['png' as const, 'webp' as const];
@@ -26,5 +26,11 @@ export async function getStaticPaths() {
 }
 
 export async function get({ params }: { params: Params }) {
-    return await generateExample({ ...params });
+    return {
+        body: await getThumbnailContents({
+            type: 'gallery-thumbnail',
+            ...params,
+        }),
+        encoding: 'binary',
+    };
 }
