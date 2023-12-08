@@ -6,7 +6,8 @@
 
     height: 100%;
     container-type: inline-size;
-    border-radius: var(--radius-md);
+    border: 1px solid var(--example-border-color);
+    border-radius: $spacing-size-2;
     overflow: hidden;
 }
 
@@ -35,7 +36,7 @@
     gap: 0 $spacing-size-4;
     height: var(--mobile-header-height);
     padding: 0 $spacing-size-4;
-    border-bottom: 1px solid var(--color-border-secondary);
+    border-bottom: 1px solid var(--secondary-border-color);
     overflow-x: auto;
     overflow-y: hidden;
 
@@ -68,7 +69,7 @@
     overflow-y: auto;
     overflow-x: hidden;
     padding: $spacing-size-2 0 $spacing-size-2 $spacing-size-2;
-    color: var(--color-fg-secondary);
+    color: var(--secondary-text-color);
     box-shadow: inset -1px 0 0 0 var(--example-border-color);
 
     @container (width < 640px) {
@@ -79,8 +80,8 @@
         margin-top: 0;
         margin-bottom: 0;
         padding-left: $spacing-size-1 + 2px;
-        font-size: var(--text-fs-sm);
-        font-weight: var(--text-regular);
+        font-size: var(--font-size-small);
+        font-weight: var(--font-weight-normal);
 
         &:not(:first-child) {
             margin-top: $spacing-size-10;
@@ -93,8 +94,8 @@
 
     width: 100%;
     padding: 0 $spacing-size-4 2px $spacing-size-1;
-    font-size: var(--text-fs-sm);
-    font-weight: var(--text-bold);
+    font-size: var(--font-size-small);
+    font-weight: var(--font-weight-bold);
     overflow: hidden;
     text-overflow: ellipsis;
     border-top: 1px solid var(--file-border-color);

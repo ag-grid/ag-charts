@@ -20,14 +20,14 @@ tr#{$selector-exclude-grid} {
     border-top: 1px solid var(--color-border-primary);
 }
 
-th#{$selector-exclude-grid},
-td#{$selector-exclude-grid} {
+th#{$exclude-grid-selector},
+td#{$exclude-grid-selector} {
     padding: $spacing-size-2 $spacing-size-4;
     text-align: left;
 }
 
 table.small-header th {
-    font-weight: var(--text-regular);
+    font-weight: $font-weight-normal;
     padding-top: $spacing-size-1;
     padding-bottom: $spacing-size-1;
 }

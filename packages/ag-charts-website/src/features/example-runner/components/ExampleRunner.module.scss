@@ -32,8 +32,16 @@ iframe {
     font-weight: 500;
     border-radius: $spacing-size-2;
 
-    :global(.icon) {
-        --icon-size: #{$spacing-size-6};
+    svg {
+        --icon-size: #{$spacing-size-6} !important;
+
+        position: absolute;
+    }
+
+    #{$darkmode-selector} & {
+        --button-color: #202a34;
+        --button-hover-color: #2a343e;
+        --button-active-color: #293949;
     }
 }
 

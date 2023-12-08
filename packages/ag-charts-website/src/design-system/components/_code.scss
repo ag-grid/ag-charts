@@ -67,6 +67,7 @@ pre.code {
         --class-name-color: #2b91af;
         --property-color: #7ac1d1;
 
+        border-radius: $spacing-size-2;
         border: 1px solid rgb(255, 255, 255, 0.1);
     }
 }
@@ -77,8 +78,9 @@ pre.code > code {
     min-width: 100%;
     margin-bottom: -6px;
     padding: $vertical-padding $spacing-size-4;
-    font-size: 15px;
-    background-color: var(--color-bg-secondary);
+    font-size: 0.9375em;
+    background-color: var(--default-background-color);
+    background-image: linear-gradient(transparent 50%, var(--background-100) 50%);
     background-size: 3em 3em;
     background-origin: content-box;
     background-attachment: local;

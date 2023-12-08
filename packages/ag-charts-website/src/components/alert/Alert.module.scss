@@ -4,15 +4,15 @@
     --icon-size: 1.5rem;
 
     display: flex;
-    gap: $spacing-size-2;
+    gap: $spacing-size-4;
     align-items: center;
-    padding: $spacing-size-2 $spacing-size-2 $spacing-size-2 $spacing-size-3;
-    background-color: var(--color-util-brand-50);
-    border-radius: var(--radius-md);
-    border: 1px solid var(--color-util-brand-100);
-    color: var(--color-util-brand-700);
-    margin-top: $spacing-size-4;
-    margin-bottom: $spacing-size-4;
+    padding: $spacing-size-4;
+    background-color: var(--alert-background-color);
+    border-radius: 8px;
+    color: var(--text-color);
+
+    margin-top: $spacing-size-10 !important;
+    margin-bottom: $spacing-size-10;
 
     :global(.icon) {
         align-self: flex-start;

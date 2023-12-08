@@ -54,6 +54,7 @@
 .menu {
     padding-top: $spacing-size-8;
     padding-bottom: $spacing-size-24;
+    margin-right: 0 !important;
 
     h5 {
         text-transform: uppercase;
@@ -69,6 +70,27 @@
             margin-left: $spacing-size-1;
             padding-left: $spacing-size-1;
             border-left: none;
+        }
+    }
+}
+
+.enterpriseIcon {
+    --text-color: #dc3545;
+    --button-text-color: #dc3545;
+    position: relative;
+    margin-left: $spacing-size-1;
+    color: transparent;
+
+    svg {
+        --icon-size: 1.15em;
+
+        position: absolute;
+        left: 0;
+        margin: 0;
+        transform: translate(-0.05em, 0.175em);
+
+        .seriesTypesNav & {
+            transform: translate(-0.05em, 0.475em);
         }
     }
 }
@@ -91,7 +113,7 @@ button .menuIcon {
 a :global(.icon).menuIcon {
     --icon-size: 1.75em;
 
-    fill: var(--color-fg-secondary);
+    fill: var(--secondary-text-color);
     margin-bottom: $spacing-size-1;
     margin-right: $spacing-size-1;
     opacity: 0.75;

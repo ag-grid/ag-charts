@@ -16,14 +16,14 @@
     .header,
     .top {
         padding: $spacing-size-2 $spacing-size-4;
-        background-color: color-mix(in srgb, var(--color-bg-primary) var(--header-tint), var(--card-color));
+        background-color: color-mix(in srgb, var(--default-background-color) var(--header-tint), var(--card-color));
     }
 
     .content,
     .bottom {
         flex-grow: 1;
         padding: $spacing-size-4;
-        background-color: color-mix(in srgb, var(--color-bg-primary) var(--content-tint), var(--card-color));
+        background-color: color-mix(in srgb, var(--default-background-color) var(--content-tint), var(--card-color));
     }
 }
 
@@ -79,9 +79,8 @@
     position: relative;
     display: inline-block;
     padding: ($spacing-size-2 + $spacing-size-1) $spacing-size-1;
-    line-height: var(--text-lh-tight);
-    color: var(--color-fg-tertiary);
-    transition: color $transition-default-timing;
+    line-height: var(--line-height-tight);
+    transition: color $default-transition-timing;
     cursor: pointer;
 
     &:hover {
@@ -127,10 +126,11 @@
 
 .tabs-content {
     position: relative;
-    border-bottom-right-radius: var(--radius-sm);
-    border-bottom-left-radius: var(--radius-sm);
-    border-right: 1px solid var(--color-border-primary);
-    border-bottom: 1px solid var(--color-border-primary);
-    border-left: 1px solid var(--color-border-primary);
+    border-bottom-right-radius: var(--border-radius);
+    border-bottom-left-radius: var(--border-radius);
+    border-right: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    border-left: 1px solid var(--border-color);
     padding: $spacing-size-4;
+    padding-top: $spacing-size-6;
 }

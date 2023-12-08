@@ -78,3 +78,7 @@ ol:where(:not(:last-child)),
 blockquote:where(:not(:last-child)) {
     margin-bottom: $spacing-size-6;
 }
+
+.max-text-length {
+    max-width: 40em;
+}

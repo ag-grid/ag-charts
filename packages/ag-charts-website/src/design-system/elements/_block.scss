@@ -30,13 +30,16 @@ ol.list-style-none,
     }
 }
 
-pre#{$selector-exclude-grid} {
+pre#{$exclude-grid-selector} {
+    --font-family: #{$monospace-font-family};
+
+    background-color: var(--neutral-200);
     padding: $spacing-size-2 $spacing-size-4;
-    font-family: var(--text-monospace-font-family);
-    font-size: 15px;
-    border-radius: var(--radius-md);
-    border: 1px solid color-mix(in srgb, var(--color-border-secondary), var(--color-border-primary));
-    background-color: var(--color-bg-secondary);
+    border-radius: var(--border-radius);
+
+    #{$darkmode-selector} & {
+        background-color: var(--background-200);
+    }
 }
 
 hr#{$selector-exclude-grid} {

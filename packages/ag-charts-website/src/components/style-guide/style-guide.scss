@@ -1,0 +1,124 @@
+@use '../../design-system' as *;
+
+.style-guide {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    grid-template-areas:
+        'sidebar header'
+        'sidebar main';
+
+    > header {
+        grid-area: header;
+        margin-bottom: 2rem;
+    }
+
+    main {
+        grid-area: main;
+    }
+
+    main > section {
+        margin-bottom: 128px;
+
+        h2:first-child + .item-label {
+            margin-top: 0;
+        }
+    }
+
+    aside {
+        grid-area: sidebar;
+        position: fixed;
+        padding: $spacing-size-6 $spacing-size-6 $spacing-size-6 0;
+    }
+
+    .group-name:not(:first-child) {
+        margin-top: $spacing-size-4;
+    }
+
+    .grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: $spacing-size-12;
+    }
+
+    .input-group {
+        display: flex;
+        flex-direction: column;
+        gap: $spacing-size-4;
+    }
+
+    .item-label {
+        margin-top: $spacing-size-8;
+        margin-bottom: $spacing-size-1;
+
+        span {
+            text-transform: capitalize;
+        }
+
+        code {
+            margin-left: $spacing-size-1;
+            white-space: nowrap;
+        }
+    }
+
+    .text-elements-list,
+    .size-examples-list {
+        display: flex;
+        flex-wrap: wrap;
+
+        p,
+        > div {
+            min-width: 20%;
+        }
+    }
+
+    .size-examples-list {
+        margin-top: -$spacing-size-8;
+    }
+
+    .size-example {
+        height: $spacing-size-8;
+        width: var(--size-example-size);
+        background-color: var(--ag-grid-dark-blue);
+
+        &.size-half {
+            --size-example-size: #{$spacing-size-1};
+        }
+        &.size-1 {
+            --size-example-size: #{$spacing-size-2};
+        }
+        &.size-2 {
+            --size-example-size: #{$spacing-size-4};
+        }
+        &.size-3 {
+            --size-example-size: #{$spacing-size-6};
+        }
+        &.size-4 {
+            --size-example-size: #{$spacing-size-8};
+        }
+        &.size-5 {
+            --size-example-size: #{$spacing-size-10};
+        }
+        &.size-6 {
+            --size-example-size: #{$spacing-size-12};
+        }
+        &.size-7 {
+            --size-example-size: #{$spacing-size-16};
+        }
+        &.size-8 {
+            --size-example-size: #{$spacing-size-24};
+        }
+        &.size-9 {
+            --size-example-size: #{$size-9};
+        }
+        &.size-10 {
+            --size-example-size: #{$spacing-size-20};
+        }
+    }
+
+    .buttons-list > div {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: $spacing-size-2;
+    }
+}

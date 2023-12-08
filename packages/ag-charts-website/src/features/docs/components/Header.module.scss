@@ -5,7 +5,7 @@
 }
 
 .docsPageTitle {
-    margin-bottom: $spacing-size-2;
+    margin-bottom: $spacing-size-4;
 
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
         line-height: var(--text-lh-ultra-tight);

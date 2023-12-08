@@ -24,7 +24,7 @@
 
     display: flex;
     position: relative;
-    align-items: center;
+    justify-content: center;
     min-width: $spacing-size-12;
     padding: calc((var(--height) - var(--icon-size)) / 2) var(--x-padding);
     text-decoration: none;
@@ -142,8 +142,7 @@
     @media screen and (min-width: $breakpoint-fw-selector-full-width-large) {
         --height: #{$spacing-size-16};
         --icon-size: #{$spacing-size-10};
-
-        font-size: var(--text-fs-xl);
+        --font-size: var(--font-size-extra-large);
     }
 
     border: 1px solid transparent;
@@ -198,7 +197,6 @@
 
         span {
             margin-left: $spacing-size-2;
-            font-size: var(--text-fs-xl);
         }
     }
 }

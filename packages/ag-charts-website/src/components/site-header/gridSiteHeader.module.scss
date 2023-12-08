@@ -186,7 +186,7 @@
 
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
         position: unset;
-        width: unset;
+        width: unset !important;
         margin-left: $spacing-size-4;
         overflow: visible;
     }

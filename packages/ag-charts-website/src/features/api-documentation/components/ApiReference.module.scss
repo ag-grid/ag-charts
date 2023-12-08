@@ -28,7 +28,7 @@
 .propertyDescription {
     margin-top: -$spacing-size-2;
     margin-bottom: $spacing-size-6;
-    color: var(--color-fg-secondary);
+    color: var(--secondary-text-color);
 }
 
 .apiReference {
@@ -113,9 +113,9 @@
     display: inline-block;
     margin-top: $spacing-size-1;
     padding-right: $spacing-size-6;
-    font-family: var(--text-monospace-font-family);
-    font-size: var(--text-fs-lg);
-    font-weight: var(--text-bold);
+    font-family: var(--monospace-font-family);
+    font-size: var(--font-size-large);
+    font-weight: var(--font-weight-bold);
 
     @container (min-width: #{$breakpoint-table-small}) {
         font-size: var(--text-fs-base);

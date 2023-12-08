@@ -21,8 +21,8 @@ label#{$selector-exclude-grid} {
         display: block;
     }
 
-    + input#{$selector-exclude-grid},
-    + select#{$selector-exclude-grid} {
+    + input#{$exclude-grid-selector},
+    + select#{$exclude-grid-selector} {
         margin-left: $spacing-size-2;
     }
 
@@ -278,7 +278,7 @@ input[type='range']#{$selector-exclude-grid} {
 
     appearance: none;
     min-height: $spacing-size-6;
-    border-radius: var(--radius-sm);
+    border-radius: var(--border-radius);
     background-color: transparent;
     outline: none;
     border: 2px solid transparent;
@@ -362,11 +362,11 @@ input[type='range']#{$selector-exclude-grid} {
 
     .error {
         margin-top: $spacing-size-1;
-        color: var(--color-input-error);
+        color: var(--input-error-color);
     }
 }
 
 .extra-info {
     margin-top: $spacing-size-1;
-    color: var(--color-fg-secondary);
+    color: var(--secondary-text-color);
 }

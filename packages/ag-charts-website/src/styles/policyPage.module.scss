@@ -29,8 +29,8 @@
         }
 
         nav li:not(:last-child) {
-            margin-bottom: $spacing-size-2;
-            line-height: var(--text-lh-tight);
+            margin-bottom: $spacing-size-2 !important;
+            line-height: var(--line-height-tight);
         }
     }
 }

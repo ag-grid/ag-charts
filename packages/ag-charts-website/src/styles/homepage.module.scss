@@ -41,7 +41,14 @@
         text-align: unset;
     }
 
-    #{$selector-darkmode} & {
+    #{$darkmode-selector} & {
+        @media screen and (min-width: $breakpoint-hero-small) {
+            padding-top: $spacing-size-16;
+        }
+
+        @media screen and (min-width: $breakpoint-hero-large) {
+            padding-top: $spacing-size-24;
+        }
     }
 
     h1,
@@ -91,6 +98,21 @@
         &:hover :global(.icon) {
             transform: translateX(4px);
         }
+    }
+}
+
+.heroChart {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 320px;
+    border-radius: var(--border-radius);
+    margin-bottom: $spacing-size-12;
+    color: white;
+
+    @media screen and (min-width: $breakpoint-hero-large) {
+        aspect-ratio: 16/9;
+        height: 416px;
     }
 }
 
@@ -167,7 +189,7 @@
 }
 
 .homepageFrameworks {
-    background-color: var(--color-brand-100);
+    background-color: var(--bright-blue-gray);
     padding-top: $spacing-size-4;
     padding-bottom: $spacing-size-12;
 
@@ -294,16 +316,16 @@
 }
 
 .homepageBenefits {
-    background-color: var(--color-util-brand-50);
+    background-color: var(--background-200);
     padding-top: $spacing-size-16;
     padding-bottom: $spacing-size-24;
 
     border-bottom: 1px solid transparent;
 
-    #{$selector-darkmode} & {
+    #{$darkmode-selector} & {
         padding-top: $spacing-size-24;
-        background-color: var(--color-bg-primary);
-        border-bottom-color: var(--color-border-primary);
+        background-color: var(--default-background-color);
+        border-bottom-color: #394755;
     }
 }
 

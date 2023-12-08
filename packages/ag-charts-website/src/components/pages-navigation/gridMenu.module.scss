@@ -84,7 +84,7 @@ ul.menuInner {
     padding-bottom: $spacing-size-16;
 
     li {
-        margin-bottom: $spacing-size-1;
+        margin-bottom: $spacing-size-1 !important;
     }
 
     li li {
@@ -208,7 +208,7 @@ button:not([class^='ag-']).sectionHeader {
     padding-top: 3px;
     padding-bottom: 3px;
     padding-left: $spacing-size-4;
-    color: var(--color-fg-secondary);
+    color: var(--secondary-text-color);
     border-left: 1px solid transparent;
     outline: none;
     transition:
@@ -261,9 +261,9 @@ button:not([class^='ag-']).sectionHeader {
     padding-top: 5px;
     padding-bottom: 5px;
     padding-left: $spacing-size-4 + 2px;
-    border-left: 1px solid var(--color-border-primary);
-    color: var(--color-util-gray-400);
-    transition: color $transition-default-timing;
+    border-left: 1px solid var(--border-color);
+    color: var(--neutral-600);
+    transition: color $default-transition-timing;
 
     #{$selector-darkmode} & {
         color: var(--color-util-gray-500);

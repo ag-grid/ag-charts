@@ -1,0 +1,80 @@
+@use '../../design-system' as *;
+
+$colorFlowBreakpoint: 1050px;
+
+.colorSubsections {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-size-6;
+}
+
+.swatches {
+    display: flex;
+    flex-direction: column;
+
+    h4 {
+        margin-bottom: 0;
+    }
+
+    ul {
+        columns: 2;
+        margin-bottom: $spacing-size-8;
+    }
+
+    li {
+        break-inside: avoid;
+        margin-bottom: $spacing-size-4;
+    }
+}
+
+.swatch {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 0 $spacing-size-4;
+    margin-bottom: $spacing-size-2 !important;
+    grid-template-areas:
+        'color name'
+        'color sassName'
+        'color colorValue';
+}
+
+.color {
+    grid-area: color;
+    border-radius: var(--border-radius);
+}
+
+.lightColor {
+    border: 1px solid var(--border-color);
+}
+
+.name {
+    grid-area: name;
+    margin-top: -$spacing-size-1;
+    margin-bottom: $spacing-size-1 !important;
+    text-transform: capitalize;
+    font-size: var(--font-size-large);
+    font-weight: var(--font-weight-bold);
+}
+
+.cssName {
+    grid-area: sassName;
+    margin-bottom: $spacing-size-1;
+
+    code::before {
+        content: 'var(';
+    }
+
+    code::after {
+        content: ')';
+    }
+}
+
+.colorValue {
+    grid-area: colorValue;
+    font-size: var(--font-size-extra-small);
+    font-family: var(--monospace-font-family);
+
+    span {
+        opacity: calc(1 / 3);
+    }
+}
