@@ -36,7 +36,7 @@
     gap: 0 $spacing-size-4;
     height: var(--mobile-header-height);
     padding: 0 $spacing-size-4;
-    border-bottom: 1px solid var(--secondary-border-color);
+    border-bottom: 1px solid var(--color-border-secondary);
     overflow-x: auto;
     overflow-y: hidden;
 
@@ -69,7 +69,7 @@
     overflow-y: auto;
     overflow-x: hidden;
     padding: $spacing-size-2 0 $spacing-size-2 $spacing-size-2;
-    color: var(--secondary-text-color);
+    color: var(--color-fg-secondary);
     box-shadow: inset -1px 0 0 0 var(--example-border-color);
 
     @container (width < 640px) {
@@ -121,7 +121,8 @@
     &.isActive {
         --file-border-color: var(--color-border-primary);
 
-        color: var(--color-text-primary);
+        color: var(--text-color);
+        background-color: var(--color-bg-primary);
 
         #{$selector-darkmode} & {
             background-color: var(--color-bg-secondary);

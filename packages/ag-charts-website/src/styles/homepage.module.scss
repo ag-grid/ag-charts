@@ -225,8 +225,7 @@
     @media screen and (min-width: 1020px) {
         font-size: var(--text-fs-xl);
     }
-
-    #{$selector-darkmode} & {
+    #{$darkmode-selector} & {
         color: var(--color-fg-primary);
     }
 }
@@ -324,7 +323,7 @@
 
     #{$darkmode-selector} & {
         padding-top: $spacing-size-24;
-        background-color: var(--default-background-color);
+        background-color: var(--color-bg-primary);
         border-bottom-color: #394755;
     }
 }

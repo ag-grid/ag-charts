@@ -5,6 +5,10 @@ table#{$selector-exclude-grid} {
     margin-bottom: $spacing-size-4;
     border-collapse: collapse;
     border-bottom: 1px solid var(--color-border-primary);
+
+    #{$darkmode-selector} & {
+        border-color: #394755;
+    }
 }
 
 thead#{$selector-exclude-grid},
@@ -16,8 +20,12 @@ tbody#{$selector-exclude-grid} {
     vertical-align: top;
 }
 
-tr#{$selector-exclude-grid} {
+tr#{$exclude-grid-selector} {
     border-top: 1px solid var(--color-border-primary);
+
+    #{$darkmode-selector} & {
+        border-top-color: #394755;
+    }
 }
 
 th#{$exclude-grid-selector},

@@ -13,10 +13,10 @@ html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 
-    font-family: var(--text-font-family);
-    font-size: var(--text-fs-base);
-    line-height: var(--text-lh-base);
-    font-weight: var(--text-regular);
+    font-family: var(--font-family);
+    font-size: var(--font-size);
+    line-height: var(--line-height);
+    font-weight: var(--font-weight);
     background-color: var(--color-bg-primary);
     color: var(--color-fg-primary);
     scroll-padding-top: var(--scroll-offset);
@@ -25,7 +25,71 @@ html {
         --header-nav-height: 59px;
     }
 
-    #{$selector-darkmode} & {
-        color-scheme: dark;
+#{$darkmode-selector} {
+    #doc-content a {
+        color: #3893f9;
+    }
+
+    nav::-webkit-scrollbar {
+        background-color: var(--background-100);
+    }
+
+    nav::-webkit-scrollbar-thumb {
+        background-color: #354856;
+        border-radius: 10px;
+        border: 4px solid #0a161f;
+    }
+}
+
+#{$darkmode-selector} {
+    #doc-content a:not(.button) {
+        color: #3893f9;
+    }
+
+    #doc-content h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        color: var(--color-fg-primary);
+    }
+
+    #doc-content {
+        color: #c3cad3;
+    }
+
+    #doc-content a:hover {
+        color: var(--link-hover-color);
+    }
+}
+
+html#{$darkmode-selector} {
+    color-scheme: dark;
+}
+
+#{$darkmode-selector} {
+    #doc-content a {
+        color: #3893f9;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+        text-decoration-color: #3892f977;
+    }
+
+    #doc-content a:hover {
+        color: #3893f9;
+        text-decoration-color: #60aafe;
+    }
+
+    aside::-webkit-scrollbar,
+    .menu::-webkit-scrollbar {
+        background-color: var(--dark-bg-new);
+    }
+
+    aside::-webkit-scrollbar-thumb,
+    .menu::-webkit-scrollbar-thumb {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        border: 4px solid var(--dark-bg-new);
     }
 }

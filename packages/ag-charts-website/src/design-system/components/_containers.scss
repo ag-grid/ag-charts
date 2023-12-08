@@ -16,14 +16,14 @@
     .header,
     .top {
         padding: $spacing-size-2 $spacing-size-4;
-        background-color: color-mix(in srgb, var(--default-background-color) var(--header-tint), var(--card-color));
+        background-color: color-mix(in srgb, var(--color-bg-primary) var(--header-tint), var(--card-color));
     }
 
     .content,
     .bottom {
         flex-grow: 1;
         padding: $spacing-size-4;
-        background-color: color-mix(in srgb, var(--default-background-color) var(--content-tint), var(--card-color));
+        background-color: color-mix(in srgb, var(--color-bg-primary) var(--content-tint), var(--card-color));
     }
 }
 
@@ -33,8 +33,8 @@
         display: flex;
         gap: 0 $spacing-size-8;
         width: 100%;
-        border-top-right-radius: var(--radius-sm);
-        border-top-left-radius: var(--radius-sm);
+        border-top-right-radius: var(--border-radius);
+        border-top-left-radius: var(--border-radius);
         border-top: 1px solid var(--color-border-primary);
         border-right: 1px solid var(--color-border-primary);
         border-left: 1px solid var(--color-border-primary);
@@ -76,6 +76,8 @@
 }
 
 .tabs-nav-link {
+    --button-text-color: var(--color-fg-secondary);
+
     position: relative;
     display: inline-block;
     padding: ($spacing-size-2 + $spacing-size-1) $spacing-size-1;
@@ -128,9 +130,9 @@
     position: relative;
     border-bottom-right-radius: var(--border-radius);
     border-bottom-left-radius: var(--border-radius);
-    border-right: 1px solid var(--border-color);
-    border-bottom: 1px solid var(--border-color);
-    border-left: 1px solid var(--border-color);
+    border-right: 1px solid var(--color-border-primary);
+    border-bottom: 1px solid var(--color-border-primary);
+    border-left: 1px solid var(--color-border-primary);
     padding: $spacing-size-4;
     padding-top: $spacing-size-6;
 }

@@ -110,12 +110,17 @@ input[type='submit']#{$selector-exclude-grid},
     --button-color: var(--input-background-color);
     --button-hover-color: var(--input-background-color);
     --button-active-color: var(--input-background-color);
-    --button-text-color: var(--default-text-color);
+    --button-text-color: var(--color-fg-primary);
     --button-focus-box-shadow-color: var(--input-focus-box-shadow-color);
 
-    &:hover,
-    &.hover {
-        background-color: var(--color-button-tertiary-bg-hover);
+    border: 2px solid var(--color-border-primary);
+    transition:
+        border-color $default-transition-timing,
+        box-shadow $default-transition-timing;
+
+    &:hover:not(:disabled):not([readonly]),
+    &:focus-visible:not(:disabled):not([readonly]) {
+        border-color: var(--input-focus-border-color);
     }
 
     &:active {
@@ -138,6 +143,8 @@ input[type='submit']#{$selector-exclude-grid},
 
 .button-style-none,
 .button-as-link {
+    --button-text-color: var(--color-fg-primary);
+
     appearance: none;
     padding: 0;
     text-align: left;

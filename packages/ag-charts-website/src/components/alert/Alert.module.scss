@@ -30,6 +30,34 @@
         padding-top: 0.075em;
         padding-bottom: 0.25em;
     }
+
+    #{$darkmode-selector} & {
+        --alert-background-color: #121f29;
+
+        color: #c3cad3;
+
+        border: 1px solid rgb(255, 255, 255, 0.15);
+
+        :global(.icon) {
+            opacity: 0.6;
+        }
+
+        a {
+            -webkit-font-smoothing: subpixel-antialiased;
+        }
+    }
+}
+
+.alert.info {
+    --text-color: var(--dark-blue-300);
+
+    #{$darkmode-selector} & {
+        --text-color: var(--color-fg-primary);
+
+        :global(.icon) {
+            --text-color: var(--color-fg-primary);
+        }
+    }
 }
 
 .alert.idea {
@@ -46,6 +74,15 @@
     border: 1px solid rgba(209, 142, 0, 0.3);
 
     :global(.icon) {
-        fill: var(--color-util-warning-700);
+        --text-color: #f4c000;
+    }
+
+    #{$darkmode-selector} & {
+        --alert-background-color: #262119;
+        --text-color: var(--color-fg-primary);
+
+        p {
+            color: rgb(255, 249, 235);
+        }
     }
 }

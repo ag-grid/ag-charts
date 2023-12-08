@@ -8,8 +8,57 @@
     border-radius: 8px;
     border: 1px solid var(--color-border-primary);
 
-    #{$selector-darkmode} & {
-        background: var(--color-bg-secondary);
+    #{$darkmode-selector} & {
+        background: #122835;
+        border: 1px solid #394755;
+    }
+
+    header {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+
+        b {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--color-fg-primary);
+        }
+
+        span {
+            font-size: 1rem;
+            color: var(--secondary-text);
+            opacity: 0.7;
+
+            #{$darkmode-selector} & {
+                color: #c3cad3;
+                opacity: 1;
+            }
+        }
+
+        a {
+            text-decoration: none;
+            color: var(--link-color);
+            font-size: 1rem;
+
+            #{$darkmode-selector} & {
+                color: rgb(56, 147, 249);
+            }
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+    }
+
+    p {
+        margin-top: 8px;
+        margin-bottom: 4px;
+        font-size: 1rem;
+        color: var(--text-color);
+
+        #{$darkmode-selector} & {
+            color: #c3cad3;
+        }
     }
 
     ul {
@@ -42,9 +91,42 @@
 }
 
 .line {
-    margin-top: $spacing-size-2;
-    margin-bottom: $spacing-size-2;
     border-bottom: 1px solid var(--color-border-primary);
+
+    #{$darkmode-selector} & {
+        border-bottom: 1px solid #394755;
+    }
+}
+
+.topheader {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.changelog {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+
+    #{$darkmode-selector} & {
+        background: #2a343e;
+    }
+}
+
+.bloglink {
+    width: 100%;
+    display: flex;
+    justify-content: left;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    font-size: 17px;
+
+    color: var(--link-color);
+
+    #{$darkmode-selector} & {
+        color: #c3cad3 !important;
+    }
 }
 
 .flex {

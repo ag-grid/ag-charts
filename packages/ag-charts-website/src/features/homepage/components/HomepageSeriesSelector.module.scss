@@ -17,7 +17,7 @@
     align-items: center;
     aspect-ratio: 4 / 3;
     border-radius: var(--border-radius);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--color-border-primary);
 
     #{$darkmode-selector} & {
         border: 1px solid rgba(255, 255, 255, 0.1);

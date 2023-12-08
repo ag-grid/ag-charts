@@ -36,7 +36,7 @@
     display: flex;
     flex-direction: column;
     padding: $spacing-size-2 0 $spacing-size-4;
-    border-top: 1px solid var(--border-color);
+    border-top: 1px solid var(--color-border-primary);
     gap: $spacing-size-2;
 
     &:last-child {
@@ -126,7 +126,7 @@
 
 .prefix {
     color: var(--color-fg-secondary);
-    font-weight: var(--text-regular);
+    font-weight: var(--font-weight-normal);
 }
 
 .metaList {
@@ -153,7 +153,7 @@ body ul.metaList {
 }
 
 .metaLabel {
-    font-size: var(--text-fs-xs);
+    font-size: var(--font-size-extra-small);
     color: var(--color-fg-secondary);
 }
 

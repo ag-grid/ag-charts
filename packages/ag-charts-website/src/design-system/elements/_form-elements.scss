@@ -41,13 +41,12 @@ input#{$selector-exclude-grid} {
     font-size: var(--text-fs-base);
 }
 
-input[type='text']#{$selector-exclude-grid},
-input[type='search']#{$selector-exclude-grid},
-input[type='email']#{$selector-exclude-grid},
-input[type='checkbox']#{$selector-exclude-grid},
-input[type='radio']#{$selector-exclude-grid},
-input[type='number']#{$selector-exclude-grid},
-select#{$selector-exclude-grid} {
+input[type='text']#{$exclude-grid-selector},
+input[type='search']#{$exclude-grid-selector},
+input[type='email']#{$exclude-grid-selector},
+input[type='checkbox']#{$exclude-grid-selector},
+input[type='number']#{$exclude-grid-selector},
+select#{$exclude-grid-selector} {
     color: var(--color-fg-primary);
 
     &:disabled,
@@ -232,17 +231,9 @@ select#{$selector-exclude-grid} {
         box-shadow: 0 0 0 $spacing-size-1 var(--color-input-shadow-focus);
     }
 
-    &:disabled,
-    &[disabled],
-    &.disabled {
-        --svg-chevron-down: url('data:image/svg+xml;utf8,<svg fill="none" stroke="%23667085" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M6 9L12 15L18 9"/></svg>');
-
+    &:invalid,
+    &[disabled] {
         color: var(--color-fg-secondary);
-        pointer-events: none;
-
-        #{$selector-darkmode} & {
-            --svg-chevron-down: url('data:image/svg+xml;utf8,<svg fill="none" stroke="%2398a2b3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M6 9L12 15L18 9"/></svg>');
-        }
     }
 
     &:hover:not(:disabled):not([readonly]),
@@ -356,7 +347,7 @@ input[type='range']#{$selector-exclude-grid} {
 
     input,
     select {
-        --border-color: var(--input-error-color);
+        --color-border-primary: var(--input-error-color);
         --color-input-border-hover: var(--input-error-color);
     }
 
@@ -368,5 +359,5 @@ input[type='range']#{$selector-exclude-grid} {
 
 .extra-info {
     margin-top: $spacing-size-1;
-    color: var(--secondary-text-color);
+    color: var(--color-fg-secondary);
 }

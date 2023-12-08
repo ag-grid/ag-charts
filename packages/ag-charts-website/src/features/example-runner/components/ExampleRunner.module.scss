@@ -5,7 +5,7 @@
 
     margin-bottom: $spacing-size-4;
 
-    #{$selector-darkmode} & {
+    #{$darkmode-selector} & {
         --example-border-color: color-mix(in srgb, var(--color-bg-primary), white 10%);
     }
 }
@@ -62,7 +62,7 @@ iframe {
     }
 
     svg {
-        --color-icon: var(--color-fg-secondary);
+        --text-color: var(--color-fg-secondary);
 
         opacity: 0.5;
         transition: opacity $transition-default-timing;

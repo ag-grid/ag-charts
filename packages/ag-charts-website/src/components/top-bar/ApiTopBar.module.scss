@@ -17,9 +17,9 @@
         }
     }
 
-    #{$selector-darkmode} & {
+    #{$darkmode-selector} & {
         background: var(--color-bg-primary);
-        border-bottom: 0.5px solid var(--color-border-primary);
+        border-bottom: 0.5px solid #394755;
     }
 }
 
@@ -70,7 +70,7 @@
         display: block;
         font-weight: 500;
 
-        #{$selector-darkmode} & {
+        #{$darkmode-selector} & {
             color: var(--color-fg-primary);
         }
 

@@ -32,7 +32,7 @@
 
     td[data-column]::before {
         content: attr(data-column) ': ';
-        font-weight: var(--text-regular);
+        font-weight: var(--font-weight-normal);
         color: var(--color-fg-secondary);
     }
 }
