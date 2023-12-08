@@ -20,6 +20,8 @@ const defaultTooltipCss = `
 .${DEFAULT_TOOLTIP_CLASS} {
     transition: transform 0.1s ease;
     display: table;
+    table-layout: fixed;
+    width:100%;
     position: fixed;
     left: 0px;
     top: 0px;
@@ -27,6 +29,7 @@ const defaultTooltipCss = `
     font: 12px Verdana, sans-serif;
     color: rgb(70, 70, 70);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
 }
 
 .${DEFAULT_TOOLTIP_CLASS}-wrap-always {
@@ -48,6 +51,7 @@ const defaultTooltipCss = `
 
 .${DEFAULT_TOOLTIP_CLASS}-wrap-never {
     white-space: pre;
+    text-overflow: ellipsis;
 }
 
 .${DEFAULT_TOOLTIP_CLASS}-no-interaction {
@@ -71,6 +75,7 @@ const defaultTooltipCss = `
     color: white;
     background-color: #888888;
     z-index: 1;
+    text-overflow: inherit;
 }
 
 .${DEFAULT_TOOLTIP_CLASS}-title:only-child {
@@ -86,6 +91,7 @@ const defaultTooltipCss = `
     border-bottom-right-radius: 2px;
     border: 1px solid rgba(0, 0, 0, 0.15);
     overflow: hidden;
+    text-overflow: inherit;
 }
 
 .${DEFAULT_TOOLTIP_CLASS}-arrow::before {
