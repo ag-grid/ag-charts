@@ -7,7 +7,7 @@
     "new-version": "./tools/bump-versions.sh",
     "package": "nx pack --prod && nx pack:verify --prod",
     "clean": "rimraf dist/ packages/*/dist packages/*/lib",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package && nx build ag-charts-build-tools"
   },
   "private": true,
   "dependencies": {

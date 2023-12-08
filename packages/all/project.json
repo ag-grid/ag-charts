@@ -94,7 +94,8 @@
     "ag-charts-react",
     "ag-charts-vue",
     "ag-charts-vue3",
-    "ag-charts-build-tools"
+    "ag-charts-build-tools",
+    "ag-charts-test"
   ],
   "tags": []
 }

@@ -7,8 +7,9 @@
     "build": {
       "executor": "@nx/js:tsc",
       "outputs": ["{options.outputPath}"],
+      "dependsOn": ["ag-charts-community:build:package", "ag-charts-enterprise:build:package"],
       "options": {
-        "outputPath": "dist/plugins/ag-charts-build-tools",
+        "outputPath": "plugins/ag-charts-build-tools/dist",
         "main": "plugins/ag-charts-build-tools/src/index.ts",
         "tsConfig": "plugins/ag-charts-build-tools/tsconfig.lib.json",
         "assets": [
