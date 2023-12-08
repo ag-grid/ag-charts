@@ -115,8 +115,8 @@ input[type='submit']#{$selector-exclude-grid},
 
     border: 2px solid var(--color-border-primary);
     transition:
-        border-color $default-transition-timing,
-        box-shadow $default-transition-timing;
+        border-color $transition-default-timing,
+        box-shadow $transition-default-timing;
 
     &:hover:not(:disabled):not([readonly]),
     &:focus-visible:not(:disabled):not([readonly]) {
@@ -175,7 +175,7 @@ input[type='submit']#{$selector-exclude-grid},
     color: var(--color-link);
     transition: color $transition-default-timing;
 
-    transition: color $default-transition-timing;
+    transition: color $transition-default-timing;
 
     &:hover,
     &.hover {

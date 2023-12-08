@@ -83,7 +83,7 @@
 
     display: inline-block;
     padding: 0;
-    color: var(--color-util-gray-400);
+    color: var(--neutral-600);
     transition: color $transition-default-timing;
 
     #{$selector-darkmode} & {

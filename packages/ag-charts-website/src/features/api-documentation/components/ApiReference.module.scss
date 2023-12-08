@@ -113,7 +113,7 @@
     display: inline-block;
     margin-top: $spacing-size-1;
     padding-right: $spacing-size-6;
-    font-family: var(--monospace-font-family);
+    font-family: var(--text-monospace-font-family);
     font-size: var(--font-size-large);
     font-weight: var(--text-bold);
 
@@ -158,9 +158,9 @@
 }
 
 .metaValue {
-    font-size: var(--text-fs-sm);
+    font-size: var(--font-size-small);
     font-family: var(--text-monospace-font-family);
-    color: var(--color-fg-code);
+    color: var(--code-text-color);
 
     #{$selector-darkmode} & {
         font-weight: 600;
@@ -194,7 +194,6 @@
     --color-icon: var(--color-link);
 
     min-width: 10.5ch;
-    color: var(--color-link);
     transition: color $transition-default-timing;
 
     &:hover {

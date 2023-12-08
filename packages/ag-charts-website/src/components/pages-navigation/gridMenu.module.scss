@@ -120,7 +120,11 @@ button:not([class^='ag-']).sectionHeader {
     transition:
         color $transition-default-timing,
         border-color $transition-default-timing;
-    border-radius: var(--radius-sm);
+    border-radius: var(--border-radius);
+
+    &:hover {
+        --text-color: var(--link-color);
+    }
 
     &:focus-visible {
         border-color: var(--color-button-primary-shadow-focus);
@@ -263,7 +267,7 @@ button:not([class^='ag-']).sectionHeader {
     padding-left: $spacing-size-4 + 2px;
     border-left: 1px solid var(--color-border-primary);
     color: var(--neutral-600);
-    transition: color $default-transition-timing;
+    transition: color $transition-default-timing;
 
     #{$selector-darkmode} & {
         color: var(--color-util-gray-500);

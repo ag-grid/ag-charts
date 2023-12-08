@@ -82,7 +82,7 @@
     display: inline-block;
     padding: ($spacing-size-2 + $spacing-size-1) $spacing-size-1;
     line-height: var(--line-height-tight);
-    transition: color $default-transition-timing;
+    transition: color $transition-default-timing;
     cursor: pointer;
 
     &:hover {

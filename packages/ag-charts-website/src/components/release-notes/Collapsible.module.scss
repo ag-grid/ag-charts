@@ -9,7 +9,7 @@
     padding: $spacing-size-2 $spacing-size-2 $spacing-size-2 $spacing-size-4;
     text-align: left;
     font-weight: var(--text-bold);
-    transition: color $default-transition-timing !important;
+    transition: color $transition-default-timing !important;
 
     &:hover {
         color: var(--color-link-hover);
@@ -90,12 +90,12 @@
     background-image: linear-gradient(transparent, var(--color-bg-primary) 75%);
     border-radius: var(--border-radius);
     color: var(--link-color);
-    transition: color $default-transition-timing;
+    transition: color $transition-default-timing;
 
     svg {
         --icon-size: 1em;
 
-        fill: var(--color-link);
+        fill: var(--link-color);
         transition: fill $transition-default-timing;
     }
 

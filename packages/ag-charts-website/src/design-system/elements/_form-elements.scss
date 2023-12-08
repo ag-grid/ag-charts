@@ -71,8 +71,8 @@ input[type='number'] {
             0 0 0 $spacing-size-1 transparent,
             var(--shadow-xs);
         transition:
-            border-color $default-transition-timing,
-            box-shadow $default-transition-timing;
+            border-color $transition-default-timing,
+            box-shadow $transition-default-timing;
 
         &::placeholder {
             color: var(--color-fg-placeholder);
@@ -185,7 +185,6 @@ input[type='radio']#{$selector-exclude-grid} {
     border: 1px solid var(--color-border-primary);
     transition:
         background-color $transition-default-timing,
-        border-color $transition-default-timing,
         box-shadow $transition-default-timing;
 
     &:hover:not(:disabled):not([readonly]),
@@ -220,7 +219,6 @@ select#{$selector-exclude-grid} {
     transition:
         border-color $transition-default-timing,
         box-shadow $transition-default-timing;
-    cursor: pointer;
 
     #{$darkmode-selector} & {
         border: 1px solid var(--color-input-border);
@@ -263,7 +261,7 @@ input[type='range']#{$selector-exclude-grid} {
         margin-top: math.div(-6em, 16);
         border-radius: 50%;
         border: none;
-        background-color: var(--color-input-bg-checked);
+        background-color: var(--input-primary-color);
         transition: background-color $transition-default-timing;
     }
 

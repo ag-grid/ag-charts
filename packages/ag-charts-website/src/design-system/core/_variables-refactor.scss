@@ -22,6 +22,8 @@ $spacing-size-48: 192px;
 $spacing-size-56: 224px;
 $spacing-size-64: 256px;
 
+$transition-default-timing: 0.25s ease-in-out;
+
 :root {
     // Layout
     --layout-gap: 32px;
@@ -68,6 +70,9 @@ $spacing-size-64: 256px;
     // Typography
     --text-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
         'Liberation Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+
+    --text-monospace-font-family: ui-monospace, Menlo, Monaco, 'Cascadia Mono', 'Segoe UI Mono', 'Roboto Mono',
+        'Oxygen Mono', 'Ubuntu Monospace', 'Source Code Pro', 'Fira Mono', 'Droid Sans Mono', 'Courier New', monospace;
 
     --text-regular: 400;
     --text-semibold: 600;
