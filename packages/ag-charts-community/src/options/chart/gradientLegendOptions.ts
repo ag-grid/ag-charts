@@ -32,13 +32,13 @@ export interface AgGradientLegendOptions {
     /** The spacing in pixels to use outside the legend. */
     spacing?: PixelSize;
     /**
-     * @deprecated
+     * @deprecated Use `scale` instead.
      * Configuration for the legend gradient stops that consist of a color and a label.
-     * */
+     */
     stop?: AgGradientLegendStopOptions;
     /** Reverse the display order of legend items if `true`. */
     reverseOrder?: boolean;
-    /** Axis */
+    /** Options for the numbers that appear below or to the side of the gradient. */
     scale?: AgGradientLegendScaleOptions;
 }
 

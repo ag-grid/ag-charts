@@ -9,10 +9,22 @@ import {
     _Util,
 } from 'ag-charts-community';
 
-const { AND, BOOLEAN, Layers, NUMBER, OPT_BOOLEAN, POSITION, Validate, Default, GREATER_THAN, NUMBER_OR_NAN } =
-    _ModuleSupport;
+const {
+    AND,
+    BOOLEAN,
+    Layers,
+    NUMBER,
+    OPT_BOOLEAN,
+    POSITION,
+    Validate,
+    Default,
+    GREATER_THAN,
+    NUMBER_OR_NAN,
+    DeprecatedAndRenamedTo,
+    ProxyProperty,
+} = _ModuleSupport;
 const { BBox, Group, Rect, LinearGradientFill, Triangle } = _Scene;
-const { createId, Logger, DeprecatedAndRenamedTo } = _Util;
+const { createId, Logger } = _Util;
 
 class GradientBar {
     @Validate(NUMBER(0))
@@ -24,8 +36,7 @@ class GradientBar {
 
 class GradientLegendAxisTick extends _ModuleSupport.AxisTick<_Scale.LinearScale, number> {
     override enabled = false;
-    // TODO: Set tickSize to zero when tick.enabled = false in axis.ts
-    // https://ag-grid.atlassian.net/browse/AG-10059
+    // @todo(AG-10059): Set tickSize to zero when tick.enabled = false
     override size = 0;
 
     @Validate(AND(NUMBER_OR_NAN(1), GREATER_THAN('minSpacing')))
@@ -67,82 +78,51 @@ class GradientLegendAxis extends _ModuleSupport.CartesianAxis<_Scale.LinearScale
 }
 
 class GradientLegendInterval implements AgGradientLegendIntervalOptions {
-    constructor(private tick: GradientLegendAxisTick) {}
+    tick: GradientLegendAxisTick;
 
-    get enabled() {
-        return this.tick.enabled;
-    }
-    set enabled(value) {
-        this.tick.enabled = value;
+    constructor(tick: GradientLegendAxisTick) {
+        this.tick = tick;
     }
 
-    get width() {
-        return this.tick.width;
-    }
-    set width(value) {
-        this.tick.width = value;
-    }
+    @ProxyProperty('tick', 'enabled')
+    enabled?: boolean;
 
-    get size() {
-        return this.tick.size;
-    }
-    set size(value) {
-        this.tick.size = value;
-    }
+    @ProxyProperty('tick', 'width')
+    width?: GradientLegendAxisTick['width'];
 
-    get color() {
-        return this.tick.color;
-    }
-    set color(value) {
-        this.tick.color = value;
-    }
+    @ProxyProperty('tick', 'size')
+    size?: GradientLegendAxisTick['size'];
 
-    get values() {
-        return this.tick.values;
-    }
-    set values(value) {
-        this.tick.values = value;
-    }
+    @ProxyProperty('tick', 'color')
+    color?: GradientLegendAxisTick['color'];
 
-    get minSpacing() {
-        return this.tick.minSpacing;
-    }
-    set minSpacing(value) {
-        this.tick.minSpacing = value;
-    }
+    @ProxyProperty('tick', 'values')
+    values?: GradientLegendAxisTick['values'];
 
-    get maxSpacing() {
-        return this.tick.maxSpacing;
-    }
-    set maxSpacing(value) {
-        this.tick.maxSpacing = value;
-    }
+    @ProxyProperty('tick', 'minSpacing')
+    minSpacing?: GradientLegendAxisTick['minSpacing'];
 
-    get step() {
-        return this.tick.interval;
-    }
-    set step(value) {
-        this.tick.interval = value;
-    }
+    @ProxyProperty('tick', 'maxSpacing')
+    maxSpacing?: GradientLegendAxisTick['maxSpacing'];
+
+    @ProxyProperty('tick', 'interval')
+    step?: GradientLegendAxisTick['interval'];
 }
 
 class GradientLegendScale implements AgGradientLegendScaleOptions {
+    axis: GradientLegendAxis;
     interval: GradientLegendInterval;
 
-    constructor(private axis: GradientLegendAxis) {
+    constructor(axis: GradientLegendAxis) {
+        this.axis = axis;
         this.interval = new GradientLegendInterval(axis.tick as GradientLegendAxisTick);
     }
 
-    get label() {
-        return this.axis.label;
-    }
+    @ProxyProperty('axis', 'label')
+    label?: GradientLegendAxis['label'];
 
-    get padding() {
-        return this.axis.seriesAreaPadding;
-    }
-    set padding(value) {
-        this.axis.seriesAreaPadding = value;
-    }
+    @ProxyProperty('axis', 'seriesAreaPadding')
+    padding?: GradientLegendAxis['seriesAreaPadding'];
 }
 
 export class GradientLegend {

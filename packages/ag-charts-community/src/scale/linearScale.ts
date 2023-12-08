@@ -56,7 +56,7 @@ export class LinearScale extends ContinuousScale<number> {
     protected updateNiceDomain() {
         const count = this.tickCount ?? ContinuousScale.defaultTickCount;
         if (count < 1) {
-            this.niceDomain = this.domain;
+            this.niceDomain = [...this.domain];
             return;
         }
 

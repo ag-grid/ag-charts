@@ -5,7 +5,6 @@ export * from './util/json';
 export * from './util/angle';
 export * from './util/zip';
 export * from './util/number';
-export * from './util/deprecation';
 
 export { extent, normalisedExtent, normalisedExtentWithMetadata } from './util/array';
 export { toFixed, isEqual as isNumberEqual } from './util/number';
