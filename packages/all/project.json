@@ -81,11 +81,10 @@
       }
     },
     "blt": {
-      "executor": "nx:noop",
-      "dependsOn": ["build", "lint", "format-check", "test"],
-      "configurations": {
-        "update": {},
-        "production": {}
+      "executor": "nx:run-commands",
+      "dependsOn": ["build", "lint", "format-check"],
+      "options": {
+        "commands": ["nx run-many -t test --parallel 1"]
       }
     },
     "clean": { "command": "rimraf dist/ 'packages/*/dist/'" }

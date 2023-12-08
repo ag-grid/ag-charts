@@ -1,0 +1,242 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`transformPlainEntryFile Adjust padding 1`] = `
+"const options = {
+  seriesArea: { padding: { left: 40 } },
+
+  legend: {
+    enabled: false
+  },
+
+  gradientLegend: {
+    enabled: false
+  },
+
+  theme: {
+    baseTheme: "ag-default",
+
+    overrides: {
+      common: {
+        axes: {
+          category: {
+            label: {
+              autoRotate: false,
+              minSpacing: 20
+            }
+          }
+        }
+      }
+    }
+  },
+
+  padding: {
+    top: 10,
+    right: 20,
+    bottom: 10,
+    left: 20
+  }
+};
+const chart = agCharts.AgCharts.create(options);"
+`;
+
+exports[`transformPlainEntryFile Remove axes titles 1`] = `
+"const options = {
+  axes: [
+    {
+      type: 'category',
+      position: 'bottom',
+      title: {
+        enabled: false
+      }
+    },
+    {
+      type: 'number',
+      position: 'left',
+      title: {
+        enabled: false
+      }
+    }
+  ],
+
+  legend: {
+    enabled: false
+  },
+
+  gradientLegend: {
+    enabled: false
+  },
+
+  theme: {
+    baseTheme: "ag-default",
+
+    overrides: {
+      common: {
+        axes: {
+          category: {
+            label: {
+              autoRotate: false,
+              minSpacing: 20
+            }
+          }
+        }
+      }
+    }
+  },
+
+  padding: {
+    top: 10,
+    right: 20,
+    bottom: 10,
+    left: 20
+  }
+};
+const chart = agCharts.AgCharts.create(options);"
+`;
+
+exports[`transformPlainEntryFile default entry file 1`] = `
+"const options = {
+  legend: {
+    enabled: false
+  },
+
+  gradientLegend: {
+    enabled: false
+  },
+
+  theme: {
+    baseTheme: "ag-default",
+
+    overrides: {
+      common: {
+        axes: {
+          category: {
+            label: {
+              autoRotate: false,
+              minSpacing: 20
+            }
+          }
+        }
+      }
+    }
+  },
+
+  padding: {
+    top: 10,
+    right: 20,
+    bottom: 10,
+    left: 20
+  }
+};
+const chart = agCharts.AgCharts.create(options);"
+`;
+
+exports[`transformPlainEntryFile disable legend 1`] = `
+"const options = {
+  legend: {
+    enabled: false
+  },
+
+  gradientLegend: {
+    enabled: false
+  },
+
+  theme: {
+    baseTheme: "ag-default",
+
+    overrides: {
+      common: {
+        axes: {
+          category: {
+            label: {
+              autoRotate: false,
+              minSpacing: 20
+            }
+          }
+        }
+      }
+    }
+  },
+
+  padding: {
+    top: 10,
+    right: 20,
+    bottom: 10,
+    left: 20
+  }
+};
+const chart = agCharts.AgCharts.create(options);"
+`;
+
+exports[`transformPlainEntryFile remove footnote 1`] = `
+"const options = {
+  legend: {
+    enabled: false
+  },
+
+  gradientLegend: {
+    enabled: false
+  },
+
+  theme: {
+    baseTheme: "ag-default",
+
+    overrides: {
+      common: {
+        axes: {
+          category: {
+            label: {
+              autoRotate: false,
+              minSpacing: 20
+            }
+          }
+        }
+      }
+    }
+  },
+
+  padding: {
+    top: 10,
+    right: 20,
+    bottom: 10,
+    left: 20
+  }
+};
+const chart = agCharts.AgCharts.create(options);"
+`;
+
+exports[`transformPlainEntryFile remove subtitle 1`] = `
+"const options = {
+  legend: {
+    enabled: false
+  },
+
+  gradientLegend: {
+    enabled: false
+  },
+
+  theme: {
+    baseTheme: "ag-default",
+
+    overrides: {
+      common: {
+        axes: {
+          category: {
+            label: {
+              autoRotate: false,
+              minSpacing: 20
+            }
+          }
+        }
+      }
+    }
+  },
+
+  padding: {
+    top: 10,
+    right: 20,
+    bottom: 10,
+    left: 20
+  }
+};
+const chart = agCharts.AgCharts.create(options);"
+`;

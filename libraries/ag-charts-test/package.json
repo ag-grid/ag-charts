@@ -2,7 +2,8 @@
   "name": "ag-charts-test",
   "version": "0.0.1",
   "dependencies": {
-    "canvas": "^2.10.2"
+    "canvas": "^2.10.2",
+    "tslib": "^2.3.0"
   },
   "type": "commonjs",
   "main": "./dist/src/index.js",

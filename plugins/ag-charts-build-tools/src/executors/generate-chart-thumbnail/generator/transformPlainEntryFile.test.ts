@@ -19,8 +19,6 @@ const getChartsOptionsPlainEntryFile = (chartsOptions: object) => {
 };
 
 describe('transformPlainEntryFile', () => {
-    test('object key as literal with strings ');
-
     test('default entry file', () => {
         expect(getChartsOptionsPlainEntryFile({}).code).toMatchSnapshot();
     });
