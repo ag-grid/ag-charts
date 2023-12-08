@@ -36,16 +36,12 @@
     --font-size-gigantic: #{$font-size-gigantic};
     --font-size-gargantuan: #{$font-size-gargantuan};
 
-    --font-weight-thin: #{$font-weight-thin};
-    --font-weight-normal: #{$font-weight-normal};
-    --font-weight-bold: #{$font-weight-bold};
-
     --line-height-normal: #{$line-height-normal};
     --line-height-tight: #{$line-height-tight};
     --line-height-ultra-tight: #{$line-height-ultra-tight};
 
     --font-size: var(--font-size-medium);
-    --font-weight: var(--font-weight-normal);
+    --font-weight: var(--text-regular);
     --line-height: var(--line-height-normal);
 
     --icon-size: #{$icon-size};

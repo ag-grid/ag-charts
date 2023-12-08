@@ -86,7 +86,6 @@
 
         @media screen and (min-width: $breakpoint-hero-large) {
             --font-size: min(1.9vw, 30px);
-            --font-weight: var(--font-weight-thin);
 
             max-width: unset;
         }
@@ -229,11 +228,9 @@
 
 .frameworksLabel {
     font-size: var(--font-size);
-    font-weight: var(--font-weight);
 
     @media screen and (min-width: 1020px) {
         --font-size: var(--font-size-extra-large);
-        --font-weight: var(--font-weight-thin);
     }
     #{$darkmode-selector} & {
         color: var(--color-fg-primary);

@@ -107,7 +107,7 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     --parent-properties-color: var(--color-fg-secondary);
-    --parent-properties-font-weight: var(--font-weight-normal);
+    --parent-properties-font-weight: var(--text-regular);
 
     position: relative;
     display: inline-block;
@@ -115,7 +115,7 @@
     padding-right: $spacing-size-6;
     font-family: var(--monospace-font-family);
     font-size: var(--font-size-large);
-    font-weight: var(--font-weight-bold);
+    font-weight: var(--text-bold);
 
     @container (min-width: #{$breakpoint-table-small}) {
         font-size: var(--font-size-medium);

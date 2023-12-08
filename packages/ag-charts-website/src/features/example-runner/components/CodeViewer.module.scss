@@ -81,7 +81,7 @@
         margin-bottom: 0;
         padding-left: $spacing-size-1 + 2px;
         font-size: var(--font-size-small);
-        font-weight: var(--font-weight-normal);
+        font-weight: var(--text-regular);
 
         &:not(:first-child) {
             margin-top: $spacing-size-10;
@@ -95,7 +95,7 @@
     width: 100%;
     padding: 0 $spacing-size-4 2px $spacing-size-1;
     font-size: var(--font-size-small);
-    font-weight: var(--font-weight-bold);
+    font-weight: var(--text-bold);
     overflow: hidden;
     text-overflow: ellipsis;
     border-top: 1px solid var(--file-border-color);

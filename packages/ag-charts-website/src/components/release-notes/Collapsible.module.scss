@@ -13,7 +13,7 @@
     width: 100%;
     padding: $spacing-size-2 $spacing-size-2 $spacing-size-2 $spacing-size-4;
     text-align: left;
-    font-weight: $font-weight-bold;
+    font-weight: var(--text-bold);
     transition: color $default-transition-timing !important;
 
     &:hover {
@@ -120,6 +120,6 @@
 }
 
 .versionLabel {
-    font-weight: var(--font-weight-normal);
+    font-weight: var(--text-regular);
     color: var(--color-fg-secondary);
 }

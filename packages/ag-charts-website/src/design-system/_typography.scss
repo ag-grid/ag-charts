@@ -19,7 +19,6 @@ h6#{$exclude-grid-selector},
     font-family: var(--font-family);
     font-size: var(--font-size);
     line-height: var(--line-height);
-    font-weight: var(--font-weight);
 }
 
 .font-size-gargantuan {
@@ -85,17 +84,7 @@ h6#{$exclude-grid-selector},
 b#{$exclude-grid-selector},
 strong#{$exclude-grid-selector},
 .bold-text {
-    --font-weight: var(--font-weight-bold);
-
-    font-weight: var(--font-weight-bold);
-}
-
-.thin-text {
-    font-weight: var(--font-weight-thin);
-}
-
-.normal-weight-text {
-    font-weight: var(--font-weight);
+    font-weight: var(--text-bold);
 }
 
 .monospace-text {

@@ -1,11 +1,9 @@
 @use '../../../design-system' as *;
 
 .seriesLink {
-    --font-weight: var(--font-weight-normal);
-
     position: relative;
     width: 100%;
-    font-weight: var(--font-weight-normal);
+    font-weight: var(--text-regular);
 
     &:hover .arrowIcon {
         --text-color: var(--link-hover-color);

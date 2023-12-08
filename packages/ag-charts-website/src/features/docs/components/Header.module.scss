@@ -36,7 +36,7 @@
 .headerFramework {
     display: none;
     font-size: var(--font-size-extra-large);
-    font-weight: var(--font-weight-normal);
+    font-weight: var(--text-regular);
     color: var(--color-fg-secondary);
     padding-bottom: 6px;
 
@@ -50,7 +50,7 @@
     position: relative;
     bottom: 0.05em;
     font-size: var(--font-size-extra-large);
-    font-weight: var(--font-weight-normal);
+    font-weight: var(--text-regular);
     color: var(--color-fg-secondary);
 
     @media screen and (min-width: $breakpoint-docs-search-medium) {

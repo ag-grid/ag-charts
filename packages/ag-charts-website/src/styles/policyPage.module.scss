@@ -52,7 +52,7 @@
 
     li > h3:first-child:before {
         content: counter(policy-count, decimal) '. ';
-        font-weight: $font-weight-normal;
+        font-weight: var(--text-regular);
     }
 
     li::marker {
@@ -80,13 +80,13 @@
         font-family: var(--font-family) !important;
         font-size: var(--font-size) !important;
         line-height: var(--line-height) !important;
-        font-weight: var(--font-weight) !important;
+        font-weight: var(--text-regular) !important;
         color: var(--text-color) !important;
     }
 
     h3,
     h4 {
-        font-weight: var(--font-weight-bold) !important;
+        font-weight: var(--text-bold) !important;
         margin-bottom: 0.5rem !important;
     }
 
@@ -105,7 +105,7 @@
     }
 
     thead {
-        font-weight: var(--font-weight-bold) !important;
+        font-weight: var(--text-bold) !important;
     }
 
     tr {

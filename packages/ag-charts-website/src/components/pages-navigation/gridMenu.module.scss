@@ -101,7 +101,7 @@ ul.menuInner {
 
     h5 {
         padding-left: 6px;
-        font-weight: var(--font-weight-bold);
+        font-weight: var(--text-bold);
         color: var(--color-fg-secondary);
     }
 
@@ -115,7 +115,7 @@ button:not([class^='ag-']).sectionHeader {
     padding-top: $spacing-size-1;
     padding-bottom: $spacing-size-2;
     margin-top: 0;
-    font-weight: var(--font-weight-bold);
+    font-weight: var(--text-bold);
     border: 2px solid transparent;
     outline: none;
     transition:
