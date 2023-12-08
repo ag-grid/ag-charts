@@ -36,8 +36,8 @@
 
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
         flex-wrap: unset;
-        padding-left: $size-1;
-        padding-right: $size-1;
+        padding-left: $spacing-size-2;
+        padding-right: $spacing-size-2;
     }
 }
 
@@ -45,7 +45,7 @@
     display: flex;
     align-items: center;
     min-height: $site-header-height;
-    padding: $size-1 10px;
+    padding: $spacing-size-2 10px;
     margin-right: 100%;
 
     svg {
@@ -82,7 +82,7 @@
     justify-content: center;
     align-items: center;
     height: $site-header-height;
-    margin-left: $size-1;
+    margin-left: $spacing-size-2;
     padding: 0 16px 0 14px;
     border: none;
     transition: background-color 0.4s ease-in-out;
@@ -198,7 +198,7 @@
         display: block !important;
         position: unset;
         width: unset !important;
-        margin-left: $size-2;
+        margin-left: $spacing-size-4;
         overflow: visible;
     }
 
@@ -247,7 +247,7 @@
 }
 
 .navLink {
-    --horizontal-padding: #{$size-2 - 2px};
+    --horizontal-padding: #{$spacing-size-4 - 2px};
 
     display: block;
     position: relative;
@@ -275,8 +275,8 @@
             position: absolute;
             height: 2px;
             bottom: 12px;
-            left: calc(var(--horizontal-padding) - #{$size-half});
-            right: calc(var(--horizontal-padding) - #{$size-half});
+            left: calc(var(--horizontal-padding) - #{$spacing-size-1});
+            right: calc(var(--horizontal-padding) - #{$spacing-size-1});
             border-radius: 2px;
             background-color: var(--link-color);
             opacity: 0;

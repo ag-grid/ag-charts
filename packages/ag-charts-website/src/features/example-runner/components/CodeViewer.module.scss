@@ -2,12 +2,12 @@
 
 .codeViewer {
     --files-min-width: 10em;
-    --mobile-header-height: #{$size-4};
+    --mobile-header-height: #{$spacing-size-8};
 
     height: 100%;
     container-type: inline-size;
     border: 1px solid var(--example-border-color);
-    border-radius: $size-1;
+    border-radius: $spacing-size-2;
     overflow: hidden;
 }
 
@@ -33,9 +33,9 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 0 $size-2;
+    gap: 0 $spacing-size-4;
     height: var(--mobile-header-height);
-    padding: 0 $size-2;
+    padding: 0 $spacing-size-4;
     border-bottom: 1px solid var(--secondary-border-color);
     overflow-x: auto;
     overflow-y: hidden;
@@ -53,7 +53,7 @@
         --icon-size: 1.125em;
 
         position: relative;
-        margin-left: $size-half;
+        margin-left: $spacing-size-1;
         bottom: 0.125em;
     }
 }
@@ -68,7 +68,7 @@
     min-width: var(--files-min-width);
     overflow-y: auto;
     overflow-x: hidden;
-    padding: $size-1 0 $size-1 $size-1;
+    padding: $spacing-size-2 0 $spacing-size-2 $spacing-size-2;
     color: var(--secondary-text-color);
     box-shadow: inset -1px 0 0 0 var(--example-border-color);
 
@@ -79,12 +79,12 @@
     h4 {
         margin-top: 0;
         margin-bottom: 0;
-        padding-left: $size-half + 2px;
+        padding-left: $spacing-size-1 + 2px;
         font-size: var(--font-size-small);
         font-weight: var(--font-weight-normal);
 
         &:not(:first-child) {
-            margin-top: $size-5;
+            margin-top: $spacing-size-10;
         }
     }
 }
@@ -93,7 +93,7 @@
     --file-border-color: transparent;
 
     width: 100%;
-    padding: 0 $size-2 2px $size-half;
+    padding: 0 $spacing-size-4 2px $spacing-size-1;
     font-size: var(--font-size-small);
     font-weight: var(--font-weight-bold);
     overflow: hidden;

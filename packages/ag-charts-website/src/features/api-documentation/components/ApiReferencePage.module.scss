@@ -15,7 +15,7 @@
 }
 
 .objectViewOuter {
-    --right-margin: max(#{$size-6}, calc(50vw - var(--max-page-width) / 2 - var(--jsObjectWidth)));
+    --right-margin: max(#{$spacing-size-12}, calc(50vw - var(--max-page-width) / 2 - var(--jsObjectWidth)));
 
     width: 100%;
     min-width: var(--jsObjectWidth);
@@ -44,8 +44,8 @@
         position: sticky;
         top: 0;
         z-index: 1;
-        padding-top: $size-4;
-        padding-bottom: $size-4;
+        padding-top: $spacing-size-8;
+        padding-bottom: $spacing-size-8;
         background-color: var(--default-background-color);
         border-bottom: 1px solid var(--border-color);
 

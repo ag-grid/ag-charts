@@ -3,12 +3,12 @@
 :global {
     .pageSections article {
         > h2 {
-            margin-top: $size-6;
+            margin-top: $spacing-size-12;
         }
 
         > h3,
         > h4 {
-            margin-top: $size-4;
+            margin-top: $spacing-size-8;
         }
 
         p,
@@ -49,15 +49,15 @@
 .docPage {
     flex: 1 1 0px;
     min-width: 0px;
-    padding-top: $size-4 + $size-half;
+    padding-top: $spacing-size-8 + $spacing-size-1;
     padding-right: var(--horizontal-margin);
     padding-left: var(--horizontal-margin);
-    padding-bottom: $size-7;
+    padding-bottom: $spacing-size-16;
     position: relative;
 
     @media screen and (min-width: $breakpoint-docs-nav-large) {
-        padding-left: $size-4;
-        padding-right: $size-7;
+        padding-left: $spacing-size-8;
+        padding-right: $spacing-size-16;
         max-width: var(--docs-page-max-width);
     }
 
@@ -101,7 +101,7 @@
     }
 
     :global(.alert) {
-        margin-bottom: $size-2;
+        margin-bottom: $spacing-size-4;
     }
 }
 
@@ -115,7 +115,7 @@
     --font-size-extra-large: #{$font-size-extra-large};
 
     font-size: var(--font-size-extra-large);
-    margin-bottom: $size-4;
+    margin-bottom: $spacing-size-8;
 
     code {
         font-size: 0.8em;
@@ -128,5 +128,5 @@
 }
 
 .sideMenu {
-    padding-top: $size-4 + $size-half;
+    padding-top: $spacing-size-8 + $spacing-size-1;
 }

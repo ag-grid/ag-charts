@@ -5,7 +5,7 @@ $colorFlowBreakpoint: 1050px;
 .colorSubsections {
     display: flex;
     flex-direction: column;
-    gap: $size-3;
+    gap: $spacing-size-6;
 }
 
 .swatches {
@@ -18,20 +18,20 @@ $colorFlowBreakpoint: 1050px;
 
     ul {
         columns: 2;
-        margin-bottom: $size-4;
+        margin-bottom: $spacing-size-8;
     }
 
     li {
         break-inside: avoid;
-        margin-bottom: $size-2;
+        margin-bottom: $spacing-size-4;
     }
 }
 
 .swatch {
     display: grid;
     grid-template-columns: 100px 1fr;
-    gap: 0 $size-2;
-    margin-bottom: $size-1 !important;
+    gap: 0 $spacing-size-4;
+    margin-bottom: $spacing-size-2 !important;
     grid-template-areas:
         'color name'
         'color sassName'
@@ -49,8 +49,8 @@ $colorFlowBreakpoint: 1050px;
 
 .name {
     grid-area: name;
-    margin-top: -$size-half;
-    margin-bottom: $size-half !important;
+    margin-top: -$spacing-size-1;
+    margin-bottom: $spacing-size-1 !important;
     text-transform: capitalize;
     font-size: var(--font-size-large);
     font-weight: var(--font-weight-bold);
@@ -58,7 +58,7 @@ $colorFlowBreakpoint: 1050px;
 
 .cssName {
     grid-area: sassName;
-    margin-bottom: $size-half;
+    margin-bottom: $spacing-size-1;
 
     code::before {
         content: 'var(';

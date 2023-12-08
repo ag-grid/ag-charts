@@ -4,16 +4,16 @@
     position: relative;
     display: flex;
     align-items: center;
-    gap: $size-1;
-    bottom: $size-half;
-    margin-right: $size-2;
+    gap: $spacing-size-2;
+    bottom: $spacing-size-1;
+    margin-right: $spacing-size-4;
 
     label {
         color: var(--secondary-text-color);
     }
 
     select {
-        margin-right: $size-2;
+        margin-right: $spacing-size-4;
     }
 
     button {
@@ -32,11 +32,11 @@
 
 .simpleSelects {
     position: relative;
-    top: $size-half;
+    top: $spacing-size-1;
 
     select {
         margin-left: 0;
-        padding: 0 $size-3 0 0;
+        padding: 0 $spacing-size-6 0 0;
         border: none;
     }
 }

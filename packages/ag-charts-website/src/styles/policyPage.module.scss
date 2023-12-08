@@ -1,26 +1,26 @@
 @use '../design-system' as *;
 
 .policyPage {
-    margin-top: $size-6;
-    margin-bottom: calc($size-6 * 4);
+    margin-top: $spacing-size-12;
+    margin-bottom: calc($spacing-size-12 * 4);
 
     nav {
-        margin-top: $size-4;
-        margin-bottom: $size-4;
+        margin-top: $spacing-size-8;
+        margin-bottom: $spacing-size-8;
     }
 
     nav li:not(:last-child) {
-        margin-bottom: $size-half;
+        margin-bottom: $spacing-size-1;
     }
 
     hr {
-        margin-bottom: $size-1;
+        margin-bottom: $spacing-size-2;
     }
 
     @media screen and (min-width: $max-page-width) {
         header {
             display: flex;
-            gap: $size-4;
+            gap: $spacing-size-8;
         }
 
         nav {
@@ -29,14 +29,14 @@
         }
 
         nav li:not(:last-child) {
-            margin-bottom: $size-1 !important;
+            margin-bottom: $spacing-size-2 !important;
             line-height: var(--line-height-tight);
         }
     }
 }
 
 .introduction {
-    margin-top: $size-4;
+    margin-top: $spacing-size-8;
 }
 
 .policyList ol {
@@ -47,7 +47,7 @@
 
     > li {
         counter-increment: policy-count;
-        margin-bottom: $size-6;
+        margin-bottom: $spacing-size-12;
     }
 
     li > h3:first-child:before {
@@ -59,7 +59,7 @@
         font-size: var(--font-size-extra-large);
     }
 
-    @media screen and (min-width: ($max-page-width + $size-4)) {
+    @media screen and (min-width: ($max-page-width + $spacing-size-8)) {
         list-style: decimal;
         padding-left: unset;
 
@@ -70,7 +70,7 @@
 }
 
 .settingsButton {
-    margin-bottom: $size-2;
+    margin-bottom: $spacing-size-4;
 }
 
 // Overrides for OneTrust 3rd party styles on cookies page

@@ -7,8 +7,8 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    width: $size-5;
-    height: $size-5;
+    width: $spacing-size-10;
+    height: $spacing-size-10;
     border-radius: var(--border-radius);
     transition:
         color $default-transition-timing,
@@ -48,12 +48,12 @@
     display: block;
     color: var(--default-background-color);
     top: -44px;
-    padding: $size-half $size-2;
+    padding: $spacing-size-1 $spacing-size-4;
     white-space: nowrap;
     font-weight: 600;
     background-color: var(--tooltip-background);
     border-radius: 6px;
-    transform: translateY($size-half);
+    transform: translateY($spacing-size-1);
     opacity: 0;
     pointer-events: none;
     transition-delay: 0;

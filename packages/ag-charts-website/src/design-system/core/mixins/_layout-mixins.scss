@@ -1,4 +1,5 @@
 @use '../variables' as *;
+@use '../variables-refactor' as *; // TODO: Remove after refactor
 @use '../breakpoints' as breakpoints;
 
 @mixin page-max-width() {
@@ -9,8 +10,8 @@
 }
 
 @mixin page-horizontal-margins() {
-    padding-left: $size-2;
-    padding-right: $size-2;
+    padding-left: $spacing-size-4;
+    padding-right: $spacing-size-4;
 
     @media screen and (min-width: breakpoints.$page-margin-padding) {
         padding-left: var(--horizontal-margin);

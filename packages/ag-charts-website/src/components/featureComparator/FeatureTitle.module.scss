@@ -3,11 +3,11 @@
 .featureTitleContainer {
     display: flex;
     align-items: center;
-    gap: $size-1;
+    gap: $spacing-size-2;
 }
 
 .enterpriseIcon {
-    --icon-size: #{$size-2};
+    --icon-size: #{$spacing-size-4};
     --text-color: red;
 }
 

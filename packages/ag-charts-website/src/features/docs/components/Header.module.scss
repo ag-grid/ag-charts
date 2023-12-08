@@ -5,14 +5,14 @@
 }
 
 .docsPageTitle {
-    margin-bottom: $size-2;
+    margin-bottom: $spacing-size-4;
 
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
         line-height: var(--line-height-ultra-tight);
     }
 
     > span {
-        margin-bottom: $size-1;
+        margin-bottom: $spacing-size-2;
     }
 }
 
@@ -67,6 +67,6 @@
 
         position: relative;
         top: -0.1em;
-        margin-left: $size-half;
+        margin-left: $spacing-size-1;
     }
 }

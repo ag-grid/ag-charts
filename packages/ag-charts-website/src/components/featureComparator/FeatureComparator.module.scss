@@ -5,7 +5,7 @@
 }
 
 .enterpriseIcon {
-    --icon-size: #{$size-2};
+    --icon-size: #{$spacing-size-4};
     --text-color: red;
 }
 
@@ -19,5 +19,5 @@
 
 .featureNotAvailableIcon,
 .featureAvailableIcon {
-    --icon-size: #{$size-3};
+    --icon-size: #{$spacing-size-6};
 }

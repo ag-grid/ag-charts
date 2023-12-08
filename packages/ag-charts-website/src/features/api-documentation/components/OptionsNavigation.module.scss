@@ -2,7 +2,7 @@
 
 // Ignore padding & remove border if within tabbed container
 :global(.tabs-outer) .expandableSnippet pre:global(.code) {
-    margin: -$size-2;
+    margin: -$spacing-size-4;
     border: none;
 }
 
@@ -32,12 +32,12 @@
         left: 0;
         z-index: 3;
         width: 100%;
-        padding: $size-2 var(--horizontal-margin);
+        padding: $spacing-size-4 var(--horizontal-margin);
         background-color: var(--default-background-color);
         border-bottom: 1px solid var(--neutral-200);
 
         @media screen and (min-width: $breakpoint-options-medium) {
-            padding: $size-2;
+            padding: $spacing-size-4;
         }
 
         h3 {
@@ -242,7 +242,7 @@
 }
 
 .searchOption {
-    padding: $size-1 $size-2;
+    padding: $spacing-size-2 $spacing-size-4;
     cursor: pointer;
 
     strong {

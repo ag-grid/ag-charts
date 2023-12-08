@@ -1,13 +1,13 @@
 @use '../../design-system/' as *;
 
 .frameworkSelector {
-    --icon-size: #{$size-3};
+    --icon-size: #{$spacing-size-6};
 
     display: flex;
     background-color: var(--input-background-color);
     border-radius: var(--border-radius);
     border: 1px solid var(--border-color);
-    margin-bottom: $size-2;
+    margin-bottom: $spacing-size-4;
 
     @media screen and (min-width: $breakpoint-docs-search-medium) {
         margin-top: -6px;

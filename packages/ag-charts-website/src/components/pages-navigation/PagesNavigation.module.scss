@@ -15,7 +15,7 @@
     }
 
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
-        --right-margin: max(#{$size-4}, calc(50vw - var(--max-page-width) / 2 - var(--menu-width)));
+        --right-margin: max(#{$spacing-size-8}, calc(50vw - var(--max-page-width) / 2 - var(--menu-width)));
 
         flex-shrink: 0;
         width: var(--menu-width);
@@ -49,13 +49,13 @@
 }
 
 .menu {
-    padding-top: $size-4;
-    padding-bottom: $size-8;
+    padding-top: $spacing-size-8;
+    padding-bottom: $spacing-size-24;
     margin-right: 0 !important;
 
     h5 {
         text-transform: uppercase;
-        margin-bottom: $size-1;
+        margin-bottom: $spacing-size-2;
     }
 
     // Override menuGroup styles
@@ -64,8 +64,8 @@
 
         // Remove left line and adjust spacing
         a {
-            margin-left: $size-half;
-            padding-left: $size-half;
+            margin-left: $spacing-size-1;
+            padding-left: $spacing-size-1;
             border-left: none;
         }
     }
@@ -75,7 +75,7 @@
     --text-color: #dc3545;
     --button-text-color: #dc3545;
     position: relative;
-    margin-left: $size-half;
+    margin-left: $spacing-size-1;
     color: transparent;
 
     svg {
@@ -97,7 +97,7 @@ button .menuIcon {
     --button-text-color: var(--secondary-text-color);
 
     bottom: 0.15em;
-    margin-right: $size-half;
+    margin-right: $spacing-size-1;
     opacity: 0.6666;
     transition:
         fill $default-transition-timing,
@@ -112,8 +112,8 @@ a :global(.icon).menuIcon {
     --icon-size: 1.75em;
 
     fill: var(--secondary-text-color);
-    margin-bottom: $size-half;
-    margin-right: $size-half;
+    margin-bottom: $spacing-size-1;
+    margin-right: $spacing-size-1;
     opacity: 0.75;
     transition:
         fill $default-transition-timing,

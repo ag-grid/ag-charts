@@ -13,7 +13,7 @@
 }
 
 .noContent {
-    margin-top: $size-4;
+    margin-top: $spacing-size-8;
     text-align: center;
 }
 
@@ -21,7 +21,7 @@
     display: inline-block;
     overflow-y: auto;
     height: 100%;
-    margin-top: $size-2;
+    margin-top: $spacing-size-4;
 
     > .option:nth-child(even) {
         background-color: var(--background-100);
@@ -35,9 +35,9 @@
 .option {
     display: flex;
     flex-direction: column;
-    padding: $size-1 0 $size-2;
+    padding: $spacing-size-2 0 $spacing-size-4;
     border-top: 1px solid var(--border-color);
-    gap: $size-1;
+    gap: $spacing-size-2;
 
     &:last-child {
         border-bottom: 1px solid var(--border-color);
@@ -52,8 +52,8 @@
     }
 
     > * {
-        padding-left: $size-1;
-        padding-right: $size-1;
+        padding-left: $spacing-size-2;
+        padding-right: $spacing-size-2;
     }
 
     &.hidden {
@@ -66,7 +66,7 @@
         margin-bottom: 0;
 
         &.hasPrefix {
-            margin-top: $size-2;
+            margin-top: $spacing-size-4;
         }
     }
 
@@ -104,10 +104,10 @@
     }
 
     .children {
-        padding-left: $size-1;
-        padding-right: $size-1;
-        margin-top: $size-1;
-        margin-bottom: -$size-2;
+        padding-left: $spacing-size-2;
+        padding-right: $spacing-size-2;
+        margin-top: $spacing-size-2;
+        margin-bottom: -$spacing-size-4;
 
         &.hidden {
             display: none;
@@ -121,7 +121,7 @@
     }
 
     pre {
-        margin-top: $size-2;
+        margin-top: $spacing-size-4;
         margin-bottom: 0;
     }
 }
@@ -134,8 +134,8 @@
 .metaList {
     display: flex;
     flex-wrap: wrap;
-    gap: $size-1 $size-3;
-    padding-left: $size-1 !important;
+    gap: $spacing-size-2 $spacing-size-6;
+    padding-left: $spacing-size-2 !important;
 }
 
 body ul.metaList {
@@ -170,7 +170,7 @@ body ul.metaList {
     width: 100%;
     display: flex;
     justify-content: space-between;
-    gap: $size-2;
+    gap: $spacing-size-4;
 
     :global(.input-field.inline) {
         width: 66%;

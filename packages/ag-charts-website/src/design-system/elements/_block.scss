@@ -5,12 +5,12 @@ ol#{$exclude-grid-selector} {
     padding-left: 2.25em;
 
     &:where(:not(:last-child)) {
-        margin-bottom: $size-2;
+        margin-bottom: $spacing-size-4;
     }
 }
 
 li:where(:not(:last-child)) {
-    margin-bottom: $size-1;
+    margin-bottom: $spacing-size-2;
 }
 
 li > ol#{$exclude-grid-selector},
@@ -34,7 +34,7 @@ pre#{$exclude-grid-selector} {
     --font-family: #{$monospace-font-family};
 
     background-color: var(--neutral-200);
-    padding: $size-1 $size-2;
+    padding: $spacing-size-2 $spacing-size-4;
     border-radius: var(--border-radius);
 
     #{$darkmode-selector} & {

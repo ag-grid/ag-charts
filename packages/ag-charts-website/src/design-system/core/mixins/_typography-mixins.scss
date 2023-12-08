@@ -1,4 +1,5 @@
 @use '../variables' as *;
+@use '../variables-refactor' as *; // TODO: Remove after refactor
 
 @mixin font-size-responsive() {
     --font-size-extra-small: #{$large-font-size-extra-small};

@@ -3,14 +3,14 @@
 // Copy of ag-grid.com menu styles, before we bring the whole component across
 
 .whatsNewLink {
-    margin-top: $size-2;
-    margin-bottom: $size-1;
+    margin-top: $spacing-size-4;
+    margin-bottom: $spacing-size-2;
 
     a {
         display: block;
         position: relative;
         width: fit-content;
-        margin-bottom: $size-2;
+        margin-bottom: $spacing-size-4;
         padding: 2px 10px;
         text-decoration: none;
         font-size: var(--font-size-small);
@@ -49,8 +49,8 @@
     }
 
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
-        --menu-horizontal-margin: #{$size-2};
-        --right-margin: max(#{$size-4}, calc(50vw - var(--max-page-width) / 2 - var(--menu-width)));
+        --menu-horizontal-margin: #{$spacing-size-4};
+        --right-margin: max(#{$spacing-size-8}, calc(50vw - var(--max-page-width) / 2 - var(--menu-width)));
 
         flex-shrink: 0;
         width: var(--menu-width);
@@ -82,10 +82,10 @@ ul.menuInner {
     flex-basis: auto;
     flex-direction: column;
     padding-top: 0;
-    padding-bottom: $size-7;
+    padding-bottom: $spacing-size-16;
 
     li {
-        margin-bottom: $size-half !important;
+        margin-bottom: $spacing-size-1 !important;
     }
 
     li li {
@@ -93,8 +93,8 @@ ul.menuInner {
     }
 
     hr {
-        margin-top: $size-2;
-        margin-bottom: $size-2;
+        margin-top: $spacing-size-4;
+        margin-bottom: $spacing-size-4;
         height: 1px;
         background-color: var(--border-color);
     }
@@ -112,8 +112,8 @@ ul.menuInner {
 
 button:not([class^='ag-']).sectionHeader {
     width: 100%;
-    padding-top: $size-half;
-    padding-bottom: $size-1;
+    padding-top: $spacing-size-1;
+    padding-bottom: $spacing-size-2;
     margin-top: 0;
     font-weight: var(--font-weight-bold);
     border: 2px solid transparent;
@@ -140,11 +140,11 @@ button:not([class^='ag-']).sectionHeader {
     }
 
     li:first-child & {
-        margin-top: $size-1;
+        margin-top: $spacing-size-2;
     }
 
     + .menuGroup {
-        padding-bottom: $size-1;
+        padding-bottom: $spacing-size-2;
     }
 
     .sectionIcon {
@@ -215,7 +215,7 @@ button:not([class^='ag-']).sectionHeader {
     margin-left: var(--first-indent-size);
     padding-top: 3px;
     padding-bottom: 3px;
-    padding-left: $size-2;
+    padding-left: $spacing-size-4;
     color: var(--secondary-text-color);
     border-left: 1px solid transparent;
     outline: none;
@@ -268,7 +268,7 @@ button:not([class^='ag-']).sectionHeader {
     margin-left: var(--first-indent-size) !important;
     padding-top: 5px;
     padding-bottom: 5px;
-    padding-left: $size-2 + 2px;
+    padding-left: $spacing-size-4 + 2px;
     border-left: 1px solid var(--border-color);
     color: var(--neutral-600);
     transition: color $default-transition-timing;

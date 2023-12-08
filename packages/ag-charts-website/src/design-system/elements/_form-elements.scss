@@ -8,7 +8,7 @@ fieldset#{$exclude-grid-selector} {
     border: none;
 
     &:not(:last-child) {
-        margin-bottom: $size-2;
+        margin-bottom: $spacing-size-4;
     }
 }
 
@@ -23,7 +23,7 @@ label#{$exclude-grid-selector} {
 
     + input#{$exclude-grid-selector},
     + select#{$exclude-grid-selector} {
-        margin-left: $size-1;
+        margin-left: $spacing-size-2;
     }
 
     &[for*='radio'],
@@ -255,7 +255,7 @@ input[type='range']#{$exclude-grid-selector} {
     }
 
     appearance: none;
-    min-height: $size-3;
+    min-height: $spacing-size-6;
     border-radius: var(--border-radius);
     background-color: transparent;
     outline: none;
@@ -296,7 +296,7 @@ input[type='range']#{$exclude-grid-selector} {
     flex-direction: column;
 
     label {
-        margin-bottom: $size-half;
+        margin-bottom: $spacing-size-1;
     }
 
     input,
@@ -312,7 +312,7 @@ input[type='range']#{$exclude-grid-selector} {
         flex-direction: row;
         flex-wrap: wrap;
         align-items: center;
-        gap: $size-half $size-1;
+        gap: $spacing-size-1 $spacing-size-2;
 
         label {
             display: inline-block;
@@ -339,12 +339,12 @@ input[type='range']#{$exclude-grid-selector} {
     }
 
     .error {
-        margin-top: $size-half;
+        margin-top: $spacing-size-1;
         color: var(--input-error-color);
     }
 }
 
 .extra-info {
-    margin-top: $size-half;
+    margin-top: $spacing-size-1;
     color: var(--secondary-text-color);
 }

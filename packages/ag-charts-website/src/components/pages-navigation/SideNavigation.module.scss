@@ -8,9 +8,9 @@
 
     display: none;
     width: clamp(220px, 22vw, var(--side-nav-max-width));
-    padding-top: $size-4;
-    padding-right: $size-4;
-    padding-bottom: $size-7;
+    padding-top: $spacing-size-8;
+    padding-right: $spacing-size-8;
+    padding-bottom: $spacing-size-16;
     line-height: var(--line-height-tight);
 
     @supports (position: sticky) {
@@ -29,9 +29,9 @@
 
     > div {
         @supports (position: sticky) {
-            padding-top: $size-4;
-            padding-right: $size-4;
-            padding-bottom: $size-7;
+            padding-top: $spacing-size-8;
+            padding-right: $spacing-size-8;
+            padding-bottom: $spacing-size-16;
             position: sticky;
             top: $site-header-height + $top-bar-height;
             max-height: calc(100vh - #{$site-header-height + $top-bar-height});
@@ -40,7 +40,7 @@
 
             @media screen and (min-width: $breakpoint-docs-nav-extra-large) {
                 width: calc(var(--side-nav-max-width) + var(--right-padding));
-                margin-left: $size-2;
+                margin-left: $spacing-size-4;
                 padding-right: var(--right-padding);
             }
         }
@@ -52,8 +52,8 @@
 
     position: relative;
     list-style: none;
-    padding-top: $size-1;
-    padding-bottom: $size-6;
+    padding-top: $spacing-size-2;
+    padding-bottom: $spacing-size-12;
     padding-left: 0;
     box-shadow: inset 1px 0 0 0 var(--nav-line-color);
     z-index: -2;
@@ -67,7 +67,7 @@
     --item-gap: 0.875em;
 
     position: relative;
-    padding-left: $size-2;
+    padding-left: $spacing-size-4;
     margin: var(--item-gap) 0;
 
     &:first-child {
@@ -108,8 +108,8 @@
         content: '';
         position: absolute;
         width: 100%;
-        top: -$size-half;
-        bottom: -$size-half;
+        top: -$spacing-size-1;
+        bottom: -$spacing-size-1;
         left: 0;
         border-left: 1px solid var(--nav-line-color);
         opacity: 0;
@@ -149,7 +149,7 @@
 .sideNav .level4,
 .sideNav .level5,
 .sideNav .level6 {
-    padding-left: $size-4;
+    padding-left: $spacing-size-8;
 }
 
 .sideNav .level4,

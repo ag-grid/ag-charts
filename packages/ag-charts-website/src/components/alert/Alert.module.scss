@@ -5,15 +5,15 @@
     --icon-size: 1.5rem;
 
     display: flex;
-    gap: $size-2;
+    gap: $spacing-size-4;
     align-items: center;
-    padding: $size-2;
+    padding: $spacing-size-4;
     background-color: var(--alert-background-color);
     border-radius: 8px;
     color: var(--text-color);
 
-    margin-top: $size-5 !important;
-    margin-bottom: $size-5;
+    margin-top: $spacing-size-10 !important;
+    margin-bottom: $spacing-size-10;
 
     :global(.icon) {
         align-self: flex-start;

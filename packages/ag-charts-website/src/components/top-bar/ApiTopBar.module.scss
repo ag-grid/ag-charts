@@ -28,12 +28,12 @@
     justify-content: space-between;
     align-items: center;
     height: 58px;
-    padding-top: $size-1;
-    padding-bottom: $size-1;
+    padding-top: $spacing-size-2;
+    padding-bottom: $spacing-size-2;
 
     nav ul {
         display: flex;
-        gap: $size-4;
+        gap: $spacing-size-8;
     }
 
     nav li {

@@ -11,7 +11,7 @@
 
     .slider {
         flex-grow: 1;
-        margin-right: $size-2;
+        margin-right: $spacing-size-4;
         vertical-align: middle;
         accent-color: var(--link-color);
 
@@ -34,17 +34,17 @@
 .presetEditor {
     display: flex;
     flex-wrap: wrap;
-    gap: $size-half $size-2;
-    margin-bottom: $size-1;
-    padding-left: $size-half;
-    padding-right: $size-half;
+    gap: $spacing-size-1 $spacing-size-4;
+    margin-bottom: $spacing-size-2;
+    padding-left: $spacing-size-1;
+    padding-right: $spacing-size-1;
 
     label {
         cursor: pointer;
     }
 
     input {
-        margin-right: $size-half;
+        margin-right: $spacing-size-1;
     }
 
     span {
@@ -59,7 +59,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: $size-2;
+    gap: $spacing-size-4;
 
     .inputWrapper {
         position: relative;
@@ -67,7 +67,7 @@
 
     input {
         width: 100%;
-        padding-right: $size-3;
+        padding-right: $spacing-size-6;
     }
 
     .sample {
@@ -83,7 +83,7 @@
         flex-grow: 1;
 
         &:last-child {
-            margin-right: $size-1;
+            margin-right: $spacing-size-2;
         }
     }
 

@@ -108,14 +108,14 @@ h3:where(:not(:last-child)),
 h4:where(:not(:last-child)),
 h5:where(:not(:last-child)),
 h6:where(:not(:last-child)) {
-    margin-bottom: $size-2;
+    margin-bottom: $spacing-size-4;
 }
 
 p:where(:not(:last-child)),
 ul:where(:not(:last-child)),
 ol:where(:not(:last-child)),
 blockquote:where(:not(:last-child)) {
-    margin-bottom: $size-3;
+    margin-bottom: $spacing-size-6;
 }
 
 .max-text-length {

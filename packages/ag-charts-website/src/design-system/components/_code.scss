@@ -2,7 +2,7 @@
 @use 'sass:math';
 @use '../core' as *;
 
-$vertical-padding: $size-1;
+$vertical-padding: $spacing-size-2;
 
 pre.code,
 pre.code code {
@@ -46,7 +46,7 @@ pre.code {
     --property-color: #0a2c80;
 
     position: relative;
-    margin: 0 0 $size-2;
+    margin: 0 0 $spacing-size-4;
     padding: 0;
     border: 1px solid color-mix(in srgb, var(--secondary-border-color), var(--border-color));
     overflow: visible;
@@ -67,7 +67,7 @@ pre.code {
         --class-name-color: #2b91af;
         --property-color: #7ac1d1;
 
-        border-radius: $size-1;
+        border-radius: $spacing-size-2;
         border: 1px solid rgb(255, 255, 255, 0.1);
     }
 }
@@ -77,7 +77,7 @@ pre.code > code {
     display: inline-block;
     min-width: 100%;
     margin-bottom: -6px;
-    padding: $vertical-padding $size-2;
+    padding: $vertical-padding $spacing-size-4;
     font-size: 0.9375em;
     background-color: var(--default-background-color);
     background-image: linear-gradient(transparent 50%, var(--background-100) 50%);
