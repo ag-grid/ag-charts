@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
-  "plugins": ["@nxtensions/astro", "./plugins/ag-charts-build-tools/dist"],
+  "plugins": ["@nxtensions/astro", "./plugins/ag-charts-task-autogen"],
   "affected": {
     "defaultBase": "latest"
   },

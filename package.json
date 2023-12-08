@@ -132,6 +132,7 @@
       "packages/ag-charts-website",
       "packages/ag-charts-website-e2e",
       "plugins/ag-charts-build-tools",
+      "plugins/ag-charts-task-autogen",
       "libraries/ag-charts-test"
     ],
     "nohoist": [
