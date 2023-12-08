@@ -152,7 +152,7 @@
     right: 100%;
     padding: 3px;
     box-sizing: content-box;
-    transition: transform $default-transition-timing;
+    transition: transform $transition-default-timing;
 
     &.active {
         transform: rotate(90deg);

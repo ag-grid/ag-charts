@@ -100,8 +100,8 @@ button .menuIcon {
     margin-right: $spacing-size-1;
     opacity: 0.6666;
     transition:
-        fill $default-transition-timing,
-        opacity $default-transition-timing;
+        fill $transition-default-timing,
+        opacity $transition-default-timing;
 }
 
 .activeMenuItem .menuIcon {
@@ -116,8 +116,8 @@ a :global(.icon).menuIcon {
     margin-right: $spacing-size-1;
     opacity: 0.75;
     transition:
-        fill $default-transition-timing,
-        opacity $default-transition-timing;
+        fill $transition-default-timing,
+        opacity $transition-default-timing;
 
     #{$darkmode-selector} & {
         fill: var(--color-fg-secondary);

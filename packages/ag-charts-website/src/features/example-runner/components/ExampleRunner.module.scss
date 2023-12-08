@@ -68,7 +68,7 @@ iframe {
         --text-color: var(--color-fg-secondary);
 
         opacity: 0.5;
-        transition: opacity $default-transition-timing;
+        transition: opacity $transition-default-timing;
     }
 }
 

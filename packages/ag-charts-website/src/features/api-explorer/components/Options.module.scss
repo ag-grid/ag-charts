@@ -80,7 +80,7 @@
             display: flex;
             align-items: center;
             color: var(--text-color);
-            transition: color $default-transition-timing;
+            transition: color $transition-default-timing;
         }
 
         :global(.icon) {
@@ -89,7 +89,7 @@
             margin-left: auto;
             transition:
                 transform 0.3s ease-out,
-                fill $default-transition-timing;
+                fill $transition-default-timing;
         }
 
         &:hover {
@@ -161,7 +161,7 @@ body ul.metaList {
 
 .metaValue {
     font-size: var(--font-size-small);
-    font-family: var(--monospace-font-family);
+    font-family: var(--text-monospace-font-family);
     color: var(--code-text-color);
     background-color: none;
 }

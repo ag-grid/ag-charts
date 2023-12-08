@@ -23,7 +23,7 @@
     font-size: 2em;
     margin-right: $spacing-size-2;
     transition:
-        background-color $default-transition-timing,
+        background-color $transition-default-timing,
         transform 0.33s ease-in-out;
 
     &:hover {

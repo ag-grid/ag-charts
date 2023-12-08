@@ -67,8 +67,8 @@ input[type='number'] {
         border: 1px solid var(--color-input-border);
         outline: none;
         transition:
-            border-color $default-transition-timing,
-            box-shadow $default-transition-timing;
+            border-color $transition-default-timing,
+            box-shadow $transition-default-timing;
 
         &::placeholder {
             color: var(--color-fg-placeholder);
@@ -126,9 +126,9 @@ input[type='checkbox']:not(.switch)#{$exclude-grid-selector} {
     border: 0.125em solid var(--input-secondary-border-color);
     background-image: $svg-tick;
     transition:
-        background-color $default-transition-timing,
-        border-color $default-transition-timing,
-        box-shadow $default-transition-timing;
+        background-color $transition-default-timing,
+        border-color $transition-default-timing,
+        box-shadow $transition-default-timing;
 
     &:hover:not(:disabled):not([readonly]),
     &:focus:not(:disabled):not([readonly]),
@@ -154,9 +154,9 @@ input[type='checkbox'].switch {
     background-repeat: no-repeat;
     background-size: $height $height;
     transition:
-        background-position $default-transition-timing,
-        background-color $default-transition-timing,
-        box-shadow $default-transition-timing;
+        background-position $transition-default-timing,
+        background-color $transition-default-timing,
+        box-shadow $transition-default-timing;
 
     &:checked {
         background-position: right;
@@ -170,8 +170,8 @@ input[type='radio']#{$exclude-grid-selector} {
         inset 0 0 0 0.125em var(--input-secondary-border-color),
         inset 0 0 0 0.25em var(--input-background-color);
     transition:
-        background-color $default-transition-timing,
-        box-shadow $default-transition-timing;
+        background-color $transition-default-timing,
+        box-shadow $transition-default-timing;
 
     &:hover:not(:disabled):not([readonly]),
     &:checked {
@@ -207,8 +207,8 @@ select#{$exclude-grid-selector} {
     border: 2px solid var(--color-input-border);
     outline: none;
     transition:
-        border-color $default-transition-timing,
-        box-shadow $default-transition-timing;
+        border-color $transition-default-timing,
+        box-shadow $transition-default-timing;
 
     #{$darkmode-selector} & {
         border: 1px solid var(--color-input-border);
@@ -251,7 +251,7 @@ input[type='range']#{$exclude-grid-selector} {
         border-radius: 50%;
         border: none;
         background-color: var(--input-primary-color);
-        transition: background-color $default-transition-timing;
+        transition: background-color $transition-default-timing;
     }
 
     appearance: none;
@@ -262,8 +262,8 @@ input[type='range']#{$exclude-grid-selector} {
     border: 2px solid transparent;
     cursor: pointer;
     transition:
-        border-color $default-transition-timing,
-        box-shadow $default-transition-timing;
+        border-color $transition-default-timing,
+        box-shadow $transition-default-timing;
 
     &:focus-visible:not(:disabled):not([readonly]),
     &.focus {

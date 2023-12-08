@@ -72,7 +72,7 @@ $colorFlowBreakpoint: 1050px;
 .colorValue {
     grid-area: colorValue;
     font-size: var(--font-size-extra-small);
-    font-family: var(--monospace-font-family);
+    font-family: var(--text-monospace-font-family);
 
     span {
         opacity: calc(1 / 3);

@@ -84,7 +84,7 @@
     display: inline-block;
     padding: ($spacing-size-2 + $spacing-size-1) $spacing-size-1;
     line-height: var(--line-height-tight);
-    transition: color $default-transition-timing;
+    transition: color $transition-default-timing;
     cursor: pointer;
 
     &:hover {
@@ -111,7 +111,7 @@
         --icon-size: #{$spacing-size-6};
 
         margin: -0.125em 0 0;
-        transition: fill $default-transition-timing;
+        transition: fill $transition-default-timing;
     }
 }
 

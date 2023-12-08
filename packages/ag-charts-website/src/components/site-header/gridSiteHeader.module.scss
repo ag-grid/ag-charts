@@ -257,8 +257,8 @@
     letter-spacing: 0.01em;
     color: var(--link-color);
     transition:
-        color $default-transition-timing,
-        opacity $default-transition-timing;
+        color $transition-default-timing,
+        opacity $transition-default-timing;
     cursor: pointer;
 
     &:hover {

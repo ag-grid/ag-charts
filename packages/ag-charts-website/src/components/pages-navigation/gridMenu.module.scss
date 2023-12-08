@@ -18,8 +18,8 @@
         border-radius: 24px;
         border: 1px solid var(--link-hover-color);
         transition:
-            background-color $default-transition-timing,
-            color $default-transition-timing;
+            background-color $transition-default-timing,
+            color $transition-default-timing;
         -webkit-font-smoothing: auto;
 
         &:hover,
@@ -119,8 +119,8 @@ button:not([class^='ag-']).sectionHeader {
     border: 2px solid transparent;
     outline: none;
     transition:
-        color $default-transition-timing,
-        border-color $default-transition-timing;
+        color $transition-default-timing,
+        border-color $transition-default-timing;
     border-radius: var(--border-radius);
 
     &:hover {
@@ -136,7 +136,7 @@ button:not([class^='ag-']).sectionHeader {
     }
 
     &.active {
-        transition: color $default-transition-timing;
+        transition: color $transition-default-timing;
     }
 
     li:first-child & {
@@ -154,7 +154,7 @@ button:not([class^='ag-']).sectionHeader {
         top: -1px;
         transition:
             transform 0.33s ease-in-out,
-            fill $default-transition-timing;
+            fill $transition-default-timing;
 
         &.active {
             transform: rotate(90deg) !important;
@@ -271,7 +271,7 @@ button:not([class^='ag-']).sectionHeader {
     padding-left: $spacing-size-4 + 2px;
     border-left: 1px solid var(--color-border-primary);
     color: var(--neutral-600);
-    transition: color $default-transition-timing;
+    transition: color $transition-default-timing;
 
     #{$darkmode-selector} & {
         color: var(--neutral-800);

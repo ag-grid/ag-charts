@@ -11,8 +11,8 @@
     height: $spacing-size-10;
     border-radius: var(--border-radius);
     transition:
-        color $default-transition-timing,
-        background-color $default-transition-timing;
+        color $transition-default-timing,
+        background-color $transition-default-timing;
     cursor: pointer;
 
     &:hover {
@@ -33,7 +33,7 @@
         --icon-size: 1.25em;
 
         transform: translate(1px, 0.75px);
-        transition: fill $default-transition-timing;
+        transition: fill $transition-default-timing;
     }
 
     li:first-child & svg {

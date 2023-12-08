@@ -113,7 +113,7 @@
     display: inline-block;
     margin-top: $spacing-size-1;
     padding-right: $spacing-size-6;
-    font-family: var(--monospace-font-family);
+    font-family: var(--text-monospace-font-family);
     font-size: var(--font-size-large);
     font-weight: var(--text-bold);
 
@@ -159,7 +159,7 @@
 
 .metaValue {
     font-size: var(--font-size-small);
-    font-family: var(--monospace-font-family);
+    font-family: var(--text-monospace-font-family);
     color: var(--code-text-color);
 
     #{$darkmode-selector} & {
@@ -186,7 +186,7 @@
         --icon-size: 1em;
 
         margin: -0.1em 0 0;
-        transition: fill $default-transition-timing;
+        transition: fill $transition-default-timing;
     }
 }
 
@@ -194,7 +194,7 @@
     --text-color: var(--link-color);
 
     min-width: 10.5ch;
-    transition: color $default-transition-timing;
+    transition: color $transition-default-timing;
 
     &:hover {
         --text-color: var(--link-hover-color);

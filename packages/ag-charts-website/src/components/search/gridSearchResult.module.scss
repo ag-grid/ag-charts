@@ -46,9 +46,9 @@
         background-color: transparent;
         outline: none;
         transition:
-            color $default-transition-timing,
-            background-color $default-transition-timing,
-            border-color $default-transition-timing;
+            color $transition-default-timing,
+            background-color $transition-default-timing,
+            border-color $transition-default-timing;
 
         &:focus,
         &:focus-visible {
@@ -80,7 +80,7 @@
     a:hover h4,
     a:hover .breadcrumb {
         color: var(--link-color);
-        transition: color $default-transition-timing;
+        transition: color $transition-default-timing;
     }
 
     mark {

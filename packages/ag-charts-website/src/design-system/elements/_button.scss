@@ -34,9 +34,9 @@ input[type='submit']#{$exclude-grid-selector},
     border: 1px solid var(--button-border-color);
     box-shadow: 0 0 0 4px transparent;
     transition:
-        background-color $default-transition-timing,
-        border $default-transition-timing,
-        box-shadow $default-transition-timing;
+        background-color $transition-default-timing,
+        border $transition-default-timing,
+        box-shadow $transition-default-timing;
 
     &:hover,
     &.hover {
@@ -117,8 +117,8 @@ input[type='submit']#{$exclude-grid-selector},
 
     border: 2px solid var(--color-border-primary);
     transition:
-        border-color $default-transition-timing,
-        box-shadow $default-transition-timing;
+        border-color $transition-default-timing,
+        box-shadow $transition-default-timing;
 
     &:hover:not(:disabled):not([readonly]),
     &:focus-visible:not(:disabled):not([readonly]) {
@@ -160,7 +160,7 @@ input[type='submit']#{$exclude-grid-selector},
     --text-color: var(--link-color);
     --icon-size: 1.5em;
 
-    transition: color $default-transition-timing;
+    transition: color $transition-default-timing;
 
     &:hover,
     &.hover {

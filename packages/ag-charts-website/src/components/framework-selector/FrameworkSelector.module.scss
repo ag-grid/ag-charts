@@ -39,7 +39,7 @@
         right: 5px;
         background-color: var(--input-primary-color);
         opacity: 0;
-        transition: opacity $default-transition-timing;
+        transition: opacity $transition-default-timing;
     }
 
     img {
@@ -51,7 +51,7 @@
         display: none;
         margin-left: 4px;
         font-size: var(--font-size);
-        transition: opacity $default-transition-timing;
+        transition: opacity $transition-default-timing;
     }
 
     &:hover,
