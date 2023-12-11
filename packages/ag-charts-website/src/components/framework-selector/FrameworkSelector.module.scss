@@ -157,7 +157,6 @@
     border: 1px solid transparent;
 
     #{$selector-darkmode} & {
-        background-color: var(--color-fg-secondary);
         border-color: var(--color-border-primary);
     }
 }
