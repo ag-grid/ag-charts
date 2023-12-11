@@ -6,7 +6,7 @@ import { getPageHashUrl } from '@features/gallery/utils/urlPaths';
 import type { GalleryData, GalleryExample, GalleryExampleChartType } from '@ag-grid-types';
 import { GalleryExampleLink } from '@features/gallery/components/GalleryExampleLink';
 import { GalleryExampleThemeDropdown } from '@features/gallery/components/GalleryExampleThemeDropdown';
-import styles from './gallery.module.scss';
+import styles from '../styles/gallery.module.scss';
 
 const galleryDataEntry = await getEntry('gallery', 'data');
 const galleryData: GalleryData = galleryDataEntry?.data;

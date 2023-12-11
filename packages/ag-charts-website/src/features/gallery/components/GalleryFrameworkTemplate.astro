@@ -1,11 +1,11 @@
 ---
 import { getEntry } from 'astro:content';
-import { getGeneratedGalleryContents } from '../utils/examplesGenerator';
 import { getExampleUrl } from '../utils/urlPaths';
 import FrameworkTemplate from '@features/example-runner/components/FrameworkTemplate.astro';
 import { GALLERY_INTERNAL_FRAMEWORK } from '../constants';
 import { getExampleName, getSeriesTypeSlug } from '../utils/filesData';
 import type { GeneratedContents } from '@features/examples-generator/types';
+import { getGeneratedContents } from '../../example-generator';
 interface Props {
     exampleName: string;
     /**
@@ -32,7 +32,8 @@ const {
 const internalFramework = GALLERY_INTERNAL_FRAMEWORK;
 const generatedContents = generatedContentsOverride
     ? generatedContentsOverride
-    : await getGeneratedGalleryContents({
+    : await getGeneratedContents({
+          type: 'gallery',
           exampleName,
       });
 

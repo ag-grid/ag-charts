@@ -1,10 +1,11 @@
 import type { InternalFramework } from '@ag-grid-types';
-import { getGeneratedDocsContents } from '@features/docs/utils/examplesGenerator';
 import { getDocExampleFiles } from '@features/docs/utils/pageData';
 import { getIsDev } from '@utils/env';
 import { fileNameToMimeType } from '@utils/fileNameToMimeType';
 import { getContentRootFileUrl } from '@utils/pages';
 import { getCollection } from 'astro:content';
+
+import { getGeneratedContents } from '../../../../../features/example-generator';
 
 interface Params {
     internalFramework: InternalFramework;
@@ -40,8 +41,9 @@ export async function get({ params }: { params: Params }) {
     };
 
     const { files = {} } =
-        (await getGeneratedDocsContents({
-            internalFramework,
+        (await getGeneratedContents({
+            type: 'docs',
+            framework: internalFramework,
             pageName,
             exampleName,
         })) || {};

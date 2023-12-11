@@ -1,5 +1,6 @@
 import { enterpriseModule } from '../../module/enterpriseModule';
 import type {
+    AgAxisGridLineOptions,
     AgCartesianChartOptions,
     AgCartesianCrossLineOptions,
     AgChartOptions,
@@ -334,7 +335,7 @@ function calculateSeriesPalette<T extends SeriesOptionsTypes>(context: Preparati
 
 function prepareAxis<T extends AxesOptionsTypes>(
     axis: T,
-    axisTheme: Omit<T, 'crossLines'> & { crossLines: AgCartesianCrossLineOptions }
+    axisTheme: { crossLines: AgCartesianCrossLineOptions; gridLine: AgAxisGridLineOptions }
 ): T {
     // Remove redundant theme overload keys.
     const removeOptions = { top: DELETE, bottom: DELETE, left: DELETE, right: DELETE } as any;
@@ -345,9 +346,27 @@ function prepareAxis<T extends AxesOptionsTypes>(
             Logger.warn('axis[].crossLines should be an array.');
             axis.crossLines = [];
         }
+        axis.crossLines = axis.crossLines.map((crossLine) => jsonMerge([axisTheme.crossLines, crossLine]));
+    }
 
-        const { crossLines: crossLinesTheme } = axisTheme;
-        axis.crossLines = axis.crossLines.map((crossLine) => jsonMerge([crossLinesTheme, crossLine]));
+    // Same thing grid lines (AG-8777)
+    const gridLineStyle = axisTheme.gridLine.style;
+    if (axis.gridLine?.style !== undefined && gridLineStyle !== undefined && gridLineStyle.length > 0) {
+        if (!Array.isArray(axis.gridLine.style)) {
+            Logger.warn('axis[].gridLine.style should be an array.');
+            axis.gridLine.style = [];
+        }
+        axis.gridLine.style = axis.gridLine.style.map((userStyle, index) => {
+            // An empty gridLine (e.g. `gridLine: { style: [ {} ] }`) means "draw nothing". So ignore theme
+            // defaults if this is the case:
+            if (userStyle.stroke === undefined && userStyle.lineDash === undefined) {
+                return userStyle;
+            }
+            // Themes will normally only have one element in gridLineStyle[], but cycle through the array
+            // with `mod` anyway to make sure that we honour the theme's grid line style sequence.
+            const themeStyle: typeof userStyle = gridLineStyle[index % gridLineStyle.length];
+            return jsonMerge([themeStyle, userStyle]);
+        });
     }
 
     const cleanTheme = { crossLines: DELETE };

@@ -93,6 +93,26 @@ const FEWER_MONTHS = [
     { month: 'Oct', temperature: 20.0, temperatureLower: 17.5, temperatureUpper: 22.5 },
 ];
 
+const SERIES_ALTERNATE_NAMES = {
+    ...SERIES_AUSTRALIA,
+    // Same data as Australia, but with alternate names for error bar keys
+    data: [
+        { month: 'Jan', temperature: 8.0, lower: 6.5, upper: 10.0 },
+        { month: 'Feb', temperature: 8.5, lower: 7.0, upper: 10.5 },
+        { month: 'Mar', temperature: 10.0, lower: 8.5, upper: 12.0 },
+        { month: 'Apr', temperature: 12.0, lower: 10.5, upper: 13.5 },
+        { month: 'May', temperature: 14.5, lower: 13.0, upper: 16.0 },
+        { month: 'Jun', temperature: 16.5, lower: 15.0, upper: 18.0 },
+        { month: 'Jul', temperature: 18.0, lower: 16.5, upper: 19.5 },
+        { month: 'Aug', temperature: 17.0, lower: 15.5, upper: 18.5 },
+        { month: 'Sep', temperature: 15.5, lower: 14.0, upper: 17.0 },
+        { month: 'Oct', temperature: 12.5, lower: 11.0, upper: 14.0 },
+        { month: 'Nov', temperature: 10.0, lower: 8.5, upper: 11.5 },
+        { month: 'Dec', temperature: 8.5, lower: 7.0, upper: 10.0 },
+    ],
+    errorBar: { yLowerKey: 'lower', yUpperKey: 'upper' },
+};
+
 const SERIES_BOYLESLAW = {
     type: 'scatter',
     data: [
@@ -173,6 +193,17 @@ describe('ErrorBars', () => {
             series: [
                 { ...SERIES_CANADA, type: 'bar' },
                 { ...SERIES_AUSTRALIA, type: 'bar' },
+            ],
+        });
+        await compare();
+    });
+
+    it('should render 2 bar series with alternate key names as expected', async () => {
+        chart = AgCharts.create({
+            ...opts,
+            series: [
+                { ...SERIES_CANADA, type: 'bar' },
+                { ...SERIES_ALTERNATE_NAMES, type: 'bar' },
             ],
         });
         await compare();

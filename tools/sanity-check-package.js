@@ -16,6 +16,7 @@ if (!packageJsonFile) {
     process.exit(1);
 }
 
+const expectedVersion = JSON.parse(fs.readFileSync('./package.json').toString()).version;
 const packageJson = JSON.parse(packageJsonFile.toString());
 
 let exitStatus = 0;
@@ -109,6 +110,13 @@ async function checkExports(exports) {
 }
 
 async function run() {
+    if (packageJson.version !== expectedVersion) {
+        console.warn(
+            `[${packageJson.name}]: Version field mismatch, expected [${expectedVersion}] but found [${packageJson.version}]`
+        );
+        exitStatus = 1;
+    }
+
     for (const field of ['types', 'typing']) {
         const filename = packageJson[field];
         await check('types', field, filename);

@@ -381,7 +381,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     public title?: AxisTitle = undefined;
-    protected _titleCaption = new Caption();
+    protected _titleCaption = new Caption(this.moduleCtx);
 
     private setDomain() {
         const {
@@ -546,6 +546,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const { combinedRotation, textBaseline, textAlign, range } = params;
         const text = datum.tickLabel;
         const sideFlag = label.getSideFlag();
+        // @todo(AG-10059): Set tickSize to zero when tick.enabled = false
         const tickSize = this.tick.size;
         const labelX = sideFlag * (tickSize + label.padding + this.seriesAreaPadding);
         const visible = text !== '' && text != undefined;
@@ -698,7 +699,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         const { title } = this;
         if (title?.enabled) {
-            const caption = new Caption();
+            const caption = new Caption(this.moduleCtx);
             const spacing = BBox.merge(boxes).width;
             this.setTitleProps(caption, { spacing });
             const titleNode = caption.node;
@@ -1360,13 +1361,14 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         }
 
         tickData.ticks.forEach((tickDatum) => {
-            tickDatum.tickLabel = Text.wrap(
+            const { text } = Text.wrap(
                 tickDatum.tickLabel,
                 maxWidth ?? defaultMaxWidth,
                 maxHeight ?? defaultMaxHeight,
                 labelProps,
                 'hyphenate'
             );
+            tickDatum.tickLabel = text;
         });
 
         return { tickData, index, autoRotation: 0, terminate: true };

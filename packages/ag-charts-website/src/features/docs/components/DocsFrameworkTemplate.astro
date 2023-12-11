@@ -1,8 +1,8 @@
 ---
 import type { InternalFramework } from '@ag-grid-types';
-import { getGeneratedDocsContents } from '../utils/examplesGenerator';
 import FrameworkTemplate from '@features/example-runner/components/FrameworkTemplate.astro';
 import { getExampleUrl } from '../utils/urlPaths';
+import { getGeneratedContents } from '../../example-generator';
 
 interface Props {
     internalFramework: InternalFramework;
@@ -20,8 +20,9 @@ interface Props {
 
 const { internalFramework, pageName, exampleName, relativePath, addInitMessageScript } = Astro.props as Props;
 
-const generatedContents = await getGeneratedDocsContents({
-    internalFramework,
+const generatedContents = await getGeneratedContents({
+    type: 'docs',
+    framework: internalFramework,
     pageName,
     exampleName,
 });

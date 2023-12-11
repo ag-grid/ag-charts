@@ -1,6 +1,8 @@
+import type { ModuleContext } from '../module/moduleContext';
 import type { FontStyle, FontWeight, TextWrap } from '../options/agChartOptions';
 import { PointerEvents } from '../scene/node';
 import { Text } from '../scene/shape/text';
+import { createId } from '../util/id';
 import { ProxyPropertyOnWrite } from '../util/proxy';
 import {
     BOOLEAN,
@@ -14,11 +16,14 @@ import {
     TEXT_WRAP,
     Validate,
 } from '../util/validation';
+import type { InteractionEvent } from './interaction/interactionManager';
+import { toTooltipHtml } from './tooltip/tooltip';
 
 export class Caption {
     static readonly SMALL_PADDING = 10;
     static readonly LARGE_PADDING = 20;
 
+    readonly id = createId(this);
     readonly node: Text = new Text();
 
     @Validate(BOOLEAN)
@@ -63,10 +68,16 @@ export class Caption {
     @Validate(TEXT_WRAP)
     wrapping: TextWrap = 'always';
 
-    constructor() {
+    private truncated: boolean = false;
+
+    private destroyFns: Function[] = [];
+
+    constructor(protected readonly moduleCtx: ModuleContext) {
         const node = this.node;
         node.textAlign = 'center';
         node.pointerEvents = PointerEvents.None;
+
+        this.destroyFns.push(moduleCtx.interactionManager.addListener('hover', (e) => this.handleMouseMove(e)));
     }
 
     computeTextWrap(containerWidth: number, containerHeight: number) {
@@ -77,7 +88,39 @@ export class Caption {
             this.node.text = text;
             return;
         }
-        const wrapped = Text.wrap(text ?? '', maxWidth, maxHeight, this, wrapping);
-        this.node.text = wrapped;
+        const { text: wrappedText, truncated } = Text.wrap(text ?? '', maxWidth, maxHeight, this, wrapping);
+        this.node.text = wrappedText;
+        this.truncated = truncated;
+    }
+
+    handleMouseMove(event: InteractionEvent<'hover'>) {
+        const { enabled } = this;
+        if (!enabled) {
+            return;
+        }
+
+        const bbox = this.node.computeBBox();
+        const { pageX, pageY, offsetX, offsetY } = event;
+        const pointerInsideCaption = this.node.visible && bbox.containsPoint(offsetX, offsetY);
+
+        if (!pointerInsideCaption) {
+            this.moduleCtx.tooltipManager.removeTooltip(this.id);
+            return;
+        }
+
+        // Prevent other handlers from consuming this event if it's generated inside the caption
+        // boundaries.
+        event.consume();
+
+        if (!this.truncated) {
+            this.moduleCtx.tooltipManager.removeTooltip(this.id);
+            return;
+        }
+
+        this.moduleCtx.tooltipManager.updateTooltip(
+            this.id,
+            { pageX, pageY, offsetX, offsetY, event, showArrow: false, addCustomClass: false },
+            toTooltipHtml({ content: this.text })
+        );
     }
 }

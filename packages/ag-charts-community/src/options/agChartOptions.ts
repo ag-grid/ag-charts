@@ -6,6 +6,7 @@ export * from './chart/crossLineOptions';
 export * from './chart/dropShadowOptions';
 export * from './chart/errorBarOptions';
 export * from './chart/eventOptions';
+export * from './chart/gradientLegendOptions';
 export * from './chart/labelOptions';
 export * from './chart/legendOptions';
 export * from './chart/polarAxisOptions';

@@ -1,7 +1,7 @@
 import { FRAMEWORKS } from '@constants';
 import type { DocsPage } from '@utils/pages';
 
-import { getGeneratedDocsContentsFileList } from './examplesGenerator';
+import { getGeneratedContentsFileList } from '../../example-generator';
 import { getInternalFrameworkExamples, getPagesList } from './filesData';
 
 export function getDocsPages(pages: DocsPage[]) {
@@ -55,8 +55,9 @@ export async function getDocsExamplePages({ pages }: { pages: DocsPage[] }) {
 export async function getDocExampleFiles({ pages }: { pages: DocsPage[] }) {
     const examples = await getInternalFrameworkExamples({ pages });
     const exampleFilesPromises = examples.map(async ({ internalFramework, pageName, exampleName }) => {
-        const exampleFileList = await getGeneratedDocsContentsFileList({
-            internalFramework,
+        const exampleFileList = await getGeneratedContentsFileList({
+            type: 'docs',
+            framework: internalFramework,
             pageName,
             exampleName,
         });

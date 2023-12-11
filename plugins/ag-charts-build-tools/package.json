@@ -5,10 +5,16 @@
   "dependencies": {
     "glob": "8.0.3",
     "tslib": "2.6.0",
-    "typescript": "^4.9.5"
+    "typescript": "^4.9.5",
+    "cheerio": "^1.0.0-rc.12",
+    "fs-extra": "11.1.1",
+    "sucrase": "^3.32.0",
+    "json5": "2.2.3",
+    "@nx/devkit": "17.0.3",
+    "nx": "17.0.3"
   },
-  "type": "commonjs",
-  "main": "./src/index.js",
+  "type": "module",
+  "main": "./src/index.ts",
   "typings": "./src/index.d.ts",
   "executors": "./executors.json"
 }

@@ -66,12 +66,17 @@ const getTestPages = async () => {
     return docsTestPages.concat(urlWithBaseUrl('/gallery-test'));
 };
 
+const getIgnoredPages = () => {
+    return [urlWithBaseUrl('/404')];
+};
+
 export async function getSitemapIgnorePaths() {
     const paths = await Promise.all([
         getDocsExamplePaths(),
         getGalleryExamplePaths(),
         getTestPages(),
         getDebugPageUrls(),
+        getIgnoredPages(),
     ]);
 
     return paths.flat();

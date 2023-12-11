@@ -17,6 +17,7 @@ import { Sector } from '../../../scene/shape/sector';
 import { Text } from '../../../scene/shape/text';
 import { normalizeAngle180, toRadians } from '../../../util/angle';
 import { jsonDiff } from '../../../util/json';
+import { Logger } from '../../../util/logger';
 import { mod, toFixed } from '../../../util/number';
 import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
@@ -156,6 +157,10 @@ class PieSeriesCalloutLine {
 export class PieTitle extends Caption {
     @Validate(BOOLEAN)
     showInLegend = false;
+
+    constructor(moduleCtx: ModuleContext) {
+        super(moduleCtx);
+    }
 }
 
 export class DoughnutInnerLabel extends Label<AgPieSeriesLabelFormatterParams> {
@@ -412,6 +417,16 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
                 ...extraProps,
             ],
         });
+
+        // AG-9879 Warning about missing data.
+        for (const valueDef of this.processedData?.defs?.values ?? []) {
+            // The 'angleRaw' is an undocumented property for the internal implementation, so ignore this.
+            // If any 'angleRaw' values are missing, then we'll also be missing 'angleValue' values and
+            // will log a warning anyway.
+            if (valueDef.id !== 'angleRaw' && valueDef.missing !== undefined && valueDef.missing > 0) {
+                Logger.warnOnce(`Missing ${valueDef.missing} ${String(valueDef.property)} value(s)`);
+            }
+        }
 
         this.animationState.transition('updateData');
     }

@@ -122,7 +122,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
     verticalAlign: VerticalAlign = 'middle';
 
     @Validate(NUMBER(0))
-    padding: number = 0;
+    itemPadding: number = 0;
 
     @Validate(OPT_FUNCTION)
     formatter?: (params: AgHeatmapSeriesFormatterParams<any>) => AgHeatmapSeriesFormat = undefined;
@@ -239,7 +239,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
             colorName = '',
             textAlign,
             verticalAlign,
-            padding,
+            itemPadding,
         } = this;
         const colorScaleValid = this.isColorScaleValid();
         const nodeData: HeatmapNodeDatum[] = [];
@@ -248,8 +248,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
         const width = xScale.bandwidth ?? 10;
         const height = yScale.bandwidth ?? 10;
 
-        const textAlignFactor = (width - 2 * padding) * textAlignFactors[textAlign];
-        const verticalAlignFactor = (height - 2 * padding) * verticalAlignFactors[verticalAlign];
+        const textAlignFactor = (width - 2 * itemPadding) * textAlignFactors[textAlign];
+        const verticalAlignFactor = (height - 2 * itemPadding) * verticalAlignFactors[verticalAlign];
 
         const sizeFittingHeight = () => ({ width, height, meta: null });
 
@@ -281,7 +281,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
                 this.label,
                 undefined,
                 this.label,
-                { padding: this.padding },
+                { padding: itemPadding },
                 sizeFittingHeight
             );
 
@@ -306,8 +306,9 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
             if (labels?.label != null) {
                 const { text, fontSize, lineHeight, height: labelHeight } = labels.label;
                 const { fontStyle, fontFamily, fontWeight, color } = this.label;
-                const x = point.x + textAlignFactor * (width - 2 * padding);
-                const y = point.y + verticalAlignFactor * (height - 2 * padding) - (labels.height - labelHeight) * 0.5;
+                const x = point.x + textAlignFactor * (width - 2 * itemPadding);
+                const y =
+                    point.y + verticalAlignFactor * (height - 2 * itemPadding) - (labels.height - labelHeight) * 0.5;
 
                 labelData.push({
                     series: this,
