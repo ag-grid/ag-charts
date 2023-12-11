@@ -6,12 +6,12 @@ interface Props {
     children: ReactElement;
 }
 
-const Warning: FunctionComponent<Props> = ({ children }) => {
+const Idea: FunctionComponent<Props> = ({ children }) => {
     return (
-        <Alert type="warning" className="font-size-responsive">
+        <Alert type="idea" className="font-size-responsive">
             {children}
         </Alert>
     );
 };
 
-export default Warning;
+export default Idea;

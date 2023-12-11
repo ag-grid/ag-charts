@@ -69,17 +69,8 @@
 
     border: 1px solid transparent;
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-    #{$darkmode-selector} & {
-=======
     #{$selector-darkmode} & {
->>>>>>> 1f3f05e73 (AG-10044 - Refactor Sass selector variables)
         border-color: 1px solid var(--color-border-primary);
-=======
-    #{$selector-darkmode} & {
-        border-color: 1px solid #354856;
->>>>>>> 0add6392a (AG-10044 - Refactor Sass selector variables)
     }
 }
 

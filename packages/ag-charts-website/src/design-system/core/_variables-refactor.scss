@@ -226,6 +226,15 @@ $transition-default-timing: 0.25s ease-in-out;
     // Brand
     --color-text-brand-primary: var(--color-brand-500);
 
+    --color-util-brand-50: var(--color-brand-50);
+    --color-util-brand-100: var(--color-brand-100);
+    --color-util-brand-200: var(--color-brand-200);
+    --color-util-brand-300: var(--color-brand-300);
+    --color-util-brand-400: var(--color-brand-400);
+    --color-util-brand-500: var(--color-brand-500);
+    --color-util-brand-600: var(--color-brand-600);
+    --color-util-brand-700: var(--color-brand-700);
+
     // Shadows
     --shadow-xs: 0 1px 2px 0 color-mix(in srgb, var(--color-gray-950) 05%, transparent);
     --shadow-sm: 0 1px 3px 0 color-mix(in srgb, var(--color-gray-950) 10%, transparent),
@@ -299,4 +308,13 @@ html[data-dark-mode='true'] {
 
     // Brand
     --color-text-brand-primary: var(--color-brand-200);
+
+    --color-util-brand-50: var(--color-brand-950);
+    --color-util-brand-100: var(--color-brand-900);
+    --color-util-brand-200: var(--color-brand-800);
+    --color-util-brand-300: var(--color-brand-700);
+    --color-util-brand-400: var(--color-brand-600);
+    --color-util-brand-500: var(--color-brand-500);
+    --color-util-brand-600: var(--color-brand-400);
+    --color-util-brand-700: var(--color-brand-300);
 }
