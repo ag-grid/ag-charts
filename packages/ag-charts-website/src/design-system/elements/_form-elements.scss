@@ -45,6 +45,7 @@ input[type='text']#{$exclude-grid-selector},
 input[type='search']#{$exclude-grid-selector},
 input[type='email']#{$exclude-grid-selector},
 input[type='checkbox']#{$exclude-grid-selector},
+input[type='radio']#{$exclude-grid-selector},
 input[type='number']#{$exclude-grid-selector},
 select#{$exclude-grid-selector} {
     color: var(--color-fg-primary);
@@ -89,7 +90,7 @@ input[type='number'] {
         &:focus:not(:disabled):not([readonly]),
         &:focus-visible:not(:disabled):not([readonly]),
         &.focus {
-            box-shadow: 0 0 0 4px var(--color-input-shadow-focus);
+            box-shadow: 0 0 0 $spacing-size-1 var(--color-input-shadow-focus);
         }
 
         &:disabled,
@@ -103,9 +104,9 @@ input[type='number'] {
     }
 }
 
-input[type='checkbox']:not(.switch)#{$selector-exclude-grid},
-input[type='checkbox'].switch#{$selector-exclude-grid},
-input[type='radio']#{$selector-exclude-grid} {
+input[type='checkbox']:not(.switch)#{$exclude-grid-selector},
+input[type='checkbox'].switch#{$exclude-grid-selector},
+input[type='radio']#{$exclude-grid-selector} {
     appearance: none;
     width: $spacing-size-5;
     height: $spacing-size-5;
@@ -128,15 +129,15 @@ input[type='radio']#{$selector-exclude-grid} {
     }
 }
 
-input[type='checkbox']:not(.switch)#{$selector-exclude-grid},
-input[type='checkbox'].switch#{$selector-exclude-grid} {
+input[type='checkbox']:not(.switch)#{$exclude-grid-selector},
+input[type='checkbox'].switch#{$exclude-grid-selector} {
     &:checked {
         background-color: var(--color-input-bg-checked);
         border-color: var(--color-input-bg-checked);
     }
 }
 
-input[type='checkbox']:not(.switch)#{$selector-exclude-grid} {
+input[type='checkbox']:not(.switch)#{$exclude-grid-selector} {
     --svg-tick: url('data:image/svg+xml;utf8,<svg fill="none" stroke="%23fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M14.6673 6.5L8.25065 12.9167L5.33398 10"/></svg>');
 
     border-radius: var(--radius-sm);
@@ -149,10 +150,25 @@ input[type='checkbox']:not(.switch)#{$selector-exclude-grid} {
     &:hover:not(:disabled):not([readonly]),
     &.hover,
     &:focus-visible:not(:disabled):not([readonly]),
-    &:checked,
-    &.hover,
     &.focus {
-        border-color: var(--input-primary-color);
+        border-color: var(--color-input-border-hover);
+    }
+
+    &:checked,
+    &:disabled,
+    &[disabled],
+    &.disabled {
+        background-image: var(--svg-tick);
+    }
+
+    &:disabled,
+    &[disabled],
+    &.disabled {
+        --svg-tick: url('data:image/svg+xml;utf8,<svg fill="none" stroke="%23eaecf0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M14.6673 6.5L8.25065 12.9167L5.33398 10"/></svg>');
+
+        #{$darkmode-selector} & {
+            --svg-tick: url('data:image/svg+xml;utf8,<svg fill="none" stroke="%23344054" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M14.6673 6.5L8.25065 12.9167L5.33398 10"/></svg>');
+        }
     }
 }
 
@@ -180,11 +196,12 @@ input[type='checkbox'].switch {
     }
 }
 
-input[type='radio']#{$selector-exclude-grid} {
+input[type='radio']#{$exclude-grid-selector} {
     border-radius: var(--radius-full);
     border: 1px solid var(--color-border-primary);
     transition:
         background-color $transition-default-timing,
+        border-color $transition-default-timing,
         box-shadow $transition-default-timing;
 
     &:hover:not(:disabled):not([readonly]),
@@ -192,13 +209,14 @@ input[type='radio']#{$selector-exclude-grid} {
         border: 1px solid var(--color-input-border-hover);
     }
 
-    &:focus:not(:disabled):not([readonly]),
-    &:focus-visible:not(:disabled):not([readonly]),
-    &.focus {
-        box-shadow:
-            inset 0 0 0 0.125em var(--input-primary-color),
-            inset 0 0 0 0.25em var(--input-background-color),
-            0 0 0 4px var(--color-input-shadow-focus);
+    &:checked:not(:disabled):not([readonly]) {
+        border: 6px solid var(--color-input-bg-checked);
+    }
+
+    &:disabled,
+    &[disabled],
+    &.disabled {
+        box-shadow: inset 0 0 0 1px var(--color-border-tertiary);
     }
 }
 
@@ -207,11 +225,11 @@ select#{$selector-exclude-grid} {
 
     appearance: none;
     padding: math.div(6em, 16) math.div(36em, 16) math.div(6em, 16) math.div(12em, 16);
-    font-size: var(--text-fs-base);
-    line-height: var(--text-lh-base);
-    border-radius: var(--radius-sm);
+    font-size: 1rem;
+    line-height: var(--line-height-normal);
+    border-radius: var(--border-radius);
     background-color: var(--color-bg-primary);
-    background-image: var(--svg-chevron-down);
+    background-image: $svg-chevron-down;
     background-repeat: no-repeat;
     background-position: center right;
     border: 2px solid var(--color-input-border);
@@ -251,7 +269,7 @@ input[type='range']#{$selector-exclude-grid} {
     @mixin track {
         height: math.div(4em, 16);
         background-color: var(--color-input-border);
-        border-radius: var(--radius-sm);
+        border-radius: var(--border-radius);
     }
 
     @mixin thumb {
@@ -261,7 +279,7 @@ input[type='range']#{$selector-exclude-grid} {
         margin-top: math.div(-6em, 16);
         border-radius: 50%;
         border: none;
-        background-color: var(--input-primary-color);
+        background-color: var(--color-input-bg-checked);
         transition: background-color $transition-default-timing;
     }
 
@@ -279,7 +297,7 @@ input[type='range']#{$selector-exclude-grid} {
     &:focus-visible:not(:disabled):not([readonly]),
     &.focus {
         border-color: var(--color-input-border-hover);
-        box-shadow: 0 0 0 4px var(--color-input-shadow-focus);
+        box-shadow: 0 0 0 $spacing-size-1 var(--color-input-shadow-focus);
     }
 
     // Using mixins as -webkit & -moz properties cannot be used as comma seperted list
@@ -345,13 +363,13 @@ input[type='range']#{$selector-exclude-grid} {
 
     input,
     select {
-        --color-border-primary: var(--input-error-color);
-        --color-input-border-hover: var(--input-error-color);
+        --color-border-primary: var(--color-input-error);
+        --color-input-border-hover: var(--color-input-error);
     }
 
     .error {
         margin-top: $spacing-size-1;
-        color: var(--input-error-color);
+        color: var(--color-input-error);
     }
 }
 

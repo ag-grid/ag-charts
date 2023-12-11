@@ -148,6 +148,7 @@ $transition-default-timing: 0.25s ease-in-out;
     // Background colors
     --color-bg-primary: var(--color-white);
     --color-bg-secondary: var(--color-gray-50);
+    --color-bg-tertiary: var(--color-gray-100);
     --color-bg-brand-solid: var(--color-brand-500);
     --color-bg-disabled_subtle: var(--color-gray-50);
 
@@ -195,10 +196,14 @@ $transition-default-timing: 0.25s ease-in-out;
     // Input colors
     --color-input-border: var(--color-border-primary);
     --color-input-border-hover: var(--color-brand-300);
+    --color-input-bg-checked: var(--color-bg-brand-solid);
     --color-input-shadow-focus: var(--color-brand-200);
 
     --color-input-disabled-bg: var(--color-bg-disabled_subtle);
     --color-input-disabled-fg: var(--color-fg-disabled);
+
+    // TODO, replace with correct color
+    --color-input-error: red;
 
     // Warning colors
     --color-util-warning-50: var(--color-warning-50);
@@ -230,6 +235,7 @@ html[data-dark-mode='true'] {
     // Background colors
     --color-bg-primary: var(--color-gray-900);
     --color-bg-secondary: var(--color-gray-800);
+    --color-bg-tertiary: var(--color-gray-800);
     --color-bg-brand-solid: var(--color-brand-500);
     --color-bg-disabled_subtle: var(--color-gray-800);
 

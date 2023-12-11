@@ -7,14 +7,14 @@
 
     display: flex;
     width: 100%;
-    border-radius: var(--radius-sm);
+    border-radius: var(--border-radius);
     background-color: var(--color-bg-primary);
 
     border: 1px solid transparent;
 
-    #{$selector-darkmode} & {
-        --color-bg-primary: var(--color-bg-primary);
-        border-color: var(--color-bg-primary);
+    #{$darkmode-selector} & {
+        --color-bg-primary: #192a35;
+        border-color: rgba(255, 255, 255, 0.1);
     }
 }
 

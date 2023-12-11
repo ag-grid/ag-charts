@@ -12,7 +12,7 @@
     left: 0;
     border-bottom-right-radius: var(--border-radius);
     border-bottom-left-radius: var(--border-radius);
-    background-color: var(--input-background-color);
+    background-color: var(--color-bg-primary);
     border-top: 2px solid var(--color-border-primary);
     overflow-y: auto;
     z-index: 999;
@@ -50,7 +50,7 @@
         &:focus-visible {
             position: relative;
             border-color: var(--color-input-border-hover);
-            background-color: var(--color-util-gray-50);
+            background-color: var(--toolbar-background);
             z-index: 1002;
         }
 
@@ -85,7 +85,7 @@
     }
 
     #{$darkmode-selector} & {
-        --color-border-primary: var(--input-border-color);
+        --color-border-primary: var(--color-input-border);
 
         top: 40px;
         box-shadow: inset 0 -1px 0 0 var(--color-border-primary);
