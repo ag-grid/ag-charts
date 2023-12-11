@@ -9,7 +9,8 @@ import { Radii } from './Radii';
 import { Shadows } from './Shadows';
 import { Spacing } from './Spacing';
 import styles from './StyleGuide.module.scss';
-import { TextStyles } from './TextStyles';
+import { TextElements } from './TextElements';
+import { TextSizes } from './TextSizes';
 
 export const StyleGuide: FunctionComponent = () => {
     return (
@@ -19,9 +20,10 @@ export const StyleGuide: FunctionComponent = () => {
                 <Layout />
                 <Spacing />
                 <Radii />
-                <TextStyles />
+                <TextSizes />
                 <Colors />
                 <Shadows />
+                <TextElements />
                 <Buttons />
                 <Inputs />
             </div>
