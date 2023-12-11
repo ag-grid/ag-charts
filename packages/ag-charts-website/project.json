@@ -23,8 +23,9 @@
       }
     },
     "dev": {
-      "command": "cd packages/ag-charts-website && astro dev --port=4600 --host",
       "dependsOn": ["^build", "^docs-resolved-interfaces"],
+      "command": "cd packages/ag-charts-website && astro dev --port=${PORT} --host",
+
       "configurations": {
         "watch": {}
       }
@@ -35,7 +36,7 @@
           "target": "build"
         }
       ],
-      "command": "cd packages/ag-charts-website && astro preview --port=4601",
+      "command": "cd packages/ag-charts-website && astro preview --port=${PORT}",
       "configurations": {
         "staging": {},
         "production": {}
