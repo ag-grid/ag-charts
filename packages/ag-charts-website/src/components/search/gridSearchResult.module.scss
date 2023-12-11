@@ -24,8 +24,12 @@
     }
 
     li {
-        line-height: var(--text-lh-tight);
-        margin-bottom: -1px;
+        line-height: var(--line-height-tight);
+        margin-bottom: -2px !important;
+
+        #{$selector-darkmode} & {
+            margin-bottom: -1px !important;
+        }
     }
 
     li:first-child a {
@@ -57,6 +61,10 @@
         &:disabled {
             display: none;
         }
+
+        #{$selector-darkmode} & {
+            border-width: 1px;
+        }
     }
 
     a,
@@ -84,7 +92,7 @@
         display: block;
     }
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         --color-border-primary: var(--color-input-border);
 
         top: 40px;
@@ -118,7 +126,13 @@ button:global(.ais-InfiniteHits-loadMore) {
     transition: background-color $transition-default-timing;
 
     &:hover {
-        background-color: var(--color-util-brand-50);
+        background-color: var(--toolbar-background);
+    }
+
+    #{$selector-darkmode} & {
+        &:focus-visible {
+            box-shadow: none;
+        }
     }
 }
 

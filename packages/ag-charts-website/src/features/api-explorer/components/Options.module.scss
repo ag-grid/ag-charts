@@ -27,7 +27,7 @@
         background-color: var(--color-util-brand-50);
 
         #{$selector-darkmode} & {
-            background-color: var(--color-util-brand-50);
+            background-color: var(--background-200);
         }
     }
 }

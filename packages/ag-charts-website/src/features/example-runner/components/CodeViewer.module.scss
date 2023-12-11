@@ -114,7 +114,8 @@
         border-color: var(--color-util-brand-300);
 
         #{$selector-darkmode} & {
-            background-color: var(--color-bg-primary);
+            border-color: var(--primary-200);
+            background-color: #121f29;
         }
     }
 
@@ -125,7 +126,7 @@
         background-color: var(--color-bg-primary);
 
         #{$selector-darkmode} & {
-            background-color: var(--color-bg-secondary);
+            background-color: #121f29;
         }
     }
 }

@@ -30,13 +30,13 @@ ol.list-style-none,
     }
 }
 
-pre#{$exclude-grid-selector} {
+pre#{$selector-exclude-grid} {
     background-color: var(--neutral-200);
     padding: $spacing-size-2 $spacing-size-4;
     border-radius: var(--border-radius);
     font-family: var(--text-monospace-font-family);
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         background-color: var(--background-200);
     }
 }

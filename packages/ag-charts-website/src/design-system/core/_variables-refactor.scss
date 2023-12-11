@@ -1,8 +1,11 @@
 // // Darkmode selector. To be used as an interpolated Sass parent selector
-// // #{$darkmode-selector} & {
+// // #{$selector-darkmode} & {
 // //     [DARKMODE STYLES]
 // // }
-$darkmode-selector: "[data-dark-mode='true']";
+$selector-darkmode: "[data-dark-mode='true']";
+
+// Exclude simple selectors from interfering with grid styles
+$selector-exclude-grid: ':where(:not([class^=ag]))';
 
 $spacing-size-1: 4px;
 $spacing-size-2: 8px;

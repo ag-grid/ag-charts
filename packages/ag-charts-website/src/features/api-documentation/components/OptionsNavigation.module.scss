@@ -104,7 +104,7 @@
         pointer-events: none;
 
         #{$selector-darkmode} & {
-            background-color: var(--color-util-gray-400);
+            background-color: var(--neutral-600);
         }
     }
 
@@ -134,6 +134,11 @@
             background-color: var(--color-util-brand-400);
             opacity: 0.15;
             pointer-events: none;
+        }
+
+        #{$selector-darkmode} & {
+            --highlight-color: var(--property-color);
+            --highlight-opacity: 0.16;
         }
     }
 }
@@ -185,7 +190,7 @@
         background-color: var(--color-util-gray-300);
 
         #{$selector-darkmode} & {
-            background-color: var(--color-util-gray-400);
+            background-color: var(--neutral-600);
         }
     }
 }
@@ -248,7 +253,7 @@
         color: var(--color-util-brand-700);
 
         #{$selector-darkmode} & {
-            color: var(--color-util-brand-400);
+            color: var(--primary-500);
         }
     }
 
@@ -256,7 +261,7 @@
         background-color: var(--color-util-brand-100);
 
         #{$selector-darkmode} & {
-            background-color: var(--color-util-brand-50);
+            background-color: var(--background-400);
         }
     }
 }

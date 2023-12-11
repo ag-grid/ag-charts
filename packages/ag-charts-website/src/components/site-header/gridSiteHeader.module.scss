@@ -14,8 +14,7 @@
         z-index: 4;
     }
 
-    #{$darkmode-selector} & {
-        background: var(--color-bg-primary);
+    #{$selector-darkmode} & {
         border-bottom: 1px solid #3b4754;
     }
 }
@@ -111,7 +110,11 @@
     }
 
     @media screen and (min-width: $breakpoint-site-header-small) {
-        display: none;
+        display: none !important;
+    }
+
+    #{$selector-darkmode} & {
+        --button-active-color: var(--background-300);
     }
 }
 

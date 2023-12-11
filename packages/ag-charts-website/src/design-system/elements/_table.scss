@@ -6,30 +6,30 @@ table#{$selector-exclude-grid} {
     border-collapse: collapse;
     border-bottom: 1px solid var(--color-border-primary);
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         border-color: #394755;
     }
 }
 
 thead#{$selector-exclude-grid},
 table:not(.no-zebra) tr:nth-child(even)#{$selector-exclude-grid} {
-    background-color: var(--color-bg-secondary);
+    background-color: var(--table-odd-row-background-color);
 }
 
 tbody#{$selector-exclude-grid} {
     vertical-align: top;
 }
 
-tr#{$exclude-grid-selector} {
+tr#{$selector-exclude-grid} {
     border-top: 1px solid var(--color-border-primary);
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         border-top-color: #394755;
     }
 }
 
-th#{$exclude-grid-selector},
-td#{$exclude-grid-selector} {
+th#{$selector-exclude-grid},
+td#{$selector-exclude-grid} {
     padding: $spacing-size-2 $spacing-size-4;
     text-align: left;
 }

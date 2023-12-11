@@ -2,6 +2,23 @@
 @use 'core' as *;
 
 :root {
+    // create a CSS variable for every abstract color
+    @each $name, $hex in $abstract-colors {
+        --#{$name}: #{$hex};
+    }
+
+    // create a CSS variable for all scale colors
+    @each $name, $scale in $color-scales {
+        @each $key, $value in map.get($color-scales, $name) {
+            --#{$name}-#{unquote($key)}: #{$value};
+        }
+    }
+
+    // create a CSS variable for every semantic color
+    @each $name, $var-name in $semantic-colors {
+        --#{$name}: var(--#{$var-name});
+    }
+
     --max-page-width: #{$max-page-width};
     --horizontal-margin: #{$horizontal-margin};
 
@@ -28,4 +45,29 @@
 
     // Used to set offset for smooth-scroll polyfill (gatsby-ssr.js)
     --scroll-offset: #{$site-header-height + 13px};
+}
+
+// Create CSS variables for all dark mode colors
+@mixin dark-mode-variables {
+    @each $name, $scale in $dark-scales {
+        @each $key, $value in map.get($dark-scales, $name) {
+            --#{$name}-#{unquote($key)}: #{$value};
+        }
+    }
+
+    // create a CSS variable for every semantic color
+    @each $name, $var-name in $dark-semantic-colors {
+        --#{$name}: var(--#{$var-name});
+    }
+    --color-scheme: dark;
+}
+
+html[data-dark-mode='true'] {
+    @include dark-mode-variables;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-dark-mode='false']) {
+        @include dark-mode-variables;
+    }
 }

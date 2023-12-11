@@ -12,7 +12,11 @@
     transition: color $transition-default-timing !important;
 
     &:hover {
-        color: var(--color-link-hover);
+        --button-text-color: var(--dark-blue-300);
+
+        #{$selector-darkmode} & {
+            --button-text-color: rgb(0, 123, 255);
+        }
     }
 
     &:disabled {
@@ -36,6 +40,7 @@
     }
 
     #{$selector-darkmode} & {
+        background-color: #121f29;
         border: 1px solid rgb(255, 255, 255, 0.15);
     }
 }

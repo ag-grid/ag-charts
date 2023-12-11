@@ -8,9 +8,9 @@
     border-radius: 8px;
     border: 1px solid var(--color-border-primary);
 
-    #{$darkmode-selector} & {
-        background: var(--color-bg-secondary);
-        border: 1px solid var(--color-border-primary);
+    #{$selector-darkmode} & {
+        background: #122835;
+        border: 1px solid #394755;
     }
 
     header {
@@ -29,7 +29,7 @@
             color: var(--secondary-text);
             opacity: 0.7;
 
-            #{$darkmode-selector} & {
+            #{$selector-darkmode} & {
                 color: #c3cad3;
                 opacity: 1;
             }
@@ -40,7 +40,7 @@
             color: var(--link-color);
             font-size: 1rem;
 
-            #{$darkmode-selector} & {
+            #{$selector-darkmode} & {
                 color: rgb(56, 147, 249);
             }
 
@@ -56,13 +56,37 @@
         font-size: 1rem;
         color: var(--text-color);
 
-        #{$darkmode-selector} & {
+        #{$selector-darkmode} & {
             color: #c3cad3;
         }
     }
 
     ul {
-        padding-left: $spacing-size-5;
+        padding-top: 0.75rem;
+        padding-bottom: 0.75rem;
+        list-style: none;
+        padding-left: 0;
+        margin-bottom: 16px;
+
+        li::before {
+            content: '• ';
+            color: #c3cad3;
+            font-weight: bold;
+        }
+
+        a {
+            color: var(--link-color);
+            text-decoration: none;
+            font-size: 1rem;
+
+            #{$selector-darkmode} & {
+                color: rgb(56, 147, 249);
+            }
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
     }
 
     header a:hover,
@@ -93,7 +117,7 @@
 .line {
     border-bottom: 1px solid var(--color-border-primary);
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         border-bottom: 1px solid #394755;
     }
 }
@@ -109,7 +133,7 @@
     display: flex;
     justify-content: center;
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         background: #2a343e;
     }
 }
@@ -124,7 +148,7 @@
 
     color: var(--link-color);
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         color: #c3cad3 !important;
     }
 }
@@ -147,7 +171,8 @@ span.major-text {
     text-align: center;
     margin-bottom: $spacing-size-2;
 
+    margin-bottom: 16px;
     #{$selector-darkmode} & {
-        background: var(--color-gray-700);
+        background: #2a343e;
     }
 }

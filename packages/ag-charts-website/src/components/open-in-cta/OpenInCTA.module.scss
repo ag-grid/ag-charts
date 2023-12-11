@@ -14,7 +14,17 @@
     cursor: pointer;
 
     &:hover {
-        background-color: var(--color-util-brand-100);
+        --button-text-color: var(--link-color);
+
+        background-color: var(--background-400);
+
+        svg {
+            --text-color: var(--link-color);
+        }
+
+        #{$selector-darkmode} & {
+            background-color: var(--primary-100);
+        }
     }
 
     svg {
@@ -81,8 +91,8 @@
         transition-delay: 0.165s;
     }
 
-    #{$darkmode-selector} & {
-        --tooltip-background: var(--color-bg-secondary);
+    #{$selector-darkmode} & {
+        --tooltip-background: #202a34;
 
         color: var(--color-fg-primary);
         box-shadow: 0 -4px 16px 0 rgba(0, 0, 0, 0.4);

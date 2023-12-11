@@ -31,7 +31,9 @@
         padding-bottom: 0.25em;
     }
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
+        --alert-background-color: #121f29;
+
         color: #c3cad3;
 
         border: 1px solid rgb(255, 255, 255, 0.15);
@@ -49,7 +51,7 @@
 .alert.info {
     --text-color: var(--dark-blue-300);
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         --text-color: var(--color-fg-primary);
 
         :global(.icon) {
@@ -60,7 +62,11 @@
 
 .alert.idea {
     :global(.icon) {
-        fill: orange;
+        --text-color: var(--orange-800);
+    }
+
+    #{$selector-darkmode} & :global(.icon) {
+        --text-color: #ffd000;
     }
 }
 
@@ -75,7 +81,7 @@
         --text-color: #f4c000;
     }
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         --alert-background-color: #262119;
         --text-color: var(--color-fg-primary);
 

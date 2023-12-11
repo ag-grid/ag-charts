@@ -5,13 +5,13 @@
 
     margin-bottom: $spacing-size-4;
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         --example-border-color: color-mix(in srgb, var(--color-bg-primary), white 10%);
     }
 }
 
 iframe {
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         background: #182230;
     }
 }
@@ -38,7 +38,7 @@ iframe {
         position: absolute;
     }
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         --button-color: #202a34;
         --button-hover-color: #2a343e;
         --button-active-color: #293949;

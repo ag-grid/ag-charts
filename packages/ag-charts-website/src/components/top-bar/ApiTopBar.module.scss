@@ -4,7 +4,7 @@
     background-color: var(--color-bg-toolbar);
 
     #{$selector-darkmode} & {
-        border-bottom: 1px solid var(--color-border-primary);
+        border-bottom: 1px solid #394755;
     }
 
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
@@ -17,7 +17,7 @@
         }
     }
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         background: var(--color-bg-primary);
         border-bottom: 0.5px solid #394755;
     }
@@ -70,7 +70,7 @@
         display: block;
         font-weight: 500;
 
-        #{$darkmode-selector} & {
+        #{$selector-darkmode} & {
             color: var(--color-fg-primary);
         }
 

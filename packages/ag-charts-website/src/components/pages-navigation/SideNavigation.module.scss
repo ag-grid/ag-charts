@@ -59,7 +59,7 @@
     z-index: -2;
 
     #{$selector-darkmode} & {
-        --nav-line-color: var(--color-border-primary);
+        --nav-line-color: #394755;
     }
 }
 
@@ -87,8 +87,8 @@
     transition: color $transition-default-timing;
 
     #{$selector-darkmode} & {
-        --active-color: var(--color-brand-300);
-        --active-border: var(--color-brand-300);
+        --active-color: #3893f9;
+        --active-border: #3893f9;
         --hover-background: rgba(56, 146, 249, 0.06);
         --active-background: rgba(56, 146, 249, 0.09);
 

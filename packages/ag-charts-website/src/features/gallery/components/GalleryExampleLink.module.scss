@@ -43,7 +43,7 @@
         border-top: 1px solid var(--link-border-color);
     }
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         --link-border-color: color-mix(in srgb, var(--color-bg-primary), white 10%);
 
         background-color: #182230;

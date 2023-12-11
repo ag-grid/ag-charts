@@ -70,7 +70,7 @@
         padding-left: var(--menu-horizontal-margin);
     }
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         --color-border-secondary: #394755;
 
         border-bottom: none;
@@ -186,7 +186,11 @@ button:not([class^='ag-']).sectionHeader {
 
     .enterpriseIcon {
         --icon-size: 1.15em;
-        --color-icon: var(--color-enterprise-icon);
+        --text-color: var(--enterprise-icon-color);
+
+        #{$selector-darkmode} & {
+            --text-color: var(--active-color);
+        }
 
         position: relative;
         margin-left: 4px;
@@ -221,8 +225,8 @@ button:not([class^='ag-']).sectionHeader {
         background-color 0.33s ease-in-out;
 
     #{$selector-darkmode} & {
-        --active-color: var(--color-brand-300);
-        --active-border: var(--color-brand-300);
+        --active-color: #3893f9;
+        --active-border: #3893f9;
         --hover-background: rgba(56, 146, 249, 0.06);
         --active-background: rgba(56, 146, 249, 0.09);
 
@@ -270,7 +274,7 @@ button:not([class^='ag-']).sectionHeader {
     transition: color $transition-default-timing;
 
     #{$selector-darkmode} & {
-        color: var(--color-util-gray-500);
+        color: var(--neutral-800);
     }
 
     &.activeItemParent {
