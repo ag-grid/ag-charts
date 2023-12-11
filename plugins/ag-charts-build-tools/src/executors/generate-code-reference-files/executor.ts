@@ -13,7 +13,7 @@ export default async function (options: ExecutorOptions) {
         console.log('Generate docs reference files...');
         console.log('Using Typescript version: ', ts.version);
 
-        generateFile(options);
+        await generateFile(options);
 
         console.log(`Generation completed - written to ${options.output}.`);
         console.log('-'.repeat(80));
@@ -25,16 +25,16 @@ export default async function (options: ExecutorOptions) {
     }
 }
 
-function generateFile(options: ExecutorOptions) {
+async function generateFile(options: ExecutorOptions) {
     const typeMapper = new TypeMapper(options.inputs);
 
     switch (options.mode) {
         // flat version of the interfaces file, without resolving
         case 'debug-interfaces':
-            return writeJSONFile(options.output, typeMapper.entries());
+            return await writeJSONFile(options.output, typeMapper.entries());
 
         case 'docs-interfaces':
-            return writeJSONFile(options.output, typeMapper.resolvedEntries());
+            return await writeJSONFile(options.output, typeMapper.resolvedEntries());
 
         default:
             throw new Error(`Unsupported mode "${options.mode}"`);

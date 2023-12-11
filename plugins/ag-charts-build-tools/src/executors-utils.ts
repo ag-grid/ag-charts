@@ -1,5 +1,6 @@
 import type { ExecutorContext, TaskGraph } from '@nx/devkit';
-import * as fs from 'fs';
+import { readFileSync } from 'fs';
+import * as fs from 'fs/promises';
 import * as glob from 'glob';
 import * as path from 'path';
 import * as ts from 'typescript';
@@ -16,34 +17,36 @@ export type BatchExecutorTaskResult = {
     result: TaskResult;
 };
 
-export function readJSONFile(filePath: string) {
-    return fs.existsSync(filePath) ? JSON.parse(fs.readFileSync(filePath, 'utf-8')) : null;
-}
-
-export function readFile(filePath: string) {
-    return fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf-8') : null;
-}
-
-export function writeJSONFile(filePath: string, data: unknown, indent = 2) {
-    const dataContent = JSON.stringify(data, null, indent);
-    writeFile(filePath, dataContent);
-}
-
-export function writeFile(filePath: string, newContent: string | Buffer) {
-    if (typeof newContent === 'string') {
-        const fileContent = readFile(filePath)?.toString();
-
-        // Only write if content changed to avoid false-positive change detection.
-        if (fileContent === newContent) return;
+async function exists(filePath: string) {
+    try {
+        return (await fs.stat(filePath))?.isFile();
+    } catch (e) {
+        return false;
     }
+}
 
+export async function readJSONFile(filePath: string) {
+    return (await exists(filePath)) ? JSON.parse(await fs.readFile(filePath, 'utf-8')) : null;
+}
+
+export async function readFile(filePath: string) {
+    return (await exists(filePath)) ? await fs.readFile(filePath, 'utf-8') : null;
+}
+
+export async function writeJSONFile(filePath: string, data: unknown, indent = 2) {
+    const dataContent = JSON.stringify(data, null, indent);
+    await writeFile(filePath, dataContent);
+}
+
+export async function writeFile(filePath: string, newContent: string | Buffer) {
     const outputDir = path.dirname(filePath);
-    fs.mkdirSync(outputDir, { recursive: true });
-    fs.writeFileSync(filePath, newContent);
+    await fs.mkdir(outputDir, { recursive: true });
+    await fs.writeFile(filePath, newContent);
 }
 
 export function parseFile(filePath: string) {
-    return ts.createSourceFile('tempFile.ts', fs.readFileSync(filePath, 'utf8'), ts.ScriptTarget.Latest, true);
+    const contents = readFileSync(filePath, 'utf8');
+    return ts.createSourceFile('tempFile.ts', contents, ts.ScriptTarget.Latest, true);
 }
 
 export function inputGlob(fullPath: string) {
@@ -62,35 +65,21 @@ export function batchExecutor<ExecutorOptions>(
         context: ExecutorContext
     ): AsyncGenerator<BatchExecutorTaskResult, any, unknown> {
         const tasks = Object.keys(inputs);
-        let taskIndex = 0;
 
-        return yield* {
-            [Symbol.asyncIterator]() {
-                return {
-                    async next() {
-                        if (taskIndex >= tasks.length) {
-                            return { value: undefined, done: true };
-                        }
+        for (let taskIndex = 0; taskIndex < tasks.length; taskIndex++) {
+            const task = tasks[taskIndex++];
+            const inputOptions = inputs[task];
 
-                        const task = tasks[taskIndex++];
-                        const inputOptions = inputs[task];
+            let success = false;
+            let terminalOutput = '';
+            try {
+                await executor({ ...inputOptions, ...overrides }, context);
+                success = true;
+            } catch (e) {
+                terminalOutput += `${e}`;
+            }
 
-                        let success = false;
-                        let terminalOutput = '';
-                        try {
-                            await executor({ ...inputOptions, ...overrides }, context);
-                            success = true;
-                        } catch (e) {
-                            terminalOutput += `${e}`;
-                        }
-
-                        return {
-                            value: { task, result: { success, terminalOutput } },
-                            done: false,
-                        };
-                    },
-                };
-            },
-        };
+            yield { task, result: { success, terminalOutput } };
+        }
     };
 }

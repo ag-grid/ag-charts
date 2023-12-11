@@ -31,15 +31,19 @@ export default async function (options: ExecutorOptions, ctx: ExecutorContext) {
 
         return { success: true, terminalOutput: `Generating thumbnails for [${options.generatedExamplePath}]` };
     } catch (e) {
-        const terminalOutput = `${e}`;
-        return { success: false, terminalOutput };
+        console.error(e);
+        return { success: false };
     }
 }
 
 export async function generateFiles(options: ExecutorOptions, ctx: ExecutorContext) {
     const name = `${ctx.projectName}:${ctx.targetName}:${ctx.configurationName ?? ''}`;
     const jsonPath = path.join(options.generatedExamplePath, 'plain', 'vanilla', 'contents.json');
-    const generatedExample = readJSONFile(jsonPath);
+    const generatedExample = await readJSONFile(jsonPath);
+
+    if (generatedExample == null) {
+        throw new Error(`Unable to read generated example: [${jsonPath}]`);
+    }
 
     for (const theme of Object.keys(THEMES) as AgChartThemeName[]) {
         for (const format of ['png' as const, 'webp' as const]) {
@@ -50,7 +54,7 @@ export async function generateFiles(options: ExecutorOptions, ctx: ExecutorConte
                 theme,
             });
 
-            writeFile(path.join(options.outputPath, `${theme}.${format}`), result);
+            await writeFile(path.join(options.outputPath, `${theme}.${format}`), result);
         }
     }
 }

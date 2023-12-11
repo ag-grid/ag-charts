@@ -19,8 +19,8 @@ export default async function (options: ExecutorOptions) {
 
         return { success: true, terminalOutput: `Generating example [${options.examplePath}]` };
     } catch (e) {
-        const terminalOutput = `${e}`;
-        return { success: false, terminalOutput };
+        console.error(e);
+        return { success: false };
     }
 }
 
@@ -35,10 +35,8 @@ export async function generateFiles(options: ExecutorOptions) {
                 isDev: options.mode === 'dev',
             });
 
-            writeFile(
-                path.join(options.outputPath, darkModePath, internalFramework, 'contents.json'),
-                JSON.stringify(result)
-            );
+            const outputPath = path.join(options.outputPath, darkModePath, internalFramework, 'contents.json');
+            await writeFile(outputPath, JSON.stringify(result));
         }
     }
 }
