@@ -1,7 +1,7 @@
 @use '../core' as *;
 
 button#{$exclude-grid-selector} {
-    font-family: var(--font-family);
+    font-family: var(--text-font-family);
     font-size: inherit;
     line-height: inherit;
     cursor: pointer;
