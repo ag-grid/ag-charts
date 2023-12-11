@@ -238,7 +238,7 @@ button:not([class^='ag-']).sectionHeader {
     }
 
     &:focus-visible {
-        border-color: var(--input-focus-border-color);
+        border-color: var(--color-input-border-hover);
     }
 
     &.activeItemParent {
