@@ -1,3 +1,4 @@
+import { fuzzySuggestions } from './fuzzyMatch';
 import { Logger } from './logger';
 import type { DeepPartial } from './types';
 
@@ -273,7 +274,13 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
                 targetType === CLASS_INSTANCE_TYPE &&
                 !(property in target || Object.prototype.hasOwnProperty.call(targetAny, property))
             ) {
-                Logger.warn(`unable to set [${propertyPath}] in ${targetClass?.name} - property is unknown`);
+                const validKeys: string[] = Object.keys(target).map((s) => s.replace(/^__/, ''));
+                const suggestions = fuzzySuggestions(property, validKeys, true);
+                Logger.warn(
+                    `invalid ${targetClass?.name} property '${propertyPath}', did you mean any of these: ${suggestions.values
+                        .slice(0, 8)
+                        .join(', ')}`
+                );
                 continue;
             }
 
