@@ -10,6 +10,7 @@ import { Radii } from './Radii';
 import { Shadows } from './Shadows';
 import { Spacing } from './Spacing';
 import styles from './StyleGuide.module.scss';
+import { Tables } from './Tables';
 import { TextElements } from './TextElements';
 import { TextSizes } from './TextSizes';
 
@@ -28,6 +29,7 @@ export const StyleGuide: FunctionComponent = () => {
                 <Buttons />
                 <Inputs />
                 <Alerts />
+                <Tables />
             </div>
         </>
     );
