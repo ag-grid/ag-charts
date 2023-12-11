@@ -4,7 +4,7 @@ import type { ModuleContext } from '../../module/moduleContext';
 import { Group } from '../../scene/group';
 import { Rect } from '../../scene/shape/rect';
 import { ProxyPropertyOnWrite } from '../../util/proxy';
-import { BOOLEAN, OPT_COLOR_STRING, Validate } from '../../util/validation';
+import { BOOLEAN, COLOR_STRING, Validate } from '../../util/validation';
 import { Layers } from '../layers';
 import type { LayoutCompleteEvent } from '../layout/layoutService';
 
@@ -16,7 +16,7 @@ export class Background<TImage = never> extends BaseModuleInstance implements Mo
     @ProxyPropertyOnWrite('node', 'visible')
     visible: boolean = true;
 
-    @Validate(OPT_COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     @ProxyPropertyOnWrite('rectNode', 'fill')
     fill?: string = 'white';
 

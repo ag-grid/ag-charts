@@ -33,18 +33,18 @@ function initialiseConfig(
 
     const getter = function (this: any) {
         let value = prevGet ? prevGet.call(this) : this[valueStoreKey];
-        for (const transformFn of config[propertyKey]?.getters ?? []) {
+        for (const transformFn of config[propertyKey].getters) {
             value = transformFn(this, propertyKeyOrSymbol, value);
 
             if (value === BREAK_TRANSFORM_CHAIN) {
-                return undefined;
+                return;
             }
         }
 
         return value;
     };
     const setter = function (this: any, value: any) {
-        const setters = config[propertyKey]?.setters ?? [];
+        const { setters } = config[propertyKey];
 
         let oldValue;
         if (setters.some((f) => f.length > 2)) {

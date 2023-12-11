@@ -19,14 +19,14 @@ const {
     accumulativeValueProperty,
     trailingAccumulatedValueProperty,
     ChartAxisDirection,
-    OPTIONAL,
-    NUMBER,
-    OPT_NUMBER,
+    POSITIVE_NUMBER,
+    RATIO,
     BOOLEAN,
-    OPT_STRING,
-    OPT_FUNCTION,
-    OPT_COLOR_STRING,
-    OPT_LINE_DASH,
+    STRING,
+    UNION,
+    FUNCTION,
+    COLOR_STRING,
+    LINE_DASH,
     getRectConfig,
     updateRect,
     checkCrisp,
@@ -40,10 +40,6 @@ const {
 } = _ModuleSupport;
 const { ContinuousScale, Rect, motion } = _Scene;
 const { sanitizeHtml, isContinuous, isNumber } = _Util;
-
-const WATERFALL_LABEL_PLACEMENTS: AgWaterfallSeriesLabelPlacement[] = ['start', 'end', 'inside'];
-const OPT_WATERFALL_LABEL_PLACEMENT: _ModuleSupport.ValidatePredicate = (v: any, ctx) =>
-    OPTIONAL(v, ctx, (v: any) => WATERFALL_LABEL_PLACEMENTS.includes(v));
 
 type WaterfallNodeLabelDatum = Readonly<_Scene.Point> & {
     readonly text: string;
@@ -80,15 +76,15 @@ type WaterfallAnimationData = _ModuleSupport.CartesianAnimationData<
 >;
 
 class WaterfallSeriesItemTooltip {
-    @Validate(OPT_FUNCTION)
+    @Validate(FUNCTION, { optional: true })
     renderer?: (params: AgWaterfallSeriesTooltipRendererParams) => string | AgTooltipRendererResult;
 }
 
 class WaterfallSeriesLabel extends _Scene.Label<AgWaterfallSeriesLabelFormatterParams> {
-    @Validate(OPT_WATERFALL_LABEL_PLACEMENT)
+    @Validate(UNION(['start', 'end', 'inside'], 'a placement'), { optional: true })
     placement: AgWaterfallSeriesLabelPlacement = 'end';
 
-    @Validate(OPT_NUMBER(0))
+    @Validate(POSITIVE_NUMBER, { optional: true })
     padding: number = 6;
 }
 
@@ -97,33 +93,33 @@ class WaterfallSeriesItem {
 
     tooltip: WaterfallSeriesItemTooltip = new WaterfallSeriesItemTooltip();
 
-    @Validate(OPT_FUNCTION)
+    @Validate(FUNCTION, { optional: true })
     formatter?: (params: AgWaterfallSeriesFormatterParams<any>) => AgWaterfallSeriesFormat;
 
     shadow?: _Scene.DropShadow = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     name?: string = undefined;
 
-    @Validate(OPT_COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     fill: string = '#c16068';
 
-    @Validate(OPT_COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     stroke: string = '#c16068';
 
-    @Validate(NUMBER(0, 1))
+    @Validate(RATIO)
     fillOpacity = 1;
 
-    @Validate(NUMBER(0, 1))
+    @Validate(RATIO)
     strokeOpacity = 1;
 
-    @Validate(OPT_LINE_DASH)
+    @Validate(LINE_DASH, { optional: true })
     lineDash?: number[] = [0];
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     strokeWidth: number = 1;
 }
 
@@ -131,19 +127,19 @@ class WaterfallSeriesConnectorLine {
     @Validate(BOOLEAN)
     enabled = true;
 
-    @Validate(OPT_COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     stroke: string = 'black';
 
-    @Validate(NUMBER(0, 1))
+    @Validate(RATIO)
     strokeOpacity = 1;
 
-    @Validate(OPT_LINE_DASH)
+    @Validate(LINE_DASH, { optional: true })
     lineDash?: number[] = [0];
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     strokeWidth: number = 2;
 }
 
@@ -197,16 +193,16 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         return direction;
     }
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     xKey?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     xName?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     yKey?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     yName?: string = undefined;
 
     private seriesItemTypes: Set<AgWaterfallSeriesItemType> = new Set(['positive', 'negative', 'total']);

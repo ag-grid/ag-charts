@@ -7,10 +7,10 @@ import { ChangeDetectable, RedrawType, SceneChangeDetection } from '../../scene/
 import type { RequireOptional } from '../../util/types';
 import {
     BOOLEAN,
-    NUMBER,
-    OPT_COLOR_STRING,
-    OPT_FUNCTION,
-    OPT_NUMBER,
+    COLOR_STRING,
+    FUNCTION,
+    POSITIVE_NUMBER,
+    RATIO,
     Validate,
     predicateWithMessage,
 } from '../../util/validation';
@@ -37,31 +37,31 @@ export class SeriesMarker<TParams = never, TDatum = any>
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
     shape: MarkerShape = Circle;
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
     size: number = 6;
 
-    @Validate(OPT_COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
     fill?: string;
 
-    @Validate(OPT_NUMBER(0, 1))
+    @Validate(RATIO, { optional: true })
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
     fillOpacity: number = 1;
 
-    @Validate(OPT_COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
     stroke?: string;
 
-    @Validate(OPT_NUMBER(0))
+    @Validate(POSITIVE_NUMBER, { optional: true })
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
     strokeWidth: number = 1;
 
-    @Validate(OPT_NUMBER(0, 1))
+    @Validate(RATIO, { optional: true })
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
     strokeOpacity: number = 1;
 
-    @Validate(OPT_FUNCTION)
+    @Validate(FUNCTION, { optional: true })
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
     formatter?: (
         params: AgSeriesMarkerFormatterParams<TDatum> & RequireOptional<TParams>

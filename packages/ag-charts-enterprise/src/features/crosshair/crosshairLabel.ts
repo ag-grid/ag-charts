@@ -3,7 +3,7 @@ import { _ModuleSupport, _Scene } from 'ag-charts-community';
 type AgCrosshairLabelRendererParams = any;
 type AgCrosshairLabelRendererResult = any;
 
-const { ActionOnSet, Validate, NUMBER, BOOLEAN, OPT_STRING, OPT_FUNCTION } = _ModuleSupport;
+const { ActionOnSet, Validate, NUMBER, BOOLEAN, STRING, FUNCTION } = _ModuleSupport;
 const { BBox } = _Scene;
 
 const DEFAULT_LABEL_CLASS = 'ag-crosshair-label';
@@ -49,7 +49,7 @@ export class CrosshairLabel {
     @Validate(BOOLEAN)
     enabled: boolean = true;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     @ActionOnSet<CrosshairLabel>({
         changeValue(newValue, oldValue) {
             if (newValue !== oldValue) {
@@ -64,16 +64,16 @@ export class CrosshairLabel {
     })
     className?: string = undefined;
 
-    @Validate(NUMBER())
+    @Validate(NUMBER)
     xOffset: number = 0;
 
-    @Validate(NUMBER())
+    @Validate(NUMBER)
     yOffset: number = 0;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     format?: string = undefined;
 
-    @Validate(OPT_FUNCTION)
+    @Validate(FUNCTION, { optional: true })
     renderer?: (params: AgCrosshairLabelRendererParams) => string | AgCrosshairLabelRendererResult = undefined;
 
     constructor(document: Document, container: HTMLElement) {

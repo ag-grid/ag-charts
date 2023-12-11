@@ -8,7 +8,7 @@ import type { Group } from '../../../scene/group';
 import type { Node } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
 import type { PointLabelDatum } from '../../../util/labelPlacement';
-import { OPT_COLOR_STRING_ARRAY, OPT_STRING, Validate } from '../../../util/validation';
+import { COLOR_STRING_ARRAY, STRING, Validate } from '../../../util/validation';
 import type { HighlightNodeDatum } from '../../interaction/highlightManager';
 import type { ChartLegendType, GradientLegendDatum } from '../../legendDatum';
 import { DEFAULT_FILLS, DEFAULT_STROKES } from '../../themes/defaultColors';
@@ -91,25 +91,25 @@ export abstract class HierarchySeries<
     TNode extends Node = Group,
     TDatum extends SeriesNodeDatum = SeriesNodeDatum,
 > extends Series<TDatum> {
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     childrenKey?: string = 'children';
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     sizeKey?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     colorKey?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     colorName?: string = undefined;
 
-    @Validate(OPT_COLOR_STRING_ARRAY)
+    @Validate(COLOR_STRING_ARRAY, { optional: true })
     fills: string[] = Object.values(DEFAULT_FILLS);
 
-    @Validate(OPT_COLOR_STRING_ARRAY)
+    @Validate(COLOR_STRING_ARRAY, { optional: true })
     strokes: string[] = Object.values(DEFAULT_STROKES);
 
-    @Validate(OPT_COLOR_STRING_ARRAY)
+    @Validate(COLOR_STRING_ARRAY, { optional: true })
     colorRange?: string[] = undefined;
 
     rootNode = new HierarchyNode<TDatum>(

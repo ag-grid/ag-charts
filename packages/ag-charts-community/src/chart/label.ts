@@ -9,10 +9,10 @@ import type { RequireOptional } from '../util/types';
 import {
     BOOLEAN,
     COLOR_STRING,
-    NUMBER,
-    OPT_FONT_STYLE,
-    OPT_FONT_WEIGHT,
-    OPT_FUNCTION,
+    FONT_STYLE,
+    FONT_WEIGHT,
+    FUNCTION,
+    POSITIVE_NUMBER,
     STRING,
     Validate,
 } from '../util/validation';
@@ -25,19 +25,19 @@ export class Label<TParams = never, TDatum = any> implements AgChartLabelOptions
     @Validate(COLOR_STRING)
     color = '#464646';
 
-    @Validate(OPT_FONT_STYLE)
+    @Validate(FONT_STYLE, { optional: true })
     fontStyle?: FontStyle;
 
-    @Validate(OPT_FONT_WEIGHT)
+    @Validate(FONT_WEIGHT, { optional: true })
     fontWeight?: FontWeight;
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     fontSize = 12;
 
     @Validate(STRING)
     fontFamily = 'Verdana, sans-serif';
 
-    @Validate(OPT_FUNCTION)
+    @Validate(FUNCTION, { optional: true })
     formatter?: (params: AgChartLabelFormatterParams<TDatum> & RequireOptional<TParams>) => string | undefined;
 
     getFont(): string {

@@ -12,7 +12,7 @@ import { Path } from '../../../scene/shape/path';
 import { Text } from '../../../scene/shape/text';
 import { Debug } from '../../../util/debug';
 import type { PointLabelDatum } from '../../../util/labelPlacement';
-import { OPT_STRING, Validate } from '../../../util/validation';
+import { STRING, Validate } from '../../../util/validation';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { LegendItemClickChartEvent, LegendItemDoubleClickChartEvent } from '../../interaction/chartEventManager';
@@ -139,7 +139,7 @@ export abstract class CartesianSeries<
     TLabel extends SeriesNodeDatum = TDatum,
     TContext extends CartesianSeriesNodeDataContext<TDatum, TLabel> = CartesianSeriesNodeDataContext<TDatum, TLabel>,
 > extends DataModelSeries<TDatum, TLabel, TContext> {
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     legendItemName?: string = undefined;
 
     private _contextNodeData: TContext[] = [];

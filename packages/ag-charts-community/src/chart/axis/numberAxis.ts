@@ -5,12 +5,12 @@ import { normalisedExtentWithMetadata } from '../../util/array';
 import { Default } from '../../util/default';
 import { Logger } from '../../util/logger';
 import { calculateNiceSecondaryAxis } from '../../util/secondaryAxisTicks';
-import { AND, GREATER_THAN, LESS_THAN, NUMBER_OR_NAN, Validate } from '../../util/validation';
+import { AND, GREATER_THAN, LESS_THAN, NAN, NUMBER, NUMBER_OR_NAN, OR, Validate } from '../../util/validation';
 import { AxisTick } from './axisTick';
 import { CartesianAxis } from './cartesianAxis';
 
 class NumberAxisTick extends AxisTick<LinearScale | LogScale, number> {
-    @Validate(AND(NUMBER_OR_NAN(1), GREATER_THAN('minSpacing')))
+    @Validate(OR(AND(NUMBER.restrict({ min: 1 }), GREATER_THAN('minSpacing')), NAN))
     @Default(NaN)
     override maxSpacing: number = NaN;
 }
@@ -30,11 +30,11 @@ export class NumberAxis extends CartesianAxis<LinearScale | LogScale, number> {
         return { domain: extent, clipped };
     }
 
-    @Validate(AND(NUMBER_OR_NAN(), LESS_THAN('max')))
+    @Validate(AND(NUMBER_OR_NAN, LESS_THAN('max')))
     @Default(NaN)
     min: number = NaN;
 
-    @Validate(AND(NUMBER_OR_NAN(), GREATER_THAN('min')))
+    @Validate(AND(NUMBER_OR_NAN, GREATER_THAN('min')))
     @Default(NaN)
     max: number = NaN;
 

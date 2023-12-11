@@ -7,13 +7,11 @@ import type {
 } from '../../options/agChartOptions';
 import {
     BOOLEAN,
-    NUMBER,
-    OPT_COLOR_STRING,
-    OPT_FONT_STYLE,
-    OPT_FONT_WEIGHT,
-    OPT_FUNCTION,
-    OPT_NUMBER,
-    OPT_STRING,
+    COLOR_STRING,
+    FONT_STYLE,
+    FONT_WEIGHT,
+    FUNCTION,
+    POSITIVE_NUMBER,
     STRING,
     TEXT_WRAP,
     Validate,
@@ -24,30 +22,30 @@ export class AxisTitle implements AgAxisCaptionOptions {
     @Validate(BOOLEAN)
     enabled = false;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     text?: string = undefined;
 
-    @Validate(OPT_NUMBER(0))
+    @Validate(POSITIVE_NUMBER, { optional: true })
     spacing?: number = Caption.SMALL_PADDING;
 
-    @Validate(OPT_FONT_STYLE)
+    @Validate(FONT_STYLE, { optional: true })
     fontStyle?: FontStyle = undefined;
 
-    @Validate(OPT_FONT_WEIGHT)
+    @Validate(FONT_WEIGHT, { optional: true })
     fontWeight?: FontWeight = undefined;
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     fontSize: number = 10;
 
     @Validate(STRING)
     fontFamily: string = 'sans-serif';
 
-    @Validate(OPT_COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     color?: string;
 
     @Validate(TEXT_WRAP)
     wrapping: TextWrap = 'always';
 
-    @Validate(OPT_FUNCTION)
+    @Validate(FUNCTION, { optional: true })
     formatter?: (params: AgAxisCaptionFormatterParams) => string = undefined;
 }

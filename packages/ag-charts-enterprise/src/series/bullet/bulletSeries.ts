@@ -15,10 +15,9 @@ const {
     COLOR_STRING,
     STRING,
     LINE_DASH,
-    NUMBER,
-    OPT_NON_EMPTY_ARRAY,
-    OPT_NUMBER,
-    OPT_STRING,
+    POSITIVE_NUMBER,
+    RATIO,
+    ARRAY,
 } = _ModuleSupport;
 const { fromToMotion } = _Scene.motion;
 const { sanitizeHtml } = _Util;
@@ -42,7 +41,7 @@ export class BulletColorRange {
     @Validate(COLOR_STRING)
     color: string = 'lightgrey';
 
-    @Validate(OPT_NUMBER(0))
+    @Validate(POSITIVE_NUMBER, { optional: true })
     stop?: number = undefined;
 }
 
@@ -68,30 +67,30 @@ class TargetStyle {
     @Validate(COLOR_STRING)
     fill: string = 'black';
 
-    @Validate(NUMBER(0, 1))
+    @Validate(RATIO)
     fillOpacity = 1;
 
     @Validate(COLOR_STRING)
     stroke: string = 'black';
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     strokeWidth = 1;
 
-    @Validate(NUMBER(0, 1))
+    @Validate(RATIO)
     strokeOpacity = 1;
 
     @Validate(LINE_DASH)
     lineDash: number[] = [0];
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(NUMBER(0, 1))
+    @Validate(RATIO)
     lengthRatio: number = 0.75;
 }
 
 class BulletScale {
-    @Validate(OPT_NUMBER(0))
+    @Validate(POSITIVE_NUMBER, { optional: true })
     max?: number = undefined; // alias for AgChartOptions.axes[0].max
 }
 
@@ -99,25 +98,25 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
     @Validate(COLOR_STRING)
     fill: string = 'black';
 
-    @Validate(NUMBER(0, 1))
+    @Validate(RATIO)
     fillOpacity = 1;
 
     @Validate(COLOR_STRING)
     stroke: string = 'black';
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     strokeWidth = 1;
 
-    @Validate(NUMBER(0, 1))
+    @Validate(RATIO)
     strokeOpacity = 1;
 
     @Validate(LINE_DASH)
     lineDash: number[] = [0];
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(NUMBER(0, 1))
+    @Validate(RATIO)
     widthRatio: number = 0.5;
 
     target: TargetStyle = new TargetStyle();
@@ -125,16 +124,16 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
     @Validate(STRING)
     valueKey: string = '';
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     valueName?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     targetKey?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     targetName?: string = undefined;
 
-    @Validate(OPT_NON_EMPTY_ARRAY())
+    @Validate(ARRAY.restrict({ minLength: 1 }), { optional: true })
     colorRanges: BulletColorRange[] = [new BulletColorRange()];
 
     scale: BulletScale = new BulletScale();

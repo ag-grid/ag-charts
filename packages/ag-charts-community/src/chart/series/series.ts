@@ -23,11 +23,11 @@ import { Observable } from '../../util/observable';
 import { ActionOnSet } from '../../util/proxy';
 import {
     BOOLEAN,
+    COLOR_STRING,
     INTERACTION_RANGE,
-    OPT_BOOLEAN,
-    OPT_COLOR_STRING,
-    OPT_LINE_DASH,
-    OPT_NUMBER,
+    LINE_DASH,
+    POSITIVE_NUMBER,
+    RATIO,
     STRING,
     Validate,
 } from '../../util/validation';
@@ -230,41 +230,41 @@ export class SeriesNodeClickEvent<TDatum extends SeriesNodeDatum, TEvent extends
 }
 
 export class SeriesItemHighlightStyle {
-    @Validate(OPT_COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     fill?: string = 'yellow';
 
-    @Validate(OPT_NUMBER(0, 1))
+    @Validate(RATIO, { optional: true })
     fillOpacity?: number = undefined;
 
-    @Validate(OPT_COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     stroke?: string = undefined;
 
-    @Validate(OPT_NUMBER(0))
+    @Validate(POSITIVE_NUMBER, { optional: true })
     strokeWidth?: number = undefined;
 
-    @Validate(OPT_NUMBER(0, 1))
+    @Validate(RATIO, { optional: true })
     strokeOpacity?: number = undefined;
 
-    @Validate(OPT_LINE_DASH)
+    @Validate(LINE_DASH, { optional: true })
     lineDash?: number[] = undefined;
 
-    @Validate(OPT_NUMBER(0))
+    @Validate(POSITIVE_NUMBER, { optional: true })
     lineDashOffset?: number = undefined;
 }
 
 class SeriesHighlightStyle {
-    @Validate(OPT_NUMBER(0))
+    @Validate(POSITIVE_NUMBER, { optional: true })
     strokeWidth?: number = undefined;
 
-    @Validate(OPT_NUMBER(0, 1))
+    @Validate(RATIO, { optional: true })
     dimOpacity?: number = undefined;
 
-    @Validate(OPT_BOOLEAN)
+    @Validate(BOOLEAN, { optional: true })
     enabled?: boolean = undefined;
 }
 
 class TextHighlightStyle {
-    @Validate(OPT_COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     color?: string = 'black';
 }
 

@@ -16,19 +16,19 @@ import { Text } from '../../scene/shape/text';
 import { createId } from '../../util/id';
 import { clampArray, isEqual } from '../../util/number';
 import {
+    ARRAY,
+    BOOLEAN,
+    COLOR_STRING,
+    DEGREE,
+    FONT_STYLE,
+    FONT_WEIGHT,
+    LINE_DASH,
     NUMBER,
-    OPTIONAL,
-    OPT_ARRAY,
-    OPT_BOOLEAN,
-    OPT_COLOR_STRING,
-    OPT_FONT_STYLE,
-    OPT_FONT_WEIGHT,
-    OPT_LINE_DASH,
-    OPT_NUMBER,
-    OPT_STRING,
+    POSITIVE_NUMBER,
+    RATIO,
     STRING,
+    UNION,
     Validate,
-    predicateWithMessage,
 } from '../../util/validation';
 import { checkDatum } from '../../util/value';
 import { ChartAxisDirection } from '../chartAxisDirection';
@@ -43,50 +43,43 @@ import {
     labelDirectionHandling,
 } from './crossLineLabelPosition';
 
-const CROSSLINE_LABEL_POSITIONS = [
-    'top',
-    'left',
-    'right',
-    'bottom',
-    'topLeft',
-    'topRight',
-    'bottomLeft',
-    'bottomRight',
-    'inside',
-    'insideLeft',
-    'insideRight',
-    'insideTop',
-    'insideBottom',
-    'insideTopLeft',
-    'insideBottomLeft',
-    'insideTopRight',
-    'insideBottomRight',
-];
-
-const OPT_CROSSLINE_LABEL_POSITION = predicateWithMessage(
-    (v: any, ctx) => OPTIONAL(v, ctx, (v: any) => CROSSLINE_LABEL_POSITIONS.includes(v)),
-    `expecting an optional crossLine label position keyword such as 'topLeft', 'topRight' or 'inside'`
-);
-
-const OPT_CROSSLINE_TYPE = predicateWithMessage(
-    (v: any, ctx) => OPTIONAL(v, ctx, (v: any) => v === 'range' || v === 'line'),
-    `expecting a crossLine type keyword such as 'range' or 'line'`
+const CROSSLINE_LABEL_POSITION = UNION(
+    [
+        'top',
+        'left',
+        'right',
+        'bottom',
+        'topLeft',
+        'topRight',
+        'bottomLeft',
+        'bottomRight',
+        'inside',
+        'insideLeft',
+        'insideRight',
+        'insideTop',
+        'insideBottom',
+        'insideTopLeft',
+        'insideBottomLeft',
+        'insideTopRight',
+        'insideBottomRight',
+    ],
+    'crossLine label position'
 );
 
 class CartesianCrossLineLabel implements AgCartesianCrossLineLabelOptions {
-    @Validate(OPT_BOOLEAN)
+    @Validate(BOOLEAN, { optional: true })
     enabled?: boolean = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     text?: string = undefined;
 
-    @Validate(OPT_FONT_STYLE)
+    @Validate(FONT_STYLE, { optional: true })
     fontStyle?: FontStyle = undefined;
 
-    @Validate(OPT_FONT_WEIGHT)
+    @Validate(FONT_WEIGHT, { optional: true })
     fontWeight?: FontWeight = undefined;
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     fontSize: number = 14;
 
     @Validate(STRING)
@@ -95,22 +88,22 @@ class CartesianCrossLineLabel implements AgCartesianCrossLineLabelOptions {
     /**
      * The padding between the label and the line.
      */
-    @Validate(NUMBER())
+    @Validate(NUMBER)
     padding: number = 5;
 
     /**
      * The color of the labels.
      */
-    @Validate(OPT_COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     color?: string = 'rgba(87, 87, 87, 1)';
 
-    @Validate(OPT_CROSSLINE_LABEL_POSITION)
+    @Validate(CROSSLINE_LABEL_POSITION, { optional: true })
     position?: CrossLineLabelPosition = undefined;
 
-    @Validate(OPT_NUMBER(-360, 360))
+    @Validate(DEGREE, { optional: true })
     rotation?: number = undefined;
 
-    @Validate(OPT_BOOLEAN)
+    @Validate(BOOLEAN, { optional: true })
     parallel?: boolean = undefined;
 }
 
@@ -123,32 +116,32 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
     static className = 'CrossLine';
     readonly id = createId(this);
 
-    @Validate(OPT_BOOLEAN)
+    @Validate(BOOLEAN, { optional: true })
     enabled?: boolean = undefined;
 
-    @Validate(OPT_CROSSLINE_TYPE)
+    @Validate(UNION(['range', 'line'], 'a crossLine type'), { optional: true })
     type?: CrossLineType = undefined;
 
-    @Validate(OPT_ARRAY(2))
+    @Validate(ARRAY.restrict({ length: 2 }), { optional: true })
     range?: [any, any] = undefined;
     value?: any = undefined;
 
-    @Validate(OPT_COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     fill?: string = undefined;
 
-    @Validate(OPT_NUMBER(0, 1))
+    @Validate(RATIO, { optional: true })
     fillOpacity?: number = undefined;
 
-    @Validate(OPT_COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     stroke?: string = undefined;
 
-    @Validate(OPT_NUMBER())
+    @Validate(NUMBER, { optional: true })
     strokeWidth?: number = undefined;
 
-    @Validate(OPT_NUMBER(0, 1))
+    @Validate(RATIO, { optional: true })
     strokeOpacity?: number = undefined;
 
-    @Validate(OPT_LINE_DASH)
+    @Validate(LINE_DASH, { optional: true })
     lineDash?: [] = undefined;
 
     label: CartesianCrossLineLabel = new CartesianCrossLineLabel();

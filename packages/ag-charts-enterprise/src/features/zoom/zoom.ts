@@ -19,7 +19,9 @@ import {
 } from './zoomTransformers';
 import type { DefinedZoomState } from './zoomTypes';
 
-const { BOOLEAN, NUMBER, STRING_UNION, ActionOnSet, ChartAxisDirection, ChartUpdateType, Validate } = _ModuleSupport;
+const { BOOLEAN, NUMBER, RATIO, UNION, ActionOnSet, ChartAxisDirection, ChartUpdateType, Validate } = _ModuleSupport;
+
+const ANCHOR_CORD = UNION(['pointer', 'start', 'middle', 'end'], 'an anchor cord');
 
 const CONTEXT_ZOOM_ACTION_ID = 'zoom-action';
 const CONTEXT_PAN_ACTION_ID = 'pan-action';
@@ -60,25 +62,25 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     @Validate(BOOLEAN)
     public enableSelecting = false;
 
-    @Validate(STRING_UNION('alt', 'ctrl', 'meta', 'shift'))
+    @Validate(UNION(['alt', 'ctrl', 'meta', 'shift'], 'a pan key'))
     public panKey: 'alt' | 'ctrl' | 'meta' | 'shift' = 'alt';
 
-    @Validate(STRING_UNION('xy', 'x', 'y'))
-    public axes: 'xy' | 'x' | 'y' = 'x';
+    @Validate(UNION(['x', 'y', 'xy'], 'an axis'))
+    public axes: 'x' | 'y' | 'xy' = 'x';
 
-    @Validate(NUMBER(0, 1))
+    @Validate(RATIO)
     public scrollingStep = UNIT.max / 10;
 
-    @Validate(NUMBER(1))
+    @Validate(NUMBER.restrict({ min: 1 }))
     public minVisibleItemsX = 2;
 
-    @Validate(NUMBER(1))
+    @Validate(NUMBER.restrict({ min: 1 }))
     public minVisibleItemsY = 2;
 
-    @Validate(STRING_UNION('pointer', 'start', 'middle', 'end'))
+    @Validate(ANCHOR_CORD)
     public anchorPointX: AgZoomAnchorPoint = 'end';
 
-    @Validate(STRING_UNION('pointer', 'start', 'middle', 'end'))
+    @Validate(ANCHOR_CORD)
     public anchorPointY: AgZoomAnchorPoint = 'middle';
 
     // Scenes

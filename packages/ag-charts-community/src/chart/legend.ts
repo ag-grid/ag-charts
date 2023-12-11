@@ -21,17 +21,14 @@ import { Logger } from '../util/logger';
 import {
     BOOLEAN,
     COLOR_STRING,
-    NUMBER,
-    OPTIONAL,
-    OPT_BOOLEAN,
-    OPT_FONT_STYLE,
-    OPT_FONT_WEIGHT,
-    OPT_FUNCTION,
-    OPT_NUMBER,
+    FONT_STYLE,
+    FONT_WEIGHT,
+    FUNCTION,
     POSITION,
+    POSITIVE_NUMBER,
     STRING,
+    UNION,
     Validate,
-    predicateWithMessage,
 } from '../util/validation';
 import { ChartUpdateType } from './chartUpdateType';
 import type { Page } from './gridLayout';
@@ -45,37 +42,31 @@ import { MarkerLabel } from './markerLabel';
 import { Pagination } from './pagination/pagination';
 import { toTooltipHtml } from './tooltip/tooltip';
 
-const ORIENTATIONS = ['horizontal', 'vertical'];
-const OPT_ORIENTATION = predicateWithMessage(
-    (v: any, ctx) => OPTIONAL(v, ctx, (v) => ORIENTATIONS.includes(v)),
-    `expecting an orientation keyword such as 'horizontal' or 'vertical'`
-);
-
 class LegendLabel {
-    @Validate(OPT_NUMBER(0))
+    @Validate(POSITIVE_NUMBER, { optional: true })
     maxLength?: number = undefined;
 
     @Validate(COLOR_STRING)
     color: string = 'black';
 
-    @Validate(OPT_FONT_STYLE)
+    @Validate(FONT_STYLE, { optional: true })
     fontStyle?: FontStyle = undefined;
 
-    @Validate(OPT_FONT_WEIGHT)
+    @Validate(FONT_WEIGHT, { optional: true })
     fontWeight?: FontWeight = undefined;
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     fontSize: number = 12;
 
     @Validate(STRING)
     fontFamily: string = 'Verdana, sans-serif';
 
-    @Validate(OPT_FUNCTION)
+    @Validate(FUNCTION, { optional: true })
     formatter?: (params: AgChartLegendLabelFormatterParams) => string = undefined;
 }
 
 class LegendMarker {
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     size = 15;
     /**
      * If the marker type is set, the legend will always use that marker type for all its items,
@@ -93,10 +84,10 @@ class LegendMarker {
     /**
      * Padding between the marker and the label within each legend item.
      */
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     padding: number = 8;
 
-    @Validate(OPT_NUMBER(0))
+    @Validate(POSITIVE_NUMBER, { optional: true })
     strokeWidth: number | undefined = undefined;
 
     parent?: { onMarkerShapeChange(): void };
@@ -106,21 +97,21 @@ class LegendItem {
     readonly marker = new LegendMarker();
     readonly label = new LegendLabel();
     /** Used to constrain the width of legend items. */
-    @Validate(OPT_NUMBER(0))
+    @Validate(POSITIVE_NUMBER, { optional: true })
     maxWidth?: number = undefined;
     /**
      * The legend uses grid layout for its items, occupying as few columns as possible when positioned to left or right,
      * and as few rows as possible when positioned to top or bottom. This config specifies the amount of horizontal
      * padding between legend items.
      */
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     paddingX = 16;
     /**
      * The legend uses grid layout for its items, occupying as few columns as possible when positioned to left or right,
      * and as few rows as possible when positioned to top or bottom. This config specifies the amount of vertical
      * padding between legend items.
      */
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     paddingY = 8;
 
     @Validate(BOOLEAN)
@@ -128,7 +119,7 @@ class LegendItem {
 }
 
 class LegendListeners implements AgChartLegendListeners {
-    @Validate(OPT_FUNCTION)
+    @Validate(FUNCTION, { optional: true })
     legendItemClick?: (event: AgChartLegendClickEvent) => void = undefined;
     legendItemDoubleClick?: (event: AgChartLegendDoubleClickEvent) => void = undefined;
 }
@@ -191,18 +182,18 @@ export class Legend {
     }
 
     /** Used to constrain the width of the legend. */
-    @Validate(OPT_NUMBER(0))
+    @Validate(POSITIVE_NUMBER, { optional: true })
     maxWidth?: number = undefined;
 
     /** Used to constrain the height of the legend. */
-    @Validate(OPT_NUMBER(0))
+    @Validate(POSITIVE_NUMBER, { optional: true })
     maxHeight?: number = undefined;
 
     /** Reverse the display order of legend items if `true`. */
-    @Validate(OPT_BOOLEAN)
+    @Validate(BOOLEAN, { optional: true })
     reverseOrder?: boolean = undefined;
 
-    @Validate(OPT_ORIENTATION)
+    @Validate(UNION(['horizontal', 'vertical'], 'an orientation'), { optional: true })
     orientation?: AgChartLegendOrientation;
 
     private destroyFns: Function[] = [];
@@ -241,7 +232,7 @@ export class Legend {
     /**
      * Spacing between the legend and the edge of the chart's element.
      */
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     spacing = 20;
 
     private characterWidths = new Map();

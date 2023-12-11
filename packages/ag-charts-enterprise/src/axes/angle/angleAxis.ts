@@ -9,7 +9,6 @@ const {
     ChartAxisDirection,
     GREATER_THAN,
     NUMBER,
-    OPT_NUMBER,
     predicateWithMessage,
     ProxyOnWrite,
     Validate,
@@ -50,10 +49,10 @@ export abstract class AngleAxis<
     TScale extends _Scale.Scale<TDomain, any>,
 > extends _ModuleSupport.PolarAxis<TScale> {
     @ProxyOnWrite('rotation')
-    @Validate(NUMBER(0, 360))
+    @Validate(NUMBER.restrict({ min: 0, max: 360 }))
     startAngle: number = 0;
 
-    @Validate(AND(OPT_NUMBER(0, 720), GREATER_THAN('startAngle')))
+    @Validate(AND(NUMBER.restrict({ min: 0, max: 720 }), GREATER_THAN('startAngle')), { optional: true })
     endAngle: number | undefined = undefined;
 
     protected labelData: AngleAxisLabelDatum[] = [];

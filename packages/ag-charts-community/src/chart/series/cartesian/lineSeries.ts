@@ -18,7 +18,7 @@ import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
 import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
-import { NUMBER, OPT_COLOR_STRING, OPT_LINE_DASH, OPT_STRING, Validate } from '../../../util/validation';
+import { COLOR_STRING, LINE_DASH, POSITIVE_NUMBER, RATIO, STRING, Validate } from '../../../util/validation';
 import { isNumber } from '../../../util/value';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
@@ -70,22 +70,22 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
     readonly marker = new SeriesMarker<AgLineSeriesOptionsKeys, LineNodeDatum>();
     readonly tooltip = new SeriesTooltip<AgLineSeriesTooltipRendererParams>();
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     title?: string = undefined;
 
-    @Validate(OPT_COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     stroke?: string = '#874349';
 
-    @Validate(OPT_LINE_DASH)
+    @Validate(LINE_DASH, { optional: true })
     lineDash?: number[] = [0];
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     strokeWidth: number = 2;
 
-    @Validate(NUMBER(0, 1))
+    @Validate(RATIO)
     strokeOpacity: number = 1;
 
     constructor(moduleCtx: ModuleContext) {
@@ -106,16 +106,16 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         });
     }
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     xKey?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     xName?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     yKey?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     yName?: string = undefined;
 
     override async processData(dataController: DataController) {

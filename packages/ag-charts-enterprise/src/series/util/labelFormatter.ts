@@ -1,6 +1,6 @@
 import { type OverflowStrategy, type TextWrap, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-const { Validate, OPT_NUMBER, NUMBER, TEXT_WRAP, OVERFLOW_STRATEGY } = _ModuleSupport;
+const { Validate, NUMBER, TEXT_WRAP, OVERFLOW_STRATEGY } = _ModuleSupport;
 const { Logger } = _Util;
 const { Text, Label } = _Scene;
 
@@ -15,12 +15,12 @@ class BaseAutoSizedLabel<FormatterParams> extends Label<FormatterParams> {
     @Validate(OVERFLOW_STRATEGY)
     overflowStrategy: OverflowStrategy = 'ellipsis';
 
-    @Validate(OPT_NUMBER())
+    @Validate(NUMBER, { optional: true })
     minimumFontSize?: number = undefined;
 }
 
 export class AutoSizedLabel<FormatterParams> extends BaseAutoSizedLabel<FormatterParams> {
-    @Validate(NUMBER())
+    @Validate(NUMBER)
     spacing: number = 0;
 }
 

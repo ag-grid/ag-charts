@@ -1,329 +1,214 @@
-/* eslint-disable sonarjs/no-duplicate-string */
 import { Color } from './color';
 import { BREAK_TRANSFORM_CHAIN, addTransformToInstanceProperty } from './decorator';
 import { Logger } from './logger';
+import { isArray, isBoolean, isFiniteNumber, isFunction, isNumber, isString, isValidDate } from './type-guards';
 
-type ValidationContext = { target: any };
-
-export type ValidatePredicate = {
-    (v: any, ctx: ValidationContext): boolean;
+type ValidateOptions = {
     message?: string;
+    optional?: boolean;
 };
 
-export function Validate(predicate: ValidatePredicate) {
-    return addTransformToInstanceProperty((target, prop, v: any) => {
-        if (predicate(v, { target })) {
-            return v;
+type ValidationContext = ValidateOptions & { target: any };
+
+export interface ValidatePredicate {
+    (value: unknown, ctx: ValidationContext): boolean;
+    message?: string | ((ctx: ValidationContext) => string);
+}
+
+export interface ValidateArrayPredicate extends ValidatePredicate {
+    restrict(options: { length?: number; minLength?: number }): ValidatePredicate;
+}
+
+export interface ValidateNumberPredicate extends ValidatePredicate {
+    restrict(options: { min?: number; max?: number }): ValidatePredicate;
+}
+
+export function Validate(predicate: ValidatePredicate, { optional, ...options }: ValidateOptions = {}) {
+    return addTransformToInstanceProperty((target, property, value: any) => {
+        const context = { ...options, target };
+        if ((optional && typeof value === 'undefined') || predicate(value, context)) {
+            return value;
         }
 
-        const cleanKey = prop.toString().replace(/^_*/, '');
+        const cleanKey = String(property).replace(/^_*/, '');
+        const message: Array<string | undefined> = [`Property [${cleanKey}]`];
 
-        let targetClass = target.constructor?.className ?? target.constructor?.name;
-        if (targetClass?.length < 3) {
-            targetClass = null;
+        const targetClass = target.constructor?.className ?? target.constructor?.name;
+        if (targetClass?.length > 2) {
+            message.push(`of [${targetClass}]`);
         }
 
-        const targetClassName = targetClass ? `of [${targetClass}] ` : '';
         if (predicate.message) {
-            Logger.warn(
-                `Property [${cleanKey}] ${targetClassName}cannot be set to [${stringify(v)}]; ${
-                    predicate.message
-                }, ignoring.`
-            );
+            message.push(`cannot be set to [${stringify(value)}]; expecting`, getPredicateMessage(predicate, context));
         } else {
-            Logger.warn(`Property [${cleanKey}] ${targetClassName}cannot be set to [${stringify(v)}], ignoring.`);
+            message.push(`cannot be set to [${stringify(value)}]`);
         }
+
+        Logger.warn(`${message.join(' ')}, ignoring.`);
 
         return BREAK_TRANSFORM_CHAIN;
     });
 }
 
-function stringify(value: any): string {
-    if (typeof value === 'number' && isNaN(value)) return 'NaN';
-    if (value === Infinity) return 'Infinity';
-    if (value === -Infinity) return '-Infinity';
-    return JSON.stringify(value);
-}
-
-export function predicateWithMessage(predicate: ValidatePredicate, message: string): ValidatePredicate {
-    predicate.message = message;
-    return predicate;
-}
-
-export const OPTIONAL = (v: any, ctx: ValidationContext, predicate: ValidatePredicate) =>
-    v === undefined || predicate(v, ctx);
-
-export const ARRAY = (length?: number, predicate?: ValidatePredicate) => {
-    return predicateWithMessage(
-        (v: any, ctx) =>
-            Array.isArray(v) &&
-            (length ? v.length === length : true) &&
-            (predicate ? v.every((e) => predicate(e, ctx)) : true),
-        `expecting an Array`
-    );
-};
-export const OPT_ARRAY = (length?: number) => {
-    return predicateWithMessage((v: any, ctx) => OPTIONAL(v, ctx, ARRAY(length)), 'expecting an optional Array');
-};
-
-export const NON_EMPTY_ARRAY = predicateWithMessage(
-    (v: any) => Array.isArray(v) && v.length > 0,
-    `expecting a non-empty Array`
-);
-export const OPT_NON_EMPTY_ARRAY = () => {
-    return predicateWithMessage(
-        (v: any, ctx) => OPTIONAL(v, ctx, NON_EMPTY_ARRAY),
-        'expecting an optional non-empty Array'
-    );
-};
-
 export const AND = (...predicates: ValidatePredicate[]) => {
     return predicateWithMessage(
-        (v: any, ctx) => predicates.every((p) => p(v, ctx)),
-        predicates
-            .map((p) => p.message)
-            .filter((m) => m != null)
-            .join(' AND ')
+        (value, ctx) => predicates.every((predicate) => predicate(value, ctx)),
+        (ctx) => predicates.map(getPredicateMessageMapper(ctx)).filter(Boolean).join(' AND ')
     );
 };
 export const OR = (...predicates: ValidatePredicate[]) => {
     return predicateWithMessage(
-        (v: any, ctx) => predicates.some((p) => p(v, ctx)),
-        predicates
-            .map((p) => p.message)
-            .filter((m) => m != null)
-            .join(' OR ')
+        (value, ctx) => predicates.some((predicate) => predicate(value, ctx)),
+        (ctx) => predicates.map(getPredicateMessageMapper(ctx)).filter(Boolean).join(' OR ')
     );
 };
 
-const isComparable = (v: any) => {
-    return v != null && !isNaN(v);
-};
+export const BOOLEAN = predicateWithMessage(isBoolean, 'a boolean');
+export const FUNCTION = predicateWithMessage(isFunction, 'a function');
+export const STRING = predicateWithMessage(isString, 'a string');
+export const NUMBER = attachNumberRestrictions(predicateWithMessage(isFiniteNumber, 'a number'));
+export const NAN = predicateWithMessage((value) => isNumber(value) && isNaN(value), 'NaN');
+export const POSITIVE_NUMBER = NUMBER.restrict({ min: 0 });
+export const RATIO = NUMBER.restrict({ min: 0, max: 1 });
+export const DEGREE = NUMBER.restrict({ min: -360, max: 360 });
+export const NUMBER_OR_NAN = OR(NUMBER, NAN);
+export const ARRAY: ValidateArrayPredicate = attachArrayRestrictions(predicateWithMessage(isArray, 'an array'));
+
+export const ARRAY_OF = (predicate: ValidatePredicate, message?: ValidatePredicate['message']) =>
+    predicateWithMessage(
+        (value, ctx) => isArray(value) && value.every((item) => predicate(item, ctx)),
+        (ctx) => {
+            const arrayMessage = getPredicateMessage(ARRAY, ctx) ?? '';
+            return message ? `${arrayMessage} of ${message}` : arrayMessage;
+        }
+    );
+
+const isComparable = (value: unknown): value is number | Date => isFiniteNumber(value) || isValidDate(value);
 export const LESS_THAN = (otherField: string) =>
     predicateWithMessage(
-        (v: number | Date, ctx) =>
-            !isComparable(v) || !isComparable(ctx.target[otherField]) || v < ctx.target[otherField],
+        (v, ctx) => !isComparable(v) || !isComparable(ctx.target[otherField]) || v < ctx.target[otherField],
         `expected to be less than ${otherField}`
     );
 export const GREATER_THAN = (otherField: string) =>
     predicateWithMessage(
-        (v: number | Date, ctx) =>
-            !isComparable(v) || !isComparable(ctx.target[otherField]) || v > ctx.target[otherField],
+        (v, ctx) => !isComparable(v) || !isComparable(ctx.target[otherField]) || v > ctx.target[otherField],
         `expected to be greater than ${otherField}`
     );
 
-export const FUNCTION = predicateWithMessage((v: any) => typeof v === 'function', 'expecting a Function');
-export const OPT_FUNCTION = predicateWithMessage(
-    (v: any, ctx) => OPTIONAL(v, ctx, FUNCTION),
-    `expecting an optional Function`
-);
-
-export const BOOLEAN = predicateWithMessage((v: any) => v === true || v === false, 'expecting a Boolean');
-export const OPT_BOOLEAN = predicateWithMessage(
-    (v: any, ctx) => OPTIONAL(v, ctx, BOOLEAN),
-    'expecting an optional Boolean'
-);
-
-export const STRING = predicateWithMessage((v: any) => typeof v === 'string', 'expecting a String');
-export const OPT_STRING = predicateWithMessage(
-    (v: any, ctx) => OPTIONAL(v, ctx, STRING),
-    'expecting an optional String'
-);
-
-export const DATE = predicateWithMessage((v: any) => v instanceof Date && !isNaN(+v), 'expecting a Date object');
-export const OPT_DATE = predicateWithMessage((v: any, ctx) => OPTIONAL(v, ctx, DATE), 'expecting an optional Date');
-export const DATE_ARRAY = predicateWithMessage(ARRAY(undefined, DATE), 'expecting an Array of Date objects');
-
-export const DATETIME_MS = NUMBER(0);
-export const OPT_DATETIME_MS = predicateWithMessage(
-    (v: any, ctx) => OPTIONAL(v, ctx, DATETIME_MS),
-    'expecting an optional number'
-);
-
-export const OPT_DATE_OR_DATETIME_MS = OR(OPT_DATE, OPT_DATETIME_MS);
+export const DATE = predicateWithMessage(isValidDate, 'Date object');
+export const DATE_OR_DATETIME_MS = OR(DATE, POSITIVE_NUMBER);
 
 const colorMessage = `A color string can be in one of the following formats to be valid: #rgb, #rrggbb, rgb(r, g, b), rgba(r, g, b, a) or a CSS color name such as 'white', 'orange', 'cyan', etc`;
 
-export const COLOR_STRING = predicateWithMessage((v: any) => {
-    if (typeof v !== 'string') {
-        return false;
-    }
-
-    return Color.validColorString(v);
-}, `expecting a color String. ${colorMessage}`);
-export const OPT_COLOR_STRING = predicateWithMessage(
-    (v: any, ctx) => OPTIONAL(v, ctx, COLOR_STRING),
-    `expecting an optional color String. ${colorMessage}`
+export const COLOR_STRING = predicateWithMessage(
+    (v: any) => isString(v) && Color.validColorString(v),
+    `color String. ${colorMessage}`
 );
 
-export const COLOR_STRING_ARRAY = predicateWithMessage(
-    ARRAY(undefined, COLOR_STRING),
-    `expecting an Array of color strings. ${colorMessage}`
-);
-export const OPT_COLOR_STRING_ARRAY = predicateWithMessage(
-    (v: any, ctx) => OPTIONAL(v, ctx, COLOR_STRING_ARRAY),
-    `expecting an optional Array of color strings. ${colorMessage}`
-);
+export const COLOR_STRING_ARRAY = predicateWithMessage(ARRAY_OF(COLOR_STRING), `color strings. ${colorMessage}`);
 
-function numberMessage(prefix = `expecting a finite Number`, min?: number, max?: number) {
-    let message = prefix;
+export const BOOLEAN_ARRAY = ARRAY_OF(BOOLEAN, 'boolean values');
+export const NUMBER_ARRAY = ARRAY_OF(NUMBER, 'numbers');
+export const STRING_ARRAY = ARRAY_OF(STRING, 'strings');
+export const DATE_ARRAY = predicateWithMessage(ARRAY_OF(DATE), 'Date objects');
 
-    if (min !== undefined && max !== undefined) {
-        message += ` between ${min} and ${max} inclusive`;
-    } else if (min !== undefined) {
-        message += ` greater than or equal to ${min}`;
-    } else if (max !== undefined) {
-        message += ` less than or equal to ${max}`;
-    }
-
-    return message;
-}
-
-export function NUMBER(min?: number, max?: number) {
-    const message = numberMessage(undefined, min, max);
-
-    return predicateWithMessage(
-        (v: any) =>
-            typeof v === 'number' &&
-            Number.isFinite(v) &&
-            (min !== undefined ? v >= min : true) &&
-            (max !== undefined ? v <= max : true),
-        message
-    );
-}
-export function OPT_NUMBER(min?: number, max?: number) {
-    const message = numberMessage('expecting an optional finite Number', min, max);
-
-    return predicateWithMessage((v: any, ctx) => OPTIONAL(v, ctx, NUMBER(min, max)), message);
-}
-
-export function NUMBER_OR_NAN(min?: number, max?: number) {
-    // Can be NaN or finite number
-    const message = numberMessage(undefined, min, max);
-
-    return predicateWithMessage(
-        (v: any) =>
-            typeof v === 'number' &&
-            (isNaN(v) ||
-                (Number.isFinite(v) && (min !== undefined ? v >= min : true) && (max !== undefined ? v <= max : true))),
-        message
-    );
-}
-
-export const NUMBER_ARRAY = predicateWithMessage(ARRAY(undefined, NUMBER()), 'expecting an Array of numbers');
-export const OPT_NUMBER_ARRAY = predicateWithMessage(
-    (v: any, ctx) => OPTIONAL(v, ctx, NUMBER_ARRAY),
-    'expecting an optional Array of numbers'
-);
-
-export const STRING_ARRAY = predicateWithMessage(ARRAY(undefined, STRING), 'expecting an Array of strings');
-export const OPT_STRING_ARRAY = predicateWithMessage(
-    (v: any, ctx) => OPTIONAL(v, ctx, STRING_ARRAY),
-    'expecting an optional Array of strings'
-);
-export function STRING_UNION(...values: string[]) {
-    const message = `expecting one of: ${values.join(', ')}`;
-
-    return predicateWithMessage((v: any) => typeof v === 'string' && values.indexOf(v) >= 0, message);
-}
-
-export const BOOLEAN_ARRAY = predicateWithMessage(ARRAY(undefined, BOOLEAN), 'expecting an Array of boolean values');
-export const OPT_BOOLEAN_ARRAY = predicateWithMessage(
-    (v: any, ctx) => OPTIONAL(v, ctx, BOOLEAN_ARRAY),
-    'expecting an optional Array of boolean values'
-);
-
-const FONT_WEIGHTS = ['normal', 'bold', 'bolder', 'lighter'];
-
-export const FONT_STYLE = predicateWithMessage(
-    (v: any) => v === 'normal' || v === 'italic' || v === 'oblique',
-    `expecting a font style keyword such as 'normal', 'italic' or 'oblique'`
-);
-export const OPT_FONT_STYLE = predicateWithMessage(
-    (v: any, ctx) => OPTIONAL(v, ctx, FONT_STYLE),
-    `expecting an optional font style keyword such as 'normal', 'italic' or 'oblique'`
-);
-
-export const FONT_WEIGHT = predicateWithMessage(
-    (v: any) => FONT_WEIGHTS.includes(v) || (typeof v === 'number' && isFinite(v)),
-    `expecting a font weight keyword such as 'normal', 'bold' or 'bolder' or a numeric value such as 100, 300 or 600`
-);
-export const OPT_FONT_WEIGHT = predicateWithMessage(
-    (v: any, ctx) => OPTIONAL(v, ctx, FONT_WEIGHT),
-    `expecting an optional font weight keyword such as 'normal', 'bold' or 'bolder' or a numeric value such as 100, 300 or 600`
-);
-
+export const LINE_CAP = UNION(['butt', 'round', 'square'], 'a line cap');
+export const LINE_JOIN = UNION(['round', 'bevel', 'miter'], 'a line join');
 export const LINE_DASH = predicateWithMessage(
-    ARRAY(undefined, NUMBER(0)),
-    'expecting an Array of numbers specifying the length in pixels of alternating dashes and gaps, for example, [6, 3] means dashes with a length of 6 pixels with gaps between of 3 pixels.'
+    ARRAY_OF(POSITIVE_NUMBER),
+    'numbers specifying the length in pixels of alternating dashes and gaps, for example, [6, 3] means dashes with a length of 6 pixels with gaps between of 3 pixels.'
 );
-export const OPT_LINE_DASH = predicateWithMessage(
-    (v: any, ctx) => OPTIONAL(v, ctx, LINE_DASH),
-    'expecting an optional Array of numbers specifying the length in pixels of alternating dashes and gaps, for example, [6, 3] means dashes with a length of 6 pixels with gaps between of 3 pixels.'
+export const POSITION = UNION(['top', 'right', 'bottom', 'left'], 'a position');
+export const FONT_STYLE = UNION(['normal', 'italic', 'oblique'], 'a font style');
+export const FONT_WEIGHT = OR(
+    UNION(['normal', 'bold', 'bolder', 'lighter'], 'a font weight'),
+    NUMBER.restrict({ min: 1, max: 1000 })
 );
+export const TEXT_WRAP = UNION(['never', 'always', 'hyphenate', 'on-space'], 'a text wrap strategy');
+export const TEXT_ALIGN = UNION(['left', 'center', 'right'], 'a text align');
+export const VERTICAL_ALIGN = UNION(['top', 'middle', 'bottom'], 'a vertical align');
+export const OVERFLOW_STRATEGY = UNION(['ellipsis', 'hide'], 'an overflow strategy');
+export const DIRECTION = UNION(['horizontal', 'vertical'], 'a direction');
+export const PLACEMENT = UNION(['inside', 'outside'], 'a placement');
+export const INTERACTION_RANGE = OR(UNION(['exact', 'nearest'], 'interaction range'), NUMBER);
 
-const LINE_CAPS = ['butt', 'round', 'square'];
-export const LINE_CAP = predicateWithMessage(
-    (v: any) => LINE_CAPS.includes(v),
-    `expecting a line cap keyword such as 'butt', 'round' or 'square'`
-);
-export const OPT_LINE_CAP = predicateWithMessage(
-    (v: any, ctx) => OPTIONAL(v, ctx, LINE_CAP),
-    `expecting an optional line cap keyword such as 'butt', 'round' or 'square'`
-);
+export function UNION(options: string[], message: string = 'a') {
+    return predicateWithMessage(
+        (v: any) => options.includes(v),
+        `${message} keyword such as ${joinUnionOptions(options)}`
+    );
+}
 
-const LINE_JOINS = ['round', 'bevel', 'miter'];
-export const LINE_JOIN = predicateWithMessage(
-    (v: any) => LINE_JOINS.includes(v),
-    `expecting a line join keyword such as 'round', 'bevel' or 'miter'`
-);
-export const OPT_LINE_JOIN = predicateWithMessage(
-    (v: any, ctx) => OPTIONAL(v, ctx, LINE_JOIN),
-    `expecting an optional line join keyword such as 'round', 'bevel' or 'miter'`
-);
+export const MIN_SPACING = OR(AND(NUMBER.restrict({ min: 1 }), LESS_THAN('maxSpacing')), NAN);
 
-const POSITIONS = ['top', 'right', 'bottom', 'left'];
-export const POSITION = predicateWithMessage(
-    (v: any) => POSITIONS.includes(v),
-    `expecting a position keyword such as 'top', 'right', 'bottom' or 'left`
-);
+export function predicateWithMessage(
+    predicate: ValidatePredicate,
+    message: Exclude<ValidatePredicate['message'], undefined>
+) {
+    predicate.message = message;
+    return predicate;
+}
 
-const INTERACTION_RANGES = ['exact', 'nearest'];
-export const INTERACTION_RANGE = predicateWithMessage(
-    (v: any) => (typeof v === 'number' && Number.isFinite(v)) || INTERACTION_RANGES.includes(v),
-    `expecting an interaction range of 'exact', 'nearest' or a number`
-);
+function joinUnionOptions(options: string[]) {
+    const values = options.map((option) => `'${option}'`);
+    if (values.length === 1) {
+        return values[0];
+    }
+    const lastValue = values.pop();
+    return `${values.join(', ')} or ${lastValue}`;
+}
 
-const TEXT_WRAPS = ['never', 'always', 'hyphenate', 'on-space'];
-export const TEXT_WRAP = predicateWithMessage(
-    (v: any) => TEXT_WRAPS.includes(v),
-    `expecting a text wrap strategy keyword such as 'never', 'always', 'hyphenate', or 'on-space'`
-);
+function getPredicateMessage(predicate: ValidatePredicate, ctx: ValidationContext) {
+    return isFunction(predicate.message) ? predicate.message(ctx) : predicate.message;
+}
 
-const OVERFLOW_STRAGEGIES = ['ellipsis', 'hide'];
-export const OVERFLOW_STRATEGY = predicateWithMessage(
-    (v: any) => OVERFLOW_STRAGEGIES.includes(v),
-    `expecting an overflow strategy keyword such as 'ellipsis', or 'hide'`
-);
+function getPredicateMessageMapper(ctx: ValidationContext) {
+    return (predicate: ValidatePredicate) => getPredicateMessage(predicate, ctx);
+}
 
-const TEXT_ALIGNS = ['left', 'center', 'right'];
-export const TEXT_ALIGN = predicateWithMessage(
-    (v: any) => TEXT_ALIGNS.includes(v),
-    `expecting a text align keyword such as 'left', 'center', or 'right'`
-);
+function attachArrayRestrictions(predicate: ValidatePredicate): ValidateArrayPredicate {
+    return Object.assign(predicate, {
+        restrict({ length, minLength }: { length?: number; minLength?: number } = {}) {
+            return predicateWithMessage(
+                (value) =>
+                    isArray(value) &&
+                    (isNumber(length) ? value.length === length : true) &&
+                    (isNumber(minLength) ? value.length >= minLength : true),
+                isNumber(minLength) && minLength > 0 ? 'a non-empty array' : 'an array'
+            );
+        },
+    });
+}
 
-const VERTICAL_ALIGNS = ['top', 'middle', 'bottom'];
-export const VERTICAL_ALIGN = predicateWithMessage(
-    (v: any) => VERTICAL_ALIGNS.includes(v),
-    `expecting a text align keyword such as 'top', 'middle', or 'bottom'`
-);
+function attachNumberRestrictions(predicate: ValidatePredicate): ValidateNumberPredicate {
+    return Object.assign(predicate, {
+        restrict({ min, max }: { min?: number; max?: number } = {}) {
+            const message = ['a number'];
+            const hasMin = isNumber(min);
+            const hasMax = isNumber(max);
 
-const DIRECTIONS = ['horizontal', 'vertical'];
-export const DIRECTION = predicateWithMessage(
-    (v: any) => DIRECTIONS.includes(v),
-    `expecting a direction keyword such as 'horizontal' or 'vertical'`
-);
-export const OPT_DIRECTION = predicateWithMessage(
-    (v: any, ctx) => OPTIONAL(v, ctx, DIRECTION),
-    `expecting an optional direction keyword such as 'horizontal' or 'vertical'`
-);
+            if (hasMin && hasMax) {
+                message.push(`between ${min} and ${max} inclusive`);
+            } else if (hasMin) {
+                message.push(`greater than or equal to ${min}`);
+            } else if (hasMax) {
+                message.push(`less than or equal to ${max}`);
+            }
+
+            return predicateWithMessage(
+                (value: unknown) =>
+                    isFiniteNumber(value) && (hasMin ? value >= min : true) && (hasMax ? value <= max : true),
+                message.join(' ')
+            );
+        },
+    });
+}
+
+function stringify(value: any): string {
+    if (typeof value === 'number') {
+        if (isNaN(value)) return 'NaN';
+        if (value === Infinity) return 'Infinity';
+        if (value === -Infinity) return '-Infinity';
+    }
+    return JSON.stringify(value);
+}

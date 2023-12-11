@@ -1,7 +1,7 @@
 import type { AxisContext } from '../../module/moduleContext';
 import type { AgCartesianAxisPosition } from '../../options/agChartOptions';
 import type { Scale } from '../../scale/scale';
-import { NUMBER, POSITION, Validate } from '../../util/validation';
+import { POSITION, POSITIVE_NUMBER, Validate } from '../../util/validation';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { assignJsonApplyConstructedArray } from '../chartOptions';
 import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
@@ -14,7 +14,7 @@ export abstract class CartesianAxis<
     S extends Scale<D, number, TickInterval<S>> = Scale<any, number, any>,
     D = any,
 > extends Axis<S, D> {
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     thickness: number = 0;
 
     @Validate(POSITION)

@@ -1,5 +1,5 @@
 import type { BBox } from '../../scene/bbox';
-import { OPT_FUNCTION, OPT_STRING, Validate } from '../../util/validation';
+import { FUNCTION, STRING, Validate } from '../../util/validation';
 
 export class Overlay {
     constructor(className: string, parent: HTMLElement, document: Document) {
@@ -8,10 +8,10 @@ export class Overlay {
         this.document = document;
     }
 
-    @Validate(OPT_FUNCTION)
+    @Validate(FUNCTION, { optional: true })
     renderer?: () => string;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     text?: string = undefined;
 
     private className: string;

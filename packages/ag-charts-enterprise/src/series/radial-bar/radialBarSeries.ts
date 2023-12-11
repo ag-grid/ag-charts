@@ -13,14 +13,15 @@ import { prepareRadialBarSeriesAnimationFunctions, resetRadialBarSelectionsFn } 
 const {
     ChartAxisDirection,
     HighlightStyle,
+    COLOR_STRING,
+    DEGREE,
+    FUNCTION,
+    LINE_DASH,
     NUMBER,
-    OPT_COLOR_STRING,
-    OPT_FUNCTION,
-    OPT_LINE_DASH,
-    OPT_NUMBER,
-    OPT_STRING,
-    PolarAxis,
+    POSITIVE_NUMBER,
     STRING,
+    RATIO,
+    PolarAxis,
     Validate,
     diff,
     groupAccumulativeValueProperty,
@@ -84,46 +85,46 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
     @Validate(STRING)
     angleKey = '';
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     angleName?: string = undefined;
 
     @Validate(STRING)
     radiusKey: string = '';
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     radiusName?: string = undefined;
 
-    @Validate(OPT_COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     fill?: string = 'black';
 
-    @Validate(NUMBER(0, 1))
+    @Validate(RATIO)
     fillOpacity = 1;
 
-    @Validate(OPT_COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     stroke?: string = 'black';
 
-    @Validate(NUMBER(0, 1))
+    @Validate(RATIO)
     strokeOpacity = 1;
 
-    @Validate(OPT_LINE_DASH)
+    @Validate(LINE_DASH, { optional: true })
     lineDash?: number[] = [0];
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(OPT_FUNCTION)
+    @Validate(FUNCTION, { optional: true })
     formatter?: (params: AgRadialSeriesFormatterParams<any>) => AgRadialSeriesFormat = undefined;
 
-    @Validate(NUMBER(-360, 360))
+    @Validate(DEGREE)
     rotation = 0;
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     strokeWidth = 1;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     stackGroup?: string = undefined;
 
-    @Validate(OPT_NUMBER())
+    @Validate(NUMBER, { optional: true })
     normalizedTo?: number;
 
     override readonly highlightStyle = new HighlightStyle();

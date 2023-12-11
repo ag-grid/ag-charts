@@ -2,7 +2,7 @@ import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import { RadarSeries } from '../radar/radarSeries';
 
-const { NUMBER, OPT_COLOR_STRING, Validate } = _ModuleSupport;
+const { RATIO, COLOR_STRING, Validate } = _ModuleSupport;
 
 const { Group, Path, PointerEvents, Selection } = _Scene;
 
@@ -12,10 +12,10 @@ export class RadarAreaSeries extends RadarSeries {
 
     protected areaSelection: _Scene.Selection<_Scene.Path, boolean>;
 
-    @Validate(OPT_COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     fill?: string = 'black';
 
-    @Validate(NUMBER(0, 1))
+    @Validate(RATIO)
     fillOpacity = 1;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {

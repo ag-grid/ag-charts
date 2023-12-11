@@ -10,14 +10,12 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 const {
     Layers,
     Validate,
-    BOOLEAN,
     COLOR_STRING,
-    NUMBER,
-    OPT_BOOLEAN,
-    OPT_NUMBER,
-    OPT_FUNCTION,
-    OPT_FONT_STYLE,
-    OPT_FONT_WEIGHT,
+    BOOLEAN,
+    POSITIVE_NUMBER,
+    FUNCTION,
+    FONT_STYLE,
+    FONT_WEIGHT,
     POSITION,
     STRING,
 } = _ModuleSupport;
@@ -25,39 +23,39 @@ const { BBox, Group, Rect, LinearGradientFill, Selection, Text, Triangle } = _Sc
 const { createId } = _Util;
 
 class GradientLegendLabel {
-    @Validate(OPT_NUMBER(0))
+    @Validate(POSITIVE_NUMBER, { optional: true })
     maxLength?: number = undefined;
 
     @Validate(COLOR_STRING)
     color: string = 'black';
 
-    @Validate(OPT_FONT_STYLE)
+    @Validate(FONT_STYLE, { optional: true })
     fontStyle?: FontStyle = undefined;
 
-    @Validate(OPT_FONT_WEIGHT)
+    @Validate(FONT_WEIGHT, { optional: true })
     fontWeight?: FontWeight = undefined;
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     fontSize: number = 12;
 
     @Validate(STRING)
     fontFamily: string = 'Verdana, sans-serif';
 
-    @Validate(OPT_FUNCTION)
+    @Validate(FUNCTION, { optional: true })
     formatter?: (params: AgChartLegendLabelFormatterParams) => string = undefined;
 }
 
 class GradientLegendStop {
     readonly label = new GradientLegendLabel();
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     padding = 8;
 }
 
 class GradientBar {
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     thickness = 16;
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     preferredLength = 100;
 }
 
@@ -78,7 +76,7 @@ export class GradientLegend {
     @Validate(POSITION)
     position: AgChartLegendPosition = 'bottom';
 
-    @Validate(OPT_BOOLEAN)
+    @Validate(BOOLEAN, { optional: true })
     reverseOrder?: boolean = undefined;
 
     // Placeholder
@@ -98,7 +96,7 @@ export class GradientLegend {
     /**
      * Spacing between the legend and the edge of the chart's element.
      */
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     spacing = 20;
 
     private gradient = new GradientBar();

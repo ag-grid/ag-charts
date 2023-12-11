@@ -15,7 +15,7 @@ import { extent } from '../../../util/array';
 import type { MeasuredLabel, PointLabelDatum } from '../../../util/labelPlacement';
 import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
-import { COLOR_STRING_ARRAY, NUMBER, OPT_NUMBER_ARRAY, OPT_STRING, Validate } from '../../../util/validation';
+import { COLOR_STRING_ARRAY, NUMBER_ARRAY, POSITIVE_NUMBER, STRING, Validate } from '../../../util/validation';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { fixNumericExtent } from '../../data/dataModel';
@@ -59,11 +59,11 @@ class BubbleSeriesMarker extends SeriesMarker<AgBubbleSeriesOptionsKeys, BubbleN
      * `[size, maxSize]` range, where the largest values will correspond to the `maxSize` and the
      * lowest to the `size`.
      */
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
     maxSize = 30;
 
-    @Validate(OPT_NUMBER_ARRAY)
+    @Validate(NUMBER_ARRAY, { optional: true })
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
     domain?: [number, number] = undefined;
 }
@@ -80,40 +80,40 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
 
     readonly label = new Label<AgBubbleSeriesLabelFormatterParams>();
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     title?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     labelKey?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     xName?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     yName?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     sizeName?: string = 'Size';
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     labelName?: string = 'Label';
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     xKey?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     yKey?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     sizeKey?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     colorKey?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     colorName?: string = 'Color';
 
-    @Validate(OPT_NUMBER_ARRAY)
+    @Validate(NUMBER_ARRAY, { optional: true })
     colorDomain?: number[];
 
     @Validate(COLOR_STRING_ARRAY)

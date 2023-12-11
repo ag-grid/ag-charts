@@ -7,25 +7,25 @@ import { CrosshairLabel } from './crosshairLabel';
 type AgCrosshairLabelRendererResult = any;
 
 const { Group, Line, BBox } = _Scene;
-const { Validate, NUMBER, BOOLEAN, OPT_COLOR_STRING, OPT_LINE_DASH, Layers } = _ModuleSupport;
+const { Validate, POSITIVE_NUMBER, RATIO, BOOLEAN, COLOR_STRING, LINE_DASH, Layers } = _ModuleSupport;
 
 export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @Validate(BOOLEAN)
     enabled = false;
 
-    @Validate(OPT_COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     stroke?: string = 'rgb(195, 195, 195)';
 
-    @Validate(OPT_LINE_DASH)
+    @Validate(LINE_DASH, { optional: true })
     lineDash?: number[] = [6, 3];
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     strokeWidth: number = 1;
 
-    @Validate(NUMBER(0, 1))
+    @Validate(RATIO)
     strokeOpacity: number = 1;
 
     @Validate(BOOLEAN)

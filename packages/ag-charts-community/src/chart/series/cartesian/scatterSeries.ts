@@ -14,7 +14,7 @@ import { extent } from '../../../util/array';
 import type { MeasuredLabel, PointLabelDatum } from '../../../util/labelPlacement';
 import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
-import { COLOR_STRING_ARRAY, OPT_NUMBER_ARRAY, OPT_STRING, Validate } from '../../../util/validation';
+import { COLOR_STRING_ARRAY, NUMBER_ARRAY, STRING, Validate } from '../../../util/validation';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { fixNumericExtent } from '../../data/dataModel';
@@ -46,34 +46,34 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
 
     readonly label = new Label<AgScatterSeriesLabelFormatterParams>();
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     title?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     labelKey?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     xName?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     yName?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     labelName?: string = 'Label';
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     xKey?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     yKey?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     colorKey?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     colorName?: string = 'Color';
 
-    @Validate(OPT_NUMBER_ARRAY)
+    @Validate(NUMBER_ARRAY, { optional: true })
     colorDomain?: number[];
 
     @Validate(COLOR_STRING_ARRAY)

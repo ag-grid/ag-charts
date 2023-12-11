@@ -19,7 +19,7 @@ import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
 import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
-import { COLOR_STRING, NUMBER, OPT_LINE_DASH, OPT_NUMBER, OPT_STRING, Validate } from '../../../util/validation';
+import { COLOR_STRING, LINE_DASH, POSITIVE_NUMBER, RATIO, STRING, Validate } from '../../../util/validation';
 import { isContinuous, isNumber } from '../../../util/value';
 import { LogAxis } from '../../axis/logAxis';
 import { TimeAxis } from '../../axis/timeAxis';
@@ -27,8 +27,7 @@ import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import type { DatumPropertyDefinition } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
-import { animationValidation, normaliseGroupTo } from '../../data/processors';
-import { diff } from '../../data/processors';
+import { animationValidation, diff, normaliseGroupTo } from '../../data/processors';
 import { Label } from '../../label';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
@@ -78,16 +77,16 @@ export class AreaSeries extends CartesianSeries<
     @Validate(COLOR_STRING)
     stroke: string = '#874349';
 
-    @Validate(NUMBER(0, 1))
+    @Validate(RATIO)
     fillOpacity = 1;
 
-    @Validate(NUMBER(0, 1))
+    @Validate(RATIO)
     strokeOpacity = 1;
 
-    @Validate(OPT_LINE_DASH)
+    @Validate(LINE_DASH, { optional: true })
     lineDash?: number[] = [0];
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
     constructor(moduleCtx: ModuleContext) {
@@ -106,22 +105,22 @@ export class AreaSeries extends CartesianSeries<
         });
     }
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     xKey?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     xName?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     yKey?: string;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     yName?: string;
 
-    @Validate(OPT_NUMBER(0))
+    @Validate(POSITIVE_NUMBER, { optional: true })
     normalizedTo?: number;
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     strokeWidth = 2;
 
     shadow?: DropShadow = undefined;

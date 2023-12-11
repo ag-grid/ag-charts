@@ -8,7 +8,7 @@ import { Line } from '../../scene/shape/line';
 import { Text } from '../../scene/shape/text';
 import { normalizeAngle360, toRadians } from '../../util/angle';
 import { extent } from '../../util/array';
-import { BOOLEAN, OPT_COLOR_STRING, Validate } from '../../util/validation';
+import { BOOLEAN, COLOR_STRING, Validate } from '../../util/validation';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { calculateLabelRotation } from '../label';
 import { AxisLabel } from './axisLabel';
@@ -101,7 +101,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
      * The color of the labels.
      * Use `undefined` rather than `rgba(0, 0, 0, 0)` to make labels invisible.
      */
-    @Validate(OPT_COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     labelColor?: string = 'rgba(87, 87, 87, 1)';
 
     /**

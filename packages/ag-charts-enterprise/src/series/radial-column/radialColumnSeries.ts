@@ -5,16 +5,16 @@ import { RadialColumnSeriesBase } from './radialColumnSeriesBase';
 import { RadialColumnShape, getRadialColumnWidth } from './radialColumnShape';
 import { prepareRadialColumnAnimationFunctions, resetRadialColumnSelectionFn } from './radialColumnUtil';
 
-const { ChartAxisDirection, OPT_NUMBER, PolarAxis, Validate } = _ModuleSupport;
+const { ChartAxisDirection, RATIO, PolarAxis, Validate } = _ModuleSupport;
 
 export class RadialColumnSeries extends RadialColumnSeriesBase<RadialColumnShape> {
     static className = 'RadialColumnSeries';
     static type = 'radial-column' as const;
 
-    @Validate(OPT_NUMBER(0, 1))
+    @Validate(RATIO, { optional: true })
     columnWidthRatio?: number;
 
-    @Validate(OPT_NUMBER(0, 1))
+    @Validate(RATIO, { optional: true })
     maxColumnWidthRatio?: number;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {

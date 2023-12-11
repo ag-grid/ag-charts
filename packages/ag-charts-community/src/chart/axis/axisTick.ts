@@ -2,15 +2,17 @@ import type { Scale } from '../../scale/scale';
 import type { TimeScale } from '../../scale/timeScale';
 import { Default } from '../../util/default';
 import { TimeInterval } from '../../util/time/interval';
+import { isFiniteNumber } from '../../util/type-guards';
 import {
     AND,
+    ARRAY,
     BOOLEAN,
+    COLOR_STRING,
     LESS_THAN,
+    NAN,
     NUMBER,
-    NUMBER_OR_NAN,
-    OPTIONAL,
-    OPT_ARRAY,
-    OPT_COLOR_STRING,
+    OR,
+    POSITIVE_NUMBER,
     Validate,
     predicateWithMessage,
 } from '../../util/validation';
@@ -19,9 +21,11 @@ export type TickInterval<S> = S extends TimeScale ? number | TimeInterval : numb
 
 export type TickCount<S> = S extends TimeScale ? number | TimeInterval : number;
 
-const OPT_TICK_INTERVAL = predicateWithMessage(
-    (v: any, ctx) => OPTIONAL(v, ctx, (v: any, ctx) => (v !== 0 && NUMBER(0)(v, ctx)) || v instanceof TimeInterval),
-    `expecting an optional non-zero positive Number value or, for a time axis, a Time Interval such as 'agCharts.time.month'`
+const MIN_SPACING = OR(AND(NUMBER.restrict({ min: 1 }), LESS_THAN('maxSpacing')), NAN);
+
+const TICK_INTERVAL = predicateWithMessage(
+    (value) => (isFiniteNumber(value) && value > 0) || value instanceof TimeInterval,
+    `a non-zero positive Number value or, for a time axis, a Time Interval such as 'agCharts.time.month'`
 );
 
 export class AxisTick<S extends Scale<D, number, I>, D = any, I = any> {
@@ -31,29 +35,29 @@ export class AxisTick<S extends Scale<D, number, I>, D = any, I = any> {
     /**
      * The line width to be used by axis ticks.
      */
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     width: number = 1;
 
     /**
      * The line length to be used by axis ticks.
      */
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     size: number = 6;
 
     /**
      * The color of the axis ticks.
      * Use `undefined` rather than `rgba(0, 0, 0, 0)` to make the ticks invisible.
      */
-    @Validate(OPT_COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     color?: string = undefined;
 
-    @Validate(OPT_TICK_INTERVAL)
+    @Validate(TICK_INTERVAL, { optional: true })
     interval?: TickInterval<S> = undefined;
 
-    @Validate(OPT_ARRAY())
+    @Validate(ARRAY, { optional: true })
     values?: any[] = undefined;
 
-    @Validate(AND(NUMBER_OR_NAN(1), LESS_THAN('maxSpacing')))
+    @Validate(MIN_SPACING)
     @Default(NaN)
     minSpacing: number = NaN;
 

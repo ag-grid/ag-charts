@@ -1,6 +1,6 @@
-import { STRING_UNION, Validate } from '../util/validation';
+import { UNION, Validate } from '../util/validation';
 
 export class ChartHighlight {
-    @Validate(STRING_UNION('tooltip', 'node'))
+    @Validate(UNION(['tooltip', 'node'], 'a range'))
     public range: 'tooltip' | 'node' = 'tooltip';
 }

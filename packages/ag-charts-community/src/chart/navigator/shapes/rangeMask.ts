@@ -2,7 +2,7 @@ import { BBox } from '../../../scene/bbox';
 import { Path } from '../../../scene/shape/path';
 import { clamp } from '../../../util/number';
 import { ActionOnSet } from '../../../util/proxy';
-import { NUMBER, Validate } from '../../../util/validation';
+import { NUMBER, POSITIVE_NUMBER, Validate } from '../../../util/validation';
 
 function markDirtyOnChange(this: RangeMask, newValue: unknown, oldValue: unknown) {
     if (newValue !== oldValue) {
@@ -14,24 +14,24 @@ export class RangeMask extends Path {
     static override className = 'RangeMask';
 
     @ActionOnSet<RangeMask>({ changeValue: markDirtyOnChange })
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     x = 0;
 
     @ActionOnSet<RangeMask>({ changeValue: markDirtyOnChange })
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     y = 0;
 
     @ActionOnSet<RangeMask>({ changeValue: markDirtyOnChange })
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     width = 200;
 
     @ActionOnSet<RangeMask>({ changeValue: markDirtyOnChange })
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     height = 30;
 
     readonly minRange = 0.05;
 
-    @Validate(NUMBER())
+    @Validate(NUMBER)
     protected _min: number = 0;
     set min(value: number) {
         value = clamp(0, value, this.max - this.minRange);
@@ -45,7 +45,7 @@ export class RangeMask extends Path {
         return this._min;
     }
 
-    @Validate(NUMBER())
+    @Validate(NUMBER)
     protected _max: number = 1;
     set max(value: number) {
         value = clamp(this.min + this.minRange, value, 1);

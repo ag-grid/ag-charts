@@ -11,7 +11,7 @@ export class NightingaleSeries extends RadialColumnSeriesBase<_Scene.Sector> {
     static type = 'nightingale' as const;
 
     // TODO: Enable once the options contract has been revisited
-    // @Validate(NUMBER(0))
+    // @Validate(POSITIVE_NUMBER)
     // sectorSpacing = 1;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {

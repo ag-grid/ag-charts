@@ -1,16 +1,16 @@
-import { NUMBER, Validate } from './validation';
+import { POSITIVE_NUMBER, Validate } from './validation';
 
 export class Padding {
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     top: number;
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     right: number;
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     bottom: number;
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     left: number;
 
     constructor(top: number = 0, right: number = top, bottom: number = top, left: number = right) {

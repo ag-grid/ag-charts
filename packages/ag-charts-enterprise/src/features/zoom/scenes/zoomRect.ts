@@ -1,6 +1,6 @@
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
-const { COLOR_STRING, NUMBER, Validate } = _ModuleSupport;
+const { COLOR_STRING, RATIO, Validate } = _ModuleSupport;
 
 export class ZoomRect extends _Scene.Rect {
     static override className = 'ZoomRect';
@@ -8,6 +8,6 @@ export class ZoomRect extends _Scene.Rect {
     @Validate(COLOR_STRING)
     public override fill = 'rgb(33, 150, 243)';
 
-    @Validate(NUMBER(0, 1))
+    @Validate(RATIO)
     public override fillOpacity = 0.2;
 }

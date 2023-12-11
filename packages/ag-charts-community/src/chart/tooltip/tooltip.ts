@@ -1,15 +1,7 @@
 import type { AgTooltipRendererResult, InteractionRange } from '../../options/agChartOptions';
 import { BBox } from '../../scene/bbox';
 import { injectStyle } from '../../util/dom';
-import {
-    BOOLEAN,
-    INTERACTION_RANGE,
-    NUMBER,
-    OPT_BOOLEAN,
-    OPT_STRING,
-    Validate,
-    predicateWithMessage,
-} from '../../util/validation';
+import { BOOLEAN, INTERACTION_RANGE, NUMBER, POSITIVE_NUMBER, STRING, UNION, Validate } from '../../util/validation';
 import type { InteractionEvent } from '../interaction/interactionManager';
 
 const DEFAULT_TOOLTIP_CLASS = 'ag-chart-tooltip';
@@ -159,24 +151,18 @@ export function toTooltipHtml(input: string | AgTooltipRendererResult, defaults?
     return `${titleHtml}${contentHtml}`;
 }
 
-const POSITION_TYPES = ['pointer', 'node'];
-const POSITION_TYPE = predicateWithMessage(
-    (v: any) => POSITION_TYPES.includes(v),
-    `expecting a position type keyword such as 'pointer' or 'node'`
-);
-
 type TooltipPositionType = 'pointer' | 'node';
 
 export class TooltipPosition {
-    @Validate(POSITION_TYPE)
+    @Validate(UNION(['pointer', 'node'], 'a position type'))
     /** The type of positioning for the tooltip. By default, the tooltip follows the pointer. */
     type: TooltipPositionType = 'pointer';
 
-    @Validate(NUMBER())
+    @Validate(NUMBER)
     /** The horizontal offset in pixels for the position of the tooltip. */
     xOffset: number = 0;
 
-    @Validate(NUMBER())
+    @Validate(NUMBER)
     /** The vertical offset in pixels for the position of the tooltip. */
     yOffset: number = 0;
 }
@@ -195,14 +181,14 @@ export class Tooltip {
     @Validate(BOOLEAN)
     enabled: boolean = true;
 
-    @Validate(OPT_BOOLEAN)
+    @Validate(BOOLEAN, { optional: true })
     showArrow?: boolean = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     class?: string = undefined;
     lastClass?: string = undefined;
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     delay: number = 0;
 
     @Validate(INTERACTION_RANGE)

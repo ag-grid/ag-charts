@@ -4,7 +4,7 @@ import { loopSymmetrically } from '../../utils/polar';
 import type { AngleAxisLabelDatum } from '../angle/angleAxis';
 import { AngleAxis } from '../angle/angleAxis';
 
-const { NUMBER, Validate } = _ModuleSupport;
+const { RATIO, Validate } = _ModuleSupport;
 const { BandScale } = _Scale;
 const { isNumberEqual } = _Util;
 
@@ -12,10 +12,10 @@ export class AngleCategoryAxis extends AngleAxis<string, _Scale.BandScale<string
     static className = 'AngleCategoryAxis';
     static type = 'angle-category' as const;
 
-    @Validate(NUMBER(0, 1))
+    @Validate(RATIO)
     groupPaddingInner: number = 0;
 
-    @Validate(NUMBER(0, 1))
+    @Validate(RATIO)
     paddingInner: number = 0;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {

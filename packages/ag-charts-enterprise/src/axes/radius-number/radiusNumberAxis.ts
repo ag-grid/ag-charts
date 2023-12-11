@@ -19,11 +19,11 @@ export class RadiusNumberAxis extends RadiusAxis {
 
     override shape: 'polygon' | 'circle' = 'polygon';
 
-    @Validate(AND(NUMBER_OR_NAN(), LESS_THAN('max')))
+    @Validate(AND(NUMBER_OR_NAN, LESS_THAN('max')))
     @Default(NaN)
     min: number = NaN;
 
-    @Validate(AND(NUMBER_OR_NAN(), GREATER_THAN('min')))
+    @Validate(AND(NUMBER_OR_NAN, GREATER_THAN('min')))
     @Default(NaN)
     max: number = NaN;
 
