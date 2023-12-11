@@ -3,39 +3,39 @@ import type { FunctionComponent } from 'react';
 import styles from './StyleGuide.module.scss';
 import { getCssVarValue } from './getCssVarValue';
 
-const textStyles = ['2xs', 'xs', 'sm', 'base', 'lg', 'xl', '2xl', '3xl'];
+const textSizes = ['2xs', 'xs', 'sm', 'base', 'lg', 'xl', '2xl', '3xl'];
 
 const Text: FunctionComponent = ({ textName, fontWeight = 'normal' }) => {
     return (
-        <div className={styles.textItem}>
+        <div className={styles.textSizeItem}>
             <span>
                 <code>{`var(--text-${textName})`}</code>:{' '}
                 <span>{getCssVarValue(`--text-${textName}`).split('-')[0]}</span>
             </span>
-            <p className={styles.textExample} style={{ fontSize: `var(--text-fs-${textName})`, fontWeight }}>
+            <p className={styles.textSizeExample} style={{ fontSize: `var(--text-fs-${textName})`, fontWeight }}>
                 The quick brown fox jumps over the lazy dog
             </p>
         </div>
     );
 };
 
-export const TextStyles: FunctionComponent = () => {
+export const TextSizes: FunctionComponent = () => {
     return (
         <>
-            <h2>Text</h2>
-            <div className={styles.textList}>
+            <h2>Text Sizes</h2>
+            <div className={styles.textSizeList}>
                 <div>
-                    {textStyles.map((textName) => {
+                    {textSizes.map((textName) => {
                         return <Text key={textName} textName={textName} fontWeight="var(--text-regular)" />;
                     })}
                 </div>
                 <div>
-                    {textStyles.map((textName) => {
+                    {textSizes.map((textName) => {
                         return <Text key={`${textName}`} textName={`${textName}`} fontWeight="var(--text-semibold)" />;
                     })}
                 </div>
                 <div>
-                    {textStyles.map((textName) => {
+                    {textSizes.map((textName) => {
                         return <Text key={`${textName}`} textName={`${textName}`} fontWeight="var(--text-bold)" />;
                     })}
                 </div>

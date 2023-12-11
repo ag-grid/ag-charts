@@ -62,6 +62,24 @@
     background-color: var(--color-brand-300);
 }
 
+// Text Sizes
+// ===============================================
+.textSizeList {
+    display: flex;
+    gap: 2rem;
+}
+
+.textSizeItem {
+    margin-bottom: 1rem;
+}
+
+.textSizeExample {
+    max-width: 440px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 // Color
 // ===============================================
 .swatch {
@@ -88,25 +106,7 @@
     gap: 1rem;
 }
 
-// Text
-// ===============================================
-.textList {
-    display: flex;
-    gap: 2rem;
-}
-
-.textItem {
-    margin-bottom: 1rem;
-}
-
-.textExample {
-    max-width: 440px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-// Buttons
+// Shadows
 // ===============================================
 .shadowsList {
     display: flex;
@@ -119,6 +119,27 @@
         min-width: $spacing-size-32;
         aspect-ratio: 1/1;
         border-radius: 8px;
+    }
+}
+
+// Text Elements
+// ===============================================
+.textElementsList {
+    display: flex;
+    flex-wrap: wrap;
+
+    p {
+        min-width: 20%;
+    }
+}
+
+.textElementsItem {
+    margin-top: $spacing-size-8;
+    margin-bottom: $spacing-size-8;
+
+    code {
+        display: inline-block;
+        margin-bottom: $spacing-size-2;
     }
 }
 
