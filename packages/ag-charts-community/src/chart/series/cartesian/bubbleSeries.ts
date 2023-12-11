@@ -29,6 +29,7 @@ import { SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
+import type { BandScaleConfiguration } from '../seriesTypes';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
 import { CartesianSeries, CartesianSeriesNodeClickEvent } from './cartesianSeries';
 import { markerScaleInAnimation, resetMarkerFn } from './markerUtil';
@@ -472,6 +473,10 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
 
     protected isLabelEnabled() {
         return this.label.enabled;
+    }
+
+    override getBandScaleConfiguration(): BandScaleConfiguration {
+        return { paddingInner: 1, paddingOuter: 0, bandMode: 'point' };
     }
 
     protected nodeFactory() {

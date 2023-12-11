@@ -6,6 +6,8 @@ function clamp(x: number, min: number, max: number) {
     return Math.max(min, Math.min(max, x));
 }
 
+export type BandMode = 'band' | 'point';
+
 /**
  * Maps a discrete domain to a continuous numeric range.
  */
@@ -14,6 +16,8 @@ export class BandScale<D> implements Scale<D, number, number> {
 
     private invalid = true;
 
+    @Invalidating
+    bandMode: BandMode = 'band';
     @Invalidating
     interval: number = 1;
 
@@ -162,15 +166,22 @@ export class BandScale<D> implements Scale<D, number, number> {
         }
 
         const round = this.round;
-        const paddingInner = this._paddingInner;
+        const bandContribution = this.bandMode === 'band' ? 1 : 0;
+        let paddingInner = this._paddingInner;
         const paddingOuter = this._paddingOuter;
         const [r0, r1] = this.range;
         const width = r1 - r0;
 
-        const totalContributions = count + (count - 1) * paddingInner + 2 * paddingOuter;
+        let totalContributions = count * bandContribution + (count - 1) * paddingInner + 2 * paddingOuter;
+
+        if (totalContributions === 0) {
+            paddingInner = 1;
+            totalContributions = count * bandContribution + (count - 1) * paddingInner + 2 * paddingOuter;
+        }
+
         const scale = width / totalContributions;
 
-        const rawBandwidth = scale;
+        const rawBandwidth = bandContribution * scale;
         const bandwidth = round ? Math.trunc(rawBandwidth) : rawBandwidth;
         const step = round ? Math.trunc(paddingInner * scale) : paddingInner * scale;
         const inset = round ? Math.trunc(paddingOuter * scale) : paddingOuter * scale;

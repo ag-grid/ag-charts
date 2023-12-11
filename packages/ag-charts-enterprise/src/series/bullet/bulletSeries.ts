@@ -200,8 +200,8 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
         this.animationState.transition('updateData');
     }
 
-    override getBandScalePadding() {
-        return { inner: 0, outer: 0 };
+    override getBandScaleConfiguration(): _ModuleSupport.BandScaleConfiguration {
+        return { paddingInner: 0, paddingOuter: 0, bandMode: 'band' };
     }
 
     private getMaxValue(): number {

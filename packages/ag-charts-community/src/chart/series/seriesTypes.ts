@@ -1,4 +1,5 @@
 import type { InteractionRange } from '../../options/chart/types';
+import type { BandMode } from '../../scale/bandScale';
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
 import type { Point, SizedPoint } from '../../scene/point';
@@ -6,6 +7,12 @@ import type { ChartAxis } from '../chartAxis';
 import type { ChartAxisDirection } from '../chartAxisDirection';
 import type { ChartLegendDatum, ChartLegendType } from '../legendDatum';
 import type { SeriesTooltip } from './seriesTooltip';
+
+export interface BandScaleConfiguration {
+    paddingInner: number;
+    paddingOuter: number;
+    bandMode: BandMode;
+}
 
 export interface ISeries<TDatum> {
     id: string;
@@ -21,7 +28,7 @@ export interface ISeries<TDatum> {
     getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];
     getLegendData(legendType: ChartLegendType): ChartLegendDatum<ChartLegendType>[];
     // BoundSeries
-    getBandScalePadding?(): { inner: number; outer: number };
+    getBandScaleConfiguration?(): BandScaleConfiguration;
     getDomain(direction: ChartAxisDirection): any[];
     getKeys(direction: ChartAxisDirection): string[];
     getNames(direction: ChartAxisDirection): (string | undefined)[];

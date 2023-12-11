@@ -3,9 +3,9 @@ import type { Node } from '../../../scene/node';
 import { DIRECTION, Validate } from '../../../util/validation';
 import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
-import type { SeriesNodeDatum } from '../seriesTypes';
-import { CartesianSeries } from './cartesianSeries';
+import type { BandScaleConfiguration, SeriesNodeDatum } from '../seriesTypes';
 import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum } from './cartesianSeries';
+import { CartesianSeries } from './cartesianSeries';
 
 export abstract class AbstractBarSeries<
     TNode extends Node,
@@ -16,8 +16,8 @@ export abstract class AbstractBarSeries<
     @Validate(DIRECTION)
     direction: Direction = 'vertical';
 
-    override getBandScalePadding() {
-        return { inner: 0.2, outer: 0.1 };
+    override getBandScaleConfiguration(): BandScaleConfiguration {
+        return { paddingInner: 0.2, paddingOuter: 0.1, bandMode: 'band' };
     }
 
     override shouldFlipXY(): boolean {

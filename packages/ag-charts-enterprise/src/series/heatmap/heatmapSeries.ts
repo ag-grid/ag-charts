@@ -555,7 +555,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
         return this.label.enabled && Boolean(this.colorKey);
     }
 
-    override getBandScalePadding() {
-        return { inner: 0, outer: 0 };
+    override getBandScaleConfiguration(): _ModuleSupport.BandScaleConfiguration {
+        return { paddingInner: 0, paddingOuter: 0, bandMode: 'band' };
     }
 }

@@ -36,6 +36,7 @@ import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import { Series, SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { SeriesTooltip } from '../seriesTooltip';
+import type { BandScaleConfiguration } from '../seriesTypes';
 import { collapsedStartingBarPosition, prepareBarAnimationFunctions, resetBarSelectionsFn } from './barUtil';
 import { type CartesianAnimationData, CartesianSeries, type CartesianSeriesNodeDatum } from './cartesianSeries';
 
@@ -410,6 +411,10 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramNodeDatum> {
                 visible: this.visible,
             },
         ];
+    }
+
+    override getBandScaleConfiguration(): BandScaleConfiguration {
+        return { paddingInner: 0, paddingOuter: 0.1, bandMode: 'band' };
     }
 
     protected override nodeFactory() {

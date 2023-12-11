@@ -33,7 +33,7 @@ import { SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
-import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
+import type { BandScaleConfiguration, ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import type {
     CartesianAnimationData,
     CartesianSeriesNodeDataContext,
@@ -547,8 +547,8 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         return this.label.enabled;
     }
 
-    override getBandScalePadding() {
-        return { inner: 1, outer: 0.1 };
+    override getBandScaleConfiguration(): BandScaleConfiguration {
+        return { paddingInner: 1, paddingOuter: 0.1, bandMode: 'point' };
     }
 
     protected nodeFactory() {

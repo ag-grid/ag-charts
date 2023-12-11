@@ -23,7 +23,7 @@ import { DataModelSeries } from '../dataModelSeries';
 import type { Series, SeriesNodeDataContext, SeriesNodeEventTypes, SeriesNodePickMatch } from '../series';
 import { SeriesNodeClickEvent } from '../series';
 import type { SeriesGroupZIndexSubOrderType } from '../seriesLayerManager';
-import type { SeriesNodeDatum } from '../seriesTypes';
+import type { BandScaleConfiguration, SeriesNodeDatum } from '../seriesTypes';
 
 export interface CartesianSeriesNodeDatum extends SeriesNodeDatum {
     readonly xKey: string;
@@ -1006,4 +1006,6 @@ export abstract class CartesianSeries<
 
         return result;
     }
+
+    abstract override getBandScaleConfiguration(): BandScaleConfiguration;
 }

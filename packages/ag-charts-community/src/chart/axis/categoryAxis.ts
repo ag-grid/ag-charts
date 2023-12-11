@@ -1,13 +1,11 @@
 import type { ModuleContext } from '../../module/moduleContext';
-import { BandScale } from '../../scale/bandScale';
-import { NUMBER, Validate } from '../../util/validation';
+import { type BandMode, BandScale } from '../../scale/bandScale';
+import { NUMBER, OPT_NUMBER, Validate } from '../../util/validation';
 import { CartesianAxis } from './cartesianAxis';
 
 export class CategoryAxis extends CartesianAxis<BandScale<string | object>> {
     static className = 'CategoryAxis';
     static type = 'category' as const;
-
-    private _paddingOverrideEnabled = false;
 
     constructor(moduleCtx: ModuleContext) {
         super(moduleCtx, new BandScale<string>());
@@ -18,21 +16,11 @@ export class CategoryAxis extends CartesianAxis<BandScale<string | object>> {
     @Validate(NUMBER(0, 1))
     groupPaddingInner: number = 0.1;
 
-    set paddingInner(value: number) {
-        this._paddingOverrideEnabled = true;
-        this.scale.paddingInner = value;
-    }
-    get paddingInner(): number {
-        this._paddingOverrideEnabled = true;
-        return this.scale.paddingInner;
-    }
+    @Validate(OPT_NUMBER(0, 1))
+    paddingInner?: number = undefined;
 
-    set paddingOuter(value: number) {
-        this.scale.paddingOuter = value;
-    }
-    get paddingOuter(): number {
-        return this.scale.paddingOuter;
-    }
+    @Validate(OPT_NUMBER(0, 1))
+    paddingOuter?: number = undefined;
 
     override normaliseDataDomain(d: (string | object)[]) {
         const domain = [];
@@ -49,13 +37,29 @@ export class CategoryAxis extends CartesianAxis<BandScale<string | object>> {
     }
 
     protected override calculateDomain() {
-        if (!this._paddingOverrideEnabled) {
-            const paddings = this.boundSeries.map((s) => s.getBandScalePadding?.()).filter((p) => p != null);
-            if (paddings.length > 0) {
-                this.scale.paddingInner = Math.min(...paddings.map((p) => p!.inner));
-                this.scale.paddingOuter = Math.max(...paddings.map((p) => p!.outer));
+        let paddingInner = 1;
+        let paddingOuter = 0;
+        let bandMode: BandMode | undefined;
+        for (const series of this.boundSeries) {
+            const bandConfig = series.getBandScaleConfiguration?.();
+            if (bandConfig == null) continue;
+
+            paddingInner = Math.min(paddingInner, bandConfig.paddingInner);
+            paddingOuter = Math.max(paddingOuter, bandConfig.paddingOuter);
+
+            switch (bandConfig.bandMode) {
+                case 'band':
+                    bandMode = 'band';
+                    break;
+                case 'point':
+                    bandMode ??= 'point';
+                    break;
             }
         }
+
+        this.scale.paddingInner = this.paddingInner ?? paddingInner;
+        this.scale.paddingOuter = this.paddingOuter ?? paddingOuter;
+        this.scale.bandMode = bandMode ?? 'band';
 
         return super.calculateDomain();
     }

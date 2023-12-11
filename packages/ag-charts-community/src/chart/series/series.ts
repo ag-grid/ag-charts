@@ -46,7 +46,7 @@ import type { BaseSeriesEvent, SeriesEventType } from './seriesEvents';
 import type { SeriesGroupZIndexSubOrderType } from './seriesLayerManager';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { SeriesTooltip } from './seriesTooltip';
-import type { ISeries, SeriesNodeDatum } from './seriesTypes';
+import type { BandScaleConfiguration, ISeries, SeriesNodeDatum } from './seriesTypes';
 
 /** Modes of matching user interactions to rendered nodes (e.g. hover or click) */
 export enum SeriesNodePickMode {
@@ -429,8 +429,8 @@ export abstract class Series<
         });
     }
 
-    getBandScalePadding() {
-        return { inner: 1, outer: 0 };
+    getBandScaleConfiguration(): BandScaleConfiguration {
+        return { paddingInner: 1, paddingOuter: 0, bandMode: 'point' };
     }
 
     _declarationOrder: number = -1;

@@ -26,7 +26,7 @@ import { SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
-import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
+import type { BandScaleConfiguration, ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
 import { CartesianSeries } from './cartesianSeries';
 import { markerScaleInAnimation, resetMarkerFn } from './markerUtil';
@@ -401,6 +401,10 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
 
     protected isLabelEnabled() {
         return this.label.enabled;
+    }
+
+    override getBandScaleConfiguration(): BandScaleConfiguration {
+        return { paddingInner: 1, paddingOuter: 0, bandMode: 'point' };
     }
 
     protected nodeFactory() {

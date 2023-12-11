@@ -37,6 +37,7 @@ import { SeriesNodePickMode, groupAccumulativeValueProperty, keyProperty, valueP
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
+import type { BandScaleConfiguration } from '../seriesTypes';
 import {
     type AreaPathPoint,
     type AreaSeriesNodeDataContext,
@@ -733,6 +734,10 @@ export class AreaSeries extends CartesianSeries<
 
     protected isLabelEnabled() {
         return this.label.enabled;
+    }
+
+    override getBandScaleConfiguration(): BandScaleConfiguration {
+        return { paddingInner: 1, paddingOuter: 0, bandMode: 'point' };
     }
 
     protected nodeFactory() {

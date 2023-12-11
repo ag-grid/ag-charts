@@ -728,6 +728,10 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
     override onDataChange() {}
 
+    override getBandScaleConfiguration(): _ModuleSupport.BandScaleConfiguration {
+        return { paddingInner: 0.2, paddingOuter: 0.1, bandMode: 'band' };
+    }
+
     protected nodeFactory() {
         return new _Scene.Group();
     }
