@@ -29,7 +29,7 @@
 }
 
 .close {
-    --text-color: var(--link-color);
+    --text-color: var(--color-link);
 
     position: fixed;
     top: 0px;
@@ -37,7 +37,7 @@
     z-index: 201;
 
     &:hover {
-        --text-color: var(--link-hover-color);
+        --text-color: var(--color-link-hover);
     }
 
     svg {

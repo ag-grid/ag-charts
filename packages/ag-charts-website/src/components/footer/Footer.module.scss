@@ -2,8 +2,8 @@
 
 .footer {
     --text-color: var(--white);
-    --link-color: var(--white);
-    --link-hover-color: var(--white);
+    --color-link: var(--white);
+    --color-link-hover: var(--white);
 
     padding-top: $spacing-size-10;
     padding-bottom: calc($spacing-size-10 * 2);
@@ -12,8 +12,8 @@
 
     #{$selector-darkmode} & {
         --text-color: var(--color-fg-primary);
-        --link-color: var(--color-fg-primary);
-        --link-hover-color: var(--color-fg-primary);
+        --color-link: var(--color-fg-primary);
+        --color-link-hover: var(--color-fg-primary);
 
         background-color: var(--color-bg-primary);
         border-top: 1px solid var(--neutral-400);

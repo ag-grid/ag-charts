@@ -86,7 +86,7 @@
     cursor: pointer;
 
     &:hover {
-        --button-text-color: var(--link-color);
+        --button-text-color: var(--color-link);
     }
 
     &::after {
@@ -97,7 +97,7 @@
         left: 0;
         height: 2px;
         opacity: 0;
-        background-color: var(--link-color);
+        background-color: var(--color-link);
         transition: opacity 0.3s ease-in-out;
     }
 

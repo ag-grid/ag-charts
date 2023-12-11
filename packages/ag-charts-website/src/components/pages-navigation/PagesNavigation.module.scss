@@ -125,11 +125,11 @@ a :global(.icon).menuIcon {
 }
 
 .whatsNewLink a {
-    --link-color: var(--orange-700);
+    --color-link: var(--orange-700);
 
-    border: 1px solid var(--link-color);
+    border: 1px solid var(--color-link);
     border-radius: 24px;
-    color: var(--link-color);
+    color: var(--color-link);
     display: block;
     font-size: var(--font-size-small);
     margin-bottom: 16px;
@@ -142,6 +142,6 @@ a :global(.icon).menuIcon {
     width: fit-content;
 
     &:hover {
-        background-color: color-mix(in srgb, var(--link-color) 5%, var(--color-bg-primary));
+        background-color: color-mix(in srgb, var(--color-link) 5%, var(--color-bg-primary));
     }
 }

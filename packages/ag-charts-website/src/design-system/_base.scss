@@ -5,6 +5,7 @@
 *::after {
     box-sizing: border-box;
     margin: 0;
+    outline: 1px rgba(255, 0, 0, 0.1) !important;
 }
 
 html {
@@ -51,7 +52,7 @@ html {
     }
 
     #doc-content a:hover {
-        color: var(--link-hover-color);
+        color: var(--color-link-hover);
     }
 }
 

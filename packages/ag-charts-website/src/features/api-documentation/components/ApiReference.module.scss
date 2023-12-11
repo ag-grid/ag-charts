@@ -191,13 +191,13 @@
 }
 
 .seeMore {
-    --text-color: var(--link-color);
+    --text-color: var(--color-link);
 
     min-width: 10.5ch;
     transition: color $transition-default-timing;
 
     &:hover {
-        --text-color: var(--link-hover-color);
+        --text-color: var(--color-link-hover);
     }
 }
 

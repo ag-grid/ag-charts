@@ -314,7 +314,7 @@ input[type='range']#{$selector-exclude-grid} {
 
     &:hover::-webkit-slider-thumb,
     &:hover::-moz-range-thumb {
-        background-color: var(--link-hover-color);
+        background-color: var(--color-link-hover);
     }
 }
 

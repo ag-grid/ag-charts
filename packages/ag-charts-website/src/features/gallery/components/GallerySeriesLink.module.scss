@@ -6,7 +6,7 @@
     font-weight: var(--text-regular);
 
     &:hover .arrowIcon {
-        --text-color: var(--link-hover-color);
+        --text-color: var(--color-link-hover);
 
         transform: translateX(2px);
     }

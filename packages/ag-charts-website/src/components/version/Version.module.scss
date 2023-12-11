@@ -37,7 +37,7 @@
 
         a {
             text-decoration: none;
-            color: var(--link-color);
+            color: var(--color-link);
             font-size: 1rem;
 
             #{$selector-darkmode} & {
@@ -75,7 +75,7 @@
         }
 
         a {
-            color: var(--link-color);
+            color: var(--color-link);
             text-decoration: none;
             font-size: 1rem;
 
@@ -126,7 +126,7 @@
     padding-bottom: 0.5rem;
     font-size: 17px;
 
-    color: var(--link-color);
+    color: var(--color-link);
 
     #{$selector-darkmode} & {
         color: var(--secondary-text);

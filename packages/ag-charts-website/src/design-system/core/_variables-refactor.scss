@@ -175,6 +175,10 @@ $transition-default-timing: 0.25s ease-in-out;
     --color-border-tertiary: var(--color-gray-100);
     --color-border-disabled_subtle: var(--color-gray-200);
 
+    // Link colors
+    --color-link: var(--color-brand-500); // TODO, review & replace color
+    --color-link-hover: var(--color-brand-700); // TODO, review & replace color
+
     // Button colors
     --color-button-primary-bg: var(--color-brand-500);
     --color-button-primary-bg-hover: var(--color-brand-700);

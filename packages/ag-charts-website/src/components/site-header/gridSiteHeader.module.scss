@@ -181,8 +181,8 @@
 
 .mainNav {
     --text-color: var(--white);
-    --link-color: var(--white);
-    --link-hover-color: var(--white);
+    --color-link: var(--white);
+    --color-link-hover: var(--white);
 
     width: 100%;
     background-color: var(--color-bg-mobile-nav);
@@ -256,7 +256,7 @@
     font-size: 17px;
     font-weight: 500;
     letter-spacing: 0.01em;
-    color: var(--link-color);
+    color: var(--color-link);
     transition:
         color $transition-default-timing,
         opacity $transition-default-timing;
@@ -264,7 +264,7 @@
 
     &:hover {
         text-decoration: none;
-        color: var(--link-color);
+        color: var(--color-link);
     }
 
     @media screen and (min-width: $breakpoint-site-header-small) {
@@ -279,7 +279,7 @@
             left: calc(var(--horizontal-padding) - #{$spacing-size-1});
             right: calc(var(--horizontal-padding) - #{$spacing-size-1});
             border-radius: 2px;
-            background-color: var(--link-color);
+            background-color: var(--color-link);
             opacity: 0;
             transform: scaleX(0);
             transition:

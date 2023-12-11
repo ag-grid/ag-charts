@@ -288,9 +288,6 @@ $dark-scales: (
 // Semantic colors based on abstract colors & color scales
 $semantic-colors: (
     'text-color': default-text-color,
-    // Link
-    'link-color': primary-600,
-    'link-hover-color': azure-blue,
     // Button
     'button-text-color': white,
     'button-color': primary-600,
@@ -302,9 +299,6 @@ $semantic-colors: (
 // Semantic colors based on abstract colors
 $dark-semantic-colors: (
     'text-color': default-text-color,
-    // Link
-    'link-color': primary-600,
-    'link-hover-color': azure-blue,
     // Button
     'button-text-color': white,
     'button-color': primary-600,

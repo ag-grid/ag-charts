@@ -1,7 +1,7 @@
 @use '../../design-system/' as *;
 
 .showHideButton {
-    --button-text-color: var(--link-color);
+    --button-text-color: var(--color-link);
     --button-color: var(--background-500);
     --button-active-color: var(--background-500);
     --button-hover-color: var(--background-500);
@@ -99,22 +99,22 @@
     text-align: center;
     background-image: linear-gradient(transparent, var(--color-bg-primary) 75%);
     border-radius: var(--radius-sm);
-    color: var(--link-color);
+    color: var(--color-link);
     transition: color $transition-default-timing;
 
     svg {
-        --text-color: var(--link-color);
+        --text-color: var(--color-link);
         --icon-size: 1em;
 
-        fill: var(--link-color);
+        fill: var(--color-link);
         transition: fill $transition-default-timing;
     }
 
     &:hover {
-        color: var(--link-hover-color);
+        color: var(--color-link-hover);
 
         svg {
-            fill: var(--link-hover-color);
+            fill: var(--color-link-hover);
         }
     }
 }
