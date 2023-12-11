@@ -5,7 +5,7 @@ export function createTask(parentProject: string, srcRelativeInputPath: string) 
     return {
         'generate-thumbnail': {
             dependsOn,
-            inputs: [{ runtime: "jq -r '.version' package.json" }],
+            inputs: [{ runtime: "npx --package=node-jq jq -r '.version' package.json" }],
             executor: 'ag-charts-build-tools:generate-chart-thumbnail',
             outputPath: '{options.outputPath}',
             cache: true,
