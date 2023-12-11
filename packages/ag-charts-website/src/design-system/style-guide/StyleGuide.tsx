@@ -1,6 +1,7 @@
 import classnames from 'classnames';
 import type { FunctionComponent } from 'react';
 
+import { Alerts } from './Alerts';
 import { Buttons } from './Buttons';
 import { Colors } from './Colors';
 import { Inputs } from './Inputs';
@@ -26,6 +27,7 @@ export const StyleGuide: FunctionComponent = () => {
                 <TextElements />
                 <Buttons />
                 <Inputs />
+                <Alerts />
             </div>
         </>
     );
