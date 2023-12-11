@@ -3,10 +3,6 @@
 .topBar {
     background-color: var(--color-bg-toolbar);
 
-    #{$selector-darkmode} & {
-        border-bottom: 1px solid var(--color-border-primary);
-    }
-
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
         position: sticky;
         top: $site-header-height;
