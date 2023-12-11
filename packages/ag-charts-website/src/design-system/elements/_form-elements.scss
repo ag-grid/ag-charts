@@ -226,7 +226,7 @@ select#{$selector-exclude-grid} {
     padding: math.div(6em, 16) math.div(36em, 16) math.div(6em, 16) math.div(12em, 16);
     font-size: 1rem;
     line-height: var(--line-height-normal);
-    border-radius: var(--border-radius);
+    border-radius: var(--radius-sm);
     background-color: var(--color-bg-primary);
     background-image: $svg-chevron-down;
     background-repeat: no-repeat;
@@ -267,7 +267,7 @@ input[type='range']#{$selector-exclude-grid} {
     @mixin track {
         height: math.div(4em, 16);
         background-color: var(--color-input-border);
-        border-radius: var(--border-radius);
+        border-radius: var(--radius-sm);
     }
 
     @mixin thumb {
@@ -283,7 +283,7 @@ input[type='range']#{$selector-exclude-grid} {
 
     appearance: none;
     min-height: $spacing-size-6;
-    border-radius: var(--border-radius);
+    border-radius: var(--radius-sm);
     background-color: transparent;
     outline: none;
     border: 2px solid transparent;

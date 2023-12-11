@@ -6,7 +6,7 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    border-radius: var(--border-radius);
+    border-radius: var(--radius-sm);
     border: 1px solid var(--link-border-color);
 
     &::after {
@@ -18,7 +18,7 @@
         right: $border-width * -1;
         bottom: $border-width * -1;
         left: $border-width * -1;
-        border-radius: calc(var(--border-radius) + 1px);
+        border-radius: calc(var(--radius-sm) + 1px);
         border: $border-width solid var(--link-hover-color);
         opacity: 0;
         transition: opacity 0.5s ease-in-out;

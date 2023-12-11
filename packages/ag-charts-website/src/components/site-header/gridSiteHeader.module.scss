@@ -75,7 +75,6 @@
 
 .mobileMenuButton {
     --button-color: transparent;
-    --border-radius: 0;
     --button-hover-color: var(--dark-blue-700);
 
     appearance: none;
@@ -85,6 +84,7 @@
     height: $site-header-height;
     margin-left: $spacing-size-2;
     padding: 0 16px 0 14px;
+    border-radius: var(--radius-none);
     border: none;
     transition: background-color 0.4s ease-in-out;
 

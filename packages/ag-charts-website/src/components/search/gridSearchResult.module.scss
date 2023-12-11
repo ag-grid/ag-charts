@@ -10,8 +10,8 @@
     max-height: 24rem;
     top: 48px;
     left: 0;
-    border-bottom-right-radius: var(--border-radius);
-    border-bottom-left-radius: var(--border-radius);
+    border-bottom-right-radius: var(--radius-sm);
+    border-bottom-left-radius: var(--radius-sm);
     background-color: var(--color-bg-primary);
     border-top: 2px solid var(--color-border-primary);
     overflow-y: auto;

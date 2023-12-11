@@ -120,7 +120,7 @@ button:not([class^='ag-']).sectionHeader {
     transition:
         color $transition-default-timing,
         border-color $transition-default-timing;
-    border-radius: var(--border-radius);
+    border-radius: var(--radius-sm);
 
     &:hover {
         --text-color: var(--link-color);

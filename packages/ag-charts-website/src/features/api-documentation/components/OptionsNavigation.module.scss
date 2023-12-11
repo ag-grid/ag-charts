@@ -220,17 +220,16 @@
     position: absolute;
     inset: 100% 0 auto;
     max-height: 168px;
-    border-bottom-right-radius: var(--border-radius);
-    border-bottom-left-radius: var(--border-radius);
+    border-bottom-right-radius: var(--radius-sm);
+    border-bottom-left-radius: var(--radius-sm);
     background-color: var(--color-bg-primary);
-    border: 2px solid var(--color-input-border);
+    border: 1px solid var(--color-input-border);
     border-top: none;
     overflow: auto;
     z-index: 3;
 
     #{$selector-darkmode} & {
         inset: 100% 0 auto;
-        border: 1px solid var(--color-input-border);
     }
 }
 
