@@ -1,7 +1,16 @@
 import type { AgTooltipRendererResult, InteractionRange, TextWrap } from '../../options/agChartOptions';
 import { BBox } from '../../scene/bbox';
 import { injectStyle } from '../../util/dom';
-import { BOOLEAN, INTERACTION_RANGE, NUMBER, STRING, TEXT_WRAP, Validate } from '../../util/validation';
+import {
+    BOOLEAN,
+    INTERACTION_RANGE,
+    NUMBER,
+    POSITIVE_NUMBER,
+    STRING,
+    TEXT_WRAP,
+    UNION,
+    Validate,
+} from '../../util/validation';
 import type { InteractionEvent } from '../interaction/interactionManager';
 
 const DEFAULT_TOOLTIP_CLASS = 'ag-chart-tooltip';
