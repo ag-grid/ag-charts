@@ -54,7 +54,7 @@
         &:focus-visible {
             position: relative;
             border-color: var(--color-input-border-hover);
-            background-color: var(--toolbar-background);
+            background-color: var(--color-bg-toolbar);
             z-index: 1002;
         }
 
@@ -127,7 +127,7 @@ button:global(.ais-InfiniteHits-loadMore) {
     box-shadow: none;
 
     &:hover {
-        background-color: var(--toolbar-background);
+        background-color: var(--color-bg-toolbar);
     }
 
     #{$selector-darkmode} & {

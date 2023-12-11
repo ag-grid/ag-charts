@@ -154,6 +154,7 @@ $transition-default-timing: 0.25s ease-in-out;
     --color-bg-tertiary: var(--color-gray-100);
     --color-bg-brand-solid: var(--color-brand-500);
     --color-bg-disabled_subtle: var(--color-gray-50);
+    --color-bg-toolbar: var(--color-gray-100);
 
     // Foreground colors
     --color-fg-primary: var(--color-gray-900);
@@ -241,6 +242,7 @@ html[data-dark-mode='true'] {
     --color-bg-tertiary: var(--color-gray-800);
     --color-bg-brand-solid: var(--color-brand-500);
     --color-bg-disabled_subtle: var(--color-gray-800);
+    --color-bg-toolbar: var(--color-bg-primary);
 
     // Foreground colors
     --color-fg-primary: var(--color-white);

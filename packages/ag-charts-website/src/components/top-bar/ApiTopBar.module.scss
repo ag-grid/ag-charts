@@ -1,7 +1,7 @@
 @use '../../design-system' as *;
 
 .topBar {
-    background-color: var(--toolbar-background);
+    background-color: var(--color-bg-toolbar);
 
     #{$selector-darkmode} & {
         border-bottom: 1px solid var(--color-border-primary);

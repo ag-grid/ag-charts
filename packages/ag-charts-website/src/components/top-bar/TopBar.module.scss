@@ -1,7 +1,7 @@
 @use '../../design-system' as *;
 
 .topBar {
-    background-color: var(--toolbar-background);
+    background-color: var(--color-bg-toolbar);
 
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
         position: sticky;
