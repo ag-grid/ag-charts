@@ -86,7 +86,7 @@
     cursor: pointer;
 
     &:hover {
-        color: var(--color-link);
+        --button-text-color: var(--color-link);
     }
 
     &::after {

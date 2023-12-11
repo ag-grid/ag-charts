@@ -3,7 +3,7 @@
 
 a#{$selector-exclude-grid} {
     text-decoration: none;
-    color: var(--link-color);
+    color: var(--color-link);
     transition: color $transition-default-timing;
 
     &:hover {
@@ -12,11 +12,11 @@ a#{$selector-exclude-grid} {
 
     > .icon {
         --icon-size: 1.5em;
-        --color-icon: var(--color-link);
+        --text-color: var(--color-link);
     }
 
     &:hover > .icon {
-        --color-icon: var(--color-link-hover);
+        --text-color: var(--color-link-hover);
     }
 }
 

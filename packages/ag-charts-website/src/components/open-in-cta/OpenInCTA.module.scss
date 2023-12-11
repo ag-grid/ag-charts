@@ -1,6 +1,8 @@
 @use '../../design-system/' as *;
 
 .cta {
+    --button-text-color: var(--color-link);
+
     position: relative;
     display: flex;
     justify-content: center;
@@ -14,12 +16,12 @@
     cursor: pointer;
 
     &:hover {
-        --button-text-color: var(--link-color);
+        --button-text-color: var(--color-link);
 
         background-color: var(--background-400);
 
         svg {
-            --text-color: var(--link-color);
+            --text-color: var(--color-link);
         }
 
         #{$selector-darkmode} & {

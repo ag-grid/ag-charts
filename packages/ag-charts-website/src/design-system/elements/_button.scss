@@ -159,14 +159,15 @@ input[type='submit']#{$selector-exclude-grid},
 }
 
 .button-as-link {
-    color: var(--color-link);
-    transition: color $transition-default-timing;
+    --button-text-color: var(--color-link);
+    --text-color: var(--color-link);
+    --icon-size: 1.5em;
 
     transition: color $transition-default-timing;
 
     &:hover,
     &.hover {
-        --button-text-color: var(--link-hover-color);
-        --text-color: var(--link-hover-color);
+        --button-text-color: var(--color-link-hover);
+        --text-color: var(--color-link-hover);
     }
 }

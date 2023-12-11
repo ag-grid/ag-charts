@@ -71,6 +71,8 @@
     }
 
     .expandable {
+        --text-color: var(--color-link);
+
         outline: none;
         cursor: pointer;
 
@@ -91,7 +93,7 @@
         }
 
         &:hover {
-            color: var(--color-link-hover);
+            --text-color: var(--color-link-hover);
         }
 
         &.expanded {

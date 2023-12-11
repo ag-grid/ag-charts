@@ -79,7 +79,7 @@
 
     a:hover h4,
     a:hover .breadcrumb {
-        color: var(--link-color);
+        color: var(--color-link);
         transition: color $transition-default-timing;
     }
 
@@ -112,11 +112,13 @@
 
 :global(.ais-Highlight-highlighted),
 :global(.ais-Snippet-highlighted) {
-    color: var(--link-color);
+    color: var(--color-link);
     font-weight: var(--text-bold);
 }
 
 button:global(.ais-InfiniteHits-loadMore) {
+    --button-text-color: var(--color-link);
+
     width: 100%;
     padding: $spacing-size-1 !important;
     border-top-right-radius: 0;
