@@ -127,7 +127,7 @@ const { series } = galleryData;
         padding-top: calc($spacing-size-16 + $spacing-size-4);
         padding-left: var(--horizontal-padding);
         background-color: var(--color-bg-primary);
-        border-right: solid 1px var(--color-util-gray-200);
+        border-right: solid 1px var(--neutral-200);
         overflow-y: scroll;
 
         @media screen and (max-width: $breakpoint-gallery-small) {
@@ -136,7 +136,7 @@ const { series } = galleryData;
             width: 100%;
             top: $site-header-height;
             padding: 0;
-            background-color: var(--color-bg-toolbar);
+            background-color: var(--toolbar-background);
             border-bottom: 1px solid var(--color-border-primary);
             overflow-x: scroll;
             z-index: 1;
@@ -167,11 +167,12 @@ const { series } = galleryData;
     }
 
     .menu a {
+        --text-color: var(--color-bg-secondary); // only applies to the icon?
         --icon-size: 1.75em;
 
         display: flex;
         align-items: center;
-        color: var(--color-fg-secondary);
+        color: var(--color-bg-secondary);
         padding: 2px;
 
         &:hover,

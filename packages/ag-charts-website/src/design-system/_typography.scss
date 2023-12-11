@@ -16,7 +16,7 @@ h6#{$exclude-grid-selector},
 .font-size-medium,
 .font-size-small,
 .font-size-extra-small {
-    font-family: var(--font-family);
+    font-family: var(--text-font-family);
     font-size: var(--font-size);
     line-height: var(--line-height);
 }

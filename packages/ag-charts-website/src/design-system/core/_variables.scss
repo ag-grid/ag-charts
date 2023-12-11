@@ -1,6 +1,15 @@
 @use 'sass:math';
 @use 'utils' as *;
 
+// Configuration
+// =============
+$css-variables-root: ':root' !default; // The root level where CSS variables are applied
+$exclude-grid-selector: ':where(:not([class^=ag]))'; // Exclude simple selectors from interfering with grid styles
+
+// Size constants
+// ==============
+$border-radius: 0.25em;
+
 // Layout constants
 // ================
 $max-page-width: 1400px;
@@ -9,15 +18,6 @@ $site-header-height: 64px;
 
 // Typographic constants
 // =====================
-$font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
-    'Liberation Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-
-$monospace-font-family:
-    Consolas,
-    Monaco,
-    Andale Mono,
-    Ubuntu Mono,
-    monospace;
 
 $font-size-extra-small: px-to-rem(12); // convert px values to rems
 $font-size-small: px-to-rem(14); // convert px values to rems
@@ -36,10 +36,6 @@ $large-font-size-extra-large: px-to-rem(26); // convert px values to rems
 $large-font-size-massive: px-to-rem(32); // convert px values to rems
 $large-font-size-gigantic: px-to-rem(42); // convert px values to rems
 $large-font-size-gargantuan: px-to-rem(52); // convert px values to rems
-
-$font-weight-normal: 400;
-$font-weight-thin: 300;
-$font-weight-bold: 600;
 
 $line-height-normal: 1.5;
 $line-height-tight: 1.25;
@@ -300,15 +296,7 @@ $dark-scales: (
 
 // Semantic colors based on abstract colors & color scales
 $semantic-colors: (
-    // Background
-    'default-background-color': color-bg-primary,
-    // Text
-    'default-text-color': dark-gunmetal-gray,
     'text-color': default-text-color,
-    'secondary-text-color': neutral-800,
-    // Border
-    'border-color': neutral-300,
-    'secondary-border-color': background-500,
     // Link
     'link-color': primary-600,
     'link-hover-color': azure-blue,
@@ -321,15 +309,6 @@ $semantic-colors: (
     // Code
     'code-text-color': pink-700,
     'code-background-color': neutral-100,
-    // Input
-    'input-background-color': default-background-color,
-    'input-border-color': border-color,
-    'input-secondary-background-color': neutral-400,
-    'input-secondary-border-color': secondary-text-color,
-    'input-primary-color': primary-600,
-    'input-focus-border-color': primary-200,
-    'input-focus-box-shadow-color': primary-100,
-    'input-error-color': red-700,
     // Table
     'table-odd-row-background-color': background-100,
     // Site header
@@ -341,20 +320,12 @@ $semantic-colors: (
     'warning-background': brown-100,
     'warning-text': brown-700,
     // Enterprise
-    'enterprise-icon-color': red-700
+    'enterprise-icon-color': red-700,
 );
 
 // Semantic colors based on abstract colors
 $dark-semantic-colors: (
-    // Background
-    'default-background-color': color-bg-primary,
-    // Text
-    'default-text-color': ghost-white,
     'text-color': default-text-color,
-    'secondary-text-color': quick-silver,
-    // Border
-    'border-color': neutral-400,
-    'secondary-border-color': neutral-300,
     // Link
     'link-color': primary-600,
     'link-hover-color': azure-blue,
@@ -367,15 +338,6 @@ $dark-semantic-colors: (
     // Code
     'code-text-color': pink-code-text,
     'code-background-color': neutral-100,
-    // Input
-    'input-background-color': default-background-color,
-    'input-border-color': charcoal,
-    'input-secondary-background-color': neutral-400,
-    'input-secondary-border-color': secondary-text-color,
-    'input-primary-color': primary-600,
-    'input-focus-border-color': primary-500,
-    'input-focus-box-shadow-color': primary-100,
-    'input-error-color': red-600,
     // Table
     'table-odd-row-background-color': background-100,
     // Site header
@@ -389,5 +351,5 @@ $dark-semantic-colors: (
     // Not semantic
     'bright-blue-gray': neutral-200,
     // Enterprise
-    'enterprise-icon-color': red-700
+    'enterprise-icon-color': red-700,
 );
