@@ -11,7 +11,7 @@
 
     :global(.ag-chart-wrapper) {
         border: 2px solid var(--bright-blue-gray);
-        border-radius: var(--border-radius);
+        border-radius: var(--radius-sm);
         box-sizing: border-box;
         overflow: hidden;
     }

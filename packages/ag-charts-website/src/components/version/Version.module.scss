@@ -9,8 +9,8 @@
     border: 1px solid var(--color-border-primary);
 
     #{$selector-darkmode} & {
-        background: #122835;
-        border: 1px solid #394755;
+        background: var(--color-bg-secondary);
+        border: 1px solid var(--color-border-primary);
     }
 
     header {

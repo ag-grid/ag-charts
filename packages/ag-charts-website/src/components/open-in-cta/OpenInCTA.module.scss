@@ -87,7 +87,7 @@
     }
 
     #{$selector-darkmode} & {
-        --tooltip-background: #202a34;
+        --tooltip-background: var(--color-bg-secondary);
 
         color: var(--color-fg-primary);
         box-shadow: 0 -4px 16px 0 rgba(0, 0, 0, 0.4);

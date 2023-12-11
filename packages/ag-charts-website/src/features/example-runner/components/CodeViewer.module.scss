@@ -7,7 +7,7 @@
     height: 100%;
     container-type: inline-size;
     border: 1px solid var(--example-border-color);
-    border-radius: $spacing-size-2;
+    border-radius: --radius-md;
     overflow: hidden;
 }
 
@@ -103,8 +103,8 @@
     border-bottom: 1px solid var(--file-border-color);
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
-    border-bottom-left-radius: var(--border-radius);
-    border-top-left-radius: var(--border-radius);
+    border-bottom-left-radius: var(--radius-sm);
+    border-top-left-radius: var(--radius-sm);
     transition:
         color $transition-default-timing,
         background-color $transition-default-timing,
