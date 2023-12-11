@@ -74,6 +74,9 @@
 }
 
 .mobileMenuButton {
+    --button-color: transparent;
+    --button-hover-color: var(--dark-blue-700);
+
     appearance: none;
     display: flex;
     justify-content: center;

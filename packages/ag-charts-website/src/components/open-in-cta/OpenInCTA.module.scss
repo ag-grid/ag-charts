@@ -7,7 +7,7 @@
     align-items: center;
     width: $spacing-size-10;
     height: $spacing-size-10;
-    border-radius: var(--border-radius);
+    border-radius: var(--radius-sm);
     transition:
         color $transition-default-timing,
         background-color $transition-default-timing;

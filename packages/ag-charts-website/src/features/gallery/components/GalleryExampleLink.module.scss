@@ -19,7 +19,7 @@
         bottom: $border-width * -1;
         left: $border-width * -1;
         border-radius: calc(var(--radius-sm) + 1px);
-        border: $border-width solid var(--color-link-hover);
+        border: $border-width solid var(--link-hover-color);
         opacity: 0;
         transition: opacity 0.5s ease-in-out;
     }
