@@ -1,3 +1,4 @@
+import type { TargetConfiguration } from '@nx/devkit';
 import type { CreateDependencies, CreateNodes } from 'nx/src/utils/nx-plugin';
 import { dirname } from 'path';
 
@@ -60,6 +61,7 @@ export const createNodes: CreateNodes = [
                     root: dirname(configFilePath),
                     tags: [`scope:${parentProject}`, 'type:generated-example'],
                     targets: {
+                        ...createGenerateTarget(thumbnails),
                         ...generateExampleFiles.createTask(parentProject, srcRelativeInputPath),
                         ...(thumbnails ? generateChartThumbnails.createTask(parentProject, srcRelativeInputPath) : {}),
                     },
@@ -72,3 +74,16 @@ export const createNodes: CreateNodes = [
 export const createDependencies: CreateDependencies = async (opts, ctx) => {
     return [...(await generateExampleFiles.createDependencies(opts, ctx))];
 };
+
+function createGenerateTarget(thumbnails: boolean): { [targetName: string]: TargetConfiguration<any> } {
+    const dependsOn = ['generate-example'];
+    if (thumbnails) {
+        dependsOn.push('generate-thumbnail');
+    }
+    return {
+        generate: {
+            executor: 'nx:noop',
+            dependsOn,
+        },
+    };
+}

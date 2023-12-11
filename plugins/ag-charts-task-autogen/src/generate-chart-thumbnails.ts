@@ -1,11 +1,11 @@
-import { DependencyType, type RawProjectGraphDependency, validateDependency } from '@nx/devkit';
-import type { CreateDependencies, CreateNodes } from 'nx/src/utils/nx-plugin';
-
-export function createTask(parentProject: string, srcRelativeInputPath: string) {
+export function createTask(parentProject: string, srcRelativeInputPath: string): Task {
     const generatedExamplePath = `dist/generated-examples/${parentProject}/${srcRelativeInputPath}`;
+    const dependsOn = ['generate-example', { projects: 'ag-charts-build-tools', target: 'build' }];
+
     return {
         'generate-thumbnail': {
-            dependsOn: ['generate-example', { projects: 'ag-charts-build-tools', target: 'build' }],
+            dependsOn,
+            inputs: [{ runtime: "jq -r '.version' package.json" }],
             executor: 'ag-charts-build-tools:generate-chart-thumbnail',
             outputPath: '{options.outputPath}',
             cache: true,

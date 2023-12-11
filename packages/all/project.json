@@ -52,7 +52,7 @@
       "options": {
         "commands": [
           "nx build ag-charts-website:generate-examples --batch",
-          "nx build ag-charts-website:generate-thumbnails"
+          "nx build ag-charts-website:generate-thumbnails --batch"
         ]
       }
     },
@@ -66,7 +66,7 @@
           "while true ; do nx watch -d -p ag-charts-community,ag-charts-enterprise -- nx run ag-charts-enterprise:build:umd --configuration watch ; done",
           "while true ; do nx watch -d -p ag-charts-community -- nx run ag-charts-community:build:umd --configuration watch ; done",
           "while true ; do nx watch -d -p ag-charts-community -- nx run ag-charts-community:docs-resolved-interfaces ; done",
-          "while true ; do nx watch -p ag-charts-website-* -- nx build \\${NX_PROJECT_NAME}:generate-example; done",
+          "while true ; do nx watch -p ag-charts-website-* -- nx build \\${NX_PROJECT_NAME}:generate; done",
           "nx run ag-charts-website:dev --configuration watch"
         ]
       },
