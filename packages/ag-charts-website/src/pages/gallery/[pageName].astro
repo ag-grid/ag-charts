@@ -65,15 +65,15 @@ const { page, prevExample, nextExampleOne, nextExampleTwo } = Astro.props;
     @use '../../design-system' as *;
 
     .page-margin {
-        padding-top: $size-5;
-        padding-bottom: $size-9;
+        padding-top: $spacing-size-10;
+        padding-bottom: $spacing-size-24;
     }
 
     h1 {
         display: flex;
         flex-wrap: wrap;
         align-items: flex-end;
-        margin-bottom: $size-1;
+        margin-bottom: $spacing-size-2;
     }
 
     .enterpriseIcon {
@@ -82,7 +82,7 @@ const { page, prevExample, nextExampleOne, nextExampleTwo } = Astro.props;
     }
 
     .description {
-        margin-bottom: $size-8 !important;
+        margin-bottom: $spacing-size-16 !important;
     }
 
     .description,
@@ -96,7 +96,7 @@ const { page, prevExample, nextExampleOne, nextExampleTwo } = Astro.props;
         display: flex;
         flex-wrap: wrap;
         justify-content: space-between;
-        gap: $size-3;
+        gap: $spacing-size-6;
     }
 </style>
 

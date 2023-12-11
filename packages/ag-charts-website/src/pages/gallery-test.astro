@@ -48,9 +48,9 @@ const { series } = galleryData;
     }
 
     .gallery-outer {
-        --horizontal-padding: #{$size-3};
+        --horizontal-padding: #{$spacing-size-6};
         --menu-width: 12rem;
-        --gallery-list-gap: #{$size-3};
+        --gallery-list-gap: #{$spacing-size-6};
 
         display: flex;
         flex-direction: row;
@@ -65,7 +65,7 @@ const { series } = galleryData;
         max-height: calc(100vh - #{$site-header-height});
         width: calc(var(--menu-width) + var(--horizontal-padding));
         top: $site-header-height;
-        padding-top: calc($size-7 + $size-2);
+        padding-top: calc($spacing-size-16 + $spacing-size-4);
         padding-left: var(--horizontal-padding);
         background-color: var(--color-bg-primary);
         border-right: solid 1px var(--neutral-200);
@@ -95,14 +95,14 @@ const { series } = galleryData;
     }
 
     .menu li {
-        margin-bottom: $size-2 !important;
+        margin-bottom: $spacing-size-4 !important;
 
         @media screen and (max-width: $breakpoint-gallery-small) {
             margin-bottom: 0 !important;
             flex-shrink: 0;
 
             &:last-child {
-                padding-right: $size-8;
+                padding-right: $spacing-size-16;
             }
         }
     }
@@ -134,8 +134,8 @@ const { series } = galleryData;
     }
 
     .menu .name {
-        margin-left: $size-1;
-        margin-right: $size-half;
+        margin-left: $spacing-size-2;
+        margin-right: $spacing-size-1;
     }
 
     .menu .enterpriseIcon {
@@ -145,7 +145,7 @@ const { series } = galleryData;
     .menu-scroll-indicator {
         position: sticky;
         width: 100%;
-        height: $size-8;
+        height: $spacing-size-16;
         bottom: 0;
         left: 0;
         background: linear-gradient(transparent, var(--color-bg-primary));
@@ -157,30 +157,30 @@ const { series } = galleryData;
             top: $site-header-height;
             left: auto;
             right: 0;
-            width: $size-8;
+            width: $spacing-size-16;
             background: linear-gradient(90deg, transparent, var(--toolbar-background));
         }
     }
 
     .content {
         flex: 1;
-        padding: $site-header-height var(--horizontal-padding) $size-8;
+        padding: $site-header-height var(--horizontal-padding) $spacing-size-16;
 
         @media screen and (min-width: $breakpoint-gallery-small) {
-            padding: $size-2 var(--horizontal-padding) $size-10;
+            padding: $spacing-size-4 var(--horizontal-padding) $spacing-size-20;
         }
 
         @media screen and (min-width: $breakpoint-gallery-large) {
-            padding-left: $size-4;
+            padding-left: $spacing-size-8;
         }
     }
 
     .chart-type:first-child {
-        padding-top: $size-2;
+        padding-top: $spacing-size-4;
     }
 
     .chart-type {
-        padding-bottom: $size-4;
+        padding-bottom: $spacing-size-8;
     }
 
     .gallery-list {
@@ -219,7 +219,7 @@ const { series } = galleryData;
         .content > div {
             display: flex;
             flex-wrap: wrap;
-            gap: $size-3;
+            gap: $spacing-size-6;
         }
 
         :global(.galleryExample) {
