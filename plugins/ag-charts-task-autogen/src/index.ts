@@ -6,11 +6,7 @@ import * as generateChartThumbnails from './generate-chart-thumbnails';
 import * as generateExampleFiles from './generate-example-files';
 
 const PROJECTS = ['ag-charts-website'];
-const NON_UNIQUE_PATH_ELEMENTS = ['src', 'content', 'docs', '_examples'];
-const NON_UNIQUE_PATH_ELEMENTS_MAP = NON_UNIQUE_PATH_ELEMENTS.reduce((r, n) => {
-    r[n] = true;
-    return r;
-}, {});
+const NON_UNIQUE_PATH_ELEMENTS = new Set(['src', 'content', 'docs', '_examples']);
 
 const IGNORE_THUMBNAILS = [
     // Too large to generate, isn't visible in the gallery either.
