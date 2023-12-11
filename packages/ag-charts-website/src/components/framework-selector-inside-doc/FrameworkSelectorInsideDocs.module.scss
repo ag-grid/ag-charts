@@ -37,7 +37,7 @@
         background-color: var(--color-border-primary);
 
         #{$selector-darkmode} & {
-            background-color: #28333d;
+            background-color: var(--color-bg-primary);
         }
     }
 

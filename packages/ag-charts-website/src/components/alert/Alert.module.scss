@@ -32,10 +32,7 @@
     }
 
     #{$selector-darkmode} & {
-        --alert-background-color: #121f29;
-
         color: #c3cad3;
-
         border: 1px solid rgb(255, 255, 255, 0.15);
 
         :global(.icon) {

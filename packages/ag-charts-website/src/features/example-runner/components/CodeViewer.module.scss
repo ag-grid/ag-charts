@@ -7,7 +7,7 @@
     height: 100%;
     container-type: inline-size;
     border: 1px solid var(--example-border-color);
-    border-radius: $spacing-size-2;
+    border-radius: --radius-md;
     overflow: hidden;
 }
 
