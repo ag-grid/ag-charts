@@ -3,8 +3,8 @@ export type NumericTicks = number[] & {
     fractionDigits: number;
 };
 
-export const createNumericTicks = (fractionDigits: number): NumericTicks =>
-    Object.assign([] as number[], { fractionDigits });
+export const createNumericTicks = (fractionDigits: number, takingValues: number[] = []): NumericTicks =>
+    Object.assign(takingValues, { fractionDigits });
 
 export default function (
     start: number,
