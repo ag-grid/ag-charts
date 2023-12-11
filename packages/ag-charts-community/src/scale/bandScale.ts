@@ -123,9 +123,8 @@ export class BandScale<D> implements Scale<D, number, number> {
     }
 
     set padding(value: number) {
-        value = clamp(value, 0, 1);
-        this._paddingInner = value;
-        this._paddingOuter = value;
+        this.paddingInner = value;
+        this.paddingOuter = value;
     }
     get padding(): number {
         return this._paddingInner;
