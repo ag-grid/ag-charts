@@ -1,4 +1,4 @@
-export function createTask(parentProject: string, srcRelativeInputPath: string): Task {
+export function createTask(parentProject: string, srcRelativeInputPath: string) {
     const generatedExamplePath = `dist/generated-examples/${parentProject}/${srcRelativeInputPath}`;
     const dependsOn = ['generate-example', { projects: 'ag-charts-build-tools', target: 'build' }];
 
