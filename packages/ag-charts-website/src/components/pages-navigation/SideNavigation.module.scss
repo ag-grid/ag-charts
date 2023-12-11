@@ -59,7 +59,7 @@
     z-index: -2;
 
     #{$selector-darkmode} & {
-        --nav-line-color: #394755;
+        --nav-line-color: var(--color-border-primary);
     }
 }
 

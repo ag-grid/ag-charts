@@ -72,8 +72,7 @@
     }
 
     #{$selector-darkmode} & {
-        --color-border-secondary: #394755;
-
+        --color-border-secondary: var(--color-border-primary);
         border-bottom: none;
     }
 }
