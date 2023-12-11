@@ -48,7 +48,13 @@
       }
     },
     "dev:setup": {
-      "command": "nx build ag-charts-website:generate-examples --batch"
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "nx build ag-charts-website:generate-examples --batch",
+          "nx build ag-charts-website:generate-thumbnails --batch"
+        ]
+      }
     },
     "dev": {
       "executor": "nx:run-commands",
@@ -60,7 +66,7 @@
           "while true ; do nx watch -d -p ag-charts-community,ag-charts-enterprise -- nx run ag-charts-enterprise:build:umd --configuration watch ; done",
           "while true ; do nx watch -d -p ag-charts-community -- nx run ag-charts-community:build:umd --configuration watch ; done",
           "while true ; do nx watch -d -p ag-charts-community -- nx run ag-charts-community:docs-resolved-interfaces ; done",
-          "while true ; do nx watch -p ag-charts-website-* -- nx build \\${NX_PROJECT_NAME}:generate-example; done",
+          "while true ; do nx watch -p ag-charts-website-* -- nx build \\${NX_PROJECT_NAME}:generate; done",
           "nx run ag-charts-website:dev --configuration watch"
         ]
       },
@@ -75,11 +81,10 @@
       }
     },
     "blt": {
-      "executor": "nx:noop",
-      "dependsOn": ["build", "lint", "format-check", "test"],
-      "configurations": {
-        "update": {},
-        "production": {}
+      "executor": "nx:run-commands",
+      "dependsOn": ["build", "lint", "format-check"],
+      "options": {
+        "commands": ["nx run-many -t test --parallel 1"]
       }
     },
     "clean": { "command": "rimraf dist/ 'packages/*/dist/'" }
@@ -94,7 +99,8 @@
     "ag-charts-react",
     "ag-charts-vue",
     "ag-charts-vue3",
-    "ag-charts-build-tools"
+    "ag-charts-build-tools",
+    "ag-charts-test"
   ],
   "tags": []
 }

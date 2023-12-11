@@ -22,7 +22,7 @@ function fillText(context: CanvasRenderingContext2D, text: string, x: number, y:
 
     for (let i = 0; i < text.length; i++) {
         const char = text[i];
-        const pixels = font[char] ?? font.undefined;
+        const pixels = font[char] ?? font['undefined'];
 
         for (let j = 0; j < pixels.length; j++) {
             const line = pixels[j];
@@ -49,7 +49,7 @@ function measureText(context: CanvasRenderingContext2D, text: string): TextMetri
     let descent = 0;
     for (let i = 0; i < text.length; i++) {
         const char = text[i];
-        const pixels = font[char] ?? font.undefined;
+        const pixels = font[char] ?? font['undefined'];
 
         const emptyAscent = pixels.findIndex((line) => line.includes('#'));
         const charAscent = MOCK_ASCENT - Math.max(0, emptyAscent);

@@ -1,36 +1,35 @@
 {
-  "name": "ag-charts-build-tools",
+  "name": "ag-charts-task-autogen",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "plugins/ag-charts-build-tools/src",
+  "sourceRoot": "plugins/ag-charts-task-autogen/src",
   "projectType": "library",
   "targets": {
     "build": {
-      "executor": "@nx/js:swc",
+      "executor": "@nx/js:tsc",
       "outputs": ["{options.outputPath}"],
-      "dependsOn": ["ag-charts-community:build:package", "ag-charts-enterprise:build:package"],
       "options": {
-        "outputPath": "plugins/ag-charts-build-tools/dist",
-        "main": "plugins/ag-charts-build-tools/src/index.ts",
-        "tsConfig": "plugins/ag-charts-build-tools/tsconfig.lib.json",
+        "outputPath": "plugins/ag-charts-task-autogen/dist",
+        "main": "plugins/ag-charts-task-autogen/src/index.ts",
+        "tsConfig": "plugins/ag-charts-task-autogen/tsconfig.lib.json",
         "assets": [
-          "plugins/ag-charts-build-tools/*.md",
+          "plugins/ag-charts-task-autogen/*.md",
           {
-            "input": "./plugins/ag-charts-build-tools/src",
+            "input": "./plugins/ag-charts-task-autogen/src",
             "glob": "**/!(*.ts)",
             "output": "./src"
           },
           {
-            "input": "./plugins/ag-charts-build-tools/src",
+            "input": "./plugins/ag-charts-task-autogen/src",
             "glob": "**/*.d.ts",
             "output": "./src"
           },
           {
-            "input": "./plugins/ag-charts-build-tools",
+            "input": "./plugins/ag-charts-task-autogen",
             "glob": "generators.json",
             "output": "."
           },
           {
-            "input": "./plugins/ag-charts-build-tools",
+            "input": "./plugins/ag-charts-task-autogen",
             "glob": "executors.json",
             "output": "."
           }
@@ -41,14 +40,18 @@
       "executor": "@nx/eslint:lint",
       "outputs": ["{options.outputFile}"],
       "options": {
-        "lintFilePatterns": ["plugins/ag-charts-build-tools/**/*.ts", "plugins/ag-charts-build-tools/executors.json"]
+        "lintFilePatterns": [
+          "plugins/ag-charts-task-autogen/**/*.ts",
+          "plugins/ag-charts-task-autogen/package.json",
+          "plugins/ag-charts-task-autogen/executors.json"
+        ]
       }
     },
     "test": {
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
       "options": {
-        "jestConfig": "plugins/ag-charts-build-tools/jest.config.ts",
+        "jestConfig": "plugins/ag-charts-task-autogen/jest.config.ts",
         "passWithNoTests": true
       },
       "configurations": {
