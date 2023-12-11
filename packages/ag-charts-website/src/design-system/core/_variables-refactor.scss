@@ -147,7 +147,7 @@ $transition-default-timing: 0.25s ease-in-out;
 
     // Background colors
     --color-bg-primary: var(--color-white);
-    --color-bg-secondary: var(--color-gray-200);
+    --color-bg-secondary: var(--color-gray-50);
     --color-bg-brand-solid: var(--color-brand-500);
     --color-bg-disabled_subtle: var(--color-gray-50);
 
@@ -209,6 +209,9 @@ $transition-default-timing: 0.25s ease-in-out;
     --color-util-warning-500: var(--color-warning-500);
     --color-util-warning-600: var(--color-warning-600);
     --color-util-warning-700: var(--color-warning-700);
+
+    // Brand
+    --color-text-brand-primary: var(--color-brand-500);
 
     // Shadows
     --shadow-xs: 0 1px 2px 0 color-mix(in srgb, var(--color-gray-950) 05%, transparent);
@@ -274,4 +277,7 @@ html[data-dark-mode='true'] {
     --color-util-warning-500: var(--color-warning-500);
     --color-util-warning-600: var(--color-warning-400);
     --color-util-warning-700: var(--color-warning-300);
+
+    // Brand
+    --color-text-brand-primary: var(--color-brand-200);
 }

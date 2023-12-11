@@ -28,7 +28,7 @@ export const ExampleStyle = ({ rootId }: { rootId?: string }) => {
         }
 
         :root[data-dark-mode='true'] {
-            background: #182732;
+            background: #182230;
             color: white;
         }
 

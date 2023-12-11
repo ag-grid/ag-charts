@@ -62,7 +62,7 @@ input[type='number'] {
     &#{$exclude-grid-selector} {
         padding: math.div(6em, 16) math.div(12em, 16);
         line-height: var(--line-height-normal);
-        border-radius: 8px;
+        border-radius: var(--radius-sm);
         background-color: var(--input-background-color);
         border: 1px solid var(--color-input-border);
         outline: none;

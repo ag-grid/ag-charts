@@ -14,7 +14,7 @@
     }
 
     #{$darkmode-selector} & {
-        --input-background-color: #151d26;
+        --input-background-color: var(--color-bg-primary);
     }
 }
 
