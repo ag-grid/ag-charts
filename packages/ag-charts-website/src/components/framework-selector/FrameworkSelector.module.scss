@@ -147,7 +147,8 @@
 
     border: 1px solid transparent;
 
-    #{$selector-darkmode} & {
+    #{$darkmode-selector} & {
+        background-color: var(--color-bg-secondary);
         border-color: var(--color-border-primary);
     }
 }
