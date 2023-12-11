@@ -1,8 +1,8 @@
-import type {AgTooltipRendererResult, InteractionRange, TextWrap} from '../../options/agChartOptions';
-import {BBox} from '../../scene/bbox';
-import {injectStyle} from '../../util/dom';
-import {BOOLEAN, INTERACTION_RANGE, NUMBER, STRING, TEXT_WRAP, Validate,} from '../../util/validation';
-import type {InteractionEvent} from '../interaction/interactionManager';
+import type { AgTooltipRendererResult, InteractionRange, TextWrap } from '../../options/agChartOptions';
+import { BBox } from '../../scene/bbox';
+import { injectStyle } from '../../util/dom';
+import { BOOLEAN, INTERACTION_RANGE, NUMBER, STRING, TEXT_WRAP, Validate } from '../../util/validation';
+import type { InteractionEvent } from '../interaction/interactionManager';
 
 const DEFAULT_TOOLTIP_CLASS = 'ag-chart-tooltip';
 const DEFAULT_TOOLTIP_DARK_CLASS = 'ag-chart-dark-tooltip';

@@ -9,15 +9,7 @@ import {
     _Util,
 } from 'ag-charts-community';
 
-const {
-    BOOLEAN,
-    Layers,
-    POSITION,
-    Validate,
-    Default,
-    MIN_SPACING,
-    POSITIVE_NUMBER,
-} = _ModuleSupport;
+const { BOOLEAN, Layers, POSITION, Validate, Default, MIN_SPACING, POSITIVE_NUMBER } = _ModuleSupport;
 const { BBox, Group, Rect, LinearGradientFill, Triangle } = _Scene;
 const { createId, Logger } = _Util;
 
