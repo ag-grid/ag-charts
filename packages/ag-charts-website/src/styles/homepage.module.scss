@@ -4,7 +4,9 @@
     background-color: var(--color-util-brand-500);
     color: var(--color-white);
 
-    #{$selector-darkmode} & {
+    background-color: var(--dark-blue-600);
+
+    #{$darkmode-selector} & {
         background-color: var(--color-bg-primary);
     }
 }
@@ -184,8 +186,8 @@
 .galleryScrollerExample {
     background: white;
 
-    #{$selector-darkmode} & {
-        background: var(--color-bg-primary);
+    #{$darkmode-selector} & {
+        background: #182230;
     }
 }
 
@@ -200,9 +202,9 @@
 
     border-bottom: 1px solid transparent;
 
-    #{$selector-darkmode} & {
+    #{$darkmode-selector} & {
         background-color: var(--color-bg-primary);
-        border-bottom-color: var(--color-border-primary);
+        border-bottom-color: #394755;
     }
 }
 

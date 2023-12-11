@@ -11,8 +11,8 @@
 }
 
 iframe {
-    #{$selector-darkmode} & {
-        background: var(--color-bg-primary);
+    #{$darkmode-selector} & {
+        background: #182230;
     }
 }
 

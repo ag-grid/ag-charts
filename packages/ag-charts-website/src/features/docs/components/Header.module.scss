@@ -5,7 +5,7 @@
 }
 
 .docsPageTitle {
-    margin-bottom: $spacing-size-4;
+    margin-bottom: $spacing-size-2;
 
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
         line-height: var(--text-lh-ultra-tight);
@@ -31,9 +31,9 @@
 
 .headerFramework {
     display: none;
-    font-size: var(--font-size-extra-large);
-    font-weight: var(--text-regular);
-    color: var(--color-fg-secondary);
+    font-size: var(--text-fs-lg);
+    font-weight: var(--text-semibold);
+    color: var(--color-text-brand-primary);
     padding-bottom: 6px;
 
     @media screen and (min-width: $breakpoint-docs-search-medium) {

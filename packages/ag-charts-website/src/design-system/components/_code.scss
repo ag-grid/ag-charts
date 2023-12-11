@@ -34,12 +34,12 @@ pre.code code {
 pre.code {
     --comment-color: #5d6376;
     --tag-color: #984f4e;
-    --string-color: #0087bf;
+    --string-color: #984f4e;
     --punctuation-color: #393a34;
-    --keyword-color: #b31ea7;
-    --symbol-color: #0087bf;
-    --function-color: #2d7df7;
-    --deleted-color: #f54946;
+    --keyword-color: #8844ae;
+    --symbol-color: #36acaa;
+    --function-color: #3c61b1;
+    --deleted-color: #9a050f;
     --selector-color: #00009f;
     --important-color: #e90;
     --class-name-color: #2b91af;
@@ -79,22 +79,22 @@ pre.code > code {
     margin-bottom: -6px;
     padding: $vertical-padding $spacing-size-4;
     font-size: 0.9375em;
-    background-color: var(--color-bg-primary);
-    background-image: linear-gradient(transparent 50%, var(--background-100) 50%);
+    background-color: var(--color-bg-secondary);
     background-size: 3em 3em;
     background-origin: content-box;
     background-attachment: local;
     border: none;
     border-radius: 0;
-    box-shadow:
-        inset 0 $vertical-padding 0 0 var(--color-bg-primary),
-        inset 0 $vertical-padding * -1 0 0 var(--color-bg-primary);
     overflow-x: auto !important;
 
-pre.code > .language-bash {
-    color: var(--function-color);
+    #{$darkmode-selector} & {
+        background: var(--color-bg-secondary);
+        box-shadow: inset 0px 0px;
+    }
 }
-
+.language-bash {
+    color: var(--function-color) !important;
+}
 pre.code.line-numbers.line-numbers code {
     padding-left: 3.8em;
 }

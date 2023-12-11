@@ -91,7 +91,9 @@
 .pageSections > :global(article) > :global(p:first-child) {
     --font-size-extra-large: #{$font-size-extra-large};
 
+    color: var(--color-fg-secondary);
     font-size: var(--font-size-extra-large);
+    font-weight: var(--text-regular);
     margin-bottom: $spacing-size-8;
 
     code {
