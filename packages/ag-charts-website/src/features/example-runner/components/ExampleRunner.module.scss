@@ -12,7 +12,7 @@
 
 iframe {
     #{$selector-darkmode} & {
-        background: #182230;
+        background: var(--color-bg-primary);
     }
 }
 
@@ -38,11 +38,9 @@ iframe {
         position: absolute;
     }
 
-    #{$selector-darkmode} & {
-        --button-color: #202a34;
-        --button-hover-color: #2a343e;
-        --button-active-color: #293949;
-    }
+    --button-color: var(--color-button-secondary-bg);
+    --button-hover-color: var(--color-button-secondary-bg-hover);
+    --button-active-color: var(--color-button-secondary-bg-active);
 }
 
 .externalLinks {

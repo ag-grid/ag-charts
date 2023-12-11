@@ -87,8 +87,10 @@
 }
 
 .navContainer > code {
+    background: var(--color-bg-secondary);
+
     #{$selector-darkmode} & {
-        background: var(--color-gray-900);
+        background: var(--color-gray-900) !important;
     }
 }
 
