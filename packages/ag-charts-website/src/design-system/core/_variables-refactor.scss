@@ -156,6 +156,8 @@ $transition-default-timing: 0.25s ease-in-out;
     --color-bg-disabled_subtle: var(--color-gray-50);
     --color-bg-toolbar: var(--color-gray-100);
     --color-bg-code: var(--color-gray-100);
+    --color-bg-site-header: #044b93; // TODO, review & replace color
+    --color-bg-mobile-nav: #003264; // TODO, review & replace color
 
     // Foreground colors
     --color-fg-primary: var(--color-gray-900);
@@ -165,8 +167,7 @@ $transition-default-timing: 0.25s ease-in-out;
     --color-fg-disabled: var(--color-gray-400);
     --color-fg-placeholder: var(--color-gray-500);
     --color-fg-white: var(--color-white);
-    // TODO, review & replace color
-    --color-fg-code: #e83e8d;
+    --color-fg-code: #e83e8d; // TODO, review & replace color
 
     // Border colors
     --color-border-primary: var(--color-gray-300);
@@ -207,12 +208,10 @@ $transition-default-timing: 0.25s ease-in-out;
     --color-input-shadow-focus: var(--color-brand-200);
     --color-input-disabled-bg: var(--color-bg-disabled_subtle);
     --color-input-disabled-fg: var(--color-fg-disabled);
-    // TODO, review & replace color
-    --color-input-error: red;
+    --color-input-error: red; // TODO, review & replace color
 
     // Enterprise color
-    // TODO, review & replace color
-    --color-enterprise-icon: #dc3545;
+    --color-enterprise-icon: #dc3545; // TODO, review & replace color
 
     // Warning colors
     --color-util-warning-50: var(--color-warning-50);
@@ -249,6 +248,8 @@ html[data-dark-mode='true'] {
     --color-bg-disabled_subtle: var(--color-gray-800);
     --color-bg-toolbar: var(--color-bg-primary);
     --color-bg-code: var(--color-gray-700);
+    --color-bg-site-header: var(--color-bg-primary);
+    --color-bg-mobile-nav: var(--color-bg-primary);
 
     // Foreground colors
     --color-fg-primary: var(--color-white);
@@ -257,8 +258,7 @@ html[data-dark-mode='true'] {
     --color-fg-quinary: var(--color-gray-500);
     --color-fg-disabled: var(--color-gray-500);
     --color-fg-white: var(--color-white);
-    // TODO, review & replace color
-    --color-fg-code: #f64f76;
+    --color-fg-code: #f64f76; // TODO, review & replace color
 
     // Border colors
     --color-border-primary: var(--color-gray-700);
