@@ -65,7 +65,7 @@ const { page, prevExample, nextExampleOne, nextExampleTwo } = Astro.props;
 
     .page-margin {
         padding-top: $spacing-size-10;
-        padding-bottom: $spacing-size-32;
+        padding-bottom: $spacing-size-24;
     }
 
     h1 {
@@ -82,7 +82,7 @@ const { page, prevExample, nextExampleOne, nextExampleTwo } = Astro.props;
     }
 
     .description {
-        margin-bottom: $spacing-size-24 !important;
+        margin-bottom: $spacing-size-16 !important;
     }
 
     .description,
@@ -97,12 +97,6 @@ const { page, prevExample, nextExampleOne, nextExampleTwo } = Astro.props;
         flex-wrap: wrap;
         justify-content: space-between;
         gap: $spacing-size-6;
-
-        @media screen and (min-width: 720px) and (max-width: 1120px) {
-            :global(astro-island):nth-child(1) {
-                display: none;
-            }
-        }
     }
 </style>
 

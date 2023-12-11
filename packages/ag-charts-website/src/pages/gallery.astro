@@ -161,7 +161,7 @@ const { series } = galleryData;
             flex-shrink: 0;
 
             &:last-child {
-                padding-right: $spacing-size-24;
+                padding-right: $spacing-size-16;
             }
         }
     }
@@ -203,7 +203,7 @@ const { series } = galleryData;
     .menu-scroll-indicator {
         position: sticky;
         width: 100%;
-        height: $spacing-size-24;
+        height: $spacing-size-16;
         bottom: 0;
         left: 0;
         background: linear-gradient(transparent, var(--color-bg-primary));
@@ -215,17 +215,17 @@ const { series } = galleryData;
             top: $site-header-height;
             left: auto;
             right: 0;
-            width: $spacing-size-24;
-            background: linear-gradient(90deg, transparent, var(--color-bg-toolbar));
+            width: $spacing-size-16;
+            background: linear-gradient(90deg, transparent, var(--toolbar-background));
         }
     }
 
     .content {
         flex: 1;
-        padding: $site-header-height var(--horizontal-padding) $spacing-size-24;
+        padding: $site-header-height var(--horizontal-padding) $spacing-size-16;
 
         @media screen and (min-width: $breakpoint-gallery-small) {
-            padding: $spacing-size-4 var(--horizontal-padding) $spacing-size-56;
+            padding: $spacing-size-4 var(--horizontal-padding) $spacing-size-20;
         }
 
         @media screen and (min-width: $breakpoint-gallery-large) {
