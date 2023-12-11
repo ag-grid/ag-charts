@@ -171,10 +171,6 @@
     .unionDiscriminator {
         color: var(--color-fg-code);
     }
-
-    #{$selector-darkmode} & {
-        color: var(--property-color);
-    }
 }
 
 .propertyWhisker {
