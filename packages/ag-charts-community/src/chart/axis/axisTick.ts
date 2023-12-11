@@ -4,14 +4,10 @@ import { Default } from '../../util/default';
 import { TimeInterval } from '../../util/time/interval';
 import { isFiniteNumber } from '../../util/type-guards';
 import {
-    AND,
     ARRAY,
     BOOLEAN,
     COLOR_STRING,
-    LESS_THAN,
-    NAN,
-    NUMBER,
-    OR,
+    MIN_SPACING,
     POSITIVE_NUMBER,
     Validate,
     predicateWithMessage,
@@ -20,8 +16,6 @@ import {
 export type TickInterval<S> = S extends TimeScale ? number | TimeInterval : number;
 
 export type TickCount<S> = S extends TimeScale ? number | TimeInterval : number;
-
-const MIN_SPACING = OR(AND(NUMBER.restrict({ min: 1 }), LESS_THAN('maxSpacing')), NAN);
 
 const TICK_INTERVAL = predicateWithMessage(
     (value) => (isFiniteNumber(value) && value > 0) || value instanceof TimeInterval,
@@ -61,6 +55,6 @@ export class AxisTick<S extends Scale<D, number, I>, D = any, I = any> {
     @Default(NaN)
     minSpacing: number = NaN;
 
-    // Maybe initialised and validated in sub-classes - DO NOT ASSIGN A VALUE HERE.
+    // Maybe initialised and validated in subclasses - DO NOT ASSIGN A VALUE HERE.
     maxSpacing?: number;
 }

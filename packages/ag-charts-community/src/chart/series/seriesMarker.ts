@@ -20,8 +20,8 @@ import type { MarkerShape } from '../marker/util';
 import { isMarkerShape } from '../marker/util';
 
 const MARKER_SHAPE = predicateWithMessage(
-    (v: any) => isMarkerShape(v) || Object.getPrototypeOf(v) === Marker,
-    `expecting a marker shape keyword such as 'circle', 'diamond' or 'square' or an object extending the Marker class`
+    (value) => isMarkerShape(value) || Object.getPrototypeOf(value) === Marker,
+    `a marker shape keyword such as 'circle', 'diamond' or 'square' or an object extending the Marker class`
 );
 
 export class SeriesMarker<TParams = never, TDatum = any>

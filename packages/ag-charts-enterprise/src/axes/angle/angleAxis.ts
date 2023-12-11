@@ -9,7 +9,7 @@ const {
     ChartAxisDirection,
     GREATER_THAN,
     NUMBER,
-    predicateWithMessage,
+    UNION,
     ProxyOnWrite,
     Validate,
 } = _ModuleSupport;
@@ -32,15 +32,8 @@ interface AngleAxisTickDatum<TDatum> {
     visible: boolean;
 }
 
-const ANGLE_LABEL_ORIENTATIONS: AgAngleAxisLabelOrientation[] = ['fixed', 'parallel', 'perpendicular'];
-
-const ANGLE_LABEL_ORIENTATION = predicateWithMessage(
-    (v: any) => ANGLE_LABEL_ORIENTATIONS.includes(v),
-    `expecting a label orientation keyword such as 'fixed', 'parallel' or 'perpendicular'`
-);
-
 class AngleAxisLabel extends _ModuleSupport.AxisLabel {
-    @Validate(ANGLE_LABEL_ORIENTATION)
+    @Validate(UNION(['fixed', 'parallel', 'perpendicular'], 'a label orientation'))
     orientation: AgAngleAxisLabelOrientation = 'fixed';
 }
 
