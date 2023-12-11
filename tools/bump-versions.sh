@@ -27,7 +27,7 @@ export const VERSION = '${NEW_VERSION}';"
 
 for envFile in ./packages/ag-charts-website/.env* ; do
     echo "Updating ${envFile}"
-    sed -i '' '/PUBLIC_PACKAGE_VERSION=/ d' ${envFile}
+    sed -i '' -e '/PUBLIC_PACKAGE_VERSION=/ d' ${envFile}
     echo "PUBLIC_PACKAGE_VERSION=${NEW_VERSION}" >>${envFile}
 done
 
