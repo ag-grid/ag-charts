@@ -185,7 +185,7 @@ button:not([class^='ag-']).sectionHeader {
 
     .enterpriseIcon {
         --icon-size: 1.15em;
-        --text-color: var(--enterprise-icon-color);
+        --text-color: var(--color-enterprise-icon);
 
         #{$selector-darkmode} & {
             --text-color: var(--active-color);

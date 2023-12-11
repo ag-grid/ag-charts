@@ -160,7 +160,7 @@
 .metaValue {
     font-size: var(--font-size-small);
     font-family: var(--text-monospace-font-family);
-    color: var(--code-text-color);
+    color: var(--color-fg-code);
 
     #{$selector-darkmode} & {
         font-weight: 600;

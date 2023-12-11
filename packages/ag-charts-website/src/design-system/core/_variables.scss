@@ -297,21 +297,14 @@ $semantic-colors: (
     'button-hover-color': dark-blue-400,
     'button-active-color': dark-blue-800,
     'button-focus-box-shadow-color': primary-100,
-    // Code
-    'code-text-color': pink-700,
-    'code-background-color': neutral-100,
     // Table
     'table-odd-row-background-color': background-100,
     // Site header
     'site-header-background': dark-blue-400,
     'site-nav-background': dark-blue-800,
-    // Toolbar
-    'toolbar-background': background-500,
     // Warnings
     'warning-background': brown-100,
     'warning-text': brown-700,
-    // Enterprise
-    'enterprise-icon-color': red-700,
 );
 
 // Semantic colors based on abstract colors
@@ -326,21 +319,12 @@ $dark-semantic-colors: (
     'button-hover-color': primary-800,
     'button-active-color': primary-900,
     'button-focus-box-shadow-color': primary-100,
-    // Code
-    'code-text-color': pink-code-text,
-    'code-background-color': neutral-100,
     // Table
     'table-odd-row-background-color': background-100,
     // Site header
     'site-header-background': default-background-color,
     'site-nav-background': background-200,
-    // Toolbar
-    'toolbar-background': default-background-color,
     // Warnings
     'warning-background': brown-100,
     'warning-text': brown-700,
-    // Not semantic
-    'bright-blue-gray': neutral-200,
-    // Enterprise
-    'enterprise-icon-color': red-700,
 );

@@ -155,6 +155,7 @@ $transition-default-timing: 0.25s ease-in-out;
     --color-bg-brand-solid: var(--color-brand-500);
     --color-bg-disabled_subtle: var(--color-gray-50);
     --color-bg-toolbar: var(--color-gray-100);
+    --color-bg-code: var(--color-gray-100);
 
     // Foreground colors
     --color-fg-primary: var(--color-gray-900);
@@ -164,6 +165,8 @@ $transition-default-timing: 0.25s ease-in-out;
     --color-fg-disabled: var(--color-gray-400);
     --color-fg-placeholder: var(--color-gray-500);
     --color-fg-white: var(--color-white);
+    // TODO, review & replace color
+    --color-fg-code: #e83e8d;
 
     // Border colors
     --color-border-primary: var(--color-gray-300);
@@ -202,12 +205,14 @@ $transition-default-timing: 0.25s ease-in-out;
     --color-input-border-hover: var(--color-brand-300);
     --color-input-bg-checked: var(--color-bg-brand-solid);
     --color-input-shadow-focus: var(--color-brand-200);
-
     --color-input-disabled-bg: var(--color-bg-disabled_subtle);
     --color-input-disabled-fg: var(--color-fg-disabled);
-
-    // TODO, replace with correct color
+    // TODO, review & replace color
     --color-input-error: red;
+
+    // Enterprise color
+    // TODO, review & replace color
+    --color-enterprise-icon: #dc3545;
 
     // Warning colors
     --color-util-warning-50: var(--color-warning-50);
@@ -243,6 +248,7 @@ html[data-dark-mode='true'] {
     --color-bg-brand-solid: var(--color-brand-500);
     --color-bg-disabled_subtle: var(--color-gray-800);
     --color-bg-toolbar: var(--color-bg-primary);
+    --color-bg-code: var(--color-gray-700);
 
     // Foreground colors
     --color-fg-primary: var(--color-white);
@@ -251,6 +257,8 @@ html[data-dark-mode='true'] {
     --color-fg-quinary: var(--color-gray-500);
     --color-fg-disabled: var(--color-gray-500);
     --color-fg-white: var(--color-white);
+    // TODO, review & replace color
+    --color-fg-code: #f64f76;
 
     // Border colors
     --color-border-primary: var(--color-gray-700);

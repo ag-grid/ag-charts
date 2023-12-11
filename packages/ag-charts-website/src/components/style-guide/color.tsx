@@ -53,7 +53,7 @@ const SEMANTIC_COLOR_GROUPS = {
         'button-focus-box-shadow-color',
     ],
     Inline: ['inline-element-background-color'],
-    Code: ['code-text-color'],
+    Code: ['color-fg-code'],
     Input: [
         'input-background-color',
         'input-secondary-background-color',
