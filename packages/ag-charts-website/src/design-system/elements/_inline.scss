@@ -33,7 +33,7 @@ code#{$selector-exclude-grid} {
     #{$selector-darkmode} & {
         border-color: rgba(255, 255, 255, 0.1);
         color: var(--color-fg-primary);
-        background-color: #121f29;
+        background-color: var(--color-bg-secondary);
     }
 }
 
@@ -50,7 +50,7 @@ kbd#{$selector-exclude-grid} {
 
     #{$selector-darkmode} & {
         color: var(--color-fg-primary);
-        background-color: #151f28;
+        background-color: var(--color-bg-secondary);
         text-shadow: -1px -1px var(--neutral-100);
         border: 1px solid rgba(255, 255, 255, 0.2);
         border-bottom: 2px solid rgba(255, 255, 255, 0.1);

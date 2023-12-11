@@ -27,7 +27,7 @@ pre.code code {
     #{$selector-darkmode} & {
         -webkit-font-smoothing: antialiased;
 
-        color: var(--color-fg-primary);
+        color: var(--default-text-color);
     }
 }
 
@@ -57,10 +57,10 @@ pre.code {
         --comment-color: #aaabb3;
         --tag-color: #bf9fea;
         --string-color: #bfda7f;
-        --punctuation-color: var(--color-fg-primary);
+        --punctuation-color: var(--default-text-color);
         --keyword-color: #7ac1d1;
         --symbol-color: #36d8d6;
-        --function-color: var(--color-fg-primary);
+        --function-color: var(--default-text-color);
         --deleted-color: #9a050f;
         --selector-color: #36d8d6;
         --important-color: #e90;

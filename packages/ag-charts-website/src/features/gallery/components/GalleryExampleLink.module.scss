@@ -46,7 +46,7 @@
     #{$selector-darkmode} & {
         --link-border-color: color-mix(in srgb, var(--color-bg-primary), white 10%);
 
-        background-color: #182230;
+        background-color: var(--color-bg-secondary);
     }
 }
 

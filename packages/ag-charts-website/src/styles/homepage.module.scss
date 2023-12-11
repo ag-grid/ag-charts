@@ -174,7 +174,7 @@
     background: white;
 
     #{$selector-darkmode} & {
-        background: #182230;
+        background: var(--color-bg-primary);
     }
 }
 
@@ -191,7 +191,7 @@
 
     #{$selector-darkmode} & {
         background-color: var(--color-bg-primary);
-        border-bottom-color: #394755;
+        border-bottom-color: var(--color-border-primary);
     }
 }
 
@@ -316,7 +316,7 @@
     #{$selector-darkmode} & {
         padding-top: $spacing-size-24;
         background-color: var(--color-bg-primary);
-        border-bottom-color: #394755;
+        border-bottom-color: var(--color-border-primary);
     }
 }
 
