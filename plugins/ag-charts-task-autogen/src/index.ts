@@ -29,7 +29,7 @@ export const createNodes: CreateNodes = [
         const uniqueName = configFilePath
             .split('/')
             .slice(2)
-            .filter((p) => !NON_UNIQUE_PATH_ELEMENTS_MAP[p])
+            .filter((p) => !NON_UNIQUE_PATH_ELEMENTS.has[p])
             .join('_');
         const parentPath = `packages/${parentProject}`;
         const examplePath = dirname(configFilePath).replace(`packages/${parentProject}/`, '{projectRoot}/');
