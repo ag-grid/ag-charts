@@ -1,6 +1,6 @@
 import type { ModuleContext } from '../../module/moduleContext';
 import type { AgAxisCaptionFormatterParams } from '../../options/agChartOptions';
-import { BandScale } from '../../scale/bandScale';
+import { BandMode, BandScale } from '../../scale/bandScale';
 import { BBox } from '../../scene/bbox';
 import { Matrix } from '../../scene/matrix';
 import { Selection } from '../../scene/selection';
@@ -32,6 +32,10 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
     static className = 'GroupedCategoryAxis';
     static type = 'grouped-category' as const;
 
+    // Label scale (labels are positioned between ticks, tick count = label count + 1).
+    // We don't call is `labelScale` for consistency with other axes.
+    readonly tickScale = new BandScale<string | number>();
+
     private gridLineSelection: Selection<Line, any>;
     private axisLineSelection: Selection<Line, any>;
     private separatorSelection: Selection<Line, any>;
@@ -42,12 +46,15 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
         super(moduleCtx, new BandScale<string | number>());
         this.includeInvisibleDomains = true;
 
-        const { tickLineGroup, tickLabelGroup, gridLineGroup, scale } = this;
+        const { tickLineGroup, tickLabelGroup, gridLineGroup, tickScale, scale } = this;
 
-        scale.paddingInner = 0.1;
         scale.paddingOuter = 0.1;
+        scale.paddingInner = 0.1;
         this.range = scale.range.slice();
         this.refreshScale();
+
+        tickScale.paddingOuter = scale.paddingOuter;
+        tickScale.paddingInner = scale.paddingInner;
 
         this.gridLineSelection = Selection.select(gridLineGroup, Line);
         this.axisLineSelection = Selection.select(tickLineGroup, Line);
@@ -56,6 +63,12 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
     }
 
     protected override updateRange() {
+        const { range: rr, visibleRange: vr, scale } = this;
+        const span = (rr[1] - rr[0]) / (vr[1] - vr[0]);
+        const shift = span * vr[0];
+        const start = rr[0] - shift;
+
+        this.tickScale.range = scale.range = [start, start + span];
         this.resizeTickTree();
     }
 
@@ -141,6 +154,8 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
 
         const tickTree = ticksToTree(values);
         this.tickTreeLayout = treeLayout(tickTree);
+
+        this.tickScale.domain = values.slice();
 
         this.resizeTickTree();
 
@@ -234,8 +249,8 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
     }
 
     private updateCategoryGridLines() {
-        const { gridLength, gridLine, label, range, scale } = this;
-        const ticks = scale.ticks();
+        const { gridLength, gridLine, label, range, tickScale } = this;
+        const ticks = tickScale.ticks();
         const sideFlag = label.getSideFlag();
         const gridSelection = this.gridLineSelection.update(gridLength ? ticks : []);
         if (gridLength) {
@@ -243,7 +258,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
             const styleCount = style.length;
 
             gridSelection.each((line, datum, index) => {
-                const y = Math.round(scale.convert(datum) - scale.step / 2);
+                const y = Math.round(tickScale.convert(datum) - tickScale.step / 2);
                 line.x1 = 0;
                 line.x2 = -sideFlag * gridLength;
                 line.y1 = y;

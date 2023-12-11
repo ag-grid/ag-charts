@@ -25,6 +25,7 @@ export const OpenInPlunkr: FunctionComponent<Props> = ({
         <OpenInCTA
             type="plunker"
             onClick={async () => {
+                console.log(plunkrHtmlUrl);
                 const html = await fetchTextFile(plunkrHtmlUrl);
                 const plunkrHtml = removeGeneratedAstroTags(html);
                 const plunkrExampleFiles = {
