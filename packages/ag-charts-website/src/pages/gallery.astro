@@ -175,6 +175,11 @@ const { series } = galleryData;
         color: var(--color-bg-secondary);
         padding: 2px;
 
+        :global(.icon) {
+            fill: color-mix(in srgb, var(--text-color) 75%, transparent);
+            transition: fill $transition-default-timing;
+        }
+
         &:hover,
         &:global(.active) {
             background: rgba(56, 146, 249, 0.06);
