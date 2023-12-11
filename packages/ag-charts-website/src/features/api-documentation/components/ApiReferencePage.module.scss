@@ -52,7 +52,7 @@
         @media screen and (min-width: $breakpoint-docs-nav-medium) {
             top: calc(var(--header-nav-height) * 2 + 4px);
 
-            #{$darkmode-selector} & {
+            #{$selector-darkmode} & {
                 top: calc(var(--header-nav-height) * 2 + 6px);
                 box-shadow: 0 -2px 0 0 var(--color-bg-primary);
             }

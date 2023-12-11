@@ -10,7 +10,7 @@
     background-color: var(--dark-blue-500);
     color: var(--text-color);
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         --text-color: var(--color-fg-primary);
         --link-color: var(--color-fg-primary);
         --link-hover-color: var(--color-fg-primary);

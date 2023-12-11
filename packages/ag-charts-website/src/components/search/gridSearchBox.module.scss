@@ -18,7 +18,7 @@
         }
     }
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         input {
             background: color-mix(in srgb, #fff, transparent 94%);
             &::placeholder {

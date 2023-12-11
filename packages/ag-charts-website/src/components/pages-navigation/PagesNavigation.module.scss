@@ -119,7 +119,7 @@ a :global(.icon).menuIcon {
         fill $transition-default-timing,
         opacity $transition-default-timing;
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         fill: var(--color-fg-secondary);
     }
 }

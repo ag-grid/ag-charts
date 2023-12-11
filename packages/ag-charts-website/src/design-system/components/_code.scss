@@ -24,7 +24,7 @@ pre.code code {
     -ms-hyphens: none;
     hyphens: none;
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         -webkit-font-smoothing: antialiased;
 
         color: var(--color-fg-primary);
@@ -52,7 +52,7 @@ pre.code {
     overflow: visible;
     overflow-y: auto;
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         color-scheme: dark;
         --comment-color: #aaabb3;
         --tag-color: #bf9fea;
@@ -87,7 +87,7 @@ pre.code > code {
     border-radius: 0;
     overflow-x: auto !important;
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         background: var(--color-bg-secondary);
         box-shadow: inset 0px 0px;
     }
@@ -272,7 +272,7 @@ code[class*='language-css'] {
 .token.tag,
 .token.url,
 .token.variable {
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         -webkit-font-smoothing: subpixel-antialiased;
     }
 }
@@ -280,7 +280,7 @@ code[class*='language-css'] {
 .line-numbers .line-numbers-rows {
     border-right: 1px solid var(--background-700);
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         border-right-color: var(--neutral-300);
     }
 }
@@ -289,7 +289,7 @@ code[class*='language-css'] {
     color: var(--dark-blue-200);
     opacity: 0.33;
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         color: var(--color-fg-primary);
     }
 }

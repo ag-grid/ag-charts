@@ -58,7 +58,7 @@
     box-shadow: inset 1px 0 0 0 var(--nav-line-color);
     z-index: -2;
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         --nav-line-color: #394755;
     }
 }
@@ -86,7 +86,7 @@
     color: var(--neutral-600);
     transition: color $transition-default-timing;
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         --active-color: #3893f9;
         --active-border: #3893f9;
         --hover-background: rgba(56, 146, 249, 0.06);

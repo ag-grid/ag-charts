@@ -14,8 +14,7 @@
         z-index: 4;
     }
 
-    #{$darkmode-selector} & {
-        background: var(--color-bg-primary);
+    #{$selector-darkmode} & {
         border-bottom: 1px solid #3b4754;
     }
 }
@@ -117,7 +116,7 @@
         display: none !important;
     }
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         --button-active-color: var(--background-300);
     }
 }
@@ -225,7 +224,7 @@
         }
 
         &.navItemActive .navLink {
-            #{$darkmode-selector} & {
+            #{$selector-darkmode} & {
                 opacity: 1;
             }
         }
@@ -234,13 +233,13 @@
             opacity: 0.5;
             transform: scaleX(1);
 
-            #{$darkmode-selector} & {
+            #{$selector-darkmode} & {
                 opacity: 0.75;
             }
         }
     }
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         @media screen and (min-width: $breakpoint-site-header-small) {
             border-bottom: none;
         }
@@ -288,7 +287,7 @@
         }
     }
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         font-weight: 500;
         opacity: 0.8;
     }

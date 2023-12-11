@@ -5,7 +5,7 @@
 
     background-color: var(--dark-blue-600);
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         background-color: var(--color-bg-primary);
     }
 }
@@ -42,7 +42,7 @@
         text-align: unset;
     }
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         @media screen and (min-width: $breakpoint-hero-small) {
             padding-top: $spacing-size-16;
         }
@@ -154,7 +154,7 @@
         background-image: linear-gradient(transparent, var(--dark-blue-600));
     }
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         background-image: url('../../images/homepage-scroll-dark.webp');
 
         &::before {
@@ -188,7 +188,7 @@
 .galleryScrollerExample {
     background: white;
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         background: #182230;
     }
 }
@@ -204,7 +204,7 @@
 
     border-bottom: 1px solid transparent;
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         background-color: var(--color-bg-primary);
         border-bottom-color: #394755;
     }
@@ -232,7 +232,7 @@
     @media screen and (min-width: 1020px) {
         --font-size: var(--font-size-extra-large);
     }
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         color: var(--color-fg-primary);
     }
 }
@@ -310,7 +310,7 @@
         display: none;
     }
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         .gridExampleLight {
             display: none;
         }
@@ -328,7 +328,7 @@
 
     border-bottom: 1px solid transparent;
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         padding-top: $spacing-size-24;
         background-color: var(--color-bg-primary);
         border-bottom-color: #394755;
@@ -366,7 +366,7 @@
         display: none;
     }
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         .videoLight {
             display: none;
         }

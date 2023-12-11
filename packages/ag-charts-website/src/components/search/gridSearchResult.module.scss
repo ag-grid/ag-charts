@@ -27,7 +27,7 @@
         line-height: var(--line-height-tight);
         margin-bottom: -2px !important;
 
-        #{$darkmode-selector} & {
+        #{$selector-darkmode} & {
             margin-bottom: -1px !important;
         }
     }
@@ -62,7 +62,7 @@
             display: none;
         }
 
-        #{$darkmode-selector} & {
+        #{$selector-darkmode} & {
             border-width: 1px;
         }
     }
@@ -92,7 +92,7 @@
         display: block;
     }
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         --color-border-primary: var(--color-input-border);
 
         top: 40px;
@@ -130,7 +130,7 @@ button:global(.ais-InfiniteHits-loadMore) {
         background-color: var(--toolbar-background);
     }
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         &:focus-visible {
             box-shadow: none;
         }

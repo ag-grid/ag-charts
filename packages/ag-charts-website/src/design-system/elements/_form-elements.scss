@@ -2,7 +2,7 @@
 @use 'sass:map';
 @use '../core' as *;
 
-fieldset#{$exclude-grid-selector} {
+fieldset#{$selector-exclude-grid} {
     margin: 0;
     padding: 0;
     border: none;
@@ -12,17 +12,17 @@ fieldset#{$exclude-grid-selector} {
     }
 }
 
-legend#{$exclude-grid-selector} {
+legend#{$selector-exclude-grid} {
     padding: unset;
 }
 
-label#{$exclude-grid-selector} {
+label#{$selector-exclude-grid} {
     fieldset & {
         display: block;
     }
 
-    + input#{$exclude-grid-selector},
-    + select#{$exclude-grid-selector} {
+    + input#{$selector-exclude-grid},
+    + select#{$selector-exclude-grid} {
         margin-left: $spacing-size-2;
     }
 
@@ -37,17 +37,17 @@ label#{$exclude-grid-selector} {
     }
 }
 
-input#{$exclude-grid-selector} {
+input#{$selector-exclude-grid} {
     font-size: var(--font-size);
 }
 
-input[type='text']#{$exclude-grid-selector},
-input[type='search']#{$exclude-grid-selector},
-input[type='email']#{$exclude-grid-selector},
-input[type='checkbox']#{$exclude-grid-selector},
-input[type='radio']#{$exclude-grid-selector},
-input[type='number']#{$exclude-grid-selector},
-select#{$exclude-grid-selector} {
+input[type='text']#{$selector-exclude-grid},
+input[type='search']#{$selector-exclude-grid},
+input[type='email']#{$selector-exclude-grid},
+input[type='checkbox']#{$selector-exclude-grid},
+input[type='radio']#{$selector-exclude-grid},
+input[type='number']#{$selector-exclude-grid},
+select#{$selector-exclude-grid} {
     color: var(--color-fg-primary);
 
     &:disabled,
@@ -61,7 +61,7 @@ input[type='text'],
 input[type='search'],
 input[type='email'],
 input[type='number'] {
-    &#{$exclude-grid-selector} {
+    &#{$selector-exclude-grid} {
         padding: math.div(6em, 16) math.div(12em, 16);
         line-height: var(--line-height-normal);
         border-radius: var(--radius-sm);
@@ -101,9 +101,9 @@ input[type='number'] {
     }
 }
 
-input[type='checkbox']:not(.switch)#{$exclude-grid-selector},
-input[type='checkbox'].switch#{$exclude-grid-selector},
-input[type='radio']#{$exclude-grid-selector} {
+input[type='checkbox']:not(.switch)#{$selector-exclude-grid},
+input[type='checkbox'].switch#{$selector-exclude-grid},
+input[type='radio']#{$selector-exclude-grid} {
     appearance: none;
     width: $spacing-size-5;
     height: $spacing-size-5;
@@ -126,15 +126,15 @@ input[type='radio']#{$exclude-grid-selector} {
     }
 }
 
-input[type='checkbox']:not(.switch)#{$exclude-grid-selector},
-input[type='checkbox'].switch#{$exclude-grid-selector} {
+input[type='checkbox']:not(.switch)#{$selector-exclude-grid},
+input[type='checkbox'].switch#{$selector-exclude-grid} {
     &:checked {
         background-color: var(--color-input-bg-checked);
         border-color: var(--color-input-bg-checked);
     }
 }
 
-input[type='checkbox']:not(.switch)#{$exclude-grid-selector} {
+input[type='checkbox']:not(.switch)#{$selector-exclude-grid} {
     --svg-tick: url('data:image/svg+xml;utf8,<svg fill="none" stroke="%23fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M14.6673 6.5L8.25065 12.9167L5.33398 10"/></svg>');
 
     border-radius: var(--radius-sm);
@@ -163,7 +163,7 @@ input[type='checkbox']:not(.switch)#{$exclude-grid-selector} {
     &.disabled {
         --svg-tick: url('data:image/svg+xml;utf8,<svg fill="none" stroke="%23eaecf0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M14.6673 6.5L8.25065 12.9167L5.33398 10"/></svg>');
 
-        #{$darkmode-selector} & {
+        #{$selector-darkmode} & {
             --svg-tick: url('data:image/svg+xml;utf8,<svg fill="none" stroke="%23344054" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M14.6673 6.5L8.25065 12.9167L5.33398 10"/></svg>');
         }
     }
@@ -193,7 +193,7 @@ input[type='checkbox'].switch {
     }
 }
 
-input[type='radio']#{$exclude-grid-selector} {
+input[type='radio']#{$selector-exclude-grid} {
     border-radius: var(--radius-full);
     border: 1px solid var(--color-border-primary);
     transition:
@@ -217,7 +217,7 @@ input[type='radio']#{$exclude-grid-selector} {
     }
 }
 
-select#{$exclude-grid-selector} {
+select#{$selector-exclude-grid} {
     $svg-chevron-down: url('data:image/svg+xml;utf8,<svg fill="none" stroke="%23212529" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 26 30"><path d="m7.5 13.688 5.25 4.125L18 13.688"/></svg>');
 
     $svg-chevron-down-dark: url('data:image/svg+xml;utf8,<svg fill="none" stroke="%23f8f9fa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 26 30"><path d="m7.5 13.688 5.25 4.125L18 13.688"/></svg>');
@@ -237,7 +237,7 @@ select#{$exclude-grid-selector} {
         border-color $transition-default-timing,
         box-shadow $transition-default-timing;
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         border: 1px solid var(--color-input-border);
     }
 
@@ -258,12 +258,12 @@ select#{$exclude-grid-selector} {
         border-color: var(--color-input-border-hover);
     }
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         background-image: $svg-chevron-down-dark;
     }
 }
 
-input[type='range']#{$exclude-grid-selector} {
+input[type='range']#{$selector-exclude-grid} {
     @mixin track {
         height: math.div(4em, 16);
         background-color: var(--color-input-border);

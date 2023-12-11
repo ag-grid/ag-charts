@@ -1,13 +1,13 @@
 @use 'sass:math';
 @use 'core' as *;
 
-html#{$exclude-grid-selector},
-h1#{$exclude-grid-selector},
-h2#{$exclude-grid-selector},
-h3#{$exclude-grid-selector},
-h4#{$exclude-grid-selector},
-h5#{$exclude-grid-selector},
-h6#{$exclude-grid-selector},
+html#{$selector-exclude-grid},
+h1#{$selector-exclude-grid},
+h2#{$selector-exclude-grid},
+h3#{$selector-exclude-grid},
+h4#{$selector-exclude-grid},
+h5#{$selector-exclude-grid},
+h6#{$selector-exclude-grid},
 .font-size-gargantuan,
 .font-size-gigantic,
 .font-size-massive,
@@ -26,19 +26,19 @@ h6#{$exclude-grid-selector},
     --line-height: var(--line-height-tight);
 }
 
-h1#{$exclude-grid-selector},
+h1#{$selector-exclude-grid},
 .font-size-gigantic {
     --font-size: var(--font-size-gigantic);
     --line-height: var(--line-height-tight);
 }
 
-h2#{$exclude-grid-selector},
+h2#{$selector-exclude-grid},
 .font-size-massive {
     --font-size: var(--font-size-massive);
     --line-height: var(--line-height-tight);
 }
 
-h3#{$exclude-grid-selector},
+h3#{$selector-exclude-grid},
 .font-size-extra-large {
     --font-size: var(--font-size-extra-large);
 }
@@ -47,22 +47,22 @@ h3#{$exclude-grid-selector},
     --font-size: var(--font-size-large);
 }
 
-h4#{$exclude-grid-selector},
+h4#{$selector-exclude-grid},
 .font-size-medium {
     --font-size: var(--font-size-medium);
 }
 
-h5#{$exclude-grid-selector},
+h5#{$selector-exclude-grid},
 .font-size-small {
     --font-size: var(--font-size-small);
 }
 
-h6#{$exclude-grid-selector},
+h6#{$selector-exclude-grid},
 .font-size-extra-small {
     --font-size: var(--font-size-extra-small);
 }
 
-h1#{$exclude-grid-selector},
+h1#{$selector-exclude-grid},
 .font-size-gargantuan,
 .font-size-gigantic,
 .font-size-massive {
@@ -75,14 +75,14 @@ h1#{$exclude-grid-selector},
     }
 }
 
-h1#{$exclude-grid-selector},
-h2#{$exclude-grid-selector},
-h3#{$exclude-grid-selector},
-h4#{$exclude-grid-selector},
-h5#{$exclude-grid-selector},
-h6#{$exclude-grid-selector},
-b#{$exclude-grid-selector},
-strong#{$exclude-grid-selector},
+h1#{$selector-exclude-grid},
+h2#{$selector-exclude-grid},
+h3#{$selector-exclude-grid},
+h4#{$selector-exclude-grid},
+h5#{$selector-exclude-grid},
+h6#{$selector-exclude-grid},
+b#{$selector-exclude-grid},
+strong#{$selector-exclude-grid},
 .bold-text {
     font-weight: var(--text-bold);
 }

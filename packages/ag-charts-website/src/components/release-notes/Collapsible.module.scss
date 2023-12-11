@@ -19,7 +19,7 @@
     &:hover {
         --button-text-color: var(--dark-blue-300);
 
-        #{$darkmode-selector} & {
+        #{$selector-darkmode} & {
             --button-text-color: rgb(0, 123, 255);
         }
     }
@@ -44,7 +44,7 @@
             transform $transition-default-timing;
     }
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         background-color: #121f29;
         border: 1px solid rgb(255, 255, 255, 0.15);
     }

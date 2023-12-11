@@ -27,7 +27,7 @@
             background-color: color-mix(in srgb, var(--link-hover-color) 5%, var(--color-bg-primary));
         }
 
-        #{$darkmode-selector} & {
+        #{$selector-darkmode} & {
             &:hover,
             &:focus {
                 background-color: color-mix(in srgb, var(--link-hover-color) 10%, var(--color-bg-primary));
@@ -71,7 +71,7 @@
         padding-left: var(--menu-horizontal-margin);
     }
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         --color-border-secondary: #394755;
 
         border-bottom: none;
@@ -188,7 +188,7 @@ button:not([class^='ag-']).sectionHeader {
         --icon-size: 1.15em;
         --text-color: var(--enterprise-icon-color);
 
-        #{$darkmode-selector} & {
+        #{$selector-darkmode} & {
             --text-color: var(--active-color);
         }
 
@@ -224,7 +224,7 @@ button:not([class^='ag-']).sectionHeader {
         border-color 0.33s ease-in-out,
         background-color 0.33s ease-in-out;
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         --active-color: #3893f9;
         --active-border: #3893f9;
         --hover-background: rgba(56, 146, 249, 0.06);
@@ -273,7 +273,7 @@ button:not([class^='ag-']).sectionHeader {
     color: var(--neutral-600);
     transition: color $transition-default-timing;
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         color: var(--neutral-800);
     }
 

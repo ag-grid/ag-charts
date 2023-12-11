@@ -1,7 +1,7 @@
 @use '../core' as *;
 
-ul#{$exclude-grid-selector},
-ol#{$exclude-grid-selector} {
+ul#{$selector-exclude-grid},
+ol#{$selector-exclude-grid} {
     padding-left: 2.25em;
 
     &:where(:not(:last-child)) {
@@ -13,8 +13,8 @@ li:where(:not(:last-child)) {
     margin-bottom: $spacing-size-2;
 }
 
-li > ol#{$exclude-grid-selector},
-li > ul#{$exclude-grid-selector} {
+li > ol#{$selector-exclude-grid},
+li > ul#{$selector-exclude-grid} {
     padding-left: 1.5em;
 }
 
@@ -30,25 +30,25 @@ ol.list-style-none,
     }
 }
 
-pre#{$exclude-grid-selector} {
+pre#{$selector-exclude-grid} {
     background-color: var(--neutral-200);
     padding: $spacing-size-2 $spacing-size-4;
     border-radius: var(--border-radius);
     font-family: var(--text-monospace-font-family);
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         background-color: var(--background-200);
     }
 }
 
-hr#{$exclude-grid-selector} {
+hr#{$selector-exclude-grid} {
     height: 2px;
     border-radius: 1px;
     background-color: var(--color-border-primary);
     border: 0;
 }
 
-address#{$exclude-grid-selector} {
+address#{$selector-exclude-grid} {
     font-style: inherit;
     line-height: inherit;
 }

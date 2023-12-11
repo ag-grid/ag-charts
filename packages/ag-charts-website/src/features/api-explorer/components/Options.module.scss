@@ -26,7 +26,7 @@
     > .option:nth-child(even) {
         background-color: var(--background-100);
 
-        #{$darkmode-selector} & {
+        #{$selector-darkmode} & {
             background-color: var(--background-200);
         }
     }

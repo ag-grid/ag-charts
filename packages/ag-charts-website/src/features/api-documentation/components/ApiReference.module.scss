@@ -75,7 +75,7 @@
         padding-bottom: $spacing-size-2;
     }
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         border-top-color: var(--neutral-500);
     }
 }
@@ -162,7 +162,7 @@
     font-family: var(--text-monospace-font-family);
     color: var(--code-text-color);
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         font-weight: 600;
     }
 }

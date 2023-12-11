@@ -113,7 +113,7 @@
     &:focus-visible {
         border-color: var(--primary-300);
 
-        #{$darkmode-selector} & {
+        #{$selector-darkmode} & {
             border-color: var(--primary-200);
             background-color: #121f29;
         }
@@ -125,7 +125,7 @@
         color: var(--text-color);
         background-color: var(--color-bg-primary);
 
-        #{$darkmode-selector} & {
+        #{$selector-darkmode} & {
             background-color: #121f29;
         }
     }

@@ -17,7 +17,7 @@
     height: calc(100vh - var(--total-header-height));
     z-index: 3;
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         --total-header-height: calc(var(--header-nav-height) * 2 + 6px);
     }
 
@@ -101,7 +101,7 @@
         background-color: var(--neutral-300);
         pointer-events: none;
 
-        #{$darkmode-selector} & {
+        #{$selector-darkmode} & {
             background-color: var(--neutral-600);
         }
     }
@@ -137,7 +137,7 @@
             pointer-events: none;
         }
 
-        #{$darkmode-selector} & {
+        #{$selector-darkmode} & {
             --highlight-color: var(--property-color);
             --highlight-opacity: 0.16;
         }
@@ -185,7 +185,7 @@
         height: 2px;
         background-color: var(--neutral-300);
 
-        #{$darkmode-selector} & {
+        #{$selector-darkmode} & {
             background-color: var(--neutral-600);
         }
     }
@@ -228,7 +228,7 @@
     overflow: auto;
     z-index: 3;
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         inset: 100% 0 auto;
         border: 1px solid var(--color-input-border);
     }
@@ -248,7 +248,7 @@
     strong {
         color: var(--dark-blue-600);
 
-        #{$darkmode-selector} & {
+        #{$selector-darkmode} & {
             color: var(--primary-500);
         }
     }
@@ -256,7 +256,7 @@
     &.selected {
         background-color: var(--background-600);
 
-        #{$darkmode-selector} & {
+        #{$selector-darkmode} & {
             background-color: var(--background-400);
         }
     }

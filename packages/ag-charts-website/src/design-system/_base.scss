@@ -26,7 +26,7 @@ html {
     }
 }
 
-#{$darkmode-selector} {
+#{$selector-darkmode} {
     #doc-content a {
         color: #3893f9;
     }
@@ -42,7 +42,7 @@ html {
     }
 }
 
-#{$darkmode-selector} {
+#{$selector-darkmode} {
     #doc-content a:not(.button) {
         color: #3893f9;
     }
@@ -65,11 +65,11 @@ html {
     }
 }
 
-html#{$darkmode-selector} {
+html#{$selector-darkmode} {
     color-scheme: dark;
 }
 
-#{$darkmode-selector} {
+#{$selector-darkmode} {
     #doc-content a {
         color: #3893f9;
         text-decoration: underline;

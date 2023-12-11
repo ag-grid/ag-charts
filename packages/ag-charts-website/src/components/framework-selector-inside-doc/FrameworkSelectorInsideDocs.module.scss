@@ -13,7 +13,7 @@
         margin-top: -6px;
     }
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         --input-background-color: var(--color-bg-primary);
     }
 }
@@ -36,8 +36,8 @@
         height: calc(100% - 12px);
         background-color: var(--color-border-primary);
 
-        #{$darkmode-selector} & {
-            background-color: var(--color-bg-primary);
+        #{$selector-darkmode} & {
+            background-color: #28333d;
         }
     }
 
