@@ -195,7 +195,6 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     }
 
     private onMouseOut() {
-        this.hideLabel();
         this.hideCrosshair();
     }
 

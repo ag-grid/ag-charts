@@ -1101,6 +1101,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
 
         this.disablePointer();
+        this.update(ChartUpdateType.SCENE_RENDER);
     }
 
     private lastInteractionEvent?: InteractionEvent<'hover'> = undefined;
