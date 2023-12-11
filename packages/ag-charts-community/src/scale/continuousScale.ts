@@ -95,9 +95,11 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
         x = this.transform(x);
 
         if (clampMode === 'clamped') {
-            if (x < d0) {
+            const start = Math.min(this.fromDomain(d0), this.fromDomain(d1));
+            const stop = Math.max(this.fromDomain(d0), this.fromDomain(d1));
+            if (this.fromDomain(x) < start) {
                 return r0;
-            } else if (x > d1) {
+            } else if (this.fromDomain(x) > stop) {
                 return r1;
             }
         }

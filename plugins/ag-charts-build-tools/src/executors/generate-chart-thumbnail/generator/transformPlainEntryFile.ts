@@ -1,17 +1,16 @@
-import type { ThemeName } from '@stores/themeStore';
-import { filterPropertyKeys } from '@utils/jsCodeShiftUtils';
 import j from 'jscodeshift';
 
-import * as agCharts from 'ag-charts-enterprise';
+import type { AgChartThemeName } from 'ag-charts-community';
+import * as agCharts from 'ag-charts-community';
+import { parseExampleOptions } from 'ag-charts-test';
 
-// eslint-disable-next-line @nx/enforce-module-boundaries
-import { parseExampleOptions } from '../../../../../ag-charts-community/src/chart/test/load-example';
+import { filterPropertyKeys } from './jsCodeShiftUtils';
 
 /**
  * JS Code Shift transformer to generate plain entry file
  */
 
-function transformer(sourceFile: string, dataFile?: string, themeName?: ThemeName) {
+function transformer(sourceFile: string, dataFile?: string, themeName?: AgChartThemeName) {
     const root = j(sourceFile);
     const optionsExpression = root
         .find(j.VariableDeclarator, { id: { type: 'Identifier', name: 'options' } })
@@ -119,7 +118,7 @@ function transformer(sourceFile: string, dataFile?: string, themeName?: ThemeNam
             const propertiesNode = path.node;
 
             // Remove axis title
-            const title = propertiesNode.properties.find((prop) => prop.key.name === 'title');
+            const title = propertiesNode.properties.find((prop: any) => prop.key?.name === 'title');
             if (title) {
                 propertiesNode.properties = filterPropertyKeys({
                     removePropertyKeys: ['title'],
@@ -157,7 +156,7 @@ function transformer(sourceFile: string, dataFile?: string, themeName?: ThemeNam
 export function transformPlainEntryFile(
     entryFile: string,
     dataFile?: string,
-    themeName?: ThemeName
+    themeName?: AgChartThemeName
 ): { code: string; options: agCharts.AgChartOptions } {
     return transformer(entryFile, dataFile, themeName);
 }

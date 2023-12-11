@@ -1,4 +1,4 @@
-import fs from 'fs';
+import fs from 'fs/promises';
 import path from 'path';
 
 import { readFile } from '../../../executors-utils';
@@ -29,7 +29,7 @@ export const getGeneratedContentsFileList = async (params: FileListParams): Prom
     const { internalFramework, folderPath } = params;
 
     const entryFileName = getEntryFileName(internalFramework)!;
-    const sourceFileList = await fs.readdirSync(folderPath);
+    const sourceFileList = await fs.readdir(folderPath);
 
     const scriptFiles = await getOtherScriptFiles({
         folderPath,
@@ -66,14 +66,14 @@ type GeneratedContentParams = {
  */
 export const getGeneratedContents = async (params: GeneratedContentParams): Promise<GeneratedContents | undefined> => {
     const { internalFramework, folderPath, ignoreDarkMode, isDev = false } = params;
-    const sourceFileList = await fs.readdirSync(folderPath);
+    const sourceFileList = await fs.readdir(folderPath);
 
     if (!sourceFileList.includes(SOURCE_ENTRY_FILE_NAME)) {
         throw new Error('Unable to find example entry-point at: ' + folderPath);
     }
 
-    const entryFile = readFile(path.join(folderPath, SOURCE_ENTRY_FILE_NAME));
-    const indexHtml = readFile(path.join(folderPath, 'index.html'));
+    const entryFile = await readFile(path.join(folderPath, SOURCE_ENTRY_FILE_NAME));
+    const indexHtml = await readFile(path.join(folderPath, 'index.html'));
 
     const otherScriptFiles = await getOtherScriptFiles({
         folderPath,
@@ -88,7 +88,7 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
     });
     const providedExampleEntries = await Promise.all(
         providedExampleFileNames.map(async (fileName) => {
-            const contents = fs.readFileSync(path.join(providedExampleBasePath, fileName));
+            const contents = fs.readFile(path.join(providedExampleBasePath, fileName));
 
             return [fileName, contents];
         })

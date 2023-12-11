@@ -28,13 +28,14 @@ export default function (
 const tickMultipliers = [1, 2, 5, 10];
 
 export function tickStep(a: number, b: number, count: number, minCount = 0, maxCount = Infinity): number {
-    const rawStep = (b - a) / count;
+    const extent = Math.abs(b - a);
+    const rawStep = extent / count;
     const power = Math.floor(Math.log10(rawStep));
     const step = Math.pow(10, power);
     const m = tickMultipliers
         .map((multiplier) => {
             const s = multiplier * step;
-            const c = Math.ceil((b - a) / s);
+            const c = Math.ceil(extent / s);
             const isWithinBounds = c >= minCount && c <= maxCount;
             const diffCount = Math.abs(c - count);
             return { multiplier, isWithinBounds, diffCount };
@@ -52,14 +53,19 @@ export function tickStep(a: number, b: number, count: number, minCount = 0, maxC
 }
 
 export function singleTickDomain(a: number, b: number): number[] {
-    const power = Math.floor(Math.log10(b - a));
+    const extent = Math.abs(b - a);
+    const power = Math.floor(Math.log10(extent));
     const step = Math.pow(10, power);
+
+    const d0 = Math.min(a, b);
+    const d1 = Math.max(a, b);
+
     return tickMultipliers
         .map((multiplier) => {
             const s = multiplier * step;
-            const start = Math.floor(a / s) * s;
-            const end = Math.ceil(b / s) * s;
-            const error = 1 - (b - a) / (end - start);
+            const start = Math.floor(d0 / s) * s;
+            const end = Math.ceil(d1 / s) * s;
+            const error = 1 - extent / (end - start);
             const domain = [start, end];
             return { error, domain };
         })
@@ -72,13 +78,16 @@ export function range(start: number, stop: number, step: number): NumericTicks {
         return Math.max((parts[0].split('.')[1]?.length ?? 0) - Number(parts[1]), 0);
     };
 
+    const d0 = Math.min(start, stop);
+    const d1 = Math.max(start, stop);
+
     const fractionalDigits = countDigits((step % 1).toExponential());
     const f = Math.pow(10, fractionalDigits);
-    const n = Math.ceil((stop - start) / step);
+    const n = Math.ceil((d1 - d0) / step);
     const values = createNumericTicks(fractionalDigits);
 
     for (let i = 0; i <= n; i++) {
-        const value = start + step * i;
+        const value = d0 + step * i;
         values.push(Math.round(value * f) / f);
     }
 

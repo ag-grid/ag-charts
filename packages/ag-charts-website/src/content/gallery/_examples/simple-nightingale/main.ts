@@ -36,7 +36,6 @@ const options: AgChartOptions = {
     axes: [
         {
             type: 'radius-number',
-            shape: 'polygon',
             innerRadiusRatio: 0,
             crossLines: [
                 {
@@ -61,7 +60,6 @@ const options: AgChartOptions = {
         },
         {
             type: 'angle-category',
-            shape: 'polygon',
             paddingInner: 0.4,
             line: {
                 enabled: false,

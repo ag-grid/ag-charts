@@ -14,6 +14,7 @@
     },
     "build:package": {
       "executor": "@nx/rollup:rollup",
+      "dependsOn": ["^build"],
       "inputs": ["tsDefaults"],
       "outputs": ["{options.outputPath}"],
       "options": {
@@ -34,6 +35,7 @@
     },
     "build:umd": {
       "executor": "@nx/rollup:rollup",
+      "dependsOn": ["^build"],
       "inputs": ["tsDefaults"],
       "outputs": ["{options.outputPath}"],
       "options": {
@@ -168,5 +170,6 @@
       }
     }
   },
+  "implicitDependencies": ["ag-charts-test"],
   "tags": []
 }

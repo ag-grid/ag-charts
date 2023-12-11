@@ -140,10 +140,11 @@ describe('PieSeries', () => {
             }) as Chart;
             await waitForChartStability(chart);
 
-            expect(console.warn).toBeCalledTimes(3);
-            expect(console.warn).nthCalledWith(1, 'AG Charts - Missing 3 dog value(s)');
-            expect(console.warn).nthCalledWith(2, 'AG Charts - Missing 1 cat value(s)');
-            expect(console.warn).nthCalledWith(3, 'AG Charts - Missing 4 fox value(s)');
+            const { warn } = console;
+            expect(warn).toBeCalledTimes(3);
+            expect(warn).nthCalledWith(1, `AG Charts - no value was found for the key 'dog' on 3 data elements`);
+            expect(warn).nthCalledWith(2, `AG Charts - no value was found for the key 'cat' on 1 data element`);
+            expect(warn).nthCalledWith(3, `AG Charts - no value was found for the key 'fox' on 4 data elements`);
         });
     });
     /* eslint-enable no-console */

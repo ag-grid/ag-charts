@@ -6,7 +6,7 @@
   "targets": {
     "build": {
       "outputs": ["{workspaceRoot}/dist/{projectRoot}"],
-      "dependsOn": ["^build", "^docs-resolved-interfaces", "generate-examples"],
+      "dependsOn": ["^build", "^docs-resolved-interfaces", "generate-examples", "generate-thumbnails"],
       "executor": "@nxtensions/astro:build",
       "options": {
         "silent": true

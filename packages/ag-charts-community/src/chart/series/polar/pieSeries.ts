@@ -423,8 +423,13 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
             // The 'angleRaw' is an undocumented property for the internal implementation, so ignore this.
             // If any 'angleRaw' values are missing, then we'll also be missing 'angleValue' values and
             // will log a warning anyway.
-            if (valueDef.id !== 'angleRaw' && valueDef.missing !== undefined && valueDef.missing > 0) {
-                Logger.warnOnce(`Missing ${valueDef.missing} ${String(valueDef.property)} value(s)`);
+            const { id, missing, property } = valueDef;
+            if (id !== 'angleRaw' && missing !== undefined && missing > 0) {
+                Logger.warnOnce(
+                    `no value was found for the key '${String(property)}' on ${missing} data element${
+                        missing > 1 ? 's' : ''
+                    }`
+                );
             }
         }
 
