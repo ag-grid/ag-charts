@@ -19,9 +19,7 @@ const DEFAULT_TOOLTIP_DARK_CLASS = 'ag-chart-dark-tooltip';
 const defaultTooltipCss = `
 .${DEFAULT_TOOLTIP_CLASS} {
     transition: transform 0.1s ease;
-    display: table;
-    table-layout: fixed;
-    width:100%;
+    max-width: 100%;
     position: fixed;
     left: 0px;
     top: 0px;
@@ -29,7 +27,6 @@ const defaultTooltipCss = `
     font: 12px Verdana, sans-serif;
     color: rgb(70, 70, 70);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
-    overflow: hidden;
 }
 
 .${DEFAULT_TOOLTIP_CLASS}-wrap-always {
@@ -68,6 +65,7 @@ const defaultTooltipCss = `
 }
 
 .${DEFAULT_TOOLTIP_CLASS}-title {
+    overflow: hidden;
     position: relative;
     padding: 8px 14px;
     border-top-left-radius: 2px;
@@ -84,6 +82,7 @@ const defaultTooltipCss = `
 }
 
 .${DEFAULT_TOOLTIP_CLASS}-content {
+    overflow: hidden;
     padding: 6px 14px;
     line-height: 1.7em;
     background: white;
