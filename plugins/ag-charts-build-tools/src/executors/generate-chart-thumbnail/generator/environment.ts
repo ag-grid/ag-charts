@@ -42,7 +42,7 @@ initPool();
 
 export async function borrowFromPool() {
     let count = 0;
-    while (pool.length === 0 && count < 5) {
+    while (pool.length === 0 && count < THUMBNAIL_POOL_SIZE) {
         // eslint-disable-next-line no-console
         console.log('Waiting for pool to become available...');
         await new Promise((resolve) => setTimeout(resolve, (10 * count) ** 2));
