@@ -6,7 +6,7 @@
     display: flex;
     align-items: center;
     position: relative;
-    background-color: var(--site-header-background);
+    background-color: var(--color-bg-site-header);
 
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
         position: sticky;
@@ -98,7 +98,7 @@
 
     &[aria-expanded='true'],
     &:hover[aria-expanded='true'] {
-        background-color: var(--site-nav-background);
+        background-color: var(--color-bg-mobile-nav);
     }
 
     svg {
@@ -185,7 +185,7 @@
     --link-hover-color: var(--white);
 
     width: 100%;
-    background-color: var(--site-nav-background);
+    background-color: var(--color-bg-mobile-nav);
 
     @media screen and (min-width: $breakpoint-site-header-small) {
         position: absolute;
@@ -332,7 +332,7 @@
 
         .navLink:hover svg {
             box-shadow:
-                0 0 0 4px var(--site-header-background),
+                0 0 0 4px var(--color-bg-site-header),
                 0 0 0 6px rgba(white, 0.3);
         }
     }
