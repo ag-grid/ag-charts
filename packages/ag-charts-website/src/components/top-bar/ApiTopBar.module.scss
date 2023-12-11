@@ -4,7 +4,7 @@
     background-color: var(--color-bg-toolbar);
 
     #{$selector-darkmode} & {
-        border-bottom: 1px solid #394755;
+        border-bottom: 1px solid var(--color-border-primary);
     }
 
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
@@ -19,7 +19,7 @@
 
     #{$selector-darkmode} & {
         background: var(--color-bg-primary);
-        border-bottom: 0.5px solid #394755;
+        border-bottom: 0.5px solid var(--color-border-primary);
     }
 }
 
