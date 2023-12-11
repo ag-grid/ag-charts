@@ -81,7 +81,7 @@
         transition-delay: 0.165s;
     }
 
-    #{$selector-darkmode} & {
+    #{$darkmode-selector} & {
         --tooltip-background: var(--color-bg-secondary);
 
         color: var(--color-fg-primary);

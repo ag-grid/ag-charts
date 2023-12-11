@@ -36,7 +36,7 @@
         height: calc(100% - 12px);
         background-color: var(--color-border-primary);
 
-        #{$selector-darkmode} & {
+        #{$darkmode-selector} & {
             background-color: var(--color-bg-primary);
         }
     }
