@@ -290,7 +290,7 @@ export class Tooltip {
         return !element.classList.contains(DEFAULT_TOOLTIP_CLASS + '-hidden');
     }
 
-    private updateClass(visible?: boolean, showArrow?: boolean, addCustomClass?: boolean) {
+    private updateClass(visible?: boolean, showArrow?: boolean, addCustomClass: boolean = true) {
         const { element, class: newClass, lastClass, enableInteraction, lastVisibilityChange } = this;
 
         const wasVisible = this.isVisible();
@@ -330,7 +330,7 @@ export class Tooltip {
 
         this.updateWrapping();
 
-        if (addCustomClass ?? true) {
+        if (addCustomClass) {
             if (newClass !== lastClass) {
                 if (lastClass) {
                     element.classList.remove(lastClass);
