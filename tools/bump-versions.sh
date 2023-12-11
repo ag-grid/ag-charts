@@ -25,7 +25,7 @@ done
 echo >./packages/ag-charts-community/src/version.ts "// DO NOT UPDATE MANUALLY: Generated from script during build time
 export const VERSION = '${NEW_VERSION}';"
 
-for envFile in ./packages/ag-charts-website/.env* ; do
+for envFile in ./packages/ag-charts-website/.env* ./.env ; do
     echo "Updating ${envFile}"
     if [[ $(uname) == "Darwin" ]] ; then
         sed -i "" -e '/PUBLIC_PACKAGE_VERSION=/ d' ${envFile}
