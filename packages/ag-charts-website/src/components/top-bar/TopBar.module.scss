@@ -10,11 +10,6 @@
     }
 
     border-bottom: 0.5px solid transparent;
-
-    #{$darkmode-selector} & {
-        background: #121f29;
-        border-bottom-color: #394755;
-    }
 }
 
 .topBarInner {

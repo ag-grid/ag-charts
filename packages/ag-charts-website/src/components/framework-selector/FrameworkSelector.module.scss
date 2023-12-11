@@ -148,8 +148,8 @@
     border: 1px solid transparent;
 
     #{$darkmode-selector} & {
-        background-color: rgba(255, 255, 255, 0.05);
-        border-color: #394755;
+        background-color: var(--color-bg-secondary);
+        border-color: var(--color-border-primary);
     }
 }
 

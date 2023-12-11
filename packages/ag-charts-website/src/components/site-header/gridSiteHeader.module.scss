@@ -15,6 +15,7 @@
     }
 
     #{$darkmode-selector} & {
+        background: var(--color-bg-primary);
         border-bottom: 1px solid #3b4754;
     }
 }
