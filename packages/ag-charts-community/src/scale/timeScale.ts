@@ -286,8 +286,11 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
 
         const [t0, t1] = this.getDomain().map(toNumber);
 
+        const start = Math.min(t0, t1);
+        const stop = Math.max(t0, t1);
+
         if (this.interval !== undefined) {
-            return this.getTicksForInterval({ start: t0, stop: t1 });
+            return this.getTicksForInterval({ start, stop });
         }
 
         if (this.nice) {
@@ -300,7 +303,7 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
             }
         }
 
-        return this.getDefaultTicks({ start: t0, stop: t1 });
+        return this.getDefaultTicks({ start, stop });
     }
 
     private getDefaultTicks({ start, stop }: { start: number; stop: number }) {
@@ -396,8 +399,10 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
     }
 
     protected updateNiceDomainIteration(d0: Date, d1: Date) {
-        const start = toNumber(d0);
-        const stop = toNumber(d1);
+        const start = Math.min(toNumber(d0), toNumber(d1));
+        const stop = Math.max(toNumber(d0), toNumber(d1));
+
+        const isReversed = d0 > d1;
 
         const { interval } = this;
         let i;
@@ -416,9 +421,10 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
         }
 
         if (i) {
-            const intervalRange = i.range(d0, d1, true);
-            const n0 = intervalRange[0];
-            const n1 = intervalRange[intervalRange.length - 1];
+            const intervalRange = i.range(new Date(start), new Date(stop), true);
+            const domain = isReversed ? [...intervalRange].reverse() : intervalRange;
+            const n0 = domain[0];
+            const n1 = domain[domain.length - 1];
             this.niceDomain = [n0, n1];
         }
     }
