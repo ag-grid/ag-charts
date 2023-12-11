@@ -7,8 +7,9 @@
     "build": {
       "outputs": ["{workspaceRoot}/dist/{projectRoot}"],
       "dependsOn": ["^build", "^docs-resolved-interfaces", "generate-examples", "generate-thumbnails"],
-      "command": "cd packages/ag-charts-website && astro build",
+      "command": "astro build",
       "options": {
+        "cwd": "packages/ag-charts-website",
         "silent": true
       },
       "configurations": {
@@ -24,8 +25,10 @@
     },
     "dev": {
       "dependsOn": ["^build", "^docs-resolved-interfaces"],
-      "command": "cd packages/ag-charts-website && astro dev --port=${PORT} --host",
-
+      "command": "astro dev --port=${PORT} --host",
+      "options": {
+        "cwd": "packages/ag-charts-website"
+      },
       "configurations": {
         "watch": {}
       }
@@ -36,7 +39,10 @@
           "target": "build"
         }
       ],
-      "command": "cd packages/ag-charts-website && astro preview --port=${PORT}",
+      "command": "astro preview --port=${PORT}",
+      "options": {
+        "cwd": "packages/ag-charts-website"
+      },
       "configurations": {
         "staging": {},
         "production": {}
