@@ -1,5 +1,6 @@
 {
-  "plugins": ["@nxtensions/astro"],
+  "$schema": "./node_modules/nx/schemas/nx-schema.json",
+  "plugins": ["@nxtensions/astro", "./plugins/ag-charts-build-tools"],
   "affected": {
     "defaultBase": "latest"
   },
@@ -39,7 +40,7 @@
       "cache": true
     },
     "build:umd": {
-      "dependsOn": ["^build:umd"],
+      "dependsOn": ["^build:package"],
       "inputs": ["production", "^production"],
       "cache": true
     },
@@ -67,6 +68,5 @@
     "appsDir": "packages",
     "libsDir": "libraries"
   },
-  "defaultProject": "all",
-  "parallel": 1
+  "defaultProject": "all"
 }

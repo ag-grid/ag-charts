@@ -229,6 +229,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
                 ...extraProps,
             ],
             groupByKeys: true,
+            groupByData: false,
         });
 
         this.smallestDataInterval = {

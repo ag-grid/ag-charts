@@ -1,14 +1,14 @@
 import { SOURCE_ENTRY_FILE_NAME } from '../constants';
 import { readAsJsFile } from '../transformation-scripts/parser-utils';
-import type { FileContents, TransformTsFileExt } from '../types.d';
+import type { FileContents, TransformTsFileExt } from '../types';
 import { getFileList } from './fileUtils';
 
 const getOtherTsGeneratedFiles = async ({
-    folderUrl,
+    folderPath,
     sourceFileList,
     transformTsFileExt,
 }: {
-    folderUrl: URL;
+    folderPath: string;
     sourceFileList: string[];
     /**
      * File extension for .ts files to be converted to
@@ -21,7 +21,7 @@ const getOtherTsGeneratedFiles = async ({
         .filter((fileName) => fileName !== SOURCE_ENTRY_FILE_NAME);
 
     const tsFileContents = await getFileList({
-        folderUrl,
+        folderPath,
         fileList: otherTsFiles,
     });
 
@@ -43,35 +43,35 @@ const getOtherTsGeneratedFiles = async ({
 };
 
 const getOtherJsFiles = ({
-    folderUrl,
+    folderPath,
     sourceFileList,
 }: {
-    folderUrl: URL;
+    folderPath: string;
     sourceFileList: string[];
 }): Promise<FileContents> => {
     const otherJsFiles = sourceFileList.filter((fileName) => fileName.endsWith('.js'));
     return getFileList({
-        folderUrl,
+        folderPath,
         fileList: otherJsFiles,
     });
 };
 
 export const getOtherScriptFiles = async ({
-    folderUrl,
+    folderPath,
     sourceFileList,
     transformTsFileExt,
 }: {
-    folderUrl: URL;
+    folderPath: string;
     sourceFileList: string[];
     transformTsFileExt?: TransformTsFileExt;
 }) => {
     const otherTsGeneratedFileContents = await getOtherTsGeneratedFiles({
-        folderUrl,
+        folderPath,
         sourceFileList,
         transformTsFileExt,
     });
     const otherJsFileContents = await getOtherJsFiles({
-        folderUrl,
+        folderPath,
         sourceFileList,
     });
 

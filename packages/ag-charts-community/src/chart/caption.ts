@@ -117,7 +117,7 @@ export class Caption {
 
         this.moduleCtx.tooltipManager.updateTooltip(
             this.id,
-            { pageX, pageY, offsetX, offsetY, event, showArrow: false },
+            { pageX, pageY, offsetX, offsetY, event, showArrow: false, addCustomClass: false },
             toTooltipHtml({ content: this.text })
         );
     }

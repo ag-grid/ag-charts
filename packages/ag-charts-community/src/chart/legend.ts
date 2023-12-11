@@ -841,7 +841,7 @@ export class Legend {
         if (datum && this.truncatedItems.has(datum.itemId ?? datum.id)) {
             this.ctx.tooltipManager.updateTooltip(
                 this.id,
-                { pageX, pageY, offsetX, offsetY, event, showArrow: false },
+                { pageX, pageY, offsetX, offsetY, event, showArrow: false, addCustomClass: false },
                 toTooltipHtml({ content: this.getItemLabel(datum) })
             );
         } else {

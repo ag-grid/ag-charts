@@ -1,8 +1,8 @@
-import { getGeneratedGalleryContents } from '@features/gallery/utils/examplesGenerator';
 import { getGalleryExamplePages } from '@features/gallery/utils/pageData';
 import type { APIContext } from 'astro';
 import { getEntry } from 'astro:content';
 
+import { getGeneratedContents } from '../../../../features/example-generator';
 import { format } from '../../../../utils/format';
 
 export async function getStaticPaths() {
@@ -14,7 +14,8 @@ export async function getStaticPaths() {
 export async function get(context: APIContext) {
     const { exampleName } = context.params;
 
-    const generatedContents = await getGeneratedGalleryContents({
+    const generatedContents = await getGeneratedContents({
+        type: 'gallery',
         exampleName: exampleName!,
     });
 

@@ -22,7 +22,7 @@ export const getFolders = async (rootPath: string) => {
         return name;
     });
 
-    return (await Promise.all(directories)).filter((d) => d != null);
+    return (await Promise.all(directories)).filter((d): d is string => d != null);
 };
 
 export async function getFilesRecursively(dir: string, allFiles: string[] = []) {

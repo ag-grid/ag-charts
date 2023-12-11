@@ -1,5 +1,38 @@
 import { addTransformToInstanceProperty } from './decorator';
 
+export function ProxyProperty(...proxyProperties: string[]) {
+    const property = proxyProperties[proxyProperties.length - 1];
+    if (proxyProperties.length === 1) {
+        return addTransformToInstanceProperty(
+            (target, _, value) => {
+                target[property] = value;
+                return value;
+            },
+            (target, _) => {
+                return target[property];
+            }
+        );
+    }
+
+    const getTarget = (target: any) => {
+        let value = target;
+        for (let i = 0; i < proxyProperties.length - 1; i += 1) {
+            value = value[proxyProperties[i]];
+        }
+        return value;
+    };
+
+    return addTransformToInstanceProperty(
+        (target, _, value) => {
+            getTarget(target)[property] = value;
+            return value;
+        },
+        (target, _) => {
+            return getTarget(target)[property];
+        }
+    );
+}
+
 export function ProxyOnWrite(proxyProperty: string) {
     return addTransformToInstanceProperty((target, _, value) => {
         target[proxyProperty] = value;

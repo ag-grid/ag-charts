@@ -1,24 +1,10 @@
-import type { InternalFramework } from '@ag-grid-types';
-import { getIsDev } from '@utils/env';
-import { getFileContents } from '@utils/getFileContents';
-import { isTypescriptInternalFramework } from '@utils/pages';
-import { pathJoin } from '@utils/pathJoin';
-import { existsSync } from 'node:fs';
-import fs from 'node:fs/promises';
+import fs from 'fs';
+import path from 'path';
 
-import type { TransformTsFileExt } from '../types';
+import type { InternalFramework, TransformTsFileExt } from '../types';
+import { TYPESCRIPT_INTERNAL_FRAMEWORKS } from '../types';
 
-/**
- * The root of the `ag-charts-website` package
- */
-const getBoilerPlateFilesUrl = () => {
-    const packagePath = getIsDev()
-        ? // Relative to the folder of this file
-          '../../../../public/example-runner'
-        : // Relative to `/dist/packages/ag-charts-website/chunks/pages` folder (Nx specific)
-          '../../example-runner'; // NOTE: No `public` folder
-    return new URL(packagePath, import.meta.url);
-};
+const BOILER_PLATE_FILE_PATH = './packages/ag-charts-website/public/example-runner';
 
 export const getBoilerPlateName = (internalFramework: InternalFramework) => {
     const boilerPlateTemplate = (boilerPlateKey: string) => `charts-${boilerPlateKey}-boilerplate`;
@@ -42,37 +28,37 @@ export const getTransformTsFileExt = (internalFramework: InternalFramework): Tra
     let transformTsFileExt: TransformTsFileExt;
     if (internalFramework === 'reactFunctionalTs') {
         transformTsFileExt = '.tsx';
-    } else if (!isTypescriptInternalFramework(internalFramework)) {
+    } else if (!TYPESCRIPT_INTERNAL_FRAMEWORKS.includes(internalFramework)) {
         transformTsFileExt = '.js';
     }
 
     return transformTsFileExt;
 };
 
-export const getBoilerPlateFiles = async (internalFramework: InternalFramework) => {
-    const boilerPlateFilesPath = getBoilerPlateFilesUrl();
+export const getBoilerPlateFiles = async (isDev: boolean, internalFramework: InternalFramework) => {
     const boilerplateName = getBoilerPlateName(internalFramework);
 
     if (!boilerplateName) {
         return {};
     }
-    const boilerPlatePath = pathJoin(boilerPlateFilesPath.pathname, boilerplateName);
+    const boilerPlatePath = path.join(BOILER_PLATE_FILE_PATH, boilerplateName);
 
-    const fileNames = await fs.readdir(boilerPlatePath);
+    const fileNames = fs.readdirSync(boilerPlatePath);
 
     const files: Record<string, string> = {};
-    const isDev = getIsDev();
     const fileContentPromises = fileNames.map(async (fileName) => {
         if (!isDev && fileName === 'systemjs.config.dev.js') {
             // Ignore systemjs dev file if on production
             return;
         }
-        const filePath = pathJoin(boilerPlatePath, fileName);
-        const contents = await fs.readFile(filePath, 'utf-8').catch(() => {
-            return undefined;
-        });
-        if (contents) {
-            files[fileName] = contents;
+        const filePath = path.join(boilerPlatePath, fileName);
+        try {
+            const contents = fs.readFileSync(filePath, 'utf-8');
+            if (contents) {
+                files[fileName] = contents;
+            }
+        } catch (e) {
+            // Skip missing files.
         }
     });
     await Promise.all(fileContentPromises);
@@ -130,37 +116,36 @@ export const getMainFileName = (internalFramework: InternalFramework) => {
 };
 
 export const getProvidedExampleFolder = ({
-    folderUrl,
+    folderPath,
     internalFramework,
 }: {
-    folderUrl: URL;
+    folderPath: string;
     internalFramework: InternalFramework;
 }) => {
-    return new URL(pathJoin(folderUrl, 'provided/modules', internalFramework));
+    return path.join(folderPath, 'provided/modules', internalFramework);
 };
 
 export const getProvidedExampleFiles = ({
-    folderUrl,
+    folderPath,
     internalFramework,
 }: {
-    folderUrl: URL;
+    folderPath: string;
     internalFramework: InternalFramework;
 }) => {
-    const providedFolder = getProvidedExampleFolder({ folderUrl, internalFramework });
+    const providedFolder = getProvidedExampleFolder({ folderPath, internalFramework });
 
-    return existsSync(providedFolder) ? fs.readdir(providedFolder) : [];
+    return fs.existsSync(providedFolder) ? fs.readdirSync(providedFolder) : [];
 };
 
-export const getFileList = async ({ folderUrl, fileList }: { folderUrl: URL; fileList: string[] }) => {
+export const getFileList = async ({ folderPath, fileList }: { folderPath: string; fileList: string[] }) => {
     const contentFiles = {} as Record<string, string>;
     await Promise.all(
         fileList.map(async (fileName) => {
-            const file = await getFileContents({
-                folderUrl,
-                fileName,
-            });
-            if (file) {
-                contentFiles[fileName] = file;
+            try {
+                const file = fs.readFileSync(path.join(folderPath, fileName));
+                contentFiles[fileName] = file.toString('utf-8');
+            } catch (e) {
+                // Skip missing files.
             }
         })
     );

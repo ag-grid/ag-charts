@@ -1,4 +1,4 @@
-import type { ExampleType } from './types.d';
+import type { ExampleType } from './types';
 
 export const EXAMPLE_TYPES: ExampleType[] = ['generated', 'mixed', 'typescript', 'multi'];
 

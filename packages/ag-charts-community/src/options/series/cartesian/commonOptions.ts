@@ -73,9 +73,9 @@ export interface Toggleable {
 /**
  * Represents parameters for formatting data in a chart series.
  */
-export interface AgSeriesFormatterParams<DatumType> {
+export interface AgSeriesFormatterParams<TDatum> {
     /** The data point associated with the series. */
-    readonly datum: DatumType;
+    readonly datum: TDatum;
     /** The unique identifier of the series. */
     readonly seriesId: string;
     /** Indicates whether the element is highlighted. */

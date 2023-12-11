@@ -37,7 +37,7 @@ const options: AgChartOptions = {
         },
     ],
     gradientLegend: {
-        stop: {
+        scale: {
             label: {
                 formatter: ({ value }) => `${Number(value).toFixed(0)}%`,
             },

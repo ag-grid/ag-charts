@@ -4,6 +4,12 @@
             "implementation": "./src/executors/generate-code-reference-files/executor",
             "schema": "./src/executors/generate-code-reference-files/schema.json",
             "description": "generate-code-reference-files executor"
+        },
+        "generate-example-files": {
+            "implementation": "./src/executors/generate-example-files/executor",
+            "batchImplementation": "./src/executors/generate-example-files/batch-executor",
+            "schema": "./src/executors/generate-example-files/schema.json",
+            "description": "generate-example-files executor"
         }
     }
 }

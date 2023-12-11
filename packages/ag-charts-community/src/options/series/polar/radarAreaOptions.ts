@@ -1,13 +1,13 @@
 import type { FillOptions } from '../cartesian/commonOptions';
 import type { AgBaseRadarSeriesOptions, AgRadarSeriesThemeableOptions } from './radarOptions';
 
-export interface AgRadarAreaSeriesThemeableOptions<DatumType = any>
+export interface AgRadarAreaSeriesThemeableOptions<TDatum = any>
     extends FillOptions,
-        AgRadarSeriesThemeableOptions<DatumType> {}
+        AgRadarSeriesThemeableOptions<TDatum> {}
 
-export interface AgRadarAreaSeriesOptions<DatumType = any>
-    extends AgRadarAreaSeriesThemeableOptions<DatumType>,
-        AgBaseRadarSeriesOptions<DatumType> {
+export interface AgRadarAreaSeriesOptions<TDatum = any>
+    extends AgRadarAreaSeriesThemeableOptions<TDatum>,
+        AgBaseRadarSeriesOptions<TDatum> {
     /** Configuration for the Radar Area Series. */
     type: 'radar-area';
 }

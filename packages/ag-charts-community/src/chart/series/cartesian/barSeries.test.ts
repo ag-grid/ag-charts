@@ -97,6 +97,18 @@ const EXAMPLES: Record<string, TestCase> = {
         options: examples.COLUMN_SINGLE_DATE_TIME_AXIS,
         assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: ['bar'] }),
     },
+    GROUPED_COLUMN_CATEGORY_DATA_PER_SERIES: {
+        options: examples.GROUPED_COLUMN_CATEGORY_DATA_PER_SERIES,
+        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: repeat('bar', 5) }),
+    },
+    STACKED_COLUMN_CATEGORY_DATA_PER_SERIES: {
+        options: examples.STACKED_COLUMN_CATEGORY_DATA_PER_SERIES,
+        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: repeat('bar', 5) }),
+    },
+    STACKED_COLUMN_CATEGORY_DATA_PER_SERIES_CLASHING: {
+        options: examples.STACKED_COLUMN_CATEGORY_DATA_PER_SERIES_CLASHING,
+        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: repeat('bar', 5) }),
+    },
 };
 
 const INVALID_DATA_EXAMPLES: Record<string, TestCase> = {

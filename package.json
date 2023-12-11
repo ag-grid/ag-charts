@@ -1,6 +1,6 @@
 {
   "name": "ag-charts",
-  "version": "9.0.1",
+  "version": "9.0.1-beta.20231211",
   "license": "MIT",
   "scripts": {
     "init": "yarn install",
@@ -128,6 +128,7 @@
       "packages/ag-charts-vue3",
       "packages/ag-charts-website",
       "packages/ag-charts-website-e2e",
+      "plugins/example-generator",
       "plugins/ag-charts-build-tools"
     ],
     "nohoist": [

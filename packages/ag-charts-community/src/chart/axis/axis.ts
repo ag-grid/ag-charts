@@ -546,6 +546,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const { combinedRotation, textBaseline, textAlign, range } = params;
         const text = datum.tickLabel;
         const sideFlag = label.getSideFlag();
+        // @todo(AG-10059): Set tickSize to zero when tick.enabled = false
         const tickSize = this.tick.size;
         const labelX = sideFlag * (tickSize + label.padding + this.seriesAreaPadding);
         const visible = text !== '' && text != undefined;
