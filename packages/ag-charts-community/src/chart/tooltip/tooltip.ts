@@ -19,7 +19,7 @@ const DEFAULT_TOOLTIP_DARK_CLASS = 'ag-chart-dark-tooltip';
 const defaultTooltipCss = `
 .${DEFAULT_TOOLTIP_CLASS} {
     transition: transform 0.1s ease;
-    display: table;
+    max-width: 100%;
     position: fixed;
     left: 0px;
     top: 0px;
@@ -48,6 +48,7 @@ const defaultTooltipCss = `
 
 .${DEFAULT_TOOLTIP_CLASS}-wrap-never {
     white-space: pre;
+    text-overflow: ellipsis;
 }
 
 .${DEFAULT_TOOLTIP_CLASS}-no-interaction {
@@ -64,6 +65,7 @@ const defaultTooltipCss = `
 }
 
 .${DEFAULT_TOOLTIP_CLASS}-title {
+    overflow: hidden;
     position: relative;
     padding: 8px 14px;
     border-top-left-radius: 2px;
@@ -71,6 +73,7 @@ const defaultTooltipCss = `
     color: white;
     background-color: #888888;
     z-index: 1;
+    text-overflow: inherit;
 }
 
 .${DEFAULT_TOOLTIP_CLASS}-title:only-child {
@@ -79,6 +82,7 @@ const defaultTooltipCss = `
 }
 
 .${DEFAULT_TOOLTIP_CLASS}-content {
+    overflow: hidden;
     padding: 6px 14px;
     line-height: 1.7em;
     background: white;
@@ -86,6 +90,7 @@ const defaultTooltipCss = `
     border-bottom-right-radius: 2px;
     border: 1px solid rgba(0, 0, 0, 0.15);
     overflow: hidden;
+    text-overflow: inherit;
 }
 
 .${DEFAULT_TOOLTIP_CLASS}-arrow::before {
@@ -155,6 +160,7 @@ export interface TooltipMeta {
     };
     enableInteraction?: boolean;
     event: Event | InteractionEvent<any>;
+    addCustomClass?: boolean;
 }
 
 export function toTooltipHtml(input: string | AgTooltipRendererResult, defaults?: AgTooltipRendererResult): string {
@@ -283,7 +289,7 @@ export class Tooltip {
         return !element.classList.contains(DEFAULT_TOOLTIP_CLASS + '-hidden');
     }
 
-    private updateClass(visible?: boolean, showArrow?: boolean) {
+    private updateClass(visible?: boolean, showArrow?: boolean, addCustomClass: boolean = true) {
         const { element, class: newClass, lastClass, enableInteraction, lastVisibilityChange } = this;
 
         const wasVisible = this.isVisible();
@@ -321,17 +327,24 @@ export class Tooltip {
         toggleClass('hidden', !visible); // Hide if not visible.
         toggleClass('arrow', !!showArrow); // Add arrow if tooltip is constrained.
 
-        if (newClass !== lastClass) {
+        this.updateWrapping();
+
+        if (addCustomClass) {
+            if (newClass !== lastClass) {
+                if (lastClass) {
+                    element.classList.remove(lastClass);
+                }
+                if (newClass) {
+                    element.classList.add(newClass);
+                }
+            }
+            this.lastClass = newClass;
+        } else {
             if (lastClass) {
                 element.classList.remove(lastClass);
             }
-            if (newClass) {
-                element.classList.add(newClass);
-            }
-            this.lastClass = newClass;
+            this.lastClass = undefined;
         }
-
-        this.updateWrapping();
     }
 
     private updateWrapping() {
@@ -394,23 +407,23 @@ export class Tooltip {
         if (this.delay > 0 && !instantly) {
             this.toggle(false);
             this.showTimeout = this.window.setTimeout(() => {
-                this.toggle(true);
+                this.toggle(true, meta.addCustomClass);
             }, this.delay);
             return;
         }
 
-        this.toggle(true);
+        this.toggle(true, meta.addCustomClass);
     }
 
     private getWindowBoundingBox(): BBox {
         return new BBox(0, 0, this.window.innerWidth, this.window.innerHeight);
     }
 
-    toggle(visible?: boolean) {
+    toggle(visible?: boolean, addCustomClass?: boolean) {
         if (!visible) {
             this.window.clearTimeout(this.showTimeout);
         }
-        this.updateClass(visible, this._showArrow);
+        this.updateClass(visible, this._showArrow, addCustomClass);
     }
 
     pointerLeftOntoTooltip(event: InteractionEvent<'leave'>): boolean {
