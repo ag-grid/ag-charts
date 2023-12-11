@@ -1,30 +1,28 @@
-import { Response as MiniFlareResponse } from '@miniflare/core';
-import { HTMLRewriter } from '@miniflare/html-rewriter';
 import { defineMiddleware } from 'astro/middleware';
+import { parse } from 'node-html-parser';
 
 import { format } from '../utils/format';
 
 const env = import.meta.env;
 
-const astroGeneratedContextRewriter = new HTMLRewriter()
-    .on('script', {
-        element(script) {
-            const src = script.getAttribute('src');
-            if (env.DEV && src != null && src.startsWith('/')) {
-                script.setAttribute('src', new URL(src, env.PUBLIC_SITE_URL).toString());
-            } else if (env.PROD && (src == null || src === '')) {
-                script.remove();
-            }
-        },
-    })
-    .on('link', {
-        element(link) {
-            const href = link.getAttribute('src');
-            if (env.PROD && href != null && href.startsWith('/_astro')) {
-                link.remove();
-            }
-        },
+const rewriteAstroGeneratedContent = (body: string) => {
+    const html = parse(body);
+    html.querySelectorAll('script').forEach((script) => {
+        const src = script.getAttribute('src');
+        if (env.DEV && src != null && src.startsWith('/')) {
+            script.setAttribute('src', new URL(src, env.PUBLIC_SITE_URL).toString());
+        } else if (env.PROD && (src == null || src === '')) {
+            script.remove();
+        }
     });
+    html.querySelectorAll('link').forEach((link) => {
+        const href = link.getAttribute('src');
+        if (env.PROD && href != null && href.startsWith('/_astro')) {
+            link.remove();
+        }
+    });
+    return html.toString();
+};
 
 // We only need to format `.html` files in middleware. The example `index.html` files are fetched in
 // the example runner components since the generated content only includes the example fragment
@@ -47,7 +45,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     let body = await response.text();
 
     if (context.url.pathname.endsWith('/relative-path')) {
-        body = await astroGeneratedContextRewriter.transform(new MiniFlareResponse(body)).text();
+        body = rewriteAstroGeneratedContent(body);
     }
 
     try {
