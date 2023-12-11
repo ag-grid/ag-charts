@@ -2,7 +2,7 @@ import {
     type AgChartLegendOrientation,
     type AgChartLegendPosition,
     type AgGradientLegendIntervalOptions,
-    AgGradientLegendLabelOptions,
+    type AgGradientLegendLabelOptions,
     type AgGradientLegendScaleOptions,
     _ModuleSupport,
     _Scale,
