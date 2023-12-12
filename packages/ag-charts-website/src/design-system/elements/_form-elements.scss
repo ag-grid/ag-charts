@@ -90,7 +90,9 @@ input[type='number'] {
         &:focus:not(:disabled):not([readonly]),
         &:focus-visible:not(:disabled):not([readonly]),
         &.focus {
-            box-shadow: 0 0 0 $spacing-size-1 var(--color-input-shadow-focus);
+            box-shadow:
+                0 0 0 $spacing-size-1 var(--color-input-shadow-focus),
+                var(--shadow-xs);
         }
 
         &:disabled,
