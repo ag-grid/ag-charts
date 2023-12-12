@@ -57,15 +57,14 @@
     }
 
     h1 {
-        --font-size: 28px;
+        font-size: 28px;
 
         @media screen and (min-width: $breakpoint-hero-small) {
-            --font-size: var(--font-size-massive);
+            font-size: var(--text-fs-2xl);
         }
 
         @media screen and (min-width: $breakpoint-hero-large) {
-            --font-size: min(3.4vw, 54px);
-
+            font-size: min(3.4vw, 54px);
             margin-top: -0.225em;
             margin-bottom: 0.5em;
         }
@@ -78,12 +77,11 @@
         margin-bottom: 1.4em;
 
         @media screen and (min-width: $breakpoint-hero-small) {
-            --font-size: 22px;
+            font-size: 22px;
         }
 
         @media screen and (min-width: $breakpoint-hero-large) {
-            --font-size: min(1.9vw, 30px);
-
+            font-size: min(1.9vw, 30px);
             max-width: unset;
         }
     }
@@ -212,7 +210,7 @@
     font-size: var(--font-size);
 
     @media screen and (min-width: 1020px) {
-        --font-size: var(--font-size-extra-large);
+        --font-size: var(--text-fs-xl);
     }
     #{$selector-darkmode} & {
         color: var(--color-fg-primary);

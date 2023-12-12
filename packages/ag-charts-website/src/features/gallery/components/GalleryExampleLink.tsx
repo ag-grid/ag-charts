@@ -24,7 +24,7 @@ export const GalleryExampleLink: FunctionComponent<Props> = ({
                 styles.link,
                 'galleryExample',
                 styles[`layout-${layout}`],
-                'font-size-small',
+                'text-sm',
                 'text-secondary',
                 {
                     [styles.onlyShowOnLargeScreen]: onlyShowOnLargeScreen,

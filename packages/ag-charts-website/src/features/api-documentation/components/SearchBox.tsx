@@ -80,7 +80,7 @@ export function SearchBox({
                             ))
                         ) : (
                             <div className={styles.searchOption}>
-                                <span className="font-size-small">
+                                <span className="text-sm">
                                     We couldn't find any matches for "<b>{searchQuery}</b>"
                                 </span>
                             </div>

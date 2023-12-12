@@ -19,7 +19,7 @@ const PageHit = ({ hit, onResultClicked }) => {
     const url = `${SITE_URL}${path}`;
     return (
         <a href={url} onClick={onResultClicked}>
-            <div className={classnames(gridStyles.breadcrumb, 'font-size-small')}>{hit.breadcrumb}</div>
+            <div className={classnames(gridStyles.breadcrumb, 'text-sm')}>{hit.breadcrumb}</div>
             <h4>
                 <Highlight attribute="title" hit={hit} tagName="mark" />
                 {hit.heading && (
@@ -29,7 +29,7 @@ const PageHit = ({ hit, onResultClicked }) => {
                     </>
                 )}
             </h4>
-            <Snippet className="font-size-small" attribute="text" hit={hit} tagName="mark" />
+            <Snippet className="text-sm" attribute="text" hit={hit} tagName="mark" />
         </a>
     );
 };

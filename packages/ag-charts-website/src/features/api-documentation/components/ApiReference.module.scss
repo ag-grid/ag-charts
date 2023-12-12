@@ -51,7 +51,7 @@
     }
 
     .linkIcon {
-        font-size: var(--font-size-large);
+        font-size: var(--text-fs-lg);
     }
 }
 
@@ -114,11 +114,11 @@
     margin-top: $spacing-size-1;
     padding-right: $spacing-size-6;
     font-family: var(--text-monospace-font-family);
-    font-size: var(--font-size-large);
+    font-size: var(--text-fs-lg);
     font-weight: var(--text-bold);
 
     @container (min-width: #{$breakpoint-table-small}) {
-        font-size: var(--font-size-medium);
+        font-size: var(--text-fs-base);
     }
 
     :hover .linkIcon {
@@ -153,12 +153,12 @@
 }
 
 .metaLabel {
-    font-size: var(--font-size-extra-small);
+    font-size: var(--text-fs-xs);
     color: var(--color-fg-secondary);
 }
 
 .metaValue {
-    font-size: var(--font-size-small);
+    font-size: var(----text-fs-sm);
     font-family: var(--text-monospace-font-family);
     color: var(--color-fg-code);
 
@@ -223,16 +223,16 @@
     border-top: 1px dashed var(--color-util-gray-200);
 
     .name {
-        font-size: calc(var(--font-size-medium) * 0.92);
+        font-size: calc(var(--text-fs-base) * 0.92);
     }
 
     .description p,
     .actions button {
-        font-size: calc(var(--font-size-medium) * 0.9);
+        font-size: calc(var(--text-fs-base) * 0.9);
     }
 
     .metaValue {
-        font-size: calc(var(--font-size-small) * 0.92);
+        font-size: calc(var(----text-fs-sm) * 0.92);
     }
 }
 

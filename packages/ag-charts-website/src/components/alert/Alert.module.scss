@@ -21,12 +21,8 @@
         fill: var(--color-util-brand-700);
     }
 
-    p {
-        font-size: $font-size-medium !important;
-
-        &:last-child {
-            margin-bottom: 0;
-        }
+    p :last-child {
+        margin-bottom: 0;
     }
 
     kbd {

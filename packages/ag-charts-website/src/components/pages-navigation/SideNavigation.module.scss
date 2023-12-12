@@ -133,7 +133,7 @@
 }
 
 .sideNav .level1 {
-    font-size: var(--font-size-large);
+    font-size: var(--text-fs-lg);
 }
 
 .sideNav .level3 {
@@ -156,7 +156,8 @@
 .sideNav .level5,
 .sideNav .level6 {
     --item-gap: 0.4375em;
-    font-size: var(--font-size-extra-small);
+
+    font-size: var(--text-fs-xs);
     opacity: 0.8;
 }
 

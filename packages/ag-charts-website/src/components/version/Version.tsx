@@ -26,7 +26,7 @@ export const Version = ({ date, version, blogUrl, highlights, buttonURL, majorMi
             <div className={styles.topheader}>
                 <header>
                     <div className={styles.flex}>
-                        <span className={`${styles['text-secondary']} ${styles['font-size-small']}`}>{date}</span>
+                        <span className={`${styles['text-secondary']} ${styles['text-sm']}`}>{date}</span>
 
                         <div className={styles.flex}>
                             {version === '31.0.0' && <span className={styles['latest-tag']}>Latest</span>}
@@ -34,7 +34,7 @@ export const Version = ({ date, version, blogUrl, highlights, buttonURL, majorMi
                         </div>
                     </div>
                     <div className={styles.flex}>
-                        <b className={styles['font-size-large']}>Version {version}</b>
+                        <b className={'text-lg'}>Version {version}</b>
                         <a className={styles.bloglink} href={blogHref}>
                             Read more →
                         </a>
@@ -42,7 +42,7 @@ export const Version = ({ date, version, blogUrl, highlights, buttonURL, majorMi
                     <span className={styles.line}></span>
                 </header>
 
-                <p className={styles['font-size-small']}>Feature Highlights</p>
+                <p className={styles['text-sm']}>Feature Highlights</p>
 
                 {highlights && highlights.length > 0 && (
                     <ul className={styles['list-style-none']}>

@@ -96,7 +96,7 @@ function ApiReferencePageContent({
     return (
         <div className={styles.referenceOuter}>
             <header ref={(ref) => setHeaderHeight(ref?.clientHeight ?? 0)}>
-                <h1 className="font-size-gigantic">
+                <h1 className="text-3xl">
                     {pageTitle?.type ? (
                         <>
                             {pageTitle.name}[type = '<span className={styles.unionDiscriminator}>{pageTitle.type}</span>

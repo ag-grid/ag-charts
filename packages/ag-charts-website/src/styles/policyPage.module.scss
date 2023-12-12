@@ -56,7 +56,7 @@
     }
 
     li::marker {
-        font-size: var(--font-size-extra-large);
+        font-size: var(--text-fs-xl);
     }
 
     @media screen and (min-width: ($max-page-width + $spacing-size-8)) {

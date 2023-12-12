@@ -153,12 +153,12 @@ body ul.metaList {
 }
 
 .metaLabel {
-    font-size: var(--font-size-extra-small);
+    font-size: var(--text-fs-xs);
     color: var(--color-fg-secondary);
 }
 
 .metaValue {
-    font-size: var(--font-size-small);
+    font-size: var(----text-fs-sm);
     font-family: var(--text-monospace-font-family);
     color: var(--color-fg-code);
     background-color: none;
