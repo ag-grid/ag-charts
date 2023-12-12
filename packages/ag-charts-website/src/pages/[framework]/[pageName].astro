@@ -7,8 +7,8 @@ import { getFrameworkDisplayText } from '@utils/framework';
 import type { Framework } from '@ag-grid-types';
 import { getDocsPages } from '@features/docs/utils/pageData';
 import { SideNavigation } from '@components/pages-navigation/SideNavigation';
-import { addTabsToHeadings } from '@utils/addTabsToHeadings';
 import { DOCS_TAB_ITEM_ID_PREFIX, FRAMEWORKS } from '@constants';
+import { addTabsToHeadings } from '@utils/markdoc/addTabsToHeadings';
 
 export async function getStaticPaths() {
     const pages = await getCollection('docs');
