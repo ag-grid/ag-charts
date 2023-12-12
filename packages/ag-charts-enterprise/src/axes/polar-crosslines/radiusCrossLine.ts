@@ -112,7 +112,17 @@ export class RadiusCrossLine extends PolarCrossLine {
     }
 
     private updateSectorNode(visible: boolean) {
-        const { range, scale, sectorNode: sector, shape, type, innerRadius, outerRadius } = this;
+        const {
+            axisInnerRadius,
+            axisOuterRadius,
+            range,
+            scale,
+            sectorNode: sector,
+            shape,
+            type,
+            innerRadius,
+            outerRadius,
+        } = this;
         if (!visible || shape !== 'circle' || !scale || (type === 'range' && !range)) {
             sector.visible = false;
             return;
@@ -124,8 +134,8 @@ export class RadiusCrossLine extends PolarCrossLine {
         sector.endAngle = 2 * Math.PI;
 
         const padding = this.getPadding();
-        sector.innerRadius = innerRadius + padding;
-        sector.outerRadius = outerRadius - padding;
+        sector.innerRadius = _Util.clamp(axisInnerRadius, innerRadius + padding, axisOuterRadius);
+        sector.outerRadius = _Util.clamp(axisInnerRadius, outerRadius - padding, axisOuterRadius);
 
         this.setSectorNodeProps(sector);
     }
