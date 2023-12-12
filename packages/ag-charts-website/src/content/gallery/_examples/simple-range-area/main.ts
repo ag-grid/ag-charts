@@ -32,8 +32,8 @@ const options: AgChartOptions = {
                     return value === 9.1
                         ? `${datum['magnitudeHighRegion']}, ${String(datum[xKey]).substring(0, 15)}`
                         : value === 4.6
-                        ? `${datum['magnitudeLowRegion']}, ${String(datum[xKey]).substring(0, 15)}`
-                        : '';
+                          ? `${datum['magnitudeLowRegion']}, ${String(datum[xKey]).substring(0, 15)}`
+                          : '';
                 },
             },
             tooltip,

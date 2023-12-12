@@ -771,8 +771,8 @@ export class TreemapSeries<
                 highlightedColor = !isLeaf
                     ? group.label.color
                     : tag === TextNodeTag.Primary
-                    ? tile.label.color
-                    : tile.secondaryLabel.color;
+                      ? tile.label.color
+                      : tile.secondaryLabel.color;
             }
 
             text.text = label.text;
