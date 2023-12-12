@@ -7,7 +7,13 @@ const docs = defineCollection({
     schema: z.object({
         title: z.string(),
         enterprise: z.boolean().optional(),
+        /**
+         * Hide right hand side menu
+         */
         hideSideMenu: z.boolean().optional(),
+        /**
+         * Hide left hand page menu
+         */
         hidePageMenu: z.boolean().optional(),
     }),
 });
@@ -62,7 +68,6 @@ const menu = defineCollection({
 });
 
 export const collections = {
-    // TODO: Astro does not properly ignore `package.json` in build. Wait for Astro upgrade and uncomment
-    // docs,
+    docs,
     menu,
 };
