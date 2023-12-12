@@ -79,7 +79,7 @@
     position: relative;
     display: inline-block;
     padding: ($spacing-size-2 + $spacing-size-1) $spacing-size-1;
-    line-height: var(--line-height-tight);
+    line-height: var(--text-lh-tight);
     color: var(--color-fg-tertiary);
     transition: color $transition-default-timing;
     cursor: pointer;

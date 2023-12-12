@@ -161,7 +161,7 @@ button:not([class^='ag-']).sectionHeader {
     --first-indent-size: 12px;
     --indent-size: 20px;
 
-    line-height: var(--line-height-tight);
+    line-height: var(--text-lh-tight);
     font-size: var(----text-fs-sm);
 
     ul a,

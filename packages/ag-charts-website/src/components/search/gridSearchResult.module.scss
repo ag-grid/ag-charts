@@ -24,7 +24,7 @@
     }
 
     li {
-        line-height: var(--line-height-tight);
+        line-height: var(--text-lh-tight);
         margin-bottom: -2px !important;
 
         #{$selector-darkmode} & {
