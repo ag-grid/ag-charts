@@ -34,7 +34,7 @@
         width: 100%;
         padding: $spacing-size-4 var(--horizontal-margin);
         background-color: var(--color-bg-primary);
-        border-bottom: 1px solid var(--neutral-200);
+        border-bottom: 1px solid var(--color-util-gray-200);
 
         @media screen and (min-width: $breakpoint-options-medium) {
             padding: $spacing-size-4;
@@ -102,11 +102,11 @@
         content: '';
         position: absolute;
         left: calc(4px + var(--nav-options-indent) * (var(--options-nav-depth, 0) - 1));
-        background-color: var(--neutral-300);
+        background-color: var(--color-util-gray-300);
         pointer-events: none;
 
         #{$selector-darkmode} & {
-            background-color: var(--neutral-600);
+            background-color: var(--color-util-gray-400);
         }
     }
 
@@ -187,10 +187,10 @@
         right: calc(100% + 10px);
         width: var(--nav-options-indent);
         height: 2px;
-        background-color: var(--neutral-300);
+        background-color: var(--color-util-gray-300);
 
         #{$selector-darkmode} & {
-            background-color: var(--neutral-600);
+            background-color: var(--color-util-gray-400);
         }
     }
 }

@@ -48,7 +48,7 @@
 }
 
 .sideNav ul {
-    --nav-line-color: var(--neutral-300);
+    --nav-line-color: var(--color-util-gray-300);
 
     position: relative;
     list-style: none;
@@ -83,7 +83,7 @@
 
     display: inline-block;
     padding: 0;
-    color: var(--neutral-600);
+    color: var(--color-util-gray-400);
     transition: color $transition-default-timing;
 
     #{$selector-darkmode} & {

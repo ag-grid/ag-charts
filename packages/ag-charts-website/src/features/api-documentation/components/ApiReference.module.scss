@@ -76,7 +76,7 @@
     }
 
     #{$selector-darkmode} & {
-        border-top-color: var(--neutral-500);
+        border-top-color: var(--color-util-gray-400);
     }
 }
 
@@ -217,7 +217,7 @@
 }
 
 .isChildProp {
-    border-top: 1px dashed var(--neutral-200);
+    border-top: 1px dashed var(--color-util-gray-200);
 
     .name {
         font-size: calc(var(--font-size-medium) * 0.92);
