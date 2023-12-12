@@ -94,7 +94,7 @@ function ApiReferencePageContent({
     const selection = useContext(SelectionContext);
     const [headerHeight, setHeaderHeight] = useState(0);
     return (
-        <div className={classNames(styles.referenceOuter, 'font-size-responsive')}>
+        <div className={styles.referenceOuter}>
             <header ref={(ref) => setHeaderHeight(ref?.clientHeight ?? 0)}>
                 <h1 className="font-size-gigantic">
                     {pageTitle?.type ? (

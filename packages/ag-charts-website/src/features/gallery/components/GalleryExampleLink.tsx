@@ -24,7 +24,6 @@ export const GalleryExampleLink: FunctionComponent<Props> = ({
                 styles.link,
                 'galleryExample',
                 styles[`layout-${layout}`],
-                'font-size-responsive',
                 'font-size-small',
                 'text-secondary',
                 {

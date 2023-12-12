@@ -55,7 +55,7 @@ export function SideNavigation({ headings }: Props) {
     }
 
     return (
-        <nav ref={menuRef} className={classnames(styles.sideNav, 'font-size-responsive')}>
+        <nav ref={menuRef} className={styles.sideNav}>
             <div>
                 <ul>
                     {headings.map(({ slug, depth, text }) => (

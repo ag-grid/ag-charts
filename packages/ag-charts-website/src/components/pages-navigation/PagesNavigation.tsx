@@ -310,7 +310,7 @@ export function PagesNavigation({
 
     return (
         <Collapsible id="docs-nav-collapser" isOpen={navOpen}>
-            <aside className={classnames(styles.menu, gridStyles.menu, 'font-size-responsive')}>
+            <aside className={classnames(styles.menu, gridStyles.menu)}>
                 <MainPagesNavigation
                     menuData={menuData}
                     framework={framework}

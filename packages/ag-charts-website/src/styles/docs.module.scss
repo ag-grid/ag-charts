@@ -18,22 +18,6 @@
         > pre {
             font-size: var(--font-size-medium);
         }
-
-        > h1,
-        > h2,
-        > h3,
-        > h4,
-        > h5,
-        > h6,
-        > p,
-        > ul,
-        > ol,
-        > table,
-        > hr {
-            @media screen and (min-width: $max-page-width) {
-                @include font-size-responsive();
-            }
-        }
     }
 }
 
