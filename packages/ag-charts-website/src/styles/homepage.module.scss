@@ -1,10 +1,8 @@
 @use '../design-system' as *;
 
 .homepageHero {
-    background-color: var(--color-util-brand-500);
-    color: var(--color-white);
-
     background-color: var(--dark-blue-600);
+    color: var(--color-white);
 
     #{$selector-darkmode} & {
         background-color: var(--color-bg-primary);
