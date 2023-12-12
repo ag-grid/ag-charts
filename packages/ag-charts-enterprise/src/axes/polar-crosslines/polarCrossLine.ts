@@ -66,6 +66,7 @@ export class PolarCrossLineLabel implements AgBaseCrossLineLabelOptions {
 export abstract class PolarCrossLine implements _ModuleSupport.CrossLine {
     protected static readonly LINE_LAYER_ZINDEX = Layers.SERIES_CROSSLINE_LINE_ZINDEX;
     protected static readonly RANGE_LAYER_ZINDEX = Layers.SERIES_CROSSLINE_RANGE_ZINDEX;
+    protected static readonly LABEL_LAYER_ZINDEX = Layers.SERIES_LABEL_ZINDEX;
     readonly id = createId(this);
 
     @Validate(OPT_BOOLEAN)
@@ -112,10 +113,20 @@ export abstract class PolarCrossLine implements _ModuleSupport.CrossLine {
     axisOuterRadius: number = 0;
 
     readonly group = new Group({ name: `${this.id}`, layer: true, zIndex: PolarCrossLine.LINE_LAYER_ZINDEX });
+    readonly labelGroup = new Group({ name: `${this.id}`, layer: true, zIndex: PolarCrossLine.LABEL_LAYER_ZINDEX });
 
     abstract update(visible: boolean): void;
 
     calculatePadding() {}
+
+    protected setSectorNodeProps(node: _Scene.Path | _Scene.Sector) {
+        node.fill = this.fill;
+        node.fillOpacity = this.fillOpacity ?? 1;
+        node.stroke = this.stroke;
+        node.strokeOpacity = this.strokeOpacity ?? 1;
+        node.strokeWidth = this.strokeWidth ?? 1;
+        node.lineDash = this.lineDash;
+    }
 
     protected setLabelNodeProps(
         node: _Scene.Text,
