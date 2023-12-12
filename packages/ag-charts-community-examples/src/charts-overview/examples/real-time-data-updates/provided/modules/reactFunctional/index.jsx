@@ -62,7 +62,6 @@ const ChartExample = () => {
   const updateData = useCallback(() => {
     const clone = { ...options }
 
-    var now = Date.now()
     clone.data = getData()
 
     setOptions(clone)

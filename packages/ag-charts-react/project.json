@@ -27,7 +27,11 @@
             "input": ".",
             "output": "."
           },
-          { "glob": "packages/ag-charts-react/LICENSE.txt", "input": ".", "output": "." }
+          {
+            "glob": "packages/ag-charts-react/LICENSE.txt",
+            "input": ".",
+            "output": "."
+          }
         ],
         "format": ["cjs", "esm"]
       }
@@ -36,14 +40,7 @@
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
       "options": {
-        "jestConfig": "packages/ag-charts-react/jest.config.ts",
-        "passWithNoTests": true
-      },
-      "configurations": {
-        "ci": {
-          "ci": true,
-          "codeCoverage": true
-        }
+        "jestConfig": "packages/ag-charts-react/jest.config.ts"
       }
     },
     "pack": {

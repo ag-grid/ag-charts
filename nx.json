@@ -52,16 +52,25 @@
       "inputs": ["default", "production", "^production", "{workspaceRoot}/jest.preset.js"],
       "cache": true
     },
-    "check": {
-      "inputs": ["production", "^production"],
-      "cache": true
-    },
     "e2e": {
       "inputs": ["default", "^production"],
       "cache": true
     },
     "pack": {
       "cache": true
+    },
+    "@nx/jest:jest": {
+      "inputs": ["default", "production", "^production", "{workspaceRoot}/jest.preset.js"],
+      "cache": true,
+      "options": {
+        "passWithNoTests": true
+      },
+      "configurations": {
+        "ci": {
+          "ci": true,
+          "codeCoverage": true
+        }
+      }
     }
   },
   "workspaceLayout": {
