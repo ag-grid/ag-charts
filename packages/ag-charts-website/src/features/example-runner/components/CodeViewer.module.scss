@@ -122,7 +122,10 @@
         --file-border-color: var(--color-border-primary);
 
         color: var(--text-color);
-        background-color: var(--color-bg-primary);
+
+        #{$selector-darkmode} & {
+            background-color: var(--color-bg-secondary);
+        }
     }
 }
 

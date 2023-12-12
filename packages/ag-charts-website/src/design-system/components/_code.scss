@@ -281,7 +281,7 @@ code[class*='language-css'] {
     border-right: 1px solid var(--color-util-brand-100);
 
     #{$selector-darkmode} & {
-        border-right-color: var(--neutral-300);
+        border-right-color: var(--color-border-secondary);
     }
 }
 
