@@ -8,7 +8,7 @@
     margin-bottom: $spacing-size-2;
 
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
-        line-height: var(--line-height-ultra-tight);
+        line-height: var(--text-lh-ultra-tight);
     }
 
     > span {
