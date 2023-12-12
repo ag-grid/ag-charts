@@ -35,18 +35,14 @@ export const Footer = ({ path, footerItems }: FooterProps) => (
                 <MenuColumns footerItems={footerItems} />
             </div>
             <div className={styles.row}>
-                <p className="font-size-small">
-                    AG Grid Ltd registered in the United Kingdom. Company&nbsp;No.&nbsp;07318192.
-                </p>
-                <p className="font-size-small">&copy; AG Grid Ltd. 2015-{new Date().getFullYear()}</p>
+                <p className="text-sm">AG Grid Ltd registered in the United Kingdom. Company&nbsp;No.&nbsp;07318192.</p>
+                <p className="text-sm">&copy; AG Grid Ltd. 2015-{new Date().getFullYear()}</p>
             </div>
 
             {/* Only show customer logo trademark info on homepage */}
             {(path === SITE_BASE_URL || path === undefined) && (
                 <div className={classNames(styles.row, styles.trademarks)}>
-                    <p className="font-size-small">
-                        The Microsoft logo is a trademark of the Microsoft group of companies.
-                    </p>
+                    <p className="text-sm">The Microsoft logo is a trademark of the Microsoft group of companies.</p>
                 </div>
             )}
         </div>

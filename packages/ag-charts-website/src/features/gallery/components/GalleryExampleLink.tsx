@@ -18,7 +18,7 @@ export const GalleryExampleLink: FunctionComponent<Props> = ({ label, exampleNam
                 styles.link,
                 'galleryExample',
                 styles[`layout-${layout}`],
-                'font-size-small',
+                'text-sm',
                 'text-secondary',
                 {
                     [styles.onlyShowOnLargeScreen]: onlyShowOnLargeScreen,

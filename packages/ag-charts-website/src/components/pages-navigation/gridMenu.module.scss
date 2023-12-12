@@ -13,7 +13,7 @@
         margin-bottom: $spacing-size-4;
         padding: 2px 10px;
         text-decoration: none;
-        font-size: var(--font-size-small);
+        font-size: var(----text-fs-sm);
         color: var(--color-link-hover);
         border-radius: 24px;
         border: 1px solid var(--color-link-hover);
@@ -161,8 +161,8 @@ button:not([class^='ag-']).sectionHeader {
     --first-indent-size: 12px;
     --indent-size: 20px;
 
-    line-height: var(--text-lh-tight);
-    font-size: var(--text-fs-sm);
+    line-height: var(--line-height-tight);
+    font-size: var(----text-fs-sm);
 
     ul a,
     ul .groupLabel {
