@@ -2,6 +2,7 @@ import markdoc from '@astrojs/markdoc';
 import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import { defineConfig } from 'astro/config';
+import dotenvExpand from 'dotenv-expand';
 import { loadEnv } from 'vite';
 import mkcert from 'vite-plugin-mkcert';
 import svgr from 'vite-plugin-svgr';
@@ -13,15 +14,22 @@ import { getSitemapConfig } from './src/utils/sitemap';
 const { NODE_ENV } = process.env;
 
 const DEFAULT_BASE_URL = '/';
+const dotenv = {
+    parsed: loadEnv(NODE_ENV, process.cwd(), ''),
+};
 const {
+    PORT,
     PUBLIC_SITE_URL,
     PUBLIC_BASE_URL = DEFAULT_BASE_URL,
     PUBLIC_HTTPS_SERVER = '1',
-} = loadEnv(NODE_ENV, process.cwd(), '');
+} = dotenvExpand.expand(dotenv).parsed;
 
 const OUTPUT_DIR = '../../dist/packages/ag-charts-website';
 
-console.log('Astro configuration', JSON.stringify({ NODE_ENV, PUBLIC_SITE_URL, PUBLIC_BASE_URL, OUTPUT_DIR }, null, 2));
+console.log(
+    'Astro configuration',
+    JSON.stringify({ NODE_ENV, PORT, PUBLIC_SITE_URL, PUBLIC_BASE_URL, OUTPUT_DIR }, null, 2)
+);
 
 // https://astro.build/config
 export default defineConfig({
