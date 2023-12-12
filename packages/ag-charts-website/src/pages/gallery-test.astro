@@ -108,7 +108,6 @@ const { series } = galleryData;
     }
 
     .menu a {
-        --text-color: var(--color-fg-secondary); // only applies to the icon?
         --icon-size: 1.75em;
 
         display: flex;
@@ -116,15 +115,9 @@ const { series } = galleryData;
         color: var(--color-fg-secondary);
         padding: 2px;
 
-        :global(.icon) {
-            fill: color-mix(in srgb, var(--text-color) 75%, transparent);
-            transition: fill $transition-default-timing;
-        }
-
         &:hover,
         &:global(.active) {
-            --text-color: var(--color-link-hover);
-
+            color: var(--color-link-hover);
             background: rgba(56, 146, 249, 0.06);
 
             .seriesIcon {
@@ -199,42 +192,6 @@ const { series } = galleryData;
     .gallery-list-title {
         position: absolute;
         visibility: hidden;
-    }
-</style>
-
-<!-- Used to create images for the homepage scrolling gallery hero section -->
-<style lang="scss">
-    @use '../design-system' as *;
-
-    .homepage-image-gen {
-        background-color: var(--color-util-brand-700) !important;
-
-        :global([data-dark-mode='true']) & {
-            background-color: transparent !important;
-        }
-
-        .chart-type,
-        .gallery-list {
-            display: contents;
-        }
-
-        .content {
-            max-width: 1400px;
-        }
-
-        .content > div {
-            display: flex;
-            flex-wrap: wrap;
-            gap: $spacing-size-6;
-        }
-
-        :global(.galleryExample) {
-            background-color: var(--color-bg-primary);
-        }
-
-        :global(.galleryExample span) {
-            display: none !important;
-        }
     }
 </style>
 

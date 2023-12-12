@@ -96,7 +96,6 @@
     transition: color $transition-default-timing;
 
     svg {
-        --text-color: var(--color-link);
         --icon-size: 1em;
 
         fill: var(--color-link);

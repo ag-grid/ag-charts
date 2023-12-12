@@ -17,11 +17,11 @@
     }
 
     button {
-        --text-color: var(--color-link);
+        --color-icon: var(--color-link);
         --icon-size: 1.5em;
 
         &:hover {
-            --text-color: var(--color-link-hover);
+            --color-icon: var(--color-link-hover);
         }
     }
 
