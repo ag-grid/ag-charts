@@ -1,3 +1,11 @@
+// @todo(AG-10085): Improve types for this
+export type NumericTicks = number[] & {
+    fractionDigits: number;
+};
+
+export const createNumericTicks = (fractionDigits: number, takingValues: number[] = []): NumericTicks =>
+    Object.assign(takingValues, { fractionDigits });
+
 export default function (
     start: number,
     stop: number,
@@ -10,7 +18,7 @@ export default function (
     }
     const step = tickStep(start, stop, count, minCount, maxCount);
     if (isNaN(step)) {
-        return new NumericTicks(0);
+        return createNumericTicks(0);
     }
     start = Math.ceil(start / step) * step;
     stop = Math.floor(stop / step) * step;
@@ -64,20 +72,6 @@ export function singleTickDomain(a: number, b: number): number[] {
         .sort((a, b) => a.error - b.error)[0].domain;
 }
 
-export class NumericTicks extends Array<number> {
-    readonly fractionDigits: number;
-
-    constructor(fractionDigits: number, elements?: Array<number>) {
-        super();
-        if (elements) {
-            for (let i = 0, n = elements.length; i < n; i++) {
-                this[i] = elements[i];
-            }
-        }
-        this.fractionDigits = fractionDigits;
-    }
-}
-
 export function range(start: number, stop: number, step: number): NumericTicks {
     const countDigits = (expNo: string) => {
         const parts = expNo.split('e');
@@ -90,7 +84,7 @@ export function range(start: number, stop: number, step: number): NumericTicks {
     const fractionalDigits = countDigits((step % 1).toExponential());
     const f = Math.pow(10, fractionalDigits);
     const n = Math.ceil((d1 - d0) / step);
-    const values = new NumericTicks(fractionalDigits);
+    const values = createNumericTicks(fractionalDigits);
 
     for (let i = 0; i <= n; i++) {
         const value = d0 + step * i;

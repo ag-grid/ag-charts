@@ -1,4 +1,4 @@
-import type { AgAxisBaseTickOptions, AgBaseAxisLabelOptions } from '../agChartOptions';
+import type { AgAxisLabelFormatterParams, AgBaseAxisLabelOptions } from '../agChartOptions';
 import type { AgChartLegendPosition } from './legendOptions';
 import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, PixelSize } from './types';
 
@@ -6,15 +6,36 @@ export interface AgGradientLegendLabelFormatterParams {
     value: string;
 }
 
-export interface AgGradientLegendIntervalOptions extends AgAxisBaseTickOptions {
+export interface AgGradientLegendIntervalOptions {
+    /** Maximum gap in pixels between tick lines. */
+    minSpacing?: PixelSize;
     /** Maximum gap in pixels between tick lines. */
     maxSpacing?: PixelSize;
     /** The step value between ticks specified as a number. If the configured interval results in too many ticks given the chart size, it will be ignored. */
     step?: number;
 }
 
+export interface AgGradientLegendLabelOptions {
+    /** Set to `false` to hide the scale labels. */
+    enabled?: boolean;
+    /** The font style to use for the labels. */
+    fontStyle?: FontStyle;
+    /** The font weight to use for the labels. */
+    fontWeight?: FontWeight;
+    /** The font size in pixels to use for the labels. */
+    fontSize?: FontSize;
+    /** The font family to use for the labels */
+    fontFamily?: FontFamily;
+    /** The colour to use for the labels */
+    color?: CssColor;
+    /** Format string used when rendering labels. */
+    format?: string;
+    /** Function used to render scale labels. If `value` is a number, `fractionDigits` will also be provided, which indicates the number of fractional digits used in the step between ticks; for example, a tick step of `0.0005` would have `fractionDigits` set to `4` */
+    formatter?: (params: AgAxisLabelFormatterParams) => string | undefined;
+}
+
 export interface AgGradientLegendScaleOptions {
-    /** Options for the labels on the axis. */
+    /** Options for the labels on the scale. */
     label?: AgBaseAxisLabelOptions;
     /** Distance between the gradient box and the labels. */
     padding?: PixelSize;
@@ -35,7 +56,7 @@ export interface AgGradientLegendOptions {
      * @deprecated Use `scale` instead.
      * Configuration for the legend gradient stops that consist of a color and a label.
      */
-    stop?: AgGradientLegendStopOptions;
+    stop?: AgGradientLegendScaleOptions;
     /** Reverse the display order of legend items if `true`. */
     reverseOrder?: boolean;
     /** Options for the numbers that appear below or to the side of the gradient. */
@@ -47,28 +68,4 @@ export interface AgGradientLegendBarOptions {
     preferredLength?: PixelSize;
     /** The thickness of the gradient bar (width for vertical or height for horizontal layout). */
     thickness?: PixelSize;
-}
-
-export interface AgGradientLegendLabelOptions {
-    /** If the label text exceeds the maximum length, it will be truncated and an ellipsis will be appended to indicate this. */
-    maxLength?: number;
-    /** The colour of the text. */
-    color?: CssColor;
-    /** The font style to use for the legend. */
-    fontStyle?: FontStyle;
-    /** The font weight to use for the legend. */
-    fontWeight?: FontWeight;
-    /** The font size in pixels to use for the legend. */
-    fontSize?: FontSize;
-    /** The font family to use for the legend. */
-    fontFamily?: FontFamily;
-    /** Function used to render legend labels. Where `id` is a series ID, `itemId` is component ID within a series, such as a field name or an item index. */
-    formatter?: (params: AgGradientLegendLabelFormatterParams) => string;
-}
-
-export interface AgGradientLegendStopOptions {
-    /** Configuration for the legend labels. */
-    label?: AgGradientLegendLabelOptions;
-    /** The spacing in pixels to use between gradient and labels. */
-    padding?: PixelSize;
 }

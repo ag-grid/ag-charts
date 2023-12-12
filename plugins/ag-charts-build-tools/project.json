@@ -16,7 +16,7 @@
           "plugins/ag-charts-build-tools/*.md",
           {
             "input": "./plugins/ag-charts-build-tools/src",
-            "glob": "**/!(*.ts)",
+            "glob": "**/!(*.ts|*.snap)",
             "output": "./src"
           },
           {
@@ -55,6 +55,9 @@
         "ci": {
           "ci": true,
           "codeCoverage": true
+        },
+        "update": {
+          "updateSnapshot": true
         }
       }
     }

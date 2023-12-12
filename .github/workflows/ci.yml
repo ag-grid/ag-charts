@@ -83,9 +83,8 @@ jobs:
                   cache: ${{ steps.cache.outputs.cache-hit != 'true' && 'yarn' || '' }}
 
             - name: yarn install
-              # if: steps.cache.outputs.cache-hit != 'true'
               id: yarn_install
-              run: yarn install --ci --prefer-offline
+              run: yarn check --integrity || yarn install --ci --prefer-offline
 
             - name: nx format:check
               id: format
@@ -161,6 +160,9 @@ jobs:
                   path: .nx/cache
                   key: cache-nx-v17-${{ hashFiles('yarn.lock','patches/*.patch') }}-${{ github.sha }}
                   restore-keys: cache-nx-v17-${{ hashFiles('yarn.lock','patches/*.patch') }}-
+            - name: yarn install
+              id: yarn_install
+              run: yarn check --integrity || yarn install --ci --prefer-offline
             - name: nx test
               id: test
               run: yarn nx affected --base ${{ needs.execute_blt.outputs.nx_base }} -t test --configuration=ci --exclude all --shard=${{ matrix.shard }}/${{ strategy.job-total }}

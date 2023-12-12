@@ -9,6 +9,7 @@ import type {
     TypeLiteralNode,
     TypeNode,
 } from './api-reference-types';
+import hiddenApiOptions from './hidden-api-options.json';
 
 type PossibleTypeNode = TypeNode | undefined | PossibleTypeNode[];
 
@@ -377,15 +378,9 @@ export function patchAgChartOptionsReference(reference: ApiReferenceType) {
         }),
     };
 
-    removeMembersFromInterface(reference.get('AgCategoryAxisOptions'), ['keys']);
-    removeMembersFromInterface(reference.get('AgNumberAxisOptions'), ['keys']);
-    removeMembersFromInterface(reference.get('AgTimeAxisOptions'), ['keys']);
-    removeMembersFromInterface(reference.get('AgLogAxisOptions'), ['keys']);
-    removeMembersFromInterface(reference.get('AgHeatmapSeriesOptions'), ['showInLegend']);
-    removeMembersFromInterface(reference.get('AgSunburstSeriesOptions'), ['showInLegend']);
-    removeMembersFromInterface(reference.get('AgSunburstSeriesHighlightStyle'), ['item', 'series']);
-    removeMembersFromInterface(reference.get('AgTreemapSeriesOptions'), ['showInLegend']);
-    removeMembersFromInterface(reference.get('AgTreemapSeriesHighlightStyle'), ['item', 'series']);
+    for (const [interfaceName, hiddenKeys] of Object.entries(hiddenApiOptions)) {
+        removeMembersFromInterface(reference.get(interfaceName), hiddenKeys);
+    }
 
     reference.set('AgChartOptions', altInterface);
 }

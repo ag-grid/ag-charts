@@ -9,7 +9,6 @@ export const GRADIENT_LEGEND_THEME: AgGradientLegendOptions = {
     scale: {
         padding: 8,
         label: {
-            padding: 0,
             color: _Theme.DEFAULT_LABEL_COLOUR,
             fontStyle: undefined,
             fontWeight: undefined,

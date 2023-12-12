@@ -6,6 +6,7 @@ import { FRAMEWORKS } from '../constants';
 const docs = defineCollection({
     schema: z.object({
         title: z.string(),
+        description: z.string().optional(),
         enterprise: z.boolean().optional(),
         /**
          * Hide right hand side menu
