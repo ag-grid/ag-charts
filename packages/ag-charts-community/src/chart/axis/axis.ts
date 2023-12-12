@@ -34,7 +34,7 @@ import type { PointLabelDatum } from '../../util/labelPlacement';
 import { axisLabelsOverlap } from '../../util/labelPlacement';
 import { Logger } from '../../util/logger';
 import { clamp, round } from '../../util/number';
-import { BOOLEAN, OPT_BOOLEAN, STRING_ARRAY, Validate } from '../../util/validation';
+import { BOOLEAN, STRING_ARRAY, Validate } from '../../util/validation';
 import { Caption } from '../caption';
 import type { ChartAxis, ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
@@ -164,7 +164,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     nice: boolean = true;
 
     /** Reverse the axis scale domain if `true`. */
-    @Validate(OPT_BOOLEAN)
+    @Validate(BOOLEAN, { optional: true })
     reverse?: boolean = undefined;
 
     dataDomain: { domain: D[]; clipped: boolean } = { domain: [], clipped: false };
