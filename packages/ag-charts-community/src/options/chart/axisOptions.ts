@@ -41,6 +41,8 @@ export interface AgBaseAxisOptions<LabelType = AgBaseAxisLabelOptions> {
     /** Axis type identifier. */
     type: string;
     keys?: string[];
+    /** Reverse the axis scale domain if `true`. */
+    reverse?: boolean;
     /** Configuration for the axis line. */
     line?: AgAxisLineOptions;
     /** Configuration for the axis grid lines. */

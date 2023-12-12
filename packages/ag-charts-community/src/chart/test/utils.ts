@@ -6,6 +6,8 @@ import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 import pixelmatch from 'pixelmatch';
 import { PNG } from 'pngjs';
 
+import { mockCanvas } from 'ag-charts-test';
+
 import { AgCharts, _ModuleSupport } from '../../main';
 import type {
     AgCartesianChartOptions,
@@ -16,7 +18,6 @@ import type {
 } from '../../options/agChartOptions';
 import type { Chart } from '../chart';
 import type { AgChartProxy } from '../chartProxy';
-import * as mockCanvas from './mock-canvas';
 
 const { Animation, AnimationManager, resetIds } = _ModuleSupport;
 

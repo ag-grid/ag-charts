@@ -1,5 +1,4 @@
 import { OpenInCTA } from '@components/open-in-cta/OpenInCTA';
-import { removeGeneratedAstroTags } from '@features/example-runner/utils/removeGeneratedAstroTags';
 import type { FileContents } from '@features/examples-generator/types';
 import type { FunctionComponent } from 'react';
 
@@ -27,11 +26,10 @@ export const OpenInPlunkr: FunctionComponent<Props> = ({
             onClick={async () => {
                 console.log(plunkrHtmlUrl);
                 const html = await fetchTextFile(plunkrHtmlUrl);
-                const plunkrHtml = removeGeneratedAstroTags(html);
                 const plunkrExampleFiles = {
                     ...files,
                     ...boilerPlateFiles,
-                    'index.html': plunkrHtml,
+                    'index.html': html,
                 };
                 openPlunker({
                     title,

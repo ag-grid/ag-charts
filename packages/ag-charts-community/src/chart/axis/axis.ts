@@ -34,7 +34,7 @@ import type { PointLabelDatum } from '../../util/labelPlacement';
 import { axisLabelsOverlap } from '../../util/labelPlacement';
 import { Logger } from '../../util/logger';
 import { clamp, round } from '../../util/number';
-import { BOOLEAN, STRING_ARRAY, Validate } from '../../util/validation';
+import { BOOLEAN, OPT_BOOLEAN, STRING_ARRAY, Validate } from '../../util/validation';
 import { Caption } from '../caption';
 import type { ChartAxis, ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
@@ -162,6 +162,10 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     @Validate(BOOLEAN)
     nice: boolean = true;
+
+    /** Reverse the axis scale domain if `true`. */
+    @Validate(OPT_BOOLEAN)
+    reverse?: boolean = undefined;
 
     dataDomain: { domain: D[]; clipped: boolean } = { domain: [], clipped: false };
 
@@ -1228,7 +1232,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         } else {
             const visibleSeries = this.boundSeries.filter((s) => this.includeInvisibleDomains || s.isEnabled());
             const domains = visibleSeries.flatMap((series) => series.getDomain(this.direction));
-            this.dataDomain = this.normaliseDataDomain(domains);
+            const { domain, clipped } = this.normaliseDataDomain(domains);
+            this.dataDomain = { domain: this.reverse ? [...domain].reverse() : domain, clipped };
         }
     }
 
