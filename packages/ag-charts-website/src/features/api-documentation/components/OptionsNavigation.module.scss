@@ -137,11 +137,6 @@
             opacity: 0.15;
             pointer-events: none;
         }
-
-        #{$selector-darkmode} & {
-            --highlight-color: var(--property-color);
-            --highlight-opacity: 0.16;
-        }
     }
 }
 
@@ -250,7 +245,7 @@
         color: var(--color-util-brand-700);
 
         #{$selector-darkmode} & {
-            color: var(--primary-500);
+            color: var(--color-util-brand-400);
         }
     }
 
@@ -258,7 +253,7 @@
         background-color: var(--color-util-brand-100);
 
         #{$selector-darkmode} & {
-            background-color: var(--color-util-brand-100);
+            background-color: var(--background-400);
         }
     }
 }
