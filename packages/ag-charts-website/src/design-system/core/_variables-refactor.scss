@@ -169,6 +169,11 @@ $transition-default-timing: 0.25s ease-in-out;
     --color-fg-white: var(--color-white);
     --color-fg-code: #e83e8d; // TODO, review & replace color
 
+    // Text colors
+    --color-text-primary: var(--color-gray-900);
+    --color-text-secondary: var(--color-gray-700);
+    --color-text-tertiary: var(--color-gray-600);
+
     // Border colors
     --color-border-primary: var(--color-gray-300);
     --color-border-secondary: var(--color-gray-200);
@@ -272,6 +277,11 @@ html[data-dark-mode='true'] {
     --color-fg-disabled: var(--color-gray-500);
     --color-fg-white: var(--color-white);
     --color-fg-code: #f64f76; // TODO, review & replace color
+
+    // Text colors
+    --color-text-primary: var(--color-gray-50);
+    --color-text-secondary: var(--color-gray-300);
+    --color-text-tertiary: var(--color-gray-400);
 
     // Border colors
     --color-border-primary: var(--color-gray-700);
