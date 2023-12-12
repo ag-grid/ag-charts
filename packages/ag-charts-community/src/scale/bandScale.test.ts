@@ -51,6 +51,16 @@ test('inner padding', () => {
     expect(scale.convert('E')).toBe(500);
 });
 
+test('inner padding with single value', () => {
+    const scale = new BandScale();
+
+    scale.domain = ['A'];
+    scale.range = [0, 500];
+    scale.paddingInner = 0.5;
+
+    expect(scale.convert('A')).toBe(0);
+});
+
 test('outer padding', () => {
     const scale = new BandScale();
 
@@ -63,6 +73,16 @@ test('outer padding', () => {
     expect(scale.convert('C')).toBe(201.171875);
     expect(scale.convert('D')).toBe(298.828125);
     expect(scale.convert('E')).toBe(396.484375);
+});
+
+test('outer padding with single value', () => {
+    const scale = new BandScale();
+
+    scale.domain = ['A'];
+    scale.range = [0, 500];
+    scale.paddingOuter = 0.5;
+
+    expect(scale.convert('A')).toBe(250);
 });
 
 test('padding', () => {
