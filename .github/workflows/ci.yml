@@ -81,11 +81,14 @@ jobs:
               uses: actions/setup-node@v4
               with:
                   node-version: '18'
-                  cache: 'yarn'
+                  cache: ${{ steps.cache.outputs.cache-hit != 'true' && 'yarn' || '' }}
             - name: yarn install
+              if: steps.cache.outputs.cache-hit != 'true'
               id: yarn_install
               run: yarn check --integrity || yarn install --ci --prefer-offline
-
+            - name: yarn postinstall
+              if: steps.cache.outputs.cache-hit == 'true'
+              run: npx nx build ag-charts-build-tools
             - name: nx format:check
               id: format
               if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
@@ -165,10 +168,14 @@ jobs:
               uses: actions/setup-node@v4
               with:
                   node-version: '18'
-                  cache: 'yarn'
+                  cache: ${{ steps.cache.outputs.cache-hit != 'true' && 'yarn' || '' }}
             - name: yarn install
+              if: steps.cache.outputs.cache-hit != 'true'
               id: yarn_install
               run: yarn check --integrity || yarn install --ci --prefer-offline
+            - name: yarn postinstall
+              if: steps.cache.outputs.cache-hit == 'true'
+              run: npx nx build ag-charts-build-tools
             - name: nx test
               id: test
               run: yarn nx affected --base ${{ needs.execute_blt.outputs.nx_base }} -t test --configuration=ci --exclude all --shard=${{ matrix.shard }}/${{ strategy.job-total }}
