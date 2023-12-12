@@ -78,7 +78,7 @@
 :global(.ot-sdk-cookie-policy) {
     * {
         font-family: var(--text-font-family) !important;
-        font-size: var(--font-size) !important;
+        font-size: var(--text-fs-base) !important;
         line-height: var(--line-height) !important;
         font-weight: var(--text-regular) !important;
         color: var(--color-text-primary) !important;
@@ -132,7 +132,7 @@
 :global(.ot-sdk-show-settings) {
     appearance: none !important;
     display: inline-block;
-    font-size: var(--font-size) !important;
+    font-size: var(--text-fs-base) !important;
     padding: 0.5em 1em !important;
     letter-spacing: 0.025em !important;
     border-radius: var(--radius-sm) !important;

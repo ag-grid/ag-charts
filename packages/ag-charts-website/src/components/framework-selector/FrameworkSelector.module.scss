@@ -50,7 +50,7 @@
     span {
         display: none;
         margin-left: 4px;
-        font-size: var(--font-size);
+        font-size: var(--text-fs-base);
         transition: opacity $transition-default-timing;
     }
 
@@ -142,7 +142,8 @@
     @media screen and (min-width: $breakpoint-fw-selector-full-width-large) {
         --height: #{$spacing-size-16};
         --icon-size: #{$spacing-size-10};
-        --font-size: var(--text-fs-xl);
+
+        font-size: var(--text-fs-xl);
     }
 
     border: 1px solid transparent;
