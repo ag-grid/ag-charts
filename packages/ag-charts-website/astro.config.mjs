@@ -42,7 +42,7 @@ export default defineConfig({
             conditions: ['require'],
         },
         optimizeDeps: {
-            exclude: ['ag-charts-community', 'ag-charts-enterprise'],
+            exclude: ['ag-charts-community', 'ag-charts-enterprise', 'fsevents'],
         },
         server: {
             https: !['0', 'false'].includes(PUBLIC_HTTPS_SERVER),
