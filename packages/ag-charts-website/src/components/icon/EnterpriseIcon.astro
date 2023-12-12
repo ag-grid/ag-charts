@@ -8,8 +8,6 @@ import { Icon } from '@components/icon/Icon';
     @use '../../design-system' as *;
 
     .enterpriseIcon {
-        --text-color: #dc3545;
-        --button-text-color: #dc3545;
         position: relative;
         margin-right: -$spacing-size-1;
         color: transparent;
@@ -20,6 +18,7 @@ import { Icon } from '@components/icon/Icon';
             position: absolute;
             left: 0;
             margin: 0;
+            fill: var(--color-enterprise-icon);
             transform: translate(-0.05em, 0.175em);
 
             .seriesTypesNav & {

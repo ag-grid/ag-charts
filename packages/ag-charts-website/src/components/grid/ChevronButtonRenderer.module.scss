@@ -17,7 +17,7 @@
     -moz-border-radius: 32px; /* or 50% */
     border-radius: 32px; /* or 50% */
 
-    background: var(--button-color);
+    background: var(--color-link);
     color: white;
     text-align: center;
     font-size: 2em;
@@ -27,7 +27,7 @@
         transform 0.33s ease-in-out;
 
     &:hover {
-        background: var(--button-hover-color);
+        background: var(--color-link-hover);
     }
 
     &.isExpanded {

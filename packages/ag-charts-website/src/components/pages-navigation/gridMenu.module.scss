@@ -122,12 +122,8 @@ button:not([class^='ag-']).sectionHeader {
         border-color $transition-default-timing;
     border-radius: var(--radius-sm);
 
-    &:hover {
-        --text-color: var(--color-link);
-    }
-
     &:focus-visible {
-        border-color: var(--700);
+        border-color: var(--color-button-primary-shadow-focus);
     }
 
     &:hover .sectionIcon {
@@ -151,6 +147,7 @@ button:not([class^='ag-']).sectionHeader {
 
         position: relative;
         top: -1px;
+        fill: var(--color-fg-secondary);
         transition:
             transform 0.33s ease-in-out,
             fill $transition-default-timing;

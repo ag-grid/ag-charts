@@ -1,11 +1,6 @@
 @use '../../design-system/' as *;
 
 .showHideButton {
-    --button-text-color: var(--color-link);
-    --button-color: var(--background-500);
-    --button-active-color: var(--background-500);
-    --button-hover-color: var(--background-500);
-
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -14,14 +9,12 @@
     padding: $spacing-size-2 $spacing-size-2 $spacing-size-2 $spacing-size-4;
     text-align: left;
     font-weight: var(--text-bold);
+    color: var(--color-link);
+    background-color: transparent;
     transition: color $transition-default-timing !important;
 
     &:hover {
-        --button-text-color: var(--dark-blue-300);
-
-        #{$selector-darkmode} & {
-            --button-text-color: rgb(0, 123, 255);
-        }
+        color: var(--color-link-hover);
     }
 
     &:disabled {
@@ -38,7 +31,7 @@
     svg {
         width: 20px;
         height: 20px;
-        fill: var(--button-text-color);
+        fill: var(--color-link);
         transition:
             fill $transition-default-timing,
             transform $transition-default-timing;

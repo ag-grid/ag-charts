@@ -72,8 +72,6 @@
 }
 
 .enterpriseIcon {
-    --text-color: #dc3545;
-    --button-text-color: #dc3545;
     position: relative;
     margin-left: $spacing-size-1;
     color: transparent;
@@ -85,6 +83,7 @@
         left: 0;
         margin: 0;
         transform: translate(-0.05em, 0.175em);
+        fill: #dc3545;
 
         .seriesTypesNav & {
             transform: translate(-0.05em, 0.475em);
@@ -94,7 +93,6 @@
 
 button .menuIcon {
     --icon-size: 1.75em;
-    --button-text-color: var(--color-fg-secondary);
 
     bottom: 0.15em;
     margin-right: $spacing-size-1;
