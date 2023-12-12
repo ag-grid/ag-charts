@@ -90,9 +90,14 @@ export const getContentRootFileUrl = ({ isDev }: { isDev?: boolean } = {}): URL 
     return new URL(contentRoot, import.meta.url);
 };
 
-export const getExampleRootFileUrl = ({ isDev = getIsDev() }: { isDev?: boolean } = {}): URL => {
+export const getExampleRootFileUrl = (): URL => {
     const root = getRootUrl().pathname;
     return new URL(`${root}/dist/generated-examples/ag-charts-website/`, import.meta.url);
+};
+
+export const getThumbnailRootFileUrl = (): URL => {
+    const root = getRootUrl().pathname;
+    return new URL(`${root}/dist/generated-thumbnails/ag-charts-website/`, import.meta.url);
 };
 
 export const getDebugFolderUrl = ({ isDev }: { isDev?: boolean } = {}): URL => {

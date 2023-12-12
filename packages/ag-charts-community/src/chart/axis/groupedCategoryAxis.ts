@@ -144,8 +144,13 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
         const domain = new Array<any>().concat(...domains);
         const values = extent(domain) ?? domain;
 
-        this.dataDomain = this.normaliseDataDomain(values);
-        this.scale.domain = this.dataDomain.domain;
+        const { domain: normalisedDataDomain, clipped } = this.normaliseDataDomain(values);
+
+        this.dataDomain = {
+            domain: this.reverse ? [...normalisedDataDomain].reverse() : normalisedDataDomain,
+            clipped,
+        };
+        this.scale.domain = normalisedDataDomain;
     }
 
     override normaliseDataDomain(d: any[]) {

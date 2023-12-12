@@ -60,13 +60,13 @@ export class LinearScale extends ContinuousScale<number> {
             return;
         }
 
-        let start = Math.min(this.domain[0], this.domain[1]);
-        let stop = Math.max(this.domain[0], this.domain[1]);
-        const reversed = this.domain[1] < this.domain[0];
+        let [start, stop] = this.domain;
 
         if (count === 1) {
             [start, stop] = singleTickDomain(start, stop);
         } else {
+            const roundStart = start > stop ? Math.ceil : Math.floor;
+            const roundStop = stop < start ? Math.floor : Math.ceil;
             const maxAttempts = 4;
             for (let i = 0; i < maxAttempts; i++) {
                 const prev0 = start;
@@ -74,13 +74,13 @@ export class LinearScale extends ContinuousScale<number> {
                 const step = this.getTickStep(start, stop);
                 const [d0, d1] = this.domain;
                 if (step >= 1) {
-                    start = Math.floor(d0 / step) * step;
-                    stop = Math.ceil(d1 / step) * step;
+                    start = roundStart(d0 / step) * step;
+                    stop = roundStop(d1 / step) * step;
                 } else {
                     // Prevent floating point error
                     const s = 1 / step;
-                    start = Math.floor(d0 * s) / s;
-                    stop = Math.ceil(d1 * s) / s;
+                    start = roundStart(d0 * s) / s;
+                    stop = roundStop(d1 * s) / s;
                 }
                 if (start === prev0 && stop === prev1) {
                     break;
@@ -88,7 +88,7 @@ export class LinearScale extends ContinuousScale<number> {
             }
         }
 
-        this.niceDomain = reversed ? [stop, start] : [start, stop];
+        this.niceDomain = [start, stop];
     }
 
     tickFormat({ ticks, specifier }: { ticks?: any[]; specifier?: string }) {

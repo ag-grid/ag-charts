@@ -10,6 +10,12 @@
             "batchImplementation": "./src/executors/generate-example-files/batch-executor",
             "schema": "./src/executors/generate-example-files/schema.json",
             "description": "generate-example-files executor"
+        },
+        "generate-chart-thumbnail": {
+            "implementation": "./dist/src/executors/generate-chart-thumbnail/executor",
+            "batchImplementation": "./dist/src/executors/generate-chart-thumbnail/batch-executor",
+            "schema": "./src/executors/generate-chart-thumbnail/schema.json",
+            "description": "generate-chart-thumbnail executor"
         }
     }
 }

@@ -93,5 +93,3 @@ export const GRID_URL = SITE_URL
  * Skip generating the gallery images, to speed up the build process
  */
 export const SKIP_GALLERY_IMAGE_GENERATION = import.meta.env?.SKIP_GALLERY_IMAGE_GENERATION;
-
-export const THUMBNAIL_POOL_SIZE = Number(import.meta.env?.THUMBNAIL_POOL_SIZE ?? 10);

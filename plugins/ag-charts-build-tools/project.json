@@ -5,10 +5,11 @@
   "projectType": "library",
   "targets": {
     "build": {
-      "executor": "@nx/js:tsc",
+      "executor": "@nx/js:swc",
       "outputs": ["{options.outputPath}"],
+      "dependsOn": ["ag-charts-community:build:package", "ag-charts-enterprise:build:package"],
       "options": {
-        "outputPath": "dist/plugins/ag-charts-build-tools",
+        "outputPath": "plugins/ag-charts-build-tools/dist",
         "main": "plugins/ag-charts-build-tools/src/index.ts",
         "tsConfig": "plugins/ag-charts-build-tools/tsconfig.lib.json",
         "assets": [
@@ -40,11 +41,7 @@
       "executor": "@nx/eslint:lint",
       "outputs": ["{options.outputFile}"],
       "options": {
-        "lintFilePatterns": [
-          "plugins/ag-charts-build-tools/**/*.ts",
-          "plugins/ag-charts-build-tools/package.json",
-          "plugins/ag-charts-build-tools/executors.json"
-        ]
+        "lintFilePatterns": ["plugins/ag-charts-build-tools/**/*.ts", "plugins/ag-charts-build-tools/executors.json"]
       }
     },
     "test": {

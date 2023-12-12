@@ -10,7 +10,7 @@ on:
         branches: [latest]
 
 concurrency:
-    group: ${{ github.workflow }}-${{ github.event.number || github.event.head_commit.id }}
+    group: ${{ github.workflow }}-${{ github.ref }}
     cancel-in-progress: ${{ github.ref != 'refs/heads/latest' }}
 
 jobs:
@@ -83,7 +83,7 @@ jobs:
                   cache: ${{ steps.cache.outputs.cache-hit != 'true' && 'yarn' || '' }}
 
             - name: yarn install
-              if: steps.cache.outputs.cache-hit != 'true'
+              # if: steps.cache.outputs.cache-hit != 'true'
               id: yarn_install
               run: yarn install --ci --prefer-offline
 

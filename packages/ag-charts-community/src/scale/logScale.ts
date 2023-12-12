@@ -24,10 +24,12 @@ export class LogScale extends ContinuousScale<number> {
     base = 10;
 
     protected override transform(x: any) {
-        return this.domain[0] >= 0 ? Math.log(x) : -Math.log(-x);
+        const start = Math.min(this.domain[0], this.domain[1]);
+        return start >= 0 ? Math.log(x) : -Math.log(-x);
     }
     protected override transformInvert(x: any) {
-        return this.domain[0] >= 0 ? Math.exp(x) : -Math.exp(-x);
+        const start = Math.min(this.domain[0], this.domain[1]);
+        return start >= 0 ? Math.exp(x) : -Math.exp(-x);
     }
 
     protected override refresh(): void {
@@ -54,11 +56,14 @@ export class LogScale extends ContinuousScale<number> {
     private basePow: (x: number) => number = identity;
 
     private log = (x: number) => {
-        return this.domain[0] >= 0 ? this.baseLog(x) : -this.baseLog(-x);
+        const start = Math.min(this.domain[0], this.domain[1]);
+
+        return start >= 0 ? this.baseLog(x) : -this.baseLog(-x);
     };
 
     private pow = (x: number) => {
-        return this.domain[0] >= 0 ? this.basePow(x) : -this.basePow(-x);
+        const start = Math.min(this.domain[0], this.domain[1]);
+        return start >= 0 ? this.basePow(x) : -this.basePow(-x);
     };
 
     private updateLogFn() {
@@ -93,8 +98,11 @@ export class LogScale extends ContinuousScale<number> {
     protected updateNiceDomain() {
         const [d0, d1] = this.domain;
 
-        const n0 = this.pow(Math.floor(this.log(d0)));
-        const n1 = this.pow(Math.ceil(this.log(d1)));
+        const roundStart = d0 > d1 ? Math.ceil : Math.floor;
+        const roundStop = d1 < d0 ? Math.floor : Math.ceil;
+
+        const n0 = this.pow(roundStart(this.log(d0)));
+        const n1 = this.pow(roundStop(this.log(d1)));
         this.niceDomain = [n0, n1];
     }
 
@@ -111,17 +119,20 @@ export class LogScale extends ContinuousScale<number> {
         const base = this.base;
         const [d0, d1] = this.getDomain();
 
-        let p0 = this.log(d0);
-        let p1 = this.log(d1);
+        const start = Math.min(d0, d1);
+        const stop = Math.max(d0, d1);
+
+        let p0 = this.log(start);
+        let p1 = this.log(stop);
 
         if (this.interval) {
             const step = Math.abs(this.interval);
             const absDiff = Math.abs(p1 - p0);
             const ticks = range(p0, p1, Math.min(absDiff, step))
                 .map((x) => this.pow(x))
-                .filter((t) => t >= d0 && t <= d1);
+                .filter((t) => t >= start && t <= stop);
 
-            if (!this.isDenseInterval({ start: d0, stop: d1, interval: step, count: ticks.length })) {
+            if (!this.isDenseInterval({ start, stop, interval: step, count: ticks.length })) {
                 return ticks;
             }
         }
@@ -135,7 +146,7 @@ export class LogScale extends ContinuousScale<number> {
         }
 
         const ticks: number[] = [];
-        const isPositive = d0 > 0;
+        const isPositive = start > 0;
         p0 = Math.floor(p0) - 1;
         p1 = Math.round(p1) + 1;
 
@@ -153,7 +164,7 @@ export class LogScale extends ContinuousScale<number> {
                 const prevSpacing = Math.abs(lastTickPosition - tickPosition);
                 const nextSpacing = Math.abs(tickPosition - nextMagnitudeTickPosition);
                 const fits = prevSpacing >= availableSpacing && nextSpacing >= availableSpacing;
-                if (t >= d0 && t <= d1 && (k === 1 || fits)) {
+                if (t >= start && t <= stop && (k === 1 || fits)) {
                     ticks.push(t);
                     lastTickPosition = tickPosition;
                 }

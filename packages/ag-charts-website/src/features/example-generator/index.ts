@@ -1,11 +1,13 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
+import type { AgChartThemeName } from 'ag-charts-community';
+
 import { getIsDev } from '../../utils/env';
-import { getExampleRootFileUrl } from '../../utils/pages';
+import { getExampleRootFileUrl, getThumbnailRootFileUrl } from '../../utils/pages';
 import type { InternalFramework } from './types';
 
-type GeneratedExampleParams = ExampleParams & (GalleryExampleParams | DocsExampleParams);
+type GeneratedExampleParams = ExampleParams & (GalleryExampleParams | DocsExampleParams | ThumbnailParams);
 
 type ExampleParams = {
     exampleName: string;
@@ -22,18 +24,28 @@ type DocsExampleParams = {
     pageName: string;
 };
 
+type ThumbnailParams = {
+    type: 'gallery-thumbnail';
+    theme: AgChartThemeName;
+    format: 'png' | 'webp';
+};
+
 const getFolderPath = (params: GeneratedExampleParams) => {
     const { exampleName, ignoreDarkMode = false } = params;
-    const contentRoot = getExampleRootFileUrl();
 
-    const result = [contentRoot.pathname, params.type];
+    const contentRoot = params.type === 'gallery-thumbnail' ? getThumbnailRootFileUrl() : getExampleRootFileUrl();
+
+    const result = [contentRoot.pathname];
     const darkMode = ignoreDarkMode ? 'plain' : 'dark-mode';
     if (params.type === 'gallery') {
-        result.push('_examples', exampleName);
+        result.push(params.type, '_examples', exampleName);
         result.push(darkMode, 'vanilla');
-    } else {
-        result.push(params.pageName, '_examples', exampleName);
+    } else if (params.type === 'docs') {
+        result.push(params.type, params.pageName, '_examples', exampleName);
         result.push(darkMode, params.framework);
+    } else if (params.type === 'gallery-thumbnail') {
+        const type = params.type.split('-')[0];
+        result.push(type, '_examples', exampleName);
     }
 
     return path.join(...result);
@@ -43,6 +55,12 @@ const getContentJsonPath = (params: GeneratedExampleParams) => {
     const folderPath = getFolderPath(params);
 
     return path.join(folderPath, 'contents.json');
+};
+
+const getThumbnailPath = (params: ExampleParams & ThumbnailParams) => {
+    const folderPath = getFolderPath(params);
+
+    return path.join(folderPath, `${params.theme}.${params.format}`);
 };
 
 type GeneratedContents = {
@@ -88,4 +106,9 @@ export const getGeneratedContentsFileList = async (params: GeneratedExampleParam
 
 export const getGeneratedContents = async (params: GeneratedExampleParams) => {
     return readContentJson(params);
+};
+
+export const getThumbnailContents = async (params: ExampleParams & ThumbnailParams) => {
+    const imgPath = getThumbnailPath(params);
+    return await fs.readFile(imgPath);
 };
