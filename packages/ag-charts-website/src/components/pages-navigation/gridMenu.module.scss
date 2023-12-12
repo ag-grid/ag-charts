@@ -200,8 +200,8 @@ button:not([class^='ag-']).sectionHeader {
 }
 
 .menuGroup a {
-    --active-color: var(--color-util-brand-500);
-    --active-border: var(--color-util-brand-400);
+    --active-color: var(--primary-700);
+    --active-border: var(--primary-600);
     --hover-background: var(--color-util-brand-50);
     --active-background: var(--color-util-brand-50);
 

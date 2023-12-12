@@ -37,7 +37,7 @@ pre#{$selector-exclude-grid} {
     font-family: var(--text-monospace-font-family);
 
     #{$selector-darkmode} & {
-        background-color: var(--background-200);
+        background-color: var(--color-util-brand-50);
     }
 }
 
