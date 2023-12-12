@@ -120,7 +120,7 @@
     &.isActive {
         --file-border-color: var(--color-border-primary);
 
-        color: var(--text-color);
+        color: var(--color-text-primary);
 
         #{$selector-darkmode} & {
             background-color: var(--color-bg-secondary);

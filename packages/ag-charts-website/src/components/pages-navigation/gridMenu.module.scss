@@ -182,11 +182,7 @@ button:not([class^='ag-']).sectionHeader {
 
     .enterpriseIcon {
         --icon-size: 1.15em;
-        --text-color: var(--color-enterprise-icon);
-
-        #{$selector-darkmode} & {
-            --text-color: var(--active-color);
-        }
+        --color-icon: var(--color-enterprise-icon);
 
         position: relative;
         margin-left: 4px;
@@ -274,6 +270,6 @@ button:not([class^='ag-']).sectionHeader {
     }
 
     &.activeItemParent {
-        color: var(--text-color);
+        color: var(--color-text-primary);
     }
 }

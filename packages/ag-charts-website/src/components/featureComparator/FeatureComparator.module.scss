@@ -6,15 +6,15 @@
 
 .enterpriseIcon {
     --icon-size: #{$spacing-size-4};
-    --text-color: red;
+    --color-icon: var(--color-enterprise-icon);
 }
 
 .featureAvailableIcon {
-    --text-color: #28a745;
+    --color-icon: #28a745;
 }
 
 .featureNotAvailableIcon {
-    --text-color: #dc3545;
+    --color-icon: #dc3545;
 }
 
 .featureNotAvailableIcon,

@@ -71,15 +71,13 @@
     }
 
     .expandable {
-        --text-color: var(--color-link);
-
         outline: none;
         cursor: pointer;
 
         h3 {
             display: flex;
             align-items: center;
-            color: var(--text-color);
+            color: var(--color-link);
             transition: color $transition-default-timing;
         }
 
@@ -93,7 +91,7 @@
         }
 
         &:hover {
-            --text-color: var(--color-link-hover);
+            color: var(--color-link-hover);
         }
 
         &.expanded {

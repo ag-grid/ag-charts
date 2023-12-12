@@ -53,9 +53,7 @@
 
     h1,
     h2 {
-        --line-height: var(--line-height-tight);
-
-        color: var(--text-color);
+        line-height: var(--line-height-tight);
     }
 
     h1 {
