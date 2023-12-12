@@ -48,8 +48,8 @@ jobs:
             - name: Checkout
               id: checkout
               uses: actions/checkout@v3
-              with:
-                  fetch-depth: 0
+            - name: Fetch Refs
+              run: git fetch origin latest-success latest
             - name: Nx Affected SHA Setup
               id: nx_config
               run: |
@@ -58,6 +58,7 @@ jobs:
                   else
                     echo "base=origin/latest" >> $GITHUB_OUTPUT
                   fi
+                  git fetch origin latest-success latest
             - name: Cache node_modules
               id: cache
               uses: actions/cache@v3
@@ -65,8 +66,8 @@ jobs:
                   path: |
                       node_modules/
                       packages/*/node_modules/
-                      !node_modules/.cache/
-                      !packages/*/node_modules/.cache/
+                      plugins/*/node_modules/
+                      libraries/*/node_modules/
                   key: node_modules-${{hashFiles('yarn.lock','patches/*.patch')}}
                   restore-keys: node_modules- # Take any latest cache if failed to find it for current yarn.lock
             - name: Cache Nx
@@ -77,15 +78,17 @@ jobs:
                   restore-keys: cache-nx-v17-${{ hashFiles('yarn.lock','patches/*.patch') }}-
             - name: Setup Node.js
               id: setup_node
-              uses: actions/setup-node@v3
+              uses: actions/setup-node@v4
               with:
                   node-version: '18'
                   cache: ${{ steps.cache.outputs.cache-hit != 'true' && 'yarn' || '' }}
-
             - name: yarn install
+              if: steps.cache.outputs.cache-hit != 'true'
               id: yarn_install
               run: yarn check --integrity || yarn install --ci --prefer-offline
-
+            - name: yarn postinstall
+              if: steps.cache.outputs.cache-hit == 'true'
+              run: npx nx build ag-charts-build-tools
             - name: nx format:check
               id: format
               if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
@@ -141,8 +144,8 @@ jobs:
             - name: Checkout
               id: checkout
               uses: actions/checkout@v3
-              with:
-                  fetch-depth: 0
+            - name: Fetch Refs
+              run: git fetch origin latest-success latest
             - name: Cache node_modules
               id: cache
               uses: actions/cache@v3
@@ -150,8 +153,8 @@ jobs:
                   path: |
                       node_modules/
                       packages/*/node_modules/
-                      !node_modules/.cache/
-                      !packages/*/node_modules/.cache/
+                      plugins/*/node_modules/
+                      libraries/*/node_modules/
                   key: node_modules-${{hashFiles('yarn.lock','patches/*.patch')}}
                   restore-keys: node_modules- # Take any latest cache if failed to find it for current yarn.lock
             - name: Cache Nx
@@ -160,9 +163,19 @@ jobs:
                   path: .nx/cache
                   key: cache-nx-v17-${{ hashFiles('yarn.lock','patches/*.patch') }}-${{ github.sha }}
                   restore-keys: cache-nx-v17-${{ hashFiles('yarn.lock','patches/*.patch') }}-
+            - name: Setup Node.js
+              id: setup_node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '18'
+                  cache: ${{ steps.cache.outputs.cache-hit != 'true' && 'yarn' || '' }}
             - name: yarn install
+              if: steps.cache.outputs.cache-hit != 'true'
               id: yarn_install
               run: yarn check --integrity || yarn install --ci --prefer-offline
+            - name: yarn postinstall
+              if: steps.cache.outputs.cache-hit == 'true'
+              run: npx nx build ag-charts-build-tools
             - name: nx test
               id: test
               run: yarn nx affected --base ${{ needs.execute_blt.outputs.nx_base }} -t test --configuration=ci --exclude all --shard=${{ matrix.shard }}/${{ strategy.job-total }}
@@ -183,8 +196,8 @@ jobs:
             - name: Checkout
               id: checkout
               uses: actions/checkout@v3
-              with:
-                  fetch-depth: 0
+            - name: Fetch Refs
+              run: git fetch origin latest-success latest
 
             - uses: actions/download-artifact@v3
               with:
