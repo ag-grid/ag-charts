@@ -1,6 +1,6 @@
 {
   "extends": "../../tsconfig.base.json",
-  "include": ["./src/**/*.ts", "./src/**/*.tsx"],
+  "include": ["./src/**/*.ts", "./src/**/*.tsx", "plugins/agHotModuleReload.ts", "plugins/prism.ts"],
   "compilerOptions": {
     "baseUrl": ".",
 
