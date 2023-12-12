@@ -190,7 +190,7 @@ $transition-default-timing: 0.25s ease-in-out;
     --color-button-primary-bg-active: var(--color-brand-800);
     --color-button-primary-shadow-focus: var(--color-brand-200);
     --color-button-primary-fg: var(--color-fg-white);
-    --color-button-primary-border: transparent;
+    --color-button-primary-border: var(--color-brand-500);
 
     --color-button-secondary-bg: var(--color-bg-primary);
     --color-button-secondary-bg-hover: var(--color-bg-secondary);

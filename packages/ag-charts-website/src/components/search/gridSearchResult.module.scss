@@ -117,13 +117,12 @@
 }
 
 button:global(.ais-InfiniteHits-loadMore) {
-    --button-text-color: var(--color-link);
-
     width: 100%;
     padding: $spacing-size-1 !important;
     border-top-right-radius: 0;
     border-top-left-radius: 0;
     font-weight: var(--text-regular);
+    color: var(--color-link);
     box-shadow: none;
     transition: background-color $transition-default-timing;
 

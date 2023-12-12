@@ -76,17 +76,16 @@
 }
 
 .tabs-nav-link {
-    --button-text-color: var(--color-fg-secondary);
-
     position: relative;
     display: inline-block;
     padding: ($spacing-size-2 + $spacing-size-1) $spacing-size-1;
     line-height: var(--line-height-tight);
+    color: var(--color-fg-tertiary);
     transition: color $transition-default-timing;
     cursor: pointer;
 
     &:hover {
-        --button-text-color: var(--color-link);
+        color: var(--color-link);
     }
 
     &::after {

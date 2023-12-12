@@ -13,13 +13,6 @@ input[type='submit']#{$selector-exclude-grid},
 .button,
 .button-secondary,
 .button-tertiary {
-    --button-color: var(--color-button-primary-bg);
-    --button-hover-color: var(--color-button-primary-bg-hover);
-    --button-active-color: var(--color-button-primary-bg-active);
-    --button-text-color: var(--color-button-primary-fg);
-    --button-border-color: var(--color-button-primary-border);
-    --button-focus-box-shadow-color: var(--color-button-primary-shadow-focus);
-
     appearance: none;
     display: inline-block;
     font-size: var(--font-size);
@@ -27,12 +20,12 @@ input[type='submit']#{$selector-exclude-grid},
     padding: 0.375em 1em 0.5em;
     white-space: nowrap;
     border-radius: 6px;
-    background-color: var(--button-color);
-    color: var(--button-text-color);
+    background-color: var(--color-button-primary-bg);
+    color: var(--color-button-primary-fg);
+    border: 1px solid var(--color-button-primary-border);
+    box-shadow: 0 0 0 4px transparent;
     cursor: pointer;
     outline: none;
-    border: 1px solid var(--button-border-color);
-    box-shadow: 0 0 0 4px transparent;
     transition:
         background-color $transition-default-timing,
         border $transition-default-timing,
@@ -50,19 +43,15 @@ input[type='submit']#{$selector-exclude-grid},
 
     &:focus-visible,
     &.focus {
-        box-shadow: 0 0 0 4px var(--button-focus-box-shadow-color);
+        box-shadow: 0 0 0 4px var(--color-button-primary-shadow-focus);
     }
 
     &:disabled,
     &[disabled],
     &.disabled {
-        --button-color: var(--color-button-disabled-bg);
-        --button-hover-color: var(--color-button-disabled-bg);
-        --button-active-color: var(--color-button-disabled-bg);
-        --button-text-color: var(--color-button-disabled-fg);
-        --button-border-color: var(--color-button-disabled-border);
-        --button-focus-box-shadow-color: transparent;
-
+        background-color: var(--color-button-disabled-bg);
+        color: var(--color-button-disabled-fg);
+        border: 1px solid var(--color-button-disabled-border);
         pointer-events: none;
         cursor: default;
     }
@@ -74,25 +63,46 @@ input[type='submit']#{$selector-exclude-grid},
         position: relative;
         bottom: 0.05em;
         margin: -1em 0.125em -1em 0;
+        fill: var(--color-button-primary-fg);
     }
 }
 
 .button-secondary {
-    --button-color: var(--color-button-secondary-bg);
-    --button-hover-color: var(--color-button-secondary-bg-hover);
-    --button-active-color: var(--color-button-secondary-bg-active);
-    --button-text-color: var(--color-button-secondary-fg);
-    --button-border-color: var(--color-button-secondary-border);
-    --button-focus-box-shadow-color: var(--color-button-secondary-shadow-focus);
+    background-color: var(--color-button-secondary-bg);
+    color: var(--color-button-secondary-fg);
+    border: 1px solid var(--color-button-secondary-border);
+
+    &:hover,
+    &.hover {
+        background-color: var(--color-button-secondary-bg-hover);
+    }
+
+    &:active {
+        background-color: var(--color-button-secondary-bg-active);
+    }
+
+    .icon {
+        fill: var(--color-button-secondary-fg);
+    }
 }
 
 .button-tertiary {
-    --button-color: var(--color-button-tertiary-bg);
-    --button-hover-color: var(--color-button-tertiary-bg-hover);
-    --button-active-color: var(--color-button-tertiary-bg-active);
-    --button-text-color: var(--color-button-tertiary-fg);
-    --button-border-color: var(--color-button-tertiary-border);
-    --button-focus-box-shadow-color: var(--color-button-tertiary-shadow-focus);
+    background-color: var(--color-button-tertiary-bg);
+    color: var(--color-button-tertiary-fg);
+    border: 1px solid var(--color-button-tertiary-border);
+
+    &:hover,
+    &.hover {
+        background-color: var(--color-button-tertiary-bg-hover);
+    }
+
+    &:active {
+        background-color: var(--color-button-tertiary-bg-active);
+    }
+
+    .icon {
+        fill: var(--color-button-tertiary-fg);
+    }
 }
 
 .button-secondary,
@@ -100,38 +110,12 @@ input[type='submit']#{$selector-exclude-grid},
     &:disabled,
     &[disabled],
     &.disabled {
-        --button-color: var(--color-bg-primary);
-        --button-hover-color: var(--color-bg-primary);
-    }
-}
-
-// Transition all the .button-input into .button-secondary / .button-tertiary and remove.
-.button-input {
-    --button-color: var(--color-bg-primary);
-    --button-hover-color: var(--color-bg-primary);
-    --button-active-color: var(--color-bg-primary);
-    --button-text-color: var(--color-fg-primary);
-    --button-focus-box-shadow-color: var(--color-input-shadow-focus);
-
-    border: 2px solid var(--color-border-primary);
-    transition:
-        border-color $transition-default-timing,
-        box-shadow $transition-default-timing;
-
-    &:hover:not(:disabled):not([readonly]),
-    &:focus-visible:not(:disabled):not([readonly]) {
-        border-color: var(--color-input-border-hover);
-    }
-
-    &:focus-visible:not(:disabled):not([readonly]) {
-        box-shadow: 0 0 0 3px var(--color-input-shadow-focus);
+        color: var(--color-button-disabled-fg);
     }
 }
 
 .button-style-none,
 .button-as-link {
-    --button-text-color: var(--color-fg-primary);
-
     appearance: none;
     padding: 0;
     text-align: left;
@@ -141,9 +125,10 @@ input[type='submit']#{$selector-exclude-grid},
     box-shadow: none;
 
     &:hover,
-    &:active,
-    &.hover {
-        color: var(--button-text-color);
+    &.hover,
+    &:disabled,
+    &[disabled],
+    &.disabled {
         background-color: transparent;
         border: none;
     }
@@ -159,15 +144,11 @@ input[type='submit']#{$selector-exclude-grid},
 }
 
 .button-as-link {
-    --button-text-color: var(--color-link);
-    --text-color: var(--color-link);
-    --icon-size: 1.5em;
-
+    color: var(--color-link);
     transition: color $transition-default-timing;
 
     &:hover,
     &.hover {
-        --button-text-color: var(--color-link-hover);
-        --text-color: var(--color-link-hover);
+        color: var(--color-link-hover);
     }
 }
