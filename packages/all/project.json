@@ -62,10 +62,7 @@
       "options": {
         "parallel": true,
         "commands": [
-          "while true ; do nx watch -d -p ag-charts-community,ag-charts-enterprise -- nx run ag-charts-enterprise:build:package --configuration watch ; done",
-          "while true ; do nx watch -d -p ag-charts-community,ag-charts-enterprise -- nx run ag-charts-enterprise:build:umd --configuration watch ; done",
-          "while true ; do nx watch -d -p ag-charts-community -- nx run ag-charts-community:build:umd --configuration watch ; done",
-          "while true ; do nx watch -d -p ag-charts-community -- nx run ag-charts-community:docs-resolved-interfaces ; done",
+          "while true ; do nx watch -p ag-charts-community,ag-charts-enterprise -- {projectRoot}/dev.sh \\${NX_PROJECT_NAME} ; done",
           "while true ; do nx watch -p ag-charts-website-* -- nx build \\${NX_PROJECT_NAME}:generate; done",
           "nx run ag-charts-website:dev --configuration watch"
         ]

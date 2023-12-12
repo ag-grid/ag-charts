@@ -2,7 +2,6 @@ import type { Framework } from '@ag-grid-types';
 import { ExampleRunner } from '@features/example-runner/components/ExampleRunner';
 import type { ExampleOptions } from '@features/example-runner/types';
 import { getLoadingIFrameId } from '@features/example-runner/utils/getLoadingLogoId';
-import { removeGeneratedAstroTags } from '@features/example-runner/utils/removeGeneratedAstroTags';
 import type { ExampleType } from '@features/examples-generator/types';
 import { OpenInPlunkr } from '@features/plunkr/components/OpenInPlunkr';
 import { useStore } from '@nanostores/react';
@@ -88,9 +87,7 @@ const DocsExampleRunnerInner = ({ name, title, exampleType, options, framework, 
                     pageName,
                     exampleName,
                 })
-            )
-                .then((res) => res.text())
-                .then((html) => removeGeneratedAstroTags(html));
+            ).then((res) => res.text());
             return Promise.all([getContents, getExampleFileHtml]);
         },
         queryOptions
