@@ -278,7 +278,7 @@ code[class*='language-css'] {
 }
 
 .line-numbers .line-numbers-rows {
-    border-right: 1px solid var(--background-700);
+    border-right: 1px solid var(--color-util-brand-100);
 
     #{$selector-darkmode} & {
         border-right-color: var(--color-border-secondary);

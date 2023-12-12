@@ -20,7 +20,7 @@
     &:disabled {
         cursor: default;
         color: black;
-        background-color: var(--background-500);
+        background-color: var(--color-util-brand-100);
     }
 
     &:not(:disabled) {

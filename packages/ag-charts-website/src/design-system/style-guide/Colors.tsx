@@ -66,6 +66,16 @@ const colors = {
         'util-brand-600',
         'util-brand-700',
     ],
+    utilGray: [
+        'util-gray-50',
+        'util-gray-100',
+        'util-gray-200',
+        'util-gray-300',
+        'util-gray-400',
+        'util-gray-500',
+        'util-gray-600',
+        'util-gray-700',
+    ],
 };
 
 const Color: FunctionComponent = ({ colorName, showValue = false }) => {
@@ -153,6 +163,13 @@ export const Colors: FunctionComponent = () => {
             <h4>Input</h4>
             <div className={styles.colorsList}>
                 {colors.input.map((clr) => {
+                    return <Color key={clr} colorName={`${clr}`} />;
+                })}
+            </div>
+
+            <h4>Utility Gray</h4>
+            <div className={styles.colorsList}>
+                {colors.utilGray.map((clr) => {
                     return <Color key={clr} colorName={`${clr}`} />;
                 })}
             </div>
