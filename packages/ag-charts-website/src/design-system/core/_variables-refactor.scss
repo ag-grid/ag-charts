@@ -244,6 +244,16 @@ $transition-default-timing: 0.25s ease-in-out;
     --color-util-brand-600: var(--color-brand-600);
     --color-util-brand-700: var(--color-brand-700);
 
+    // Gray
+    --color-util-gray-50: var(--color-gray-50);
+    --color-util-gray-100: var(--color-gray-100);
+    --color-util-gray-200: var(--color-gray-200);
+    --color-util-gray-300: var(--color-gray-300);
+    --color-util-gray-400: var(--color-gray-400);
+    --color-util-gray-500: var(--color-gray-500);
+    --color-util-gray-600: var(--color-gray-600);
+    --color-util-gray-700: var(--color-gray-700);
+
     // Shadows
     --shadow-xs: 0 1px 2px 0 color-mix(in srgb, var(--color-gray-950) 05%, transparent);
     --shadow-sm: 0 1px 3px 0 color-mix(in srgb, var(--color-gray-950) 10%, transparent),
@@ -333,4 +343,14 @@ html[data-dark-mode='true'] {
     --color-util-brand-500: var(--color-brand-500);
     --color-util-brand-600: var(--color-brand-400);
     --color-util-brand-700: var(--color-brand-300);
+
+    // Gray
+    --color-util-gray-50: var(--color-gray-950);
+    --color-util-gray-100: var(--color-gray-900);
+    --color-util-gray-200: var(--color-gray-800);
+    --color-util-gray-300: var(--color-gray-700);
+    --color-util-gray-400: var(--color-gray-600);
+    --color-util-gray-500: var(--color-gray-500);
+    --color-util-gray-600: var(--color-gray-400);
+    --color-util-gray-700: var(--color-gray-300);
 }
