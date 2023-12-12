@@ -83,7 +83,7 @@ jobs:
                   cache: ${{ steps.cache.outputs.cache-hit != 'true' && 'yarn' || '' }}
 
             - name: yarn install
-              if: steps.cache.outputs.cache-hit != 'true'
+              # if: steps.cache.outputs.cache-hit != 'true'
               id: yarn_install
               run: yarn install --ci --prefer-offline
 
