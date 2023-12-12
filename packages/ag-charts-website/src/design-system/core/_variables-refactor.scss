@@ -258,6 +258,8 @@ $transition-default-timing: 0.25s ease-in-out;
 }
 
 html[data-dark-mode='true'] {
+    --color-scheme: dark;
+
     // Background colors
     --color-bg-primary: var(--color-gray-900);
     --color-bg-secondary: var(--color-gray-800);

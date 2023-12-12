@@ -184,13 +184,7 @@ body ul.metaList {
 }
 
 .isSearching .expandable {
-    --text-color: #{map.get($abstract-colors, dark-gunmetal-gray)};
-
     cursor: unset;
-
-    &:hover {
-        --text-color: #{map.get($abstract-colors, dark-gunmetal-gray)};
-    }
 
     :global(.icon) {
         display: none;

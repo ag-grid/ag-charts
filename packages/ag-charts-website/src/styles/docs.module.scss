@@ -83,13 +83,6 @@
         margin-left: 0.25rem;
     }
 
-    a {
-        &:hover {
-            text-decoration: none;
-            color: var(--ag-grid-orange);
-        }
-    }
-
     :global(.nav-link) {
         p {
             margin: 0;
