@@ -65,8 +65,8 @@ jobs:
                   path: |
                       node_modules/
                       packages/*/node_modules/
-                      !node_modules/.cache/
-                      !packages/*/node_modules/.cache/
+                      plugins/*/node_modules/
+                      libraries/*/node_modules/
                   key: node_modules-${{hashFiles('yarn.lock','patches/*.patch')}}
                   restore-keys: node_modules- # Take any latest cache if failed to find it for current yarn.lock
             - name: Cache Nx
@@ -77,11 +77,10 @@ jobs:
                   restore-keys: cache-nx-v17-${{ hashFiles('yarn.lock','patches/*.patch') }}-
             - name: Setup Node.js
               id: setup_node
-              uses: actions/setup-node@v3
+              uses: actions/setup-node@v4
               with:
                   node-version: '18'
-                  cache: ${{ steps.cache.outputs.cache-hit != 'true' && 'yarn' || '' }}
-
+                  cache: 'yarn'
             - name: yarn install
               id: yarn_install
               run: yarn check --integrity || yarn install --ci --prefer-offline
@@ -150,8 +149,8 @@ jobs:
                   path: |
                       node_modules/
                       packages/*/node_modules/
-                      !node_modules/.cache/
-                      !packages/*/node_modules/.cache/
+                      plugins/*/node_modules/
+                      libraries/*/node_modules/
                   key: node_modules-${{hashFiles('yarn.lock','patches/*.patch')}}
                   restore-keys: node_modules- # Take any latest cache if failed to find it for current yarn.lock
             - name: Cache Nx
@@ -160,6 +159,12 @@ jobs:
                   path: .nx/cache
                   key: cache-nx-v17-${{ hashFiles('yarn.lock','patches/*.patch') }}-${{ github.sha }}
                   restore-keys: cache-nx-v17-${{ hashFiles('yarn.lock','patches/*.patch') }}-
+            - name: Setup Node.js
+              id: setup_node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '18'
+                  cache: 'yarn'
             - name: yarn install
               id: yarn_install
               run: yarn check --integrity || yarn install --ci --prefer-offline
