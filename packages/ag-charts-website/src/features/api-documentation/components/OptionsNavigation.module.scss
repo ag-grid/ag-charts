@@ -249,10 +249,10 @@
     }
 
     &.selected {
-        background-color: var(--background-600);
+        background-color: var(--color-util-brand-100);
 
         #{$selector-darkmode} & {
-            background-color: var(--background-400);
+            background-color: var(--color-util-brand-50);
         }
     }
 }
