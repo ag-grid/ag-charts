@@ -110,10 +110,9 @@
         border-color $transition-default-timing;
 
     &:focus-visible {
-        border-color: var(--primary-300);
+        border-color: var(--color-util-brand-300);
 
         #{$selector-darkmode} & {
-            border-color: var(--primary-200);
             background-color: var(--color-bg-primary);
         }
     }

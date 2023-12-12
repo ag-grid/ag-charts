@@ -127,23 +127,15 @@
     padding: 0 16px 0 calc(16px + var(--nav-options-indent) * var(--options-nav-depth, 0));
 
     &:global(.highlight) {
-        --highlight-color: var(--primary-600);
-        --highlight-opacity: 0.15;
-
         position: relative;
 
         &::before {
             content: '';
             position: absolute;
             inset: 0;
-            background-color: var(--highlight-color);
-            opacity: var(--highlight-opacity);
+            background-color: var(--color-util-brand-400);
+            opacity: 0.15;
             pointer-events: none;
-        }
-
-        #{$selector-darkmode} & {
-            --highlight-color: var(--property-color);
-            --highlight-opacity: 0.16;
         }
     }
 }
@@ -252,7 +244,7 @@
         color: var(--dark-blue-600);
 
         #{$selector-darkmode} & {
-            color: var(--primary-500);
+            color: var(--color-util-brand-400);
         }
     }
 
@@ -260,7 +252,7 @@
         background-color: var(--background-600);
 
         #{$selector-darkmode} & {
-            background-color: var(--color-util-brand-100);
+            background-color: var(--background-400);
         }
     }
 }

@@ -15,10 +15,6 @@
 
     &:hover {
         background-color: var(--color-util-brand-100);
-
-        #{$selector-darkmode} & {
-            background-color: var(--primary-100);
-        }
     }
 
     svg {
