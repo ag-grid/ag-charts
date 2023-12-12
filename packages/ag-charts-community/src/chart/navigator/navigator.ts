@@ -3,7 +3,7 @@ import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
 import { ActionOnSet } from '../../util/proxy';
-import { BOOLEAN, NUMBER, Validate } from '../../util/validation';
+import { BOOLEAN, POSITIVE_NUMBER, Validate } from '../../util/validation';
 import type { LayoutCompleteEvent, LayoutContext } from '../layout/layoutService';
 import { NavigatorHandle } from './navigatorHandle';
 import { NavigatorMask } from './navigatorMask';
@@ -52,7 +52,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         return this.rs.height;
     }
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     margin = 10;
 
     set min(value: number) {

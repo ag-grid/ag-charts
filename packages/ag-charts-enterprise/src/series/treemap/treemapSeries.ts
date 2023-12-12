@@ -8,7 +8,6 @@ import {
     type TextAlign,
     type VerticalAlign,
     _ModuleSupport,
-    _Scale,
     _Scene,
     _Util,
 } from 'ag-charts-community';
@@ -19,10 +18,11 @@ const {
     BOOLEAN,
     HighlightStyle,
     NUMBER,
-    OPT_COLOR_STRING,
-    OPT_FUNCTION,
-    OPT_NUMBER,
-    OPT_STRING,
+    POSITIVE_NUMBER,
+    COLOR_STRING,
+    FUNCTION,
+    STRING,
+    RATIO,
     SeriesTooltip,
     TEXT_ALIGN,
     Validate,
@@ -39,14 +39,14 @@ interface LabelData {
 }
 
 class TreemapGroupLabel extends Label<AgTreemapSeriesLabelFormatterParams> {
-    @Validate(NUMBER())
+    @Validate(NUMBER)
     spacing: number = 0;
 }
 
 class TreemapSeriesGroup {
     readonly label = new TreemapGroupLabel();
 
-    @Validate(OPT_NUMBER())
+    @Validate(NUMBER, { optional: true })
     gap: number = 0;
 
     @Validate(BOOLEAN)
@@ -55,22 +55,22 @@ class TreemapSeriesGroup {
     @Validate(TEXT_ALIGN)
     textAlign: TextAlign = 'center';
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     fill?: string = undefined;
 
-    @Validate(OPT_NUMBER(0, 1))
+    @Validate(RATIO, { optional: true })
     fillOpacity: number = 1;
 
-    @Validate(OPT_COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     stroke?: string = undefined;
 
-    @Validate(OPT_NUMBER(0))
+    @Validate(POSITIVE_NUMBER, { optional: true })
     strokeWidth: number = 1;
 
-    @Validate(OPT_NUMBER(0, 1))
+    @Validate(RATIO, { optional: true })
     strokeOpacity: number = 1;
 
-    @Validate(OPT_NUMBER(0))
+    @Validate(POSITIVE_NUMBER, { optional: true })
     padding: number = 0;
 }
 
@@ -79,25 +79,25 @@ class TreemapSeriesTile {
 
     readonly secondaryLabel = new AutoSizeableSecondaryLabel<AgTreemapSeriesLabelFormatterParams>();
 
-    @Validate(OPT_NUMBER())
+    @Validate(NUMBER, { optional: true })
     gap: number = 0;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     fill?: string = undefined;
 
-    @Validate(OPT_NUMBER(0, 1))
+    @Validate(RATIO, { optional: true })
     fillOpacity: number = 1;
 
-    @Validate(OPT_COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     stroke?: string = undefined;
 
-    @Validate(OPT_NUMBER(0))
+    @Validate(POSITIVE_NUMBER, { optional: true })
     strokeWidth: number = 1;
 
-    @Validate(OPT_NUMBER(0, 1))
+    @Validate(RATIO, { optional: true })
     strokeOpacity: number = 1;
 
-    @Validate(OPT_NUMBER(0))
+    @Validate(POSITIVE_NUMBER, { optional: true })
     padding: number = 0;
 
     @Validate(TEXT_ALIGN)
@@ -110,19 +110,19 @@ class TreemapSeriesTile {
 class TreemapSeriesGroupHighlightStyle {
     readonly label = new AutoSizedLabel<AgTreemapSeriesLabelFormatterParams>();
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     fill?: string = undefined;
 
-    @Validate(OPT_NUMBER(0, 1))
+    @Validate(RATIO, { optional: true })
     fillOpacity?: number = undefined;
 
-    @Validate(OPT_COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     stroke?: string = undefined;
 
-    @Validate(OPT_NUMBER(0))
+    @Validate(POSITIVE_NUMBER, { optional: true })
     strokeWidth?: number = undefined;
 
-    @Validate(OPT_NUMBER(0, 1))
+    @Validate(RATIO, { optional: true })
     strokeOpacity?: number = undefined;
 }
 
@@ -131,19 +131,19 @@ class TreemapSeriesTileHighlightStyle {
 
     readonly secondaryLabel = new AutoSizeableSecondaryLabel<AgTreemapSeriesLabelFormatterParams>();
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     fill?: string = undefined;
 
-    @Validate(OPT_NUMBER(0, 1))
+    @Validate(RATIO, { optional: true })
     fillOpacity?: number = undefined;
 
-    @Validate(OPT_COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     stroke?: string = undefined;
 
-    @Validate(OPT_NUMBER(0))
+    @Validate(POSITIVE_NUMBER, { optional: true })
     strokeWidth?: number = undefined;
 
-    @Validate(OPT_NUMBER(0, 1))
+    @Validate(RATIO, { optional: true })
     strokeOpacity?: number = undefined;
 }
 
@@ -225,16 +225,16 @@ export class TreemapSeries<
 
     readonly tooltip = new SeriesTooltip<AgTreemapSeriesTooltipRendererParams<any>>();
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     sizeName?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     labelKey?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     secondaryLabelKey?: string = undefined;
 
-    @Validate(OPT_FUNCTION)
+    @Validate(FUNCTION, { optional: true })
     formatter?: (params: AgTreemapSeriesFormatterParams) => AgTreemapSeriesStyle = undefined;
 
     // We haven't decided how to expose this yet, but we need to have this property so it can change between light and dark themes
@@ -771,8 +771,8 @@ export class TreemapSeries<
                 highlightedColor = !isLeaf
                     ? group.label.color
                     : tag === TextNodeTag.Primary
-                    ? tile.label.color
-                    : tile.secondaryLabel.color;
+                      ? tile.label.color
+                      : tile.secondaryLabel.color;
             }
 
             text.text = label.text;

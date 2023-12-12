@@ -15,8 +15,8 @@ export type ChartLegendType = 'category' | 'gradient';
 export type ChartLegendDatum<T extends ChartLegendType> = T extends 'category'
     ? CategoryLegendDatum
     : T extends 'gradient'
-    ? GradientLegendDatum
-    : never;
+      ? GradientLegendDatum
+      : never;
 
 export interface BaseChartLegendDatum {
     legendType: ChartLegendType;

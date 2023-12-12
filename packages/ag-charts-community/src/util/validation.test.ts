@@ -3,36 +3,36 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import {
     AND,
     COLOR_STRING,
+    DATE,
     GREATER_THAN,
     LESS_THAN,
     NUMBER,
-    OPT_DATE,
-    OPT_NUMBER,
-    OPT_NUMBER_ARRAY,
-    OPT_STRING,
+    NUMBER_ARRAY,
+    POSITIVE_NUMBER,
+    STRING,
     Validate,
 } from './validation';
 
 class TestValidate {
-    @Validate(OPT_NUMBER(0))
+    @Validate(POSITIVE_NUMBER, { optional: true })
     num?: number = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     str?: string = undefined;
 
-    @Validate(OPT_DATE)
+    @Validate(DATE, { optional: true })
     date?: Date = undefined;
 
-    @Validate(OPT_NUMBER_ARRAY)
+    @Validate(NUMBER_ARRAY, { optional: true })
     array?: number[] = undefined;
 
     @Validate(COLOR_STRING)
     colour: string = 'black';
 
-    @Validate(AND(NUMBER(0), LESS_THAN('max')))
+    @Validate(AND(POSITIVE_NUMBER, LESS_THAN('max')))
     min: number = 0;
 
-    @Validate(AND(NUMBER(undefined, 100), GREATER_THAN('min')))
+    @Validate(AND(NUMBER.restrict({ max: 100 }), GREATER_THAN('min')))
     max: number = 100;
 }
 
@@ -45,7 +45,7 @@ describe('validation module', () => {
     });
 
     describe('basic validations', () => {
-        describe('OPT_NUMBER', () => {
+        describe('Optional NUMBER', () => {
             it('should set TestValidate.num to undefined without warning', () => {
                 test.num = undefined;
 
@@ -55,21 +55,21 @@ describe('validation module', () => {
             it('should not set TestValidate.num to null with warning', () => {
                 (test as any).num = null;
 
-                expect(console.warn).toHaveBeenCalledWith(expect.stringMatching(/cannot be set to \[null\]/));
+                expect(console.warn).toHaveBeenCalledWith(expect.stringMatching(/cannot be set to \[null]/));
                 expect(test.num).toBe(undefined);
             });
 
             it('should not set TestValidate.num to Infinity with warning', () => {
                 (test as any).num = Infinity;
 
-                expect(console.warn).toHaveBeenCalledWith(expect.stringMatching(/cannot be set to \[Infinity\]/));
+                expect(console.warn).toHaveBeenCalledWith(expect.stringMatching(/cannot be set to \[Infinity]/));
                 expect(test.num).toBe(undefined);
             });
 
             it('should not set TestValidate.num to NaN with warning', () => {
                 (test as any).num = NaN;
 
-                expect(console.warn).toHaveBeenCalledWith(expect.stringMatching(/cannot be set to \[NaN\]/));
+                expect(console.warn).toHaveBeenCalledWith(expect.stringMatching(/cannot be set to \[NaN]/));
                 expect(test.num).toBe(undefined);
             });
 
@@ -81,7 +81,7 @@ describe('validation module', () => {
             });
         });
 
-        describe('OPT_STRING', () => {
+        describe('Optional STRING', () => {
             it('should set TestValidate.str to undefined without warning', () => {
                 test.str = undefined;
 
@@ -103,7 +103,7 @@ describe('validation module', () => {
             });
         });
 
-        describe('OPT_DATE', () => {
+        describe('Optional DATE', () => {
             it('should set TestValidate.date to undefined without warning', () => {
                 test.date = undefined;
 
@@ -126,7 +126,7 @@ describe('validation module', () => {
             });
         });
 
-        describe('OPT_NUMBER_ARRAY', () => {
+        describe('Optional NUMBER_ARRAY', () => {
             it('should set TestValidate.array to undefined without warning', () => {
                 test.array = undefined;
 

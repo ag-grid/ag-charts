@@ -28,7 +28,7 @@ import { ActionOnSet } from '../util/proxy';
 import { debouncedAnimationFrame, debouncedCallback } from '../util/render';
 import { SizeMonitor } from '../util/sizeMonitor';
 import type { PickRequired } from '../util/types';
-import { BOOLEAN, OPT_BOOLEAN, STRING_UNION, Validate } from '../util/validation';
+import { BOOLEAN, UNION, Validate } from '../util/validation';
 import type { Caption } from './caption';
 import type { ChartAxis } from './chartAxis';
 import type { ChartAxisDirection } from './chartAxisDirection';
@@ -113,7 +113,7 @@ export interface ChartSpecialOverrides {
 export type ChartExtendedOptions = AgChartOptions & ChartSpecialOverrides;
 
 class SeriesArea {
-    @Validate(OPT_BOOLEAN)
+    @Validate(BOOLEAN, { optional: true })
     clip?: boolean = undefined;
 
     padding = new Padding(0);
@@ -257,7 +257,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     })
     public footnote?: Caption = undefined;
 
-    @Validate(STRING_UNION('standalone', 'integrated'))
+    @Validate(UNION(['standalone', 'integrated'], 'a chart mode'))
     mode: ChartMode = 'standalone';
 
     private _destroyed: boolean = false;

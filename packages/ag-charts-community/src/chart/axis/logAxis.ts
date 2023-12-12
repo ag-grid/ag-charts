@@ -3,15 +3,12 @@ import { LogScale } from '../../scale/logScale';
 import { normalisedExtentWithMetadata } from '../../util/array';
 import { Default } from '../../util/default';
 import { Logger } from '../../util/logger';
+import { isNumber } from '../../util/type-guards';
 import { AND, GREATER_THAN, LESS_THAN, NUMBER_OR_NAN, Validate, predicateWithMessage } from '../../util/validation';
 import { NumberAxis } from './numberAxis';
 
-function NON_ZERO_NUMBER() {
-    // Cannot be 0
-    const message = `expecting a non-zero Number`;
-
-    return predicateWithMessage((v: any) => typeof v === 'number' && v !== 0, message);
-}
+// Cannot be 0
+const NON_ZERO_NUMBER = predicateWithMessage((value) => isNumber(value) && value !== 0, 'a non-zero number');
 
 export class LogAxis extends NumberAxis {
     static override className = 'LogAxis';
@@ -47,11 +44,11 @@ export class LogAxis extends NumberAxis {
         return { domain: extent, clipped };
     }
 
-    @Validate(AND(NUMBER_OR_NAN(), LESS_THAN('max'), NON_ZERO_NUMBER()))
+    @Validate(AND(NUMBER_OR_NAN, NON_ZERO_NUMBER, LESS_THAN('max')))
     @Default(NaN)
     override min: number = NaN;
 
-    @Validate(AND(NUMBER_OR_NAN(), GREATER_THAN('min'), NON_ZERO_NUMBER()))
+    @Validate(AND(NUMBER_OR_NAN, NON_ZERO_NUMBER, GREATER_THAN('min')))
     @Default(NaN)
     override max: number = NaN;
 

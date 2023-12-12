@@ -5,16 +5,7 @@ import type { Node } from '../../scene/node';
 import { Text } from '../../scene/shape/text';
 import { createId } from '../../util/id';
 import { ActionOnSet } from '../../util/proxy';
-import {
-    COLOR_STRING,
-    NUMBER,
-    OPT_COLOR_STRING,
-    OPT_FONT_STYLE,
-    OPT_FONT_WEIGHT,
-    OPT_NUMBER,
-    STRING,
-    Validate,
-} from '../../util/validation';
+import { COLOR_STRING, FONT_STYLE, FONT_WEIGHT, POSITIVE_NUMBER, RATIO, STRING, Validate } from '../../util/validation';
 import { ChartUpdateType } from '../chartUpdateType';
 import type { CursorManager } from '../interaction/cursorManager';
 import type { InteractionEvent, InteractionManager } from '../interaction/interactionManager';
@@ -26,13 +17,13 @@ class PaginationLabel {
     @Validate(COLOR_STRING)
     color: string = 'black';
 
-    @Validate(OPT_FONT_STYLE)
+    @Validate(FONT_STYLE, { optional: true })
     fontStyle?: FontStyle = undefined;
 
-    @Validate(OPT_FONT_WEIGHT)
+    @Validate(FONT_WEIGHT, { optional: true })
     fontWeight?: FontWeight = undefined;
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     fontSize: number = 12;
 
     @Validate(STRING)
@@ -40,22 +31,22 @@ class PaginationLabel {
 }
 
 class PaginationMarkerStyle {
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     size = 15;
 
-    @Validate(OPT_COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     fill?: string = undefined;
 
-    @Validate(OPT_NUMBER(0, 1))
+    @Validate(RATIO, { optional: true })
     fillOpacity?: number = undefined;
 
-    @Validate(OPT_COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     stroke?: string = undefined;
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     strokeWidth: number = 1;
 
-    @Validate(NUMBER(0, 1))
+    @Validate(RATIO)
     strokeOpacity: number = 1;
 }
 
@@ -69,13 +60,13 @@ class PaginationMarker {
     })
     shape: MarkerShape = Triangle;
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     size = 15;
 
     /**
      * Inner padding between a pagination button and the label.
      */
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     padding: number = 8;
 
     constructor(readonly parent: Pagination) {}

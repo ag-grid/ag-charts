@@ -6,12 +6,10 @@ import { createId } from '../util/id';
 import { ProxyPropertyOnWrite } from '../util/proxy';
 import {
     BOOLEAN,
-    NUMBER,
-    OPT_COLOR_STRING,
-    OPT_FONT_STYLE,
-    OPT_FONT_WEIGHT,
-    OPT_NUMBER,
-    OPT_STRING,
+    COLOR_STRING,
+    FONT_STYLE,
+    FONT_WEIGHT,
+    POSITIVE_NUMBER,
     STRING,
     TEXT_WRAP,
     Validate,
@@ -29,19 +27,19 @@ export class Caption {
     @Validate(BOOLEAN)
     enabled = false;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     @ProxyPropertyOnWrite('node')
     text?: string = undefined;
 
-    @Validate(OPT_FONT_STYLE)
+    @Validate(FONT_STYLE, { optional: true })
     @ProxyPropertyOnWrite('node')
     fontStyle: FontStyle | undefined;
 
-    @Validate(OPT_FONT_WEIGHT)
+    @Validate(FONT_WEIGHT, { optional: true })
     @ProxyPropertyOnWrite('node')
     fontWeight: FontWeight | undefined;
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     @ProxyPropertyOnWrite('node')
     fontSize: number = 10;
 
@@ -49,20 +47,20 @@ export class Caption {
     @ProxyPropertyOnWrite('node')
     fontFamily: string = 'sans-serif';
 
-    @Validate(OPT_COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     @ProxyPropertyOnWrite('node', 'fill')
     color: string | undefined;
 
-    @Validate(OPT_NUMBER(0))
+    @Validate(POSITIVE_NUMBER, { optional: true })
     spacing?: number;
 
-    @Validate(OPT_NUMBER(0))
+    @Validate(POSITIVE_NUMBER, { optional: true })
     lineHeight?: number;
 
-    @Validate(OPT_NUMBER(0))
+    @Validate(POSITIVE_NUMBER, { optional: true })
     maxWidth?: number = undefined;
 
-    @Validate(OPT_NUMBER(0))
+    @Validate(POSITIVE_NUMBER, { optional: true })
     maxHeight?: number = undefined;
 
     @Validate(TEXT_WRAP)

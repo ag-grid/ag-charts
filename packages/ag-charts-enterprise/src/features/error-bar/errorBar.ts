@@ -15,12 +15,14 @@ const {
     valueProperty,
     ChartAxisDirection,
     Validate,
-    OPT_BOOLEAN,
-    OPT_COLOR_STRING,
-    OPT_FUNCTION,
-    OPT_LINE_DASH,
-    OPT_NUMBER,
-    OPT_STRING,
+    BOOLEAN,
+    COLOR_STRING,
+    FUNCTION,
+    LINE_DASH,
+    NUMBER,
+    POSITIVE_NUMBER,
+    STRING,
+    RATIO,
 } = _ModuleSupport;
 
 type ErrorBoundCartesianSeries = Omit<
@@ -52,31 +54,31 @@ type SeriesDataUpdateEvent = _ModuleSupport.SeriesDataUpdateEvent;
 type SeriesVisibilityEvent = _ModuleSupport.SeriesVisibilityEvent;
 
 class ErrorBarCap implements NonNullable<AgErrorBarOptions['cap']> {
-    @Validate(OPT_BOOLEAN)
+    @Validate(BOOLEAN, { optional: true })
     visible?: boolean = undefined;
 
-    @Validate(OPT_COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     stroke?: string = undefined;
 
-    @Validate(OPT_NUMBER(0))
+    @Validate(POSITIVE_NUMBER, { optional: true })
     strokeWidth?: number = undefined;
 
-    @Validate(OPT_NUMBER(0, 1))
+    @Validate(RATIO, { optional: true })
     strokeOpacity?: number = undefined;
 
-    @Validate(OPT_LINE_DASH)
+    @Validate(LINE_DASH, { optional: true })
     lineDash?: number[];
 
-    @Validate(OPT_NUMBER(0))
+    @Validate(POSITIVE_NUMBER, { optional: true })
     lineDashOffset?: number;
 
-    @Validate(OPT_NUMBER())
+    @Validate(NUMBER, { optional: true })
     length?: number = undefined;
 
-    @Validate(OPT_NUMBER(0, 1))
+    @Validate(RATIO, { optional: true })
     lengthRatio?: number = undefined;
 
-    @Validate(OPT_FUNCTION)
+    @Validate(FUNCTION, { optional: true })
     formatter?: ErrorBarCapFormatter = undefined;
 }
 
@@ -84,49 +86,49 @@ export class ErrorBars
     extends _ModuleSupport.BaseModuleInstance
     implements _ModuleSupport.ModuleInstance, _ModuleSupport.SeriesOptionInstance, AgErrorBarOptions
 {
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     yLowerKey?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     yLowerName?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     yUpperKey?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     yUpperName?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     xLowerKey?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     xLowerName?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     xUpperKey?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     xUpperName?: string = undefined;
 
-    @Validate(OPT_BOOLEAN)
+    @Validate(BOOLEAN, { optional: true })
     visible?: boolean = true;
 
-    @Validate(OPT_COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     stroke? = 'black';
 
-    @Validate(OPT_NUMBER(0))
+    @Validate(POSITIVE_NUMBER, { optional: true })
     strokeWidth?: number = 1;
 
-    @Validate(OPT_NUMBER(0, 1))
+    @Validate(RATIO, { optional: true })
     strokeOpacity?: number = 1;
 
-    @Validate(OPT_LINE_DASH)
+    @Validate(LINE_DASH, { optional: true })
     lineDash?: number[];
 
-    @Validate(OPT_NUMBER(0))
+    @Validate(POSITIVE_NUMBER, { optional: true })
     lineDashOffset?: number;
 
-    @Validate(OPT_FUNCTION)
+    @Validate(FUNCTION, { optional: true })
     formatter?: ErrorBarFormatter = undefined;
 
     cap: ErrorBarCap = new ErrorBarCap();

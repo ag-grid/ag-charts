@@ -1,6 +1,6 @@
 import type { AgSeriesTooltipRendererParams, AgTooltipRendererResult } from '../../options/chart/tooltipOptions';
 import { interpolate } from '../../util/string';
-import { BOOLEAN, OPT_BOOLEAN, OPT_FUNCTION, OPT_STRING, Validate } from '../../util/validation';
+import { BOOLEAN, FUNCTION, STRING, Validate } from '../../util/validation';
 import { TooltipPosition, toTooltipHtml } from '../tooltip/tooltip';
 
 type TooltipRenderer<P> = (params: P) => string | AgTooltipRendererResult;
@@ -12,10 +12,17 @@ class SeriesTooltipInteraction {
 }
 
 export class SeriesTooltip<P extends AgSeriesTooltipRendererParams> {
-    @Validate(BOOLEAN) enabled = true;
-    @Validate(OPT_BOOLEAN) showArrow?: boolean = undefined;
-    @Validate(OPT_STRING) format?: string = undefined;
-    @Validate(OPT_FUNCTION) renderer?: TooltipRenderer<P> = undefined;
+    @Validate(BOOLEAN)
+    enabled = true;
+
+    @Validate(BOOLEAN, { optional: true })
+    showArrow?: boolean = undefined;
+
+    @Validate(STRING, { optional: true })
+    format?: string = undefined;
+
+    @Validate(FUNCTION, { optional: true })
+    renderer?: TooltipRenderer<P> = undefined;
 
     readonly interaction = new SeriesTooltipInteraction();
     readonly position = new TooltipPosition();

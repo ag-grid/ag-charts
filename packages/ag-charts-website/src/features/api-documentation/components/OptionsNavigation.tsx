@@ -140,17 +140,17 @@ function NavProperty({
         config.keepExpanded?.includes(member.name)
             ? true
             : isInterfaceArray
-            ? typeof selection?.selection.pageInterface === 'string' &&
-              getInterfaceArrayTypes(reference, interfaceRef).some(
-                  (item) => item.type === selection?.selection.pageInterface
-              )
-            : hasNestedPages
-            ? interfaceRef?.kind === 'interface' &&
-              interfaceRef.members.some((member) => member.type === selection?.selection.pageInterface)
-            : (selection?.selection.pageInterface === navData.pageInterface &&
-                  selection?.selection.hash?.startsWith(navData.hash) &&
-                  selection?.selection.hash !== navData.hash) ??
-              false
+              ? typeof selection?.selection.pageInterface === 'string' &&
+                getInterfaceArrayTypes(reference, interfaceRef).some(
+                    (item) => item.type === selection?.selection.pageInterface
+                )
+              : hasNestedPages
+                ? interfaceRef?.kind === 'interface' &&
+                  interfaceRef.members.some((member) => member.type === selection?.selection.pageInterface)
+                : (selection?.selection.pageInterface === navData.pageInterface &&
+                      selection?.selection.hash?.startsWith(navData.hash) &&
+                      selection?.selection.hash !== navData.hash) ??
+                  false
     );
 
     const isSelected =

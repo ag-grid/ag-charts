@@ -27,12 +27,12 @@ import {
     BOOLEAN,
     COLOR_STRING,
     COLOR_STRING_ARRAY,
+    DEGREE,
+    FUNCTION,
+    LINE_DASH,
     NUMBER,
-    OPT_COLOR_STRING_ARRAY,
-    OPT_FUNCTION,
-    OPT_LINE_DASH,
-    OPT_NUMBER,
-    OPT_STRING,
+    POSITIVE_NUMBER,
+    RATIO,
     STRING,
     Validate,
 } from '../../../util/validation';
@@ -119,16 +119,16 @@ enum PieNodeTag {
 }
 
 class PieSeriesCalloutLabel extends Label<AgPieSeriesLabelFormatterParams> {
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     offset = 3; // from the callout line
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     minAngle = 0; // in degrees
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     minSpacing = 4;
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     maxCollisionOffset = 50;
 
     @Validate(BOOLEAN)
@@ -136,21 +136,21 @@ class PieSeriesCalloutLabel extends Label<AgPieSeriesLabelFormatterParams> {
 }
 
 class PieSeriesSectorLabel extends Label<AgPieSeriesLabelFormatterParams> {
-    @Validate(NUMBER())
+    @Validate(NUMBER)
     positionOffset = 0;
 
-    @Validate(NUMBER(0, 1))
+    @Validate(RATIO)
     positionRatio = 0.5;
 }
 
 class PieSeriesCalloutLine {
-    @Validate(OPT_COLOR_STRING_ARRAY)
+    @Validate(COLOR_STRING_ARRAY, { optional: true })
     colors?: string[];
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     length: number = 10;
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     strokeWidth: number = 1;
 }
 
@@ -166,14 +166,14 @@ export class PieTitle extends Caption {
 export class DoughnutInnerLabel extends Label<AgPieSeriesLabelFormatterParams> {
     @Validate(STRING)
     text = '';
-    @Validate(NUMBER())
+    @Validate(NUMBER)
     margin = 2;
 }
 
 export class DoughnutInnerCircle {
     @Validate(COLOR_STRING)
     fill = 'transparent';
-    @Validate(OPT_NUMBER(0, 1))
+    @Validate(RATIO, { optional: true })
     fillOpacity? = 1;
 }
 
@@ -234,31 +234,31 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
      * The largest value will correspond to the full radius and smaller values to
      * proportionally smaller radii.
      */
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     radiusKey?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     radiusName?: string = undefined;
 
-    @Validate(OPT_NUMBER(0))
+    @Validate(POSITIVE_NUMBER, { optional: true })
     radiusMin?: number = undefined;
 
-    @Validate(OPT_NUMBER(0))
+    @Validate(POSITIVE_NUMBER, { optional: true })
     radiusMax?: number = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     calloutLabelKey?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     calloutLabelName?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     sectorLabelKey?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     sectorLabelName?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     legendItemKey?: string = undefined;
 
     @Validate(COLOR_STRING_ARRAY)
@@ -267,43 +267,43 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
     @Validate(COLOR_STRING_ARRAY)
     strokes: string[] = Object.values(DEFAULT_STROKES);
 
-    @Validate(NUMBER(0, 1))
+    @Validate(RATIO)
     fillOpacity = 1;
 
-    @Validate(NUMBER(0, 1))
+    @Validate(RATIO)
     strokeOpacity = 1;
 
-    @Validate(OPT_LINE_DASH)
+    @Validate(LINE_DASH, { optional: true })
     lineDash?: number[] = [0];
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(OPT_FUNCTION)
+    @Validate(FUNCTION, { optional: true })
     formatter?: (params: AgPieSeriesFormatterParams<any>) => AgPieSeriesFormat = undefined;
 
     /**
      * The series rotation in degrees.
      */
-    @Validate(NUMBER(-360, 360))
+    @Validate(DEGREE)
     rotation = 0;
 
-    @Validate(NUMBER())
+    @Validate(NUMBER)
     outerRadiusOffset = 0;
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     outerRadiusRatio = 1;
 
-    @Validate(NUMBER())
+    @Validate(NUMBER)
     innerRadiusOffset = 0;
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     innerRadiusRatio = 1;
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     strokeWidth = 1;
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     sectorSpacing = 1;
 
     shadow?: DropShadow = undefined;

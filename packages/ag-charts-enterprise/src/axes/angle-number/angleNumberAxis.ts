@@ -4,11 +4,11 @@ import type { AngleAxisLabelDatum } from '../angle/angleAxis';
 import { AngleAxis } from '../angle/angleAxis';
 import { LinearAngleScale } from './linearAngleScale';
 
-const { AND, Default, GREATER_THAN, LESS_THAN, NUMBER_OR_NAN, Validate } = _ModuleSupport;
+const { AND, Default, GREATER_THAN, LESS_THAN, NUMBER_OR_NAN, MIN_SPACING, Validate } = _ModuleSupport;
 const { angleBetween, isNumberEqual, normalisedExtentWithMetadata } = _Util;
 
 class AngleNumberAxisTick extends _ModuleSupport.AxisTick<LinearAngleScale, number> {
-    @Validate(AND(NUMBER_OR_NAN(1), GREATER_THAN('minSpacing')))
+    @Validate(MIN_SPACING)
     @Default(NaN)
     override maxSpacing: number = NaN;
 }
@@ -19,11 +19,11 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
 
     override shape = 'circle' as const;
 
-    @Validate(AND(NUMBER_OR_NAN(), LESS_THAN('max')))
+    @Validate(AND(NUMBER_OR_NAN, LESS_THAN('max')))
     @Default(NaN)
     min: number = NaN;
 
-    @Validate(AND(NUMBER_OR_NAN(), GREATER_THAN('min')))
+    @Validate(AND(NUMBER_OR_NAN, GREATER_THAN('min')))
     @Default(NaN)
     max: number = NaN;
 

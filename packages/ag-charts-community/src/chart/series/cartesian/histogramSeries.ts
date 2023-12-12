@@ -15,15 +15,15 @@ import type { Text } from '../../../scene/shape/text';
 import { sanitizeHtml, tickStep, ticks } from '../../../sparklines-util';
 import { isReal } from '../../../util/number';
 import {
+    ARRAY,
     BOOLEAN,
-    NUMBER,
-    OPT_ARRAY,
-    OPT_COLOR_STRING,
-    OPT_LINE_DASH,
-    OPT_NUMBER,
-    OPT_STRING,
+    COLOR_STRING,
+    LINE_DASH,
+    POSITIVE_NUMBER,
+    RATIO,
+    STRING,
+    UNION,
     Validate,
-    predicateWithMessage,
 } from '../../../util/validation';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { area, groupAverage, groupCount, groupSum } from '../../data/aggregateFunctions';
@@ -38,12 +38,6 @@ import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { SeriesTooltip } from '../seriesTooltip';
 import { collapsedStartingBarPosition, prepareBarAnimationFunctions, resetBarSelectionsFn } from './barUtil';
 import { type CartesianAnimationData, CartesianSeries, type CartesianSeriesNodeDatum } from './cartesianSeries';
-
-const HISTOGRAM_AGGREGATIONS = ['count', 'sum', 'mean'];
-const HISTOGRAM_AGGREGATION = predicateWithMessage(
-    (v: any) => HISTOGRAM_AGGREGATIONS.includes(v),
-    `expecting a histogram aggregation keyword such as 'count', 'sum' or 'mean`
-);
 
 enum HistogramSeriesNodeTag {
     Bin,
@@ -87,22 +81,22 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramNodeDatum> {
 
     tooltip = new SeriesTooltip<AgHistogramSeriesTooltipRendererParams<HistogramNodeDatum>>();
 
-    @Validate(OPT_COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     fill?: string = undefined;
 
-    @Validate(OPT_COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     stroke?: string = undefined;
 
-    @Validate(NUMBER(0, 1))
+    @Validate(RATIO)
     fillOpacity = 1;
 
-    @Validate(NUMBER(0, 1))
+    @Validate(RATIO)
     strokeOpacity = 1;
 
-    @Validate(OPT_LINE_DASH)
+    @Validate(LINE_DASH, { optional: true })
     lineDash?: number[] = [0];
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
     constructor(moduleCtx: ModuleContext) {
@@ -117,31 +111,31 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramNodeDatum> {
         });
     }
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     xKey?: string = undefined;
 
     @Validate(BOOLEAN)
     areaPlot: boolean = false;
 
-    @Validate(OPT_ARRAY())
+    @Validate(ARRAY, { optional: true })
     bins?: [number, number][];
 
-    @Validate(HISTOGRAM_AGGREGATION)
+    @Validate(UNION(['count', 'sum', 'mean'], 'a histogram aggregation'))
     aggregation: HistogramAggregation = 'sum';
 
-    @Validate(OPT_NUMBER(0))
+    @Validate(POSITIVE_NUMBER, { optional: true })
     binCount?: number = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     xName?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     yKey?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     yName?: string = undefined;
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     strokeWidth: number = 1;
 
     shadow?: DropShadow = undefined;

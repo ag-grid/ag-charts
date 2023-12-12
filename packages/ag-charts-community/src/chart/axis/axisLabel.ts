@@ -3,14 +3,13 @@ import { getFont } from '../../scene/shape/text';
 import { Default } from '../../util/default';
 import {
     BOOLEAN,
+    COLOR_STRING,
+    DEGREE,
+    FONT_STYLE,
+    FONT_WEIGHT,
     NUMBER,
     NUMBER_OR_NAN,
-    OPT_BOOLEAN,
-    OPT_COLOR_STRING,
-    OPT_FONT_STYLE,
-    OPT_FONT_WEIGHT,
-    OPT_NUMBER,
-    OPT_STRING,
+    POSITIVE_NUMBER,
     STRING,
     Validate,
 } from '../../util/validation';
@@ -21,24 +20,24 @@ export class AxisLabel implements ChartAxisLabel {
     enabled = true;
 
     /** If set to `false`, axis labels will not be wrapped on multiple lines. */
-    @Validate(OPT_BOOLEAN)
+    @Validate(BOOLEAN, { optional: true })
     autoWrap: boolean = false;
 
     /** Used to constrain the width of the label when `autoWrap` is `true`, if the label text width exceeds the `maxWidth`, it will be wrapped on multiple lines automatically. If `maxWidth` is omitted, a default width constraint will be applied. */
-    @Validate(OPT_NUMBER(0))
+    @Validate(POSITIVE_NUMBER, { optional: true })
     maxWidth?: number = undefined;
 
     /** Used to constrain the height of the multiline label, if the label text height exceeds the `maxHeight`, it will be truncated automatically. If `maxHeight` is omitted, a default height constraint will be applied. */
-    @Validate(OPT_NUMBER(0))
+    @Validate(POSITIVE_NUMBER, { optional: true })
     maxHeight?: number = undefined;
 
-    @Validate(OPT_FONT_STYLE)
+    @Validate(FONT_STYLE, { optional: true })
     fontStyle?: FontStyle = undefined;
 
-    @Validate(OPT_FONT_WEIGHT)
+    @Validate(FONT_WEIGHT, { optional: true })
     fontWeight?: FontWeight = undefined;
 
-    @Validate(NUMBER(1))
+    @Validate(NUMBER.restrict({ min: 1 }))
     fontSize: number = 12;
 
     @Validate(STRING)
@@ -47,13 +46,13 @@ export class AxisLabel implements ChartAxisLabel {
     /**
      * The padding between the labels and the ticks.
      */
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     padding: number = 5;
 
     /**
      * Minimum gap in pixels between the axis labels before being removed to avoid collisions.
      */
-    @Validate(NUMBER_OR_NAN())
+    @Validate(NUMBER_OR_NAN)
     @Default(NaN)
     minSpacing: number = NaN;
 
@@ -61,7 +60,7 @@ export class AxisLabel implements ChartAxisLabel {
      * The color of the labels.
      * Use `undefined` rather than `rgba(0, 0, 0, 0)` to make labels invisible.
      */
-    @Validate(OPT_COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     color?: string = 'rgba(87, 87, 87, 1)';
 
     /**
@@ -71,7 +70,7 @@ export class AxisLabel implements ChartAxisLabel {
      * The value of this config is used as the angular offset/deflection
      * from the default rotation.
      */
-    @Validate(OPT_NUMBER(-360, 360))
+    @Validate(DEGREE, { optional: true })
     rotation?: number = undefined;
 
     /**
@@ -121,7 +120,7 @@ export class AxisLabel implements ChartAxisLabel {
      */
     formatter?: (params: AgAxisLabelFormatterParams) => string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     format?: string;
 
     getFont(): string {

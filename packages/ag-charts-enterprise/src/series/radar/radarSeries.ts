@@ -10,14 +10,15 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 const {
     ChartAxisDirection,
     HighlightStyle,
-    NUMBER,
-    OPT_COLOR_STRING,
-    OPT_FUNCTION,
-    OPT_LINE_DASH,
-    OPT_STRING,
+    DEGREE,
+    COLOR_STRING,
+    FUNCTION,
+    LINE_DASH,
+    STRING,
+    RATIO,
+    POSITIVE_NUMBER,
     PolarAxis,
     SeriesNodePickMode,
-    STRING,
     Validate,
     valueProperty,
     fixNumericExtent,
@@ -82,7 +83,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
     @Validate(STRING)
     angleKey = '';
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     angleName?: string = undefined;
 
     /**
@@ -93,31 +94,31 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
     @Validate(STRING)
     radiusKey: string = '';
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     radiusName?: string = undefined;
 
-    @Validate(OPT_COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     stroke?: string = 'black';
 
-    @Validate(NUMBER(0, 1))
+    @Validate(RATIO)
     strokeOpacity = 1;
 
-    @Validate(OPT_LINE_DASH)
+    @Validate(LINE_DASH, { optional: true })
     lineDash?: number[] = [0];
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(OPT_FUNCTION)
+    @Validate(FUNCTION, { optional: true })
     formatter?: (params: AgPieSeriesFormatterParams<any>) => AgPieSeriesFormat = undefined;
 
     /**
      * The series rotation in degrees.
      */
-    @Validate(NUMBER(-360, 360))
+    @Validate(DEGREE)
     rotation = 0;
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     strokeWidth = 1;
 
     override readonly highlightStyle = new HighlightStyle();

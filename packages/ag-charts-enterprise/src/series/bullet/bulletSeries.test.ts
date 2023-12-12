@@ -293,7 +293,7 @@ describe('BulletSeriesValidation', () => {
 
         expect(console.warn).toBeCalledTimes(1);
         expect(console.warn).toBeCalledWith(
-            'AG Charts - Property [colorRanges] of [BulletSeries] cannot be set to [[]]; expecting an optional non-empty Array, ignoring.'
+            'AG Charts - Property [colorRanges] of [BulletSeries] cannot be set to [[]]; expecting a non-empty array, ignoring.'
         );
         await compare(chart, ctx);
     });
@@ -438,7 +438,7 @@ describe('BulletSeriesValidation', () => {
 
         expect(console.warn).toBeCalledTimes(1);
         expect(console.warn).toBeCalledWith(
-            'AG Charts - Property [max] of [BulletScale] cannot be set to [-1]; expecting an optional finite Number greater than or equal to 0, ignoring.'
+            'AG Charts - Property [max] of [BulletScale] cannot be set to [-1]; expecting a number greater than or equal to 0, ignoring.'
         );
         await compare(chart, ctx);
     });
@@ -452,7 +452,7 @@ describe('BulletSeriesValidation', () => {
 
         expect(console.warn).toBeCalledTimes(1);
         expect(console.warn).toBeCalledWith(
-            'AG Charts - Property [stop] of [BulletColorRange] cannot be set to [-1]; expecting an optional finite Number greater than or equal to 0, ignoring.'
+            'AG Charts - Property [stop] of [BulletColorRange] cannot be set to [-1]; expecting a number greater than or equal to 0, ignoring.'
         );
         await compare(chart, ctx);
     });

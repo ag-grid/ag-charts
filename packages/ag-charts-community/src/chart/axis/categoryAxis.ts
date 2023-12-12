@@ -1,6 +1,6 @@
 import type { ModuleContext } from '../../module/moduleContext';
 import { BandScale } from '../../scale/bandScale';
-import { NUMBER, Validate } from '../../util/validation';
+import { RATIO, Validate } from '../../util/validation';
 import { CartesianAxis } from './cartesianAxis';
 
 export class CategoryAxis extends CartesianAxis<BandScale<string | object>> {
@@ -15,7 +15,7 @@ export class CategoryAxis extends CartesianAxis<BandScale<string | object>> {
         this.includeInvisibleDomains = true;
     }
 
-    @Validate(NUMBER(0, 1))
+    @Validate(RATIO)
     groupPaddingInner: number = 0.1;
 
     set paddingInner(value: number) {

@@ -12,12 +12,12 @@ const {
     trailingValueProperty,
     keyProperty,
     ChartAxisDirection,
-    NUMBER,
-    STRING_UNION,
-    OPT_NUMBER,
-    OPT_STRING,
-    OPT_COLOR_STRING,
-    OPT_LINE_DASH,
+    RATIO,
+    PLACEMENT,
+    POSITIVE_NUMBER,
+    STRING,
+    COLOR_STRING,
+    LINE_DASH,
     mergeDefaults,
     updateLabelNode,
     fixNumericExtent,
@@ -84,10 +84,10 @@ class RangeAreaSeriesNodeClickEvent<
 }
 
 class RangeAreaSeriesLabel extends _Scene.Label<AgRangeAreaSeriesLabelFormatterParams> {
-    @Validate(STRING_UNION('inside', 'outside'))
+    @Validate(PLACEMENT)
     placement: AgRangeAreaSeriesLabelPlacement = 'outside';
 
-    @Validate(OPT_NUMBER(0))
+    @Validate(POSITIVE_NUMBER, { optional: true })
     padding: number = 6;
 }
 
@@ -116,25 +116,25 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
     shadow?: _Scene.DropShadow = undefined;
 
-    @Validate(OPT_COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     fill: string = '#99CCFF';
 
-    @Validate(OPT_COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     stroke: string = '#99CCFF';
 
-    @Validate(NUMBER(0, 1))
+    @Validate(RATIO)
     fillOpacity = 1;
 
-    @Validate(NUMBER(0, 1))
+    @Validate(RATIO)
     strokeOpacity = 1;
 
-    @Validate(OPT_LINE_DASH)
+    @Validate(LINE_DASH, { optional: true })
     lineDash?: number[] = [0];
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     strokeWidth: number = 1;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
@@ -153,25 +153,25 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         });
     }
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     xKey?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     xName?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     yLowKey?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     yLowName?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     yHighKey?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     yHighName?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     yName?: string = undefined;
 
     override async processData(dataController: _ModuleSupport.DataController) {

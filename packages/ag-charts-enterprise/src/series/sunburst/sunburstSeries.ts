@@ -14,11 +14,12 @@ import { AutoSizeableSecondaryLabel, AutoSizedLabel, formatLabels } from '../uti
 const {
     fromToMotion,
     HighlightStyle,
+    COLOR_STRING,
+    FUNCTION,
     NUMBER,
-    OPT_COLOR_STRING,
-    OPT_FUNCTION,
-    OPT_NUMBER,
-    OPT_STRING,
+    POSITIVE_NUMBER,
+    STRING,
+    RATIO,
     SeriesTooltip,
     Validate,
 } = _ModuleSupport;
@@ -52,19 +53,19 @@ class SunburstSeriesTileHighlightStyle extends HighlightStyle {
 
     readonly secondaryLabel = new AutoSizedLabel<AgSunburstSeriesLabelFormatterParams>();
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     fill?: string = undefined;
 
-    @Validate(OPT_NUMBER(0, 1))
+    @Validate(RATIO, { optional: true })
     fillOpacity?: number = undefined;
 
-    @Validate(OPT_COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     stroke?: string = undefined;
 
-    @Validate(OPT_NUMBER(0))
+    @Validate(POSITIVE_NUMBER, { optional: true })
     strokeWidth?: number = undefined;
 
-    @Validate(OPT_NUMBER(0, 1))
+    @Validate(RATIO, { optional: true })
     strokeOpacity?: number = undefined;
 }
 
@@ -114,31 +115,31 @@ export class SunburstSeries<
 
     readonly secondaryLabel = new AutoSizeableSecondaryLabel<AgSunburstSeriesLabelFormatterParams<TDatum>>();
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     sizeName?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     labelKey?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     secondaryLabelKey?: string = undefined;
 
-    @Validate(NUMBER(0, 1))
+    @Validate(RATIO)
     fillOpacity: number = 1;
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     strokeWidth: number = 0;
 
-    @Validate(NUMBER(0, 1))
+    @Validate(RATIO)
     strokeOpacity: number = 1;
 
-    @Validate(OPT_NUMBER())
+    @Validate(NUMBER, { optional: true })
     sectorSpacing?: number = undefined;
 
-    @Validate(OPT_NUMBER())
+    @Validate(NUMBER, { optional: true })
     padding?: number = undefined;
 
-    @Validate(OPT_FUNCTION)
+    @Validate(FUNCTION, { optional: true })
     formatter?: (params: AgSunburstSeriesFormatterParams) => AgSunburstSeriesStyle = undefined;
 
     override async processData() {

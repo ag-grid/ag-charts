@@ -85,8 +85,8 @@ export const GRID_URL = SITE_URL
     ? SITE_URL.includes('localhost:4600')
         ? 'https://localhost:8000'
         : SITE_URL.includes(STAGING_SITE_URL)
-        ? 'https://grid-staging.ag-grid.com'
-        : 'https://ag-grid.com'
+          ? 'https://grid-staging.ag-grid.com'
+          : 'https://ag-grid.com'
     : undefined;
 
 /**

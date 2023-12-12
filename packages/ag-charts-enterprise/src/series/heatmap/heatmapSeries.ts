@@ -19,12 +19,11 @@ const {
     valueProperty,
     ChartAxisDirection,
     COLOR_STRING_ARRAY,
-    NON_EMPTY_ARRAY,
-    NUMBER,
-    OPT_NUMBER,
-    OPT_STRING,
-    OPT_FUNCTION,
-    OPT_COLOR_STRING,
+    ARRAY,
+    POSITIVE_NUMBER,
+    STRING,
+    FUNCTION,
+    COLOR_STRING,
     TEXT_ALIGN,
     VERTICAL_ALIGN,
 } = _ModuleSupport;
@@ -85,34 +84,34 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
 
     readonly label = new AutoSizedLabel<AgHeatmapSeriesLabelFormatterParams>();
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     title?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     xKey?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     xName?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     yKey?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     yName?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     colorKey?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     colorName?: string = 'Color';
 
-    @Validate(AND(COLOR_STRING_ARRAY, NON_EMPTY_ARRAY))
+    @Validate(AND(COLOR_STRING_ARRAY, ARRAY.restrict({ minLength: 1 })))
     colorRange: string[] = ['black', 'black'];
 
-    @Validate(OPT_COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     stroke: string = 'black';
 
-    @Validate(OPT_NUMBER(0))
+    @Validate(POSITIVE_NUMBER, { optional: true })
     strokeWidth: number = 0;
 
     @Validate(TEXT_ALIGN)
@@ -121,10 +120,10 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
     @Validate(VERTICAL_ALIGN)
     verticalAlign: VerticalAlign = 'middle';
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     itemPadding: number = 0;
 
-    @Validate(OPT_FUNCTION)
+    @Validate(FUNCTION, { optional: true })
     formatter?: (params: AgHeatmapSeriesFormatterParams<any>) => AgHeatmapSeriesFormat = undefined;
 
     readonly colorScale = new ColorScale();

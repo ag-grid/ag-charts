@@ -3,18 +3,18 @@ import { Logger } from './logger';
 
 export function createDeprecationWarning() {
     return (key: string, message?: string) => {
-        const msg = [`Property [${key}] is deprecated.`, message].filter((v) => v != null).join(' ');
+        const msg = [`Property [${key}] is deprecated.`, message].filter(Boolean).join(' ');
         Logger.warnOnce(msg);
     };
 }
 
 export function Deprecated(message?: string, opts?: { default?: any }) {
+    const warnDeprecated = createDeprecationWarning();
     const def = opts?.default;
-    const warn = createDeprecationWarning();
 
     return addTransformToInstanceProperty((_, key, value) => {
         if (value !== def) {
-            warn(key.toString(), message);
+            warnDeprecated(key.toString(), message);
         }
         return value;
     });

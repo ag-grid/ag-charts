@@ -7,10 +7,10 @@ export type Defined<T> = T extends undefined ? never : T;
 export type DeepRequired<T> = T extends (...args: any[]) => any
     ? T
     : T extends any[]
-    ? _DeepRequiredArray<T[number]>
-    : T extends object
-    ? _DeepRequiredObject<T>
-    : T;
+      ? _DeepRequiredArray<T[number]>
+      : T extends object
+        ? _DeepRequiredObject<T>
+        : T;
 
 type _DeepRequiredArray<T> = Array<DeepRequired<Defined<T>>>;
 
@@ -21,8 +21,8 @@ type _DeepRequiredObject<T> = {
 export type DeepPartial<T> = T extends Array<unknown>
     ? T
     : T extends object
-    ? { [K in keyof T]?: DeepPartial<T[K]> }
-    : T;
+      ? { [K in keyof T]?: DeepPartial<T[K]> }
+      : T;
 
 export type PickRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
 

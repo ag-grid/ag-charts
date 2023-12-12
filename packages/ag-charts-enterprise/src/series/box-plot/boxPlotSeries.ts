@@ -18,11 +18,12 @@ const {
     fixNumericExtent,
     keyProperty,
     mergeDefaults,
-    NUMBER,
-    OPT_COLOR_STRING,
-    OPT_FUNCTION,
-    OPT_LINE_DASH,
-    OPT_STRING,
+    POSITIVE_NUMBER,
+    RATIO,
+    COLOR_STRING,
+    FUNCTION,
+    LINE_DASH,
+    STRING,
     SeriesNodePickMode,
     SeriesTooltip,
     SMALLEST_KEY_INTERVAL,
@@ -55,89 +56,89 @@ class BoxPlotSeriesNodeClickEvent<
 }
 
 class BoxPlotSeriesCap {
-    @Validate(NUMBER(0, 1))
+    @Validate(RATIO)
     lengthRatio = 0.5;
 }
 
 class BoxPlotSeriesWhisker {
-    @Validate(OPT_COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     stroke?: string;
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     strokeWidth?: number;
 
-    @Validate(NUMBER(0, 1))
+    @Validate(RATIO)
     strokeOpacity?: number;
 
-    @Validate(OPT_LINE_DASH)
+    @Validate(LINE_DASH, { optional: true })
     lineDash?: number[];
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     lineDashOffset?: number;
 }
 
 export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup, BoxPlotNodeDatum> {
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     xKey?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     xName?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     yName?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     minKey?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     minName?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     q1Key?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     q1Name?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     medianKey?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     medianName?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     q3Key?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     q3Name?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     maxKey?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     maxName?: string = undefined;
 
-    @Validate(OPT_COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     fill: string = '#c16068';
 
-    @Validate(NUMBER(0, 1))
+    @Validate(RATIO)
     fillOpacity = 1;
 
-    @Validate(OPT_COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     stroke: string = '#333';
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     strokeWidth: number = 1;
 
-    @Validate(NUMBER(0, 1))
+    @Validate(RATIO)
     strokeOpacity = 1;
 
-    @Validate(OPT_LINE_DASH)
+    @Validate(LINE_DASH, { optional: true })
     lineDash: number[] = [0];
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(OPT_FUNCTION)
+    @Validate(FUNCTION, { optional: true })
     formatter?: (params: AgBoxPlotSeriesFormatterParams<unknown>) => AgBoxPlotSeriesStyles = undefined;
 
     protected override readonly NodeClickEvent = BoxPlotSeriesNodeClickEvent;

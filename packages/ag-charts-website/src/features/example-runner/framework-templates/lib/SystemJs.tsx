@@ -94,8 +94,8 @@ export const SystemJs = ({ boilerplatePath, appLocation, startFile, internalFram
     let configuration = isUsingPublishedPackages()
         ? publishedConfiguration
         : isBuildServerBuild() || isPreProductionBuild()
-        ? buildAndArchivesConfiguration
-        : localConfiguration;
+          ? buildAndArchivesConfiguration
+          : localConfiguration;
 
     if (isDev) {
         configuration.chartMap = {

@@ -10,27 +10,24 @@ import {
 } from 'ag-charts-community';
 
 const {
-    AND,
     BOOLEAN,
     Layers,
-    NUMBER,
-    OPT_BOOLEAN,
     POSITION,
     Validate,
     Default,
-    GREATER_THAN,
-    NUMBER_OR_NAN,
-    DeprecatedAndRenamedTo,
+    MIN_SPACING,
+    POSITIVE_NUMBER,
     ProxyProperty,
+    DeprecatedAndRenamedTo,
 } = _ModuleSupport;
 const { BBox, Group, Rect, LinearGradientFill, Triangle } = _Scene;
 const { createId, Logger } = _Util;
 
 class GradientBar {
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     thickness = 16;
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     preferredLength = 100;
 }
 
@@ -39,7 +36,7 @@ class GradientLegendAxisTick extends _ModuleSupport.AxisTick<_Scale.LinearScale,
     // @todo(AG-10059): Set tickSize to zero when tick.enabled = false
     override size = 0;
 
-    @Validate(AND(NUMBER_OR_NAN(1), GREATER_THAN('minSpacing')))
+    @Validate(MIN_SPACING)
     @Default(NaN)
     override maxSpacing: number = NaN;
 }
@@ -152,7 +149,7 @@ export class GradientLegend {
     @Validate(POSITION)
     position: AgChartLegendPosition = 'bottom';
 
-    @Validate(OPT_BOOLEAN)
+    @Validate(BOOLEAN, { optional: true })
     reverseOrder?: boolean = undefined;
 
     // Placeholder
@@ -172,7 +169,7 @@ export class GradientLegend {
     /**
      * Spacing between the legend and the edge of the chart's element.
      */
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     spacing = 20;
 
     scale: GradientLegendScale;

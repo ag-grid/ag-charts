@@ -20,13 +20,14 @@ import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
 import { sanitizeHtml } from '../../../util/sanitize';
 import {
+    COLOR_STRING,
+    FUNCTION,
+    LINE_DASH,
     NUMBER,
-    OPT_COLOR_STRING,
-    OPT_FUNCTION,
-    OPT_LINE_DASH,
-    OPT_NUMBER,
-    OPT_STRING,
-    STRING_UNION,
+    PLACEMENT,
+    POSITIVE_NUMBER,
+    RATIO,
+    STRING,
     Validate,
 } from '../../../util/validation';
 import { isNumber } from '../../../util/value';
@@ -91,7 +92,7 @@ enum BarSeriesNodeTag {
 }
 
 class BarSeriesLabel extends Label<AgBarSeriesLabelFormatterParams> {
-    @Validate(STRING_UNION('inside', 'outside'))
+    @Validate(PLACEMENT)
     placement: AgBarSeriesLabelPlacement = 'inside';
 }
 
@@ -103,46 +104,46 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
 
     tooltip = new SeriesTooltip<AgBarSeriesTooltipRendererParams>();
 
-    @Validate(OPT_COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     fill: string = '#c16068';
 
-    @Validate(OPT_COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     stroke: string = '#874349';
 
-    @Validate(NUMBER(0, 1))
+    @Validate(RATIO)
     fillOpacity = 1;
 
-    @Validate(NUMBER(0, 1))
+    @Validate(RATIO)
     strokeOpacity = 1;
 
-    @Validate(OPT_LINE_DASH)
+    @Validate(LINE_DASH, { optional: true })
     lineDash?: number[] = [0];
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(OPT_FUNCTION)
+    @Validate(FUNCTION, { optional: true })
     formatter?: (params: AgBarSeriesFormatterParams<any>) => AgBarSeriesStyle = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     xKey?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     xName?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     yKey?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     yName?: string = undefined;
 
-    @Validate(OPT_STRING)
+    @Validate(STRING, { optional: true })
     stackGroup?: string = undefined;
 
-    @Validate(OPT_NUMBER())
+    @Validate(NUMBER, { optional: true })
     normalizedTo?: number;
 
-    @Validate(NUMBER(0))
+    @Validate(POSITIVE_NUMBER)
     strokeWidth: number = 1;
 
     shadow?: DropShadow = undefined;
