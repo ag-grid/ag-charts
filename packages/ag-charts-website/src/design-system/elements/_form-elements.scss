@@ -38,7 +38,7 @@ label#{$selector-exclude-grid} {
 }
 
 input#{$selector-exclude-grid} {
-    font-size: var(--font-size);
+    font-size: var(--text-fs-base);
 }
 
 input[type='text']#{$selector-exclude-grid},

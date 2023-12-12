@@ -4,7 +4,8 @@
     $top-bar-height: 58px;
 
     --menu-width: min(30vw, 240px);
-    --font-size: var(--text-fs-base);
+
+    font-size: var(--text-fs-base);
 
     &[aria-hidden='true'] {
         border-bottom-color: transparent;
