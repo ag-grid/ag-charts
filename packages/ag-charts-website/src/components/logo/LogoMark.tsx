@@ -1,4 +1,4 @@
-import { ReactComponent as LogoMarkSVG } from '@images/inline-svgs/ag-grid-logomark.svg';
+import LogoMarkSVG from '@images/inline-svgs/ag-grid-logomark.svg?react';
 import type { FunctionComponent } from 'react';
 
 import styles from './LogoMark.module.scss';

@@ -18,7 +18,7 @@ ${disallowPaths
 Sitemap: ${pathJoin(SITE_URL, urlWithBaseUrl('/sitemap-index.xml'))}
 `;
 
-export async function get(context: APIContext) {
+export async function GET(context: APIContext) {
     const isProduction = getIsProduction();
 
     const ignorePaths = await getSitemapIgnorePaths();

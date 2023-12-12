@@ -28,13 +28,13 @@ export const APPLE_TOUCH_SIZES = [180, 167, 152];
 export const getFavIconsData = (): { size: number; icon: string }[] => {
     return FAVICON_SIZES.map((size) => ({
         size,
-        icon: favIcons[`favIcon${size}` as keyof typeof favIcons],
+        icon: favIcons[`favIcon${size}` as keyof typeof favIcons].src,
     }));
 };
 
 export const getAppleTouchIconsData = (): { size: number; icon: string }[] => {
     return APPLE_TOUCH_SIZES.map((size) => ({
         size,
-        icon: favIcons[`favIcon${size}Touch` as keyof typeof favIcons],
+        icon: favIcons[`favIcon${size}Touch` as keyof typeof favIcons].src,
     }));
 };

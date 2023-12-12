@@ -7,8 +7,9 @@
     "build": {
       "outputs": ["{workspaceRoot}/dist/{projectRoot}"],
       "dependsOn": ["^build", "^docs-resolved-interfaces", "generate-examples", "generate-thumbnails"],
-      "executor": "@nxtensions/astro:build",
+      "command": "astro build",
       "options": {
+        "cwd": "packages/ag-charts-website",
         "silent": true
       },
       "configurations": {
@@ -23,12 +24,11 @@
       }
     },
     "dev": {
-      "executor": "@nxtensions/astro:dev",
-      "options": {
-        "port": 4600,
-        "host": true
-      },
       "dependsOn": ["^build", "^docs-resolved-interfaces"],
+      "command": "astro dev --port=${PORT} --host",
+      "options": {
+        "cwd": "packages/ag-charts-website"
+      },
       "configurations": {
         "watch": {}
       }
@@ -39,9 +39,9 @@
           "target": "build"
         }
       ],
-      "executor": "@nxtensions/astro:preview",
+      "command": "astro preview --port=${PORT}",
       "options": {
-        "port": 4601
+        "cwd": "packages/ag-charts-website"
       },
       "configurations": {
         "staging": {},

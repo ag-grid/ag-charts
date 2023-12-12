@@ -9,7 +9,7 @@ export function getStaticPaths() {
 /**
  * Get files for dev server
  */
-export async function get({ props }: DevFileRoute) {
+export async function GET({ props }: DevFileRoute) {
     const { fullFilePath } = props;
 
     const fileExists = fsOriginal.existsSync(fullFilePath);

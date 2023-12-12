@@ -25,7 +25,7 @@ export async function getStaticPaths() {
     return result;
 }
 
-export async function get({ params }: { params: Params }) {
+export async function GET({ params }: { params: Params }) {
     return {
         body: await getThumbnailContents({
             type: 'gallery-thumbnail',

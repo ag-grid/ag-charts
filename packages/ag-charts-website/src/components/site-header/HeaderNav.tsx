@@ -1,6 +1,6 @@
 import type { MenuItem } from '@ag-grid-types';
 import { SITE_BASE_URL } from '@constants';
-import { ReactComponent as MenuIcon } from '@images/inline-svgs/menu-icon.svg';
+import MenuIcon from '@images/inline-svgs/menu-icon.svg?react';
 import { pathJoin } from '@utils/pathJoin';
 import classnames from 'classnames';
 import { type ReactElement, useState } from 'react';
