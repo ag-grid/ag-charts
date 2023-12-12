@@ -48,8 +48,8 @@ jobs:
             - name: Checkout
               id: checkout
               uses: actions/checkout@v3
-              with:
-                  fetch-depth: 0
+            - name: Fetch Refs
+              run: git fetch origin latest-success latest
             - name: Nx Affected SHA Setup
               id: nx_config
               run: |
@@ -58,6 +58,7 @@ jobs:
                   else
                     echo "base=origin/latest" >> $GITHUB_OUTPUT
                   fi
+                  git fetch origin latest-success latest
             - name: Cache node_modules
               id: cache
               uses: actions/cache@v3
@@ -140,8 +141,8 @@ jobs:
             - name: Checkout
               id: checkout
               uses: actions/checkout@v3
-              with:
-                  fetch-depth: 0
+            - name: Fetch Refs
+              run: git fetch origin latest-success latest
             - name: Cache node_modules
               id: cache
               uses: actions/cache@v3
@@ -188,8 +189,8 @@ jobs:
             - name: Checkout
               id: checkout
               uses: actions/checkout@v3
-              with:
-                  fetch-depth: 0
+            - name: Fetch Refs
+              run: git fetch origin latest-success latest
 
             - uses: actions/download-artifact@v3
               with:
