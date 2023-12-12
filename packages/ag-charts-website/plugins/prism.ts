@@ -1,6 +1,6 @@
-// @ts-expect-error Cannot find module 'astro/runtime/server/index.js' or its corresponding type declarations.
 import { type AstroMarkdocConfig, Markdoc } from '@astrojs/markdoc/config';
 import { runHighlighterWithAstro } from '@astrojs/prism/dist/highlighter';
+// @ts-expect-error Cannot find module 'astro/runtime/server/index.js' or its corresponding type declarations.
 import { unescapeHTML } from 'astro/runtime/server/index.js';
 
 /**

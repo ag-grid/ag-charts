@@ -1,8 +1,8 @@
 import chokidar from 'chokidar';
 import type { Plugin, ViteDevServer } from 'vite';
 
-import { getIsDev } from '../../utils/env';
-import { getDevFileList, getExampleRootFileUrl } from '../../utils/pages';
+import { getIsDev } from '../src/utils/env';
+import { getDevFileList, getExampleRootFileUrl } from '../src/utils/pages';
 
 export default function createAgHotModuleReload(): Plugin {
     return {
@@ -13,8 +13,12 @@ export default function createAgHotModuleReload(): Plugin {
             const devFiles = getDevFileList();
             const exampleFiles = getExampleRootFileUrl().pathname;
 
+            let timeout: NodeJS.Timeout | undefined;
             const fullReload = (path: string) => {
-                server.ws.send({ type: 'full-reload', path });
+                clearTimeout(timeout);
+                timeout = setTimeout(() => {
+                    server.ws.send({ type: 'full-reload', path });
+                }, 50);
             };
 
             const watcher = chokidar.watch([...devFiles, exampleFiles]);

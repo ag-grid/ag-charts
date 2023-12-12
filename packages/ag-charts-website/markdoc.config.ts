@@ -1,6 +1,6 @@
 import { component, defineMarkdocConfig, nodes } from '@astrojs/markdoc/config';
 
-import prism from './src/astro/plugins/prism';
+import prism from './plugins/prism';
 import { DOCS_TAB_ITEM_ID_PREFIX } from './src/constants';
 
 export default defineMarkdocConfig({

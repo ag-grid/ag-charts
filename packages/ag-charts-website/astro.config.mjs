@@ -7,7 +7,7 @@ import { loadEnv } from 'vite';
 import mkcert from 'vite-plugin-mkcert';
 import svgr from 'vite-plugin-svgr';
 
-import agHotModuleReload from './src/astro/plugins/agHotModuleReload';
+import agHotModuleReload from './plugins/agHotModuleReload';
 import { getDevFileList } from './src/utils/pages';
 import { getSitemapConfig } from './src/utils/sitemap';
 
@@ -42,16 +42,19 @@ export default defineConfig({
             conditions: ['require'],
         },
         optimizeDeps: {
-            exclude: ['ag-charts-community', 'ag-charts-enterprise', 'fsevents'],
+            exclude: [
+                'ag-charts-angular',
+                'ag-charts-community',
+                'ag-charts-enterprise',
+                'ag-charts-react',
+                'ag-charts-vue',
+                'ag-charts-vue3',
+            ],
         },
         server: {
             https: !['0', 'false'].includes(PUBLIC_HTTPS_SERVER),
             fs: {
-                allow: [
-                    '.',
-                    // Nx root node modules - for hmr (hot module reloading)
-                    '../../node_modules/astro/dist/runtime/client',
-                ].concat(getDevFileList()),
+                allow: ['.'].concat(getDevFileList()),
             },
         },
     },
