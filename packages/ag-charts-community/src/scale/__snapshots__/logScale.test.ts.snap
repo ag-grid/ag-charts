@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`should create ticks for interval: -1 domain: [-10000000, -0.1] case 1`] = `
-NumericTicks [
+[
   -10000000,
   -1000000,
   -100000,
@@ -15,7 +15,7 @@ NumericTicks [
 `;
 
 exports[`should create ticks for interval: -2 domain: [-10000000, -0.1] case 1`] = `
-NumericTicks [
+[
   -10000000,
   -100000,
   -1000,
@@ -25,14 +25,14 @@ NumericTicks [
 `;
 
 exports[`should create ticks for interval: -10 domain: [-10000000, -0.1] case 1`] = `
-NumericTicks [
+[
   -10000000,
   -0.1,
 ]
 `;
 
 exports[`should create ticks for interval: 0 domain: [0.1, 10000000] case 1`] = `
-NumericTicks [
+[
   1,
   100,
   10000,
@@ -41,7 +41,7 @@ NumericTicks [
 `;
 
 exports[`should create ticks for interval: 0.1 domain: [0.1, 10000000] case 1`] = `
-NumericTicks [
+[
   0.1,
   0.1258925411794167,
   0.15848931924611132,
@@ -127,7 +127,7 @@ NumericTicks [
 `;
 
 exports[`should create ticks for interval: 0.5 domain: [0.1, 10000000] case 1`] = `
-NumericTicks [
+[
   0.1,
   0.31622776601683794,
   1,
@@ -149,7 +149,7 @@ NumericTicks [
 `;
 
 exports[`should create ticks for interval: 1 domain: [-10000000, -0.1] case 1`] = `
-NumericTicks [
+[
   -10000000,
   -1000000,
   -100000,
@@ -163,7 +163,7 @@ NumericTicks [
 `;
 
 exports[`should create ticks for interval: 1 domain: [0.1, 10000000] case 1`] = `
-NumericTicks [
+[
   0.1,
   1,
   10,
@@ -177,7 +177,7 @@ NumericTicks [
 `;
 
 exports[`should create ticks for interval: 2 domain: [-10000000, -0.1] case 1`] = `
-NumericTicks [
+[
   -10000000,
   -100000,
   -1000,
@@ -187,7 +187,7 @@ NumericTicks [
 `;
 
 exports[`should create ticks for interval: 2 domain: [0.1, 10000000] case 1`] = `
-NumericTicks [
+[
   0.1,
   10,
   1000,
@@ -197,7 +197,7 @@ NumericTicks [
 `;
 
 exports[`should create ticks for interval: 3 domain: [0.1, 10000000] case 1`] = `
-NumericTicks [
+[
   0.1,
   100,
   100000,
@@ -205,7 +205,7 @@ NumericTicks [
 `;
 
 exports[`should create ticks for interval: 4 domain: [0.1, 10000000] case 1`] = `
-NumericTicks [
+[
   0.1,
   1000,
   10000000,
@@ -213,35 +213,35 @@ NumericTicks [
 `;
 
 exports[`should create ticks for interval: 5 domain: [0.1, 10000000] case 1`] = `
-NumericTicks [
+[
   0.1,
   10000,
 ]
 `;
 
 exports[`should create ticks for interval: 6 domain: [0.1, 10000000] case 1`] = `
-NumericTicks [
+[
   0.1,
   100000,
 ]
 `;
 
 exports[`should create ticks for interval: 7 domain: [0.1, 10000000] case 1`] = `
-NumericTicks [
+[
   0.1,
   1000000,
 ]
 `;
 
 exports[`should create ticks for interval: 10 domain: [-10000000, -0.1] case 1`] = `
-NumericTicks [
+[
   -10000000,
   -0.1,
 ]
 `;
 
 exports[`should create ticks for interval: 10 domain: [0.1, 10000000] case 1`] = `
-NumericTicks [
+[
   0.1,
   10000000,
 ]

@@ -1,4 +1,4 @@
-import { NumericTicks } from './ticks';
+import { type NumericTicks, createNumericTicks } from './ticks';
 
 export function calculateNiceSecondaryAxis(
     domain: number[],
@@ -36,7 +36,7 @@ function getTicks(start: number, step: number, count: number): NumericTicks {
 
     const f = Math.pow(10, fractionDigits);
 
-    const ticks = new NumericTicks(fractionDigits);
+    const ticks = createNumericTicks(fractionDigits);
 
     for (let i = 0; i < count; i++) {
         const tick = start + step * i;
