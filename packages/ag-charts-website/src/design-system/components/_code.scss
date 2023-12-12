@@ -286,7 +286,7 @@ code[class*='language-css'] {
 }
 
 .line-numbers-rows > span:before {
-    color: var(--dark-blue-200);
+    color: var(--color-util-brand-500);
     opacity: 0.33;
 
     #{$selector-darkmode} & {

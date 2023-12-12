@@ -241,7 +241,7 @@
     cursor: pointer;
 
     strong {
-        color: var(--dark-blue-600);
+        color: var(--color-util-brand-700);
 
         #{$selector-darkmode} & {
             color: var(--color-util-brand-400);
