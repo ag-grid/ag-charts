@@ -48,6 +48,8 @@ jobs:
             - name: Checkout
               id: checkout
               uses: actions/checkout@v3
+              with:
+                  fetch-depth: 0
             - name: Fetch Refs
               run: git fetch origin latest-success latest
             - name: Nx Affected SHA Setup
@@ -144,8 +146,8 @@ jobs:
             - name: Checkout
               id: checkout
               uses: actions/checkout@v3
-            - name: Fetch Refs
-              run: git fetch origin latest-success latest
+              with:
+                  fetch-depth: 0
             - name: Cache node_modules
               id: cache
               uses: actions/cache@v3
@@ -196,6 +198,8 @@ jobs:
             - name: Checkout
               id: checkout
               uses: actions/checkout@v3
+              with:
+                  fetch-depth: 0
             - name: Fetch Refs
               run: git fetch origin latest-success latest
 
