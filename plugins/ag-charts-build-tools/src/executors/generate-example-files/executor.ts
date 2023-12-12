@@ -37,6 +37,12 @@ export async function generateFiles(options: ExecutorOptions) {
 
             const outputPath = path.join(options.outputPath, darkModePath, internalFramework, 'contents.json');
             await writeFile(outputPath, JSON.stringify(result));
+
+            for (const name in result.generatedFiles) {
+                if (typeof result.generatedFiles[name] !== 'string') {
+                    throw new Error(`${outputPath}: non-string file content`);
+                }
+            }
         }
     }
 }
