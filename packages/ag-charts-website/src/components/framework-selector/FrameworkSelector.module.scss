@@ -24,7 +24,7 @@
 
     display: flex;
     position: relative;
-    justify-content: center;
+    align-items: center;
     min-width: $spacing-size-12;
     padding: calc((var(--height) - var(--icon-size)) / 2) var(--x-padding);
     text-decoration: none;
@@ -198,6 +198,7 @@
 
         span {
             margin-left: $spacing-size-2;
+            font-size: var(--text-fs-xl);
         }
     }
 }
