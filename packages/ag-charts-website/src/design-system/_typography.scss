@@ -72,12 +72,6 @@ h1#{$selector-exclude-grid},
     --line-height: var(--line-height-tight);
 }
 
-.font-size-responsive {
-    @media screen and (min-width: $max-page-width) {
-        @include font-size-responsive();
-    }
-}
-
 h1#{$selector-exclude-grid},
 h2#{$selector-exclude-grid},
 h3#{$selector-exclude-grid},

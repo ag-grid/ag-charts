@@ -18,8 +18,11 @@ export const GalleryExampleLink: FunctionComponent<Props> = ({ label, exampleNam
                 styles.link,
                 'galleryExample',
                 styles[`layout-${layout}`],
-                'text-sm',
-                'text-secondary'
+                'font-size-small',
+                'text-secondary',
+                {
+                    [styles.onlyShowOnLargeScreen]: onlyShowOnLargeScreen,
+                }
             )}
             href={getPageUrl(exampleName)}
         >

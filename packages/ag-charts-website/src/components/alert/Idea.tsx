@@ -7,11 +7,7 @@ interface Props {
 }
 
 const Idea: FunctionComponent<Props> = ({ children }) => {
-    return (
-        <Alert type="idea" className="font-size-responsive">
-            {children}
-        </Alert>
-    );
+    return <Alert type="idea">{children}</Alert>;
 };
 
 export default Idea;
