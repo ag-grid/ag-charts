@@ -292,6 +292,10 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
     async update({ seriesRect }: { seriesRect?: _Scene.BBox }) {
         const resize = this.checkResize(seriesRect);
 
+        const animationEnabled = !this.ctx.animationManager.isSkipped();
+        const { series } = this.ctx.highlightManager?.getActiveHighlight() ?? {};
+        this.highlightGroup.visible = (animationEnabled || this.visible) && !!(series === this);
+
         await this.maybeRefreshNodeData();
 
         this.contentGroup.translationX = this.centerX;
