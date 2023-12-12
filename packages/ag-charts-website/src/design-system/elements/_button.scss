@@ -23,7 +23,9 @@ input[type='submit']#{$selector-exclude-grid},
     background-color: var(--color-button-primary-bg);
     color: var(--color-button-primary-fg);
     border: 1px solid var(--color-button-primary-border);
-    box-shadow: 0 0 0 4px transparent;
+    box-shadow:
+        0 0 0 $spacing-size-1 transparent,
+        var(--shadow-xs);
     cursor: pointer;
     outline: none;
     transition:
@@ -43,7 +45,9 @@ input[type='submit']#{$selector-exclude-grid},
 
     &:focus-visible,
     &.focus {
-        box-shadow: 0 0 0 4px var(--color-button-primary-shadow-focus);
+        box-shadow:
+            0 0 0 $spacing-size-1 var(--color-button-primary-shadow-focus),
+            var(--shadow-xs);
     }
 
     &:disabled,

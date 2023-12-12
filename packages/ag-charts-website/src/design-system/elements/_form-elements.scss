@@ -68,6 +68,9 @@ input[type='number'] {
         background-color: var(--input-background-color);
         border: 1px solid var(--color-input-border);
         outline: none;
+        box-shadow:
+            0 0 0 $spacing-size-1 transparent,
+            var(--shadow-xs);
         transition:
             border-color $transition-default-timing,
             box-shadow $transition-default-timing;
@@ -87,7 +90,9 @@ input[type='number'] {
         &:focus:not(:disabled):not([readonly]),
         &:focus-visible:not(:disabled):not([readonly]),
         &.focus {
-            box-shadow: 0 0 0 $spacing-size-1 var(--color-input-shadow-focus);
+            box-shadow:
+                0 0 0 $spacing-size-1 var(--color-input-shadow-focus),
+                var(--shadow-xs);
         }
 
         &:disabled,
