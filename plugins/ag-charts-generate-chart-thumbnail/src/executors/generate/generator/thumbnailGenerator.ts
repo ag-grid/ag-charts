@@ -1,3 +1,4 @@
+import path from 'path';
 import sharp from 'sharp';
 
 import { type AgChartThemeName, AgCharts } from 'ag-charts-community';
@@ -15,10 +16,10 @@ interface Params {
     name: string;
     example: GeneratedContents;
     theme: AgChartThemeName;
-    format: 'png' | 'webp';
+    outputPath: string;
 }
 
-export async function generateExample({ name, example, theme, format }: Params) {
+export async function generateExample({ name, example, theme, outputPath }: Params) {
     const { entryFileName, files = {} } = example;
 
     const poolEntry = await borrowFromPool();
@@ -72,17 +73,18 @@ export async function generateExample({ name, example, theme, format }: Params) 
 
         const buffer = mockCtx.ctx.nodeCanvas?.toBuffer();
 
-        let result: Buffer;
-        switch (format) {
-            case 'png':
-                result = await sharp(buffer).png().toBuffer();
-                break;
-            case 'webp':
-                result = await sharp(buffer).webp().toBuffer();
-                break;
-        }
+        const s = sharp(buffer);
 
-        return result;
+        await Promise.all([
+            s
+                .clone()
+                .png()
+                .toFile(path.join(outputPath, `${theme}.png`)),
+            s
+                .clone()
+                .webp()
+                .toFile(path.join(outputPath, `${theme}.webp`)),
+        ]);
     } catch (e) {
         throw new Error(`Unable to render example [${name}] with theme [${theme}]: ${e}`);
     } finally {

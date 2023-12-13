@@ -38,9 +38,12 @@ export async function writeJSONFile(filePath: string, data: unknown, indent = 2)
     await writeFile(filePath, dataContent);
 }
 
+export async function ensureDirectory(dirPath: string) {
+    await fs.mkdir(dirPath, { recursive: true });
+}
+
 export async function writeFile(filePath: string, newContent: string | Buffer) {
-    const outputDir = path.dirname(filePath);
-    await fs.mkdir(outputDir, { recursive: true });
+    await ensureDirectory(path.dirname(filePath));
     await fs.writeFile(filePath, newContent);
 }
 
