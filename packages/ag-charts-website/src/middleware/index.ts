@@ -17,7 +17,7 @@ const rewriteAstroGeneratedContent = (body: string) => {
         }
     });
     html.querySelectorAll('link').forEach((link) => {
-        const href = link.getAttribute('src');
+        const href = link.getAttribute('href');
         if (href != null && href.startsWith('/_astro')) {
             // Astro generated content
             link.remove();
