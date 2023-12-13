@@ -4,7 +4,8 @@ import type { AgCartesianChartOptions, AgChartInstance, AgChartOptions } from '.
 import { AgCharts } from './agChartV2';
 import type { Chart } from './chart';
 import * as examples from './test/examples';
-import { TestCase, createChart } from './test/utils';
+import type { TestCase } from './test/utils';
+import { createChart } from './test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
