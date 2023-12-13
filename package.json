@@ -7,7 +7,10 @@
     "new-version": "./tools/bump-versions.sh",
     "package": "nx pack --prod && nx pack:verify --prod",
     "clean": "rimraf dist/ packages/*/dist packages/*/lib",
-    "postinstall": "patch-package && nx build ag-charts-generate-chart-thumbnail ag-charts-generate-code-reference-files ag-charts-generate-example-files"
+    "build:ag-charts-generate-chart-thumbnail": "nx build ag-charts-generate-chart-thumbnail",
+    "build:ag-charts-generate-code-reference-files": "nx build ag-charts-generate-code-reference-files",
+    "build:ag-charts-generate-example-files": "nx build ag-charts-generate-example-files",
+    "postinstall": "patch-package && run-s build:*"
   },
   "private": true,
   "dependencies": {
