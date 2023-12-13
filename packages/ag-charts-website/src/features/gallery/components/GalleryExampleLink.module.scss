@@ -85,11 +85,3 @@
         --columns: 3;
     }
 }
-
-.onlyShowOnLargeScreen {
-    display: none !important;
-
-    @media screen and (min-width: 1120px) {
-        display: block !important;
-    }
-}

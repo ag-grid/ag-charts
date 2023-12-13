@@ -37,8 +37,8 @@
     }
 }
 
-.resultsOpen {
-    border-bottom-right-radius: 0 !important;
-    border-bottom-left-radius: 0 !important;
-    padding-right: 80px !important;
+input[type='search'].resultsOpen {
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+    padding-right: 80px;
 }
