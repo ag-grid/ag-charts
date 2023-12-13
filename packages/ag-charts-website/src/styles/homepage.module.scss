@@ -1,7 +1,7 @@
 @use '../design-system' as *;
 
 .homepageHero {
-    background-color: var(--color-util-brand-700);
+    background-color: var(--color-util-brand-500);
     color: var(--color-white);
 
     #{$selector-darkmode} & {
@@ -42,13 +42,6 @@
     }
 
     #{$selector-darkmode} & {
-        @media screen and (min-width: $breakpoint-hero-small) {
-            padding-top: $spacing-size-16;
-        }
-
-        @media screen and (min-width: $breakpoint-hero-large) {
-            padding-top: $spacing-size-24;
-        }
     }
 
     h1,
