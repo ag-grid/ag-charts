@@ -20,3 +20,29 @@ export function createId(instance: any): string {
 
     return className + '-' + nextId;
 }
+
+export function createUniqueIds(ids: (string | undefined)[]): {
+    uniqueIds: (string | undefined)[];
+    duplicates: { firstIndex: number; duplicateIndex: number }[];
+} {
+    const uniqueIds = [];
+    const duplicates = [];
+    const counterMap: Record<string, number> = {};
+
+    for (let i = 0; i < ids.length; i++) {
+        const id = ids[i];
+        const firstIndex = uniqueIds.indexOf(id);
+        if (id === undefined) {
+            uniqueIds.push(id);
+        } else if (firstIndex === -1) {
+            uniqueIds.push(id);
+        } else {
+            const nextSuffix = (counterMap[id] ?? 1) + 1;
+            counterMap[id] = nextSuffix;
+            uniqueIds.push(`${id}-${nextSuffix}`);
+            duplicates.push({ firstIndex, duplicateIndex: i });
+        }
+    }
+
+    return { uniqueIds, duplicates };
+}
