@@ -29,6 +29,7 @@
     },
     "build:package": {
       "executor": "@nx/rollup:rollup",
+      "dependsOn": ["^build:types"],
       "inputs": ["tsDefaults"],
       "outputs": ["{options.outputPath}"],
       "options": {
@@ -51,7 +52,7 @@
       "executor": "@nx/rollup:rollup",
       "inputs": ["tsDefaults"],
       "outputs": ["{options.outputPath}"],
-      "dependsOn": ["^build:package"],
+      "dependsOn": ["^build:types", "^build:package"],
       "options": {
         "outputPath": "packages/ag-charts-enterprise/dist/umd",
         "main": "packages/ag-charts-enterprise/src/main.ts",
