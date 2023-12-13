@@ -1,4 +1,4 @@
-import type { AgAxisLabelFormatterParams, AgBaseAxisLabelOptions } from '../agChartOptions';
+import type { AgAxisLabelFormatterParams } from '../agChartOptions';
 import type { AgChartLegendPosition } from './legendOptions';
 import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, PixelSize } from './types';
 
@@ -36,7 +36,7 @@ export interface AgGradientLegendLabelOptions {
 
 export interface AgGradientLegendScaleOptions {
     /** Options for the labels on the scale. */
-    label?: AgBaseAxisLabelOptions;
+    label?: AgGradientLegendLabelOptions;
     /** Distance between the gradient box and the labels. */
     padding?: PixelSize;
     /** Tick options */
