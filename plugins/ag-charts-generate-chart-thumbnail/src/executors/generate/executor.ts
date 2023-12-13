@@ -4,7 +4,7 @@ import path from 'path';
 
 import type { AgChartThemeName } from 'ag-charts-community';
 
-import { readJSONFile, writeFile } from '../../executors-utils';
+import { ensureDirectory, readJSONFile, writeFile } from '../../executors-utils';
 import { generateExample } from './generator/thumbnailGenerator';
 
 type ExecutorOptions = {
@@ -37,24 +37,18 @@ export default async function (options: ExecutorOptions, ctx: ExecutorContext) {
 }
 
 export async function generateFiles(options: ExecutorOptions, ctx: ExecutorContext) {
+    const { generatedExamplePath, outputPath } = options;
     const name = `${ctx.projectName}:${ctx.targetName}:${ctx.configurationName ?? ''}`;
-    const jsonPath = path.join(options.generatedExamplePath, 'plain', 'vanilla', 'contents.json');
-    const generatedExample = await readJSONFile(jsonPath);
+    const jsonPath = path.join(generatedExamplePath, 'plain', 'vanilla', 'contents.json');
+    const example = await readJSONFile(jsonPath);
 
-    if (generatedExample == null) {
+    if (example == null) {
         throw new Error(`Unable to read generated example: [${jsonPath}]`);
     }
 
-    for (const theme of Object.keys(THEMES) as AgChartThemeName[]) {
-        for (const format of ['png' as const, 'webp' as const]) {
-            const result = await generateExample({
-                name,
-                example: generatedExample,
-                format,
-                theme,
-            });
+    await ensureDirectory(outputPath);
 
-            await writeFile(path.join(options.outputPath, `${theme}.${format}`), result);
-        }
+    for (const theme of Object.keys(THEMES) as AgChartThemeName[]) {
+        await generateExample({ name, example, theme, outputPath });
     }
 }
