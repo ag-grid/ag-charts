@@ -4,89 +4,16 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    padding: $spacing-size-4 $spacing-size-4 0 $spacing-size-4;
+    padding: $spacing-size-4 $spacing-size-4 $spacing-size-2 $spacing-size-4;
     border-radius: 8px;
     border: 1px solid var(--color-border-primary);
 
     #{$selector-darkmode} & {
         background: var(--color-bg-secondary);
-        border: 1px solid var(--color-border-primary);
-    }
-
-    header {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-
-        b {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: var(--color-fg-primary);
-        }
-
-        span {
-            font-size: 1rem;
-            color: var(--secondary-text);
-            opacity: 0.7;
-
-            #{$selector-darkmode} & {
-                color: var(--secondary-text);
-                opacity: 1;
-            }
-        }
-
-        a {
-            text-decoration: none;
-            color: var(--color-link);
-            font-size: 1rem;
-
-            #{$selector-darkmode} & {
-                color: rgb(56, 147, 249);
-            }
-
-            &:hover {
-                text-decoration: underline;
-            }
-        }
-    }
-
-    p {
-        margin-top: 8px;
-        margin-bottom: 4px;
-        font-size: 1rem;
-        color: var(--color-text-primary);
-
-        #{$selector-darkmode} & {
-            color: var(--secondary-text);
-        }
     }
 
     ul {
-        padding-top: 0.75rem;
-        padding-bottom: 0.75rem;
-        list-style: none;
-        padding-left: 0;
-        margin-bottom: 16px;
-
-        li::before {
-            content: '• ';
-            color: var(--color-fg-primary);
-            font-weight: bold;
-        }
-
-        a {
-            color: var(--color-link);
-            text-decoration: none;
-            font-size: 1rem;
-
-            #{$selector-darkmode} & {
-                color: rgb(56, 147, 249);
-            }
-
-            &:hover {
-                text-decoration: underline;
-            }
-        }
+        padding-left: $spacing-size-5;
     }
 
     header a:hover,
@@ -115,42 +42,9 @@
 }
 
 .line {
+    margin-top: $spacing-size-2;
+    margin-bottom: $spacing-size-2;
     border-bottom: 1px solid var(--color-border-primary);
-
-    #{$selector-darkmode} & {
-        border-bottom: 1px solid var(--color-border-primary);
-    }
-}
-
-.topheader {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.changelog {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-
-    #{$selector-darkmode} & {
-        background: var(--color-bg-primary);
-    }
-}
-
-.bloglink {
-    width: 100%;
-    display: flex;
-    justify-content: left;
-    padding-top: 0.5rem;
-    padding-bottom: 0.5rem;
-    font-size: 17px;
-
-    color: var(--color-link);
-
-    #{$selector-darkmode} & {
-        color: var(--secondary-text);
-    }
 }
 
 .flex {
@@ -159,10 +53,10 @@
     justify-content: space-between;
 }
 
-span.major-text {
+.major-text {
     border: 1px solid var(--color-logo-orange);
     border-radius: var(--radius-4xl);
-    color: var(--color-logo-orange);
+    color: var(--color-logo-orange) !important;
     padding: 2px 8px;
 }
 
@@ -171,7 +65,6 @@ span.major-text {
     text-align: center;
     margin-bottom: $spacing-size-2;
 
-    margin-bottom: 16px;
     #{$selector-darkmode} & {
         background: var(--color-gray-700);
     }
