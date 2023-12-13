@@ -11,13 +11,15 @@ const rewriteAstroGeneratedContent = (body: string) => {
         const src = script.getAttribute('src');
         if (env.DEV && src != null && src.startsWith('/')) {
             script.setAttribute('src', new URL(src, env.PUBLIC_SITE_URL).toString());
-        } else if (env.PROD && (src == null || src === '')) {
+        } else if (src == null && script.textContent.trim() === '') {
+            // Astro generated content
             script.remove();
         }
     });
     html.querySelectorAll('link').forEach((link) => {
         const href = link.getAttribute('src');
-        if (env.PROD && href != null && href.startsWith('/_astro')) {
+        if (href != null && href.startsWith('/_astro')) {
+            // Astro generated content
             link.remove();
         }
     });
@@ -44,9 +46,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
     let body = await response.text();
 
-    if (context.url.pathname.endsWith('/relative-path')) {
-        body = rewriteAstroGeneratedContent(body);
-    }
+    body = rewriteAstroGeneratedContent(body);
 
     try {
         body = await format(context.url.pathname, body, extensionsToFormat);
