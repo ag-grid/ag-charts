@@ -12,10 +12,6 @@
     @media screen and (min-width: $breakpoint-docs-search-medium) {
         margin-top: -6px;
     }
-
-    #{$selector-darkmode} & {
-        --input-background-color: var(--color-bg-primary);
-    }
 }
 
 .selectFrameworkContainer {

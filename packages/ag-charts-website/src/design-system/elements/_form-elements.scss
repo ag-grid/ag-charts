@@ -65,8 +65,8 @@ input[type='number'] {
         padding: math.div(6em, 16) math.div(12em, 16);
         line-height: var(--text-lh-base);
         border-radius: var(--radius-sm);
-        background-color: var(--input-background-color);
         border: 1px solid var(--color-input-border);
+        background-color: var(--color-bg-primary);
         outline: none;
         box-shadow:
             0 0 0 $spacing-size-1 transparent,
