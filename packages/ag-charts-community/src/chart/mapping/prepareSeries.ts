@@ -5,6 +5,7 @@ import type {
     AgPolarSeriesOptions,
 } from '../../options/agChartOptions';
 import { Debug } from '../../util/debug';
+import { createUniqueIds } from '../../util/id';
 import { Logger } from '../../util/logger';
 import { isGroupableSeries, isSeriesStackedByDefault, isStackableSeries } from '../factory/seriesTypes';
 import type { SeriesGrouping } from '../series/seriesStateManager';
@@ -74,12 +75,24 @@ export function groupSeriesByType(seriesOptions: SeriesOptions[]) {
 export function processSeriesOptions(_opts: AgChartOptions, seriesOptions: SeriesOptions[]) {
     const result: SeriesOptions[] = [];
 
-    const preprocessed = seriesOptions.map((series: SeriesOptions & { stacked?: boolean; grouped?: boolean }) => {
+    // AG-10089 Rename duplicate user input id values:
+    const processedUserIds = createUniqueIds(seriesOptions.map((s) => s.id));
+    for (const { firstIndex: index1, duplicateIndex: index2 } of processedUserIds.duplicates) {
+        const id = seriesOptions[index2].id;
+        const uniqueId = processedUserIds.uniqueIds[index2];
+        Logger.warn(
+            `series[${index2}].id "${id}" was renamed to "${uniqueId}" because it duplicates series[${index1}].id`
+        );
+    }
+
+    type BarOptions = { stacked?: boolean; grouped?: boolean };
+    const preprocessed = seriesOptions.map((series: SeriesOptions & BarOptions, index: number) => {
         // Change the default for bar/columns when yKey is used to be grouped rather than stacked.
         const sType = series.type ?? 'line';
         const groupable = isGroupableSeries(sType);
         const stackable = isStackableSeries(sType);
         const stackedByDefault = isSeriesStackedByDefault(sType);
+        const uniqueId = processedUserIds.uniqueIds[index];
 
         if (series.grouped && !groupable) {
             Logger.warnOnce(`unsupported grouping of series type: ${sType}`);
@@ -87,6 +100,10 @@ export function processSeriesOptions(_opts: AgChartOptions, seriesOptions: Serie
 
         if (series.stacked && !stackable) {
             Logger.warnOnce(`unsupported stacking of series type: ${sType}`);
+        }
+
+        if (series.id !== undefined && series.id != uniqueId) {
+            series = { ...series, id: uniqueId };
         }
 
         if (!groupable && !stackable) {
