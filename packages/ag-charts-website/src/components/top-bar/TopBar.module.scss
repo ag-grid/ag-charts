@@ -3,6 +3,10 @@
 .topBar {
     background-color: var(--color-bg-toolbar);
 
+    #{$selector-darkmode} & {
+        border-bottom: 1px solid var(--color-border-primary);
+    }
+
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
         position: sticky;
         top: $site-header-height;
@@ -13,21 +17,19 @@
         }
     }
 
-    border-bottom: 0.5px solid transparent;
-
     #{$selector-darkmode} & {
-        background: #121f29;
-        border-bottom-color: #394755;
+        background: var(--color-bg-primary);
+        border-bottom: 0.5px solid var(--color-border-primary);
     }
 }
 
 .topBarInner {
     display: flex;
-    flex-wrap: wrap;
-    gap: $spacing-size-2;
+    justify-content: space-between;
+    align-items: center;
+    height: 58px;
     padding-top: $spacing-size-2;
     padding-bottom: $spacing-size-2;
-}
 
     nav ul {
         display: flex;
