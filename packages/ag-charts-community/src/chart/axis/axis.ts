@@ -34,7 +34,7 @@ import type { PointLabelDatum } from '../../util/labelPlacement';
 import { axisLabelsOverlap } from '../../util/labelPlacement';
 import { Logger } from '../../util/logger';
 import { clamp, round } from '../../util/number';
-import { BOOLEAN, STRING_ARRAY, Validate } from '../../util/validation';
+import { BOOLEAN, STRING_ARRAY, Validate, predicateWithMessage } from '../../util/validation';
 import { Caption } from '../caption';
 import type { ChartAxis, ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
@@ -386,6 +386,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         }
     }
 
+    @Validate(predicateWithMessage((title) => typeof title == 'object', 'Title object'), { optional: true })
     public title?: AxisTitle = undefined;
     protected _titleCaption = new Caption(this.moduleCtx);
 
