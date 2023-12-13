@@ -301,10 +301,12 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     private attachCrossLine(crossLine: CrossLine) {
         this.crossLineGroup.appendChild(crossLine.group);
+        this.crossLineGroup.appendChild(crossLine.labelGroup);
     }
 
     private detachCrossLine(crossLine: CrossLine) {
         this.crossLineGroup.removeChild(crossLine.group);
+        this.crossLineGroup.removeChild(crossLine.labelGroup);
     }
 
     destroy() {

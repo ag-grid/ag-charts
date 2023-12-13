@@ -18,6 +18,7 @@ export interface CrossLine<LabelType = AgBaseCrossLineLabelOptions> {
     group: Group;
     id: string;
     label: LabelType;
+    labelGroup: Group;
     lineDash?: number[];
     parallelFlipRotation: number;
     range?: [any, any];

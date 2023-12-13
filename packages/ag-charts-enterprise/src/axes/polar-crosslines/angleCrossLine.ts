@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import { PolarCrossLine } from './polarCrossLine';
 
@@ -21,10 +21,16 @@ export class AngleCrossLine extends PolarCrossLine {
         this.group.append(this.polygonNode);
         this.group.append(this.sectorNode);
         this.group.append(this.lineNode);
-        this.group.append(this.labelNode);
+        this.labelGroup.append(this.labelNode);
     }
 
     update(visible: boolean) {
+        const { scale, shape, type, value } = this;
+        if (type === 'line' && shape === 'circle' && scale instanceof _Scale.BandScale) {
+            this.type = 'range';
+            this.range = [value, value];
+        }
+
         this.updateLineNode(visible);
         this.updatePolygonNode(visible);
         this.updateSectorNode(visible);
@@ -59,15 +65,6 @@ export class AngleCrossLine extends PolarCrossLine {
         this.group.zIndex = AngleCrossLine.LINE_LAYER_ZINDEX;
     }
 
-    private updateFill(area: _Scene.Path | _Scene.Sector) {
-        area.fill = this.fill;
-        area.fillOpacity = this.fillOpacity ?? 1;
-        area.stroke = this.stroke;
-        area.strokeOpacity = this.strokeOpacity ?? 1;
-        area.strokeWidth = this.strokeWidth ?? 1;
-        area.lineDash = this.lineDash;
-    }
-
     private updatePolygonNode(visible: boolean) {
         const { polygonNode: polygon, range, scale, shape, type } = this;
         let ticks: any[] | undefined;
@@ -86,7 +83,7 @@ export class AngleCrossLine extends PolarCrossLine {
         const angles = stops.map((value) => scale.convert(value));
 
         polygon.visible = true;
-        this.updateFill(polygon);
+        this.setSectorNodeProps(polygon);
 
         const { path } = polygon;
         path.clear({ trackChanges: true });
@@ -126,15 +123,18 @@ export class AngleCrossLine extends PolarCrossLine {
         const { axisInnerRadius, axisOuterRadius } = this;
         const angles = range.map((value) => scale.convert(value));
 
+        const step = scale.step ?? 0;
+        const padding = scale instanceof _Scale.BandScale ? step / 2 : 0;
+
         sector.visible = true;
-        this.updateFill(sector);
+        this.setSectorNodeProps(sector);
 
         sector.centerX = 0;
         sector.centerY = 0;
         sector.innerRadius = axisInnerRadius;
         sector.outerRadius = axisOuterRadius;
-        sector.startAngle = angles[0];
-        sector.endAngle = angles[1];
+        sector.startAngle = angles[0] - padding;
+        sector.endAngle = angles[1] + padding;
 
         this.group.zIndex = AngleCrossLine.RANGE_LAYER_ZINDEX;
     }
