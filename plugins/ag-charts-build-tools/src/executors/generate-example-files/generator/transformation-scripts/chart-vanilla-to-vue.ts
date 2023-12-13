@@ -88,6 +88,14 @@ export function vanillaToVue(bindings: any, componentFileNames: string[]): () =>
         const [externalEventHandlers, instanceMethods, globalMethods] = getAllMethods(bindings);
         const template = getTemplate(bindings, propertyAttributes);
 
+        console.log(propertyVars);
+        console.log(propertyAssignments);
+
+        const methods = instanceMethods
+            .concat(externalEventHandlers)
+            .map((snippet) => `${snippet.trim()},`)
+            .join('\n');
+
         let mainFile = `${imports.join('\n')}
 
 const ChartExample = {
@@ -109,12 +117,10 @@ const ChartExample = {
         ${bindings.init.join(';\n        ')}
         ${getDarkModeSnippet('vue')}
     },
-    methods: {
-        ${instanceMethods
-            .concat(externalEventHandlers)
-            .map((snippet) => `${snippet.trim()},`)
-            .join('\n')}
-    }
+    ${/* prettier-ignore */ methods != null ? `methods: {
+        ${methods}
+    },
+    ` : ''}
 }
 
 ${globalMethods.join('\n\n')}
