@@ -100,6 +100,45 @@ export const Inputs: FunctionComponent = () => {
                         <input type="checkbox" className="switch" disabled />
                     </div>
                 </div>
+
+                <div className={styles.selectList}>
+                    <div>
+                        <label>Default:</label>
+                        <select>
+                            <option>Select</option>
+                            <option>Option one</option>
+                            <option>Option two</option>
+                            <option>Option three</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Hover:</label>
+                        <select className="hover">
+                            <option>Select</option>
+                            <option>Option one</option>
+                            <option>Option two</option>
+                            <option>Option three</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Focus:</label>
+                        <select className="focus">
+                            <option>Select</option>
+                            <option>Option one</option>
+                            <option>Option two</option>
+                            <option>Option three</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Disabled:</label>
+                        <select disabled>
+                            <option>Select</option>
+                            <option>Option one</option>
+                            <option>Option two</option>
+                            <option>Option three</option>
+                        </select>
+                    </div>
+                </div>
             </div>
         </>
     );
