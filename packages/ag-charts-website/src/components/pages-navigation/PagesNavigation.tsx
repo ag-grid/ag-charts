@@ -34,7 +34,7 @@ function CollapsibleNav({
     isOpen,
     activeMenuItem,
 }: {
-    id: string;
+    id?: string;
     items: MenuItem[];
     framework: Framework;
     isOpen: boolean;
@@ -141,13 +141,7 @@ function NavItemContainer({
             )}
 
             {items && (
-                <CollapsibleNav
-                    id={(path || url)!}
-                    items={items}
-                    framework={framework}
-                    isOpen={isActive}
-                    activeMenuItem={activeMenuItem}
-                />
+                <CollapsibleNav items={items} framework={framework} isOpen={isActive} activeMenuItem={activeMenuItem} />
             )}
         </li>
     );
