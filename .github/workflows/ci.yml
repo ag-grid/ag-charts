@@ -90,7 +90,7 @@ jobs:
               run: yarn check --integrity || yarn install --ci --prefer-offline
             - name: yarn postinstall
               if: steps.cache.outputs.cache-hit == 'true'
-              run: npx nx build ag-charts-build-tools
+              run: npx nx build ag-charts-generate-chart-thumbnail ag-charts-generate-code-reference-files ag-charts-generate-example-files
             - name: nx format:check
               id: format
               if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
@@ -177,7 +177,7 @@ jobs:
               run: yarn check --integrity || yarn install --ci --prefer-offline
             - name: yarn postinstall
               if: steps.cache.outputs.cache-hit == 'true'
-              run: npx nx build ag-charts-build-tools
+              run: npx nx build ag-charts-generate-chart-thumbnail ag-charts-generate-code-reference-files ag-charts-generate-example-files
             - name: nx test
               id: test
               run: yarn nx affected --base ${{ needs.execute_blt.outputs.nx_base }} -t test --configuration=ci --exclude all --shard=${{ matrix.shard }}/${{ strategy.job-total }}

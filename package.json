@@ -7,7 +7,7 @@
     "new-version": "./tools/bump-versions.sh",
     "package": "nx pack --prod && nx pack:verify --prod",
     "clean": "rimraf dist/ packages/*/dist packages/*/lib",
-    "postinstall": "patch-package && nx build ag-charts-build-tools"
+    "postinstall": "patch-package && nx build ag-charts-generate-chart-thumbnail ag-charts-generate-code-reference-files ag-charts-generate-example-files"
   },
   "private": true,
   "dependencies": {
@@ -127,7 +127,9 @@
       "packages/ag-charts-vue3",
       "packages/ag-charts-website",
       "packages/ag-charts-website-e2e",
-      "plugins/ag-charts-build-tools",
+      "plugins/ag-charts-generate-chart-thumbnail",
+      "plugins/ag-charts-generate-code-reference-files",
+      "plugins/ag-charts-generate-example-files",
       "plugins/ag-charts-task-autogen",
       "libraries/ag-charts-test"
     ],

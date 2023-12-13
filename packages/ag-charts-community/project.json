@@ -66,7 +66,7 @@
       }
     },
     "docs-debug-interfaces": {
-      "executor": "ag-charts-build-tools:generate-code-reference-files",
+      "executor": "ag-charts-generate-code-reference-files:generate",
       "inputs": ["{projectRoot}/src/options"],
       "outputPath": "{options.output}",
       "options": {
@@ -76,7 +76,7 @@
       }
     },
     "docs-resolved-interfaces": {
-      "executor": "ag-charts-build-tools:generate-code-reference-files",
+      "executor": "ag-charts-generate-code-reference-files:generate",
       "inputs": ["{projectRoot}/src/options"],
       "outputPath": "{options.output}",
       "options": {
