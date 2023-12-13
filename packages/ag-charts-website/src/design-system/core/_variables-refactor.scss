@@ -133,7 +133,7 @@ $transition-default-timing: 0.25s ease-in-out;
     --color-brand-200: #d4e3f8;
     --color-brand-300: #a9c5ec;
     --color-brand-400: #3d7acd;
-    --color-brand-500: #004cb3;
+    --color-brand-500: #0e4491;
     --color-brand-600: #0042a1;
     --color-brand-700: #00388f;
     --color-brand-800: #002e7e;
@@ -170,7 +170,7 @@ $transition-default-timing: 0.25s ease-in-out;
     --color-bg-disabled_subtle: var(--color-gray-50);
     --color-bg-toolbar: var(--color-gray-100);
     --color-bg-code: var(--color-gray-100);
-    --color-bg-site-header: #044b93; // TODO, review & replace color
+    --color-bg-site-header: var(--color-brand-700);
     --color-bg-mobile-nav: #003264; // TODO, review & replace color
 
     // Foreground colors
@@ -314,6 +314,10 @@ html[data-dark-mode='true'] {
     --color-border-secondary: var(--color-gray-800);
     --color-border-tertiary: var(--color-gray-800);
     --color-border-disabled_subtle: var(--color-gray-800);
+
+    // Link colors
+    --color-link: var(--color-brand-300); // TODO, review & replace color
+    --color-link-hover: var(--color-brand-200); // TODO, review & replace color
 
     // Button colors
     --color-button-primary-bg-hover: var(--color-brand-600);
