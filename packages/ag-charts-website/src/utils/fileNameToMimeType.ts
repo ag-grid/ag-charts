@@ -6,6 +6,7 @@ const MIME_MAPPING = {
     '.htm': 'text/html',
     '.html': 'text/html',
     '.png': 'image/png',
+    '.webp': 'image/webp',
     '.jpeg': 'image/jpeg',
     '.jpg': 'image/jpeg',
 };
