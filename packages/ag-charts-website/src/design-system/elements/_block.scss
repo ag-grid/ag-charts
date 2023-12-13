@@ -31,14 +31,12 @@ ol.list-style-none,
 }
 
 pre#{$selector-exclude-grid} {
-    background-color: var(--color-util-gray-200);
     padding: $spacing-size-2 $spacing-size-4;
-    border-radius: var(--radius-md);
     font-family: var(--text-monospace-font-family);
-
-    #{$selector-darkmode} & {
-        background-color: var(--color-util-brand-50);
-    }
+    font-size: 15px;
+    border-radius: var(--radius-md);
+    border: 1px solid color-mix(in srgb, var(--color-border-secondary), var(--color-border-primary));
+    background-color: var(--color-bg-secondary);
 }
 
 hr#{$selector-exclude-grid} {
