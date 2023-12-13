@@ -88,7 +88,7 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
     });
     const providedExampleEntries = await Promise.all(
         providedExampleFileNames.map(async (fileName) => {
-            const contents = fs.readFile(path.join(providedExampleBasePath, fileName));
+            const contents = (await fs.readFile(path.join(providedExampleBasePath, fileName))).toString('utf-8');
 
             return [fileName, contents];
         })
