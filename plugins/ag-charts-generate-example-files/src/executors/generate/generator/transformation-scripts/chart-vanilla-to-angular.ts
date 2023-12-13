@@ -1,4 +1,4 @@
-import { getDarkModeSnippet } from '../utils/getDarkModeSnippet';
+import { DARK_MODE_END, DARK_MODE_START, getRawDarkModeSnippet } from '../utils/getDarkModeSnippet';
 import { convertTemplate, getImport, toAssignment, toConst, toInput, toMember } from './angular-utils';
 import { wrapOptionsUpdateCode } from './chart-utils';
 import { templatePlaceholder } from './chart-vanilla-src-parser';
@@ -77,6 +77,9 @@ export function vanillaToAngular(bindings: any, componentFileNames: string[]): (
         const template = getTemplate(bindings, propertyAttributes);
         const externalEventHandlers = bindings.externalEventHandlers.map((handler) => processFunction(handler.body));
 
+        const darkModeSnippet = getRawDarkModeSnippet('angular');
+
+        /* prettier-ignore */
         let appComponent = `${imports.join('\n')}${declarations.length > 0 ? '\n' + declarations.join('\n') : ''}
 
 @Component({
@@ -99,10 +102,18 @@ export class AppComponent {
         ${propertyAssignments.join(';\n')}
     }
 
+    ${bindings.init.length !== 0 ? `
     ngOnInit() {
         ${bindings.init.join(';\n    ')}
-        ${getDarkModeSnippet('angular')}
+        ${darkModeSnippet}
     }
+    ` : `
+    ${DARK_MODE_START}
+    ngOnInit() {
+        ${darkModeSnippet}
+    }
+    ${DARK_MODE_END}
+    `}
 
     ${instanceMethods
         .concat(externalEventHandlers)
