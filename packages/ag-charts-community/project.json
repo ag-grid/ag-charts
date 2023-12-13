@@ -6,9 +6,24 @@
   "targets": {
     "build": {
       "executor": "nx:noop",
-      "dependsOn": ["build:package", "build:umd"],
+      "dependsOn": ["build:types", "build:package", "build:umd"],
       "configurations": {
         "watch": {},
+        "production": {}
+      }
+    },
+    "build:types": {
+      "executor": "@nx/js:tsc",
+      "dependsOn": ["^build:types"],
+      "inputs": ["tsDefaults"],
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "packages/ag-charts-community/dist/types",
+        "main": "packages/ag-charts-community/src/main.ts",
+        "tsConfig": "packages/ag-charts-community/tsconfig.types.json",
+        "compiler": "tsc"
+      },
+      "configurations": {
         "production": {}
       }
     },
