@@ -271,7 +271,7 @@
 }
 
 [data-dark-mode='false'] .agGridLogo :global(.logotype) > * {
-    fill: #003264;
+    fill: var(--color-logo-text);
 }
 
 .gridExample {

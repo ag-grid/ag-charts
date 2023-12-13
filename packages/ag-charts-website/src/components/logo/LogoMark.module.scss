@@ -2,19 +2,19 @@
 
 :global(.logo-mark) {
     :global(.aqua) {
-        fill: #55b4c8;
+        fill: var(--color-logo-aqua);
     }
 
     :global(.orange) {
-        fill: #ff8c00;
+        fill: var(--color-logo-orange);
     }
 
     :global(.red) {
-        fill: #f00;
+        fill: var(--color-logo-red);
     }
 
     :global(.grey) {
-        fill: #b4bebe;
+        fill: var(--color-logo-grey);
     }
 
     rect {
