@@ -2,7 +2,6 @@ import type { Framework } from '@ag-grid-types';
 import { SITE_BASE_URL } from '@constants';
 
 import { pathJoin } from './pathJoin';
-import { validateUrl } from './validateUrl';
 
 export const urlWithPrefix = ({
     url = '',
@@ -13,16 +12,14 @@ export const urlWithPrefix = ({
     framework?: Framework;
     siteBaseUrl?: string;
 }): string => {
-    const hasRelativePathRegex = /(^\.\/)(.*)/;
-    const substitution = '$2';
-
-    validateUrl(url);
-
     let path = url;
-    if (url.match(hasRelativePathRegex)) {
-        path = pathJoin('/', siteBaseUrl, framework, url.replace(hasRelativePathRegex, substitution));
+    if (url.startsWith('./')) {
+        path = pathJoin('/', siteBaseUrl, framework, url.slice('./'.length));
     } else if (url.startsWith('/')) {
         path = pathJoin('/', siteBaseUrl, url);
+    } else if (!url.startsWith('#') && !url.startsWith('http') && !url.startsWith('mailto')) {
+        // eslint-disable-next-line no-console
+        console.warn(`Invalid url: ${url}`);
     }
 
     return path;
