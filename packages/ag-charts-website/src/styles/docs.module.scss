@@ -56,15 +56,15 @@
 
     :global(#{$selector-darkmode}) & {
         :global(a) {
-            color: #3893f9;
+            color: var(--color-brand-300);
             text-decoration: underline;
             text-underline-offset: 2px;
-            text-decoration-color: #3892f977;
+            text-decoration-color: var(--color-brand-300);
         }
 
         :global(a):hover {
-            color: #3893f9;
-            text-decoration-color: #60aafe;
+            color: var(--color-fg-primary);
+            text-decoration-color: var(--color-brand-300);
         }
     }
 
