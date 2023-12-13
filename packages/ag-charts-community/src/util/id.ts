@@ -37,9 +37,16 @@ export function createUniqueIds(ids: (string | undefined)[]): {
         } else if (firstIndex === -1) {
             uniqueIds.push(id);
         } else {
-            const nextSuffix = (counterMap[id] ?? 1) + 1;
-            counterMap[id] = nextSuffix;
-            uniqueIds.push(`${id}-${nextSuffix}`);
+            // We cannot add a renamed the id without checking that the renamed id is already
+            // in used. Keep increasing the suffix number until an unused id is found.
+            let nextSuffix = counterMap[id] ?? 1;
+            let newId = '';
+            do {
+                nextSuffix++;
+                counterMap[id] = nextSuffix;
+                newId = `${id}-${nextSuffix}`;
+            } while (uniqueIds.indexOf(newId) !== -1);
+            uniqueIds.push(newId);
             duplicates.push({ firstIndex, duplicateIndex: i });
         }
     }

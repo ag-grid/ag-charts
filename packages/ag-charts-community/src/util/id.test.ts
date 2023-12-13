@@ -39,7 +39,13 @@ describe('id util', () => {
         test('undefined values', () => {
             const { uniqueIds, duplicates } = createUniqueIds(['a', undefined, 'b', undefined]);
             expect(uniqueIds).toStrictEqual(['a', undefined, 'b', undefined]);
-            expect(duplicates).toStrictEqual([])
+            expect(duplicates).toStrictEqual([]);
+        });
+
+        test('no generated duplicates', () => {
+            const { uniqueIds, duplicates } = createUniqueIds(['a-2', 'a', 'a']);
+            expect(uniqueIds).toStrictEqual(['a-2', 'a', 'a-3']);
+            expect(duplicates).toStrictEqual([duplicate(1, 2)]);
         });
     });
 });
