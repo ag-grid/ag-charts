@@ -86,17 +86,16 @@
     color: transparent;
     transition: background-color 0.4s ease-in-out;
 
+    &:hover {
+        background-color: transparent;
+    }
+
     &:focus {
         box-shadow: none;
     }
 
     &:focus-visible {
         box-shadow: inset 0 0 0 2px var(--color-button-primary-shadow-focus);
-    }
-
-    &[aria-expanded='true'],
-    &:hover[aria-expanded='true'] {
-        background-color: var(--color-bg-mobile-nav);
     }
 
     svg {
@@ -108,11 +107,11 @@
         position: absolute;
         top: 0;
         right: 0;
-        background-color: transparent !important;
+        background-color: transparent;
     }
 
     @media screen and (min-width: $breakpoint-site-header-small) {
-        display: none !important;
+        display: none;
     }
 }
 
@@ -186,9 +185,8 @@
     }
 
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
-        display: block !important;
         position: unset;
-        width: unset !important;
+        width: unset;
         margin-left: $spacing-size-4;
         overflow: visible;
     }
@@ -290,7 +288,7 @@
 
 .buttonItem {
     .navLink {
-        padding: 19px 18px 16px !important;
+        padding: 19px 18px 16px;
     }
 
     a::after {
@@ -298,7 +296,7 @@
     }
 
     svg {
-        --icon-size: 24px !important;
+        --icon-size: 24px;
 
         margin-right: 4px;
         border-radius: 50%;
@@ -311,8 +309,8 @@
         }
 
         .navLink {
-            padding-left: 12px !important;
-            padding-right: 12px !important;
+            padding-left: 12px;
+            padding-right: 12px;
         }
 
         svg {

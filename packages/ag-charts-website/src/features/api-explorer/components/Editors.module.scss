@@ -90,19 +90,19 @@
     // override default react-color slider styles
     :global(.hue-picker),
     :global(.alpha-picker) {
-        height: 8px !important;
+        height: 8px;
         cursor: pointer;
     }
 
     // override default react-color slider styles
     :global(.hue-horizontal),
     :global(.alpha-picker) > div > div {
-        border-radius: 4px !important;
+        border-radius: 4px;
     }
 
     // override default react-color slider styles
     :global(.hue-horizontal) > div > div,
     :global(.alpha-picker) > div > div:last-child > div > div {
-        transform: translate(-9px, -5px) !important;
+        transform: translate(-9px, -5px);
     }
 }

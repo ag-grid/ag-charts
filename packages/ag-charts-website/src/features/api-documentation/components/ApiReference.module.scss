@@ -158,7 +158,7 @@
 }
 
 .metaValue {
-    font-size: var(----text-fs-sm);
+    font-size: var(--text-fs-sm);
     font-family: var(--text-monospace-font-family);
     color: var(--color-fg-code);
 
@@ -232,7 +232,7 @@
     }
 
     .metaValue {
-        font-size: calc(var(----text-fs-sm) * 0.92);
+        font-size: calc(var(--text-fs-sm) * 0.92);
     }
 }
 

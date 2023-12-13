@@ -113,7 +113,7 @@
 
         .option > *:not(input),
         .option > .metaList {
-            padding-left: 0 !important;
+            padding-left: 0;
             padding-right: 0;
         }
     }
@@ -133,7 +133,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: $spacing-size-2 $spacing-size-6;
-    padding-left: $spacing-size-2 !important;
+    padding-left: $spacing-size-2;
 }
 
 body ul.metaList {
@@ -158,7 +158,7 @@ body ul.metaList {
 }
 
 .metaValue {
-    font-size: var(----text-fs-sm);
+    font-size: var(--text-fs-sm);
     font-family: var(--text-monospace-font-family);
     color: var(--color-fg-code);
     background-color: none;

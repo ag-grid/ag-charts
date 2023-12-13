@@ -32,10 +32,8 @@ iframe {
     font-weight: 500;
     border-radius: $spacing-size-2;
 
-    svg {
-        --icon-size: #{$spacing-size-6} !important;
-
-        position: absolute;
+    :global(.icon) {
+        --icon-size: #{$spacing-size-6};
     }
 }
 
@@ -45,10 +43,7 @@ iframe {
     flex-shrink: 0;
     margin-left: $spacing-size-4;
     margin-right: -10px;
-
-    li {
-        margin-bottom: 0.125em !important;
-    }
+    margin-bottom: 2px;
 }
 
 .importInfoIcon {
