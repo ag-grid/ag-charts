@@ -24,7 +24,7 @@
     }
 
     &:not(.bounce, .loading) rect {
-        transform: translateX(0) !important;
+        transform: translateX(0);
     }
 }
 
