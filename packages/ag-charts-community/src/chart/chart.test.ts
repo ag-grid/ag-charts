@@ -444,12 +444,12 @@ describe('Chart', () => {
                 data: moreData,
                 series: [
                     {
-                        type: 'bar',
+                        type: 'line',
                         xKey: datasets.economy.categoryKey,
                         yKey: datasets.economy.valueKey,
                     },
                     {
-                        type: 'bar',
+                        type: 'line',
                         data: lessData,
                         xKey: datasets.economy.categoryKey,
                         yKey: datasets.economy.valueKey2,
@@ -464,13 +464,13 @@ describe('Chart', () => {
                 data: moreData,
                 series: [
                     {
-                        type: 'bar',
+                        type: 'line',
                         data: lessData,
                         xKey: datasets.economy.categoryKey,
                         yKey: datasets.economy.valueKey,
                     },
                     {
-                        type: 'bar',
+                        type: 'line',
                         xKey: datasets.economy.categoryKey,
                         yKey: datasets.economy.valueKey2,
                     },
@@ -485,12 +485,12 @@ describe('Chart', () => {
                 data: moreData,
                 series: [
                     {
-                        type: 'bar',
+                        type: 'line',
                         xKey: datasets.economy.categoryKey,
                         yKey: datasets.economy.valueKey,
                     },
                     {
-                        type: 'bar',
+                        type: 'line',
                         xKey: datasets.economy.categoryKey,
                         yKey: datasets.economy.valueKey2,
                     },
