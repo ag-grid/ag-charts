@@ -28,6 +28,12 @@
     li:first-child & svg {
         --icon-size: 1.35em;
     }
+
+    #{$selector-darkmode} & {
+        &:hover {
+            background-color: var(--color-util-brand-50);
+        }
+    }
 }
 
 .tooltip {
