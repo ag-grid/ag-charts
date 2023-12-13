@@ -4,7 +4,7 @@ import path from 'path';
 
 import type { AgChartThemeName } from 'ag-charts-community';
 
-import { ensureDirectory, readJSONFile, writeFile } from '../../executors-utils';
+import { consolePrefix, ensureDirectory, readJSONFile } from '../../executors-utils';
 import { generateExample } from './generator/thumbnailGenerator';
 
 type ExecutorOptions = {
@@ -48,7 +48,9 @@ export async function generateFiles(options: ExecutorOptions, ctx: ExecutorConte
 
     await ensureDirectory(outputPath);
 
-    for (const theme of Object.keys(THEMES) as AgChartThemeName[]) {
-        await generateExample({ name, example, theme, outputPath });
-    }
+    await consolePrefix(`[${ctx.projectName}] `, async () => {
+        for (const theme of Object.keys(THEMES) as AgChartThemeName[]) {
+            await generateExample({ name, example, theme, outputPath });
+        }
+    });
 }

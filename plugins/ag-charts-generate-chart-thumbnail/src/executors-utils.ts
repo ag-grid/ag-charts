@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import type { ExecutorContext, TaskGraph } from '@nx/devkit';
 import { readFileSync } from 'fs';
 import * as fs from 'fs/promises';
@@ -62,7 +63,7 @@ export function batchExecutor<ExecutorOptions>(
     executor: (opts: ExecutorOptions, ctx: ExecutorContext) => Promise<void>
 ) {
     return async function* (
-        _taskGraph: TaskGraph,
+        taskGraph: TaskGraph,
         inputs: Record<string, ExecutorOptions>,
         overrides: ExecutorOptions,
         context: ExecutorContext
@@ -70,19 +71,47 @@ export function batchExecutor<ExecutorOptions>(
         const tasks = Object.keys(inputs);
 
         for (let taskIndex = 0; taskIndex < tasks.length; taskIndex++) {
-            const task = tasks[taskIndex++];
-            const inputOptions = inputs[task];
+            const taskName = tasks[taskIndex++];
+            const task = taskGraph.tasks[taskName];
+            const inputOptions = inputs[taskName];
 
             let success = false;
             let terminalOutput = '';
             try {
-                await executor({ ...inputOptions, ...overrides }, context);
+                await executor(
+                    { ...inputOptions, ...overrides },
+                    {
+                        ...context,
+                        projectName: task.target.project,
+                        targetName: task.target.target,
+                        configurationName: task.target.configuration,
+                    }
+                );
                 success = true;
             } catch (e) {
                 terminalOutput += `${e}`;
             }
 
-            yield { task, result: { success, terminalOutput } };
+            yield { task: taskName, result: { success, terminalOutput } };
         }
     };
+}
+
+export async function consolePrefix(prefix: string, cb: () => Promise<void>) {
+    const fns = {};
+    for (const fn of ['log', 'debug', 'info', 'warn', 'error']) {
+        fns[fn] = console[fn];
+
+        console[fn] = (arg: any, ...args: any[]) => {
+            // Filter license message.
+            if (typeof arg === 'string' && arg.startsWith('*')) return;
+
+            fns[fn].call(console, prefix, arg, ...args);
+        };
+    }
+    try {
+        await cb();
+    } finally {
+        Object.assign(console, fns);
+    }
 }
