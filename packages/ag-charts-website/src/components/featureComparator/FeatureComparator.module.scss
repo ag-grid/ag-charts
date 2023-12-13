@@ -10,11 +10,11 @@
 }
 
 .featureAvailableIcon {
-    --color-icon: #28a745;
+    --color-icon: var(--color-positive);
 }
 
 .featureNotAvailableIcon {
-    --color-icon: #dc3545;
+    --color-icon: var(--color-negative);
 }
 
 .featureNotAvailableIcon,

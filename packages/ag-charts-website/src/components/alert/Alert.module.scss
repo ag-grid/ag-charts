@@ -11,8 +11,8 @@
     border-radius: var(--radius-md);
     border: 1px solid var(--color-util-brand-100);
     color: var(--color-util-brand-700);
-    margin-top: $spacing-size-10 !important;
-    margin-bottom: $spacing-size-10;
+    margin-top: $spacing-size-4;
+    margin-bottom: $spacing-size-4;
 
     :global(.icon) {
         align-self: flex-start;
