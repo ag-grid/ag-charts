@@ -33,11 +33,40 @@
 .docPage {
     flex: 1 1 0px;
     min-width: 0px;
+    position: relative;
     padding-top: $spacing-size-8 + $spacing-size-1;
     padding-right: var(--horizontal-margin);
     padding-left: var(--horizontal-margin);
     padding-bottom: $spacing-size-16;
-    position: relative;
+
+    :global(#{$selector-darkmode}) & {
+        color: var(--color-fg-secondary);
+    }
+
+    :global(h1),
+    :global(h2),
+    :global(h3),
+    :global(h4),
+    :global(h5),
+    :global(h6) {
+        :global(#{$selector-darkmode}) & {
+            color: var(--color-fg-primary);
+        }
+    }
+
+    :global(#{$selector-darkmode}) & {
+        :global(a) {
+            color: #3893f9;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+            text-decoration-color: #3892f977;
+        }
+
+        :global(a):hover {
+            color: #3893f9;
+            text-decoration-color: #60aafe;
+        }
+    }
 
     @media screen and (min-width: $breakpoint-docs-nav-large) {
         padding-left: $spacing-size-8;
