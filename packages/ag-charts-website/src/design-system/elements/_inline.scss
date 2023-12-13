@@ -21,13 +21,13 @@ a#{$selector-exclude-grid} {
 }
 
 code#{$selector-exclude-grid} {
-    font-size: 0.875em;
-    padding: 0 0.2em;
+    font-size: var(--text-fs-sm);
+    padding: 3px;
     font-family: var(--text-monospace-font-family);
     white-space: normal;
     border-radius: var(--radius-sm);
     background-color: var(--color-bg-code);
-    color: var(--color-fg-code);
+    color: var(--color-fg-primary);
     border: 1px solid rgba(black, 0.1);
 
     #{$selector-darkmode} & {
@@ -41,7 +41,7 @@ kbd#{$selector-exclude-grid} {
     display: inline-block;
     margin: 0.1em 0.1em;
     padding: 0.1em 0.6em 0.15em;
-    font-size: 0.875em;
+    font-size: var(--text-fs-sm);
     font-family: var(--text-font-family);
     border-radius: var(--radius-sm);
     background-color: var(--color-bg-primary);
