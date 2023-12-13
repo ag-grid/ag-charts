@@ -10,6 +10,6 @@
     "src/**/*.test.ts",
     "src/**/*.spec.ts",
     "src/**/*.d.ts",
-    "src/executors/generate-example-files/generator/types.ts"
+    "src/executors/generate/generator/types.ts"
   ]
 }

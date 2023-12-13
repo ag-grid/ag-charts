@@ -3,8 +3,8 @@ import sharp from 'sharp';
 import { type AgChartThemeName, AgCharts } from 'ag-charts-community';
 // eslint-disable-next-line @nx/enforce-module-boundaries
 import 'ag-charts-enterprise';
+import type { GeneratedContents } from 'ag-charts-generate-example-files/src/executors/generate/generator/types';
 
-import type { GeneratedContents } from '../../generate-example-files/generator/types';
 import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from './constants';
 import { borrowFromPool, returnToPool } from './environment';
 import { transformPlainEntryFile } from './transformPlainEntryFile';

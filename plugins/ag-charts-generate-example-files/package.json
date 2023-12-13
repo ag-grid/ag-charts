@@ -1,5 +1,5 @@
 {
-  "name": "ag-charts-build-tools",
+  "name": "ag-charts-generate-example-files",
   "version": "0.0.1",
   "private": true,
   "dependencies": {
@@ -10,10 +10,8 @@
     "sucrase": "^3.32.0",
     "json5": "2.2.3",
     "@nx/devkit": "17.0.3",
-    "ag-charts-community": "9.0.1-beta.20231211",
     "jsdom": "~22.1.0",
     "sharp": "0.32.6",
-    "ag-charts-enterprise": "9.0.1-beta.20231211",
     "jscodeshift": "^0.15.0",
     "ag-charts-test": "*",
     "@swc/helpers": "0.5.3"
