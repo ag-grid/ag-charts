@@ -133,6 +133,10 @@ const DARK_MODE_SNIPPETS = {
 
 export type SnippetType = keyof typeof DARK_MODE_SNIPPETS;
 
+export function getRawDarkModeSnippet(snippetType: SnippetType, options?: any) {
+    return DARK_MODE_SNIPPETS[snippetType](options);
+}
+
 export function getDarkModeSnippet(snippetType: SnippetType, options?: any) {
     return `${DARK_MODE_START}
     ${DARK_MODE_SNIPPETS[snippetType](options)}

@@ -1,4 +1,4 @@
-import { getDarkModeSnippet } from '../utils/getDarkModeSnippet';
+import { DARK_MODE_END, DARK_MODE_START, getRawDarkModeSnippet } from '../utils/getDarkModeSnippet';
 import { getChartImports, wrapOptionsUpdateCode } from './chart-utils';
 import { templatePlaceholder } from './chart-vanilla-src-parser';
 import { getFunctionName, isInstanceMethod, removeFunctionKeyword } from './parser-utils';
@@ -33,7 +33,10 @@ function getPropertyBindings(bindings: any): [string[], string[], string[]] {
     const propertyAttributes = [];
 
     bindings.properties.forEach((property) => {
-        if (property.value === 'true' || property.value === 'false') {
+        if (property.name === 'options') {
+            propertyAttributes.push(toInput(property));
+            propertyVars.push(`${property.name}: ${property.value}`);
+        } else if (property.value === 'true' || property.value === 'false') {
             propertyAttributes.push(toConst(property));
         } else if (property.value === null || property.value === 'null') {
             propertyAttributes.push(toInput(property));
@@ -54,9 +57,11 @@ function getPropertyBindings(bindings: any): [string[], string[], string[]] {
 }
 
 function getTemplate(bindings: any, attributes: string[]): string {
-    const agChartTag = `<ag-charts-vue
-    ${bindings.usesChartApi ? `ref="agCharts"` : ''}
-    ${attributes.join('\n    ')}></ag-charts-vue>`;
+    /* prettier-ignore */
+    const agChartTag = `<ag-charts-vue${bindings.usesChartApi ? `
+    ref="agCharts"` : ''}
+    ${attributes.join('\n')}
+/>`;
 
     const template = bindings.template ? bindings.template.replace(templatePlaceholder, agChartTag) : agChartTag;
 
@@ -88,6 +93,11 @@ export function vanillaToVue(bindings: any, componentFileNames: string[]): () =>
         const [externalEventHandlers, instanceMethods, globalMethods] = getAllMethods(bindings);
         const template = getTemplate(bindings, propertyAttributes);
 
+        const methods = instanceMethods.concat(externalEventHandlers);
+
+        const darkModeSnippet = getRawDarkModeSnippet('vue');
+
+        /* prettier-ignore */
         let mainFile = `${imports.join('\n')}
 
 const ChartExample = {
@@ -97,24 +107,33 @@ const ChartExample = {
     components: {
         'ag-charts-vue': AgChartsVue
     },
-    data: function() {
+    data() {
         return {
             ${propertyVars.join(',\n            ')}
         }
     },
+    ${propertyAssignments.length !== 0 ? `
     created() {
-        ${propertyAssignments.join(';\n        ')}
-    },
+        ${propertyAssignments.join(';\n           ')}
+    },` : ''}
+    ${bindings.init.length !== 0 ? `
     mounted() {
         ${bindings.init.join(';\n        ')}
-        ${getDarkModeSnippet('vue')}
+        ${darkModeSnippet}
+    }` : `
+    ${DARK_MODE_START}
+    mounted() {
+        ${darkModeSnippet}
     },
+    ${DARK_MODE_END}
+    `}
+    ${methods.length !== 0 ? `
     methods: {
-        ${instanceMethods
-            .concat(externalEventHandlers)
+        ${methods
             .map((snippet) => `${snippet.trim()},`)
-            .join('\n')}
-    }
+            .join(';\n        ')}
+    },
+    ` : ''}
 }
 
 ${globalMethods.join('\n\n')}

@@ -38,6 +38,6 @@ export function convertTemplate(template: string) {
     // re-indent
     return template
         .split('\n')
-        .filter((line) => line.length > 0)
-        .join('\n            ');
+        .filter((line) => line.trim().length > 0)
+        .join('\n        ');
 }
