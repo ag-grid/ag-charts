@@ -223,48 +223,51 @@ input[type='radio']#{$selector-exclude-grid} {
 }
 
 select#{$selector-exclude-grid} {
-    $svg-chevron-down: url('data:image/svg+xml;utf8,<svg fill="none" stroke="%23212529" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 26 30"><path d="m7.5 13.688 5.25 4.125L18 13.688"/></svg>');
-
-    $svg-chevron-down-dark: url('data:image/svg+xml;utf8,<svg fill="none" stroke="%23f8f9fa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 26 30"><path d="m7.5 13.688 5.25 4.125L18 13.688"/></svg>');
+    --svg-chevron-down: url('data:image/svg+xml;utf8,<svg fill="none" stroke="%23182230" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M6 9L12 15L18 9"/></svg>');
 
     appearance: none;
     padding: math.div(6em, 16) math.div(36em, 16) math.div(6em, 16) math.div(12em, 16);
-    font-size: 1rem;
+    font-size: var(--text-fs-base);
     line-height: var(--text-lh-base);
     border-radius: var(--radius-sm);
     background-color: var(--color-bg-primary);
-    background-image: $svg-chevron-down;
+    background-image: var(--svg-chevron-down);
     background-repeat: no-repeat;
-    background-position: center right;
-    border: 2px solid var(--color-input-border);
+    background-position: center right 4px;
+    border: 1px solid var(--color-input-border);
     outline: none;
     transition:
         border-color $transition-default-timing,
         box-shadow $transition-default-timing;
+    cursor: pointer;
 
-    #{$selector-darkmode} & {
-        border: 1px solid var(--color-input-border);
-    }
-
-    &:not(:disabled) {
-        cursor: pointer;
-    }
-
-    &:invalid,
-    &[disabled] {
-        color: var(--color-fg-secondary);
-    }
-
-    &:hover:not(:disabled):not([readonly]),
-    &:focus:not(:disabled):not([readonly]),
-    &:focus-visible:not(:disabled):not([readonly]),
+    &:hover,
     &.hover,
+    &:focus-visible,
     &.focus {
         border-color: var(--color-input-border-hover);
     }
 
+    &:focus-visible,
+    &.focus {
+        box-shadow: 0 0 0 $spacing-size-1 var(--color-input-shadow-focus);
+    }
+
+    &:disabled,
+    &[disabled],
+    &.disabled {
+        --svg-chevron-down: url('data:image/svg+xml;utf8,<svg fill="none" stroke="%23667085" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M6 9L12 15L18 9"/></svg>');
+
+        color: var(--color-fg-secondary);
+        pointer-events: none;
+
+        #{$selector-darkmode} & {
+            --svg-chevron-down: url('data:image/svg+xml;utf8,<svg fill="none" stroke="%2398a2b3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M6 9L12 15L18 9"/></svg>');
+        }
+    }
+
     #{$selector-darkmode} & {
-        background-image: $svg-chevron-down-dark;
+        --svg-chevron-down: url('data:image/svg+xml;utf8,<svg fill="none" stroke="%23eaecf0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M6 9L12 15L18 9"/></svg>');
     }
 }
 
