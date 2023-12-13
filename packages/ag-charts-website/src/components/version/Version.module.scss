@@ -53,10 +53,10 @@
     justify-content: space-between;
 }
 
-.major-text {
+span.major-text {
     border: 1px solid var(--color-logo-orange);
     border-radius: var(--radius-4xl);
-    color: var(--color-logo-orange) !important;
+    color: var(--color-logo-orange);
     padding: 2px 8px;
 }
 

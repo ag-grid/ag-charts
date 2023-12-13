@@ -84,11 +84,13 @@ pre.code > code {
     background-attachment: local;
     border: none;
     border-radius: 0;
-    overflow-x: auto !important;
+    overflow-x: auto;
 }
-.language-bash {
-    color: var(--function-color) !important;
+
+pre.code > .language-bash {
+    color: var(--function-color);
 }
+
 pre.code.line-numbers.line-numbers code {
     padding-left: 3.8em;
 }

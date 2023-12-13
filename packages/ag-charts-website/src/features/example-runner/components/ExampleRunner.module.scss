@@ -32,10 +32,8 @@ iframe {
     font-weight: 500;
     border-radius: $spacing-size-2;
 
-    svg {
-        --icon-size: #{$spacing-size-6} !important;
-
-        position: absolute;
+    :global(.icon) {
+        --icon-size: #{$spacing-size-6};
     }
 }
 

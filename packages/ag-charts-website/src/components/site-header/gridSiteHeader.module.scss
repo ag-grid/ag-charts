@@ -98,11 +98,6 @@
         box-shadow: inset 0 0 0 2px var(--color-button-primary-shadow-focus);
     }
 
-    &[aria-expanded='true'],
-    &:hover[aria-expanded='true'] {
-        background-color: var(--color-bg-mobile-nav);
-    }
-
     svg {
         position: relative;
         left: 1px;
@@ -116,7 +111,7 @@
     }
 
     @media screen and (min-width: $breakpoint-site-header-small) {
-        display: none !important;
+        display: none;
     }
 }
 
@@ -191,7 +186,7 @@
 
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
         position: unset;
-        width: unset !important;
+        width: unset;
         margin-left: $spacing-size-4;
         overflow: visible;
     }
