@@ -31,6 +31,14 @@ const rewriteAstroGeneratedContent = (body: string) => {
 // and not the wrapping framework.
 const extensionsToFormat = ['html'];
 
+function isHtml(path: string) {
+    const pathItems = path.split('/');
+    const fileName = pathItems.slice(-1)[0];
+    const isExtension = fileName.includes('.');
+
+    return !isExtension;
+}
+
 export const onRequest = defineMiddleware(async (context, next) => {
     const response = await next();
 
@@ -46,7 +54,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
     let body = await response.text();
 
-    body = rewriteAstroGeneratedContent(body);
+    if (isHtml(context.url.pathname)) {
+        body = rewriteAstroGeneratedContent(body);
+    }
 
     try {
         body = await format(context.url.pathname, body, extensionsToFormat);
