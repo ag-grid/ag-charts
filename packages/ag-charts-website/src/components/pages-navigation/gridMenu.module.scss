@@ -217,8 +217,8 @@ button:not([class^='ag-']).sectionHeader {
         background-color 0.33s ease-in-out;
 
     #{$selector-darkmode} & {
-        --active-color: #3893f9;
-        --active-border: #3893f9;
+        --active-color: var(--color-brand-300);
+        --active-border: var(--color-brand-300);
         --hover-background: rgba(56, 146, 249, 0.06);
         --active-background: rgba(56, 146, 249, 0.09);
 
