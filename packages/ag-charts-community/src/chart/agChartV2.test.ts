@@ -4,7 +4,7 @@ import type { AgCartesianChartOptions, AgChartInstance, AgChartOptions } from '.
 import { AgCharts } from './agChartV2';
 import type { Chart } from './chart';
 import * as examples from './test/examples';
-import type { TestCase } from './test/utils';
+import { TestCase, createChart } from './test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
@@ -32,6 +32,7 @@ describe('AgChartV2', () => {
 
     beforeEach(() => {
         console.warn = jest.fn();
+        console.error = jest.fn();
         container = document.createElement('div');
         document.body.append(container);
     });
@@ -42,7 +43,7 @@ describe('AgChartV2', () => {
             (chart as unknown) = undefined;
         }
         document.body.removeChild(container);
-        expect(console.warn).not.toBeCalled();
+        expect(console.error).not.toBeCalled();
     });
 
     const compare = async () => {
@@ -58,7 +59,109 @@ describe('AgChartV2', () => {
         return ctx.nodeCanvas?.toBuffer('raw');
     };
 
+    describe('#validation', () => {
+        afterEach(() => {
+            expect(console.error).not.toBeCalled();
+        });
+
+        describe('Series ID', () => {
+            const data = [
+                { quarter: "Q1'18", iphone: 140, mac: 16, ipad: 14, wearables: 12, services: 20 },
+                { quarter: "Q2'18", iphone: 124, mac: 20, ipad: 14, wearables: 12, services: 30 },
+                { quarter: "Q3'18", iphone: 112, mac: 20, ipad: 18, wearables: 14, services: 36 },
+                { quarter: "Q4'18", iphone: 118, mac: 24, ipad: 14, wearables: 14, services: 36 },
+            ];
+
+            const expectWarnings = (warnings: string[]) => {
+                expect(console.warn).toBeCalledTimes(warnings.length);
+                for (let i = 0; i < warnings.length; i++) {
+                    expect(console.warn).nthCalledWith(i + 1, warnings[i]);
+                }
+            };
+
+            test('single duplicate', async () => {
+                chart = await createChart({
+                    data,
+                    series: [
+                        { id: 'myId', xKey: 'quarter', yKey: 'iphone' },
+                        { id: 'myId', xKey: 'quarter', yKey: 'mac' },
+                    ],
+                });
+                expectWarnings([
+                    `AG Charts - series[1].id "myId" was renamed to "myId-2" because it duplicates series[0].id`,
+                ]);
+            });
+
+            test('two duplicates', async () => {
+                chart = await createChart({
+                    data,
+                    series: [
+                        { id: 'myId', xKey: 'quarter', yKey: 'iphone' },
+                        { id: 'myId', xKey: 'quarter', yKey: 'mac' },
+                        { id: 'myOtherId', xKey: 'quarter', yKey: 'ipad' },
+                        { id: 'myOtherId', xKey: 'quarter', yKey: 'wearables' },
+                        { id: 'myOtherId', xKey: 'quarter', yKey: 'services' },
+                    ],
+                });
+                expectWarnings([
+                    `AG Charts - series[1].id "myId" was renamed to "myId-2" because it duplicates series[0].id`,
+                    `AG Charts - series[3].id "myOtherId" was renamed to "myOtherId-2" because it duplicates series[2].id`,
+                    `AG Charts - series[4].id "myOtherId" was renamed to "myOtherId-3" because it duplicates series[2].id`,
+                ]);
+            });
+
+            test('chaining duplicates', async () => {
+                chart = await createChart({
+                    data,
+                    series: [
+                        { id: 'myId', xKey: 'quarter', yKey: 'iphone' },
+                        { id: 'myId', xKey: 'quarter', yKey: 'mac' },
+                        { id: 'myId-2', xKey: 'quarter', yKey: 'ipad' },
+                        { id: 'myId-2-2', xKey: 'quarter', yKey: 'wearables' },
+                    ],
+                });
+                expectWarnings([
+                    `AG Charts - series[1].id "myId" was renamed to "myId-2" because it duplicates series[0].id`,
+                    `AG Charts - series[2].id "myId-2" was renamed to "myId-2-2" because it duplicates series[1].id`,
+                    `AG Charts - series[3].id "myId-2-2" was renamed to "myId-2-2-2" because it duplicates series[2].id`,
+                ]);
+            });
+
+            test('no generated duplicates', async () => {
+                chart = await createChart({
+                    data,
+                    series: [
+                        { id: 'myId-2', xKey: 'quarter', yKey: 'iphone' },
+                        { id: 'myId', xKey: 'quarter', yKey: 'mac' },
+                        { id: 'myId', xKey: 'quarter', yKey: 'ipad' },
+                    ],
+                });
+                expectWarnings([
+                    `AG Charts - series[2].id "myId" was renamed to "myId-3" because it duplicates series[1].id`,
+                ]);
+            });
+
+            test('renders duplicates', async () => {
+                chart = await createChart({
+                    data,
+                    series: [
+                        { type: 'bar', id: 'myId', xKey: 'quarter', yKey: 'iphone' },
+                        { type: 'bar', id: 'myId', xKey: 'quarter', yKey: 'mac' },
+                        { type: 'bar', id: 'myOtherId', xKey: 'quarter', yKey: 'ipad' },
+                        { type: 'bar', id: 'myOtherId', xKey: 'quarter', yKey: 'wearables' },
+                        { type: 'bar', id: 'myOtherId', xKey: 'quarter', yKey: 'services' },
+                    ],
+                });
+                await compare();
+            });
+        });
+    });
+
     describe('#create', () => {
+        afterEach(() => {
+            expect(console.warn).not.toBeCalled();
+        });
+
         for (const [exampleName, example] of Object.entries(EXAMPLES)) {
             it(`for ${exampleName} it should create chart instance as expected`, async () => {
                 const options: AgChartOptions = { ...example.options };
@@ -85,6 +188,10 @@ describe('AgChartV2', () => {
     });
 
     describe('#update', () => {
+        afterEach(() => {
+            expect(console.warn).not.toBeCalled();
+        });
+
         it('should allow switching between grouped and stacked types of chart', async () => {
             const exampleCycle = [
                 { ...examples.GROUPED_BAR_CHART_EXAMPLE },
