@@ -97,6 +97,12 @@ const { page, prevExample, nextExampleOne, nextExampleTwo } = Astro.props;
         flex-wrap: wrap;
         justify-content: space-between;
         gap: $spacing-size-6;
+
+        @media screen and (min-width: 720px) and (max-width: 1120px) {
+            :global(astro-island):nth-child(1) {
+                display: none;
+            }
+        }
     }
 </style>
 
