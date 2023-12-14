@@ -37,8 +37,6 @@
 
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
         flex-wrap: unset;
-        padding-left: $spacing-size-2;
-        padding-right: $spacing-size-2;
     }
 }
 
@@ -47,6 +45,7 @@
     align-items: center;
     min-height: $site-header-height;
     padding: $spacing-size-2 10px;
+    margin-left: -16px;
     margin-right: 100%;
 
     svg {
