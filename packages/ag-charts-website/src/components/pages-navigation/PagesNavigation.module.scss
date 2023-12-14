@@ -33,7 +33,7 @@
         }
     }
 
-    @media screen and (min-width: $breakpoint-docs-nav-extra-large) {
+    @media screen and (min-width: $breakpoint-docs-nav-large) {
         width: var(--layout-width-2-12);
     }
 }
