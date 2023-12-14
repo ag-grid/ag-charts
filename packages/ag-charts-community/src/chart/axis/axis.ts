@@ -734,7 +734,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             }
             crossLine.parallelFlipRotation = parallelFlipRotation;
             crossLine.regularFlipRotation = regularFlipRotation;
-            crossLine.calculateLayout(anySeriesActive);
+            crossLine.calculateLayout(anySeriesActive, this.reverse);
         });
 
         this.updateLayoutState();

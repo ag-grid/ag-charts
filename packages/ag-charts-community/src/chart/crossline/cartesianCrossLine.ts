@@ -186,12 +186,12 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
         this.updateNodes();
     }
 
-    calculateLayout(visible: boolean): BBox | undefined {
+    calculateLayout(visible: boolean, reversedAxis?: boolean): BBox | undefined {
         if (!visible) {
             return;
         }
 
-        const dataCreated = this.createNodeData();
+        const dataCreated = this.createNodeData(reversedAxis);
         if (!dataCreated) {
             return;
         }
@@ -224,7 +224,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
         }
     }
 
-    private createNodeData(): boolean {
+    private createNodeData(reversedAxis?: boolean): boolean {
         const {
             scale,
             gridLength,
@@ -243,7 +243,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
 
         const bandwidth = scale.bandwidth ?? 0;
         const step = scale.step ?? 0;
-        const padding = scale instanceof BandScale ? (step - bandwidth) / 2 : 0;
+        const padding = (reversedAxis ? -1 : 1) * (scale instanceof BandScale ? (step - bandwidth) / 2 : 0);
 
         const [xStart, xEnd] = [0, sideFlag * gridLength];
         let [yStart, yEnd] = this.getRange();
