@@ -72,12 +72,12 @@ jobs:
             - name: Nx Affected SHA Setup
               id: nx_config
               run: |
-                  if [[ "${{ github.event.inputs.nx_command || 'affected' }}" == "run-many" ]] ; then
-                    echo "base=d7e9df0d0d0b7304ab676f84a603f2f620c22cff" >> $GITHUB_OUTPUT
-                  elif [[ $(git branch --show-current) == 'latest' ]] ; then
+                  if [[ $(git branch --show-current) == 'latest' ]] ; then
                     echo "base=latest-success" >> $GITHUB_OUTPUT
+                    echo "NX_BASE=latest-success" >> $GITHUB_ENV
                   else
                     echo "base=origin/latest" >> $GITHUB_OUTPUT
+                    echo "NX_BASE=origin/latest" >> $GITHUB_ENV
                   fi
                   git fetch origin latest-success latest
             - name: Cache node_modules
@@ -115,7 +115,12 @@ jobs:
             - name: nx format:check
               id: format
               if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
-              run: yarn nx format:check --base ${{ steps.nx_config.outputs.base }}
+              run: |
+                  if [[ "${{ github.event.inputs.nx_command || 'affected' }}" == "run-many" ]] ; then
+                    yarn nx format:check --all
+                  else
+                    yarn nx format:check --base ${{ steps.nx_config.outputs.base }}
+                  fi
             - name: Update Status (format)
               uses: LouisBrunner/checks-action@v1.6.1
               if: always()
@@ -127,7 +132,7 @@ jobs:
             - name: nx lint
               id: lint
               if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
-              run: yarn nx affected --base ${{ steps.nx_config.outputs.base }} -t lint --parallel=3 --exclude all
+              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t lint --parallel=3 --exclude all
             - name: Update Status (lint)
               uses: LouisBrunner/checks-action@v1.6.1
               if: always()
@@ -139,7 +144,7 @@ jobs:
             - name: nx build
               id: build
               if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
-              run: yarn nx affected --base ${{ steps.nx_config.outputs.base }} -t build --parallel=3  --exclude all
+              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t build --parallel=3  --exclude all
             - name: Update Status (build)
               uses: LouisBrunner/checks-action@v1.6.1
               if: always()
@@ -151,7 +156,11 @@ jobs:
             - name: Count test targets to run
               id: test_count
               run: |
-                  echo "test_count=$(yarn -s nx show projects --affected --base ${{ steps.nx_config.outputs.base }} -t test | wc -l)" >> $GITHUB_OUTPUT
+                  if [[ "${{ github.event.inputs.nx_command || 'affected' }}" == "run-many" ]] ; then
+                    echo "test_count=1000" >> $GITHUB_OUTPUT
+                  else
+                    echo "test_count=$(yarn -s nx show projects --affected --base ${{ steps.nx_config.outputs.base }} -t test | wc -l)" >> $GITHUB_OUTPUT
+                  fi
 
     test:
         runs-on: ubuntu-latest
@@ -163,6 +172,7 @@ jobs:
         name: test (${{ matrix.shard }}/${{ strategy.job-total }})
         env:
             NX_PARALLEL: 1
+            NX_BASE: ${{ needs.execute_blt.outputs.nx_base }}
         steps:
             - name: Checkout
               id: checkout
@@ -203,7 +213,7 @@ jobs:
               run: yarn postinstall
             - name: nx test
               id: test
-              run: yarn nx affected --base ${{ needs.execute_blt.outputs.nx_base }} -t test --configuration=ci --exclude all --shard=${{ matrix.shard }}/${{ strategy.job-total }}
+              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t test --configuration=ci --exclude all --shard=${{ matrix.shard }}/${{ strategy.job-total }}
             - name: Perist test results
               if: always()
               uses: actions/upload-artifact@v3
