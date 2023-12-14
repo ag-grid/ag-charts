@@ -5,7 +5,6 @@ import type {
     AgPolarSeriesOptions,
 } from '../../options/agChartOptions';
 import { Debug } from '../../util/debug';
-import { createUniqueIds } from '../../util/id';
 import { Logger } from '../../util/logger';
 import { isGroupableSeries, isSeriesStackedByDefault, isStackableSeries } from '../factory/seriesTypes';
 import type { SeriesGrouping } from '../series/seriesStateManager';
@@ -75,15 +74,15 @@ export function groupSeriesByType(seriesOptions: SeriesOptions[]) {
 export function processSeriesOptions(_opts: AgChartOptions, seriesOptions: SeriesOptions[]) {
     const result: SeriesOptions[] = [];
 
-    // AG-10089 Rename duplicate user input id values:
-    const processedUserIds = createUniqueIds(seriesOptions.map((s) => s.id));
-    for (const { firstIndex: index1, duplicateIndex: index2 } of processedUserIds.duplicates) {
-        const id = seriesOptions[index2].id;
-        const uniqueId = processedUserIds.uniqueIds[index2];
-        Logger.warn(
-            `series[${index2}].id "${id}" was renamed to "${uniqueId}" because it duplicates series[${index1}].id`
-        );
-    }
+    const uniqueIds = new Map<string, number>();
+    const checkId = (id: string | undefined, index: number): number | undefined => {
+        if (id === undefined) return undefined;
+        const firstIndex = uniqueIds.get(id);
+        if (firstIndex === undefined) {
+            uniqueIds.set(id, index);
+        }
+        return firstIndex;
+    };
 
     type BarOptions = { stacked?: boolean; grouped?: boolean };
     const preprocessed = seriesOptions.map((series: SeriesOptions & BarOptions, index: number) => {
@@ -92,7 +91,7 @@ export function processSeriesOptions(_opts: AgChartOptions, seriesOptions: Serie
         const groupable = isGroupableSeries(sType);
         const stackable = isStackableSeries(sType);
         const stackedByDefault = isSeriesStackedByDefault(sType);
-        const uniqueId = processedUserIds.uniqueIds[index];
+        const idMatchIndex = checkId(series.id, index);
 
         if (series.grouped && !groupable) {
             Logger.warnOnce(`unsupported grouping of series type: ${sType}`);
@@ -102,8 +101,11 @@ export function processSeriesOptions(_opts: AgChartOptions, seriesOptions: Serie
             Logger.warnOnce(`unsupported stacking of series type: ${sType}`);
         }
 
-        if (series.id !== undefined && series.id != uniqueId) {
-            series = { ...series, id: uniqueId };
+        // AG-10089 Ignore duplicate user input id values:
+        if (idMatchIndex !== undefined) {
+            Logger.warn(`series[${index}].id "${series.id}" ignored because it duplicates series[${idMatchIndex}].id`);
+            series = { ...series };
+            delete series.id;
         }
 
         if (!groupable && !stackable) {
