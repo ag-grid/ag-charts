@@ -9,7 +9,7 @@ tools
 jest.*
 tsconfig.*
 project.json
-rollup.*
+.esbuild.*
 
 dist/*.d.ts
 dist/**/*.test.*
@@ -18,4 +18,5 @@ dist/**/*.test.*
 
 !dist/
 !dist/package/src
+!dist/types/src
 dist/**/package.json

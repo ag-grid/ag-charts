@@ -6,23 +6,42 @@
   "targets": {
     "build": {
       "executor": "nx:noop",
-      "dependsOn": ["build:package", "build:umd"],
+      "dependsOn": ["build:types", "build:package", "build:umd", "build-tsc"],
       "configurations": {
         "watch": {},
         "production": {}
       }
     },
+    "build:types": {
+      "executor": "@nx/js:tsc",
+      "dependsOn": ["^build:types"],
+      "inputs": ["tsDefaults"],
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "packages/ag-charts-enterprise/dist/types",
+        "main": "packages/ag-charts-enterprise/src/main.ts",
+        "tsConfig": "packages/ag-charts-enterprise/tsconfig.types.json",
+        "compiler": "tsc"
+      },
+      "configurations": {
+        "watch": {
+          "tsConfig": "packages/ag-charts-enterprise/tsconfig.types.watch.json"
+        },
+        "production": {}
+      }
+    },
     "build:package": {
-      "executor": "@nx/rollup:rollup",
+      "executor": "@nx/esbuild:esbuild",
+      "dependsOn": ["^build:types"],
       "inputs": ["tsDefaults"],
       "outputs": ["{options.outputPath}"],
       "options": {
         "outputPath": "packages/ag-charts-enterprise/dist/package",
         "main": "packages/ag-charts-enterprise/src/main.ts",
         "tsConfig": "packages/ag-charts-enterprise/tsconfig.lib.json",
-        "rollupConfig": "packages/ag-charts-enterprise/rollup.config.cjs",
-        "project": "packages/ag-charts-enterprise/package.json",
-        "compiler": "tsc",
+        "esbuildConfig": "esbuild.config.cjs",
+        "external": ["ag-charts-community"],
+        "platform": "browser",
         "format": ["cjs", "esm"]
       },
       "configurations": {
@@ -33,17 +52,20 @@
       }
     },
     "build:umd": {
-      "executor": "@nx/rollup:rollup",
-      "inputs": ["tsDefaults"],
+      "executor": "@nx/esbuild:esbuild",
+      "dependsOn": ["build:package", "^build:package"],
       "outputs": ["{options.outputPath}"],
-      "dependsOn": ["^build:package"],
       "options": {
         "outputPath": "packages/ag-charts-enterprise/dist/umd",
-        "main": "packages/ag-charts-enterprise/src/main.ts",
+        "outputFileName": "ag-charts-enterprise",
+        "main": "packages/ag-charts-enterprise/dist/package/main.cjs.js",
         "tsConfig": "packages/ag-charts-enterprise/tsconfig.lib.json",
-        "rollupConfig": "packages/ag-charts-enterprise/rollup.umd.config.cjs",
-        "project": "packages/ag-charts-enterprise/package.json",
-        "compiler": "tsc",
+        "esbuildConfig": "esbuild.config.cjs",
+        "platform": "browser",
+        "bundle": true,
+        "thirdParty": true,
+        "skipTypeCheck": true,
+        "external": [],
         "format": ["cjs"]
       },
       "configurations": {

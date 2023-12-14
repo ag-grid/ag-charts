@@ -3,7 +3,7 @@
 MODIFIED=$1
 
 if [[ "${MODIFIED}" == "ag-charts-community" ]] ; then
-  nx build ag-charts-community:build:package,ag-charts-community:build:umd,ag-charts-community:docs-resolved-interfaces,ag-charts-enterprise:build:package,ag-charts-enterprise:build:umd --configuration watch
+  nx run-many -p ag-charts-community,ag-charts-enterprise -t build:types,build:package,build:umd,docs-resolved-interfaces -c watch
 else
-  nx build ${MODIFIED}:build:package,${MODIFIED}:build:umd --configuration watch
+  nx run-many -p ${MODIFIED} -t build:types,build:package,build:umd -c watch
 fi

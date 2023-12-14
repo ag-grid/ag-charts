@@ -3,6 +3,7 @@ import { JSDOM } from 'jsdom';
 import { AgCharts } from 'ag-charts-community';
 import { mockCanvas } from 'ag-charts-test';
 
+import { consolePrefix } from '../../../executors-utils';
 import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH, THUMBNAIL_POOL_SIZE } from './constants';
 
 function buildPoolEntry() {
@@ -32,11 +33,11 @@ function buildPoolEntry() {
 const pool: ReturnType<typeof buildPoolEntry>[] = [];
 
 function initPool() {
-    // eslint-disable-next-line no-console
-    console.log(`Creating thumbnail pool of size ${THUMBNAIL_POOL_SIZE}`);
-    for (let i = 0; i < THUMBNAIL_POOL_SIZE; i++) {
-        pool.push(buildPoolEntry());
-    }
+    consolePrefix('[initPool()] ', async () => {
+        for (let i = 0; i < THUMBNAIL_POOL_SIZE; i++) {
+            pool.push(buildPoolEntry());
+        }
+    });
 }
 initPool();
 

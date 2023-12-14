@@ -1,6 +1,6 @@
 export function createTask(parentProject: string, srcRelativeInputPath: string) {
     const generatedExamplePath = `dist/generated-examples/${parentProject}/${srcRelativeInputPath}`;
-    const dependsOn = ['generate-example', { projects: 'ag-charts-generate-chart-thumbnail', target: 'build' }];
+    const dependsOn = ['generate-example'];
 
     return {
         'generate-thumbnail': {

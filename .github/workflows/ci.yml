@@ -8,7 +8,16 @@ on:
         branches: [latest]
     pull_request:
         branches: [latest]
-
+    workflow_dispatch:
+        inputs:
+            clean_checkout:
+                description: 'Disable all caching'
+                type: 'choice'
+                required: true
+                default: 'false'
+                options:
+                    - 'true'
+                    - 'false'
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
     cancel-in-progress: ${{ github.ref != 'refs/heads/latest' }}
@@ -62,6 +71,7 @@ jobs:
                   fi
                   git fetch origin latest-success latest
             - name: Cache node_modules
+              if: github.event.inputs.clean_checkout != 'true'
               id: cache
               uses: actions/cache@v3
               with:
@@ -73,6 +83,7 @@ jobs:
                   key: node_modules-${{hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json')}}
                   restore-keys: node_modules- # Take any latest cache if failed to find it for current yarn.lock
             - name: Cache Nx
+              if: github.event.inputs.clean_checkout != 'true'
               uses: actions/cache@v3
               with:
                   path: .nx/cache
@@ -83,11 +94,11 @@ jobs:
               uses: actions/setup-node@v4
               with:
                   node-version: '18'
-                  cache: ${{ steps.cache.outputs.cache-hit != 'true' && 'yarn' || '' }}
+                  cache: ${{ github.event.inputs.clean_checkout != 'true' && steps.cache.outputs.cache-hit != 'true' && 'yarn' || '' }}
             - name: yarn install
               if: steps.cache.outputs.cache-hit != 'true'
               id: yarn_install
-              run: yarn check --integrity || yarn install --ci --prefer-offline
+              run: (yarn check --integrity && yarn postinstall) || yarn install --ci --prefer-offline
             - name: yarn postinstall
               if: steps.cache.outputs.cache-hit == 'true'
               run: yarn postinstall
@@ -149,6 +160,7 @@ jobs:
               with:
                   fetch-depth: 0
             - name: Cache node_modules
+              if: github.event.inputs.clean_checkout != 'true'
               id: cache
               uses: actions/cache@v3
               with:
@@ -160,6 +172,7 @@ jobs:
                   key: node_modules-${{hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json')}}
                   restore-keys: node_modules- # Take any latest cache if failed to find it for current yarn.lock
             - name: Cache Nx
+              if: github.event.inputs.clean_checkout != 'true'
               uses: actions/cache@v3
               with:
                   path: .nx/cache
@@ -170,11 +183,11 @@ jobs:
               uses: actions/setup-node@v4
               with:
                   node-version: '18'
-                  cache: ${{ steps.cache.outputs.cache-hit != 'true' && 'yarn' || '' }}
+                  cache: ${{ github.event.inputs.clean_checkout != 'true' && steps.cache.outputs.cache-hit != 'true' && 'yarn' || '' }}
             - name: yarn install
               if: steps.cache.outputs.cache-hit != 'true'
               id: yarn_install
-              run: yarn check --integrity || yarn install --ci --prefer-offline
+              run: (yarn check --integrity && yarn postinstall) || yarn install --ci --prefer-offline
             - name: yarn postinstall
               if: steps.cache.outputs.cache-hit == 'true'
               run: yarn postinstall
