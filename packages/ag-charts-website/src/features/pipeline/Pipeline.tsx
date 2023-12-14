@@ -176,7 +176,7 @@ export const Pipeline = ({ location, currentFramework }) => {
     return (
         <>
             {!IS_SSR && (
-                <div className={classnames('layout-grid', styles.container)}>
+                <div className={classnames(styles.container, 'layout-page-max-width')}>
                     <h1>AG Charts Pipeline</h1>
                     <section className={styles.header}>
                         <Alert type="idea">

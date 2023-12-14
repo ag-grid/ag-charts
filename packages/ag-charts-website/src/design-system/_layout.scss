@@ -14,6 +14,12 @@
     margin-left: auto;
 }
 
+.layout-page-max-width {
+    max-width: min(calc(100% - var(--layout-gap) * 2), var(--layout-max-width));
+    margin-right: auto;
+    margin-left: auto;
+}
+
 .layout-copy-max-width {
     max-width: var(--layout-copy-max-width);
     margin-right: auto;
