@@ -176,7 +176,7 @@ export const Pipeline = ({ location, currentFramework }) => {
     return (
         <>
             {!IS_SSR && (
-                <div className={classnames('page-margin', styles.container)}>
+                <div className={classnames('layout-grid', styles.container)}>
                     <h1>AG Charts Pipeline</h1>
                     <section className={styles.header}>
                         <Alert type="idea">
