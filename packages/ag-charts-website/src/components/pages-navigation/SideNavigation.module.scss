@@ -133,6 +133,8 @@
 }
 
 .sideNav .level3 {
+    padding-top: $spacing-size-1;
+    padding-bottom: $spacing-size-1;
     --item-gap: 0.5em;
     font-weight: var(--text-regular);
 }
