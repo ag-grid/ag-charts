@@ -37,6 +37,7 @@ const path = Astro.url.pathname;
 const isProduction = getIsProduction();
 const menuData = await getEntry('menu', 'data');
 const apiMenuItems = menuData.data.api.items as ApiMenuItem[];
+const canonicalUrl = new URL(Astro.url.pathname, metadata.canonicalUrlBase);
 
 const isApiLayout = apiMenuItems.some((item) => {
     const removeTrailingSlash = (s: string) => s.replace(/\/$/, '');
@@ -71,6 +72,7 @@ const isApiLayout = apiMenuItems.some((item) => {
         {!isProduction && <meta name="robots" content="noindex" />}
         <meta name="generator" content={Astro.generator} />
         <title>{title}</title>
+        <link rel="canonical" href={canonicalUrl}>
         <link rel="sitemap" type="application/xml" title="Sitemap" href={urlWithBaseUrl("/sitemap-index.xml")} />
 
         {isProduction && <Fragment>
