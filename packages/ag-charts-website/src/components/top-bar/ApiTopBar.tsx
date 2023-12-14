@@ -42,7 +42,7 @@ export const ApiTopBar: FunctionComponent<Props> = ({ menuItems, fullPath }) => 
 
     return (
         <div className={styles.topBar}>
-            <div className={classnames(styles.topBarInner, 'page-margin')}>
+            <div className={classnames(styles.topBarInner, 'layout-page-max-width')}>
                 <nav>
                     <ul className="list-style-none">
                         {menuItemsWithFrameworkLinks.map(({ title, path }) => (
