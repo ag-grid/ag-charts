@@ -43,7 +43,6 @@
     padding-top: $spacing-size-2;
     padding-bottom: $spacing-size-12;
     padding-left: 0;
-    box-shadow: inset 1px 0 0 0 var(--nav-line-color);
     z-index: -2;
 
     #{$selector-darkmode} & {
@@ -115,8 +114,8 @@
 
     &:global(.active)::before {
         opacity: 1;
-        border-left-color: var(--active-border);
-        background-color: var(--active-background);
+        // border-left-color: var(--active-border);
+        // background-color: var(--active-background);
     }
 }
 
