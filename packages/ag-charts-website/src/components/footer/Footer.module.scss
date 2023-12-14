@@ -1,22 +1,15 @@
 @use '../../design-system/core/' as *;
 
 .footer {
-    --text-color: var(--white);
-    --link-color: var(--white);
-    --link-hover-color: var(--white);
+    padding-top: $spacing-size-10;
+    padding-bottom: calc($spacing-size-10 * 2);
+    background-color: var(--color-util-brand-500);
+    color: var(--color-white);
 
-    padding-top: $size-5;
-    padding-bottom: calc($size-5 * 2);
-    background-color: var(--dark-blue-500);
-    color: var(--text-color);
-
-    #{$darkmode-selector} & {
-        --text-color: var(--default-text-color);
-        --link-color: var(--default-text-color);
-        --link-hover-color: var(--default-text-color);
-
-        background-color: var(--default-background-color);
-        border-top: 1px solid var(--neutral-400);
+    #{$selector-darkmode} & {
+        color: var(--color-fg-primary);
+        background-color: var(--color-bg-primary);
+        border-top: 1px solid var(--color-border-primary);
     }
 
     h4,
@@ -24,8 +17,16 @@
         opacity: 0.6666;
     }
 
+    h4 {
+        font-weight: var(--text-regular);
+    }
+
+    svg {
+        fill: var(--color-white);
+    }
+
     p:first-child {
-        margin-right: $size-4;
+        margin-right: $spacing-size-8;
     }
 }
 
@@ -41,7 +42,7 @@
 }
 
 .menuColumn {
-    margin-bottom: $size-5;
+    margin-bottom: $spacing-size-10;
 
     @media screen and (min-width: $breakpoint-site-footer-two-column) and (max-width: $breakpoint-site-footer-four-column) {
         width: 50%;
@@ -64,17 +65,19 @@
     a {
         text-decoration: underline;
         display: inline-block;
-        min-width: $size-6;
+        min-width: $spacing-size-12;
         margin-top: -12px;
         margin-bottom: -12px;
         padding-top: 12px;
         padding-bottom: 12px;
         text-decoration-color: transparent;
         text-underline-offset: 2px;
-        transition: text-decoration-color $default-transition-timing;
+        color: var(--color-white);
+        transition: text-decoration-color $transition-default-timing;
 
         &:hover {
-            text-decoration-color: var(--text-color);
+            color: var(--color-white);
+            text-decoration-color: var(--color-white);
 
             :global(.icon) {
                 opacity: 1;
@@ -88,14 +91,14 @@
         width: 22px;
         height: 22px;
         top: -1px;
-        margin-right: $size-half;
+        margin-right: $spacing-size-1;
         opacity: 0.6666;
-        transition: opacity $default-transition-timing;
+        transition: opacity $transition-default-timing;
     }
 }
 
 .trademarks {
     @media screen and (min-width: $breakpoint-site-footer-four-column) {
-        margin-top: -$size-2;
+        margin-top: -$spacing-size-4;
     }
 }

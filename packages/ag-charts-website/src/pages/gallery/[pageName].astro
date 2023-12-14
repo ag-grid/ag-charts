@@ -18,7 +18,7 @@ const { page, prevExample, nextExampleOne, nextExampleTwo } = Astro.props;
 ---
 
 <Layout title={`AG Charts Gallery: ${page.title}`}>
-    <div class="page-margin font-size-responsive font-size-medium">
+    <div class="page-margin text-base">
         <h1>
             <span>
                 {page.title}
@@ -53,7 +53,6 @@ const { page, prevExample, nextExampleOne, nextExampleTwo } = Astro.props;
             <GalleryExampleLink
                 client:load
                 layout="3-col"
-                onlyShowOnLargeScreen={true}
                 label={nextExampleTwo.title}
                 exampleName={nextExampleTwo.name}
             />
@@ -65,30 +64,31 @@ const { page, prevExample, nextExampleOne, nextExampleTwo } = Astro.props;
     @use '../../design-system' as *;
 
     .page-margin {
-        padding-top: $size-5;
-        padding-bottom: $size-9;
+        padding-top: $spacing-size-10;
+        padding-bottom: $spacing-size-32;
     }
 
     h1 {
         display: flex;
         flex-wrap: wrap;
         align-items: flex-end;
-        margin-bottom: $size-1;
+        margin-bottom: $spacing-size-2;
     }
 
     .enterpriseIcon {
-        --text-color: red;
         --icon-size: 28px;
+
+        fill: var(--color-enterprise-icon);
     }
 
     .description {
-        margin-bottom: $size-8 !important;
+        margin-bottom: $spacing-size-24 !important;
     }
 
     .description,
     .moreExampleLabel {
         @media screen and (min-width: $breakpoint-gallery-small) {
-            font-size: var(--font-size-large);
+            font-size: var(--text-fs-lg);
         }
     }
 
@@ -96,7 +96,13 @@ const { page, prevExample, nextExampleOne, nextExampleTwo } = Astro.props;
         display: flex;
         flex-wrap: wrap;
         justify-content: space-between;
-        gap: $size-3;
+        gap: $spacing-size-6;
+
+        @media screen and (min-width: 720px) and (max-width: 1120px) {
+            :global(astro-island):nth-child(1) {
+                display: none;
+            }
+        }
     }
 </style>
 
@@ -114,6 +120,6 @@ const { page, prevExample, nextExampleOne, nextExampleTwo } = Astro.props;
     }
 
     .icon {
-        transition: fill $default-transition-timing;
+        transition: fill $transition-default-timing;
     }
 </style>

@@ -1,4 +1,5 @@
 @use '../variables' as *;
+@use '../variables-refactor' as *; // TODO: Remove after refactor
 
 @mixin stack-table() {
     thead {
@@ -12,7 +13,7 @@
     }
 
     tr {
-        padding: $size-2 0;
+        padding: $spacing-size-4 0;
 
         &:nth-child(even) {
             background-color: unset;
@@ -21,17 +22,17 @@
 
     td {
         padding: 0;
-        line-height: var(--line-height-tight);
-        font-weight: var(--font-weight-bold);
+        line-height: var(--text-lh-tight);
+        font-weight: var(--text-bold);
 
         &:not(:last-child) {
-            margin-bottom: $size-1;
+            margin-bottom: $spacing-size-2;
         }
     }
 
     td[data-column]::before {
         content: attr(data-column) ': ';
-        font-weight: var(--font-weight-normal);
-        color: var(--secondary-text-color);
+        font-weight: var(--text-regular);
+        color: var(--color-fg-secondary);
     }
 }

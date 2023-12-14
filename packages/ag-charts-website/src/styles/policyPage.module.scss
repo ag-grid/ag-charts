@@ -1,26 +1,26 @@
 @use '../design-system' as *;
 
 .policyPage {
-    margin-top: $size-6;
-    margin-bottom: calc($size-6 * 4);
+    margin-top: $spacing-size-12;
+    margin-bottom: calc($spacing-size-12 * 4);
 
     nav {
-        margin-top: $size-4;
-        margin-bottom: $size-4;
+        margin-top: $spacing-size-8;
+        margin-bottom: $spacing-size-8;
     }
 
     nav li:not(:last-child) {
-        margin-bottom: $size-half;
+        margin-bottom: $spacing-size-1;
     }
 
     hr {
-        margin-bottom: $size-1;
+        margin-bottom: $spacing-size-2;
     }
 
     @media screen and (min-width: $max-page-width) {
         header {
             display: flex;
-            gap: $size-4;
+            gap: $spacing-size-8;
         }
 
         nav {
@@ -29,14 +29,14 @@
         }
 
         nav li:not(:last-child) {
-            margin-bottom: $size-1 !important;
-            line-height: var(--line-height-tight);
+            margin-bottom: $spacing-size-2;
+            line-height: var(--text-lh-tight);
         }
     }
 }
 
 .introduction {
-    margin-top: $size-4;
+    margin-top: $spacing-size-8;
 }
 
 .policyList ol {
@@ -47,19 +47,19 @@
 
     > li {
         counter-increment: policy-count;
-        margin-bottom: $size-6;
+        margin-bottom: $spacing-size-12;
     }
 
     li > h3:first-child:before {
         content: counter(policy-count, decimal) '. ';
-        font-weight: $font-weight-normal;
+        font-weight: var(--text-regular);
     }
 
     li::marker {
-        font-size: var(--font-size-extra-large);
+        font-size: var(--text-fs-xl);
     }
 
-    @media screen and (min-width: ($max-page-width + $size-4)) {
+    @media screen and (min-width: ($max-page-width + $spacing-size-8)) {
         list-style: decimal;
         padding-left: unset;
 
@@ -70,23 +70,23 @@
 }
 
 .settingsButton {
-    margin-bottom: $size-2;
+    margin-bottom: $spacing-size-4;
 }
 
 // Overrides for OneTrust 3rd party styles on cookies page
 // =======================================================
 :global(.ot-sdk-cookie-policy) {
     * {
-        font-family: var(--font-family) !important;
-        font-size: var(--font-size) !important;
+        font-family: var(--text-font-family) !important;
+        font-size: var(--text-fs-base) !important;
         line-height: var(--line-height) !important;
-        font-weight: var(--font-weight) !important;
-        color: var(--text-color) !important;
+        font-weight: var(--text-regular) !important;
+        color: var(--color-text-primary) !important;
     }
 
     h3,
     h4 {
-        font-weight: var(--font-weight-bold) !important;
+        font-weight: var(--text-bold) !important;
         margin-bottom: 0.5rem !important;
     }
 
@@ -95,8 +95,8 @@
         border-collapse: collapse !important;
         border-radius: 0 !important;
         border: none !important;
-        border-bottom: 1px solid var(--border-color) !important;
-        border-top: 1px solid var(--border-color) !important;
+        border-bottom: 1px solid var(--color-border-primary) !important;
+        border-top: 1px solid var(--color-border-primary) !important;
     }
 
     thead,
@@ -105,11 +105,11 @@
     }
 
     thead {
-        font-weight: var(--font-weight-bold) !important;
+        font-weight: var(--text-bold) !important;
     }
 
     tr {
-        border-top: 1px solid var(--border-color) !important;
+        border-top: 1px solid var(--color-border-primary) !important;
     }
 
     th,
@@ -121,23 +121,23 @@
     }
 
     a {
-        color: var(--link-color) !important;
+        color: var(--color-link) !important;
     }
 
     a:hover {
-        color: var(--link-hover-color) !important;
+        color: var(--color-link-hover) !important;
     }
 }
 
 :global(.ot-sdk-show-settings) {
     appearance: none !important;
     display: inline-block;
-    font-size: var(--font-size) !important;
+    font-size: var(--text-fs-base) !important;
     padding: 0.5em 1em !important;
     letter-spacing: 0.025em !important;
-    border-radius: var(--border-radius) !important;
-    background-color: var(--button-color) !important;
-    color: var(--button-text-color) !important;
+    border-radius: var(--radius-sm) !important;
+    background-color: var(--color-button-primary-bg) !important;
+    color: var(--color-button-primary-fg) !important;
     border: none !important;
     transition: background-color 0.25s ease-in-out !important;
 
@@ -146,11 +146,11 @@
     }
 
     &:hover {
-        background-color: var(--button-hover-color) !important;
+        background-color: var(--color-button-primary-bg-hover) !important;
     }
 
     &:active {
-        background-color: var(--button-active-color) !important;
+        background-color: var(--color-button-primary-bg-active) !important;
         transition: background-color 0.125s ease-in-out !important;
     }
 }

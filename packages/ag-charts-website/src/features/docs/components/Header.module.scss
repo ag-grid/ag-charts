@@ -5,14 +5,14 @@
 }
 
 .docsPageTitle {
-    margin-bottom: $size-2;
+    margin-bottom: $spacing-size-2;
 
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
-        line-height: var(--line-height-ultra-tight);
+        line-height: var(--text-lh-ultra-tight);
     }
 
     > span {
-        margin-bottom: $size-1;
+        margin-bottom: $spacing-size-2;
     }
 }
 
@@ -22,10 +22,6 @@
     justify-content: space-between;
     align-items: flex-start;
     width: 100%;
-
-    @media screen and (min-width: $breakpoint-docs-search-medium) {
-        flex-direction: row;
-    }
 }
 
 .pageTitleGroup {
@@ -35,10 +31,10 @@
 
 .headerFramework {
     display: none;
-    font-size: var(--font-size-extra-large);
-    font-weight: var(--font-weight-normal);
-    color: var(--secondary-text-color);
-    padding-bottom: 6px;
+    font-size: var(--text-fs-base);
+    font-weight: var(--text-semibold);
+    color: var(--color-text-brand-primary);
+    padding-bottom: $spacing-size-3;
 
     @media screen and (min-width: $breakpoint-docs-search-medium) {
         display: block;
@@ -49,9 +45,9 @@
     display: inline-block;
     position: relative;
     bottom: 0.05em;
-    font-size: var(--font-size-extra-large);
-    font-weight: var(--font-weight-normal);
-    color: var(--secondary-text-color);
+    font-size: var(--text-fs-xl);
+    font-weight: var(--text-regular);
+    color: var(--color-fg-secondary);
 
     @media screen and (min-width: $breakpoint-docs-search-medium) {
         position: absolute;
@@ -63,10 +59,10 @@
 
     :global(.icon) {
         --icon-size: 1.25em;
-        --text-color: var(--enterprise-icon-color);
+        --color-icon: var(--color-enterprise-icon);
 
         position: relative;
         top: -0.1em;
-        margin-left: $size-half;
+        margin-left: $spacing-size-1;
     }
 }

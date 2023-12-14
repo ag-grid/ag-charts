@@ -60,9 +60,9 @@ export default defineMarkdocConfig({
         },
         warning: {
             render: component('./src/components/alert/Warning'),
-            attributes: {
-                title: { type: String },
-            },
+        },
+        idea: {
+            render: component('./src/components/alert/Idea'),
         },
         imageCaption: {
             render: component('./src/components/image/ImageCaption'),

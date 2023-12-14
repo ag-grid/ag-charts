@@ -5,10 +5,6 @@
 }
 
 .mainNavLarge {
-    --text-color: var(--white);
-    --link-color: var(--white);
-    --link-hover-color: var(--white);
-
     display: none;
 
     @media screen and (min-width: $breakpoint-site-header-small) {

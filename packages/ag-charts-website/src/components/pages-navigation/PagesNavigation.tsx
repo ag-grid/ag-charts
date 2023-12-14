@@ -20,7 +20,7 @@ function getLinkUrl({ framework, path, url }: { framework: Framework; path?: str
 
 function EnterpriseIcon() {
     return (
-        <span className={styles.enterpriseIcon}>
+        <span className={gridStyles.enterpriseIcon}>
             (e)
             <Icon name="enterprise" />
         </span>
@@ -310,7 +310,7 @@ export function PagesNavigation({
 
     return (
         <Collapsible id="docs-nav-collapser" isOpen={navOpen}>
-            <aside className={classnames(styles.menu, gridStyles.menu, 'font-size-responsive')}>
+            <aside className={classnames(styles.menu, gridStyles.menu)}>
                 <MainPagesNavigation
                     menuData={menuData}
                     framework={framework}

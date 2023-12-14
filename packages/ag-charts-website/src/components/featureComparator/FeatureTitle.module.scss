@@ -3,14 +3,14 @@
 .featureTitleContainer {
     display: flex;
     align-items: center;
-    gap: $size-1;
+    gap: $spacing-size-2;
 }
 
 .enterpriseIcon {
-    --icon-size: #{$size-2};
-    --text-color: red;
+    --icon-size: #{$spacing-size-4};
+    --color-icon: var(--color-enterprise-icon);
 }
 
 .featureGroup {
-    font-size: var(--font-size-extra-large);
+    font-size: var(--text-fs-xl);
 }

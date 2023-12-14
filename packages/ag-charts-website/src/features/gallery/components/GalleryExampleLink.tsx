@@ -9,27 +9,17 @@ interface Props {
     label: string;
     exampleName: string;
     layout?: '5-col' | '3-col';
-    onlyShowOnLargeScreen?: boolean;
 }
 
-export const GalleryExampleLink: FunctionComponent<Props> = ({
-    label,
-    exampleName,
-    layout = '5-col',
-    onlyShowOnLargeScreen,
-}) => {
+export const GalleryExampleLink: FunctionComponent<Props> = ({ label, exampleName, layout = '5-col' }) => {
     return (
         <a
             className={classnames(
                 styles.link,
                 'galleryExample',
                 styles[`layout-${layout}`],
-                'font-size-responsive',
-                'font-size-small',
-                'text-secondary',
-                {
-                    [styles.onlyShowOnLargeScreen]: onlyShowOnLargeScreen,
-                }
+                'text-sm',
+                'text-secondary'
             )}
             href={getPageUrl(exampleName)}
         >

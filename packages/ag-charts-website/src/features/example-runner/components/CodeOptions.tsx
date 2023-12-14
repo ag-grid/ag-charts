@@ -58,7 +58,7 @@ function CodeOptionSelector({
 
     return (
         <div>
-            <label className="font-size-small" htmlFor={formId}>
+            <label className="text-sm" htmlFor={formId}>
                 {config.label}:
             </label>{' '}
             <select

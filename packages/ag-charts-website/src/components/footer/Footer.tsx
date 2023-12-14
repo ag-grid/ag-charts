@@ -14,7 +14,7 @@ interface FooterProps {
 const MenuColumns = ({ footerItems }: { footerItems: FooterItem[] }) =>
     footerItems.map(({ title, links }) => (
         <div key={title} className={styles.menuColumn}>
-            <h4 className="thin-text">{title}</h4>
+            <h4>{title}</h4>
             <ul className="list-style-none">
                 {links.map(({ name, url, newTab, iconName }: any) => (
                     <li key={`${title}_${name}`}>
@@ -35,18 +35,14 @@ export const Footer = ({ path, footerItems }: FooterProps) => (
                 <MenuColumns footerItems={footerItems} />
             </div>
             <div className={styles.row}>
-                <p className="font-size-small thin-text">
-                    AG Grid Ltd registered in the United Kingdom. Company&nbsp;No.&nbsp;07318192.
-                </p>
-                <p className="font-size-small thin-text">&copy; AG Grid Ltd. 2015-{new Date().getFullYear()}</p>
+                <p className="text-sm">AG Grid Ltd registered in the United Kingdom. Company&nbsp;No.&nbsp;07318192.</p>
+                <p className="text-sm">&copy; AG Grid Ltd. 2015-{new Date().getFullYear()}</p>
             </div>
 
             {/* Only show customer logo trademark info on homepage */}
             {(path === SITE_BASE_URL || path === undefined) && (
                 <div className={classNames(styles.row, styles.trademarks)}>
-                    <p className="font-size-small thin-text">
-                        The Microsoft logo is a trademark of the Microsoft group of companies.
-                    </p>
+                    <p className="text-sm">The Microsoft logo is a trademark of the Microsoft group of companies.</p>
                 </div>
             )}
         </div>

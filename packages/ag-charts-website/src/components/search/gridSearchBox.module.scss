@@ -18,26 +18,27 @@
         }
     }
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         input {
-            background: color-mix(in srgb, #fff, transparent 94%);
+            background: color-mix(in srgb, var(--color-white), transparent 94%);
+
             &::placeholder {
-                color: rgba(255, 255, 255, 0.6) !important;
+                color: rgba(255, 255, 255, 0.6);
             }
         }
     }
 
     :global(.icon) {
         --icon-size: 1.25em;
-        --text-color: var(--secondary-text-color);
+        --color-icon: var(--color-fg-secondary);
 
         position: absolute;
         left: 0.625em;
     }
 }
 
-.resultsOpen {
-    border-bottom-right-radius: 0 !important;
-    border-bottom-left-radius: 0 !important;
-    padding-right: 80px !important;
+input[type='search'].resultsOpen {
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+    padding-right: 80px;
 }

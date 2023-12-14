@@ -1,18 +1,18 @@
 @use '../../../design-system/' as *;
 
 .exampleOuter {
-    --example-border-color: color-mix(in srgb, var(--secondary-border-color), var(--border-color));
+    --example-border-color: color-mix(in srgb, var(--color-border-secondary), var(--color-border-primary));
 
-    margin-bottom: $size-2;
+    margin-bottom: $spacing-size-4;
 
-    #{$darkmode-selector} & {
-        --example-border-color: color-mix(in srgb, var(--default-background-color), white 10%);
+    #{$selector-darkmode} & {
+        --example-border-color: color-mix(in srgb, var(--color-bg-primary), white 10%);
     }
 }
 
 iframe {
-    #{$darkmode-selector} & {
-        background: #182732;
+    #{$selector-darkmode} & {
+        background: var(--color-bg-primary);
     }
 }
 
@@ -24,24 +24,16 @@ iframe {
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    margin-top: $size-2;
+    margin-top: $spacing-size-4;
 }
 
 .previewCodeToggle {
     padding: 4px 12px 6px;
     font-weight: 500;
-    border-radius: $size-1;
+    border-radius: $spacing-size-2;
 
-    svg {
-        --icon-size: #{$size-3} !important;
-
-        position: absolute;
-    }
-
-    #{$darkmode-selector} & {
-        --button-color: #202a34;
-        --button-hover-color: #2a343e;
-        --button-active-color: #293949;
+    :global(.icon) {
+        --icon-size: #{$spacing-size-6};
     }
 }
 
@@ -49,26 +41,23 @@ iframe {
     display: flex;
     align-items: center;
     flex-shrink: 0;
-    margin-left: $size-2;
+    margin-left: $spacing-size-4;
     margin-right: -10px;
-
-    li {
-        margin-bottom: 0.125em !important;
-    }
+    margin-bottom: 2px;
 }
 
 .importInfoIcon {
-    margin-right: -$size-half;
+    margin-right: -$spacing-size-1;
 
     &:hover svg {
         opacity: 1;
     }
 
     svg {
-        --text-color: var(--secondary-text-color);
+        --color-icon: var(--color-fg-secondary);
 
         opacity: 0.5;
-        transition: opacity $default-transition-timing;
+        transition: opacity $transition-default-timing;
     }
 }
 

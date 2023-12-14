@@ -3,7 +3,7 @@
 .docsHeaderIcon {
     position: relative;
     padding-left: 0;
-    margin-left: $size-1;
+    margin-left: $spacing-size-2;
     font-size: inherit;
     opacity: 0;
     transition: opacity 0.33s ease-in-out;
@@ -14,7 +14,7 @@
         width: 0.85em;
         height: 0.85em;
         visibility: visible;
-        fill: var(--azure-blue);
+        fill: var(--color-link);
     }
 
     &:hover {

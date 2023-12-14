@@ -10,8 +10,8 @@
     height: 100%;
 
     :global(.ag-chart-wrapper) {
-        border: 2px solid var(--bright-blue-gray);
-        border-radius: var(--border-radius);
+        border: 2px solid var(--color-brand-100);
+        border-radius: var(--radius-sm);
         box-sizing: border-box;
         overflow: hidden;
     }
@@ -29,7 +29,7 @@
 }
 
 .close {
-    --text-color: var(--link-color);
+    --color-icon: var(--color-link);
 
     position: fixed;
     top: 0px;
@@ -37,10 +37,10 @@
     z-index: 201;
 
     &:hover {
-        --text-color: var(--link-hover-color);
+        --color-icon: var(--color-link-hover);
     }
 
     svg {
-        transition: fill $default-transition-timing;
+        transition: fill $transition-default-timing;
     }
 }

@@ -1,20 +1,16 @@
 @use '../../design-system/' as *;
 
 .frameworkSelector {
-    --icon-size: #{$size-3};
+    --icon-size: #{$spacing-size-6};
 
     display: flex;
-    background-color: var(--input-background-color);
-    border-radius: var(--border-radius);
-    border: 1px solid var(--border-color);
-    margin-bottom: $size-2;
+    background-color: var(--color-bg-primary);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border-primary);
+    margin-bottom: $spacing-size-4;
 
     @media screen and (min-width: $breakpoint-docs-search-medium) {
         margin-top: -6px;
-    }
-
-    #{$darkmode-selector} & {
-        --input-background-color: #151d26;
     }
 }
 
@@ -34,10 +30,10 @@
         display: block;
         width: 1px;
         height: calc(100% - 12px);
-        background-color: var(--border-color);
+        background-color: var(--color-border-primary);
 
-        #{$darkmode-selector} & {
-            background-color: #28333d;
+        #{$selector-darkmode} & {
+            background-color: var(--color-bg-primary);
         }
     }
 
@@ -45,8 +41,8 @@
         display: block;
         width: 135px;
         cursor: pointer;
-        font-weight: var(--font-weight-bold);
-        font-size: var(--font-size-medium);
-        border: none !important;
+        font-weight: var(--text-regular);
+        font-size: var(--text-fs-base);
+        border: none;
     }
 }

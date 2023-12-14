@@ -1,59 +1,54 @@
 @use '../../design-system/' as *;
 
 .cta {
-    --button-text-color: var(--link-color);
-
     position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
-    width: $size-5;
-    height: $size-5;
-    border-radius: var(--border-radius);
+    width: $spacing-size-10;
+    height: $spacing-size-10;
+    border-radius: var(--radius-sm);
     transition:
-        color $default-transition-timing,
-        background-color $default-transition-timing;
+        color $transition-default-timing,
+        background-color $transition-default-timing;
     cursor: pointer;
 
     &:hover {
-        --button-text-color: var(--link-color);
-
-        background-color: var(--background-400);
-
-        svg {
-            --text-color: var(--link-color);
-        }
-
-        #{$darkmode-selector} & {
-            background-color: var(--primary-100);
-        }
+        background-color: var(--color-util-brand-100);
     }
 
     svg {
         --icon-size: 1.25em;
 
+        fill: var(--color-link);
         transform: translate(1px, 0.75px);
-        transition: fill $default-transition-timing;
+        transition: fill $transition-default-timing;
     }
 
     li:first-child & svg {
         --icon-size: 1.35em;
     }
+
+    #{$selector-darkmode} & {
+        &:hover {
+            background-color: var(--color-gray-700);
+        }
+    }
 }
 
 .tooltip {
-    --tooltip-background: var(--default-text-color);
+    --tooltip-background: var(--color-fg-primary);
 
     position: absolute;
     display: block;
-    color: var(--default-background-color);
+    color: var(--color-bg-primary);
     top: -44px;
-    padding: $size-half $size-2;
+    padding: $spacing-size-1 $spacing-size-4;
     white-space: nowrap;
     font-weight: 600;
     background-color: var(--tooltip-background);
     border-radius: 6px;
-    transform: translateY($size-half);
+    transform: translateY($spacing-size-1);
     opacity: 0;
     pointer-events: none;
     transition-delay: 0;
@@ -86,10 +81,10 @@
         transition-delay: 0.165s;
     }
 
-    #{$darkmode-selector} & {
-        --tooltip-background: #202a34;
+    #{$selector-darkmode} & {
+        --tooltip-background: var(--color-bg-secondary);
 
-        color: var(--default-text-color);
+        color: var(--color-fg-primary);
         box-shadow: 0 -4px 16px 0 rgba(0, 0, 0, 0.4);
     }
 }

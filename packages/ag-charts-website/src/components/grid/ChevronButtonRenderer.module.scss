@@ -17,17 +17,17 @@
     -moz-border-radius: 32px; /* or 50% */
     border-radius: 32px; /* or 50% */
 
-    background: var(--button-color);
+    background: var(--color-link);
     color: white;
     text-align: center;
     font-size: 2em;
-    margin-right: $size-1;
+    margin-right: $spacing-size-2;
     transition:
-        background-color $default-transition-timing,
+        background-color $transition-default-timing,
         transform 0.33s ease-in-out;
 
     &:hover {
-        background: var(--button-hover-color);
+        background: var(--color-link-hover);
     }
 
     &.isExpanded {

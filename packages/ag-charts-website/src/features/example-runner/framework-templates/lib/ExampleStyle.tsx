@@ -28,7 +28,7 @@ export const ExampleStyle = ({ rootId }: { rootId?: string }) => {
         }
 
         :root[data-dark-mode='true'] {
-            background: #182732;
+            background: #182230;
             color: white;
         }
 
@@ -40,11 +40,11 @@ export const ExampleStyle = ({ rootId }: { rootId?: string }) => {
         button:not(#myGrid button, #myChart button, button[class*='ag-'], .ag-chart-context-menu button) {
             --background-color: transparent;
             --text-color: #212529;
-            --border-color: rgba(187, 187, 187, 0.3);
+            --color-border-primary: rgba(187, 187, 187, 0.3);
             --hover-background-color: rgba(0, 0, 0, 0.1);
 
             appearance: none;
-            border: 2px solid var(--border-color);
+            border: 2px solid var(--color-border-primary);
             border-radius: 6px;
             height: 36px;
             color: var(--text-color);
@@ -68,7 +68,7 @@ export const ExampleStyle = ({ rootId }: { rootId?: string }) => {
         :root[data-dark-mode='true']
             button:not(#myGrid button, #myChart button, button[class*='ag-'], .ag-chart-context-menu button) {
             --text-color: #f8f9fa;
-            --border-color: rgba(255, 255, 255, 0.2);
+            --color-border-primary: rgba(255, 255, 255, 0.2);
             --hover-background-color: #2a343e;
         }
     `;

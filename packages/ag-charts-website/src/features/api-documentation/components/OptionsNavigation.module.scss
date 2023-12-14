@@ -2,7 +2,7 @@
 
 // Ignore padding & remove border if within tabbed container
 :global(.tabs-outer) .expandableSnippet pre:global(.code) {
-    margin: -$size-2;
+    margin: -$spacing-size-4;
     border: none;
 }
 
@@ -17,7 +17,7 @@
     height: calc(100vh - var(--total-header-height));
     z-index: 3;
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         --total-header-height: calc(var(--header-nav-height) * 2 + 6px);
     }
 
@@ -32,12 +32,12 @@
         left: 0;
         z-index: 3;
         width: 100%;
-        padding: $size-2 var(--horizontal-margin);
-        background-color: var(--default-background-color);
-        border-bottom: 1px solid var(--neutral-200);
+        padding: $spacing-size-4 var(--horizontal-margin);
+        background-color: var(--color-bg-primary);
+        border-bottom: 1px solid var(--color-util-gray-200);
 
         @media screen and (min-width: $breakpoint-options-medium) {
-            padding: $size-2;
+            padding: $spacing-size-4;
         }
 
         h3 {
@@ -45,7 +45,7 @@
         }
 
         p {
-            line-height: var(--line-height-tight);
+            line-height: var(--text-lh-tight);
         }
     }
 
@@ -87,7 +87,9 @@
 }
 
 .navContainer > code {
-    background: var(--background-100) !important;
+    #{$selector-darkmode} & {
+        background: var(--color-gray-900);
+    }
 }
 
 .navGroup {
@@ -98,11 +100,11 @@
         content: '';
         position: absolute;
         left: calc(4px + var(--nav-options-indent) * (var(--options-nav-depth, 0) - 1));
-        background-color: var(--neutral-300);
+        background-color: var(--color-util-gray-300);
         pointer-events: none;
 
-        #{$darkmode-selector} & {
-            background-color: var(--neutral-600);
+        #{$selector-darkmode} & {
+            background-color: var(--color-util-gray-400);
         }
     }
 
@@ -123,36 +125,29 @@
     padding: 0 16px 0 calc(16px + var(--nav-options-indent) * var(--options-nav-depth, 0));
 
     &:global(.highlight) {
-        --highlight-color: var(--primary-600);
-        --highlight-opacity: 0.15;
-
         position: relative;
 
         &::before {
             content: '';
             position: absolute;
             inset: 0;
-            background-color: var(--highlight-color);
-            opacity: var(--highlight-opacity);
+            background-color: var(--color-util-brand-400);
+            opacity: 0.15;
             pointer-events: none;
-        }
-
-        #{$darkmode-selector} & {
-            --highlight-color: var(--property-color);
-            --highlight-opacity: 0.16;
         }
     }
 }
 
 .propertyExpander {
     --icon-size: 1em;
+    --color-icon: var(--color-fg-primary);
 
     position: absolute;
     top: 0;
     right: 100%;
     padding: 3px;
     box-sizing: content-box;
-    transition: transform $default-transition-timing;
+    transition: transform $transition-default-timing;
 
     &.active {
         transform: rotate(90deg);
@@ -161,7 +156,7 @@
 
 .propertyName {
     position: relative;
-    color: var(--property-color);
+    color: var(--string-color);
     cursor: pointer;
 
     .punctuation {
@@ -169,7 +164,11 @@
     }
 
     .unionDiscriminator {
-        color: var(--code-text-color);
+        color: var(--color-fg-code);
+    }
+
+    #{$selector-darkmode} & {
+        color: var(--property-color);
     }
 }
 
@@ -183,10 +182,10 @@
         right: calc(100% + 10px);
         width: var(--nav-options-indent);
         height: 2px;
-        background-color: var(--neutral-300);
+        background-color: var(--color-util-gray-300);
 
-        #{$darkmode-selector} & {
-            background-color: var(--neutral-600);
+        #{$selector-darkmode} & {
+            background-color: var(--color-util-gray-400);
         }
     }
 }
@@ -210,7 +209,7 @@
 
 .searchIcon {
     --icon-size: 1.25em;
-    --text-color: var(--secondary-text-color);
+    --color-icon: var(--color-fg-secondary);
 
     position: absolute;
     left: 0.625em;
@@ -220,17 +219,16 @@
     position: absolute;
     inset: 100% 0 auto;
     max-height: 168px;
-    border-bottom-right-radius: var(--border-radius);
-    border-bottom-left-radius: var(--border-radius);
-    background-color: var(--default-background-color);
-    border: 2px solid var(--input-border-color);
+    border-bottom-right-radius: var(--radius-sm);
+    border-bottom-left-radius: var(--radius-sm);
+    background-color: var(--color-bg-primary);
+    border: 1px solid var(--color-input-border);
     border-top: none;
     overflow: auto;
     z-index: 3;
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         inset: 100% 0 auto;
-        border: 1px solid var(--input-border-color);
     }
 }
 
@@ -242,22 +240,22 @@
 }
 
 .searchOption {
-    padding: $size-1 $size-2;
+    padding: $spacing-size-2 $spacing-size-4;
     cursor: pointer;
 
     strong {
-        color: var(--dark-blue-600);
+        color: var(--color-util-brand-700);
 
-        #{$darkmode-selector} & {
-            color: var(--primary-500);
+        #{$selector-darkmode} & {
+            color: var(--color-util-brand-400);
         }
     }
 
     &.selected {
-        background-color: var(--background-600);
+        background-color: var(--color-util-brand-100);
 
-        #{$darkmode-selector} & {
-            background-color: var(--background-400);
+        #{$selector-darkmode} & {
+            background-color: var(--color-util-brand-50);
         }
     }
 }

@@ -1,12 +1,12 @@
 @use '../../../design-system' as *;
 
 .link {
-    --link-border-color: var(--background-500);
+    --link-border-color: var(--color-util-brand-100);
 
     position: relative;
     display: flex;
     flex-direction: column;
-    border-radius: var(--border-radius);
+    border-radius: var(--radius-sm);
     border: 1px solid var(--link-border-color);
 
     &::after {
@@ -18,8 +18,8 @@
         right: $border-width * -1;
         bottom: $border-width * -1;
         left: $border-width * -1;
-        border-radius: calc(var(--border-radius) + 1px);
-        border: $border-width solid var(--link-hover-color);
+        border-radius: calc(var(--radius-sm) + 1px);
+        border: $border-width solid var(--color-link-hover);
         opacity: 0;
         transition: opacity 0.5s ease-in-out;
     }
@@ -31,22 +31,22 @@
     img {
         width: 100%;
         height: auto; /* unset explicit height to use intrinsic sizing */
-        padding: $size-3;
+        padding: $spacing-size-6;
     }
 
     span {
         display: block;
         flex-grow: 1;
-        padding: $size-1 $size-2;
+        padding: $spacing-size-2 $spacing-size-4;
         font-size: 12px;
-        line-height: var(--line-height-tight);
+        line-height: var(--text-lh-tight);
         border-top: 1px solid var(--link-border-color);
     }
 
-    #{$darkmode-selector} & {
-        --link-border-color: color-mix(in srgb, var(--default-background-color), white 10%);
+    #{$selector-darkmode} & {
+        --link-border-color: color-mix(in srgb, var(--color-bg-primary), white 10%);
 
-        background-color: #182732;
+        background-color: var(--color-bg-secondary);
     }
 }
 
@@ -75,7 +75,7 @@
 .layout-3-col {
     --columns: 1;
 
-    width: calc(100% / var(--columns) - #{$size-3} / var(--columns) * (var(--columns) - 1));
+    width: calc(100% / var(--columns) - #{$spacing-size-6} / var(--columns) * (var(--columns) - 1));
 
     @media screen and (min-width: 720px) {
         --columns: 2;
@@ -83,13 +83,5 @@
 
     @media screen and (min-width: 1120px) {
         --columns: 3;
-    }
-}
-
-.onlyShowOnLargeScreen {
-    display: none !important;
-
-    @media screen and (min-width: 1120px) {
-        display: block !important;
     }
 }

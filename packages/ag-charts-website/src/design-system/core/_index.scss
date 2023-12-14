@@ -1,8 +1,8 @@
 @forward 'variables';
+@forward 'variables-refactor'; // TODO: Remove after refactor
 @forward 'breakpoints' as breakpoint-*;
 
 @forward 'utils';
 
 @forward 'mixins/layout-mixins';
 @forward 'mixins/table-mixins';
-@forward 'mixins/typography-mixins';

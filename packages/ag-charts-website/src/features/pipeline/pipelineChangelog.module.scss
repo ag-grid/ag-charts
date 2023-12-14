@@ -1,8 +1,8 @@
 @use '../../design-system/' as *;
 
 .container {
-    margin-top: $size-6;
-    margin-bottom: calc($size-6 * 2.5);
+    margin-top: $spacing-size-12;
+    margin-bottom: calc($spacing-size-12 * 2.5);
 
     :global(.ag-filter-icon) {
         display: none;
@@ -12,21 +12,21 @@
 .header {
     display: flex;
     flex-direction: column;
-    gap: $size-5;
-    margin-bottom: $size-2;
+    gap: $spacing-size-10;
+    margin-bottom: $spacing-size-4;
 }
 
 .searchBarOuter {
     position: relative;
     display: flex;
     align-items: center;
-    gap: 0 $size-1;
-    margin-top: $size-6;
-    margin-bottom: $size-1;
+    gap: 0 $spacing-size-2;
+    margin-top: $spacing-size-12;
+    margin-bottom: $spacing-size-2;
 
     :global(.icon) {
         --icon-size: 1.25em;
-        --text-color: var(--secondary-text-color);
+        --color-icon: var(--color-fg-secondary);
 
         position: absolute;
         left: 0.625em;
@@ -47,7 +47,7 @@
 }
 
 .searchExplainer {
-    line-height: var(--line-height-tight);
+    line-height: var(--text-lh-tight);
 
     @media screen and (max-width: $breakpoint-changelog-pipeline-large) {
         display: none;
@@ -60,10 +60,10 @@
 }
 
 .fontClass {
-    font-size: 15px !important;
+    font-size: 15px;
 }
 
 .link::after {
     content: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAQElEQVR42qXKwQkAIAxDUUdxtO6/RBQkQZvSi8I/pL4BoGw/XPkh4XigPmsUgh0626AjRsgxHTkUThsG2T/sIlzdTsp52kSS1wAAAABJRU5ErkJggg==);
-    margin: 0 $size-half 0 $size-half;
+    margin: 0 $spacing-size-1 0 $spacing-size-1;
 }

@@ -3,12 +3,12 @@
 :global {
     .pageSections article {
         > h2 {
-            margin-top: $size-6;
+            margin-top: $spacing-size-12;
         }
 
         > h3,
         > h4 {
-            margin-top: $size-4;
+            margin-top: $spacing-size-8;
         }
 
         p,
@@ -16,23 +16,7 @@
         > ol,
         > table,
         > pre {
-            font-size: var(--font-size-medium);
-        }
-
-        > h1,
-        > h2,
-        > h3,
-        > h4,
-        > h5,
-        > h6,
-        > p,
-        > ul,
-        > ol,
-        > table,
-        > hr {
-            @media screen and (min-width: $max-page-width) {
-                @include font-size-responsive();
-            }
+            font-size: var(--text-fs-base);
         }
     }
 }
@@ -49,15 +33,50 @@
 .docPage {
     flex: 1 1 0px;
     min-width: 0px;
-    padding-top: $size-4 + $size-half;
+    position: relative;
+    padding-top: $spacing-size-8 + $spacing-size-1;
     padding-right: var(--horizontal-margin);
     padding-left: var(--horizontal-margin);
-    padding-bottom: $size-7;
-    position: relative;
+    padding-bottom: $spacing-size-16;
+
+    :global(#{$selector-darkmode}) & {
+        color: var(--color-fg-secondary);
+    }
+
+    :global(h1),
+    :global(h2),
+    :global(h3),
+    :global(h4),
+    :global(h5),
+    :global(h6) {
+        :global(#{$selector-darkmode}) & {
+            color: var(--color-fg-primary);
+        }
+    }
+
+    :global(a) {
+        text-decoration: underline;
+        text-underline-offset: 2px;
+        text-decoration-color: var(--color-brand-300);
+    }
+
+    :global(#{$selector-darkmode}) & {
+        :global(a) {
+            color: var(--color-brand-300);
+            text-decoration: underline;
+            text-underline-offset: 2px;
+            text-decoration-color: var(--color-brand-300);
+        }
+
+        :global(a):hover {
+            color: var(--color-fg-primary);
+            text-decoration-color: var(--color-brand-300);
+        }
+    }
 
     @media screen and (min-width: $breakpoint-docs-nav-large) {
-        padding-left: $size-4;
-        padding-right: $size-7;
+        padding-left: $spacing-size-8;
+        padding-right: $spacing-size-16;
         max-width: var(--docs-page-max-width);
     }
 
@@ -83,13 +102,6 @@
         margin-left: 0.25rem;
     }
 
-    a {
-        &:hover {
-            text-decoration: none;
-            color: var(--ag-grid-orange);
-        }
-    }
-
     :global(.nav-link) {
         p {
             margin: 0;
@@ -98,10 +110,6 @@
 
     ul li > p {
         margin-bottom: 0.25rem;
-    }
-
-    :global(.alert) {
-        margin-bottom: $size-2;
     }
 }
 
@@ -112,10 +120,10 @@
 
 // Hack to target "intro" section of docs page
 .pageSections > :global(article) > :global(p:first-child) {
-    --font-size-extra-large: #{$font-size-extra-large};
-
-    font-size: var(--font-size-extra-large);
-    margin-bottom: $size-4;
+    color: var(--color-fg-secondary);
+    font-size: var(--text-fs-lg);
+    font-weight: var(--text-regular);
+    margin-bottom: $spacing-size-8;
 
     code {
         font-size: 0.8em;
@@ -128,5 +136,5 @@
 }
 
 .sideMenu {
-    padding-top: $size-4 + $size-half;
+    padding-top: $spacing-size-8 + $spacing-size-1;
 }

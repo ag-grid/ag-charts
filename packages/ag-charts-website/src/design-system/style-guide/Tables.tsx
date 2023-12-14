@@ -1,9 +1,12 @@
-export const Tables = () => {
+import type { FunctionComponent } from 'react';
+
+import styles from './StyleGuide.module.scss';
+
+export const Tables: FunctionComponent = () => {
     return (
         <>
-            <p className="item-label">
-                Table: <code>table</code>
-            </p>
+            <h2>Tables</h2>
+            <code>{`<table>`}</code>
             <figure>
                 <table role="grid">
                     <thead>
@@ -56,10 +59,7 @@ export const Tables = () => {
                     </tbody>
                 </table>
             </figure>
-
-            <p className="item-label">
-                With small header & no zebra striping: <code>table.small-header.no-zebra</code>
-            </p>
+            <code>{`<table class="small-header no-zebra">`}</code>
             <figure>
                 <table role="grid" className="small-header no-zebra">
                     <thead>
@@ -112,11 +112,7 @@ export const Tables = () => {
                     </tbody>
                 </table>
             </figure>
-
-            <p className="item-label">
-                Stacked table: <code>table.stack</code> / <code>{`table { @incldue stack-table(); }`}</code>
-            </p>
-
+            <code>{`<table class="stack>`}</code> / <code>{`table { @incldue stack-table(); }`}</code>
             <figure style={{ maxWidth: '300px' }}>
                 <table role="grid" className="stack">
                     <thead>
