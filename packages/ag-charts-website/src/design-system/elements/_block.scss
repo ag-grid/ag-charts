@@ -25,7 +25,7 @@ ol.list-style-none,
     padding-left: 0;
     list-style: none;
 
-    li:not(:last-child) {
+    li:where(:not(:last-child)) {
         margin-bottom: 0;
     }
 }

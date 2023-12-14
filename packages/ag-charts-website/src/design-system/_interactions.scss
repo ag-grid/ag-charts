@@ -15,7 +15,7 @@
 .no-transitions *,
 .no-transitions *::before,
 .no-transitions *::after {
-    transition: none !important;
+    transition: none !important; // !important used to ensure no transitions fire whilst class is present
 }
 
 #{$selector-darkmode} {

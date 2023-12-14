@@ -20,7 +20,7 @@ function getLinkUrl({ framework, path, url }: { framework: Framework; path?: str
 
 function EnterpriseIcon() {
     return (
-        <span className={styles.enterpriseIcon}>
+        <span className={gridStyles.enterpriseIcon}>
             (e)
             <Icon name="enterprise" />
         </span>

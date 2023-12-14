@@ -20,19 +20,21 @@
 
         flex-shrink: 0;
         width: var(--menu-width);
-        height: auto !important;
+        height: auto !important; // !important required to override <Collapsible> component styling
         margin-right: var(--right-margin);
         border-bottom: none;
-        overflow: visible !important;
+        overflow: visible !important; // !important required to override <Collapsible> component styling
 
         > div {
-            display: block !important;
+            display: block !important; // !important required to override <Collapsible> component styling
         }
 
         @supports (position: sticky) {
             position: sticky;
             top: $top-bar-height;
-            height: calc(100vh - #{$top-bar-height}) !important;
+            height: calc(
+                100vh - #{$top-bar-height}
+            ) !important; // !important required to override <Collapsible> component styling
         }
     }
 }
@@ -67,26 +69,6 @@
             margin-left: $spacing-size-1;
             padding-left: $spacing-size-1;
             border-left: none;
-        }
-    }
-}
-
-.enterpriseIcon {
-    position: relative;
-    margin-left: $spacing-size-1;
-    color: transparent;
-
-    svg {
-        --icon-size: 1.15em;
-
-        position: absolute;
-        left: 0;
-        margin: 0;
-        transform: translate(-0.05em, 0.175em);
-        fill: var(--color-enterprise-icon);
-
-        .seriesTypesNav & {
-            transform: translate(-0.05em, 0.475em);
         }
     }
 }

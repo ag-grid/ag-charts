@@ -84,11 +84,11 @@ ul.menuInner {
     padding-bottom: $spacing-size-16;
 
     li {
-        margin-bottom: $spacing-size-1 !important;
+        margin-bottom: $spacing-size-1;
     }
 
     li li {
-        margin-bottom: 0 !important;
+        margin-bottom: 0;
     }
 
     hr {
@@ -105,7 +105,7 @@ ul.menuInner {
     }
 
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
-        display: block !important;
+        display: block;
     }
 }
 
@@ -153,7 +153,7 @@ button:not([class^='ag-']).sectionHeader {
             fill $transition-default-timing;
 
         &.active {
-            transform: rotate(90deg) !important;
+            transform: rotate(90deg);
         }
     }
 }
@@ -257,7 +257,7 @@ button:not([class^='ag-']).sectionHeader {
 
 .menuGroup .groupLabel {
     display: block;
-    margin-left: var(--first-indent-size) !important;
+    margin-left: var(--first-indent-size);
     padding-top: 5px;
     padding-bottom: 5px;
     padding-left: $spacing-size-4 + 2px;
