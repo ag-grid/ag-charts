@@ -88,7 +88,7 @@ describe('AgChartV2', () => {
                         { id: 'myId', xKey: 'quarter', yKey: 'mac' },
                     ],
                 });
-                expectWarnings([`AG Charts - series[1].id \"myId\" ignored because it duplicates series[0].id`]);
+                expectWarnings([`AG Charts - series[1].id "myId" ignored because it duplicates series[0].id`]);
             });
 
             test('two duplicates', async () => {
