@@ -1,8 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 import type { AgCartesianChartOptions, AgChartInstance, AgChartOptions } from '../options/agChartOptions';
+import { resetIds } from '../util/id';
 import { AgCharts } from './agChartV2';
 import type { Chart } from './chart';
+import type { Series } from './series/series';
 import * as examples from './test/examples';
 import type { TestCase } from './test/utils';
 import { createChart } from './test/utils';
@@ -60,19 +62,24 @@ describe('AgChartV2', () => {
         return ctx.nodeCanvas?.toBuffer('raw');
     };
 
+    const getSeries = (): Series<any>[] => {
+        return (chart as any)._series;
+    };
+
     describe('#validation', () => {
         afterEach(() => {
             expect(console.error).not.toBeCalled();
+            resetIds();
         });
 
-        describe('Series ID', () => {
-            const data = [
-                { quarter: "Q1'18", iphone: 140, mac: 16, ipad: 14, wearables: 12, services: 20 },
-                { quarter: "Q2'18", iphone: 124, mac: 20, ipad: 14, wearables: 12, services: 30 },
-                { quarter: "Q3'18", iphone: 112, mac: 20, ipad: 18, wearables: 14, services: 36 },
-                { quarter: "Q4'18", iphone: 118, mac: 24, ipad: 14, wearables: 14, services: 36 },
-            ];
+        const data = [
+            { quarter: "Q1'18", iphone: 140, mac: 16, ipad: 14, wearables: 12, services: 20 },
+            { quarter: "Q2'18", iphone: 124, mac: 20, ipad: 14, wearables: 12, services: 30 },
+            { quarter: "Q3'18", iphone: 112, mac: 20, ipad: 18, wearables: 14, services: 36 },
+            { quarter: "Q4'18", iphone: 118, mac: 24, ipad: 14, wearables: 14, services: 36 },
+        ];
 
+        describe('Series ID', () => {
             const expectWarnings = (warnings: string[]) => {
                 expect(console.warn).toBeCalledTimes(warnings.length);
                 for (let i = 0; i < warnings.length; i++) {
@@ -121,6 +128,60 @@ describe('AgChartV2', () => {
                     ],
                 });
                 await compare();
+            });
+        });
+
+        describe('Generated Series IDs', () => {
+            test('all generated', async () => {
+                chart = await createChart({
+                    data,
+                    series: [
+                        { xKey: 'quarter', yKey: 'iphone' },
+                        { xKey: 'quarter', yKey: 'mac' },
+                        { xKey: 'quarter', yKey: 'ipad' },
+                        { xKey: 'quarter', yKey: 'wearables' },
+                    ],
+                });
+                const series = getSeries();
+                expect(series[0].id).toEqual('LineSeries-1');
+                expect(series[1].id).toEqual('LineSeries-2');
+                expect(series[2].id).toEqual('LineSeries-3');
+                expect(series[3].id).toEqual('LineSeries-4');
+                expect(console.warn).not.toBeCalled();
+            });
+
+            test('two types', async () => {
+                chart = await createChart({
+                    data,
+                    series: [
+                        { type: 'line', xKey: 'quarter', yKey: 'iphone' },
+                        { type: 'bar', xKey: 'quarter', yKey: 'mac' },
+                    ],
+                });
+                const series = getSeries();
+                expect(series[0].id).toEqual('LineSeries-1');
+                expect(series[1].id).toEqual('BarSeries-1');
+                expect(console.warn).not.toBeCalled();
+            });
+
+            test('with user ids', async () => {
+                chart = await createChart({
+                    data,
+                    series: [
+                        { xKey: 'quarter', yKey: 'iphone' },
+                        { xKey: 'quarter', yKey: 'mac' },
+                        { id: 'LineSeries-1', xKey: 'quarter', yKey: 'ipad' },
+                        { xKey: 'quarter', yKey: 'wearables' },
+                        { id: 'LineSeries-3', xKey: 'quarter', yKey: 'services' },
+                    ],
+                });
+                const series = getSeries();
+                expect(series[0].id).toEqual('LineSeries-2');
+                expect(series[1].id).toEqual('LineSeries-4');
+                expect(series[2].id).toEqual('LineSeries-1');
+                expect(series[3].id).toEqual('LineSeries-5');
+                expect(series[4].id).toEqual('LineSeries-3');
+                expect(console.warn).not.toBeCalled();
             });
         });
     });
