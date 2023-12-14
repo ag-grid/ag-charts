@@ -50,7 +50,9 @@
     "dev:setup": {
       "executor": "nx:run-commands",
       "options": {
+        "parallel": false,
         "commands": [
+          "nx run-many -t build:types",
           "nx build ag-charts-website:generate-examples --batch",
           "nx build ag-charts-website:generate-thumbnails --batch"
         ]
