@@ -114,7 +114,7 @@ button:not([class^='ag-']).sectionHeader {
     padding-top: $spacing-size-1;
     padding-bottom: $spacing-size-2;
     margin-top: 0;
-    font-weight: var(--text-bold);
+    font-weight: var(--text-semibold);
     border: 2px solid transparent;
     outline: none;
     transition:
@@ -147,7 +147,12 @@ button:not([class^='ag-']).sectionHeader {
 
         position: relative;
         top: -1px;
-        fill: var(--color-fg-secondary);
+        fill: var(--color-util-gray-400);
+
+        #{$selector-darkmode} & {
+            fill: var(--color-fg-primary);
+        }
+
         transition:
             transform 0.33s ease-in-out,
             fill $transition-default-timing;
@@ -163,7 +168,9 @@ button:not([class^='ag-']).sectionHeader {
     --indent-size: 20px;
 
     line-height: var(--text-lh-tight);
-    font-size: var(--text-fs-sm);
+    font-size: var(--text-fs-regular);
+    font-weight: var(--text-semibold);
+    -webkit-font-smoothing: antialiased;
 
     ul a,
     ul .groupLabel {
@@ -222,11 +229,17 @@ button:not([class^='ag-']).sectionHeader {
         --hover-background: rgba(56, 146, 249, 0.06);
         --active-background: rgba(56, 146, 249, 0.09);
 
-        -webkit-font-smoothing: auto;
+        -webkit-font-smoothing: antialiased;
     }
 
     &:hover {
         background-color: var(--hover-background);
+    }
+
+    #{$selector-darkmode} & {
+        &:hover {
+            color: var(--color-fg-primary);
+        }
     }
 
     &:focus-visible {
