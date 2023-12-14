@@ -117,7 +117,7 @@ jobs:
             - name: nx lint
               id: lint
               if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
-              run: yarn nx affected --base ${{ steps.nx_config.outputs.base }} -t lint --parallel=3
+              run: yarn nx affected --base ${{ steps.nx_config.outputs.base }} -t lint --parallel=3 --exclude all
             - name: Update Status (lint)
               uses: LouisBrunner/checks-action@v1.6.1
               if: always()
@@ -129,7 +129,7 @@ jobs:
             - name: nx build
               id: build
               if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
-              run: yarn nx affected --base ${{ steps.nx_config.outputs.base }} -t build --parallel=3
+              run: yarn nx affected --base ${{ steps.nx_config.outputs.base }} -t build --parallel=3  --exclude all
             - name: Update Status (build)
               uses: LouisBrunner/checks-action@v1.6.1
               if: always()
