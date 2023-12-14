@@ -15,38 +15,49 @@ import {
 expect.extend({ toMatchImageSnapshot });
 
 describe('PieSeries', () => {
-    describe('Doughnut', () => {
-        let chart: Chart;
-
+    beforeEach(() => {
         /* eslint-disable no-console */
-        beforeEach(() => {
-            console.warn = jest.fn();
-            console.error = jest.fn();
-        });
-
-        afterEach(() => {
-            if (chart) {
-                chart.destroy();
-                (chart as unknown) = undefined;
-            }
-            expect(console.warn).not.toBeCalled();
-            expect(console.error).not.toBeCalled();
-            jest.restoreAllMocks();
-        });
+        console.warn = jest.fn();
+        console.error = jest.fn();
         /* eslint-enable no-console */
+    });
 
-        const ctx = setupMockCanvas();
+    afterEach(() => {
+        if (chart) {
+            chart.destroy();
+            (chart as unknown) = undefined;
+        }
 
-        const compare = async () => {
-            await waitForChartStability(chart);
-            const imageData = extractImageData(ctx);
-            expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
-        };
+        // eslint-disable-next-line no-console
+        expect(console.error).not.toBeCalled();
+    });
 
-        const options: AgPolarChartOptions = {};
-        prepareTestOptions(options);
+    const compare = async () => {
+        await waitForChartStability(chart);
+        const imageData = extractImageData(ctx);
+        expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 });
+    };
 
-        test('multiple', async () => {
+    const expectWarnings = (warnings: string[]) => {
+        /* eslint-disable no-console */
+        expect(console.warn).toBeCalledTimes(warnings.length);
+        for (let i = 0; i < warnings.length; i++) {
+            expect(console.warn).nthCalledWith(i + 1, warnings[i]);
+        }
+        /* eslint-enable no-console */
+    };
+
+    let chart: Chart;
+    const ctx = setupMockCanvas();
+    const options: AgPolarChartOptions = prepareTestOptions({});
+
+    describe('#create', () => {
+        afterEach(() => {
+            // eslint-disable-next-line no-console
+            expect(console.warn).not.toBeCalled();
+        });
+
+        test('multiple doughnuts', async () => {
             chart = AgCharts.create({
                 ...options,
                 series: [
@@ -109,29 +120,7 @@ describe('PieSeries', () => {
         });
     });
 
-    /* eslint-disable no-console */
-    describe('Validation', () => {
-        let chart: Chart;
-
-        beforeEach(() => {
-            console.warn = jest.fn();
-            console.error = jest.fn();
-        });
-
-        afterEach(() => {
-            if (chart) {
-                chart.destroy();
-                (chart as unknown) = undefined;
-            }
-            expect(console.error).not.toBeCalled();
-            jest.restoreAllMocks();
-        });
-
-        setupMockCanvas();
-
-        const options: AgPolarChartOptions = {};
-        prepareTestOptions(options);
-
+    describe('#validation', () => {
         test('missing data warning', async () => {
             chart = AgCharts.create({
                 ...options,
@@ -140,12 +129,15 @@ describe('PieSeries', () => {
             }) as Chart;
             await waitForChartStability(chart);
 
-            const { warn } = console;
-            expect(warn).toBeCalledTimes(3);
-            expect(warn).nthCalledWith(1, `AG Charts - no value was found for the key 'dog' on 3 data elements`);
-            expect(warn).nthCalledWith(2, `AG Charts - no value was found for the key 'cat' on 1 data element`);
-            expect(warn).nthCalledWith(3, `AG Charts - no value was found for the key 'fox' on 4 data elements`);
+            expectWarnings([
+                `AG Charts - no value was found for the key 'dog' on 3 data elements`,
+                `AG Charts - no value was found for the key 'cat' on 1 data element`,
+                `AG Charts - no value was found for the key 'fox' on 4 data elements`,
+            ]);
         });
     });
-    /* eslint-enable no-console */
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
 });
