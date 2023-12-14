@@ -34,16 +34,16 @@ pre.code code {
 pre.code {
     --comment-color: #5d6376;
     --tag-color: #984f4e;
-    --string-color: #984f4e;
+    --string-color: #0087bf;
     --punctuation-color: #393a34;
-    --keyword-color: #8844ae;
-    --symbol-color: #36acaa;
-    --function-color: #3c61b1;
-    --deleted-color: #9a050f;
+    --keyword-color: #b31ea7;
+    --symbol-color: #0087bf;
+    --function-color: #2d7df7;
+    --deleted-color: #f54946;
     --selector-color: #00009f;
     --important-color: #e90;
     --class-name-color: #2b91af;
-    --property-color: #0a2c80;
+    --property-color: #2ea248;
 
     position: relative;
     margin: 0 0 $spacing-size-4;
