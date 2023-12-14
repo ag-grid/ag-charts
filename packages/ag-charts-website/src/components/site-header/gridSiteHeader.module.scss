@@ -60,11 +60,11 @@
 
 .mobileNavButton {
     width: 100%;
-    margin: 0 16px 8px;
+    margin-bottom: $spacing-size-2;
 
     @media screen and (min-width: $breakpoint-docs-search-small) {
         width: auto;
-        margin-right: 0;
+        margin-right: $spacing-size-4;
     }
 
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
