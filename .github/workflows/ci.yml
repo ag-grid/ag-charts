@@ -1,8 +1,5 @@
 name: CI
 
-env:
-    NX_REJECT_UNKNOWN_LOCAL_CACHE: 0
-
 on:
     push:
         branches: [latest]
@@ -18,6 +15,18 @@ on:
                 options:
                     - 'true'
                     - 'false'
+            nx_command:
+                type: 'choice'
+                required: true
+                default: 'affected'
+                options:
+                    - 'affected'
+                    - 'run-many'
+
+env:
+    NX_REJECT_UNKNOWN_LOCAL_CACHE: 0
+    NX_COMMAND: ${{ github.job.inputs.nx_command || 'affected' }}
+
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
     cancel-in-progress: ${{ github.ref != 'refs/heads/latest' }}
@@ -64,7 +73,9 @@ jobs:
             - name: Nx Affected SHA Setup
               id: nx_config
               run: |
-                  if [[ $(git branch --show-current) == 'latest' ]] ; then
+                  if [[ "${NX_COMMAND}" == "run-many" ]] ; then
+                    echo "base=d7e9df0d0d0b7304ab676f84a603f2f620c22cff" >> $GITHUB_OUTPUT
+                  elif [[ $(git branch --show-current) == 'latest' ]] ; then
                     echo "base=latest-success" >> $GITHUB_OUTPUT
                   else
                     echo "base=origin/latest" >> $GITHUB_OUTPUT
