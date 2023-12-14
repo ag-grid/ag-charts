@@ -80,7 +80,7 @@ export class DataController {
                 this.requested[i].data.length !== this.requested[0].data.length &&
                 this.requested[i].opts.groupByData === false
             ) {
-                Logger.warnOnce(`all series[].data arrays must be of the same length`);
+                Logger.warnOnce(`all series[].data arrays must be of the same length and have matching keys.`);
                 break;
             }
         }
