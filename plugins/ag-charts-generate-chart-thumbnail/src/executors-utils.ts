@@ -1,8 +1,10 @@
 /* eslint-disable no-console */
 import type { ExecutorContext, TaskGraph } from '@nx/devkit';
+import type { ChildProcess } from 'child_process';
 import { readFileSync } from 'fs';
 import * as fs from 'fs/promises';
 import * as glob from 'glob';
+import * as os from 'os';
 import * as path from 'path';
 import * as ts from 'typescript';
 
@@ -93,6 +95,83 @@ export function batchExecutor<ExecutorOptions>(
             }
 
             yield { task: taskName, result: { success, terminalOutput } };
+        }
+    };
+}
+
+const workers: ChildProcess[] = [];
+const terminateWorkers = () => {
+    workers.forEach((w) => w.kill('SIGKILL'));
+    workers.length = 0;
+};
+
+process.on('exit', () => {
+    terminateWorkers();
+});
+
+export function batchWorkerExecutor<ExecutorOptions>(worker: () => ChildProcess) {
+    const maxChildCount = Math.max(1, os.cpus().length - 1);
+    const results: Record<string, Promise<BatchExecutorTaskResult>> = {};
+    const resolvers: Record<string, (res: BatchExecutorTaskResult) => void> = {};
+
+    const createWorker = () => {
+        const workerInstance = worker();
+        workerInstance.on('message', (message: BatchExecutorTaskResult) => {
+            const { task, result } = message;
+            resolvers[task]({ task, result });
+            delete resolvers[task];
+
+            if (result.success !== true) {
+                console.error(`[${task}]: ${result.terminalOutput}`);
+            }
+            if (Object.keys(resolvers).length === 0) {
+                terminateWorkers();
+            }
+        });
+        workerInstance.on('error', (e) => {
+            console.error(e);
+            terminateWorkers();
+        });
+        workers.push(workerInstance);
+    };
+
+    for (let i = workers.length; i < maxChildCount; i++) {
+        createWorker();
+    }
+    console.log('Worker count: ' + workers.length);
+
+    return async function* (
+        taskGraph: TaskGraph,
+        inputs: Record<string, ExecutorOptions>,
+        overrides: ExecutorOptions,
+        context: ExecutorContext
+    ): AsyncGenerator<BatchExecutorTaskResult, any, unknown> {
+        const tasks = Object.keys(inputs);
+
+        for (let taskIndex = 0; taskIndex < tasks.length; taskIndex++) {
+            const taskName = tasks[taskIndex++];
+            const task = taskGraph.tasks[taskName];
+            const inputOptions = inputs[taskName];
+
+            workers[taskIndex % workers.length].send({
+                options: { ...inputOptions, ...overrides },
+                context: {
+                    ...context,
+                    projectName: task.target.project,
+                    targetName: task.target.target,
+                    configurationName: task.target.configuration,
+                },
+                taskName,
+            });
+
+            results[taskName] = new Promise((resolve) => {
+                resolvers[taskName] = resolve;
+            });
+        }
+
+        for (let taskIndex = 0; taskIndex < tasks.length; taskIndex++) {
+            const taskName = tasks[taskIndex++];
+            yield results[taskName];
         }
     };
 }

@@ -7,7 +7,7 @@ import type { AgChartThemeName } from 'ag-charts-community';
 import { consolePrefix, ensureDirectory, readJSONFile } from '../../executors-utils';
 import { generateExample } from './generator/thumbnailGenerator';
 
-type ExecutorOptions = {
+export type ExecutorOptions = {
     outputPath: string;
     generatedExamplePath: string;
 };
