@@ -11,7 +11,7 @@
     font-weight: var(--text-bold);
     color: var(--color-link);
     background-color: transparent;
-    transition: color $transition-default-timing !important;
+    transition: color $transition-default-timing;
 
     &:hover {
         color: var(--color-link-hover);

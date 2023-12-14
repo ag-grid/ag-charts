@@ -13,10 +13,10 @@
     border-bottom-right-radius: var(--radius-sm);
     border-bottom-left-radius: var(--radius-sm);
     background-color: var(--color-bg-primary);
-    border-top: 2px solid var(--color-border-primary);
+    border-top: 1px solid var(--color-border-primary);
     overflow-y: auto;
     z-index: 999;
-    box-shadow: inset 0 -2px 0 0 var(--color-border-primary);
+    box-shadow: inset 0 -1px 0 0 var(--color-border-primary);
 
     @media screen and (min-width: $breakpoint-docs-search-medium) {
         top: 38px;
@@ -25,11 +25,7 @@
 
     li {
         line-height: var(--text-lh-tight);
-        margin-bottom: -2px !important;
-
-        #{$selector-darkmode} & {
-            margin-bottom: -1px !important;
-        }
+        margin-bottom: -1px;
     }
 
     li:first-child a {
@@ -42,7 +38,7 @@
         position: relative;
         display: block;
         padding: $spacing-size-4;
-        border: 2px solid var(--color-border-primary);
+        border: 1px solid var(--color-border-primary);
         background-color: transparent;
         outline: none;
         transition:
@@ -54,16 +50,12 @@
         &:focus-visible {
             position: relative;
             border-color: var(--color-input-border-hover);
-            background-color: var(--color-bg-toolbar);
+            background-color: var(--color-util-gray-50);
             z-index: 1002;
         }
 
         &:disabled {
             display: none;
-        }
-
-        #{$selector-darkmode} & {
-            border-width: 1px;
         }
     }
 
@@ -118,7 +110,7 @@
 
 button:global(.ais-InfiniteHits-loadMore) {
     width: 100%;
-    padding: $spacing-size-1 !important;
+    padding: $spacing-size-1;
     border-top-right-radius: 0;
     border-top-left-radius: 0;
     font-weight: var(--text-regular);
@@ -127,13 +119,7 @@ button:global(.ais-InfiniteHits-loadMore) {
     transition: background-color $transition-default-timing;
 
     &:hover {
-        background-color: var(--color-bg-toolbar);
-    }
-
-    #{$selector-darkmode} & {
-        &:focus-visible {
-            box-shadow: none;
-        }
+        background-color: var(--color-util-brand-50);
     }
 }
 
