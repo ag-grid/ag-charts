@@ -14,7 +14,7 @@ const { series } = galleryData;
 ---
 
 <Layout title="AG Charts Gallery">
-    <div class="gallery-outer text-sm">
+    <div class="gallery-outer layout-grid text-sm">
         <div class="menu">
             <ul class="list-style-none">
                 {
@@ -107,8 +107,6 @@ const { series } = galleryData;
     }
 
     .gallery-outer {
-        --horizontal-padding: #{$spacing-size-6};
-        --menu-width: 12rem;
         --gallery-list-gap: #{$spacing-size-6};
 
         display: flex;
@@ -122,10 +120,10 @@ const { series } = galleryData;
         position: sticky;
         flex-shrink: 0;
         max-height: calc(100vh - #{$site-header-height});
-        width: calc(var(--menu-width) + var(--horizontal-padding));
+        width: var(--layout-width-3-12);
         top: $site-header-height;
-        padding-top: calc($spacing-size-16 + $spacing-size-4);
-        padding-left: var(--horizontal-padding);
+        left: 0;
+        padding-top: $spacing-size-20;
         background-color: var(--color-bg-primary);
         border-right: solid 1px var(--color-util-gray-200);
         overflow-y: scroll;
@@ -135,11 +133,17 @@ const { series } = galleryData;
             height: $site-header-height;
             width: 100%;
             top: $site-header-height;
-            padding: 0;
+            left: 0;
+            padding-top: 0;
+            padding-left: var(--layout-gap);
             background-color: var(--color-bg-toolbar);
             border-bottom: 1px solid var(--color-border-primary);
             overflow-x: scroll;
             z-index: 1;
+        }
+
+        @media screen and (min-width: $breakpoint-gallery-large) {
+            width: var(--layout-width-2-12);
         }
     }
 
@@ -221,14 +225,15 @@ const { series } = galleryData;
 
     .content {
         flex: 1;
-        padding: $site-header-height var(--horizontal-padding) $spacing-size-24;
+        padding-top: $site-header-height;
+        padding-bottom: $spacing-size-24;
 
         @media screen and (min-width: $breakpoint-gallery-small) {
-            padding: $spacing-size-4 var(--horizontal-padding) $spacing-size-56;
+            padding-top: $spacing-size-4;
+            padding-bottom: $spacing-size-56;
         }
 
         @media screen and (min-width: $breakpoint-gallery-large) {
-            padding-left: $spacing-size-8;
         }
     }
 
