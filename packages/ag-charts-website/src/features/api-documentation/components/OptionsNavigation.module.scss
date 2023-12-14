@@ -156,7 +156,7 @@
 
 .propertyName {
     position: relative;
-    color: var(--property-color);
+    color: var(--string-color);
     cursor: pointer;
 
     .punctuation {
@@ -165,6 +165,10 @@
 
     .unionDiscriminator {
         color: var(--color-fg-code);
+    }
+
+    #{$selector-darkmode} & {
+        color: var(--property-color);
     }
 }
 
