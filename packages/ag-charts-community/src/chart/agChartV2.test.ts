@@ -88,9 +88,7 @@ describe('AgChartV2', () => {
                         { id: 'myId', xKey: 'quarter', yKey: 'mac' },
                     ],
                 });
-                expectWarnings([
-                    `AG Charts - series[1].id "myId" was renamed to "myId-2" because it duplicates series[0].id`,
-                ]);
+                expectWarnings([`AG Charts - series[1].id \"myId\" ignored because it duplicates series[0].id`]);
             });
 
             test('two duplicates', async () => {
@@ -105,40 +103,9 @@ describe('AgChartV2', () => {
                     ],
                 });
                 expectWarnings([
-                    `AG Charts - series[1].id "myId" was renamed to "myId-2" because it duplicates series[0].id`,
-                    `AG Charts - series[3].id "myOtherId" was renamed to "myOtherId-2" because it duplicates series[2].id`,
-                    `AG Charts - series[4].id "myOtherId" was renamed to "myOtherId-3" because it duplicates series[2].id`,
-                ]);
-            });
-
-            test('chaining duplicates', async () => {
-                chart = await createChart({
-                    data,
-                    series: [
-                        { id: 'myId', xKey: 'quarter', yKey: 'iphone' },
-                        { id: 'myId', xKey: 'quarter', yKey: 'mac' },
-                        { id: 'myId-2', xKey: 'quarter', yKey: 'ipad' },
-                        { id: 'myId-2-2', xKey: 'quarter', yKey: 'wearables' },
-                    ],
-                });
-                expectWarnings([
-                    `AG Charts - series[1].id "myId" was renamed to "myId-2" because it duplicates series[0].id`,
-                    `AG Charts - series[2].id "myId-2" was renamed to "myId-2-2" because it duplicates series[1].id`,
-                    `AG Charts - series[3].id "myId-2-2" was renamed to "myId-2-2-2" because it duplicates series[2].id`,
-                ]);
-            });
-
-            test('no generated duplicates', async () => {
-                chart = await createChart({
-                    data,
-                    series: [
-                        { id: 'myId-2', xKey: 'quarter', yKey: 'iphone' },
-                        { id: 'myId', xKey: 'quarter', yKey: 'mac' },
-                        { id: 'myId', xKey: 'quarter', yKey: 'ipad' },
-                    ],
-                });
-                expectWarnings([
-                    `AG Charts - series[2].id "myId" was renamed to "myId-3" because it duplicates series[1].id`,
+                    `AG Charts - series[1].id "myId" ignored because it duplicates series[0].id`,
+                    `AG Charts - series[3].id "myOtherId" ignored because it duplicates series[2].id`,
+                    `AG Charts - series[4].id "myOtherId" ignored because it duplicates series[2].id`,
                 ]);
             });
 
