@@ -207,6 +207,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
     private seriesItemTypes: Set<AgWaterfallSeriesItemType> = new Set(['positive', 'negative', 'total']);
 
+    protected smallestDataInterval?: { x: number; y: number } = undefined;
+
     override async processData(dataController: _ModuleSupport.DataController) {
         const { xKey = '', yKey } = this;
         const { data = [] } = this;
@@ -264,7 +266,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             extraProps.push(animationValidation(this));
         }
 
-        await this.requestDataModel<any, any, true>(dataController, dataWithTotals, {
+        const { processedData } = await this.requestDataModel<any, any, true>(dataController, dataWithTotals, {
             props: [
                 keyProperty(this, xKey, isContinuousX, { id: `xValue` }),
                 accumulativeValueProperty(this, yKey, true, {
@@ -296,10 +298,16 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                     missingValue: undefined,
                     validation: totalTypeValue,
                 }),
+                ...(isContinuousX ? [_ModuleSupport.SMALLEST_KEY_INTERVAL] : []),
                 ...extraProps,
             ],
             dataVisible: this.visible,
         });
+
+        this.smallestDataInterval = {
+            x: processedData.reduced?.smallestKeyInterval ?? Infinity,
+            y: Infinity,
+        };
 
         this.updateSeriesItemTypes();
 
@@ -315,10 +323,24 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 keys: [keys],
                 values,
             },
+            reduced: { [_ModuleSupport.SMALLEST_KEY_INTERVAL.property]: smallestX } = {},
         } = processedData;
 
+        const categoryAxis = this.getCategoryAxis();
+
+        const keyDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
+
         if (direction === this.getCategoryDirection()) {
-            return keys;
+            if (keyDef?.def.type === 'key' && keyDef?.def.valueType === 'category') {
+                return keys;
+            }
+
+            const scalePadding = smallestX != null && isFinite(smallestX) ? smallestX : 0;
+            const keysExtent = _ModuleSupport.extent(keys) ?? [NaN, NaN];
+            if (direction === ChartAxisDirection.Y) {
+                return fixNumericExtent([keysExtent[0] + -scalePadding, keysExtent[1]], categoryAxis);
+            }
+            return fixNumericExtent([keysExtent[0], keysExtent[1] + scalePadding], categoryAxis);
         } else {
             const yCurrIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrent').index;
             const yExtent = values[yCurrIndex];
@@ -328,7 +350,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     async createNodeData() {
-        const { data, dataModel, visible, line } = this;
+        const { data, dataModel, visible, line, smallestDataInterval } = this;
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
@@ -341,11 +363,11 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
         const barAlongX = this.getBarDirection() === ChartAxisDirection.X;
 
-        const barWidth = xScale.bandwidth || 10;
+        const barWidth =
+            (ContinuousScale.is(xScale) ? xScale.calcBandwidth(smallestDataInterval?.x) : xScale.bandwidth) ?? 10;
         const halfLineWidth = line.strokeWidth / 2;
         const offsetDirection = barAlongX ? -1 : 1;
         const offset = offsetDirection * halfLineWidth;
-
         const { yKey = '', xKey = '', processedData } = this;
         if (processedData?.type !== 'ungrouped') return [];
 
