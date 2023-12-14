@@ -3,7 +3,7 @@
 .footer {
     padding-top: $spacing-size-10;
     padding-bottom: calc($spacing-size-10 * 2);
-    background-color: var(--color-util-brand-700);
+    background-color: var(--color-util-brand-500);
     color: var(--color-white);
 
     #{$selector-darkmode} & {
