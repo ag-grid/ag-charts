@@ -220,6 +220,65 @@ export const STACKED_AREA_MISSING_Y_DATA_EXAMPLE: AgCartesianChartOptions = {
     },
 };
 
+export const STACKED_AREA_MISSING_Y_DATA_PER_SERIES_EXAMPLE: AgCartesianChartOptions = {
+    axes: [
+        { type: 'category', position: 'bottom' },
+        { type: 'number', position: 'left' },
+    ],
+    series: [
+        {
+            type: 'area',
+            xKey: 'year',
+            yKey: 'ie',
+            yName: 'IE',
+            stacked: true,
+            marker: {
+                enabled: true,
+            },
+            data: DATA_BROWSER_MARKET_SHARE,
+        },
+        {
+            type: 'area',
+            xKey: 'year',
+            yKey: 'firefox',
+            yName: 'Firefox',
+            stacked: true,
+            marker: {
+                enabled: true,
+            },
+            data: DATA_BROWSER_MARKET_SHARE,
+        },
+        {
+            type: 'area',
+            xKey: 'year',
+            yKey: 'safari',
+            yName: 'Safari',
+            stacked: true,
+            marker: {
+                enabled: true,
+            },
+            data: DATA_BROWSER_MARKET_SHARE,
+        },
+        {
+            type: 'area',
+            xKey: 'year',
+            yKey: 'chrome',
+            yName: 'Chrome',
+            stacked: true,
+            marker: {
+                enabled: true,
+            },
+            data: DATA_BROWSER_MARKET_SHARE,
+        },
+    ],
+    title: {
+        text: 'Browser Wars',
+    },
+    subtitle: {
+        text: '2009-2019',
+    },
+};
+
 export const STACKED_AREA_MISSING_FIRST_Y_DATA_EXAMPLE: AgCartesianChartOptions = {
     data: DATA_BROWSER_MARKET_SHARE_MISSING_FIRST_Y,
     axes: [
