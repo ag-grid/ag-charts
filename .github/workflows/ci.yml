@@ -25,7 +25,6 @@ on:
 
 env:
     NX_REJECT_UNKNOWN_LOCAL_CACHE: 0
-    NX_COMMAND: ${{ github.job.inputs.nx_command || 'affected' }}
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
@@ -73,7 +72,7 @@ jobs:
             - name: Nx Affected SHA Setup
               id: nx_config
               run: |
-                  if [[ "${NX_COMMAND}" == "run-many" ]] ; then
+                  if [[ "${{ github.event.inputs.nx_command || 'affected' }}" == "run-many" ]] ; then
                     echo "base=d7e9df0d0d0b7304ab676f84a603f2f620c22cff" >> $GITHUB_OUTPUT
                   elif [[ $(git branch --show-current) == 'latest' ]] ; then
                     echo "base=latest-success" >> $GITHUB_OUTPUT
