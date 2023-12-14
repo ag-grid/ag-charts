@@ -24,6 +24,9 @@
         "compiler": "tsc"
       },
       "configurations": {
+        "watch": {
+          "tsConfig": "packages/ag-charts-enterprise/tsconfig.types.watch.json"
+        },
         "production": {}
       }
     },

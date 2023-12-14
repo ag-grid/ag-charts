@@ -24,6 +24,9 @@
         "compiler": "tsc"
       },
       "configurations": {
+        "watch": {
+          "tsConfig": "packages/ag-charts-community/tsconfig.types.watch.json"
+        },
         "production": {}
       }
     },
@@ -86,6 +89,7 @@
       "executor": "ag-charts-generate-code-reference-files:generate",
       "inputs": ["{projectRoot}/src/options"],
       "outputPath": "{options.output}",
+      "cache": true,
       "options": {
         "mode": "debug-interfaces",
         "inputs": ["packages/ag-charts-community/src/options"],
@@ -96,6 +100,7 @@
       "executor": "ag-charts-generate-code-reference-files:generate",
       "inputs": ["{projectRoot}/src/options"],
       "outputPath": "{options.output}",
+      "cache": true,
       "options": {
         "mode": "docs-interfaces",
         "inputs": ["packages/ag-charts-community/src/options"],
