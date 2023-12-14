@@ -24,18 +24,9 @@
     svg {
         fill: var(--color-white);
     }
-
-    p:first-child {
-        margin-right: $spacing-size-8;
-    }
 }
 
-.row {
-    @media screen and (min-width: $breakpoint-site-footer-two-column) {
-        display: flex;
-        flex-wrap: wrap;
-    }
-
+.footerColumns {
     @media screen and (min-width: $breakpoint-site-footer-four-column) {
         justify-content: space-between;
     }
@@ -43,9 +34,10 @@
 
 .menuColumn {
     margin-bottom: $spacing-size-10;
+    width: var(--layout-width-4-4);
 
     @media screen and (min-width: $breakpoint-site-footer-two-column) and (max-width: $breakpoint-site-footer-four-column) {
-        width: 50%;
+        width: var(--layout-width-2-4);
 
         &:nth-child(even) {
             text-align: right;
@@ -53,6 +45,8 @@
     }
 
     @media screen and (min-width: $breakpoint-site-footer-four-column) {
+        width: auto;
+
         &:last-child {
             text-align: right;
         }
@@ -94,6 +88,15 @@
         margin-right: $spacing-size-1;
         opacity: 0.6666;
         transition: opacity $transition-default-timing;
+    }
+}
+
+.legal {
+    justify-content: space-between;
+    gap: 0;
+
+    p:first-child {
+        margin-right: $spacing-size-8;
     }
 }
 

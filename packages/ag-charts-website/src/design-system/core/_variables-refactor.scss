@@ -30,7 +30,7 @@ $transition-default-timing: 0.25s ease-in-out;
 :root {
     // Layout
     --layout-gap: 32px;
-    --layout-max-width: 1400px;
+    --layout-max-width: 2400px;
 
     --layout-width-1-4: calc((100% - var(--layout-gap) * (4 / 1 - 1)) / 4 * 1);
     --layout-width-2-4: calc((100% - var(--layout-gap) * (4 / 2 - 1)) / 4 * 2);
