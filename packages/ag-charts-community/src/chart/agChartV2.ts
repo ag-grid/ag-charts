@@ -15,6 +15,7 @@ import type {
 } from '../options/agChartOptions';
 import { Debug } from '../util/debug';
 import { createDeprecationWarning } from '../util/deprecation';
+import { createId } from '../util/id';
 import { jsonApply, jsonDiff, jsonMerge } from '../util/json';
 import { Logger } from '../util/logger';
 import type { TypedEventListener } from '../util/observable';
@@ -555,6 +556,7 @@ function applyAxes(chart: Chart, options: { axes?: AgBaseAxisOptions[] }, forceR
 function createSeries(chart: Chart, options: SeriesOptionsTypes[]): Series<any>[] {
     const series: Series<any>[] = [];
     const moduleContext = chart.getModuleContext();
+    const reservedIds = options.map((s) => s.id).filter((s): s is string => s !== undefined);
 
     let index = 0;
     for (const seriesOptions of options ?? []) {
@@ -564,6 +566,11 @@ function createSeries(chart: Chart, options: SeriesOptionsTypes[]): Series<any>[
             continue;
         }
         const seriesInstance = getSeries(type, moduleContext);
+        // AG-10089 The user can specify their own custom series ID in `reservedIds`. Therefore we need to
+        // ensure that generated seris IDs do not clash with these.
+        if (seriesOptions.id === undefined) {
+            seriesOptions.id = createId(seriesInstance, reservedIds);
+        }
         applySeriesOptionModules(seriesInstance, seriesOptions);
         applySeriesValues(seriesInstance, moduleContext, seriesOptions, { path, index });
         series.push(seriesInstance);

@@ -13,7 +13,6 @@ import type { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
 import type { ZIndexSubOrder } from '../../scene/node';
 import type { Point } from '../../scene/point';
-import { createId } from '../../util/id';
 import { jsonDiff } from '../../util/json';
 import type { PlacedLabel, PointLabelDatum } from '../../util/labelPlacement';
 import { Listeners } from '../../util/listeners';
@@ -301,7 +300,7 @@ export abstract class Series<
     protected readonly NodeClickEvent: INodeClickEventConstructor<TDatum, any> = SeriesNodeClickEvent;
 
     @Validate(STRING)
-    readonly id = createId(this);
+    id = '';
 
     readonly canHaveAxes: boolean;
 

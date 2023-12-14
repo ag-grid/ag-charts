@@ -17,6 +17,10 @@ describe('id util', () => {
     });
 
     describe('createId', () => {
+        beforeEach(() => {
+            resetIds();
+        });
+
         afterEach(() => {
             expect(console.warn).not.toBeCalled();
             expect(console.error).not.toBeCalled();
@@ -41,6 +45,14 @@ describe('id util', () => {
             expect(createId(barInstance)).toEqual('TestBarSeries-1');
             expect(createId(barInstance)).toEqual('TestBarSeries-2');
             expect(createId(barInstance)).toEqual('TestBarSeries-3');
+        });
+
+        test('reservedIds', () => {
+            const instance = new TestLineSeries();
+            const reservedIds = [...Array(100).keys()].map((i) => `TestLineSeries-${i + 1}`);
+            expect(createId(instance, reservedIds)).toEqual('TestLineSeries-101');
+            expect(createId(instance, reservedIds)).toEqual('TestLineSeries-102');
+            expect(createId(instance, reservedIds)).toEqual('TestLineSeries-103');
         });
     });
 });
