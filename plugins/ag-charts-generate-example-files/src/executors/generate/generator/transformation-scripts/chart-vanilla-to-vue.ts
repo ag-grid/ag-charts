@@ -131,7 +131,7 @@ const ChartExample = {
     methods: {
         ${methods
             .map((snippet) => `${snippet.trim()},`)
-            .join(';\n        ')}
+            .join('        ')}
     },
     ` : ''}
 }
