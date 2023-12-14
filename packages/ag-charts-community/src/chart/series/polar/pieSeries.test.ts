@@ -6,6 +6,7 @@ import { AgCharts } from '../../agChartV2';
 import type { Chart } from '../../chart';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    createChart,
     extractImageData,
     prepareTestOptions,
     setupMockCanvas,
@@ -58,7 +59,7 @@ describe('PieSeries', () => {
         });
 
         test('multiple doughnuts', async () => {
-            chart = AgCharts.create({
+            chart = await createChart({
                 ...options,
                 series: [
                     {
@@ -115,19 +116,57 @@ describe('PieSeries', () => {
                         innerRadiusRatio: 0.4,
                     },
                 ],
-            }) as Chart;
+            });
+            await compare();
+        });
+
+        test('zerosum pie', async () => {
+            chart = await createChart({
+                ...options,
+                data: [{ value: 0 }, { value: 0 }],
+                series: [{ type: 'pie', angleKey: 'value' }],
+            });
+            await compare();
+        });
+
+        test('one zerosum doughnut', async () => {
+            chart = await createChart({
+                ...options,
+                data: [
+                    { a: 0, b: 1 },
+                    { a: 0, b: 3 },
+                ],
+                series: [
+                    { type: 'pie', angleKey: 'a', outerRadiusRatio: 0.9, innerRadiusRatio: 0.7 },
+                    { type: 'pie', angleKey: 'b', outerRadiusRatio: 0.4, innerRadiusRatio: 0.1 },
+                ],
+            });
+            await compare();
+        });
+
+        test('two zerosum doughnuts', async () => {
+            chart = await createChart({
+                ...options,
+                data: [
+                    { a: 0, b: 0 },
+                    { a: 0, b: 0 },
+                ],
+                series: [
+                    { type: 'pie', angleKey: 'a', outerRadiusRatio: 0.9, innerRadiusRatio: 0.7 },
+                    { type: 'pie', angleKey: 'b', outerRadiusRatio: 0.4, innerRadiusRatio: 0.1 },
+                ],
+            });
             await compare();
         });
     });
 
     describe('#validation', () => {
         test('missing data warning', async () => {
-            chart = AgCharts.create({
+            chart = await createChart({
                 ...options,
                 data: [{ cat: '1' }, { cat: '2' }, { fox: 'L' }, { cat: '4', dog: 10 }, { cat: '5', dog: 20 }],
                 series: [{ type: 'pie', calloutLabelKey: 'cat', angleKey: 'dog', sectorLabelKey: 'fox' }],
-            }) as Chart;
-            await waitForChartStability(chart);
+            });
 
             expectWarnings([
                 `AG Charts - no value was found for the key 'dog' on 3 data elements`,

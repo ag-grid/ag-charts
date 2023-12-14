@@ -196,7 +196,13 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
             zIndex: Layers.SERIES_BACKGROUND_ZINDEX,
         })
     );
-    readonly innertCircleGroup = this.backgroundGroup.appendChild(new Group({ name: `${this.id}-innerCircle` }));
+
+    // AG-6193 If the sum of all datums is 0, then we'll draw 1 or 2 rings to represent the empty series.
+    readonly zerosumRingsGroup = this.backgroundGroup.appendChild(new Group({ name: `${this.id}-zerosumRings` }));
+    readonly zerosumOuterRing = this.zerosumRingsGroup.appendChild(new Circle());
+    readonly zerosumInnerRing = this.zerosumRingsGroup.appendChild(new Circle());
+
+    readonly innerCircleGroup = this.backgroundGroup.appendChild(new Group({ name: `${this.id}-innerCircle` }));
 
     private nodeData: PieNodeDatum[] = [];
     private angleScale: LinearScale;
@@ -334,7 +340,14 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         this.calloutLabelSelection = Selection.select(pieCalloutLabels, Group);
         this.sectorLabelSelection = Selection.select(pieSectorLabels, Text);
         this.innerLabelsSelection = Selection.select(innerLabels, Text);
-        this.innerCircleSelection = Selection.select(this.innertCircleGroup, Circle);
+        this.innerCircleSelection = Selection.select(this.innerCircleGroup, Circle);
+
+        for (const circle of [this.zerosumInnerRing, this.zerosumOuterRing]) {
+            circle.fillOpacity = 0;
+            circle.stroke = 'black';
+            circle.strokeWidth = 1;
+            circle.strokeOpacity = 1;
+        }
     }
 
     override addChartEventListeners(): void {
@@ -468,12 +481,14 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
             this.getProcessedDataIndexes(dataModel);
 
         let currentStart = 0;
+        let sum = 0;
         const nodeData = processedData.data.map((group, index): PieNodeDatum => {
             const { datum, values } = group;
             const currentValue = values[angleIdx];
 
             const startAngle = angleScale.convert(currentStart) + toRadians(rotation);
             currentStart = currentValue;
+            sum += currentValue;
             const endAngle = angleScale.convert(currentStart) + toRadians(rotation);
             const span = Math.abs(endAngle - startAngle);
             const midAngle = startAngle + span / 2;
@@ -514,6 +529,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
                 ...labels,
             };
         });
+
+        this.zerosumOuterRing.visible = sum === 0;
+        this.zerosumInnerRing.visible = sum === 0 && this.innerRadiusRatio !== 1 && this.innerRadiusRatio > 0;
 
         return [{ itemId: seriesId, nodeData, labelData: nodeData }];
     }
@@ -887,6 +905,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         this.updateCalloutLabelNodes(seriesRect);
         this.updateSectorLabelNodes();
         this.updateInnerLabelNodes();
+        this.updateZerosumRings();
 
         this.animationState.transition('update');
     }
@@ -1360,6 +1379,12 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
             text.y = textBottoms[index];
             text.visible = labelsVisible;
         });
+    }
+
+    private updateZerosumRings() {
+        // The Circle `size` is the diameter
+        this.zerosumOuterRing.size = this.getOuterRadius() * 2;
+        this.zerosumInnerRing.size = this.getInnerRadius() * 2;
     }
 
     protected override readonly NodeClickEvent = PieSeriesNodeClickEvent;
