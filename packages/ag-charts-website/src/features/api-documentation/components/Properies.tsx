@@ -52,7 +52,6 @@ export function PropertyType({ type, defaultValue }: { type: string; defaultValu
     return (
         <div className={styles.metaList}>
             <div className={styles.metaItem}>
-                <span className={styles.metaLabel}>Type</span>
                 <PropertyName className={styles.metaValue}>{type}</PropertyName>
             </div>
             {defaultValue && (
