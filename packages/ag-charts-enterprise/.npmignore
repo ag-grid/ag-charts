@@ -8,7 +8,7 @@ tools
 jest.*
 tsconfig.*
 project.json
-rollup.*
+.esbuild.*
 
 dist/*.d.ts
 dist/**/*.test.*

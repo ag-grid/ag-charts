@@ -6,7 +6,7 @@
   "targets": {
     "build": {
       "executor": "nx:noop",
-      "dependsOn": ["build:types", "build:package", "build:umd"],
+      "dependsOn": ["build:types", "build:package", "build:umd", "build-tsc"],
       "configurations": {
         "watch": {},
         "production": {}
@@ -28,7 +28,7 @@
       }
     },
     "build:package": {
-      "executor": "@nx/rollup:rollup",
+      "executor": "@nx/esbuild:esbuild",
       "dependsOn": ["^build"],
       "inputs": ["tsDefaults"],
       "outputs": ["{options.outputPath}"],
@@ -36,9 +36,8 @@
         "outputPath": "packages/ag-charts-community/dist/package",
         "main": "packages/ag-charts-community/src/main.ts",
         "tsConfig": "packages/ag-charts-community/tsconfig.lib.json",
-        "rollupConfig": "packages/ag-charts-community/rollup.config.cjs",
-        "project": "packages/ag-charts-community/package.json",
-        "compiler": "tsc",
+        "esbuildConfig": "esbuild.config.cjs",
+        "platform": "browser",
         "format": ["cjs", "esm"]
       },
       "configurations": {
@@ -49,17 +48,20 @@
       }
     },
     "build:umd": {
-      "executor": "@nx/rollup:rollup",
-      "dependsOn": ["^build"],
-      "inputs": ["tsDefaults"],
+      "executor": "@nx/esbuild:esbuild",
+      "dependsOn": ["build:package"],
       "outputs": ["{options.outputPath}"],
       "options": {
         "outputPath": "packages/ag-charts-community/dist/umd",
-        "main": "packages/ag-charts-community/src/main.ts",
+        "outputFileName": "ag-charts-community",
+        "main": "packages/ag-charts-community/dist/package/main.cjs.js",
         "tsConfig": "packages/ag-charts-community/tsconfig.lib.json",
-        "rollupConfig": "packages/ag-charts-community/rollup.umd.config.cjs",
-        "project": "packages/ag-charts-community/package.json",
-        "compiler": "tsc",
+        "esbuildConfig": "esbuild.config.cjs",
+        "platform": "browser",
+        "bundle": true,
+        "thirdParty": true,
+        "skipTypeCheck": true,
+        "external": [],
         "format": ["cjs"]
       },
       "configurations": {

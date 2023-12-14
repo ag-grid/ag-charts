@@ -62,6 +62,7 @@
     "cypress": "^13.0.0",
     "dependency-cruiser": "^13.1.5",
     "esbuild": "^0.19.2",
+    "esbuild-plugin-umd-wrapper": "^2.0.0",
     "eslint": "8.46.0",
     "eslint-config-prettier": "9.0.0",
     "eslint-plugin-check-file": "^2.6.2",
@@ -111,12 +112,6 @@
     "@nxtensions/astro": {
       "nx": "$nx",
       "@nrwl/linter": "$@nrwl/linter"
-    },
-    "rollup-plugin-typescript": {
-      "typescript": "$typescript"
-    },
-    "rollup-plugin-uglify": {
-      "uglify-js": "3.17.4"
     }
   },
   "workspaces": {
