@@ -42,7 +42,7 @@
     --menu-width: min(30vw, 250px);
 
     font-size: var(--text-fs-base);
-    border-bottom: 1px solid var(--color-border-primary);
+    width: 100%;
 
     @media screen and (max-width: $breakpoint-docs-nav-medium) {
         @include page-horizontal-margins();
@@ -50,14 +50,10 @@
 
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
         --menu-horizontal-margin: #{$spacing-size-4};
-        --right-margin: max(#{$spacing-size-8}, calc(50vw - var(--max-page-width) / 2 - var(--menu-width)));
 
         flex-shrink: 0;
-        width: var(--menu-width);
-        margin-right: var(--right-margin);
         padding-right: var(--menu-horizontal-margin);
-        padding-left: var(--horizontal-margin);
-        // border-right: solid 0.5px var(--color-border-secondary);
+
         @supports (position: sticky) {
             position: sticky;
             top: $top-bar-height;
@@ -65,15 +61,6 @@
             overflow: hidden;
             overflow-y: auto;
         }
-    }
-
-    @media screen and (min-width: $breakpoint-docs-nav-medium) {
-        padding-left: var(--menu-horizontal-margin);
-    }
-
-    #{$selector-darkmode} & {
-        --color-border-secondary: var(--color-border-primary);
-        border-bottom: none;
     }
 }
 

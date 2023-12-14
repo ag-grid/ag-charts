@@ -43,7 +43,7 @@ const description = page.data.description || getFirstParagraphText(page.body);
     showSearchBar={true}
     showDocsNav={true}
 >
-    <div class:list={[hidePageMenu && 'noLeftMenu', 'contentViewport']}>
+    <div class:list={[hidePageMenu && 'noLeftMenu', 'contentViewport', 'layout-grid']}>
         {
             !hidePageMenu && (
                 <PagesNavigation
@@ -89,13 +89,9 @@ const description = page.data.description || getFirstParagraphText(page.body);
             flex-direction: row;
         }
 
-        @media (min-width: $breakpoint-docs-nav-large) {
-            &.noLeftMenu {
-                padding-left: max(var(--horizontal-margin), calc(50vw - var(--max-page-width) / 2));
-            }
-
-            .docPage {
-                padding-left: 0;
+        @media (min-width: $breakpoint-docs-nav-extra-large) {
+            &.noLeftMenu .docPage {
+                margin-left: calc(var(--layout-width-3-12) + var(--layout-gap));
             }
         }
     }

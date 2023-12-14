@@ -31,16 +31,34 @@
 }
 
 .docPage {
-    flex: 1 1 0px;
-    min-width: 0px;
     position: relative;
+    max-width: 100%;
     padding-top: $spacing-size-8 + $spacing-size-1;
-    padding-right: var(--horizontal-margin);
-    padding-left: var(--horizontal-margin);
     padding-bottom: $spacing-size-16;
 
     :global(#{$selector-darkmode}) & {
         color: var(--color-fg-secondary);
+    }
+
+    @media screen and (min-width: $breakpoint-docs-nav-medium) {
+        width: var(--layout-width-9-12);
+    }
+
+    @media screen and (min-width: $breakpoint-docs-nav-extra-large) {
+        width: var(--layout-width-6-12);
+        margin-right: calc(var(--layout-width-1-12) + var(--layout-gap));
+        margin-left: calc(var(--layout-width-1-12) + var(--layout-gap));
+    }
+
+    &.noSideMenu {
+        @media screen and (min-width: $breakpoint-docs-nav-large) {
+            padding-right: $horizontal-margin;
+            max-width: none;
+        }
+
+        @media screen and (min-width: 1600px) {
+            padding-right: calc(50vw - $max-page-width / 2);
+        }
     }
 
     :global(h1),
@@ -71,27 +89,6 @@
         :global(a):hover {
             color: var(--color-fg-primary);
             text-decoration-color: var(--color-brand-300);
-        }
-    }
-
-    @media screen and (min-width: $breakpoint-docs-nav-large) {
-        padding-left: $spacing-size-8;
-        padding-right: $spacing-size-16;
-        max-width: var(--docs-page-max-width);
-    }
-
-    @media screen and (min-width: $breakpoint-docs-nav-extra-large) {
-        padding-left: 0;
-    }
-
-    &.noSideMenu {
-        @media screen and (min-width: $breakpoint-docs-nav-large) {
-            padding-right: $horizontal-margin;
-            max-width: none;
-        }
-
-        @media screen and (min-width: 1600px) {
-            padding-right: calc(50vw - $max-page-width / 2);
         }
     }
 
