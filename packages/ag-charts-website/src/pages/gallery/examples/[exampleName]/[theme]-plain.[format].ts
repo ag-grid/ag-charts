@@ -1,6 +1,6 @@
 import { getGalleryExampleThemePages } from '@features/gallery/utils/pageData';
 import type { ThemeName } from '@stores/themeStore';
-import { fileNameToMimeType } from '@utils/fileNameToMimeType';
+import { extensionMimeType } from '@utils/mimeType';
 import { getEntry } from 'astro:content';
 
 import { getThumbnailContents } from '../../../../features/example-generator';
@@ -27,16 +27,15 @@ export async function getStaticPaths() {
 }
 
 export async function GET({ params }: { params: Params }) {
-    const { theme, format } = params;
+    const { format } = params;
     const body = await getThumbnailContents({
         type: 'gallery-thumbnail',
         ...params,
     });
-    const fileName = `${theme}-plain.${format}`;
 
     return new Response(body, {
         headers: {
-            'Content-Type': fileNameToMimeType(fileName),
+            'Content-Type': extensionMimeType(format),
         },
     });
 }
