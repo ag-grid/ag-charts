@@ -38,6 +38,7 @@ const isProduction = getIsProduction();
 const menuData = await getEntry('menu', 'data');
 const apiMenuItems = menuData.data.api.items as ApiMenuItem[];
 const canonicalUrl = new URL(Astro.url.pathname, metadata.canonicalUrlBase);
+const socialImage = urlWithBaseUrl('/images/ag-charts-social.png');
 
 const isApiLayout = apiMenuItems.some((item) => {
     const removeTrailingSlash = (s: string) => s.replace(/\/$/, '');
@@ -74,6 +75,21 @@ const isApiLayout = apiMenuItems.some((item) => {
         <title>{title}</title>
         <link rel="canonical" href={canonicalUrl}>
         <link rel="sitemap" type="application/xml" title="Sitemap" href={urlWithBaseUrl("/sitemap-index.xml")} />
+
+        <!-- Facebook Meta Tags -->
+        <meta property="og:url" content={canonicalUrl}>
+        <meta property="og:type" content="website">
+        <meta property="og:title" content={title}>
+        <meta property="og:description" content={description}>
+        <meta property="og:image" content={socialImage}>
+
+        <!-- Twitter Meta Tags -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta property="twitter:domain" content={canonicalUrl.host}>
+        <meta property="twitter:url" content={canonicalUrl}>
+        <meta name="twitter:title" content={title}>
+        <meta name="twitter:description" content={description}>
+        <meta name="twitter:image" content={socialImage}>
 
         {isProduction && <Fragment>
             <script is:inline define:vars={{
