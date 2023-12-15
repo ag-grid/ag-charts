@@ -398,9 +398,15 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         } = this;
         if (tickValues && ContinuousScale.is(scale)) {
             const [tickMin, tickMax] = extent(tickValues) ?? [Infinity, -Infinity];
-            const min = Math.min(scale.fromDomain(domain[0]), tickMin);
-            const max = Math.max(scale.fromDomain(domain[1]), tickMax);
-            scale.domain = [scale.toDomain(min), scale.toDomain(max)];
+            const dataDomainMin = Math.min(scale.fromDomain(domain[0]), scale.fromDomain(domain[1]));
+            const dataDomainMax = Math.max(scale.fromDomain(domain[0]), scale.fromDomain(domain[1]));
+
+            const min = Math.min(dataDomainMin, tickMin);
+            const max = Math.max(dataDomainMax, tickMax);
+
+            scale.domain = this.reverse
+                ? [scale.toDomain(max), scale.toDomain(min)]
+                : [scale.toDomain(min), scale.toDomain(max)];
         } else {
             scale.domain = domain;
         }
@@ -728,7 +734,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             }
             crossLine.parallelFlipRotation = parallelFlipRotation;
             crossLine.regularFlipRotation = regularFlipRotation;
-            crossLine.calculateLayout(anySeriesActive);
+            crossLine.calculateLayout(anySeriesActive, this.reverse);
         });
 
         this.updateLayoutState();

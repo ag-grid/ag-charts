@@ -57,15 +57,15 @@ export function singleTickDomain(a: number, b: number): number[] {
     const power = Math.floor(Math.log10(extent));
     const step = Math.pow(10, power);
 
-    const d0 = Math.min(a, b);
-    const d1 = Math.max(a, b);
+    const roundStart = a > b ? Math.ceil : Math.floor;
+    const roundStop = b < a ? Math.floor : Math.ceil;
 
     return tickMultipliers
         .map((multiplier) => {
             const s = multiplier * step;
-            const start = Math.floor(d0 / s) * s;
-            const end = Math.ceil(d1 / s) * s;
-            const error = 1 - extent / (end - start);
+            const start = roundStart(a / s) * s;
+            const end = roundStop(b / s) * s;
+            const error = 1 - extent / Math.abs(end - start);
             const domain = [start, end];
             return { error, domain };
         })
