@@ -44,5 +44,9 @@
         font-weight: var(--text-regular);
         font-size: var(--text-fs-base);
         border: none;
+
+        &:focus-visible {
+            box-shadow: none;
+        }
     }
 }
