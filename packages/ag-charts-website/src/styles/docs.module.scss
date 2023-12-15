@@ -54,17 +54,6 @@
         margin-left: calc(var(--layout-width-1-12) + var(--layout-gap));
     }
 
-    &.noSideMenu {
-        @media screen and (min-width: $breakpoint-docs-nav-large) {
-            padding-right: $horizontal-margin;
-            max-width: none;
-        }
-
-        @media screen and (min-width: 1600px) {
-            padding-right: calc(50vw - $max-page-width / 2);
-        }
-    }
-
     :global(h1),
     :global(h2),
     :global(h3),

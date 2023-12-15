@@ -1,7 +1,2 @@
 @use 'sass:map';
 @use 'core' as *;
-
-:root {
-    --max-page-width: #{$max-page-width};
-    --horizontal-margin: #{$horizontal-margin};
-}
