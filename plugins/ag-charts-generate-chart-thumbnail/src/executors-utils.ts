@@ -111,20 +111,20 @@ process.on('exit', () => {
 
 export function batchWorkerExecutor<ExecutorOptions>(worker: () => ChildProcess) {
     const maxChildCount = Math.max(1, os.cpus().length - 1);
-    const results: Record<string, Promise<BatchExecutorTaskResult>> = {};
-    const resolvers: Record<string, (res: BatchExecutorTaskResult) => void> = {};
+    const results: Map<string, Promise<BatchExecutorTaskResult>> = new Map();
+    const resolvers: Map<string, (res: BatchExecutorTaskResult) => void> = new Map();
 
     const createWorker = () => {
         const workerInstance = worker();
         workerInstance.on('message', (message: BatchExecutorTaskResult) => {
             const { task, result } = message;
-            resolvers[task]({ task, result });
-            delete resolvers[task];
+            resolvers.get(task)({ task, result });
+            resolvers.delete(task);
 
             if (result.success !== true) {
                 console.error(`[${task}]: ${result.terminalOutput}`);
             }
-            if (Object.keys(resolvers).length === 0) {
+            if (resolvers.size === 0) {
                 terminateWorkers();
             }
         });
@@ -164,14 +164,17 @@ export function batchWorkerExecutor<ExecutorOptions>(worker: () => ChildProcess)
                 taskName,
             });
 
-            results[taskName] = new Promise((resolve) => {
-                resolvers[taskName] = resolve;
-            });
+            results.set(
+                taskName,
+                new Promise((resolve) => {
+                    resolvers.set(taskName, resolve);
+                })
+            );
         }
 
         for (let taskIndex = 0; taskIndex < tasks.length; taskIndex++) {
             const taskName = tasks[taskIndex++];
-            yield results[taskName];
+            yield results.get(taskName);
         }
     };
 }
