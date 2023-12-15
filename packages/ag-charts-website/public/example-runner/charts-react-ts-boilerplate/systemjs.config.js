@@ -9,11 +9,11 @@
         typescriptOptions: {
             module: 'system',
             moduleResolution: 'node',
-            target: 'es2015',
+            target: 'es2022',
             noImplicitAny: false,
             sourceMap: true,
             jsx: 'react',
-            lib: ['es2015', 'dom'],
+            lib: ['es2022', 'dom'],
         },
         paths: {
             // paths serve as alias

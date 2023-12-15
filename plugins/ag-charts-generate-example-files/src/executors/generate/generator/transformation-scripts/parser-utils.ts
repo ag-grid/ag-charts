@@ -19,7 +19,7 @@ export function readAsJsFile(srcFile, options: { includeImports: boolean } = und
         // Remove export statement
         .replace(/export /g, '');
 
-    const jsFile = transform(tsFile, { transforms: ['typescript'] }).code;
+    const jsFile = transform(tsFile, { transforms: ['typescript'], disableESTransforms: true }).code;
 
     return jsFile;
 }

@@ -6,13 +6,13 @@
         transpiler: 'ts',
         typescriptOptions: {
             // Copy of compiler options in standard tsconfig.json
-            target: 'es2015',
+            target: 'es2022',
             module: 'system', //gets rid of console warning
             moduleResolution: 'node',
             sourceMap: true,
             emitDecoratorMetadata: true,
             experimentalDecorators: true,
-            lib: ['es2015', 'dom'],
+            lib: ['es2022', 'dom'],
             noImplicitAny: true,
             suppressImplicitAnyIndexErrors: true,
         },
