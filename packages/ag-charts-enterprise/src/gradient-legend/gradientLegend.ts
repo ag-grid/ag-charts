@@ -78,9 +78,6 @@ class GradientLegendLabel implements AgGradientLegendLabelOptions {
         this.label = label;
     }
 
-    @ProxyProperty('label', 'enabled')
-    enabled?: GradientLegendAxis['label']['enabled'];
-
     @ProxyProperty('label', 'fontStyle')
     fontStyle?: GradientLegendAxis['label']['fontStyle'];
 

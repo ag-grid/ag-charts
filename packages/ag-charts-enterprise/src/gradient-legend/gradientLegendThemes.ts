@@ -18,6 +18,7 @@ export const GRADIENT_LEGEND_THEME: AgGradientLegendOptions = {
         },
         interval: {
             minSpacing: 1,
+            maxSpacing: 50,
         },
     },
     gradient: {
