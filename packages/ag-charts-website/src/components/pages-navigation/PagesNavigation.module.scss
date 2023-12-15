@@ -3,9 +3,8 @@
 :global(#docs-nav-collapser) {
     $top-bar-height: 58px;
 
-    --menu-width: min(30vw, 240px);
-
     font-size: var(--text-fs-base);
+    width: var(--layout-width-3-12);
 
     &[aria-hidden='true'] {
         border-bottom-color: transparent;
@@ -16,12 +15,8 @@
     }
 
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
-        --right-margin: max(#{$spacing-size-8}, calc(50vw - var(--max-page-width) / 2 - var(--menu-width)));
-
         flex-shrink: 0;
-        width: var(--menu-width);
         height: auto !important; // !important required to override <Collapsible> component styling
-        margin-right: var(--right-margin);
         border-bottom: none;
         overflow: visible !important; // !important required to override <Collapsible> component styling
 
@@ -36,6 +31,10 @@
                 100vh - #{$top-bar-height}
             ) !important; // !important required to override <Collapsible> component styling
         }
+    }
+
+    @media screen and (min-width: $breakpoint-docs-nav-large) {
+        width: var(--layout-width-2-12);
     }
 }
 

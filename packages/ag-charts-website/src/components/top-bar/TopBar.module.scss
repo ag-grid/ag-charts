@@ -9,12 +9,8 @@
 
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
         position: sticky;
-        top: $site-header-height;
+        top: var(--layout-site-header-height);
         z-index: 3;
-
-        #{$selector-darkmode} & {
-            top: $site-header-height + 1px;
-        }
     }
 
     #{$selector-darkmode} & {

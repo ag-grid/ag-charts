@@ -1,5 +1,4 @@
 @use '../variables' as *;
-@use '../variables-refactor' as *; // TODO: Remove after refactor
 @use '../breakpoints' as breakpoints;
 
 @mixin page-max-width() {

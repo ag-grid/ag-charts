@@ -25,7 +25,7 @@
     flex-wrap: wrap;
     align-items: center;
     width: 100%;
-    min-height: $site-header-height;
+    min-height: var(--layout-site-header-height);
 
     @media screen and (max-width: $breakpoint-site-header-small) {
         // Required for collapsible mobile menu
@@ -37,16 +37,15 @@
 
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
         flex-wrap: unset;
-        padding-left: $spacing-size-2;
-        padding-right: $spacing-size-2;
     }
 }
 
 .headerLogo {
     display: flex;
     align-items: center;
-    min-height: $site-header-height;
+    min-height: var(--layout-site-header-height);
     padding: $spacing-size-2 10px;
+    margin-left: -16px;
     margin-right: 100%;
 
     svg {
@@ -61,11 +60,11 @@
 
 .mobileNavButton {
     width: 100%;
-    margin: 0 16px 8px;
+    margin-bottom: $spacing-size-2;
 
     @media screen and (min-width: $breakpoint-docs-search-small) {
         width: auto;
-        margin-right: 0;
+        margin-right: $spacing-size-4;
     }
 
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
@@ -78,7 +77,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    height: $site-header-height;
+    height: var(--layout-site-header-height);
     margin-left: $spacing-size-2;
     padding: 0 16px 0 14px;
     border-radius: var(--radius-none);
@@ -179,7 +178,7 @@
     @media screen and (min-width: $breakpoint-site-header-small) {
         position: absolute;
         top: 0;
-        right: 0;
+        right: var(--layout-gap);
         width: calc(100vw - 240px);
         background-color: unset;
     }
@@ -199,7 +198,7 @@
 .navItemList {
     @media screen and (min-width: $breakpoint-site-header-small) {
         display: flex;
-        height: $site-header-height;
+        height: var(--layout-site-header-height);
         align-items: center;
         justify-content: flex-end;
     }

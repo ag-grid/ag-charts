@@ -17,7 +17,7 @@
         margin-bottom: $spacing-size-2;
     }
 
-    @media screen and (min-width: $max-page-width) {
+    @media screen and (min-width: $breakpoint-policy-page-extra-large) {
         header {
             display: flex;
             gap: $spacing-size-8;
@@ -59,7 +59,7 @@
         font-size: var(--text-fs-xl);
     }
 
-    @media screen and (min-width: ($max-page-width + $spacing-size-8)) {
+    @media screen and (min-width: $breakpoint-policy-page-extra-large) {
         list-style: decimal;
         padding-left: unset;
 

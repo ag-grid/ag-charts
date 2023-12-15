@@ -62,7 +62,7 @@ export function ApiReferencePage({
         <ApiReferenceContext.Provider value={reference}>
             <ApiReferenceConfigContext.Provider value={{ hideHeader: true, specialTypes, keepExpanded }}>
                 <SelectionContext.Provider value={{ selection, setSelection }}>
-                    <div className={styles.container}>
+                    <div className={classNames(styles.container, 'layout-grid')}>
                         <div className={styles.objectViewOuter}>
                             <OptionsNavigation
                                 basePath={`${SITE_BASE_URL}${basePath}/`}

@@ -28,10 +28,8 @@
         opacity: 1;
     }
 
-    img {
-        width: 100%;
-        height: auto; /* unset explicit height to use intrinsic sizing */
-        padding: $spacing-size-6;
+    > div {
+        border-radius: var(--radius-sm);
     }
 
     span {

@@ -42,7 +42,7 @@
     --menu-width: min(30vw, 250px);
 
     font-size: var(--text-fs-base);
-    border-bottom: 1px solid var(--color-border-primary);
+    width: 100%;
 
     @media screen and (max-width: $breakpoint-docs-nav-medium) {
         @include page-horizontal-margins();
@@ -50,14 +50,10 @@
 
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
         --menu-horizontal-margin: #{$spacing-size-4};
-        --right-margin: max(#{$spacing-size-8}, calc(50vw - var(--max-page-width) / 2 - var(--menu-width)));
 
         flex-shrink: 0;
-        width: var(--menu-width);
-        margin-right: var(--right-margin);
         padding-right: var(--menu-horizontal-margin);
-        padding-left: var(--horizontal-margin);
-        // border-right: solid 0.5px var(--color-border-secondary);
+
         @supports (position: sticky) {
             position: sticky;
             top: $top-bar-height;
@@ -65,15 +61,6 @@
             overflow: hidden;
             overflow-y: auto;
         }
-    }
-
-    @media screen and (min-width: $breakpoint-docs-nav-medium) {
-        padding-left: var(--menu-horizontal-margin);
-    }
-
-    #{$selector-darkmode} & {
-        --color-border-secondary: var(--color-border-primary);
-        border-bottom: none;
     }
 }
 
@@ -114,7 +101,7 @@ button:not([class^='ag-']).sectionHeader {
     padding-top: $spacing-size-1;
     padding-bottom: $spacing-size-2;
     margin-top: 0;
-    font-weight: var(--text-bold);
+    font-weight: var(--text-semibold);
     border: 2px solid transparent;
     outline: none;
     transition:
@@ -147,7 +134,12 @@ button:not([class^='ag-']).sectionHeader {
 
         position: relative;
         top: -1px;
-        fill: var(--color-fg-secondary);
+        fill: var(--color-util-gray-400);
+
+        #{$selector-darkmode} & {
+            fill: var(--color-fg-primary);
+        }
+
         transition:
             transform 0.33s ease-in-out,
             fill $transition-default-timing;
@@ -163,7 +155,9 @@ button:not([class^='ag-']).sectionHeader {
     --indent-size: 20px;
 
     line-height: var(--text-lh-tight);
-    font-size: var(--text-fs-sm);
+    font-size: var(--text-fs-regular);
+    font-weight: var(--text-semibold);
+    -webkit-font-smoothing: antialiased;
 
     ul a,
     ul .groupLabel {
@@ -222,11 +216,17 @@ button:not([class^='ag-']).sectionHeader {
         --hover-background: rgba(56, 146, 249, 0.06);
         --active-background: rgba(56, 146, 249, 0.09);
 
-        -webkit-font-smoothing: auto;
+        -webkit-font-smoothing: antialiased;
     }
 
     &:hover {
         background-color: var(--hover-background);
+    }
+
+    #{$selector-darkmode} & {
+        &:hover {
+            color: var(--color-fg-primary);
+        }
     }
 
     &:focus-visible {

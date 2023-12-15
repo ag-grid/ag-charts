@@ -8,7 +8,7 @@
     position: relative;
     width: 50%;
     flex-grow: 1;
-    margin: 0 $spacing-size-4 $spacing-size-2;
+    margin-bottom: $spacing-size-2;
 
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
         max-width: var(--max-width);
