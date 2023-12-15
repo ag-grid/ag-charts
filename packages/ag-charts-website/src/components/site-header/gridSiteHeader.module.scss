@@ -25,7 +25,7 @@
     flex-wrap: wrap;
     align-items: center;
     width: 100%;
-    min-height: $site-header-height;
+    min-height: var(--layout-site-header-height);
 
     @media screen and (max-width: $breakpoint-site-header-small) {
         // Required for collapsible mobile menu
@@ -43,7 +43,7 @@
 .headerLogo {
     display: flex;
     align-items: center;
-    min-height: $site-header-height;
+    min-height: var(--layout-site-header-height);
     padding: $spacing-size-2 10px;
     margin-left: -16px;
     margin-right: 100%;
@@ -77,7 +77,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    height: $site-header-height;
+    height: var(--layout-site-header-height);
     margin-left: $spacing-size-2;
     padding: 0 16px 0 14px;
     border-radius: var(--radius-none);
@@ -198,7 +198,7 @@
 .navItemList {
     @media screen and (min-width: $breakpoint-site-header-small) {
         display: flex;
-        height: $site-header-height;
+        height: var(--layout-site-header-height);
         align-items: center;
         justify-content: flex-end;
     }

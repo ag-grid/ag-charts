@@ -32,6 +32,8 @@ $transition-default-timing: 0.25s ease-in-out;
     --layout-gap: 32px;
     --layout-max-width: 2400px;
     --layout-copy-max-width: 1020px;
+    --layout-site-header-height: 64px;
+    --layout-scroll-offset: calc(var(--layout-site-header-height) + 13px);
 
     --layout-width-1-4: calc((100% - var(--layout-gap) * (4 / 1 - 1)) / 4 * 1);
     --layout-width-2-4: calc((100% - var(--layout-gap) * (4 / 2 - 1)) / 4 * 2);

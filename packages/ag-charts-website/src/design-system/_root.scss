@@ -4,7 +4,4 @@
 :root {
     --max-page-width: #{$max-page-width};
     --horizontal-margin: #{$horizontal-margin};
-
-    // Used to set offset for smooth-scroll polyfill (gatsby-ssr.js)
-    --scroll-offset: #{$site-header-height + 13px};
 }

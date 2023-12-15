@@ -34,8 +34,8 @@
             padding-top: $spacing-size-8;
             padding-bottom: $spacing-size-16;
             position: sticky;
-            top: $site-header-height + $top-bar-height;
-            max-height: calc(100vh - #{$site-header-height + $top-bar-height});
+            top: calc(var(--layout-site-header-height) + #{$top-bar-height});
+            max-height: calc(100vh - var(--layout-site-header-height) + #{$top-bar-height});
             overflow: hidden;
             overflow-y: auto;
         }

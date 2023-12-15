@@ -41,8 +41,6 @@ const { series } = galleryData;
 <style lang="scss">
     @use '../design-system' as *;
 
-    $site-header-height: 64px;
-
     .enterpriseIcon {
         --color-icon: var(--color-enterprise-icon);
     }
@@ -56,15 +54,15 @@ const { series } = galleryData;
         flex-direction: row;
         position: relative;
         background-color: var(--color-bg-primary);
-        padding-top: $site-header-height;
+        padding-top: var(--layout-site-header-height);
     }
 
     .menu {
         position: sticky;
         flex-shrink: 0;
-        max-height: calc(100vh - #{$site-header-height});
+        max-height: calc(100vh - var(--layout-site-header-height));
         width: calc(var(--menu-width) + var(--horizontal-padding));
-        top: $site-header-height;
+        top: var(--layout-site-header-height);
         padding-top: calc($spacing-size-16 + $spacing-size-4);
         padding-left: var(--horizontal-padding);
         background-color: var(--color-bg-primary);
@@ -73,9 +71,9 @@ const { series } = galleryData;
 
         @media screen and (max-width: $breakpoint-gallery-small) {
             position: fixed;
-            height: $site-header-height;
+            height: var(--layout-site-header-height);
             width: 100%;
-            top: $site-header-height;
+            top: var(--layout-site-header-height);
             padding: 0;
             background-color: var(--color-bg-toolbar);
             border-bottom: 1px solid var(--color-border-primary);
@@ -152,8 +150,8 @@ const { series } = galleryData;
 
         @media screen and (max-width: $breakpoint-gallery-small) {
             position: fixed;
-            height: $site-header-height;
-            top: $site-header-height;
+            height: var(--layout-site-header-height);
+            top: var(--layout-site-header-height);
             left: auto;
             right: 0;
             width: $spacing-size-24;
@@ -163,7 +161,7 @@ const { series } = galleryData;
 
     .content {
         flex: 1;
-        padding: $site-header-height var(--horizontal-padding) $spacing-size-24;
+        padding: var(--layout-site-header-height) var(--horizontal-padding) $spacing-size-24;
 
         @media screen and (min-width: $breakpoint-gallery-small) {
             padding: $spacing-size-4 var(--horizontal-padding) $spacing-size-56;
