@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 import type { AgCartesianChartOptions, AgChartInstance, AgChartOptions } from '../options/agChartOptions';
+import { clearDoOnceFlags } from '../util/function';
 import { AgCharts } from './agChartV2';
 import type { Chart } from './chart';
 import * as examples from './test/examples';
@@ -63,6 +64,7 @@ describe('AgChartV2', () => {
     describe('#validation', () => {
         afterEach(() => {
             expect(console.error).not.toBeCalled();
+            clearDoOnceFlags()
         });
 
         describe('Series ID', () => {
@@ -74,10 +76,10 @@ describe('AgChartV2', () => {
             ];
 
             const expectWarnings = (warnings: string[]) => {
-                expect(console.warn).toBeCalledTimes(warnings.length);
                 for (let i = 0; i < warnings.length; i++) {
                     expect(console.warn).nthCalledWith(i + 1, warnings[i]);
                 }
+                expect(console.warn).toBeCalledTimes(warnings.length);
             };
 
             test('single duplicate', async () => {
