@@ -344,7 +344,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
 
         for (const circle of [this.zerosumInnerRing, this.zerosumOuterRing]) {
             circle.fillOpacity = 0;
-            circle.stroke = 'black';
+            circle.stroke = this.calloutLabel.color;
             circle.strokeWidth = 1;
             circle.strokeOpacity = 1;
         }
