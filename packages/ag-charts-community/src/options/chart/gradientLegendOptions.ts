@@ -16,8 +16,6 @@ export interface AgGradientLegendIntervalOptions {
 }
 
 export interface AgGradientLegendLabelOptions {
-    /** Set to `false` to hide the scale labels. */
-    enabled?: boolean;
     /** The font style to use for the labels. */
     fontStyle?: FontStyle;
     /** The font weight to use for the labels. */
