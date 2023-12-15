@@ -42,13 +42,16 @@
         "esbuildConfig": "esbuild.config.cjs",
         "external": ["ag-charts-community"],
         "platform": "browser",
-        "format": ["cjs", "esm"]
+        "format": ["cjs", "esm"],
+        "sourcemap": true
       },
       "configurations": {
         "watch": {
           "tsConfig": "packages/ag-charts-enterprise/tsconfig.watch.json"
         },
-        "production": {}
+        "production": {
+          "sourcemap": false
+        }
       }
     },
     "build:umd": {
@@ -66,13 +69,16 @@
         "thirdParty": true,
         "skipTypeCheck": true,
         "external": [],
-        "format": ["cjs"]
+        "format": ["cjs"],
+        "sourcemap": true
       },
       "configurations": {
         "watch": {
           "tsConfig": "packages/ag-charts-enterprise/tsconfig.watch.json"
         },
-        "production": {}
+        "production": {
+          "sourcemap": false
+        }
       }
     },
     "build-tsc": {
