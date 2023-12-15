@@ -5,7 +5,6 @@
     }
 
     System.config({
-        transpiler: 'plugin-babel',
         defaultExtension: 'js',
         paths: {
             // paths serve as alias
@@ -15,10 +14,6 @@
         map: {
             // css plugin
             css: boilerplatePath + 'css.js',
-
-            // babel transpiler
-            'plugin-babel': 'npm:systemjs-plugin-babel@0.0.25/plugin-babel.js',
-            'systemjs-babel-build': 'npm:systemjs-plugin-babel@0.0.25/systemjs-babel-browser.js',
 
             // react
             react: 'npm:react@18.2.0',
@@ -51,12 +46,6 @@
             },
         },
         meta: {
-            '*.jsx': {
-                babelOptions: {
-                    react: true,
-                    es2015: false,
-                },
-            },
             '*.css': { loader: 'css' },
         },
     });

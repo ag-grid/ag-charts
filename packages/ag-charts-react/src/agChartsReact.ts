@@ -1,5 +1,5 @@
 import * as PropTypes from 'prop-types';
-import { Component, RefObject, createElement, createRef } from 'react';
+import React, { RefObject } from 'react';
 
 import { AgChartInstance, AgChartOptions, AgCharts } from 'ag-charts-community';
 
@@ -11,7 +11,7 @@ export interface AgChartProps {
 
 interface AgChartState {}
 
-export class AgChartsReact extends Component<AgChartProps, AgChartState> {
+export class AgChartsReact extends React.Component<AgChartProps, AgChartState> {
     static propTypes: any;
 
     public chart!: AgChartInstance;
@@ -20,11 +20,11 @@ export class AgChartsReact extends Component<AgChartProps, AgChartState> {
 
     constructor(public props: AgChartProps) {
         super(props);
-        this.chartRef = createRef();
+        this.chartRef = React.createRef();
     }
 
     render() {
-        return createElement('div', {
+        return React.createElement('div', {
             style: this.createStyleForDiv(),
             ref: this.chartRef,
         });

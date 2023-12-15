@@ -1,6 +1,21 @@
 (function (global) {
+    System.addImportMap({
+        imports: {
+            react: 'https://cdn.jsdelivr.net/npm/react@18.2.0',
+            'react-dom': 'https://cdn.jsdelivr.net/npm/react-dom@18.2.0',
+            'react-dom/client': 'https://cdn.jsdelivr.net/npm/react-dom@18.2.0',
+            'prop-types': 'https://cdn.jsdelivr.net/npm/prop-types@15.8.1',
+
+            // app: {
+            //     defaultExtension: 'jsx',
+            // },
+            'ag-charts-react': 'https://localhost:4600/dev/ag-charts-react/dist/index.cjs',
+            ...systemJsPaths,
+        },
+    });
+
+    return;
     System.config({
-        transpiler: 'plugin-babel',
         defaultExtension: 'js',
         paths: {
             'npm:': 'https://cdn.jsdelivr.net/npm/',
@@ -8,10 +23,6 @@
         map: {
             // css plugin
             css: boilerplatePath + 'css.js',
-
-            // babel transpiler
-            'plugin-babel': 'npm:systemjs-plugin-babel@0.0.25/plugin-babel.js',
-            'systemjs-babel-build': 'npm:systemjs-plugin-babel@0.0.25/systemjs-babel-browser.js',
 
             // react
             react: 'npm:react@18.2.0',
@@ -52,12 +63,6 @@
             },
         },
         meta: {
-            '*.jsx': {
-                babelOptions: {
-                    es2015: false,
-                    react: true,
-                },
-            },
             '*.css': { loader: 'css' },
         },
     });

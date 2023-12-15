@@ -88,8 +88,8 @@ export const SystemJs = ({ boilerplatePath, appLocation, startFile, internalFram
     const systemJsPath = pathJoin(boilerplatePath, `systemjs.config${isDev ? '.dev' : ''}.js`);
     const systemJsVersion =
         internalFramework === 'angular'
-            ? `${NPM_CDN}/systemjs@0.21.6/dist/system.js`
-            : `${NPM_CDN}/systemjs@0.19.47/dist/system.js`;
+            ? `${NPM_CDN}/systemjs@6.14.2/dist/system.js`
+            : `${NPM_CDN}/systemjs@6.14.2/dist/system.js`;
 
     let configuration = isUsingPublishedPackages()
         ? publishedConfiguration
@@ -125,10 +125,24 @@ export const SystemJs = ({ boilerplatePath, appLocation, startFile, internalFram
             <script src={systemJsVersion} />
             <script src={systemJsPath} />
             <script
+                type="systemjs-importmap"
                 dangerouslySetInnerHTML={{
-                    __html: `System.import('${startFile}').catch(function(err) { console.error(err); });`,
+                    __html: JSON.stringify({
+                        imports: {
+                            react: 'https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.development.min.js',
+                            'react-dom/client':
+                                'https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.development.min.js',
+                            'prop-types': 'https://cdn.jsdelivr.net/npm/prop-types@15.8.1',
+                            'ag-charts-community': `${localPrefix}/ag-charts-community/dist/package/main.esm.js`,
+                            'ag-charts-enterprise': `${localPrefix}/ag-charts-enterprise/dist/package/main.esm.js`,
+                            'ag-charts-react': `${localPrefix}/ag-charts-react/dist/index.mjs`,
+                        },
+                    }),
                 }}
             />
+            <script src={`${NPM_CDN}/systemjs-babel@0.3.2/dist/systemjs-babel.js`} />
+            <script src={`${NPM_CDN}/systemjs@6.14.2/dist/extras/amd.js`}></script>
+            <script type="systemjs-module" src={startFile} />
         </>
     );
 };
