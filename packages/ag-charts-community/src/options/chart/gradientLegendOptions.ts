@@ -7,11 +7,11 @@ export interface AgGradientLegendLabelFormatterParams {
 }
 
 export interface AgGradientLegendIntervalOptions {
-    /** Maximum gap in pixels between tick lines. */
+    /** Maximum gap in pixels between interval lines. */
     minSpacing?: PixelSize;
-    /** Maximum gap in pixels between tick lines. */
+    /** Maximum gap in pixels between interval lines. */
     maxSpacing?: PixelSize;
-    /** The step value between ticks specified as a number. If the configured interval results in too many ticks given the chart size, it will be ignored. */
+    /** The step value between intervals specified as a number. If the configured interval results in too many intervals given the chart size, it will be ignored. */
     step?: number;
 }
 
@@ -28,7 +28,7 @@ export interface AgGradientLegendLabelOptions {
     color?: CssColor;
     /** Format string used when rendering labels. */
     format?: string;
-    /** Function used to render scale labels. If `value` is a number, `fractionDigits` will also be provided, which indicates the number of fractional digits used in the step between ticks; for example, a tick step of `0.0005` would have `fractionDigits` set to `4` */
+    /** Function used to render scale labels. If `value` is a number, `fractionDigits` will also be provided, which indicates the number of fractional digits used in the step between intervals; for example, a interval step of `0.0005` would have `fractionDigits` set to `4` */
     formatter?: (params: AgAxisLabelFormatterParams) => string | undefined;
 }
 
@@ -37,7 +37,7 @@ export interface AgGradientLegendScaleOptions {
     label?: AgGradientLegendLabelOptions;
     /** Distance between the gradient box and the labels. */
     padding?: PixelSize;
-    /** Tick options */
+    /** Options for intervals on the scale. */
     interval?: AgGradientLegendIntervalOptions;
 }
 
