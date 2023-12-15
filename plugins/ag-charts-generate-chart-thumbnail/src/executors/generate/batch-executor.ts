@@ -1,4 +1,3 @@
-import { fork } from 'child_process';
 import { versions } from 'process';
 
 import { batchExecutor, batchWorkerExecutor } from '../../executors-utils';
@@ -10,7 +9,7 @@ if (versions.node < '18.18') {
     console.warn('Upgrade Node.js to v18.18.0 for multi-threaded thumbnail generation; found: ' + versions.node);
     executor = batchExecutor(generateFiles);
 } else {
-    executor = batchWorkerExecutor(() => fork(`${module.path}/batch-instance`));
+    executor = batchWorkerExecutor(`${module.path}/batch-instance.js`);
 }
 
 export default executor;
