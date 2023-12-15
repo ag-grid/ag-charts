@@ -103,7 +103,9 @@ export function processSeriesOptions(_opts: AgChartOptions, seriesOptions: Serie
 
         // AG-10089 Ignore duplicate user input id values:
         if (idMatchIndex !== undefined) {
-            Logger.warn(`series[${index}].id "${series.id}" ignored because it duplicates series[${idMatchIndex}].id`);
+            Logger.warnOnce(
+                `series[${index}].id "${series.id}" ignored because it duplicates series[${idMatchIndex}].id`
+            );
             series = { ...series };
             delete series.id;
         }
