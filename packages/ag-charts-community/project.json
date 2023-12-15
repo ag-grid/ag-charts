@@ -76,6 +76,7 @@
     },
     "build-tsc": {
       "executor": "@nx/js:tsc",
+      "dependsOn": ["^build"],
       "inputs": ["tsDefaults"],
       "outputs": ["{options.outputPath}"],
       "options": {
