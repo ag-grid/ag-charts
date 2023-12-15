@@ -4,11 +4,13 @@ import { Collapsible } from '@components/Collapsible';
 import { Icon } from '@components/icon/Icon';
 import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
 import classnames from 'classnames';
-import { useEffect, useState } from 'react';
+import { RefObject, createContext, useContext, useEffect, useRef, useState } from 'react';
 
 import styles from './PagesNavigation.module.scss';
 // ag-grid menu styles
 import gridStyles from './gridMenu.module.scss';
+
+export const ScrollContainerRefContext = createContext<RefObject<HTMLElement>>(null as any);
 
 function toElementId(str: string) {
     return 'menu-' + str.toLowerCase().replace('&', '').replace('/', '').replaceAll(' ', '-');
@@ -99,6 +101,7 @@ function NavItemContainer({
     activeMenuItem?: MenuItem;
     hideCollapsibleButton?: boolean;
 }) {
+    const scrollContainerRef = useContext(ScrollContainerRefContext);
     const { title, path, url, icon, isEnterprise, items } = menuItem;
     const linkUrl = getLinkUrl({ framework, path, url });
 
@@ -133,6 +136,15 @@ function NavItemContainer({
                         [gridStyles.activeMenuItem]: activeMenuItem === menuItem,
                         [styles.activeMenuItem]: activeMenuItem === menuItem,
                     })}
+                    onClick={() => {
+                        if (!scrollContainerRef) {
+                            return;
+                        }
+                        const scrollTop = scrollContainerRef.current?.scrollTop;
+                        if (scrollTop !== undefined) {
+                            sessionStorage.setItem(SCROLL_POSITION_KEY, scrollTop.toString());
+                        }
+                    }}
                 >
                     {icon && <Icon name={icon} svgClasses={styles.menuIcon} />}
                     {title}
@@ -270,6 +282,27 @@ function SeriesPagesNavigation({
     );
 }
 
+const SCROLL_POSITION_KEY = 'documentation:pageNavScroll';
+
+/**
+ * Keep scroll position between sessions
+ */
+function useScrollTop(scrollContainerRef: RefObject<HTMLElement>) {
+    const [scrollTop, setScrollTop] = useState<number>();
+    useEffect(() => {
+        if (!scrollContainerRef.current) {
+            return;
+        }
+
+        const scrollTopValue = parseInt(sessionStorage.getItem(SCROLL_POSITION_KEY) ?? '0', 10);
+        setScrollTop(scrollTopValue);
+    }, [scrollContainerRef.current]);
+
+    return {
+        scrollTop,
+    };
+}
+
 export function PagesNavigation({
     menuData,
     framework,
@@ -279,6 +312,7 @@ export function PagesNavigation({
     framework: Framework;
     pageName: string;
 }) {
+    const scrollContainerRef = useRef<HTMLElement>(null);
     const [activeTopLevelMenuItem, setActiveTopLevelMenuItem] = useState<MenuItem | undefined>(
         findActiveTopLevelMenuItem({
             menuData,
@@ -308,22 +342,41 @@ export function PagesNavigation({
         };
     }, [navOpen]);
 
+    const { scrollTop } = useScrollTop(scrollContainerRef);
+
+    useEffect(() => {
+        const scrollContainer = scrollContainerRef.current!;
+
+        if (!scrollContainer) {
+            return;
+        }
+        if (scrollTop === undefined || scrollTop === 0) {
+            scrollContainer.classList.remove(styles.onLoad);
+            return;
+        }
+
+        scrollContainer.scrollTo({ top: scrollTop, behavior: 'instant' });
+        scrollContainer.classList.remove(styles.onLoad);
+    }, [scrollTop, scrollContainerRef.current]);
+
     return (
         <Collapsible id="docs-nav-collapser" isOpen={navOpen}>
-            <aside className={classnames(styles.menu, gridStyles.menu)}>
-                <MainPagesNavigation
-                    menuData={menuData}
-                    framework={framework}
-                    activeMenuItem={activeMenuItem}
-                    activeTopLevelMenuItem={activeTopLevelMenuItem}
-                    setActiveTopLevelMenuItem={setActiveTopLevelMenuItem}
-                />
-                <SeriesPagesNavigation
-                    menuData={menuData}
-                    framework={framework}
-                    activeMenuItem={activeMenuItem}
-                    activeTopLevelMenuItem={activeTopLevelMenuItem}
-                />
+            <aside ref={scrollContainerRef} className={classnames(styles.menu, gridStyles.menu, styles.onLoad)}>
+                <ScrollContainerRefContext.Provider value={scrollContainerRef}>
+                    <MainPagesNavigation
+                        menuData={menuData}
+                        framework={framework}
+                        activeMenuItem={activeMenuItem}
+                        activeTopLevelMenuItem={activeTopLevelMenuItem}
+                        setActiveTopLevelMenuItem={setActiveTopLevelMenuItem}
+                    />
+                    <SeriesPagesNavigation
+                        menuData={menuData}
+                        framework={framework}
+                        activeMenuItem={activeMenuItem}
+                        activeTopLevelMenuItem={activeTopLevelMenuItem}
+                    />
+                </ScrollContainerRefContext.Provider>
             </aside>
         </Collapsible>
     );
