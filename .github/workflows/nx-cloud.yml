@@ -11,6 +11,7 @@ concurrency:
     cancel-in-progress: ${{ github.ref != 'refs/heads/latest' }}
 
 env:
+    NX_BRANCH: ${{ github.ref }}
     NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_ACCESS_TOKEN }}
 
 jobs:
