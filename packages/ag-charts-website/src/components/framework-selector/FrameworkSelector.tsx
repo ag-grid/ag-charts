@@ -1,7 +1,6 @@
+import styles from '@design-system/modules/FrameworkSelector.module.scss';
 import fwLogos from '@images/fw-logos';
 import classnames from 'classnames';
-
-import styles from './FrameworkSelector.module.scss';
 
 /**
  * Allow users to choose which framework they wish to see documentation for

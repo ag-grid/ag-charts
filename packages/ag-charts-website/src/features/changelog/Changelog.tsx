@@ -11,12 +11,11 @@ import IssueTypeCellRenderer from '@components/grid/IssueTypeRenderer';
 import PaddingCellRenderer from '@components/grid/PaddingCellRenderer';
 import { Icon } from '@components/icon/Icon';
 import ReleaseVersionNotes from '@components/release-notes/ReleaseVersionNotes';
+import styles from '@design-system/modules/pipelineChangelog.module.scss';
 import { useDarkmode } from '@utils/hooks/useDarkmode';
 import classnames from 'classnames';
 import { createBrowserHistory } from 'history';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-
-import styles from './pipelineChangelog.module.scss';
 
 const IS_SSR = typeof window === 'undefined';
 const ALL_FIX_VERSIONS = 'All Versions';

@@ -1,3 +1,4 @@
+import styles from '@design-system/modules/ApiReferencePage.module.scss';
 import { navigate, useHistory, useLocation } from '@utils/navigation';
 import classNames from 'classnames';
 import type { CSSProperties } from 'react';
@@ -9,7 +10,6 @@ import type { ApiReferenceType, InterfaceNode } from '../api-reference-types';
 import type { PageTitle } from '../apiReferenceHelpers';
 import type { NavigationData, SpecialTypesMap } from '../apiReferenceHelpers';
 import { ApiReference, ApiReferenceConfigContext, ApiReferenceContext } from './ApiReference';
-import styles from './ApiReferencePage.module.scss';
 import { OptionsNavigation, SelectionContext } from './OptionsNavigation';
 import { PropertyType } from './Properies';
 

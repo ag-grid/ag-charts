@@ -1,8 +1,8 @@
+import styles from '@design-system/modules/OpenInCTA.module.scss';
 import classnames from 'classnames';
 import type { FunctionComponent, MouseEventHandler, ReactNode } from 'react';
 
 import { Icon } from '../icon/Icon';
-import styles from './OpenInCTA.module.scss';
 
 type CtaType = 'newTab' | 'plunker' | 'stackblitz' | 'codesandbox';
 

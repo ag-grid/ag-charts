@@ -1,8 +1,8 @@
+import styles from '@design-system/modules/ChevronButtonRenderer.module.scss';
 import classNames from 'classnames';
 import React, { forwardRef, useImperativeHandle, useState } from 'react';
 
 import { SITE_BASE_URL, SITE_URL } from '../../constants';
-import styles from './ChevronButtonRenderer.module.scss';
 
 const TreeClosed = `${SITE_URL}${SITE_BASE_URL ?? ''}theme-icons/alpine/tree-closed.svg`;
 

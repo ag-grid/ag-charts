@@ -1,4 +1,5 @@
 import { Icon } from '@components/icon/Icon';
+import styles from '@design-system/modules/Chart.module.scss';
 import { doOnEnter } from '@utils/doOnEnter';
 import classnames from 'classnames';
 import React from 'react';
@@ -7,7 +8,6 @@ import { AgCharts } from 'ag-charts-enterprise';
 
 import { data, series } from '../utils/templates';
 import { deepClone } from '../utils/utils';
-import styles from './Chart.module.scss';
 
 /**
  * This renders the chart inside the Standalone Charts API Explorer.

@@ -1,8 +1,7 @@
+import styles from '@design-system/modules/ImageCaption.module.scss';
 import { getImageUrl } from '@features/docs/utils/urlPaths';
 import classnames from 'classnames';
 import type { ReactNode } from 'react';
-
-import styles from './ImageCaption.module.scss';
 
 interface Props {
     pageName: string;
