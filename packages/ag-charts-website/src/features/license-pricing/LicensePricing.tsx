@@ -1,9 +1,8 @@
 import { GRID_URL } from '@constants';
+import styles from '@design-system/modules/license-pricing.module.scss';
 import { useDarkmode } from '@utils/hooks/useDarkmode';
 import classnames from 'classnames';
 import React from 'react';
-
-import styles from './license-pricing.module.scss';
 
 const IS_SSR = typeof window === 'undefined';
 

@@ -1,8 +1,7 @@
 import { PUBLIC_BASE_URL, PUBLIC_SITE_URL, SITE_BASE_URL, SITE_URL } from '@constants';
+import gridStyles from '@design-system/modules/gridSearchResult.module.scss';
 import classnames from 'classnames';
 import { Highlight, Index, InfiniteHits, Snippet, connectStateResults } from 'react-instantsearch-dom';
-
-import gridStyles from './gridSearchResult.module.scss';
 
 const HitCount = connectStateResults(({ searchResults, hasResults }) => {
     const hitCount = searchResults && searchResults.nbHits;

@@ -1,15 +1,15 @@
 import type { InternalFramework } from '@ag-grid-types';
 import { Icon } from '@components/icon/Icon';
 import { OpenInCTA } from '@components/open-in-cta/OpenInCTA';
+// Charts specific example runner styles
+import chartsStyles from '@design-system/modules/ChartsExampleRunner.module.scss';
+import styles from '@design-system/modules/ExampleRunner.module.scss';
 import type { ExampleType, FileContents } from '@features/examples-generator/types';
 import classnames from 'classnames';
 import { type FunctionComponent, type ReactElement, useState } from 'react';
 
-// Charts specific example runner styles
-import chartsStyles from './ChartsExampleRunner.module.scss';
 import { CodeViewer } from './CodeViewer';
 import { ExampleIFrame } from './ExampleIFrame';
-import styles from './ExampleRunner.module.scss';
 
 interface Props {
     id: string;

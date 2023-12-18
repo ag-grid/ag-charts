@@ -1,8 +1,8 @@
+import styles from '@design-system/modules/Alert.module.scss';
 import classNames from 'classnames';
 import type { FunctionComponent, ReactNode } from 'react';
 
 import { Icon } from '../icon/Icon';
-import styles from './Alert.module.scss';
 
 interface Props {
     type: 'info' | 'idea' | 'warning' | 'default';

@@ -11,11 +11,10 @@ import IssueTypeCellRenderer from '@components/grid/IssueTypeRenderer';
 import PaddingCellRenderer from '@components/grid/PaddingCellRenderer';
 import { Icon } from '@components/icon/Icon';
 import { SITE_BASE_URL, SITE_URL } from '@constants';
+import styles from '@design-system/modules/pipelineChangelog.module.scss';
 import { useDarkmode } from '@utils/hooks/useDarkmode';
 import classnames from 'classnames';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-
-import styles from './pipelineChangelog.module.scss';
 
 const COLUMN_DEFS = [
     {

@@ -1,8 +1,8 @@
+import gridHeaderStyles from '@design-system/modules//gridSiteHeader.module.scss';
 import { useDarkmode } from '@utils/hooks/useDarkmode';
 import classNames from 'classnames';
 
 import { Icon } from '../icon/Icon';
-import gridHeaderStyles from './gridSiteHeader.module.scss';
 
 export const DarkModeToggle = () => {
     const [darkmode, setDarkmode] = useDarkmode();
