@@ -535,6 +535,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 lineDashOffset,
                 fillShadow,
                 strokeWidth: this.getStrokeWidth(strokeWidth),
+                cornerRadius: 0,
             };
             const visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
 

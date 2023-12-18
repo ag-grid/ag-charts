@@ -21,6 +21,7 @@ export type RectConfig = {
     lineDashOffset: number;
     lineDash?: number[];
     fillShadow?: DropShadow;
+    cornerRadius: number;
     crisp?: boolean;
     visible?: boolean;
 };
@@ -36,6 +37,7 @@ export function updateRect({ rect, config }: { rect: Rect; config: RectConfig })
         lineDash,
         lineDashOffset,
         fillShadow,
+        cornerRadius,
         visible = true,
     } = config;
     rect.crisp = crisp;
@@ -47,6 +49,7 @@ export function updateRect({ rect, config }: { rect: Rect; config: RectConfig })
     rect.lineDash = lineDash;
     rect.lineDashOffset = lineDashOffset;
     rect.fillShadow = fillShadow;
+    rect.cornerRadius = cornerRadius;
     rect.visible = visible;
 }
 
@@ -74,7 +77,7 @@ export function getRectConfig<
     ctx: ModuleContext;
 } & ExtraParams): RectConfig {
     const { fill, fillOpacity, stroke, strokeWidth } = mergeDefaults(isHighlighted && highlightStyle, style);
-    const { strokeOpacity, fillShadow, lineDash, lineDashOffset } = style;
+    const { strokeOpacity, fillShadow, lineDash, lineDashOffset, cornerRadius } = style;
 
     let format: AgBarSeriesStyle | undefined;
     if (formatter) {
@@ -99,6 +102,7 @@ export function getRectConfig<
         lineDash,
         lineDashOffset,
         fillShadow,
+        cornerRadius,
     };
 }
 

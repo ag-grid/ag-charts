@@ -1,3 +1,4 @@
+import { Logger } from '../../sparklines-util';
 import { BBox } from '../bbox';
 import { Path2D } from '../path2D';
 import { Path, ScenePathChangeDetection } from './path';
@@ -21,7 +22,10 @@ export class Rect extends Path {
     height: number = 10;
 
     @ScenePathChangeDetection()
-    radius: number = 0;
+    cornerRadius: number = 0;
+
+    @ScenePathChangeDetection()
+    cornerRadiusBbox?: BBox = undefined;
 
     /**
      * If `true`, the rect is aligned to the pixel grid for crisp looking lines.
@@ -51,6 +55,126 @@ export class Rect extends Path {
      * but will be less opaque to make an effect of holding less space.
      */
     protected microPixelEffectOpacity: number = 1;
+
+    private insetCornerRadiusRect(
+        path: Path2D,
+        x: number,
+        y: number,
+        width: number,
+        height: number,
+        _cornerRadius: number,
+        cornerRadiusBbox: BBox | undefined
+    ) {
+        if (_cornerRadius <= 0) {
+            path.rect(x, y, width, height);
+            return;
+        }
+
+        const cornerBoundsX = cornerRadiusBbox?.x ?? x;
+        const cornerBoundsY = cornerRadiusBbox?.y ?? y;
+        const cornerBoundsWidth = cornerRadiusBbox?.width ?? width;
+        const cornerBoundsHeight = cornerRadiusBbox?.height ?? height;
+        const cornerRadius = Math.min(_cornerRadius, cornerBoundsWidth / 2, cornerBoundsHeight / 2);
+
+        const cornerInsetLeft = cornerBoundsX - x + cornerRadius;
+        const cornerInsetTop = cornerBoundsY - y + cornerRadius;
+        const cornerInsetRight = -(cornerBoundsX + cornerBoundsWidth - (x + width) - cornerRadius);
+        const cornerInsetBottom = -(cornerBoundsY + cornerBoundsHeight - (y + height) - cornerRadius);
+
+        if (
+            cornerInsetLeft > cornerRadius ||
+            cornerInsetRight > cornerRadius ||
+            cornerInsetBottom > cornerRadius ||
+            cornerInsetTop > cornerRadius
+        ) {
+            Logger.warnOnce('Corner radius bbox should contain rect bbox');
+        }
+
+        // Go round the rect clockwise, starting from the top left
+        if (Math.hypot(cornerInsetLeft, cornerInsetTop) > cornerRadius) {
+            const cornerBoxWidth = cornerInsetLeft;
+            const cornerBoxHeight = cornerInsetTop;
+            const x0 = x;
+            const y0 = y + cornerBoxHeight - Math.sqrt(cornerRadius ** 2 - cornerBoxWidth ** 2);
+            const x1 = x + cornerBoxWidth - Math.sqrt(cornerRadius ** 2 - cornerBoxHeight ** 2);
+            const y1 = y;
+            const r0 = Math.atan2(y0 - y - cornerBoxHeight, -cornerBoxWidth);
+            const r1 = Math.atan2(-cornerBoxHeight, x1 - x - cornerBoxWidth);
+            path.moveTo(x0, y0);
+            path.arc(cornerBoundsX + cornerRadius, cornerBoundsY + cornerRadius, cornerRadius, r0, r1);
+            path.lineTo(x1, y1);
+        } else {
+            path.moveTo(x, y);
+        }
+
+        if (Math.hypot(cornerInsetTop, cornerInsetRight) > cornerRadius) {
+            const cornerBoxWidth = cornerInsetRight;
+            const cornerBoxHeight = cornerInsetTop;
+            const x0 = x + width - (cornerBoxWidth - Math.sqrt(cornerRadius ** 2 - cornerBoxHeight ** 2));
+            const y0 = y;
+            const x1 = x + width;
+            const y1 = y + cornerBoxHeight - Math.sqrt(cornerRadius ** 2 - cornerBoxWidth ** 2);
+            const r0 = Math.atan2(-cornerBoxHeight, cornerBoxWidth - (x + width - x0));
+            const r1 = Math.atan2(-(cornerBoxHeight - (y1 - y)), cornerBoxWidth);
+            path.lineTo(x0, y0);
+            path.arc(
+                cornerBoundsX + cornerBoundsWidth - cornerRadius,
+                cornerBoundsY + cornerRadius,
+                cornerRadius,
+                r0,
+                r1
+            );
+            path.lineTo(x1, y1);
+        } else {
+            path.lineTo(x + width, y);
+        }
+
+        if (Math.hypot(cornerInsetRight, cornerInsetBottom) > cornerRadius) {
+            const cornerBoxWidth = cornerInsetRight;
+            const cornerBoxHeight = cornerInsetBottom;
+            const x0 = x + width;
+            const y0 = y + height - (cornerBoxHeight - Math.sqrt(cornerRadius ** 2 - cornerBoxWidth ** 2));
+            const x1 = x + width - (cornerBoxWidth - Math.sqrt(cornerRadius ** 2 - cornerBoxHeight ** 2));
+            const y1 = y + height;
+            const r0 = Math.atan2(cornerBoxHeight - (y + height - y0), cornerBoxWidth);
+            const r1 = Math.atan2(cornerBoxHeight, cornerBoxWidth - (x + width - x1));
+            path.lineTo(x0, y0);
+            path.arc(
+                cornerBoundsX + cornerBoundsWidth - cornerRadius,
+                cornerBoundsY + cornerBoundsHeight - cornerRadius,
+                cornerRadius,
+                r0,
+                r1
+            );
+            path.lineTo(x1, y1);
+        } else {
+            path.lineTo(x + width, y + height);
+        }
+
+        if (Math.hypot(cornerInsetBottom, cornerInsetLeft) > cornerRadius) {
+            const cornerBoxWidth = cornerInsetLeft;
+            const cornerBoxHeight = cornerInsetBottom;
+            const x0 = x + cornerBoxWidth - Math.sqrt(cornerRadius ** 2 - cornerBoxHeight ** 2);
+            const y0 = y + height;
+            const x1 = x;
+            const y1 = y + height - (cornerBoxHeight - Math.sqrt(cornerRadius ** 2 - cornerBoxWidth ** 2));
+            const r0 = Math.atan2(cornerBoxHeight, -(cornerBoxWidth + (x - x0)));
+            const r1 = Math.atan2(cornerBoxHeight - (y + height - y1), -cornerBoxWidth);
+            path.lineTo(x0, y0);
+            path.arc(
+                cornerBoundsX + cornerRadius,
+                cornerBoundsY + cornerBoundsHeight - cornerRadius,
+                cornerRadius,
+                r0,
+                r1
+            );
+            path.lineTo(x1, y1);
+        } else {
+            path.lineTo(x, y + height);
+        }
+
+        path.closePath();
+    }
 
     override updatePath() {
         const { path, borderPath, crisp } = this;
@@ -112,7 +236,7 @@ export class Rect extends Path {
             // No borderPath needed, and thus no clipPath needed either. Fill to full extent of
             // Rect.
             this.borderClipPath = undefined;
-            path.rect(x, y, w, h);
+            this.insetCornerRadiusRect(path, x, y, w, h, this.cornerRadius, this.cornerRadiusBbox);
         }
 
         this.effectiveStrokeWidth = strokeWidth;

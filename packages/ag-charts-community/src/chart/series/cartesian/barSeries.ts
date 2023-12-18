@@ -81,6 +81,7 @@ interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDat
     readonly fill?: string;
     readonly stroke?: string;
     readonly strokeWidth: number;
+    readonly cornerRadius: number;
     readonly label?: BarNodeLabelDatum;
 }
 
@@ -145,6 +146,9 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
 
     @Validate(POSITIVE_NUMBER)
     strokeWidth: number = 1;
+
+    @Validate(POSITIVE_NUMBER)
+    cornerRadius: number = 0;
 
     shadow?: DropShadow = undefined;
 
@@ -291,11 +295,14 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
             fill,
             stroke,
             strokeWidth,
+            cornerRadius,
             label,
             processedData,
             ctx: { seriesStateManager },
             smallestDataInterval,
         } = this;
+
+        console.log({ cornerRadius });
 
         const xBandWidth = ContinuousScale.is(xScale)
             ? xScale.calcBandwidth(smallestDataInterval?.x)
@@ -341,6 +348,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
             visible: this.visible || animationEnabled,
         };
         processedData?.data.forEach(({ keys, datum: seriesDatum, values }) => {
+            console.log(values);
             const xValue = keys[xIndex];
             const x = xScale.convert(xValue);
 
@@ -425,6 +433,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
                 fill,
                 stroke,
                 strokeWidth,
+                cornerRadius,
                 label: labelDatum,
             };
             context.nodeData.push(nodeData);
@@ -465,6 +474,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
             lineDash,
             lineDashOffset,
             shadow,
+            cornerRadius,
             formatter,
             id: seriesId,
             highlightStyle: { item: itemHighlightStyle },
@@ -486,6 +496,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
                 lineDashOffset,
                 fillShadow: shadow,
                 strokeWidth: this.getStrokeWidth(this.strokeWidth),
+                cornerRadius,
             };
             const visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
 
