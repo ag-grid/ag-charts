@@ -31,6 +31,7 @@ export const FrameworkSelectorInsideDocs = ({ path, currentFramework }) => {
                     onChange={(event) => handleFrameworkChange(event.target.value)}
                     onClick={(event) => event.stopPropagation()} // Prevent event propagation
                     className={styles.select}
+                    aria-label="Framework selector"
                 >
                     {FRAMEWORKS.map((framework) => (
                         <option value={framework} key={framework}>
