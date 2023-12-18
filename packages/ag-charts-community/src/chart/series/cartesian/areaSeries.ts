@@ -603,7 +603,7 @@ export class AreaSeries extends CartesianSeries<
             return [];
         }
 
-        const { yKey, yName, fill, stroke, fillOpacity, strokeOpacity, marker, visible } = this.properties;
+        const { yKey, yName, fill, stroke, fillOpacity, strokeOpacity, strokeWidth, marker, visible } = this.properties;
 
         return [
             {
@@ -623,6 +623,8 @@ export class AreaSeries extends CartesianSeries<
                     strokeOpacity: marker.strokeOpacity ?? strokeOpacity,
                     strokeWidth: marker.strokeWidth ?? 0,
                 },
+                line: { stroke, strokeOpacity, strokeWidth },
+                area: { fill, fillOpacity },
             },
         ];
     }

@@ -131,7 +131,7 @@ export class Legend {
 
     private readonly group: Group = new Group({ name: 'legend', layer: true, zIndex: Layers.LEGEND_ZINDEX });
 
-    private itemSelection: Selection<MarkerLabel, any> = Selection.select(this.group, MarkerLabel);
+    private itemSelection: Selection<MarkerLabel, CategoryLegendDatum> = Selection.select(this.group, MarkerLabel);
 
     private oldSize: [number, number] = [0, 0];
     private pages: Page[] = [];
@@ -343,6 +343,12 @@ export class Legend {
             const labelText = this.getItemLabel(datum);
             const text = (labelText ?? '<unknown>').replace(/\r?\n/g, ' ');
             markerLabel.text = this.truncate(text, maxLength, maxItemWidth, paddedMarkerWidth, font, id);
+
+            markerLabel.lineStroke = datum.line?.stroke ?? 'rgba(0, 0, 0, 0)';
+            markerLabel.lineStrokeOpacity = datum.line?.strokeOpacity ?? 0;
+            markerLabel.lineStrokeWidth = datum.line?.strokeWidth ?? 0;
+            markerLabel.areaFill = datum.area?.fill ?? 'rgba(0, 0, 0, 0)';
+            markerLabel.areaFillOpacity = datum.area?.fillOpacity ?? 0;
 
             bboxes.push(markerLabel.computeBBox());
         });

@@ -384,7 +384,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
             return [];
         }
 
-        const { yKey, yName, stroke, strokeOpacity, title, marker, visible } = this.properties;
+        const { yKey, yName, stroke, strokeOpacity, strokeWidth, title, marker, visible } = this.properties;
 
         return [
             {
@@ -403,6 +403,11 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
                     fillOpacity: marker.fillOpacity ?? 1,
                     strokeOpacity: marker.strokeOpacity ?? strokeOpacity ?? 1,
                     strokeWidth: marker.strokeWidth ?? 0,
+                },
+                line: {
+                    stroke: stroke ?? 'rgba(0, 0, 0, 0)',
+                    strokeOpacity,
+                    strokeWidth,
                 },
             },
         ];

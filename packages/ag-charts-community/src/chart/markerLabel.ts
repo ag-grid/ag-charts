@@ -2,6 +2,8 @@ import type { FontStyle, FontWeight } from '../options/agChartOptions';
 import { HdpiCanvas } from '../scene/canvas/hdpiCanvas';
 import { Group } from '../scene/group';
 import type { RenderContext } from '../scene/node';
+import { Line } from '../scene/shape/line';
+import { Rect } from '../scene/shape/rect';
 import { Text } from '../scene/shape/text';
 import { ProxyPropertyOnWrite } from '../util/proxy';
 import type { Marker } from './marker/marker';
@@ -11,11 +13,13 @@ export class MarkerLabel extends Group {
     static override className = 'MarkerLabel';
 
     private label = new Text();
+    private line = new Line();
+    private area = new Rect();
 
     constructor() {
         super({ name: 'markerLabelGroup' });
 
-        const label = this.label;
+        const { marker, label, line, area } = this;
         label.textBaseline = 'middle';
         label.fontSize = 12;
         label.fontFamily = 'Verdana, sans-serif';
@@ -23,7 +27,8 @@ export class MarkerLabel extends Group {
         // For better looking vertical alignment of labels to markers.
         label.y = HdpiCanvas.has.textMetrics ? 1 : 0;
 
-        this.append([this.marker, label]);
+        area.zIndex = -1;
+        this.append([area, line, marker, label]);
         this.update();
     }
 
@@ -59,6 +64,21 @@ export class MarkerLabel extends Group {
 
     @ProxyPropertyOnWrite('marker', 'strokeOpacity')
     markerStrokeOpacity?: number;
+
+    @ProxyPropertyOnWrite('line', 'stroke')
+    lineStroke?: string;
+
+    @ProxyPropertyOnWrite('line', 'strokeWidth')
+    lineStrokeWidth?: number;
+
+    @ProxyPropertyOnWrite('line', 'strokeOpacity')
+    lineStrokeOpacity?: number;
+
+    @ProxyPropertyOnWrite('area', 'fill')
+    areaFill?: string;
+
+    @ProxyPropertyOnWrite('area', 'fillOpacity')
+    areaFillOpacity?: number;
 
     private _marker: Marker = new Square();
     set marker(value: Marker) {
@@ -96,12 +116,28 @@ export class MarkerLabel extends Group {
     }
 
     private update() {
-        const marker = this.marker;
         const markerSize = this.markerSize;
+        const markerHalfSize = this.markerSize / 2;
 
-        marker.size = markerSize;
+        this.marker.size = markerSize;
 
-        this.label.x = markerSize / 2 + this.spacing;
+        this.label.x = markerHalfSize + this.spacing;
+
+        const hard = 5;
+        const x = -(markerHalfSize + hard);
+        const w = markerSize + hard + hard;
+        const y = 0;
+        const h = markerHalfSize;
+
+        this.line.x1 = x;
+        this.line.x2 = x + w;
+        this.line.y1 = y;
+        this.line.y2 = y;
+
+        this.area.x = x;
+        this.area.y = y;
+        this.area.height = h;
+        this.area.width = w;
     }
 
     override render(renderCtx: RenderContext): void {

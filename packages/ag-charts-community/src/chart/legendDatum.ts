@@ -36,6 +36,15 @@ export interface CategoryLegendDatum extends BaseChartLegendDatum {
         strokeOpacity: number;
         strokeWidth: number;
     };
+    area?: {
+        fill: string;
+        fillOpacity: number;
+    };
+    line?: {
+        stroke: string;
+        strokeOpacity: number;
+        strokeWidth: number;
+    };
     /** Optional deduplication id - used to coordinate synced toggling of multiple items. */
     legendItemName?: string;
     label: {
