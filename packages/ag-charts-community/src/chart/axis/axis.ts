@@ -1591,4 +1591,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             removed: [...removed.values()],
         };
     }
+
+    isReversed(): boolean {
+        return !!this.reverse;
+    }
 }
