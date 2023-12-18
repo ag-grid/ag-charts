@@ -2,9 +2,9 @@ import type { Framework, MenuData } from '@ag-grid-types';
 import type { MenuItem } from '@ag-grid-types';
 import { Collapsible } from '@components/Collapsible';
 import { Icon } from '@components/icon/Icon';
-import styles from '@design-system/modules/PagesNavigation.module.scss';
 // ag-grid menu styles
-import gridStyles from '@design-system/modules/gridMenu.module.scss';
+import gridStyles from '@design-system/modules/Menu.module.scss';
+import styles from '@design-system/modules/PagesNavigation.module.scss';
 import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
 import classnames from 'classnames';
 import { useEffect, useState } from 'react';

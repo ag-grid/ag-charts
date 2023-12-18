@@ -1,5 +1,5 @@
 import { ASTRO_ALGOLIA_APP_ID, ASTRO_ALGOLIA_SEARCH_KEY } from '@constants';
-import gridStyles from '@design-system/modules/gridSearch.module.scss';
+import gridStyles from '@design-system/modules/Search.module.scss';
 import algoliasearch from 'algoliasearch/lite';
 import { createRef, useMemo, useState } from 'react';
 import { InstantSearch, connectSearchBox } from 'react-instantsearch-dom';

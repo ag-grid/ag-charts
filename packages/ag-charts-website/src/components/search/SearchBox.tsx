@@ -1,4 +1,4 @@
-import gridStyles from '@design-system/modules/gridSearchBox.module.scss';
+import gridStyles from '@design-system/modules/SearchBox.module.scss';
 import classnames from 'classnames';
 import React, { useState } from 'react';
 import { connectSearchBox } from 'react-instantsearch-dom';
