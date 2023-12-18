@@ -370,8 +370,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 const barHeight = Math.max(strokeWidth, Math.abs(bottomY - y));
 
                 const rect: Bounds = {
-                    x: barAlongX ? bottomY : x,
-                    y: barAlongX ? x : y,
+                    x: barAlongX ? Math.min(y, bottomY) : x,
+                    y: barAlongX ? x : Math.min(y, bottomY),
                     width: barAlongX ? barHeight : barWidth,
                     height: barAlongX ? barWidth : barHeight,
                 };
