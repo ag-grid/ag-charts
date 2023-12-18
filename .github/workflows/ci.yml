@@ -25,6 +25,7 @@ on:
 
 env:
     NX_REJECT_UNKNOWN_LOCAL_CACHE: 0
+    NX_NO_CLOUD: true
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}

@@ -1,0 +1,53 @@
+name: Nx Cloud Build
+
+on:
+    workflow_dispatch: {}
+    schedule:
+        # Run periodically to freshen Nx Cloud cache.
+        - cron: 0 4 * * *
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: ${{ github.ref != 'refs/heads/latest' }}
+
+env:
+    NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_ACCESS_TOKEN }}
+
+jobs:
+    execute_blt:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              id: checkout
+              uses: actions/checkout@v3
+              with:
+                  fetch-depth: 1
+            - name: Cache node_modules
+              if: github.event.inputs.clean_checkout != 'true'
+              id: cache
+              uses: actions/cache@v3
+              with:
+                  path: |
+                      node_modules/
+                      packages/*/node_modules/
+                      plugins/*/node_modules/
+                      libraries/*/node_modules/
+                  key: node_modules-${{hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json')}}
+                  restore-keys: node_modules- # Take any latest cache if failed to find it for current yarn.lock
+            - name: Setup Node.js
+              id: setup_node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '18'
+                  cache: 'yarn'
+            - name: yarn install
+              id: yarn_install
+              run: (yarn check --integrity && yarn postinstall) || yarn install --ci --prefer-offline
+
+            - name: nx build
+              id: build
+              run: |
+                  # Non-batched builds - some TS/JS targets will fail if run with --batch, so build them unbatched first.
+                  yarn nx run-many -t build --parallel=3  --exclude "all,ag-charts-website,tag:supports:batch"
+                  # Batched builds.
+                  yarn nx run-many -t build --parallel=3  --exclude all --batch
