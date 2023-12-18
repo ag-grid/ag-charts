@@ -2,12 +2,14 @@ import { type NumericTicks, createNumericTicks } from './ticks';
 
 export function calculateNiceSecondaryAxis(
     domain: number[],
-    primaryTickCount: number
+    primaryTickCount: number,
+    reverse?: boolean
 ): [[number, number], NumericTicks] {
     // Make secondary axis domain nice using strict tick count, matching the tick count from the primary axis.
     // This is to make the secondary axis grid lines/ tick positions align with the ones from the primary axis.
-    let start = Math.floor(domain[0]);
-    let stop = domain[1];
+
+    let start = Math.floor(Math.min(domain[0], domain[1]));
+    let stop = Math.max(domain[0], domain[1]);
 
     start = calculateNiceStart(start, stop, primaryTickCount);
     const step = getTickStep(start, stop, primaryTickCount);
@@ -15,7 +17,7 @@ export function calculateNiceSecondaryAxis(
     const segments = primaryTickCount - 1;
     stop = start + segments * step;
 
-    const d: [number, number] = [start, stop];
+    const d: [number, number] = reverse ? [stop, start] : [start, stop];
     const ticks = getTicks(start, step, primaryTickCount);
 
     return [d, ticks];

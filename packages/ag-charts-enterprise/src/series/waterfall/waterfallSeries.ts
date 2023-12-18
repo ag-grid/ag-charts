@@ -351,22 +351,25 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
     async createNodeData() {
         const { data, dataModel, visible, line, smallestDataInterval } = this;
-        const xAxis = this.getCategoryAxis();
-        const yAxis = this.getValueAxis();
+        const categoryAxis = this.getCategoryAxis();
+        const valueAxis = this.getValueAxis();
 
-        if (!(data && visible && xAxis && yAxis && dataModel)) {
+        if (!(data && visible && categoryAxis && valueAxis && dataModel)) {
             return [];
         }
 
-        const xScale = xAxis.scale;
-        const yScale = yAxis.scale;
+        const xScale = categoryAxis.scale;
+        const yScale = valueAxis.scale;
+
+        const categoryAxisReversed = categoryAxis.isReversed();
+        const valueAxisReversed = valueAxis.isReversed();
 
         const barAlongX = this.getBarDirection() === ChartAxisDirection.X;
 
         const barWidth =
             (ContinuousScale.is(xScale) ? xScale.calcBandwidth(smallestDataInterval?.x) : xScale.bandwidth) ?? 10;
         const halfLineWidth = line.strokeWidth / 2;
-        const offsetDirection = barAlongX ? -1 : 1;
+        const offsetDirection = (barAlongX && !valueAxisReversed) || (!barAlongX && valueAxisReversed) ? -1 : 1;
         const offset = offsetDirection * halfLineWidth;
         const { yKey = '', xKey = '', processedData } = this;
         if (processedData?.type !== 'ungrouped') return [];
@@ -466,8 +469,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             };
 
             const rect = {
-                x: barAlongX ? bottomY : x,
-                y: barAlongX ? x : y,
+                x: barAlongX ? Math.min(y, bottomY) : x,
+                y: barAlongX ? x : Math.min(y, bottomY),
                 width: barAlongX ? barHeight : barWidth,
                 height: barAlongX ? barWidth : barHeight,
             };
@@ -480,13 +483,26 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             const pointY = isTotalOrSubtotal ? currY : trailY;
             const pixelAlignmentOffset = (Math.floor(line.strokeWidth) % 2) / 2;
 
+            const startY = categoryAxisReversed ? currY : pointY;
+            const stopY = categoryAxisReversed ? pointY : currY;
+
+            const startCoordinates = {
+                x: barAlongX ? startY + pixelAlignmentOffset : rect.x,
+                y: barAlongX ? rect.y : startY + pixelAlignmentOffset,
+            };
+
+            const stopCoordinates = {
+                x: barAlongX ? stopY + pixelAlignmentOffset : rect.x + rect.width,
+                y: barAlongX ? rect.y + rect.height : stopY + pixelAlignmentOffset,
+            };
+
             const pathPoint = {
                 // lineTo
-                x: barAlongX ? pointY + pixelAlignmentOffset : rect.x,
-                y: barAlongX ? rect.y : pointY + pixelAlignmentOffset,
+                x: categoryAxisReversed ? stopCoordinates.x : startCoordinates.x,
+                y: categoryAxisReversed ? stopCoordinates.y : startCoordinates.y,
                 // moveTo
-                x2: barAlongX ? currY + pixelAlignmentOffset : rect.x + rect.width,
-                y2: barAlongX ? rect.y + rect.height : currY + pixelAlignmentOffset,
+                x2: categoryAxisReversed ? startCoordinates.x : stopCoordinates.x,
+                y2: categoryAxisReversed ? startCoordinates.y : stopCoordinates.y,
                 size: 0,
             };
 
@@ -636,8 +652,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             ctx,
         } = this;
 
-        const xAxis = this.getCategoryAxis();
-        const crisp = checkCrisp(xAxis?.visibleRange);
+        const categoryAxis = this.getCategoryAxis();
+        const crisp = checkCrisp(categoryAxis?.visibleRange);
 
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
 
@@ -708,10 +724,10 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     getTooltipHtml(nodeDatum: WaterfallNodeDatum): string {
         const { xKey, yKey } = this;
 
-        const xAxis = this.getCategoryAxis();
-        const yAxis = this.getValueAxis();
+        const categoryAxis = this.getCategoryAxis();
+        const valueAxis = this.getValueAxis();
 
-        if (!xKey || !yKey || !xAxis || !yAxis) {
+        if (!xKey || !yKey || !categoryAxis || !valueAxis) {
             return '';
         }
 
@@ -737,8 +753,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
         const color = format?.fill ?? fill ?? 'gray';
 
-        const xString = sanitizeHtml(xAxis.formatDatum(xValue));
-        const yString = sanitizeHtml(yAxis.formatDatum(yValue));
+        const xString = sanitizeHtml(categoryAxis.formatDatum(xValue));
+        const yString = sanitizeHtml(valueAxis.formatDatum(yValue));
 
         const isTotal = this.isTotal(itemId);
         const isSubtotal = this.isSubtotal(itemId);
@@ -810,13 +826,19 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         this.updateLineNode(lineNode);
 
         const valueAxis = this.getValueAxis();
+        const valueAxisReversed = valueAxis?.isReversed();
+        const compare = valueAxisReversed ? (v: number, v2: number) => v < v2 : (v: number, v2: number) => v > v2;
+
         const startX = valueAxis?.scale.convert(0);
-        const endX = pointData.reduce((end, point) => {
-            if (point.x > end) {
-                end = point.x;
-            }
-            return end;
-        }, 0);
+        const endX = pointData.reduce(
+            (end, point) => {
+                if (compare(point.x, end)) {
+                    end = point.x;
+                }
+                return end;
+            },
+            valueAxisReversed ? Infinity : 0
+        );
 
         const scale = (value: number, start1: number, end1: number, start2: number, end2: number) => {
             return ((value - start1) / (end1 - start1)) * (end2 - start2) + start2;
@@ -851,13 +873,19 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         this.updateLineNode(lineNode);
 
         const valueAxis = this.getValueAxis();
+        const valueAxisReversed = valueAxis?.isReversed();
+        const compare = valueAxisReversed ? (v: number, v2: number) => v > v2 : (v: number, v2: number) => v < v2;
+
         const startY = valueAxis?.scale.convert(0);
-        const endY = pointData.reduce((end, point) => {
-            if (point.y < end) {
-                end = point.y;
-            }
-            return end;
-        }, Infinity);
+        const endY = pointData.reduce(
+            (end, point) => {
+                if (compare(point.y, end)) {
+                    end = point.y;
+                }
+                return end;
+            },
+            valueAxisReversed ? 0 : Infinity
+        );
 
         const scale = (value: number, start1: number, end1: number, start2: number, end2: number) => {
             return ((value - start1) / (end1 - start1)) * (end2 - start2) + start2;

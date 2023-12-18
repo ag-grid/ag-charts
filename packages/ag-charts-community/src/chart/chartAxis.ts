@@ -17,6 +17,7 @@ export interface ChartAxis {
     clipGrid(x: number, y: number, width: number, height: number): void;
     clipTickLines(x: number, y: number, width: number, height: number): void;
     computeBBox(): BBox;
+    isReversed(): boolean;
     crossLines?: any[];
     dataDomain: { domain: any[]; clipped: boolean };
     destroy(): void;
