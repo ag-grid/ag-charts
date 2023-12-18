@@ -340,8 +340,11 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramNodeDatum> {
 
             const yZeroPx = yScale.convert(0);
             const yMaxPx = yScale.convert(total);
-            const w = xMaxPx - xMinPx;
+            const w = Math.abs(xMaxPx - xMinPx);
             const h = Math.abs(yMaxPx - yZeroPx);
+
+            const x = Math.min(xMinPx, xMaxPx);
+            const y = Math.min(yZeroPx, yMaxPx);
 
             const selectionDatumLabel =
                 total !== 0
@@ -361,14 +364,14 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramNodeDatum> {
                           fontSize: labelFontSize,
                           fontFamily: labelFontFamily,
                           fill: labelColor,
-                          x: xMinPx + w / 2,
-                          y: yMaxPx + h / 2,
+                          x: x + w / 2,
+                          y: y + h / 2,
                       }
                     : undefined;
 
             const nodeMidPoint = {
-                x: xMinPx + w / 2,
-                y: yMaxPx + h / 2,
+                x: x + w / 2,
+                y: y + h / 2,
             };
 
             nodeData.push({
@@ -380,8 +383,8 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramNodeDatum> {
                 domain: domain as [number, number],
                 yKey,
                 xKey,
-                x: xMinPx,
-                y: yMaxPx,
+                x,
+                y,
                 xValue: xMinPx,
                 yValue: yMaxPx,
                 width: w,
