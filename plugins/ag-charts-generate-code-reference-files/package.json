@@ -1,6 +1,6 @@
 {
   "name": "ag-charts-generate-code-reference-files",
-  "version": "9.0.1-beta.20231218",
+  "version": "9.0.1-beta.20231218.1431",
   "private": true,
   "dependencies": {
     "glob": "8.0.3",
@@ -13,7 +13,7 @@
     "jsdom": "~22.1.0",
     "sharp": "0.32.6",
     "jscodeshift": "^0.15.0",
-    "ag-charts-test": "9.0.1-beta.20231218",
+    "ag-charts-test": "9.0.1-beta.20231218.1431",
     "@swc/helpers": "0.5.3"
   },
   "type": "commonjs",
