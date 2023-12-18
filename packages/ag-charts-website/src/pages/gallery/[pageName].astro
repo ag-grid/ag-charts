@@ -18,7 +18,7 @@ const { page, prevExample, nextExampleOne, nextExampleTwo } = Astro.props;
 ---
 
 <Layout title={`AG Charts Gallery: ${page.title}`}>
-    <div class="page-margin text-base">
+    <div class="gallery-page-container layout-page-max-width text-base">
         <h1>
             <span>
                 {page.title}
@@ -41,21 +41,11 @@ const { page, prevExample, nextExampleOne, nextExampleTwo } = Astro.props;
         <p class="moreExampleLabel text-secondary">More from the charts gallery...</p>
 
         <div class="moreExamples">
-            <GalleryExampleLink client:load layout="3-col" label={prevExample.title} exampleName={prevExample.name} />
+            <GalleryExampleLink client:load label={prevExample.title} exampleName={prevExample.name} />
 
-            <GalleryExampleLink
-                client:load
-                layout="3-col"
-                label={nextExampleOne.title}
-                exampleName={nextExampleOne.name}
-            />
+            <GalleryExampleLink client:load label={nextExampleOne.title} exampleName={nextExampleOne.name} />
 
-            <GalleryExampleLink
-                client:load
-                layout="3-col"
-                label={nextExampleTwo.title}
-                exampleName={nextExampleTwo.name}
-            />
+            <GalleryExampleLink client:load label={nextExampleTwo.title} exampleName={nextExampleTwo.name} />
         </div>
     </div>
 </Layout>
@@ -63,9 +53,13 @@ const { page, prevExample, nextExampleOne, nextExampleTwo } = Astro.props;
 <style lang="scss">
     @use '../../design-system' as *;
 
-    .page-margin {
+    .gallery-page-container {
         padding-top: $spacing-size-10;
         padding-bottom: $spacing-size-32;
+
+        @media screen and (min-width: $breakpoint-gallery-small) {
+            padding-top: $spacing-size-16;
+        }
     }
 
     h1 {
@@ -92,10 +86,14 @@ const { page, prevExample, nextExampleOne, nextExampleTwo } = Astro.props;
         }
     }
 
+    .moreExampleLabel {
+        text-align: center;
+    }
+
     .moreExamples {
         display: flex;
         flex-wrap: wrap;
-        justify-content: space-between;
+        justify-content: center;
         gap: $spacing-size-6;
 
         @media screen and (min-width: 720px) and (max-width: 1120px) {

@@ -17,7 +17,7 @@ export const TopBar = ({ frameworks, currentFramework, path, isDev, suppressFram
 
     return (
         <div className={styles.topBar}>
-            <div className="page-margin">
+            <div className="layout-page-max-width">
                 <div className={styles.topBarInner}>
                     <button
                         id="top-bar-docs-button"
