@@ -24,7 +24,8 @@
       "{projectRoot}/src/**/*",
       "{projectRoot}/tsconfig.*.json",
       "tsDeclarations",
-      "sharedGlobals"
+      "sharedGlobals",
+      { "externalDependencies": ["typescript", "esbuild"] }
     ],
     "sharedGlobals": ["{workspaceRoot}/esbuild.config*.cjs", "{workspaceRoot}/tsconfig.*.json"]
   },
