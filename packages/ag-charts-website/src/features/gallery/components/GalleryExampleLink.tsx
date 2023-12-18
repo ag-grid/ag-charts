@@ -8,19 +8,12 @@ import styles from './GalleryExampleLink.module.scss';
 interface Props {
     label: string;
     exampleName: string;
-    layout?: '5-col' | '3-col';
 }
 
-export const GalleryExampleLink: FunctionComponent<Props> = ({ label, exampleName, layout = '5-col' }) => {
+export const GalleryExampleLink: FunctionComponent<Props> = ({ label, exampleName }) => {
     return (
         <a
-            className={classnames(
-                styles.link,
-                'galleryExample',
-                styles[`layout-${layout}`],
-                'text-sm',
-                'text-secondary'
-            )}
+            className={classnames(styles.link, 'galleryExample', styles[`layout-3-col`], 'text-sm', 'text-secondary')}
             href={getPageUrl(exampleName)}
         >
             <GalleryExampleImage label={label} exampleName={exampleName} />
