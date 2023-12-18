@@ -7,6 +7,7 @@
     "build": {
       "executor": "nx:noop",
       "dependsOn": ["build:types", "build:package", "build:umd", "build-tsc"],
+      "inputs": [{ "externalDependencies": [] }],
       "configurations": {
         "watch": {},
         "production": {}
@@ -145,6 +146,7 @@
     "lint": {
       "executor": "nx:noop",
       "dependsOn": ["lint-eslint", "lint-circular", "lint-depcruise"],
+      "inputs": [{ "externalDependencies": [] }],
       "configurations": {
         "fix": {}
       }

@@ -52,3 +52,8 @@ jobs:
                   yarn nx run-many -t build --parallel=3  --exclude "all,ag-charts-website,tag:supports:batch"
                   # Batched builds.
                   yarn nx run-many -t build --parallel=3  --exclude all --batch
+
+            - name: nx blt
+              id: blt
+              run: |
+                  yarn nx run blt
