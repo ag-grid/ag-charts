@@ -41,6 +41,7 @@
         "tsConfig": "packages/ag-charts-community/tsconfig.lib.json",
         "esbuildConfig": "esbuild.config.cjs",
         "platform": "browser",
+        "target": "es6",
         "format": ["cjs", "esm"],
         "sourcemap": true
       },
@@ -64,6 +65,7 @@
         "tsConfig": "packages/ag-charts-community/tsconfig.lib.json",
         "esbuildConfig": "esbuild.config.cjs",
         "platform": "browser",
+        "target": "es6",
         "bundle": true,
         "thirdParty": true,
         "skipTypeCheck": true,
