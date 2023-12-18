@@ -1,6 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { extractImageData, setupMockCanvas } from '../../chart/test/utils';
+import { BBox } from '../bbox';
 import { DropShadow } from '../dropShadow';
 import { Rect } from './rect';
 
@@ -17,6 +18,31 @@ describe('Rect', () => {
             crisp: true,
             stroke: 'red',
             fill: 'yellow',
+        };
+        const CORNER_RADIUS_CASES = [0, 1, 2, 3, 5, 10, 15];
+        const CORNER_RADIUS_TC_PARAMS = {
+            ...DEFAULTS,
+            stroke: 'blue',
+            fill: 'cyan',
+            strokeWidth: 1,
+        };
+        const CORNER_RADIUS_BBOX_CASES = [
+            new BBox(0, 0, 60, 60),
+            new BBox(-10, 0, 60, 60),
+            new BBox(-10, -10, 60, 60),
+            new BBox(0, -10, 60, 60),
+            new BBox(-5, 0, 60, 60),
+            new BBox(-10, -5, 60, 60),
+            new BBox(-5, -10, 60, 60),
+            new BBox(0, -5, 60, 60),
+        ];
+        const CORNER_RADIUS_BBOX_TC_PARAMS = {
+            stroke: 'green',
+            fill: 'lime',
+            width: 50,
+            height: 50,
+            strokeWidth: 1,
+            cornerRadius: 20,
         };
         const TEST_CASES: (Partial<Rect> | undefined)[][] = [
             // Stroke-width cases.
@@ -42,6 +68,12 @@ describe('Rect', () => {
                 lineDash: [5, 10],
                 ...STROKE_TC_PARAMS,
             })),
+            CORNER_RADIUS_CASES.map((cornerRadius) => ({
+                cornerRadius,
+                ...CORNER_RADIUS_TC_PARAMS,
+            })),
+            CORNER_RADIUS_BBOX_CASES.map((cornerRadiusBbox) => ({ cornerRadiusBbox, ...CORNER_RADIUS_BBOX_TC_PARAMS })),
+            [],
             [
                 // Shadow cases.
                 { fillShadow: shadowFn(5), strokeWidth: 3, stroke: 'yellow', fill: 'blue' },
@@ -141,6 +173,11 @@ describe('Rect', () => {
                     // Position Rect.
                     rect.x = currX;
                     rect.y = currY;
+
+                    if (rect.cornerRadiusBbox != null) {
+                        rect.cornerRadiusBbox.x += currX;
+                        rect.cornerRadiusBbox.y += currY;
+                    }
 
                     // Render.
                     ctx.save();

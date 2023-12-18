@@ -3,6 +3,7 @@ import type { NodeUpdateState } from '../../../motion/fromToMotion';
 import { FROM_TO_MIXINS } from '../../../motion/fromToMotion';
 import type { AgBarSeriesFormatterParams, AgBarSeriesStyle } from '../../../options/agChartOptions';
 import { ContinuousScale } from '../../../scale/continuousScale';
+import type { BBox } from '../../../scene/bbox';
 import type { DropShadow } from '../../../scene/dropShadow';
 import type { Rect } from '../../../scene/shape/rect';
 import { isNegative } from '../../../util/number';
@@ -22,6 +23,7 @@ export type RectConfig = {
     lineDash?: number[];
     fillShadow?: DropShadow;
     cornerRadius: number;
+    cornerRadiusBbox: BBox | undefined;
     crisp?: boolean;
     visible?: boolean;
 };
@@ -38,6 +40,7 @@ export function updateRect({ rect, config }: { rect: Rect; config: RectConfig })
         lineDashOffset,
         fillShadow,
         cornerRadius,
+        cornerRadiusBbox,
         visible = true,
     } = config;
     rect.crisp = crisp;
@@ -50,6 +53,7 @@ export function updateRect({ rect, config }: { rect: Rect; config: RectConfig })
     rect.lineDashOffset = lineDashOffset;
     rect.fillShadow = fillShadow;
     rect.cornerRadius = cornerRadius;
+    rect.cornerRadiusBbox = cornerRadiusBbox;
     rect.visible = visible;
 }
 
@@ -77,7 +81,7 @@ export function getRectConfig<
     ctx: ModuleContext;
 } & ExtraParams): RectConfig {
     const { fill, fillOpacity, stroke, strokeWidth } = mergeDefaults(isHighlighted && highlightStyle, style);
-    const { strokeOpacity, fillShadow, lineDash, lineDashOffset, cornerRadius } = style;
+    const { strokeOpacity, fillShadow, lineDash, lineDashOffset, cornerRadius, cornerRadiusBbox } = style;
 
     let format: AgBarSeriesStyle | undefined;
     if (formatter) {
@@ -103,6 +107,7 @@ export function getRectConfig<
         lineDashOffset,
         fillShadow,
         cornerRadius,
+        cornerRadiusBbox,
     };
 }
 

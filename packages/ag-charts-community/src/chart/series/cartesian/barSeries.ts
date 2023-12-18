@@ -11,6 +11,7 @@ import type {
 } from '../../../options/agChartOptions';
 import { BandScale } from '../../../scale/bandScale';
 import { ContinuousScale } from '../../../scale/continuousScale';
+import { BBox } from '../../../scene/bbox';
 import type { DropShadow } from '../../../scene/dropShadow';
 import { PointerEvents } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
@@ -82,6 +83,7 @@ interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDat
     readonly stroke?: string;
     readonly strokeWidth: number;
     readonly cornerRadius: number;
+    readonly cornerRadiusBbox: BBox | undefined;
     readonly label?: BarNodeLabelDatum;
 }
 
@@ -302,8 +304,6 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
             smallestDataInterval,
         } = this;
 
-        console.log({ cornerRadius });
-
         const xBandWidth = ContinuousScale.is(xScale)
             ? xScale.calcBandwidth(smallestDataInterval?.x)
             : xScale.bandwidth;
@@ -347,8 +347,12 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
             scales: super.calculateScaling(),
             visible: this.visible || animationEnabled,
         };
+        // const minY: number | undefined =
+        //     processedData != null ? processedData.data[0].values[0][yStartIndex] : undefined;
+        // const maxY: number | undefined =
+        //     processedData != null ? processedData.data[processedData.data.length - 1].values[0][yEndIndex] : undefined;
+        const cornerRadiusBbox = new BBox(76.8, 104.9, 394.4, 442);
         processedData?.data.forEach(({ keys, datum: seriesDatum, values }) => {
-            console.log(values);
             const xValue = keys[xIndex];
             const x = xScale.convert(xValue);
 
@@ -370,6 +374,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
                 y: barAlongX ? barX : Math.min(y, bottomY),
                 width: barAlongX ? Math.abs(bottomY - y) : barWidth,
                 height: barAlongX ? barWidth : Math.abs(bottomY - y),
+                cornerRadiusBbox,
             };
 
             const {
@@ -434,6 +439,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
                 stroke,
                 strokeWidth,
                 cornerRadius,
+                cornerRadiusBbox,
                 label: labelDatum,
             };
             context.nodeData.push(nodeData);
@@ -497,6 +503,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
                 fillShadow: shadow,
                 strokeWidth: this.getStrokeWidth(this.strokeWidth),
                 cornerRadius,
+                cornerRadiusBbox: datum.cornerRadiusBbox,
             };
             const visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
 
@@ -514,6 +521,10 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
             config.crisp = crisp;
             config.visible = visible;
             updateRect({ rect, config });
+            // console.log([rect.x, rect.y, rect.width, rect.height], datum.cornerRadiusBbox);
+        });
+        datumSelection.each((rect) => {
+            console.log(rect.computeBBox());
         });
     }
 

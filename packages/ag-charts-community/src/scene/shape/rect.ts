@@ -76,19 +76,10 @@ export class Rect extends Path {
         const cornerBoundsHeight = cornerRadiusBbox?.height ?? height;
         const cornerRadius = Math.min(_cornerRadius, cornerBoundsWidth / 2, cornerBoundsHeight / 2);
 
-        const cornerInsetLeft = cornerBoundsX - x + cornerRadius;
-        const cornerInsetTop = cornerBoundsY - y + cornerRadius;
-        const cornerInsetRight = -(cornerBoundsX + cornerBoundsWidth - (x + width) - cornerRadius);
-        const cornerInsetBottom = -(cornerBoundsY + cornerBoundsHeight - (y + height) - cornerRadius);
-
-        if (
-            cornerInsetLeft > cornerRadius ||
-            cornerInsetRight > cornerRadius ||
-            cornerInsetBottom > cornerRadius ||
-            cornerInsetTop > cornerRadius
-        ) {
-            Logger.warnOnce('Corner radius bbox should contain rect bbox');
-        }
+        const cornerInsetLeft = Math.max(cornerBoundsX - x + cornerRadius, 0);
+        const cornerInsetTop = Math.max(cornerBoundsY - y + cornerRadius, 0);
+        const cornerInsetRight = Math.max(-(cornerBoundsX + cornerBoundsWidth - (x + width) - cornerRadius), 0);
+        const cornerInsetBottom = Math.max(-(cornerBoundsY + cornerBoundsHeight - (y + height) - cornerRadius), 0);
 
         // Go round the rect clockwise, starting from the top left
         if (Math.hypot(cornerInsetLeft, cornerInsetTop) > cornerRadius) {
@@ -177,7 +168,7 @@ export class Rect extends Path {
     }
 
     override updatePath() {
-        const { path, borderPath, crisp } = this;
+        const { path, borderPath, crisp, cornerRadius, cornerRadiusBbox } = this;
         let { x, y, width: w, height: h, strokeWidth } = this;
         const pixelRatio = this.layerManager?.canvas.pixelRatio ?? 1;
         const pixelSize = 1 / pixelRatio;
@@ -221,10 +212,20 @@ export class Rect extends Path {
                 w -= strokeWidth;
                 h -= strokeWidth;
 
+                const adjustedCornerRadiusBbox = cornerRadiusBbox?.clone().shrink(halfStrokeWidth);
+
                 // Clipping not needed in this case; fill to center of stroke.
                 this.borderClipPath = undefined;
-                path.rect(x, y, w, h);
-                borderPath.rect(x, y, w, h);
+                this.insetCornerRadiusRect(path, x, y, w, h, cornerRadius, adjustedCornerRadiusBbox);
+                this.insetCornerRadiusRect(
+                    borderPath,
+                    x,
+                    y,
+                    w,
+                    h,
+                    cornerRadius > 0 ? cornerRadius - strokeWidth : 0,
+                    adjustedCornerRadiusBbox
+                );
             } else {
                 // Skip the fill and just render the stroke.
                 this.borderClipPath = this.borderClipPath ?? new Path2D();
@@ -236,7 +237,7 @@ export class Rect extends Path {
             // No borderPath needed, and thus no clipPath needed either. Fill to full extent of
             // Rect.
             this.borderClipPath = undefined;
-            this.insetCornerRadiusRect(path, x, y, w, h, this.cornerRadius, this.cornerRadiusBbox);
+            this.insetCornerRadiusRect(path, x, y, w, h, cornerRadius, cornerRadiusBbox);
         }
 
         this.effectiveStrokeWidth = strokeWidth;
