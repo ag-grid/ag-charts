@@ -64,7 +64,7 @@ describe('AgChartV2', () => {
     describe('#validation', () => {
         afterEach(() => {
             expect(console.error).not.toBeCalled();
-            clearDoOnceFlags()
+            clearDoOnceFlags();
         });
 
         describe('Series ID', () => {
