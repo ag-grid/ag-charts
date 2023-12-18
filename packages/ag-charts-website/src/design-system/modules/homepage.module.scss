@@ -126,7 +126,7 @@
     }
 
     #{$selector-darkmode} & {
-        background-image: url('../../images/homepage-scroll-dark.webp');
+        background-image: url('../../../images/homepage-scroll-dark.webp');
 
         &::before {
             background-image: linear-gradient(var(--color-bg-primary), transparent);
