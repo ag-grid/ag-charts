@@ -60,7 +60,7 @@ export class NumberAxis extends CartesianAxis<LinearScale | LogScale, number> {
 
         if (this.dataDomain.domain.length === 0) return [];
 
-        const [d, ticks] = calculateNiceSecondaryAxis(this.dataDomain.domain, primaryTickCount ?? 0);
+        const [d, ticks] = calculateNiceSecondaryAxis(this.dataDomain.domain, primaryTickCount ?? 0, this.reverse);
 
         this.scale.nice = false;
         this.scale.domain = d;
