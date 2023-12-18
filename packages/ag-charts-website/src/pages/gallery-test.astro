@@ -14,7 +14,7 @@ const { series } = galleryData;
 ---
 
 <Layout title="AG Charts Gallery" hideFooter={true}>
-    <div class="gallery-outer homepage-image-gen font-size-responsive font-size-small">
+    <div class="gallery-outer homepage-image-gen text-sm">
         <div class="content">
             {
                 series.map((series: GalleryExampleChartType[]) => (
@@ -41,44 +41,42 @@ const { series } = galleryData;
 <style lang="scss">
     @use '../design-system' as *;
 
-    $site-header-height: 180px;
-
     .enterpriseIcon {
-        --text-color: red;
+        --color-icon: var(--color-enterprise-icon);
     }
 
     .gallery-outer {
-        --horizontal-padding: #{$size-3};
+        --horizontal-padding: #{$spacing-size-6};
         --menu-width: 12rem;
-        --gallery-list-gap: #{$size-3};
+        --gallery-list-gap: #{$spacing-size-6};
 
         display: flex;
         flex-direction: row;
         position: relative;
-        background-color: var(--default-background-color);
-        padding-top: $site-header-height;
+        background-color: var(--color-bg-primary);
+        padding-top: var(--layout-site-header-height);
     }
 
     .menu {
         position: sticky;
         flex-shrink: 0;
-        max-height: calc(100vh - #{$site-header-height});
+        max-height: calc(100vh - var(--layout-site-header-height));
         width: calc(var(--menu-width) + var(--horizontal-padding));
-        top: $site-header-height;
-        padding-top: calc($size-7 + $size-2);
+        top: var(--layout-site-header-height);
+        padding-top: calc($spacing-size-16 + $spacing-size-4);
         padding-left: var(--horizontal-padding);
-        background-color: var(--default-background-color);
-        border-right: solid 1px var(--neutral-200);
+        background-color: var(--color-bg-primary);
+        border-right: solid 1px var(--color-util-gray-200);
         overflow-y: scroll;
 
         @media screen and (max-width: $breakpoint-gallery-small) {
             position: fixed;
-            height: $site-header-height;
+            height: var(--layout-site-header-height);
             width: 100%;
-            top: $site-header-height;
+            top: var(--layout-site-header-height);
             padding: 0;
-            background-color: var(--toolbar-background);
-            border-bottom: 1px solid var(--border-color);
+            background-color: var(--color-bg-toolbar);
+            border-bottom: 1px solid var(--color-border-primary);
             overflow-x: scroll;
             z-index: 1;
         }
@@ -95,47 +93,46 @@ const { series } = galleryData;
     }
 
     .menu li {
-        margin-bottom: $size-2 !important;
+        margin-bottom: $spacing-size-4 !important;
 
         @media screen and (max-width: $breakpoint-gallery-small) {
             margin-bottom: 0 !important;
             flex-shrink: 0;
 
             &:last-child {
-                padding-right: $size-8;
+                padding-right: $spacing-size-24;
             }
         }
     }
 
     .menu a {
-        --text-color: var(--secondary-text-color); // only applies to the icon?
         --icon-size: 1.75em;
 
         display: flex;
         align-items: center;
-        color: var(--secondary-text-color);
+        color: var(--color-fg-secondary);
         padding: 2px;
-
-        :global(.icon) {
-            fill: color-mix(in srgb, var(--text-color) 75%, transparent);
-            transition: fill $default-transition-timing;
-        }
 
         &:hover,
         &:global(.active) {
-            --text-color: var(--link-hover-color);
-
+            color: var(--color-link-hover);
             background: rgba(56, 146, 249, 0.06);
 
-            :global(.icon) {
-                fill: var(--text-color);
+            .seriesIcon {
+                --color-icon: var(--color-link-hover);
             }
         }
     }
 
+    .seriesIcon {
+        --color-icon: color-mix(in srgb, var(--color-fg-secondary) 75%, transparent);
+
+        transition: fill $transition-default-timing;
+    }
+
     .menu .name {
-        margin-left: $size-1;
-        margin-right: $size-half;
+        margin-left: $spacing-size-2;
+        margin-right: $spacing-size-1;
     }
 
     .menu .enterpriseIcon {
@@ -145,42 +142,42 @@ const { series } = galleryData;
     .menu-scroll-indicator {
         position: sticky;
         width: 100%;
-        height: $size-8;
+        height: $spacing-size-24;
         bottom: 0;
         left: 0;
-        background: linear-gradient(transparent, var(--default-background-color));
+        background: linear-gradient(transparent, var(--color-bg-primary));
         pointer-events: none;
 
         @media screen and (max-width: $breakpoint-gallery-small) {
             position: fixed;
-            height: $site-header-height;
-            top: $site-header-height;
+            height: var(--layout-site-header-height);
+            top: var(--layout-site-header-height);
             left: auto;
             right: 0;
-            width: $size-8;
-            background: linear-gradient(90deg, transparent, var(--toolbar-background));
+            width: $spacing-size-24;
+            background: linear-gradient(90deg, transparent, var(--color-bg-toolbar));
         }
     }
 
     .content {
         flex: 1;
-        padding: $site-header-height var(--horizontal-padding) $size-8;
+        padding: var(--layout-site-header-height) var(--horizontal-padding) $spacing-size-24;
 
         @media screen and (min-width: $breakpoint-gallery-small) {
-            padding: $size-2 var(--horizontal-padding) $size-10;
+            padding: $spacing-size-4 var(--horizontal-padding) $spacing-size-56;
         }
 
         @media screen and (min-width: $breakpoint-gallery-large) {
-            padding-left: $size-4;
+            padding-left: $spacing-size-8;
         }
     }
 
     .chart-type:first-child {
-        padding-top: $size-2;
+        padding-top: $spacing-size-4;
     }
 
     .chart-type {
-        padding-bottom: $size-4;
+        padding-bottom: $spacing-size-8;
     }
 
     .gallery-list {
@@ -196,42 +193,6 @@ const { series } = galleryData;
     }
 </style>
 
-<!-- Used to create images for the homepage scrolling gallery hero section -->
-<style lang="scss">
-    @use '../design-system' as *;
-
-    .homepage-image-gen {
-        background-color: var(--dark-blue-600) !important;
-
-        :global([data-dark-mode='true']) & {
-            background-color: transparent !important;
-        }
-
-        .chart-type,
-        .gallery-list {
-            display: contents;
-        }
-
-        .content {
-            max-width: 1400px;
-        }
-
-        .content > div {
-            display: flex;
-            flex-wrap: wrap;
-            gap: $size-3;
-        }
-
-        :global(.galleryExample) {
-            background-color: var(--default-background-color);
-        }
-
-        :global(.galleryExample span) {
-            display: none !important;
-        }
-    }
-</style>
-
 <style lang="scss" is:global>
     @use '../design-system' as *;
 
@@ -242,6 +203,6 @@ const { series } = galleryData;
     }
 
     .icon {
-        transition: fill $default-transition-timing;
+        transition: fill $transition-default-timing;
     }
 </style>

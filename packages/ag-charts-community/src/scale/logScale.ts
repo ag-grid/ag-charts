@@ -1,6 +1,6 @@
 import { Logger } from '../util/logger';
 import { format } from '../util/numberFormat';
-import generateTicks, { range } from '../util/ticks';
+import generateTicks, { createNumericTicks, range } from '../util/ticks';
 import { ContinuousScale } from './continuousScale';
 import { Invalidating } from './invalidating';
 
@@ -128,9 +128,11 @@ export class LogScale extends ContinuousScale<number> {
         if (this.interval) {
             const step = Math.abs(this.interval);
             const absDiff = Math.abs(p1 - p0);
-            const ticks = range(p0, p1, Math.min(absDiff, step))
-                .map((x) => this.pow(x))
-                .filter((t) => t >= start && t <= stop);
+            let ticks = range(p0, p1, Math.min(absDiff, step));
+            ticks = createNumericTicks(
+                ticks.fractionDigits,
+                ticks.map((x) => this.pow(x)).filter((t) => t >= start && t <= stop)
+            );
 
             if (!this.isDenseInterval({ start, stop, interval: step, count: ticks.length })) {
                 return ticks;
@@ -142,7 +144,12 @@ export class LogScale extends ContinuousScale<number> {
 
         if (!isBaseInteger || isDiffLarge) {
             // Returns [10^1, 10^2, 10^3, 10^4, ...]
-            return generateTicks(p0, p1, Math.min(p1 - p0, count)).map((x) => this.pow(x));
+            let ticks = generateTicks(p0, p1, Math.min(p1 - p0, count));
+            ticks = createNumericTicks(
+                ticks.fractionDigits,
+                ticks.map((x) => this.pow(x))
+            );
+            return ticks;
         }
 
         const ticks: number[] = [];

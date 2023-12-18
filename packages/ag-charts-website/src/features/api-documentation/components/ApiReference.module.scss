@@ -20,15 +20,15 @@
     }
 
     :global(.tabs-content) & table {
-        margin-bottom: -$size-1;
+        margin-bottom: -$spacing-size-2;
         border-bottom: none;
     }
 }
 
 .propertyDescription {
-    margin-top: -$size-1;
-    margin-bottom: $size-3;
-    color: var(--secondary-text-color);
+    margin-top: -$spacing-size-2;
+    margin-bottom: $spacing-size-6;
+    color: var(--color-fg-secondary);
 }
 
 .apiReference {
@@ -46,12 +46,12 @@
     }
 
     pre:global(.code) {
-        margin-top: $size-2;
-        margin-bottom: $size-1;
+        margin-top: $spacing-size-4;
+        margin-bottom: $spacing-size-2;
     }
 
     .linkIcon {
-        font-size: var(--font-size-large);
+        font-size: var(--text-fs-lg);
     }
 }
 
@@ -61,7 +61,7 @@
     scroll-margin-top: var(--anchor-offset, 0);
 
     &:where(:not(:first-child)) {
-        border-top: 1px solid var(--border-color);
+        border-top: 1px solid var(--color-border-primary);
     }
 
     &:hover .linkIcon {
@@ -71,19 +71,21 @@
     @container (max-width: #{$breakpoint-table-small}) {
         display: block;
         width: 100%;
-        padding-top: $size-1;
-        padding-bottom: $size-1;
+        padding-top: $spacing-size-2;
+        padding-bottom: $spacing-size-2;
     }
 
-    #{$darkmode-selector} & {
-        border-top-color: var(--neutral-500);
+    #{$selector-darkmode} & {
+        border-top-color: var(--color-util-gray-400);
     }
 }
 
 .leftColumn {
+    display: flex;
+    align-items: center;
     flex-shrink: 0;
     width: 40%;
-    padding: $size-1 $size-2 $size-1 calc(var(--nested-path-depth, 0) * $size-1);
+    padding: $spacing-size-2 $spacing-size-4 $spacing-size-2 calc(var(--nested-path-depth, 0) * $spacing-size-2);
 
     @container (max-width: #{$breakpoint-table-small}) {
         width: 100%;
@@ -95,30 +97,31 @@
     display: flex;
     flex-direction: column;
     width: 60%;
-    padding: $size-1 0 $size-1 $size-2;
+    padding: $spacing-size-2 0 $spacing-size-2 $spacing-size-4;
 
     @container (max-width: #{$breakpoint-table-small}) {
         width: 100%;
-        padding-left: calc(var(--nested-path-depth, 0) * $size-1);
+        padding-left: calc(var(--nested-path-depth, 0) * $spacing-size-2);
     }
 }
 
 .name {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    --parent-properties-color: var(--secondary-text-color);
-    --parent-properties-font-weight: var(--font-weight-normal);
+    --parent-properties-color: var(--color-fg-secondary);
+    --parent-properties-font-weight: var(--text-regular);
 
     position: relative;
     display: inline-block;
-    margin-top: $size-half;
-    padding-right: $size-3;
-    font-family: var(--monospace-font-family);
-    font-size: var(--font-size-large);
-    font-weight: var(--font-weight-bold);
+    margin-top: $spacing-size-1;
+    padding-right: $spacing-size-6;
+    font-family: var(--text-monospace-font-family);
+    font-size: var(--text-fs-lg);
+    font-weight: var(--text-bold);
+    margin-bottom: 0;
 
     @container (min-width: #{$breakpoint-table-small}) {
-        font-size: var(--font-size-medium);
+        font-size: var(--text-fs-base);
     }
 
     :hover .linkIcon {
@@ -140,7 +143,7 @@
 .metaList {
     display: flex;
     flex-wrap: wrap;
-    gap: $size-1 $size-3;
+    gap: $spacing-size-2 $spacing-size-6;
 
     h1 + & {
         margin-top: 16px;
@@ -153,30 +156,31 @@
 }
 
 .metaLabel {
-    font-size: var(--font-size-extra-small);
-    color: var(--secondary-text-color);
+    font-size: var(--text-fs-xs);
+    color: var(--color-fg-secondary);
 }
 
 .metaValue {
-    font-size: var(--font-size-small);
-    font-family: var(--monospace-font-family);
-    color: var(--code-text-color);
+    font-size: var(--text-fs-sm);
+    font-family: var(--text-monospace-font-family);
+    color: var(--color-fg-code);
+    padding-left: $spacing-size-1;
 
-    #{$darkmode-selector} & {
+    #{$selector-darkmode} & {
         font-weight: 600;
     }
 }
 
 .description {
-    padding-top: $size-half;
+    padding-top: $spacing-size-1;
 }
 
 .actions {
     display: flex;
     flex-wrap: wrap;
-    gap: $size-2 $size-4;
+    gap: $spacing-size-4 $spacing-size-8;
     margin-top: auto;
-    padding-top: $size-1;
+    padding-top: $spacing-size-2;
 
     pre {
         min-width: 100%;
@@ -186,18 +190,21 @@
         --icon-size: 1em;
 
         margin: -0.1em 0 0;
-        transition: fill $default-transition-timing;
+        transition: fill $transition-default-timing;
     }
 }
 
 .seeMore {
-    --text-color: var(--link-color);
+    --color-icon: var(--color-link);
 
     min-width: 10.5ch;
-    transition: color $default-transition-timing;
+    color: var(--color-link);
+    transition: color $transition-default-timing;
 
     &:hover {
-        --text-color: var(--link-hover-color);
+        --color-icon: var(--color-link-hover);
+
+        color: var(--color-link-hover);
     }
 }
 
@@ -212,37 +219,37 @@
     }
     10%,
     50% {
-        background-color: var(--background-400);
+        background-color: var(--color-util-brand-100);
     }
 }
 
 .isChildProp {
-    border-top: 1px dashed var(--neutral-200);
+    border-top: 1px dashed var(--color-util-gray-200);
 
     .name {
-        font-size: calc(var(--font-size-medium) * 0.92);
+        font-size: calc(var(--text-fs-base) * 0.92);
     }
 
     .description p,
     .actions button {
-        font-size: calc(var(--font-size-medium) * 0.9);
+        font-size: calc(var(--text-fs-base) * 0.9);
     }
 
     .metaValue {
-        font-size: calc(var(--font-size-small) * 0.92);
+        font-size: calc(var(--text-fs-sm) * 0.92);
     }
 }
 
 @container (max-width: #{$breakpoint-table-small}) {
     .level-1 .rightColumn {
-        padding-left: $size-1;
+        padding-left: $spacing-size-2;
     }
 
     .level-2 .rightColumn {
-        padding-left: $size-2;
+        padding-left: $spacing-size-4;
     }
 
     .level-3 .rightColumn {
-        padding-left: $size-3;
+        padding-left: $spacing-size-6;
     }
 }

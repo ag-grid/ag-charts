@@ -7,7 +7,7 @@
     "new-version": "./tools/bump-versions.sh",
     "package": "nx pack --prod && nx pack:verify --prod",
     "clean": "rimraf dist/ packages/*/dist packages/*/lib",
-    "postinstall": "patch-package && nx build ag-charts-build-tools"
+    "postinstall": "patch-package && nx run-many -p ag-charts-generate-chart-thumbnail,ag-charts-generate-code-reference-files,ag-charts-generate-example-files -t build"
   },
   "private": true,
   "dependencies": {
@@ -59,6 +59,7 @@
     "cypress": "^13.0.0",
     "dependency-cruiser": "^13.1.5",
     "esbuild": "^0.19.2",
+    "esbuild-plugin-umd-wrapper": "^2.0.0",
     "eslint": "8.46.0",
     "eslint-config-prettier": "9.0.0",
     "eslint-plugin-check-file": "^2.6.2",
@@ -98,7 +99,6 @@
     "timezone-mock": "^1.3.6",
     "ts-jest": "^29.1.0",
     "ts-node": "10.9.1",
-    "tsx": "^3.12.7",
     "typescript": "^4.9.5",
     "vite": "~4.3.9",
     "vite-tsconfig-paths": "~4.2.0",
@@ -109,12 +109,6 @@
     "@nxtensions/astro": {
       "nx": "$nx",
       "@nrwl/linter": "$@nrwl/linter"
-    },
-    "rollup-plugin-typescript": {
-      "typescript": "$typescript"
-    },
-    "rollup-plugin-uglify": {
-      "uglify-js": "3.17.4"
     }
   },
   "workspaces": {
@@ -128,7 +122,9 @@
       "packages/ag-charts-vue3",
       "packages/ag-charts-website",
       "packages/ag-charts-website-e2e",
-      "plugins/ag-charts-build-tools",
+      "plugins/ag-charts-generate-chart-thumbnail",
+      "plugins/ag-charts-generate-code-reference-files",
+      "plugins/ag-charts-generate-example-files",
       "plugins/ag-charts-task-autogen",
       "libraries/ag-charts-test"
     ],

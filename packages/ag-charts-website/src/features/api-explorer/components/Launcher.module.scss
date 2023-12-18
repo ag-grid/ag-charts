@@ -4,39 +4,39 @@
     position: relative;
     display: flex;
     align-items: center;
-    gap: $size-1;
-    bottom: $size-half;
-    margin-right: $size-2;
+    gap: $spacing-size-2;
+    bottom: $spacing-size-1;
+    margin-right: $spacing-size-4;
 
     label {
-        color: var(--secondary-text-color);
+        color: var(--color-fg-secondary);
     }
 
     select {
-        margin-right: $size-2;
+        margin-right: $spacing-size-4;
     }
 
     button {
-        --text-color: var(--link-color);
+        --color-icon: var(--color-link);
         --icon-size: 1.5em;
 
         &:hover {
-            --text-color: var(--link-hover-color);
+            --color-icon: var(--color-link-hover);
         }
     }
 
     svg {
-        transition: fill $default-transition-timing;
+        transition: fill $transition-default-timing;
     }
 }
 
 .simpleSelects {
     position: relative;
-    top: $size-half;
+    top: $spacing-size-1;
 
     select {
         margin-left: 0;
-        padding: 0 $size-3 0 0;
+        padding: 0 $spacing-size-6 0 0;
         border: none;
     }
 }

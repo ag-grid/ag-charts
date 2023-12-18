@@ -3,63 +3,57 @@
 .sideNav {
     $top-bar-height: 8px;
 
-    --right-padding: max(var(--horizontal-margin), calc(50vw - var(--max-page-width) / 2));
-    --side-nav-max-width: 320px;
-
     display: none;
-    width: clamp(220px, 22vw, var(--side-nav-max-width));
-    padding-top: $size-4;
-    padding-right: $size-4;
-    padding-bottom: $size-7;
-    line-height: var(--line-height-tight);
+    width: var(--layout-width-3-12);
+    padding-top: $spacing-size-8;
+    padding-bottom: $spacing-size-16;
+    line-height: var(--text-lh-tight);
 
     @supports (position: sticky) {
         padding-top: 0;
-        padding-right: 0;
         padding-bottom: 0;
-
-        @media screen and (min-width: $breakpoint-docs-nav-extra-large) {
-            width: auto;
-        }
     }
 
     @media screen and (min-width: $breakpoint-docs-nav-large) {
         display: block;
+        width: var(--layout-width-2-12);
+
+        :global(.noLeftMenu) & {
+            width: var(--layout-width-3-12);
+        }
+    }
+
+    @media screen and (min-width: $breakpoint-docs-nav-large) {
+        :global(.noLeftMenu) & {
+            width: var(--layout-width-2-12);
+        }
     }
 
     > div {
         @supports (position: sticky) {
-            padding-top: $size-4;
-            padding-right: $size-4;
-            padding-bottom: $size-7;
+            padding-top: $spacing-size-8;
+            padding-bottom: $spacing-size-16;
             position: sticky;
-            top: $site-header-height + $top-bar-height;
-            max-height: calc(100vh - #{$site-header-height + $top-bar-height});
+            top: calc(var(--layout-site-header-height) + #{$top-bar-height});
+            max-height: calc(100vh - var(--layout-site-header-height) + #{$top-bar-height});
             overflow: hidden;
             overflow-y: auto;
-
-            @media screen and (min-width: $breakpoint-docs-nav-extra-large) {
-                width: calc(var(--side-nav-max-width) + var(--right-padding));
-                margin-left: $size-2;
-                padding-right: var(--right-padding);
-            }
         }
     }
 }
 
 .sideNav ul {
-    --nav-line-color: var(--neutral-300);
+    --nav-line-color: var(--color-util-gray-300);
 
     position: relative;
     list-style: none;
-    padding-top: $size-1;
-    padding-bottom: $size-6;
+    padding-top: $spacing-size-2;
+    padding-bottom: $spacing-size-12;
     padding-left: 0;
-    box-shadow: inset 1px 0 0 0 var(--nav-line-color);
     z-index: -2;
 
-    #{$darkmode-selector} & {
-        --nav-line-color: #394755;
+    #{$selector-darkmode} & {
+        --nav-line-color: var(--color-border-primary);
     }
 }
 
@@ -67,7 +61,7 @@
     --item-gap: 0.875em;
 
     position: relative;
-    padding-left: $size-2;
+    padding-left: $spacing-size-4;
     margin: var(--item-gap) 0;
 
     &:first-child {
@@ -76,28 +70,36 @@
 }
 
 .sideNav a {
-    --active-color: var(--primary-700);
-    --active-border: var(--primary-600);
-    --hover-background: var(--background-200);
-    --active-background: var(--background-300);
+    --active-color: var(--color-util-brand-500);
+    --active-border: var(--color-util-brand-400);
+    --hover-background: var(--color-util-brand-50);
+    --active-background: var(--color-util-brand-50);
 
     display: inline-block;
     padding: 0;
-    color: var(--neutral-600);
-    transition: color $default-transition-timing;
+    color: var(--color-util-gray-500);
+    transition: color $transition-default-timing;
+    font-weight: var(--text-semibold);
+    font-size: var(--text-fs-regular);
 
-    #{$darkmode-selector} & {
-        --active-color: #3893f9;
-        --active-border: #3893f9;
+    #{$selector-darkmode} & {
+        --active-color: var(--color-brand-300);
+        --active-border: var(--color-brand-300);
         --hover-background: rgba(56, 146, 249, 0.06);
         --active-background: rgba(56, 146, 249, 0.09);
 
-        color: var(--secondary-text-color);
+        color: var(--color-gray-400);
     }
 
     &:hover,
     &:global(.active) {
         color: var(--active-color);
+    }
+
+    &:hover {
+        #{$selector-darkmode} & {
+            color: var(--color-fg-primary);
+        }
     }
 
     &:global(.active) {
@@ -108,10 +110,10 @@
         content: '';
         position: absolute;
         width: 100%;
-        top: -$size-half;
-        bottom: -$size-half;
+        top: -$spacing-size-1;
+        bottom: -$spacing-size-1;
         left: 0;
-        border-left: 1px solid var(--nav-line-color);
+        // border-left: 1px solid var(--nav-line-color);
         opacity: 0;
         z-index: -1;
         transition:
@@ -122,22 +124,25 @@
 
     &:hover::before {
         opacity: 1;
-        background-color: var(--hover-background);
+        // background-color: var(--hover-background);
     }
 
     &:global(.active)::before {
         opacity: 1;
-        border-left-color: var(--active-border);
-        background-color: var(--active-background);
+        // border-left-color: var(--active-border);
+        // background-color: var(--active-background);
     }
 }
 
 .sideNav .level1 {
-    font-size: var(--font-size-large);
+    font-size: var(--text-fs-lg);
 }
 
 .sideNav .level3 {
+    padding-top: $spacing-size-1;
+    padding-bottom: $spacing-size-1;
     --item-gap: 0.5em;
+    font-weight: var(--text-regular);
 }
 
 .sideNav .level1 + .level3,
@@ -149,13 +154,18 @@
 .sideNav .level4,
 .sideNav .level5,
 .sideNav .level6 {
-    padding-left: $size-4;
+    padding-left: $spacing-size-8;
 }
 
 .sideNav .level4,
 .sideNav .level5,
 .sideNav .level6 {
     --item-gap: 0.4375em;
-    font-size: var(--font-size-extra-small);
+
+    font-size: var(--text-fs-xs);
     opacity: 0.8;
+}
+
+.hidden {
+    display: none;
 }

@@ -2,6 +2,7 @@ import {
     type AgChartLegendOrientation,
     type AgChartLegendPosition,
     type AgGradientLegendIntervalOptions,
+    type AgGradientLegendLabelOptions,
     type AgGradientLegendScaleOptions,
     _ModuleSupport,
     _Scale,
@@ -44,10 +45,6 @@ class GradientLegendAxisTick extends _ModuleSupport.AxisTick<_Scale.LinearScale,
 class GradientLegendAxis extends _ModuleSupport.CartesianAxis<_Scale.LinearScale, number> {
     colorDomain: number[] = [];
 
-    get interval(): _ModuleSupport.AxisTick<_Scale.LinearScale> {
-        return this.tick;
-    }
-
     constructor(ctx: _ModuleSupport.ModuleContext) {
         super(ctx, new _Scale.LinearScale());
         this.nice = false;
@@ -74,27 +71,41 @@ class GradientLegendAxis extends _ModuleSupport.CartesianAxis<_Scale.LinearScale
     }
 }
 
+class GradientLegendLabel implements AgGradientLegendLabelOptions {
+    label: GradientLegendAxis['label'];
+
+    constructor(label: GradientLegendAxis['label']) {
+        this.label = label;
+    }
+
+    @ProxyProperty('label', 'fontStyle')
+    fontStyle?: GradientLegendAxis['label']['fontStyle'];
+
+    @ProxyProperty('label', 'fontWeight')
+    fontWeight?: GradientLegendAxis['label']['fontWeight'];
+
+    @ProxyProperty('label', 'fontSize')
+    fontSize?: GradientLegendAxis['label']['fontSize'];
+
+    @ProxyProperty('label', 'fontFamily')
+    fontFamily?: GradientLegendAxis['label']['fontFamily'];
+
+    @ProxyProperty('label', 'color')
+    color?: GradientLegendAxis['label']['color'];
+
+    @ProxyProperty('label', 'format')
+    format?: GradientLegendAxis['label']['format'];
+
+    @ProxyProperty('label', 'formatter')
+    formatter?: GradientLegendAxis['label']['formatter'];
+}
+
 class GradientLegendInterval implements AgGradientLegendIntervalOptions {
     tick: GradientLegendAxisTick;
 
     constructor(tick: GradientLegendAxisTick) {
         this.tick = tick;
     }
-
-    @ProxyProperty('tick', 'enabled')
-    enabled?: boolean;
-
-    @ProxyProperty('tick', 'width')
-    width?: GradientLegendAxisTick['width'];
-
-    @ProxyProperty('tick', 'size')
-    size?: GradientLegendAxisTick['size'];
-
-    @ProxyProperty('tick', 'color')
-    color?: GradientLegendAxisTick['color'];
-
-    @ProxyProperty('tick', 'values')
-    values?: GradientLegendAxisTick['values'];
 
     @ProxyProperty('tick', 'minSpacing')
     minSpacing?: GradientLegendAxisTick['minSpacing'];
@@ -108,15 +119,14 @@ class GradientLegendInterval implements AgGradientLegendIntervalOptions {
 
 class GradientLegendScale implements AgGradientLegendScaleOptions {
     axis: GradientLegendAxis;
+    label: GradientLegendLabel;
     interval: GradientLegendInterval;
 
     constructor(axis: GradientLegendAxis) {
         this.axis = axis;
+        this.label = new GradientLegendLabel(axis.label);
         this.interval = new GradientLegendInterval(axis.tick as GradientLegendAxisTick);
     }
-
-    @ProxyProperty('axis', 'label')
-    label?: GradientLegendAxis['label'];
 
     @ProxyProperty('axis', 'seriesAreaPadding')
     padding?: GradientLegendAxis['seriesAreaPadding'];

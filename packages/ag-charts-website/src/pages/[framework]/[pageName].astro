@@ -7,8 +7,9 @@ import { getFrameworkDisplayText } from '@utils/framework';
 import type { Framework } from '@ag-grid-types';
 import { getDocsPages } from '@features/docs/utils/pageData';
 import { SideNavigation } from '@components/pages-navigation/SideNavigation';
-import { addTabsToHeadings } from '@utils/addTabsToHeadings';
-import { DOCS_TAB_ITEM_ID_PREFIX, FRAMEWORKS } from '@constants';
+import { addTabsToHeadings } from '@utils/markdoc/addTabsToHeadings';
+import { getFirstParagraphText } from '@utils/markdoc/getFirstParagraphText';
+import { DOCS_TAB_ITEM_ID_PREFIX } from '@constants';
 
 export async function getStaticPaths() {
     const pages = await getCollection('docs');
@@ -31,15 +32,18 @@ const extendedHeadings = [{ slug: 'top', depth: 1, text: title }].concat(
 );
 
 const menuEntry = await getEntry('menu', 'data');
+
+const description = page.data.description || getFirstParagraphText(page.body);
 ---
 
 <Layout
-    title={`${getFrameworkDisplayText(currentFramework)} Charts: ${title}`}
+    title={`${getFrameworkDisplayText(currentFramework)} Charts: ${title} | AG Charts`}
+    description={description}
     showTopBar={true}
     showSearchBar={true}
     showDocsNav={true}
 >
-    <div class:list={[hidePageMenu && 'noLeftMenu', 'contentViewport']}>
+    <div class:list={[hidePageMenu && 'noLeftMenu', 'contentViewport', 'layout-grid']}>
         {
             !hidePageMenu && (
                 <PagesNavigation
@@ -85,13 +89,20 @@ const menuEntry = await getEntry('menu', 'data');
             flex-direction: row;
         }
 
-        @media (min-width: $breakpoint-docs-nav-large) {
-            &.noLeftMenu {
-                padding-left: max(var(--horizontal-margin), calc(50vw - var(--max-page-width) / 2));
-            }
+        &.noLeftMenu .docPage {
+            width: 100%;
+        }
 
-            .docPage {
-                padding-left: 0;
+        @media (min-width: $breakpoint-docs-nav-large) {
+            &.noLeftMenu .docPage {
+                width: var(--layout-width-9-12);
+            }
+        }
+
+        @media (min-width: $breakpoint-docs-nav-extra-large) {
+            &.noLeftMenu .docPage {
+                width: var(--layout-width-6-12);
+                margin-left: calc(var(--layout-width-3-12) + var(--layout-gap));
             }
         }
     }

@@ -6,14 +6,32 @@
   "targets": {
     "build": {
       "executor": "nx:noop",
-      "dependsOn": ["build:package", "build:umd"],
+      "dependsOn": ["build:types", "build:package", "build:umd", "build-tsc"],
       "configurations": {
         "watch": {},
         "production": {}
       }
     },
+    "build:types": {
+      "executor": "@nx/js:tsc",
+      "dependsOn": ["^build:types"],
+      "inputs": ["tsDefaults"],
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "packages/ag-charts-community/dist/types",
+        "main": "packages/ag-charts-community/src/main.ts",
+        "tsConfig": "packages/ag-charts-community/tsconfig.types.json",
+        "compiler": "tsc"
+      },
+      "configurations": {
+        "watch": {
+          "tsConfig": "packages/ag-charts-community/tsconfig.types.watch.json"
+        },
+        "production": {}
+      }
+    },
     "build:package": {
-      "executor": "@nx/rollup:rollup",
+      "executor": "@nx/esbuild:esbuild",
       "dependsOn": ["^build"],
       "inputs": ["tsDefaults"],
       "outputs": ["{options.outputPath}"],
@@ -21,41 +39,50 @@
         "outputPath": "packages/ag-charts-community/dist/package",
         "main": "packages/ag-charts-community/src/main.ts",
         "tsConfig": "packages/ag-charts-community/tsconfig.lib.json",
-        "rollupConfig": "packages/ag-charts-community/rollup.config.cjs",
-        "project": "packages/ag-charts-community/package.json",
-        "compiler": "tsc",
-        "format": ["cjs", "esm"]
+        "esbuildConfig": "esbuild.config.cjs",
+        "platform": "browser",
+        "format": ["cjs", "esm"],
+        "sourcemap": true
       },
       "configurations": {
         "watch": {
           "tsConfig": "packages/ag-charts-community/tsconfig.watch.json"
         },
-        "production": {}
+        "production": {
+          "sourcemap": false
+        }
       }
     },
     "build:umd": {
-      "executor": "@nx/rollup:rollup",
-      "dependsOn": ["^build"],
-      "inputs": ["tsDefaults"],
+      "executor": "@nx/esbuild:esbuild",
+      "dependsOn": ["build:package"],
       "outputs": ["{options.outputPath}"],
       "options": {
         "outputPath": "packages/ag-charts-community/dist/umd",
-        "main": "packages/ag-charts-community/src/main.ts",
+        "outputFileName": "ag-charts-community",
+        "main": "packages/ag-charts-community/dist/package/main.cjs.js",
         "tsConfig": "packages/ag-charts-community/tsconfig.lib.json",
-        "rollupConfig": "packages/ag-charts-community/rollup.umd.config.cjs",
-        "project": "packages/ag-charts-community/package.json",
-        "compiler": "tsc",
-        "format": ["cjs"]
+        "esbuildConfig": "esbuild.config.cjs",
+        "platform": "browser",
+        "bundle": true,
+        "thirdParty": true,
+        "skipTypeCheck": true,
+        "external": [],
+        "format": ["cjs"],
+        "sourcemap": true
       },
       "configurations": {
         "watch": {
           "tsConfig": "packages/ag-charts-community/tsconfig.watch.json"
         },
-        "production": {}
+        "production": {
+          "sourcemap": false
+        }
       }
     },
     "build-tsc": {
       "executor": "@nx/js:tsc",
+      "dependsOn": ["^build"],
       "inputs": ["tsDefaults"],
       "outputs": ["{options.outputPath}"],
       "options": {
@@ -66,9 +93,10 @@
       }
     },
     "docs-debug-interfaces": {
-      "executor": "ag-charts-build-tools:generate-code-reference-files",
+      "executor": "ag-charts-generate-code-reference-files:generate",
       "inputs": ["{projectRoot}/src/options"],
-      "outputPath": "{options.output}",
+      "outputs": ["{options.output}"],
+      "cache": true,
       "options": {
         "mode": "debug-interfaces",
         "inputs": ["packages/ag-charts-community/src/options"],
@@ -76,9 +104,10 @@
       }
     },
     "docs-resolved-interfaces": {
-      "executor": "ag-charts-build-tools:generate-code-reference-files",
+      "executor": "ag-charts-generate-code-reference-files:generate",
       "inputs": ["{projectRoot}/src/options"],
-      "outputPath": "{options.output}",
+      "outputs": ["{options.output}"],
+      "cache": true,
       "options": {
         "mode": "docs-interfaces",
         "inputs": ["packages/ag-charts-community/src/options"],

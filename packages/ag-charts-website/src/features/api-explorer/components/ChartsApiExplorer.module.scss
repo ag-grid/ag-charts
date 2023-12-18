@@ -13,9 +13,9 @@
         width: 100vw;
         height: 100vh;
         z-index: 100;
-        padding-left: $size-2;
-        padding-right: $size-2;
-        padding-bottom: $size-2;
+        padding-left: $spacing-size-4;
+        padding-right: $spacing-size-4;
+        padding-bottom: $spacing-size-4;
         background: white;
 
         .optionsContainer {
@@ -35,7 +35,7 @@
 .header {
     display: flex;
     justify-content: space-between;
-    overflow-x: visible !important;
+    overflow-x: visible;
 
     li {
         margin-bottom: 0;
@@ -46,7 +46,7 @@
     display: flex;
     flex-direction: row;
     flex: 1 1 auto;
-    gap: $size-2;
+    gap: $spacing-size-4;
     overflow-x: scroll;
     overflow-y: hidden;
 }
@@ -68,7 +68,7 @@
     flex-direction: column;
     width: 60%;
     min-width: 350px;
-    gap: $size-2;
+    gap: $spacing-size-4;
     overflow-y: scroll;
 }
 

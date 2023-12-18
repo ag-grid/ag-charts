@@ -51,14 +51,14 @@ const { showSearchBar, showDocsNav } = Astro.props;
 ---
 
 <header class:list={[gridStyles.header, 'site-header']}>
-    <div class:list={gridStyles.headerInner}>
+    <div class:list={[gridStyles.headerInner, 'layout-page-max-width']}>
         <SiteLogo client:load />
 
         {
             showDocsNav && (
                 <button
                     id="top-bar-docs-button"
-                    class:list={[gridStyles.mobileNavButton, 'button-input']}
+                    class:list={[gridStyles.mobileNavButton, 'button-secondary']}
                     type="button"
                     data-toggle="collapse"
                     data-target="#side-nav"
@@ -83,7 +83,16 @@ const { showSearchBar, showDocsNav } = Astro.props;
 </header>
 
 <style lang="scss">
+    @use '../../design-system' as *;
+
     .darkModeItem {
         min-width: 48px;
+    }
+
+    // Required to stop mobile docs nav flash on page load
+    @media screen and (min-width: $breakpoint-docs-nav-medium) {
+        #top-bar-docs-button {
+            display: none;
+        }
     }
 </style>

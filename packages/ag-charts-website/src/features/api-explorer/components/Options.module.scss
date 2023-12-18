@@ -13,7 +13,7 @@
 }
 
 .noContent {
-    margin-top: $size-4;
+    margin-top: $spacing-size-8;
     text-align: center;
 }
 
@@ -21,13 +21,13 @@
     display: inline-block;
     overflow-y: auto;
     height: 100%;
-    margin-top: $size-2;
+    margin-top: $spacing-size-4;
 
     > .option:nth-child(even) {
-        background-color: var(--background-100);
+        background-color: var(--color-util-brand-50);
 
-        #{$darkmode-selector} & {
-            background-color: var(--background-200);
+        #{$selector-darkmode} & {
+            background-color: var(--color-util-brand-50);
         }
     }
 }
@@ -35,16 +35,16 @@
 .option {
     display: flex;
     flex-direction: column;
-    padding: $size-1 0 $size-2;
-    border-top: 1px solid var(--border-color);
-    gap: $size-1;
+    padding: $spacing-size-2 0 $spacing-size-4;
+    border-top: 1px solid var(--color-border-primary);
+    gap: $spacing-size-2;
 
     &:last-child {
-        border-bottom: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--color-border-primary);
     }
 
     .option {
-        border-top: 1px dashed var(--border-color);
+        border-top: 1px dashed var(--color-border-primary);
 
         &:last-child {
             border-bottom: none;
@@ -52,8 +52,8 @@
     }
 
     > * {
-        padding-left: $size-1;
-        padding-right: $size-1;
+        padding-left: $spacing-size-2;
+        padding-right: $spacing-size-2;
     }
 
     &.hidden {
@@ -66,21 +66,19 @@
         margin-bottom: 0;
 
         &.hasPrefix {
-            margin-top: $size-2;
+            margin-top: $spacing-size-4;
         }
     }
 
     .expandable {
-        --text-color: var(--link-color);
-
         outline: none;
         cursor: pointer;
 
         h3 {
             display: flex;
             align-items: center;
-            color: var(--text-color);
-            transition: color $default-transition-timing;
+            color: var(--color-link);
+            transition: color $transition-default-timing;
         }
 
         :global(.icon) {
@@ -89,11 +87,11 @@
             margin-left: auto;
             transition:
                 transform 0.3s ease-out,
-                fill $default-transition-timing;
+                fill $transition-default-timing;
         }
 
         &:hover {
-            --text-color: var(--link-hover-color);
+            color: var(--color-link-hover);
         }
 
         &.expanded {
@@ -104,10 +102,10 @@
     }
 
     .children {
-        padding-left: $size-1;
-        padding-right: $size-1;
-        margin-top: $size-1;
-        margin-bottom: -$size-2;
+        padding-left: $spacing-size-2;
+        padding-right: $spacing-size-2;
+        margin-top: $spacing-size-2;
+        margin-bottom: -$spacing-size-4;
 
         &.hidden {
             display: none;
@@ -115,27 +113,27 @@
 
         .option > *:not(input),
         .option > .metaList {
-            padding-left: 0 !important;
+            padding-left: 0;
             padding-right: 0;
         }
     }
 
     pre {
-        margin-top: $size-2;
+        margin-top: $spacing-size-4;
         margin-bottom: 0;
     }
 }
 
 .prefix {
-    color: var(--secondary-text-color);
-    font-weight: var(--font-weight-normal);
+    color: var(--color-fg-secondary);
+    font-weight: var(--text-regular);
 }
 
 .metaList {
     display: flex;
     flex-wrap: wrap;
-    gap: $size-1 $size-3;
-    padding-left: $size-1 !important;
+    gap: $spacing-size-2 $spacing-size-6;
+    padding-left: $spacing-size-2;
 }
 
 body ul.metaList {
@@ -155,14 +153,14 @@ body ul.metaList {
 }
 
 .metaLabel {
-    font-size: var(--font-size-extra-small);
-    color: var(--secondary-text-color);
+    font-size: var(--text-fs-xs);
+    color: var(--color-fg-secondary);
 }
 
 .metaValue {
-    font-size: var(--font-size-small);
-    font-family: var(--monospace-font-family);
-    color: var(--code-text-color);
+    font-size: var(--text-fs-sm);
+    font-family: var(--text-monospace-font-family);
+    color: var(--color-fg-code);
     background-color: none;
 }
 
@@ -170,7 +168,7 @@ body ul.metaList {
     width: 100%;
     display: flex;
     justify-content: space-between;
-    gap: $size-2;
+    gap: $spacing-size-4;
 
     :global(.input-field.inline) {
         width: 66%;
@@ -184,13 +182,7 @@ body ul.metaList {
 }
 
 .isSearching .expandable {
-    --text-color: #{map.get($abstract-colors, dark-gunmetal-gray)};
-
     cursor: unset;
-
-    &:hover {
-        --text-color: #{map.get($abstract-colors, dark-gunmetal-gray)};
-    }
 
     :global(.icon) {
         display: none;

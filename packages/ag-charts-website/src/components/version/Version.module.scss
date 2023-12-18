@@ -4,133 +4,47 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    padding: $size-2 $size-2 0 $size-2;
+    padding: $spacing-size-4 $spacing-size-4 $spacing-size-2 $spacing-size-4;
     border-radius: 8px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--color-border-primary);
 
-    #{$darkmode-selector} & {
-        background: #122835;
-        border: 1px solid #394755;
-    }
-
-    header {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-
-        b {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: var(--default-text-color);
-        }
-
-        span {
-            font-size: 1rem;
-            color: var(--secondary-text);
-            opacity: 0.7;
-
-            #{$darkmode-selector} & {
-                color: #c3cad3;
-                opacity: 1;
-            }
-        }
-
-        a {
-            text-decoration: none;
-            color: var(--link-color);
-            font-size: 1rem;
-
-            #{$darkmode-selector} & {
-                color: rgb(56, 147, 249);
-            }
-
-            &:hover {
-                text-decoration: underline;
-            }
-        }
-    }
-
-    p {
-        margin-top: 8px;
-        margin-bottom: 4px;
-        font-size: 1rem;
-        color: var(--text-color);
-
-        #{$darkmode-selector} & {
-            color: #c3cad3;
-        }
+    #{$selector-darkmode} & {
+        background: var(--color-bg-secondary);
     }
 
     ul {
-        padding-top: 0.75rem;
-        padding-bottom: 0.75rem;
-        list-style: none;
-        padding-left: 0;
-        margin-bottom: 16px;
-
-        li::before {
-            content: '• ';
-            color: #c3cad3;
-            font-weight: bold;
-        }
-
-        a {
-            color: var(--link-color);
-            text-decoration: none;
-            font-size: 1rem;
-
-            #{$darkmode-selector} & {
-                color: rgb(56, 147, 249);
-            }
-
-            &:hover {
-                text-decoration: underline;
-            }
-        }
+        padding-left: $spacing-size-5;
     }
 
-    a {
-        font-size: 0.875rem;
+    header a:hover,
+    ul a:hover {
+        text-decoration: underline;
+    }
+}
+
+.topHeader {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-size-2;
+
+    span {
+        color: var(--color-fg-tertiary);
+    }
+}
+
+.featuresLabel {
+    margin-top: $spacing-size-2;
+    margin-bottom: $spacing-size-1;
+
+    #{$selector-darkmode} & {
+        color: var(--color-fg-secondary);
     }
 }
 
 .line {
-    border-bottom: 1px solid var(--border-color);
-
-    #{$darkmode-selector} & {
-        border-bottom: 1px solid #394755;
-    }
-}
-
-.topheader {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.changelog {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-
-    #{$darkmode-selector} & {
-        background: #2a343e;
-    }
-}
-
-.bloglink {
-    width: 100%;
-    display: flex;
-    justify-content: left;
-    padding-top: 0.5rem;
-    padding-bottom: 0.5rem;
-    font-size: 17px;
-
-    color: var(--link-color);
-
-    #{$darkmode-selector} & {
-        color: #c3cad3 !important;
-    }
+    margin-top: $spacing-size-2;
+    margin-bottom: $spacing-size-2;
+    border-bottom: 1px solid var(--color-border-primary);
 }
 
 .flex {
@@ -139,25 +53,19 @@
     justify-content: space-between;
 }
 
-.flex a {
-    width: auto;
-}
-
-.major-text {
-    border: 1px solid rgb(255, 140, 0);
-    border-radius: 24px;
-    color: rgb(255, 140, 0) !important;
+span.major-text {
+    border: 1px solid var(--color-logo-orange);
+    border-radius: var(--radius-4xl);
+    color: var(--color-logo-orange);
     padding: 2px 8px;
-    font-weight: 500;
 }
 
 .buttonSecondary {
     width: 100%;
-    display: flex !important;
-    justify-content: center !important;
+    text-align: center;
+    margin-bottom: $spacing-size-2;
 
-    margin-bottom: 16px;
-    #{$darkmode-selector} & {
-        background: #2a343e;
+    #{$selector-darkmode} & {
+        background: var(--color-gray-700);
     }
 }

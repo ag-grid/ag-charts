@@ -1,33 +1,26 @@
 @use '../../design-system/' as *;
 
 .showHideButton {
-    --button-text-color: var(--link-color);
-    --button-color: var(--background-500);
-    --button-active-color: var(--background-500);
-    --button-hover-color: var(--background-500);
-
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: $size-1;
+    gap: $spacing-size-2;
     width: 100%;
-    padding: $size-1 $size-1 $size-1 $size-2;
+    padding: $spacing-size-2 $spacing-size-2 $spacing-size-2 $spacing-size-4;
     text-align: left;
-    font-weight: $font-weight-bold;
-    transition: color $default-transition-timing !important;
+    font-weight: var(--text-bold);
+    color: var(--color-link);
+    background-color: transparent;
+    transition: color $transition-default-timing;
 
     &:hover {
-        --button-text-color: var(--dark-blue-300);
-
-        #{$darkmode-selector} & {
-            --button-text-color: rgb(0, 123, 255);
-        }
+        color: var(--color-link-hover);
     }
 
     &:disabled {
         cursor: default;
         color: black;
-        background-color: var(--background-500);
+        background-color: var(--color-util-brand-100);
     }
 
     &:not(:disabled) {
@@ -38,25 +31,24 @@
     svg {
         width: 20px;
         height: 20px;
-        fill: var(--button-text-color);
+        fill: var(--color-link);
         transition:
-            fill $default-transition-timing,
-            transform $default-transition-timing;
+            fill $transition-default-timing,
+            transform $transition-default-timing;
     }
 
-    #{$darkmode-selector} & {
-        background-color: #121f29;
+    #{$selector-darkmode} & {
         border: 1px solid rgb(255, 255, 255, 0.15);
     }
 }
 
 .content {
-    $border: 1px solid var(--border-color);
+    $border: 1px solid var(--color-border-primary);
 
     position: relative;
-    padding: $size-2;
-    border-bottom-right-radius: var(--border-radius);
-    border-bottom-left-radius: var(--border-radius);
+    padding: $spacing-size-4;
+    border-bottom-right-radius: var(--radius-sm);
+    border-bottom-left-radius: var(--radius-sm);
     border-right: $border;
     border-bottom: $border;
     border-left: $border;
@@ -64,7 +56,6 @@
 
     &:not(.notExpandable) > div {
         overflow: hidden;
-        //padding-bottom: $size-7;
     }
 
     &.contentCollapsed:not(.notExpandable) > div {
@@ -77,49 +68,48 @@
         }
 
         .showMoreLink {
-            padding-top: $size-2;
+            padding-top: $spacing-size-4;
             background-image: none;
         }
     }
 
     &.noContent {
         border: none;
-        padding: 0 !important;
+        padding: 0;
     }
 }
 
 .showMoreLink {
     display: block;
     position: absolute;
-    font-size: var(--font-size-large);
+    font-size: var(--text-fs-lg);
     width: 100%;
     left: 0;
     bottom: 0;
-    padding: $size-8 $size-2 $size-2;
+    padding: $spacing-size-24 $spacing-size-4 $spacing-size-4;
     text-align: center;
-    background-image: linear-gradient(transparent, var(--default-background-color) 75%);
-    border-radius: var(--border-radius);
-    color: var(--link-color);
-    transition: color $default-transition-timing;
+    background-image: linear-gradient(transparent, var(--color-bg-primary) 75%);
+    border-radius: var(--radius-sm);
+    color: var(--color-link);
+    transition: color $transition-default-timing;
 
     svg {
-        --text-color: var(--link-color);
         --icon-size: 1em;
 
-        fill: var(--link-color);
-        transition: fill $default-transition-timing;
+        fill: var(--color-link);
+        transition: fill $transition-default-timing;
     }
 
     &:hover {
-        color: var(--link-hover-color);
+        color: var(--color-link-hover);
 
         svg {
-            fill: var(--link-hover-color);
+            fill: var(--color-link-hover);
         }
     }
 }
 
 .versionLabel {
-    font-weight: var(--font-weight-normal);
-    color: var(--secondary-text-color);
+    font-weight: var(--text-regular);
+    color: var(--color-fg-secondary);
 }

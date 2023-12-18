@@ -70,5 +70,5 @@ function update() {
 
 if (typeof window !== 'undefined') {
     // Attach external event handlers to window so they can be called from index.html
-    (<any>window).startUpdates = startUpdates;
+    (window as any).startUpdates = startUpdates;
 }

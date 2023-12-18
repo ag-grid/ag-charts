@@ -21,7 +21,7 @@ export const TopBar = ({ frameworks, currentFramework, path, isDev, suppressFram
                 <div className={styles.topBarInner}>
                     <button
                         id="top-bar-docs-button"
-                        className={classNames(styles.topBarNavButton, 'button-input')}
+                        className={classNames(styles.topBarNavButton, 'button-secondary')}
                         type="button"
                         data-toggle="collapse"
                         data-target="#side-nav"

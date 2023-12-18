@@ -112,6 +112,7 @@ type NodeData = number[];
 export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
     protected static readonly LINE_LAYER_ZINDEX = Layers.SERIES_CROSSLINE_LINE_ZINDEX;
     protected static readonly RANGE_LAYER_ZINDEX = Layers.SERIES_CROSSLINE_RANGE_ZINDEX;
+    protected static readonly LABEL_LAYER_ZINDEX = Layers.SERIES_LABEL_ZINDEX;
 
     static className = 'CrossLine';
     readonly id = createId(this);
@@ -155,6 +156,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
     direction: ChartAxisDirection = ChartAxisDirection.X;
 
     readonly group = new Group({ name: `${this.id}`, layer: true, zIndex: CartesianCrossLine.LINE_LAYER_ZINDEX });
+    readonly labelGroup = new Group({ name: `${this.id}`, layer: true, zIndex: CartesianCrossLine.LABEL_LAYER_ZINDEX });
     private crossLineRange: Range = new Range();
     private crossLineLabel = new Text();
     private labelPoint?: Point = undefined;
@@ -165,9 +167,10 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
     private isRange: boolean = false;
 
     constructor() {
-        const { group, crossLineRange, crossLineLabel } = this;
+        const { group, labelGroup, crossLineRange, crossLineLabel } = this;
 
-        group.append([crossLineRange, crossLineLabel]);
+        group.append(crossLineRange);
+        labelGroup.append(crossLineLabel);
 
         crossLineRange.pointerEvents = PointerEvents.None;
     }
@@ -183,12 +186,12 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
         this.updateNodes();
     }
 
-    calculateLayout(visible: boolean): BBox | undefined {
+    calculateLayout(visible: boolean, reversedAxis?: boolean): BBox | undefined {
         if (!visible) {
             return;
         }
 
-        const dataCreated = this.createNodeData();
+        const dataCreated = this.createNodeData(reversedAxis);
         if (!dataCreated) {
             return;
         }
@@ -221,7 +224,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
         }
     }
 
-    private createNodeData(): boolean {
+    private createNodeData(reversedAxis?: boolean): boolean {
         const {
             scale,
             gridLength,
@@ -240,7 +243,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
 
         const bandwidth = scale.bandwidth ?? 0;
         const step = scale.step ?? 0;
-        const padding = scale instanceof BandScale ? (step - bandwidth) / 2 : 0;
+        const padding = (reversedAxis ? -1 : 1) * (scale instanceof BandScale ? (step - bandwidth) / 2 : 0);
 
         const [xStart, xEnd] = [0, sideFlag * gridLength];
         let [yStart, yEnd] = this.getRange();

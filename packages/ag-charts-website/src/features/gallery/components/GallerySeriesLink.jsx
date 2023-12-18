@@ -18,7 +18,7 @@ export const GallerySeriesLink = ({ series }) => {
     const url = urlWithPrefix({ url: `./${slugger.slug(series)}-series`, framework: frameworkFromInternalFramework });
 
     return (
-        <a href={url} className={classnames(styles.seriesLink, 'font-size-medium')}>
+        <a href={url} className={classnames(styles.seriesLink, 'text-base')}>
             View {toTitle(series)} Charts Documentation
             <Icon svgClasses={styles.arrowIcon} name="arrowRight" />
         </a>

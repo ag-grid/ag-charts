@@ -411,7 +411,8 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
                 const bbox = tempText.computeTransformedBBox();
                 if (bbox) {
                     labelBBoxes.set(index, bbox);
-                    if (bbox.width > maxLeafLabelWidth) {
+                    const isLeaf = !datum.children.length;
+                    if (isLeaf && bbox.width > maxLeafLabelWidth) {
                         maxLeafLabelWidth = bbox.width;
                     }
                 }

@@ -7,7 +7,7 @@ import type { ChartAxisDirection } from '../chartAxisDirection';
 export type CrossLineType = 'line' | 'range';
 
 export interface CrossLine<LabelType = AgBaseCrossLineLabelOptions> {
-    calculateLayout(visible: boolean): BBox | undefined;
+    calculateLayout(visible: boolean, reversedAxis?: boolean): BBox | undefined;
     calculatePadding(padding: Partial<Record<AgCrossLineLabelPosition, number>>): void;
     clippedRange: [number, number];
     direction: ChartAxisDirection;
@@ -18,6 +18,7 @@ export interface CrossLine<LabelType = AgBaseCrossLineLabelOptions> {
     group: Group;
     id: string;
     label: LabelType;
+    labelGroup: Group;
     lineDash?: number[];
     parallelFlipRotation: number;
     range?: [any, any];

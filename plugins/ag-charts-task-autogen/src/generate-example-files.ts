@@ -4,8 +4,8 @@ import type { CreateDependencies } from 'nx/src/utils/nx-plugin';
 export function createTask(parentProject: string, srcRelativeInputPath: string) {
     return {
         'generate-example': {
-            dependsOn: [{ projects: 'ag-charts-build-tools', target: 'build' }],
-            executor: 'ag-charts-build-tools:generate-example-files',
+            dependsOn: [{ projects: 'ag-charts-generate-example-files', target: 'build' }],
+            executor: 'ag-charts-generate-example-files:generate',
             inputs: ['{projectRoot}/**/*'],
             outputPath: '{options.outputPath}',
             cache: true,

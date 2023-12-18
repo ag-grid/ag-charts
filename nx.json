@@ -10,6 +10,7 @@
       "default",
       "!{projectRoot}/.eslintrc.json",
       "!{projectRoot}/**/?(*.)+(spec|test).[jt]s?(x)?(.snap)",
+      "!{projectRoot}/**/test/**",
       "!{projectRoot}/tsconfig.spec.json",
       "!{projectRoot}/jest.config.[jt]s"
     ],
@@ -22,15 +23,19 @@
       "{projectRoot}/package.json",
       "{projectRoot}/src/**/*",
       "{projectRoot}/tsconfig.*.json",
-      "{projectRoot}/rollup.*.cjs",
       "tsDeclarations",
       "sharedGlobals"
     ],
-    "sharedGlobals": ["{workspaceRoot}/rollup.*.cjs", "{workspaceRoot}/tsconfig.*.json"]
+    "sharedGlobals": ["{workspaceRoot}/esbuild.config*.cjs", "{workspaceRoot}/tsconfig.*.json"]
   },
   "targetDefaults": {
     "build": {
       "dependsOn": ["^build"],
+      "inputs": ["production", "^production"],
+      "cache": true
+    },
+    "build:types": {
+      "dependsOn": ["^build:types"],
       "inputs": ["production", "^production"],
       "cache": true
     },
@@ -40,7 +45,12 @@
       "cache": true
     },
     "build:umd": {
-      "dependsOn": ["^build:package"],
+      "dependsOn": ["build:package", "^build:package"],
+      "inputs": ["production", "^production"],
+      "cache": true
+    },
+    "build-tsc": {
+      "dependsOn": ["^build:types"],
       "inputs": ["production", "^production"],
       "cache": true
     },

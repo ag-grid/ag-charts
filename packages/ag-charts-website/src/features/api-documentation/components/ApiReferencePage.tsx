@@ -62,7 +62,7 @@ export function ApiReferencePage({
         <ApiReferenceContext.Provider value={reference}>
             <ApiReferenceConfigContext.Provider value={{ hideHeader: true, specialTypes, keepExpanded }}>
                 <SelectionContext.Provider value={{ selection, setSelection }}>
-                    <div className={styles.container}>
+                    <div className={classNames(styles.container, 'layout-grid')}>
                         <div className={styles.objectViewOuter}>
                             <OptionsNavigation
                                 basePath={`${SITE_BASE_URL}${basePath}/`}
@@ -94,9 +94,9 @@ function ApiReferencePageContent({
     const selection = useContext(SelectionContext);
     const [headerHeight, setHeaderHeight] = useState(0);
     return (
-        <div className={classNames(styles.referenceOuter, 'font-size-responsive')}>
+        <div className={styles.referenceOuter}>
             <header ref={(ref) => setHeaderHeight(ref?.clientHeight ?? 0)}>
-                <h1 className="font-size-gigantic">
+                <h1 className="text-3xl">
                     {pageTitle?.type ? (
                         <>
                             {pageTitle.name}[type = '<span className={styles.unionDiscriminator}>{pageTitle.type}</span>

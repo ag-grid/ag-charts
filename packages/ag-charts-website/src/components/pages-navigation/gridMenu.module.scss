@@ -3,34 +3,34 @@
 // Copy of ag-grid.com menu styles, before we bring the whole component across
 
 .whatsNewLink {
-    margin-top: $size-2;
-    margin-bottom: $size-1;
+    margin-top: $spacing-size-4;
+    margin-bottom: $spacing-size-2;
 
     a {
         display: block;
         position: relative;
         width: fit-content;
-        margin-bottom: $size-2;
+        margin-bottom: $spacing-size-4;
         padding: 2px 10px;
         text-decoration: none;
-        font-size: var(--font-size-small);
-        color: var(--link-hover-color);
+        font-size: var(--text-fs-sm);
+        color: var(--color-link-hover);
         border-radius: 24px;
-        border: 1px solid var(--link-hover-color);
+        border: 1px solid var(--color-link-hover);
         transition:
-            background-color $default-transition-timing,
-            color $default-transition-timing;
+            background-color $transition-default-timing,
+            color $transition-default-timing;
         -webkit-font-smoothing: auto;
 
         &:hover,
         &:focus {
-            background-color: color-mix(in srgb, var(--link-hover-color) 5%, var(--default-background-color));
+            background-color: color-mix(in srgb, var(--color-link-hover) 5%, var(--color-bg-primary));
         }
 
-        #{$darkmode-selector} & {
+        #{$selector-darkmode} & {
             &:hover,
             &:focus {
-                background-color: color-mix(in srgb, var(--link-hover-color) 10%, var(--default-background-color));
+                background-color: color-mix(in srgb, var(--color-link-hover) 10%, var(--color-bg-primary));
             }
         }
     }
@@ -40,24 +40,20 @@
     $top-bar-height: 58px;
 
     --menu-width: min(30vw, 250px);
-    --font-size: 16px;
 
-    border-bottom: 1px solid var(--border-color);
+    font-size: var(--text-fs-base);
+    width: 100%;
 
     @media screen and (max-width: $breakpoint-docs-nav-medium) {
         @include page-horizontal-margins();
     }
 
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
-        --menu-horizontal-margin: #{$size-2};
-        --right-margin: max(#{$size-4}, calc(50vw - var(--max-page-width) / 2 - var(--menu-width)));
+        --menu-horizontal-margin: #{$spacing-size-4};
 
         flex-shrink: 0;
-        width: var(--menu-width);
-        margin-right: var(--right-margin);
         padding-right: var(--menu-horizontal-margin);
-        padding-left: var(--horizontal-margin);
-        // border-right: solid 0.5px var(--secondary-border-color);
+
         @supports (position: sticky) {
             position: sticky;
             top: $top-bar-height;
@@ -66,69 +62,55 @@
             overflow-y: auto;
         }
     }
-
-    @media screen and (min-width: $breakpoint-docs-nav-medium) {
-        padding-left: var(--menu-horizontal-margin);
-    }
-
-    #{$darkmode-selector} & {
-        --secondary-border-color: #394755;
-
-        border-bottom: none;
-    }
 }
 
 ul.menuInner {
     flex-basis: auto;
     flex-direction: column;
     padding-top: 0;
-    padding-bottom: $size-7;
+    padding-bottom: $spacing-size-16;
 
     li {
-        margin-bottom: $size-half !important;
+        margin-bottom: $spacing-size-1;
     }
 
     li li {
-        margin-bottom: 0 !important;
+        margin-bottom: 0;
     }
 
     hr {
-        margin-top: $size-2;
-        margin-bottom: $size-2;
+        margin-top: $spacing-size-4;
+        margin-bottom: $spacing-size-4;
         height: 1px;
-        background-color: var(--border-color);
+        background-color: var(--color-border-primary);
     }
 
     h5 {
         padding-left: 6px;
-        font-weight: var(--font-weight-bold);
-        color: var(--secondary-text-color);
+        font-weight: var(--text-bold);
+        color: var(--color-fg-secondary);
     }
 
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
-        display: block !important;
+        display: block;
     }
 }
 
 button:not([class^='ag-']).sectionHeader {
     width: 100%;
-    padding-top: $size-half;
-    padding-bottom: $size-1;
+    padding-top: $spacing-size-1;
+    padding-bottom: $spacing-size-2;
     margin-top: 0;
-    font-weight: var(--font-weight-bold);
+    font-weight: var(--text-semibold);
     border: 2px solid transparent;
     outline: none;
     transition:
-        color $default-transition-timing,
-        border-color $default-transition-timing;
-    border-radius: var(--border-radius);
-
-    &:hover {
-        --text-color: var(--link-color);
-    }
+        color $transition-default-timing,
+        border-color $transition-default-timing;
+    border-radius: var(--radius-sm);
 
     &:focus-visible {
-        border-color: var(--700);
+        border-color: var(--color-button-primary-shadow-focus);
     }
 
     &:hover .sectionIcon {
@@ -136,15 +118,15 @@ button:not([class^='ag-']).sectionHeader {
     }
 
     &.active {
-        transition: color $default-transition-timing;
+        transition: color $transition-default-timing;
     }
 
     li:first-child & {
-        margin-top: $size-1;
+        margin-top: $spacing-size-2;
     }
 
     + .menuGroup {
-        padding-bottom: $size-1;
+        padding-bottom: $spacing-size-2;
     }
 
     .sectionIcon {
@@ -152,12 +134,18 @@ button:not([class^='ag-']).sectionHeader {
 
         position: relative;
         top: -1px;
+        fill: var(--color-util-gray-400);
+
+        #{$selector-darkmode} & {
+            fill: var(--color-fg-primary);
+        }
+
         transition:
             transform 0.33s ease-in-out,
-            fill $default-transition-timing;
+            fill $transition-default-timing;
 
         &.active {
-            transform: rotate(90deg) !important;
+            transform: rotate(90deg);
         }
     }
 }
@@ -166,8 +154,10 @@ button:not([class^='ag-']).sectionHeader {
     --first-indent-size: 12px;
     --indent-size: 20px;
 
-    line-height: var(--line-height-tight);
-    font-size: var(--font-size-small);
+    line-height: var(--text-lh-tight);
+    font-size: var(--text-fs-regular);
+    font-weight: var(--text-semibold);
+    -webkit-font-smoothing: antialiased;
 
     ul a,
     ul .groupLabel {
@@ -186,11 +176,7 @@ button:not([class^='ag-']).sectionHeader {
 
     .enterpriseIcon {
         --icon-size: 1.15em;
-        --text-color: var(--enterprise-icon-color);
-
-        #{$darkmode-selector} & {
-            --text-color: var(--active-color);
-        }
+        --color-icon: var(--color-enterprise-icon);
 
         position: relative;
         margin-left: 4px;
@@ -205,18 +191,18 @@ button:not([class^='ag-']).sectionHeader {
 }
 
 .menuGroup a {
-    --active-color: var(--primary-700);
-    --active-border: var(--primary-600);
-    --hover-background: var(--background-200);
-    --active-background: var(--background-300);
+    --active-color: var(--color-util-brand-500);
+    --active-border: var(--color-util-brand-400);
+    --hover-background: var(--color-util-brand-50);
+    --active-background: var(--color-util-brand-50);
 
     position: relative;
     display: block;
     margin-left: var(--first-indent-size);
     padding-top: 3px;
     padding-bottom: 3px;
-    padding-left: $size-2;
-    color: var(--secondary-text-color);
+    padding-left: $spacing-size-4;
+    color: var(--color-fg-secondary);
     border-left: 1px solid transparent;
     outline: none;
     transition:
@@ -224,25 +210,31 @@ button:not([class^='ag-']).sectionHeader {
         border-color 0.33s ease-in-out,
         background-color 0.33s ease-in-out;
 
-    #{$darkmode-selector} & {
-        --active-color: #3893f9;
-        --active-border: #3893f9;
+    #{$selector-darkmode} & {
+        --active-color: var(--color-brand-300);
+        --active-border: var(--color-brand-300);
         --hover-background: rgba(56, 146, 249, 0.06);
         --active-background: rgba(56, 146, 249, 0.09);
 
-        -webkit-font-smoothing: auto;
+        -webkit-font-smoothing: antialiased;
     }
 
     &:hover {
         background-color: var(--hover-background);
     }
 
+    #{$selector-darkmode} & {
+        &:hover {
+            color: var(--color-fg-primary);
+        }
+    }
+
     &:focus-visible {
-        border-color: var(--input-focus-border-color);
+        border-color: var(--color-input-border-hover);
     }
 
     &.activeItemParent {
-        color: color-mix(in oklch, var(--default-text-color) 66.66%, var(--secondary-text-color));
+        color: color-mix(in oklch, var(--color-fg-primary) 66.66%, var(--color-fg-secondary));
     }
 
     &:hover,
@@ -260,24 +252,24 @@ button:not([class^='ag-']).sectionHeader {
 .menuGroup li a {
     padding-top: 7px;
     padding-bottom: 7px;
-    border-left: 1px solid var(--border-color);
+    border-left: 1px solid var(--color-border-primary);
 }
 
 .menuGroup .groupLabel {
     display: block;
-    margin-left: var(--first-indent-size) !important;
+    margin-left: var(--first-indent-size);
     padding-top: 5px;
     padding-bottom: 5px;
-    padding-left: $size-2 + 2px;
-    border-left: 1px solid var(--border-color);
-    color: var(--neutral-600);
-    transition: color $default-transition-timing;
+    padding-left: $spacing-size-4 + 2px;
+    border-left: 1px solid var(--color-border-primary);
+    color: var(--color-util-gray-400);
+    transition: color $transition-default-timing;
 
-    #{$darkmode-selector} & {
-        color: var(--neutral-800);
+    #{$selector-darkmode} & {
+        color: var(--color-util-gray-500);
     }
 
     &.activeItemParent {
-        color: var(--text-color);
+        color: var(--color-text-primary);
     }
 }

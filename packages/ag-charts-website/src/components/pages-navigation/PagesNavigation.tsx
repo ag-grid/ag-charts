@@ -20,7 +20,7 @@ function getLinkUrl({ framework, path, url }: { framework: Framework; path?: str
 
 function EnterpriseIcon() {
     return (
-        <span className={styles.enterpriseIcon}>
+        <span className={gridStyles.enterpriseIcon}>
             (e)
             <Icon name="enterprise" />
         </span>
@@ -34,7 +34,7 @@ function CollapsibleNav({
     isOpen,
     activeMenuItem,
 }: {
-    id: string;
+    id?: string;
     items: MenuItem[];
     framework: Framework;
     isOpen: boolean;
@@ -141,13 +141,7 @@ function NavItemContainer({
             )}
 
             {items && (
-                <CollapsibleNav
-                    id={(path || url)!}
-                    items={items}
-                    framework={framework}
-                    isOpen={isActive}
-                    activeMenuItem={activeMenuItem}
-                />
+                <CollapsibleNav items={items} framework={framework} isOpen={isActive} activeMenuItem={activeMenuItem} />
             )}
         </li>
     );
@@ -316,7 +310,7 @@ export function PagesNavigation({
 
     return (
         <Collapsible id="docs-nav-collapser" isOpen={navOpen}>
-            <aside className={classnames(styles.menu, gridStyles.menu, 'font-size-responsive')}>
+            <aside className={classnames(styles.menu, gridStyles.menu)}>
                 <MainPagesNavigation
                     menuData={menuData}
                     framework={framework}

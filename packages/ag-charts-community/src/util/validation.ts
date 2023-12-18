@@ -1,14 +1,26 @@
 import { Color } from './color';
 import { BREAK_TRANSFORM_CHAIN, addTransformToInstanceProperty } from './decorator';
 import { Logger } from './logger';
-import { isArray, isBoolean, isFiniteNumber, isFunction, isNumber, isString, isValidDate } from './type-guards';
+import { isProperties } from './properties';
+import {
+    isArray,
+    isBoolean,
+    isFiniteNumber,
+    isFunction,
+    isNumber,
+    isObject,
+    isString,
+    isValidDate,
+} from './type-guards';
 
-type ValidateOptions = {
-    message?: string;
+interface ValidateOptions {
     optional?: boolean;
-};
+}
 
-type ValidationContext = ValidateOptions & { target: any };
+interface ValidationContext extends ValidateOptions {
+    target: any;
+    property: string | symbol;
+}
 
 export interface ValidatePredicate {
     (value: unknown, ctx: ValidationContext): boolean;
@@ -23,31 +35,43 @@ export interface ValidateNumberPredicate extends ValidatePredicate {
     restrict(options: { min?: number; max?: number }): ValidatePredicate;
 }
 
-export function Validate(predicate: ValidatePredicate, { optional, ...options }: ValidateOptions = {}) {
-    return addTransformToInstanceProperty((target, property, value: any) => {
-        const context = { ...options, target };
-        if ((optional && typeof value === 'undefined') || predicate(value, context)) {
-            return value;
-        }
+export function Validate(predicate: ValidatePredicate, options: ValidateOptions = {}) {
+    const { optional = false } = options;
+    return addTransformToInstanceProperty(
+        (target, property, value: any) => {
+            const context = { ...options, target, property };
+            if ((optional && typeof value === 'undefined') || predicate(value, context)) {
+                if (isProperties(target[property])) {
+                    target[property].set(value);
+                    return target[property];
+                }
+                return value;
+            }
 
-        const cleanKey = String(property).replace(/^_*/, '');
-        const message: Array<string | undefined> = [`Property [${cleanKey}]`];
+            const cleanKey = String(property).replace(/^_*/, '');
+            const message: Array<string | undefined> = [`Property [${cleanKey}]`];
 
-        const targetClass = target.constructor?.className ?? target.constructor?.name;
-        if (targetClass?.length > 2) {
-            message.push(`of [${targetClass}]`);
-        }
+            const targetClass = target.constructor?.className ?? target.constructor?.name;
+            if (targetClass?.length > 2) {
+                message.push(`of [${targetClass}]`);
+            }
 
-        if (predicate.message) {
-            message.push(`cannot be set to [${stringify(value)}]; expecting`, getPredicateMessage(predicate, context));
-        } else {
-            message.push(`cannot be set to [${stringify(value)}]`);
-        }
+            if (predicate.message) {
+                message.push(
+                    `cannot be set to [${stringify(value)}]; expecting`,
+                    getPredicateMessage(predicate, context)
+                );
+            } else {
+                message.push(`cannot be set to [${stringify(value)}]`);
+            }
 
-        Logger.warn(`${message.join(' ')}, ignoring.`);
+            Logger.warn(`${message.join(' ')}, ignoring.`);
 
-        return BREAK_TRANSFORM_CHAIN;
-    });
+            return BREAK_TRANSFORM_CHAIN;
+        },
+        undefined,
+        { optional }
+    );
 }
 
 export const AND = (...predicates: ValidatePredicate[]) => {
@@ -63,6 +87,10 @@ export const OR = (...predicates: ValidatePredicate[]) => {
     );
 };
 
+export const OBJECT = predicateWithMessage(
+    (value, ctx) => isProperties(value) || (isObject(value) && isProperties(ctx.target[ctx.property])),
+    'an object'
+);
 export const BOOLEAN = predicateWithMessage(isBoolean, 'a boolean');
 export const FUNCTION = predicateWithMessage(isFunction, 'a function');
 export const STRING = predicateWithMessage(isString, 'a string');

@@ -1,6 +1,6 @@
 import { component, defineMarkdocConfig, nodes } from '@astrojs/markdoc/config';
 
-import prism from './src/astro/plugins/prism';
+import prism from './plugins/prism';
 import { DOCS_TAB_ITEM_ID_PREFIX } from './src/constants';
 
 export default defineMarkdocConfig({
@@ -60,9 +60,9 @@ export default defineMarkdocConfig({
         },
         warning: {
             render: component('./src/components/alert/Warning'),
-            attributes: {
-                title: { type: String },
-            },
+        },
+        idea: {
+            render: component('./src/components/alert/Idea'),
         },
         imageCaption: {
             render: component('./src/components/image/ImageCaption'),

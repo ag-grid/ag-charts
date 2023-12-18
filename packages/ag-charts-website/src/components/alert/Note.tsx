@@ -7,11 +7,7 @@ interface Props {
 }
 
 const Note: FunctionComponent<Props> = ({ children }) => {
-    return (
-        <Alert type="info" className="font-size-responsive">
-            {children}
-        </Alert>
-    );
+    return <Alert type="info">{children}</Alert>;
 };
 
 export default Note;

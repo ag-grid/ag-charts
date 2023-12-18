@@ -1,21 +1,13 @@
-import type { ReactElement } from 'react';
+import type { FunctionComponent, ReactElement } from 'react';
 
 import { Alert } from './Alert';
 
 interface Props {
-    title: string;
     children: ReactElement;
 }
 
-const Warning = ({ children, title }: Props) => {
-    return (
-        <Alert type="warning" className="font-size-responsive">
-            <div>
-                {title && <h4>{title}</h4>}
-                {children}
-            </div>
-        </Alert>
-    );
+const Warning: FunctionComponent<Props> = ({ children }) => {
+    return <Alert type="warning">{children}</Alert>;
 };
 
 export default Warning;

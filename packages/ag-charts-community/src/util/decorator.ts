@@ -1,38 +1,44 @@
 export const BREAK_TRANSFORM_CHAIN = Symbol('BREAK');
 
+const CONFIG_KEY = '__decorator_config';
+
 type TransformFn = (
     target: any,
     key: string | symbol,
     value: any,
     oldValue?: any
 ) => any | typeof BREAK_TRANSFORM_CHAIN;
-type TransformConfig = { setters: TransformFn[]; getters: TransformFn[] };
-type DecoratedObject = { __decorator_config: object };
-const CONFIG_KEY = '__decorator_config';
 
-function initialiseConfig(
-    target: any,
-    propertyKeyOrSymbol: string | symbol,
-    propertyKey: string,
-    valueStoreKey: string
-) {
+interface TransformConfig {
+    setters: TransformFn[];
+    getters: TransformFn[];
+    valuesMap: WeakMap<object, Map<string, unknown>>;
+    optional?: boolean;
+}
+
+type DecoratedObject = { __decorator_config: Record<string, TransformConfig> };
+
+function initialiseConfig(target: any, propertyKeyOrSymbol: string | symbol) {
     if (Object.getOwnPropertyDescriptor(target, CONFIG_KEY) == null) {
         Object.defineProperty(target, CONFIG_KEY, { value: {} });
     }
 
     const config: Record<string, TransformConfig> = target[CONFIG_KEY];
-    if (config[propertyKey] != null) {
+    const propertyKey = propertyKeyOrSymbol.toString();
+
+    if (typeof config[propertyKey] !== 'undefined') {
         return config[propertyKey];
     }
 
-    config[propertyKey] = { setters: [], getters: [] };
+    const valuesMap = new WeakMap();
+    config[propertyKey] = { setters: [], getters: [], valuesMap };
 
     const descriptor = Object.getOwnPropertyDescriptor(target, propertyKeyOrSymbol);
     const prevSet = descriptor?.set;
     const prevGet = descriptor?.get;
 
     const getter = function (this: any) {
-        let value = prevGet ? prevGet.call(this) : this[valueStoreKey];
+        let value = prevGet ? prevGet.call(this) : valuesMap.get(this);
         for (const transformFn of config[propertyKey].getters) {
             value = transformFn(this, propertyKeyOrSymbol, value);
 
@@ -43,13 +49,13 @@ function initialiseConfig(
 
         return value;
     };
-    const setter = function (this: any, value: any) {
+    const setter = function (this: any, value: unknown) {
         const { setters } = config[propertyKey];
 
         let oldValue;
         if (setters.some((f) => f.length > 2)) {
             // Lazily retrieve old value.
-            oldValue = prevGet ? prevGet.call(this) : this[valueStoreKey];
+            oldValue = prevGet ? prevGet.call(this) : valuesMap.get(this);
         }
 
         for (const transformFn of setters) {
@@ -63,7 +69,7 @@ function initialiseConfig(
         if (prevSet) {
             prevSet.call(this, value);
         } else {
-            this[valueStoreKey] = value;
+            valuesMap.set(this, value);
         }
     };
 
@@ -79,17 +85,17 @@ function initialiseConfig(
 
 export function addTransformToInstanceProperty(
     setTransform: TransformFn,
-    getTransform?: TransformFn
+    getTransform?: TransformFn,
+    configMetadata?: Omit<TransformConfig, 'setters' | 'getters' | 'valuesMap'>
 ): PropertyDecorator {
     return (target: any, propertyKeyOrSymbol: string | symbol) => {
-        const propertyKey = propertyKeyOrSymbol.toString();
-        const valueStoreKey = `__${propertyKey}`;
-
-        const { getters, setters } = initialiseConfig(target, propertyKeyOrSymbol, propertyKey, valueStoreKey);
-
-        setters.push(setTransform);
+        const config = initialiseConfig(target, propertyKeyOrSymbol);
+        config.setters.push(setTransform);
         if (getTransform) {
-            getters.unshift(getTransform);
+            config.getters.unshift(getTransform);
+        }
+        if (configMetadata) {
+            Object.assign(config, configMetadata);
         }
     };
 }
@@ -112,4 +118,15 @@ export function extractDecoratedProperties(target: any) {
         result[key] = target[key] ?? null;
         return result;
     }, {});
+}
+
+export function extractDecoratedPropertyMetadata(target: any, propertyKeyOrSymbol: string | symbol) {
+    const propertyKey = propertyKeyOrSymbol.toString();
+    while (isDecoratedObject(target)) {
+        const config: Record<string, TransformConfig> = target[CONFIG_KEY];
+        if (Object.hasOwn(config, propertyKey)) {
+            return config[propertyKey];
+        }
+        target = Object.getPrototypeOf(target);
+    }
 }

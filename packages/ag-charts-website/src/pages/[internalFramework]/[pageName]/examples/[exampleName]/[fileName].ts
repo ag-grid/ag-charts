@@ -1,7 +1,7 @@
 import type { InternalFramework } from '@ag-grid-types';
 import { getDocExampleFiles } from '@features/docs/utils/pageData';
 import { getIsDev } from '@utils/env';
-import { fileNameToMimeType } from '@utils/fileNameToMimeType';
+import { fileNameToMimeType } from '@utils/mimeType';
 import { getContentRootFileUrl } from '@utils/pages';
 import { getCollection } from 'astro:content';
 

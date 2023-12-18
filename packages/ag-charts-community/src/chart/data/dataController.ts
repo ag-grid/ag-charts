@@ -1,5 +1,6 @@
 import { Debug } from '../../util/debug';
 import { jsonDiff } from '../../util/json';
+import { Logger } from '../../util/logger';
 import type { ChartMode } from '../chartMode';
 import type {
     DataModelOptions,
@@ -73,6 +74,17 @@ export class DataController {
         this.status = 'executed';
 
         this.debug('DataController.execute() - requested', this.requested);
+
+        for (let i = 1; i < this.requested.length; i++) {
+            if (
+                this.requested[i].data.length !== this.requested[0].data.length &&
+                this.requested[i].opts.groupByData === false
+            ) {
+                Logger.warnOnce(`all series[].data arrays must be of the same length and have matching keys.`);
+                break;
+            }
+        }
+
         const merged = this.mergeRequested();
         this.debug('DataController.execute() - merged', merged);
 

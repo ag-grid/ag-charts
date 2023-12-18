@@ -194,6 +194,7 @@ export class AreaSeries extends CartesianSeries<
                 ...extraProps,
             ],
             groupByKeys: true,
+            groupByData: false,
         });
 
         this.animationState.transition('updateData');

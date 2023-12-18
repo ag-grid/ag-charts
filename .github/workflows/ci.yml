@@ -1,13 +1,30 @@
 name: CI
 
-env:
-    NX_REJECT_UNKNOWN_LOCAL_CACHE: 0
-
 on:
     push:
         branches: [latest]
     pull_request:
         branches: [latest]
+    workflow_dispatch:
+        inputs:
+            clean_checkout:
+                description: 'Disable all caching'
+                type: 'choice'
+                required: true
+                default: 'false'
+                options:
+                    - 'true'
+                    - 'false'
+            nx_command:
+                type: 'choice'
+                required: true
+                default: 'affected'
+                options:
+                    - 'affected'
+                    - 'run-many'
+
+env:
+    NX_REJECT_UNKNOWN_LOCAL_CACHE: 0
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
@@ -50,47 +67,60 @@ jobs:
               uses: actions/checkout@v3
               with:
                   fetch-depth: 0
+            - name: Fetch Refs
+              run: git fetch origin latest-success latest
             - name: Nx Affected SHA Setup
               id: nx_config
               run: |
                   if [[ $(git branch --show-current) == 'latest' ]] ; then
                     echo "base=latest-success" >> $GITHUB_OUTPUT
+                    echo "NX_BASE=latest-success" >> $GITHUB_ENV
                   else
                     echo "base=origin/latest" >> $GITHUB_OUTPUT
+                    echo "NX_BASE=origin/latest" >> $GITHUB_ENV
                   fi
+                  git fetch origin latest-success latest
             - name: Cache node_modules
+              if: github.event.inputs.clean_checkout != 'true'
               id: cache
               uses: actions/cache@v3
               with:
                   path: |
                       node_modules/
                       packages/*/node_modules/
-                      !node_modules/.cache/
-                      !packages/*/node_modules/.cache/
-                  key: node_modules-${{hashFiles('yarn.lock','patches/*.patch')}}
+                      plugins/*/node_modules/
+                      libraries/*/node_modules/
+                  key: node_modules-${{hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json')}}
                   restore-keys: node_modules- # Take any latest cache if failed to find it for current yarn.lock
             - name: Cache Nx
+              if: github.event.inputs.clean_checkout != 'true'
               uses: actions/cache@v3
               with:
                   path: .nx/cache
-                  key: cache-nx-v17-${{ hashFiles('yarn.lock','patches/*.patch') }}-${{ github.sha }}
-                  restore-keys: cache-nx-v17-${{ hashFiles('yarn.lock','patches/*.patch') }}-
+                  key: cache-nx-v17-${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json') }}-${{ github.sha }}
+                  restore-keys: cache-nx-v17-${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json') }}-
             - name: Setup Node.js
               id: setup_node
-              uses: actions/setup-node@v3
+              uses: actions/setup-node@v4
               with:
                   node-version: '18'
-                  cache: ${{ steps.cache.outputs.cache-hit != 'true' && 'yarn' || '' }}
-
+                  cache: ${{ github.event.inputs.clean_checkout != 'true' && steps.cache.outputs.cache-hit != 'true' && 'yarn' || '' }}
             - name: yarn install
-              # if: steps.cache.outputs.cache-hit != 'true'
+              if: steps.cache.outputs.cache-hit != 'true'
               id: yarn_install
-              run: yarn install --ci --prefer-offline
-
+              run: (yarn check --integrity && yarn postinstall) || yarn install --ci --prefer-offline
+            - name: yarn postinstall
+              if: steps.cache.outputs.cache-hit == 'true'
+              run: yarn postinstall
             - name: nx format:check
               id: format
               if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
-              run: yarn nx format:check --base ${{ steps.nx_config.outputs.base }}
+              run: |
+                  if [[ "${{ github.event.inputs.nx_command || 'affected' }}" == "run-many" ]] ; then
+                    yarn nx format:check --all
+                  else
+                    yarn nx format:check --base ${{ steps.nx_config.outputs.base }}
+                  fi
             - name: Update Status (format)
               uses: LouisBrunner/checks-action@v1.6.1
               if: always()
@@ -102,7 +132,7 @@ jobs:
             - name: nx lint
               id: lint
               if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
-              run: yarn nx affected --base ${{ steps.nx_config.outputs.base }} -t lint --parallel=3
+              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t lint --parallel=3 --exclude all
             - name: Update Status (lint)
               uses: LouisBrunner/checks-action@v1.6.1
               if: always()
@@ -114,7 +144,7 @@ jobs:
             - name: nx build
               id: build
               if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
-              run: yarn nx affected --base ${{ steps.nx_config.outputs.base }} -t build --parallel=3
+              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t build --parallel=3  --exclude all
             - name: Update Status (build)
               uses: LouisBrunner/checks-action@v1.6.1
               if: always()
@@ -126,7 +156,11 @@ jobs:
             - name: Count test targets to run
               id: test_count
               run: |
-                  echo "test_count=$(yarn -s nx show projects --affected --base ${{ steps.nx_config.outputs.base }} -t test | wc -l)" >> $GITHUB_OUTPUT
+                  if [[ "${{ github.event.inputs.nx_command || 'affected' }}" == "run-many" ]] ; then
+                    echo "test_count=1000" >> $GITHUB_OUTPUT
+                  else
+                    echo "test_count=$(yarn -s nx show projects --affected --base ${{ steps.nx_config.outputs.base }} -t test | wc -l)" >> $GITHUB_OUTPUT
+                  fi
 
     test:
         runs-on: ubuntu-latest
@@ -138,6 +172,7 @@ jobs:
         name: test (${{ matrix.shard }}/${{ strategy.job-total }})
         env:
             NX_PARALLEL: 1
+            NX_BASE: ${{ needs.execute_blt.outputs.nx_base }}
         steps:
             - name: Checkout
               id: checkout
@@ -145,25 +180,40 @@ jobs:
               with:
                   fetch-depth: 0
             - name: Cache node_modules
+              if: github.event.inputs.clean_checkout != 'true'
               id: cache
               uses: actions/cache@v3
               with:
                   path: |
                       node_modules/
                       packages/*/node_modules/
-                      !node_modules/.cache/
-                      !packages/*/node_modules/.cache/
-                  key: node_modules-${{hashFiles('yarn.lock','patches/*.patch')}}
+                      plugins/*/node_modules/
+                      libraries/*/node_modules/
+                  key: node_modules-${{hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json')}}
                   restore-keys: node_modules- # Take any latest cache if failed to find it for current yarn.lock
             - name: Cache Nx
+              if: github.event.inputs.clean_checkout != 'true'
               uses: actions/cache@v3
               with:
                   path: .nx/cache
-                  key: cache-nx-v17-${{ hashFiles('yarn.lock','patches/*.patch') }}-${{ github.sha }}
-                  restore-keys: cache-nx-v17-${{ hashFiles('yarn.lock','patches/*.patch') }}-
+                  key: cache-nx-v17-${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json') }}-${{ github.sha }}
+                  restore-keys: cache-nx-v17-${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json') }}-
+            - name: Setup Node.js
+              id: setup_node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '18'
+                  cache: ${{ github.event.inputs.clean_checkout != 'true' && steps.cache.outputs.cache-hit != 'true' && 'yarn' || '' }}
+            - name: yarn install
+              if: steps.cache.outputs.cache-hit != 'true'
+              id: yarn_install
+              run: (yarn check --integrity && yarn postinstall) || yarn install --ci --prefer-offline
+            - name: yarn postinstall
+              if: steps.cache.outputs.cache-hit == 'true'
+              run: yarn postinstall
             - name: nx test
               id: test
-              run: yarn nx affected --base ${{ needs.execute_blt.outputs.nx_base }} -t test --configuration=ci --exclude all --shard=${{ matrix.shard }}/${{ strategy.job-total }}
+              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t test --configuration=ci --exclude all --shard=${{ matrix.shard }}/${{ strategy.job-total }}
             - name: Perist test results
               if: always()
               uses: actions/upload-artifact@v3
@@ -183,6 +233,8 @@ jobs:
               uses: actions/checkout@v3
               with:
                   fetch-depth: 0
+            - name: Fetch Refs
+              run: git fetch origin latest-success latest
 
             - uses: actions/download-artifact@v3
               with:
