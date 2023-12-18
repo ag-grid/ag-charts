@@ -9,34 +9,16 @@ export type Message = {
     context: ExecutorContext;
 };
 
-const queue: Message[] = [];
+export default async function processor(msg: Message) {
+    const { options, context, taskName } = msg;
 
-let processorRef: NodeJS.Immediate;
-function startProcessing() {
-    if (!processorRef) {
-        processorRef = setImmediate(processor);
-    }
-}
-
-async function processor() {
-    while (queue.length > 0) {
-        const { options, context, taskName } = queue.pop();
-
-        let result: BatchExecutorTaskResult;
-        try {
-            await generateFiles(options, context);
-            result = { task: taskName, result: { success: true, terminalOutput: '' } };
-        } catch (e) {
-            result = { task: taskName, result: { success: false, terminalOutput: `${e}` } };
-        }
-
-        process.send(result);
+    let result: BatchExecutorTaskResult;
+    try {
+        await generateFiles(options, context);
+        result = { task: taskName, result: { success: true, terminalOutput: '' } };
+    } catch (e) {
+        result = { task: taskName, result: { success: false, terminalOutput: `${e}` } };
     }
 
-    processorRef = undefined;
+    return result;
 }
-
-process.on('message', (msg: Message) => {
-    queue.push(msg);
-    startProcessing();
-});

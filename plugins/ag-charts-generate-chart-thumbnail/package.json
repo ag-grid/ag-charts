@@ -17,7 +17,8 @@
     "ag-charts-enterprise": "9.0.1-beta.20231211",
     "jscodeshift": "^0.15.0",
     "ag-charts-test": "*",
-    "@swc/helpers": "0.5.3"
+    "@swc/helpers": "0.5.3",
+    "tinypool": "^0.8.1"
   },
   "type": "commonjs",
   "main": "./dist/src/index.js",

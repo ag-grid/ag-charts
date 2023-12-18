@@ -4,7 +4,6 @@ import type { ChildProcess } from 'child_process';
 import { readFileSync } from 'fs';
 import * as fs from 'fs/promises';
 import * as glob from 'glob';
-import * as os from 'os';
 import * as path from 'path';
 import * as ts from 'typescript';
 
@@ -99,53 +98,25 @@ export function batchExecutor<ExecutorOptions>(
     };
 }
 
-const workers: ChildProcess[] = [];
-const terminateWorkers = () => {
-    workers.forEach((w) => w.kill('SIGKILL'));
-    workers.length = 0;
-};
-
-process.on('exit', () => {
-    terminateWorkers();
-});
-
-export function batchWorkerExecutor<ExecutorOptions>(worker: () => ChildProcess) {
-    const maxChildCount = Math.max(1, os.cpus().length - 1);
-    const results: Map<string, Promise<BatchExecutorTaskResult>> = new Map();
-    const resolvers: Map<string, (res: BatchExecutorTaskResult) => void> = new Map();
-
-    const createWorker = () => {
-        const workerInstance = worker();
-        workerInstance.on('message', (message: BatchExecutorTaskResult) => {
-            const { task, result } = message;
-            resolvers.get(task)({ task, result });
-            resolvers.delete(task);
-
-            if (result.success !== true) {
-                console.error(`[${task}]: ${result.terminalOutput}`);
-            }
-            if (resolvers.size === 0) {
-                terminateWorkers();
-            }
-        });
-        workerInstance.on('error', (e) => {
-            console.error(e);
-            terminateWorkers();
-        });
-        workers.push(workerInstance);
-    };
-
-    for (let i = workers.length; i < maxChildCount; i++) {
-        createWorker();
-    }
-    console.log('Worker count: ' + workers.length);
-
+export function batchWorkerExecutor<ExecutorOptions>(workerModule: string) {
     return async function* (
         taskGraph: TaskGraph,
         inputs: Record<string, ExecutorOptions>,
         overrides: ExecutorOptions,
         context: ExecutorContext
     ): AsyncGenerator<BatchExecutorTaskResult, any, unknown> {
+        const results: Map<string, Promise<BatchExecutorTaskResult>> = new Map();
+
+        const { Tinypool } = await import('tinypool');
+        const pool = new Tinypool({
+            runtime: 'child_process',
+            filename: workerModule,
+        });
+        process.on('exit', () => {
+            pool.cancelPendingTasks();
+            pool.destroy();
+        });
+
         const tasks = Object.keys(inputs);
 
         for (let taskIndex = 0; taskIndex < tasks.length; taskIndex++) {
@@ -153,7 +124,7 @@ export function batchWorkerExecutor<ExecutorOptions>(worker: () => ChildProcess)
             const task = taskGraph.tasks[taskName];
             const inputOptions = inputs[taskName];
 
-            workers[taskIndex % workers.length].send({
+            const opts = {
                 options: { ...inputOptions, ...overrides },
                 context: {
                     ...context,
@@ -162,20 +133,17 @@ export function batchWorkerExecutor<ExecutorOptions>(worker: () => ChildProcess)
                     configurationName: task.target.configuration,
                 },
                 taskName,
-            });
-
-            results.set(
-                taskName,
-                new Promise((resolve) => {
-                    resolvers.set(taskName, resolve);
-                })
-            );
+            };
+            results.set(taskName, pool.run(opts));
         }
 
+        // Run yield loop after dispatch to avoid serializing execution.
         for (let taskIndex = 0; taskIndex < tasks.length; taskIndex++) {
             const taskName = tasks[taskIndex++];
             yield results.get(taskName);
         }
+
+        await pool.destroy();
     };
 }
 
