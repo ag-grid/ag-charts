@@ -1,6 +1,6 @@
 {
   "name": "ag-charts-community-examples",
-  "version": "0.0.1",
+  "version": "9.0.1-beta.20231211",
   "type": "commonjs",
   "private": true,
   "dependencies": {

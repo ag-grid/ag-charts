@@ -1,6 +1,6 @@
 {
   "name": "ag-charts-task-autogen",
-  "version": "0.0.1",
+  "version": "9.0.1-beta.20231211",
   "private": true,
   "dependencies": {
     "@nx/devkit": "17.0.3",
