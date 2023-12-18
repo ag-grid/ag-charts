@@ -242,7 +242,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
 
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
         const { processedData, dataModel } = this;
-        if (!processedData || !dataModel) return [];
+        if (!processedData || !dataModel || processedData.data.length === 0) return [];
 
         const { reduced: { [SMALLEST_KEY_INTERVAL.property]: smallestX } = {} } = processedData;
 

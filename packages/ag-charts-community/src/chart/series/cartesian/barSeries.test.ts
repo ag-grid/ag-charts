@@ -144,6 +144,13 @@ describe('BarSeries', () => {
             expect(console.warn).not.toBeCalled();
         });
 
+        test('no data', async () => {
+            chart = AgCharts.create(
+                prepareTestOptions({ data: [], series: [{ type: 'bar', xKey: 'x', yKey: 'y' }] })
+            ) as Chart;
+            await compare();
+        });
+
         for (const [exampleName, example] of Object.entries(EXAMPLES)) {
             it(`for ${exampleName} it should create chart instance as expected`, async () => {
                 const options: AgChartOptions = { ...example.options };
