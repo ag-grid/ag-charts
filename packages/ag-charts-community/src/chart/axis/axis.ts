@@ -27,7 +27,6 @@ import type { TextSizeProperties } from '../../scene/shape/text';
 import { Text, measureText, splitText } from '../../scene/shape/text';
 import { jsonDiff } from '../../sparklines-util';
 import { normalizeAngle360, toRadians } from '../../util/angle';
-import { extent } from '../../util/array';
 import { areArrayNumbersEqual } from '../../util/equal';
 import { createId } from '../../util/id';
 import type { PointLabelDatum } from '../../util/labelPlacement';
@@ -394,22 +393,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const {
             scale,
             dataDomain: { domain },
-            tick: { values: tickValues },
         } = this;
-        if (tickValues && ContinuousScale.is(scale)) {
-            const [tickMin, tickMax] = extent(tickValues) ?? [Infinity, -Infinity];
-            const dataDomainMin = Math.min(scale.fromDomain(domain[0]), scale.fromDomain(domain[1]));
-            const dataDomainMax = Math.max(scale.fromDomain(domain[0]), scale.fromDomain(domain[1]));
-
-            const min = Math.min(dataDomainMin, tickMin);
-            const max = Math.max(dataDomainMax, tickMax);
-
-            scale.domain = this.reverse
-                ? [scale.toDomain(max), scale.toDomain(min)]
-                : [scale.toDomain(min), scale.toDomain(max)];
-        } else {
-            scale.domain = domain;
-        }
+        scale.domain = domain;
     }
 
     private setTickInterval(interval?: TickInterval<S>) {
@@ -1043,13 +1028,25 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         maxTickCount: number;
         primaryTickCount?: number;
     }) {
-        const { range, scale, visibleRange } = this;
+        const {
+            range,
+            scale,
+            visibleRange,
+            dataDomain: { domain },
+        } = this;
 
         let rawTicks: any[] = [];
 
         switch (tickGenerationType) {
             case TickGenerationType.VALUES:
-                rawTicks = this.tick.values!;
+                if (ContinuousScale.is(scale)) {
+                    const d0 = scale.fromDomain(domain[0]);
+                    const d1 = scale.fromDomain(domain[1]);
+
+                    rawTicks = this.tick.values!.filter((value) => value >= d0 && value <= d1).sort((a, b) => a - b);
+                } else {
+                    rawTicks = this.tick.values!;
+                }
                 break;
             case TickGenerationType.CREATE_SECONDARY:
                 // `updateSecondaryAxisTicks` mutates `scale.domain` based on `primaryTickCount`

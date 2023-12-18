@@ -107,6 +107,9 @@ class GradientLegendInterval implements AgGradientLegendIntervalOptions {
         this.tick = tick;
     }
 
+    @ProxyProperty('tick', 'values')
+    values?: GradientLegendAxisTick['values'];
+
     @ProxyProperty('tick', 'minSpacing')
     minSpacing?: GradientLegendAxisTick['minSpacing'];
 
