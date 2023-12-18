@@ -1,5 +1,5 @@
 import * as CarbonIcon from '@carbon/icons-react';
-import styles from '@design-system/modules//Icon.module.scss';
+import styles from '@design-system/modules/Icon.module.scss';
 import ApiIcon from '@images/inline-svgs/api.svg?react';
 import BoldChevronDown from '@images/inline-svgs/bold-chevron-down.svg?react';
 import BoldChevronLeft from '@images/inline-svgs/bold-chevron-left.svg?react';

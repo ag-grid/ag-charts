@@ -1,4 +1,4 @@
-import gridHeaderStyles from '@design-system/modules//gridSiteHeader.module.scss';
+import gridHeaderStyles from '@design-system/modules/gridSiteHeader.module.scss';
 import { useDarkmode } from '@utils/hooks/useDarkmode';
 import classNames from 'classnames';
 

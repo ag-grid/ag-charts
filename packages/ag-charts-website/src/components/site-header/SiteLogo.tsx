@@ -1,5 +1,5 @@
 import { SITE_BASE_URL } from '@constants';
-import gridStyles from '@design-system/modules//gridSiteHeader.module.scss';
+import gridStyles from '@design-system/modules/gridSiteHeader.module.scss';
 import LogoType from '@images/inline-svgs/ag-charts-logotype.svg?react';
 import type { FunctionComponent } from 'react';
 import { useState } from 'react';
