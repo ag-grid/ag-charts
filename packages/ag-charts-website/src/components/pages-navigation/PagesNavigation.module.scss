@@ -10,10 +10,6 @@
         border-bottom-color: transparent;
     }
 
-    @media screen and (max-width: $breakpoint-docs-nav-medium) {
-        @include page-horizontal-margins();
-    }
-
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
         flex-shrink: 0;
         height: auto !important; // !important required to override <Collapsible> component styling

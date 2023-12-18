@@ -41,7 +41,7 @@ const frameworksData = [
 
 <Layout>
     <div class={styles.homepageHero}>
-        <div class:list={[styles.heroInner, 'page-margin']}>
+        <div class:list={[styles.heroInner, 'layout-page-max-width']}>
             <div class={styles.heroHeadings}>
                 <h1>The Best JavaScript Charts in the World</h1>
                 <h2>The professional choice for developers building enterprise applications</h2>
@@ -53,14 +53,14 @@ const frameworksData = [
     </div>
 
     <div class={styles.homepageFrameworks}>
-        <div class:list={[styles.frameworksInner, 'page-margin']}>
+        <div class:list={[styles.frameworksInner, 'layout-page-max-width']}>
             <span class:list={[styles.frameworksLabel, 'text-secondary']}>Get&nbsp;started</span>
             <FrameworkSelector data={frameworksData} isFullWidth />
         </div>
     </div>
 
     <div class={styles.homepageBenefits}>
-        <div class:list={[styles.benefitsInner, 'page-margin']}>
+        <div class:list={[styles.benefitsInner, 'layout-page-max-width']}>
             <video class={styles.videoLight} src="videos/chart-features-light.mp4" muted autoplay loop></video>
             <video class={styles.videoDark} src="videos/chart-features-dark.mp4" muted autoplay loop></video>
             <div class={styles.benefitsCopy}>
@@ -86,7 +86,7 @@ const frameworksData = [
     </div>
 
     <div class={styles.homepageGrid}>
-        <div class:list={[styles.gridInner, 'page-margin']}>
+        <div class:list={[styles.gridInner, 'layout-page-max-width']}>
             <div class={styles.gridCopy}>
                 <div class={styles.agGridLogo}>
                     <GridLogoType />

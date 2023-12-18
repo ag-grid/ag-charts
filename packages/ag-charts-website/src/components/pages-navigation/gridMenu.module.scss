@@ -44,10 +44,6 @@
     font-size: var(--text-fs-base);
     width: 100%;
 
-    @media screen and (max-width: $breakpoint-docs-nav-medium) {
-        @include page-horizontal-margins();
-    }
-
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
         --menu-horizontal-margin: #{$spacing-size-4};
 
