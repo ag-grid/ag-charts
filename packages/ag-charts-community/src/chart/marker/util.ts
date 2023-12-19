@@ -23,7 +23,7 @@ const MARKER_SHAPES: { [K in MarkerSupportedShapes]: MarkerConstructor } = {
 
 const MARKER_SUPPORTED_SHAPES = Object.keys(MARKER_SHAPES);
 
-export function isMarkerShape(shape: MarkerShape | string): shape is MarkerSupportedShapes {
+export function isMarkerShape(shape: unknown): shape is MarkerSupportedShapes {
     return typeof shape === 'string' && MARKER_SUPPORTED_SHAPES.includes(shape);
 }
 
