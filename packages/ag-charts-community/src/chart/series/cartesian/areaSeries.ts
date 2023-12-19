@@ -623,8 +623,12 @@ export class AreaSeries extends CartesianSeries<
                     strokeOpacity: marker.strokeOpacity ?? strokeOpacity,
                     strokeWidth: marker.strokeWidth ?? 0,
                 },
-                line: { stroke, strokeOpacity, strokeWidth },
-                area: { fill, fillOpacity },
+                line: {
+                    stroke,
+                    strokeOpacity,
+                    strokeWidth,
+                    offset: 5, // FIXME: add a styling option to change the width of the stroke in the legend.
+                },
             },
         ];
     }

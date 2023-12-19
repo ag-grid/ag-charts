@@ -3,7 +3,6 @@ import { HdpiCanvas } from '../scene/canvas/hdpiCanvas';
 import { Group } from '../scene/group';
 import type { RenderContext } from '../scene/node';
 import { Line } from '../scene/shape/line';
-import { Rect } from '../scene/shape/rect';
 import { Text } from '../scene/shape/text';
 import { ProxyPropertyOnWrite } from '../util/proxy';
 import type { Marker } from './marker/marker';
@@ -14,12 +13,11 @@ export class MarkerLabel extends Group {
 
     private label = new Text();
     private line = new Line();
-    private area = new Rect();
 
     constructor() {
         super({ name: 'markerLabelGroup' });
 
-        const { marker, label, line, area } = this;
+        const { marker, label, line } = this;
         label.textBaseline = 'middle';
         label.fontSize = 12;
         label.fontFamily = 'Verdana, sans-serif';
@@ -27,8 +25,7 @@ export class MarkerLabel extends Group {
         // For better looking vertical alignment of labels to markers.
         label.y = HdpiCanvas.has.textMetrics ? 1 : 0;
 
-        area.zIndex = -1;
-        this.append([area, line, marker, label]);
+        this.append([line, marker, label]);
         this.update();
     }
 
@@ -74,12 +71,6 @@ export class MarkerLabel extends Group {
     @ProxyPropertyOnWrite('line', 'strokeOpacity')
     lineStrokeOpacity?: number;
 
-    @ProxyPropertyOnWrite('area', 'fill')
-    areaFill?: string;
-
-    @ProxyPropertyOnWrite('area', 'fillOpacity')
-    areaFillOpacity?: number;
-
     private _marker: Marker = new Square();
     set marker(value: Marker) {
         if (this._marker !== value) {
@@ -115,29 +106,18 @@ export class MarkerLabel extends Group {
         return this._spacing;
     }
 
+    setSeriesStrokeOffset(xOff: number) {
+        const offset = (this.marker.size / 2) + xOff;
+        this.line.x1 = -offset;
+        this.line.x2 = offset;
+        this.line.y1 = 0;
+        this.line.y2 = 0;
+        this.line.markDirtyTransform();
+    }
+
     private update() {
-        const markerSize = this.markerSize;
-        const markerHalfSize = this.markerSize / 2;
-
-        this.marker.size = markerSize;
-
-        this.label.x = markerHalfSize + this.spacing;
-
-        const hard = 5;
-        const x = -(markerHalfSize + hard);
-        const w = markerSize + hard + hard;
-        const y = 0;
-        const h = markerHalfSize;
-
-        this.line.x1 = x;
-        this.line.x2 = x + w;
-        this.line.y1 = y;
-        this.line.y2 = y;
-
-        this.area.x = x;
-        this.area.y = y;
-        this.area.height = h;
-        this.area.width = w;
+        this.marker.size = this.markerSize;
+        this.label.x = this.markerSize / 2 + this.spacing;
     }
 
     override render(renderCtx: RenderContext): void {
@@ -145,6 +125,7 @@ export class MarkerLabel extends Group {
         // propagate opacity changes here.
         this.marker.opacity = this.opacity;
         this.label.opacity = this.opacity;
+        this.line.opacity = this.opacity;
 
         super.render(renderCtx);
     }

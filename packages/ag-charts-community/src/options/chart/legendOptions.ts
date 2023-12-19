@@ -50,6 +50,8 @@ export interface AgChartLegendItemOptions {
     paddingY?: PixelSize;
     /** Set to `false` to turn off toggling of the series visibility in the chart when the legend item is clicked. */
     toggleSeriesVisible?: boolean;
+    /** Set to `true` to show the stroke styling of line and area series in the legend. */
+    showSeriesStroke?: boolean;
 }
 
 export interface AgChartLegendEvent<T extends string> {

@@ -409,6 +409,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
                     stroke: stroke ?? color0,
                     strokeOpacity,
                     strokeWidth,
+                    offset: 5, // FIXME: add a styling option to change the width of the stroke in the legend.
                 },
             },
         ];
