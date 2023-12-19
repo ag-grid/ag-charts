@@ -12,6 +12,7 @@ type InteractionTypes =
     | 'drag'
     | 'drag-end'
     | 'leave'
+    | 'mouse-down'
     | 'page-left'
     | 'wheel';
 
@@ -196,11 +197,11 @@ export class InteractionManager extends BaseManager<
             case 'mousedown':
                 this.mouseDown = true;
                 this.dragStartElement = event.target as HTMLElement;
-                return [dragStart];
+                return ['mouse-down', dragStart];
             case 'touchstart':
                 this.touchDown = true;
                 this.dragStartElement = event.target as HTMLElement;
-                return [dragStart];
+                return ['mouse-down', dragStart];
 
             case 'touchmove':
             case 'mousemove':

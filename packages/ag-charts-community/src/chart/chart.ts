@@ -297,6 +297,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     private readonly processors: UpdateProcessor[] = [];
 
+    private mouseDownIds?: { seriesId: string; itemId: string };
+
     protected constructor(specialOverrides: ChartExtendedOptions, resources?: TransferableResources) {
         super();
 
@@ -359,6 +361,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.interactionManager.addListener('click', (event) => this.onClick(event)),
             this.interactionManager.addListener('dblclick', (event) => this.onDoubleClick(event)),
             this.interactionManager.addListener('hover', (event) => this.onMouseMove(event)),
+            this.interactionManager.addListener('mouse-down', (event) => this.onMouseDown(event)),
             this.interactionManager.addListener('leave', (event) => this.onLeave(event)),
             this.interactionManager.addListener('page-left', () => this.destroy()),
             this.interactionManager.addListener('wheel', () => this.disablePointer()),
@@ -1199,6 +1202,13 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
+    protected onMouseDown(event: InteractionEvent<'mouse-down'>) {
+        this.mouseDownIds = undefined;
+        this.checkSeriesNodeRange(event, (series, datum) => {
+            this.mouseDownIds = { seriesId: series.id, itemId: datum.itemId };
+        });
+    }
+
     protected onClick(event: InteractionEvent<'click'>) {
         if (this.checkSeriesNodeClick(event)) {
             this.update(ChartUpdateType.SERIES_UPDATE);
@@ -1222,7 +1232,14 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     private checkSeriesNodeClick(event: InteractionEvent<'click'>): boolean {
-        return this.checkSeriesNodeRange(event, (series, datum) => series.fireNodeClickEvent(event.sourceEvent, datum));
+        return this.checkSeriesNodeRange(event, (series, datum) => {
+            if (!this.mouseDownIds) return;
+            const { seriesId, itemId } = this.mouseDownIds;
+
+            if (seriesId === series.id && itemId === datum.itemId) {
+                series.fireNodeClickEvent(event.sourceEvent, datum);
+            }
+        });
     }
 
     private checkSeriesNodeDoubleClick(event: InteractionEvent<'dblclick'>): boolean {
@@ -1232,7 +1249,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     private checkSeriesNodeRange(
-        event: InteractionEvent<'click' | 'dblclick' | 'hover'>,
+        event: InteractionEvent<'click' | 'dblclick' | 'hover' | 'mouse-down'>,
         callback: (series: ISeries<any>, datum: SeriesNodeDatum) => void
     ): boolean {
         const nearestNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, false);
@@ -1373,8 +1390,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
         return new BBox(
             0,
             0,
-            minRects.reduce((max, rect) => Math.max(max, rect!.width), 0),
-            minRects.reduce((max, rect) => Math.max(max, rect!.height), 0)
+            minRects.reduce((max, rect) => Math.max(max, rect?.width ?? 0), 0),
+            minRects.reduce((max, rect) => Math.max(max, rect?.height ?? 0), 0)
         );
     }
 }

@@ -211,6 +211,8 @@ export class Legend {
 
     private destroyFns: Function[] = [];
 
+    private mouseDownId?: string;
+
     constructor(private readonly ctx: ModuleContext) {
         this.item.marker.parent = this;
         this.pagination = new Pagination(
@@ -225,6 +227,7 @@ export class Legend {
 
         const bypass = { bypassPause: ['animation' as const] };
         this.destroyFns.push(
+            ctx.interactionManager.addListener('mouse-down', (e) => this.handleLegendMouseDown(e), bypass),
             ctx.interactionManager.addListener('click', (e) => this.checkLegendClick(e), bypass),
             ctx.interactionManager.addListener('dblclick', (e) => this.checkLegendDoubleClick(e), bypass),
             ctx.interactionManager.addListener('hover', (e) => this.handleLegendMouseMove(e)),
@@ -736,23 +739,42 @@ export class Legend {
         return actualBBox;
     }
 
+    private handleLegendMouseDown(event: InteractionEvent<'mouse-down'>) {
+        const { offsetX, offsetY } = event;
+        const pointerInsideLegend = this.getEventInsideLegend(event);
+
+        if (!pointerInsideLegend) {
+            this.mouseDownId = undefined;
+        } else {
+            this.mouseDownId = this.getDatumForPoint(offsetX, offsetY)?.id;
+        }
+    }
+
     private checkLegendClick(event: InteractionEvent<'click'>) {
         const {
+            mouseDownId,
             listeners: { legendItemClick },
             ctx: { chartService, highlightManager },
             item: { toggleSeriesVisible },
         } = this;
         const { offsetX, offsetY } = event;
 
-        const legendBBox = this.computeBBox();
-        const pointerInsideLegend = this.group.visible && legendBBox.containsPoint(offsetX, offsetY);
+        if (!this.getEventInsideLegend(event)) {
+            return;
+        }
+
         const datum = this.getDatumForPoint(offsetX, offsetY);
 
-        if (!pointerInsideLegend || !datum) {
+        if (!datum) {
             return;
         }
 
         const { id, itemId, enabled } = datum;
+
+        if (id !== mouseDownId) {
+            return;
+        }
+
         const series = chartService.series.find((s) => s.id === id);
         if (!series) {
             return;
@@ -794,11 +816,13 @@ export class Legend {
             return;
         }
 
-        const legendBBox = this.computeBBox();
-        const pointerInsideLegend = this.group.visible && legendBBox.containsPoint(offsetX, offsetY);
+        if (!this.getEventInsideLegend(event)) {
+            return;
+        }
+
         const datum = this.getDatumForPoint(offsetX, offsetY);
 
-        if (!pointerInsideLegend || !datum) {
+        if (!datum) {
             return;
         }
 
@@ -846,9 +870,8 @@ export class Legend {
             return;
         }
 
-        const legendBBox = this.computeBBox();
         const { pageX, pageY, offsetX, offsetY } = event;
-        const pointerInsideLegend = this.group.visible && legendBBox.containsPoint(offsetX, offsetY);
+        const pointerInsideLegend = this.getEventInsideLegend(event);
 
         if (!pointerInsideLegend) {
             this.ctx.cursorManager.updateCursor(this.id);
@@ -862,15 +885,15 @@ export class Legend {
         event.consume();
 
         const datum = this.getDatumForPoint(offsetX, offsetY);
-        const pointerOverLegendDatum = pointerInsideLegend && datum !== undefined;
-        if (!pointerOverLegendDatum) {
+        if (!datum) {
             this.ctx.cursorManager.updateCursor(this.id);
             this.ctx.highlightManager.updateHighlight(this.id);
+            this.ctx.tooltipManager.removeTooltip(this.id);
             return;
         }
 
-        const series = datum ? this.ctx.chartService.series.find((series) => series.id === datum?.id) : undefined;
-        if (datum && this.truncatedItems.has(datum.itemId ?? datum.id)) {
+        const series = this.ctx.chartService.series.find((series) => series.id === datum.id);
+        if (this.truncatedItems.has(datum.itemId ?? datum.id)) {
             this.ctx.tooltipManager.updateTooltip(
                 this.id,
                 { pageX, pageY, offsetX, offsetY, event, showArrow: false, addCustomClass: false },
@@ -884,15 +907,20 @@ export class Legend {
             this.ctx.cursorManager.updateCursor(this.id, 'pointer');
         }
 
-        if (datum?.enabled && series) {
+        if (datum.enabled && series) {
             this.ctx.highlightManager.updateHighlight(this.id, {
                 series,
-                itemId: datum?.itemId,
+                itemId: datum.itemId,
                 datum: undefined,
             });
         } else {
             this.ctx.highlightManager.updateHighlight(this.id);
         }
+    }
+
+    private getEventInsideLegend(event: InteractionEvent) {
+        const legendBBox = this.computeBBox();
+        return this.group.visible && legendBBox.containsPoint(event.offsetX, event.offsetY);
     }
 
     private positionLegend(shrinkRect: BBox) {

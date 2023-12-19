@@ -154,6 +154,12 @@ export function mouseMoveEvent({ offsetX, offsetY }: { offsetX: number; offsetY:
     return event;
 }
 
+export function mouseDownEvent({ offsetX, offsetY }: { offsetX: number; offsetY: number }): MouseEvent {
+    const event = new MouseEvent('mousedown', { bubbles: true });
+    Object.assign(event, { offsetX, offsetY, pageX: offsetX, pageY: offsetY });
+    return event;
+}
+
 export function clickEvent({ offsetX, offsetY }: { offsetX: number; offsetY: number }): MouseEvent {
     const event = new MouseEvent('click', { bubbles: true });
     Object.assign(event, { offsetX, offsetY, pageX: offsetX, pageY: offsetY });
@@ -236,6 +242,7 @@ export function clickAction(x: number, y: number): (chart: Chart | AgChartProxy)
         const target = chart.scene.canvas.element;
         checkTargetValid(target);
 
+        target?.dispatchEvent(mouseDownEvent({ offsetX: x, offsetY: y }));
         target?.dispatchEvent(clickEvent({ offsetX: x, offsetY: y }));
         return delay(50);
     };
