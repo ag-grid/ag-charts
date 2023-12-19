@@ -32,10 +32,14 @@ const {
 const { BBox, Group, Path, PointerEvents, Selection, Text, getMarker } = _Scene;
 const { extent, isNumber, isNumberEqual, sanitizeHtml, toFixed } = _Util;
 
-export interface RadarLinePoint {
+export interface RadarPathPoint {
     x: number;
     y: number;
     moveTo: boolean;
+    radius?: number;
+    startAngle?: number;
+    endAngle?: number;
+    arc?: boolean;
 }
 
 class RadarSeriesNodeClickEvent<
@@ -560,16 +564,24 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         lineNode.lineDashOffset = this.lineDashOffset;
     }
 
-    protected getLinePoints(options: { breakMissingPoints: boolean }): RadarLinePoint[] {
+    protected getLinePoints(options: { breakMissingPoints: boolean }): RadarPathPoint[] {
         const { nodeData } = this;
         const { breakMissingPoints } = options;
         if (nodeData.length === 0) {
             return [];
         }
-        const points: RadarLinePoint[] = [];
+
+        const radiusAxis = this.axes[ChartAxisDirection.Y];
+        const angleAxis = this.axes[ChartAxisDirection.X];
+        const reversedAngleAxis = angleAxis?.isReversed();
+        const reversedRadiusAxis = radiusAxis?.isReversed();
+
+        // For inverted radar area the inner line shape points must be anti-clockwise and the zero line points (outer shape must be clockwise) to create a hole in the middle of the shape
+        const data = reversedRadiusAxis && !reversedAngleAxis ? [...nodeData].reverse() : nodeData;
+        const points: RadarPathPoint[] = [];
         let prevPointInvalid = false;
         const invalidDatums = new Set<RadarNodeDatum>();
-        nodeData.forEach((datum, index) => {
+        data.forEach((datum, index) => {
             let { x, y } = datum.point!;
             const isPointInvalid = isNaN(x) || isNaN(y);
             if (isPointInvalid) {
@@ -586,8 +598,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
             points.push({ x, y, moveTo });
             prevPointInvalid = false;
         });
-        const isFirstInvalid = invalidDatums.has(nodeData[0]);
-        const isLastInvalid = invalidDatums.has(nodeData[nodeData.length - 1]);
+        const isFirstInvalid = invalidDatums.has(data[0]);
+        const isLastInvalid = invalidDatums.has(data[data.length - 1]);
         const closed = !breakMissingPoints || (!isFirstInvalid && !isLastInvalid);
         if (closed) {
             points.push({ ...points[0], moveTo: false });
@@ -595,23 +607,30 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         return points;
     }
 
-    protected animateSinglePath(pathNode: _Scene.Path, points: RadarLinePoint[], ratio: number) {
+    protected animateSinglePath(pathNode: _Scene.Path, points: RadarPathPoint[], ratio: number) {
         const { path } = pathNode;
 
         path.clear({ trackChanges: true });
 
         const axisInnerRadius = this.getAxisInnerRadius();
+        const radiusAxis = this.axes[ChartAxisDirection.Y];
+        const reversedRadiusAxis = radiusAxis?.isReversed();
+        const radiusZero = reversedRadiusAxis
+            ? this.radius + axisInnerRadius - radiusAxis?.scale.convert(0)
+            : axisInnerRadius;
 
         points.forEach((point) => {
-            const { x: x1, y: y1 } = point;
+            const { x: x1, y: y1, arc, radius = 0, startAngle = 0, endAngle = 0, moveTo } = point;
             const angle = Math.atan2(y1, x1);
-            const x0 = axisInnerRadius * Math.cos(angle);
-            const y0 = axisInnerRadius * Math.sin(angle);
+            const x0 = radiusZero * Math.cos(angle);
+            const y0 = radiusZero * Math.sin(angle);
             const t = ratio;
             const x = x0 * (1 - t) + x1 * t;
             const y = y0 * (1 - t) + y1 * t;
 
-            if (point.moveTo) {
+            if (arc) {
+                path.arc(x1, y1, radius, startAngle, endAngle);
+            } else if (moveTo) {
                 path.moveTo(x, y);
             } else {
                 path.lineTo(x, y);

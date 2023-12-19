@@ -112,37 +112,24 @@ export abstract class AngleAxis<
     }
 
     protected updateRadiusLine() {
-        const { scale, shape } = this;
         const node = this.radiusLine;
-        const radius = this.gridLength;
-        const [startAngle, endAngle] = this.range;
-        const isFullCircle = isNumberEqual(endAngle - startAngle, 2 * Math.PI);
-
         const { path } = node;
+
         path.clear({ trackChanges: true });
-        if (shape === 'circle') {
-            if (isFullCircle) {
-                path.moveTo(radius, 0);
-                path.arc(0, 0, radius, 0, 2 * Math.PI);
+
+        const { points, closePath } = this.getAxisLinePoints();
+
+        points.forEach(({ x, y, moveTo, arc, radius = 0, startAngle = 0, endAngle = 0 }) => {
+            if (arc) {
+                path.arc(x, y, radius, startAngle, endAngle);
+            } else if (moveTo) {
+                path.moveTo(x, y);
             } else {
-                path.moveTo(radius * Math.cos(startAngle), radius * Math.sin(startAngle));
-                path.arc(0, 0, radius, normalizeAngle360(startAngle), normalizeAngle360(endAngle));
+                path.lineTo(x, y);
             }
-        } else if (shape === 'polygon') {
-            const angles = (scale.ticks?.() || []).map((value) => scale.convert(value));
-            if (angles.length > 2) {
-                angles.forEach((angle, i) => {
-                    const x = radius * Math.cos(angle);
-                    const y = radius * Math.sin(angle);
-                    if (i === 0) {
-                        path.moveTo(x, y);
-                    } else {
-                        path.lineTo(x, y);
-                    }
-                });
-            }
-        }
-        if (isFullCircle) {
+        });
+
+        if (closePath) {
             path.closePath();
         }
 
@@ -150,6 +137,56 @@ export abstract class AngleAxis<
         node.stroke = this.line.color;
         node.strokeWidth = this.line.width;
         node.fill = undefined;
+    }
+
+    override getAxisLinePoints() {
+        const { scale, shape, gridLength: radius } = this;
+
+        const [startAngle, endAngle] = this.range;
+        const isFullCircle = isNumberEqual(endAngle - startAngle, 2 * Math.PI);
+
+        const points = [];
+        if (shape === 'circle') {
+            if (isFullCircle) {
+                points.push({ x: radius, y: 0, moveTo: true });
+                points.push({
+                    x: 0,
+                    y: 0,
+                    radius,
+                    startAngle: 0,
+                    endAngle: 2 * Math.PI,
+                    arc: true,
+                    moveTo: false,
+                });
+            } else {
+                points.push({
+                    x: radius * Math.cos(startAngle),
+                    y: radius * Math.sin(startAngle),
+                    moveTo: true,
+                });
+                points.push({
+                    x: 0,
+                    y: 0,
+                    radius,
+                    startAngle: normalizeAngle360(startAngle),
+                    endAngle: normalizeAngle360(endAngle),
+                    arc: true,
+                    moveTo: false,
+                });
+            }
+        } else if (shape === 'polygon') {
+            const angles = (scale.ticks?.() || []).map((value) => scale.convert(value));
+            if (angles.length > 2) {
+                angles.forEach((angle, i) => {
+                    const x = radius * Math.cos(angle);
+                    const y = radius * Math.sin(angle);
+                    const moveTo = i === 0;
+                    points.push({ x, y, moveTo });
+                });
+            }
+        }
+
+        return { points, closePath: isFullCircle };
     }
 
     protected override updateGridLines() {

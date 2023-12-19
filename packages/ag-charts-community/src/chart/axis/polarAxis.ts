@@ -2,10 +2,23 @@ import type { Scale } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
 import { RATIO, UNION, Validate } from '../../util/validation';
 import { Axis } from './axis';
+import type { TickInterval } from './axisTick';
 
 export const POLAR_AXIS_SHAPE = UNION(['polygon', 'circle'], 'a polar axis shape');
 
-export abstract class PolarAxis<S extends Scale<any, any, any> = Scale<any, any, any>> extends Axis<S> {
+export interface PolarAxisPathPoint {
+    x: number;
+    y: number;
+    moveTo: boolean;
+    radius?: number;
+    startAngle?: number;
+    endAngle?: number;
+    arc?: boolean;
+}
+export abstract class PolarAxis<
+    S extends Scale<D, number, TickInterval<S>> = Scale<any, number, any>,
+    D = any,
+> extends Axis<S, D> {
     gridAngles: number[] | undefined;
     gridRange: number[] | undefined;
 
@@ -22,4 +35,6 @@ export abstract class PolarAxis<S extends Scale<any, any, any> = Scale<any, any,
     }
 
     computeRange?: () => void;
+
+    getAxisLinePoints?(): { points: PolarAxisPathPoint[]; closePath: boolean };
 }
