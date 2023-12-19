@@ -116,7 +116,10 @@
         // border-left: 1px solid var(--nav-line-color);
         opacity: 0;
         z-index: -1;
-        transition: color 0.33s ease-in-out, border-color 0.33s ease-in-out, background-color 0.33s ease-in-out;
+        transition:
+            color 0.33s ease-in-out,
+            border-color 0.33s ease-in-out,
+            background-color 0.33s ease-in-out;
     }
 
     &:hover::before {
