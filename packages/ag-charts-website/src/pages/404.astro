@@ -24,7 +24,11 @@ const menuEntry = await getEntry('menu', 'data');
     </div>
 </Layout>
 
-<script>document.addEventListener('DOMContentLoaded', function () { plausible('404', { props: { path: document.location.pathname } }); });</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        plausible('404', { props: { path: document.location.pathname } });
+    });
+</script>
 
 <style lang="scss">
     @use '../design-system' as *;
