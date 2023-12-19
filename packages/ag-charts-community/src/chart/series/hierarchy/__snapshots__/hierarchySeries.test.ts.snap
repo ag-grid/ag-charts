@@ -1,6 +1,6 @@
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+// Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`HierarchySeries > creates a hierarchy 1`] = `
+exports[`HierarchySeries creates a hierarchy 1`] = `
 HierarchyNode {
   "children": [
     HierarchyNode {
