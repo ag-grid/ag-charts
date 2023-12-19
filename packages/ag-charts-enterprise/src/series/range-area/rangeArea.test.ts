@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
-import type { AgCartesianSeriesLabelFormatterParams } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     extractImageData,
@@ -122,7 +121,7 @@ describe('Chart', () => {
                 yHighKey: 'high',
                 label: {
                     enabled: true,
-                    formatter: ({ value }: AgCartesianSeriesLabelFormatterParams) => `${value}°C`,
+                    formatter: ({ value }) => `${value}°C`,
                 },
                 strokeWidth: 2,
                 fill: '#E7E8E9',
