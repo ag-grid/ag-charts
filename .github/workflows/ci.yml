@@ -147,7 +147,12 @@ jobs:
             - name: nx build
               id: build
               if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
-              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t build --parallel=3  --exclude all
+              run: |
+                  # Non-batched builds - some TS/JS targets will fail if run with --batch, so build them unbatched first.
+                  yarn nx  ${{ github.event.inputs.nx_command || 'affected' }} -t build --parallel=3  --exclude "all,ag-charts-website,tag:supports:batch"
+                  # Batched builds.
+                  yarn nx  ${{ github.event.inputs.nx_command || 'affected' }} -t build --parallel=3  --exclude all --batch
+
             - name: Update Status (build)
               uses: LouisBrunner/checks-action@v1.6.1
               if: always()
