@@ -82,7 +82,10 @@ interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDat
     readonly fill?: string;
     readonly stroke?: string;
     readonly strokeWidth: number;
-    readonly cornerRadius: number;
+    readonly topLeftCornerRadius: number;
+    readonly topRightCornerRadius: number;
+    readonly bottomRightCornerRadius: number;
+    readonly bottomLeftCornerRadius: number;
     readonly cornerRadiusBbox: BBox | undefined;
     readonly label?: BarNodeLabelDatum;
 }
@@ -249,7 +252,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
 
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
         const { processedData, dataModel } = this;
-        if (!processedData || !dataModel) return [];
+        if (!processedData || !dataModel || processedData.data.length === 0) return [];
 
         const { reduced: { [SMALLEST_KEY_INTERVAL.property]: smallestX } = {} } = processedData;
 
@@ -356,7 +359,8 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
             const currY = +values[0][yEndIndex];
             const prevY = +values[0][yStartIndex];
             const yRawValue = values[0][yRawIndex];
-            const yRange = aggValues?.[yRangeIndex][1] ?? 0;
+            const isPositive = yRawValue >= 0;
+            const yRange = aggValues?.[yRangeIndex][isPositive ? 1 : 0] ?? 0;
             const barX = x + groupScale.convert(String(groupIndex));
 
             if (isNaN(currY)) {
@@ -369,12 +373,12 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
             const barAlongX = this.getBarDirection() === ChartAxisDirection.X;
 
             const bboxHeight = yScale.convert(yRange);
-            const bboxOrigin = yScale.convert(0);
+            const bboxBottom = yScale.convert(0);
             const cornerRadiusBbox = new BBox(
-                barAlongX ? Math.min(bboxOrigin, bboxHeight) : barX,
-                barAlongX ? barX : Math.min(bboxOrigin, bboxHeight),
-                barAlongX ? Math.abs(bboxOrigin - bboxHeight) : barWidth,
-                barAlongX ? barWidth : Math.abs(bboxOrigin - bboxHeight)
+                barAlongX ? Math.min(bboxBottom, bboxHeight) : barX,
+                barAlongX ? barX : Math.min(bboxBottom, bboxHeight),
+                barAlongX ? Math.abs(bboxBottom - bboxHeight) : barWidth,
+                barAlongX ? barWidth : Math.abs(bboxBottom - bboxHeight)
             );
 
             const rect = {
@@ -416,7 +420,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
                       fontSize: labelFontSize,
                       fontFamily: labelFontFamily,
                       ...adjustLabelPlacement({
-                          isPositive: yRawValue >= 0,
+                          isPositive,
                           isVertical: !barAlongX,
                           placement,
                           rect,
@@ -446,7 +450,10 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
                 fill,
                 stroke,
                 strokeWidth,
-                cornerRadius,
+                topLeftCornerRadius: barAlongX === isPositive ? 0 : cornerRadius,
+                topRightCornerRadius: isPositive ? cornerRadius : 0,
+                bottomRightCornerRadius: barAlongX === isPositive ? cornerRadius : 0,
+                bottomLeftCornerRadius: isPositive ? 0 : cornerRadius,
                 cornerRadiusBbox,
                 label: labelDatum,
             };
@@ -488,7 +495,6 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
             lineDash,
             lineDashOffset,
             shadow,
-            cornerRadius,
             formatter,
             id: seriesId,
             highlightStyle: { item: itemHighlightStyle },
@@ -510,7 +516,10 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
                 lineDashOffset,
                 fillShadow: shadow,
                 strokeWidth: this.getStrokeWidth(this.strokeWidth),
-                cornerRadius,
+                topLeftCornerRadius: datum.topLeftCornerRadius,
+                topRightCornerRadius: datum.topRightCornerRadius,
+                bottomRightCornerRadius: datum.bottomRightCornerRadius,
+                bottomLeftCornerRadius: datum.bottomLeftCornerRadius,
                 cornerRadiusBbox: datum.cornerRadiusBbox,
             };
             const visible = categoryAlongX ? datum.width > 0 : datum.height > 0;

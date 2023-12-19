@@ -22,7 +22,11 @@ export type RectConfig = {
     lineDashOffset: number;
     lineDash?: number[];
     fillShadow?: DropShadow;
-    cornerRadius: number;
+    cornerRadius?: number;
+    topLeftCornerRadius?: number;
+    topRightCornerRadius?: number;
+    bottomRightCornerRadius?: number;
+    bottomLeftCornerRadius?: number;
     cornerRadiusBbox: BBox | undefined;
     crisp?: boolean;
     visible?: boolean;
@@ -39,7 +43,11 @@ export function updateRect({ rect, config }: { rect: Rect; config: RectConfig })
         lineDash,
         lineDashOffset,
         fillShadow,
-        cornerRadius,
+        cornerRadius = 0,
+        topLeftCornerRadius,
+        topRightCornerRadius,
+        bottomRightCornerRadius,
+        bottomLeftCornerRadius,
         cornerRadiusBbox,
         visible = true,
     } = config;
@@ -52,7 +60,10 @@ export function updateRect({ rect, config }: { rect: Rect; config: RectConfig })
     rect.lineDash = lineDash;
     rect.lineDashOffset = lineDashOffset;
     rect.fillShadow = fillShadow;
-    rect.cornerRadius = cornerRadius;
+    rect.topLeftCornerRadius = topLeftCornerRadius ?? cornerRadius;
+    rect.topRightCornerRadius = topRightCornerRadius ?? cornerRadius;
+    rect.bottomRightCornerRadius = bottomRightCornerRadius ?? cornerRadius;
+    rect.bottomLeftCornerRadius = bottomLeftCornerRadius ?? cornerRadius;
     rect.cornerRadiusBbox = cornerRadiusBbox;
     rect.visible = visible;
 }
@@ -81,7 +92,18 @@ export function getRectConfig<
     ctx: ModuleContext;
 } & ExtraParams): RectConfig {
     const { fill, fillOpacity, stroke, strokeWidth } = mergeDefaults(isHighlighted && highlightStyle, style);
-    const { strokeOpacity, fillShadow, lineDash, lineDashOffset, cornerRadius, cornerRadiusBbox } = style;
+    const {
+        strokeOpacity,
+        fillShadow,
+        lineDash,
+        lineDashOffset,
+        cornerRadius,
+        topLeftCornerRadius = cornerRadius,
+        topRightCornerRadius = cornerRadius,
+        bottomRightCornerRadius = cornerRadius,
+        bottomLeftCornerRadius = cornerRadius,
+        cornerRadiusBbox,
+    } = style;
 
     let format: AgBarSeriesStyle | undefined;
     if (formatter) {
@@ -106,7 +128,10 @@ export function getRectConfig<
         lineDash,
         lineDashOffset,
         fillShadow,
-        cornerRadius,
+        topLeftCornerRadius,
+        topRightCornerRadius,
+        bottomRightCornerRadius,
+        bottomLeftCornerRadius,
         cornerRadiusBbox,
     };
 }

@@ -1,6 +1,5 @@
+import styles from '@design-system/modules/Version.module.scss';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
-
-import styles from './Version.module.scss';
 
 const parseVersion = (version: string) => {
     const [major, minor, patch] = version.split('.').map(Number);

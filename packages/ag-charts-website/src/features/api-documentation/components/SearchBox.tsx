@@ -1,12 +1,12 @@
 import type { IconName } from '@components/icon/Icon';
 import { Icon } from '@components/icon/Icon';
+import styles from '@design-system/modules/OptionsNavigation.module.scss';
 import classnames from 'classnames';
 import type { AllHTMLAttributes, FormEventHandler, KeyboardEventHandler } from 'react';
 import { useRef, useState } from 'react';
 import Markdown from 'react-markdown';
 
 import type { SearchDatum } from '../apiReferenceHelpers';
-import styles from './OptionsNavigation.module.scss';
 
 type SelectionHandler = (data: SearchDatum) => void;
 

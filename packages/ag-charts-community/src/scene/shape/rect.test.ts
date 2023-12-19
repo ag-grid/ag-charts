@@ -7,7 +7,7 @@ import { Rect } from './rect';
 
 describe('Rect', () => {
     describe('rendering', () => {
-        const canvasCtx = setupMockCanvas();
+        const canvasCtx = setupMockCanvas({ height: 1000 });
 
         const shadowFn = (offset: number) => Object.assign(new DropShadow(), { xOffset: offset, yOffset: offset });
 
@@ -73,6 +73,16 @@ describe('Rect', () => {
                 ...CORNER_RADIUS_TC_PARAMS,
             })),
             CORNER_RADIUS_BBOX_CASES.map((cornerRadiusBbox) => ({ cornerRadiusBbox, ...CORNER_RADIUS_BBOX_TC_PARAMS })),
+            [
+                { width: 10, height: 10, cornerRadius: 100, cornerRadiusBbox: new BBox(0, 0, 100, 40) },
+                { width: 10, height: 10, cornerRadius: 100, cornerRadiusBbox: new BBox(-90, 0, 100, 40) },
+                { width: 10, height: 10, cornerRadius: 100, cornerRadiusBbox: new BBox(0, 0, 40, 100) },
+                { width: 10, height: 10, cornerRadius: 100, cornerRadiusBbox: new BBox(0, -90, 40, 100) },
+                { width: 10, height: 40, cornerRadius: 100, cornerRadiusBbox: new BBox(0, 0, 100, 40) },
+                { width: 10, height: 40, cornerRadius: 100, cornerRadiusBbox: new BBox(-90, 0, 100, 40) },
+                { width: 40, height: 10, cornerRadius: 100, cornerRadiusBbox: new BBox(0, 0, 40, 100) },
+                { width: 40, height: 10, cornerRadius: 100, cornerRadiusBbox: new BBox(0, -90, 40, 100) },
+            ],
             [],
             [
                 // Shadow cases.

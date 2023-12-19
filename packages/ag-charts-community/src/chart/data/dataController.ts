@@ -1,6 +1,5 @@
 import { Debug } from '../../util/debug';
 import { jsonDiff } from '../../util/json';
-import { Logger } from '../../util/logger';
 import type { ChartMode } from '../chartMode';
 import type {
     DataModelOptions,
@@ -74,18 +73,9 @@ export class DataController {
         this.status = 'executed';
 
         this.debug('DataController.execute() - requested', this.requested);
-
-        for (let i = 1; i < this.requested.length; i++) {
-            if (
-                this.requested[i].data.length !== this.requested[0].data.length &&
-                this.requested[i].opts.groupByData === false
-            ) {
-                Logger.warnOnce(`all series[].data arrays must be of the same length and have matching keys.`);
-                break;
-            }
-        }
-
-        const merged = this.mergeRequested();
+        const { valid, invalid } = this.validateRequests(this.requested);
+        this.debug('DataController.execute() - validated', valid);
+        const merged = this.mergeRequested(valid);
         this.debug('DataController.execute() - merged', merged);
 
         const debugMode = Debug.check(true, 'data-model');
@@ -96,7 +86,7 @@ export class DataController {
         for (const { opts, data, resultCbs, rejects, ids } of merged) {
             try {
                 const dataModel = new DataModel<any>({ ...opts, mode: this.mode });
-                const processedData = dataModel.processData(data, this.requested);
+                const processedData = dataModel.processData(data, valid);
 
                 if (debugMode) {
                     (window as any).processedData.push(processedData);
@@ -120,6 +110,8 @@ export class DataController {
                 rejects.forEach((cb) => cb(error));
             }
         }
+
+        invalid.forEach(({ error, reject }) => reject(error));
     }
 
     private extractScopedData(id: string, processedData: UngroupedData<any>) {
@@ -147,7 +139,28 @@ export class DataController {
         };
     }
 
-    private mergeRequested(): MergedRequests<any, any, any>[] {
+    private validateRequests(requested: RequestedProcessing<any, any, any>[]): {
+        valid: RequestedProcessing<any, any, any>[];
+        invalid: (RequestedProcessing<any, any, any> & { error: Error })[];
+    } {
+        const valid: RequestedProcessing<any, any, any>[] = [];
+        const invalid: (RequestedProcessing<any, any, any> & { error: Error })[] = [];
+
+        for (const [index, request] of requested.entries()) {
+            if (index > 0 && request.data.length !== requested[0].data.length && request.opts.groupByData === false) {
+                invalid.push({
+                    ...request,
+                    error: new Error('all series[].data arrays must be of the same length and have matching keys.'),
+                });
+            } else {
+                valid.push(request);
+            }
+        }
+
+        return { valid, invalid };
+    }
+
+    private mergeRequested(requested: RequestedProcessing<any, any, any>[]): MergedRequests<any, any, any>[] {
         const grouped: RequestedProcessing<any, any, any>[][] = [];
         const keys = (props: PropertyDefinition<any>[]) => {
             return props
@@ -216,7 +229,7 @@ export class DataController {
             };
         };
 
-        for (const request of this.requested) {
+        for (const request of requested) {
             const match = grouped.find(groupMatch(request));
 
             if (match) {

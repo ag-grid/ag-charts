@@ -1,10 +1,10 @@
 import { FRAMEWORKS } from '@constants';
+import styles from '@design-system/modules/FrameworkSelectorInsideDocs.module.scss';
 import fwLogos from '@images/fw-logos';
 import { getFrameworkDisplayText } from '@utils/framework';
 import classnames from 'classnames';
 
 import { getNewFrameworkPath } from '../../utils/framework';
-import styles from './FrameworkSelectorInsideDocs.module.scss';
 
 export const FrameworkSelectorInsideDocs = ({ path, currentFramework }) => {
     const handleFrameworkChange = (selectedFramework) => {
@@ -31,6 +31,7 @@ export const FrameworkSelectorInsideDocs = ({ path, currentFramework }) => {
                     onChange={(event) => handleFrameworkChange(event.target.value)}
                     onClick={(event) => event.stopPropagation()} // Prevent event propagation
                     className={styles.select}
+                    aria-label="Framework selector"
                 >
                     {FRAMEWORKS.map((framework) => (
                         <option value={framework} key={framework}>

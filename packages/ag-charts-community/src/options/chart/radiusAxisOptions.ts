@@ -1,10 +1,12 @@
 import type { AgAxisCategoryTickOptions, AgAxisNumberTickOptions } from '../series/cartesian/cartesianOptions';
-import type { AgAxisCaptionOptions, AgBaseAxisOptions } from './axisOptions';
+import type { AgAxisCaptionOptions, AgBaseAxisLabelOptions, AgBaseAxisOptions } from './axisOptions';
 import type { AgBaseCrossLineLabelOptions, AgBaseCrossLineOptions } from './crossLineOptions';
 import type { AgPolarAxisShape } from './polarAxisOptions';
 import type { Degree, Ratio } from './types';
 
-export interface AgRadiusNumberAxisOptions extends AgBaseAxisOptions {
+export interface AgRadiusAxisLabelOptions extends AgBaseAxisLabelOptions {}
+
+export interface AgRadiusNumberAxisOptions extends AgBaseAxisOptions<AgRadiusAxisLabelOptions> {
     type: 'radius-number';
     /** If `true`, the range will be rounded up to ensure nice equal spacing between the ticks. */
     nice?: boolean;
@@ -26,7 +28,7 @@ export interface AgRadiusNumberAxisOptions extends AgBaseAxisOptions {
     innerRadiusRatio?: Ratio;
 }
 
-export interface AgRadiusCategoryAxisOptions extends AgBaseAxisOptions {
+export interface AgRadiusCategoryAxisOptions extends AgBaseAxisOptions<AgRadiusAxisLabelOptions> {
     type: 'radius-category';
     /** The rotation angle of axis line and labels in degrees. */
     positionAngle?: Degree;

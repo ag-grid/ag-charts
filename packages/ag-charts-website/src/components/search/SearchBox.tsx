@@ -1,9 +1,9 @@
+import gridStyles from '@design-system/modules/SearchBox.module.scss';
 import classnames from 'classnames';
 import React, { useState } from 'react';
 import { connectSearchBox } from 'react-instantsearch-dom';
 
 import { Icon } from '../icon/Icon';
-import gridStyles from './gridSearchBox.module.scss';
 
 const IS_SSR = typeof window === 'undefined';
 

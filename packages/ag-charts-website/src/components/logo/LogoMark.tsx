@@ -1,7 +1,6 @@
+import styles from '@design-system/modules/LogoMark.module.scss';
 import LogoMarkSVG from '@images/inline-svgs/ag-grid-logomark.svg?react';
 import type { FunctionComponent } from 'react';
-
-import styles from './LogoMark.module.scss';
 
 interface Props {
     bounce?: boolean;

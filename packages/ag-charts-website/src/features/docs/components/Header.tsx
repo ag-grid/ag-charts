@@ -1,10 +1,9 @@
 import type { Framework } from '@ag-grid-types';
 import { FrameworkSelectorInsideDocs } from '@components/framework-selector-inside-doc/FrameworkSelectorInsideDocs';
 import { Icon } from '@components/icon/Icon';
+import styles from '@design-system/modules/Header.module.scss';
 import { getFrameworkDisplayText } from '@utils/framework';
 import type { FunctionComponent } from 'react';
-
-import styles from './Header.module.scss';
 
 interface Props {
     title: string;

@@ -152,6 +152,9 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     @Validate(POSITIVE_NUMBER)
     strokeWidth: number = 1;
 
+    @Validate(POSITIVE_NUMBER)
+    cornerRadius: number = 0;
+
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
@@ -370,8 +373,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 const barHeight = Math.max(strokeWidth, Math.abs(bottomY - y));
 
                 const rect: Bounds = {
-                    x: barAlongX ? bottomY : x,
-                    y: barAlongX ? x : y,
+                    x: barAlongX ? Math.min(y, bottomY) : x,
+                    y: barAlongX ? x : Math.min(y, bottomY),
                     width: barAlongX ? barHeight : barWidth,
                     height: barAlongX ? barWidth : barHeight,
                 };
@@ -535,7 +538,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 lineDashOffset,
                 fillShadow,
                 strokeWidth: this.getStrokeWidth(strokeWidth),
-                cornerRadius: 0,
+                cornerRadius: this.cornerRadius,
                 cornerRadiusBbox: undefined,
             };
             const visible = categoryAlongX ? datum.width > 0 : datum.height > 0;

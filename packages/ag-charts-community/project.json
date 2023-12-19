@@ -7,6 +7,7 @@
     "build": {
       "executor": "nx:noop",
       "dependsOn": ["build:types", "build:package", "build:umd", "build-tsc"],
+      "inputs": [{ "externalDependencies": [] }],
       "configurations": {
         "watch": {},
         "production": {}
@@ -41,6 +42,7 @@
         "tsConfig": "packages/ag-charts-community/tsconfig.lib.json",
         "esbuildConfig": "esbuild.config.cjs",
         "platform": "browser",
+        "target": "es6",
         "format": ["cjs", "esm"],
         "sourcemap": true
       },
@@ -64,6 +66,7 @@
         "tsConfig": "packages/ag-charts-community/tsconfig.lib.json",
         "esbuildConfig": "esbuild.config.cjs",
         "platform": "browser",
+        "target": "es6",
         "bundle": true,
         "thirdParty": true,
         "skipTypeCheck": true,
@@ -94,7 +97,7 @@
     },
     "docs-debug-interfaces": {
       "executor": "ag-charts-generate-code-reference-files:generate",
-      "inputs": ["{projectRoot}/src/options"],
+      "inputs": ["{projectRoot}/src/options", { "externalDependencies": [] }],
       "outputs": ["{options.output}"],
       "cache": true,
       "options": {
@@ -105,7 +108,7 @@
     },
     "docs-resolved-interfaces": {
       "executor": "ag-charts-generate-code-reference-files:generate",
-      "inputs": ["{projectRoot}/src/options"],
+      "inputs": ["{projectRoot}/src/options", { "externalDependencies": [] }],
       "outputs": ["{options.output}"],
       "cache": true,
       "options": {
@@ -143,6 +146,7 @@
     "lint": {
       "executor": "nx:noop",
       "dependsOn": ["lint-eslint", "lint-circular", "lint-depcruise"],
+      "inputs": [{ "externalDependencies": [] }],
       "configurations": {
         "fix": {}
       }

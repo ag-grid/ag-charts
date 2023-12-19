@@ -1,5 +1,6 @@
 import Code from '@components/Code';
 import { Icon } from '@components/icon/Icon';
+import styles from '@design-system/modules/ApiReference.module.scss';
 import { useToggle } from '@utils/hooks/useToggle';
 import { navigate, scrollIntoViewById, useLocation } from '@utils/navigation';
 import classnames from 'classnames';
@@ -17,7 +18,6 @@ import {
     normalizeType,
     processMembers,
 } from '../apiReferenceHelpers';
-import styles from './ApiReference.module.scss';
 import { SelectionContext } from './OptionsNavigation';
 import { PropertyTitle, PropertyType } from './Properies';
 

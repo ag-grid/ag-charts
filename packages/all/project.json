@@ -6,14 +6,17 @@
   "targets": {
     "build": {
       "executor": "nx:noop",
+      "inputs": [{ "externalDependencies": [] }],
       "dependsOn": ["^build"]
     },
     "build-tsc": {
       "executor": "nx:noop",
+      "inputs": [{ "externalDependencies": [] }],
       "dependsOn": ["^build-tsc"]
     },
     "lint": {
       "executor": "nx:noop",
+      "inputs": [{ "externalDependencies": [] }],
       "dependsOn": ["^lint"],
       "configurations": {
         "fix": {}
@@ -21,6 +24,7 @@
     },
     "test": {
       "executor": "nx:noop",
+      "inputs": [{ "externalDependencies": [] }],
       "dependsOn": ["^test"],
       "configurations": {
         "update": {}
@@ -28,6 +32,7 @@
     },
     "pack": {
       "executor": "nx:noop",
+      "inputs": [{ "externalDependencies": [] }],
       "dependsOn": ["^pack"],
       "configurations": {
         "production": {}
@@ -35,6 +40,7 @@
     },
     "pack:extract": {
       "executor": "nx:noop",
+      "inputs": [{ "externalDependencies": [] }],
       "dependsOn": ["^pack:extract"],
       "configurations": {
         "production": {}
@@ -42,6 +48,7 @@
     },
     "pack:verify": {
       "executor": "nx:noop",
+      "inputs": [{ "externalDependencies": [] }],
       "dependsOn": ["^pack:verify"],
       "configurations": {
         "production": {}

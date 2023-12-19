@@ -1,13 +1,13 @@
 import type { InternalFramework } from '@ag-grid-types';
 import Code from '@components/Code';
 import { Icon } from '@components/icon/Icon';
+import styles from '@design-system/modules/CodeViewer.module.scss';
 import type { ExampleType, FileContents } from '@features/examples-generator/types';
 import { doOnEnter } from '@utils/doOnEnter';
 import classnames from 'classnames';
 import { useEffect, useState } from 'react';
 
 import { CodeOptions } from './CodeOptions';
-import styles from './CodeViewer.module.scss';
 
 export const DARK_MODE_START = '/** DARK MODE START **/';
 export const DARK_MODE_END = '/** DARK MODE END **/';

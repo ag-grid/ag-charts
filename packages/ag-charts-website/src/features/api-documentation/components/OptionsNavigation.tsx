@@ -1,4 +1,5 @@
 import { Icon } from '@components/icon/Icon';
+import styles from '@design-system/modules/OptionsNavigation.module.scss';
 import { useToggle } from '@utils/hooks/useToggle';
 import { navigate, scrollIntoView, scrollIntoViewById, useLocation } from '@utils/navigation';
 import classnames from 'classnames';
@@ -15,7 +16,6 @@ import {
     processMembers,
 } from '../apiReferenceHelpers';
 import { ApiReferenceConfigContext, ApiReferenceContext } from './ApiReference';
-import styles from './OptionsNavigation.module.scss';
 import { SearchBox } from './SearchBox';
 
 export const SelectionContext = createContext<{

@@ -6,7 +6,7 @@ export function createTask(parentProject: string, srcRelativeInputPath: string) 
         'generate-example': {
             dependsOn: [{ projects: 'ag-charts-generate-example-files', target: 'build' }],
             executor: 'ag-charts-generate-example-files:generate',
-            inputs: ['{projectRoot}/**/*'],
+            inputs: ['{projectRoot}/**/*', { externalDependencies: [] }],
             outputPath: '{options.outputPath}',
             cache: true,
             options: {

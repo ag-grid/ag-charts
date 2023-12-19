@@ -295,13 +295,13 @@ export function extractImageData({
     return sourceCanvas?.toBuffer('image/png', CANVAS_TO_BUFFER_DEFAULTS);
 }
 
-export function setupMockCanvas(): { nodeCanvas: Canvas } {
+export function setupMockCanvas({ width = CANVAS_WIDTH, height = CANVAS_HEIGHT } = {}): { nodeCanvas: Canvas } {
     const mockCtx: mockCanvas.MockContext = new mockCanvas.MockContext(CANVAS_WIDTH, CANVAS_HEIGHT, document);
 
     beforeEach(() => {
         resetIds();
 
-        mockCanvas.setup({ mockCtx, width: CANVAS_WIDTH, height: CANVAS_HEIGHT, mockText: true });
+        mockCanvas.setup({ mockCtx, width, height, mockText: true });
     });
 
     afterEach(() => {

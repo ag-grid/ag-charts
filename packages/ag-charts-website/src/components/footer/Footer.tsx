@@ -1,10 +1,10 @@
 import type { FooterItem } from '@ag-grid-types';
 import { SITE_BASE_URL } from '@constants';
+import styles from '@design-system/modules/Footer.module.scss';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import classNames from 'classnames';
 
 import { Icon } from '../icon/Icon';
-import styles from './Footer.module.scss';
 
 interface FooterProps {
     path: string;

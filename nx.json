@@ -24,7 +24,8 @@
       "{projectRoot}/src/**/*",
       "{projectRoot}/tsconfig.*.json",
       "tsDeclarations",
-      "sharedGlobals"
+      "sharedGlobals",
+      { "externalDependencies": ["typescript", "esbuild"] }
     ],
     "sharedGlobals": ["{workspaceRoot}/esbuild.config*.cjs", "{workspaceRoot}/tsconfig.*.json"]
   },
@@ -78,5 +79,6 @@
     "appsDir": "packages",
     "libsDir": "libraries"
   },
+  "nxCloudAccessToken": "ZDJhN2YwMWMtYWZiMS00MzY2LWFiZDgtZTc0ZTg4MTk4ZDE2fHJlYWQ=",
   "defaultProject": "all"
 }

@@ -7,8 +7,9 @@ import { Footer } from '@components/footer/Footer';
 import type { ApiMenuItem } from '@ag-grid-types';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import { ApiTopBar } from '@components/top-bar/ApiTopBar';
-import { getIsProduction } from '@utils/env';
+import { getIsProduction, getIsStaging } from '@utils/env';
 import { isDynamicFrameworkPath, isDynamicFrameworkPathMatch } from '@utils/framework';
+import Plausible from '../components/Plausible.astro';
 
 export interface Props {
     title?: string;
@@ -35,6 +36,7 @@ const {
 const path = Astro.url.pathname;
 
 const isProduction = getIsProduction();
+const isStaging = getIsStaging();
 const menuData = await getEntry('menu', 'data');
 const apiMenuItems = menuData.data.api.items as ApiMenuItem[];
 const canonicalUrl = new URL(Astro.url.pathname, metadata.canonicalUrlBase);
@@ -99,8 +101,11 @@ const isApiLayout = apiMenuItems.some((item) => {
             j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
             })(window,document,'script','dataLayer',googleTagManagerId);</script>
-            <script defer data-domain="charts.ag-grid.com" src="https://plausible.io/js/script.js"></script>
+            <Plausible domain="charts.ag-grid.com" />
         </Fragment>}
+
+        {isStaging && <Plausible domain="charts-staging.ag-grid.com" />}
+        
     </head>
     <body>
         <script is:inline>
