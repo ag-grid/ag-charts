@@ -35,7 +35,7 @@ import { checkDatum } from '../../util/value';
 import type { ChartAxis } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { ChartMode } from '../chartMode';
-import { accumulatedValue, trailingAccumulatedValue } from '../data/aggregateFunctions';
+import { accumulatedValue, range, trailingAccumulatedValue } from '../data/aggregateFunctions';
 import type { DataController } from '../data/dataController';
 import type { DatumPropertyDefinition, ScopeProvider } from '../data/dataModel';
 import { accumulateGroup } from '../data/processors';
@@ -187,11 +187,12 @@ export function groupAccumulativeValueProperty<K>(
     continuous: boolean,
     mode: 'normal' | 'trailing' | 'window' | 'window-trailing',
     sum: 'current' | 'last' = 'current',
-    opts: Partial<DatumPropertyDefinition<K>> & { groupId: string }
+    opts: Partial<DatumPropertyDefinition<K>> & { rangeId?: string; groupId: string }
 ) {
     return [
         valueProperty(scope, propName, continuous, opts),
         accumulateGroup(scope, opts.groupId, mode, sum, opts.separateNegative),
+        ...(opts.rangeId != null ? [range(scope, opts.rangeId, opts.groupId)] : []),
     ];
 }
 

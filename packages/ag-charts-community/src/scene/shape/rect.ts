@@ -1,8 +1,59 @@
-import { Logger } from '../../sparklines-util';
 import { BBox } from '../bbox';
 import { Path2D } from '../path2D';
 import { Path, ScenePathChangeDetection } from './path';
 import { Shape } from './shape';
+
+type Corner = {
+    x0: number;
+    y0: number;
+    x1: number;
+    y1: number;
+    cx: number;
+    cy: number;
+};
+
+const cornerEdges = (
+    leadingEdge: number,
+    trailingEdge: number,
+    leadingInset: number,
+    trailingInset: number,
+    cornerRadius: number
+) => {
+    let leadingClipped = false;
+    let trailingClipped = false;
+    let leading0 = trailingInset - Math.sqrt(cornerRadius ** 2 - leadingInset ** 2);
+    let leading1 = 0;
+    let trailing0 = 0;
+    let trailing1 = leadingInset - Math.sqrt(cornerRadius ** 2 - trailingInset ** 2);
+
+    if (leading0 > leadingEdge) {
+        leadingClipped = true;
+        leading0 = leadingEdge;
+        leading1 = leadingInset - Math.sqrt(cornerRadius ** 2 - (trailingInset - leadingEdge) ** 2);
+    }
+
+    if (trailing1 > trailingEdge) {
+        trailingClipped = true;
+        trailing0 = trailingInset - Math.sqrt(cornerRadius ** 2 - (leadingInset - trailingEdge) ** 2);
+        trailing1 = trailingEdge;
+    }
+
+    return { leading0, leading1, trailing0, trailing1, leadingClipped, trailingClipped };
+};
+
+const drawCorner = (path: Path2D, { x0, y0, x1, y1, cx, cy }: Corner, cornerRadius: number, move: boolean) => {
+    if (move) {
+        path.moveTo(x0, y0);
+    }
+
+    if (x0 !== x1 || y0 !== y1) {
+        const r0 = Math.atan2(y0 - cy, x0 - cx);
+        const r1 = Math.atan2(y1 - cy, x1 - cx);
+        path.arc(cx, cy, cornerRadius, r0, r1);
+    } else {
+        path.lineTo(x0, y0);
+    }
+};
 
 export class Rect extends Path {
     static override className = 'Rect';
@@ -68,108 +119,126 @@ export class Rect extends Path {
         if (_cornerRadius <= 0) {
             path.rect(x, y, width, height);
             return;
+        } else if (cornerRadiusBbox == null) {
+            path.roundRect(x, y, width, height, _cornerRadius);
+            return;
         }
 
-        const cornerBoundsX = cornerRadiusBbox?.x ?? x;
-        const cornerBoundsY = cornerRadiusBbox?.y ?? y;
-        const cornerBoundsWidth = cornerRadiusBbox?.width ?? width;
-        const cornerBoundsHeight = cornerRadiusBbox?.height ?? height;
-        const cornerRadius = Math.min(_cornerRadius, cornerBoundsWidth / 2, cornerBoundsHeight / 2);
+        const cornerRadius = Math.min(_cornerRadius, cornerRadiusBbox.width / 2, cornerRadiusBbox.height / 2);
 
-        const cornerInsetLeft = Math.max(cornerBoundsX - x + cornerRadius, 0);
-        const cornerInsetTop = Math.max(cornerBoundsY - y + cornerRadius, 0);
-        const cornerInsetRight = Math.max(-(cornerBoundsX + cornerBoundsWidth - (x + width) - cornerRadius), 0);
-        const cornerInsetBottom = Math.max(-(cornerBoundsY + cornerBoundsHeight - (y + height) - cornerRadius), 0);
+        const x0 = Math.max(x, cornerRadiusBbox.x);
+        const x1 = Math.min(x + width, cornerRadiusBbox.x + cornerRadiusBbox.width);
+        const y0 = Math.max(y, cornerRadiusBbox.y);
+        const y1 = Math.min(y + height, cornerRadiusBbox.y + cornerRadiusBbox.height);
 
-        // Go round the rect clockwise, starting from the top left
-        if (Math.hypot(cornerInsetLeft, cornerInsetTop) > cornerRadius) {
-            const cornerBoxWidth = cornerInsetLeft;
-            const cornerBoxHeight = cornerInsetTop;
-            const x0 = x;
-            const y0 = y + cornerBoxHeight - Math.sqrt(cornerRadius ** 2 - cornerBoxWidth ** 2);
-            const x1 = x + cornerBoxWidth - Math.sqrt(cornerRadius ** 2 - cornerBoxHeight ** 2);
-            const y1 = y;
-            const r0 = Math.atan2(y0 - y - cornerBoxHeight, -cornerBoxWidth);
-            const r1 = Math.atan2(-cornerBoxHeight, x1 - x - cornerBoxWidth);
-            path.moveTo(x0, y0);
-            path.arc(cornerBoundsX + cornerRadius, cornerBoundsY + cornerRadius, cornerRadius, r0, r1);
-            path.lineTo(x1, y1);
-        } else {
-            path.moveTo(x, y);
+        x = x0;
+        y = y0;
+        width = x1 - x0;
+        height = y1 - y0;
+
+        if (width <= 0 || height <= 0) return;
+
+        const cornerInsetLeft = Math.max(cornerRadiusBbox.x + cornerRadius - x, 0);
+        const cornerInsetTop = Math.max(cornerRadiusBbox.y + cornerRadius - y, 0);
+        const cornerInsetRight = Math.max(x + width - (cornerRadiusBbox.x + cornerRadiusBbox.width - cornerRadius), 0);
+        const cornerInsetBottom = Math.max(
+            y + height - (cornerRadiusBbox.y + cornerRadiusBbox.height - cornerRadius),
+            0
+        );
+
+        let drawTopLeftCorner = true;
+        let drawTopRightCorner = true;
+        let drawBottomRightCorner = true;
+        let drawBottomLeftCorner = true;
+
+        let topLeftCorner: Corner | undefined;
+        let topRightCorner: Corner | undefined;
+        let bottomRightCorner: Corner | undefined;
+        let bottomLeftCorner: Corner | undefined;
+
+        if (drawTopLeftCorner) {
+            const nodes = cornerEdges(height, width, cornerInsetLeft, cornerInsetTop, cornerRadius);
+
+            if (nodes.leadingClipped) drawBottomLeftCorner = false;
+            if (nodes.trailingClipped) drawTopRightCorner = false;
+
+            const x0 = Math.max(x + nodes.leading1, x);
+            const y0 = Math.max(y + nodes.leading0, y);
+            const x1 = Math.max(x + nodes.trailing1, x);
+            const y1 = Math.max(y + nodes.trailing0, y);
+            const cx = cornerRadiusBbox.x + cornerRadius;
+            const cy = cornerRadiusBbox.y + cornerRadius;
+            topLeftCorner = { x0, y0, x1, y1, cx, cy };
         }
 
-        if (Math.hypot(cornerInsetTop, cornerInsetRight) > cornerRadius) {
-            const cornerBoxWidth = cornerInsetRight;
-            const cornerBoxHeight = cornerInsetTop;
-            const x0 = x + width - (cornerBoxWidth - Math.sqrt(cornerRadius ** 2 - cornerBoxHeight ** 2));
-            const y0 = y;
-            const x1 = x + width;
-            const y1 = y + cornerBoxHeight - Math.sqrt(cornerRadius ** 2 - cornerBoxWidth ** 2);
-            const r0 = Math.atan2(-cornerBoxHeight, cornerBoxWidth - (x + width - x0));
-            const r1 = Math.atan2(-(cornerBoxHeight - (y1 - y)), cornerBoxWidth);
-            path.lineTo(x0, y0);
-            path.arc(
-                cornerBoundsX + cornerBoundsWidth - cornerRadius,
-                cornerBoundsY + cornerRadius,
-                cornerRadius,
-                r0,
-                r1
-            );
-            path.lineTo(x1, y1);
-        } else {
-            path.lineTo(x + width, y);
+        if (drawTopRightCorner) {
+            const nodes = cornerEdges(width, height, cornerInsetTop, cornerInsetRight, cornerRadius);
+
+            if (nodes.leadingClipped) drawTopLeftCorner = false;
+            if (nodes.trailingClipped) drawBottomRightCorner = false;
+
+            const x0 = Math.min(x + width - nodes.leading0, x + width);
+            const y0 = Math.max(y + nodes.leading1, y);
+            const x1 = Math.min(x + width - nodes.trailing0, x + width);
+            const y1 = Math.max(y + nodes.trailing1, y);
+            const cx = cornerRadiusBbox.x + cornerRadiusBbox.width - cornerRadius;
+            const cy = cornerRadiusBbox.y + cornerRadius;
+            topRightCorner = { x0, y0, x1, y1, cx, cy };
         }
 
-        if (Math.hypot(cornerInsetRight, cornerInsetBottom) > cornerRadius) {
-            const cornerBoxWidth = cornerInsetRight;
-            const cornerBoxHeight = cornerInsetBottom;
-            const x0 = x + width;
-            const y0 = y + height - (cornerBoxHeight - Math.sqrt(cornerRadius ** 2 - cornerBoxWidth ** 2));
-            const x1 = x + width - (cornerBoxWidth - Math.sqrt(cornerRadius ** 2 - cornerBoxHeight ** 2));
-            const y1 = y + height;
-            const r0 = Math.atan2(cornerBoxHeight - (y + height - y0), cornerBoxWidth);
-            const r1 = Math.atan2(cornerBoxHeight, cornerBoxWidth - (x + width - x1));
-            path.lineTo(x0, y0);
-            path.arc(
-                cornerBoundsX + cornerBoundsWidth - cornerRadius,
-                cornerBoundsY + cornerBoundsHeight - cornerRadius,
-                cornerRadius,
-                r0,
-                r1
-            );
-            path.lineTo(x1, y1);
-        } else {
-            path.lineTo(x + width, y + height);
+        if (drawBottomRightCorner) {
+            const nodes = cornerEdges(height, width, cornerInsetRight, cornerInsetBottom, cornerRadius);
+
+            if (nodes.leadingClipped) drawTopRightCorner = false;
+            if (nodes.trailingClipped) drawBottomLeftCorner = false;
+
+            const x0 = Math.min(x + width - nodes.leading1, x + width);
+            const y0 = Math.min(y + height - nodes.leading0, y + height);
+            const x1 = Math.min(x + width - nodes.trailing1, x + width);
+            const y1 = Math.min(y + height - nodes.trailing0, y + height);
+            const cx = cornerRadiusBbox.x + cornerRadiusBbox.width - cornerRadius;
+            const cy = cornerRadiusBbox.y + cornerRadiusBbox.height - cornerRadius;
+            bottomRightCorner = { x0, y0, x1, y1, cx, cy };
         }
 
-        if (Math.hypot(cornerInsetBottom, cornerInsetLeft) > cornerRadius) {
-            const cornerBoxWidth = cornerInsetLeft;
-            const cornerBoxHeight = cornerInsetBottom;
-            const x0 = x + cornerBoxWidth - Math.sqrt(cornerRadius ** 2 - cornerBoxHeight ** 2);
-            const y0 = y + height;
-            const x1 = x;
-            const y1 = y + height - (cornerBoxHeight - Math.sqrt(cornerRadius ** 2 - cornerBoxWidth ** 2));
-            const r0 = Math.atan2(cornerBoxHeight, -(cornerBoxWidth + (x - x0)));
-            const r1 = Math.atan2(cornerBoxHeight - (y + height - y1), -cornerBoxWidth);
-            path.lineTo(x0, y0);
-            path.arc(
-                cornerBoundsX + cornerRadius,
-                cornerBoundsY + cornerBoundsHeight - cornerRadius,
-                cornerRadius,
-                r0,
-                r1
-            );
-            path.lineTo(x1, y1);
-        } else {
-            path.lineTo(x, y + height);
+        if (drawBottomLeftCorner) {
+            const nodes = cornerEdges(height, width, cornerInsetBottom, cornerInsetLeft, cornerRadius);
+
+            if (nodes.leadingClipped) drawBottomRightCorner = false;
+            if (nodes.trailingClipped) drawTopLeftCorner = false;
+
+            const x0 = Math.max(x + nodes.leading0, x);
+            const y0 = Math.min(y + height - nodes.leading1, y + height);
+            const x1 = Math.max(x + nodes.trailing0, x);
+            const y1 = Math.min(y + height - nodes.trailing1, y + height);
+            const cx = cornerRadiusBbox.x + cornerRadius;
+            const cy = cornerRadiusBbox.y + cornerRadiusBbox.height - cornerRadius;
+            bottomLeftCorner = { x0, y0, x1, y1, cx, cy };
         }
 
+        let didMove = false;
+        if (drawTopLeftCorner && topLeftCorner != null) {
+            drawCorner(path, topLeftCorner, cornerRadius, !didMove);
+            didMove ||= true;
+        }
+        if (drawTopRightCorner && topRightCorner != null) {
+            drawCorner(path, topRightCorner, cornerRadius, !didMove);
+            didMove ||= true;
+        }
+        if (drawBottomRightCorner && bottomRightCorner != null) {
+            drawCorner(path, bottomRightCorner, cornerRadius, !didMove);
+            didMove ||= true;
+        }
+        if (drawBottomLeftCorner && bottomLeftCorner != null) {
+            drawCorner(path, bottomLeftCorner, cornerRadius, !didMove);
+            didMove ||= true;
+        }
         path.closePath();
     }
 
     override updatePath() {
-        const { path, borderPath, crisp, cornerRadius, cornerRadiusBbox } = this;
-        let { x, y, width: w, height: h, strokeWidth } = this;
+        const { path, borderPath, crisp, cornerRadius } = this;
+        let { x, y, width: w, height: h, strokeWidth, cornerRadiusBbox } = this;
         const pixelRatio = this.layerManager?.canvas.pixelRatio ?? 1;
         const pixelSize = 1 / pixelRatio;
         let microPixelEffectOpacity = 1;
@@ -188,6 +257,16 @@ export class Rect extends Path {
             h = this.align(y, h);
             x = this.align(x);
             y = this.align(y);
+
+            cornerRadiusBbox =
+                cornerRadiusBbox != null
+                    ? new BBox(
+                          this.align(cornerRadiusBbox.x),
+                          this.align(cornerRadiusBbox.y),
+                          this.align(cornerRadiusBbox.x, cornerRadiusBbox.width),
+                          this.align(cornerRadiusBbox.y, cornerRadiusBbox.height)
+                      )
+                    : undefined;
         }
 
         if (strokeWidth) {

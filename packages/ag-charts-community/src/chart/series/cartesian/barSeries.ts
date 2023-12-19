@@ -217,6 +217,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
                 valueProperty(this, yKey, isContinuousY, { id: `yValue-raw`, invalidValue: null, ...visibleProps }),
                 ...groupAccumulativeValueProperty(this, yKey, isContinuousY, 'normal', 'current', {
                     id: `yValue-end`,
+                    rangeId: `yValue-range`,
                     invalidValue: null,
                     missingValue: 0,
                     groupId: stackGroupName,
@@ -339,6 +340,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
         const yRawIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-raw`).index;
         const yStartIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-start`).index;
         const yEndIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-end`).index;
+        const yRangeIndex = dataModel.resolveProcessedDataDefById(this, `yValue-range`).index;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
         const context: CartesianSeriesNodeDataContext<BarNodeDatum> = {
             itemId: yKey,
@@ -347,18 +349,14 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
             scales: super.calculateScaling(),
             visible: this.visible || animationEnabled,
         };
-        // const minY: number | undefined =
-        //     processedData != null ? processedData.data[0].values[0][yStartIndex] : undefined;
-        // const maxY: number | undefined =
-        //     processedData != null ? processedData.data[processedData.data.length - 1].values[0][yEndIndex] : undefined;
-        const cornerRadiusBbox = new BBox(76.8, 104.9, 394.4, 442);
-        processedData?.data.forEach(({ keys, datum: seriesDatum, values }) => {
+        processedData?.data.forEach(({ keys, datum: seriesDatum, values, aggValues }) => {
             const xValue = keys[xIndex];
             const x = xScale.convert(xValue);
 
             const currY = +values[0][yEndIndex];
             const prevY = +values[0][yStartIndex];
             const yRawValue = values[0][yRawIndex];
+            const yRange = aggValues?.[yRangeIndex][1] ?? 0;
             const barX = x + groupScale.convert(String(groupIndex));
 
             if (isNaN(currY)) {
@@ -369,6 +367,16 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
             const bottomY = yScale.convert(prevY);
 
             const barAlongX = this.getBarDirection() === ChartAxisDirection.X;
+
+            const bboxHeight = yScale.convert(yRange);
+            const bboxOrigin = yScale.convert(0);
+            const cornerRadiusBbox = new BBox(
+                barAlongX ? Math.min(bboxOrigin, bboxHeight) : barX,
+                barAlongX ? barX : Math.min(bboxOrigin, bboxHeight),
+                barAlongX ? Math.abs(bboxOrigin - bboxHeight) : barWidth,
+                barAlongX ? barWidth : Math.abs(bboxOrigin - bboxHeight)
+            );
+
             const rect = {
                 x: barAlongX ? Math.min(y, bottomY) : barX,
                 y: barAlongX ? barX : Math.min(y, bottomY),
@@ -521,10 +529,6 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
             config.crisp = crisp;
             config.visible = visible;
             updateRect({ rect, config });
-            // console.log([rect.x, rect.y, rect.width, rect.height], datum.cornerRadiusBbox);
-        });
-        datumSelection.each((rect) => {
-            console.log(rect.computeBBox());
         });
     }
 

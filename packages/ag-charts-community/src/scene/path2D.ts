@@ -108,6 +108,25 @@ export class Path2D {
         this.closePath();
     }
 
+    roundRect(x: number, y: number, width: number, height: number, radii: number) {
+        // Newer API - so support is limited
+        // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/roundRect
+        radii = Math.min(radii, width / 2, height / 2);
+        this.moveTo(x, y + radii);
+        this.arc(x + radii, y + radii, radii, Math.PI, (3 * Math.PI) / 2);
+        this.lineTo(x + radii, y);
+        this.lineTo(x + width - radii, y);
+        this.arc(x + width - radii, y + radii, radii, (3 * Math.PI) / 2, 2 * Math.PI);
+        this.lineTo(x + width, y + radii);
+        this.lineTo(x + width, y + height - radii);
+        this.arc(x + width - radii, y + height - radii, radii, 0, Math.PI / 2);
+        this.lineTo(x + width - radii, y + height);
+        this.lineTo(x + radii, y + height);
+        this.arc(x + +radii, y + height - radii, radii, Math.PI / 2, Math.PI);
+        this.lineTo(x, y + height - radii);
+        this.closePath();
+    }
+
     arc(x: number, y: number, r: number, sAngle: number, eAngle: number, antiClockwise = false) {
         const endX = x + r * Math.cos(eAngle);
         const endY = y + r * Math.sin(eAngle);
