@@ -5,6 +5,12 @@ on:
     schedule:
         - cron: '0 7 * * 1'
 
+env:
+    NX_REJECT_UNKNOWN_LOCAL_CACHE: 0
+    NX_NO_CLOUD: true
+    NX_CLOUD_ACCESS_TOKEN: x
+    NX_BRANCH: ${{ github.ref }}
+
 jobs:
     bump_version_and_tag:
         runs-on: ubuntu-latest

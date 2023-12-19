@@ -2,6 +2,9 @@ name: Sonar Scanner (Release)
 
 env:
     NX_REJECT_UNKNOWN_LOCAL_CACHE: 0
+    NX_NO_CLOUD: true
+    NX_CLOUD_ACCESS_TOKEN: x
+    NX_BRANCH: ${{ github.ref }}
     SONAR_PROJECT: ag-charts-community
 
 on: workflow_dispatch
