@@ -6,11 +6,7 @@
     "ag-charts-generate-example-files": "9.0.1-beta.20231218.1431",
     "glob": "8.0.3",
     "typescript": "^4.9.5",
-    "cheerio": "^1.0.0-rc.12",
-    "fs-extra": "11.1.1",
-    "sucrase": "^3.32.0",
-    "json5": "2.2.3",
-    "@nx/devkit": "17.0.3",
+    "@nx/devkit": "17.2.6",
     "ag-charts-community": "9.0.1-beta.20231218.1431",
     "jsdom": "~22.1.0",
     "sharp": "0.32.6",
@@ -18,7 +14,8 @@
     "jscodeshift": "^0.15.0",
     "ag-charts-test": "9.0.1-beta.20231218.1431",
     "@swc/helpers": "0.5.3",
-    "tinypool": "^0.8.1"
+    "tinypool": "^0.8.1",
+    "process": "0.11.10"
   },
   "type": "commonjs",
   "main": "./dist/src/index.js",

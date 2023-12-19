@@ -49,7 +49,7 @@ const ChartExample = () => {
     const updateData = useCallback(() => {
         const clone = { ...options };
 
-        var now = Date.now();
+        const now = Date.now();
         clone.data = getData();
 
         setOptions(clone);
@@ -66,11 +66,11 @@ const ChartExample = () => {
         ;
 }
 
-var systemLoad = 0
-var userLoad = 0
-var data: any[] = []
-var refreshRateInMilliseconds = 50
-var millisecondsOfData = 30 * 1000
+let systemLoad = 0
+let userLoad = 0
+const data: any[] = []
+const refreshRateInMilliseconds = 50
+const millisecondsOfData = 30 * 1000
 function calculateRandomDelta(maxChange: number) {
     return maxChange / 2 - Math.floor(Math.random() * Math.floor(maxChange + 1));
 }
@@ -88,10 +88,10 @@ function calculateCpuUsage() {
     userLoad = ensureBounds(userLoad + calculateRandomDelta(4), 70);
 }
 function getData() {
-    var dataCount = millisecondsOfData / refreshRateInMilliseconds;
+    const dataCount = millisecondsOfData / refreshRateInMilliseconds;
     data.shift();
-    var timeDelta = (dataCount - data.length - 1) * refreshRateInMilliseconds;
-    var now = Date.now();
+    let timeDelta = (dataCount - data.length - 1) * refreshRateInMilliseconds;
+    const now = Date.now();
     while (data.length < dataCount) {
         calculateCpuUsage();
         data.push({ time: now - timeDelta, system: systemLoad, user: userLoad });

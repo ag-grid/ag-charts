@@ -42,7 +42,7 @@
         "no-unused-vars": 0, // Handled by TS strict flag.
         "no-case-declarations": 0,
         "@typescript-eslint/no-explicit-any": 0,
-        "@typescript-eslint/consistent-type-imports": "error"
+        "@typescript-eslint/consistent-type-imports": 0
       }
     },
     {

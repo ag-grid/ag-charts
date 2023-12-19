@@ -231,7 +231,7 @@ const createRecords = async (browser, url, framework, breadcrumb, rank, loadFrom
 // we read these pages from ag-charts.com and parse them as these pages no longer have
 // the page content statically - they're loaded via JS
 // we'll run this after we deploy to ag-charts.com so the indices will be accurate
-const readFromAgCharts = (url) => false;
+const readFromAgCharts = () => false;
 
 const processIndexForFramework = async (framework) => {
     let rank = 10000; // using this rank ensures that pages that are earlier in the menu will rank higher in results
@@ -240,7 +240,7 @@ const processIndexForFramework = async (framework) => {
 
     // const exclusions = ['api-create-update', 'api-download', 'events'];
     const exclusions = [];
-    const filter = (item) => false;
+    const filter = () => false;
 
     const browser = await puppeteer.launch({
         executablePath:

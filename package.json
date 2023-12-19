@@ -129,6 +129,7 @@
       "libraries/ag-charts-test"
     ],
     "nohoist": [
+      "**/tinypool",
       "**/@vue/**",
       "**/vue",
       "**/vue-template-compiler",
@@ -136,4 +137,3 @@
     ]
   }
 }
-
