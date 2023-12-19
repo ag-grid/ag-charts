@@ -1025,8 +1025,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.animationManager.skipCurrentBatch();
         }
 
-        this.handleNoDataOverlay();
-        this.handleNoVisibleSeriesOverlay();
+        this.handleOverlays();
         this.debug('Chart.performUpdate() - seriesRect', this.seriesRect);
     }
 
@@ -1351,14 +1350,14 @@ export abstract class Chart extends Observable implements AgChartInstance {
         await this.updateMutex.waitForClearAcquireQueue();
     }
 
-    private handleNoDataOverlay() {
+    private handleOverlays() {
         const hasNoData = !this.series.some((s) => s.hasData());
         this.toggleOverlay(this.overlays.noData, hasNoData);
-    }
 
-    private handleNoVisibleSeriesOverlay() {
-        const hasNoVisibleSeries = !this.series.some((series): boolean => series.visible);
-        this.toggleOverlay(this.overlays.noVisibleSeries, hasNoVisibleSeries);
+        if (!hasNoData) { // Don't draw both text overlays at the same time.
+            const hasNoVisibleSeries = !this.series.some((series): boolean => series.visible);
+            this.toggleOverlay(this.overlays.noVisibleSeries, hasNoVisibleSeries);
+        }
     }
 
     private toggleOverlay(overlay: Overlay, visible: boolean) {
