@@ -2,8 +2,6 @@
 import Layout from '@layouts/Layout.astro';
 import { getEntry } from 'astro:content';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
-import { FRAMEWORKS } from '../constants';
-import { getFrameworkFromPath } from '@features/docs/utils/urlPaths';
 import { PagesNavigationFromLocalStorage } from '@components/pages-navigation/PagesNavigationFromLocalStorage';
 
 const menuEntry = await getEntry('menu', 'data');
