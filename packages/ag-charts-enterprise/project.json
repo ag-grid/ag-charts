@@ -7,7 +7,11 @@
     "build": {
       "executor": "nx:noop",
       "dependsOn": ["build:types", "build:package", "build:umd", "build-tsc"],
-      "inputs": [{ "externalDependencies": [] }],
+      "inputs": [
+        {
+          "externalDependencies": []
+        }
+      ],
       "configurations": {
         "watch": {},
         "production": {}
@@ -99,7 +103,6 @@
       "executor": "@nx/eslint:lint",
       "outputs": ["{options.outputFile}"],
       "options": {
-        "lintFilePatterns": ["packages/ag-charts-enterprise/**/*.ts", "packages/ag-charts-enterprise/package.json"],
         "eslintConfig": "packages/ag-charts-enterprise/.eslintrc.json"
       },
       "configurations": {
@@ -117,7 +120,11 @@
     "lint": {
       "executor": "nx:noop",
       "dependsOn": ["lint-eslint", "lint-circular"],
-      "inputs": [{ "externalDependencies": [] }],
+      "inputs": [
+        {
+          "externalDependencies": []
+        }
+      ],
       "configurations": {
         "fix": {}
       }
@@ -126,13 +133,9 @@
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}", "{workspaceRoot}/reports/ag-charts-enterprise.xml"],
       "options": {
-        "jestConfig": "packages/ag-charts-enterprise/jest.config.ts",
-        "passWithNoTests": true
+        "jestConfig": "packages/ag-charts-enterprise/jest.config.ts"
       },
       "configurations": {
-        "ci": {
-          "ci": true
-        },
         "watch": {
           "watch": true
         },

@@ -7,7 +7,11 @@
     "build": {
       "executor": "nx:noop",
       "dependsOn": ["build:types", "build:package", "build:umd", "build-tsc"],
-      "inputs": [{ "externalDependencies": [] }],
+      "inputs": [
+        {
+          "externalDependencies": []
+        }
+      ],
       "configurations": {
         "watch": {},
         "production": {}
@@ -97,7 +101,12 @@
     },
     "docs-debug-interfaces": {
       "executor": "ag-charts-generate-code-reference-files:generate",
-      "inputs": ["{projectRoot}/src/options", { "externalDependencies": [] }],
+      "inputs": [
+        "{projectRoot}/src/options",
+        {
+          "externalDependencies": []
+        }
+      ],
       "outputs": ["{options.output}"],
       "cache": true,
       "options": {
@@ -108,7 +117,12 @@
     },
     "docs-resolved-interfaces": {
       "executor": "ag-charts-generate-code-reference-files:generate",
-      "inputs": ["{projectRoot}/src/options", { "externalDependencies": [] }],
+      "inputs": [
+        "{projectRoot}/src/options",
+        {
+          "externalDependencies": []
+        }
+      ],
       "outputs": ["{options.output}"],
       "cache": true,
       "options": {
@@ -121,7 +135,6 @@
       "executor": "@nx/eslint:lint",
       "outputs": ["{options.outputFile}"],
       "options": {
-        "lintFilePatterns": ["packages/ag-charts-community/**/*.ts", "packages/ag-charts-community/package.json"],
         "eslintConfig": "packages/ag-charts-community/.eslintrc.json"
       },
       "configurations": {
@@ -146,7 +159,11 @@
     "lint": {
       "executor": "nx:noop",
       "dependsOn": ["lint-eslint", "lint-circular", "lint-depcruise"],
-      "inputs": [{ "externalDependencies": [] }],
+      "inputs": [
+        {
+          "externalDependencies": []
+        }
+      ],
       "configurations": {
         "fix": {}
       }
@@ -155,12 +172,10 @@
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}", "{workspaceRoot}/reports/ag-charts-community.xml"],
       "options": {
-        "jestConfig": "packages/ag-charts-community/jest.config.ts"
+        "jestConfig": "packages/ag-charts-community/jest.config.ts",
+        "passWithNoTests": false
       },
       "configurations": {
-        "ci": {
-          "ci": true
-        },
         "watch": {
           "watch": true
         },
