@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
-import type { AgCartesianSeriesLabelFormatterParams } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     extractImageData,
@@ -159,7 +159,7 @@ describe('Chart', () => {
                 yHighKey: 'high',
                 label: {
                     enabled: true,
-                    formatter: ({ value }: AgCartesianSeriesLabelFormatterParams) => `${value}°C`,
+                    formatter: ({ value }) => `${value}°C`,
                 },
             },
         ],
@@ -307,6 +307,29 @@ describe('Chart', () => {
                     position: 'bottom',
                     type: 'number',
                 },
+            ],
+        };
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
+    it(`should render a range-bar chart with duplicate category keys`, async () => {
+        const options: AgChartOptions = {
+            ...RANGE_COLUMN_OPTIONS,
+            series: RANGE_COLUMN_OPTIONS.series.map((s) => ({
+                ...s,
+                strokeWidth: 1,
+                fillOpacity: 0.5,
+            })),
+            data: [
+                ...RANGE_COLUMN_OPTIONS.data,
+                ...RANGE_COLUMN_OPTIONS.data.map((datum: { date: string; high: number; low: number }) => ({
+                    ...datum,
+                    low: _ModuleSupport.round(datum.low * 0.5, 1),
+                    high: _ModuleSupport.round(datum.high * 2, 1),
+                })),
             ],
         };
         prepareEnterpriseTestOptions(options as any);

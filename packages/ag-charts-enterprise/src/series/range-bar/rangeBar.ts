@@ -310,13 +310,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         const itemId = `${yLowKey}-${yHighKey}`;
 
-        const context: RangeBarContext = {
-            itemId,
-            nodeData: [],
-            labelData: [],
-            scales: super.calculateScaling(),
-            visible: this.visible,
-        };
+        const contexts: RangeBarContext[] = [];
 
         const domain = [];
         const { index: groupIndex, visibleGroupCount } = seriesStateManager.getVisiblePeerGroupIndex(this);
@@ -353,12 +347,20 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const xIndex = dataModel.resolveProcessedDataIndexById(this, `xValue`).index;
 
         processedData?.data.forEach(({ keys, datum, values }, dataIndex) => {
-            for (let datumIndex = 0; datumIndex < datum.length; datumIndex++) {
+            values.forEach((value, contextIndex) => {
+                contexts[contextIndex] ??= {
+                    itemId,
+                    nodeData: [],
+                    labelData: [],
+                    scales: super.calculateScaling(),
+                    visible: this.visible,
+                };
+
                 const xDatum = keys[xIndex];
                 const x = Math.round(xScale.convert(xDatum)) + groupScale.convert(String(groupIndex));
 
-                const rawLowValue = values[datumIndex][yLowIndex];
-                const rawHighValue = values[datumIndex][yHighIndex];
+                const rawLowValue = value[yLowIndex];
+                const rawHighValue = value[yHighIndex];
 
                 const yLowValue = Math.min(rawLowValue, rawHighValue);
                 const yHighValue = Math.max(rawLowValue, rawHighValue);
@@ -386,7 +388,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                     barAlongX,
                     yLowValue,
                     yHighValue,
-                    datum: datum[datumIndex],
+                    datum: datum[contextIndex],
                     series: this,
                 });
 
@@ -394,7 +396,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                     index: dataIndex,
                     series: this,
                     itemId,
-                    datum: datum[datumIndex],
+                    datum: datum[contextIndex],
                     xValue: xDatum,
                     yLowValue: rawLowValue,
                     yHighValue: rawHighValue,
@@ -412,12 +414,12 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                     labels: labelData,
                 };
 
-                context.nodeData.push(nodeDatum);
-                context.labelData.push(...labelData);
-            }
+                contexts[contextIndex].nodeData.push(nodeDatum);
+                contexts[contextIndex].labelData.push(...labelData);
+            });
         });
 
-        return [context];
+        return contexts;
     }
 
     private createLabelData({
