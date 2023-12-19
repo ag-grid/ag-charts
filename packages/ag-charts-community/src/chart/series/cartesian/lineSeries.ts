@@ -467,6 +467,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         contextData: CartesianSeriesNodeDataContext<LineNodeDatum>;
         paths: Path[];
     }) {
+        if (!this.visible) return;
         this.updateLinePaths([opts.paths], [opts.contextData]);
     }
 
@@ -489,6 +490,8 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
     }
 
     protected override animateEmptyUpdateReady(animationData: LineAnimationData) {
+        if (!this.visible) return;
+
         const { markerSelections, labelSelections, annotationSelections, contextData, paths } = animationData;
         const { animationManager } = this.ctx;
         const { seriesRectWidth: width = 0 } = this.nodeDataDependencies;
