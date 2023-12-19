@@ -1,10 +1,5 @@
 @use '../core' as *;
 
-$homepage-scroll-image-light: url('/images/homepage-scroll-light.webp');
-$homepage-scroll-image-light-mobile: url('/images/homepage-scroll-light-0-5x.webp');
-$homepage-scroll-image-dark: url('/images/homepage-scroll-dark.webp');
-$homepage-scroll-image-dark-mobile: url('/images/homepage-scroll-dark-0-5x.webp');
-
 .homepageHero {
     background-color: var(--color-util-brand-500);
     color: var(--color-white);
@@ -103,7 +98,7 @@ $homepage-scroll-image-dark-mobile: url('/images/homepage-scroll-dark-0-5x.webp'
     position: relative;
     height: var(--scroller-height);
     overflow: hidden;
-    background-image: $homepage-scroll-image-light-mobile;
+    background-image: url('../../../images/homepage-scroll-light.webp');
     background-size: 100% auto;
     animation-name: scroll-hero;
     animation-duration: 120s;
@@ -131,7 +126,7 @@ $homepage-scroll-image-dark-mobile: url('/images/homepage-scroll-dark-0-5x.webp'
     }
 
     #{$selector-darkmode} & {
-        background-image: $homepage-scroll-image-dark-mobile;
+        background-image: url('../../../images/homepage-scroll-dark.webp');
 
         &::before {
             background-image: linear-gradient(var(--color-bg-primary), transparent);
@@ -144,14 +139,9 @@ $homepage-scroll-image-dark-mobile: url('/images/homepage-scroll-dark-0-5x.webp'
 
     @media screen and (min-width: $breakpoint-hero-large) {
         width: 720px;
-        background-image: $homepage-scroll-image-light;
 
         &::before {
             display: none;
-        }
-
-        #{$selector-darkmode} & {
-            background-image: $homepage-scroll-image-dark;
         }
     }
 }

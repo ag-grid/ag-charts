@@ -7,7 +7,7 @@
     width: var(--layout-width-3-12);
     padding-top: $spacing-size-8;
     padding-bottom: $spacing-size-16;
-    line-height: var(--text-lh-sm);
+    line-height: var(--text-lh-tight);
 
     @supports (position: sticky) {
         padding-top: 0;
@@ -144,7 +144,7 @@
 
 .sideNav .level1 + .level3,
 .sideNav .level2 + .level3 {
-    margin-top: var(--item-gap);
+    margin-top: calc(var(--item-gap) * -0.7);
 }
 
 .sideNav .level3,
