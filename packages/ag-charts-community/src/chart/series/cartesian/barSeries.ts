@@ -11,6 +11,7 @@ import type {
 } from '../../../options/agChartOptions';
 import { BandScale } from '../../../scale/bandScale';
 import { ContinuousScale } from '../../../scale/continuousScale';
+import { BBox } from '../../../scene/bbox';
 import type { DropShadow } from '../../../scene/dropShadow';
 import { PointerEvents } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
@@ -81,6 +82,11 @@ interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDat
     readonly fill?: string;
     readonly stroke?: string;
     readonly strokeWidth: number;
+    readonly topLeftCornerRadius: number;
+    readonly topRightCornerRadius: number;
+    readonly bottomRightCornerRadius: number;
+    readonly bottomLeftCornerRadius: number;
+    readonly cornerRadiusBbox: BBox | undefined;
     readonly label?: BarNodeLabelDatum;
 }
 
@@ -145,6 +151,9 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
 
     @Validate(POSITIVE_NUMBER)
     strokeWidth: number = 1;
+
+    @Validate(POSITIVE_NUMBER)
+    cornerRadius: number = 0;
 
     shadow?: DropShadow = undefined;
 
@@ -211,6 +220,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
                 valueProperty(this, yKey, isContinuousY, { id: `yValue-raw`, invalidValue: null, ...visibleProps }),
                 ...groupAccumulativeValueProperty(this, yKey, isContinuousY, 'normal', 'current', {
                     id: `yValue-end`,
+                    rangeId: `yValue-range`,
                     invalidValue: null,
                     missingValue: 0,
                     groupId: stackGroupName,
@@ -291,6 +301,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
             fill,
             stroke,
             strokeWidth,
+            cornerRadius,
             label,
             processedData,
             ctx: { seriesStateManager },
@@ -332,6 +343,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
         const yRawIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-raw`).index;
         const yStartIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-start`).index;
         const yEndIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-end`).index;
+        const yRangeIndex = dataModel.resolveProcessedDataDefById(this, `yValue-range`).index;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
         const context: CartesianSeriesNodeDataContext<BarNodeDatum> = {
             itemId: yKey,
@@ -340,13 +352,15 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
             scales: super.calculateScaling(),
             visible: this.visible || animationEnabled,
         };
-        processedData?.data.forEach(({ keys, datum: seriesDatum, values }) => {
+        processedData?.data.forEach(({ keys, datum: seriesDatum, values, aggValues }) => {
             const xValue = keys[xIndex];
             const x = xScale.convert(xValue);
 
             const currY = +values[0][yEndIndex];
             const prevY = +values[0][yStartIndex];
             const yRawValue = values[0][yRawIndex];
+            const isPositive = yRawValue >= 0;
+            const yRange = aggValues?.[yRangeIndex][isPositive ? 1 : 0] ?? 0;
             const barX = x + groupScale.convert(String(groupIndex));
 
             if (isNaN(currY)) {
@@ -357,11 +371,22 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
             const bottomY = yScale.convert(prevY);
 
             const barAlongX = this.getBarDirection() === ChartAxisDirection.X;
+
+            const bboxHeight = yScale.convert(yRange);
+            const bboxBottom = yScale.convert(0);
+            const cornerRadiusBbox = new BBox(
+                barAlongX ? Math.min(bboxBottom, bboxHeight) : barX,
+                barAlongX ? barX : Math.min(bboxBottom, bboxHeight),
+                barAlongX ? Math.abs(bboxBottom - bboxHeight) : barWidth,
+                barAlongX ? barWidth : Math.abs(bboxBottom - bboxHeight)
+            );
+
             const rect = {
                 x: barAlongX ? Math.min(y, bottomY) : barX,
                 y: barAlongX ? barX : Math.min(y, bottomY),
                 width: barAlongX ? Math.abs(bottomY - y) : barWidth,
                 height: barAlongX ? barWidth : Math.abs(bottomY - y),
+                cornerRadiusBbox,
             };
 
             const {
@@ -395,7 +420,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
                       fontSize: labelFontSize,
                       fontFamily: labelFontFamily,
                       ...adjustLabelPlacement({
-                          isPositive: yRawValue >= 0,
+                          isPositive,
                           isVertical: !barAlongX,
                           placement,
                           rect,
@@ -425,6 +450,11 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
                 fill,
                 stroke,
                 strokeWidth,
+                topLeftCornerRadius: barAlongX === isPositive ? 0 : cornerRadius,
+                topRightCornerRadius: isPositive ? cornerRadius : 0,
+                bottomRightCornerRadius: barAlongX === isPositive ? cornerRadius : 0,
+                bottomLeftCornerRadius: isPositive ? 0 : cornerRadius,
+                cornerRadiusBbox,
                 label: labelDatum,
             };
             context.nodeData.push(nodeData);
@@ -486,6 +516,11 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
                 lineDashOffset,
                 fillShadow: shadow,
                 strokeWidth: this.getStrokeWidth(this.strokeWidth),
+                topLeftCornerRadius: datum.topLeftCornerRadius,
+                topRightCornerRadius: datum.topRightCornerRadius,
+                bottomRightCornerRadius: datum.bottomRightCornerRadius,
+                bottomLeftCornerRadius: datum.bottomLeftCornerRadius,
+                cornerRadiusBbox: datum.cornerRadiusBbox,
             };
             const visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
 

@@ -205,6 +205,9 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     @Validate(STRING, { optional: true })
     yName?: string = undefined;
 
+    @Validate(POSITIVE_NUMBER)
+    cornerRadius: number = 0;
+
     private seriesItemTypes: Set<AgWaterfallSeriesItemType> = new Set(['positive', 'negative', 'total']);
 
     protected smallestDataInterval?: { x: number; y: number } = undefined;
@@ -677,6 +680,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 lineDashOffset,
                 fillShadow,
                 strokeWidth: this.getStrokeWidth(strokeWidth),
+                cornerRadius: this.cornerRadius,
+                cornerRadiusBbox: undefined,
             };
             const visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
 
