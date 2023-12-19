@@ -3,32 +3,37 @@ import type { FileContents } from '@features/examples-generator/types';
 import { fetchTextFile } from '@utils/fetchTextFile';
 import type { FunctionComponent } from 'react';
 
-import { openPlunker } from '../utils/plunkr';
+import { createNewCodeSandbox, getCodeSandboxUrl } from '../utils/codeSandbox';
 
 interface Props {
     title: string;
     files: FileContents;
     htmlUrl: string;
     boilerPlateFiles?: FileContents;
-    fileToOpen: string;
 }
 
-export const OpenInPlunkr: FunctionComponent<Props> = ({ title, files, htmlUrl, boilerPlateFiles, fileToOpen }) => {
+export const OpenInCodeSandbox: FunctionComponent<Props> = ({ title, files, htmlUrl, boilerPlateFiles }) => {
     return (
         <OpenInCTA
-            type="plunker"
+            type="codesandbox"
             onClick={async () => {
                 const html = await fetchTextFile(htmlUrl);
-                const plunkrExampleFiles = {
+                const sandboxFiles = {
                     ...files,
                     ...boilerPlateFiles,
                     'index.html': html,
                 };
-                openPlunker({
+                const { sandboxId } = await createNewCodeSandbox({
                     title,
-                    files: plunkrExampleFiles,
-                    fileToOpen,
+                    files: sandboxFiles,
                 });
+                const url = getCodeSandboxUrl(sandboxId);
+                if (url) {
+                    window.open(url);
+                } else {
+                    // eslint-disable-next-line no-console
+                    console.warn('Error opening code sandbox url');
+                }
             }}
         />
     );

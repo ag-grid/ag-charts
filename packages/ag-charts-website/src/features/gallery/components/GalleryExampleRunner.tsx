@@ -1,3 +1,4 @@
+import { OpenInCodeSandbox } from '@features/codeSandbox/components/OpenInCodeSandbox';
 import { ExampleRunner } from '@features/example-runner/components/ExampleRunner';
 import { OpenInPlunkr } from '@features/plunkr/components/OpenInPlunkr';
 import { useEffect, useState } from 'react';
@@ -32,7 +33,7 @@ const GalleryExampleRunnerInner = ({ title, exampleName, loadingIFrameId }: Prop
     const [initialSelectedFile, setInitialSelectedFile] = useState();
     const [exampleUrl, setExampleUrl] = useState<string>();
     const [exampleRunnerExampleUrl, setExampleRunnerExampleUrl] = useState<string>();
-    const [plunkrHtmlUrl, setPlunkrHtmlUrl] = useState<string>();
+    const [htmlUrl, setHtmlUrl] = useState<string>();
     const [exampleFiles, setExampleFiles] = useState();
     const [exampleBoilerPlateFiles, setExampleBoilerPlateFiles] = useState();
 
@@ -90,7 +91,7 @@ const GalleryExampleRunnerInner = ({ title, exampleName, loadingIFrameId }: Prop
     }, [contents, exampleFilesIsLoading, exampleFilesIsError]);
 
     useEffect(() => {
-        setPlunkrHtmlUrl(
+        setHtmlUrl(
             getExampleWithRelativePathUrl({
                 exampleName,
             })
@@ -112,15 +113,27 @@ const GalleryExampleRunnerInner = ({ title, exampleName, loadingIFrameId }: Prop
         setExampleBoilerPlateFiles(contents.boilerPlateFiles);
     }, [contents, exampleFilesIsLoading, exampleFilesIsError, exampleFileHtml]);
 
-    const externalLinkButton =
-        exampleFiles && plunkrHtmlUrl ? (
-            <OpenInPlunkr
-                title={title}
-                files={exampleFiles}
-                plunkrHtmlUrl={plunkrHtmlUrl}
-                boilerPlateFiles={exampleBoilerPlateFiles}
-                fileToOpen={initialSelectedFile!}
-            />
+    const externalLinks =
+        exampleFiles && htmlUrl ? (
+            <>
+                <li>
+                    <OpenInCodeSandbox
+                        title={title}
+                        files={exampleFiles}
+                        htmlUrl={htmlUrl}
+                        boilerPlateFiles={exampleBoilerPlateFiles}
+                    />
+                </li>
+                <li>
+                    <OpenInPlunkr
+                        title={title}
+                        files={exampleFiles}
+                        htmlUrl={htmlUrl}
+                        boilerPlateFiles={exampleBoilerPlateFiles}
+                        fileToOpen={initialSelectedFile!}
+                    />
+                </li>
+            </>
         ) : undefined;
 
     return (
@@ -132,7 +145,7 @@ const GalleryExampleRunnerInner = ({ title, exampleName, loadingIFrameId }: Prop
             exampleFiles={exampleFiles}
             initialSelectedFile={initialSelectedFile}
             internalFramework={internalFramework}
-            externalLinkButton={externalLinkButton}
+            externalLinks={externalLinks}
             hideInternalFrameworkSelection={true}
             exampleHeight={620}
             loadingIFrameId={loadingIFrameId}

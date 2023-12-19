@@ -1,4 +1,5 @@
 import type { Framework } from '@ag-grid-types';
+import { OpenInCodeSandbox } from '@features/codeSandbox/components/OpenInCodeSandbox';
 import { ExampleRunner } from '@features/example-runner/components/ExampleRunner';
 import type { ExampleOptions } from '@features/example-runner/types';
 import { getLoadingIFrameId } from '@features/example-runner/utils/getLoadingLogoId';
@@ -58,7 +59,7 @@ const DocsExampleRunnerInner = ({ name, title, exampleType, options, framework, 
     const [initialSelectedFile, setInitialSelectedFile] = useState();
     const [exampleUrl, setExampleUrl] = useState<string>();
     const [exampleRunnerExampleUrl, setExampleRunnerExampleUrl] = useState<string>();
-    const [plunkrHtmlUrl, setPlunkrHtmlUrl] = useState<string>();
+    const [htmlUrl, setHtmlUrl] = useState<string>();
     const [exampleFiles, setExampleFiles] = useState();
     const [exampleBoilerPlateFiles, setExampleBoilerPlateFiles] = useState();
 
@@ -122,7 +123,7 @@ const DocsExampleRunnerInner = ({ name, title, exampleType, options, framework, 
     }, [contents, contentsIsLoading, contentsIsError]);
 
     useEffect(() => {
-        setPlunkrHtmlUrl(
+        setHtmlUrl(
             getExampleWithRelativePathUrl({
                 internalFramework,
                 pageName,
@@ -148,16 +149,31 @@ const DocsExampleRunnerInner = ({ name, title, exampleType, options, framework, 
 
     useUpdateInternalFrameworkFromFramework(framework);
 
-    const externalLinkButton =
-        !options?.noPlunker && plunkrHtmlUrl && exampleFiles ? (
-            <OpenInPlunkr
-                title={title}
-                files={exampleFiles}
-                plunkrHtmlUrl={plunkrHtmlUrl}
-                boilerPlateFiles={exampleBoilerPlateFiles}
-                fileToOpen={initialSelectedFile!}
-            />
-        ) : undefined;
+    const externalLinks = (
+        <>
+            {!options?.noCodeSandbox && htmlUrl && exampleFiles ? (
+                <li>
+                    <OpenInCodeSandbox
+                        title={title}
+                        files={exampleFiles}
+                        htmlUrl={htmlUrl}
+                        boilerPlateFiles={exampleBoilerPlateFiles}
+                    />
+                </li>
+            ) : undefined}
+            {!options?.noPlunker && htmlUrl && exampleFiles ? (
+                <li>
+                    <OpenInPlunkr
+                        title={title}
+                        files={exampleFiles}
+                        htmlUrl={htmlUrl}
+                        boilerPlateFiles={exampleBoilerPlateFiles}
+                        fileToOpen={initialSelectedFile!}
+                    />
+                </li>
+            ) : undefined}
+        </>
+    );
 
     return (
         <ExampleRunner
@@ -170,7 +186,7 @@ const DocsExampleRunnerInner = ({ name, title, exampleType, options, framework, 
             initialShowCode={options?.showCode}
             initialSelectedFile={initialSelectedFile}
             internalFramework={internalFramework}
-            externalLinkButton={externalLinkButton}
+            externalLinks={externalLinks}
             loadingIFrameId={loadingIFrameId}
         />
     );
