@@ -1,8 +1,8 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-import { RadarSeries } from '../radar/radarSeries';
+import { type RadarPathPoint, RadarSeries } from '../radar/radarSeries';
 
-const { RATIO, COLOR_STRING, Validate } = _ModuleSupport;
+const { RATIO, COLOR_STRING, Validate, ChartAxisDirection } = _ModuleSupport;
 
 const { Group, Path, PointerEvents, Selection } = _Scene;
 
@@ -52,8 +52,30 @@ export class RadarAreaSeries extends RadarSeries {
 
     protected override animatePaths(ratio: number) {
         super.animatePaths(ratio);
-        const areaPoints = this.getLinePoints({ breakMissingPoints: false });
+        const areaPoints = this.getAreaPoints({ breakMissingPoints: false });
         this.animateSinglePath(this.getAreaNode(), areaPoints, ratio);
+    }
+
+    private getAreaPoints(options: { breakMissingPoints: boolean }): RadarPathPoint[] {
+        const points: RadarPathPoint[] = this.getLinePoints(options);
+
+        const getPolarAxis = (direction: _ModuleSupport.ChartAxisDirection): _ModuleSupport.PolarAxis | undefined => {
+            const axis = this.axes[direction];
+            return axis instanceof _ModuleSupport.PolarAxis ? axis : undefined;
+        };
+
+        const radiusAxis = getPolarAxis(ChartAxisDirection.Y);
+        const angleAxis = getPolarAxis(ChartAxisDirection.X);
+
+        const reversedRadiusAxis = radiusAxis?.isReversed();
+
+        if (!reversedRadiusAxis) {
+            return points;
+        }
+
+        const { points: zeroLinePoints = [] } = angleAxis?.getAxisLinePoints?.() ?? {};
+
+        return points.concat(...zeroLinePoints);
     }
 
     protected override resetPaths() {
@@ -62,7 +84,7 @@ export class RadarAreaSeries extends RadarSeries {
 
         if (areaNode) {
             const { path: areaPath } = areaNode;
-            const areaPoints = this.getLinePoints({ breakMissingPoints: false });
+            const areaPoints = this.getAreaPoints({ breakMissingPoints: false });
 
             areaNode.fill = this.fill;
             areaNode.fillOpacity = this.fillOpacity;
@@ -74,8 +96,10 @@ export class RadarAreaSeries extends RadarSeries {
 
             areaPath.clear({ trackChanges: true });
 
-            areaPoints.forEach(({ x, y }, index) => {
-                if (index === 0) {
+            areaPoints.forEach(({ x, y, moveTo, arc, radius = 0, startAngle = 0, endAngle = 0 }) => {
+                if (arc) {
+                    areaPath.arc(x, y, radius, startAngle, endAngle);
+                } else if (moveTo) {
                     areaPath.moveTo(x, y);
                 } else {
                     areaPath.lineTo(x, y);
