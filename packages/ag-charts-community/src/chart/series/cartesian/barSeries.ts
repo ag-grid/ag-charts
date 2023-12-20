@@ -1,18 +1,9 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
-import type {
-    AgBarSeriesFormatterParams,
-    AgBarSeriesLabelFormatterParams,
-    AgBarSeriesLabelPlacement,
-    AgBarSeriesStyle,
-    AgBarSeriesTooltipRendererParams,
-    FontStyle,
-    FontWeight,
-} from '../../../options/agChartOptions';
+import type { AgBarSeriesStyle, FontStyle, FontWeight } from '../../../options/agChartOptions';
 import { BandScale } from '../../../scale/bandScale';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import { BBox } from '../../../scene/bbox';
-import type { DropShadow } from '../../../scene/dropShadow';
 import { PointerEvents } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
@@ -20,17 +11,6 @@ import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
 import { sanitizeHtml } from '../../../util/sanitize';
-import {
-    COLOR_STRING,
-    FUNCTION,
-    LINE_DASH,
-    NUMBER,
-    PLACEMENT,
-    POSITIVE_NUMBER,
-    RATIO,
-    STRING,
-    Validate,
-} from '../../../util/validation';
 import { isNumber } from '../../../util/value';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import { GroupedCategoryAxis } from '../../axis/groupedCategoryAxis';
@@ -39,13 +19,12 @@ import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { fixNumericExtent } from '../../data/dataModel';
 import { SMALLEST_KEY_INTERVAL, animationValidation, diff, normaliseGroupTo } from '../../data/processors';
-import { Label } from '../../label';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import { SeriesNodePickMode, groupAccumulativeValueProperty, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
-import { SeriesTooltip } from '../seriesTooltip';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import { AbstractBarSeries } from './abstractBarSeries';
+import { BarSeriesProperties } from './barSeriesProperties';
 import type { RectConfig } from './barUtil';
 import {
     checkCrisp,
@@ -97,65 +76,11 @@ enum BarSeriesNodeTag {
     Label,
 }
 
-class BarSeriesLabel extends Label<AgBarSeriesLabelFormatterParams> {
-    @Validate(PLACEMENT)
-    placement: AgBarSeriesLabelPlacement = 'inside';
-}
-
 export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
     static className = 'BarSeries';
     static type = 'bar' as const;
 
-    readonly label = new BarSeriesLabel();
-
-    tooltip = new SeriesTooltip<AgBarSeriesTooltipRendererParams>();
-
-    @Validate(COLOR_STRING, { optional: true })
-    fill: string = '#c16068';
-
-    @Validate(COLOR_STRING, { optional: true })
-    stroke: string = '#874349';
-
-    @Validate(RATIO)
-    fillOpacity = 1;
-
-    @Validate(RATIO)
-    strokeOpacity = 1;
-
-    @Validate(LINE_DASH, { optional: true })
-    lineDash?: number[] = [0];
-
-    @Validate(POSITIVE_NUMBER)
-    lineDashOffset: number = 0;
-
-    @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgBarSeriesFormatterParams<any>) => AgBarSeriesStyle = undefined;
-
-    @Validate(STRING, { optional: true })
-    xKey?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    xName?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    yKey?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    yName?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    stackGroup?: string = undefined;
-
-    @Validate(NUMBER, { optional: true })
-    normalizedTo?: number;
-
-    @Validate(POSITIVE_NUMBER)
-    strokeWidth: number = 1;
-
-    @Validate(POSITIVE_NUMBER)
-    cornerRadius: number = 0;
-
-    shadow?: DropShadow = undefined;
+    override properties = new BarSeriesProperties();
 
     constructor(moduleCtx: ModuleContext) {
         super({
@@ -189,9 +114,12 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
     protected smallestDataInterval?: { x: number; y: number } = undefined;
 
     override async processData(dataController: DataController) {
-        const { xKey, yKey, normalizedTo, seriesGrouping: { groupIndex = this.id } = {}, data = [] } = this;
+        if (!this.properties.isValid() || !this.data) {
+            return;
+        }
 
-        if (xKey == null || yKey == null || data == null) return;
+        const { seriesGrouping: { groupIndex = this.id } = {}, data = [] } = this;
+        const { xKey, yKey, normalizedTo } = this.properties;
 
         const animationEnabled = !this.ctx.animationManager.isSkipped();
         const normalizedToAbs = Math.abs(normalizedTo ?? NaN);
@@ -287,7 +215,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
-        if (!(dataModel && xAxis && yAxis)) {
+        if (!(dataModel && xAxis && yAxis && this.properties.isValid())) {
             return [];
         }
 
@@ -296,17 +224,11 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
 
         const {
             groupScale,
-            yKey = '',
-            xKey = '',
-            fill,
-            stroke,
-            strokeWidth,
-            cornerRadius,
-            label,
             processedData,
-            ctx: { seriesStateManager },
             smallestDataInterval,
+            ctx: { seriesStateManager },
         } = this;
+        const { xKey, yKey, xName, yName, fill, stroke, strokeWidth, cornerRadius, legendItemName, label } = this.properties;
 
         const xBandWidth = ContinuousScale.is(xScale)
             ? xScale.calcBandwidth(smallestDataInterval?.x)
@@ -399,15 +321,15 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
             } = label;
 
             const labelText = this.getLabelText(
-                this.label,
+                this.properties.label,
                 {
                     datum: seriesDatum[0],
                     value: yRawValue,
                     xKey,
                     yKey,
-                    xName: this.xName,
-                    yName: this.yName,
-                    legendItemName: this.legendItemName,
+                    xName,
+                    yName,
+                    legendItemName,
                 },
                 (value) => (isNumber(value) ? value.toFixed(2) : '')
             );
@@ -485,28 +407,30 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
         datumSelection: Selection<Rect, BarNodeDatum>;
         isHighlight: boolean;
     }) {
-        const { datumSelection, isHighlight } = opts;
+        if (!this.properties.isValid()) {
+            return;
+        }
+
         const {
-            yKey = '',
+            yKey,
+            stackGroup,
             fill,
-            stroke,
             fillOpacity,
+            stroke,
+            strokeWidth,
             strokeOpacity,
             lineDash,
             lineDashOffset,
-            shadow,
             formatter,
-            id: seriesId,
+            shadow,
             highlightStyle: { item: itemHighlightStyle },
-            ctx,
-            stackGroup,
-        } = this;
+        } = this.properties;
 
         const xAxis = this.axes[ChartAxisDirection.X];
         const crisp = checkCrisp(xAxis?.visibleRange);
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
 
-        datumSelection.each((rect, datum) => {
+        opts.datumSelection.each((rect, datum) => {
             const style: RectConfig = {
                 fill,
                 stroke,
@@ -515,7 +439,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
                 lineDash,
                 lineDashOffset,
                 fillShadow: shadow,
-                strokeWidth: this.getStrokeWidth(this.strokeWidth),
+                strokeWidth: this.getStrokeWidth(strokeWidth),
                 topLeftCornerRadius: datum.topLeftCornerRadius,
                 topRightCornerRadius: datum.topRightCornerRadius,
                 bottomRightCornerRadius: datum.bottomRightCornerRadius,
@@ -526,14 +450,14 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
 
             const config = getRectConfig({
                 datum,
-                isHighlighted: isHighlight,
-                style,
+                ctx: this.ctx,
+                seriesId: this.id,
+                isHighlighted: opts.isHighlight,
                 highlightStyle: itemHighlightStyle,
-                formatter,
-                seriesId,
-                stackGroup,
-                ctx,
                 yKey,
+                style,
+                formatter,
+                stackGroup,
             });
             config.crisp = crisp;
             config.visible = visible;
@@ -545,7 +469,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
         labelData: BarNodeDatum[];
         labelSelection: Selection<Text, BarNodeDatum>;
     }) {
-        const data = this.label.enabled ? opts.labelData : [];
+        const data = this.isLabelEnabled() ? opts.labelData : [];
         return opts.labelSelection.update(data, (text) => {
             text.tag = BarSeriesNodeTag.Label;
             text.pointerEvents = PointerEvents.None;
@@ -554,27 +478,26 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
 
     protected async updateLabelNodes(opts: { labelSelection: Selection<Text, BarNodeDatum> }) {
         opts.labelSelection.each((textNode, datum) => {
-            updateLabelNode(textNode, this.label, datum.label);
+            updateLabelNode(textNode, this.properties.label, datum.label);
         });
     }
 
     getTooltipHtml(nodeDatum: BarNodeDatum): string {
         const {
-            xKey,
-            yKey,
+            id: seriesId,
             processedData,
             ctx: { callbackCache },
         } = this;
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
-        const { xValue, yValue, datum } = nodeDatum;
 
-        if (!processedData || !xKey || !yKey || !xAxis || !yAxis) {
+        if (!processedData || !this.properties.isValid() || !xAxis || !yAxis) {
             return '';
         }
 
-        const { xName, yName, fill, stroke, tooltip, formatter, id: seriesId, stackGroup } = this;
-        const strokeWidth = this.getStrokeWidth(this.strokeWidth);
+        const { xKey, yKey, xName, yName, fill, stroke, strokeWidth, tooltip, formatter, stackGroup } = this.properties;
+        const { xValue, yValue, datum } = nodeDatum;
+
         const xString = xAxis.formatDatum(xValue);
         const yString = yAxis.formatDatum(yValue);
         const title = sanitizeHtml(yName);
@@ -584,15 +507,15 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
 
         if (formatter) {
             format = callbackCache.call(formatter, {
+                seriesId,
                 datum,
-                fill,
-                stroke,
-                strokeWidth,
-                highlighted: false,
                 xKey,
                 yKey,
-                seriesId,
                 stackGroup,
+                fill,
+                stroke,
+                strokeWidth: this.getStrokeWidth(strokeWidth),
+                highlighted: false,
             });
         }
 
@@ -601,59 +524,46 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
         return tooltip.toTooltipHtml(
             { title, content, backgroundColor: color },
             {
+                seriesId,
                 datum,
                 xKey,
-                xName,
                 yKey,
+                xName,
                 yName,
-                color,
-                title,
-                seriesId,
                 stackGroup,
+                title,
+                color,
                 ...this.getModuleTooltipParams(),
             }
         );
     }
 
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
-        const {
-            id,
-            data,
-            xKey,
-            yKey,
-            yName,
-            legendItemName,
-            fill,
-            stroke,
-            strokeWidth,
-            fillOpacity,
-            strokeOpacity,
-            visible,
-            showInLegend,
-        } = this;
+        const { showInLegend } = this.properties;
 
-        if (legendType !== 'category' || !showInLegend || !data?.length || !xKey || !yKey) {
+        if (legendType !== 'category' || !this.data?.length || !this.properties.isValid() || !showInLegend) {
             return [];
         }
+
+        const { yKey, yName, fill, stroke, strokeWidth, fillOpacity, strokeOpacity, legendItemName, visible } =
+            this.properties;
 
         return [
             {
                 legendType: 'category',
-                id,
+                id: this.id,
                 itemId: yKey,
-                seriesId: id,
+                seriesId: this.id,
                 enabled: visible,
                 label: { text: legendItemName ?? yName ?? yKey },
-                marker: { fill, stroke, fillOpacity, strokeOpacity, strokeWidth },
+                marker: { fill, fillOpacity, stroke, strokeWidth, strokeOpacity },
                 legendItemName,
             },
         ];
     }
 
     override animateEmptyUpdateReady({ datumSelections, labelSelections, annotationSelections }: BarAnimationData) {
-        const fns = prepareBarAnimationFunctions(
-            collapsedStartingBarPosition(this.direction === 'vertical', this.axes)
-        );
+        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes));
 
         fromToMotion(this.id, 'nodes', this.ctx.animationManager, datumSelections, fns);
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
@@ -666,9 +576,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
         const diff = this.processedData?.reduced?.diff;
-        const fns = prepareBarAnimationFunctions(
-            collapsedStartingBarPosition(this.direction === 'vertical', this.axes)
-        );
+        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes));
 
         fromToMotion(
             this.id,
@@ -685,6 +593,6 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
     }
 
     protected isLabelEnabled() {
-        return this.label.enabled;
+        return this.properties.label.enabled;
     }
 }

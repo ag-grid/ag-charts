@@ -1,19 +1,16 @@
-import type { InteractionRange } from '../../options/chart/types';
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
 import type { Point, SizedPoint } from '../../scene/point';
 import type { ChartAxis } from '../chartAxis';
 import type { ChartAxisDirection } from '../chartAxisDirection';
 import type { ChartLegendDatum, ChartLegendType } from '../legendDatum';
-import type { SeriesTooltip } from './seriesTooltip';
+import type { SeriesProperties } from './seriesProperties';
 
 export interface ISeries<TDatum> {
     id: string;
     axes: Record<ChartAxisDirection, ChartAxis | undefined>;
-    cursor: string;
     contentGroup: Group;
-    tooltip: SeriesTooltip<any>;
-    nodeClickRange: InteractionRange;
+    properties: SeriesProperties<any>;
     hasEventListener(type: string): boolean;
     update(opts: { seriesRect?: BBox }): Promise<void>;
     fireNodeClickEvent(event: Event, datum: TDatum): void;

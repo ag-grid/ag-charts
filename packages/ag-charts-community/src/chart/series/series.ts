@@ -3,7 +3,6 @@ import type { ModuleContextInitialiser } from '../../module/moduleMap';
 import { ModuleMap } from '../../module/moduleMap';
 import type { SeriesOptionInstance, SeriesOptionModule } from '../../module/optionModules';
 import type { AgChartLabelFormatterParams, AgChartLabelOptions } from '../../options/chart/labelOptions';
-import type { InteractionRange } from '../../options/chart/types';
 import type {
     AgSeriesMarkerFormatterParams,
     AgSeriesMarkerStyle,
@@ -21,16 +20,6 @@ import { mergeDefaults } from '../../util/object';
 import type { TypedEvent } from '../../util/observable';
 import { Observable } from '../../util/observable';
 import { ActionOnSet } from '../../util/proxy';
-import {
-    BOOLEAN,
-    COLOR_STRING,
-    INTERACTION_RANGE,
-    LINE_DASH,
-    POSITIVE_NUMBER,
-    RATIO,
-    STRING,
-    Validate,
-} from '../../util/validation';
 import { checkDatum } from '../../util/value';
 import type { ChartAxis } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
@@ -44,8 +33,8 @@ import type { ChartLegendDatum, ChartLegendType } from '../legendDatum';
 import type { Marker } from '../marker/marker';
 import type { BaseSeriesEvent, SeriesEventType } from './seriesEvents';
 import type { SeriesGroupZIndexSubOrderType } from './seriesLayerManager';
+import type { SeriesProperties } from './seriesProperties';
 import type { SeriesGrouping } from './seriesStateManager';
-import type { SeriesTooltip } from './seriesTooltip';
 import type { ISeries, SeriesNodeDatum } from './seriesTypes';
 
 /** Modes of matching user interactions to rendered nodes (e.g. hover or click) */
@@ -230,51 +219,6 @@ export class SeriesNodeClickEvent<TDatum extends SeriesNodeDatum, TEvent extends
     }
 }
 
-export class SeriesItemHighlightStyle {
-    @Validate(COLOR_STRING, { optional: true })
-    fill?: string = 'yellow';
-
-    @Validate(RATIO, { optional: true })
-    fillOpacity?: number = undefined;
-
-    @Validate(COLOR_STRING, { optional: true })
-    stroke?: string = undefined;
-
-    @Validate(POSITIVE_NUMBER, { optional: true })
-    strokeWidth?: number = undefined;
-
-    @Validate(RATIO, { optional: true })
-    strokeOpacity?: number = undefined;
-
-    @Validate(LINE_DASH, { optional: true })
-    lineDash?: number[] = undefined;
-
-    @Validate(POSITIVE_NUMBER, { optional: true })
-    lineDashOffset?: number = undefined;
-}
-
-class SeriesHighlightStyle {
-    @Validate(POSITIVE_NUMBER, { optional: true })
-    strokeWidth?: number = undefined;
-
-    @Validate(RATIO, { optional: true })
-    dimOpacity?: number = undefined;
-
-    @Validate(BOOLEAN, { optional: true })
-    enabled?: boolean = undefined;
-}
-
-class TextHighlightStyle {
-    @Validate(COLOR_STRING, { optional: true })
-    color?: string = 'black';
-}
-
-export class HighlightStyle {
-    readonly item = new SeriesItemHighlightStyle();
-    readonly series = new SeriesHighlightStyle();
-    readonly text = new TextHighlightStyle();
-}
-
 export type SeriesNodeDataContext<S = SeriesNodeDatum, L = S> = {
     itemId: string;
     nodeData: S[];
@@ -297,12 +241,26 @@ export abstract class Series<
     extends Observable
     implements ISeries<TDatum>, ModuleContextInitialiser<SeriesContext>
 {
+    abstract readonly properties: SeriesProperties<any>;
+
+    pickModes: SeriesNodePickMode[];
+
+    @ActionOnSet<Series<TDatum, TLabel>>({
+        changeValue: function (newVal, oldVal) {
+            this.onSeriesGroupingChange(oldVal, newVal);
+        },
+    })
+    seriesGrouping?: SeriesGrouping = undefined;
+
     protected static readonly highlightedZIndex = 1000000000000;
 
     protected readonly NodeClickEvent: INodeClickEventConstructor<TDatum, any> = SeriesNodeClickEvent;
 
-    @Validate(STRING)
-    readonly id = createId(this);
+    protected readonly internalId = createId(this);
+
+    get id() {
+        return this.properties?.id ?? this.internalId;
+    }
 
     readonly canHaveAxes: boolean;
 
@@ -347,7 +305,7 @@ export abstract class Series<
     // Flag to determine if we should recalculate node data.
     protected nodeDataRefresh = true;
 
-    abstract tooltip: SeriesTooltip<any>;
+    protected readonly moduleMap: SeriesModuleMap = new ModuleMap(this);
 
     protected _data?: any[];
     protected _chartData?: any[];
@@ -359,6 +317,15 @@ export abstract class Series<
 
     get data() {
         return this._data ?? this._chartData;
+    }
+
+    set visible(value: boolean) {
+        this.properties.visible = value;
+        this.visibleChanged();
+    }
+
+    get visible() {
+        return this.properties.visible;
     }
 
     protected onDataChange() {
@@ -376,34 +343,6 @@ export abstract class Series<
         const { data } = this;
         return data && (!Array.isArray(data) || data.length > 0);
     }
-
-    @Validate(BOOLEAN)
-    protected _visible = true;
-    set visible(value: boolean) {
-        this._visible = value;
-        this.visibleChanged();
-    }
-    get visible() {
-        return this._visible;
-    }
-
-    @Validate(BOOLEAN)
-    showInLegend = true;
-
-    pickModes: SeriesNodePickMode[];
-
-    @Validate(STRING)
-    cursor = 'default';
-
-    @Validate(INTERACTION_RANGE)
-    nodeClickRange: InteractionRange = 'exact';
-
-    @ActionOnSet<Series<TDatum, TLabel>>({
-        changeValue: function (newVal, oldVal) {
-            this.onSeriesGroupingChange(oldVal, newVal);
-        },
-    })
-    seriesGrouping?: SeriesGrouping = undefined;
 
     private onSeriesGroupingChange(prev?: SeriesGrouping, next?: SeriesGrouping) {
         const { id, type, visible, rootGroup, highlightGroup, annotationGroup } = this;
@@ -450,9 +389,8 @@ export abstract class Series<
     }) {
         super();
 
-        this.ctx = seriesOpts.moduleCtx;
-
         const {
+            moduleCtx,
             useLabelLayer = false,
             pickModes = [SeriesNodePickMode.NEAREST_BY_MAIN_AXIS_FIRST],
             directionKeys = {},
@@ -461,13 +399,14 @@ export abstract class Series<
             canHaveAxes = false,
         } = seriesOpts;
 
+        this.ctx = moduleCtx;
         this.directionKeys = directionKeys;
         this.directionNames = directionNames;
         this.canHaveAxes = canHaveAxes;
 
         this.contentGroup = this.rootGroup.appendChild(
             new Group({
-                name: `${this.id}-content`,
+                name: `${this.internalId}-content`,
                 layer: !contentGroupVirtual,
                 isVirtual: contentGroupVirtual,
                 zIndex: Layers.SERIES_LAYER_ZINDEX,
@@ -476,7 +415,7 @@ export abstract class Series<
         );
 
         this.highlightGroup = new Group({
-            name: `${this.id}-highlight`,
+            name: `${this.internalId}-highlight`,
             layer: !contentGroupVirtual,
             isVirtual: contentGroupVirtual,
             zIndex: Layers.SERIES_LAYER_ZINDEX,
@@ -489,7 +428,7 @@ export abstract class Series<
 
         this.labelGroup = this.rootGroup.appendChild(
             new Group({
-                name: `${this.id}-series-labels`,
+                name: `${this.internalId}-series-labels`,
                 layer: useLabelLayer,
                 zIndex: Layers.SERIES_LABEL_ZINDEX,
             })
@@ -569,7 +508,7 @@ export abstract class Series<
             }
         };
 
-        addValues(...keys.map((key) => (this as any)[key]));
+        addValues(...keys.map((key) => (this.properties as any)[key]));
 
         return values;
     }
@@ -617,7 +556,7 @@ export abstract class Series<
 
     public getOpacity(): number {
         const defaultOpacity = 1;
-        const { dimOpacity = 1, enabled = true } = this.highlightStyle.series;
+        const { dimOpacity = 1, enabled = true } = this.properties.highlightStyle.series;
 
         if (!enabled || dimOpacity === defaultOpacity) {
             return defaultOpacity;
@@ -634,7 +573,7 @@ export abstract class Series<
     }
 
     protected getStrokeWidth(defaultStrokeWidth: number): number {
-        const { strokeWidth, enabled = true } = this.highlightStyle.series;
+        const { strokeWidth, enabled = true } = this.properties.highlightStyle.series;
 
         if (!enabled || strokeWidth === undefined) {
             // No change in styling for highlight cases.
@@ -668,9 +607,7 @@ export abstract class Series<
 
     protected getModuleTooltipParams(): object {
         const params: object[] = this.moduleMap.values().map((mod) => mod.getTooltipParams());
-        return params.reduce((total, current) => {
-            return { ...current, ...total };
-        }, {});
+        return params.reduce((total, current) => ({ ...current, ...total }), {});
     }
 
     abstract getTooltipHtml(seriesDatum: any): string;
@@ -755,10 +692,6 @@ export abstract class Series<
     isEnabled() {
         return this.visible;
     }
-
-    readonly highlightStyle = new HighlightStyle();
-
-    protected readonly moduleMap: SeriesModuleMap = new ModuleMap(this);
 
     getModuleMap(): SeriesModuleMap {
         return this.moduleMap;

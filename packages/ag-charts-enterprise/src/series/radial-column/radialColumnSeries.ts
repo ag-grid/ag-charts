@@ -2,20 +2,17 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import type { RadialColumnNodeDatum } from './radialColumnSeriesBase';
 import { RadialColumnSeriesBase } from './radialColumnSeriesBase';
+import { RadialColumnSeriesProperties } from './radialColumnSeriesProperties';
 import { RadialColumnShape, getRadialColumnWidth } from './radialColumnShape';
 import { prepareRadialColumnAnimationFunctions, resetRadialColumnSelectionFn } from './radialColumnUtil';
 
-const { ChartAxisDirection, RATIO, PolarAxis, Validate } = _ModuleSupport;
+const { ChartAxisDirection, PolarAxis } = _ModuleSupport;
 
 export class RadialColumnSeries extends RadialColumnSeriesBase<RadialColumnShape> {
     static className = 'RadialColumnSeries';
     static type = 'radial-column' as const;
 
-    @Validate(RATIO, { optional: true })
-    columnWidthRatio?: number;
-
-    @Validate(RATIO, { optional: true })
-    maxColumnWidthRatio?: number;
+    override properties = new RadialColumnSeriesProperties();
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super(moduleCtx, {
@@ -60,7 +57,7 @@ export class RadialColumnSeries extends RadialColumnSeriesBase<RadialColumnShape
     }
 
     protected override getColumnWidth(startAngle: number, endAngle: number) {
-        const { radius, columnWidthRatio = 0.5, maxColumnWidthRatio = 0.5 } = this;
-        return getRadialColumnWidth(startAngle, endAngle, radius, columnWidthRatio, maxColumnWidthRatio);
+        const { columnWidthRatio = 0.5, maxColumnWidthRatio = 0.5 } = this.properties;
+        return getRadialColumnWidth(startAngle, endAngle, this.radius, columnWidthRatio, maxColumnWidthRatio);
     }
 }

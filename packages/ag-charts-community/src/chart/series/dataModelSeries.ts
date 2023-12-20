@@ -1,7 +1,7 @@
 import { ContinuousScale } from '../../scale/continuousScale';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { DataController } from '../data/dataController';
-import type { DataModel, DataModelOptions, ProcessedData } from '../data/dataModel';
+import type { DataModel, DataModelOptions, ProcessedData, PropertyDefinition } from '../data/dataModel';
 import type { SeriesNodeDataContext } from './series';
 import { Series } from './series';
 import type { SeriesNodeDatum } from './seriesTypes';
@@ -32,14 +32,9 @@ export abstract class DataModelSeries<
         G extends boolean | undefined = undefined,
     >(dataController: DataController, data: D[] | undefined, opts: DataModelOptions<K, boolean | undefined>) {
         // Merge properties of this series with properties of all the attached series-options
-        const props = opts.props;
-        const moduleProps = this.getModulePropertyDefinitions() as typeof props;
-        props.push(...moduleProps);
+        opts.props.push(...(this.getModulePropertyDefinitions() as PropertyDefinition<K>[]));
 
-        const { dataModel, processedData } = await dataController.request<D, K, G>(this.id, data ?? [], {
-            ...opts,
-            props,
-        });
+        const { dataModel, processedData } = await dataController.request<D, K, G>(this.id, data ?? [], opts);
 
         this.dataModel = dataModel;
         this.processedData = processedData;
@@ -49,10 +44,12 @@ export abstract class DataModelSeries<
 
     protected isProcessedDataAnimatable() {
         const validationResults = this.processedData?.reduced?.animationValidation;
-        if (!validationResults) return true;
+        if (!validationResults) {
+            return true;
+        }
 
         const { orderedKeys, uniqueKeys } = validationResults;
-        return !!orderedKeys && !!uniqueKeys;
+        return orderedKeys && uniqueKeys;
     }
 
     protected checkProcessedDataAnimatable() {

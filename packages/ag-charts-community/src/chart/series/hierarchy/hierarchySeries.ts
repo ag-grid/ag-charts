@@ -8,12 +8,11 @@ import type { Group } from '../../../scene/group';
 import type { Node } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
 import type { PointLabelDatum } from '../../../util/labelPlacement';
-import { COLOR_STRING_ARRAY, STRING, Validate } from '../../../util/validation';
 import type { HighlightNodeDatum } from '../../interaction/highlightManager';
 import type { ChartLegendType, GradientLegendDatum } from '../../legendDatum';
-import { DEFAULT_FILLS, DEFAULT_STROKES } from '../../themes/defaultColors';
 import { Series, SeriesNodePickMode } from '../series';
 import type { ISeries, SeriesNodeDatum } from '../seriesTypes';
+import type { HierarchySeriesProperties } from './hierarchySeriesProperties';
 
 type Mutable<T> = {
     -readonly [k in keyof T]: T[k];
@@ -91,26 +90,7 @@ export abstract class HierarchySeries<
     TNode extends Node = Group,
     TDatum extends SeriesNodeDatum = SeriesNodeDatum,
 > extends Series<TDatum> {
-    @Validate(STRING, { optional: true })
-    childrenKey?: string = 'children';
-
-    @Validate(STRING, { optional: true })
-    sizeKey?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    colorKey?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    colorName?: string = undefined;
-
-    @Validate(COLOR_STRING_ARRAY, { optional: true })
-    fills: string[] = Object.values(DEFAULT_FILLS);
-
-    @Validate(COLOR_STRING_ARRAY, { optional: true })
-    strokes: string[] = Object.values(DEFAULT_STROKES);
-
-    @Validate(COLOR_STRING_ARRAY, { optional: true })
-    colorRange?: string[] = undefined;
+    abstract override properties: HierarchySeriesProperties<any>;
 
     rootNode = new HierarchyNode<TDatum>(
         this,
@@ -180,7 +160,7 @@ export abstract class HierarchySeries<
     }
 
     override async processData(): Promise<void> {
-        const { childrenKey, sizeKey, colorKey, fills, strokes, colorRange } = this;
+        const { childrenKey, sizeKey, colorKey, fills, strokes, colorRange } = this.properties;
 
         let index = 0;
         const getIndex = () => {
@@ -378,15 +358,16 @@ export abstract class HierarchySeries<
     }
 
     override getLegendData(legendType: ChartLegendType): GradientLegendDatum[] {
-        return legendType === 'gradient' && this.colorKey != null && this.colorRange != null
+        const { colorKey, colorName, colorRange, visible } = this.properties;
+        return legendType === 'gradient' && colorKey != null && colorRange != null
             ? [
                   {
                       legendType: 'gradient',
-                      enabled: this.visible,
+                      enabled: visible,
                       seriesId: this.id,
-                      colorName: this.colorName,
+                      colorName,
+                      colorRange,
                       colorDomain: this.colorDomain,
-                      colorRange: this.colorRange,
                   },
               ]
             : [];

@@ -45,6 +45,10 @@ export const CANVAS_TO_BUFFER_DEFAULTS: PngConfig = { compressionLevel: 6, filte
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 600;
 
+async function delay(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export function prepareTestOptions<T extends AgChartOptions>(options: T, container = document.body) {
     options.autoSize = false;
     options.width = CANVAS_WIDTH;
@@ -218,9 +222,7 @@ export function hoverAction(x: number, y: number): (chart: Chart | AgChartProxy)
         target?.dispatchEvent(mouseMoveEvent({ offsetX: x - 1, offsetY: y - 1 }));
         target?.dispatchEvent(mouseMoveEvent({ offsetX: x, offsetY: y }));
 
-        return new Promise((resolve) => {
-            setTimeout(resolve, 50);
-        });
+        return delay(50);
     };
 }
 
@@ -231,9 +233,7 @@ export function clickAction(x: number, y: number): (chart: Chart | AgChartProxy)
         checkTargetValid(target);
 
         target?.dispatchEvent(clickEvent({ offsetX: x, offsetY: y }));
-        return new Promise((resolve) => {
-            setTimeout(resolve, 50);
-        });
+        return delay(50);
     };
 }
 
@@ -241,17 +241,13 @@ export function doubleClickAction(x: number, y: number): (chart: Chart | AgChart
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
         const target = chart.scene.canvas.element;
-        // A double click is always preceeded by two single clicks, simulate here to ensure correct handling
+        // A double click is always preceded by two single clicks, simulate here to ensure correct handling
         target?.dispatchEvent(clickEvent({ offsetX: x, offsetY: y }));
         target?.dispatchEvent(clickEvent({ offsetX: x, offsetY: y }));
-        await new Promise((resolve) => {
-            setTimeout(resolve, 50);
-        });
+        await delay(50);
         await waitForChartStability(chart);
         target?.dispatchEvent(doubleClickEvent({ offsetX: x, offsetY: y }));
-        return new Promise((resolve) => {
-            setTimeout(resolve, 50);
-        });
+        return delay(50);
     };
 }
 
@@ -260,9 +256,7 @@ export function scrollAction(x: number, y: number, delta: number): (chart: Chart
         const chart = deproxy(chartOrProxy);
         const target = chart.scene.canvas.element;
         target?.dispatchEvent(wheelEvent({ clientX: x, clientY: y, deltaY: delta }));
-        await new Promise((resolve) => {
-            setTimeout(resolve, 50);
-        });
+        await delay(50);
     };
 }
 

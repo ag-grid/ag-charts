@@ -9,7 +9,6 @@ export * from './util/number';
 export { extent, normalisedExtent, normalisedExtentWithMetadata } from './util/array';
 export { toFixed, isEqual as isNumberEqual } from './util/number';
 export { tickFormat } from './util/numberFormat';
-export { interpolate as interpolateString } from './util/string';
 export * from './util/sanitize';
 
 export { default as ticks, tickStep, range } from './util/ticks';

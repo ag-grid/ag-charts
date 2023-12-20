@@ -152,7 +152,7 @@ describe('update', () => {
         expect(chart.subtitle?.enabled).toBe(false);
         expect((chart as any).background.fill).toBe('red');
         expect((chart as any).background.visible).toBe(false);
-        expect((chart.series[0] as any).marker.shape).toBe('plus');
+        expect((chart.series[0] as any).properties.marker.shape).toBe('plus');
 
         AgCharts.updateDelta(chartProxy, {
             data: revenueProfitData,
@@ -254,15 +254,15 @@ describe('update', () => {
         expect(updatedSeries.length).toEqual(4);
         expect(updatedSeries[0]).not.toBe(createdSeries[0]);
         expect(updatedSeries[1]).not.toBe(createdSeries[1]);
-        expect((updatedSeries[0] as any).marker.shape).toEqual('square');
-        expect((updatedSeries[0] as any).marker.size).toEqual(10);
-        expect((updatedSeries[1] as any).fill).toEqual('lime');
-        expect((updatedSeries[1] as any).yKey).toEqual('profit');
-        expect((updatedSeries[2] as any).fill).toEqual('cyan');
-        expect((updatedSeries[2] as any).yKey).toEqual('foobar');
+        expect((updatedSeries[0].properties as any).marker.shape).toEqual('square');
+        expect((updatedSeries[0].properties as any).marker.size).toEqual(10);
+        expect((updatedSeries[1].properties as any).fill).toEqual('lime');
+        expect((updatedSeries[1].properties as any).yKey).toEqual('profit');
+        expect((updatedSeries[2].properties as any).fill).toEqual('cyan');
+        expect((updatedSeries[2].properties as any).yKey).toEqual('foobar');
         expect(updatedSeries[3]).toBeInstanceOf(AreaSeries);
-        expect((updatedSeries[3] as any).xKey).toEqual('month');
-        expect((updatedSeries[3] as any).yKey).toEqual('bazqux');
+        expect((updatedSeries[3].properties as any).xKey).toEqual('month');
+        expect((updatedSeries[3].properties as any).yKey).toEqual('bazqux');
 
         AgCharts.update(chartProxy, {
             data: revenueProfitData,
@@ -336,10 +336,10 @@ describe('update', () => {
         expect(updatedSeries3[0]).toBeInstanceOf(BarSeries);
         expect(updatedSeries3[1]).toBeInstanceOf(BarSeries);
         expect(updatedSeries3[2]).toBeInstanceOf(LineSeries);
-        expect((updatedSeries3[0] as any).yKey).toEqual('profit');
-        expect((updatedSeries3[1] as any).yKey).toEqual('foobar');
-        expect((updatedSeries3[2] as any).yKey).toEqual('revenue');
-        expect((updatedSeries3[2] as any).marker.size).toEqual(10);
+        expect((updatedSeries3[0].properties as any).yKey).toEqual('profit');
+        expect((updatedSeries3[1].properties as any).yKey).toEqual('foobar');
+        expect((updatedSeries3[2].properties as any).yKey).toEqual('revenue');
+        expect((updatedSeries3[2].properties as any).marker.size).toEqual(10);
 
         const lineSeries = updatedSeries3[1];
 

@@ -121,9 +121,10 @@ export class TooltipManager {
         window: Window
     ): TooltipMeta {
         const { pageX, pageY, offsetX, offsetY } = event;
+        const { tooltip } = datum.series.properties;
         const position = {
-            xOffset: datum.series.tooltip.position.xOffset,
-            yOffset: datum.series.tooltip.position.yOffset,
+            xOffset: tooltip.position.xOffset,
+            yOffset: tooltip.position.yOffset,
         };
         const meta: TooltipMeta = {
             pageX,
@@ -131,7 +132,7 @@ export class TooltipManager {
             offsetX,
             offsetY,
             event: event,
-            showArrow: datum.series.tooltip.showArrow,
+            showArrow: tooltip.showArrow,
             position,
         };
 
@@ -139,7 +140,7 @@ export class TooltipManager {
         // datum.midPoint. Using datum.yBar.upperPoint renders the tooltip higher up.
         const refPoint: Point | undefined = datum.yBar?.upperPoint ?? datum.midPoint;
 
-        if (datum.series.tooltip.position.type === 'node' && refPoint) {
+        if (tooltip.position.type === 'node' && refPoint) {
             const { x, y } = refPoint;
             const point = datum.series.contentGroup.inverseTransformPoint(x, y);
             const canvasRect = canvas.element.getBoundingClientRect();
@@ -151,7 +152,7 @@ export class TooltipManager {
                 offsetY: Math.round(point.y),
             };
         }
-        meta.enableInteraction = datum.series.tooltip.interaction?.enabled ?? false;
+        meta.enableInteraction = tooltip.interaction?.enabled ?? false;
 
         return meta;
     }

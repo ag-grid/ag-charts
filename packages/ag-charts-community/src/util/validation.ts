@@ -35,6 +35,10 @@ export interface ValidateNumberPredicate extends ValidatePredicate {
     restrict(options: { min?: number; max?: number }): ValidatePredicate;
 }
 
+export interface ValidateObjectPredicate extends ValidatePredicate {
+    restrict(objectType: Function): ValidatePredicate;
+}
+
 export function Validate(predicate: ValidatePredicate, options: ValidateOptions = {}) {
     const { optional = false } = options;
     return addTransformToInstanceProperty(
@@ -74,22 +78,22 @@ export function Validate(predicate: ValidatePredicate, options: ValidateOptions 
     );
 }
 
-export const AND = (...predicates: ValidatePredicate[]) => {
-    return predicateWithMessage(
+export const AND = (...predicates: ValidatePredicate[]) =>
+    predicateWithMessage(
         (value, ctx) => predicates.every((predicate) => predicate(value, ctx)),
         (ctx) => predicates.map(getPredicateMessageMapper(ctx)).filter(Boolean).join(' AND ')
     );
-};
-export const OR = (...predicates: ValidatePredicate[]) => {
-    return predicateWithMessage(
+export const OR = (...predicates: ValidatePredicate[]) =>
+    predicateWithMessage(
         (value, ctx) => predicates.some((predicate) => predicate(value, ctx)),
         (ctx) => predicates.map(getPredicateMessageMapper(ctx)).filter(Boolean).join(' OR ')
     );
-};
 
-export const OBJECT = predicateWithMessage(
-    (value, ctx) => isProperties(value) || (isObject(value) && isProperties(ctx.target[ctx.property])),
-    'an object'
+export const OBJECT = attachObjectRestrictions(
+    predicateWithMessage(
+        (value, ctx) => isProperties(value) || (isObject(value) && isProperties(ctx.target[ctx.property])),
+        'an object'
+    )
 );
 export const BOOLEAN = predicateWithMessage(isBoolean, 'a boolean');
 export const FUNCTION = predicateWithMessage(isFunction, 'a function');
@@ -139,6 +143,7 @@ export const BOOLEAN_ARRAY = ARRAY_OF(BOOLEAN, 'boolean values');
 export const NUMBER_ARRAY = ARRAY_OF(NUMBER, 'numbers');
 export const STRING_ARRAY = ARRAY_OF(STRING, 'strings');
 export const DATE_ARRAY = predicateWithMessage(ARRAY_OF(DATE), 'Date objects');
+export const OBJECT_ARRAY = predicateWithMessage(ARRAY_OF(OBJECT), 'objects');
 
 export const LINE_CAP = UNION(['butt', 'round', 'square'], 'a line cap');
 export const LINE_JOIN = UNION(['round', 'bevel', 'miter'], 'a line join');
@@ -227,6 +232,18 @@ function attachNumberRestrictions(predicate: ValidatePredicate): ValidateNumberP
                 (value: unknown) =>
                     isFiniteNumber(value) && (hasMin ? value >= min : true) && (hasMax ? value <= max : true),
                 message.join(' ')
+            );
+        },
+    });
+}
+
+function attachObjectRestrictions(predicate: ValidatePredicate): ValidateObjectPredicate {
+    return Object.assign(predicate, {
+        restrict(objectType: Function) {
+            const isInstanceOf = (value: unknown) => isProperties(value) && value instanceof objectType;
+            return predicateWithMessage(
+                (value, ctx) => isInstanceOf(value) || (isObject(value) && isInstanceOf(ctx.target[ctx.property])),
+                (ctx) => getPredicateMessage(predicate, ctx) ?? 'an object'
             );
         },
     });
