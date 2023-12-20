@@ -5,7 +5,16 @@ import type {
     AgSeriesAreaOptions,
 } from '../../../options/agChartOptions';
 import { DropShadow } from '../../../scene/dropShadow';
-import { COLOR_STRING, LINE_DASH, OBJECT, POSITIVE_NUMBER, RATIO, STRING, Validate } from '../../../util/validation';
+import {
+    BOOLEAN,
+    COLOR_STRING,
+    LINE_DASH,
+    OBJECT,
+    POSITIVE_NUMBER,
+    RATIO,
+    STRING,
+    Validate,
+} from '../../../util/validation';
 import { Label } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
@@ -60,4 +69,7 @@ export class AreaSeriesProperties extends CartesianSeriesProperties<AgSeriesArea
 
     @Validate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgCartesianSeriesTooltipRendererParams>();
+
+    @Validate(BOOLEAN)
+    connectNulls: boolean = false;
 }

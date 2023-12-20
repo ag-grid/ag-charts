@@ -186,7 +186,7 @@ export class AreaSeries extends CartesianSeries<
             return [];
         }
 
-        const { yKey, xKey, marker, label, fill: seriesFill, stroke: seriesStroke } = this.properties;
+        const { yKey, xKey, marker, label, fill: seriesFill, stroke: seriesStroke, connectNulls } = this.properties;
         const { scale: xScale } = xAxis;
         const { scale: yScale } = yAxis;
 
@@ -335,8 +335,11 @@ export class AreaSeries extends CartesianSeries<
                     });
                 }
 
+                const xValid = lastXDatum != null && xDatum != null;
+                const yValid = lastYDatum != null && validPoint;
+
                 // fill data
-                if (lastYDatum == null || yDatum == null) {
+                if (!yValid) {
                     // Reset all coordinates to 'zero' value.
                     yValueStart = yValueStart ?? 0;
                     yValueEnd = yValueStart ?? 0;
@@ -347,8 +350,7 @@ export class AreaSeries extends CartesianSeries<
                 const [prevTop, prevBottom] = createPathCoordinates(lastXDatum, yValuePreviousStart, yValuePreviousEnd);
                 const [top, bottom] = createPathCoordinates(xDatum, yValueStart, yValueEnd);
 
-                const xValid = lastXDatum != null && xDatum != null;
-                if (xValid) {
+                if (xValid && (!connectNulls || yValid)) {
                     fillPoints.push(prevTop);
                     fillPhantomPoints.push(prevBottom);
                     fillPoints.push(top);
@@ -356,7 +358,7 @@ export class AreaSeries extends CartesianSeries<
                 }
 
                 // stroke data
-                if (validPoint && lastYDatum != null && datumIdx > 0) {
+                if (yValid && datumIdx > 0) {
                     strokePoints.push(createMovePoint(prevTop));
                     strokePoints.push(top);
                 }

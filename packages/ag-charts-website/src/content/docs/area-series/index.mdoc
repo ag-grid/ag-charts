@@ -73,7 +73,7 @@ In this example
 
 {% chartExampleRunner title="Area Series with Incomplete Data" name="missing-data-area" type="generated" /%}
 
--   Data points with a `yKey` value of positive or negative `Infinity`, `null`, `undefined` or `NaN` will be rendered as gaps.
+-   Data points with a `yKey` value of positive or negative `Infinity`, `null`, `undefined` or `NaN` will be rendered as gaps. Set `connectNulls: true` to draw connect between points either side of a missing point.
 -   Data points with invalid `xKey` values will be ignored.
 
 ## API Reference

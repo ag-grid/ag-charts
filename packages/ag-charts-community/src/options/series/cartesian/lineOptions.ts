@@ -28,6 +28,8 @@ export interface AgLineSeriesThemeableOptions<TDatum = any>
     tooltip?: AgSeriesTooltip<AgLineSeriesTooltipRendererParams<TDatum>>;
     /** Configuration for the Error Bars. */
     errorBar?: AgErrorBarThemeableOptions;
+    /** Set to `true` to connect across missing data points. */
+    connectNulls?: boolean;
 }
 
 export interface AgLineSeriesOptionsKeys {

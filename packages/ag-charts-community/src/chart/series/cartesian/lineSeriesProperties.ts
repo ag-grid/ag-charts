@@ -4,7 +4,16 @@ import type {
     AgLineSeriesOptionsKeys,
     AgLineSeriesTooltipRendererParams,
 } from '../../../options/agChartOptions';
-import { COLOR_STRING, LINE_DASH, OBJECT, POSITIVE_NUMBER, RATIO, STRING, Validate } from '../../../util/validation';
+import {
+    BOOLEAN,
+    COLOR_STRING,
+    LINE_DASH,
+    OBJECT,
+    POSITIVE_NUMBER,
+    RATIO,
+    STRING,
+    Validate,
+} from '../../../util/validation';
 import { Label } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
@@ -50,4 +59,7 @@ export class LineSeriesProperties extends CartesianSeriesProperties<AgLineSeries
 
     @Validate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgLineSeriesTooltipRendererParams>();
+
+    @Validate(BOOLEAN)
+    connectNulls: boolean = false;
 }
