@@ -75,7 +75,7 @@ export class SunburstSeriesProperties extends HierarchySeriesProperties<AgSunbur
     formatter?: (params: AgSunburstSeriesFormatterParams) => AgSunburstSeriesStyle;
 
     @Validate(OBJECT)
-    override readonly highlightStyle = new SunburstSeriesTileHighlightStyle();
+    override highlightStyle = new SunburstSeriesTileHighlightStyle();
 
     @Validate(OBJECT)
     readonly label = new AutoSizedLabel<AgSunburstSeriesLabelFormatterParams>();

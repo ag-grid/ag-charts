@@ -649,7 +649,7 @@ function applyOptionValues<T extends object, S>(
 }
 
 function applySeriesValues(target: Series<any>, options: AgBaseSeriesOptions<any>): Series<any> {
-    target.properties?.set(options);
+    target.properties.set(options);
     target.data = options.data;
     if ('errorBar' in target && 'errorBar' in options) {
         (target.errorBar as any).properties.set(options.errorBar);

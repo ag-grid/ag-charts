@@ -26,6 +26,7 @@ const {
     POSITIVE_NUMBER,
     RATIO,
     STRING,
+    STRING_ARRAY,
     TEXT_ALIGN,
     VERTICAL_ALIGN,
 } = _ModuleSupport;
@@ -177,4 +178,12 @@ export class TreemapSeriesProperties extends HierarchySeriesProperties<AgTreemap
 
     @Validate(OBJECT)
     readonly tile = new TreemapSeriesTile();
+
+    // We haven't decided how to expose this yet, but we need to have this property, so it can change between light and dark themes
+    @Validate(STRING_ARRAY)
+    undocumentedGroupFills: string[] = [];
+
+    // We haven't decided how to expose this yet, but we need to have this property, so it can change between light and dark themes
+    @Validate(STRING_ARRAY)
+    undocumentedGroupStrokes: string[] = [];
 }

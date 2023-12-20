@@ -45,8 +45,9 @@ export function Validate(predicate: ValidatePredicate, options: ValidateOptions 
         (target, property, value: any) => {
             const context = { ...options, target, property };
             if ((optional && typeof value === 'undefined') || predicate(value, context)) {
-                if (isProperties(target[property])) {
-                    target[property].set(value);
+                if (isProperties(target[property]) && !isProperties(value)) {
+                    // properties array set can return a new instance
+                    target[property] = target[property].set(value);
                     return target[property];
                 }
                 return value;

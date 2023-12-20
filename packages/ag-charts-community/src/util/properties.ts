@@ -9,7 +9,8 @@ export class BaseProperties<T extends object = object> extends ChangeDetectable 
                 const value = properties[propertyKey as keyof T];
                 const self = this as any;
                 if (isProperties(self[propertyKey])) {
-                    self[propertyKey].set(value, reset);
+                    // re-set property to force re-validation
+                    self[propertyKey] = self[propertyKey].set(value, reset);
                 } else {
                     self[propertyKey] = value;
                 }
@@ -41,12 +42,11 @@ export class PropertiesArray<T extends BaseProperties> extends Array {
         Object.defineProperty(this, 'itemFactory', { value: itemFactory, enumerable: false, configurable: false });
     }
 
-    set(properties: object[]) {
+    set(properties: object[]): PropertiesArray<T> {
         if (isArray(properties)) {
-            this.length = properties.length;
-            for (let i = 0; i < properties.length; i++) {
-                this[i] = new this.itemFactory().set(properties[i]);
-            }
+            const newArray = new PropertiesArray(this.itemFactory);
+            newArray.push(...properties.map((property) => new this.itemFactory().set(property)));
+            return newArray;
         }
         return this;
     }

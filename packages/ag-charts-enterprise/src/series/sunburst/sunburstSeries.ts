@@ -386,7 +386,6 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_Scene.Group,
                         ? this.properties.highlightStyle.label
                         : this.properties.highlightStyle.secondaryLabel;
                 highlightedColor = highlightedLabelStyle.color;
-                debugger;
             }
 
             text.text = label.text;

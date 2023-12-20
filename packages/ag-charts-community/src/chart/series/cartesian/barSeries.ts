@@ -228,7 +228,8 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
             smallestDataInterval,
             ctx: { seriesStateManager },
         } = this;
-        const { xKey, yKey, xName, yName, fill, stroke, strokeWidth, cornerRadius, legendItemName, label } = this.properties;
+        const { xKey, yKey, xName, yName, fill, stroke, strokeWidth, cornerRadius, legendItemName, label } =
+            this.properties;
 
         const xBandWidth = ContinuousScale.is(xScale)
             ? xScale.calcBandwidth(smallestDataInterval?.x)
