@@ -107,7 +107,7 @@ export class MarkerLabel extends Group {
     }
 
     setSeriesStrokeOffset(xOff: number) {
-        const offset = (this.marker.size / 2) + xOff;
+        const offset = this.marker.size / 2 + xOff;
         this.line.x1 = -offset;
         this.line.x2 = offset;
         this.line.y1 = 0;
