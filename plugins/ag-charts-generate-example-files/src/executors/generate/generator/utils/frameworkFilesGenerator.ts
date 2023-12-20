@@ -83,8 +83,13 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         const mainFileName = getMainFileName(internalFramework)!;
         let mainJs = readAsJsFile(entryFile);
 
-        // replace Typescript new Grid( with Javascript new agGrid.Grid(
-        mainJs = mainJs.replace(/new Grid\(/g, 'new agGrid.Grid(');
+        // add website dark mode handling code to doc examples - this code is later striped out from the code viewer / plunker
+        if (!ignoreDarkMode) {
+            mainJs =
+                mainJs +
+                `\n
+                ${getDarkModeSnippet('global')}`;
+        }
 
         // Chart classes that need scoping
         const chartImports = typedBindings.imports.find(
@@ -96,20 +101,6 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
                 const reg = new RegExp(toReplace, 'g');
                 mainJs = mainJs.replace(reg, `agCharts.${i}$1`);
             });
-        }
-
-        // add website dark mode handling code to doc examples - this code is later striped out from the code viewer / plunker
-        if (!ignoreDarkMode) {
-            const chartAPI = 'agCharts.AgCharts';
-
-            if (!mainJs.includes(`chart = ${chartAPI}`)) {
-                mainJs = mainJs.replace(`${chartAPI}`, `const chart = ${chartAPI}`);
-            }
-
-            mainJs =
-                mainJs +
-                `\n
-                ${getDarkModeSnippet(internalFramework)}`;
         }
 
         return {

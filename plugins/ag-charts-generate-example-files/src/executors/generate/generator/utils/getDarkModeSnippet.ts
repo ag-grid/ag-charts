@@ -2,18 +2,28 @@ export const DARK_MODE_START = '/** DARK MODE START **/';
 export const DARK_MODE_END = '/** DARK MODE END **/';
 
 const DARK_MODE_SNIPPETS = {
-    vanilla: () => `
-        options.theme = {
-            ...options.theme,
-            baseTheme: localStorage['documentation:darkmode'] === 'true' ? 'ag-default-dark' : 'ag-default'
-        }
-        agCharts.AgCharts.update(chart, options);
-        document.querySelector('html').setAttribute('data-dark-mode', localStorage['documentation:darkmode'] === 'true');
-        window.addEventListener('message', (event) => {
-            if (event.data?.type === 'color-scheme-change') {
-              options.theme.baseTheme = event.data.darkmode ? 'ag-default-dark' : 'ag-default';
-              agCharts.AgCharts.update(chart, options);
-              document.querySelector('html').setAttribute('data-dark-mode', event.data.darkmode);
+    global: () => `
+        const applyDarkmode = (darkmode) => {
+            document.querySelector("html").setAttribute("data-dark-mode", darkmode);
+            document.querySelectorAll("[data-ag-charts]").forEach((element) => {
+                const chart = AgCharts.getInstance(element);
+                if (chart == null) return;
+                let options = chart.getOptions();
+                options = {
+                    ...options,
+                    theme: {
+                        ...options.theme,
+                        baseTheme: darkmode ? "ag-default-dark" : "ag-default",
+                    },
+                };
+                AgCharts.update(chart, options);
+            });
+        };
+        
+        applyDarkmode(localStorage["documentation:darkmode"] === "true");
+        window.addEventListener("message", (event) => {
+            if (event.data?.type === "color-scheme-change") {
+                applyDarkmode(event.data.darkmode);
             }
         });`,
     typescript: ({ chartAPI }: { chartAPI: string }) => `
