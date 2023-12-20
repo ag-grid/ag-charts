@@ -1,9 +1,4 @@
 import type { ModuleContext } from '../../../module/moduleContext';
-import type {
-    AgScatterSeriesLabelFormatterParams,
-    AgScatterSeriesOptionsKeys,
-    AgScatterSeriesTooltipRendererParams,
-} from '../../../options/agChartOptions';
 import { ColorScale } from '../../../scale/colorScale';
 import { HdpiCanvas } from '../../../scene/canvas/hdpiCanvas';
 import { Group } from '../../../scene/group';
@@ -14,24 +9,21 @@ import { extent } from '../../../util/array';
 import type { MeasuredLabel, PointLabelDatum } from '../../../util/labelPlacement';
 import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
-import { COLOR_STRING_ARRAY, NUMBER_ARRAY, STRING, Validate } from '../../../util/validation';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { fixNumericExtent } from '../../data/dataModel';
-import { Label } from '../../label';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
 import { SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
-import { SeriesMarker } from '../seriesMarker';
-import { SeriesTooltip } from '../seriesTooltip';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
 import { CartesianSeries } from './cartesianSeries';
 import { markerScaleInAnimation, resetMarkerFn } from './markerUtil';
+import { ScatterSeriesProperties } from './scatterSeriesProperties';
 
-interface ScatterNodeDatum extends Required<CartesianSeriesNodeDatum>, ErrorBoundSeriesNodeDatum {
+export interface ScatterNodeDatum extends Required<CartesianSeriesNodeDatum>, ErrorBoundSeriesNodeDatum {
     readonly label: MeasuredLabel;
     readonly fill: string | undefined;
 }
@@ -42,46 +34,9 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
     static className = 'ScatterSeries';
     static type = 'scatter' as const;
 
-    readonly marker = new SeriesMarker<AgScatterSeriesOptionsKeys, ScatterNodeDatum>();
+    override properties = new ScatterSeriesProperties();
 
-    readonly label = new Label<AgScatterSeriesLabelFormatterParams>();
-
-    @Validate(STRING, { optional: true })
-    title?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    labelKey?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    xName?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    yName?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    labelName?: string = 'Label';
-
-    @Validate(STRING, { optional: true })
-    xKey?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    yKey?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    colorKey?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    colorName?: string = 'Color';
-
-    @Validate(NUMBER_ARRAY, { optional: true })
-    colorDomain?: number[];
-
-    @Validate(COLOR_STRING_ARRAY)
-    colorRange: string[] = ['#ffff00', '#00ff00', '#0000ff'];
-
-    colorScale = new ColorScale();
-
-    readonly tooltip = new SeriesTooltip<AgScatterSeriesTooltipRendererParams>();
+    readonly colorScale = new ColorScale();
 
     constructor(moduleCtx: ModuleContext) {
         super({
@@ -102,14 +57,14 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
     }
 
     override async processData(dataController: DataController) {
-        const { xKey, yKey, labelKey, data } = this;
-
-        if (xKey == null || yKey == null || data == null) return;
+        if (!this.properties.isValid() || this.data == null) {
+            return;
+        }
 
         const { isContinuousX, isContinuousY } = this.isContinuous();
-        const { colorScale, colorDomain, colorRange, colorKey } = this;
+        const { xKey, yKey, labelKey, colorKey, colorDomain, colorRange } = this.properties;
 
-        const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
+        const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
                 keyProperty(this, xKey, isContinuousX, { id: 'xKey-raw' }),
                 keyProperty(this, yKey, isContinuousY, { id: 'yKey-raw' }),
@@ -124,9 +79,9 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
 
         if (colorKey) {
             const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, `colorValue`).index;
-            colorScale.domain = colorDomain ?? processedData.domain.values[colorKeyIdx] ?? [];
-            colorScale.range = colorRange;
-            colorScale.update();
+            this.colorScale.domain = colorDomain ?? processedData.domain.values[colorKeyIdx] ?? [];
+            this.colorScale.range = colorRange;
+            this.colorScale.update();
         }
 
         this.animationState.transition('updateData');
@@ -147,25 +102,25 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
     }
 
     async createNodeData() {
-        const { visible, axes, yKey = '', xKey = '', label, labelKey, dataModel, processedData } = this;
+        const { axes, dataModel, processedData, colorScale } = this;
+        const { xKey, yKey, labelKey, colorKey, xName, yName, labelName, marker, label, visible } = this.properties;
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!(dataModel && processedData && visible && xAxis && yAxis)) return [];
+        if (!(dataModel && processedData && visible && xAxis && yAxis)) {
+            return [];
+        }
 
         const xDataIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`).index;
         const yDataIdx = dataModel.resolveProcessedDataIndexById(this, `yValue`).index;
-        const colorDataIdx = this.colorKey ? dataModel.resolveProcessedDataIndexById(this, `colorValue`).index : -1;
-        const labelDataIdx = this.labelKey ? dataModel.resolveProcessedDataIndexById(this, `labelValue`).index : -1;
-
-        const { colorScale, colorKey } = this;
+        const colorDataIdx = colorKey ? dataModel.resolveProcessedDataIndexById(this, `colorValue`).index : -1;
+        const labelDataIdx = labelKey ? dataModel.resolveProcessedDataIndexById(this, `labelValue`).index : -1;
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
         const xOffset = (xScale.bandwidth ?? 0) / 2;
         const yOffset = (yScale.bandwidth ?? 0) / 2;
-        const { marker } = this;
         const nodeData: ScatterNodeDatum[] = [];
 
         const font = label.getFont();
@@ -175,15 +130,15 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
             const x = xScale.convert(xDatum) + xOffset;
             const y = yScale.convert(yDatum) + yOffset;
 
-            const labelText = this.getLabelText(this.label, {
+            const labelText = this.getLabelText(label, {
                 value: labelKey ? values[labelDataIdx] : yDatum,
                 datum,
                 xKey,
                 yKey,
                 labelKey,
-                xName: this.xName,
-                yName: this.yName,
-                labelName: this.labelName,
+                xName,
+                yName,
+                labelName,
             });
 
             const size = HdpiCanvas.getTextSize(labelText, font);
@@ -197,7 +152,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
                 datum,
                 xValue: xDatum,
                 yValue: yDatum,
-                capDefaults: { lengthRatioMultiplier: this.marker.getDiameter(), lengthMax: Infinity },
+                capDefaults: { lengthRatioMultiplier: marker.getDiameter(), lengthMax: Infinity },
                 point: { x, y, size: marker.size },
                 midPoint: { x, y },
                 fill,
@@ -207,7 +162,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
 
         return [
             {
-                itemId: this.yKey ?? this.id,
+                itemId: yKey,
                 nodeData,
                 labelData: nodeData,
                 scales: super.calculateScaling(),
@@ -217,7 +172,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
     }
 
     protected override isPathOrSelectionDirty(): boolean {
-        return this.marker.isDirty();
+        return this.properties.marker.isDirty();
     }
 
     override getLabelData(): PointLabelDatum[] {
@@ -225,7 +180,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
     }
 
     protected override markerFactory() {
-        const { shape } = this.marker;
+        const { shape } = this.properties.marker;
         const MarkerShape = getMarker(shape);
         return new MarkerShape();
     }
@@ -235,33 +190,29 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
         markerSelection: Selection<Marker, ScatterNodeDatum>;
     }) {
         const { nodeData, markerSelection } = opts;
-        const {
-            marker: { enabled },
-        } = this;
 
-        if (this.marker.isDirty()) {
+        if (this.properties.marker.isDirty()) {
             markerSelection.clear();
             markerSelection.cleanup();
         }
 
-        const data = enabled ? nodeData : [];
-        return markerSelection.update(data);
+        return markerSelection.update(this.properties.marker.enabled ? nodeData : []);
     }
 
     protected override async updateMarkerNodes(opts: {
         markerSelection: Selection<Marker, ScatterNodeDatum>;
         isHighlight: boolean;
     }) {
-        const { xKey = '', yKey = '', labelKey, marker } = this;
         const { markerSelection, isHighlight: highlighted } = opts;
-        const baseStyle = mergeDefaults(highlighted && this.highlightStyle.item, marker.getStyle());
+        const { xKey, yKey, labelKey, marker, highlightStyle } = this.properties;
+        const baseStyle = mergeDefaults(highlighted && highlightStyle.item, marker.getStyle());
 
         markerSelection.each((node, datum) => {
             this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yKey, labelKey }, baseStyle);
         });
 
         if (!highlighted) {
-            this.marker.markClean();
+            marker.markClean();
         }
     }
 
@@ -269,33 +220,22 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
         labelData: ScatterNodeDatum[];
         labelSelection: Selection<Text, ScatterNodeDatum>;
     }) {
-        const { labelSelection } = opts;
-        const {
-            label: { enabled },
-        } = this;
-
-        const placedLabels = enabled ? this.chart?.placeLabels().get(this) ?? [] : [];
-
-        const placedNodeDatum = placedLabels.map(
-            (v): ScatterNodeDatum => ({
-                ...(v.datum as ScatterNodeDatum),
-                point: {
-                    x: v.x,
-                    y: v.y,
-                    size: v.datum.point.size,
-                },
-            })
+        const placedLabels = this.isLabelEnabled() ? this.chart?.placeLabels().get(this) ?? [] : [];
+        return opts.labelSelection.update(
+            placedLabels.map(({ datum, x, y }) => ({
+                ...(datum as ScatterNodeDatum),
+                point: { x, y, size: datum.point.size },
+            })),
+            (text) => {
+                text.pointerEvents = PointerEvents.None;
+            }
         );
-        return labelSelection.update(placedNodeDatum, (text) => {
-            text.pointerEvents = PointerEvents.None;
-        });
     }
 
     protected async updateLabelNodes(opts: { labelSelection: Selection<Text, ScatterNodeDatum> }) {
-        const { labelSelection } = opts;
-        const { label } = this;
+        const { label } = this.properties;
 
-        labelSelection.each((text, datum) => {
+        opts.labelSelection.each((text, datum) => {
             text.text = datum.label.text;
             text.fill = label.color;
             text.x = datum.point?.x ?? 0;
@@ -310,16 +250,15 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
     }
 
     getTooltipHtml(nodeDatum: ScatterNodeDatum): string {
-        const { xKey, yKey, axes } = this;
+        const xAxis = this.axes[ChartAxisDirection.X];
+        const yAxis = this.axes[ChartAxisDirection.Y];
 
-        const xAxis = axes[ChartAxisDirection.X];
-        const yAxis = axes[ChartAxisDirection.Y];
-
-        if (!xKey || !yKey || !xAxis || !yAxis) {
+        if (!this.properties.isValid() || !xAxis || !yAxis) {
             return '';
         }
 
-        const { marker, tooltip, xName, yName, labelKey, labelName, id: seriesId, title = yName } = this;
+        const { xKey, yKey, labelKey, xName, yName, labelName, title = yName, marker, tooltip } = this.properties;
+        const { datum, xValue, yValue, label } = nodeDatum;
 
         const baseStyle = mergeDefaults(
             { fill: nodeDatum.fill, strokeWidth: this.getStrokeWidth(marker.strokeWidth) },
@@ -332,7 +271,6 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
             baseStyle
         );
 
-        const { datum, xValue, yValue, label } = nodeDatum;
         const xString = sanitizeHtml(xAxis.formatDatum(xValue));
         const yString = sanitizeHtml(yAxis.formatDatum(yValue));
 
@@ -356,26 +294,26 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
                 labelName,
                 title,
                 color,
-                seriesId,
+                seriesId: this.id,
                 ...this.getModuleTooltipParams(),
             }
         );
     }
 
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
-        const { id, data, xKey, yKey, yName, title, visible, marker } = this;
+        const { yKey, yName, title, marker, visible } = this.properties;
         const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth } = marker;
 
-        if (!(data?.length && xKey && yKey && legendType === 'category')) {
+        if (!this.data?.length || !this.properties.isValid() || legendType !== 'category') {
             return [];
         }
 
         return [
             {
                 legendType: 'category',
-                id,
+                id: this.id,
                 itemId: yKey,
-                seriesId: id,
+                seriesId: this.id,
                 enabled: visible,
                 label: {
                     text: title ?? yName ?? yKey,
@@ -400,7 +338,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
     }
 
     protected isLabelEnabled() {
-        return this.label.enabled;
+        return this.properties.label.enabled;
     }
 
     protected nodeFactory() {

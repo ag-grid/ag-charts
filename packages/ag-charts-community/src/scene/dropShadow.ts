@@ -1,25 +1,26 @@
+import { BaseProperties } from '../util/properties';
 import { BOOLEAN, COLOR_STRING, NUMBER, POSITIVE_NUMBER, Validate } from '../util/validation';
-import { ChangeDetectable, RedrawType } from './changeDetectable';
+import { RedrawType } from './changeDetectable';
 import { SceneChangeDetection } from './node';
 
-export class DropShadow extends ChangeDetectable {
+export class DropShadow extends BaseProperties {
     @Validate(BOOLEAN)
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
-    enabled = true;
+    enabled: boolean = true;
 
     @Validate(COLOR_STRING)
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
-    color = 'rgba(0, 0, 0, 0.5)';
+    color: string = 'rgba(0, 0, 0, 0.5)';
 
     @Validate(NUMBER)
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
-    xOffset = 0;
+    xOffset: number = 0;
 
     @Validate(NUMBER)
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
-    yOffset = 0;
+    yOffset: number = 0;
 
     @Validate(POSITIVE_NUMBER)
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
-    blur = 5;
+    blur: number = 5;
 }

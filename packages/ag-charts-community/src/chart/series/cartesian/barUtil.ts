@@ -10,7 +10,7 @@ import { isNegative } from '../../../util/number';
 import { mergeDefaults } from '../../../util/object';
 import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
-import type { SeriesItemHighlightStyle } from '../series';
+import type { SeriesItemHighlightStyle } from '../seriesProperties';
 import type { CartesianSeriesNodeDatum } from './cartesianSeries';
 
 export type RectConfig = {

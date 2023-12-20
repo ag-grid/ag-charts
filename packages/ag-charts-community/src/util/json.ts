@@ -1,4 +1,5 @@
 import { Logger } from './logger';
+import { isProperties } from './properties';
 import type { DeepPartial } from './types';
 
 const CLASS_INSTANCE_TYPE = 'class-instance';
@@ -248,6 +249,10 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
         return target;
     }
 
+    if (isProperties(target)) {
+        return target.set(source);
+    }
+
     const targetAny = target as any;
     if (idx != null && '_declarationOrder' in targetAny) {
         targetAny['_declarationOrder'] = idx;
@@ -289,7 +294,9 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
 
             if (newValueType === 'array') {
                 ctr = ctr ?? constructedArrays.get(currentValue) ?? constructors[`${propertyMatcherPath}[]`];
-                if (ctr != null) {
+                if (isProperties(targetAny[property])) {
+                    targetAny[property].set(newValue);
+                } else if (ctr != null) {
                     const newValueArray: any[] = newValue as any;
                     targetAny[property] = newValueArray.map((v, idx) =>
                         jsonApply(new ctr(), v, {
@@ -312,16 +319,25 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
                         matcherPath: propertyMatcherPath,
                         idx: undefined,
                     });
+                } else if (isProperties(targetAny[property])) {
+                    targetAny[property].set(newValue);
                 } else if (ctr != null) {
-                    targetAny[property] = jsonApply(new ctr(), newValue as any, {
-                        ...params,
-                        path: propertyPath,
-                        matcherPath: propertyMatcherPath,
-                        idx: undefined,
-                    });
+                    const obj = new ctr();
+                    if (isProperties(obj)) {
+                        targetAny[property] = obj.set(newValue as object);
+                    } else {
+                        targetAny[property] = jsonApply(obj, newValue, {
+                            ...params,
+                            path: propertyPath,
+                            matcherPath: propertyMatcherPath,
+                            idx: undefined,
+                        });
+                    }
                 } else {
                     targetAny[property] = newValue;
                 }
+            } else if (isProperties(targetAny[property])) {
+                targetAny[property].set(newValue);
             } else {
                 targetAny[property] = newValue;
             }

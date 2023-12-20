@@ -236,8 +236,8 @@ describe('Chart', () => {
             },
             getNodePoint: (item) => [item.point.x, item.point.y],
             getDatumValues: (item, series) => {
-                const xValue = item.datum[series['xKey']];
-                const yValue = item.datum[series['yKey']];
+                const xValue = item.datum[series.properties['xKey']];
+                const yValue = item.datum[series.properties['yKey']];
                 return [xValue, yValue];
             },
         });
@@ -257,8 +257,8 @@ describe('Chart', () => {
             },
             getNodePoint: (item) => [item.point.x, item.point.y],
             getDatumValues: (item, series) => {
-                const xValue = item.datum[series.xKey];
-                const yValue = item.datum[series.yKey];
+                const xValue = item.datum[series.properties.xKey];
+                const yValue = item.datum[series.properties.yKey];
                 return [xValue, yValue];
             },
         });
@@ -281,8 +281,8 @@ describe('Chart', () => {
             },
             getNodePoint: (item) => [item.point.x, item.point.y],
             getDatumValues: (item, series) => {
-                const xValue = item.datum[series['xKey']];
-                const yValue = item.datum[series['yKey']];
+                const xValue = item.datum[series.properties['xKey']];
+                const yValue = item.datum[series.properties['yKey']];
                 return [xValue, yValue];
             },
         });
@@ -299,8 +299,8 @@ describe('Chart', () => {
             },
             getNodePoint: (item) => [item.x + item.width / 2, item.y + item.height / 2],
             getDatumValues: (item, series) => {
-                const xValue = item.datum[series.xKey];
-                const yValue = item.datum[series.yKey];
+                const xValue = item.datum[series.properties.xKey];
+                const yValue = item.datum[series.properties.yKey];
                 return [xValue, yValue];
             },
         });
@@ -317,8 +317,8 @@ describe('Chart', () => {
             getNodeData: (series) => series.sectorLabelSelection.nodes(),
             getNodePoint: (item) => [item.x, item.y],
             getDatumValues: (item, series) => {
-                const category = item.datum.datum[series.sectorLabelKey];
-                const value = item.datum.datum[series.angleKey];
+                const category = item.datum.datum[series.properties.sectorLabelKey];
+                const value = item.datum.datum[series.properties.angleKey];
                 return [category, value];
             },
             getTooltipRenderedValues: (params) => [params.datum[params.sectorLabelKey], params.datum[params.angleKey]],

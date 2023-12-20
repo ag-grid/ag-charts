@@ -1,22 +1,18 @@
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import { type RadarPathPoint, RadarSeries } from '../radar/radarSeries';
-
-const { RATIO, COLOR_STRING, Validate, ChartAxisDirection } = _ModuleSupport;
+import { RadarAreaSeriesProperties } from './radarAreaSeriesProperties';
 
 const { Group, Path, PointerEvents, Selection } = _Scene;
+const { ChartAxisDirection } = _ModuleSupport;
 
 export class RadarAreaSeries extends RadarSeries {
     static override className = 'RadarAreaSeries';
     static type = 'radar-area' as const;
 
+    override properties = new RadarAreaSeriesProperties();
+
     protected areaSelection: _Scene.Selection<_Scene.Path, boolean>;
-
-    @Validate(COLOR_STRING, { optional: true })
-    fill?: string = 'black';
-
-    @Validate(RATIO)
-    fillOpacity = 1;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super(moduleCtx);
@@ -37,15 +33,15 @@ export class RadarAreaSeries extends RadarSeries {
     }
 
     protected override getMarkerFill(highlightedStyle?: _ModuleSupport.SeriesItemHighlightStyle) {
-        return highlightedStyle?.fill ?? this.marker.fill ?? this.fill;
+        return highlightedStyle?.fill ?? this.properties.marker.fill ?? this.properties.fill;
     }
 
     protected override beforePathAnimation() {
         super.beforePathAnimation();
 
         const areaNode = this.getAreaNode();
-        areaNode.fill = this.fill;
-        areaNode.fillOpacity = this.fillOpacity;
+        areaNode.fill = this.properties.fill;
+        areaNode.fillOpacity = this.properties.fillOpacity;
         areaNode.pointerEvents = PointerEvents.None;
         areaNode.stroke = undefined;
     }
@@ -86,12 +82,12 @@ export class RadarAreaSeries extends RadarSeries {
             const { path: areaPath } = areaNode;
             const areaPoints = this.getAreaPoints({ breakMissingPoints: false });
 
-            areaNode.fill = this.fill;
-            areaNode.fillOpacity = this.fillOpacity;
+            areaNode.fill = this.properties.fill;
+            areaNode.fillOpacity = this.properties.fillOpacity;
             areaNode.stroke = undefined;
 
-            areaNode.lineDash = this.lineDash;
-            areaNode.lineDashOffset = this.lineDashOffset;
+            areaNode.lineDash = this.properties.lineDash;
+            areaNode.lineDashOffset = this.properties.lineDashOffset;
             areaNode.lineJoin = areaNode.lineCap = 'round';
 
             areaPath.clear({ trackChanges: true });

@@ -1,9 +1,6 @@
 import {
     type AgTooltipRendererResult,
-    type AgTreemapSeriesFormatterParams,
-    type AgTreemapSeriesLabelFormatterParams,
     type AgTreemapSeriesStyle,
-    type AgTreemapSeriesTooltipRendererParams,
     type FontOptions,
     type TextAlign,
     type VerticalAlign,
@@ -12,23 +9,10 @@ import {
     _Util,
 } from 'ag-charts-community';
 
-import { AutoSizeableSecondaryLabel, AutoSizedLabel, formatLabels } from '../util/labelFormatter';
+import { AutoSizedLabel, formatLabels } from '../util/labelFormatter';
+import { TreemapSeriesProperties } from './treemapSeriesProperties';
 
-const {
-    BOOLEAN,
-    HighlightStyle,
-    NUMBER,
-    POSITIVE_NUMBER,
-    COLOR_STRING,
-    FUNCTION,
-    STRING,
-    RATIO,
-    SeriesTooltip,
-    TEXT_ALIGN,
-    Validate,
-    VERTICAL_ALIGN,
-} = _ModuleSupport;
-const { Rect, Label, Group, BBox, Selection, Text } = _Scene;
+const { Rect, Group, BBox, Selection, Text } = _Scene;
 const { Color, Logger, isEqual, sanitizeHtml } = _Util;
 
 type Side = 'left' | 'right' | 'top' | 'bottom';
@@ -36,121 +20,6 @@ type Side = 'left' | 'right' | 'top' | 'bottom';
 interface LabelData {
     label: string | undefined;
     secondaryLabel: string | undefined;
-}
-
-class TreemapGroupLabel extends Label<AgTreemapSeriesLabelFormatterParams> {
-    @Validate(NUMBER)
-    spacing: number = 0;
-}
-
-class TreemapSeriesGroup {
-    readonly label = new TreemapGroupLabel();
-
-    @Validate(NUMBER, { optional: true })
-    gap: number = 0;
-
-    @Validate(BOOLEAN)
-    interactive: boolean = true;
-
-    @Validate(TEXT_ALIGN)
-    textAlign: TextAlign = 'center';
-
-    @Validate(STRING, { optional: true })
-    fill?: string = undefined;
-
-    @Validate(RATIO, { optional: true })
-    fillOpacity: number = 1;
-
-    @Validate(COLOR_STRING, { optional: true })
-    stroke?: string = undefined;
-
-    @Validate(POSITIVE_NUMBER, { optional: true })
-    strokeWidth: number = 1;
-
-    @Validate(RATIO, { optional: true })
-    strokeOpacity: number = 1;
-
-    @Validate(POSITIVE_NUMBER, { optional: true })
-    padding: number = 0;
-}
-
-class TreemapSeriesTile {
-    readonly label = new AutoSizedLabel<AgTreemapSeriesLabelFormatterParams>();
-
-    readonly secondaryLabel = new AutoSizeableSecondaryLabel<AgTreemapSeriesLabelFormatterParams>();
-
-    @Validate(NUMBER, { optional: true })
-    gap: number = 0;
-
-    @Validate(STRING, { optional: true })
-    fill?: string = undefined;
-
-    @Validate(RATIO, { optional: true })
-    fillOpacity: number = 1;
-
-    @Validate(COLOR_STRING, { optional: true })
-    stroke?: string = undefined;
-
-    @Validate(POSITIVE_NUMBER, { optional: true })
-    strokeWidth: number = 1;
-
-    @Validate(RATIO, { optional: true })
-    strokeOpacity: number = 1;
-
-    @Validate(POSITIVE_NUMBER, { optional: true })
-    padding: number = 0;
-
-    @Validate(TEXT_ALIGN)
-    textAlign: TextAlign = 'center';
-
-    @Validate(VERTICAL_ALIGN)
-    verticalAlign: VerticalAlign = 'middle';
-}
-
-class TreemapSeriesGroupHighlightStyle {
-    readonly label = new AutoSizedLabel<AgTreemapSeriesLabelFormatterParams>();
-
-    @Validate(STRING, { optional: true })
-    fill?: string = undefined;
-
-    @Validate(RATIO, { optional: true })
-    fillOpacity?: number = undefined;
-
-    @Validate(COLOR_STRING, { optional: true })
-    stroke?: string = undefined;
-
-    @Validate(POSITIVE_NUMBER, { optional: true })
-    strokeWidth?: number = undefined;
-
-    @Validate(RATIO, { optional: true })
-    strokeOpacity?: number = undefined;
-}
-
-class TreemapSeriesTileHighlightStyle {
-    readonly label = new AutoSizedLabel<AgTreemapSeriesLabelFormatterParams>();
-
-    readonly secondaryLabel = new AutoSizeableSecondaryLabel<AgTreemapSeriesLabelFormatterParams>();
-
-    @Validate(STRING, { optional: true })
-    fill?: string = undefined;
-
-    @Validate(RATIO, { optional: true })
-    fillOpacity?: number = undefined;
-
-    @Validate(COLOR_STRING, { optional: true })
-    stroke?: string = undefined;
-
-    @Validate(POSITIVE_NUMBER, { optional: true })
-    strokeWidth?: number = undefined;
-
-    @Validate(RATIO, { optional: true })
-    strokeOpacity?: number = undefined;
-}
-
-class TreemapSeriesHighlightStyle extends HighlightStyle {
-    readonly group = new TreemapSeriesGroupHighlightStyle();
-
-    readonly tile = new TreemapSeriesTileHighlightStyle();
 }
 
 enum TextNodeTag {
@@ -209,6 +78,8 @@ export class TreemapSeries<
     static className = 'TreemapSeries';
     static type = 'treemap' as const;
 
+    override properties = new TreemapSeriesProperties();
+
     groupSelection = Selection.select(this.contentGroup, Group);
     private highlightSelection: _Scene.Selection<_Scene.Group, _ModuleSupport.HierarchyNode> = Selection.select(
         this.highlightGroup,
@@ -217,36 +88,10 @@ export class TreemapSeries<
 
     private labelData?: (LabelData | undefined)[];
 
-    readonly group = new TreemapSeriesGroup();
-
-    readonly tile = new TreemapSeriesTile();
-
-    override readonly highlightStyle = new TreemapSeriesHighlightStyle();
-
-    readonly tooltip = new SeriesTooltip<AgTreemapSeriesTooltipRendererParams<any>>();
-
-    @Validate(STRING, { optional: true })
-    sizeName?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    labelKey?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    secondaryLabelKey?: string = undefined;
-
-    @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgTreemapSeriesFormatterParams) => AgTreemapSeriesStyle = undefined;
-
-    // We haven't decided how to expose this yet, but we need to have this property so it can change between light and dark themes
-    undocumentedGroupFills: string[] = [];
-
-    // We haven't decided how to expose this yet, but we need to have this property so it can change between light and dark themes
-    undocumentedGroupStrokes: string[] = [];
-
     private groupTitleHeight(node: _ModuleSupport.HierarchyNode, bbox: _Scene.BBox): number | undefined {
         const label = this.labelData?.[node.index]?.label;
 
-        const { label: font } = this.group;
+        const { label: font } = this.properties.group;
 
         const heightRatioThreshold = 3;
 
@@ -272,7 +117,7 @@ export class TreemapSeries<
                 left: 0,
             };
         } else if (node.children.length === 0) {
-            const { padding } = this.tile;
+            const { padding } = this.properties.tile;
             return {
                 top: padding,
                 right: padding,
@@ -284,7 +129,7 @@ export class TreemapSeries<
         const {
             label: { spacing },
             padding,
-        } = this.group;
+        } = this.properties.group;
         const fontHeight = this.groupTitleHeight(node, bbox);
         const titleHeight = fontHeight != null ? fontHeight + spacing : 0;
 
@@ -297,12 +142,12 @@ export class TreemapSeries<
     }
 
     override async processData() {
-        super.processData();
+        await super.processData();
 
-        const { data, childrenKey, colorKey, colorName, labelKey, secondaryLabelKey, sizeKey, sizeName, tile, group } =
-            this;
+        const { childrenKey, colorKey, colorName, labelKey, secondaryLabelKey, sizeKey, sizeName, tile, group } =
+            this.properties;
 
-        if (data == null || data.length === 0) {
+        if (!this.data?.length) {
             this.labelData = undefined;
             return;
         }
@@ -485,7 +330,7 @@ export class TreemapSeries<
     }
 
     private applyGap(innerBox: _Scene.BBox, childBox: _Scene.BBox, allLeafNodes: boolean) {
-        const gap = allLeafNodes ? this.tile.gap * 0.5 : this.group.gap * 0.5;
+        const gap = allLeafNodes ? this.properties.tile.gap * 0.5 : this.properties.group.gap * 0.5;
         const getBounds = (box: _Scene.BBox): Record<Side, number> => ({
             left: box.x,
             top: box.y,
@@ -531,24 +376,18 @@ export class TreemapSeries<
 
     private getTileFormat(node: _ModuleSupport.HierarchyNode, isHighlighted: boolean): AgTreemapSeriesStyle {
         const { datum, depth, children } = node;
-        const {
-            tile,
-            group,
-            formatter,
-            ctx: { callbackCache },
-        } = this;
+        const { colorKey, labelKey, secondaryLabelKey, sizeKey, tile, group, formatter } = this.properties;
+
         if (!formatter || datum == null || depth == null) {
             return {};
         }
 
-        const { colorKey, labelKey, secondaryLabelKey, sizeKey } = this;
         const isLeaf = children.length === 0;
-
         const fill = (isLeaf ? tile.fill : group.fill) ?? node.fill;
         const stroke = (isLeaf ? tile.stroke : group.stroke) ?? node.stroke;
         const strokeWidth = isLeaf ? tile.strokeWidth : group.strokeWidth;
 
-        const result = callbackCache.call(formatter, {
+        const result = this.ctx.callbackCache.call(formatter, {
             seriesId: this.id,
             depth,
             datum,
@@ -568,27 +407,26 @@ export class TreemapSeries<
     private getNodeFill(node: _ModuleSupport.HierarchyNode) {
         const isLeaf = node.children.length === 0;
         if (isLeaf) {
-            return this.tile.fill ?? node.fill;
-        } else {
-            const { undocumentedGroupFills } = this;
-            const defaultFill = undocumentedGroupFills[Math.min(node.depth ?? 0, undocumentedGroupFills.length)];
-            return this.group.fill ?? defaultFill;
+            return this.properties.tile.fill ?? node.fill;
         }
+        const { undocumentedGroupFills } = this.properties;
+        const defaultFill = undocumentedGroupFills[Math.min(node.depth ?? 0, undocumentedGroupFills.length)];
+        return this.properties.group.fill ?? defaultFill;
     }
 
     private getNodeStroke(node: _ModuleSupport.HierarchyNode) {
         const isLeaf = node.children.length === 0;
         if (isLeaf) {
-            return this.tile.stroke ?? node.stroke;
-        } else {
-            const { undocumentedGroupStrokes } = this;
-            const defaultStroke = undocumentedGroupStrokes[Math.min(node.depth ?? 0, undocumentedGroupStrokes.length)];
-            return this.group.stroke ?? defaultStroke;
+            return this.properties.tile.stroke ?? node.stroke;
         }
+        const { undocumentedGroupStrokes } = this.properties;
+        const defaultStroke = undocumentedGroupStrokes[Math.min(node.depth ?? 0, undocumentedGroupStrokes.length)];
+        return this.properties.group.stroke ?? defaultStroke;
     }
 
     async updateNodes() {
-        const { rootNode, data, highlightStyle, tile, group } = this;
+        const { rootNode, data } = this;
+        const { highlightStyle, tile, group } = this.properties;
         const { seriesRect } = this.chart ?? {};
 
         if (!seriesRect || !data) return;
@@ -599,7 +437,7 @@ export class TreemapSeries<
 
         let highlightedNode: _ModuleSupport.HierarchyNode | undefined =
             this.ctx.highlightManager?.getActiveHighlight() as any;
-        if (highlightedNode != null && !this.group.interactive && highlightedNode.children.length !== 0) {
+        if (highlightedNode != null && !this.properties.group.interactive && highlightedNode.children.length !== 0) {
             highlightedNode = undefined;
         }
 
@@ -679,9 +517,9 @@ export class TreemapSeries<
                 };
                 const formatting = formatLabels(
                     labelDatum.label,
-                    this.tile.label,
+                    this.properties.tile.label,
                     labelDatum.secondaryLabel,
-                    this.tile.secondaryLabel,
+                    this.properties.tile.secondaryLabel,
                     { padding: tile.padding },
                     () => layout
                 );
@@ -704,7 +542,7 @@ export class TreemapSeries<
                                   text: label.text,
                                   fontSize: label.fontSize,
                                   lineHeight: label.lineHeight,
-                                  style: this.tile.label,
+                                  style: this.properties.tile.label,
                                   x: labelX,
                                   y: labelYStart - (height - label.height) * 0.5,
                               }
@@ -715,7 +553,7 @@ export class TreemapSeries<
                                   text: secondaryLabel.text,
                                   fontSize: secondaryLabel.fontSize,
                                   lineHeight: secondaryLabel.fontSize,
-                                  style: this.tile.secondaryLabel,
+                                  style: this.properties.tile.secondaryLabel,
                                   x: labelX,
                                   y: labelYStart + (height - secondaryLabel.height) * 0.5,
                               }
@@ -738,7 +576,7 @@ export class TreemapSeries<
                         text,
                         fontSize: group.label.fontSize,
                         lineHeight: AutoSizedLabel.lineHeight(group.label.fontSize),
-                        style: this.group.label,
+                        style: this.properties.group.label,
                         x: bbox.x + padding + innerWidth * textAlignFactor,
                         y: bbox.y + padding + groupTitleHeight * 0.5,
                     },
@@ -814,6 +652,8 @@ export class TreemapSeries<
     }
 
     getTooltipHtml(node: _ModuleSupport.HierarchyNode): string {
+        const { datum, depth } = node;
+        const { id: seriesId } = this;
         const {
             tooltip,
             colorKey,
@@ -822,11 +662,9 @@ export class TreemapSeries<
             secondaryLabelKey,
             sizeKey,
             sizeName = sizeKey,
-            id: seriesId,
-        } = this;
-        const { datum, depth } = node;
+        } = this.properties;
         const isLeaf = node.children.length === 0;
-        const interactive = isLeaf || this.group.interactive;
+        const interactive = isLeaf || this.properties.group.interactive;
         if (datum == null || depth == null || !interactive) {
             return '';
         }
@@ -836,7 +674,7 @@ export class TreemapSeries<
         const format = this.getTileFormat(node, false);
         const color = format?.fill ?? this.getNodeFill(node);
 
-        if (!tooltip.renderer && !tooltip.format && !title) {
+        if (!tooltip.renderer && !title) {
             return '';
         }
 
@@ -861,7 +699,7 @@ export class TreemapSeries<
 
         const defaults: AgTooltipRendererResult = {
             title,
-            color: isLeaf ? this.tile.label.color : this.group.label.color,
+            color: isLeaf ? this.properties.tile.label.color : this.properties.group.label.color,
             backgroundColor: color,
             content,
         };

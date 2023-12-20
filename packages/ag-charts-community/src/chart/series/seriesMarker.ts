@@ -3,7 +3,8 @@ import type {
     AgSeriesMarkerStyle,
     ISeriesMarker,
 } from '../../options/series/markerOptions';
-import { ChangeDetectable, RedrawType, SceneChangeDetection } from '../../scene/changeDetectable';
+import { RedrawType, SceneChangeDetection } from '../../scene/changeDetectable';
+import { BaseProperties } from '../../util/properties';
 import type { RequireOptional } from '../../util/types';
 import {
     BOOLEAN,
@@ -25,7 +26,7 @@ const MARKER_SHAPE = predicateWithMessage(
 );
 
 export class SeriesMarker<TParams = never, TDatum = any>
-    extends ChangeDetectable
+    extends BaseProperties
     implements ISeriesMarker<TDatum, RequireOptional<TParams>>
 {
     @Validate(BOOLEAN)
@@ -45,7 +46,7 @@ export class SeriesMarker<TParams = never, TDatum = any>
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
     fill?: string;
 
-    @Validate(RATIO, { optional: true })
+    @Validate(RATIO)
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
     fillOpacity: number = 1;
 
@@ -53,11 +54,11 @@ export class SeriesMarker<TParams = never, TDatum = any>
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
     stroke?: string;
 
-    @Validate(POSITIVE_NUMBER, { optional: true })
+    @Validate(POSITIVE_NUMBER)
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
     strokeWidth: number = 1;
 
-    @Validate(RATIO, { optional: true })
+    @Validate(RATIO)
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
     strokeOpacity: number = 1;
 

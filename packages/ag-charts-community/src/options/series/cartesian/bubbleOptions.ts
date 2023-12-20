@@ -18,12 +18,12 @@ export interface AgBubbleSeriesMarker<TDatum> extends AgSeriesMarkerOptions<AgBu
 export type AgBubbleSeriesLabelFormatterParams = AgBubbleSeriesOptionsKeys & AgBubbleSeriesOptionsNames;
 
 export interface AgBubbleSeriesThemeableOptions<TDatum = any> extends AgBaseSeriesThemeableOptions {
+    /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not.  */
+    title?: string;
     /** Configuration for the markers used in the series.  */
     marker?: AgBubbleSeriesMarker<TDatum>;
     /** Configuration for the labels shown on top of data points.  */
     label?: AgChartLabelOptions<TDatum, AgBubbleSeriesLabelFormatterParams>;
-    /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not.  */
-    title?: string;
     /** Series-specific tooltip configuration.  */
     tooltip?: AgSeriesTooltip<AgBubbleSeriesTooltipRendererParams<TDatum>>;
 }

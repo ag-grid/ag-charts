@@ -3,6 +3,7 @@ import type { FontStyle, FontWeight, TextWrap } from '../options/agChartOptions'
 import { PointerEvents } from '../scene/node';
 import { Text } from '../scene/shape/text';
 import { createId } from '../util/id';
+import { BaseProperties } from '../util/properties';
 import { ProxyPropertyOnWrite } from '../util/proxy';
 import {
     BOOLEAN,
@@ -17,27 +18,30 @@ import {
 import type { InteractionEvent } from './interaction/interactionManager';
 import { toTooltipHtml } from './tooltip/tooltip';
 
-export class Caption {
+export class Caption extends BaseProperties {
     static readonly SMALL_PADDING = 10;
     static readonly LARGE_PADDING = 20;
 
     readonly id = createId(this);
-    readonly node: Text = new Text();
+    readonly node = new Text().setProperties({
+        textAlign: 'center',
+        pointerEvents: PointerEvents.None,
+    });
 
     @Validate(BOOLEAN)
     enabled = false;
 
     @Validate(STRING, { optional: true })
     @ProxyPropertyOnWrite('node')
-    text?: string = undefined;
+    text?: string;
 
     @Validate(FONT_STYLE, { optional: true })
     @ProxyPropertyOnWrite('node')
-    fontStyle: FontStyle | undefined;
+    fontStyle?: FontStyle;
 
     @Validate(FONT_WEIGHT, { optional: true })
     @ProxyPropertyOnWrite('node')
-    fontWeight: FontWeight | undefined;
+    fontWeight?: FontWeight;
 
     @Validate(POSITIVE_NUMBER)
     @ProxyPropertyOnWrite('node')
@@ -49,7 +53,7 @@ export class Caption {
 
     @Validate(COLOR_STRING, { optional: true })
     @ProxyPropertyOnWrite('node', 'fill')
-    color: string | undefined;
+    color?: string;
 
     @Validate(POSITIVE_NUMBER, { optional: true })
     spacing?: number;
@@ -58,24 +62,18 @@ export class Caption {
     lineHeight?: number;
 
     @Validate(POSITIVE_NUMBER, { optional: true })
-    maxWidth?: number = undefined;
+    maxWidth?: number;
 
     @Validate(POSITIVE_NUMBER, { optional: true })
-    maxHeight?: number = undefined;
+    maxHeight?: number;
 
     @Validate(TEXT_WRAP)
     wrapping: TextWrap = 'always';
 
-    private truncated: boolean = false;
+    private truncated = false;
 
-    private destroyFns: Function[] = [];
-
-    constructor(protected readonly moduleCtx: ModuleContext) {
-        const node = this.node;
-        node.textAlign = 'center';
-        node.pointerEvents = PointerEvents.None;
-
-        this.destroyFns.push(moduleCtx.interactionManager.addListener('hover', (e) => this.handleMouseMove(e)));
+    registerInteraction(moduleCtx: ModuleContext) {
+        return moduleCtx.interactionManager.addListener('hover', (event) => this.handleMouseMove(moduleCtx, event));
     }
 
     computeTextWrap(containerWidth: number, containerHeight: number) {
@@ -91,9 +89,8 @@ export class Caption {
         this.truncated = truncated;
     }
 
-    handleMouseMove(event: InteractionEvent<'hover'>) {
-        const { enabled } = this;
-        if (!enabled) {
+    handleMouseMove(moduleCtx: ModuleContext, event: InteractionEvent<'hover'>) {
+        if (!this.enabled) {
             return;
         }
 
@@ -102,7 +99,7 @@ export class Caption {
         const pointerInsideCaption = this.node.visible && bbox.containsPoint(offsetX, offsetY);
 
         if (!pointerInsideCaption) {
-            this.moduleCtx.tooltipManager.removeTooltip(this.id);
+            moduleCtx.tooltipManager.removeTooltip(this.id);
             return;
         }
 
@@ -111,11 +108,11 @@ export class Caption {
         event.consume();
 
         if (!this.truncated) {
-            this.moduleCtx.tooltipManager.removeTooltip(this.id);
+            moduleCtx.tooltipManager.removeTooltip(this.id);
             return;
         }
 
-        this.moduleCtx.tooltipManager.updateTooltip(
+        moduleCtx.tooltipManager.updateTooltip(
             this.id,
             { pageX, pageY, offsetX, offsetY, event, showArrow: false, addCustomClass: false },
             toTooltipHtml({ content: this.text })

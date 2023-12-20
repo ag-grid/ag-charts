@@ -259,6 +259,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     ) {
         this.refreshScale();
 
+        this._titleCaption.registerInteraction(this.moduleCtx);
         this._titleCaption.node.rotation = -Math.PI / 2;
         this.axisGroup.appendChild(this._titleCaption.node);
 
@@ -388,7 +389,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     @Validate(predicateWithMessage((title) => typeof title == 'object', 'Title object'), { optional: true })
     public title?: AxisTitle = undefined;
-    protected _titleCaption = new Caption(this.moduleCtx);
+    protected _titleCaption = new Caption();
 
     private setDomain() {
         const {
@@ -712,7 +713,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         const { title } = this;
         if (title?.enabled) {
-            const caption = new Caption(this.moduleCtx);
+            const caption = new Caption();
             const spacing = BBox.merge(boxes).width;
             this.setTitleProps(caption, { spacing });
             const titleNode = caption.node;

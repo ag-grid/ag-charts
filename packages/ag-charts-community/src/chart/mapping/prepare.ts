@@ -442,9 +442,9 @@ function prepareEnabledOptions<T extends AgChartOptions>(options: T, mergedOptio
 
 function preparePieOptions(pieSeriesTheme: any, seriesOptions: any, mergedSeries: any) {
     if (Array.isArray(seriesOptions.innerLabels)) {
-        mergedSeries.innerLabels = seriesOptions.innerLabels.map((ln: any) => {
-            return jsonMerge([pieSeriesTheme.innerLabels, ln]);
-        });
+        mergedSeries.innerLabels = seriesOptions.innerLabels.map((innerLabel: any) =>
+            jsonMerge([pieSeriesTheme.innerLabels, innerLabel])
+        );
     } else {
         mergedSeries.innerLabels = DELETE;
     }

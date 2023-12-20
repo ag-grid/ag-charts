@@ -1,25 +1,11 @@
-import type {
-    AgPieSeriesFormat,
-    AgPieSeriesFormatterParams,
-    AgPieSeriesTooltipRendererParams,
-    AgRadarSeriesLabelFormatterParams,
-    AgRadialSeriesOptionsKeys,
-} from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+
+import { RadarSeriesProperties } from './radarSeriesProperties';
 
 const {
     ChartAxisDirection,
-    HighlightStyle,
-    DEGREE,
-    COLOR_STRING,
-    FUNCTION,
-    LINE_DASH,
-    STRING,
-    RATIO,
-    POSITIVE_NUMBER,
     PolarAxis,
     SeriesNodePickMode,
-    Validate,
     valueProperty,
     fixNumericExtent,
     seriesLabelFadeInAnimation,
@@ -49,12 +35,12 @@ class RadarSeriesNodeClickEvent<
     readonly radiusKey?: string;
     constructor(type: TEvent, nativeEvent: MouseEvent, datum: RadarNodeDatum, series: RadarSeries) {
         super(type, nativeEvent, datum, series);
-        this.angleKey = series.angleKey;
-        this.radiusKey = series.radiusKey;
+        this.angleKey = series.properties.angleKey;
+        this.radiusKey = series.properties.radiusKey;
     }
 }
 
-interface RadarNodeDatum extends _ModuleSupport.SeriesNodeDatum {
+export interface RadarNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     readonly label?: {
         text: string;
         x: number;
@@ -69,63 +55,13 @@ interface RadarNodeDatum extends _ModuleSupport.SeriesNodeDatum {
 export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDatum, _Scene.Marker> {
     static className = 'RadarSeries';
 
-    protected override readonly NodeClickEvent = RadarSeriesNodeClickEvent;
+    override properties = new RadarSeriesProperties();
 
-    readonly marker = new _ModuleSupport.SeriesMarker<AgRadialSeriesOptionsKeys, RadarNodeDatum>();
-    readonly label = new _Scene.Label<AgRadarSeriesLabelFormatterParams>();
+    protected override readonly NodeClickEvent = RadarSeriesNodeClickEvent;
 
     protected lineSelection: _Scene.Selection<_Scene.Path, boolean>;
 
     protected nodeData: RadarNodeDatum[] = [];
-
-    tooltip = new _ModuleSupport.SeriesTooltip<AgPieSeriesTooltipRendererParams>();
-
-    /**
-     * The key of the numeric field to use to determine the angle (for example,
-     * a pie sector angle).
-     */
-    @Validate(STRING)
-    angleKey = '';
-
-    @Validate(STRING, { optional: true })
-    angleName?: string = undefined;
-
-    /**
-     * The key of the numeric field to use to determine the radii of pie sectors.
-     * The largest value will correspond to the full radius and smaller values to
-     * proportionally smaller radii.
-     */
-    @Validate(STRING)
-    radiusKey: string = '';
-
-    @Validate(STRING, { optional: true })
-    radiusName?: string = undefined;
-
-    @Validate(COLOR_STRING, { optional: true })
-    stroke?: string = 'black';
-
-    @Validate(RATIO)
-    strokeOpacity = 1;
-
-    @Validate(LINE_DASH, { optional: true })
-    lineDash?: number[] = [0];
-
-    @Validate(POSITIVE_NUMBER)
-    lineDashOffset: number = 0;
-
-    @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgPieSeriesFormatterParams<any>) => AgPieSeriesFormat = undefined;
-
-    /**
-     * The series rotation in degrees.
-     */
-    @Validate(DEGREE)
-    rotation = 0;
-
-    @Validate(POSITIVE_NUMBER)
-    strokeWidth = 1;
-
-    override readonly highlightStyle = new HighlightStyle();
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
@@ -145,7 +81,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
     }
 
     protected override nodeFactory(): _Scene.Marker {
-        const { shape } = this.marker;
+        const { shape } = this.properties.marker;
         const MarkerShape = getMarker(shape);
         return new MarkerShape();
     }
@@ -171,18 +107,18 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
     }
 
     override async processData(dataController: _ModuleSupport.DataController) {
-        const { data = [] } = this;
-        const { angleKey, radiusKey } = this;
+        if (!this.properties.isValid()) {
+            return;
+        }
 
-        if (!angleKey || !radiusKey) return;
-
-        const animationEnabled = !this.ctx.animationManager.isSkipped();
+        const { angleKey, radiusKey } = this.properties;
         const extraProps = [];
-        if (animationEnabled) {
+
+        if (!this.ctx.animationManager.isSkipped()) {
             extraProps.push(animationValidation(this));
         }
 
-        await this.requestDataModel<any, any, true>(dataController, data, {
+        await this.requestDataModel<any, any, true>(dataController, this.data ?? [], {
             props: [
                 valueProperty(this, angleKey, false, { id: 'angleValue' }),
                 valueProperty(this, radiusKey, false, { id: 'radiusValue', invalidValue: undefined }),
@@ -221,12 +157,13 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
     }
 
     async createNodeData() {
-        const { processedData, dataModel, angleKey, radiusKey } = this;
+        const { processedData, dataModel } = this;
 
-        if (!processedData || !dataModel || !angleKey || !radiusKey) {
+        if (!processedData || !dataModel || !this.properties.isValid()) {
             return [];
         }
 
+        const { angleKey, radiusKey, angleName, radiusName, marker, label } = this.properties;
         const angleScale = this.axes[ChartAxisDirection.X]?.scale;
         const radiusScale = this.axes[ChartAxisDirection.Y]?.scale;
 
@@ -254,24 +191,17 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
             const y = sin * radius;
 
             let labelNodeDatum: RadarNodeDatum['label'];
-            if (this.label.enabled) {
+            if (label.enabled) {
                 const labelText = this.getLabelText(
-                    this.label,
-                    {
-                        value: radiusDatum,
-                        datum,
-                        angleKey,
-                        radiusKey,
-                        angleName: this.angleName,
-                        radiusName: this.radiusName,
-                    },
+                    label,
+                    { value: radiusDatum, datum, angleKey, radiusKey, angleName, radiusName },
                     (value) => (isNumber(value) ? value.toFixed(2) : String(value))
                 );
 
                 if (labelText) {
                     labelNodeDatum = {
-                        x: x + cos * this.marker.size,
-                        y: y + sin * this.marker.size,
+                        x: x + cos * marker.size,
+                        y: y + sin * marker.size,
                         text: labelText,
                         textAlign: isNumberEqual(cos, 0) ? 'center' : cos > 0 ? 'left' : 'right',
                         textBaseline: isNumberEqual(sin, 0) ? 'middle' : sin > 0 ? 'top' : 'bottom',
@@ -282,7 +212,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
             return {
                 series: this,
                 datum,
-                point: { x, y, size: this.marker.size },
+                point: { x, y, size: marker.size },
                 midPoint: { x, y },
                 label: labelNodeDatum,
                 angleValue: angleDatum,
@@ -328,15 +258,15 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
     }
 
     protected getMarkerFill(highlightedStyle?: _ModuleSupport.SeriesItemHighlightStyle) {
-        return highlightedStyle?.fill ?? this.marker.fill;
+        return highlightedStyle?.fill ?? this.properties.marker.fill;
     }
 
     protected updateMarkers(selection: _Scene.Selection<_Scene.Marker, RadarNodeDatum>, highlight: boolean) {
-        const { marker, visible, ctx, angleKey, radiusKey, id: seriesId } = this;
-        const { shape, enabled, formatter, size } = marker;
-        const { callbackCache } = ctx;
+        const { angleKey, radiusKey, marker, visible } = this.properties;
+
         let selectionData: RadarNodeDatum[] = [];
-        if (visible && shape && enabled) {
+
+        if (visible && marker.shape && marker.enabled) {
             if (highlight) {
                 const highlighted = this.ctx.highlightManager?.getActiveHighlight();
                 if (highlighted?.datum) {
@@ -346,29 +276,29 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
                 selectionData = this.nodeData;
             }
         }
-        const highlightedStyle = highlight ? this.highlightStyle.item : undefined;
+        const highlightedStyle = highlight ? this.properties.highlightStyle.item : undefined;
         selection.update(selectionData).each((node, datum) => {
             const fill = this.getMarkerFill(highlightedStyle);
-            const stroke = highlightedStyle?.stroke ?? marker.stroke ?? this.stroke;
-            const strokeWidth = highlightedStyle?.strokeWidth ?? marker.strokeWidth ?? this.strokeWidth ?? 1;
-            const format = formatter
-                ? callbackCache.call(formatter, {
+            const stroke = highlightedStyle?.stroke ?? marker.stroke ?? this.properties.stroke;
+            const strokeWidth = highlightedStyle?.strokeWidth ?? marker.strokeWidth ?? this.properties.strokeWidth ?? 1;
+            const format = marker.formatter
+                ? this.ctx.callbackCache.call(marker.formatter, {
                       datum: datum.datum,
                       angleKey,
                       radiusKey,
                       fill,
                       stroke,
                       strokeWidth,
-                      size,
+                      size: marker.size,
                       highlighted: highlight,
-                      seriesId,
+                      seriesId: this.id,
                   })
                 : undefined;
             node.fill = format?.fill ?? fill;
             node.stroke = format?.stroke ?? stroke;
             node.strokeWidth = format?.strokeWidth ?? strokeWidth;
             node.fillOpacity = highlightedStyle?.fillOpacity ?? marker.fillOpacity ?? 1;
-            node.strokeOpacity = marker.strokeOpacity ?? this.strokeOpacity ?? 1;
+            node.strokeOpacity = marker.strokeOpacity ?? this.properties.strokeOpacity ?? 1;
             node.size = format?.size ?? marker.size;
 
             const { x, y } = datum.point!;
@@ -379,8 +309,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
     }
 
     protected updateLabels() {
-        const { label, labelSelection } = this;
-        labelSelection.update(this.nodeData).each((node, datum) => {
+        const { label } = this.properties;
+        this.labelSelection.update(this.nodeData).each((node, datum) => {
             if (label.enabled && datum.label) {
                 node.x = datum.label.x;
                 node.y = datum.label.y;
@@ -403,21 +333,21 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
     }
 
     getTooltipHtml(nodeDatum: RadarNodeDatum): string {
-        const { angleKey, radiusKey } = this;
-
-        if (!angleKey || !radiusKey) {
+        if (!this.properties.isValid()) {
             return '';
         }
 
-        const { angleName, radiusName, tooltip, marker, id: seriesId } = this;
+        const { id: seriesId } = this;
+        const { angleKey, radiusKey, angleName, radiusName, marker, tooltip } = this.properties;
         const { datum, angleValue, radiusValue } = nodeDatum;
+
         const formattedAngleValue = typeof angleValue === 'number' ? toFixed(angleValue) : String(angleValue);
         const formattedRadiusValue = typeof radiusValue === 'number' ? toFixed(radiusValue) : String(radiusValue);
         const title = sanitizeHtml(radiusName);
         const content = sanitizeHtml(`${formattedAngleValue}: ${formattedRadiusValue}`);
 
         const { formatter: markerFormatter, fill, stroke, strokeWidth: markerStrokeWidth, size } = marker;
-        const strokeWidth = markerStrokeWidth ?? this.strokeWidth;
+        const strokeWidth = markerStrokeWidth ?? this.properties.strokeWidth;
 
         const { fill: color } = (markerFormatter &&
             this.ctx.callbackCache.call(markerFormatter, {
@@ -439,18 +369,18 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
-        const { id, data, angleKey, radiusKey, radiusName, visible, marker, stroke, strokeOpacity } = this;
-
-        if (!(data?.length && angleKey && radiusKey && legendType === 'category')) {
+        if (!this.data?.length || !this.properties.isValid() || legendType !== 'category') {
             return [];
         }
+
+        const { radiusKey, radiusName, stroke, strokeOpacity, visible, marker } = this.properties;
 
         return [
             {
                 legendType: 'category',
-                id: id,
+                id: this.id,
                 itemId: radiusKey,
-                seriesId: id,
+                seriesId: this.id,
                 enabled: visible,
                 label: {
                     text: radiusName ?? radiusKey,
@@ -488,12 +418,12 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
 
     protected override pickNodeClosestDatum(point: _Scene.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
         const { x, y } = point;
-        const { rootGroup, nodeData, centerX: cx, centerY: cy, marker } = this;
+        const { rootGroup, nodeData, centerX: cx, centerY: cy } = this;
         const hitPoint = rootGroup.transformPoint(x, y);
         const radius = this.radius;
 
         const distanceFromCenter = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);
-        if (distanceFromCenter > radius + marker.size) {
+        if (distanceFromCenter > radius + this.properties.marker.size) {
             return;
         }
 
@@ -520,7 +450,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
     }
 
     override async computeLabelsBBox() {
-        const { label } = this;
+        const { label } = this.properties;
 
         await this.maybeRefreshNodeData();
 
@@ -556,12 +486,12 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         lineNode.lineCap = 'round';
         lineNode.pointerEvents = PointerEvents.None;
 
-        lineNode.stroke = this.stroke;
-        lineNode.strokeWidth = this.getStrokeWidth(this.strokeWidth);
-        lineNode.strokeOpacity = this.strokeOpacity;
+        lineNode.stroke = this.properties.stroke;
+        lineNode.strokeWidth = this.getStrokeWidth(this.properties.strokeWidth);
+        lineNode.strokeOpacity = this.properties.strokeOpacity;
 
-        lineNode.lineDash = this.lineDash;
-        lineNode.lineDashOffset = this.lineDashOffset;
+        lineNode.lineDash = this.properties.lineDash;
+        lineNode.lineDashOffset = this.properties.lineDashOffset;
     }
 
     protected getLinePoints(options: { breakMissingPoints: boolean }): RadarPathPoint[] {
@@ -685,12 +615,12 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
             const linePoints = this.getLinePoints({ breakMissingPoints: true });
 
             lineNode.fill = undefined;
-            lineNode.stroke = this.stroke;
-            lineNode.strokeWidth = this.getStrokeWidth(this.strokeWidth);
-            lineNode.strokeOpacity = this.strokeOpacity;
+            lineNode.stroke = this.properties.stroke;
+            lineNode.strokeWidth = this.getStrokeWidth(this.properties.strokeWidth);
+            lineNode.strokeOpacity = this.properties.strokeOpacity;
 
-            lineNode.lineDash = this.lineDash;
-            lineNode.lineDashOffset = this.lineDashOffset;
+            lineNode.lineDash = this.properties.lineDash;
+            lineNode.lineDashOffset = this.properties.lineDashOffset;
 
             linePath.clear({ trackChanges: true });
 

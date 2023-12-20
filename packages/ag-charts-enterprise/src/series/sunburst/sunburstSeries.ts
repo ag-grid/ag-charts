@@ -1,28 +1,16 @@
 import {
-    type AgSunburstSeriesFormatterParams,
     type AgSunburstSeriesLabelFormatterParams,
     type AgSunburstSeriesStyle,
-    type AgSunburstSeriesTooltipRendererParams,
     type AgTooltipRendererResult,
     _ModuleSupport,
     _Scene,
     _Util,
 } from 'ag-charts-community';
 
-import { AutoSizeableSecondaryLabel, AutoSizedLabel, formatLabels } from '../util/labelFormatter';
+import { formatLabels } from '../util/labelFormatter';
+import { SunburstSeriesProperties } from './sunburstSeriesProperties';
 
-const {
-    fromToMotion,
-    HighlightStyle,
-    COLOR_STRING,
-    FUNCTION,
-    NUMBER,
-    POSITIVE_NUMBER,
-    STRING,
-    RATIO,
-    SeriesTooltip,
-    Validate,
-} = _ModuleSupport;
+const { fromToMotion } = _ModuleSupport;
 const { Sector, Group, Selection, Text } = _Scene;
 const { sanitizeHtml } = _Util;
 
@@ -48,27 +36,6 @@ const getAngleData = (
     return angleData;
 };
 
-class SunburstSeriesTileHighlightStyle extends HighlightStyle {
-    readonly label = new AutoSizedLabel<AgSunburstSeriesLabelFormatterParams>();
-
-    readonly secondaryLabel = new AutoSizedLabel<AgSunburstSeriesLabelFormatterParams>();
-
-    @Validate(STRING, { optional: true })
-    fill?: string = undefined;
-
-    @Validate(RATIO, { optional: true })
-    fillOpacity?: number = undefined;
-
-    @Validate(COLOR_STRING, { optional: true })
-    stroke?: string = undefined;
-
-    @Validate(POSITIVE_NUMBER, { optional: true })
-    strokeWidth?: number = undefined;
-
-    @Validate(RATIO, { optional: true })
-    strokeOpacity?: number = undefined;
-}
-
 enum CircleQuarter {
     TopLeft = 0b0001,
     TopRight = 0b0010,
@@ -91,13 +58,11 @@ enum TextNodeTag {
     Secondary,
 }
 
-export class SunburstSeries<
-    TDatum extends _ModuleSupport.SeriesNodeDatum = _ModuleSupport.SeriesNodeDatum,
-> extends _ModuleSupport.HierarchySeries<_Scene.Group, TDatum> {
+export class SunburstSeries extends _ModuleSupport.HierarchySeries<_Scene.Group, _ModuleSupport.SeriesNodeDatum> {
     static className = 'SunburstSeries';
     static type = 'sunburst' as const;
 
-    readonly tooltip = new SeriesTooltip<AgSunburstSeriesTooltipRendererParams<any>>();
+    override properties = new SunburstSeriesProperties();
 
     groupSelection = Selection.select(this.contentGroup, Group);
     private highlightSelection: _Scene.Selection<_Scene.Group, _ModuleSupport.HierarchyNode> = Selection.select(
@@ -109,41 +74,8 @@ export class SunburstSeries<
 
     private labelData?: (LabelData | undefined)[];
 
-    override readonly highlightStyle = new SunburstSeriesTileHighlightStyle();
-
-    readonly label = new AutoSizedLabel<AgSunburstSeriesLabelFormatterParams<TDatum>>();
-
-    readonly secondaryLabel = new AutoSizeableSecondaryLabel<AgSunburstSeriesLabelFormatterParams<TDatum>>();
-
-    @Validate(STRING, { optional: true })
-    sizeName?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    labelKey?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    secondaryLabelKey?: string = undefined;
-
-    @Validate(RATIO)
-    fillOpacity: number = 1;
-
-    @Validate(POSITIVE_NUMBER)
-    strokeWidth: number = 0;
-
-    @Validate(RATIO)
-    strokeOpacity: number = 1;
-
-    @Validate(NUMBER, { optional: true })
-    sectorSpacing?: number = undefined;
-
-    @Validate(NUMBER, { optional: true })
-    padding?: number = undefined;
-
-    @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgSunburstSeriesFormatterParams) => AgSunburstSeriesStyle = undefined;
-
     override async processData() {
-        const { childrenKey, colorKey, colorName, labelKey, secondaryLabelKey, sizeKey, sizeName } = this;
+        const { childrenKey, colorKey, colorName, labelKey, secondaryLabelKey, sizeKey, sizeName } = this.properties;
 
         super.processData();
 
@@ -165,7 +97,7 @@ export class SunburstSeries<
             if (datum != null && depth != null && labelKey != null) {
                 const value = (datum as any)[labelKey];
                 label = this.getLabelText(
-                    this.label,
+                    this.properties.label,
                     {
                         depth,
                         datum,
@@ -189,7 +121,7 @@ export class SunburstSeries<
             if (datum != null && depth != null && secondaryLabelKey != null) {
                 const value = (datum as any)[secondaryLabelKey];
                 secondaryLabel = this.getLabelText(
-                    this.secondaryLabel,
+                    this.properties.secondaryLabel,
                     {
                         depth,
                         datum,
@@ -238,11 +170,14 @@ export class SunburstSeries<
     }
 
     async updateNodes() {
-        const { chart, data, maxDepth, sectorSpacing = 0, padding = 0, highlightStyle, labelData } = this;
+        const { chart, data, maxDepth, labelData } = this;
 
-        if (chart == null || data == null || labelData == null) return;
+        if (chart == null || data == null || labelData == null) {
+            return;
+        }
 
         const { width, height } = chart.seriesRect!;
+        const { sectorSpacing = 0, padding = 0, highlightStyle } = this.properties;
 
         this.contentGroup.translationX = width / 2;
         this.contentGroup.translationY = height / 2;
@@ -258,7 +193,7 @@ export class SunburstSeries<
             this.ctx.highlightManager?.getActiveHighlight() as any;
 
         const labelTextNode = new Text();
-        labelTextNode.setFont(this.label);
+        labelTextNode.setFont(this.properties.label);
 
         this.rootNode.walk((node) => {
             const angleDatum = this.angleData[node.index];
@@ -296,10 +231,10 @@ export class SunburstSeries<
             const format = this.getSectorFormat(node, highlighted);
 
             const fill = format?.fill ?? highlightedFill ?? node.fill;
-            const fillOpacity = format?.fillOpacity ?? highlightedFillOpacity ?? this.fillOpacity;
+            const fillOpacity = format?.fillOpacity ?? highlightedFillOpacity ?? this.properties.fillOpacity;
             const stroke = format?.stroke ?? highlightedStroke ?? node.stroke;
-            const strokeWidth = format?.strokeWidth ?? highlightedStrokeWidth ?? this.strokeWidth;
-            const strokeOpacity = format?.strokeOpacity ?? highlightedStrokeOpacity ?? this.strokeOpacity;
+            const strokeWidth = format?.strokeWidth ?? highlightedStrokeWidth ?? this.properties.strokeWidth;
+            const strokeOpacity = format?.strokeOpacity ?? highlightedStrokeOpacity ?? this.properties.strokeOpacity;
 
             sector.fill = fill;
             sector.fillOpacity = fillOpacity;
@@ -384,9 +319,9 @@ export class SunburstSeries<
 
             const formatting = formatLabels<LabelPlacement, AgSunburstSeriesLabelFormatterParams>(
                 labelDatum?.label,
-                this.label,
+                this.properties.label,
                 labelDatum?.secondaryLabel,
-                this.secondaryLabel,
+                this.properties.secondaryLabel,
                 { padding },
                 sizeFittingHeight
             );
@@ -435,9 +370,9 @@ export class SunburstSeries<
         ) => {
             const { index, depth } = node;
             const meta = labelMeta?.[index];
-            const labelStyle = tag === TextNodeTag.Primary ? this.label : this.secondaryLabel;
+            const labelStyle = tag === TextNodeTag.Primary ? this.properties.label : this.properties.secondaryLabel;
             const label = tag === TextNodeTag.Primary ? meta?.label : meta?.secondaryLabel;
-            if (depth == null || meta == null || label == null || meta == null) {
+            if (depth == null || meta == null || label == null) {
                 text.visible = false;
                 return;
             }
@@ -447,7 +382,9 @@ export class SunburstSeries<
             let highlightedColor: string | undefined;
             if (highlighted) {
                 const highlightedLabelStyle =
-                    tag === TextNodeTag.Primary ? this.highlightStyle.label : this.highlightStyle.secondaryLabel;
+                    tag === TextNodeTag.Primary
+                        ? this.properties.highlightStyle.label
+                        : this.properties.highlightStyle.secondaryLabel;
                 highlightedColor = highlightedLabelStyle.color;
             }
 
@@ -512,14 +449,15 @@ export class SunburstSeries<
     private getSectorFormat(node: _ModuleSupport.HierarchyNode, isHighlighted: boolean): AgSunburstSeriesStyle {
         const { datum, fill, stroke, depth } = node;
         const {
-            formatter,
             ctx: { callbackCache },
+            properties: { formatter },
         } = this;
+
         if (!formatter || datum == null || depth == null) {
             return {};
         }
 
-        const { colorKey, labelKey, sizeKey, strokeWidth } = this;
+        const { colorKey, labelKey, sizeKey, strokeWidth } = this.properties;
 
         const result = callbackCache.call(formatter, {
             seriesId: this.id,
@@ -538,6 +476,7 @@ export class SunburstSeries<
     }
 
     override getTooltipHtml(node: _ModuleSupport.HierarchyNode): string {
+        const { id: seriesId } = this;
         const {
             tooltip,
             colorKey,
@@ -546,8 +485,7 @@ export class SunburstSeries<
             secondaryLabelKey,
             sizeKey,
             sizeName = sizeKey,
-            id: seriesId,
-        } = this;
+        } = this.properties;
         const { datum, depth } = node;
         if (datum == null || depth == null) {
             return '';
@@ -558,7 +496,7 @@ export class SunburstSeries<
         const format = this.getSectorFormat(node, false);
         const color = format?.fill ?? node.fill;
 
-        if (!tooltip.renderer && !tooltip.format && !title) {
+        if (!tooltip.renderer && !title) {
             return '';
         }
 
@@ -583,7 +521,7 @@ export class SunburstSeries<
 
         const defaults: AgTooltipRendererResult = {
             title,
-            color: this.label.color,
+            color: this.properties.label.color,
             backgroundColor: color,
             content,
         };
@@ -607,24 +545,22 @@ export class SunburstSeries<
 
     protected override animateEmptyUpdateReady({
         datumSelections,
-    }: _ModuleSupport.HierarchyAnimationData<_Scene.Group, TDatum>) {
-        fromToMotion<_Scene.Group, Pick<_Scene.Group, 'scalingX' | 'scalingY'>, _ModuleSupport.HierarchyNode<TDatum>>(
-            this.id,
-            'nodes',
-            this.ctx.animationManager,
-            datumSelections,
-            {
-                toFn(_group, _datum, _status) {
+    }: _ModuleSupport.HierarchyAnimationData<_Scene.Group, _ModuleSupport.SeriesNodeDatum>) {
+        fromToMotion<
+            _Scene.Group,
+            Pick<_Scene.Group, 'scalingX' | 'scalingY'>,
+            _ModuleSupport.HierarchyNode<_ModuleSupport.SeriesNodeDatum>
+        >(this.id, 'nodes', this.ctx.animationManager, datumSelections, {
+            toFn(_group, _datum, _status) {
+                return { scalingX: 1, scalingY: 1 };
+            },
+            fromFn(group, datum, status) {
+                if (status === 'unknown' && datum != null && group.previousDatum == null) {
+                    return { scalingX: 0, scalingY: 0 };
+                } else {
                     return { scalingX: 1, scalingY: 1 };
-                },
-                fromFn(group, datum, status) {
-                    if (status === 'unknown' && datum != null && group.previousDatum == null) {
-                        return { scalingX: 0, scalingY: 0 };
-                    } else {
-                        return { scalingX: 1, scalingY: 1 };
-                    }
-                },
-            }
-        );
+                }
+            },
+        });
     }
 }

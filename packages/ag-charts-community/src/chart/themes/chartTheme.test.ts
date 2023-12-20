@@ -198,22 +198,22 @@ describe('ChartTheme', () => {
             const strokes = ['cyan', 'cyan', 'cyan', 'cyan', 'cyan'];
             for (let i = 0; i < 5; i++) {
                 expect(chart.series[i].type).toBe('bar');
-                expect((chart.series[i] as BarSeries).fill).toEqual(fills[i]);
-                expect((chart.series[i] as BarSeries).stroke).toEqual(strokes[i]);
-                expect((chart.series[i] as BarSeries).label.enabled).toBe(true);
-                expect((chart.series[i] as BarSeries).label.color).toBe('yellow');
-                expect((chart.series[i] as BarSeries).label.fontSize).toBe(18);
-                expect((chart.series[i] as BarSeries).tooltip.enabled).toBe(false);
-                expect((chart.series[i] as BarSeries).tooltip.renderer).toBe(tooltipRenderer);
+                expect((chart.series[i] as BarSeries).properties.fill).toEqual(fills[i]);
+                expect((chart.series[i] as BarSeries).properties.stroke).toEqual(strokes[i]);
+                expect((chart.series[i] as BarSeries).properties.label.enabled).toBe(true);
+                expect((chart.series[i] as BarSeries).properties.label.color).toBe('yellow');
+                expect((chart.series[i] as BarSeries).properties.label.fontSize).toBe(18);
+                expect((chart.series[i] as BarSeries).properties.tooltip.enabled).toBe(false);
+                expect((chart.series[i] as BarSeries).properties.tooltip.renderer).toBe(tooltipRenderer);
             }
 
             const areaFills = ['blue', 'red', 'green', 'blue', 'red'];
             const areaStrokes = ['cyan', 'cyan', 'cyan', 'cyan', 'cyan'];
             for (let i = 5; i < 10; i++) {
                 expect(chart.series[i].type).toBe('area');
-                expect((chart.series[i] as unknown as AreaSeries).fill).toEqual(areaFills[i - 5]);
-                expect((chart.series[i] as unknown as AreaSeries).stroke).toEqual(areaStrokes[i - 5]);
-                expect((chart.series[i] as unknown as AreaSeries).marker.formatter).toBe(markerFormatter);
+                expect((chart.series[i] as unknown as AreaSeries).properties.fill).toEqual(areaFills[i - 5]);
+                expect((chart.series[i] as unknown as AreaSeries).properties.stroke).toEqual(areaStrokes[i - 5]);
+                expect((chart.series[i] as unknown as AreaSeries).properties.marker.formatter).toBe(markerFormatter);
             }
         });
     });
@@ -290,13 +290,13 @@ describe('ChartTheme', () => {
             expect((chart as any).background.fill).toBe('red');
 
             expect(chart.series[0].type).toBe('pie');
-            expect((chart.series[0] as PieSeries).fills).toEqual(['red', 'green', 'blue']);
-            expect((chart.series[0] as PieSeries).strokes).toEqual(['cyan', 'cyan', 'cyan']);
-            expect((chart.series[0] as PieSeries).calloutLabel.enabled).toBe(true);
-            expect((chart.series[0] as PieSeries).calloutLabel.color).toBe('yellow');
-            expect((chart.series[0] as PieSeries).calloutLabel.fontSize).toBe(18);
-            expect((chart.series[0] as PieSeries).tooltip.enabled).toBe(false);
-            expect((chart.series[0] as PieSeries).tooltip.renderer).toBe(tooltipRenderer);
+            expect((chart.series[0] as PieSeries).properties.fills).toEqual(['red', 'green', 'blue']);
+            expect((chart.series[0] as PieSeries).properties.strokes).toEqual(['cyan', 'cyan', 'cyan']);
+            expect((chart.series[0] as PieSeries).properties.calloutLabel.enabled).toBe(true);
+            expect((chart.series[0] as PieSeries).properties.calloutLabel.color).toBe('yellow');
+            expect((chart.series[0] as PieSeries).properties.calloutLabel.fontSize).toBe(18);
+            expect((chart.series[0] as PieSeries).properties.tooltip.enabled).toBe(false);
+            expect((chart.series[0] as PieSeries).properties.tooltip.renderer).toBe(tooltipRenderer);
         });
     });
 
@@ -442,13 +442,13 @@ describe('ChartTheme', () => {
             const strokes = ['cyan', 'cyan', 'cyan', 'cyan', 'cyan'];
             for (let i = 0; i < 5; i++) {
                 expect(chart.series[i].type).toBe('bar');
-                expect((chart.series[i] as BarSeries).fill).toEqual(fills[i]);
-                expect((chart.series[i] as BarSeries).stroke).toEqual(strokes[i]);
-                expect((chart.series[i] as BarSeries).label.enabled).toBe(true);
-                expect((chart.series[i] as BarSeries).label.color).toBe('blue');
-                expect((chart.series[i] as BarSeries).label.fontSize).toBe(18);
-                expect((chart.series[i] as BarSeries).tooltip.enabled).toBe(false);
-                expect((chart.series[i] as BarSeries).tooltip.renderer).toBe(columnTooltipRenderer);
+                expect((chart.series[i] as BarSeries).properties.fill).toEqual(fills[i]);
+                expect((chart.series[i] as BarSeries).properties.stroke).toEqual(strokes[i]);
+                expect((chart.series[i] as BarSeries).properties.label.enabled).toBe(true);
+                expect((chart.series[i] as BarSeries).properties.label.color).toBe('blue');
+                expect((chart.series[i] as BarSeries).properties.label.fontSize).toBe(18);
+                expect((chart.series[i] as BarSeries).properties.tooltip.enabled).toBe(false);
+                expect((chart.series[i] as BarSeries).properties.tooltip.renderer).toBe(columnTooltipRenderer);
             }
         });
 
@@ -465,13 +465,13 @@ describe('ChartTheme', () => {
             expect((chart as any).background.fill).toBe('red');
 
             expect(chart.series[0].type).toBe('pie');
-            expect((chart.series[0] as PieSeries).fills).toEqual(['red', 'green', 'blue']);
-            expect((chart.series[0] as PieSeries).strokes).toEqual(['cyan', 'cyan', 'cyan']);
-            expect((chart.series[0] as PieSeries).calloutLabel.enabled).toBe(true);
-            expect((chart.series[0] as PieSeries).calloutLabel.color).toBe('yellow');
-            expect((chart.series[0] as PieSeries).calloutLabel.fontSize).toBe(18);
-            expect((chart.series[0] as PieSeries).tooltip.enabled).toBe(false);
-            expect((chart.series[0] as PieSeries).tooltip.renderer).toBe(pieTooltipRenderer);
+            expect((chart.series[0] as PieSeries).properties.fills).toEqual(['red', 'green', 'blue']);
+            expect((chart.series[0] as PieSeries).properties.strokes).toEqual(['cyan', 'cyan', 'cyan']);
+            expect((chart.series[0] as PieSeries).properties.calloutLabel.enabled).toBe(true);
+            expect((chart.series[0] as PieSeries).properties.calloutLabel.color).toBe('yellow');
+            expect((chart.series[0] as PieSeries).properties.calloutLabel.fontSize).toBe(18);
+            expect((chart.series[0] as PieSeries).properties.tooltip.enabled).toBe(false);
+            expect((chart.series[0] as PieSeries).properties.tooltip.renderer).toBe(pieTooltipRenderer);
         });
     });
 
@@ -860,10 +860,10 @@ describe('ChartTheme', () => {
             expect(series[1].type).toEqual('bar');
             expect(series[2].type).toEqual('line');
             expect(series[3].type).toEqual('area');
-            expect((series[0] as BarSeries).strokeWidth).toEqual(16);
-            expect((series[1] as BarSeries).strokeWidth).toEqual(16);
-            expect((series[2] as LineSeries).strokeWidth).toEqual(17);
-            expect((series[3] as unknown as AreaSeries).strokeWidth).toEqual(18);
+            expect((series[0] as BarSeries).properties.strokeWidth).toEqual(16);
+            expect((series[1] as BarSeries).properties.strokeWidth).toEqual(16);
+            expect((series[2] as LineSeries).properties.strokeWidth).toEqual(17);
+            expect((series[3] as unknown as AreaSeries).properties.strokeWidth).toEqual(18);
         });
     });
 });

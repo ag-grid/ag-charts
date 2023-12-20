@@ -2,7 +2,8 @@ import type { _ModuleSupport } from 'ag-charts-community';
 import { _Theme } from 'ag-charts-community';
 
 import { BULLET_DEFAULTS } from './bulletDefaults';
-import { BulletColorRange, BulletSeries } from './bulletSeries';
+import { BulletSeries } from './bulletSeries';
+import { BulletColorRange } from './bulletSeriesProperties';
 import { BULLET_SERIES_THEME } from './bulletThemes';
 
 const { CARTESIAN_AXIS_POSITIONS } = _Theme;

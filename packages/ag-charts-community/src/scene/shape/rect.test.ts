@@ -9,7 +9,7 @@ describe('Rect', () => {
     describe('rendering', () => {
         const canvasCtx = setupMockCanvas({ height: 1000 });
 
-        const shadowFn = (offset: number) => Object.assign(new DropShadow(), { xOffset: offset, yOffset: offset });
+        const shadowFn = (offset: number) => new DropShadow().set({ xOffset: offset, yOffset: offset });
 
         const GAP = 20;
         const DEFAULTS: Partial<Rect> = { width: 20, height: 20 };
@@ -191,7 +191,13 @@ describe('Rect', () => {
 
                     // Render.
                     ctx.save();
-                    rect.render({ ctx, forceRender: true, resized: false, debugNodes: {} });
+                    rect.render({
+                        ctx,
+                        forceRender: true,
+                        resized: false,
+                        debugNodes: {},
+                        devicePixelRatio: 1,
+                    });
                     ctx.restore();
 
                     // Prepare for next case.

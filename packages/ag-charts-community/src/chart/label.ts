@@ -5,6 +5,7 @@ import type { Matrix } from '../scene/matrix';
 import { getFont } from '../scene/shape/text';
 import { normalizeAngle360, toRadians } from '../util/angle';
 import type { PointLabelDatum } from '../util/labelPlacement';
+import { BaseProperties } from '../util/properties';
 import type { RequireOptional } from '../util/types';
 import {
     BOOLEAN,
@@ -18,7 +19,10 @@ import {
 } from '../util/validation';
 import type { ChartAxisLabelFlipFlag } from './chartAxis';
 
-export class Label<TParams = never, TDatum = any> implements AgChartLabelOptions<TDatum, RequireOptional<TParams>> {
+export class Label<TParams = never, TDatum = any>
+    extends BaseProperties
+    implements AgChartLabelOptions<TDatum, RequireOptional<TParams>>
+{
     @Validate(BOOLEAN)
     enabled = true;
 
@@ -32,10 +36,10 @@ export class Label<TParams = never, TDatum = any> implements AgChartLabelOptions
     fontWeight?: FontWeight;
 
     @Validate(POSITIVE_NUMBER)
-    fontSize = 12;
+    fontSize: number = 12;
 
     @Validate(STRING)
-    fontFamily = 'Verdana, sans-serif';
+    fontFamily: string = 'Verdana, sans-serif';
 
     @Validate(FUNCTION, { optional: true })
     formatter?: (params: AgChartLabelFormatterParams<TDatum> & RequireOptional<TParams>) => string | undefined;

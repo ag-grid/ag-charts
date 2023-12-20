@@ -27,9 +27,9 @@ type CapDefaults = NonNullable<ErrorBarNodeDatum['capDefaults']>;
 type CapOptions = NonNullable<AgErrorBarThemeableOptions['cap']>;
 type CapLengthOptions = Pick<CapOptions, 'length' | 'lengthRatio'>;
 
-class HierarchialBBox {
+class HierarchicalBBox {
     // ErrorBarNode can include up to 6 bboxes in total (2 whiskers, 4 caps). This is expensive hit
-    // testing, therefore we'll use a hierachial bbox structure: `union` is the bbox that includes
+    // testing, therefore we'll use a hierarchical bbox structure: `union` is the bbox that includes
     // all the components.
     public union: BBox;
     public components: BBox[];
@@ -62,7 +62,7 @@ export class ErrorBarNode extends _Scene.Group {
     // The ErrorBarNode does not need to handle the 'nearest' interaction range type, we can let the
     // series class handle that for us. The 'exact' interaction range is the same as having a distance
     // of 0. Therefore, we only need bounding boxes for number based ranges.
-    private bboxes: HierarchialBBox;
+    private bboxes: HierarchicalBBox;
 
     protected override _datum?: ErrorBarNodeDatum = undefined;
     public override get datum(): ErrorBarNodeDatum | undefined {
@@ -76,7 +76,7 @@ export class ErrorBarNode extends _Scene.Group {
         super();
         this.whiskerPath = new _Scene.Path();
         this.capsPath = new _Scene.Path();
-        this.bboxes = new HierarchialBBox([]);
+        this.bboxes = new HierarchicalBBox([]);
         this.append([this.whiskerPath, this.capsPath]);
     }
 
@@ -153,7 +153,6 @@ export class ErrorBarNode extends _Scene.Group {
             return;
         }
         const { whiskerStyle, capsStyle } = this.formatStyles(style, formatters, highlighted);
-
         const { xBar, yBar, capDefaults } = this.datum;
 
         const whisker = this.whiskerPath;
@@ -170,7 +169,7 @@ export class ErrorBarNode extends _Scene.Group {
         whisker.path.closePath();
         whisker.markDirtyTransform();
 
-        // Errorbar caps stretch out pendicular to the whisker equally on both
+        // ErrorBar caps stretch out perpendicular to the whisker equally on both
         // sides, so we want the offset to be half of the total length.
         this.capLength = this.calculateCapLength(capsStyle ?? {}, capDefaults);
         const capOffset = this.capLength / 2;
@@ -195,25 +194,28 @@ export class ErrorBarNode extends _Scene.Group {
 
     updateBBoxes(): void {
         const { capLength, whiskerPath: whisker, capsPath: caps } = this;
-        const { components } = this.bboxes;
         const { yBar, xBar } = this.datum ?? {};
         const capOffset = capLength / 2;
+        const components = [];
 
-        components.length = (xBar === undefined ? 0 : 3) + (yBar === undefined ? 0 : 3);
-        let i = 0;
         if (yBar !== undefined) {
             const whiskerHeight = yBar.lowerPoint.y - yBar.upperPoint.y;
-            components[i++] = new BBox(yBar.lowerPoint.x, yBar.upperPoint.y, whisker.strokeWidth, whiskerHeight);
-            components[i++] = new BBox(yBar.lowerPoint.x - capOffset, yBar.lowerPoint.y, capLength, caps.strokeWidth);
-            components[i++] = new BBox(yBar.upperPoint.x - capOffset, yBar.upperPoint.y, capLength, caps.strokeWidth);
+            components.push(
+                new BBox(yBar.lowerPoint.x, yBar.upperPoint.y, whisker.strokeWidth, whiskerHeight),
+                new BBox(yBar.lowerPoint.x - capOffset, yBar.lowerPoint.y, capLength, caps.strokeWidth),
+                new BBox(yBar.upperPoint.x - capOffset, yBar.upperPoint.y, capLength, caps.strokeWidth)
+            );
         }
         if (xBar !== undefined) {
             const whiskerWidth = xBar.upperPoint.x - xBar.lowerPoint.x;
-            components[i++] = new BBox(xBar.lowerPoint.x, xBar.upperPoint.y, whiskerWidth, whisker.strokeWidth);
-            components[i++] = new BBox(xBar.lowerPoint.x, xBar.lowerPoint.y - capOffset, caps.strokeWidth, capLength);
-            components[i++] = new BBox(xBar.upperPoint.x, xBar.upperPoint.y - capOffset, caps.strokeWidth, capLength);
+            components.push(
+                new BBox(xBar.lowerPoint.x, xBar.upperPoint.y, whiskerWidth, whisker.strokeWidth),
+                new BBox(xBar.lowerPoint.x, xBar.lowerPoint.y - capOffset, caps.strokeWidth, capLength),
+                new BBox(xBar.upperPoint.x, xBar.upperPoint.y - capOffset, caps.strokeWidth, capLength)
+            );
         }
 
+        this.bboxes.components = components;
         this.bboxes.union = BBox.merge(components);
     }
 

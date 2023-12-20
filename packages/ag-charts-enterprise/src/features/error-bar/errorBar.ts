@@ -1,29 +1,11 @@
-import type { AgErrorBarOptions, AgErrorBarThemeableOptions, _Scale } from 'ag-charts-community';
+import type { AgErrorBarThemeableOptions, _Scale } from 'ag-charts-community';
 import { AgErrorBarSupportedSeriesTypes, _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import type {
-    ErrorBarCapFormatter,
-    ErrorBarFormatter,
-    ErrorBarNodeDatum,
-    ErrorBarStylingOptions,
-} from './errorBarNode';
+import type { ErrorBarNodeDatum, ErrorBarStylingOptions } from './errorBarNode';
 import { ErrorBarGroup, ErrorBarNode } from './errorBarNode';
+import { ErrorBarProperties } from './errorBarProperties';
 
-const {
-    fixNumericExtent,
-    mergeDefaults,
-    valueProperty,
-    ChartAxisDirection,
-    Validate,
-    BOOLEAN,
-    COLOR_STRING,
-    FUNCTION,
-    LINE_DASH,
-    NUMBER,
-    POSITIVE_NUMBER,
-    STRING,
-    RATIO,
-} = _ModuleSupport;
+const { isDefined, fixNumericExtent, mergeDefaults, valueProperty, ChartAxisDirection } = _ModuleSupport;
 
 type ErrorBoundCartesianSeries = Omit<
     _ModuleSupport.CartesianSeries<_Scene.Node, ErrorBarNodeDatum>,
@@ -53,89 +35,12 @@ type SeriesDataProcessedEvent = _ModuleSupport.SeriesDataProcessedEvent;
 type SeriesDataUpdateEvent = _ModuleSupport.SeriesDataUpdateEvent;
 type SeriesVisibilityEvent = _ModuleSupport.SeriesVisibilityEvent;
 
-class ErrorBarCap implements NonNullable<AgErrorBarOptions['cap']> {
-    @Validate(BOOLEAN, { optional: true })
-    visible?: boolean = undefined;
-
-    @Validate(COLOR_STRING, { optional: true })
-    stroke?: string = undefined;
-
-    @Validate(POSITIVE_NUMBER, { optional: true })
-    strokeWidth?: number = undefined;
-
-    @Validate(RATIO, { optional: true })
-    strokeOpacity?: number = undefined;
-
-    @Validate(LINE_DASH, { optional: true })
-    lineDash?: number[];
-
-    @Validate(POSITIVE_NUMBER, { optional: true })
-    lineDashOffset?: number;
-
-    @Validate(NUMBER, { optional: true })
-    length?: number = undefined;
-
-    @Validate(RATIO, { optional: true })
-    lengthRatio?: number = undefined;
-
-    @Validate(FUNCTION, { optional: true })
-    formatter?: ErrorBarCapFormatter = undefined;
-}
-
-export class ErrorBars
-    extends _ModuleSupport.BaseModuleInstance
-    implements _ModuleSupport.ModuleInstance, _ModuleSupport.SeriesOptionInstance, AgErrorBarOptions
-{
-    @Validate(STRING, { optional: true })
-    yLowerKey?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    yLowerName?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    yUpperKey?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    yUpperName?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    xLowerKey?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    xLowerName?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    xUpperKey?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    xUpperName?: string = undefined;
-
-    @Validate(BOOLEAN, { optional: true })
-    visible?: boolean = true;
-
-    @Validate(COLOR_STRING, { optional: true })
-    stroke? = 'black';
-
-    @Validate(POSITIVE_NUMBER, { optional: true })
-    strokeWidth?: number = 1;
-
-    @Validate(RATIO, { optional: true })
-    strokeOpacity?: number = 1;
-
-    @Validate(LINE_DASH, { optional: true })
-    lineDash?: number[];
-
-    @Validate(POSITIVE_NUMBER, { optional: true })
-    lineDashOffset?: number;
-
-    @Validate(FUNCTION, { optional: true })
-    formatter?: ErrorBarFormatter = undefined;
-
-    cap: ErrorBarCap = new ErrorBarCap();
-
+export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.SeriesOptionInstance {
     private readonly cartesianSeries: ErrorBoundCartesianSeries;
     private readonly groupNode: ErrorBarGroup;
     private readonly selection: _Scene.Selection<ErrorBarNode>;
+
+    readonly properties = new ErrorBarProperties();
 
     private dataModel?: AnyDataModel;
     private processedData?: AnyProcessedData;
@@ -143,19 +48,20 @@ export class ErrorBars
     constructor(ctx: _ModuleSupport.SeriesContext) {
         super();
 
-        this.cartesianSeries = toErrorBoundCartesianSeries(ctx);
-        const { annotationGroup, annotationSelections } = this.cartesianSeries;
+        const series = toErrorBoundCartesianSeries(ctx);
+        const { annotationGroup, annotationSelections } = series;
 
+        this.cartesianSeries = series;
         this.groupNode = new ErrorBarGroup({
             name: `${annotationGroup.id}-errorBars`,
             zIndex: _ModuleSupport.Layers.SERIES_LAYER_ZINDEX,
-            zIndexSubOrder: this.cartesianSeries.getGroupZIndexSubOrder('annotation'),
+            zIndexSubOrder: series.getGroupZIndexSubOrder('annotation'),
         });
+
         annotationGroup.appendChild(this.groupNode);
         this.selection = _Scene.Selection.select(this.groupNode, () => this.errorBarFactory());
         annotationSelections.add(this.selection);
 
-        const series = this.cartesianSeries;
         this.destroyFns.push(
             series.addListener('data-processed', (e: SeriesDataProcessedEvent) => this.onDataProcessed(e)),
             series.addListener('data-update', (e: SeriesDataUpdateEvent) => this.onDataUpdate(e)),
@@ -193,12 +99,10 @@ export class ErrorBars
 
     getDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
         const { xLowerKey, xUpperKey, xErrorsID, yLowerKey, yUpperKey, yErrorsID } = this.getMaybeFlippedKeys();
-        let hasAxisErrors: boolean = false;
-        if (direction == ChartAxisDirection.X) {
-            hasAxisErrors = xLowerKey !== undefined && xUpperKey != undefined;
-        } else {
-            hasAxisErrors = yLowerKey !== undefined && yUpperKey != undefined;
-        }
+        const hasAxisErrors =
+            direction === ChartAxisDirection.X
+                ? isDefined(xLowerKey) && isDefined(xUpperKey)
+                : isDefined(yLowerKey) && isDefined(yUpperKey);
 
         if (hasAxisErrors) {
             const { dataModel, processedData, cartesianSeries } = this;
@@ -215,7 +119,7 @@ export class ErrorBars
     private onDataUpdate(event: SeriesDataUpdateEvent) {
         this.dataModel = event.dataModel;
         this.processedData = event.processedData;
-        if (event.dataModel !== undefined && event.processedData !== undefined) {
+        if (isDefined(event.dataModel) && isDefined(event.processedData)) {
             this.createNodeData();
             this.update();
         }
@@ -232,6 +136,7 @@ export class ErrorBars
         const nodeData = this.getNodeData();
         const xScale = this.cartesianSeries.axes[ChartAxisDirection.X]?.scale;
         const yScale = this.cartesianSeries.axes[ChartAxisDirection.Y]?.scale;
+
         if (!xScale || !yScale || !nodeData) {
             return;
         }
@@ -239,15 +144,14 @@ export class ErrorBars
         for (let i = 0; i < nodeData.length; i++) {
             const { midPoint, xLower, xUpper, yLower, yUpper } = this.getDatum(nodeData, i);
             if (midPoint !== undefined) {
-                let xBar = undefined;
-                let yBar = undefined;
-                if (xLower !== undefined && xUpper !== undefined) {
+                let xBar, yBar;
+                if (isDefined(xLower) && isDefined(xUpper)) {
                     xBar = {
                         lowerPoint: { x: this.convert(xScale, xLower), y: midPoint.y },
                         upperPoint: { x: this.convert(xScale, xUpper), y: midPoint.y },
                     };
                 }
-                if (yLower !== undefined && yUpper !== undefined) {
+                if (isDefined(yLower) && isDefined(yUpper)) {
                     yBar = {
                         lowerPoint: { x: midPoint.x, y: this.convert(yScale, yLower) },
                         upperPoint: { x: midPoint.x, y: this.convert(yScale, yUpper) },
@@ -260,7 +164,7 @@ export class ErrorBars
     }
 
     private getMaybeFlippedKeys() {
-        let { xLowerKey, xUpperKey, yLowerKey, yUpperKey } = this;
+        let { xLowerKey, xUpperKey, yLowerKey, yUpperKey } = this.properties;
         let [xErrorsID, yErrorsID] = ['xValue-errors', 'yValue-errors'];
         if (this.cartesianSeries.shouldFlipXY()) {
             [xLowerKey, yLowerKey] = [yLowerKey, xLowerKey];
@@ -276,10 +180,10 @@ export class ErrorBars
 
         return {
             midPoint: datum.midPoint,
-            xLower: datum.datum[xLowerKey ?? ''] ?? undefined,
-            xUpper: datum.datum[xUpperKey ?? ''] ?? undefined,
-            yLower: datum.datum[yLowerKey ?? ''] ?? undefined,
-            yUpper: datum.datum[yUpperKey ?? ''] ?? undefined,
+            xLower: datum.datum[xLowerKey ?? ''],
+            xUpper: datum.datum[xUpperKey ?? ''],
+            yLower: datum.datum[yLowerKey ?? ''],
+            yUpper: datum.datum[yUpperKey ?? ''],
         };
     }
 
@@ -291,15 +195,14 @@ export class ErrorBars
     private update() {
         const nodeData = this.getNodeData();
         if (nodeData !== undefined) {
-            this.selection.update(nodeData, undefined, undefined);
+            this.selection.update(nodeData);
             this.selection.each((node, datum, i) => this.updateNode(node, datum, i));
         }
     }
 
     private updateNode(node: ErrorBarNode, datum: ErrorBarNodeDatum, _index: number) {
-        const style = this.getDefaultStyle();
         node.datum = datum;
-        node.update(style, this, false);
+        node.update(this.getDefaultStyle(), this.properties, false);
         node.updateBBoxes();
     }
 
@@ -320,23 +223,17 @@ export class ErrorBars
     }
 
     getTooltipParams() {
-        const { xLowerKey, xUpperKey, yLowerKey, yUpperKey } = this;
-        let { xLowerName, xUpperName, yLowerName, yUpperName } = this;
-        xLowerName ??= xLowerKey;
-        xUpperName ??= xUpperKey;
-        yLowerName ??= yLowerKey;
-        yUpperName ??= yUpperKey;
-
-        return {
+        const {
             xLowerKey,
-            xLowerName,
             xUpperKey,
-            xUpperName,
             yLowerKey,
-            yLowerName,
             yUpperKey,
-            yUpperName,
-        };
+            xLowerName = xLowerKey,
+            xUpperName = xUpperKey,
+            yLowerName = yLowerKey,
+            yUpperName = yUpperKey,
+        } = this.properties;
+        return { xLowerKey, xLowerName, xUpperKey, xUpperName, yLowerKey, yLowerName, yUpperKey, yUpperName };
     }
 
     private onToggleSeriesItem(event: SeriesVisibilityEvent): void {
@@ -351,7 +248,7 @@ export class ErrorBars
             stroke: baseStyle.stroke,
             strokeWidth: baseStyle.strokeWidth,
             strokeOpacity: baseStyle.strokeOpacity,
-            cap: mergeDefaults(this.cap, baseStyle),
+            cap: mergeDefaults(this.properties.cap, baseStyle),
         };
     }
 
@@ -364,7 +261,7 @@ export class ErrorBars
         return this.makeStyle(this.getWhiskerProperties());
     }
 
-    private restyleHightlightChange(
+    private restyleHighlightChange(
         highlightChange: HighlightNodeDatum,
         style: AgErrorBarThemeableOptions,
         highlighted: boolean
@@ -379,7 +276,7 @@ export class ErrorBars
         // data points with error bars).
         for (let i = 0; i < nodeData.length; i++) {
             if (highlightChange === nodeData[i]) {
-                this.selection.nodes()[i].update(style, this, highlighted);
+                this.selection.nodes()[i].update(style, this.properties, highlighted);
                 break;
             }
         }
@@ -387,16 +284,15 @@ export class ErrorBars
 
     private onHighlightChange(event: _ModuleSupport.HighlightChangeEvent) {
         const { previousHighlight, currentHighlight } = event;
-        const { cartesianSeries: thisSeries } = this;
 
-        if (currentHighlight?.series === thisSeries) {
+        if (currentHighlight?.series === this.cartesianSeries) {
             // Highlight this node:
-            this.restyleHightlightChange(currentHighlight, this.getHighlightStyle(), true);
+            this.restyleHighlightChange(currentHighlight, this.getHighlightStyle(), true);
         }
 
-        if (previousHighlight?.series === thisSeries) {
-            // Unhighlight this node:
-            this.restyleHightlightChange(previousHighlight, this.getDefaultStyle(), false);
+        if (previousHighlight?.series === this.cartesianSeries) {
+            // Remove node highlight:
+            this.restyleHighlightChange(previousHighlight, this.getDefaultStyle(), false);
         }
 
         this.groupNode.opacity = this.cartesianSeries.getOpacity();
@@ -407,7 +303,7 @@ export class ErrorBars
     }
 
     private getWhiskerProperties(): Omit<AgErrorBarThemeableOptions, 'cap'> {
-        const { stroke, strokeWidth, visible, strokeOpacity, lineDash, lineDashOffset } = this;
+        const { stroke, strokeWidth, visible, strokeOpacity, lineDash, lineDashOffset } = this.properties;
         return { stroke, strokeWidth, visible, strokeOpacity, lineDash, lineDashOffset };
     }
 }

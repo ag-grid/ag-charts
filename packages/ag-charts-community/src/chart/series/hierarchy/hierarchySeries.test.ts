@@ -4,9 +4,14 @@ import type { ChartLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { SeriesNodeDataContext } from '../series';
 import type { SeriesTooltip } from '../seriesTooltip';
 import { HierarchySeries } from './hierarchySeries';
+import { HierarchySeriesProperties } from './hierarchySeriesProperties';
+
+class ExampleHierarchySeriesProperties extends HierarchySeriesProperties<any> {
+    readonly tooltip: SeriesTooltip<any> = null!;
+}
 
 class ExampleHierarchySeries extends HierarchySeries<any> {
-    override tooltip: SeriesTooltip<any> = null!;
+    override properties = new ExampleHierarchySeriesProperties();
 
     override getSeriesDomain(_direction: ChartAxisDirection): any[] {
         throw new Error('Method not implemented.');
@@ -32,7 +37,7 @@ class ExampleHierarchySeries extends HierarchySeries<any> {
 describe('HierarchySeries', () => {
     it('creates a hierarchy', async () => {
         const series = new ExampleHierarchySeries(null!);
-        series.sizeKey = 'size';
+        series.properties.sizeKey = 'size';
         series.data = [
             { size: 5, children: [{ size: 1 }, { size: 2 }, { size: 3 }] },
             {
