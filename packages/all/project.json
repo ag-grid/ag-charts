@@ -105,6 +105,7 @@
     "ag-charts-react",
     "ag-charts-vue",
     "ag-charts-vue3",
+    "ag-charts-task-autogen",
     "ag-charts-generate-code-reference-files",
     "ag-charts-generate-chart-thumbnail",
     "ag-charts-generate-example-files",
