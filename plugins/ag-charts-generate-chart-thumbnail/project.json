@@ -39,26 +39,15 @@
     },
     "lint": {
       "executor": "@nx/eslint:lint",
-      "outputs": ["{options.outputFile}"],
-      "options": {
-        "lintFilePatterns": [
-          "plugins/ag-charts-generate-chart-thumbnail/**/*.ts",
-          "plugins/ag-charts-generate-chart-thumbnail/executors.json"
-        ]
-      }
+      "outputs": ["{options.outputFile}"]
     },
     "test": {
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
       "options": {
-        "jestConfig": "plugins/ag-charts-generate-chart-thumbnail/jest.config.ts",
-        "passWithNoTests": true
+        "jestConfig": "plugins/ag-charts-generate-chart-thumbnail/jest.config.ts"
       },
       "configurations": {
-        "ci": {
-          "ci": true,
-          "codeCoverage": true
-        },
         "update": {
           "updateSnapshot": true
         }

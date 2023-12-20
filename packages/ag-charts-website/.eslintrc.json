@@ -1,6 +1,6 @@
 {
   "extends": ["../../.eslintrc.json"],
-  "ignorePatterns": ["!**/*", ".astro", "**/_examples"],
+  "ignorePatterns": ["!**/*", ".astro", "**/_examples", "**/public/example-runner/**"],
   "overrides": [
     {
       "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],

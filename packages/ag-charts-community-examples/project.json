@@ -30,10 +30,6 @@
       "executor": "@nx/eslint:lint",
       "outputs": ["{options.outputFile}"],
       "options": {
-        "lintFilePatterns": [
-          "packages/ag-charts-community-examples/**/*.ts",
-          "packages/ag-charts-community-examples/package.json"
-        ],
         "eslintConfig": "packages/ag-charts-community-examples/.eslintrc.json"
       },
       "configurations": {
@@ -46,14 +42,7 @@
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}", "{workspaceRoot}/reports/ag-charts-community-examples.xml"],
       "options": {
-        "jestConfig": "packages/ag-charts-community-examples/jest.config.ts",
-        "passWithNoTests": true
-      },
-      "configurations": {
-        "ci": {
-          "ci": true,
-          "codeCoverage": true
-        }
+        "jestConfig": "packages/ag-charts-community-examples/jest.config.ts"
       }
     }
   },

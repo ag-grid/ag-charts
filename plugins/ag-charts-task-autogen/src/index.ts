@@ -55,6 +55,7 @@ export const createNodes: CreateNodes = [
                 },
                 [projectName]: {
                     root: dirname(configFilePath),
+                    name: projectName,
                     tags: [`scope:${parentProject}`, 'type:generated-example'],
                     targets: {
                         ...createGenerateTarget(thumbnails),
