@@ -11,8 +11,8 @@ import { filterPropertyKeys } from './jsCodeShiftUtils';
  */
 
 function generateOptions(
-    variableDeclarator: j.ASTPath<j.VariableDeclarator>,
-    code: string,
+    root: j.Collection<any>,
+    variableDeclarator: j.Collection<j.VariableDeclarator>,
     dataFile?: string,
     themeName?: AgChartThemeName
 ) {
@@ -20,7 +20,7 @@ function generateOptions(
     // Add 'title' to remove titles for images for homepage scrolling hero
     const propertiesToRemove = ['container', 'subtitle', 'footnote', 'legend', 'gradientLegend'];
 
-    const optionsExpression = j(variableDeclarator).find(j.ObjectExpression);
+    const optionsExpression = variableDeclarator.find(j.ObjectExpression);
 
     optionsExpression.forEach((path) => {
         path.node.properties = filterPropertyKeys({
@@ -149,21 +149,25 @@ function generateOptions(
     );
     optionsExpressionProperties.push(paddingPropertyNode);
 
-    if (variableDeclarator.node.id.type !== 'Identifier') {
+    const code = root.toSource();
+
+    const node = variableDeclarator.getAST()[0].node;
+    if (node.id.type !== 'Identifier') {
         throw new Error('Invalid options specifier');
     }
-    const options = parseExampleOptions(variableDeclarator.node.id.name, code, dataFile, { agCharts });
+    const options = parseExampleOptions(node.id.name, code, dataFile, { agCharts });
 
-    return options;
+    return { code, options };
 }
 
 function transformer(sourceFile: string, dataFile?: string, themeName?: AgChartThemeName) {
     const root = j(sourceFile);
-    const code = root.toSource();
+    let code = root.toSource();
 
     const optionsById = new Map<string, agCharts.AgChartOptions>();
-    root.findVariableDeclarators().forEach((variableDeclarator) => {
-        const containerPropertyPath = j(variableDeclarator)
+    root.findVariableDeclarators().forEach((variableDeclaratorPath) => {
+        const variableDeclarator = j(variableDeclaratorPath);
+        const containerPropertyPath = variableDeclarator
             .find(j.ObjectExpression)
             .find(j.Property, { key: { type: 'Identifier', name: 'container' } })
             .find(
@@ -179,10 +183,9 @@ function transformer(sourceFile: string, dataFile?: string, themeName?: AgChartT
             .paths()[0];
 
         if (containerPropertyPath != null) {
-            optionsById.set(
-                containerPropertyPath.node.value as any,
-                generateOptions(variableDeclarator, code, dataFile, themeName)
-            );
+            const { code: _code, options } = generateOptions(root, variableDeclarator, dataFile, themeName);
+            optionsById.set(containerPropertyPath.node.value as any, options);
+            code = _code;
         }
     });
 
