@@ -1354,7 +1354,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const hasNoData = !this.series.some((s) => s.hasData());
         this.toggleOverlay(this.overlays.noData, hasNoData);
 
-        if (!hasNoData) { // Don't draw both text overlays at the same time.
+        if (!hasNoData) {
+            // Don't draw both text overlays at the same time.
             const hasNoVisibleSeries = !this.series.some((series): boolean => series.visible);
             this.toggleOverlay(this.overlays.noVisibleSeries, hasNoVisibleSeries);
         }
