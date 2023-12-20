@@ -36,7 +36,6 @@ import { ChartHighlight } from './chartHighlight';
 import type { ChartMode } from './chartMode';
 import { ChartUpdateType } from './chartUpdateType';
 import { DataController } from './data/dataController';
-import { DataService } from './dataService';
 import { AnimationManager } from './interaction/animationManager';
 import { ChartEventManager } from './interaction/chartEventManager';
 import { CursorManager } from './interaction/cursorManager';
@@ -275,7 +274,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
     protected readonly zoomManager: ZoomManager;
     protected readonly layoutService: LayoutService;
     protected readonly updateService: UpdateService;
-    protected readonly dataService: DataService<Series<any>>;
     protected readonly axisGridGroup: Group;
     protected readonly axisGroup: Group;
     protected readonly callbackCache: CallbackCache;
@@ -324,7 +322,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.highlightManager = new HighlightManager();
         this.interactionManager = new InteractionManager(element, document, window);
         this.zoomManager = new ZoomManager();
-        this.dataService = new DataService<Series<any>>(() => this.series);
         this.layoutService = new LayoutService();
         this.updateService = new UpdateService(
             (type = ChartUpdateType.FULL, { forceNodeDataRefresh, skipAnimations }) =>
@@ -427,12 +424,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
             interactionManager,
             tooltipManager,
             zoomManager,
-            dataService,
             layoutService,
             updateService,
             seriesStateManager,
             seriesLayerManager,
-            mode,
             callbackCache,
             specialOverrides: { window, document },
         } = this;
@@ -447,10 +442,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
             interactionManager,
             tooltipManager,
             zoomManager,
-            dataService,
+            chartService: this,
             layoutService,
             updateService,
-            mode,
             seriesStateManager,
             seriesLayerManager,
             callbackCache,

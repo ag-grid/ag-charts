@@ -705,7 +705,7 @@ export class Legend {
     private checkLegendClick(event: InteractionEvent<'click'>) {
         const {
             listeners: { legendItemClick },
-            ctx: { dataService, highlightManager },
+            ctx: { chartService, highlightManager },
             item: { toggleSeriesVisible },
         } = this;
         const { offsetX, offsetY } = event;
@@ -719,8 +719,7 @@ export class Legend {
         }
 
         const { id, itemId, enabled } = datum;
-        const chartSeries = dataService.getSeries();
-        const series = chartSeries.find((s) => s.id === id);
+        const series = chartService.series.find((s) => s.id === id);
         if (!series) {
             return;
         }
@@ -750,14 +749,14 @@ export class Legend {
     private checkLegendDoubleClick(event: InteractionEvent<'dblclick'>) {
         const {
             listeners: { legendItemDoubleClick },
-            ctx: { dataService },
+            ctx: { chartService },
             item: { toggleSeriesVisible },
         } = this;
         const { offsetX, offsetY } = event;
 
         // Integrated charts do not handle double click behaviour correctly due to multiple instances of the
         // chart being created. See https://ag-grid.atlassian.net/browse/RTI-1381
-        if (this.ctx.mode === 'integrated') {
+        if (this.ctx.chartService.mode === 'integrated') {
             return;
         }
 
@@ -770,8 +769,7 @@ export class Legend {
         }
 
         const { id, itemId, seriesId } = datum;
-        const chartSeries = dataService.getSeries();
-        const series = chartSeries.find((s) => s.id === id);
+        const series = chartService.series.find((s) => s.id === id);
         if (!series) {
             return;
         }
@@ -779,7 +777,7 @@ export class Legend {
 
         if (toggleSeriesVisible) {
             const numVisibleItems: Record<string, number> = {};
-            const legendData = chartSeries.flatMap((series) => series.getLegendData('category'));
+            const legendData = chartService.series.flatMap((series) => series.getLegendData('category'));
 
             legendData.forEach((d) => {
                 numVisibleItems[d.seriesId] ??= 0;
@@ -837,7 +835,7 @@ export class Legend {
             return;
         }
 
-        const series = datum ? this.ctx.dataService.getSeries().find((series) => series.id === datum?.id) : undefined;
+        const series = datum ? this.ctx.chartService.series.find((series) => series.id === datum?.id) : undefined;
         if (datum && this.truncatedItems.has(datum.itemId ?? datum.id)) {
             this.ctx.tooltipManager.updateTooltip(
                 this.id,
