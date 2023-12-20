@@ -102,7 +102,7 @@
     "docs-debug-interfaces": {
       "executor": "ag-charts-generate-code-reference-files:generate",
       "inputs": [
-        "{projectRoot}/src/options",
+        "{projectRoot}/src/options/**/*.ts",
         {
           "externalDependencies": []
         }
@@ -118,7 +118,7 @@
     "docs-resolved-interfaces": {
       "executor": "ag-charts-generate-code-reference-files:generate",
       "inputs": [
-        "{projectRoot}/src/options",
+        "{projectRoot}/src/options/**/*.ts",
         {
           "externalDependencies": []
         }
