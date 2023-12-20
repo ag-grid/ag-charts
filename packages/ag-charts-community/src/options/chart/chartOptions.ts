@@ -6,7 +6,7 @@ import type { AgGradientLegendOptions } from './gradientLegendOptions';
 import type { AgChartLegendOptions } from './legendOptions';
 import type { AgNavigatorOptions } from './navigatorOptions';
 import type { AgChartTooltipOptions } from './tooltipOptions';
-import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, PixelSize, TextWrap } from './types';
+import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, PixelSize, TextAlign, TextWrap } from './types';
 import type { AgZoomOptions } from './zoomOptions';
 
 export interface AgChartPaddingOptions {
@@ -57,6 +57,8 @@ export interface AgChartCaptionOptions {
     enabled?: boolean;
     /** The text to display. */
     text?: string;
+    /** Horizontal position of the text */
+    textAlign?: TextAlign;
     /** The font style to use for the text. */
     fontStyle?: FontStyle;
     /** The font weight to use for the text. */
