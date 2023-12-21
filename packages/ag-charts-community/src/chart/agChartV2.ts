@@ -648,9 +648,11 @@ function applyOptionValues<T extends object, S>(
     return jsonApply<T, any>(target, options, applyOpts);
 }
 
-function applySeriesValues(target: Series<any>, options: AgBaseSeriesOptions<any>): Series<any> {
+function applySeriesValues(target: Series<any>, options: AgBaseSeriesOptions<any>) {
     target.properties.set(options);
-    target.data = options.data;
+    if ('data' in options) {
+        target.data = options.data;
+    }
     if ('errorBar' in target && 'errorBar' in options) {
         (target.errorBar as any).properties.set(options.errorBar);
     }
@@ -665,6 +667,4 @@ function applySeriesValues(target: Series<any>, options: AgBaseSeriesOptions<any
             ? Object.freeze({ ...target.seriesGrouping, ...seriesGrouping })
             : undefined;
     }
-
-    return target;
 }
