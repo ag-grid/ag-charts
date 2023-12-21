@@ -20,9 +20,9 @@ export interface AgSunburstSeriesTooltipRendererParams<TDatum>
         AgSunburstSeriesOptionsKeys {
     /** The depth of the datum in the hierarchy. */
     depth: number;
-    /** The title of the sunburst segment. */
+    /** The title of the Sunburst segment. */
     title?: string;
-    /** The computed fill colour of the sunburst segment. */
+    /** The computed fill colour of the Sunburst segment. */
     color?: CssColor;
 }
 
@@ -57,7 +57,7 @@ export interface AgSunburstSeriesThemeableOptions<TDatum = any>
     colorRange?: CssColor[];
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgSunburstSeriesTooltipRendererParams<TDatum>>;
-    /** A callback function for adjusting the styles of a particular sunburst sector based on the input parameters. */
+    /** A callback function for adjusting the styles of a particular Sunburst sector based on the input parameters. */
     formatter?: (params: AgSunburstSeriesFormatterParams<TDatum>) => AgSunburstSeriesStyle;
     /** Style overrides when a node is hovered. */
     highlightStyle?: AgSunburstSeriesHighlightStyle<TDatum>;
@@ -88,7 +88,7 @@ export interface AgSunburstSeriesOptionsKeys {
     colorName?: string;
 }
 
-/** The parameters of the sunburst series formatter function */
+/** The parameters of the Sunburst series formatter function */
 export interface AgSunburstSeriesFormatterParams<TDatum = any>
     extends AgChartCallbackParams<TDatum>,
         AgSunburstSeriesOptionsKeys,
@@ -104,5 +104,5 @@ export interface AgSunburstSeriesLabelFormatterParams<_TDatum = any> extends AgS
     depth: number;
 }
 
-/** The formatted style of a sunburst sector. */
+/** The formatted style of a Sunburst sector. */
 export interface AgSunburstSeriesStyle extends FillOptions, StrokeOptions {}

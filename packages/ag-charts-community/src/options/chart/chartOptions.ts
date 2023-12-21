@@ -141,7 +141,7 @@ export interface AgBaseThemeableChartOptions {
     contextMenu?: AgContextMenuOptions;
 
     // Cartesian-specific options - special care required.
-    /** Configuration for the zoom optionss. */
+    /** Configuration for the zoom options. */
     zoom?: AgZoomOptions;
     /** Configuration for the Navigator. */
     navigator?: AgNavigatorOptions;

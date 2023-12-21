@@ -20,9 +20,9 @@ export interface AgTreemapSeriesTooltipRendererParams<TDatum>
         AgTreemapSeriesOptionsKeys {
     /** The depth of the datum in the hierarchy. */
     depth: number;
-    /** The title of the treemap tile. */
+    /** The title of the Treemap tile. */
     title?: string;
-    /** The computed fill colour of the treemap tile. */
+    /** The computed fill colour of the Treemap tile. */
     color?: CssColor;
 }
 
@@ -136,7 +136,7 @@ export interface AgTreemapSeriesOptionsKeys {
     colorName?: string;
 }
 
-/** The parameters of the treemap series formatter function. */
+/** The parameters of the Treemap series formatter function. */
 export interface AgTreemapSeriesFormatterParams<TDatum = any>
     extends AgChartCallbackParams<TDatum>,
         AgTreemapSeriesOptionsKeys,
@@ -152,5 +152,5 @@ export interface AgTreemapSeriesLabelFormatterParams<_TDatum = any> extends AgTr
     depth: number;
 }
 
-/** The formatted style of a treemap tile. */
+/** The formatted style of a Treemap tile. */
 export interface AgTreemapSeriesStyle extends FillOptions, StrokeOptions {}
