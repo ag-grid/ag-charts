@@ -78,6 +78,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
             pathsPerSeries: 1,
             hasHighlightedLabels: true,
+            pathsZIndexSubOrderOffset: [-1, -1],
             animationResetFns: {
                 datum: resetBarSelectionsFn,
                 label: resetLabelFn,
@@ -253,6 +254,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
         const barWidth =
             (ContinuousScale.is(xScale) ? xScale.calcBandwidth(smallestDataInterval?.x) : xScale.bandwidth) ?? 10;
+        const step = xScale instanceof _Scene.BandScale ? xScale.step : 0;
         const halfLineWidth = line.strokeWidth / 2;
         const offsetDirection = (barAlongX && !valueAxisReversed) || (!barAlongX && valueAxisReversed) ? -1 : 1;
         const offset = offsetDirection * halfLineWidth;
@@ -311,6 +313,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         let trailingSubtotal = 0;
         const { xKey, yKey, xName, yName } = this.properties;
 
+        console.log({ barWidth, step });
+
         this.processedData?.data.forEach(({ keys, datum, values }, dataIndex) => {
             const datumType = values[totalTypeIndex];
 
@@ -336,7 +340,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             const isPositive = (value ?? 0) >= 0;
 
             const seriesItemType = this.getSeriesItemType(isPositive, datumType);
-            const { fill, stroke, strokeWidth, label } = this.getItemConfig(seriesItemType);
+            const { fill, stroke, strokeWidth, label, cornerRadius } = this.getItemConfig(seriesItemType);
 
             const y = (isPositive ? currY : trailY) - offset;
             const bottomY = (isPositive ? trailY : currY) + offset;
@@ -375,15 +379,27 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             const startY = categoryAxisReversed ? currY : pointY;
             const stopY = categoryAxisReversed ? pointY : currY;
 
-            const startCoordinates = {
-                x: barAlongX ? startY + pixelAlignmentOffset : rect.x,
-                y: barAlongX ? rect.y : startY + pixelAlignmentOffset,
-            };
-
-            const stopCoordinates = {
-                x: barAlongX ? stopY + pixelAlignmentOffset : rect.x + rect.width,
-                y: barAlongX ? rect.y + rect.height : stopY + pixelAlignmentOffset,
-            };
+            let startCoordinates: { x: number; y: number };
+            let stopCoordinates: { x: number; y: number };
+            if (barAlongX) {
+                startCoordinates = {
+                    x: startY + pixelAlignmentOffset,
+                    y: cornerRadius > 0 ? nodeMidPoint.y : rect.y,
+                };
+                stopCoordinates = {
+                    x: stopY + pixelAlignmentOffset,
+                    y: cornerRadius > 0 ? nodeMidPoint.y : rect.y + rect.height,
+                };
+            } else {
+                startCoordinates = {
+                    x: cornerRadius > 0 ? nodeMidPoint.x : rect.x,
+                    y: startY + pixelAlignmentOffset,
+                };
+                stopCoordinates = {
+                    x: cornerRadius > 0 ? nodeMidPoint.x : rect.x + rect.width,
+                    y: stopY + pixelAlignmentOffset,
+                };
+            }
 
             const pathPoint = {
                 // lineTo
@@ -553,6 +569,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 strokeWidth,
                 lineDash,
                 lineDashOffset,
+                cornerRadius,
                 formatter,
                 shadow: fillShadow,
             } = this.getItemConfig(seriesItemType);
@@ -565,7 +582,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 lineDashOffset,
                 fillShadow,
                 strokeWidth: this.getStrokeWidth(strokeWidth),
-                cornerRadius: this.properties.cornerRadius,
+                cornerRadius,
                 cornerRadiusBbox: undefined,
             };
             const visible = categoryAlongX ? datum.width > 0 : datum.height > 0;

@@ -57,7 +57,7 @@ export interface AgWaterfallSeriesThemeableOptions<TDatum = any> extends AgBaseS
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgWaterfallSeriesTooltipRendererParams>;
     /** Apply round corners to each bar. */
-    cornerRadius?: number;
+    cornerRadius?: PixelSize;
     /** Configuration for the waterfall series items when they are hovered over. */
     highlightStyle?: AgSeriesHighlightStyle;
 }

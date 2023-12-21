@@ -231,6 +231,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
         const { xKey, yKey, xName, yName, fill, stroke, strokeWidth, cornerRadius, legendItemName, label } =
             this.properties;
 
+        const yReversed = yAxis.isReversed();
         const xBandWidth = ContinuousScale.is(xScale)
             ? xScale.calcBandwidth(smallestDataInterval?.x)
             : xScale.bandwidth;
@@ -287,6 +288,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
                 const prevY = +value[yStartIndex];
                 const yRawValue = value[yRawIndex];
                 const isPositive = yRawValue >= 0;
+                const isUpward = isPositive !== yReversed;
                 const yRange = aggValues?.[yRangeIndex][isPositive ? 1 : 0] ?? 0;
                 const barX = x + groupScale.convert(String(groupIndex));
 
@@ -377,10 +379,10 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
                     fill,
                     stroke,
                     strokeWidth,
-                    topLeftCornerRadius: barAlongX === isPositive ? 0 : cornerRadius,
-                    topRightCornerRadius: isPositive ? cornerRadius : 0,
-                    bottomRightCornerRadius: barAlongX === isPositive ? cornerRadius : 0,
-                    bottomLeftCornerRadius: isPositive ? 0 : cornerRadius,
+                    topLeftCornerRadius: barAlongX === isUpward ? 0 : cornerRadius,
+                    topRightCornerRadius: isUpward ? cornerRadius : 0,
+                    bottomRightCornerRadius: barAlongX === isUpward ? cornerRadius : 0,
+                    bottomLeftCornerRadius: isUpward ? 0 : cornerRadius,
                     cornerRadiusBbox,
                     label: labelDatum,
                 };
