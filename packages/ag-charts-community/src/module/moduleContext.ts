@@ -1,5 +1,4 @@
-import type { ChartMode } from '../chart/chartMode';
-import type { DataService } from '../chart/dataService';
+import type { ChartService } from '../chart/chartService';
 import type { AnimationManager } from '../chart/interaction/animationManager';
 import type { ChartEventManager } from '../chart/interaction/chartEventManager';
 import type { CursorManager } from '../chart/interaction/cursorManager';
@@ -10,7 +9,6 @@ import type { ZoomManager } from '../chart/interaction/zoomManager';
 import type { LayoutService } from '../chart/layout/layoutService';
 import type { SeriesLayerManager } from '../chart/series/seriesLayerManager';
 import type { SeriesStateManager } from '../chart/series/seriesStateManager';
-import type { ISeries } from '../chart/series/seriesTypes';
 import type { UpdateService } from '../chart/updateService';
 import type { AgCartesianAxisPosition } from '../options/agChartOptions';
 import type { Scene } from '../scene/scene';
@@ -20,7 +18,6 @@ export interface ModuleContext {
     document: Document;
     window: Window;
     scene: Scene;
-    mode: ChartMode;
     animationManager: AnimationManager;
     chartEventManager: ChartEventManager;
     cursorManager: CursorManager;
@@ -28,7 +25,7 @@ export interface ModuleContext {
     interactionManager: InteractionManager;
     tooltipManager: TooltipManager;
     zoomManager: ZoomManager;
-    dataService: DataService<ISeries<any>>;
+    chartService: ChartService;
     layoutService: Pick<LayoutService, 'addListener'>;
     updateService: UpdateService;
     callbackCache: CallbackCache;
