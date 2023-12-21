@@ -36,7 +36,7 @@ export class Caption extends BaseProperties {
     @ProxyPropertyOnWrite('node')
     text?: string;
 
-    @Validate(TEXT_ALIGN, { optional: true})
+    @Validate(TEXT_ALIGN, { optional: true })
     @ProxyPropertyOnWrite('node')
     textAlign: TextAlign = 'center';
 
