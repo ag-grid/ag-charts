@@ -1303,6 +1303,8 @@ export const COLUMN_SINGLE_DATE_CATEGORY_AXIS: AgCartesianChartOptions = {
             xKey: 'Created',
             yKey: 'IncidentID',
             yName: 'Incident ID',
+            strokeWidth: 1,
+            fillOpacity: 0.33,
         },
     ],
     data: [
@@ -1339,6 +1341,8 @@ export const COLUMN_SINGLE_DATE_TIME_AXIS: AgCartesianChartOptions = {
             xKey: 'Created',
             yKey: 'IncidentID',
             yName: 'Incident ID',
+            strokeWidth: 1,
+            fillOpacity: 0.33,
         },
     ],
     data: [
