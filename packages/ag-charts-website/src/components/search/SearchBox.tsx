@@ -1,17 +1,16 @@
 import gridStyles from '@design-system/modules/SearchBox.module.scss';
 import classnames from 'classnames';
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { connectSearchBox } from 'react-instantsearch-dom';
 
 import { Icon } from '../icon/Icon';
-
-const IS_SSR = typeof window === 'undefined';
 
 /**
  * The search box shown in the header at the top of the page.
  */
 const SearchBox = ({ delay, refine, currentRefinement, className, onFocus, resultsOpen }) => {
-    const [timerId, setTimerId] = useState();
+    const [timerId, setTimerId] = useState<ReturnType<typeof setTimeout>>();
+    const [searchPlaceholder, setSearchPlaceholder] = useState<string>('Search documentation...');
 
     const onChangeDebounced = (event) => {
         const inputValue = event.target.value;
@@ -24,7 +23,11 @@ const SearchBox = ({ delay, refine, currentRefinement, className, onFocus, resul
         );
     };
 
-    const searchPlaceholder = !IS_SSR && window.innerWidth < 620 ? 'Search...' : 'Search documentation...';
+    useEffect(() => {
+        if (window.innerWidth < 620) {
+            setSearchPlaceholder('Search...');
+        }
+    }, []);
 
     return (
         <form className={classnames(className, gridStyles.searchBox)}>
