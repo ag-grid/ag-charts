@@ -52,6 +52,7 @@ import { Legend } from './legend';
 import type { CategoryLegendDatum, ChartLegend, ChartLegendType, GradientLegendDatum } from './legendDatum';
 import type { SeriesOptionsTypes } from './mapping/types';
 import { ChartOverlays } from './overlay/chartOverlays';
+import type { Overlay } from './overlay/overlay';
 import type { Series } from './series/series';
 import { SeriesNodePickMode } from './series/series';
 import { SeriesLayerManager } from './series/seriesLayerManager';
@@ -473,7 +474,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.tooltip.destroy();
         Object.values(this.legends).forEach((legend) => legend.destroy());
         this.legends.clear();
-        this.overlays.noData.hide();
+        this.overlays.destroy();
         SizeMonitor.unobserve(this.element);
 
         for (const optionsKey of Object.keys(this.modules)) {
@@ -1026,7 +1027,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.animationManager.skipCurrentBatch();
         }
 
-        this.handleNoDataOverlay();
+        this.handleOverlays();
         this.debug('Chart.performUpdate() - seriesRect', this.seriesRect);
     }
 
@@ -1351,12 +1352,22 @@ export abstract class Chart extends Observable implements AgChartInstance {
         await this.updateMutex.waitForClearAcquireQueue();
     }
 
-    protected handleNoDataOverlay() {
-        const shouldDisplayNoDataOverlay = !this.series.some((s) => s.hasData());
-        if (shouldDisplayNoDataOverlay && this.seriesRect) {
-            this.overlays.noData.show(this.seriesRect);
+    private handleOverlays() {
+        const hasNoData = !this.series.some((s) => s.hasData());
+        this.toggleOverlay(this.overlays.noData, hasNoData);
+
+        if (!hasNoData) {
+            // Don't draw both text overlays at the same time.
+            const hasNoVisibleSeries = !this.series.some((series): boolean => series.visible);
+            this.toggleOverlay(this.overlays.noVisibleSeries, hasNoVisibleSeries);
+        }
+    }
+
+    private toggleOverlay(overlay: Overlay, visible: boolean) {
+        if (visible && this.seriesRect) {
+            overlay.show(this.seriesRect);
         } else {
-            this.overlays.noData.hide();
+            overlay.hide();
         }
     }
 

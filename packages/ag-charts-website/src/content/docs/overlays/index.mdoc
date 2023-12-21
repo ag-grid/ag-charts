@@ -10,16 +10,25 @@ Sometimes end-users can be confused if a chart doesn't have any content. To help
 
 {% chartExampleRunner title="Overlay for Missing Data" name="no-data-plain" type="generated" /%}
 
+## No Visible Series Overlay
+
+A message is also displayed when all series are hidden:
+
+{% chartExampleRunner title="No Visible Series" name="no-visible-series" type="generated" /%}
+
 ## Customisation
 
 ### Text
 
-This message can be customised through `overlays.noData`:
+These messages can be customised through `overlays`:
 
 ```js
 overlays: {
     noData: {
-        text: 'Some custom message',
+        text: 'Some custom noData message',
+    },
+    noVisibleSeries: {
+        text: 'Some custom noVisibleSeries message',
     },
 },
 ```
