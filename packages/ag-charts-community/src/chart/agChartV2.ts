@@ -444,7 +444,6 @@ function applyChartOptions(chart: Chart, processedOptions: ProcessedOptions, use
     if (processedOptions.listeners) {
         chart.updateAllSeriesListeners();
     }
-
     chart.processedOptions = completeOptions;
     chart.userOptions = jsonMerge([chart.userOptions ?? {}, userOptions], noDataCloneMergeOptions);
 
