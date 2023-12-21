@@ -2,8 +2,6 @@ import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 const { motion } = _Scene;
 
-const { ChartAxisDirection } = _ModuleSupport;
-
 type AnimatableSectorDatum = {
     angleValue: any;
     radiusValue: any;
@@ -36,15 +34,7 @@ function fixRadialBarAnimationStatus(
     return status;
 }
 
-export function prepareRadialBarSeriesAnimationFunctions(
-    axes: Record<_ModuleSupport.ChartAxisDirection, _ModuleSupport.ChartAxis | undefined>
-) {
-    const angleScale = axes[ChartAxisDirection.X]?.scale;
-    let axisZeroAngle = 0;
-    if (angleScale && angleScale.domain[0] <= 0 && angleScale.domain[1] >= 0) {
-        axisZeroAngle = angleScale.convert(0);
-    }
-
+export function prepareRadialBarSeriesAnimationFunctions(axisZeroAngle: number) {
     const fromFn = (sect: _Scene.Sector, datum: AnimatableSectorDatum, status: _Scene.NodeUpdateState) => {
         status = fixRadialBarAnimationStatus(sect, datum, status);
 
