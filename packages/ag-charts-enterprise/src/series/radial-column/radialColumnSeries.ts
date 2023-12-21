@@ -32,8 +32,8 @@ export class RadialColumnSeries extends RadialColumnSeriesBase<RadialColumnShape
     }
 
     protected override getColumnTransitionFunctions() {
-        const axisInnerRadius = this.getAxisInnerRadius();
-        return prepareRadialColumnAnimationFunctions(axisInnerRadius);
+        const axisZeroRadius = this.isRadiusAxisReversed() ? this.radius : this.getAxisInnerRadius();
+        return prepareRadialColumnAnimationFunctions(axisZeroRadius);
     }
 
     protected isRadiusAxisCircle() {
@@ -42,8 +42,8 @@ export class RadialColumnSeries extends RadialColumnSeriesBase<RadialColumnShape
     }
 
     protected override updateItemPath(node: RadialColumnShape, datum: RadialColumnNodeDatum, highlight: boolean) {
-        const axisIsCircle = this.isRadiusAxisCircle();
-        node.isBeveled = axisIsCircle;
+        node.isBeveled = this.isRadiusAxisCircle();
+        node.isRadiusAxisReversed = this.isRadiusAxisReversed();
 
         if (highlight) {
             node.innerRadius = datum.innerRadius;

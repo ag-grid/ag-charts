@@ -220,8 +220,11 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
 
         const barWidth = groupScale.bandwidth >= 1 ? groupScale.bandwidth : groupScale.rawBandwidth;
 
-        const axisInnerRadius = this.getAxisInnerRadius();
-        const axisOuterRadius = this.radius;
+        // const angleAxisReversed = this.axes[ChartAxisDirection.X]?.isReversed();
+        const radiusAxisReversed = this.axes[ChartAxisDirection.Y]?.isReversed();
+
+        const axisInnerRadius = radiusAxisReversed ? this.radius : this.getAxisInnerRadius();
+        const axisOuterRadius = radiusAxisReversed ? this.getAxisInnerRadius() : this.radius;
         const axisTotalRadius = axisOuterRadius + axisInnerRadius;
 
         const { angleKey, radiusKey, angleName, radiusName, label } = this.properties;
@@ -252,10 +255,13 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
 
             let startAngle = Math.max(angleScale.convert(angleStartDatum), angleScale.range[0]);
             let endAngle = Math.min(angleScale.convert(angleEndDatum), angleScale.range[1]);
+
+            if (startAngle > endAngle) {
+                [startAngle, endAngle] = [endAngle, startAngle];
+            }
+
             if (angleDatum < 0) {
-                const tempAngle = startAngle;
-                startAngle = endAngle;
-                endAngle = tempAngle;
+                [startAngle, endAngle] = [endAngle, startAngle];
             }
 
             const dataRadius = axisTotalRadius - radiusScale.convert(radiusDatum);
@@ -389,10 +395,26 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         });
     }
 
+    private getBarTransitionFunctions() {
+        const angleScale = this.axes[ChartAxisDirection.X]?.scale;
+        let axisZeroAngle = 0;
+        if (!angleScale) {
+            return prepareRadialBarSeriesAnimationFunctions(axisZeroAngle);
+        }
+
+        const d0 = Math.min(angleScale.domain[0], angleScale.domain[1]);
+        const d1 = Math.max(angleScale.domain[0], angleScale.domain[1]);
+        if (d0 <= 0 && d1 >= 0) {
+            axisZeroAngle = angleScale.convert(0);
+        }
+
+        return prepareRadialBarSeriesAnimationFunctions(axisZeroAngle);
+    }
+
     protected override animateEmptyUpdateReady() {
         const { labelSelection } = this;
 
-        const fns = prepareRadialBarSeriesAnimationFunctions(this.axes);
+        const fns = this.getBarTransitionFunctions();
         motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, [this.itemSelection], fns);
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, [labelSelection]);
     }
@@ -401,7 +423,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
         const { itemSelection } = this;
         const { animationManager } = this.ctx;
 
-        const fns = prepareRadialBarSeriesAnimationFunctions(this.axes);
+        const fns = this.getBarTransitionFunctions();
         motion.fromToMotion(this.id, 'datums', animationManager, [itemSelection], fns);
 
         seriesLabelFadeOutAnimation(this, 'labels', animationManager, [this.labelSelection]);

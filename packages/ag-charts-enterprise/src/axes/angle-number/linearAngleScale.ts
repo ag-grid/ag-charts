@@ -39,7 +39,7 @@ export class LinearAngleScale extends LinearScale {
         const [start, stop] = this.niceDomain;
         let step = this.getTickStep(start, stop);
         const maxTickCount = isNaN(this.maxTickCount) ? Infinity : this.maxTickCount;
-        const expectedTickCount = (stop - start) / step;
+        const expectedTickCount = Math.abs(stop - start) / step;
         let niceTickCount = Math.pow(2, Math.ceil(Math.log(expectedTickCount) / Math.log(2)));
         if (niceTickCount > maxTickCount) {
             niceTickCount /= 2;
@@ -58,12 +58,13 @@ export class LinearAngleScale extends LinearScale {
             return;
         }
 
-        const start = this.niceDomain[0];
+        const reversed = this.niceDomain[0] > this.niceDomain[1];
+        const start = reversed ? this.niceDomain[1] : this.niceDomain[0];
         const { step, count } = this.getNiceStepAndTickCount();
         const s = 1 / step; // Prevent floating point error
         const stop = step >= 1 ? Math.ceil(start / step + count) * step : Math.ceil((start + count * step) * s) / s;
 
-        this.niceDomain = [start, stop];
+        this.niceDomain = reversed ? [stop, start] : [start, stop];
         this.niceTickStep = step;
     }
 
