@@ -1,7 +1,7 @@
 import {
     type AgNightingaleSeriesOptions,
     type AgRadialSeriesFormat,
-    type _ModuleSupport,
+    _ModuleSupport,
     _Scene,
 } from 'ag-charts-community';
 
@@ -10,6 +10,7 @@ import { RadialColumnSeriesBase } from '../radial-column/radialColumnSeriesBase'
 import { RadialColumnSeriesBaseProperties } from '../radial-column/radialColumnSeriesBaseProperties';
 import { prepareNightingaleAnimationFunctions, resetNightingaleSelectionFn } from './nightingaleUtil';
 
+const { ChartAxisDirection } = _ModuleSupport;
 const { Sector } = _Scene;
 
 export class NightingaleSeries extends RadialColumnSeriesBase<_Scene.Sector> {
@@ -62,7 +63,7 @@ export class NightingaleSeries extends RadialColumnSeriesBase<_Scene.Sector> {
     }
 
     protected override getColumnTransitionFunctions() {
-        const axisInnerRadius = this.getAxisInnerRadius();
-        return prepareNightingaleAnimationFunctions(axisInnerRadius);
+        const axisZeroRadius = this.isRadiusAxisReversed() ? this.radius : this.getAxisInnerRadius();
+        return prepareNightingaleAnimationFunctions(axisZeroRadius);
     }
 }
