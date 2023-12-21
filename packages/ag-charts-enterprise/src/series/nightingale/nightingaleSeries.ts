@@ -10,7 +10,6 @@ import { RadialColumnSeriesBase } from '../radial-column/radialColumnSeriesBase'
 import { RadialColumnSeriesBaseProperties } from '../radial-column/radialColumnSeriesBaseProperties';
 import { prepareNightingaleAnimationFunctions, resetNightingaleSelectionFn } from './nightingaleUtil';
 
-const { ChartAxisDirection } = _ModuleSupport;
 const { Sector } = _Scene;
 
 export class NightingaleSeries extends RadialColumnSeriesBase<_Scene.Sector> {
