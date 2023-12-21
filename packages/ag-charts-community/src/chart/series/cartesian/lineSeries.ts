@@ -384,8 +384,9 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
             return [];
         }
 
-        const { yKey, yName, stroke, strokeOpacity, title, marker, visible } = this.properties;
+        const { yKey, yName, stroke, strokeOpacity, strokeWidth, title, marker, visible } = this.properties;
 
+        const color0 = 'rgba(0, 0, 0, 0)';
         return [
             {
                 legendType: 'category',
@@ -398,11 +399,17 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
                 },
                 marker: {
                     shape: marker.shape,
-                    fill: marker.fill ?? 'rgba(0, 0, 0, 0)',
-                    stroke: marker.stroke ?? stroke ?? 'rgba(0, 0, 0, 0)',
+                    fill: marker.fill ?? color0,
+                    stroke: marker.stroke ?? stroke ?? color0,
                     fillOpacity: marker.fillOpacity ?? 1,
                     strokeOpacity: marker.strokeOpacity ?? strokeOpacity ?? 1,
                     strokeWidth: marker.strokeWidth ?? 0,
+                },
+                line: {
+                    stroke: stroke ?? color0,
+                    strokeOpacity,
+                    strokeWidth,
+                    offset: 5, // FIXME: add a styling option to change the width of the stroke in the legend.
                 },
             },
         ];

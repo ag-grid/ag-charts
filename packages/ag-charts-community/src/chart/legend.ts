@@ -116,6 +116,9 @@ class LegendItem {
 
     @Validate(BOOLEAN)
     toggleSeriesVisible: boolean = true;
+
+    @Validate(BOOLEAN)
+    showSeriesStroke: boolean = false;
 }
 
 class LegendListeners implements AgChartLegendListeners {
@@ -131,7 +134,7 @@ export class Legend {
 
     private readonly group: Group = new Group({ name: 'legend', layer: true, zIndex: Layers.LEGEND_ZINDEX });
 
-    private itemSelection: Selection<MarkerLabel, any> = Selection.select(this.group, MarkerLabel);
+    private itemSelection: Selection<MarkerLabel, CategoryLegendDatum> = Selection.select(this.group, MarkerLabel);
 
     private oldSize: [number, number] = [0, 0];
     private pages: Page[] = [];
@@ -309,6 +312,7 @@ export class Legend {
             maxWidth,
             marker: { size: markerSize, padding: markerPadding, shape: markerShape },
             label: { maxLength = Infinity, fontStyle, fontWeight, fontSize, fontFamily },
+            showSeriesStroke,
         } = this.item;
         const data = [...this.data];
         if (this.reverseOrder) {
@@ -343,6 +347,16 @@ export class Legend {
             const labelText = this.getItemLabel(datum);
             const text = (labelText ?? '<unknown>').replace(/\r?\n/g, ' ');
             markerLabel.text = this.truncate(text, maxLength, maxItemWidth, paddedMarkerWidth, font, id);
+
+            const line: NonNullable<typeof datum.line> =
+                showSeriesStroke && datum.line !== undefined
+                    ? datum.line
+                    : { stroke: 'rgba(0, 0, 0, 0)', strokeOpacity: 0, strokeWidth: 0, offset: 0 };
+
+            markerLabel.lineStroke = line.stroke;
+            markerLabel.lineStrokeOpacity = line.strokeOpacity;
+            markerLabel.lineStrokeWidth = line.strokeWidth;
+            markerLabel.setSeriesStrokeOffset(line.offset);
 
             bboxes.push(markerLabel.computeBBox());
         });

@@ -2,6 +2,7 @@ import type { FontStyle, FontWeight } from '../options/agChartOptions';
 import { HdpiCanvas } from '../scene/canvas/hdpiCanvas';
 import { Group } from '../scene/group';
 import type { RenderContext } from '../scene/node';
+import { Line } from '../scene/shape/line';
 import { Text } from '../scene/shape/text';
 import { ProxyPropertyOnWrite } from '../util/proxy';
 import type { Marker } from './marker/marker';
@@ -11,11 +12,12 @@ export class MarkerLabel extends Group {
     static override className = 'MarkerLabel';
 
     private label = new Text();
+    private line = new Line();
 
     constructor() {
         super({ name: 'markerLabelGroup' });
 
-        const label = this.label;
+        const { marker, label, line } = this;
         label.textBaseline = 'middle';
         label.fontSize = 12;
         label.fontFamily = 'Verdana, sans-serif';
@@ -23,7 +25,7 @@ export class MarkerLabel extends Group {
         // For better looking vertical alignment of labels to markers.
         label.y = HdpiCanvas.has.textMetrics ? 1 : 0;
 
-        this.append([this.marker, label]);
+        this.append([line, marker, label]);
         this.update();
     }
 
@@ -60,6 +62,15 @@ export class MarkerLabel extends Group {
     @ProxyPropertyOnWrite('marker', 'strokeOpacity')
     markerStrokeOpacity?: number;
 
+    @ProxyPropertyOnWrite('line', 'stroke')
+    lineStroke?: string;
+
+    @ProxyPropertyOnWrite('line', 'strokeWidth')
+    lineStrokeWidth?: number;
+
+    @ProxyPropertyOnWrite('line', 'strokeOpacity')
+    lineStrokeOpacity?: number;
+
     private _marker: Marker = new Square();
     set marker(value: Marker) {
         if (this._marker !== value) {
@@ -95,13 +106,18 @@ export class MarkerLabel extends Group {
         return this._spacing;
     }
 
+    setSeriesStrokeOffset(xOff: number) {
+        const offset = this.marker.size / 2 + xOff;
+        this.line.x1 = -offset;
+        this.line.x2 = offset;
+        this.line.y1 = 0;
+        this.line.y2 = 0;
+        this.line.markDirtyTransform();
+    }
+
     private update() {
-        const marker = this.marker;
-        const markerSize = this.markerSize;
-
-        marker.size = markerSize;
-
-        this.label.x = markerSize / 2 + this.spacing;
+        this.marker.size = this.markerSize;
+        this.label.x = this.markerSize / 2 + this.spacing;
     }
 
     override render(renderCtx: RenderContext): void {
@@ -109,6 +125,7 @@ export class MarkerLabel extends Group {
         // propagate opacity changes here.
         this.marker.opacity = this.opacity;
         this.label.opacity = this.opacity;
+        this.line.opacity = this.opacity;
 
         super.render(renderCtx);
     }
