@@ -9,7 +9,7 @@ import type { CssColor, PixelSize, TextAlign, VerticalAlign } from '../../chart/
 import type { FillOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 
-/* All the label properties that can be changed without affecting the layout */
+/* All the label properties that can be changed without affecting the layout. */
 export type AgTreemapSeriesLabelHighlightOptions<TDatum> = Pick<
     AgChartLabelOptions<TDatum, AgTreemapSeriesLabelFormatterParams<TDatum>>,
     'color'
@@ -20,9 +20,9 @@ export interface AgTreemapSeriesTooltipRendererParams<TDatum>
         AgTreemapSeriesOptionsKeys {
     /** The depth of the datum in the hierarchy. */
     depth: number;
-    /** The title of the treemap tile */
+    /** The title of the Treemap tile. */
     title?: string;
-    /** The computed fill color of the treemap tile. */
+    /** The computed fill colour of the Treemap tile. */
     color?: CssColor;
 }
 
@@ -30,25 +30,25 @@ export interface AgTreemapSeriesGroupStyle extends FillOptions, StrokeOptions {}
 
 export interface AgTreemapSeriesGroupLabelOptions<TDatum>
     extends AgChartLabelOptions<TDatum, AgTreemapSeriesLabelFormatterParams<TDatum>> {
-    /** The distance between the tiles and the title */
+    /** The distance between the tiles and the title. */
     spacing?: PixelSize;
 }
 
 export interface AgTreemapSeriesGroupLayout<TDatum> {
-    /** Options for the label in a group */
+    /** Options for the label in a group. */
     label?: AgTreemapSeriesGroupLabelOptions<TDatum>;
-    /** Horizontal position of the label */
+    /** Horizontal position of the label. */
     textAlign?: TextAlign;
-    /** The distance between the edges of the outer-most title to the edges of the group */
+    /** The distance between the edges of the outer-most title to the edges of the group. */
     padding?: PixelSize;
-    /** Gap between adjacent groups */
+    /** Gap between adjacent groups. */
     gap?: PixelSize;
-    /** Whether the group can be highlighted */
+    /** Whether the group can be highlighted. */
     interactive?: boolean;
 }
 
 export interface AgTreemapSeriesGroupHighlightStyle<TDatum> extends AgTreemapSeriesGroupStyle {
-    /** Options for the label in a group */
+    /** Options for the label in a group. */
     label?: AgTreemapSeriesLabelHighlightOptions<TDatum>;
 }
 
@@ -59,24 +59,24 @@ export interface AgTreemapSeriesGroupOptions<TDatum>
 export interface AgTreemapSeriesTileStyle extends FillOptions, StrokeOptions {}
 
 export interface AgTreemapSeriesTileLayout<TDatum> {
-    /** Options for the label in a tile */
+    /** Options for the label in a tile. */
     label?: AgChartAutoSizedLabelOptions<TDatum, AgTreemapSeriesLabelFormatterParams<TDatum>>;
-    /** Options for a secondary, smaller label in a tile - displayed under the primary label */
+    /** Options for a secondary, smaller label in a tile - displayed under the primary label. */
     secondaryLabel?: AgChartAutoSizedSecondaryLabelOptions<TDatum, AgTreemapSeriesLabelFormatterParams<TDatum>>;
-    /** Horizontal position of the label */
+    /** Horizontal position of the label. */
     textAlign?: TextAlign;
-    /** Vertical position of the label */
+    /** Vertical position of the label. */
     verticalAlign?: VerticalAlign;
-    /** Distance between the tile edges and the text */
+    /** Distance between the tile edges and the text. */
     padding?: PixelSize;
-    /** Gap between adjacent tiles */
+    /** Gap between adjacent tile. */
     gap?: PixelSize;
 }
 
 export interface AgTreemapSeriesTileHighlightStyle<TDatum> extends AgTreemapSeriesTileStyle {
-    /** Options for the label in a tile */
+    /** Options for the label in a tile. */
     label?: AgTreemapSeriesLabelHighlightOptions<TDatum>;
-    /** Options for a secondary, smaller label in a tile - displayed under the primary label */
+    /** Options for a secondary, smaller label in a tile - displayed under the primary label. */
     secondaryLabel?: AgTreemapSeriesLabelHighlightOptions<TDatum>;
 }
 
@@ -85,9 +85,9 @@ export interface AgTreemapSeriesTileOptions<TDatum>
         AgTreemapSeriesTileLayout<TDatum> {}
 
 export interface AgTreemapSeriesHighlightStyle<TDatum> extends AgSeriesHighlightStyle {
-    /** Options for the label in a tile */
+    /** Options for the label in a tile. */
     group?: AgTreemapSeriesGroupHighlightStyle<TDatum>;
-    /** Options for a secondary, smaller label in a tile - displayed under the primary label */
+    /** Options for a secondary, smaller label in a tile - displayed under the primary label. */
     tile?: AgTreemapSeriesTileHighlightStyle<TDatum>;
 }
 
@@ -97,17 +97,17 @@ export interface AgTreemapSeriesThemeableOptions<TDatum = any>
     fills?: CssColor[];
     /** The colours to cycle through for the strokes of the groups and tiles. */
     strokes?: CssColor[];
-    /** The color range to interpolate. */
+    /** The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into. */
     colorRange?: CssColor[];
-    /** Options for group nodes (i.e. nodes WITH children) */
+    /** Options for group nodes (i.e. nodes WITH children). */
     group?: AgTreemapSeriesGroupOptions<TDatum>;
-    /** Options for leaf nodes (i.e. nodes WITHOUT children) */
+    /** Options for leaf nodes (i.e. nodes WITHOUT children). */
     tile?: AgTreemapSeriesTileOptions<TDatum>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgTreemapSeriesTooltipRendererParams<TDatum>>;
-    /** A callback function for adjusting the styles of a particular treemap tile based on the input parameters */
+    /** A callback function for adjusting the styles of a particular tile based on the input parameters. */
     formatter?: (params: AgTreemapSeriesFormatterParams<TDatum>) => AgTreemapSeriesStyle;
-    /** Style overrides when a node is hovered */
+    /** Style overrides when a node is hovered. */
     highlightStyle?: AgTreemapSeriesHighlightStyle<TDatum>;
 }
 
@@ -128,22 +128,22 @@ export interface AgTreemapSeriesOptionsKeys {
     childrenKey?: string;
     /** The name of the node key containing the size value. */
     sizeKey?: string;
-    /** The name of the node key containing the color value. This value (along with `colorRange` config) will be used to determine the tile color. */
+    /** The name of the node key containing the colour value. This value (along with `colorRange` config) will be used to determine the tile colour. */
     colorKey?: string;
     /** A human-readable description of the size values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     sizeName?: string;
-    /** A human-readable description of the color values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
+    /** A human-readable description of the colour values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     colorName?: string;
 }
 
-/** The parameters of the treemap series formatter function */
+/** The parameters of the Treemap series formatter function. */
 export interface AgTreemapSeriesFormatterParams<TDatum = any>
     extends AgChartCallbackParams<TDatum>,
         AgTreemapSeriesOptionsKeys,
         AgTreemapSeriesStyle {
     /** The depth of the datum in the hierarchy. */
     depth: number;
-    /** `true` if the tile is highlighted by hovering */
+    /** `true` if the tile is highlighted by hovering. */
     readonly highlighted: boolean;
 }
 
@@ -152,5 +152,5 @@ export interface AgTreemapSeriesLabelFormatterParams<_TDatum = any> extends AgTr
     depth: number;
 }
 
-/** The formatted style of a treemap tile */
+/** The formatted style of a Treemap tile. */
 export interface AgTreemapSeriesStyle extends FillOptions, StrokeOptions {}

@@ -2,6 +2,8 @@ import { AgChartOptions, AgCharts } from 'ag-charts-community';
 
 import { getData } from './data';
 
+let connectNulls = false;
+
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -15,8 +17,19 @@ const options: AgChartOptions = {
         {
             xKey: 'year',
             yKey: 'visitors',
+            connectNulls,
         },
     ],
 };
 
-AgCharts.create(options);
+const chart = AgCharts.create(options);
+
+function toggleConnectNulls() {
+    connectNulls = !connectNulls;
+    AgCharts.updateDelta(chart, {
+        series: options.series.map((series) => ({
+            ...series,
+            connectNulls,
+        })),
+    });
+}

@@ -143,7 +143,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
             return [];
         }
 
-        const { xKey, yKey, xName, yName, marker, label } = this.properties;
+        const { xKey, yKey, xName, yName, marker, label, connectNulls } = this.properties;
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
         const xOffset = (xScale.bandwidth ?? 0) / 2;
@@ -162,11 +162,11 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
             const yDatum = values[yIdx];
 
             if (yDatum === undefined) {
-                moveTo = true;
+                moveTo = !connectNulls;
             } else {
                 const x = xScale.convert(xDatum) + xOffset;
                 if (isNaN(x)) {
-                    moveTo = true;
+                    moveTo = !connectNulls;
                     nextPoint = undefined;
                     continue;
                 }

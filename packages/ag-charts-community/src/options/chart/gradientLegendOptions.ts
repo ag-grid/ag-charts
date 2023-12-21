@@ -22,9 +22,9 @@ export interface AgGradientLegendLabelOptions {
     fontWeight?: FontWeight;
     /** The font size in pixels to use for the labels. */
     fontSize?: FontSize;
-    /** The font family to use for the labels */
+    /** The font family to use for the labels. */
     fontFamily?: FontFamily;
-    /** The colour to use for the labels */
+    /** The colour to use for the labels. */
     color?: CssColor;
     /** Format string used when rendering labels. */
     format?: string;
@@ -42,7 +42,7 @@ export interface AgGradientLegendScaleOptions {
 }
 
 export interface AgGradientLegendOptions {
-    /** Whether to show the gradient legend. By default, the chart displays a gradient legend for heatmap series. */
+    /** Whether to show the gradient legend. By default, the chart displays a gradient legend for series using a `colorKey`. */
     enabled?: boolean;
     /** Where the legend should show in relation to the chart. */
     position?: AgChartLegendPosition;

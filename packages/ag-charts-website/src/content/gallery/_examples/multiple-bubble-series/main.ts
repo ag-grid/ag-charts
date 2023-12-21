@@ -22,7 +22,7 @@ const options: AgChartOptions = {
             yKey: 'growthRate',
             yName: 'Food Industry Growth Rate',
             sizeKey: 'licenseFee',
-            sizeName: 'Lisense Fee',
+            sizeName: 'License Fee',
             labelKey: 'franchiseName',
             labelName: 'Franchise',
             marker: {
@@ -44,7 +44,7 @@ const options: AgChartOptions = {
             yKey: 'growthRate',
             yName: 'Coffee Industry Growth Rate',
             sizeKey: 'licenseFee',
-            sizeName: 'Lisense Fee',
+            sizeName: 'License Fee',
             labelKey: 'franchiseName',
             labelName: 'Franchise',
             marker: {

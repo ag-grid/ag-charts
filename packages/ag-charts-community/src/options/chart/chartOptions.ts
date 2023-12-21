@@ -48,6 +48,8 @@ export interface AgChartOverlayOptions {
 export interface AgChartOverlaysOptions {
     /** An overlay to be displayed when there is no data. */
     noData?: AgChartOverlayOptions;
+    /** An overlay to be displayed when there is no series is visible. */
+    noVisibleSeries?: AgChartOverlayOptions;
 }
 
 export interface AgChartCaptionOptions {
@@ -67,15 +69,15 @@ export interface AgChartCaptionOptions {
     color?: CssColor;
     /** Spacing added to help position the text. */
     spacing?: PixelSize;
-    /** Used to constrain the width of the title. */
+    /** Used to constrain the width of the title before text is wrapped or truncated. */
     maxWidth?: PixelSize;
-    /** Used to constrain the height of the title. */
+    /** Used to constrain the height of the title before text is truncated. */
     maxHeight?: PixelSize;
     /**
-     * Text wrapping strategy for labels.
-     * - `'always'` will always wrap text to fit within the tile.
+     * Text wrapping strategy for long text.
+     * - `'always'` will always wrap text to fit within the `maxWidth`.
      * - `'hyphenate'` is similar to `'always'`, but inserts a hyphen (`-`) if forced to wrap in the middle of a word.
-     * - `'on-space'` will only wrap on white space. If there is no possibility to wrap a line on space and satisfy the tile dimensions, the text will be truncated.
+     * - `'on-space'` will only wrap on white space. If there is no possibility to wrap a line on space and satisfy the `maxWidth`, the text will be truncated.
      * - `'never'` disables text wrapping.
      * Default: `'on-space'`
      */
@@ -133,11 +135,15 @@ export interface AgBaseThemeableChartOptions {
     legend?: AgChartLegendOptions;
     /** Configuration for the gradient legend. */
     gradientLegend?: AgGradientLegendOptions;
+    /** Configuration for chart animations. */
     animation?: AgAnimationOptions;
+    /** Configuration for the context menu. */
     contextMenu?: AgContextMenuOptions;
 
     // Cartesian-specific options - special care required.
+    /** Configuration for the zoom options. */
     zoom?: AgZoomOptions;
+    /** Configuration for the Navigator. */
     navigator?: AgNavigatorOptions;
 }
 
@@ -148,7 +154,7 @@ export interface AgBaseChartOptions<TDatum = any> extends AgBaseThemeableChartOp
     /**
      * The element to place the rendered chart into.
      *
-     * __Important:__ make sure to read the `autoSize` config description for information on how the container element affects the chart size (by default).
+     * __Important:__ Make sure to read the `autoSize` config description for information on how the container element affects the chart size (by default).
      */
     container?: HTMLElement | null;
     /** A map of event names to event listeners. */

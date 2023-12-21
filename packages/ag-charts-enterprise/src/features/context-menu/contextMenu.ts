@@ -148,8 +148,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             id: 'download',
             label: 'Download',
             action: () => {
-                // TODO: chart name
-                this.scene.download('chart');
+                this.scene.download(ctx.chartService.title?.text ?? 'chart');
             },
         });
     }

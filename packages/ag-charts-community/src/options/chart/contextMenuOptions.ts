@@ -1,6 +1,7 @@
 import type { AgChartCallbackParams } from './callbackOptions';
 
 export interface AgContextMenuOptions {
+    /* Whether to show the context menu */
     enabled?: boolean;
     extraActions?: AgContextMenuAction[];
     extraNodeActions?: AgContextMenuAction[];

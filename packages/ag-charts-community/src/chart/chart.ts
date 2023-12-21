@@ -36,7 +36,6 @@ import { ChartHighlight } from './chartHighlight';
 import type { ChartMode } from './chartMode';
 import { ChartUpdateType } from './chartUpdateType';
 import { DataController } from './data/dataController';
-import { DataService } from './dataService';
 import { AnimationManager } from './interaction/animationManager';
 import { ChartEventManager } from './interaction/chartEventManager';
 import { CursorManager } from './interaction/cursorManager';
@@ -52,6 +51,7 @@ import { Legend } from './legend';
 import type { CategoryLegendDatum, ChartLegend, ChartLegendType, GradientLegendDatum } from './legendDatum';
 import type { SeriesOptionsTypes } from './mapping/types';
 import { ChartOverlays } from './overlay/chartOverlays';
+import type { Overlay } from './overlay/overlay';
 import type { Series } from './series/series';
 import { SeriesNodePickMode } from './series/series';
 import { SeriesLayerManager } from './series/seriesLayerManager';
@@ -285,7 +285,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
     protected readonly zoomManager: ZoomManager;
     protected readonly layoutService: LayoutService;
     protected readonly updateService: UpdateService;
-    protected readonly dataService: DataService<Series<any>>;
     protected readonly axisGridGroup: Group;
     protected readonly axisGroup: Group;
     protected readonly callbackCache: CallbackCache;
@@ -334,7 +333,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.highlightManager = new HighlightManager();
         this.interactionManager = new InteractionManager(element, document, window);
         this.zoomManager = new ZoomManager();
-        this.dataService = new DataService<Series<any>>(() => this.series);
         this.layoutService = new LayoutService();
         this.updateService = new UpdateService(
             (type = ChartUpdateType.FULL, { forceNodeDataRefresh, skipAnimations }) =>
@@ -437,12 +435,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
             interactionManager,
             tooltipManager,
             zoomManager,
-            dataService,
             layoutService,
             updateService,
             seriesStateManager,
             seriesLayerManager,
-            mode,
             callbackCache,
             specialOverrides: { window, document },
         } = this;
@@ -457,10 +453,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
             interactionManager,
             tooltipManager,
             zoomManager,
-            dataService,
+            chartService: this,
             layoutService,
             updateService,
-            mode,
             seriesStateManager,
             seriesLayerManager,
             callbackCache,
@@ -483,7 +478,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.tooltip.destroy();
         Object.values(this.legends).forEach((legend) => legend.destroy());
         this.legends.clear();
-        this.overlays.noData.hide();
+        this.overlays.destroy();
         SizeMonitor.unobserve(this.element);
 
         for (const optionsKey of Object.keys(this.modules)) {
@@ -1036,7 +1031,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.animationManager.skipCurrentBatch();
         }
 
-        this.handleNoDataOverlay();
+        this.handleOverlays();
         this.debug('Chart.performUpdate() - seriesRect', this.seriesRect);
     }
 
@@ -1361,12 +1356,22 @@ export abstract class Chart extends Observable implements AgChartInstance {
         await this.updateMutex.waitForClearAcquireQueue();
     }
 
-    protected handleNoDataOverlay() {
-        const shouldDisplayNoDataOverlay = !this.series.some((s) => s.hasData());
-        if (shouldDisplayNoDataOverlay && this.seriesRect) {
-            this.overlays.noData.show(this.seriesRect);
+    private handleOverlays() {
+        const hasNoData = !this.series.some((s) => s.hasData());
+        this.toggleOverlay(this.overlays.noData, hasNoData);
+
+        if (!hasNoData) {
+            // Don't draw both text overlays at the same time.
+            const hasNoVisibleSeries = !this.series.some((series): boolean => series.visible);
+            this.toggleOverlay(this.overlays.noVisibleSeries, hasNoVisibleSeries);
+        }
+    }
+
+    private toggleOverlay(overlay: Overlay, visible: boolean) {
+        if (visible && this.seriesRect) {
+            overlay.show(this.seriesRect);
         } else {
-            this.overlays.noData.hide();
+            overlay.hide();
         }
     }
 

@@ -41,9 +41,9 @@ export interface AgTooltipRendererResult {
     title?: string;
     /** Content text for the tooltip body. */
     content?: string;
-    /** Tooltip title text color. */
+    /** Tooltip title text colour. */
     color?: CssColor;
-    /** Tooltip title background color. */
+    /** Tooltip title background colour. */
     backgroundColor?: CssColor;
 }
 
