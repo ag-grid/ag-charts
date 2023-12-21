@@ -74,7 +74,7 @@ Please see the [Series Markers](./markers/) page for more information or the [AP
 
 {% chartExampleRunner title="Line Series with Incomplete Data" name="gap-line" type="generated" /%}
 
--   Data points with a `yKey` value of positive or negative `Infinity`, `null`, `undefined` or `NaN` will be rendered as a gap in the line.
+-   Data points with a `yKey` value of positive or negative `Infinity`, `null`, `undefined` or `NaN` will be rendered as a gap in the line. Set `connectNulls: true` to draw a connecting line between points either side of a missing point.
 -   Data points with invalid `xKey` values will be ignored.
 
 ### Continuous Data
