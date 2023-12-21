@@ -411,6 +411,21 @@
         ],
         [
             {
+                "title": "Bullet Chart",
+                "name": "bullet-chart",
+                "icon": "chartsBullet",
+                "enterprise": true,
+                "examples": [
+                    {
+                        "title": "Simple Bullet",
+                        "description": "",
+                        "name": "simple-bullet"
+                    }
+                ]
+            }
+        ],
+        [
+            {
                 "title": "Radar Line",
                 "name": "radar-line",
                 "icon": "chartsRadar",
