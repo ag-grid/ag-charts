@@ -13,7 +13,7 @@ import {
 
 expect.extend({ toMatchImageSnapshot });
 
-describe('PieSeries', () => {
+describe('Caption', () => {
     beforeEach(() => {
         // eslint-disable-nextline no-console
         [console.warn, console.error] = [jest.fn(), jest.fn()];
