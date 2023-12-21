@@ -14,6 +14,7 @@ import {
 } from './utils/fileUtils';
 import { frameworkFilesGenerator } from './utils/frameworkFilesGenerator';
 import { getOtherScriptFiles } from './utils/getOtherScriptFiles';
+import { getPackageJson } from './utils/getPackageJson';
 import { getStyleFiles } from './utils/getStyleFiles';
 
 type FileListParams = {
@@ -111,6 +112,10 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
     if (!getFrameworkFiles) {
         throw new Error(`No entry file config generator for '${internalFramework}'`);
     }
+    const packageJson = getPackageJson({
+        isEnterprise,
+        internalFramework,
+    });
 
     const { files, boilerPlateFiles, scriptFiles, entryFileName, mainFileName } = await getFrameworkFiles({
         entryFile,
@@ -136,6 +141,7 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
         providedExamples,
         entryFileName,
         mainFileName,
+        packageJson,
     };
 
     return result;

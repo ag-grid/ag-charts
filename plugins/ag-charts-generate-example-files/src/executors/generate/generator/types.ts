@@ -19,6 +19,7 @@ export interface GeneratedContents {
     boilerPlateFiles: FileContents;
     providedExamples: FileContents;
     generatedFiles: FileContents;
+    packageJson: Record<string, any>;
 }
 
 export type InternalFramework =
