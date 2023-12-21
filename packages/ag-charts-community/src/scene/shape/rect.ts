@@ -28,20 +28,20 @@ const cornerEdges = (
 ) => {
     let leadingClipped = false;
     let trailingClipped = false;
-    let leading0 = trailingInset - Math.sqrt(cornerRadius ** 2 - leadingInset ** 2);
+    let leading0 = trailingInset - Math.sqrt(Math.max(cornerRadius ** 2 - leadingInset ** 2, 0));
     let leading1 = 0;
     let trailing0 = 0;
-    let trailing1 = leadingInset - Math.sqrt(cornerRadius ** 2 - trailingInset ** 2);
+    let trailing1 = leadingInset - Math.sqrt(Math.max(cornerRadius ** 2 - trailingInset ** 2, 0));
 
     if (leading0 > leadingEdge) {
         leadingClipped = true;
         leading0 = leadingEdge;
-        leading1 = leadingInset - Math.sqrt(cornerRadius ** 2 - (trailingInset - leadingEdge) ** 2);
+        leading1 = leadingInset - Math.sqrt(Math.max(cornerRadius ** 2 - (trailingInset - leadingEdge) ** 2));
     }
 
     if (trailing1 > trailingEdge) {
         trailingClipped = true;
-        trailing0 = trailingInset - Math.sqrt(cornerRadius ** 2 - (leadingInset - trailingEdge) ** 2);
+        trailing0 = trailingInset - Math.sqrt(Math.max(cornerRadius ** 2 - (leadingInset - trailingEdge) ** 2));
         trailing1 = trailingEdge;
     }
 
