@@ -223,7 +223,7 @@ describe('CartesianChart', () => {
                 await waitForChartStability(chart);
 
                 const seriesImpl = chart.series.find(
-                    (v: any) => v.yKey === yKey || v.yKeys?.some((s) => s.includes(yKey))
+                    (v: any) => v.properties.yKey === yKey || v.properties.yKeys?.some((s) => s.includes(yKey))
                 );
                 if (seriesImpl == null) fail('No seriesImpl found');
 

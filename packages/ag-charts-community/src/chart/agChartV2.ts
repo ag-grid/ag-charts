@@ -43,8 +43,8 @@ import {
     optionsType,
 } from './mapping/types';
 import { PolarChart } from './polarChart';
-import { PieTitle } from './series/polar/pieSeries';
 import type { Series } from './series/series';
+import type { SeriesGrouping } from './series/seriesStateManager';
 
 const debug = Debug.create(true, 'opts');
 
@@ -504,18 +504,18 @@ function applySeries(chart: Chart, options: AgChartOptions) {
         return false;
     }
 
-    const keysToConsider = ['type', 'direction', 'xKey', 'yKey', 'sizeKey', 'angleKey', 'stacked', 'stackGroup'];
+    const keysToConsider = ['direction', 'xKey', 'yKey', 'sizeKey', 'angleKey', 'stacked', 'stackGroup'];
 
     let matchingTypes = chart.series.length === optSeries.length;
     for (let i = 0; i < chart.series.length && matchingTypes; i++) {
+        matchingTypes &&= chart.series[i].type === (optSeries[i] as any).type;
         for (const key of keysToConsider) {
-            matchingTypes &&= (chart.series[i] as any)[key] === (optSeries[i] as any)[key];
+            matchingTypes &&= (chart.series[i].properties as any)[key] === (optSeries[i] as any)[key];
         }
     }
 
     // Try to optimise series updates if series count and types didn't change.
     if (matchingTypes) {
-        const moduleContext = chart.getModuleContext();
         chart.series.forEach((s, i) => {
             const previousOpts = chart.processedOptions?.series?.[i] ?? {};
             const seriesDiff = jsonDiff(previousOpts, optSeries[i] ?? {});
@@ -526,7 +526,7 @@ function applySeries(chart: Chart, options: AgChartOptions) {
 
             debug(`AgChartV2.applySeries() - applying series diff idx ${i}`, seriesDiff);
 
-            applySeriesValues(s as any, moduleContext, seriesDiff, { path: `series[${i}]`, index: i });
+            applySeriesValues(s as any, seriesDiff);
             s.markNodeDataDirty();
         });
 
@@ -576,16 +576,14 @@ function createSeries(chart: Chart, options: SeriesOptionsTypes[]): Series<any>[
     const series: Series<any>[] = [];
     const moduleContext = chart.getModuleContext();
 
-    let index = 0;
     for (const seriesOptions of options ?? []) {
-        const path = `series[${index++}]`;
         const type = seriesOptions.type ?? 'unknown';
         if (isEnterpriseSeriesType(type) && !isEnterpriseSeriesTypeLoaded(type)) {
             continue;
         }
         const seriesInstance = getSeries(type, moduleContext);
         applySeriesOptionModules(seriesInstance, seriesOptions);
-        applySeriesValues(seriesInstance, moduleContext, seriesOptions, { path, index });
+        applySeriesValues(seriesInstance, seriesOptions);
         series.push(seriesInstance);
     }
 
@@ -670,53 +668,23 @@ function applyOptionValues<T extends object, S>(
     return jsonApply<T, any>(target, options, applyOpts);
 }
 
-function applySeriesValues(
-    target: Series<any>,
-    moduleContext: ModuleContext,
-    options?: AgBaseSeriesOptions<any>,
-    { path, index }: { path?: string; index?: number } = {}
-): Series<any> {
-    const skip: string[] = ['series[].listeners', 'series[].seriesGrouping'];
-    const jsonApplyOptions = getJsonApplyOptions(moduleContext);
-    const ctrs = jsonApplyOptions.constructors ?? {};
-    // Allow context to be injected and meet the type requirements
-    class PieTitleWithContext extends PieTitle {
-        constructor() {
-            super(moduleContext);
-        }
+function applySeriesValues(target: Series<any>, options: AgBaseSeriesOptions<any>): Series<any> {
+    target.properties.set(options);
+    target.data = options.data;
+    if ('errorBar' in target && 'errorBar' in options) {
+        (target.errorBar as any).properties.set(options.errorBar);
     }
-    const seriesTypeOverrides = {
-        constructors: {
-            ...ctrs,
-            title: target.type === 'pie' ? PieTitleWithContext : ctrs['title'],
-        },
-    };
-
-    const applyOpts = {
-        ...jsonApplyOptions,
-        ...seriesTypeOverrides,
-        skip: ['series[].type', ...(skip ?? [])],
-        ...(path ? { path } : {}),
-        idx: index ?? -1,
-    };
-
-    const result = jsonApply(target, options, applyOpts);
 
     if (options?.listeners != null) {
         registerListeners(target, options.listeners);
     }
 
-    const { seriesGrouping } = options as any;
-    if ('seriesGrouping' in (options ?? {})) {
-        if (seriesGrouping) {
-            target.seriesGrouping = Object.freeze({
-                ...(target.seriesGrouping ?? {}),
-                ...seriesGrouping,
-            });
-        } else {
-            target.seriesGrouping = seriesGrouping;
-        }
+    if ('seriesGrouping' in options) {
+        const seriesGrouping = options.seriesGrouping as SeriesGrouping | undefined;
+        target.seriesGrouping = seriesGrouping
+            ? Object.freeze({ ...target.seriesGrouping, ...seriesGrouping })
+            : undefined;
     }
 
-    return result;
+    return target;
 }

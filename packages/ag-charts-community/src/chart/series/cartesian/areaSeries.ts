@@ -2,13 +2,7 @@ import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import { pathMotion } from '../../../motion/pathMotion';
 import { resetMotion } from '../../../motion/resetMotion';
-import type {
-    AgAreaSeriesLabelFormatterParams,
-    AgAreaSeriesOptionsKeys,
-    AgCartesianSeriesTooltipRendererParams,
-} from '../../../options/agChartOptions';
 import { ContinuousScale } from '../../../scale/continuousScale';
-import type { DropShadow } from '../../../scene/dropShadow';
 import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
 import { Path2D } from '../../../scene/path2D';
@@ -19,7 +13,7 @@ import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
 import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
-import { COLOR_STRING, LINE_DASH, POSITIVE_NUMBER, RATIO, STRING, Validate } from '../../../util/validation';
+import { isDefined } from '../../../util/type-guards';
 import { isContinuous, isNumber } from '../../../util/value';
 import { LogAxis } from '../../axis/logAxis';
 import { TimeAxis } from '../../axis/timeAxis';
@@ -28,14 +22,12 @@ import type { DataController } from '../../data/dataController';
 import type { DatumPropertyDefinition } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
 import { animationValidation, diff, normaliseGroupTo } from '../../data/processors';
-import { Label } from '../../label';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
 import { SeriesNodePickMode, groupAccumulativeValueProperty, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
-import { SeriesMarker } from '../seriesMarker';
-import { SeriesTooltip } from '../seriesTooltip';
+import { AreaSeriesProperties } from './areaSeriesProperties';
 import {
     type AreaPathPoint,
     type AreaSeriesNodeDataContext,
@@ -65,29 +57,7 @@ export class AreaSeries extends CartesianSeries<
     static className = 'AreaSeries';
     static type = 'area' as const;
 
-    tooltip = new SeriesTooltip<AgCartesianSeriesTooltipRendererParams>();
-
-    readonly marker = new SeriesMarker<AgAreaSeriesOptionsKeys, MarkerSelectionDatum>();
-
-    readonly label = new Label<AgAreaSeriesLabelFormatterParams>();
-
-    @Validate(COLOR_STRING)
-    fill: string = '#c16068';
-
-    @Validate(COLOR_STRING)
-    stroke: string = '#874349';
-
-    @Validate(RATIO)
-    fillOpacity = 1;
-
-    @Validate(RATIO)
-    strokeOpacity = 1;
-
-    @Validate(LINE_DASH, { optional: true })
-    lineDash?: number[] = [0];
-
-    @Validate(POSITIVE_NUMBER)
-    lineDashOffset: number = 0;
+    override properties = new AreaSeriesProperties();
 
     constructor(moduleCtx: ModuleContext) {
         super({
@@ -105,31 +75,13 @@ export class AreaSeries extends CartesianSeries<
         });
     }
 
-    @Validate(STRING, { optional: true })
-    xKey?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    xName?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    yKey?: string;
-
-    @Validate(STRING, { optional: true })
-    yName?: string;
-
-    @Validate(POSITIVE_NUMBER, { optional: true })
-    normalizedTo?: number;
-
-    @Validate(POSITIVE_NUMBER)
-    strokeWidth = 2;
-
-    shadow?: DropShadow = undefined;
-
     override async processData(dataController: DataController) {
-        const { xKey, yKey, normalizedTo, data, visible, seriesGrouping: { groupIndex = this.id } = {} } = this;
+        if (this.data == null || !this.properties.isValid()) {
+            return;
+        }
 
-        if (xKey == null || yKey == null || data == null) return;
-
+        const { data, visible, seriesGrouping: { groupIndex = this.id } = {} } = this;
+        const { xKey, yKey, normalizedTo } = this.properties;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
         const { isContinuousX, isContinuousY } = this.isContinuous();
         const ids = [
@@ -141,10 +93,9 @@ export class AreaSeries extends CartesianSeries<
         ];
 
         const extraProps = [];
-        const normaliseTo = normalizedTo && isFinite(normalizedTo) ? normalizedTo : undefined;
-        if (normaliseTo) {
-            extraProps.push(normaliseGroupTo(this, [ids[0], ids[1], ids[4]], normaliseTo, 'range'));
-            extraProps.push(normaliseGroupTo(this, [ids[2], ids[3]], normaliseTo, 'range'));
+        if (isDefined(normalizedTo)) {
+            extraProps.push(normaliseGroupTo(this, [ids[0], ids[1], ids[4]], normalizedTo, 'range'));
+            extraProps.push(normaliseGroupTo(this, [ids[2], ids[3]], normalizedTo, 'range'));
         }
 
         // If two or more datums share an x-value, i.e. lined up vertically, they will have the same datum id.
@@ -231,11 +182,11 @@ export class AreaSeries extends CartesianSeries<
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!xAxis || !yAxis || !data || !dataModel) {
+        if (!xAxis || !yAxis || !data || !dataModel || !this.properties.isValid()) {
             return [];
         }
 
-        const { yKey = '', xKey = '', marker, label, fill: seriesFill, stroke: seriesStroke } = this;
+        const { yKey, xKey, marker, label, fill: seriesFill, stroke: seriesStroke } = this.properties;
         const { scale: xScale } = xAxis;
         const { scale: yScale } = yAxis;
 
@@ -275,19 +226,15 @@ export class AreaSeries extends CartesianSeries<
             // if not normalized, the invalid data points will be processed as `undefined` in processData()
             // if normalized, the invalid data points will be processed as 0 rather than `undefined`
             // check if unprocessed datum is valid as we only want to show markers for valid points
-            const normalized = this.normalizedTo && isFinite(this.normalizedTo);
-            const normalizedAndValid = normalized && continuousY && isContinuous(rawYDatum);
-
-            const valid = (!normalized && !isNaN(rawYDatum)) || normalizedAndValid;
-
-            if (valid) {
+            if (isDefined(this.properties.normalizedTo) ? continuousY && isContinuous(rawYDatum) : !isNaN(rawYDatum)) {
                 currY = yEnd;
             }
 
-            const x = xScale.convert(xDatum) + xOffset;
-            const y = yScale.convert(currY);
-
-            return { x, y, size: marker.size };
+            return {
+                x: xScale.convert(xDatum) + xOffset,
+                y: yScale.convert(currY),
+                size: marker.size,
+            };
         };
 
         const itemId = yKey;
@@ -347,7 +294,7 @@ export class AreaSeries extends CartesianSeries<
                         point,
                         fill: marker.fill ?? seriesFill,
                         stroke: marker.stroke ?? seriesStroke,
-                        strokeWidth: marker.strokeWidth ?? this.getStrokeWidth(this.strokeWidth),
+                        strokeWidth: marker.strokeWidth ?? this.getStrokeWidth(this.properties.strokeWidth),
                     });
                 }
 
@@ -360,8 +307,8 @@ export class AreaSeries extends CartesianSeries<
                             datum: seriesDatum,
                             xKey,
                             yKey,
-                            xName: this.xName,
-                            yName: this.yName,
+                            xName: this.properties.xName,
+                            yName: this.properties.yName,
                         },
                         (value) => (isNumber(value) ? value.toFixed(2) : String(value))
                     );
@@ -430,11 +377,11 @@ export class AreaSeries extends CartesianSeries<
     }
 
     protected override isPathOrSelectionDirty(): boolean {
-        return this.marker.isDirty();
+        return this.properties.marker.isDirty();
     }
 
     protected override markerFactory() {
-        const { shape } = this.marker;
+        const { shape } = this.properties.marker;
         const MarkerShape = getMarker(shape);
         return new MarkerShape();
     }
@@ -449,17 +396,17 @@ export class AreaSeries extends CartesianSeries<
         const [fill, stroke] = opts.paths;
         const { seriesRectHeight: height, seriesRectWidth: width } = this.nodeDataDependencies;
 
-        const strokeWidth = this.getStrokeWidth(this.strokeWidth);
+        const strokeWidth = this.getStrokeWidth(this.properties.strokeWidth);
         stroke.setProperties({
             tag: AreaSeriesTag.Stroke,
             fill: undefined,
             lineJoin: (stroke.lineCap = 'round'),
             pointerEvents: PointerEvents.None,
-            stroke: this.stroke,
+            stroke: this.properties.stroke,
             strokeWidth,
-            strokeOpacity: this.strokeOpacity,
-            lineDash: this.lineDash,
-            lineDashOffset: this.lineDashOffset,
+            strokeOpacity: this.properties.strokeOpacity,
+            lineDash: this.properties.lineDash,
+            lineDashOffset: this.properties.lineDashOffset,
             opacity,
             visible,
         });
@@ -468,12 +415,12 @@ export class AreaSeries extends CartesianSeries<
             stroke: undefined,
             lineJoin: 'round',
             pointerEvents: PointerEvents.None,
-            fill: this.fill,
-            fillOpacity: this.fillOpacity,
-            lineDash: this.lineDash,
-            lineDashOffset: this.lineDashOffset,
-            strokeOpacity: this.strokeOpacity,
-            fillShadow: this.shadow,
+            fill: this.properties.fill,
+            fillOpacity: this.properties.fillOpacity,
+            lineDash: this.properties.lineDash,
+            lineDashOffset: this.properties.lineDashOffset,
+            strokeOpacity: this.properties.strokeOpacity,
+            fillShadow: this.properties.shadow,
             opacity,
             visible: visible || animationEnabled,
             strokeWidth,
@@ -539,17 +486,13 @@ export class AreaSeries extends CartesianSeries<
         markerSelection: Selection<Marker, MarkerSelectionDatum>;
     }) {
         const { nodeData, markerSelection } = opts;
-        const {
-            marker: { enabled },
-        } = this;
-        const data = enabled && nodeData ? nodeData : [];
 
-        if (this.marker.isDirty()) {
+        if (this.properties.marker.isDirty()) {
             markerSelection.clear();
             markerSelection.cleanup();
         }
 
-        return markerSelection.update(data);
+        return markerSelection.update(this.properties.marker.enabled ? nodeData : []);
     }
 
     protected override async updateMarkerNodes(opts: {
@@ -557,8 +500,9 @@ export class AreaSeries extends CartesianSeries<
         isHighlight: boolean;
     }) {
         const { markerSelection, isHighlight: highlighted } = opts;
-        const { xKey = '', yKey = '', marker, fill, stroke, strokeWidth, fillOpacity, strokeOpacity } = this;
-        const baseStyle = mergeDefaults(highlighted && this.highlightStyle.item, marker.getStyle(), {
+        const { xKey, yKey, marker, fill, stroke, strokeWidth, fillOpacity, strokeOpacity, highlightStyle } =
+            this.properties;
+        const baseStyle = mergeDefaults(highlighted && highlightStyle.item, marker.getStyle(), {
             fill,
             stroke,
             strokeWidth,
@@ -571,7 +515,7 @@ export class AreaSeries extends CartesianSeries<
         });
 
         if (!highlighted) {
-            this.marker.markClean();
+            this.properties.marker.markClean();
         }
     }
 
@@ -588,7 +532,7 @@ export class AreaSeries extends CartesianSeries<
 
     protected async updateLabelNodes(opts: { labelSelection: Selection<Text, LabelSelectionDatum> }) {
         const { labelSelection } = opts;
-        const { enabled: labelEnabled, fontStyle, fontWeight, fontSize, fontFamily, color } = this.label;
+        const { enabled: labelEnabled, fontStyle, fontWeight, fontSize, fontFamily, color } = this.properties.label;
         labelSelection.each((text, datum) => {
             const { x, y, label } = datum;
 
@@ -611,13 +555,14 @@ export class AreaSeries extends CartesianSeries<
     }
 
     getTooltipHtml(nodeDatum: MarkerSelectionDatum): string {
-        const { xKey, id: seriesId, axes, xName, yName, tooltip, marker, dataModel } = this;
+        const { id: seriesId, axes, dataModel } = this;
+        const { xKey, xName, yName, tooltip, marker } = this.properties;
         const { yKey, xValue, yValue, datum } = nodeDatum;
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!(xKey && yKey) || !(xAxis && yAxis && isNumber(yValue)) || !dataModel) {
+        if (!this.properties.isValid() || !(xAxis && yAxis && isNumber(yValue)) || !dataModel) {
             return '';
         }
 
@@ -626,9 +571,9 @@ export class AreaSeries extends CartesianSeries<
         const title = sanitizeHtml(yName);
         const content = sanitizeHtml(xString + ': ' + yString);
 
-        const baseStyle = mergeDefaults({ fill: this.fill }, marker.getStyle(), {
-            stroke: this.stroke,
-            strokeWidth: this.strokeWidth,
+        const baseStyle = mergeDefaults({ fill: this.properties.fill }, marker.getStyle(), {
+            stroke: this.properties.stroke,
+            strokeWidth: this.properties.strokeWidth,
         });
         const { fill: color } = this.getMarkerStyle(
             marker,
@@ -652,18 +597,18 @@ export class AreaSeries extends CartesianSeries<
     }
 
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
-        const { data, id, xKey, yKey, yName, marker, fill, stroke, fillOpacity, strokeOpacity, visible } = this;
-
-        if (!data?.length || !xKey || !yKey || legendType !== 'category') {
+        if (!this.data?.length || !this.properties.isValid() || legendType !== 'category') {
             return [];
         }
+
+        const { yKey, yName, fill, stroke, fillOpacity, strokeOpacity, marker, visible } = this.properties;
 
         return [
             {
                 legendType,
-                id,
+                id: this.id,
                 itemId: yKey,
-                seriesId: id,
+                seriesId: this.id,
                 enabled: visible,
                 label: {
                     text: yName ?? yKey,
@@ -732,7 +677,7 @@ export class AreaSeries extends CartesianSeries<
     }
 
     protected isLabelEnabled() {
-        return this.label.enabled;
+        return this.properties.label.enabled;
     }
 
     protected nodeFactory() {

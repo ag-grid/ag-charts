@@ -1,6 +1,7 @@
 import type { AgTooltipRendererResult, InteractionRange, TextWrap } from '../../options/agChartOptions';
 import { BBox } from '../../scene/bbox';
 import { injectStyle } from '../../util/dom';
+import { BaseProperties } from '../../util/properties';
 import {
     BOOLEAN,
     INTERACTION_RANGE,
@@ -187,7 +188,7 @@ export function toTooltipHtml(input: string | AgTooltipRendererResult, defaults?
 
 type TooltipPositionType = 'pointer' | 'node';
 
-export class TooltipPosition {
+export class TooltipPosition extends BaseProperties {
     @Validate(UNION(['pointer', 'node'], 'a position type'))
     /** The type of positioning for the tooltip. By default, the tooltip follows the pointer. */
     type: TooltipPositionType = 'pointer';

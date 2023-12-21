@@ -12,7 +12,9 @@ export type FontWeight =
     | '600'
     | '700'
     | '800'
-    | '900';
+    | '900'
+    | '1000'
+    | number;
 export type FontFamily = string;
 export type FontSize = number;
 

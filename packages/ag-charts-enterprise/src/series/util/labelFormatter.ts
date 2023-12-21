@@ -16,7 +16,7 @@ class BaseAutoSizedLabel<FormatterParams> extends Label<FormatterParams> {
     overflowStrategy: OverflowStrategy = 'ellipsis';
 
     @Validate(NUMBER, { optional: true })
-    minimumFontSize?: number = undefined;
+    minimumFontSize?: number;
 }
 
 export class AutoSizedLabel<FormatterParams> extends BaseAutoSizedLabel<FormatterParams> {

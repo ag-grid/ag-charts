@@ -1,9 +1,8 @@
 import type { ModuleContext } from '../module/moduleContext';
-import { DropShadow } from '../scene/dropShadow';
 import type { JsonApplyParams } from '../util/json';
 import { AxisTitle } from './axis/axisTitle';
 import { Caption } from './caption';
-import { DoughnutInnerCircle, DoughnutInnerLabel } from './series/polar/pieSeries';
+import { DoughnutInnerCircle, DoughnutInnerLabel } from './series/polar/pieSeriesProperties';
 
 export const JSON_APPLY_PLUGINS: JsonApplyParams = {
     constructors: {},
@@ -16,7 +15,6 @@ export function assignJsonApplyConstructedArray(array: any[], ctor: new () => an
 
 const JSON_APPLY_OPTIONS: JsonApplyParams = {
     constructors: {
-        shadow: DropShadow,
         innerCircle: DoughnutInnerCircle,
         'axes[].title': AxisTitle,
         'series[].innerLabels[]': DoughnutInnerLabel,
@@ -32,7 +30,8 @@ export function getJsonApplyOptions(ctx: ModuleContext): JsonApplyParams {
     // Allow context to be injected and meet the type requirements
     class CaptionWithContext extends Caption {
         constructor() {
-            super(ctx);
+            super();
+            this.registerInteraction(ctx);
         }
     }
     return {

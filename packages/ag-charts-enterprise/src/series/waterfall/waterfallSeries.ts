@@ -1,17 +1,11 @@
-import type {
-    AgTooltipRendererResult,
-    AgWaterfallSeriesFormat,
-    AgWaterfallSeriesFormatterParams,
-    AgWaterfallSeriesItemType,
-    AgWaterfallSeriesLabelFormatterParams,
-    AgWaterfallSeriesLabelPlacement,
-    AgWaterfallSeriesTooltipRendererParams,
-} from 'ag-charts-community';
+import type { AgWaterfallSeriesItemType } from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+
+import type { WaterfallSeriesItem, WaterfallSeriesTotal } from './waterfallSeriesProperties';
+import { WaterfallSeriesProperties } from './waterfallSeriesProperties';
 
 const {
     adjustLabelPlacement,
-    Validate,
     SeriesNodePickMode,
     fixNumericExtent,
     valueProperty,
@@ -19,14 +13,6 @@ const {
     accumulativeValueProperty,
     trailingAccumulatedValueProperty,
     ChartAxisDirection,
-    POSITIVE_NUMBER,
-    RATIO,
-    BOOLEAN,
-    STRING,
-    UNION,
-    FUNCTION,
-    COLOR_STRING,
-    LINE_DASH,
     getRectConfig,
     updateRect,
     checkCrisp,
@@ -75,86 +61,6 @@ type WaterfallAnimationData = _ModuleSupport.CartesianAnimationData<
     WaterfallContext
 >;
 
-class WaterfallSeriesItemTooltip {
-    @Validate(FUNCTION, { optional: true })
-    renderer?: (params: AgWaterfallSeriesTooltipRendererParams) => string | AgTooltipRendererResult;
-}
-
-class WaterfallSeriesLabel extends _Scene.Label<AgWaterfallSeriesLabelFormatterParams> {
-    @Validate(UNION(['start', 'end', 'inside'], 'a placement'), { optional: true })
-    placement: AgWaterfallSeriesLabelPlacement = 'end';
-
-    @Validate(POSITIVE_NUMBER, { optional: true })
-    padding: number = 6;
-}
-
-class WaterfallSeriesItem {
-    readonly label = new WaterfallSeriesLabel();
-
-    tooltip: WaterfallSeriesItemTooltip = new WaterfallSeriesItemTooltip();
-
-    @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgWaterfallSeriesFormatterParams<any>) => AgWaterfallSeriesFormat;
-
-    shadow?: _Scene.DropShadow = undefined;
-
-    @Validate(STRING, { optional: true })
-    name?: string = undefined;
-
-    @Validate(COLOR_STRING, { optional: true })
-    fill: string = '#c16068';
-
-    @Validate(COLOR_STRING, { optional: true })
-    stroke: string = '#c16068';
-
-    @Validate(RATIO)
-    fillOpacity = 1;
-
-    @Validate(RATIO)
-    strokeOpacity = 1;
-
-    @Validate(LINE_DASH, { optional: true })
-    lineDash?: number[] = [0];
-
-    @Validate(POSITIVE_NUMBER)
-    lineDashOffset: number = 0;
-
-    @Validate(POSITIVE_NUMBER)
-    strokeWidth: number = 1;
-}
-
-class WaterfallSeriesConnectorLine {
-    @Validate(BOOLEAN)
-    enabled = true;
-
-    @Validate(COLOR_STRING, { optional: true })
-    stroke: string = 'black';
-
-    @Validate(RATIO)
-    strokeOpacity = 1;
-
-    @Validate(LINE_DASH, { optional: true })
-    lineDash?: number[] = [0];
-
-    @Validate(POSITIVE_NUMBER)
-    lineDashOffset: number = 0;
-
-    @Validate(POSITIVE_NUMBER)
-    strokeWidth: number = 2;
-}
-
-class WaterfallSeriesItems {
-    readonly positive: WaterfallSeriesItem = new WaterfallSeriesItem();
-    readonly negative: WaterfallSeriesItem = new WaterfallSeriesItem();
-    readonly total: WaterfallSeriesItem = new WaterfallSeriesItem();
-}
-
-interface TotalMeta {
-    totalType: 'subtotal' | 'total';
-    index: number;
-    axisLabel: any;
-}
-
 export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     _Scene.Rect,
     WaterfallNodeDatum,
@@ -164,11 +70,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     static className = 'WaterfallSeries';
     static type = 'waterfall' as const;
 
-    readonly item = new WaterfallSeriesItems();
-    readonly line = new WaterfallSeriesConnectorLine();
-    readonly totals: TotalMeta[] = [];
-
-    tooltip = new _ModuleSupport.SeriesTooltip<AgWaterfallSeriesTooltipRendererParams>();
+    override properties = new WaterfallSeriesProperties();
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
@@ -193,30 +95,17 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         return direction;
     }
 
-    @Validate(STRING, { optional: true })
-    xKey?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    xName?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    yKey?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    yName?: string = undefined;
-
-    @Validate(POSITIVE_NUMBER)
-    cornerRadius: number = 0;
-
     private seriesItemTypes: Set<AgWaterfallSeriesItemType> = new Set(['positive', 'negative', 'total']);
 
     protected smallestDataInterval?: { x: number; y: number } = undefined;
 
     override async processData(dataController: _ModuleSupport.DataController) {
-        const { xKey = '', yKey } = this;
+        const { xKey, yKey, totals } = this.properties;
         const { data = [] } = this;
 
-        if (!yKey) return;
+        if (!this.properties.isValid()) {
+            return;
+        }
 
         const positiveNumber = (v: any) => {
             return isContinuous(v) && v >= 0;
@@ -237,7 +126,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
         const dataWithTotals: any[] = [];
 
-        const totalsMap = this.totals.reduce((totalsMap, total) => {
+        const totalsMap = totals.reduce<Map<number, WaterfallSeriesTotal[]>>((totalsMap, total) => {
             const totalsAtIndex = totalsMap.get(total.index);
             if (totalsAtIndex) {
                 totalsAtIndex.push(total);
@@ -245,27 +134,19 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 totalsMap.set(total.index, [total]);
             }
             return totalsMap;
-        }, new Map<number, TotalMeta[]>());
+        }, new Map());
 
         data.forEach((datum, i) => {
             dataWithTotals.push(datum);
-            const totalsAtIndex = totalsMap.get(i);
-            if (totalsAtIndex) {
-                // Use the `toString` method to make the axis labels unique as they're used as categories in the axis scale domain.
-                // Add random id property as there is caching for the axis label formatter result. If the label object is not unique, the axis label formatter will not be invoked.
-                totalsAtIndex.forEach((total) =>
-                    dataWithTotals.push({
-                        ...total,
-                        [xKey]: total.axisLabel,
-                    })
-                );
-            }
+            // Use the `toString` method to make the axis labels unique as they're used as categories in the axis scale domain.
+            // Add random id property as there is caching for the axis label formatter result. If the label object is not unique, the axis label formatter will not be invoked.
+            totalsMap.get(i)?.forEach((total) => dataWithTotals.push({ ...total.toJson(), [xKey]: total.axisLabel }));
         });
 
-        const animationEnabled = !this.ctx.animationManager.isSkipped();
         const isContinuousX = ContinuousScale.is(this.getCategoryAxis()?.scale);
         const extraProps = [];
-        if (animationEnabled) {
+
+        if (!this.ctx.animationManager.isSkipped()) {
             extraProps.push(animationValidation(this));
         }
 
@@ -353,7 +234,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     async createNodeData() {
-        const { data, dataModel, visible, line, smallestDataInterval } = this;
+        const { data, dataModel, smallestDataInterval } = this;
+        const { visible, line } = this.properties;
         const categoryAxis = this.getCategoryAxis();
         const valueAxis = this.getValueAxis();
 
@@ -374,8 +256,10 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const halfLineWidth = line.strokeWidth / 2;
         const offsetDirection = (barAlongX && !valueAxisReversed) || (!barAlongX && valueAxisReversed) ? -1 : 1;
         const offset = offsetDirection * halfLineWidth;
-        const { yKey = '', xKey = '', processedData } = this;
-        if (processedData?.type !== 'ungrouped') return [];
+
+        if (this.processedData?.type !== 'ungrouped') {
+            return [];
+        }
 
         const contexts: WaterfallContext[] = [];
 
@@ -425,7 +309,9 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         }
 
         let trailingSubtotal = 0;
-        processedData?.data.forEach(({ keys, datum, values }, dataIndex) => {
+        const { xKey, yKey, xName, yName } = this.properties;
+
+        this.processedData?.data.forEach(({ keys, datum, values }, dataIndex) => {
             const datumType = values[totalTypeIndex];
 
             const isSubtotal = this.isSubtotal(datumType);
@@ -519,8 +405,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                     datum,
                     xKey,
                     yKey,
-                    xName: this.xName,
-                    yName: this.yName,
+                    xName,
+                    yName,
                 },
                 (value) => (isNumber(value) ? value.toFixed(2) : String(value))
             );
@@ -559,7 +445,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             contexts[contextIndex].labelData.push(nodeDatum);
         });
 
-        const connectorLinesEnabled = this.line.enabled;
+        const connectorLinesEnabled = this.properties.line.enabled;
         if (contexts.length > 0 && yCurrIndex !== undefined && connectorLinesEnabled) {
             contexts[0].pointData = pointData;
         }
@@ -622,14 +508,14 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     private getItemConfig(seriesItemType: AgWaterfallSeriesItemType): WaterfallSeriesItem {
         switch (seriesItemType) {
             case 'positive': {
-                return this.item.positive;
+                return this.properties.item.positive;
             }
             case 'negative': {
-                return this.item.negative;
+                return this.properties.item.negative;
             }
             case 'subtotal':
             case 'total': {
-                return this.item.total;
+                return this.properties.item.total;
             }
         }
     }
@@ -648,12 +534,11 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
+        const { id: seriesId, ctx } = this;
         const {
-            yKey = '',
+            yKey,
             highlightStyle: { item: itemHighlightStyle },
-            id: seriesId,
-            ctx,
-        } = this;
+        } = this.properties;
 
         const categoryAxis = this.getCategoryAxis();
         const crisp = checkCrisp(categoryAxis?.visibleRange);
@@ -680,7 +565,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 lineDashOffset,
                 fillShadow,
                 strokeWidth: this.getStrokeWidth(strokeWidth),
-                cornerRadius: this.cornerRadius,
+                cornerRadius: this.properties.cornerRadius,
                 cornerRadiusBbox: undefined,
             };
             const visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
@@ -727,16 +612,15 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     getTooltipHtml(nodeDatum: WaterfallNodeDatum): string {
-        const { xKey, yKey } = this;
-
         const categoryAxis = this.getCategoryAxis();
         const valueAxis = this.getValueAxis();
 
-        if (!xKey || !yKey || !categoryAxis || !valueAxis) {
+        if (!this.properties.isValid() || !categoryAxis || !valueAxis) {
             return '';
         }
 
-        const { xName, yName, id: seriesId } = this;
+        const { id: seriesId } = this;
+        const { xKey, yKey, xName, yName, tooltip } = this.properties;
         const { datum, itemId, xValue, yValue } = nodeDatum;
         const { fill, strokeWidth, name, formatter } = this.getItemConfig(itemId);
 
@@ -770,7 +654,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             `<b>${sanitizeHtml(xName ?? xKey)}</b>: ${xString}<br/>` +
             `<b>${sanitizeHtml(ySubheading)}</b>: ${yString}`;
 
-        return this.tooltip.toTooltipHtml(
+        return tooltip.toTooltipHtml(
             { title, content, backgroundColor: color },
             { seriesId, itemId, datum, xKey, yKey, xName, yName, color }
         );
@@ -804,9 +688,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     protected override toggleSeriesItem(): void {}
 
     override animateEmptyUpdateReady({ datumSelections, labelSelections, contextData, paths }: WaterfallAnimationData) {
-        const fns = prepareBarAnimationFunctions(
-            collapsedStartingBarPosition(this.direction === 'vertical', this.axes)
-        );
+        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes));
         motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, datumSelections, fns);
 
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
@@ -817,7 +699,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             }
 
             const [lineNode] = paths[contextDataIndex];
-            if (this.direction === 'vertical') {
+            if (this.isVertical()) {
                 this.animateConnectorLinesVertical(lineNode, pointData);
             } else {
                 this.animateConnectorLinesHorizontal(lineNode, pointData);
@@ -957,7 +839,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     protected updateLineNode(lineNode: _Scene.Path) {
-        const { stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this.line;
+        const { stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this.properties.line;
         lineNode.setProperties({
             fill: undefined,
             stroke,
@@ -971,7 +853,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     protected isLabelEnabled() {
-        return this.item.positive.label.enabled || this.item.negative.label.enabled || this.item.total.label.enabled;
+        const { positive, negative, total } = this.properties.item;
+        return positive.label.enabled || negative.label.enabled || total.label.enabled;
     }
 
     protected override onDataChange() {}

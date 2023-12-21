@@ -23,6 +23,7 @@ import { DataModelSeries } from '../dataModelSeries';
 import type { Series, SeriesNodeDataContext, SeriesNodeEventTypes, SeriesNodePickMatch } from '../series';
 import { SeriesNodeClickEvent } from '../series';
 import type { SeriesGroupZIndexSubOrderType } from '../seriesLayerManager';
+import { SeriesProperties } from '../seriesProperties';
 import type { SeriesNodeDatum } from '../seriesTypes';
 
 export interface CartesianSeriesNodeDatum extends SeriesNodeDatum {
@@ -124,6 +125,11 @@ export interface CategoryScaling {
     range: number[];
 }
 
+export abstract class CartesianSeriesProperties<T extends object> extends SeriesProperties<T> {
+    @Validate(STRING, { optional: true })
+    legendItemName?: string;
+}
+
 export interface CartesianSeriesNodeDataContext<
     TDatum extends CartesianSeriesNodeDatum = CartesianSeriesNodeDatum,
     TLabel extends SeriesNodeDatum = TDatum,
@@ -139,8 +145,7 @@ export abstract class CartesianSeries<
     TLabel extends SeriesNodeDatum = TDatum,
     TContext extends CartesianSeriesNodeDataContext<TDatum, TLabel> = CartesianSeriesNodeDataContext<TDatum, TLabel>,
 > extends DataModelSeries<TDatum, TLabel, TContext> {
-    @Validate(STRING, { optional: true })
-    legendItemName?: string = undefined;
+    abstract override properties: CartesianSeriesProperties<any>;
 
     private _contextNodeData: TContext[] = [];
     get contextNodeData() {
@@ -303,11 +308,7 @@ export abstract class CartesianSeries<
         subGroup.datumSelection = await this.updateDatumSelection({ nodeData, datumSelection, seriesIdx });
         subGroup.labelSelection = await this.updateLabelSelection({ labelData, labelSelection, seriesIdx });
         if (markerSelection) {
-            subGroup.markerSelection = await this.updateMarkerSelection({
-                nodeData,
-                markerSelection,
-                seriesIdx,
-            });
+            subGroup.markerSelection = await this.updateMarkerSelection({ nodeData, markerSelection, seriesIdx });
         }
     }
 
@@ -717,20 +718,22 @@ export abstract class CartesianSeries<
     }
 
     onLegendItemClick(event: LegendItemClickChartEvent) {
-        const { enabled, itemId, series, legendItemName } = event;
+        const { legendItemName } = this.properties;
+        const { enabled, itemId, series } = event;
 
-        const matchedLegendItemName = this.legendItemName != null && this.legendItemName === legendItemName;
+        const matchedLegendItemName = legendItemName != null && legendItemName === event.legendItemName;
         if (series.id === this.id || matchedLegendItemName) {
             this.toggleSeriesItem(itemId, enabled);
         }
     }
 
     onLegendItemDoubleClick(event: LegendItemDoubleClickChartEvent) {
-        const { enabled, itemId, series, numVisibleItems, legendItemName } = event;
+        const { enabled, itemId, series, numVisibleItems } = event;
+        const { legendItemName } = this.properties;
 
         const totalVisibleItems = Object.values(numVisibleItems).reduce((p, v) => p + v, 0);
 
-        const matchedLegendItemName = this.legendItemName != null && this.legendItemName === legendItemName;
+        const matchedLegendItemName = legendItemName != null && legendItemName === event.legendItemName;
         if (series.id === this.id || matchedLegendItemName) {
             // Double-clicked item should always become visible.
             this.toggleSeriesItem(itemId, true);
@@ -764,7 +767,9 @@ export abstract class CartesianSeries<
     override getMinRect() {
         const [context] = this._contextNodeData;
 
-        if (!context || context.nodeData.length == 0) return;
+        if (!context?.nodeData.length) {
+            return;
+        }
 
         const width = context.nodeData
             .map(({ midPoint }) => midPoint?.x ?? 0)
@@ -806,10 +811,11 @@ export abstract class CartesianSeries<
         items?: TLabel[];
         highlightLabelSelection: Selection<Text, TLabel>;
     }): Promise<Selection<Text, TLabel>> {
-        const { items, highlightLabelSelection } = opts;
-        const labelData = items ?? [];
-
-        return this.updateLabelSelection({ labelData, labelSelection: highlightLabelSelection, seriesIdx: -1 });
+        return this.updateLabelSelection({
+            labelData: opts.items ?? [],
+            labelSelection: opts.highlightLabelSelection,
+            seriesIdx: -1,
+        });
     }
 
     protected async updateDatumSelection(opts: {

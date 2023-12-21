@@ -1,26 +1,13 @@
-import type {
-    AgRangeBarSeriesFormat,
-    AgRangeBarSeriesFormatterParams,
-    AgRangeBarSeriesLabelFormatterParams,
-    AgRangeBarSeriesLabelPlacement,
-    AgRangeBarSeriesTooltipRendererParams,
-    AgTooltipRendererResult,
-} from 'ag-charts-community';
+import type { AgTooltipRendererResult } from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
+import { RangeBarProperties } from './rangeBarProperties';
+
 const {
-    Validate,
     SeriesNodePickMode,
     valueProperty,
     keyProperty,
     ChartAxisDirection,
-    PLACEMENT,
-    POSITIVE_NUMBER,
-    RATIO,
-    STRING,
-    FUNCTION,
-    COLOR_STRING,
-    LINE_DASH,
     getRectConfig,
     updateRect,
     checkCrisp,
@@ -98,18 +85,10 @@ class RangeBarSeriesNodeClickEvent<
 
     constructor(type: TEvent, nativeEvent: MouseEvent, datum: RangeBarNodeDatum, series: RangeBarSeries) {
         super(type, nativeEvent, datum, series);
-        this.xKey = series.xKey;
-        this.yLowKey = series.yLowKey;
-        this.yHighKey = series.yHighKey;
+        this.xKey = series.properties.xKey;
+        this.yLowKey = series.properties.yLowKey;
+        this.yHighKey = series.properties.yHighKey;
     }
-}
-
-class RangeBarSeriesLabel extends _Scene.Label<AgRangeBarSeriesLabelFormatterParams> {
-    @Validate(PLACEMENT)
-    placement: AgRangeBarSeriesLabelPlacement = 'inside';
-
-    @Validate(POSITIVE_NUMBER, { optional: true })
-    padding: number = 6;
 }
 
 export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
@@ -120,40 +99,16 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     static className = 'RangeBarSeries';
     static type = 'range-bar' as const;
 
+    override properties = new RangeBarProperties();
+
     protected override readonly NodeClickEvent = RangeBarSeriesNodeClickEvent;
 
-    readonly label = new RangeBarSeriesLabel();
+    /**
+     * Used to get the position of bars within each group.
+     */
+    private groupScale = new BandScale<string>();
 
-    tooltip = new _ModuleSupport.SeriesTooltip<AgRangeBarSeriesTooltipRendererParams>();
-
-    @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgRangeBarSeriesFormatterParams<any>) => AgRangeBarSeriesFormat = undefined;
-
-    shadow?: _Scene.DropShadow = undefined;
-
-    @Validate(COLOR_STRING, { optional: true })
-    fill: string = '#99CCFF';
-
-    @Validate(COLOR_STRING, { optional: true })
-    stroke: string = '#99CCFF';
-
-    @Validate(RATIO)
-    fillOpacity = 1;
-
-    @Validate(RATIO)
-    strokeOpacity = 1;
-
-    @Validate(LINE_DASH, { optional: true })
-    lineDash?: number[] = [0];
-
-    @Validate(POSITIVE_NUMBER)
-    lineDashOffset: number = 0;
-
-    @Validate(POSITIVE_NUMBER)
-    strokeWidth: number = 1;
-
-    @Validate(POSITIVE_NUMBER)
-    cornerRadius: number = 0;
+    protected smallestDataInterval?: { x: number; y: number } = undefined;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
@@ -170,11 +125,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         });
     }
 
-    /**
-     * Used to get the position of bars within each group.
-     */
-    private groupScale = new BandScale<string>();
-
     protected override resolveKeyDirection(direction: _ModuleSupport.ChartAxisDirection) {
         if (this.getBarDirection() === ChartAxisDirection.X) {
             if (direction === ChartAxisDirection.X) {
@@ -185,47 +135,24 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         return direction;
     }
 
-    @Validate(STRING, { optional: true })
-    xKey?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    xName?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    yLowKey?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    yLowName?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    yHighKey?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    yHighName?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    yName?: string = undefined;
-
-    protected smallestDataInterval?: { x: number; y: number } = undefined;
-
     override async processData(dataController: _ModuleSupport.DataController) {
-        const { xKey, yLowKey, yHighKey, data = [] } = this;
+        if (!this.properties.isValid()) {
+            return;
+        }
 
-        if (!yLowKey || !yHighKey) return;
-
+        const { xKey, yLowKey, yHighKey } = this.properties;
         const isContinuousX = ContinuousScale.is(this.getCategoryAxis()?.scale);
         const isContinuousY = ContinuousScale.is(this.getValueAxis()?.scale);
 
         const extraProps = [];
-        const animationEnabled = !this.ctx.animationManager.isSkipped();
-        if (!this.ctx.animationManager.isSkipped() && this.processedData) {
-            extraProps.push(diff(this.processedData));
-        }
-        if (animationEnabled) {
+        if (!this.ctx.animationManager.isSkipped()) {
+            if (this.processedData) {
+                extraProps.push(diff(this.processedData));
+            }
             extraProps.push(animationValidation(this));
         }
 
-        const { processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
+        const { processedData } = await this.requestDataModel<any, any, true>(dataController, this.data ?? [], {
             props: [
                 keyProperty(this, xKey, isContinuousX, { id: 'xValue' }),
                 valueProperty(this, yLowKey, isContinuousY, { id: `yLowValue` }),
@@ -289,13 +216,11 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const {
             data,
             dataModel,
-            smallestDataInterval,
-            visible,
             groupScale,
-            fill,
-            stroke,
-            strokeWidth,
+            processedData,
+            smallestDataInterval,
             ctx: { seriesStateManager },
+            properties: { visible },
         } = this;
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
@@ -308,8 +233,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const yScale = yAxis.scale;
 
         const barAlongX = this.getBarDirection() === ChartAxisDirection.X;
-
-        const { yLowKey = '', yHighKey = '', xKey = '', processedData } = this;
+        const { xKey, yLowKey, yHighKey, fill, stroke, strokeWidth } = this.properties;
 
         const itemId = `${yLowKey}-${yHighKey}`;
 
@@ -440,27 +364,19 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         datum: any;
         series: RangeBarSeries;
     }): RangeBarNodeLabelDatum[] {
-        const { placement, padding } = this.label;
+        const { xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName, label } = this.properties;
+        const labelParams = { datum, xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName };
 
+        const { placement, padding } = label;
         const paddingDirection = placement === 'outside' ? 1 : -1;
         const labelPadding = padding * paddingDirection;
-        const labelParams = {
-            datum,
-            xKey: this.xKey ?? '',
-            yLowKey: this.yLowKey ?? '',
-            yHighKey: this.yHighKey ?? '',
-            xName: this.xName,
-            yLowName: this.yLowName,
-            yHighName: this.yHighName,
-            yName: this.yName,
-        };
 
         const yLowLabel: RangeBarNodeLabelDatum = {
             x: rect.x + (barAlongX ? -labelPadding : rect.width / 2),
             y: rect.y + (barAlongX ? rect.height / 2 : rect.height + labelPadding),
             textAlign: barAlongX ? 'left' : 'center',
             textBaseline: barAlongX ? 'middle' : 'bottom',
-            text: this.getLabelText(this.label, { itemId: 'low', value: yLowValue, ...labelParams }, (value) =>
+            text: this.getLabelText(label, { itemId: 'low', value: yLowValue, ...labelParams }, (value) =>
                 isNumber(value) ? value.toFixed(2) : ''
             ),
             itemId: 'low',
@@ -472,7 +388,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             y: rect.y + (barAlongX ? rect.height / 2 : -labelPadding),
             textAlign: barAlongX ? 'right' : 'center',
             textBaseline: barAlongX ? 'middle' : 'top',
-            text: this.getLabelText(this.label, { itemId: 'high', value: yHighValue, ...labelParams }, (value) =>
+            text: this.getLabelText(label, { itemId: 'high', value: yHighValue, ...labelParams }, (value) =>
                 isNumber(value) ? value.toFixed(2) : ''
             ),
             itemId: 'high',
@@ -508,13 +424,12 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
+        const { id: seriesId, ctx } = this;
         const {
-            yLowKey = '',
-            yHighKey = '',
+            yLowKey,
+            yHighKey,
             highlightStyle: { item: itemHighlightStyle },
-            id: seriesId,
-            ctx,
-        } = this;
+        } = this.properties;
 
         const xAxis = this.axes[ChartAxisDirection.X];
         const crisp = checkCrisp(xAxis?.visibleRange);
@@ -530,7 +445,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 lineDashOffset,
                 formatter,
                 shadow: fillShadow,
-            } = this;
+            } = this.properties;
             const style: _ModuleSupport.RectConfig = {
                 fill: datum.fill,
                 stroke: datum.stroke,
@@ -540,7 +455,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 lineDashOffset,
                 fillShadow,
                 strokeWidth: this.getStrokeWidth(strokeWidth),
-                cornerRadius: this.cornerRadius,
+                cornerRadius: this.properties.cornerRadius,
                 cornerRadiusBbox: undefined,
             };
             const visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
@@ -577,7 +492,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         labelData: RangeBarNodeLabelDatum[];
         labelSelection: RangeBarAnimationData['labelSelections'][number];
     }) {
-        const labelData = this.label.enabled ? opts.labelData : [];
+        const labelData = this.properties.label.enabled ? opts.labelData : [];
         return opts.labelSelection.update(labelData, (text) => {
             text.pointerEvents = PointerEvents.None;
         });
@@ -585,30 +500,28 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
     protected async updateLabelNodes(opts: { labelSelection: _Scene.Selection<_Scene.Text, any> }) {
         opts.labelSelection.each((textNode, datum) => {
-            updateLabelNode(textNode, this.label, datum);
+            updateLabelNode(textNode, this.properties.label, datum);
         });
     }
 
     getTooltipHtml(nodeDatum: RangeBarNodeDatum): string {
         const {
-            xKey,
-            yLowKey,
-            yHighKey,
+            id: seriesId,
             ctx: { callbackCache },
         } = this;
 
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
-        if (!xKey || !yLowKey || !yHighKey || !xAxis || !yAxis) {
+        if (!this.properties.isValid() || !xAxis || !yAxis) {
             return '';
         }
 
-        const { xName, yLowName, yHighName, yName, id: seriesId, fill, strokeWidth, formatter, tooltip } = this;
+        const { xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName, fill, strokeWidth, formatter, tooltip } =
+            this.properties;
         const { datum, itemId, xValue, yLowValue, yHighValue } = nodeDatum;
 
         let format;
-
         if (formatter) {
             format = callbackCache.call(formatter, {
                 datum,
@@ -670,7 +583,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         }
 
         const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity, yName, yLowName, yHighName, yLowKey, yHighKey } =
-            this;
+            this.properties;
         const legendItemText = yName ?? `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`;
 
         return [
@@ -687,7 +600,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     override animateEmptyUpdateReady({ datumSelections, labelSelections }: RangeBarAnimationData) {
-        const fns = prepareBarAnimationFunctions(midpointStartingBarPosition(this.direction === 'vertical'));
+        const fns = prepareBarAnimationFunctions(midpointStartingBarPosition(this.isVertical()));
         motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, datumSelections, fns);
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
     }
@@ -699,7 +612,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
-        const fns = prepareBarAnimationFunctions(midpointStartingBarPosition(this.direction === 'vertical'));
+        const fns = prepareBarAnimationFunctions(midpointStartingBarPosition(this.isVertical()));
         motion.fromToMotion(
             this.id,
             'datums',
@@ -718,7 +631,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     protected isLabelEnabled() {
-        return this.label.enabled;
+        return this.properties.label.enabled;
     }
 
     protected override onDataChange() {}

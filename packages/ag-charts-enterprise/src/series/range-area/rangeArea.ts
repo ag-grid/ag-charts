@@ -1,23 +1,12 @@
-import type {
-    AgRangeAreaSeriesLabelFormatterParams,
-    AgRangeAreaSeriesLabelPlacement,
-    AgRangeAreaSeriesOptionsKeys,
-    AgRangeAreaSeriesTooltipRendererParams,
-} from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
+import { RangeAreaProperties } from './rangeAreaProperties';
+
 const {
-    Validate,
     valueProperty,
     trailingValueProperty,
     keyProperty,
     ChartAxisDirection,
-    RATIO,
-    PLACEMENT,
-    POSITIVE_NUMBER,
-    STRING,
-    COLOR_STRING,
-    LINE_DASH,
     mergeDefaults,
     updateLabelNode,
     fixNumericExtent,
@@ -54,7 +43,8 @@ type RangeAreaLabelDatum = Readonly<_Scene.Point> & {
     series: _ModuleSupport.CartesianSeriesNodeDatum['series'];
 };
 
-interface RangeAreaMarkerDatum extends Required<Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'yKey' | 'yValue'>> {
+export interface RangeAreaMarkerDatum
+    extends Required<Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'yKey' | 'yValue'>> {
     readonly index: number;
     readonly yLowKey: string;
     readonly yHighKey: string;
@@ -77,18 +67,10 @@ class RangeAreaSeriesNodeClickEvent<
 
     constructor(type: TEvent, nativeEvent: MouseEvent, datum: RangeAreaMarkerDatum, series: RangeAreaSeries) {
         super(type, nativeEvent, datum, series);
-        this.xKey = series.xKey;
-        this.yLowKey = series.yLowKey;
-        this.yHighKey = series.yHighKey;
+        this.xKey = series.properties.xKey;
+        this.yLowKey = series.properties.yLowKey;
+        this.yHighKey = series.properties.yHighKey;
     }
-}
-
-class RangeAreaSeriesLabel extends _Scene.Label<AgRangeAreaSeriesLabelFormatterParams> {
-    @Validate(PLACEMENT)
-    placement: AgRangeAreaSeriesLabelPlacement = 'outside';
-
-    @Validate(POSITIVE_NUMBER, { optional: true })
-    padding: number = 6;
 }
 
 type RadarAreaPoint = _ModuleSupport.AreaPathPoint & { size: number };
@@ -107,35 +89,9 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     static className = 'RangeAreaSeries';
     static type = 'range-area' as const;
 
+    override properties = new RangeAreaProperties();
+
     protected override readonly NodeClickEvent = RangeAreaSeriesNodeClickEvent;
-
-    readonly marker = new _ModuleSupport.SeriesMarker<AgRangeAreaSeriesOptionsKeys, RangeAreaMarkerDatum>();
-    readonly label = new RangeAreaSeriesLabel();
-
-    tooltip = new _ModuleSupport.SeriesTooltip<AgRangeAreaSeriesTooltipRendererParams>();
-
-    shadow?: _Scene.DropShadow = undefined;
-
-    @Validate(COLOR_STRING, { optional: true })
-    fill: string = '#99CCFF';
-
-    @Validate(COLOR_STRING, { optional: true })
-    stroke: string = '#99CCFF';
-
-    @Validate(RATIO)
-    fillOpacity = 1;
-
-    @Validate(RATIO)
-    strokeOpacity = 1;
-
-    @Validate(LINE_DASH, { optional: true })
-    lineDash?: number[] = [0];
-
-    @Validate(POSITIVE_NUMBER)
-    lineDashOffset: number = 0;
-
-    @Validate(POSITIVE_NUMBER)
-    strokeWidth: number = 1;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
@@ -153,32 +109,12 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         });
     }
 
-    @Validate(STRING, { optional: true })
-    xKey?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    xName?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    yLowKey?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    yLowName?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    yHighKey?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    yHighName?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    yName?: string = undefined;
-
     override async processData(dataController: _ModuleSupport.DataController) {
-        const { xKey, yLowKey, yHighKey, data = [] } = this;
+        if (!this.properties.isValid()) {
+            return;
+        }
 
-        if (!yLowKey || !yHighKey) return;
-
+        const { xKey, yLowKey, yHighKey } = this.properties;
         const { isContinuousX, isContinuousY } = this.isContinuous();
 
         const extraProps = [];
@@ -190,7 +126,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             extraProps.push(animationValidation(this));
         }
 
-        await this.requestDataModel<any, any, true>(dataController, data, {
+        await this.requestDataModel<any, any, true>(dataController, this.data ?? [], {
             props: [
                 keyProperty(this, xKey, isContinuousX, { id: `xValue` }),
                 valueProperty(this, yLowKey, isContinuousY, { id: `yLowValue`, invalidValue: undefined }),
@@ -257,7 +193,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
 
-        const { yLowKey = '', yHighKey = '', xKey = '', processedData } = this;
+        const { xKey, yLowKey, yHighKey, marker } = this.properties;
 
         const itemId = `${yLowKey}-${yHighKey}`;
         const xOffset = (xScale.bandwidth ?? 0) / 2;
@@ -276,8 +212,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             const yLowCoordinate = yScale.convert(yLow);
 
             return [
-                { point: { x, y: yHighCoordinate }, size: this.marker.size, itemId: `high`, yValue: yHigh, xValue },
-                { point: { x, y: yLowCoordinate }, size: this.marker.size, itemId: `low`, yValue: yLow, xValue },
+                { point: { x, y: yHighCoordinate }, size: marker.size, itemId: `high`, yValue: yHigh, xValue },
+                { point: { x, y: yLowCoordinate }, size: marker.size, itemId: `low`, yValue: yLow, xValue },
             ];
         };
 
@@ -309,7 +245,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         let lastXValue: any;
         let lastYHighDatum: any = -Infinity;
         let lastYLowDatum: any = -Infinity;
-        processedData?.data.forEach(({ keys, datum, values }, datumIdx) => {
+        this.processedData?.data.forEach(({ keys, datum, values }, datumIdx) => {
             const dataValues = dataModel.resolveProcessedDataDefsValues(defs, { keys, values });
             const { xValue, yHighValue, yLowValue } = dataValues;
 
@@ -419,7 +355,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         datum: any;
         series: RangeAreaSeries;
     }): RangeAreaLabelDatum {
-        const { placement, padding = 10 } = this.label;
+        const { xKey, yLowKey, yHighKey, xName, yName, yLowName, yHighName, label } = this.properties;
+        const { placement, padding = 10 } = label;
 
         const actualItemId = inverted ? (itemId === 'low' ? 'high' : 'low') : itemId;
         const direction =
@@ -434,19 +371,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             itemId,
             datum,
             text: this.getLabelText(
-                this.label,
-                {
-                    value,
-                    datum,
-                    itemId,
-                    xKey: this.xKey ?? '',
-                    yLowKey: this.yLowKey ?? '',
-                    yHighKey: this.yHighKey ?? '',
-                    xName: this.xName,
-                    yLowName: this.yLowName,
-                    yHighName: this.yHighName,
-                    yName: this.yName,
-                },
+                label,
+                { value, datum, itemId, xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName },
                 (value) => (isNumber(value) ? value.toFixed(2) : String(value))
             ),
             textAlign: 'center',
@@ -455,11 +381,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }
 
     protected override isPathOrSelectionDirty(): boolean {
-        return this.marker.isDirty();
+        return this.properties.marker.isDirty();
     }
 
     protected override markerFactory() {
-        const { shape } = this.marker;
+        const { shape } = this.properties.marker;
         const MarkerShape = getMarker(shape);
         return new MarkerShape();
     }
@@ -469,17 +395,17 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const [fill, stroke] = opts.paths;
         const { seriesRectHeight: height, seriesRectWidth: width } = this.nodeDataDependencies;
 
-        const strokeWidth = this.getStrokeWidth(this.strokeWidth);
+        const strokeWidth = this.getStrokeWidth(this.properties.strokeWidth);
         stroke.setProperties({
             tag: AreaSeriesTag.Stroke,
             fill: undefined,
             lineJoin: (stroke.lineCap = 'round'),
             pointerEvents: PointerEvents.None,
-            stroke: this.stroke,
+            stroke: this.properties.stroke,
             strokeWidth,
-            strokeOpacity: this.strokeOpacity,
-            lineDash: this.lineDash,
-            lineDashOffset: this.lineDashOffset,
+            strokeOpacity: this.properties.strokeOpacity,
+            lineDash: this.properties.lineDash,
+            lineDashOffset: this.properties.lineDashOffset,
             opacity,
             visible,
         });
@@ -488,12 +414,12 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             stroke: undefined,
             lineJoin: 'round',
             pointerEvents: PointerEvents.None,
-            fill: this.fill,
-            fillOpacity: this.fillOpacity,
-            lineDash: this.lineDash,
-            lineDashOffset: this.lineDashOffset,
-            strokeOpacity: this.strokeOpacity,
-            fillShadow: this.shadow,
+            fill: this.properties.fill,
+            fillOpacity: this.properties.fillOpacity,
+            lineDash: this.properties.lineDash,
+            lineDashOffset: this.properties.lineDashOffset,
+            strokeOpacity: this.properties.strokeOpacity,
+            fillShadow: this.properties.shadow,
             strokeWidth,
             opacity,
             visible,
@@ -559,17 +485,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         markerSelection: _Scene.Selection<_Scene.Marker, RangeAreaMarkerDatum>;
     }) {
         const { nodeData, markerSelection } = opts;
-        const {
-            marker: { enabled },
-        } = this;
-        const data = enabled && nodeData ? nodeData : [];
-
-        if (this.marker.isDirty()) {
+        if (this.properties.marker.isDirty()) {
             markerSelection.clear();
             markerSelection.cleanup();
         }
-
-        return markerSelection.update(data);
+        return markerSelection.update(this.properties.marker.enabled ? nodeData : []);
     }
 
     protected override async updateMarkerNodes(opts: {
@@ -577,19 +497,10 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         isHighlight: boolean;
     }) {
         const { markerSelection, isHighlight: highlighted } = opts;
-        const {
-            xKey = '',
-            yLowKey = '',
-            yHighKey = '',
-            marker,
-            fill,
-            stroke,
-            strokeWidth,
-            fillOpacity,
-            strokeOpacity,
-        } = this;
+        const { xKey, yLowKey, yHighKey, marker, fill, stroke, strokeWidth, fillOpacity, strokeOpacity } =
+            this.properties;
 
-        const baseStyle = mergeDefaults(highlighted && this.highlightStyle.item, marker.getStyle(), {
+        const baseStyle = mergeDefaults(highlighted && this.properties.highlightStyle.item, marker.getStyle(), {
             fill,
             fillOpacity,
             stroke,
@@ -602,7 +513,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         });
 
         if (!highlighted) {
-            this.marker.markClean();
+            this.properties.marker.markClean();
         }
     }
 
@@ -620,7 +531,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
     protected async updateLabelNodes(opts: { labelSelection: _Scene.Selection<_Scene.Text, RangeAreaLabelDatum> }) {
         opts.labelSelection.each((textNode, datum) => {
-            updateLabelNode(textNode, this.label, datum);
+            updateLabelNode(textNode, this.properties.label, datum);
         });
     }
 
@@ -641,17 +552,15 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }
 
     getTooltipHtml(nodeDatum: RangeAreaMarkerDatum): string {
-        const { xKey, yLowKey, yHighKey, axes } = this;
+        const xAxis = this.axes[ChartAxisDirection.X];
+        const yAxis = this.axes[ChartAxisDirection.Y];
 
-        const xAxis = axes[ChartAxisDirection.X];
-        const yAxis = axes[ChartAxisDirection.Y];
-
-        if (!xKey || !yLowKey || !yHighKey || !xAxis || !yAxis) {
+        if (!this.properties.isValid() || !xAxis || !yAxis) {
             return '';
         }
 
-        const { xName, yLowName, yHighName, yName, id: seriesId, fill, tooltip } = this;
-
+        const { id: seriesId } = this;
+        const { xKey, yLowKey, yHighKey, xName, yName, yLowName, yHighName, fill, tooltip } = this.properties;
         const { datum, itemId, xValue, yLowValue, yHighValue } = nodeDatum;
 
         const color = fill ?? 'gray';
@@ -674,56 +583,45 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
         return tooltip.toTooltipHtml(
             { title, content, backgroundColor: color },
-            {
-                seriesId,
-                itemId,
-                datum,
-                xKey,
-                yLowKey,
-                yHighKey,
-                xName,
-                yLowName,
-                yHighName,
-                yName,
-                color,
-            }
+            { seriesId, itemId, datum, xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName, color }
         );
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
-        const { id, visible } = this;
-
         if (legendType !== 'category') {
             return [];
         }
 
-        const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity, yName, yLowName, yHighName, yLowKey, yHighKey } =
-            this;
+        const {
+            yLowKey,
+            yHighKey,
+            yName,
+            yLowName,
+            yHighName,
+            fill,
+            stroke,
+            strokeWidth,
+            fillOpacity,
+            strokeOpacity,
+            visible,
+        } = this.properties;
         const legendItemText = yName ?? `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`;
 
         return [
             {
                 legendType: 'category',
-                id,
+                id: this.id,
                 itemId: `${yLowKey}-${yHighKey}`,
-                seriesId: id,
+                seriesId: this.id,
                 enabled: visible,
-                label: {
-                    text: `${legendItemText}`,
-                },
-                marker: {
-                    fill,
-                    stroke,
-                    fillOpacity,
-                    strokeOpacity,
-                    strokeWidth,
-                },
+                label: { text: `${legendItemText}` },
+                marker: { fill, stroke, fillOpacity, strokeOpacity, strokeWidth },
             },
         ];
     }
 
     protected isLabelEnabled() {
-        return this.label.enabled;
+        return this.properties.label.enabled;
     }
 
     override onDataChange() {}

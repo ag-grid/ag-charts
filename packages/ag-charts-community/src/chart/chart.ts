@@ -989,7 +989,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
             const isCategoryLegendData = (
                 data: Array<CategoryLegendDatum | GradientLegendDatum>
             ): data is CategoryLegendDatum[] => data.every((d) => d.legendType === 'category');
-            const legendData = this.series.filter((s) => s.showInLegend).flatMap((s) => s.getLegendData(legendType));
+            const legendData = this.series
+                .filter((s) => s.properties.showInLegend)
+                .flatMap((s) => s.getLegendData(legendType));
 
             if (isCategoryLegendData(legendData)) {
                 this.validateCategoryLegendData(legendData);
@@ -1178,7 +1180,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
 
         const isPixelRange = pixelRange != null;
-        const tooltipEnabled = this.tooltip.enabled && pick.series.tooltip.enabled;
+        const tooltipEnabled = this.tooltip.enabled && pick.series.properties.tooltip.enabled;
         const exactlyMatched = range === 'exact' && pick.distance === 0;
         const rangeMatched = range === 'nearest' || isPixelRange || exactlyMatched;
         const shouldUpdateTooltip = tooltipEnabled && rangeMatched && (!isNewDatum || html !== undefined);
@@ -1249,7 +1251,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const nearestNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, false);
 
         const datum = nearestNode?.datum;
-        const nodeClickRange = datum?.series.nodeClickRange;
+        const nodeClickRange = datum?.series.properties.nodeClickRange;
 
         let pixelRange;
         if (typeof nodeClickRange === 'number' && Number.isFinite(nodeClickRange)) {
@@ -1323,11 +1325,11 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
 
         // Adjust cursor if a specific datum is highlighted, rather than just a series.
-        if (lastSeries?.cursor && lastDatum) {
+        if (lastSeries?.properties.cursor && lastDatum) {
             this.cursorManager.updateCursor(lastSeries.id);
         }
-        if (newSeries?.cursor && newDatum) {
-            this.cursorManager.updateCursor(newSeries.id, newSeries.cursor);
+        if (newSeries?.properties.cursor && newDatum) {
+            this.cursorManager.updateCursor(newSeries.id, newSeries.properties.cursor);
         }
 
         this.lastPick = event.currentHighlight ? { datum: event.currentHighlight } : undefined;

@@ -293,7 +293,7 @@ describe('BulletSeriesValidation', () => {
 
         expect(console.warn).toBeCalledTimes(1);
         expect(console.warn).toBeCalledWith(
-            'AG Charts - Property [colorRanges] of [BulletSeries] cannot be set to [[]]; expecting a non-empty array, ignoring.'
+            'AG Charts - Property [colorRanges] of [BulletSeriesProperties] cannot be set to [[]]; expecting a non-empty array, ignoring.'
         );
         await compare(chart, ctx);
     });

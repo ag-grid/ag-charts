@@ -335,7 +335,12 @@ export function patchAgChartOptionsReference(reference: ApiReferenceType) {
             }
 
             if (member.name === 'axes') {
-                axisOptions.push(...getTypeUnion(reference.get(member.type.type)));
+                const axisOption = reference.get(member.type.type);
+                // Ignore `groupedCategory` axis, as it is an implementation detail
+                const axisOptionUnion = getTypeUnion(axisOption).filter(
+                    (name) => name !== 'AgGroupedCategoryAxisOptions'
+                );
+                axisOptions.push(...axisOptionUnion);
             } else if (member.name === 'series') {
                 seriesOptions.push(...getTypeUnion(reference.get(member.type.type)));
             }

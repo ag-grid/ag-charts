@@ -1,40 +1,34 @@
 import type { AgSeriesTooltipRendererParams, AgTooltipRendererResult } from '../../options/chart/tooltipOptions';
-import { interpolate } from '../../util/string';
-import { BOOLEAN, FUNCTION, STRING, Validate } from '../../util/validation';
+import { BaseProperties } from '../../util/properties';
+import { BOOLEAN, FUNCTION, OBJECT, Validate } from '../../util/validation';
 import { TooltipPosition, toTooltipHtml } from '../tooltip/tooltip';
 
 type TooltipRenderer<P> = (params: P) => string | AgTooltipRendererResult;
-type TooltipOverrides<P> = { format?: string; renderer?: TooltipRenderer<P> };
 
-class SeriesTooltipInteraction {
+class SeriesTooltipInteraction extends BaseProperties {
     @Validate(BOOLEAN)
-    enabled = false;
+    enabled: boolean = false;
 }
 
-export class SeriesTooltip<P extends AgSeriesTooltipRendererParams> {
+export class SeriesTooltip<P extends AgSeriesTooltipRendererParams> extends BaseProperties {
     @Validate(BOOLEAN)
-    enabled = true;
+    enabled: boolean = true;
 
     @Validate(BOOLEAN, { optional: true })
-    showArrow?: boolean = undefined;
-
-    @Validate(STRING, { optional: true })
-    format?: string = undefined;
+    showArrow?: boolean;
 
     @Validate(FUNCTION, { optional: true })
-    renderer?: TooltipRenderer<P> = undefined;
+    renderer?: TooltipRenderer<P>;
 
+    @Validate(OBJECT)
     readonly interaction = new SeriesTooltipInteraction();
+
+    @Validate(OBJECT)
     readonly position = new TooltipPosition();
 
-    toTooltipHtml(defaults: AgTooltipRendererResult, params: P, overrides?: TooltipOverrides<P>) {
-        const formatFn = overrides?.format ?? this.format;
-        const rendererFn = overrides?.renderer ?? this.renderer;
-        if (formatFn) {
-            return toTooltipHtml({ content: interpolate(formatFn, params) }, defaults);
-        }
-        if (rendererFn) {
-            return toTooltipHtml(rendererFn(params), defaults);
+    toTooltipHtml(defaults: AgTooltipRendererResult, params: P) {
+        if (this.renderer) {
+            return toTooltipHtml(this.renderer(params), defaults);
         }
         return toTooltipHtml(defaults);
     }

@@ -1,5 +1,7 @@
-import type { AgBarSeriesStyle, AgBulletSeriesTooltipRendererParams } from 'ag-charts-community';
+import type { AgBarSeriesStyle } from 'ag-charts-community';
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+
+import { BulletSeriesProperties } from './bulletSeriesProperties';
 
 const {
     animationValidation,
@@ -11,13 +13,6 @@ const {
     resetBarSelectionsFn,
     seriesLabelFadeInAnimation,
     valueProperty,
-    Validate,
-    COLOR_STRING,
-    STRING,
-    LINE_DASH,
-    POSITIVE_NUMBER,
-    RATIO,
-    ARRAY,
 } = _ModuleSupport;
 const { fromToMotion } = _Scene.motion;
 const { sanitizeHtml } = _Util;
@@ -35,14 +30,6 @@ interface BulletNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
         readonly x2: number;
         readonly y2: number;
     };
-}
-
-export class BulletColorRange {
-    @Validate(COLOR_STRING)
-    color: string = 'lightgrey';
-
-    @Validate(POSITIVE_NUMBER, { optional: true })
-    stop?: number = undefined;
 }
 
 interface NormalizedColorRange {
@@ -63,82 +50,8 @@ const STYLING_KEYS: (keyof _Scene.Shape)[] = [
 
 type BulletAnimationData = _ModuleSupport.CartesianAnimationData<_Scene.Rect, BulletNodeDatum>;
 
-class TargetStyle {
-    @Validate(COLOR_STRING)
-    fill: string = 'black';
-
-    @Validate(RATIO)
-    fillOpacity = 1;
-
-    @Validate(COLOR_STRING)
-    stroke: string = 'black';
-
-    @Validate(POSITIVE_NUMBER)
-    strokeWidth = 1;
-
-    @Validate(RATIO)
-    strokeOpacity = 1;
-
-    @Validate(LINE_DASH)
-    lineDash: number[] = [0];
-
-    @Validate(POSITIVE_NUMBER)
-    lineDashOffset: number = 0;
-
-    @Validate(RATIO)
-    lengthRatio: number = 0.75;
-}
-
-class BulletScale {
-    @Validate(POSITIVE_NUMBER, { optional: true })
-    max?: number = undefined; // alias for AgChartOptions.axes[0].max
-}
-
 export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, BulletNodeDatum> {
-    @Validate(COLOR_STRING)
-    fill: string = 'black';
-
-    @Validate(RATIO)
-    fillOpacity = 1;
-
-    @Validate(COLOR_STRING)
-    stroke: string = 'black';
-
-    @Validate(POSITIVE_NUMBER)
-    strokeWidth = 1;
-
-    @Validate(RATIO)
-    strokeOpacity = 1;
-
-    @Validate(LINE_DASH)
-    lineDash: number[] = [0];
-
-    @Validate(POSITIVE_NUMBER)
-    lineDashOffset: number = 0;
-
-    @Validate(RATIO)
-    widthRatio: number = 0.5;
-
-    target: TargetStyle = new TargetStyle();
-
-    @Validate(STRING)
-    valueKey: string = '';
-
-    @Validate(STRING, { optional: true })
-    valueName?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    targetKey?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    targetName?: string = undefined;
-
-    @Validate(ARRAY.restrict({ minLength: 1 }), { optional: true })
-    colorRanges: BulletColorRange[] = [new BulletColorRange()];
-
-    scale: BulletScale = new BulletScale();
-
-    tooltip = new _ModuleSupport.SeriesTooltip<AgBulletSeriesTooltipRendererParams>();
+    override properties = new BulletSeriesProperties();
 
     private normalizedColorRanges: NormalizedColorRange[] = [];
     private colorRangesGroup: _Scene.Group;
@@ -166,21 +79,19 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
     }
 
     override async processData(dataController: _ModuleSupport.DataController) {
-        const { valueKey, targetKey, data = [] } = this;
-        if (!valueKey || !data) return;
-
-        const isContinuousX = _Scale.ContinuousScale.is(this.getCategoryAxis()?.scale);
-        const isContinuousY = _Scale.ContinuousScale.is(this.getValueAxis()?.scale);
-
-        const props = [
-            keyProperty(this, valueKey, isContinuousX, { id: 'xValue' }),
-            valueProperty(this, valueKey, isContinuousY, { id: 'value' }),
-        ];
-        if (targetKey !== undefined) {
-            props.push(valueProperty(this, targetKey, isContinuousY, { id: 'target' }));
+        if (!this.properties.isValid() || !this.data) {
+            return;
         }
 
+        const { valueKey, targetKey } = this.properties;
+        const isContinuousX = _Scale.ContinuousScale.is(this.getCategoryAxis()?.scale);
+        const isContinuousY = _Scale.ContinuousScale.is(this.getValueAxis()?.scale);
         const extraProps = [];
+
+        if (targetKey !== undefined) {
+            extraProps.push(valueProperty(this, targetKey, isContinuousY, { id: 'target' }));
+        }
+
         if (!this.ctx.animationManager.isSkipped()) {
             if (this.processedData !== undefined) {
                 extraProps.push(diff(this.processedData));
@@ -189,9 +100,13 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
         }
 
         // Bullet graphs only need 1 datum, but we keep that `data` option as array for consistency with other series
-        // types and future compatibility (we may decide to support multiple datums at some point).
-        await this.requestDataModel<any, any, true>(dataController, data.slice(0, 1), {
-            props: [...props, ...extraProps],
+        // types and future compatibility (we may decide to support multiple datum at some point).
+        await this.requestDataModel<any, any, true>(dataController, this.data.slice(0, 1), {
+            props: [
+                keyProperty(this, valueKey, isContinuousX, { id: 'xValue' }),
+                valueProperty(this, valueKey, isContinuousY, { id: 'value' }),
+                ...extraProps,
+            ],
             groupByKeys: true,
             dataVisible: this.visible,
         });
@@ -208,11 +123,15 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection) {
-        const { dataModel, processedData, targetKey } = this;
-        if (!dataModel || !processedData) return [];
+        const { dataModel, processedData } = this;
+        if (!dataModel || !processedData) {
+            return [];
+        }
+
+        const { valueKey, targetKey, valueName } = this.properties;
 
         if (direction === this.getCategoryDirection()) {
-            return [this.valueName ?? this.valueKey];
+            return [valueName ?? valueKey];
         } else if (direction == this.getValueAxis()?.direction) {
             const valueDomain = dataModel.getDomain(this, 'value', 'value', processedData);
             const targetDomain =
@@ -225,20 +144,19 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
 
     override getKeys(direction: _ModuleSupport.ChartAxisDirection): string[] {
         if (direction === this.getBarDirection()) {
-            return [this.valueKey];
+            return [this.properties.valueKey];
         }
         return super.getKeys(direction);
     }
 
     override async createNodeData() {
+        const { dataModel, processedData } = this;
         const {
             valueKey,
             targetKey,
-            dataModel,
-            processedData,
             widthRatio,
             target: { lengthRatio },
-        } = this;
+        } = this.properties;
         const xScale = this.getCategoryAxis()?.scale;
         const yScale = this.getValueAxis()?.scale;
         if (!valueKey || !dataModel || !processedData || !xScale || !yScale) return [];
@@ -265,7 +183,7 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
                 _Util.Logger.warnOnce('negative values are not supported, clipping to 0.');
             }
 
-            const xValue = this.valueName ?? this.valueKey;
+            const xValue = this.properties.valueName ?? this.properties.valueKey;
             const yValue = Math.min(maxValue, Math.max(0, values[0][valueIndex]));
             const y = yScale.convert(yValue);
             const barWidth = widthRatio * multiplier;
@@ -286,7 +204,7 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
                 _Util.Logger.warnOnce('negative targets are not supported, ignoring.');
             }
 
-            if (this.targetKey && values[0][targetIndex] >= 0) {
+            if (this.properties.targetKey && values[0][targetIndex] >= 0) {
                 const targetLineLength = lengthRatio * multiplier;
                 const targetValue = Math.min(maxValue, values[0][targetIndex]);
                 if (!isNaN(targetValue) && targetValue !== undefined) {
@@ -316,7 +234,9 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
             context.nodeData.push(nodeData);
         }
 
-        const sortedRanges = [...this.colorRanges].sort((a, b) => (a.stop || maxValue) - (b.stop || maxValue));
+        const sortedRanges = [...this.properties.colorRanges].sort(
+            (a, b) => (a.stop || maxValue) - (b.stop || maxValue)
+        );
         let start = 0;
         this.normalizedColorRanges = sortedRanges.map((item) => {
             const stop = Math.min(maxValue, item.stop ?? Infinity);
@@ -333,7 +253,7 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
     }
 
     override getTooltipHtml(nodeDatum: BulletNodeDatum): string {
-        const { valueKey, valueName, targetKey, targetName } = this;
+        const { valueKey, valueName, targetKey, targetName } = this.properties;
         const axis = this.getValueAxis();
         const { yValue: valueValue, target: { value: targetValue } = { value: undefined }, datum } = nodeDatum;
 
@@ -352,7 +272,7 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
                 ? makeLine(valueKey, valueName, valueValue)
                 : `${makeLine(valueKey, valueName, valueValue)}<br/>${makeLine(targetKey, targetName, targetValue)}`;
 
-        return this.tooltip.toTooltipHtml(
+        return this.properties.tooltip.toTooltipHtml(
             { title, content },
             { datum, title, seriesId: this.id, valueKey, valueName, targetKey, targetName }
         );
@@ -381,13 +301,13 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
         // The translation of the rectangles (values) is updated by the animation manager.
         // The target lines aren't animated, therefore we must update the translation here.
         for (const { node } of opts.datumSelection) {
-            const style: AgBarSeriesStyle = this;
+            const style: AgBarSeriesStyle = this.properties;
             partialAssign(STYLING_KEYS, node, style);
         }
 
         for (const { node, datum } of this.targetLinesSelection) {
             if (datum.target !== undefined) {
-                const style: AgBarSeriesStyle = this.target;
+                const style: AgBarSeriesStyle = this.properties.target;
                 partialAssign(['x1', 'x2', 'y1', 'y2'], node, datum.target);
                 partialAssign(STYLING_KEYS, node, style);
             } else {
@@ -445,9 +365,7 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
     override animateEmptyUpdateReady(data: BulletAnimationData) {
         const { datumSelections, labelSelections, annotationSelections } = data;
 
-        const fns = prepareBarAnimationFunctions(
-            collapsedStartingBarPosition(this.direction === 'vertical', this.axes)
-        );
+        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes));
 
         fromToMotion(this.id, 'nodes', this.ctx.animationManager, datumSelections, fns);
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
@@ -460,9 +378,7 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
         const diff = this.processedData?.reduced?.diff;
-        const fns = prepareBarAnimationFunctions(
-            collapsedStartingBarPosition(this.direction === 'vertical', this.axes)
-        );
+        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes));
 
         fromToMotion(
             this.id,
