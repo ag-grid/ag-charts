@@ -42,6 +42,9 @@ export class RadialColumnShape extends Path {
     @ScenePathChangeDetection()
     axisOuterRadius: number = 0;
 
+    @ScenePathChangeDetection()
+    isRadiusAxisReversed?: boolean = false;
+
     private getRotation() {
         const { startAngle, endAngle } = this;
         const midAngle = angleBetween(startAngle, endAngle);
@@ -89,7 +92,8 @@ export class RadialColumnShape extends Path {
     }
 
     private updateBeveledPath() {
-        const { columnWidth, path, outerRadius, innerRadius, axisInnerRadius, axisOuterRadius } = this;
+        const { columnWidth, path, outerRadius, innerRadius, axisInnerRadius, axisOuterRadius, isRadiusAxisReversed } =
+            this;
 
         const isStackBottom = isNumberEqual(innerRadius, axisInnerRadius);
         const sideRotation = Math.asin(columnWidth / 2 / innerRadius);
@@ -103,6 +107,8 @@ export class RadialColumnShape extends Path {
             }
             return Math.sqrt(hypotenuse ** 2 - otherLeg ** 2);
         };
+        const compare = (value: number, otherValue: number, lessThan: boolean) =>
+            lessThan ? value < otherValue : value > otherValue;
 
         // Avoid the connecting lines to be too long
         const shouldConnectBottomCircle = isStackBottom && !isNaN(sideRotation) && sideRotation < Math.PI / 6;
@@ -112,7 +118,12 @@ export class RadialColumnShape extends Path {
         const top = -outerRadius;
         const bottom = -innerRadius * (shouldConnectBottomCircle ? Math.cos(sideRotation) : 1);
 
-        const hasBottomIntersection = axisOuterRadius < getTriangleHypotenuse(innerRadius, columnWidth / 2);
+        const hasBottomIntersection = compare(
+            axisOuterRadius,
+            getTriangleHypotenuse(innerRadius, columnWidth / 2),
+            !isRadiusAxisReversed
+        );
+
         if (hasBottomIntersection) {
             // Crop bottom side overflowing outer radius
             const bottomIntersectionX = getTriangleLeg(axisOuterRadius, innerRadius);
@@ -128,7 +139,12 @@ export class RadialColumnShape extends Path {
 
         // Top
         const isEmpty = isNumberEqual(innerRadius, outerRadius);
-        const hasSideIntersection = axisOuterRadius < getTriangleHypotenuse(outerRadius, columnWidth / 2);
+        const hasSideIntersection = compare(
+            axisOuterRadius,
+            getTriangleHypotenuse(outerRadius, columnWidth / 2),
+            !isRadiusAxisReversed
+        );
+
         if (isEmpty && shouldConnectBottomCircle) {
             // A single line across the axis inner radius
             path.arc(

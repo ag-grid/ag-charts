@@ -190,6 +190,10 @@ export abstract class RadialColumnSeriesBase<
         return false;
     }
 
+    protected isRadiusAxisReversed() {
+        return this.axes[ChartAxisDirection.Y]?.isReversed();
+    }
+
     async maybeRefreshNodeData() {
         const circleChanged = this.didCircleChange();
         if (!circleChanged && !this.nodeDataRefresh) return;
@@ -238,8 +242,10 @@ export abstract class RadialColumnSeriesBase<
         groupScale.range = [-paddedGroupAngleStep / 2, paddedGroupAngleStep / 2];
         groupScale.paddingInner = visibleGroupCount > 1 ? groupPaddingInner : 0;
 
-        const axisInnerRadius = this.getAxisInnerRadius();
-        const axisOuterRadius = this.radius;
+        const radiusAxisReversed = this.isRadiusAxisReversed();
+        const axisInnerRadius = radiusAxisReversed ? this.radius : this.getAxisInnerRadius();
+        const axisOuterRadius = radiusAxisReversed ? this.getAxisInnerRadius() : this.radius;
+
         const axisTotalRadius = axisOuterRadius + axisInnerRadius;
 
         const { angleKey, radiusKey, angleName, radiusName, label } = this.properties;
