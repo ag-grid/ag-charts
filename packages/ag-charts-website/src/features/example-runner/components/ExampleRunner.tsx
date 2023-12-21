@@ -17,7 +17,7 @@ interface Props {
     exampleRunnerExampleUrl?: string;
     exampleType?: ExampleType;
     initialShowCode?: boolean;
-    externalLinkButton?: ReactElement;
+    externalLinks?: ReactElement;
     exampleHeight?: number;
     exampleFiles?: FileContents;
     initialSelectedFile?: string;
@@ -34,7 +34,7 @@ export const ExampleRunner: FunctionComponent<Props> = ({
     exampleRunnerExampleUrl,
     exampleType,
     initialShowCode,
-    externalLinkButton,
+    externalLinks,
     exampleHeight: initialExampleHeight,
     exampleFiles,
     initialSelectedFile,
@@ -95,7 +95,7 @@ export const ExampleRunner: FunctionComponent<Props> = ({
                         <li>
                             <OpenInCTA type="newTab" href={exampleUrl!} />
                         </li>
-                        {externalLinkButton && <li>{externalLinkButton}</li>}
+                        {externalLinks}
                     </ul>
                 </footer>
             </div>

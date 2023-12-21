@@ -1,3 +1,4 @@
+import { OpenInCodeSandbox } from '@features/codeSandbox/components/OpenInCodeSandbox';
 import { ExampleRunner } from '@features/example-runner/components/ExampleRunner';
 import { OpenInPlunkr } from '@features/plunkr/components/OpenInPlunkr';
 import { useEffect, useState } from 'react';
@@ -32,9 +33,10 @@ const GalleryExampleRunnerInner = ({ title, exampleName, loadingIFrameId }: Prop
     const [initialSelectedFile, setInitialSelectedFile] = useState();
     const [exampleUrl, setExampleUrl] = useState<string>();
     const [exampleRunnerExampleUrl, setExampleRunnerExampleUrl] = useState<string>();
-    const [plunkrHtmlUrl, setPlunkrHtmlUrl] = useState<string>();
+    const [htmlUrl, setHtmlUrl] = useState<string>();
     const [exampleFiles, setExampleFiles] = useState();
     const [exampleBoilerPlateFiles, setExampleBoilerPlateFiles] = useState();
+    const [packageJson, setPackageJson] = useState();
 
     const internalFramework = GALLERY_INTERNAL_FRAMEWORK;
     const exampleType = GALLERY_EXAMPLE_TYPE;
@@ -90,37 +92,54 @@ const GalleryExampleRunnerInner = ({ title, exampleName, loadingIFrameId }: Prop
     }, [contents, exampleFilesIsLoading, exampleFilesIsError]);
 
     useEffect(() => {
-        setPlunkrHtmlUrl(
+        setHtmlUrl(
             getExampleWithRelativePathUrl({
                 exampleName,
             })
         );
     }, [exampleName]);
 
-    // Override `index.html` with generated file as
-    // exampleFiles endpoint only gets the index html fragment
     useEffect(() => {
         if (!contents || exampleFilesIsLoading || exampleFilesIsError || !exampleFileHtml) {
             return;
         }
         const files = {
             ...contents.files,
+            'package.json': contents.packageJson,
+            // Override `index.html` with generated file as
+            // exampleFiles endpoint only gets the index html fragment
             'index.html': exampleFileHtml,
         };
 
         setExampleFiles(files);
+        setPackageJson(contents.packageJson);
         setExampleBoilerPlateFiles(contents.boilerPlateFiles);
     }, [contents, exampleFilesIsLoading, exampleFilesIsError, exampleFileHtml]);
 
-    const externalLinkButton =
-        exampleFiles && plunkrHtmlUrl ? (
-            <OpenInPlunkr
-                title={title}
-                files={exampleFiles}
-                plunkrHtmlUrl={plunkrHtmlUrl}
-                boilerPlateFiles={exampleBoilerPlateFiles}
-                fileToOpen={initialSelectedFile!}
-            />
+    const externalLinks =
+        exampleFiles && htmlUrl ? (
+            <>
+                <li>
+                    <OpenInCodeSandbox
+                        title={title}
+                        files={exampleFiles}
+                        htmlUrl={htmlUrl}
+                        internalFramework={internalFramework}
+                        boilerPlateFiles={exampleBoilerPlateFiles}
+                        packageJson={packageJson!}
+                    />
+                </li>
+                <li>
+                    <OpenInPlunkr
+                        title={title}
+                        files={exampleFiles}
+                        htmlUrl={htmlUrl}
+                        boilerPlateFiles={exampleBoilerPlateFiles}
+                        packageJson={packageJson!}
+                        fileToOpen={initialSelectedFile!}
+                    />
+                </li>
+            </>
         ) : undefined;
 
     return (
@@ -132,7 +151,7 @@ const GalleryExampleRunnerInner = ({ title, exampleName, loadingIFrameId }: Prop
             exampleFiles={exampleFiles}
             initialSelectedFile={initialSelectedFile}
             internalFramework={internalFramework}
-            externalLinkButton={externalLinkButton}
+            externalLinks={externalLinks}
             hideInternalFrameworkSelection={true}
             exampleHeight={620}
             loadingIFrameId={loadingIFrameId}
