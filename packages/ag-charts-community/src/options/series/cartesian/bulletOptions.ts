@@ -39,7 +39,7 @@ export interface AgBulletSeriesThemeableOptions extends AgBulletSeriesStyle, AgB
 }
 
 export interface AgBulletColorRange {
-    /** Color of this category. */
+    /** Colour of this category. */
     color: string;
     /** Stop value of this category. Defaults the maximum value if unset. */
     stop?: number;

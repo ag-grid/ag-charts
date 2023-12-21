@@ -9,7 +9,7 @@ import type { CssColor, Opacity, PixelSize } from '../../chart/types';
 import type { FillOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 
-/* All the label properties that can be changed without affecting the layout */
+/* All the label properties that can be changed without affecting the layout. */
 export type AgSunburstSeriesLabelHighlightOptions<TDatum> = Pick<
     AgChartLabelOptions<TDatum, AgSunburstSeriesLabelFormatterParams<TDatum>>,
     'color'
@@ -22,26 +22,26 @@ export interface AgSunburstSeriesTooltipRendererParams<TDatum>
     depth: number;
     /** The title of the sunburst segment. */
     title?: string;
-    /** The computed fill color of the sunburst segment. */
+    /** The computed fill colour of the sunburst segment. */
     color?: CssColor;
 }
 
 export interface AgSunburstSeriesHighlightStyle<TDatum> extends AgSeriesHighlightStyle, FillOptions, StrokeOptions {
-    /** Options for the label in a sector */
+    /** Options for the label in a sector. */
     label?: AgSunburstSeriesLabelHighlightOptions<TDatum>;
-    /** Options for a secondary, smaller label in a sector - displayed under the primary label */
+    /** Options for a secondary, smaller label in a sector - displayed under the primary label. */
     secondaryLabel?: AgSunburstSeriesLabelHighlightOptions<TDatum>;
 }
 
 export interface AgSunburstSeriesThemeableOptions<TDatum = any>
     extends Omit<AgBaseSeriesThemeableOptions, 'highlightStyle'> {
-    /** Options for the label in a sector */
+    /** Options for the label in a sector. */
     label?: AgChartAutoSizedLabelOptions<TDatum, AgSunburstSeriesLabelFormatterParams<TDatum>>;
-    /** Options for a secondary, smaller label in a sector - displayed under the primary label */
+    /** Options for a secondary, smaller label in a sector - displayed under the primary label. */
     secondaryLabel?: AgChartAutoSizedSecondaryLabelOptions<TDatum, AgSunburstSeriesLabelFormatterParams<TDatum>>;
-    /** Spacing between the sectors */
+    /** Spacing between the sectors. */
     sectorSpacing?: PixelSize;
-    /** Minimum distance between text and the edges of the sectors */
+    /** Minimum distance between text and the edges of the sectors. */
     padding?: PixelSize;
     /** The colours to cycle through for the fills of the sectors. */
     fills?: CssColor[];
@@ -53,13 +53,13 @@ export interface AgSunburstSeriesThemeableOptions<TDatum = any>
     strokeOpacity?: Opacity;
     /** The width in pixels of the stroke for the sectors. */
     strokeWidth?: PixelSize;
-    /** The color range to interpolate. */
+    /** The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into. */
     colorRange?: CssColor[];
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgSunburstSeriesTooltipRendererParams<TDatum>>;
-    /** A callback function for adjusting the styles of a particular sunburst sector based on the input parameters */
+    /** A callback function for adjusting the styles of a particular sunburst sector based on the input parameters. */
     formatter?: (params: AgSunburstSeriesFormatterParams<TDatum>) => AgSunburstSeriesStyle;
-    /** Style overrides when a node is hovered */
+    /** Style overrides when a node is hovered. */
     highlightStyle?: AgSunburstSeriesHighlightStyle<TDatum>;
 }
 
@@ -80,11 +80,11 @@ export interface AgSunburstSeriesOptionsKeys {
     childrenKey?: string;
     /** The name of the node key containing the size value. */
     sizeKey?: string;
-    /** The name of the node key containing the color value. This value (along with `colorRange` config) will be used to determine the segment color. */
+    /** The name of the node key containing the colour value. This value (along with `colorRange` config) will be used to determine the segment colour. */
     colorKey?: string;
     /** A human-readable description of the size values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     sizeName?: string;
-    /** A human-readable description of the color values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
+    /** A human-readable description of the colour values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     colorName?: string;
 }
 
@@ -95,7 +95,7 @@ export interface AgSunburstSeriesFormatterParams<TDatum = any>
         AgSunburstSeriesStyle {
     /** The depth of the datum in the hierarchy. */
     depth: number;
-    /** `true` if the sector is highlighted by hovering */
+    /** `true` if the sector is highlighted by hovering. */
     readonly highlighted: boolean;
 }
 
@@ -104,5 +104,5 @@ export interface AgSunburstSeriesLabelFormatterParams<_TDatum = any> extends AgS
     depth: number;
 }
 
-/** The formatted style of a sunburst sector */
+/** The formatted style of a sunburst sector. */
 export interface AgSunburstSeriesStyle extends FillOptions, StrokeOptions {}

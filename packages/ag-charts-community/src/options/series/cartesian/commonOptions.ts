@@ -18,9 +18,9 @@ export interface AxisOptions {
  * Represents options for filling shapes in a chart.
  */
 export interface FillOptions {
-    /** The color for filling shapes. */
+    /** The colour for filling shapes. */
     fill?: CssColor;
-    /** The opacity of the fill color. */
+    /** The opacity of the fill colour. */
     fillOpacity?: Opacity;
 }
 
@@ -28,11 +28,11 @@ export interface FillOptions {
  * Represents options for the stroke drawn around shapes in a chart.
  */
 export interface StrokeOptions {
-    /** The color for the stroke around shapes. */
+    /** The colour for the stroke around shapes. */
     stroke?: CssColor;
     /** The width of the stroke in pixels. */
     strokeWidth?: PixelSize;
-    /** The opacity of the stroke color. */
+    /** The opacity of the stroke colour. */
     strokeOpacity?: Opacity;
 }
 
@@ -50,7 +50,7 @@ export interface LineDashOptions {
  * Represents font styling options for text elements in a chart.
  */
 export interface FontOptions {
-    /** The color for text elements. */
+    /** The colour for text elements. */
     color?: CssColor;
     /** The style for text elements (e.g., 'normal', 'italic', 'oblique'). */
     fontStyle?: FontStyle;

@@ -5,7 +5,7 @@ import { getData } from './data';
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
-        text: 'Annual Fuel Expenditure)',
+        text: 'Annual Fuel Expenditure',
     },
     data: getData(),
     series: [

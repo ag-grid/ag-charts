@@ -63,7 +63,7 @@ export interface AgRangeBarSeriesThemeableOptions<TDatum = any>
     /**
      * Bar rendering direction.
      *
-     * NOTE: This option affects the layout direction of X and Y data values.
+     * __Note:__ This option affects the layout direction of X and Y data values.
      */
     direction?: 'horizontal' | 'vertical';
     /** Series-specific tooltip configuration. */

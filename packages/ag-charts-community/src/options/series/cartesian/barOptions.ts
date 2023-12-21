@@ -43,7 +43,7 @@ export interface AgBarSeriesThemeableOptions<TDatum = any> extends AgBarSeriesSt
     /**
      * Bar rendering direction.
      *
-     * NOTE: This option affects the layout direction of X and Y data values.
+     * __Note:__ This option affects the layout direction of X and Y data values.
      */
     direction?: 'horizontal' | 'vertical';
     /** Configuration for the shadow used behind the chart series. */
