@@ -26,13 +26,13 @@ export interface AgHeatmapSeriesTooltipRendererParams extends AgCartesianSeriesT
 }
 
 export interface AgHeatmapSeriesThemeableOptions<TDatum = any> extends StrokeOptions, AgBaseSeriesThemeableOptions {
-    /** Options for the label in a cells */
+    /** Options for the label in each cell. */
     label?: AgChartAutoSizedSecondaryLabelOptions<TDatum, AgHeatmapSeriesLabelFormatterParams>;
-    /** Minimum distance between text and the edges of the cells */
+    /** Minimum distance between the label text and the edges of the cell. */
     itemPadding?: PixelSize;
-    /** Horizontal position of the label */
+    /** Horizontal position of the label. */
     textAlign?: TextAlign;
-    /** Vertical position of the label */
+    /** Vertical position of the label. */
     verticalAlign?: VerticalAlign;
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
     title?: string;
@@ -67,7 +67,7 @@ export interface AgHeatmapSeriesOptions<TDatum = any>
         AgHeatmapSeriesThemeableOptions<TDatum> {
     /** Configuration for the Heatmap Series. */
     type: 'heatmap';
-    /** The color range to interpolate the numeric color domain (min and max `colorKey` values) into. For example, if the color domain is `[-5, 5]` and `colorRange` is `['red', 'green']`, a `colorKey` value of `-5` will be assigned the 'red' color, `5` - 'green' color and `0` a blend of 'red' and 'green'. */
+    /** The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into. For example, if the colour domain is `[-5, 5]` and `colorRange` is `['red', 'green']`, a `colorKey` value of `-5` will be assigned the 'red' colour, `5` - 'green' colour and `0` a blend of 'red' and 'green'. */
     colorRange?: string[];
 }
 
