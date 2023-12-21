@@ -30,7 +30,7 @@ const getPathForFile = ({
         return `public/index.html`;
     }
 
-    if (/([a-zA-Z0-9\\s_.])+(.js|.jsx|.tsx|.ts|.css)$/.test(fileName)) {
+    if (/(.js|.jsx|.tsx|.ts|.css)$/.test(fileName)) {
         if (fileName.endsWith('.js')) {
             return `public/${fileName}`;
         }
