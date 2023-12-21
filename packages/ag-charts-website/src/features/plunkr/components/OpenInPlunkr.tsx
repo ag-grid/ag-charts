@@ -10,10 +10,18 @@ interface Props {
     files: FileContents;
     htmlUrl: string;
     boilerPlateFiles?: FileContents;
+    packageJson: Record<string, any>;
     fileToOpen: string;
 }
 
-export const OpenInPlunkr: FunctionComponent<Props> = ({ title, files, htmlUrl, boilerPlateFiles, fileToOpen }) => {
+export const OpenInPlunkr: FunctionComponent<Props> = ({
+    title,
+    files,
+    htmlUrl,
+    boilerPlateFiles,
+    packageJson,
+    fileToOpen,
+}) => {
     return (
         <OpenInCTA
             type="plunker"
@@ -22,6 +30,7 @@ export const OpenInPlunkr: FunctionComponent<Props> = ({ title, files, htmlUrl, 
                 const plunkrExampleFiles = {
                     ...files,
                     ...boilerPlateFiles,
+                    'package.json': JSON.stringify(packageJson, null, 2),
                     'index.html': html,
                 };
                 openPlunker({

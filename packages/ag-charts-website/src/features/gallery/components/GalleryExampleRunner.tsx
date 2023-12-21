@@ -36,6 +36,7 @@ const GalleryExampleRunnerInner = ({ title, exampleName, loadingIFrameId }: Prop
     const [htmlUrl, setHtmlUrl] = useState<string>();
     const [exampleFiles, setExampleFiles] = useState();
     const [exampleBoilerPlateFiles, setExampleBoilerPlateFiles] = useState();
+    const [packageJson, setPackageJson] = useState();
 
     const internalFramework = GALLERY_INTERNAL_FRAMEWORK;
     const exampleType = GALLERY_EXAMPLE_TYPE;
@@ -98,18 +99,20 @@ const GalleryExampleRunnerInner = ({ title, exampleName, loadingIFrameId }: Prop
         );
     }, [exampleName]);
 
-    // Override `index.html` with generated file as
-    // exampleFiles endpoint only gets the index html fragment
     useEffect(() => {
         if (!contents || exampleFilesIsLoading || exampleFilesIsError || !exampleFileHtml) {
             return;
         }
         const files = {
             ...contents.files,
+            'package.json': contents.packageJson,
+            // Override `index.html` with generated file as
+            // exampleFiles endpoint only gets the index html fragment
             'index.html': exampleFileHtml,
         };
 
         setExampleFiles(files);
+        setPackageJson(contents.packageJson);
         setExampleBoilerPlateFiles(contents.boilerPlateFiles);
     }, [contents, exampleFilesIsLoading, exampleFilesIsError, exampleFileHtml]);
 
@@ -121,7 +124,9 @@ const GalleryExampleRunnerInner = ({ title, exampleName, loadingIFrameId }: Prop
                         title={title}
                         files={exampleFiles}
                         htmlUrl={htmlUrl}
+                        internalFramework={internalFramework}
                         boilerPlateFiles={exampleBoilerPlateFiles}
+                        packageJson={packageJson!}
                     />
                 </li>
                 <li>
@@ -130,6 +135,7 @@ const GalleryExampleRunnerInner = ({ title, exampleName, loadingIFrameId }: Prop
                         files={exampleFiles}
                         htmlUrl={htmlUrl}
                         boilerPlateFiles={exampleBoilerPlateFiles}
+                        packageJson={packageJson!}
                         fileToOpen={initialSelectedFile!}
                     />
                 </li>

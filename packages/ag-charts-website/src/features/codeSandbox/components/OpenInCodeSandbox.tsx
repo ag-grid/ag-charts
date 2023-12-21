@@ -1,3 +1,4 @@
+import type { InternalFramework } from '@ag-grid-types';
 import { OpenInCTA } from '@components/open-in-cta/OpenInCTA';
 import type { FileContents } from '@features/examples-generator/types';
 import { fetchTextFile } from '@utils/fetchTextFile';
@@ -7,12 +8,21 @@ import { createNewCodeSandbox, getCodeSandboxUrl } from '../utils/codeSandbox';
 
 interface Props {
     title: string;
+    internalFramework: InternalFramework;
     files: FileContents;
     htmlUrl: string;
     boilerPlateFiles?: FileContents;
+    packageJson: Record<string, any>;
 }
 
-export const OpenInCodeSandbox: FunctionComponent<Props> = ({ title, files, htmlUrl, boilerPlateFiles }) => {
+export const OpenInCodeSandbox: FunctionComponent<Props> = ({
+    title,
+    internalFramework,
+    files,
+    htmlUrl,
+    boilerPlateFiles,
+    packageJson,
+}) => {
     return (
         <OpenInCTA
             type="codesandbox"
@@ -20,12 +30,14 @@ export const OpenInCodeSandbox: FunctionComponent<Props> = ({ title, files, html
                 const html = await fetchTextFile(htmlUrl);
                 const sandboxFiles = {
                     ...files,
-                    ...boilerPlateFiles,
+                    'package.json': JSON.stringify(packageJson, null, 2),
                     'index.html': html,
                 };
                 const { sandboxId } = await createNewCodeSandbox({
                     title,
                     files: sandboxFiles,
+                    boilerPlateFiles,
+                    internalFramework,
                 });
                 const url = getCodeSandboxUrl(sandboxId);
                 if (url) {
