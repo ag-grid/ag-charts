@@ -5,7 +5,13 @@ export function createTask(parentProject: string, srcRelativeInputPath: string) 
     return {
         'generate-thumbnail': {
             dependsOn,
-            inputs: [{ env: 'PUBLIC_PACKAGE_VERSION' }, { externalDependencies: [] }],
+            inputs: [
+                `{workspaceRoot}/${generatedExamplePath}/**`,
+                '{projectRoot}/**',
+                '{workspaceRoot}/plugins/ag-charts-generate-chart-thumbnail/**',
+                { env: 'PUBLIC_PACKAGE_VERSION' },
+                { externalDependencies: [] },
+            ],
             executor: 'ag-charts-generate-chart-thumbnail:generate',
             outputPath: '{options.outputPath}',
             cache: true,
