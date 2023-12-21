@@ -50,7 +50,11 @@ export async function generateFiles(options: ExecutorOptions, ctx: ExecutorConte
 
     await consolePrefix(`[${ctx.projectName}] `, async () => {
         for (const theme of Object.keys(THEMES) as AgChartThemeName[]) {
-            await generateExample({ name, example, theme, outputPath });
+            try {
+                await generateExample({ example, theme, outputPath });
+            } catch (e) {
+                throw new Error(`Unable to render example [${name}] with theme [${theme}]: ${e}`);
+            }
         }
     });
 }

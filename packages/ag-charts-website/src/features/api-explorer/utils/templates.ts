@@ -68,7 +68,7 @@ export const getJavascriptContent = ({ options }: { options: AgChartOptions }): 
 
 options.container = document.querySelector('#myChart');
 agCharts.AgCharts.create(options);`,
-            'index.html': '<div id="myChart" style="height: 100%"></div>',
+            'index.html': '<div id="myChart"></div>',
         },
         entryFileName: 'main.js',
         mainFileName: 'main.js',

@@ -20,7 +20,7 @@ import { Logger } from '../util/logger';
 import type { TypedEventListener } from '../util/observable';
 import type { DeepPartial } from '../util/types';
 import { CartesianChart } from './cartesianChart';
-import type { Chart, ChartExtendedOptions, ChartSpecialOverrides } from './chart';
+import { Chart, type ChartExtendedOptions, type ChartSpecialOverrides } from './chart';
 import type { ChartAxis } from './chartAxis';
 import { getJsonApplyOptions } from './chartOptions';
 import { AgChartInstanceProxy } from './chartProxy';
@@ -84,6 +84,13 @@ export abstract class AgCharts {
 
     public static setLicenseKey(licenseKey: string) {
         this.licenseKey = licenseKey;
+    }
+
+    /**
+     * Returns the `AgChartInstance` for a DOM node, if there is one.
+     */
+    public static getInstance(element: HTMLElement): AgChartInstance | undefined {
+        return AgChartsInternal.getInstance(element);
     }
 
     /**
@@ -187,7 +194,14 @@ export class AgChart {
     }
 }
 
+const proxyInstances = new WeakMap<Chart, AgChartInstanceProxy>();
+
 class AgChartsInternal {
+    static getInstance(element: HTMLElement): AgChartInstanceProxy | undefined {
+        const chart = Chart.getInstance(element);
+        return chart != null ? proxyInstances.get(chart) : undefined;
+    }
+
     static initialised = false;
     static initialiseModules() {
         if (AgChartsInternal.initialised) return;
@@ -208,6 +222,10 @@ class AgChartsInternal {
 
         const processedOptions = prepareOptions(chartOptions);
         let chart = proxy?.chart;
+        if (chart != null) {
+            proxyInstances.delete(chart);
+        }
+
         if (chart == null || chartType(chartOptions) !== chartType(chart.processedOptions)) {
             chart = AgChartsInternal.createChartInstance(processedOptions, specialOverrides, chart);
         }
@@ -217,6 +235,8 @@ class AgChartsInternal {
         } else {
             proxy.chart = chart;
         }
+
+        proxyInstances.set(chart, proxy);
 
         if (Debug.check() && typeof window !== 'undefined') {
             (window as any).agChartInstances ??= {};
@@ -424,7 +444,6 @@ function applyChartOptions(chart: Chart, processedOptions: ProcessedOptions, use
     if (processedOptions.listeners) {
         chart.updateAllSeriesListeners();
     }
-
     chart.processedOptions = completeOptions;
     chart.userOptions = jsonMerge([chart.userOptions ?? {}, userOptions], noDataCloneMergeOptions);
 

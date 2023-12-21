@@ -10,15 +10,17 @@ import { filterPropertyKeys } from './jsCodeShiftUtils';
  * JS Code Shift transformer to generate plain entry file
  */
 
-function transformer(sourceFile: string, dataFile?: string, themeName?: AgChartThemeName) {
-    const root = j(sourceFile);
-    const optionsExpression = root
-        .find(j.VariableDeclarator, { id: { type: 'Identifier', name: 'options' } })
-        .find(j.ObjectExpression);
-
+function generateOptions(
+    root: j.Collection<any>,
+    variableDeclarator: j.Collection<j.VariableDeclarator>,
+    dataFile?: string,
+    themeName?: AgChartThemeName
+) {
     // Find and remove properties in the 'options' object
     // Add 'title' to remove titles for images for homepage scrolling hero
-    const propertiesToRemove = ['subtitle', 'footnote', 'legend', 'gradientLegend'];
+    const propertiesToRemove = ['container', 'subtitle', 'footnote', 'legend', 'gradientLegend'];
+
+    const optionsExpression = variableDeclarator.find(j.ObjectExpression);
 
     optionsExpression.forEach((path) => {
         path.node.properties = filterPropertyKeys({
@@ -148,15 +150,52 @@ function transformer(sourceFile: string, dataFile?: string, themeName?: AgChartT
     optionsExpressionProperties.push(paddingPropertyNode);
 
     const code = root.toSource();
-    const options = parseExampleOptions('options', code, dataFile, { agCharts });
+
+    const node = variableDeclarator.getAST()[0].node;
+    if (node.id.type !== 'Identifier') {
+        throw new Error('Invalid options specifier');
+    }
+    const options = parseExampleOptions(node.id.name, code, dataFile, { agCharts });
 
     return { code, options };
+}
+
+function transformer(sourceFile: string, dataFile?: string, themeName?: AgChartThemeName) {
+    const root = j(sourceFile);
+    let code = root.toSource();
+
+    const optionsById = new Map<string, agCharts.AgChartOptions>();
+    root.findVariableDeclarators().forEach((variableDeclaratorPath) => {
+        const variableDeclarator = j(variableDeclaratorPath);
+        const containerPropertyPath = variableDeclarator
+            .find(j.ObjectExpression)
+            .find(j.Property, { key: { type: 'Identifier', name: 'container' } })
+            .find(
+                j.CallExpression,
+                ({ callee }) =>
+                    callee.type === 'MemberExpression' &&
+                    callee.object.type === 'Identifier' &&
+                    callee.object.name === 'document' &&
+                    callee.property.type === 'Identifier' &&
+                    callee.property.name === 'getElementById'
+            )
+            .find(j.Literal)
+            .paths()[0];
+
+        if (containerPropertyPath != null) {
+            const { code: _code, options } = generateOptions(root, variableDeclarator, dataFile, themeName);
+            optionsById.set(containerPropertyPath.node.value as any, options);
+            code = _code;
+        }
+    });
+
+    return { code, optionsById };
 }
 
 export function transformPlainEntryFile(
     entryFile: string,
     dataFile?: string,
     themeName?: AgChartThemeName
-): { code: string; options: agCharts.AgChartOptions } {
+): { code: string; optionsById: Map<string, agCharts.AgChartOptions> } {
     return transformer(entryFile, dataFile, themeName);
 }

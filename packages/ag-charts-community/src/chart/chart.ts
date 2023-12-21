@@ -119,7 +119,13 @@ class SeriesArea {
     padding = new Padding(0);
 }
 
+export const chartsInstances = new WeakMap<HTMLElement, Chart>();
+
 export abstract class Chart extends Observable implements AgChartInstance {
+    static getInstance(element: HTMLElement): Chart | undefined {
+        return chartsInstances.get(element);
+    }
+
     readonly id = createId(this);
 
     className?: string;
@@ -147,13 +153,17 @@ export abstract class Chart extends Observable implements AgChartInstance {
     private extraDebugStats: Record<string, number> = {};
 
     @ActionOnSet<Chart>({
-        newValue(value) {
+        newValue(value: HTMLElement) {
             if (this.destroyed) return;
 
+            value.setAttribute('data-ag-charts', '');
             value.appendChild(this.element);
+            chartsInstances.set(value, this);
         },
-        oldValue(value) {
+        oldValue(value: HTMLElement) {
+            value.removeAttribute('data-ag-charts');
             value.removeChild(this.element);
+            chartsInstances.delete(value);
         },
     })
     container: OptionalHTMLElement = undefined;

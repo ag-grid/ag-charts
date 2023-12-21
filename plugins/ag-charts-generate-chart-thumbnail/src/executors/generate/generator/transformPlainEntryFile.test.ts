@@ -5,7 +5,10 @@ import { transformPlainEntryFile } from './transformPlainEntryFile';
 const getEntryFile = (chartOptions: object) => {
     // NOTE: Use `util.inspect` instead of `JSON.stringify` so that there aren't quotes around
     // object keys, just like actual source code
-    const chartOptionsStr = util.inspect(chartOptions, { depth: 10 });
+    const chartOptionsStr = util
+        .inspect({ ...chartOptions, container: '@@CONTAINER@@' }, { depth: 10 })
+        .replace(/(['"])@@CONTAINER@@\1/, 'document.getElementById("container")');
+
     const entryFile = `const options = ${chartOptionsStr};\nconst chart = agCharts.AgCharts.create(options);`;
 
     return entryFile;

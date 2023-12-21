@@ -7,21 +7,12 @@ const css = String.raw;
  */
 export const ExampleStyle = ({ rootId }: { rootId?: string }) => {
     const styles = css`
-        html,
-        body${rootId ? `, #${rootId}` : ''} {
-            height: 100%;
-            width: 100%;
-            margin: 0;
-            box-sizing: border-box;
-            -webkit-overflow-scrolling: touch;
-        }
-
         :root {
             position: absolute;
             top: 0;
             left: 0;
             padding: 0;
-            overflow: auto;
+            overflow: hidden;
             font-family: -apple-system, 'system-ui', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
                 'Liberation Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
                 'Noto Color Emoji';
@@ -32,9 +23,23 @@ export const ExampleStyle = ({ rootId }: { rootId?: string }) => {
             color: white;
         }
 
-        body {
+        :root,
+        body${rootId ? `, #${rootId}` : ''} {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            box-sizing: border-box;
+        }
+
+        ${rootId ?? 'body'} {
+            display: grid;
+            grid-auto-rows: 1fr;
+            grid-auto-columns: 1fr;
             padding: 1rem;
-            overflow: auto;
+        }
+
+        [data-ag-charts] {
+            overflow: hidden;
         }
 
         button:not(#myGrid button, #myChart button, button[class*='ag-'], .ag-chart-context-menu button) {
