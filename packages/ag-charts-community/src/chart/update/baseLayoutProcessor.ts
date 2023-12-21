@@ -1,5 +1,7 @@
+import type { TextAlign } from '../../options/agChartOptions';
 import type { BBox } from '../../scene/bbox';
 import { Text } from '../../scene/shape/text';
+import { Logger } from '../../util/logger';
 import { Caption } from '../caption';
 import type { LayoutCompleteEvent, LayoutService } from '../layout/layoutService';
 import type { ChartLike } from './processor';
@@ -55,9 +57,20 @@ export class BaseLayoutProcessor {
             caption.computeTextWrap(maxWidth, maxHeight);
         };
 
+        const computeX = (align: TextAlign): number => {
+            if (align === 'left') {
+                return newShrinkRect.x;
+            } else if (align === 'right') {
+                return newShrinkRect.x + newShrinkRect.width;
+            } else if (align !== 'center') {
+                Logger.error(`invalid textAlign value: ${align}`);
+            }
+            return newShrinkRect.x + newShrinkRect.width / 2;
+        };
+
         const positionTopAndShrinkBBox = (caption: Caption, spacing: number) => {
             const baseY = newShrinkRect.y;
-            caption.node.x = newShrinkRect.x + newShrinkRect.width / 2;
+            caption.node.x = computeX(caption.textAlign);
             caption.node.y = baseY;
             caption.node.textBaseline = 'top';
             updateCaption(caption);
@@ -72,7 +85,7 @@ export class BaseLayoutProcessor {
         };
         const positionBottomAndShrinkBBox = (caption: Caption, spacing: number) => {
             const baseY = newShrinkRect.y + newShrinkRect.height;
-            caption.node.x = newShrinkRect.x + newShrinkRect.width / 2;
+            caption.node.x = computeX(caption.textAlign);
             caption.node.y = baseY;
             caption.node.textBaseline = 'bottom';
             updateCaption(caption);

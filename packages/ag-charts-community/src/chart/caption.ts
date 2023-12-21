@@ -1,5 +1,5 @@
 import type { ModuleContext } from '../module/moduleContext';
-import type { FontStyle, FontWeight, TextWrap } from '../options/agChartOptions';
+import type { FontStyle, FontWeight, TextAlign, TextWrap } from '../options/agChartOptions';
 import { PointerEvents } from '../scene/node';
 import { Text } from '../scene/shape/text';
 import { createId } from '../util/id';
@@ -12,6 +12,7 @@ import {
     FONT_WEIGHT,
     POSITIVE_NUMBER,
     STRING,
+    TEXT_ALIGN,
     TEXT_WRAP,
     Validate,
 } from '../util/validation';
@@ -34,6 +35,10 @@ export class Caption extends BaseProperties {
     @Validate(STRING, { optional: true })
     @ProxyPropertyOnWrite('node')
     text?: string;
+
+    @Validate(TEXT_ALIGN, { optional: true })
+    @ProxyPropertyOnWrite('node')
+    textAlign: TextAlign = 'center';
 
     @Validate(FONT_STYLE, { optional: true })
     @ProxyPropertyOnWrite('node')
