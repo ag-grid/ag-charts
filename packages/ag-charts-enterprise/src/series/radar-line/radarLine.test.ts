@@ -84,6 +84,50 @@ describe('Radar Line Chart', () => {
         await compare();
     });
 
+    it(`should render polar chart as expected with reversed circle axes`, async () => {
+        const options: AgChartOptions = {
+            ...EXAMPLE_OPTIONS,
+            axes: [
+                {
+                    type: 'angle-category',
+                    shape: 'circle',
+                    reverse: true,
+                },
+                {
+                    type: 'radius-number',
+                    shape: 'circle',
+                    reverse: true,
+                },
+            ],
+        };
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
+    it(`should render polar chart as expected with reversed polygon axes`, async () => {
+        const options: AgChartOptions = {
+            ...EXAMPLE_OPTIONS,
+            axes: [
+                {
+                    type: 'angle-category',
+                    shape: 'polygon',
+                    reverse: true,
+                },
+                {
+                    type: 'radius-number',
+                    shape: 'polygon',
+                    reverse: true,
+                },
+            ],
+        };
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
     it(`should avoid polar chart label collisions`, async () => {
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,
