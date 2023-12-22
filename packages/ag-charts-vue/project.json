@@ -10,7 +10,8 @@
         "tsDefaults",
         "{projectRoot}/(vue|postcss).config.js",
         "{projectRoot}/src/**",
-        "{projectRoot}/main.(js|d.ts)"
+        "{projectRoot}/main.(js|d.ts)",
+        "{projectRoot}/node_modules/vue/package.json"
       ],
       "outputs": ["{projectRoot}/dist"],
       "options": {

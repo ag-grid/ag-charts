@@ -10,7 +10,7 @@
     },
     "build": {
       "executor": "@nx/rollup:rollup",
-      "inputs": ["tsDefaults", "{projectRoot}/package.json"],
+      "inputs": ["tsDefaults", "{projectRoot}/package.json", { "externalDependencies": ["react"] }],
       "outputs": ["{options.outputPath}"],
       "options": {
         "outputPath": "packages/ag-charts-react/dist",
