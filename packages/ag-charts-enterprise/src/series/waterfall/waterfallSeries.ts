@@ -254,7 +254,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
         const barWidth =
             (ContinuousScale.is(xScale) ? xScale.calcBandwidth(smallestDataInterval?.x) : xScale.bandwidth) ?? 10;
-        const step = xScale instanceof _Scene.BandScale ? xScale.step : 0;
         const halfLineWidth = line.strokeWidth / 2;
         const offsetDirection = (barAlongX && !valueAxisReversed) || (!barAlongX && valueAxisReversed) ? -1 : 1;
         const offset = offsetDirection * halfLineWidth;

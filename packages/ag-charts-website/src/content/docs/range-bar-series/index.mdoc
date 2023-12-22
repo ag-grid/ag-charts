@@ -79,6 +79,8 @@ Data entries with invalid `yLowKey`, `yHighKey` and `xKey` values will result in
 
 ## Customisation
 
+### Labels
+
 Series labels can be enabled using the `label` options.
 
 {% chartExampleRunner title="Range Bar Label" name="range-bar-labels" type="generated" /%}
@@ -101,6 +103,23 @@ In this configuration:
 
 -   The `yHighKey` and `yLowKey` values for each data point are presented as labels via the `label` options.
 -   The `label.formatter` function uses the `itemId` from the params object to distinguish whether the label is a `low` or `high` value.
+
+### Corner Radius
+
+The corner radius for bars can be customised with the `cornerRadius` property.
+
+{% chartExampleRunner title="Customising Corner Radius" name="customising-corner-radius" type="generated" /%}
+
+```js
+series: [
+    {
+        // ...
+        cornerRadius: 10,
+    },
+];
+```
+
+Corner radii that don't fit within the width and height of a bar are reduced to fit.
 
 ## Horizontal Range Bar
 
