@@ -58,13 +58,14 @@ interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDat
     readonly cumulativeValue: number;
     readonly width: number;
     readonly height: number;
-    readonly fill?: string;
-    readonly stroke?: string;
+    readonly fill: string | undefined;
+    readonly stroke: string | undefined;
     readonly strokeWidth: number;
-    readonly topLeftCornerRadius: number;
-    readonly topRightCornerRadius: number;
-    readonly bottomRightCornerRadius: number;
-    readonly bottomLeftCornerRadius: number;
+    readonly cornerRadius: number;
+    readonly topLeftCornerRadius: boolean;
+    readonly topRightCornerRadius: boolean;
+    readonly bottomRightCornerRadius: boolean;
+    readonly bottomLeftCornerRadius: boolean;
     readonly cornerRadiusBbox: BBox | undefined;
     readonly label?: BarNodeLabelDatum;
 }
@@ -379,10 +380,11 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
                     fill,
                     stroke,
                     strokeWidth,
-                    topLeftCornerRadius: barAlongX === isUpward ? 0 : cornerRadius,
-                    topRightCornerRadius: isUpward ? cornerRadius : 0,
-                    bottomRightCornerRadius: barAlongX === isUpward ? cornerRadius : 0,
-                    bottomLeftCornerRadius: isUpward ? 0 : cornerRadius,
+                    cornerRadius,
+                    topLeftCornerRadius: !(barAlongX === isUpward),
+                    topRightCornerRadius: isUpward,
+                    bottomRightCornerRadius: barAlongX === isUpward,
+                    bottomLeftCornerRadius: !isUpward,
                     cornerRadiusBbox,
                     label: labelDatum,
                 };
@@ -448,6 +450,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
                 lineDashOffset,
                 fillShadow: shadow,
                 strokeWidth: this.getStrokeWidth(strokeWidth),
+                cornerRadius: datum.cornerRadius,
                 topLeftCornerRadius: datum.topLeftCornerRadius,
                 topRightCornerRadius: datum.topRightCornerRadius,
                 bottomRightCornerRadius: datum.bottomRightCornerRadius,

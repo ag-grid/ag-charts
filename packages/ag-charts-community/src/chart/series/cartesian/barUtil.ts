@@ -23,11 +23,11 @@ export type RectConfig = {
     lineDash?: number[];
     fillShadow?: DropShadow;
     cornerRadius?: number;
-    topLeftCornerRadius?: number;
-    topRightCornerRadius?: number;
-    bottomRightCornerRadius?: number;
-    bottomLeftCornerRadius?: number;
-    cornerRadiusBbox: BBox | undefined;
+    topLeftCornerRadius?: boolean;
+    topRightCornerRadius?: boolean;
+    bottomRightCornerRadius?: boolean;
+    bottomLeftCornerRadius?: boolean;
+    cornerRadiusBbox?: BBox;
     crisp?: boolean;
     visible?: boolean;
 };
@@ -60,10 +60,10 @@ export function updateRect({ rect, config }: { rect: Rect; config: RectConfig })
     rect.lineDash = lineDash;
     rect.lineDashOffset = lineDashOffset;
     rect.fillShadow = fillShadow;
-    rect.topLeftCornerRadius = topLeftCornerRadius ?? cornerRadius;
-    rect.topRightCornerRadius = topRightCornerRadius ?? cornerRadius;
-    rect.bottomRightCornerRadius = bottomRightCornerRadius ?? cornerRadius;
-    rect.bottomLeftCornerRadius = bottomLeftCornerRadius ?? cornerRadius;
+    rect.topLeftCornerRadius = topLeftCornerRadius ? cornerRadius : 0;
+    rect.topRightCornerRadius = topRightCornerRadius ? cornerRadius : 0;
+    rect.bottomRightCornerRadius = bottomRightCornerRadius ? cornerRadius : 0;
+    rect.bottomLeftCornerRadius = bottomLeftCornerRadius ? cornerRadius : 0;
     rect.cornerRadiusBbox = cornerRadiusBbox;
     rect.visible = visible;
 }
@@ -97,11 +97,11 @@ export function getRectConfig<
         fillShadow,
         lineDash,
         lineDashOffset,
-        cornerRadius,
-        topLeftCornerRadius = cornerRadius,
-        topRightCornerRadius = cornerRadius,
-        bottomRightCornerRadius = cornerRadius,
-        bottomLeftCornerRadius = cornerRadius,
+        cornerRadius = 0,
+        topLeftCornerRadius = true,
+        topRightCornerRadius = true,
+        bottomRightCornerRadius = true,
+        bottomLeftCornerRadius = true,
         cornerRadiusBbox,
     } = style;
 
@@ -113,6 +113,7 @@ export function getRectConfig<
             fill,
             stroke,
             strokeWidth,
+            cornerRadius,
             highlighted: isHighlighted,
             seriesId,
             ...opts,
@@ -128,6 +129,7 @@ export function getRectConfig<
         lineDash,
         lineDashOffset,
         fillShadow,
+        cornerRadius: format?.cornerRadius ?? cornerRadius,
         topLeftCornerRadius,
         topRightCornerRadius,
         bottomRightCornerRadius,
