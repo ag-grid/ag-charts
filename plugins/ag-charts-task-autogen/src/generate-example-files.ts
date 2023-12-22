@@ -1,13 +1,17 @@
-import { DependencyType, type RawProjectGraphDependency, validateDependency } from '@nx/devkit';
+import { DependencyType, type RawProjectGraphDependency, TargetConfiguration, validateDependency } from '@nx/devkit';
 import type { CreateDependencies } from 'nx/src/utils/nx-plugin';
 
-export function createTask(parentProject: string, srcRelativeInputPath: string) {
+export function createTask(parentProject: string, srcRelativeInputPath: string): Record<string, TargetConfiguration> {
     return {
         'generate-example': {
             dependsOn: [{ projects: 'ag-charts-generate-example-files', target: 'build' }],
             executor: 'ag-charts-generate-example-files:generate',
-            inputs: ['{projectRoot}/**/*', { externalDependencies: [] }],
-            outputPath: '{options.outputPath}',
+            inputs: [
+                '{projectRoot}/**',
+                '{workspaceRoot}/plugins/ag-charts-generate-example-files/**',
+                { externalDependencies: [] },
+            ],
+            outputs: ['{options.outputPath}'],
             cache: true,
             options: {
                 mode: 'dev',
