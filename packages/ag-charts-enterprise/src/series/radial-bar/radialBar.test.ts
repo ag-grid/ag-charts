@@ -80,6 +80,25 @@ describe('Radial Bar Chart', () => {
         await compare();
     });
 
+    it(`should render radial bar chart as expected with reversed axes`, async () => {
+        const options: AgChartOptions = {
+            ...EXAMPLE_OPTIONS,
+            axes: [
+                {
+                    type: 'angle-number',
+                    reverse: true,
+                },
+                {
+                    type: 'radius-category',
+                    reverse: true,
+                },
+            ],
+        };
+        prepareEnterpriseTestOptions(options as any);
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
     it(`should render stacked radial bar as expected`, async () => {
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,
@@ -89,6 +108,32 @@ describe('Radial Bar Chart', () => {
                     stacked: true,
                 };
             }),
+        };
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
+    it(`should render stacked radial bar as expected with reversed axes`, async () => {
+        const options: AgChartOptions = {
+            ...EXAMPLE_OPTIONS,
+            series: EXAMPLE_OPTIONS.series?.map((series) => {
+                return {
+                    ...series,
+                    stacked: true,
+                };
+            }),
+            axes: [
+                {
+                    type: 'angle-number',
+                    reverse: true,
+                },
+                {
+                    type: 'radius-category',
+                    reverse: true,
+                },
+            ],
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -107,6 +152,27 @@ describe('Radial Bar Chart', () => {
                 };
             }),
             axes: [{ type: 'angle-number', nice: false }, { type: 'radius-category' }],
+        };
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
+    it(`should render normalized radial bar as expected`, async () => {
+        const options: AgChartOptions = {
+            ...EXAMPLE_OPTIONS,
+            series: EXAMPLE_OPTIONS.series?.map((series) => {
+                return {
+                    ...series,
+                    stacked: true,
+                    normalizedTo: 100,
+                };
+            }),
+            axes: [
+                { type: 'angle-number', nice: false, reverse: true },
+                { type: 'radius-category', reverse: true },
+            ],
         };
         prepareEnterpriseTestOptions(options as any);
 
