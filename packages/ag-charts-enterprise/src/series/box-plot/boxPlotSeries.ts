@@ -16,6 +16,7 @@ const {
     valueProperty,
     diff,
     animationValidation,
+    ChartAxisDirection,
 } = _ModuleSupport;
 const { motion } = _Scene;
 
@@ -117,9 +118,21 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup
             return keys;
         }
 
+        const categoryAxis = this.getCategoryAxis();
+        const isReversed = categoryAxis?.isReversed();
+
         const keysExtent = extent(keys) ?? [NaN, NaN];
         const scalePadding = smallestDataInterval && isFinite(smallestDataInterval.x) ? smallestDataInterval.x : 0;
-        return fixNumericExtent([keysExtent[0] - scalePadding, keysExtent[1]], this.getCategoryAxis());
+
+        if (direction === ChartAxisDirection.Y) {
+            const d0 = keysExtent[0] + (isReversed ? 0 : -scalePadding);
+            const d1 = keysExtent[1] + (isReversed ? scalePadding : 0);
+            return fixNumericExtent([d0, d1], categoryAxis);
+        }
+
+        const d0 = keysExtent[0] + (isReversed ? -scalePadding : 0);
+        const d1 = keysExtent[1] + (isReversed ? 0 : scalePadding);
+        return fixNumericExtent([d0, d1], categoryAxis);
     }
 
     async createNodeData() {
