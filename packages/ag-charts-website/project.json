@@ -7,6 +7,8 @@
     "build": {
       "outputs": ["{workspaceRoot}/dist/{projectRoot}"],
       "dependsOn": ["^build", "^docs-resolved-interfaces", "generate-examples", "generate-thumbnails"],
+      "inputs": ["^production", { "externalDependencies": ["astro"] }, { "env": "PUBLIC_PACKAGE_VERSION" }],
+      "cache": true,
       "command": "astro build",
       "options": {
         "cwd": "packages/ag-charts-website",
