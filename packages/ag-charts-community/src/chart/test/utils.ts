@@ -402,7 +402,7 @@ export function reverseAxes<T extends AgCartesianChartOptions | AgPolarChartOpti
 }
 
 export function mixinReversedAxesCases(
-    baseCases: Record<string, CartesianOrPolarTestCase>
+    baseCases: Record<string, CartesianOrPolarTestCase & { skip?: boolean }>
 ): Record<string, CartesianOrPolarTestCase> {
     const result = { ...baseCases };
 

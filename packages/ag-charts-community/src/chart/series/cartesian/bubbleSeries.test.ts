@@ -79,6 +79,29 @@ describe('BubbleSeries', () => {
             chart = AgCharts.create(options) as Chart;
             await compare();
         });
+
+        it('should render bubble series with reversed axes', async () => {
+            const options: AgChartOptions = {
+                ...examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE,
+                axes: [
+                    {
+                        type: 'number',
+                        position: 'left',
+                        reverse: true,
+                    },
+                    {
+                        type: 'number',
+                        position: 'bottom',
+                        reverse: true,
+                    },
+                ],
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options) as Chart;
+            await compare();
+        });
     });
 
     describe('initial animation', () => {
