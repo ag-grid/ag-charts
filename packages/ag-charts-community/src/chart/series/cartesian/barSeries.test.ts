@@ -12,11 +12,12 @@ import {
     DATA_ZERO_EXTENT_LOG_AXIS,
 } from '../../test/data';
 import * as examples from '../../test/examples';
-import type { TestCase } from '../../test/utils';
+import type { CartesianOrPolarTestCase } from '../../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
     extractImageData,
+    mixinReversedAxesCases,
     prepareTestOptions,
     repeat,
     setupMockCanvas,
@@ -26,92 +27,94 @@ import {
 
 expect.extend({ toMatchImageSnapshot });
 
-const buildLogAxisTestCase = (data: any[]): TestCase => {
+const buildLogAxisTestCase = (data: any[]): CartesianOrPolarTestCase => {
     return {
         options: examples.CARTESIAN_CATEGORY_X_AXIS_LOG_Y_AXIS(data, 'bar'),
         assertions: cartesianChartAssertions({ axisTypes: ['category', 'log'], seriesTypes: ['bar'] }),
     };
 };
 
-const EXAMPLES: Record<string, TestCase> = {
-    COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS: {
-        options: examples.COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['bar'] }),
-    },
-    COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS: {
-        options: examples.COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS,
-        assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: ['bar'] }),
-    },
-    STACKED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS: {
-        options: examples.STACKED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS,
-        assertions: cartesianChartAssertions({
-            axisTypes: ['number', 'number'],
-            seriesTypes: repeat('bar', 4),
-        }),
-    },
-    GROUPED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS: {
-        options: examples.GROUPED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS,
-        assertions: cartesianChartAssertions({
-            axisTypes: ['number', 'number'],
-            seriesTypes: repeat('bar', 4),
-        }),
-    },
-    BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS: {
-        options: examples.BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['bar'] }),
-    },
-    BAR_TIME_X_AXIS_NUMBER_Y_AXIS: {
-        options: examples.BAR_TIME_X_AXIS_NUMBER_Y_AXIS,
-        assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: ['bar'] }),
-    },
-    STACKED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS: {
-        options: examples.STACKED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS,
-        assertions: cartesianChartAssertions({
-            axisTypes: ['number', 'number'],
-            seriesTypes: repeat('bar', 4),
-        }),
-    },
-    STACKED_BAR_NUMBER_X_AXIS_NEGATIVE_NUMBER_Y_AXIS: {
-        options: examples.STACKED_BAR_NUMBER_X_AXIS_NEGATIVE_NUMBER_Y_AXIS,
-        assertions: cartesianChartAssertions({
-            axisTypes: ['category', 'number'],
-            seriesTypes: repeat('bar', 4),
-        }),
-    },
-    GROUPED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS: {
-        options: examples.GROUPED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS,
-        assertions: cartesianChartAssertions({
-            axisTypes: ['number', 'number'],
-            seriesTypes: repeat('bar', 4),
-        }),
-    },
-    COLUMN_CATEGORY_X_AXIS_POSITIVE_LOG_Y_AXIS: buildLogAxisTestCase(DATA_POSITIVE_LOG_AXIS),
-    COLUMN_CATEGORY_X_AXIS_NEGATIVE_LOG_Y_AXIS: buildLogAxisTestCase(DATA_NEGATIVE_LOG_AXIS),
-    COLUMN_CATEGORY_X_AXIS_FRACTIONAL_LOG_Y_AXIS: buildLogAxisTestCase(DATA_FRACTIONAL_LOG_AXIS),
-    COLUMN_CATEGORY_X_AXIS_ZERO_EXTENT_LOG_Y_AXIS: buildLogAxisTestCase(DATA_ZERO_EXTENT_LOG_AXIS),
-    COLUMN_SINGLE_DATE_CATEGORY_AXIS: {
-        options: examples.COLUMN_SINGLE_DATE_CATEGORY_AXIS,
-        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['bar'] }),
-    },
-    COLUMN_SINGLE_DATE_TIME_AXIS: {
-        options: examples.COLUMN_SINGLE_DATE_TIME_AXIS,
-        assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: ['bar'] }),
-    },
-    GROUPED_COLUMN_CATEGORY_DATA_PER_SERIES: {
-        options: examples.GROUPED_COLUMN_CATEGORY_DATA_PER_SERIES,
-        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: repeat('bar', 5) }),
-    },
-    STACKED_COLUMN_CATEGORY_DATA_PER_SERIES: {
-        options: examples.STACKED_COLUMN_CATEGORY_DATA_PER_SERIES,
-        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: repeat('bar', 5) }),
-    },
-    STACKED_COLUMN_CATEGORY_DATA_PER_SERIES_CLASHING: {
-        options: examples.STACKED_COLUMN_CATEGORY_DATA_PER_SERIES_CLASHING,
-        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: repeat('bar', 5) }),
-    },
+const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
+    ...mixinReversedAxesCases({
+        COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS: {
+            options: examples.COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS,
+            assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['bar'] }),
+        },
+        COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS: {
+            options: examples.COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS,
+            assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: ['bar'] }),
+        },
+        STACKED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS: {
+            options: examples.STACKED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS,
+            assertions: cartesianChartAssertions({
+                axisTypes: ['number', 'number'],
+                seriesTypes: repeat('bar', 4),
+            }),
+        },
+        GROUPED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS: {
+            options: examples.GROUPED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS,
+            assertions: cartesianChartAssertions({
+                axisTypes: ['number', 'number'],
+                seriesTypes: repeat('bar', 4),
+            }),
+        },
+        BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS: {
+            options: examples.BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS,
+            assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['bar'] }),
+        },
+        BAR_TIME_X_AXIS_NUMBER_Y_AXIS: {
+            options: examples.BAR_TIME_X_AXIS_NUMBER_Y_AXIS,
+            assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: ['bar'] }),
+        },
+        STACKED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS: {
+            options: examples.STACKED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS,
+            assertions: cartesianChartAssertions({
+                axisTypes: ['number', 'number'],
+                seriesTypes: repeat('bar', 4),
+            }),
+        },
+        STACKED_BAR_NUMBER_X_AXIS_NEGATIVE_NUMBER_Y_AXIS: {
+            options: examples.STACKED_BAR_NUMBER_X_AXIS_NEGATIVE_NUMBER_Y_AXIS,
+            assertions: cartesianChartAssertions({
+                axisTypes: ['category', 'number'],
+                seriesTypes: repeat('bar', 4),
+            }),
+        },
+        GROUPED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS: {
+            options: examples.GROUPED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS,
+            assertions: cartesianChartAssertions({
+                axisTypes: ['number', 'number'],
+                seriesTypes: repeat('bar', 4),
+            }),
+        },
+        COLUMN_CATEGORY_X_AXIS_POSITIVE_LOG_Y_AXIS: buildLogAxisTestCase(DATA_POSITIVE_LOG_AXIS),
+        COLUMN_CATEGORY_X_AXIS_NEGATIVE_LOG_Y_AXIS: buildLogAxisTestCase(DATA_NEGATIVE_LOG_AXIS),
+        COLUMN_CATEGORY_X_AXIS_FRACTIONAL_LOG_Y_AXIS: buildLogAxisTestCase(DATA_FRACTIONAL_LOG_AXIS),
+        COLUMN_CATEGORY_X_AXIS_ZERO_EXTENT_LOG_Y_AXIS: buildLogAxisTestCase(DATA_ZERO_EXTENT_LOG_AXIS),
+        COLUMN_SINGLE_DATE_CATEGORY_AXIS: {
+            options: examples.COLUMN_SINGLE_DATE_CATEGORY_AXIS,
+            assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['bar'] }),
+        },
+        COLUMN_SINGLE_DATE_TIME_AXIS: {
+            options: examples.COLUMN_SINGLE_DATE_TIME_AXIS,
+            assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: ['bar'] }),
+        },
+        GROUPED_COLUMN_CATEGORY_DATA_PER_SERIES: {
+            options: examples.GROUPED_COLUMN_CATEGORY_DATA_PER_SERIES,
+            assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: repeat('bar', 5) }),
+        },
+        STACKED_COLUMN_CATEGORY_DATA_PER_SERIES: {
+            options: examples.STACKED_COLUMN_CATEGORY_DATA_PER_SERIES,
+            assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: repeat('bar', 5) }),
+        },
+        STACKED_COLUMN_CATEGORY_DATA_PER_SERIES_CLASHING: {
+            options: examples.STACKED_COLUMN_CATEGORY_DATA_PER_SERIES_CLASHING,
+            assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: repeat('bar', 5) }),
+        },
+    }),
 };
 
-const INVALID_DATA_EXAMPLES: Record<string, TestCase> = {
+const INVALID_DATA_EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
     COLUMN_CATEGORY_X_AXIS_INVALID_DOMAIN_LOG_Y_AXIS: buildLogAxisTestCase(DATA_INVALID_DOMAIN_LOG_AXIS),
 };
 
