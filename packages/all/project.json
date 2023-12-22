@@ -6,17 +6,17 @@
   "targets": {
     "build": {
       "executor": "nx:noop",
-      "inputs": [{ "externalDependencies": [] }],
+      "inputs": [{ "externalDependencies": ["npm:typescript"] }],
       "dependsOn": ["^build"]
     },
     "build-tsc": {
       "executor": "nx:noop",
-      "inputs": [{ "externalDependencies": [] }],
+      "inputs": [{ "externalDependencies": ["npm:typescript"] }],
       "dependsOn": ["^build-tsc"]
     },
     "lint": {
       "executor": "nx:noop",
-      "inputs": [{ "externalDependencies": [] }],
+      "inputs": [{ "externalDependencies": ["npm:typescript"] }],
       "dependsOn": ["^lint"],
       "configurations": {
         "fix": {}
@@ -24,7 +24,7 @@
     },
     "test": {
       "executor": "nx:noop",
-      "inputs": [{ "externalDependencies": [] }],
+      "inputs": [{ "externalDependencies": ["npm:typescript"] }],
       "dependsOn": ["^test"],
       "configurations": {
         "update": {}
@@ -32,7 +32,7 @@
     },
     "pack": {
       "executor": "nx:noop",
-      "inputs": [{ "externalDependencies": [] }],
+      "inputs": [{ "externalDependencies": ["npm:typescript"] }],
       "dependsOn": ["^pack"],
       "configurations": {
         "production": {}
@@ -40,7 +40,7 @@
     },
     "pack:extract": {
       "executor": "nx:noop",
-      "inputs": [{ "externalDependencies": [] }],
+      "inputs": [{ "externalDependencies": ["npm:typescript"] }],
       "dependsOn": ["^pack:extract"],
       "configurations": {
         "production": {}
@@ -48,7 +48,7 @@
     },
     "pack:verify": {
       "executor": "nx:noop",
-      "inputs": [{ "externalDependencies": [] }],
+      "inputs": [{ "externalDependencies": ["npm:typescript"] }],
       "dependsOn": ["^pack:verify"],
       "configurations": {
         "production": {}

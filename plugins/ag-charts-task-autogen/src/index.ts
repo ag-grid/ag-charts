@@ -46,10 +46,16 @@ export const createNodes: CreateNodes = [
                         'generate-examples': {
                             executor: 'nx:noop',
                             dependsOn: ['^generate-example'],
+                            inputs: [{ externalDependencies: ['npm:typescript'] }],
+                            outputs: [],
+                            cache: true,
                         },
                         'generate-thumbnails': {
                             executor: 'nx:noop',
                             dependsOn: ['^generate-thumbnail'],
+                            inputs: [{ externalDependencies: ['npm:typescript'] }],
+                            outputs: [],
+                            cache: true,
                         },
                     },
                 },
@@ -81,10 +87,8 @@ function createGenerateTarget(thumbnails: boolean): { [targetName: string]: Targ
         generate: {
             executor: 'nx:noop',
             dependsOn,
-            inputs: [
-                { dependentTasksOutputFiles: '**/*', transitive: false },
-                { externalDependencies: ['npm:typescript'] },
-            ],
+            inputs: [{ externalDependencies: ['npm:typescript'] }],
+            cache: true,
         },
     };
 }

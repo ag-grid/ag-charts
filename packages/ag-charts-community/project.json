@@ -9,7 +9,7 @@
       "dependsOn": ["build:types", "build:package", "build:umd", "build-tsc"],
       "inputs": [
         {
-          "externalDependencies": []
+          "externalDependencies": ["npm:typescript"]
         }
       ],
       "configurations": {
@@ -165,7 +165,7 @@
       "dependsOn": ["lint-eslint", "lint-circular", "lint-depcruise"],
       "inputs": [
         {
-          "externalDependencies": []
+          "externalDependencies": ["npm:typescript"]
         }
       ],
       "configurations": {
