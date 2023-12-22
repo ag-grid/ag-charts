@@ -81,6 +81,10 @@ function createGenerateTarget(thumbnails: boolean): { [targetName: string]: Targ
         generate: {
             executor: 'nx:noop',
             dependsOn,
+            inputs: [
+                { dependentTasksOutputFiles: '**/*', transitive: false },
+                { externalDependencies: ['npm:typescript'] },
+            ],
         },
     };
 }

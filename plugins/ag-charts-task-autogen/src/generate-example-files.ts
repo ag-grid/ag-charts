@@ -8,7 +8,7 @@ export function createTask(parentProject: string, srcRelativeInputPath: string):
             executor: 'ag-charts-generate-example-files:generate',
             inputs: [
                 '{projectRoot}/**',
-                '{workspaceRoot}/plugins/ag-charts-generate-example-files/**',
+                { dependentTasksOutputFiles: '**/*', transitive: false },
                 { externalDependencies: ['npm:typescript'] },
             ],
             outputs: ['{options.outputPath}'],

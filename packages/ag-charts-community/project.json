@@ -101,11 +101,12 @@
     },
     "docs-debug-interfaces": {
       "executor": "ag-charts-generate-code-reference-files:generate",
+      "dependsOn": ["ag-charts-generate-code-reference-files:build"],
       "inputs": [
-        "^tsDefaults",
         "{projectRoot}/src/options/**/*.ts",
+        { "dependentTasksOutputFiles": "**/*", "transitive": false },
         {
-          "externalDependencies": []
+          "externalDependencies": ["npm:typescript"]
         }
       ],
       "outputs": ["{options.output}"],
@@ -118,11 +119,12 @@
     },
     "docs-resolved-interfaces": {
       "executor": "ag-charts-generate-code-reference-files:generate",
+      "dependsOn": ["ag-charts-generate-code-reference-files:build"],
       "inputs": [
-        "^tsDefaults",
         "{projectRoot}/src/options/**/*.ts",
+        { "dependentTasksOutputFiles": "**/*", "transitive": false },
         {
-          "externalDependencies": []
+          "externalDependencies": ["npm:typescript"]
         }
       ],
       "outputs": ["{options.output}"],

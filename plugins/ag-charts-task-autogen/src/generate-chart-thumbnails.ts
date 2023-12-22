@@ -4,11 +4,10 @@ export function createTask(parentProject: string, srcRelativeInputPath: string) 
 
     return {
         'generate-thumbnail': {
-            dependsOn,
+            dependsOn: ['generate-example', 'ag-charts-generate-chart-thumbnail:build'],
             inputs: [
-                `{workspaceRoot}/${generatedExamplePath}/**`,
                 '{projectRoot}/**',
-                '{workspaceRoot}/plugins/ag-charts-generate-chart-thumbnail/**',
+                { dependentTasksOutputFiles: '**/*', transitive: false },
                 { env: 'PUBLIC_PACKAGE_VERSION' },
                 { externalDependencies: ['npm:typescript', 'npm:canvas'] },
             ],
