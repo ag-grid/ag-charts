@@ -78,6 +78,9 @@ export class WaterfallSeriesItem extends BaseProperties {
     @Validate(POSITIVE_NUMBER)
     strokeWidth: number = 1;
 
+    @Validate(POSITIVE_NUMBER)
+    cornerRadius: number = 0;
+
     @Validate(FUNCTION, { optional: true })
     formatter?: (params: AgWaterfallSeriesFormatterParams<any>) => AgWaterfallSeriesFormat;
 
@@ -134,9 +137,6 @@ export class WaterfallSeriesProperties extends AbstractBarSeriesProperties<AgWat
 
     @Validate(STRING, { optional: true })
     yName?: string;
-
-    @Validate(POSITIVE_NUMBER)
-    cornerRadius: number = 0;
 
     @Validate(OBJECT)
     readonly item = new WaterfallSeriesItems();

@@ -19,6 +19,8 @@ type Corner = {
     cy: number;
 };
 
+const epsilon = 1e-6;
+
 const cornerEdges = (
     leadingEdge: number,
     trailingEdge: number,
@@ -37,12 +39,16 @@ const cornerEdges = (
         leadingClipped = true;
         leading0 = leadingEdge;
         leading1 = leadingInset - Math.sqrt(Math.max(cornerRadius ** 2 - (trailingInset - leadingEdge) ** 2));
+    } else if (leading0 < epsilon) {
+        leading0 = 0;
     }
 
     if (trailing1 > trailingEdge) {
         trailingClipped = true;
         trailing0 = trailingInset - Math.sqrt(Math.max(cornerRadius ** 2 - (leadingInset - trailingEdge) ** 2));
         trailing1 = trailingEdge;
+    } else if (trailing1 < epsilon) {
+        trailing1 = 0;
     }
 
     return { leading0, leading1, trailing0, trailing1, leadingClipped, trailingClipped };
