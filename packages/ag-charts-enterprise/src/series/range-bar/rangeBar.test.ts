@@ -229,6 +229,50 @@ describe('Chart', () => {
         await compare();
     });
 
+    it(`should render a range-bar chart with reversed axes`, async () => {
+        const options: AgChartOptions = {
+            ...RANGE_COLUMN_OPTIONS,
+            axes: [
+                {
+                    position: 'left',
+                    type: 'number',
+                    reverse: true,
+                },
+                {
+                    position: 'bottom',
+                    type: 'category',
+                    reverse: true,
+                },
+            ],
+        };
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
+    it(`should render a horizontal range-bar chart with reversed axes`, async () => {
+        const options: AgChartOptions = {
+            ...switchSeriesType(RANGE_COLUMN_OPTIONS, 'horizontal'),
+            axes: [
+                {
+                    position: 'bottom',
+                    type: 'number',
+                    reverse: true,
+                },
+                {
+                    position: 'left',
+                    type: 'category',
+                    reverse: true,
+                },
+            ],
+        };
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
     it(`should render a range-bar chart with a time x-axis`, async () => {
         const options: AgChartOptions = {
             ...RANGE_COLUMN_OPTIONS,
@@ -250,6 +294,28 @@ describe('Chart', () => {
         await compare();
     });
 
+    it(`should render a range-bar chart with a reversed time x-axis`, async () => {
+        const options: AgChartOptions = {
+            ...RANGE_COLUMN_OPTIONS,
+            data: CONTINUOUS_DATA,
+            axes: [
+                {
+                    position: 'left',
+                    type: 'number',
+                },
+                {
+                    position: 'bottom',
+                    type: 'time',
+                    reverse: true,
+                },
+            ],
+        };
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
     it(`should render a horizontal range-bar chart with a time y-axis`, async () => {
         const RANGE_BAR_OPTIONS = switchSeriesType(RANGE_COLUMN_OPTIONS, 'horizontal');
         const options: AgChartOptions = {
@@ -259,6 +325,29 @@ describe('Chart', () => {
                 {
                     position: 'left',
                     type: 'time',
+                },
+                {
+                    position: 'bottom',
+                    type: 'number',
+                },
+            ],
+        };
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
+    it(`should render a horizontal range-bar chart with a reversed time y-axis`, async () => {
+        const RANGE_BAR_OPTIONS = switchSeriesType(RANGE_COLUMN_OPTIONS, 'horizontal');
+        const options: AgChartOptions = {
+            ...RANGE_BAR_OPTIONS,
+            data: CONTINUOUS_DATA,
+            axes: [
+                {
+                    position: 'left',
+                    type: 'time',
+                    reverse: true,
                 },
                 {
                     position: 'bottom',
@@ -293,6 +382,28 @@ describe('Chart', () => {
         await compare();
     });
 
+    it(`should render a range-bar chart with a reversed number x-axis`, async () => {
+        const options: AgChartOptions = {
+            ...RANGE_COLUMN_OPTIONS,
+            data: CONTINUOUS_DATA,
+            axes: [
+                {
+                    position: 'left',
+                    type: 'number',
+                },
+                {
+                    position: 'bottom',
+                    type: 'number',
+                    reverse: true,
+                },
+            ],
+        };
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
     it(`should render a horizontal range-bar chart with a number y-axis`, async () => {
         const RANGE_BAR_OPTIONS = switchSeriesType(RANGE_COLUMN_OPTIONS, 'horizontal');
         const options: AgChartOptions = {
@@ -302,6 +413,29 @@ describe('Chart', () => {
                 {
                     position: 'left',
                     type: 'number',
+                },
+                {
+                    position: 'bottom',
+                    type: 'number',
+                },
+            ],
+        };
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
+    it(`should render a horizontal range-bar chart with a number y-axis`, async () => {
+        const RANGE_BAR_OPTIONS = switchSeriesType(RANGE_COLUMN_OPTIONS, 'horizontal');
+        const options: AgChartOptions = {
+            ...RANGE_BAR_OPTIONS,
+            data: CONTINUOUS_DATA,
+            axes: [
+                {
+                    position: 'left',
+                    type: 'number',
+                    reverse: true,
                 },
                 {
                     position: 'bottom',
