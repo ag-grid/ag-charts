@@ -313,8 +313,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         let trailingSubtotal = 0;
         const { xKey, yKey, xName, yName } = this.properties;
 
-        console.log({ barWidth, step });
-
         this.processedData?.data.forEach(({ keys, datum, values }, dataIndex) => {
             const datumType = values[totalTypeIndex];
 
