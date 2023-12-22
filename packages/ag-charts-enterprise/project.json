@@ -7,6 +7,7 @@
     "build": {
       "executor": "nx:noop",
       "dependsOn": ["build:types", "build:package", "build:umd", "build-tsc"],
+      "cache": false,
       "inputs": [
         {
           "externalDependencies": ["npm:typescript"]
@@ -120,6 +121,7 @@
     "lint": {
       "executor": "nx:noop",
       "dependsOn": ["lint-eslint", "lint-circular"],
+      "cache": false,
       "inputs": [
         {
           "externalDependencies": ["npm:typescript"]

@@ -12,6 +12,7 @@
           "externalDependencies": ["npm:typescript"]
         }
       ],
+      "cache": false,
       "configurations": {
         "watch": {},
         "production": {}
@@ -163,6 +164,7 @@
     "lint": {
       "executor": "nx:noop",
       "dependsOn": ["lint-eslint", "lint-circular", "lint-depcruise"],
+      "cache": false,
       "inputs": [
         {
           "externalDependencies": ["npm:typescript"]
