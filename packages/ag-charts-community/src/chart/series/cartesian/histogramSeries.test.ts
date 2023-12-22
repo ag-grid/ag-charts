@@ -73,6 +73,60 @@ describe('HistogramSeries', () => {
         }
     });
 
+    describe('#reversed axes', () => {
+        for (const [exampleName, example] of Object.entries(EXAMPLES)) {
+            it(`for ${exampleName} it should create chart instance as expected`, async () => {
+                const options: AgChartOptions = {
+                    ...example.options,
+                    axes: [
+                        {
+                            type: 'number',
+                            position: 'left',
+                            reverse: true,
+                        },
+                        {
+                            type: 'number',
+                            position: 'bottom',
+                            reverse: true,
+                        },
+                    ],
+                };
+                prepareTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+                await example.assertions(chart);
+            });
+
+            it(`for ${exampleName} it should render to canvas as expected`, async () => {
+                const options: AgChartOptions = {
+                    ...example.options,
+                    axes: [
+                        {
+                            type: 'number',
+                            position: 'left',
+                            reverse: true,
+                        },
+                        {
+                            type: 'number',
+                            position: 'bottom',
+                            reverse: true,
+                        },
+                    ],
+                };
+                prepareTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await compare();
+
+                if (example.extraScreenshotActions) {
+                    await example.extraScreenshotActions(chart);
+                    await compare();
+                }
+            });
+        }
+    });
+
     describe('series highlighting', () => {
         it('should highlight scatter datum when overlapping histogram', async () => {
             const options = {
