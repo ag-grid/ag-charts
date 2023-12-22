@@ -211,8 +211,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             reduced: { [_ModuleSupport.SMALLEST_KEY_INTERVAL.property]: smallestX } = {},
         } = processedData;
 
-        const categoryAxis = this.getCategoryAxis();
-
         const keyDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
 
         if (direction === this.getCategoryDirection()) {
@@ -222,10 +220,18 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
             const scalePadding = smallestX != null && isFinite(smallestX) ? smallestX : 0;
             const keysExtent = _ModuleSupport.extent(keys) ?? [NaN, NaN];
+
+            const categoryAxis = this.getCategoryAxis();
+            const isReversed = categoryAxis?.isReversed();
             if (direction === ChartAxisDirection.Y) {
-                return fixNumericExtent([keysExtent[0] + -scalePadding, keysExtent[1]], categoryAxis);
+                const d0 = keysExtent[0] + (isReversed ? 0 : -scalePadding);
+                const d1 = keysExtent[1] + (isReversed ? scalePadding : 0);
+                return fixNumericExtent([d0, d1], categoryAxis);
             }
-            return fixNumericExtent([keysExtent[0], keysExtent[1] + scalePadding], categoryAxis);
+
+            const d0 = keysExtent[0] + (isReversed ? -scalePadding : 0);
+            const d1 = keysExtent[1] + (isReversed ? 0 : scalePadding);
+            return fixNumericExtent([d0, d1], categoryAxis);
         } else {
             const yCurrIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrent').index;
             const yExtent = values[yCurrIndex];
