@@ -5,7 +5,6 @@ import type {
     AgCartesianAxisPosition,
     AgCartesianAxisType,
     AgCartesianChartOptions,
-    AgChartOptions,
     AgPolarChartOptions,
 } from '../../options/agChartOptions';
 import type { Chart } from '../chart';
@@ -20,6 +19,7 @@ import {
     createChart,
     extractImageData,
     repeat,
+    reverseAxes,
     setupMockCanvas,
     waitForChartStability,
 } from '../test/utils';
@@ -53,7 +53,7 @@ function applyAxesFlip<T extends AgCartesianChartOptions>(opts: T): T {
     };
 }
 
-type TestCase<T extends AgBaseChartOptions = AgChartOptions> = {
+type TestCase<T extends AgBaseChartOptions = AgCartesianChartOptions> = {
     options: T;
     assertions: (chart: Chart) => Promise<void>;
     extraScreenshotActions?: (chart: Chart) => Promise<void>;
@@ -192,43 +192,47 @@ const EXAMPLES_NO_SERIES: Record<string, TestCase> = {
 };
 
 const EXAMPLES_TICK_VALUES: Record<string, TestCase> = {
-    NUMBER_AXIS_TICK_VALUES: {
-        options: axesExamples.NUMBER_AXIS_TICK_VALUES,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['scatter'] }),
-    },
-    TIME_AXIS_TICK_VALUES: {
-        options: axesExamples.TIME_AXIS_TICK_VALUES,
-        assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 4) }),
-    },
-    LOG_AXIS_TICK_VALUES: {
-        options: axesExamples.LOG_AXIS_TICK_VALUES,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'log'], seriesTypes: ['line'] }),
-    },
-    CATEGORY_AXIS_TICK_VALUES: {
-        options: axesExamples.CATEGORY_AXIS_TICK_VALUES,
-        assertions: cartesianChartAssertions({
-            axisTypes: ['category', 'number'],
-            seriesTypes: repeat('bar', 7),
-        }),
-    },
+    ...mixinReversedAxesCases({
+        NUMBER_AXIS_TICK_VALUES: {
+            options: axesExamples.NUMBER_AXIS_TICK_VALUES,
+            assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['scatter'] }),
+        },
+        TIME_AXIS_TICK_VALUES: {
+            options: axesExamples.TIME_AXIS_TICK_VALUES,
+            assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 4) }),
+        },
+        LOG_AXIS_TICK_VALUES: {
+            options: axesExamples.LOG_AXIS_TICK_VALUES,
+            assertions: cartesianChartAssertions({ axisTypes: ['number', 'log'], seriesTypes: ['line'] }),
+        },
+        CATEGORY_AXIS_TICK_VALUES: {
+            options: axesExamples.CATEGORY_AXIS_TICK_VALUES,
+            assertions: cartesianChartAssertions({
+                axisTypes: ['category', 'number'],
+                seriesTypes: repeat('bar', 7),
+            }),
+        },
+    }),
 };
 
 const EXAMPLES_TICK_SPACING: Record<string, TestCase> = {
-    AXIS_TICK_MIN_SPACING: {
-        options: axesExamples.AXIS_TICK_MIN_SPACING,
-        assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 4) }),
-    },
-    AXIS_TICK_MAX_SPACING: {
-        options: axesExamples.AXIS_TICK_MAX_SPACING,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['scatter'] }),
-    },
-    AXIS_TICK_MIN_MAX_SPACING: {
-        options: axesExamples.AXIS_TICK_MIN_MAX_SPACING,
-        assertions: cartesianChartAssertions({
-            axisTypes: ['category', 'number'],
-            seriesTypes: repeat('bar', 7),
-        }),
-    },
+    ...mixinReversedAxesCases({
+        AXIS_TICK_MIN_SPACING: {
+            options: axesExamples.AXIS_TICK_MIN_SPACING,
+            assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 4) }),
+        },
+        AXIS_TICK_MAX_SPACING: {
+            options: axesExamples.AXIS_TICK_MAX_SPACING,
+            assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['scatter'] }),
+        },
+        AXIS_TICK_MIN_MAX_SPACING: {
+            options: axesExamples.AXIS_TICK_MIN_MAX_SPACING,
+            assertions: cartesianChartAssertions({
+                axisTypes: ['category', 'number'],
+                seriesTypes: repeat('bar', 7),
+            }),
+        },
+    }),
 };
 
 const EXAMPLES_CLIPPING: Record<string, TestCase> = {
@@ -331,6 +335,26 @@ function mixinDerivedCases<T extends AgBaseChartOptions>(
         result[name + '_FLIP'] = {
             ...baseCase,
             options: applyAxesFlip(baseCase.options),
+        };
+
+        result[name + '_REVERSED_AXES'] = {
+            ...baseCase,
+            options: reverseAxes(baseCase.options, true),
+        };
+    });
+
+    return result;
+}
+
+function mixinReversedAxesCases<T extends AgBaseChartOptions>(
+    baseCases: Record<string, TestCase<T>>
+): Record<string, TestCase<T>> {
+    const result = { ...baseCases };
+
+    Object.entries(baseCases).forEach(([name, baseCase]) => {
+        result[name + '_REVERSED_AXES'] = {
+            ...baseCase,
+            options: reverseAxes(baseCase.options, true),
         };
     });
 
@@ -472,6 +496,28 @@ describe('Axis Examples', () => {
 
             const afterFinalUpdate = await snapshot();
             expect(afterFinalUpdate).toMatchImage(reference);
+        });
+
+        it(`for ADV_COMBINATION_SERIES_CHART_EXAMPLE it should render identically after legend toggle with reversed axes`, async () => {
+            chart = await createChart(reverseAxes(examples.ADV_COMBINATION_SERIES_CHART_EXAMPLE, true));
+            const reference = await snapshot();
+            expect(chart.series[2].getKeys(ChartAxisDirection.Y)).toEqual(['exportedTonnes']);
+
+            // Hide series bound to secondary axis.
+            (chart.series[2] as any).toggleSeriesItem('exportedTonnes', false);
+            chart.update(ChartUpdateType.FULL);
+
+            const afterUpdate = await snapshot();
+            (expect(afterUpdate) as any).not.toMatchImage(reference);
+
+            // Show series bound to secondary axis.
+            (chart.series[2] as any).toggleSeriesItem('exportedTonnes', true);
+            chart.update(ChartUpdateType.FULL);
+
+            const afterFinalUpdate = await snapshot();
+            expect(afterFinalUpdate).toMatchImage(reference);
+
+            await compare();
         });
     });
 
