@@ -150,7 +150,7 @@ export function fixNumericExtent(extent?: (number | Date)[], axis?: ChartAxis): 
     if (min === max) {
         // domain has zero length, there is only a single valid value in data
 
-        const [paddingMin, paddingMax] = axis?.calculatePadding(min, max) ?? [1, 1];
+        const [paddingMin, paddingMax] = axis?.calculatePadding(min, max, axis.isReversed()) ?? [1, 1];
         min -= paddingMin;
         max += paddingMax;
     }

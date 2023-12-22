@@ -13,7 +13,7 @@ export interface ChartAxis {
     attachAxis(axisGroup: Node, gridGroup: Node): void;
     boundSeries: ISeries<unknown>[];
     calculateLayout(primaryTickCount?: number): { primaryTickCount: number | undefined; bbox: BBox };
-    calculatePadding(min: number, _max: number): [number, number];
+    calculatePadding(min: number, _max: number, reverse: boolean): [number, number];
     clipGrid(x: number, y: number, width: number, height: number): void;
     clipTickLines(x: number, y: number, width: number, height: number): void;
     computeBBox(): BBox;
