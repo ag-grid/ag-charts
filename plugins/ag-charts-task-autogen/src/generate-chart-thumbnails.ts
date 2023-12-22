@@ -10,7 +10,7 @@ export function createTask(parentProject: string, srcRelativeInputPath: string) 
                 '{projectRoot}/**',
                 '{workspaceRoot}/plugins/ag-charts-generate-chart-thumbnail/**',
                 { env: 'PUBLIC_PACKAGE_VERSION' },
-                { externalDependencies: [] },
+                { externalDependencies: ['npm:typescript', 'npm:canvas'] },
             ],
             executor: 'ag-charts-generate-chart-thumbnail:generate',
             outputPath: '{options.outputPath}',
