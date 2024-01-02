@@ -82,9 +82,9 @@ export function registerSeriesThemeTemplate(
 }
 
 export function getSeries(chartType: string, moduleCtx: ModuleContext): Series<any> {
-    const seriesConstructor = SERIES_FACTORIES[chartType];
-    if (seriesConstructor) {
-        return new seriesConstructor(moduleCtx);
+    const SeriesConstructor = SERIES_FACTORIES[chartType];
+    if (SeriesConstructor) {
+        return new SeriesConstructor(moduleCtx);
     }
 
     throw new Error(`AG Charts - unknown series type: ${chartType}`);

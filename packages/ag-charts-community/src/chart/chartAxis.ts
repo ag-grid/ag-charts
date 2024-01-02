@@ -1,8 +1,8 @@
-import type { ModuleMap } from '../module/moduleMap';
 import type { AgAxisLabelFormatterParams, AgCartesianAxisPosition, FontOptions } from '../options/agChartOptions';
 import type { Scale } from '../scale/scale';
 import type { BBox } from '../scene/bbox';
 import type { Node } from '../scene/node';
+import type { AxisModuleMap } from './axis/axis';
 import type { ChartAxisDirection } from './chartAxisDirection';
 import type { AxisLayout } from './layout/layoutService';
 import type { ISeries } from './series/seriesTypes';
@@ -25,7 +25,7 @@ export interface ChartAxis {
     direction: ChartAxisDirection;
     formatDatum(datum: any): string;
     getLayoutState(): AxisLayout;
-    getModuleMap(): ModuleMap<any, any, any>;
+    getModuleMap(): AxisModuleMap;
     gridLength: number;
     gridPadding: number;
     id: string;

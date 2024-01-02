@@ -142,7 +142,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     readonly scene: Scene;
     readonly seriesRoot = new Group({ name: `${this.id}-Series-root` });
-    legend: ChartLegend | undefined;
 
     readonly tooltip: Tooltip;
     readonly overlays: ChartOverlays;
@@ -290,8 +289,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
     protected readonly callbackCache: CallbackCache;
     protected readonly seriesStateManager: SeriesStateManager;
     protected readonly seriesLayerManager: SeriesLayerManager;
-    protected readonly modules: Record<string, { instance: ModuleInstance }> = {};
-    protected readonly legendModules: Record<string, { instance: ModuleInstance }> = {};
+    protected readonly modules: Map<string, ModuleInstance> = new Map();
+    protected readonly legends: Map<ChartLegendType, ChartLegend> = new Map();
 
     private readonly specialOverrides: PickRequired<ChartExtendedOptions, 'document' | 'window'>;
 
@@ -375,26 +374,45 @@ export abstract class Chart extends Observable implements AgChartInstance {
             )
         );
 
-        this.legend = this.attachLegend('category', Legend);
+        this.attachLegend('category', Legend);
     }
 
-    addModule(module: RootModule) {
-        if (this.modules[module.optionsKey] != null) {
-            throw new Error('AG Charts - module already initialised: ' + module.optionsKey);
+    get legend() {
+        return this.legends.get('category');
+    }
+
+    get background() {
+        return this.modules.get('background');
+    }
+
+    get navigator() {
+        return this.modules.get('navigator');
+    }
+
+    addModule<T extends RootModule | LegendModule>(module: T) {
+        if (this.modules.has(module.optionsKey)) {
+            throw new Error(`AG Charts - module already initialised: ${module.optionsKey}`);
         }
 
         const moduleInstance = new module.instanceConstructor(this.getModuleContext());
-        this.modules[module.optionsKey] = { instance: moduleInstance };
-        (this as any)[module.optionsKey] = moduleInstance; // TODO remove
+
+        if (module.type === 'legend') {
+            const legend = moduleInstance as ChartLegend;
+            this.legends.set(module.identifier, legend);
+            legend.attachLegend(this.scene.root);
+        }
+
+        this.modules.set(module.optionsKey, moduleInstance);
     }
 
-    removeModule(module: { optionsKey: string }) {
-        this.modules[module.optionsKey]?.instance.destroy();
-        delete this.modules[module.optionsKey];
-        delete (this as any)[module.optionsKey]; // TODO remove
-    }
+    removeModule(module: RootModule | LegendModule) {
+        if (module.type === 'legend') {
+            this.legends.delete(module.identifier);
+        }
 
-    private legends: Map<ChartLegendType, ChartLegend> = new Map();
+        this.modules.get(module.optionsKey)?.destroy();
+        this.modules.delete(module.optionsKey);
+    }
 
     private attachLegend(
         legendType: ChartLegendType,
@@ -403,26 +421,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const legend = new legendConstructor(this.getModuleContext());
         this.legends.set(legendType, legend);
         legend.attachLegend(this.scene.root);
-        return legend;
-    }
-
-    addLegendModule(module: LegendModule) {
-        if (this.modules[module.optionsKey] != null) {
-            throw new Error('AG Charts - module already initialised: ' + module.optionsKey);
-        }
-
-        const legend = this.attachLegend(module.identifier, module.instanceConstructor);
-        this.modules[module.optionsKey] = { instance: legend };
-        (this as any)[module.optionsKey] = legend;
-    }
-
-    removeLegendModule(module: LegendModule) {
-        this.legends.delete(module.identifier);
-        this.removeModule(module);
     }
 
     isModuleEnabled(module: Module) {
-        return this.modules[module.optionsKey] != null;
+        return this.modules.has(module.optionsKey);
     }
 
     getModuleContext(): ModuleContext {
@@ -476,13 +478,13 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.processors.forEach((p) => p.destroy());
         this.tooltipManager.destroy();
         this.tooltip.destroy();
-        Object.values(this.legends).forEach((legend) => legend.destroy());
+        this.legends.forEach((legend) => legend.destroy());
         this.legends.clear();
         this.overlays.destroy();
         SizeMonitor.unobserve(this.element);
 
-        for (const optionsKey of Object.keys(this.modules)) {
-            this.removeModule({ optionsKey });
+        for (const { instance: moduleInstance } of Object.values(this.modules)) {
+            this.removeModule(moduleInstance as ModuleInstance & (RootModule | LegendModule));
         }
 
         this.interactionManager.destroy();
@@ -1285,31 +1287,18 @@ export abstract class Chart extends Observable implements AgChartInstance {
         return false;
     }
 
-    private onSeriesNodeClick = (event: TypedEvent) => {
-        const seriesNodeClickEvent = {
-            ...event,
-            type: 'seriesNodeClick',
-        };
-        Object.defineProperty(seriesNodeClickEvent, 'series', {
-            enumerable: false,
-            // Should display the deprecation warning
-            get: () => (event as any).series,
-        });
-        this.fireEvent(seriesNodeClickEvent);
-    };
+    private onSeriesNodeClick(event: TypedEvent) {
+        this.fireEvent({ ...event, type: 'seriesNodeClick' });
+    }
 
-    private onSeriesNodeDoubleClick = (event: TypedEvent) => {
-        const seriesNodeDoubleClick = {
-            ...event,
-            type: 'seriesNodeDoubleClick',
-        };
-        this.fireEvent(seriesNodeDoubleClick);
-    };
+    private onSeriesNodeDoubleClick(event: TypedEvent) {
+        this.fireEvent({ ...event, type: 'seriesNodeDoubleClick' });
+    }
 
     changeHighlightDatum(event: HighlightChangeEvent) {
         const seriesToUpdate: Set<ISeries<any>> = new Set();
-        const { series: newSeries = undefined, datum: newDatum } = event.currentHighlight ?? {};
-        const { series: lastSeries = undefined, datum: lastDatum } = event.previousHighlight ?? {};
+        const { series: newSeries, datum: newDatum } = event.currentHighlight ?? {};
+        const { series: lastSeries, datum: lastDatum } = event.previousHighlight ?? {};
 
         if (lastSeries) {
             seriesToUpdate.add(lastSeries);

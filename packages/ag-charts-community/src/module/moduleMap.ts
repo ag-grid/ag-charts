@@ -1,68 +1,42 @@
 import type { BaseModule, ModuleInstance } from './baseModule';
+import type { ModuleContext } from './moduleContext';
 
-interface Module<C, I extends ModuleInstance = ModuleInstance> extends BaseModule {
+interface Module<I extends ModuleInstance = ModuleInstance, C = ModuleContext> extends BaseModule {
     instanceConstructor: new (ctx: C) => I;
 }
 
-export interface ModuleContextInitialiser<C> {
-    createModuleContext: () => C;
-}
+export class ModuleMap<M extends Module<I, C>, I extends ModuleInstance, C = ModuleContext> extends Map {
+    private moduleMap = new Map<string, I>();
 
-export class ModuleMap<M extends Module<C, I>, C, I extends ModuleInstance = ModuleInstance> {
-    private readonly modules: Record<string, { instance: I }> = {};
-    private moduleContext?: C;
-    private parent: ModuleContextInitialiser<C>;
-
-    constructor(parent: ModuleContextInitialiser<C>) {
-        this.parent = parent;
-    }
-
-    destroy() {
-        for (const [key, module] of Object.entries(this.modules)) {
-            module.instance.destroy();
-            delete this.modules[key];
-            delete (this.parent as any)[key];
-        }
-    }
-
-    addModule(module: M) {
-        if (this.modules[module.optionsKey] != null) {
-            throw new Error('AG Charts - module already initialised: ' + module.optionsKey);
+    addModule(module: M, moduleFactory: (module: M) => I) {
+        if (this.moduleMap.has(module.optionsKey)) {
+            throw new Error(`AG Charts - module already initialised: ${module.optionsKey}`);
         }
 
-        if (module.optionsKey in this.parent) {
-            throw new Error(`AG Charts - class already has option key '${module.optionsKey}'`);
-        }
-
-        if (this.moduleContext == null) {
-            this.moduleContext = this.parent.createModuleContext();
-        }
-
-        const moduleInstance = new module.instanceConstructor({
-            ...this.moduleContext,
-        });
-        this.modules[module.optionsKey] = { instance: moduleInstance };
-
-        (this.parent as any)[module.optionsKey] = moduleInstance;
+        // this.set(module.optionsKey, new module.instanceConstructor(moduleContext));
+        this.moduleMap.set(module.optionsKey, moduleFactory(module));
     }
 
     removeModule(module: M) {
-        this.modules[module.optionsKey]?.instance?.destroy();
-        delete this.modules[module.optionsKey];
-        delete (this.parent as any)[module.optionsKey];
+        this.moduleMap.get(module.optionsKey)?.destroy();
+        this.moduleMap.delete(module.optionsKey);
     }
 
     isModuleEnabled(module: M) {
-        return this.modules[module.optionsKey] != null;
+        return this.moduleMap.has(module.optionsKey);
     }
 
-    values() {
-        return Object.values(this.modules).map((value) => value.instance);
+    get modules() {
+        return this.moduleMap.values();
     }
 
-    *[Symbol.iterator](): IterableIterator<I> {
-        for (const { instance } of Object.values(this.modules)) {
-            yield instance;
+    mapValues<T>(callback: (value: I, index: number, array: I[]) => T) {
+        return Array.from(this.moduleMap.values()).map(callback);
+    }
+
+    destroy() {
+        for (const optionsKey of this.moduleMap.keys()) {
+            this.removeModule({ optionsKey } as M);
         }
     }
 }

@@ -8,7 +8,7 @@ import type { Point } from '../scene/point';
 import type { BaseModule, ModuleInstance } from './baseModule';
 import type { AxisContext, ModuleContextWithParent, SeriesContext } from './moduleContext';
 
-type SeriesType = NonNullable<
+export type SeriesType = NonNullable<
     AgCartesianSeriesOptions['type'] | AgPolarSeriesOptions['type'] | AgHierarchySeriesOptions['type']
 >;
 
@@ -33,7 +33,7 @@ export interface SeriesOptionInstance extends ModuleInstance {
 
 export interface SeriesOptionModule<M extends SeriesOptionInstance = SeriesOptionInstance> extends BaseModule {
     type: 'series-option';
-    seriesTypes: readonly SeriesType[];
+    seriesTypes: SeriesType[];
     instanceConstructor: new (ctx: SeriesContext) => M;
     themeTemplate: {};
 }

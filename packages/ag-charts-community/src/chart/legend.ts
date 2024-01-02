@@ -211,8 +211,6 @@ export class Legend {
         );
         this.pagination.attachPagination(this.group);
 
-        this.item.marker.parent = this;
-
         const bypass = { bypassPause: ['animation' as const] };
         this.destroyFns.push(
             ctx.interactionManager.addListener('click', (e) => this.checkLegendClick(e), bypass),

@@ -1,7 +1,6 @@
 import type { ModuleContext, SeriesContext } from '../../module/moduleContext';
-import type { ModuleContextInitialiser } from '../../module/moduleMap';
 import { ModuleMap } from '../../module/moduleMap';
-import type { SeriesOptionInstance, SeriesOptionModule } from '../../module/optionModules';
+import type { SeriesOptionInstance, SeriesOptionModule, SeriesType } from '../../module/optionModules';
 import type { AgChartLabelFormatterParams, AgChartLabelOptions } from '../../options/chart/labelOptions';
 import type {
     AgSeriesMarkerFormatterParams,
@@ -231,7 +230,7 @@ enum SeriesHighlight {
     Other,
 }
 
-export type SeriesModuleMap = ModuleMap<SeriesOptionModule, SeriesContext, SeriesOptionInstance>;
+export type SeriesModuleMap = ModuleMap<SeriesOptionModule, SeriesOptionInstance, SeriesContext>;
 
 export abstract class Series<
         TDatum extends SeriesNodeDatum,
@@ -239,7 +238,7 @@ export abstract class Series<
         TContext extends SeriesNodeDataContext<TDatum, TLabel> = SeriesNodeDataContext<TDatum, TLabel>,
     >
     extends Observable
-    implements ISeries<TDatum>, ModuleContextInitialiser<SeriesContext>
+    implements ISeries<TDatum>
 {
     abstract readonly properties: SeriesProperties<any>;
 
@@ -264,7 +263,7 @@ export abstract class Series<
 
     readonly canHaveAxes: boolean;
 
-    get type(): string {
+    get type(): SeriesType {
         return (this.constructor as any).type ?? '';
     }
 
@@ -305,7 +304,7 @@ export abstract class Series<
     // Flag to determine if we should recalculate node data.
     protected nodeDataRefresh = true;
 
-    protected readonly moduleMap: SeriesModuleMap = new ModuleMap(this);
+    protected readonly moduleMap: SeriesModuleMap = new ModuleMap();
 
     protected _data?: any[];
     protected _chartData?: any[];
@@ -528,7 +527,7 @@ export abstract class Series<
     // The union of the series domain ('community') and series-option domains ('enterprise').
     getDomain(direction: ChartAxisDirection): any[] {
         const seriesDomain: any[] = this.getSeriesDomain(direction);
-        const moduleDomains: any[][] = this.moduleMap.values().map((mod) => mod.getDomain(direction));
+        const moduleDomains: any[][] = this.moduleMap.mapValues((mod) => mod.getDomain(direction));
         // Flatten the 2D moduleDomains into a 1D array and concatenate it with seriesDomain
         return seriesDomain.concat(moduleDomains.flat());
     }
@@ -606,7 +605,7 @@ export abstract class Series<
     }
 
     protected getModuleTooltipParams(): object {
-        const params: object[] = this.moduleMap.values().map((mod) => mod.getTooltipParams());
+        const params: object[] = this.moduleMap.mapValues((mod) => mod.getTooltipParams());
         return params.reduce((total, current) => ({ ...current, ...total }), {});
     }
 

@@ -1,9 +1,7 @@
-import type { ModuleInstance } from '../module/baseModule';
-import type { LegendModule, RootModule } from '../module/coreModules';
 import type { LicenseManager } from '../module/enterpriseModule';
 import { enterpriseModule } from '../module/enterpriseModule';
 import { type Module, REGISTERED_MODULES, hasRegisteredEnterpriseModules } from '../module/module';
-import type { ModuleContext } from '../module/moduleContext';
+import type { AxisContext, ModuleContext, ModuleContextWithParent, SeriesContext } from '../module/moduleContext';
 import type { AxisOptionModule, SeriesOptionModule } from '../module/optionModules';
 import type {
     AgBaseAxisOptions,
@@ -454,45 +452,32 @@ function applyChartOptions(chart: Chart, processedOptions: ProcessedOptions, use
 }
 
 function applyModules(chart: Chart, options: AgChartOptions) {
-    const matchingChartType = (module: Module) => {
-        return (
-            (chart instanceof CartesianChart && module.chartTypes.includes('cartesian')) ||
-            (chart instanceof PolarChart && module.chartTypes.includes('polar')) ||
-            (chart instanceof HierarchyChart && module.chartTypes.includes('hierarchy'))
-        );
-    };
+    const matchingChartType = ({ chartTypes }: Module) =>
+        (chart instanceof CartesianChart && chartTypes.includes('cartesian')) ||
+        (chart instanceof PolarChart && chartTypes.includes('polar')) ||
+        (chart instanceof HierarchyChart && chartTypes.includes('hierarchy'));
 
     let modulesChanged = false;
-    const processModules = <T extends Module<ModuleInstance>>(
-        moduleType: Module['type'],
-        add: (module: T) => void,
-        remove: (module: T) => void
-    ) => {
-        const modules = REGISTERED_MODULES.filter((m): m is T => m.type === moduleType);
-        for (const next of modules) {
-            const shouldBeEnabled = matchingChartType(next) && (options as any)[next.optionsKey] != null;
-            const isEnabled = chart.isModuleEnabled(next);
-
-            if (shouldBeEnabled === isEnabled) continue;
-            modulesChanged = true;
-
-            if (shouldBeEnabled) {
-                add(next);
-            } else {
-                remove(next);
-            }
+    for (const moduleDef of REGISTERED_MODULES) {
+        if (moduleDef.type !== 'root' && moduleDef.type !== 'legend') {
+            continue;
         }
-    };
-    processModules<RootModule>(
-        'root',
-        (next) => chart.addModule(next),
-        (next) => chart.removeModule(next)
-    );
-    processModules<LegendModule>(
-        'legend',
-        (next) => chart.addLegendModule(next),
-        (next) => chart.removeLegendModule(next)
-    );
+
+        const shouldBeEnabled = matchingChartType(moduleDef) && (options as any)[moduleDef.optionsKey] != null;
+        const isEnabled = chart.isModuleEnabled(moduleDef);
+
+        if (shouldBeEnabled === isEnabled) {
+            continue;
+        }
+
+        if (shouldBeEnabled) {
+            chart.addModule(moduleDef);
+        } else {
+            chart.removeModule(moduleDef);
+        }
+
+        modulesChanged = true;
+    }
 
     return modulesChanged;
 }
@@ -573,7 +558,7 @@ function applyAxes(chart: Chart, options: { axes?: AgBaseAxisOptions[] }, forceR
 
 function createSeries(chart: Chart, options: SeriesOptionsTypes[]): Series<any>[] {
     const series: Series<any>[] = [];
-    const moduleContext = chart.getModuleContext();
+    const moduleContext = chart.getModuleContext() as SeriesContext;
 
     for (const seriesOptions of options ?? []) {
         const type = seriesOptions.type ?? 'unknown';
@@ -581,7 +566,7 @@ function createSeries(chart: Chart, options: SeriesOptionsTypes[]): Series<any>[
             continue;
         }
         const seriesInstance = getSeries(type, moduleContext);
-        applySeriesOptionModules(seriesInstance, seriesOptions);
+        applySeriesOptionModules(seriesInstance, seriesOptions, moduleContext);
         applySeriesValues(seriesInstance, seriesOptions);
         series.push(seriesInstance);
     }
@@ -589,27 +574,31 @@ function createSeries(chart: Chart, options: SeriesOptionsTypes[]): Series<any>[
     return series;
 }
 
-function applySeriesOptionModules(series: Series<any>, options: AgBaseSeriesOptions<any>) {
+function applySeriesOptionModules(
+    series: Series<any>,
+    options: AgBaseSeriesOptions<any>,
+    moduleContext: SeriesContext
+) {
     const seriesOptionModules = REGISTERED_MODULES.filter((m): m is SeriesOptionModule => m.type === 'series-option');
 
     for (const mod of seriesOptionModules) {
         const supportedSeriesTypes: readonly string[] = mod.seriesTypes;
         if (mod.optionsKey in options && supportedSeriesTypes.includes(series.type)) {
-            series.getModuleMap().addModule(mod);
+            series.getModuleMap().addModule(mod, (module) => new module.instanceConstructor(moduleContext));
         }
     }
 }
 
 function createAxis(chart: Chart, options: AgBaseAxisOptions[]): ChartAxis[] {
     const guesser: AxisPositionGuesser = new AxisPositionGuesser();
+    const moduleContext = chart.getModuleContext() as ModuleContextWithParent<AxisContext>;
     const skip = ['axes[].type'];
-    const moduleContext = chart.getModuleContext();
 
     let index = 0;
     for (const axisOptions of options ?? []) {
         const axis = getAxis(axisOptions.type, moduleContext);
         const path = `axes[${index++}]`;
-        applyAxisModules(axis, axisOptions);
+        applyAxisModules(axis, axisOptions, moduleContext);
         applyOptionValues(axis, moduleContext, axisOptions, { path, skip });
 
         guesser.push(axis, axisOptions);
@@ -618,7 +607,11 @@ function createAxis(chart: Chart, options: AgBaseAxisOptions[]): ChartAxis[] {
     return guesser.guessInvalidPositions();
 }
 
-function applyAxisModules(axis: ChartAxis, options: AgBaseAxisOptions) {
+function applyAxisModules(
+    axis: ChartAxis,
+    options: AgBaseAxisOptions,
+    moduleContext: ModuleContextWithParent<AxisContext>
+) {
     let modulesChanged = false;
     const rootModules = REGISTERED_MODULES.filter((m): m is AxisOptionModule => m.type === 'axis-option');
 
@@ -631,7 +624,7 @@ function applyAxisModules(axis: ChartAxis, options: AgBaseAxisOptions) {
         modulesChanged = true;
 
         if (shouldBeEnabled) {
-            moduleMap.addModule(next);
+            moduleMap.addModule(next, (module) => new module.instanceConstructor(moduleContext));
         } else {
             moduleMap.removeModule(next);
         }
