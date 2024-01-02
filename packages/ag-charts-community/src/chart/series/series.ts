@@ -62,6 +62,10 @@ function basicDiscreteCheckDatumValidation(v: any) {
     return checkDatum(v, false) != null;
 }
 
+function alignToAxis(value: number | undefined) {
+    return value != null ? Math.round(value) + 0.5 : undefined;
+}
+
 export function keyProperty<K>(
     scope: ScopeProvider,
     propName: K,
@@ -745,8 +749,13 @@ export abstract class Series<
         const activeStyle = this.getMarkerStyle(marker, params, defaultStyle);
         const visible = this.visible && activeStyle.size > 0 && point && !isNaN(point.x) && !isNaN(point.y);
 
-        if (applyTranslation) {
-            markerNode.setProperties({ visible, ...activeStyle, translationX: point?.x, translationY: point?.y });
+        if (applyTranslation && point != null) {
+            markerNode.setProperties({
+                visible,
+                ...activeStyle,
+                translationX: alignToAxis(point.x),
+                translationY: alignToAxis(point.y),
+            });
         } else {
             markerNode.setProperties({ visible, ...activeStyle });
         }

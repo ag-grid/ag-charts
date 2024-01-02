@@ -67,10 +67,13 @@ export function resetMarkerFn(_node: NodeWithOpacity & Node) {
     return { opacity: 1, scalingX: 1, scalingY: 1 };
 }
 
+// FIXME - take into account axis line width
+const alignToAxis = (value: number | undefined) => (value != null ? Math.round(value) + 0.5 : undefined);
+
 export function resetMarkerPositionFn<T extends CartesianSeriesNodeDatum>(_node: Node, datum: T) {
     return {
-        translationX: datum.point?.x ?? NaN,
-        translationY: datum.point?.y ?? NaN,
+        translationX: alignToAxis(datum.point?.x ?? NaN),
+        translationY: alignToAxis(datum.point?.y ?? NaN),
     };
 }
 
@@ -97,8 +100,8 @@ export function prepareMarkerAnimation(pairMap: PathPointMap<any>, parentStatus:
         if (status === 'unknown') return { opacity: 0 };
 
         const defaults = {
-            translationX: point?.from?.x ?? marker.translationX,
-            translationY: point?.from?.y ?? marker.translationY,
+            translationX: point?.from != null ? alignToAxis(point?.from?.x) : marker.translationX,
+            translationY: point?.from != null ? alignToAxis(point?.from?.y) : marker.translationY,
             opacity: marker.opacity,
             ...FROM_TO_MIXINS[status],
         };
@@ -107,8 +110,8 @@ export function prepareMarkerAnimation(pairMap: PathPointMap<any>, parentStatus:
             return {
                 ...defaults,
                 opacity: 0,
-                translationX: point?.to?.x,
-                translationY: point?.to?.y,
+                translationX: alignToAxis(point?.to?.x),
+                translationY: alignToAxis(point?.to?.y),
                 ...FROM_TO_MIXINS['added'],
             };
         }
@@ -124,8 +127,8 @@ export function prepareMarkerAnimation(pairMap: PathPointMap<any>, parentStatus:
         if (status === 'unknown') return { opacity: 0 };
 
         const defaults = {
-            translationX: datum.point.x,
-            translationY: datum.point.y,
+            translationX: alignToAxis(datum.point.x),
+            translationY: alignToAxis(datum.point.y),
             opacity: 1,
             ...FROM_TO_MIXINS[status],
         };
@@ -133,8 +136,8 @@ export function prepareMarkerAnimation(pairMap: PathPointMap<any>, parentStatus:
         if (status === 'removed' || parentStatus === 'removed') {
             return {
                 ...defaults,
-                translationX: point?.to?.x,
-                translationY: point?.to?.y,
+                translationX: alignToAxis(point?.to?.x),
+                translationY: alignToAxis(point?.to?.y),
                 opacity: 0,
                 ...FROM_TO_MIXINS['removed'],
             };
