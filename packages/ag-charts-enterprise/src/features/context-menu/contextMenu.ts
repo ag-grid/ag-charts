@@ -148,7 +148,12 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             id: 'download',
             label: 'Download',
             action: () => {
-                this.scene.download(ctx.chartService.title?.text ?? 'chart');
+                const title = ctx.chartService.title;
+                let fileName = 'image';
+                if (title !== undefined && title.enabled && title.text !== undefined) {
+                    fileName = title.text;
+                }
+                this.scene.download(fileName);
             },
         });
     }
