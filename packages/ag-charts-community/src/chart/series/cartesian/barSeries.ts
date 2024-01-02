@@ -199,10 +199,17 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
 
             const scalePadding = smallestX != null && isFinite(smallestX) ? smallestX : 0;
             const keysExtent = extent(keys) ?? [NaN, NaN];
+            const isReversed = categoryAxis?.isReversed();
+
             if (direction === ChartAxisDirection.Y) {
-                return fixNumericExtent([keysExtent[0] + -scalePadding, keysExtent[1]], categoryAxis);
+                const d0 = keysExtent[0] + (isReversed ? 0 : -scalePadding);
+                const d1 = keysExtent[1] + (isReversed ? scalePadding : 0);
+                return fixNumericExtent([d0, d1], categoryAxis);
             }
-            return fixNumericExtent([keysExtent[0], keysExtent[1] + scalePadding], categoryAxis);
+
+            const d0 = keysExtent[0] + (isReversed ? -scalePadding : 0);
+            const d1 = keysExtent[1] + (isReversed ? 0 : scalePadding);
+            return fixNumericExtent([d0, d1], categoryAxis);
         } else if (this.getValueAxis() instanceof LogAxis) {
             return fixNumericExtent(yExtent as any, valueAxis);
         } else {

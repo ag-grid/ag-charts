@@ -1041,8 +1041,11 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         switch (tickGenerationType) {
             case TickGenerationType.VALUES:
                 if (ContinuousScale.is(scale)) {
-                    const d0 = scale.fromDomain(domain[0]);
-                    const d1 = scale.fromDomain(domain[1]);
+                    const start = scale.fromDomain(domain[0]);
+                    const stop = scale.fromDomain(domain[1]);
+
+                    const d0 = Math.min(start, stop);
+                    const d1 = Math.max(start, stop);
 
                     rawTicks = this.tick.values!.filter((value) => value >= d0 && value <= d1).sort((a, b) => a - b);
                 } else {
@@ -1457,8 +1460,9 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         this.gridGroup.setClipRectInGroupCoordinateSpace(new BBox(x, y, width, height));
     }
 
-    calculatePadding(min: number, _max: number): [number, number] {
-        return [Math.abs(min * 0.01), Math.abs(min * 0.01)];
+    calculatePadding(min: number, _max: number, reverse: boolean): [number, number] {
+        const start = reverse ? _max : min;
+        return [Math.abs(start * 0.01), Math.abs(start * 0.01)];
     }
 
     protected getTitleFormatterParams() {

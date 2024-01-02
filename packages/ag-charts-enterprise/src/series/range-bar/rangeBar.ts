@@ -195,10 +195,16 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             const keysExtent = extent(keys) ?? [NaN, NaN];
 
             const categoryAxis = this.getCategoryAxis();
+            const isReversed = categoryAxis?.isReversed();
             if (direction === ChartAxisDirection.Y) {
-                return fixNumericExtent([keysExtent[0] + -scalePadding, keysExtent[1]], categoryAxis);
+                const d0 = keysExtent[0] + (isReversed ? 0 : -scalePadding);
+                const d1 = keysExtent[1] + (isReversed ? scalePadding : 0);
+                return fixNumericExtent([d0, d1], categoryAxis);
             }
-            return fixNumericExtent([keysExtent[0], keysExtent[1] + scalePadding], categoryAxis);
+
+            const d0 = keysExtent[0] + (isReversed ? -scalePadding : 0);
+            const d1 = keysExtent[1] + (isReversed ? 0 : scalePadding);
+            return fixNumericExtent([d0, d1], categoryAxis);
         } else {
             const yLowIndex = dataModel.resolveProcessedDataIndexById(this, 'yLowValue').index;
             const yLowExtent = values[yLowIndex];

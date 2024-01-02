@@ -220,7 +220,6 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
 
         const barWidth = groupScale.bandwidth >= 1 ? groupScale.bandwidth : groupScale.rawBandwidth;
 
-        // const angleAxisReversed = this.axes[ChartAxisDirection.X]?.isReversed();
         const radiusAxisReversed = this.axes[ChartAxisDirection.Y]?.isReversed();
 
         const axisInnerRadius = radiusAxisReversed ? this.radius : this.getAxisInnerRadius();

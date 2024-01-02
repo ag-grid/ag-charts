@@ -13,11 +13,12 @@ import {
     DATA_ZERO_EXTENT_LOG_AXIS,
 } from '../../test/data';
 import * as examples from '../../test/examples';
-import type { TestCase } from '../../test/utils';
+import type { CartesianOrPolarTestCase, TestCase } from '../../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
     extractImageData,
+    mixinReversedAxesCases,
     prepareTestOptions,
     repeat,
     setupMockCanvas,
@@ -27,103 +28,105 @@ import {
 
 expect.extend({ toMatchImageSnapshot });
 
-const buildLogAxisTestCase = (data: any[]): TestCase => {
+const buildLogAxisTestCase = (data: any[]): CartesianOrPolarTestCase => {
     return {
         options: examples.CARTESIAN_CATEGORY_X_AXIS_LOG_Y_AXIS(data, 'area'),
         assertions: cartesianChartAssertions({ axisTypes: ['category', 'log'], seriesTypes: ['area'] }),
     };
 };
 
-const EXAMPLES: Record<string, TestCase & { skip?: boolean }> = {
-    AREA_MISSING_Y_DATA_EXAMPLE: {
-        options: examples.AREA_MISSING_Y_DATA_EXAMPLE,
-        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
-    },
-    STACKED_AREA_MISSING_Y_DATA_EXAMPLE: {
-        options: examples.STACKED_AREA_MISSING_Y_DATA_EXAMPLE,
-        assertions: cartesianChartAssertions({
-            axisTypes: ['category', 'number'],
-            seriesTypes: repeat('area', 4),
-        }),
-    },
-    STACKED_AREA_MISSING_Y_DATA_PER_SERIES_EXAMPLE: {
-        options: examples.STACKED_AREA_MISSING_Y_DATA_PER_SERIES_EXAMPLE,
-        assertions: cartesianChartAssertions({
-            axisTypes: ['category', 'number'],
-            seriesTypes: repeat('area', 4),
-        }),
-    },
-    AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: {
-        options: examples.AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['area'] }),
-    },
-    AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: {
-        options: examples.AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE,
-        assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: ['area'] }),
-    },
-    STACKED_AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: {
-        options: examples.STACKED_AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE,
-        assertions: cartesianChartAssertions({
-            axisTypes: ['number', 'number'],
-            seriesTypes: repeat('area', 2),
-        }),
-    },
-    STACKED_AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: {
-        options: examples.STACKED_AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE,
-        assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('area', 2) }),
-    },
-    AREA__TIME_X_AXIS_NUMBER_Y_AXIS: {
-        options: examples.AREA_TIME_X_AXIS_NUMBER_Y_AXIS,
-        assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('area', 2) }),
-        skip: true, // TODO: AG-9184 data per series with varying lengths
-    },
-    AREA_NUMBER_X_AXIS_TIME_Y_AXIS: {
-        options: examples.AREA_NUMBER_X_AXIS_TIME_Y_AXIS,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'time'], seriesTypes: repeat('area', 2) }),
-        skip: true,
-    },
-    AREA_NUMBER_AXES_0_X_DOMAIN: {
-        options: examples.AREA_NUMBER_AXES_0_X_DOMAIN,
-        assertions: cartesianChartAssertions({
-            axisTypes: ['number', 'number'],
-            seriesTypes: repeat('area', 2),
-        }),
-        skip: true, // TODO: AG-9184 data per series with varying lengths
-    },
-    AREA_NUMBER_AXES_0_Y_DOMAIN: {
-        options: examples.AREA_NUMBER_AXES_0_Y_DOMAIN,
-        assertions: cartesianChartAssertions({
-            axisTypes: ['number', 'number'],
-            seriesTypes: repeat('area', 2),
-        }),
-        skip: true, // TODO: AG-9184 data per series with varying lengths
-    },
-    STACKED_AREA_STROKE_MARKER_LABEL_RENDERING: {
-        options: {
-            ...examples.STACKED_AREA_MISSING_Y_DATA_EXAMPLE,
-            series: (examples.STACKED_AREA_MISSING_Y_DATA_EXAMPLE.series ?? []).map((s) => ({
-                ...s,
-                strokeWidth: 20,
-                marker: { size: 15 },
-                label: {},
-            })),
+const EXAMPLES: Record<string, CartesianOrPolarTestCase & { skip?: boolean }> = {
+    ...mixinReversedAxesCases({
+        AREA_MISSING_Y_DATA_EXAMPLE: {
+            options: examples.AREA_MISSING_Y_DATA_EXAMPLE,
+            assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
         },
-        assertions: cartesianChartAssertions({
-            axisTypes: ['category', 'number'],
-            seriesTypes: repeat('area', 4),
-        }),
-    },
-    STACKED_AREA_MISSING_FIRST_Y_DATA_EXAMPLE: {
-        options: examples.STACKED_AREA_MISSING_FIRST_Y_DATA_EXAMPLE,
-        assertions: cartesianChartAssertions({
-            axisTypes: ['category', 'number'],
-            seriesTypes: repeat('area', 2),
-        }),
-    },
-    AREA_CATEGORY_X_AXIS_POSITIVE_LOG_Y_AXIS: buildLogAxisTestCase(DATA_POSITIVE_LOG_AXIS),
-    AREA_CATEGORY_X_AXIS_NEGATIVE_LOG_Y_AXIS: buildLogAxisTestCase(DATA_NEGATIVE_LOG_AXIS),
-    AREA_CATEGORY_X_AXIS_FRACTIONAL_LOG_Y_AXIS: buildLogAxisTestCase(DATA_FRACTIONAL_LOG_AXIS),
-    AREA_CATEGORY_X_AXIS_ZERO_EXTENT_LOG_Y_AXIS: buildLogAxisTestCase(DATA_ZERO_EXTENT_LOG_AXIS),
+        STACKED_AREA_MISSING_Y_DATA_EXAMPLE: {
+            options: examples.STACKED_AREA_MISSING_Y_DATA_EXAMPLE,
+            assertions: cartesianChartAssertions({
+                axisTypes: ['category', 'number'],
+                seriesTypes: repeat('area', 4),
+            }),
+        },
+        STACKED_AREA_MISSING_Y_DATA_PER_SERIES_EXAMPLE: {
+            options: examples.STACKED_AREA_MISSING_Y_DATA_PER_SERIES_EXAMPLE,
+            assertions: cartesianChartAssertions({
+                axisTypes: ['category', 'number'],
+                seriesTypes: repeat('area', 4),
+            }),
+        },
+        AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: {
+            options: examples.AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE,
+            assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['area'] }),
+        },
+        AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: {
+            options: examples.AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE,
+            assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: ['area'] }),
+        },
+        STACKED_AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: {
+            options: examples.STACKED_AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE,
+            assertions: cartesianChartAssertions({
+                axisTypes: ['number', 'number'],
+                seriesTypes: repeat('area', 2),
+            }),
+        },
+        STACKED_AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: {
+            options: examples.STACKED_AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE,
+            assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('area', 2) }),
+        },
+        AREA__TIME_X_AXIS_NUMBER_Y_AXIS: {
+            options: examples.AREA_TIME_X_AXIS_NUMBER_Y_AXIS,
+            assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('area', 2) }),
+            skip: true, // TODO: AG-9184 data per series with varying lengths
+        },
+        AREA_NUMBER_X_AXIS_TIME_Y_AXIS: {
+            options: examples.AREA_NUMBER_X_AXIS_TIME_Y_AXIS,
+            assertions: cartesianChartAssertions({ axisTypes: ['number', 'time'], seriesTypes: repeat('area', 2) }),
+            skip: true,
+        },
+        AREA_NUMBER_AXES_0_X_DOMAIN: {
+            options: examples.AREA_NUMBER_AXES_0_X_DOMAIN,
+            assertions: cartesianChartAssertions({
+                axisTypes: ['number', 'number'],
+                seriesTypes: repeat('area', 2),
+            }),
+            skip: true, // TODO: AG-9184 data per series with varying lengths
+        },
+        AREA_NUMBER_AXES_0_Y_DOMAIN: {
+            options: examples.AREA_NUMBER_AXES_0_Y_DOMAIN,
+            assertions: cartesianChartAssertions({
+                axisTypes: ['number', 'number'],
+                seriesTypes: repeat('area', 2),
+            }),
+            skip: true, // TODO: AG-9184 data per series with varying lengths
+        },
+        STACKED_AREA_STROKE_MARKER_LABEL_RENDERING: {
+            options: {
+                ...examples.STACKED_AREA_MISSING_Y_DATA_EXAMPLE,
+                series: (examples.STACKED_AREA_MISSING_Y_DATA_EXAMPLE.series ?? []).map((s) => ({
+                    ...s,
+                    strokeWidth: 20,
+                    marker: { size: 15 },
+                    label: {},
+                })),
+            },
+            assertions: cartesianChartAssertions({
+                axisTypes: ['category', 'number'],
+                seriesTypes: repeat('area', 4),
+            }),
+        },
+        STACKED_AREA_MISSING_FIRST_Y_DATA_EXAMPLE: {
+            options: examples.STACKED_AREA_MISSING_FIRST_Y_DATA_EXAMPLE,
+            assertions: cartesianChartAssertions({
+                axisTypes: ['category', 'number'],
+                seriesTypes: repeat('area', 2),
+            }),
+        },
+        AREA_CATEGORY_X_AXIS_POSITIVE_LOG_Y_AXIS: buildLogAxisTestCase(DATA_POSITIVE_LOG_AXIS),
+        AREA_CATEGORY_X_AXIS_NEGATIVE_LOG_Y_AXIS: buildLogAxisTestCase(DATA_NEGATIVE_LOG_AXIS),
+        AREA_CATEGORY_X_AXIS_FRACTIONAL_LOG_Y_AXIS: buildLogAxisTestCase(DATA_FRACTIONAL_LOG_AXIS),
+        AREA_CATEGORY_X_AXIS_ZERO_EXTENT_LOG_Y_AXIS: buildLogAxisTestCase(DATA_ZERO_EXTENT_LOG_AXIS),
+    }),
 };
 
 const INVALID_DATA_EXAMPLES: Record<string, TestCase> = {

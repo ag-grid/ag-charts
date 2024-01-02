@@ -80,6 +80,25 @@ describe('Nightingale Chart', () => {
         await compare();
     });
 
+    it(`should render stacked nightingale chart as expected with reversed axes`, async () => {
+        const options: AgChartOptions = {
+            ...EXAMPLE_OPTIONS,
+            axes: [
+                {
+                    type: 'radius-number',
+                    reverse: true,
+                },
+                {
+                    type: 'angle-category',
+                    reverse: true,
+                },
+            ],
+        };
+        prepareEnterpriseTestOptions(options as any);
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
     it(`should render grouped nightingale as expected`, async () => {
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,
@@ -96,6 +115,32 @@ describe('Nightingale Chart', () => {
         await compare();
     });
 
+    it(`should render grouped nightingale as expected with reversed axes`, async () => {
+        const options: AgChartOptions = {
+            ...EXAMPLE_OPTIONS,
+            series: EXAMPLE_OPTIONS.series?.map((series) => {
+                return {
+                    ...series,
+                    grouped: true,
+                };
+            }),
+            axes: [
+                {
+                    type: 'radius-number',
+                    reverse: true,
+                },
+                {
+                    type: 'angle-category',
+                    reverse: true,
+                },
+            ],
+        };
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
     it(`should render normalized nightingale as expected`, async () => {
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,
@@ -105,6 +150,32 @@ describe('Nightingale Chart', () => {
                     normalizedTo: 100,
                 };
             }),
+        };
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
+    it(`should render normalized nightingale as expected with reversed axes`, async () => {
+        const options: AgChartOptions = {
+            ...EXAMPLE_OPTIONS,
+            series: EXAMPLE_OPTIONS.series?.map((series) => {
+                return {
+                    ...series,
+                    normalizedTo: 100,
+                };
+            }),
+            axes: [
+                {
+                    type: 'radius-number',
+                    reverse: true,
+                },
+                {
+                    type: 'angle-category',
+                    reverse: true,
+                },
+            ],
         };
         prepareEnterpriseTestOptions(options as any);
 

@@ -37,6 +37,18 @@ describe('Chart', () => {
         { totalType: 'total', index: 8, axisLabel: 'Total' },
     ];
 
+    const CONTINUOUS_DATA = [
+        { year: new Date(2020, 0, 1), spending: 10 },
+        { year: new Date(2021, 0, 1), spending: 20 },
+        { year: new Date(2022, 0, 1), spending: 30 },
+        { year: new Date(2024, 0, 1), spending: -20 },
+        { year: new Date(2025, 0, 1), spending: -30 },
+        { year: new Date(2026, 0, 1), spending: 40 },
+        { year: new Date(2028, 0, 1), spending: -30 },
+        { year: new Date(2029, 0, 1), spending: 40 },
+        { year: new Date(2030, 0, 1), spending: 50 },
+    ];
+
     const DATA_WITH_MISSING_INVALID_VALUES = [
         { year: '2020', spending: 10 },
         { year: '2021' },
@@ -137,6 +149,145 @@ describe('Chart', () => {
         const options: AgChartOptions = {
             ...WATERFALL_COLUMN_OPTIONS,
             series: [{ ...WATERFALL_COLUMN_SERIES_OPTIONS[0], totals: TOTALS_META_DATA }],
+        };
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
+    it(`should render a waterfall chart with a time x-axis`, async () => {
+        const options: AgChartOptions = {
+            ...WATERFALL_COLUMN_OPTIONS,
+            data: CONTINUOUS_DATA,
+            axes: [
+                {
+                    position: 'left',
+                    type: 'number',
+                },
+                {
+                    position: 'bottom',
+                    type: 'time',
+                    nice: false,
+                },
+            ],
+        };
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
+    it(`should render a waterfall chart with a reversed time x-axis`, async () => {
+        const options: AgChartOptions = {
+            ...WATERFALL_COLUMN_OPTIONS,
+            data: CONTINUOUS_DATA,
+            axes: [
+                {
+                    position: 'left',
+                    type: 'number',
+                },
+                {
+                    position: 'bottom',
+                    type: 'time',
+                    reverse: true,
+                    nice: false,
+                },
+            ],
+        };
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
+    it(`should render a horizontal waterfall chart with a time y-axis`, async () => {
+        const options: AgChartOptions = {
+            ...switchSeriesType(WATERFALL_COLUMN_OPTIONS, 'horizontal'),
+            data: CONTINUOUS_DATA,
+            axes: [
+                {
+                    position: 'bottom',
+                    type: 'number',
+                },
+                {
+                    position: 'left',
+                    type: 'time',
+                    nice: false,
+                },
+            ],
+        };
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
+    it(`should render a horizontal waterfall chart with a reversed time y-axis`, async () => {
+        const options: AgChartOptions = {
+            ...switchSeriesType(WATERFALL_COLUMN_OPTIONS, 'horizontal'),
+            data: CONTINUOUS_DATA,
+            axes: [
+                {
+                    position: 'bottom',
+                    type: 'number',
+                },
+                {
+                    position: 'left',
+                    type: 'time',
+                    reverse: true,
+                    nice: false,
+                },
+            ],
+        };
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
+    it(`should render a waterfall chart with reversed axes`, async () => {
+        const WATERFALL_COLUMN_SERIES_OPTIONS = WATERFALL_COLUMN_OPTIONS.series;
+        const options: AgChartOptions = {
+            ...WATERFALL_COLUMN_OPTIONS,
+            series: [{ ...WATERFALL_COLUMN_SERIES_OPTIONS[0], totals: TOTALS_META_DATA }],
+            axes: [
+                {
+                    type: 'category',
+                    position: 'bottom',
+                    reverse: true,
+                },
+                {
+                    type: 'number',
+                    position: 'left',
+                    reverse: true,
+                },
+            ],
+        };
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
+    it(`should render a horizontal waterfall chart with reversed axes`, async () => {
+        const WATERFALL_BAR_OPTIONS = switchSeriesType(WATERFALL_COLUMN_OPTIONS, 'horizontal');
+        const WATERFALL_BAR_SERIES_OPTIONS = WATERFALL_BAR_OPTIONS.series[0];
+        const options: AgChartOptions = {
+            ...WATERFALL_BAR_OPTIONS,
+            series: [{ ...WATERFALL_BAR_SERIES_OPTIONS, totals: TOTALS_META_DATA }],
+            axes: [
+                {
+                    type: 'category',
+                    position: 'left',
+                    reverse: true,
+                },
+                {
+                    type: 'number',
+                    position: 'bottom',
+                    reverse: true,
+                },
+            ],
         };
         prepareEnterpriseTestOptions(options as any);
 

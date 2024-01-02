@@ -1,4 +1,8 @@
-import type { AgCartesianChartOptions, AgChartOptions, AgPolarChartOptions } from '../../options/agChartOptions';
+import type {
+    AgCartesianChartOptions,
+    AgHierarchyChartOptions,
+    AgPolarChartOptions,
+} from '../../options/agChartOptions';
 import {
     DATA_APPLE_REVENUE_BY_PRODUCT,
     DATA_BROWSER_MARKET_SHARE,
@@ -84,15 +88,16 @@ export const ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAMPLE: AgCartesianChartOpt
     DOCS_EXAMPLES['100--stacked-area'];
 export const AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE: AgCartesianChartOptions =
     DOCS_EXAMPLES['area-with-negative-values'];
-export const SIMPLE_SUNBURST_EXAMPLE: AgChartOptions = DOCS_EXAMPLES['simple-sunburst'];
-export const TREEMAP_WITH_COLOR_RANGE_EXAMPLE: AgChartOptions = DOCS_EXAMPLES['treemap-with-color-range'];
-export const SIMPLE_HISTOGRAM_CHART_EXAMPLE: AgChartOptions = DOCS_EXAMPLES['simple-histogram'];
-export const HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE: AgChartOptions = DOCS_EXAMPLES['histogram-with-specified-bins'];
+export const SIMPLE_SUNBURST_EXAMPLE: AgPolarChartOptions = DOCS_EXAMPLES['simple-sunburst'];
+export const TREEMAP_WITH_COLOR_RANGE_EXAMPLE: AgHierarchyChartOptions = DOCS_EXAMPLES['treemap-with-color-range'];
+export const SIMPLE_HISTOGRAM_CHART_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['simple-histogram'];
+export const HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE: AgCartesianChartOptions =
+    DOCS_EXAMPLES['histogram-with-specified-bins'];
 export const XY_HISTOGRAM_WITH_MEAN_EXAMPLE: AgCartesianChartOptions =
     DOCS_EXAMPLES['xy-histogram-with-mean-aggregation'];
 export const CROSS_LINES_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['cross-lines'];
 
-export const GROUPED_CATEGORY_AXIS_EXAMPLE: AgChartOptions = {};
+export const GROUPED_CATEGORY_AXIS_EXAMPLE: AgCartesianChartOptions = {};
 {
     const usdFormatter = ({ value }: { value: number }) => {
         const absolute = Math.abs(value);
@@ -303,7 +308,7 @@ export const STACKED_AREA_MISSING_FIRST_Y_DATA_EXAMPLE: AgCartesianChartOptions 
     ],
 };
 
-export const AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: AgChartOptions = {
+export const AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: AgCartesianChartOptions = {
     data: DATA_MISSING_X,
     axes: [
         { type: 'number', position: 'bottom' },
@@ -321,7 +326,7 @@ export const AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: AgChartOptions = {
     ],
 };
 
-export const AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: AgChartOptions = {
+export const AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: AgCartesianChartOptions = {
     data: DATA_TIME_MISSING_X,
     axes: [
         { type: 'time', position: 'bottom' },
@@ -339,7 +344,7 @@ export const AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: AgChartOptions = {
     ],
 };
 
-export const STACKED_AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: AgChartOptions = {
+export const STACKED_AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: AgCartesianChartOptions = {
     data: DATA_MISSING_X,
     axes: [
         { type: 'number', position: 'bottom' },
@@ -367,7 +372,7 @@ export const STACKED_AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: AgChartOptions =
     ],
 };
 
-export const STACKED_AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: AgChartOptions = {
+export const STACKED_AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: AgCartesianChartOptions = {
     data: DATA_TIME_MISSING_X,
     axes: [
         { type: 'time', position: 'bottom' },
@@ -395,7 +400,7 @@ export const STACKED_AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: AgChartOptions = {
     ],
 };
 
-export const LINE_TIME_X_AXIS_NUMBER_Y_AXIS: AgChartOptions = {
+export const LINE_TIME_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
     axes: [
         {
             type: 'time',
@@ -425,7 +430,7 @@ export const LINE_TIME_X_AXIS_NUMBER_Y_AXIS: AgChartOptions = {
     },
 };
 
-export const LINE_NUMBER_X_AXIS_TIME_Y_AXIS: AgChartOptions = {
+export const LINE_NUMBER_X_AXIS_TIME_Y_AXIS: AgCartesianChartOptions = {
     axes: [
         {
             type: 'number',
@@ -455,7 +460,7 @@ export const LINE_NUMBER_X_AXIS_TIME_Y_AXIS: AgChartOptions = {
     },
 };
 
-export const LINE_MISSING_Y_DATA_EXAMPLE: AgChartOptions = {
+export const LINE_MISSING_Y_DATA_EXAMPLE: AgCartesianChartOptions = {
     data: DATA_INTERNET_EXPLORER_MARKET_SHARE_BAD_Y_VALUE,
     axes: [
         { type: 'category', position: 'bottom' },
@@ -480,7 +485,7 @@ export const LINE_MISSING_Y_DATA_EXAMPLE: AgChartOptions = {
     },
 };
 
-export const LINE_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: AgChartOptions = {
+export const LINE_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: AgCartesianChartOptions = {
     data: DATA_MISSING_X,
     axes: [
         { type: 'number', position: 'bottom' },
@@ -498,7 +503,7 @@ export const LINE_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: AgChartOptions = {
     ],
 };
 
-export const LINE_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: AgChartOptions = {
+export const LINE_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: AgCartesianChartOptions = {
     data: DATA_TIME_MISSING_X,
     axes: [
         { type: 'time', position: 'bottom' },
@@ -516,7 +521,7 @@ export const LINE_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: AgChartOptions = {
     ],
 };
 
-export const LINE_NUMBER_AXES_0_X_DOMAIN: AgChartOptions = {
+export const LINE_NUMBER_AXES_0_X_DOMAIN: AgCartesianChartOptions = {
     axes: [
         {
             type: 'number',
@@ -550,7 +555,7 @@ export const LINE_NUMBER_AXES_0_X_DOMAIN: AgChartOptions = {
     },
 };
 
-export const LINE_NUMBER_AXES_0_Y_DOMAIN: AgChartOptions = {
+export const LINE_NUMBER_AXES_0_Y_DOMAIN: AgCartesianChartOptions = {
     axes: [
         {
             type: 'number',
@@ -584,7 +589,7 @@ export const LINE_NUMBER_AXES_0_Y_DOMAIN: AgChartOptions = {
     },
 };
 
-export const AREA_TIME_X_AXIS_NUMBER_Y_AXIS: AgChartOptions = {
+export const AREA_TIME_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
     axes: [
         {
             type: 'time',
@@ -622,7 +627,7 @@ export const AREA_TIME_X_AXIS_NUMBER_Y_AXIS: AgChartOptions = {
     },
 };
 
-export const AREA_NUMBER_X_AXIS_TIME_Y_AXIS: AgChartOptions = {
+export const AREA_NUMBER_X_AXIS_TIME_Y_AXIS: AgCartesianChartOptions = {
     axes: [
         {
             type: 'number',
@@ -660,7 +665,7 @@ export const AREA_NUMBER_X_AXIS_TIME_Y_AXIS: AgChartOptions = {
     },
 };
 
-export const AREA_NUMBER_AXES_0_X_DOMAIN: AgChartOptions = {
+export const AREA_NUMBER_AXES_0_X_DOMAIN: AgCartesianChartOptions = {
     axes: [
         {
             type: 'number',
@@ -702,7 +707,7 @@ export const AREA_NUMBER_AXES_0_X_DOMAIN: AgChartOptions = {
     },
 };
 
-export const AREA_NUMBER_AXES_0_Y_DOMAIN: AgChartOptions = {
+export const AREA_NUMBER_AXES_0_Y_DOMAIN: AgCartesianChartOptions = {
     axes: [
         {
             type: 'number',
@@ -1593,10 +1598,10 @@ export const CARTESIAN_CATEGORY_X_AXIS_LOG_Y_AXIS = (
 
 export const ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS: AgCartesianChartOptions =
     DOCS_EXAMPLES['time-axis-with-irregular-intervals'];
-export const LOG_AXIS_EXAMPLE: AgChartOptions = DOCS_EXAMPLES['log-axis'];
+export const LOG_AXIS_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['log-axis'];
 export const ADV_COMBINATION_SERIES_CHART_EXAMPLE: AgCartesianChartOptions =
     DOCS_EXAMPLES['combination-of-different-series-types'];
-export const ADV_CHART_CUSTOMISATION: AgChartOptions = DOCS_EXAMPLES['chart-customisation'];
-export const ADV_CUSTOM_MARKER_SHAPES_EXAMPLE: AgChartOptions = DOCS_EXAMPLES['custom-marker-shapes'];
-export const ADV_CUSTOM_TOOLTIPS_EXAMPLE: AgChartOptions = DOCS_EXAMPLES['custom-tooltips'];
-export const ADV_PER_MARKER_CUSTOMISATION: AgChartOptions = DOCS_EXAMPLES['per-marker-customisation'];
+export const ADV_CHART_CUSTOMISATION: AgCartesianChartOptions = DOCS_EXAMPLES['chart-customisation'];
+export const ADV_CUSTOM_MARKER_SHAPES_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['custom-marker-shapes'];
+export const ADV_CUSTOM_TOOLTIPS_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['custom-tooltips'];
+export const ADV_PER_MARKER_CUSTOMISATION: AgCartesianChartOptions = DOCS_EXAMPLES['per-marker-customisation'];

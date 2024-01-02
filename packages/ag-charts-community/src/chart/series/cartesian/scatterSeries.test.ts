@@ -77,6 +77,29 @@ describe('ScatterSeries', () => {
         });
     });
 
+    it('should render scatter series with reversed axes', async () => {
+        const options: AgChartOptions = {
+            ...examples.SIMPLE_SCATTER_CHART_EXAMPLE,
+            axes: [
+                {
+                    type: 'number',
+                    position: 'left',
+                    reverse: true,
+                },
+                {
+                    type: 'number',
+                    position: 'bottom',
+                    reverse: true,
+                },
+            ],
+        };
+
+        prepareTestOptions(options);
+
+        chart = AgCharts.create(options) as Chart;
+        await compare();
+    });
+
     describe('initial animation', () => {
         const animate = spyOnAnimationManager();
 

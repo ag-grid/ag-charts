@@ -27,6 +27,10 @@ export interface TestCase {
     extraScreenshotActions?: (chart: AgChartInstance) => Promise<void>;
 }
 
+export interface CartesianOrPolarTestCase extends TestCase {
+    options: AgCartesianChartOptions | AgPolarChartOptions;
+}
+
 export interface CartesianTestCase extends TestCase {
     options: AgCartesianChartOptions;
 }
@@ -388,4 +392,26 @@ export function spyOnAnimationManager() {
         animateParameters[0] = totalDuration;
         animateParameters[1] = ratio;
     };
+}
+
+export function reverseAxes<T extends AgCartesianChartOptions | AgPolarChartOptions>(opts: T, reverse: boolean): T {
+    return {
+        ...opts,
+        axes: opts.axes?.map((axis) => ({ ...axis, reverse })),
+    };
+}
+
+export function mixinReversedAxesCases(
+    baseCases: Record<string, CartesianOrPolarTestCase & { skip?: boolean }>
+): Record<string, CartesianOrPolarTestCase> {
+    const result = { ...baseCases };
+
+    Object.entries(baseCases).forEach(([name, baseCase]) => {
+        result[name + '_REVERSED_AXES'] = {
+            ...baseCase,
+            options: reverseAxes(baseCase.options, true),
+        };
+    });
+
+    return result;
 }

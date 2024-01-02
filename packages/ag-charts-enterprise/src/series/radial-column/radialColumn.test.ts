@@ -80,6 +80,25 @@ describe('Radial Column Chart', () => {
         await compare();
     });
 
+    it(`should render radial column chart as expected with reversed axes`, async () => {
+        const options: AgChartOptions = {
+            ...EXAMPLE_OPTIONS,
+            axes: [
+                {
+                    type: 'angle-category',
+                    reverse: true,
+                },
+                {
+                    type: 'radius-number',
+                    reverse: true,
+                },
+            ],
+        };
+        prepareEnterpriseTestOptions(options as any);
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
     it(`should render stacked radial column as expected`, async () => {
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,
@@ -89,6 +108,32 @@ describe('Radial Column Chart', () => {
                     stacked: true,
                 };
             }),
+        };
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
+    it(`should render stacked radial column as expected with reversed axes`, async () => {
+        const options: AgChartOptions = {
+            ...EXAMPLE_OPTIONS,
+            series: EXAMPLE_OPTIONS.series?.map((series) => {
+                return {
+                    ...series,
+                    stacked: true,
+                };
+            }),
+            axes: [
+                {
+                    type: 'angle-category',
+                    reverse: true,
+                },
+                {
+                    type: 'radius-number',
+                    reverse: true,
+                },
+            ],
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -106,6 +151,33 @@ describe('Radial Column Chart', () => {
                     normalizedTo: 100,
                 };
             }),
+        };
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
+    it(`should render normalized radial column as expected with reversed axes`, async () => {
+        const options: AgChartOptions = {
+            ...EXAMPLE_OPTIONS,
+            series: EXAMPLE_OPTIONS.series?.map((series) => {
+                return {
+                    ...series,
+                    stacked: true,
+                    normalizedTo: 100,
+                };
+            }),
+            axes: [
+                {
+                    type: 'angle-category',
+                    reverse: true,
+                },
+                {
+                    type: 'radius-number',
+                    reverse: true,
+                },
+            ],
         };
         prepareEnterpriseTestOptions(options as any);
 

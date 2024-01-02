@@ -196,6 +196,28 @@ describe('Chart', () => {
         await compare();
     });
 
+    it(`should render a range-area chart with reversed axes`, async () => {
+        const options: AgChartOptions = {
+            ...RANGE_AREA_OPTIONS,
+            axes: [
+                {
+                    position: 'left',
+                    type: 'number',
+                    reverse: true,
+                },
+                {
+                    position: 'bottom',
+                    type: 'category',
+                    reverse: true,
+                },
+            ],
+        };
+        prepareEnterpriseTestOptions(options);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
     it(`should render a range-area chart with a time x-axis`, async () => {
         const options: AgChartOptions = {
             ...RANGE_AREA_OPTIONS,
@@ -208,6 +230,28 @@ describe('Chart', () => {
                 {
                     position: 'bottom',
                     type: 'time',
+                },
+            ],
+        };
+        prepareEnterpriseTestOptions(options);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
+    it(`should render a range-area chart with reversed time x-axis`, async () => {
+        const options: AgChartOptions = {
+            ...RANGE_AREA_OPTIONS,
+            data: CONTINUOUS_DATA,
+            axes: [
+                {
+                    position: 'left',
+                    type: 'number',
+                },
+                {
+                    position: 'bottom',
+                    type: 'time',
+                    reverse: true,
                 },
             ],
         };
@@ -233,6 +277,32 @@ describe('Chart', () => {
                 {
                     position: 'bottom',
                     type: 'number',
+                },
+            ],
+        };
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
+    it(`should render a range-area chart with reversed number x-axis`, async () => {
+        const invalidDataIndices = [2, 5, 9];
+        const options: AgChartOptions = {
+            ...RANGE_AREA_OPTIONS,
+            data: CONTINUOUS_DATA.map((datum, index) => ({
+                ...datum,
+                month: invalidDataIndices.includes(index) ? `invalid` : datum.month,
+            })),
+            axes: [
+                {
+                    position: 'left',
+                    type: 'number',
+                },
+                {
+                    position: 'bottom',
+                    type: 'number',
+                    reverse: true,
                 },
             ],
         };
