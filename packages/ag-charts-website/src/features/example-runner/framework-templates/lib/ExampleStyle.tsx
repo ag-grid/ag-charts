@@ -31,6 +31,11 @@ export const ExampleStyle = ({ rootId }: { rootId?: string }) => {
             box-sizing: border-box;
         }
 
+        /* Hide codesandbox highlighter element */
+        body > #highlighter {
+            display: none;
+        }
+
         ${rootId ?? 'body'} {
             display: grid;
             grid-auto-rows: 1fr;
