@@ -3,14 +3,17 @@ import { extractDecoratedPropertyMetadata, listDecoratedProperties } from './dec
 import { isArray } from './type-guards';
 
 export class BaseProperties<T extends object = object> extends ChangeDetectable {
-    set(properties: T, reset?: boolean) {
+    set(properties: T) {
         for (const propertyKey of listDecoratedProperties(this)) {
-            if (reset || Object.hasOwn(properties, propertyKey)) {
+            if (Object.hasOwn(properties, propertyKey)) {
                 const value = properties[propertyKey as keyof T];
                 const self = this as any;
                 if (isProperties(self[propertyKey])) {
                     // re-set property to force re-validation
-                    self[propertyKey] = self[propertyKey].set(value, reset);
+                    self[propertyKey] =
+                        self[propertyKey] instanceof PropertiesArray
+                            ? self[propertyKey].reset(value)
+                            : self[propertyKey].set(value);
                 } else {
                     self[propertyKey] = value;
                 }
@@ -37,18 +40,24 @@ export class BaseProperties<T extends object = object> extends ChangeDetectable 
 export class PropertiesArray<T extends BaseProperties> extends Array {
     private itemFactory!: new () => T;
 
-    constructor(itemFactory: new () => T, arrayLength = 0) {
-        super(arrayLength);
+    constructor(itemFactory: new () => T, ...properties: object[]) {
+        super(properties.length);
         Object.defineProperty(this, 'itemFactory', { value: itemFactory, enumerable: false, configurable: false });
+        this.set(properties);
     }
 
     set(properties: object[]): PropertiesArray<T> {
         if (isArray(properties)) {
-            const newArray = new PropertiesArray(this.itemFactory);
-            newArray.push(...properties.map((property) => new this.itemFactory().set(property)));
-            return newArray;
+            this.length = properties.length;
+            for (let i = 0; i < properties.length; i++) {
+                this[i] = new this.itemFactory().set(properties[i]);
+            }
         }
         return this;
+    }
+
+    reset(properties: object[]): PropertiesArray<T> {
+        return new PropertiesArray(this.itemFactory, ...properties);
     }
 }
 

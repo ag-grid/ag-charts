@@ -26,6 +26,10 @@ export function isObject(value: unknown): value is object {
     return typeof value === 'object' && value !== null && !isArray(value);
 }
 
+export function isObjectLike(value: unknown): value is object | unknown[] {
+    return typeof value === 'object' && value !== null;
+}
+
 export function isString(value: unknown): value is string {
     return typeof value === 'string';
 }

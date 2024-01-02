@@ -51,7 +51,7 @@ describe('json module', () => {
 
         describe('for non-trivial cases', () => {
             it('should correctly diff complex object structures', () => {
-                const source = {
+                const source: any = {
                     foo: { bar1: 1 },
                     hello1: { nested: { nestedX2: { primitive: 'abc' } } },
                     unchanging: { readonly: 1 },
@@ -59,7 +59,7 @@ describe('json module', () => {
                     removed: 123,
                     removed2: { nested: { nestedX2: { primitive: 'abc' } } },
                 };
-                const target = {
+                const target: any = {
                     foo: { bar1: 2 },
                     hello1: {
                         nested: { nestedX2: { primitive: 'abc', added: 123 } },
@@ -69,7 +69,7 @@ describe('json module', () => {
                     changing: '123',
                 };
 
-                const diff = jsonDiff(source, target as any);
+                const diff = jsonDiff(source, target);
                 expect(diff).toMatchSnapshot();
                 expect(diff).toHaveProperty('foo.bar1', target.foo.bar1);
                 expect(diff).toHaveProperty('hello1.nested.nestedX2.added', 123);

@@ -1,18 +1,15 @@
 import { Logger } from './logger';
 import { isProperties } from './properties';
+import { isArray, isObject } from './type-guards';
 import type { DeepPartial } from './types';
 
-const CLASS_INSTANCE_TYPE = 'class-instance';
-
 /**
- * Performs a JSON-diff between a source and target JSON structure.
+ * Performs a recursive JSON-diff between a source and target JSON structure.
  *
- * On a per property basis, takes the target property value where:
+ * On a per-property basis, takes the target property value where:
  * - types are different.
  * - type is primitive.
  * - type is array and length or content have changed.
- *
- * Recurses for object types.
  *
  * @param source starting point for diff
  * @param target target for diff vs. source
@@ -20,91 +17,38 @@ const CLASS_INSTANCE_TYPE = 'class-instance';
  * @returns `null` if no differences, or an object with the subset of properties that have changed.
  */
 export function jsonDiff<T extends unknown>(source: T, target: T): Partial<T> | null {
-    const sourceType = classify(source);
-    const targetType = classify(target);
-
-    if (targetType === 'array') {
-        const targetArray = target as any;
-        if (sourceType !== 'array' || (source as any).length !== targetArray.length) {
-            return [...targetArray] as any;
-        }
-
-        if (
-            targetArray.some((targetElement: any, i: number) => jsonDiff((source as any)?.[i], targetElement) != null)
-        ) {
-            return [...targetArray] as any;
-        }
-
-        return null;
-    }
-
-    if (targetType === 'primitive') {
-        if (sourceType !== 'primitive') {
-            return { ...(target as any) };
-        }
-
-        if (source !== target) {
+    if (isArray(target)) {
+        if (!isArray(source) || source.length !== target.length || target.some((v, i) => jsonDiff(source[i], v))) {
             return target;
         }
-
-        return null;
+    } else if (isObject(target)) {
+        if (!isObject(source)) {
+            return target;
+        }
+        const result = {} as Partial<T>;
+        const allKeys = new Set([
+            ...(Object.keys(source) as Array<keyof T>),
+            ...(Object.keys(target) as Array<keyof T>),
+        ]);
+        for (const key of allKeys) {
+            // Cheap-and-easy equality check.
+            if (source[key] === target[key]) {
+                continue;
+            }
+            if (typeof source[key] !== typeof target[key]) {
+                result[key] = target[key];
+            } else {
+                const diff = jsonDiff(source[key], target[key]);
+                if (diff !== null) {
+                    result[key] = diff as T[keyof T];
+                }
+            }
+        }
+        return Object.keys(result).length ? result : null;
+    } else if (source !== target) {
+        return target;
     }
-
-    const lhs = source || ({} as any);
-    const rhs = target || ({} as any);
-
-    const allProps = new Set([...Object.keys(lhs), ...Object.keys(rhs)]);
-
-    let propsChangedCount = 0;
-    const result: any = {};
-    for (const prop of allProps) {
-        // Cheap-and-easy equality check.
-        if (lhs[prop] === rhs[prop]) {
-            continue;
-        }
-
-        const take = (v: any) => {
-            result[prop] = v;
-            propsChangedCount++;
-        };
-
-        const lhsType = classify(lhs[prop]);
-        const rhsType = classify(rhs[prop]);
-        if (lhsType !== rhsType) {
-            // Types changed, just take RHS.
-            take(rhs[prop]);
-            continue;
-        }
-
-        if (rhsType === 'primitive' || rhsType === null) {
-            take(rhs[prop]);
-            continue;
-        }
-
-        if (rhsType === 'array' && lhs[prop].length !== rhs[prop].length) {
-            // Arrays are different sizes, so just take target array.
-            take(rhs[prop]);
-            continue;
-        }
-
-        if (rhsType === CLASS_INSTANCE_TYPE) {
-            // Don't try to do anything tricky with array diffs!
-            take(rhs[prop]);
-            continue;
-        }
-
-        if (rhsType === 'function' && lhs[prop] !== rhs[prop]) {
-            take(rhs[prop]);
-            continue;
-        }
-
-        const diff = jsonDiff(lhs[prop], rhs[prop]);
-        if (diff !== null) {
-            take(diff);
-        }
-    }
-
-    return propsChangedCount === 0 ? null : result;
+    return null;
 }
 
 /**
@@ -114,6 +58,8 @@ export function jsonDiff<T extends unknown>(source: T, target: T): Partial<T> | 
 export const DELETE = Symbol('<delete-property>');
 
 const NOT_SPECIFIED = Symbol('<unspecified-property>');
+
+const CLASS_INSTANCE_TYPE = 'class-instance';
 
 export interface JsonMergeOptions {
     /**
@@ -233,7 +179,7 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
     } & JsonApplyParams = {}
 ): Target {
     const {
-        path = undefined,
+        path,
         matcherPath = path ? path.replace(/(\[[0-9+]+])/i, '[]') : undefined,
         skip = [],
         constructors = {},

@@ -47,7 +47,7 @@ export class HeatmapSeriesProperties extends SeriesProperties<AgHeatmapSeriesOpt
     yName?: string;
 
     @Validate(STRING, { optional: true })
-    colorName?: string = 'Color';
+    colorName?: string;
 
     @Validate(AND(COLOR_STRING_ARRAY, ARRAY.restrict({ minLength: 1 })))
     colorRange: string[] = ['black', 'black'];
