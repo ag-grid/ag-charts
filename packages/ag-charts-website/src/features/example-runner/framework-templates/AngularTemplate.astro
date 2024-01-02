@@ -42,7 +42,7 @@ const startFile = pathJoin(appLocation, entryFileName);
 <html lang="en">
     <head>
         <MetaData isDev={isDev} title={`Angular Example - ${title}`} modifiedTimeMs={modifiedTimeMs} />
-        <ExampleStyle rootId="app" />
+        <ExampleStyle rootSelector="my-app" />
         <Styles
             baseUrl={appLocation}
             files={isDev && styleFiles

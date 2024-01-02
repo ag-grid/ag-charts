@@ -5,7 +5,7 @@ const css = String.raw;
 /**
  * These are the CSS styles shared by all examples.
  */
-export const ExampleStyle = ({ rootId }: { rootId?: string }) => {
+export const ExampleStyle = ({ rootSelector }: { rootSelector?: string }) => {
     const styles = css`
         :root {
             position: absolute;
@@ -24,7 +24,7 @@ export const ExampleStyle = ({ rootId }: { rootId?: string }) => {
         }
 
         :root,
-        body${rootId ? `, #${rootId}` : ''} {
+        body${rootSelector ? `, ${rootSelector}` : ''} {
             height: 100%;
             width: 100%;
             margin: 0;
@@ -36,7 +36,7 @@ export const ExampleStyle = ({ rootId }: { rootId?: string }) => {
             display: none;
         }
 
-        ${rootId ?? 'body'} {
+        ${rootSelector ?? 'body'} {
             display: grid;
             grid-auto-rows: 1fr;
             grid-auto-columns: 1fr;
