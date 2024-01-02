@@ -276,7 +276,7 @@ describe('BulletSeriesValidation', () => {
 
     const opts = prepareEnterpriseTestOptions({});
 
-    it.only('should ignore empty colorRange arrays', async () => {
+    it('should ignore empty colorRange arrays', async () => {
         chart = AgCharts.create({
             ...opts,
             series: [
@@ -295,7 +295,6 @@ describe('BulletSeriesValidation', () => {
         expect(console.warn).toBeCalledWith(
             'AG Charts - Property [colorRanges] of [BulletSeries] cannot be set to [[]]; expecting a non-empty array, ignoring.'
         );
-        console.log((chart.chart as any).series[0].properties.colorRanges);
         await compare(chart, ctx);
     });
 
