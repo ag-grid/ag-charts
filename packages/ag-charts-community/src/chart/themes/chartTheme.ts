@@ -6,13 +6,13 @@ import type {
     AgCommonThemeableChartOptions,
     InteractionRange,
 } from '../../options/agChartOptions';
-import { jsonMerge, jsonWalk } from '../../util/json';
+import { jsonClone, jsonWalk } from '../../util/json';
 import { deepMerge } from '../../util/object';
 import { AXIS_TYPES, getAxisThemeTemplate } from '../factory/axisTypes';
 import { CHART_TYPES, type ChartType, getChartDefaults } from '../factory/chartTypes';
 import { getLegendThemeTemplates } from '../factory/legendTypes';
 import { getSeriesThemeTemplate } from '../factory/seriesTypes';
-import { BOTTOM, FONT_SIZE, NORMAL } from './constants';
+import { BOTTOM, FONT_SIZE, FONT_WEIGHT } from './constants';
 import { DEFAULT_FILLS, DEFAULT_STROKES } from './defaultColors';
 import {
     DEFAULT_AXIS_GRID_COLOUR,
@@ -104,7 +104,7 @@ export class ChartTheme {
                 text: 'Axis Title',
                 spacing: 25,
                 fontStyle: undefined,
-                fontWeight: NORMAL,
+                fontWeight: FONT_WEIGHT.NORMAL,
                 fontSize: FONT_SIZE.MEDIUM,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: DEFAULT_LABEL_COLOUR,
@@ -221,7 +221,7 @@ export class ChartTheme {
                 enabled: false,
                 text: 'Title',
                 fontStyle: undefined,
-                fontWeight: NORMAL,
+                fontWeight: FONT_WEIGHT.NORMAL,
                 fontSize: FONT_SIZE.LARGE,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: DEFAULT_LABEL_COLOUR,
@@ -441,15 +441,15 @@ export class ChartTheme {
     }
 
     templateTheme<T>(themeTemplate: T): T {
-        const themeInstance = jsonMerge([themeTemplate]);
+        const themeInstance = jsonClone(themeTemplate);
         const { extensions, properties } = this.getTemplateParameters();
 
-        jsonWalk(themeInstance, (_, node) => {
+        jsonWalk(themeInstance, (node: any) => {
             if (node['__extends__']) {
                 const key = node['__extends__'];
                 const source = extensions.get(key);
                 if (source == null) {
-                    throw new Error('AG Charts - no template variable provided for: ' + key);
+                    throw new Error(`AG Charts - no template variable provided for: ${key}`);
                 }
                 Object.keys(source).forEach((key) => {
                     if (!(key in node)) {
@@ -462,7 +462,7 @@ export class ChartTheme {
                 const key = node['__overrides__'];
                 const source = extensions.get(key);
                 if (source == null) {
-                    throw new Error('AG Charts - no template variable provided for: ' + key);
+                    throw new Error(`AG Charts - no template variable provided for: ${key}`);
                 }
                 Object.assign(node, source);
                 delete node['__overrides__'];

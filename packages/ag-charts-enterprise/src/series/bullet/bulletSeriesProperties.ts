@@ -93,7 +93,7 @@ export class BulletSeriesProperties extends AbstractBarSeriesProperties<AgBullet
     widthRatio: number = 0.5;
 
     @Validate(ARRAY.restrict({ minLength: 1 }))
-    colorRanges: BulletColorRange[] = new PropertiesArray(BulletColorRange).set([{}]);
+    colorRanges: BulletColorRange[] = new PropertiesArray(BulletColorRange, {});
 
     @Validate(OBJECT)
     readonly target = new TargetStyle();
