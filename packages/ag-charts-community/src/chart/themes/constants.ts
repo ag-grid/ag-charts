@@ -13,7 +13,7 @@ export const FONT_SIZE = {
     LARGE: 17,
 };
 
-export const FONT_WEIGHT: { [K in Uppercase<Exclude<FontWeight, number>>]: FontWeight } = {
+export const FONT_WEIGHT: Record<'NORMAL' | 'BOLD' | 'BOLDER' | 'LIGHTER', FontWeight> = {
     NORMAL: 'normal',
     BOLD: 'bold',
     BOLDER: 'bolder',
