@@ -5,12 +5,7 @@ import DocsFrameworkTemplate from '@features/docs/components/DocsFrameworkTempla
 import { getDocsExamplePages } from '@features/docs/utils/pageData';
 
 /**
- * This page is the same as `[exampleName].astro`, but using relative paths for script files
- *
- * This is useful for situations where the script files are self contained eg, plunkr
- *
- * NOTE: This can't be called `index.astro` because it would clash with the generated
- * `index.html` fragment file from examples
+ * This page is the same as `[exampleName].astro`, but for Plunkr examples
  */
 export async function getStaticPaths() {
     const pages = await getCollection('docs');

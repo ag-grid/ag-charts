@@ -44,9 +44,9 @@ export const getExampleRunnerExampleUrl = ({
 };
 
 /**
- * Dynamic path where examples are with relative path for script files
+ * Dynamic path for Plunkr examples url
  */
-export const getExampleWithRelativePathUrl = ({
+export const getExamplePlunkrUrl = ({
     internalFramework,
     pageName,
     exampleName,
@@ -55,7 +55,22 @@ export const getExampleWithRelativePathUrl = ({
     pageName: string;
     exampleName: string;
 }) => {
-    return pathJoin(SITE_BASE_URL, internalFramework, pageName, 'examples', exampleName, 'relative-path');
+    return pathJoin(SITE_BASE_URL, internalFramework, pageName, 'examples', exampleName, 'plunkr');
+};
+
+/**
+ * Dynamic path for Code Sandbox examples url
+ */
+export const getExampleCodeSandboxUrl = ({
+    internalFramework,
+    pageName,
+    exampleName,
+}: {
+    internalFramework: InternalFramework;
+    pageName: string;
+    exampleName: string;
+}) => {
+    return pathJoin(SITE_BASE_URL, internalFramework, pageName, 'examples', exampleName, 'codesandbox');
 };
 
 /**
