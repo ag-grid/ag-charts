@@ -343,7 +343,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             const isPositive = (value ?? 0) >= 0;
 
             const seriesItemType = this.getSeriesItemType(isPositive, datumType);
-            const { fill, stroke, strokeWidth, label, cornerRadius } = this.getItemConfig(seriesItemType);
+            const { fill, stroke, strokeWidth, label } = this.getItemConfig(seriesItemType);
 
             const y = (isPositive ? currY : trailY) - offset;
             const bottomY = (isPositive ? trailY : currY) + offset;
@@ -387,19 +387,19 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             if (barAlongX) {
                 startCoordinates = {
                     x: startY + pixelAlignmentOffset,
-                    y: cornerRadius > 0 ? nodeMidPoint.y : rect.y,
+                    y: rect.y,
                 };
                 stopCoordinates = {
                     x: stopY + pixelAlignmentOffset,
-                    y: cornerRadius > 0 ? nodeMidPoint.y : rect.y + rect.height,
+                    y: rect.y + rect.height,
                 };
             } else {
                 startCoordinates = {
-                    x: cornerRadius > 0 ? nodeMidPoint.x : rect.x,
+                    x: rect.x,
                     y: startY + pixelAlignmentOffset,
                 };
                 stopCoordinates = {
-                    x: cornerRadius > 0 ? nodeMidPoint.x : rect.x + rect.width,
+                    x: rect.x + rect.width,
                     y: stopY + pixelAlignmentOffset,
                 };
             }
