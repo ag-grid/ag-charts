@@ -463,7 +463,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup
         }
         const result: Record<string, number> = {};
         for (const [searchId, [{ def }]] of defs) {
-            if (Object.prototype.hasOwnProperty.call(values, searchId)) {
+            if (Object.hasOwn(values, searchId)) {
                 const { scale } = def.type === 'key' ? xAxis : yAxis;
                 result[searchId] = Math.round(scale.convert((values as any)[searchId]));
             }

@@ -233,10 +233,7 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
             const currentValueType = classify(currentValue);
             const newValueType = classify(newValue);
 
-            if (
-                targetType === CLASS_INSTANCE_TYPE &&
-                !(property in target || Object.prototype.hasOwnProperty.call(targetAny, property))
-            ) {
+            if (targetType === CLASS_INSTANCE_TYPE && !(property in target || Object.hasOwn(targetAny, property))) {
                 Logger.warn(`unable to set [${propertyPath}] in ${targetClass?.name} - property is unknown`);
                 continue;
             }

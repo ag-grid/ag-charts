@@ -93,20 +93,18 @@ export function prepareOptions<T extends AgChartOptions>(options: T): T {
     // Determine type and ensure it's explicit in the options config.
     const type = optionsType(options);
 
-    const globalTooltipPositionOptions = getGlobalTooltipPositionOptions(options.tooltip?.position);
-
     const checkSeriesType = (type?: string) => {
         if (type != null && !(isSeriesOptionType(type) || isEnterpriseSeriesType(type) || getSeriesDefaults(type))) {
             throw new Error(`AG Charts - unknown series type: ${type}; expected one of: ${CHART_TYPES.seriesTypes}`);
         }
     };
-    checkSeriesType(type);
+
     for (const { type: seriesType } of options.series ?? []) {
         if (seriesType == null) continue;
         checkSeriesType(seriesType);
     }
 
-    options = validateSoloSeries({ ...options, type });
+    options = validateSoloSeries({ ...options });
 
     let defaultSeriesType = 'line';
     if (isAgCartesianChartOptions(options)) {
@@ -127,6 +125,7 @@ export function prepareOptions<T extends AgChartOptions>(options: T): T {
 
     removeDisabledOptions(options);
 
+    const globalTooltipPositionOptions = getGlobalTooltipPositionOptions(options.tooltip?.position);
     const { context, mergedOptions, axesThemes, seriesThemes, theme } = prepareMainOptions<T>(
         defaultOverrides as T,
         options,

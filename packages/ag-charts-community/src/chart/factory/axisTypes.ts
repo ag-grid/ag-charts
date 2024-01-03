@@ -29,7 +29,7 @@ export function getAxis(axisType: string, moduleCtx: ModuleContext) {
 
 export const AXIS_TYPES = {
     has(axisType: string) {
-        return Object.prototype.hasOwnProperty.call(AXIS_CONSTRUCTORS, axisType);
+        return Object.hasOwn(AXIS_CONSTRUCTORS, axisType);
     },
 
     get axesTypes() {
