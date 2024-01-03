@@ -17,6 +17,7 @@ interface Props {
     indexFragment: string;
     appLocation: string;
     boilerplatePath: string;
+    extraStyles?: string;
     children?: any;
 }
 
@@ -29,6 +30,7 @@ const {
     styleFiles,
     indexFragment,
     boilerplatePath,
+    extraStyles
 } = Astro.props as Props;
 
 const startFile = pathJoin(appLocation, entryFileName);
@@ -37,7 +39,7 @@ const startFile = pathJoin(appLocation, entryFileName);
 <html lang="en">
     <head>
         <MetaData isDev={isDev} title={`Typescript Example - ${title}`} modifiedTimeMs={modifiedTimeMs} />
-        <ExampleStyle />
+        <ExampleStyle extraStyles={extraStyles} />
         <Styles
             baseUrl={appLocation}
             files={isDev && styleFiles

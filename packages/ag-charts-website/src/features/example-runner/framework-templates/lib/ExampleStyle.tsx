@@ -5,7 +5,7 @@ const css = String.raw;
 /**
  * These are the CSS styles shared by all examples.
  */
-export const ExampleStyle = ({ rootSelector }: { rootSelector?: string }) => {
+export const ExampleStyle = ({ rootSelector, extraStyles }: { rootSelector?: string; extraStyles?: string }) => {
     const styles = css`
         :root {
             position: absolute;
@@ -29,11 +29,6 @@ export const ExampleStyle = ({ rootSelector }: { rootSelector?: string }) => {
             width: 100%;
             margin: 0;
             box-sizing: border-box;
-        }
-
-        /* Hide codesandbox highlighter element */
-        body > #highlighter {
-            display: none;
         }
 
         ${rootSelector ?? 'body'} {
@@ -88,6 +83,8 @@ export const ExampleStyle = ({ rootSelector }: { rootSelector?: string }) => {
             --color-border-primary: rgba(255, 255, 255, 0.2);
             --hover-background-color: #2a343e;
         }
+
+        ${extraStyles ? extraStyles : ''}
     `;
 
     return <style media="only screen" dangerouslySetInnerHTML={{ __html: styles }}></style>;

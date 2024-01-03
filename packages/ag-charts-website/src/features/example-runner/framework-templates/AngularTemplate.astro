@@ -19,6 +19,7 @@ interface Props {
     scriptFiles: string[];
     appLocation: string;
     boilerplatePath: string;
+    extraStyles?: string;
     children?: any;
 }
 
@@ -31,6 +32,7 @@ const {
     styleFiles,
     scriptFiles,
     boilerplatePath,
+    extraStyles
 } = Astro.props as Props;
 
 const startFile = pathJoin(appLocation, entryFileName);
@@ -39,7 +41,7 @@ const startFile = pathJoin(appLocation, entryFileName);
 <html lang="en">
     <head>
         <MetaData isDev={isDev} title={`Angular Example - ${title}`} modifiedTimeMs={modifiedTimeMs} />
-        <ExampleStyle rootSelector="my-app" />
+        <ExampleStyle rootSelector="my-app" extraStyles={extraStyles} />
         <Styles
             baseUrl={appLocation}
             files={isDev && styleFiles

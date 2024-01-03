@@ -13,10 +13,11 @@ interface Props {
     styleFiles?: string[];
     indexFragment: string;
     appLocation: string;
+    extraStyles?: string;
     children?: any;
 }
 
-const { isDev, title, modifiedTimeMs, isEnterprise, styleFiles, scriptFiles, indexFragment, appLocation } =
+const { isDev, title, modifiedTimeMs, isEnterprise, styleFiles, scriptFiles, indexFragment, appLocation, extraStyles } =
     Astro.props as Props;
 
 import { MetaData } from './lib/MetaData';
@@ -36,7 +37,7 @@ const chartScriptEnterprisePath = getCacheBustingUrl(getChartEnterpriseScriptPat
 <html lang="en">
     <head>
         <MetaData isDev={isDev} title={`JavaScript Example - ${title}`} modifiedTimeMs={modifiedTimeMs} />
-        <ExampleStyle />
+        <ExampleStyle extraStyles={extraStyles} />
         <Styles
             baseUrl={appLocation}
             files={isDev && styleFiles
