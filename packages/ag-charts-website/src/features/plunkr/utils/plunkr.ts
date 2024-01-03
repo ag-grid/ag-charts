@@ -1,4 +1,4 @@
-import type { FileContents } from '@features/examples-generator/types';
+import type { FileContents } from '@features/example-generator/types';
 
 export const openPlunker = ({
     title,

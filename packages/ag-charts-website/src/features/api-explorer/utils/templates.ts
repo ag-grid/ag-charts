@@ -1,7 +1,7 @@
 /**
  * These templates are used to generate the code to render the charts in the Standalone Charts API Explorer.
  */
-import type { GeneratedContents } from '@features/examples-generator/types';
+import type { GeneratedContents } from '@features/example-generator/types';
 import { getCacheBustingUrl, getChartEnterpriseScriptPath, getChartScriptPath } from '@utils/chartLibraryPaths';
 
 import type { AgChartOptions } from 'ag-charts-community';
