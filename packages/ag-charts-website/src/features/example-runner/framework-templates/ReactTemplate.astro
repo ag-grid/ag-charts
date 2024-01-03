@@ -5,14 +5,12 @@ import { Styles } from './lib/Styles';
 import { SystemJs } from './lib/SystemJs';
 import { Scripts } from './lib/Scripts';
 import { pathJoin } from '@utils/pathJoin';
-import type { Library } from '@ag-grid-types';
 
 interface Props {
     isDev: boolean;
     title: string;
 
     modifiedTimeMs: number;
-    isEnterprise: boolean;
     entryFileName: string;
     /**
      * Extra script file names (not including entry file)
@@ -20,7 +18,6 @@ interface Props {
     scriptFiles?: string[];
     styleFiles?: string[];
     appLocation: string;
-    library: Library;
     boilerplatePath: string;
     children?: any;
 }
@@ -29,12 +26,10 @@ const {
     title,
     isDev,
     modifiedTimeMs,
-    isEnterprise,
     appLocation,
     entryFileName,
     scriptFiles = [],
     styleFiles = [],
-    library,
     boilerplatePath,
 } = Astro.props as Props;
 
@@ -52,12 +47,10 @@ const startFile = pathJoin(appLocation, entryFileName);
         {scriptFiles && <Scripts baseUrl={appLocation} files={scriptFiles} />}
         <SystemJs
             isDev={isDev}
-            library={library}
             boilerplatePath={boilerplatePath}
             appLocation={appLocation}
             startFile={startFile}
             internalFramework={'react'}
-            isEnterprise={isEnterprise}
         />
         <slot />
     </body>

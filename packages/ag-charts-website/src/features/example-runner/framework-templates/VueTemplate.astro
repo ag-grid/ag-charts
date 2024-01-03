@@ -12,7 +12,6 @@ interface Props {
     title: string;
 
     modifiedTimeMs: number;
-    isEnterprise: boolean;
     entryFileName: string;
     /**
      * Extra script file names (not including entry file)
@@ -20,7 +19,6 @@ interface Props {
     scriptFiles?: string[];
     styleFiles?: string[];
     appLocation: string;
-    library: Library;
     boilerplatePath: string;
     children?: any;
 
@@ -31,10 +29,8 @@ const {
     isDev,
     title,
     modifiedTimeMs,
-    library,
     boilerplatePath,
     appLocation,
-    isEnterprise,
     entryFileName,
     scriptFiles = [],
     styleFiles = [],
@@ -57,12 +53,10 @@ const vueFrameworkTitle = vueFramework === 'vue3' ? 'Vue 3' : 'Vue';
         <Scripts baseUrl={appLocation} files={scriptFiles} />
         <SystemJs
             isDev={isDev}
-            library={library}
             boilerplatePath={boilerplatePath}
             appLocation={appLocation}
             startFile={startFile}
             internalFramework={vueFramework}
-            isEnterprise={isEnterprise}
         />
         <slot />
     </body>
