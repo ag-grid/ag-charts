@@ -1,3 +1,4 @@
+import type { AxisContext, ModuleContextWithParent } from '../module/moduleContext';
 import type { ModuleMap } from '../module/moduleMap';
 import type { AgAxisLabelFormatterParams, AgCartesianAxisPosition, FontOptions } from '../options/agChartOptions';
 import type { Scale } from '../scale/scale';
@@ -48,6 +49,7 @@ export interface ChartAxis {
     updateScale(): void;
     updatePosition(position: { rotation: number; sideFlag: ChartAxisLabelFlipFlag }): void;
     visibleRange: number[];
+    createModuleContext: () => ModuleContextWithParent<AxisContext>;
 }
 
 export interface ChartAxisLabel extends FontOptions {

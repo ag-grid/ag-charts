@@ -1,3 +1,4 @@
+import type { ModuleInstance } from '../../module/baseModule';
 import type { AxisContext, ModuleContext, ModuleContextWithParent } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
 import type { AxisOptionModule } from '../../module/optionModules';
@@ -141,7 +142,7 @@ interface TickGenerationResult {
 type AxisAnimationState = 'empty' | 'ready';
 type AxisAnimationEvent = 'update' | 'resize';
 
-export type AxisModuleMap = ModuleMap<AxisOptionModule, ModuleContextWithParent<AxisContext>>;
+export type AxisModuleMap = ModuleMap<AxisOptionModule, ModuleInstance, ModuleContextWithParent<AxisContext>>;
 
 /**
  * A general purpose linear axis with no notion of orientation.
@@ -1495,7 +1496,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         };
     }
 
-    private readonly moduleMap: AxisModuleMap = new ModuleMap(this);
+    private readonly moduleMap: AxisModuleMap = new ModuleMap();
 
     getModuleMap(): AxisModuleMap {
         return this.moduleMap;
