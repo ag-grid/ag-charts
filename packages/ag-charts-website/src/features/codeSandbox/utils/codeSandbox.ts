@@ -129,7 +129,7 @@ const getCodeSandboxFilesToSubmit = ({
 /**
  * Open example in code sandbox
  *
- * NOTE: Creating a form and submitting parameter instead of using the JSON API so
+ * NOTE: Creating a form and submitting parameters instead of using the JSON API so
  * that there is no pop up warning
  */
 export const openCodeSandbox = ({
