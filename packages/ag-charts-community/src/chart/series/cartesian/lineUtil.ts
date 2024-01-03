@@ -156,7 +156,7 @@ export function pairContinuousData(
 export function pairCategoryData(
     newData: LineContextLike,
     oldData: LineContextLike,
-    diff: ProcessedOutputDiff,
+    diff: ProcessedOutputDiff | undefined,
     opts: {
         backfillSplitMode?: BackfillSplitMode;
         multiDatum?: boolean;
@@ -209,7 +209,7 @@ export function pairCategoryData(
             addToResultMap(before.xValue, resultPoint);
             oldIndex++;
             newIndex++;
-        } else if (diff.removed.indexOf(before?.xValue) >= 0) {
+        } else if (diff !== undefined && diff.removed.indexOf(before?.xValue) >= 0) {
             resultPoint = {
                 change: 'out',
                 moveTo: before.point.moveTo ?? false,
@@ -217,7 +217,7 @@ export function pairCategoryData(
             };
             addToResultMap(before.xValue, resultPoint);
             oldIndex++;
-        } else if (diff.added.indexOf(after?.xValue) >= 0) {
+        } else if (diff !== undefined && diff.added.indexOf(after?.xValue) >= 0) {
             resultPoint = {
                 change: 'in',
                 moveTo: after.point.moveTo ?? false,
@@ -345,8 +345,9 @@ export function prepareLinePathAnimation(
     diff?: ProcessedOutputDiff
 ) {
     const isCategoryBased = newData.scales.x?.type === 'category';
-    const { result: pairData, resultMap: pairMap } =
-        isCategoryBased && diff ? pairCategoryData(newData, oldData, diff) : pairContinuousData(newData, oldData);
+    const { result: pairData, resultMap: pairMap } = isCategoryBased
+        ? pairCategoryData(newData, oldData, diff)
+        : pairContinuousData(newData, oldData);
 
     let status: NodeUpdateState = 'updated';
     if (oldData.visible && !newData.visible) {
