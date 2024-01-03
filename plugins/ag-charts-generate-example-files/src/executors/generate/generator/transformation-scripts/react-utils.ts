@@ -45,6 +45,7 @@ export function convertTemplate(template: string) {
 }
 
 export function convertFunctionalTemplate(template: string) {
+    if (template.includes('grid-area')) return 'null';
     // React events are case sensitive, so need to ensure casing is correct
     const caseSensitiveEvents = {
         dragover: 'onDragOver',

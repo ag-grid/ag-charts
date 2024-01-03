@@ -1,9 +1,10 @@
-import type { ImportType } from './parser-utils';
+import prettier from 'prettier';
+
 import { addBindingImports } from './parser-utils';
 
 const fs = require('fs-extra');
 
-export function vanillaToTypescript(bindings: any, mainFilePath: string): (importType: ImportType) => string {
+export function vanillaToTypescript(bindings: any, mainFilePath: string) {
     const { externalEventHandlers, imports } = bindings;
 
     const importStrings = [];
@@ -24,20 +25,22 @@ export function vanillaToTypescript(bindings: any, mainFilePath: string): (impor
         ].join('\n');
     }
 
-    return () => {
-        let tsFile = fs.readFileSync(mainFilePath, 'utf8').replace(/(.*DOMContentLoaded.*)\n((.|\n)*)(}\))/g, '$2');
+    let tsFile = fs.readFileSync(mainFilePath, 'utf8').replace(/(.*DOMContentLoaded.*)\n((.|\n)*)(}\))/g, '$2');
 
-        // Need to replace module imports with their matching package import
-        let formattedImports = '';
-        if (imports.length > 0) {
-            addBindingImports(imports, importStrings, true, true);
+    // Need to replace module imports with their matching package import
+    let formattedImports = '';
+    if (imports.length > 0) {
+        addBindingImports(imports, importStrings, true, true);
 
-            formattedImports = `${importStrings.join('\n')}\n`;
+        formattedImports = `${importStrings.join('\n')}\n`;
 
-            // Remove the original import statements
-            tsFile = tsFile.replace(/import ((.|\n)*?)from.*\n/g, '');
-        }
+        // Remove the original import statements
+        tsFile = tsFile.replace(/import ((.|\n)*?)from.*\n/g, '');
+    }
 
-        return `${formattedImports}${tsFile} ${toAttach || ''}`;
-    };
+    tsFile = `${formattedImports}${tsFile} ${toAttach || ''}`;
+
+    tsFile = prettier.format(tsFile, {
+        parser: 'typescript',
+    });
 }

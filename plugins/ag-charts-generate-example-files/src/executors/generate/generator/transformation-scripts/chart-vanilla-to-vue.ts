@@ -1,4 +1,5 @@
-import { DARK_MODE_END, DARK_MODE_START, getRawDarkModeSnippet } from '../utils/getDarkModeSnippet';
+import prettier from 'prettier';
+
 import { getChartImports, wrapOptionsUpdateCode } from './chart-utils';
 import { templatePlaceholder } from './chart-vanilla-src-parser';
 import { getFunctionName, isInstanceMethod, removeFunctionKeyword } from './parser-utils';
@@ -86,19 +87,16 @@ function getAllMethods(bindings: any): [string[], string[], string[]] {
     return [externalEventHandlers, instanceMethods, globalMethods];
 }
 
-export function vanillaToVue(bindings: any, componentFileNames: string[]): () => string {
-    return () => {
-        const imports = getImports(componentFileNames, bindings);
-        const [propertyAssignments, propertyVars, propertyAttributes] = getPropertyBindings(bindings);
-        const [externalEventHandlers, instanceMethods, globalMethods] = getAllMethods(bindings);
-        const template = getTemplate(bindings, propertyAttributes);
+export async function vanillaToVue(bindings: any, componentFileNames: string[]): Promise<string> {
+    const imports = getImports(componentFileNames, bindings);
+    const [propertyAssignments, propertyVars, propertyAttributes] = getPropertyBindings(bindings);
+    const [externalEventHandlers, instanceMethods, globalMethods] = getAllMethods(bindings);
+    const template = getTemplate(bindings, propertyAttributes);
 
-        const methods = instanceMethods.concat(externalEventHandlers);
+    const methods = instanceMethods.concat(externalEventHandlers);
 
-        const darkModeSnippet = getRawDarkModeSnippet('vue');
-
-        /* prettier-ignore */
-        let mainFile = `${imports.join('\n')}
+    /* prettier-ignore */
+    let mainFile = `${imports.join('\n')}
 
 const ChartExample = {
     template: \`
@@ -119,14 +117,7 @@ const ChartExample = {
     ${bindings.init.length !== 0 ? `
     mounted() {
         ${bindings.init.join(';\n        ')}
-        ${darkModeSnippet}
-    }` : `
-    ${DARK_MODE_START}
-    mounted() {
-        ${darkModeSnippet}
-    },
-    ${DARK_MODE_END}
-    `}
+    },` : ''}
     ${methods.length !== 0 ? `
     methods: {
         ${methods
@@ -146,14 +137,17 @@ new Vue({
 });
 `;
 
-        if (bindings.usesChartApi) {
-            mainFile = mainFile.replace(/AgCharts.(\w*)\((\w*)(,|\))/g, 'AgCharts.$1(this.$refs.agCharts.chart$3');
-            mainFile = mainFile.replace(
-                /\(this.\$refs.agCharts.chart, options/g,
-                '(this.$refs.agCharts.chart, this.options'
-            );
-        }
+    if (bindings.usesChartApi) {
+        mainFile = mainFile.replace(/AgCharts.(\w*)\((\w*)(,|\))/g, 'AgCharts.$1(this.$refs.agCharts.chart$3');
+        mainFile = mainFile.replace(
+            /\(this.\$refs.agCharts.chart, options/g,
+            '(this.$refs.agCharts.chart, this.options'
+        );
+    }
 
-        return mainFile;
-    };
+    mainFile = await prettier.format(mainFile, {
+        parser: 'babel',
+    });
+
+    return mainFile;
 }

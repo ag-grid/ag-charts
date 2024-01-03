@@ -1,4 +1,5 @@
-import { DARK_MODE_END, DARK_MODE_START, getRawDarkModeSnippet } from '../utils/getDarkModeSnippet';
+import prettier from 'prettier';
+
 import { convertTemplate, getImport, toAssignment, toConst, toInput, toMember } from './angular-utils';
 import { wrapOptionsUpdateCode } from './chart-utils';
 import { templatePlaceholder } from './chart-vanilla-src-parser';
@@ -45,42 +46,39 @@ function getTemplate(bindings: any, attributes: string[]): string {
     return convertTemplate(template);
 }
 
-export function vanillaToAngular(bindings: any, componentFileNames: string[]): () => string {
-    return () => {
-        const { properties, declarations, optionsTypeInfo } = bindings;
-        const opsTypeInfo = optionsTypeInfo;
-        const imports = getImports(bindings, componentFileNames, opsTypeInfo);
+export async function vanillaToAngular(bindings: any, componentFileNames: string[]): Promise<string> {
+    const { properties, declarations, optionsTypeInfo } = bindings;
+    const opsTypeInfo = optionsTypeInfo;
+    const imports = getImports(bindings, componentFileNames, opsTypeInfo);
 
-        const propertyAttributes = [];
-        const propertyVars = [];
-        const propertyAssignments = [];
+    const propertyAttributes = [];
+    const propertyVars = [];
+    const propertyAssignments = [];
 
-        properties.forEach((property) => {
-            if (property.value === 'true' || property.value === 'false') {
-                propertyAttributes.push(toConst(property));
-            } else if (property.value === null || property.value === 'null') {
+    properties.forEach((property) => {
+        if (property.value === 'true' || property.value === 'false') {
+            propertyAttributes.push(toConst(property));
+        } else if (property.value === null || property.value === 'null') {
+            propertyAttributes.push(toInput(property));
+        } else {
+            // for when binding a method
+            // see javascript-grid-keyboard-navigation for an example
+            // tabToNextCell needs to be bound to the angular component
+            if (!isInstanceMethod(bindings.instanceMethods, property)) {
                 propertyAttributes.push(toInput(property));
-            } else {
-                // for when binding a method
-                // see javascript-grid-keyboard-navigation for an example
-                // tabToNextCell needs to be bound to the angular component
-                if (!isInstanceMethod(bindings.instanceMethods, property)) {
-                    propertyAttributes.push(toInput(property));
-                    propertyVars.push(toMember(property));
-                }
-
-                propertyAssignments.push(toAssignment(property));
+                propertyVars.push(toMember(property));
             }
-        });
 
-        const instanceMethods = bindings.instanceMethods.map(processFunction);
-        const template = getTemplate(bindings, propertyAttributes);
-        const externalEventHandlers = bindings.externalEventHandlers.map((handler) => processFunction(handler.body));
+            propertyAssignments.push(toAssignment(property));
+        }
+    });
 
-        const darkModeSnippet = getRawDarkModeSnippet('angular');
+    const instanceMethods = bindings.instanceMethods.map(processFunction);
+    const template = getTemplate(bindings, propertyAttributes);
+    const externalEventHandlers = bindings.externalEventHandlers.map((handler) => processFunction(handler.body));
 
-        /* prettier-ignore */
-        let appComponent = `${imports.join('\n')}${declarations.length > 0 ? '\n' + declarations.join('\n') : ''}
+    /* prettier-ignore */
+    let appComponent = `${imports.join('\n')}${declarations.length > 0 ? '\n' + declarations.join('\n') : ''}
 
 @Component({
     selector: 'my-app',
@@ -105,15 +103,8 @@ export class AppComponent {
     ${bindings.init.length !== 0 ? `
     ngOnInit() {
         ${bindings.init.join(';\n    ')}
-        ${darkModeSnippet}
     }
-    ` : `
-    ${DARK_MODE_START}
-    ngOnInit() {
-        ${darkModeSnippet}
-    }
-    ${DARK_MODE_END}
-    `}
+    ` : ''}
 
     ${instanceMethods
         .concat(externalEventHandlers)
@@ -123,13 +114,15 @@ export class AppComponent {
 
 ${bindings.globals.join('\n')}
 `;
-        if (bindings.usesChartApi) {
-            appComponent = appComponent.replace(/AgCharts.(\w*)\((\w*)(,|\))/g, 'AgCharts.$1(this.agCharts.chart!$3');
-            appComponent = appComponent.replace(
-                /\(this.agCharts.chart!, options/g,
-                '(this.agCharts.chart!, this.options'
-            );
-        }
-        return appComponent;
-    };
+
+    if (bindings.usesChartApi) {
+        appComponent = appComponent.replace(/AgCharts.(\w*)\((\w*)(,|\))/g, 'AgCharts.$1(this.agCharts.chart!$3');
+        appComponent = appComponent.replace(/\(this.agCharts.chart!, options/g, '(this.agCharts.chart!, this.options');
+    }
+
+    appComponent = await prettier.format(appComponent, {
+        parser: 'typescript',
+    });
+
+    return appComponent;
 }
