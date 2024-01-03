@@ -604,9 +604,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             fillOpacity,
             strokeOpacity,
             visible,
+            marker,
         } = this.properties;
         const legendItemText = yName ?? `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`;
 
+        const shape = marker.enabled ? marker.shape : undefined;
         return [
             {
                 legendType: 'category',
@@ -615,7 +617,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 seriesId: this.id,
                 enabled: visible,
                 label: { text: `${legendItemText}` },
-                marker: { fill, stroke, fillOpacity, strokeOpacity, strokeWidth },
+                marker: { shape, fill, stroke, fillOpacity, strokeOpacity, strokeWidth },
             },
         ];
     }
