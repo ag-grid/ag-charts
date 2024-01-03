@@ -438,6 +438,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
                 }
             }
             lineNode.checkPathDirty();
+            lineNode.visible = this.visible;
         });
     }
 
