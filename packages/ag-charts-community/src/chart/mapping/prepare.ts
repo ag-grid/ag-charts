@@ -104,7 +104,7 @@ export function prepareOptions<T extends AgChartOptions>(options: T): T {
         checkSeriesType(seriesType);
     }
 
-    options = validateSoloSeries({ ...options });
+    options = validateSoloSeries(options);
 
     let defaultSeriesType = 'line';
     if (isAgCartesianChartOptions(options)) {
