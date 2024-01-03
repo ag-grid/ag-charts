@@ -1,5 +1,6 @@
 import type { InternalFramework } from '@ag-grid-types';
 import type { FileContents } from '@features/examples-generator/types';
+import { isReactInternalFramework } from '@utils/framework';
 import { getParameters } from 'codesandbox/lib/api/define';
 
 type SandboxFiles = Parameters<typeof getParameters>[0]['files'];
@@ -10,10 +11,6 @@ const getCodeSandboxTemplate = (config: object) => {
     return { ...config, tags: ['ag-grid', 'ag-charts', 'example'], published: false };
 };
 
-function isReactFramework(internalFramework: InternalFramework) {
-    return new Set(['reactFunctional', 'reactFunctionalTs']).has(internalFramework);
-}
-
 const getPathForFile = ({
     fileName,
     internalFramework,
@@ -21,7 +18,7 @@ const getPathForFile = ({
     fileName: string;
     internalFramework: InternalFramework;
 }) => {
-    if (!isReactFramework(internalFramework)) {
+    if (!isReactInternalFramework(internalFramework)) {
         return fileName;
     }
 
@@ -65,7 +62,7 @@ const getCodeSandboxFiles = ({
     internalFramework: InternalFramework;
 }) => {
     const sandboxFiles: SandboxFiles = {};
-    const allFiles = isReactFramework(internalFramework)
+    const allFiles = isReactInternalFramework(internalFramework)
         ? {
               ...files,
           }
