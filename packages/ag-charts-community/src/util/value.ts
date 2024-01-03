@@ -1,6 +1,5 @@
 export const isString = (v: any) => typeof v === 'string';
-export const isStringObject = (v: any) =>
-    !!v && Object.prototype.hasOwnProperty.call(v, 'toString') && isString(v.toString());
+export const isStringObject = (v: any) => !!v && Object.hasOwn(v, 'toString') && isString(v.toString());
 export const isDate = (v: any) => v instanceof Date && !isNaN(+v);
 
 export function isDiscrete(value: any): boolean {
@@ -8,8 +7,7 @@ export function isDiscrete(value: any): boolean {
 }
 
 export function isContinuous(value: any): boolean {
-    const isNumberObject = (v: any) =>
-        !!v && Object.prototype.hasOwnProperty.call(v, 'valueOf') && isNumber(v.valueOf());
+    const isNumberObject = (v: any) => !!v && Object.hasOwn(v, 'valueOf') && isNumber(v.valueOf());
     const isDate = (v: any) => v instanceof Date && !isNaN(+v);
 
     return isNumber(value) || isNumberObject(value) || isDate(value);

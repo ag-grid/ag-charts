@@ -396,7 +396,7 @@ export class HdpiCanvas {
         } as any;
 
         for (const name in overrides) {
-            if (Object.prototype.hasOwnProperty.call(overrides, name)) {
+            if (Object.hasOwn(overrides, name)) {
                 // Save native methods under prefixed names,
                 // if this hasn't been done by the previous overrides already.
                 if (!ctx['$' + name]) {

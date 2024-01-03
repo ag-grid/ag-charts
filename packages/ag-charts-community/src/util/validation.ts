@@ -46,31 +46,20 @@ export function Validate(predicate: ValidatePredicate, options: ValidateOptions 
             const context = { ...options, target, property };
             if ((optional && typeof value === 'undefined') || predicate(value, context)) {
                 if (isProperties(target[property]) && !isProperties(value)) {
-                    // properties array set can return a new instance
-                    target[property] = target[property].set(value);
+                    target[property].set(value);
                     return target[property];
                 }
                 return value;
             }
 
             const cleanKey = String(property).replace(/^_*/, '');
-            const message: Array<string | undefined> = [`Property [${cleanKey}]`];
+            const targetName = target.constructor.className ?? target.constructor.name.replace(/Properties$/, '');
 
-            const targetClass = target.constructor?.className ?? target.constructor?.name;
-            if (targetClass?.length > 2) {
-                message.push(`of [${targetClass}]`);
-            }
-
-            if (predicate.message) {
-                message.push(
-                    `cannot be set to [${stringify(value)}]; expecting`,
-                    getPredicateMessage(predicate, context)
-                );
-            } else {
-                message.push(`cannot be set to [${stringify(value)}]`);
-            }
-
-            Logger.warn(`${message.join(' ')}, ignoring.`);
+            Logger.warn(
+                `Property [${cleanKey}] of [${targetName}] cannot be set to [${stringify(value)}]${
+                    predicate.message ? `; expecting ${getPredicateMessage(predicate, context)}` : ''
+                }, ignoring.`
+            );
 
             return BREAK_TRANSFORM_CHAIN;
         },
@@ -174,6 +163,7 @@ export function UNION(options: string[], message: string = 'a') {
 }
 
 export const MIN_SPACING = OR(AND(NUMBER.restrict({ min: 1 }), LESS_THAN('maxSpacing')), NAN);
+export const MAX_SPACING = OR(AND(NUMBER.restrict({ min: 1 }), GREATER_THAN('minSpacing')), NAN);
 
 export function predicateWithMessage(
     predicate: ValidatePredicate,

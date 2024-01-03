@@ -10,7 +10,7 @@ const {
     DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
     EXTENDS_SERIES_DEFAULTS,
     DEFAULT_LABEL_COLOUR,
-    NORMAL,
+    FONT_WEIGHT,
 } = _Theme;
 
 export const TreemapSeriesModule: _ModuleSupport.SeriesModule<'treemap'> = {
@@ -33,7 +33,7 @@ export const TreemapSeriesModule: _ModuleSupport.SeriesModule<'treemap'> = {
                 enabled: true,
                 color: DEFAULT_LABEL_COLOUR,
                 fontStyle: undefined,
-                fontWeight: NORMAL,
+                fontWeight: FONT_WEIGHT.NORMAL,
                 fontSize: 12,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 spacing: 4,
@@ -50,7 +50,7 @@ export const TreemapSeriesModule: _ModuleSupport.SeriesModule<'treemap'> = {
                 enabled: true,
                 color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
                 fontStyle: undefined,
-                fontWeight: NORMAL,
+                fontWeight: FONT_WEIGHT.NORMAL,
                 fontSize: 18,
                 minimumFontSize: 10,
                 fontFamily: DEFAULT_FONT_FAMILY,

@@ -27,6 +27,6 @@ export const Logger = {
     },
 
     errorOnce(message: any, ...logContent: any[]) {
-        doOnce(() => Logger.error(message, ...logContent), `Logger.warn: ${message}`);
+        doOnce(() => Logger.error(message, ...logContent), `Logger.error: ${message}`);
     },
 };

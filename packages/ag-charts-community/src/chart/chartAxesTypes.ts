@@ -12,7 +12,7 @@ const AXES_THEME_TEMPLATES: Record<string, {}> = {};
 
 export const CHART_AXES_TYPES = {
     has(axisType: string) {
-        return Object.prototype.hasOwnProperty.call(TYPES, axisType);
+        return Object.hasOwn(TYPES, axisType);
     },
 
     get axesTypes() {

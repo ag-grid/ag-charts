@@ -1,5 +1,3 @@
-import type { ModuleInstance } from '../module/baseModule';
-import type { LegendModule, RootModule } from '../module/coreModules';
 import type { LicenseManager } from '../module/enterpriseModule';
 import { enterpriseModule } from '../module/enterpriseModule';
 import { type Module, REGISTERED_MODULES, hasRegisteredEnterpriseModules } from '../module/module';
@@ -439,7 +437,7 @@ function applyChartOptions(chart: Chart, processedOptions: ProcessedOptions, use
         chart.data = processedOptions.data;
     }
     if (processedOptions.legend?.listeners) {
-        Object.assign(chart.legend!.listeners, processedOptions.legend.listeners ?? {});
+        Object.assign(chart.legend!.listeners, processedOptions.legend.listeners);
     }
     if (processedOptions.listeners) {
         chart.updateAllSeriesListeners();
@@ -454,45 +452,34 @@ function applyChartOptions(chart: Chart, processedOptions: ProcessedOptions, use
 }
 
 function applyModules(chart: Chart, options: AgChartOptions) {
-    const matchingChartType = (module: Module) => {
-        return (
-            (chart instanceof CartesianChart && module.chartTypes.includes('cartesian')) ||
-            (chart instanceof PolarChart && module.chartTypes.includes('polar')) ||
-            (chart instanceof HierarchyChart && module.chartTypes.includes('hierarchy'))
-        );
-    };
+    const matchingChartType = ({ chartTypes }: Module) =>
+        (chart instanceof CartesianChart && chartTypes.includes('cartesian')) ||
+        (chart instanceof PolarChart && chartTypes.includes('polar')) ||
+        (chart instanceof HierarchyChart && chartTypes.includes('hierarchy'));
 
     let modulesChanged = false;
-    const processModules = <T extends Module<ModuleInstance>>(
-        moduleType: Module['type'],
-        add: (module: T) => void,
-        remove: (module: T) => void
-    ) => {
-        const modules = REGISTERED_MODULES.filter((m): m is T => m.type === moduleType);
-        for (const next of modules) {
-            const shouldBeEnabled = matchingChartType(next) && (options as any)[next.optionsKey] != null;
-            const isEnabled = chart.isModuleEnabled(next);
-
-            if (shouldBeEnabled === isEnabled) continue;
-            modulesChanged = true;
-
-            if (shouldBeEnabled) {
-                add(next);
-            } else {
-                remove(next);
-            }
+    for (const module of REGISTERED_MODULES) {
+        if (module.type !== 'root' && module.type !== 'legend') {
+            continue;
         }
-    };
-    processModules<RootModule>(
-        'root',
-        (next) => chart.addModule(next),
-        (next) => chart.removeModule(next)
-    );
-    processModules<LegendModule>(
-        'legend',
-        (next) => chart.addLegendModule(next),
-        (next) => chart.removeLegendModule(next)
-    );
+
+        const shouldBeEnabled = matchingChartType(module) && (options as any)[module.optionsKey] != null;
+        const isEnabled = chart.isModuleEnabled(module);
+
+        if (shouldBeEnabled === isEnabled) {
+            continue;
+        }
+
+        if (shouldBeEnabled) {
+            chart.addModule(module);
+            (chart as any)[module.optionsKey] = chart.modules.get(module.optionsKey); // TODO remove
+        } else {
+            chart.removeModule(module);
+            delete (chart as any)[module.optionsKey]; // TODO remove
+        }
+
+        modulesChanged = true;
+    }
 
     return modulesChanged;
 }
@@ -591,19 +578,22 @@ function createSeries(chart: Chart, options: SeriesOptionsTypes[]): Series<any>[
 
 function applySeriesOptionModules(series: Series<any>, options: AgBaseSeriesOptions<any>) {
     const seriesOptionModules = REGISTERED_MODULES.filter((m): m is SeriesOptionModule => m.type === 'series-option');
+    const moduleContext = series.createModuleContext();
+    const moduleMap = series.getModuleMap();
 
-    for (const mod of seriesOptionModules) {
-        const supportedSeriesTypes: readonly string[] = mod.seriesTypes;
-        if (mod.optionsKey in options && supportedSeriesTypes.includes(series.type)) {
-            series.getModuleMap().addModule(mod);
+    for (const module of seriesOptionModules) {
+        const supportedSeriesTypes: readonly string[] = module.seriesTypes;
+        if (module.optionsKey in options && supportedSeriesTypes.includes(series.type)) {
+            moduleMap.addModule(module, (module) => new module.instanceConstructor(moduleContext));
+            (series as any)[module.optionsKey] = moduleMap.getModule(module); // TODO remove
         }
     }
 }
 
 function createAxis(chart: Chart, options: AgBaseAxisOptions[]): ChartAxis[] {
     const guesser: AxisPositionGuesser = new AxisPositionGuesser();
-    const skip = ['axes[].type'];
     const moduleContext = chart.getModuleContext();
+    const skip = ['axes[].type'];
 
     let index = 0;
     for (const axisOptions of options ?? []) {
@@ -621,19 +611,22 @@ function createAxis(chart: Chart, options: AgBaseAxisOptions[]): ChartAxis[] {
 function applyAxisModules(axis: ChartAxis, options: AgBaseAxisOptions) {
     let modulesChanged = false;
     const rootModules = REGISTERED_MODULES.filter((m): m is AxisOptionModule => m.type === 'axis-option');
+    const moduleContext = axis.createModuleContext();
 
-    for (const next of rootModules) {
-        const shouldBeEnabled = (options as any)[next.optionsKey] != null;
+    for (const module of rootModules) {
+        const shouldBeEnabled = (options as any)[module.optionsKey] != null;
         const moduleMap = axis.getModuleMap();
-        const isEnabled = moduleMap.isModuleEnabled(next);
+        const isEnabled = moduleMap.isModuleEnabled(module);
 
         if (shouldBeEnabled === isEnabled) continue;
         modulesChanged = true;
 
         if (shouldBeEnabled) {
-            moduleMap.addModule(next);
+            moduleMap.addModule(module, (module) => new module.instanceConstructor(moduleContext));
+            (axis as any)[module.optionsKey] = moduleMap.getModule(module); // TODO remove
         } else {
-            moduleMap.removeModule(next);
+            moduleMap.removeModule(module);
+            delete (axis as any)[module.optionsKey]; // TODO remove
         }
     }
 
@@ -668,12 +661,13 @@ function applyOptionValues<T extends object, S>(
 }
 
 function applySeriesValues(target: Series<any>, options: AgBaseSeriesOptions<any>) {
+    const moduleMap = target.getModuleMap();
     target.properties.set(options);
     if ('data' in options) {
         target.data = options.data;
     }
-    if ('errorBar' in target && 'errorBar' in options) {
-        (target.errorBar as any).properties.set(options.errorBar);
+    if ('errorBar' in options && moduleMap.isModuleEnabled('errorBar')) {
+        (moduleMap.getModule('errorBar') as any).properties.set(options.errorBar);
     }
 
     if (options?.listeners != null) {

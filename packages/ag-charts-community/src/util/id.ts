@@ -8,9 +8,7 @@ export function resetIds() {
 
 export function createId(instance: any): string {
     const constructor = instance.constructor;
-    const className = Object.prototype.hasOwnProperty.call(constructor, 'className')
-        ? constructor.className
-        : constructor.name;
+    const className = Object.hasOwn(constructor, 'className') ? constructor.className : constructor.name;
 
     if (!className) {
         throw new Error(`The ${constructor} is missing the 'className' property.`);

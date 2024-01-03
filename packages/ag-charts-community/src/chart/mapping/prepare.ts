@@ -11,6 +11,7 @@ import type {
 import type { JsonMergeOptions } from '../../util/json';
 import { DELETE, jsonMerge, jsonWalk } from '../../util/json';
 import { Logger } from '../../util/logger';
+import { isArray, isDefined } from '../../util/type-guards';
 import type { DeepPartial } from '../../util/types';
 import { AXIS_TYPES } from '../factory/axisTypes';
 import { CHART_TYPES } from '../factory/chartTypes';
@@ -68,10 +69,9 @@ function getGlobalTooltipPositionOptions(position: unknown): AgTooltipPositionOp
         return {};
     }
     const { type, xOffset, yOffset } = position as { type?: unknown; xOffset?: unknown; yOffset?: unknown };
-
+    const AgTooltipPositionTypeMap: { [K in AgTooltipPositionType]: true } = { pointer: true, node: true };
     const result: AgTooltipPositionOptions = {};
 
-    const AgTooltipPositionTypeMap: { [K in AgTooltipPositionType]: true } = { pointer: true, node: true };
     const isTooltipPositionType = (value: string): value is AgTooltipPositionType =>
         Object.keys(AgTooltipPositionTypeMap).includes(value);
     if (typeof type === 'string' && isTooltipPositionType(type)) {
@@ -92,20 +92,18 @@ export function prepareOptions<T extends AgChartOptions>(options: T): T {
     // Determine type and ensure it's explicit in the options config.
     const type = optionsType(options);
 
-    const globalTooltipPositionOptions = getGlobalTooltipPositionOptions(options.tooltip?.position);
-
     const checkSeriesType = (type?: string) => {
         if (type != null && !(isSeriesOptionType(type) || isEnterpriseSeriesType(type) || getSeriesDefaults(type))) {
             throw new Error(`AG Charts - unknown series type: ${type}; expected one of: ${CHART_TYPES.seriesTypes}`);
         }
     };
-    checkSeriesType(type);
+
     for (const { type: seriesType } of options.series ?? []) {
         if (seriesType == null) continue;
         checkSeriesType(seriesType);
     }
 
-    options = validateSoloSeries({ ...options, type });
+    options = validateSoloSeries(options);
 
     let defaultSeriesType = 'line';
     if (isAgCartesianChartOptions(options)) {
@@ -126,6 +124,7 @@ export function prepareOptions<T extends AgChartOptions>(options: T): T {
 
     removeDisabledOptions(options);
 
+    const globalTooltipPositionOptions = getGlobalTooltipPositionOptions(options.tooltip?.position);
     const { context, mergedOptions, axesThemes, seriesThemes, theme } = prepareMainOptions<T>(
         defaultOverrides as T,
         options,
@@ -205,10 +204,7 @@ function sanityCheckOptions<T extends AgChartOptions>(options: T) {
 }
 
 function hasSoloSeries(options: SeriesOptionsTypes[]) {
-    for (const series of options) {
-        if (isSoloSeries(series.type)) return true;
-    }
-    return false;
+    return options.some((series) => isSoloSeries(series.type));
 }
 
 function validateSoloSeries<T extends AgChartOptions>(options: T): T {
@@ -216,8 +212,7 @@ function validateSoloSeries<T extends AgChartOptions>(options: T): T {
         return options;
     }
 
-    // If the first series is a solo-series, remove all trailing series.
-    // If the frist series is not a solo-series, remove all solo-series.
+    // If the first series is a solo-series, remove all trailing series, otherwise remove all solo-series.
     let series = [...options.series];
     if (isSoloSeries(series[0].type)) {
         Logger.warn(
@@ -374,15 +369,15 @@ function prepareAxis<T extends AxesOptionsTypes>(
     return jsonMerge([axisTheme, cleanTheme, axis, removeOptions], noDataCloneMergeOptions);
 }
 
-function removeDisabledOptions<T extends AgChartOptions>(options: T) {
+function removeDisabledOptions<T extends object>(options: T) {
     // Remove configurations from all option objects with a `false` value for the `enabled` property.
     jsonWalk(
         options,
-        (_, visitingUserOpts) => {
-            if (visitingUserOpts.enabled === false) {
-                Object.keys(visitingUserOpts).forEach((key) => {
+        (userOptionsNode) => {
+            if ('enabled' in userOptionsNode && userOptionsNode.enabled === false) {
+                Object.keys(userOptionsNode).forEach((key) => {
                     if (key === 'enabled') return;
-                    delete visitingUserOpts[key];
+                    delete userOptionsNode[key as keyof T];
                 });
             }
         },
@@ -392,34 +387,23 @@ function removeDisabledOptions<T extends AgChartOptions>(options: T) {
 
 function prepareLegendEnabledOption<T extends AgChartOptions>(options: T, mergedOptions: any) {
     // Disable legend by default for single series cartesian charts
-    if (options.legend?.enabled !== undefined || mergedOptions.legend?.enabled !== undefined) {
-        return;
+    if (!isDefined(options.legend?.enabled) && !isDefined(mergedOptions.legend?.enabled)) {
+        mergedOptions.legend ??= {};
+        mergedOptions.legend.enabled = (options.series ?? []).length > 1;
     }
-    mergedOptions.legend ??= {};
-    if ((options.series ?? []).length > 1) {
-        mergedOptions.legend.enabled = true;
-        return;
-    }
-    mergedOptions.legend.enabled = false;
 }
 
 function prepareEnabledOptions<T extends AgChartOptions>(options: T, mergedOptions: any) {
     // Set `enabled: true` for all option objects where the user has provided values.
     jsonWalk(
         options,
-        (_, visitingUserOpts, visitingMergedOpts) => {
-            if (!visitingMergedOpts) return;
-
-            const { _enabledFromTheme } = visitingMergedOpts;
-            if (_enabledFromTheme != null) {
-                // Do not apply special handling, base enablement on theme.
-                delete visitingMergedOpts._enabledFromTheme;
-            }
-
-            if (!('enabled' in visitingMergedOpts)) return;
-            if (_enabledFromTheme) return;
-
-            if (visitingUserOpts.enabled == null) {
+        (visitingUserOpts, visitingMergedOpts) => {
+            if (
+                visitingMergedOpts &&
+                'enabled' in visitingMergedOpts &&
+                !visitingMergedOpts._enabledFromTheme &&
+                visitingUserOpts.enabled == null
+            ) {
                 visitingMergedOpts.enabled = true;
             }
         },
@@ -430,7 +414,7 @@ function prepareEnabledOptions<T extends AgChartOptions>(options: T, mergedOptio
     // Cleanup any special properties.
     jsonWalk(
         mergedOptions,
-        (_, visitingMergedOpts) => {
+        (visitingMergedOpts) => {
             if (visitingMergedOpts._enabledFromTheme != null) {
                 // Do not apply special handling, base enablement on theme.
                 delete visitingMergedOpts._enabledFromTheme;
@@ -441,7 +425,7 @@ function prepareEnabledOptions<T extends AgChartOptions>(options: T, mergedOptio
 }
 
 function preparePieOptions(pieSeriesTheme: any, seriesOptions: any, mergedSeries: any) {
-    if (Array.isArray(seriesOptions.innerLabels)) {
+    if (isArray(seriesOptions.innerLabels)) {
         mergedSeries.innerLabels = seriesOptions.innerLabels.map((innerLabel: any) =>
             jsonMerge([pieSeriesTheme.innerLabels, innerLabel])
         );
