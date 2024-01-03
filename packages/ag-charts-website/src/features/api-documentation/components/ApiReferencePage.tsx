@@ -4,6 +4,7 @@ import classNames from 'classnames';
 import type { CSSProperties } from 'react';
 import { useContext, useEffect, useState } from 'react';
 import Markdown from 'react-markdown';
+import remarkBreaks from 'remark-breaks';
 import { SITE_BASE_URL } from 'src/constants';
 
 import type { ApiReferenceType, InterfaceNode } from '../api-reference-types';
@@ -106,7 +107,7 @@ function ApiReferencePageContent({
                         pageTitle?.name ?? pageRef.name
                     )}
                 </h1>
-                <Markdown>{pageRef.docs?.join('\n')}</Markdown>
+                <Markdown remarkPlugins={[remarkBreaks]}>{pageRef.docs?.join('\n')}</Markdown>
                 <PropertyType type={pageRef.name} />
             </header>
             <ApiReference
