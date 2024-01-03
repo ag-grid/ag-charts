@@ -69,10 +69,9 @@ function getGlobalTooltipPositionOptions(position: unknown): AgTooltipPositionOp
         return {};
     }
     const { type, xOffset, yOffset } = position as { type?: unknown; xOffset?: unknown; yOffset?: unknown };
-
+    const AgTooltipPositionTypeMap: { [K in AgTooltipPositionType]: true } = { pointer: true, node: true };
     const result: AgTooltipPositionOptions = {};
 
-    const AgTooltipPositionTypeMap: { [K in AgTooltipPositionType]: true } = { pointer: true, node: true };
     const isTooltipPositionType = (value: string): value is AgTooltipPositionType =>
         Object.keys(AgTooltipPositionTypeMap).includes(value);
     if (typeof type === 'string' && isTooltipPositionType(type)) {

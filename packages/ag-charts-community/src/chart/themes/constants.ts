@@ -7,15 +7,17 @@ import type {
     FontWeight,
 } from '../../options/agChartOptions';
 
-export const FONT_SIZE: Record<string, number> = {
+export const FONT_SIZE = {
     SMALL: 12,
     MEDIUM: 13,
     LARGE: 17,
 };
 
-export const FONT_WEIGHT: Record<string, FontWeight> = {
-    BOLD: 'bold',
+export const FONT_WEIGHT: { [K in Uppercase<Exclude<FontWeight, number>>]: FontWeight } = {
     NORMAL: 'normal',
+    BOLD: 'bold',
+    BOLDER: 'bolder',
+    LIGHTER: 'lighter',
 };
 
 export const BOTTOM: AgChartLegendPosition = 'bottom';
