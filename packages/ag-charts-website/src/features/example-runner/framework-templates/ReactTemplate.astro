@@ -19,6 +19,7 @@ interface Props {
     styleFiles?: string[];
     appLocation: string;
     boilerplatePath: string;
+    ignoreSystemJs?: boolean;
     children?: any;
 }
 
@@ -31,6 +32,7 @@ const {
     scriptFiles = [],
     styleFiles = [],
     boilerplatePath,
+    ignoreSystemJs
 } = Astro.props as Props;
 
 const startFile = pathJoin(appLocation, entryFileName);
@@ -45,13 +47,13 @@ const startFile = pathJoin(appLocation, entryFileName);
     <body>
         <div id="root"></div>
         {scriptFiles && <Scripts baseUrl={appLocation} files={scriptFiles} />}
-        <SystemJs
+        {!ignoreSystemJs && <SystemJs
             isDev={isDev}
             boilerplatePath={boilerplatePath}
             appLocation={appLocation}
             startFile={startFile}
             internalFramework={'react'}
-        />
+        />}
         <slot />
     </body>
 </html>

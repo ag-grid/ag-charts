@@ -25,10 +25,13 @@ interface Props {
      * Whether to add a script to post an `init` message to the parent
      */
     addInitMessageScript?: boolean;
+    /**
+     * Whether to not include system js code
+     */
+    ignoreSystemJs?: boolean;
 }
 
-const { internalFramework, pageName, exampleName, exampleUrl, generatedContents, relativePath, addInitMessageScript } =
-    Astro.props as Props;
+const { internalFramework, pageName, exampleName, exampleUrl, generatedContents, relativePath, addInitMessageScript, ignoreSystemJs } = Astro.props as Props;
 
 const isDev = getIsDev();
 
@@ -101,6 +104,7 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             styleFiles={styleFiles}
             appLocation={appLocation}
             boilerplatePath={boilerPlateUrl}
+            ignoreSystemJs={ignoreSystemJs}
         >
             {addInitMessageScript && <PostInitMessageScript pageName={pageName} exampleName={exampleName} />}
         </ReactTemplate>

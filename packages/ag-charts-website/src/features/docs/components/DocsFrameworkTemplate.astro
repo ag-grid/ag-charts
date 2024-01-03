@@ -16,9 +16,13 @@ interface Props {
      * Whether to add a script to post an `init` message to the parent
      */
     addInitMessageScript?: boolean;
+    /**
+     * Whether to not include system js code
+     */
+    ignoreSystemJs?: boolean;
 }
 
-const { internalFramework, pageName, exampleName, relativePath, addInitMessageScript } = Astro.props as Props;
+const { internalFramework, pageName, exampleName, relativePath, addInitMessageScript, ignoreSystemJs } = Astro.props as Props;
 
 const generatedContents = await getGeneratedContents({
     type: 'docs',
@@ -41,4 +45,5 @@ const exampleUrl = getExampleUrl({
     generatedContents={generatedContents!}
     relativePath={relativePath}
     addInitMessageScript={addInitMessageScript}
+    ignoreSystemJs={ignoreSystemJs}
 />
