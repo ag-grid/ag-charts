@@ -337,7 +337,7 @@ export const Changelog = () => {
     return (
         <>
             {!IS_SSR && (
-                <div className={classnames(styles.container, 'layout-page-max-width')}>
+                <div className={styles.container}>
                     <h1>AG Charts Changelog</h1>
 
                     <section className={styles.header}>
