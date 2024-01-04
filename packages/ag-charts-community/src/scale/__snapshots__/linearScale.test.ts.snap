@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`should create ticks for interval: -1 domain: [-10, 0] case 1`] = `
+exports[`LinearScale should create ticks for interval: -1 domain: [-10, 0] case 1`] = `
 [
   -10,
   -9,
@@ -16,7 +16,7 @@ exports[`should create ticks for interval: -1 domain: [-10, 0] case 1`] = `
 ]
 `;
 
-exports[`should create ticks for interval: -1 domain: [0, 10] case 1`] = `
+exports[`LinearScale should create ticks for interval: -1 domain: [0, 10] case 1`] = `
 [
   0,
   1,
@@ -32,7 +32,7 @@ exports[`should create ticks for interval: -1 domain: [0, 10] case 1`] = `
 ]
 `;
 
-exports[`should create ticks for interval: -7.5 domain: [-37.5, -7.5] case 1`] = `
+exports[`LinearScale should create ticks for interval: -7.5 domain: [-37.5, -7.5] case 1`] = `
 [
   -37.5,
   -30,
@@ -42,7 +42,7 @@ exports[`should create ticks for interval: -7.5 domain: [-37.5, -7.5] case 1`] =
 ]
 `;
 
-exports[`should create ticks for interval: 0 domain: [-1, 1] case 1`] = `
+exports[`LinearScale should create ticks for interval: 0 domain: [-1, 1] case 1`] = `
 [
   -1,
   -0.5,
@@ -52,7 +52,7 @@ exports[`should create ticks for interval: 0 domain: [-1, 1] case 1`] = `
 ]
 `;
 
-exports[`should create ticks for interval: 0.005 domain: [0.01, 0.02] case 1`] = `
+exports[`LinearScale should create ticks for interval: 0.005 domain: [0.01, 0.02] case 1`] = `
 [
   0.01,
   0.015,
@@ -60,7 +60,7 @@ exports[`should create ticks for interval: 0.005 domain: [0.01, 0.02] case 1`] =
 ]
 `;
 
-exports[`should create ticks for interval: 0.01 domain: [0.1, 0.2] case 1`] = `
+exports[`LinearScale should create ticks for interval: 0.01 domain: [0.1, 0.2] case 1`] = `
 [
   0.1,
   0.11,
@@ -76,7 +76,7 @@ exports[`should create ticks for interval: 0.01 domain: [0.1, 0.2] case 1`] = `
 ]
 `;
 
-exports[`should create ticks for interval: 0.1 domain: [0, 1] case 1`] = `
+exports[`LinearScale should create ticks for interval: 0.1 domain: [0, 1] case 1`] = `
 [
   0,
   0.1,
@@ -92,7 +92,7 @@ exports[`should create ticks for interval: 0.1 domain: [0, 1] case 1`] = `
 ]
 `;
 
-exports[`should create ticks for interval: 1 domain: [0, 10] case 1`] = `
+exports[`LinearScale should create ticks for interval: 1 domain: [0, 10] case 1`] = `
 [
   0,
   1,
@@ -108,7 +108,7 @@ exports[`should create ticks for interval: 1 domain: [0, 10] case 1`] = `
 ]
 `;
 
-exports[`should create ticks for interval: 3 domain: [-3, 12] case 1`] = `
+exports[`LinearScale should create ticks for interval: 3 domain: [-3, 12] case 1`] = `
 [
   -3,
   0,
@@ -119,7 +119,7 @@ exports[`should create ticks for interval: 3 domain: [-3, 12] case 1`] = `
 ]
 `;
 
-exports[`should create ticks for interval: 10.5 domain: [0, 102] case 1`] = `
+exports[`LinearScale should create ticks for interval: 10.5 domain: [0, 102] case 1`] = `
 [
   0,
   10.5,
@@ -135,7 +135,7 @@ exports[`should create ticks for interval: 10.5 domain: [0, 102] case 1`] = `
 ]
 `;
 
-exports[`should create ticks for interval: 133 domain: [0, 665] case 1`] = `
+exports[`LinearScale should create ticks for interval: 133 domain: [0, 665] case 1`] = `
 [
   0,
   133,

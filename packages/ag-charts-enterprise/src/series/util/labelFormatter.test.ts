@@ -10,7 +10,7 @@ import {
 
 const { Text } = _Scene;
 
-describe('treeMapLabelFormatter', () => {
+describe('label formatter', () => {
     let wrapLines: jest.SpyInstance<ReturnType<typeof Text.wrapLines>, Parameters<typeof Text.wrapLines>> = undefined!;
     let computeBBox: jest.SpyInstance<
         ReturnType<typeof Text.prototype.computeBBox>,

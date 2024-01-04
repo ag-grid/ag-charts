@@ -48,17 +48,21 @@ describe('HistogramSeries', () => {
     };
 
     describe('#create', () => {
-        for (const [exampleName, example] of Object.entries(EXAMPLES)) {
-            it(`for ${exampleName} it should create chart instance as expected`, async () => {
+        it.each(Object.entries(EXAMPLES))(
+            'for %s it should create chart instance as expected',
+            async (_exampleName, example) => {
                 const options: AgChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
                 await example.assertions(chart);
-            });
+            }
+        );
 
-            it(`for ${exampleName} it should render to canvas as expected`, async () => {
+        it.each(Object.entries(EXAMPLES))(
+            'for %s it should render to canvas as expected',
+            async (_exampleName, example) => {
                 const options: AgChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
@@ -69,8 +73,8 @@ describe('HistogramSeries', () => {
                     await example.extraScreenshotActions(chart);
                     await compare();
                 }
-            });
-        }
+            }
+        );
     });
 
     describe('#reversed axes', () => {
@@ -179,24 +183,28 @@ describe('HistogramSeries', () => {
             },
         };
 
-        for (const [exampleName, example] of Object.entries(examples)) {
-            it(`for ${exampleName} it should create chart instance as expected`, async () => {
+        it.each(Object.entries(examples))(
+            'for %s it should create chart instance as expected',
+            async (_exampleName, example) => {
                 const options: AgChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
                 await example.assertions(chart);
-            });
+            }
+        );
 
-            it(`for ${exampleName} it should render to canvas as expected`, async () => {
+        it.each(Object.entries(examples))(
+            'for %s it should render to canvas as expected',
+            async (_exampleName, example) => {
                 const options: AgChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
                 chart = AgCharts.create(options);
                 await compare();
-            });
-        }
+            }
+        );
     });
 
     describe('initial animation', () => {

@@ -23,7 +23,7 @@ import { AgCharts } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 import type { SunburstSeries } from './sunburstSeries';
 
-describe('SunburstChart', () => {
+describe('SunburstSeries', () => {
     let chart: any;
 
     afterEach(() => {

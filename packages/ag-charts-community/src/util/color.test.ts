@@ -2,7 +2,7 @@ import { expect, test } from '@jest/globals';
 
 import { Color } from './color';
 
-describe('color', () => {
+describe('Color', () => {
     test('constructor', () => {
         {
             const color = new Color(-1, 1, -2, 3);

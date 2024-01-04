@@ -112,7 +112,7 @@ const mixinLabelPositionCases = (example: CartesianTestCase): Record<string, Car
     return result;
 };
 
-const CROSSLINES_LABEL_POSITON_EXAMPLES: Record<string, CartesianTestCase> = mixinLabelPositionCases({
+const CROSSLINES_LABEL_POSITION_EXAMPLES: Record<string, CartesianTestCase> = mixinLabelPositionCases({
     options: examples.DEFAULT_LABEL_POSITION_CROSSLINES,
     assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
 });
@@ -146,7 +146,7 @@ const CROSSLINES_RANGE_EXAMPLES: Record<string, CartesianTestCase> = mixinFlippe
 
 const EXAMPLES: Record<string, CartesianTestCase> = {
     ...CROSSLINES_RANGE_EXAMPLES,
-    ...CROSSLINES_LABEL_POSITON_EXAMPLES,
+    ...CROSSLINES_LABEL_POSITION_EXAMPLES,
     SCATTER_CROSSLINES: {
         options: examples.SCATTER_CROSSLINES,
         assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['scatter'] }),
@@ -181,7 +181,7 @@ const EXAMPLES: Record<string, CartesianTestCase> = {
     },
 };
 
-describe('crossLines', () => {
+describe('CrossLine', () => {
     let chart: Chart;
 
     afterEach(() => {
@@ -202,17 +202,21 @@ describe('crossLines', () => {
             expect(console.warn).not.toBeCalled();
         });
 
-        for (const [exampleName, example] of Object.entries(EXAMPLES)) {
-            it(`for ${exampleName} it should create chart instance as expected`, async () => {
+        it.each(Object.entries(EXAMPLES))(
+            'for %s it should create chart instance as expected',
+            async (_exampleName, example) => {
                 const options: AgCartesianChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
                 chart = AgCharts.create(options) as Chart;
                 await waitForChartStability(chart);
                 await example.assertions(chart);
-            });
+            }
+        );
 
-            it(`for ${exampleName} it should render to canvas as expected`, async () => {
+        it.each(Object.entries(EXAMPLES))(
+            'for %s it should render to canvas as expected',
+            async (_exampleName, example) => {
                 const compare = async () => {
                     await waitForChartStability(chart);
 
@@ -225,7 +229,7 @@ describe('crossLines', () => {
 
                 chart = AgCharts.create(options) as Chart;
                 await compare();
-            });
-        }
+            }
+        );
     });
 });

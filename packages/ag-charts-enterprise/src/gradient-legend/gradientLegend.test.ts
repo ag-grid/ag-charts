@@ -11,7 +11,7 @@ import type { AgChartOptions } from '../../main';
 import { AgCharts } from '../main';
 import { prepareEnterpriseTestOptions } from '../test/utils';
 
-describe('Chart', () => {
+describe('GradientLegend', () => {
     let chart: any;
     const ctx = setupMockCanvas();
 

@@ -50,15 +50,21 @@ describe('Gallery Examples (US TZ)', () => {
     });
 
     const ctx = setupMockCanvas();
-    for (const [exampleName, example] of Object.entries(TIME_AXIS_EXAMPLES)) {
-        it(`for ${exampleName} it should create chart instance as expected`, async () => {
+    // Missing time axis examples
+    it.skip.each(Object.entries(TIME_AXIS_EXAMPLES))(
+        'for %s it should create chart instance as expected',
+        async (_exampleName, example) => {
             const options: AgChartOptions = example.options;
             chart = AgCharts.create(options) as Chart;
             await waitForChartStability(chart);
             await example.assertions(chart);
-        });
+        }
+    );
 
-        it(`for ${exampleName} it should render to canvas as expected`, async () => {
+    // Missing time axis examples
+    it.skip.each(Object.entries(TIME_AXIS_EXAMPLES))(
+        'for %s it should render to canvas as expected',
+        async (_exampleName, example) => {
             const compare = async () => {
                 await waitForChartStability(chart);
 
@@ -76,6 +82,6 @@ describe('Gallery Examples (US TZ)', () => {
                 await example.extraScreenshotActions(chart);
                 await compare();
             }
-        });
-    }
+        }
+    );
 });

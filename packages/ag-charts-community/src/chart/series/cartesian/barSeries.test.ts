@@ -154,17 +154,21 @@ describe('BarSeries', () => {
             await compare();
         });
 
-        for (const [exampleName, example] of Object.entries(EXAMPLES)) {
-            it(`for ${exampleName} it should create chart instance as expected`, async () => {
+        it.each(Object.entries(EXAMPLES))(
+            'for %s it should create chart instance as expected',
+            async (_exampleName, example) => {
                 const options: AgChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
                 chart = AgCharts.create(options) as Chart;
                 await waitForChartStability(chart);
                 await example.assertions(chart);
-            });
+            }
+        );
 
-            it(`for ${exampleName} it should render to canvas as expected`, async () => {
+        it.each(Object.entries(EXAMPLES))(
+            'for %s it should render to canvas as expected',
+            async (_exampleName, example) => {
                 const options: AgChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
@@ -175,8 +179,8 @@ describe('BarSeries', () => {
                     await example.extraScreenshotActions(chart);
                     await compare();
                 }
-            });
-        }
+            }
+        );
     });
 
     describe('initial animation', () => {
@@ -352,17 +356,21 @@ describe('BarSeries', () => {
             console.warn = jest.fn();
         });
 
-        for (const [exampleName, example] of Object.entries(INVALID_DATA_EXAMPLES)) {
-            it(`for ${exampleName} it should create chart instance as expected`, async () => {
+        it.each(Object.entries(INVALID_DATA_EXAMPLES))(
+            'for %s it should create chart instance as expected',
+            async (_exampleName, example) => {
                 const options: AgChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
                 chart = AgCharts.create(options) as Chart;
                 await waitForChartStability(chart);
                 await example.assertions(chart);
-            });
+            }
+        );
 
-            it(`for ${exampleName} it should render to canvas as expected`, async () => {
+        it.each(Object.entries(INVALID_DATA_EXAMPLES))(
+            'for %s it should render to canvas as expected',
+            async (_exampleName, example) => {
                 const options: AgChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
@@ -375,7 +383,7 @@ describe('BarSeries', () => {
                 }
 
                 expect(console.warn).toBeCalled();
-            });
-        }
+            }
+        );
     });
 });

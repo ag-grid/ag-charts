@@ -271,8 +271,9 @@ describe('prepare', () => {
             expect(console.warn).not.toBeCalled();
         });
 
-        for (const [exampleName, example] of Object.entries(EXAMPLES)) {
-            it(`for ${exampleName} it should prepare options as expected`, async () => {
+        it.each(Object.entries(EXAMPLES))(
+            'for %s it should prepare options as expected',
+            async (_exampleName, example) => {
                 const options: AgChartOptions = example.options;
                 options.container = document.createElement('div');
 
@@ -295,8 +296,8 @@ describe('prepare', () => {
                         container: expect.any(HTMLElement),
                     });
                 }
-            });
-        }
+            }
+        );
 
         it('should merge combo-chart series overrides as expected', () => {
             const options = COMBO_CHART_EXAMPLE;
