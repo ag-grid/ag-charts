@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
-import type { AgCartesianChartOptions } from '../options/agChartOptions';
+import type { AgCartesianChartOptions, AgChartOptions } from '../options/agChartOptions';
 import { AgCharts } from './agChartV2';
 import type { CartesianChart } from './cartesianChart';
 import type { Chart } from './chart';
@@ -9,6 +9,7 @@ import { seedRandom } from './test/random';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     clickAction,
+    createChart,
     deproxy,
     doubleClickAction,
     extractImageData,
@@ -45,7 +46,7 @@ const OPTIONS: AgCartesianChartOptions = {
 };
 
 describe('Legend', () => {
-    let chart: CartesianChart;
+    let chart: Chart;
 
     beforeEach(() => {
         console.warn = jest.fn();
@@ -77,7 +78,7 @@ describe('Legend', () => {
             prepareTestOptions(options);
             options.width = width ?? options.width;
 
-            chart = deproxy(AgCharts.create(options)) as CartesianChart;
+            chart = deproxy(AgCharts.create(options));
             await compare(chart);
         });
     });
@@ -94,7 +95,7 @@ describe('Legend', () => {
             };
             prepareTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options)) as CartesianChart;
+            chart = deproxy(AgCharts.create(options));
             await compare(chart);
         });
     });
@@ -124,7 +125,7 @@ describe('Legend', () => {
 
             prepareTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options)) as CartesianChart;
+            chart = deproxy(AgCharts.create(options));
 
             await waitForChartStability(chart);
             const { x = 0, y = 0 } = chart.legend?.computeBBox() ?? {};
@@ -145,7 +146,7 @@ describe('Legend', () => {
 
             prepareTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options)) as CartesianChart;
+            chart = deproxy(AgCharts.create(options));
 
             await waitForChartStability(chart);
             const { x = 0, y = 0 } = chart.legend?.computeBBox() ?? {};
@@ -162,7 +163,7 @@ describe('Legend', () => {
 
             prepareTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options)) as CartesianChart;
+            chart = deproxy(AgCharts.create(options));
 
             await waitForChartStability(chart);
             const { x = 0, y = 0 } = chart.legend?.computeBBox() ?? {};
@@ -177,6 +178,81 @@ describe('Legend', () => {
             await doubleClickAction(x, y)(chart);
 
             await compare(chart);
+        });
+    });
+
+    describe('showSeriesStroke', () => {
+        const compareSnapshot = async (options: AgChartOptions) => {
+            chart = await createChart(options);
+            const imageData = extractImageData(ctx);
+            expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 });
+        };
+
+        const data = [
+            { x: 'Q1', a: 20, b: 10 },
+            { x: 'Q2', a: 30, b: 27 },
+            { x: 'Q3', a: 35, b: 16 },
+            { x: 'Q4', a: 40, b: 20 },
+        ];
+
+        test('lines', async () => {
+            await compareSnapshot({
+                data,
+                series: [
+                    { xKey: 'x', yKey: 'a', stroke: 'palegreen' },
+                    { xKey: 'x', yKey: 'b', stroke: 'blue' },
+                ],
+                legend: { item: { showSeriesStroke: true } },
+            });
+        });
+
+        test('areas', async () => {
+            await compareSnapshot({
+                data,
+                series: [
+                    {
+                        type: 'area',
+                        xKey: 'x',
+                        yKey: 'a',
+                        strokeWidth: 2,
+                        stroke: 'palegreen',
+                        fill: '#f0e0e0',
+                        marker: { enabled: true, fill: 'seagreen' },
+                    },
+                    {
+                        type: 'area',
+                        xKey: 'x',
+                        yKey: 'b',
+                        strokeWidth: 2,
+                        stroke: 'blue',
+                        fill: '#e1e1ff',
+                        marker: { enabled: true, fill: 'fuchsia' },
+                    },
+                ],
+                legend: { item: { showSeriesStroke: true } },
+            });
+        });
+
+        test('combination', async () => {
+            await compareSnapshot({
+                data,
+                series: [
+                    { type: 'area', xKey: 'x', yKey: 'a', strokeWidth: 2, stroke: 'palegreen', fill: '#f0e0e0' },
+                    { type: 'line', xKey: 'x', yKey: 'b', stroke: 'blue' },
+                ],
+                legend: { item: { showSeriesStroke: true } },
+            });
+        });
+
+        test('no-markers', async () => {
+            await compareSnapshot({
+                data,
+                series: [
+                    { type: 'area', marker: { enabled: false }, xKey: 'x', yKey: 'a', stroke: 'palegreen' },
+                    { type: 'line', marker: { enabled: false }, xKey: 'x', yKey: 'b', stroke: 'blue' },
+                ],
+                legend: { item: { showSeriesStroke: true } },
+            });
         });
     });
 });

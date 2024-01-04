@@ -90,6 +90,9 @@ class LegendMarker {
     @Validate(POSITIVE_NUMBER, { optional: true })
     strokeWidth: number | undefined = undefined;
 
+    @Validate(BOOLEAN, { optional: true })
+    enabled: boolean | undefined = true;
+
     parent?: { onMarkerShapeChange(): void };
 }
 
@@ -331,6 +334,7 @@ export class Legend {
 
         this.itemSelection.each((markerLabel, datum) => {
             const Marker = getMarker(markerShape ?? datum.marker.shape);
+            const markerEnabled = datum.marker.enabled ?? this.item.marker.enabled;
 
             if (!(markerLabel.marker && markerLabel.marker instanceof Marker)) {
                 markerLabel.marker = new Marker();
@@ -348,15 +352,13 @@ export class Legend {
             const text = (labelText ?? '<unknown>').replace(/\r?\n/g, ' ');
             markerLabel.text = this.truncate(text, maxLength, maxItemWidth, paddedMarkerWidth, font, id);
 
-            const line: NonNullable<typeof datum.line> =
-                showSeriesStroke && datum.line !== undefined
-                    ? datum.line
-                    : { stroke: 'rgba(0, 0, 0, 0)', strokeOpacity: 0, strokeWidth: 0, offset: 0 };
-
-            markerLabel.lineStroke = line.stroke;
-            markerLabel.lineStrokeOpacity = line.strokeOpacity;
-            markerLabel.lineStrokeWidth = line.strokeWidth;
-            markerLabel.setSeriesStrokeOffset(line.offset);
+            if (showSeriesStroke && datum.line !== undefined) {
+                markerLabel.lineVisible = true;
+                markerLabel.markerVisible = markerEnabled;
+            } else {
+                markerLabel.lineVisible = false;
+                markerLabel.markerVisible = true;
+            }
 
             bboxes.push(markerLabel.computeBBox());
         });
@@ -650,6 +652,7 @@ export class Legend {
         const {
             label: { color },
             marker: itemMarker,
+            showSeriesStroke,
         } = this.item;
         this.itemSelection.each((markerLabel, datum) => {
             const marker = datum.marker;
@@ -660,6 +663,14 @@ export class Legend {
             markerLabel.markerStrokeOpacity = marker.strokeOpacity;
             markerLabel.opacity = datum.enabled ? 1 : 0.5;
             markerLabel.color = color;
+
+            const { line } = datum;
+            if (showSeriesStroke && line !== undefined) {
+                markerLabel.lineStroke = line.stroke;
+                markerLabel.lineStrokeOpacity = line.strokeOpacity;
+                markerLabel.lineStrokeWidth = Math.min(2, line.strokeWidth);
+                markerLabel.setSeriesStrokeOffset(line.offset);
+            }
         });
     }
 
