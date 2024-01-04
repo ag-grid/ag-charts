@@ -1,10 +1,9 @@
 import type { Framework } from '@ag-grid-types';
-import { OpenInCodeSandbox } from '@features/codeSandbox/components/OpenInCodeSandbox';
+import type { ExampleType } from '@features/example-generator/types';
 import { ExampleRunner } from '@features/example-runner/components/ExampleRunner';
+import { ExternalLinks } from '@features/example-runner/components/ExternalLinks';
 import type { ExampleOptions } from '@features/example-runner/types';
 import { getLoadingIFrameId } from '@features/example-runner/utils/getLoadingLogoId';
-import type { ExampleType } from '@features/examples-generator/types';
-import { OpenInPlunkr } from '@features/plunkr/components/OpenInPlunkr';
 import { useStore } from '@nanostores/react';
 import { $internalFramework, updateInternalFrameworkBasedOnFramework } from '@stores/frameworkStore';
 import { getFrameworkFromInternalFramework } from '@utils/framework';
@@ -12,10 +11,11 @@ import { useEffect, useState } from 'react';
 import { QueryClient, QueryClientProvider, useQuery } from 'react-query';
 
 import {
+    getExampleCodeSandboxUrl,
     getExampleContentsUrl,
+    getExamplePlunkrUrl,
     getExampleRunnerExampleUrl,
     getExampleUrl,
-    getExampleWithRelativePathUrl,
 } from '../utils/urlPaths';
 
 interface Props {
@@ -59,7 +59,8 @@ const DocsExampleRunnerInner = ({ name, title, exampleType, options, framework, 
     const [initialSelectedFile, setInitialSelectedFile] = useState();
     const [exampleUrl, setExampleUrl] = useState<string>();
     const [exampleRunnerExampleUrl, setExampleRunnerExampleUrl] = useState<string>();
-    const [htmlUrl, setHtmlUrl] = useState<string>();
+    const [codeSandboxHtmlUrl, setCodeSandboxHtmlUrl] = useState<string>();
+    const [plunkrHtmlUrl, setPlunkrHtmlUrl] = useState<string>();
     const [exampleFiles, setExampleFiles] = useState();
     const [exampleBoilerPlateFiles, setExampleBoilerPlateFiles] = useState();
     const [packageJson, setPackageJson] = useState();
@@ -124,8 +125,16 @@ const DocsExampleRunnerInner = ({ name, title, exampleType, options, framework, 
     }, [contents, contentsIsLoading, contentsIsError]);
 
     useEffect(() => {
-        setHtmlUrl(
-            getExampleWithRelativePathUrl({
+        setCodeSandboxHtmlUrl(
+            getExampleCodeSandboxUrl({
+                internalFramework,
+                pageName,
+                exampleName,
+            })
+        );
+
+        setPlunkrHtmlUrl(
+            getExamplePlunkrUrl({
                 internalFramework,
                 pageName,
                 exampleName,
@@ -152,32 +161,17 @@ const DocsExampleRunnerInner = ({ name, title, exampleType, options, framework, 
     useUpdateInternalFrameworkFromFramework(framework);
 
     const externalLinks = (
-        <>
-            {!options?.noCodeSandbox && htmlUrl && exampleFiles ? (
-                <li>
-                    <OpenInCodeSandbox
-                        title={title}
-                        files={exampleFiles}
-                        htmlUrl={htmlUrl}
-                        internalFramework={internalFramework}
-                        boilerPlateFiles={exampleBoilerPlateFiles}
-                        packageJson={packageJson!}
-                    />
-                </li>
-            ) : undefined}
-            {!options?.noPlunker && htmlUrl && exampleFiles ? (
-                <li>
-                    <OpenInPlunkr
-                        title={title}
-                        files={exampleFiles}
-                        htmlUrl={htmlUrl}
-                        boilerPlateFiles={exampleBoilerPlateFiles}
-                        packageJson={packageJson!}
-                        fileToOpen={initialSelectedFile!}
-                    />
-                </li>
-            ) : undefined}
-        </>
+        <ExternalLinks
+            title={title}
+            options={options}
+            internalFramework={internalFramework}
+            exampleFiles={exampleFiles}
+            exampleBoilerPlateFiles={exampleBoilerPlateFiles}
+            packageJson={packageJson}
+            initialSelectedFile={initialSelectedFile}
+            plunkrHtmlUrl={plunkrHtmlUrl}
+            codeSandboxHtmlUrl={codeSandboxHtmlUrl}
+        />
     );
 
     return (

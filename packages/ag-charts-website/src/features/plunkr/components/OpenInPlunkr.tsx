@@ -1,5 +1,5 @@
 import { OpenInCTA } from '@components/open-in-cta/OpenInCTA';
-import type { FileContents } from '@features/examples-generator/types';
+import type { FileContents } from '@features/example-generator/types';
 import { fetchTextFile } from '@utils/fetchTextFile';
 import type { FunctionComponent } from 'react';
 

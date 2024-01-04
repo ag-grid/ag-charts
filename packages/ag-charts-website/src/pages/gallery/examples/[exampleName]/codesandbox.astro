@@ -1,0 +1,27 @@
+---
+import { getEntry } from 'astro:content';
+import GalleryFrameworkTemplate from '@features/gallery/components/GalleryFrameworkTemplate.astro';
+import { getGalleryExamplePages } from '@features/gallery/utils/pageData';
+
+/**
+ * This page is the same as `[exampleName].astro`, but for Code Sandbox examples
+ */
+export async function getStaticPaths() {
+    const galleryDataEntry = await getEntry('gallery', 'data');
+    const pages = getGalleryExamplePages({ galleryData: galleryDataEntry.data });
+    return pages;
+}
+
+const { exampleName } = Astro.params;
+
+/**
+ * Hide highlighter element that gets added by code sandbox
+ */
+const extraStyles = `
+/* Hide codesandbox highlighter */
+body > #highlighter {
+    display: none;
+}`
+---
+
+<GalleryFrameworkTemplate exampleName={exampleName!} relativePath={true} extraStyles={extraStyles} />

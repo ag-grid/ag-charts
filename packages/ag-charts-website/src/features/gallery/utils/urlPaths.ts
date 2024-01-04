@@ -48,8 +48,12 @@ export const getPlainExampleUrl = ({
     return isFullPath ? fullPath : fullPlainExamplePath;
 };
 
-export const getExampleWithRelativePathUrl = ({ exampleName }: { exampleName: string }) => {
-    return pathJoin(SITE_BASE_URL, 'gallery', 'examples', exampleName, 'relative-path');
+export const getExampleCodeSandboxUrl = ({ exampleName }: { exampleName: string }) => {
+    return pathJoin(SITE_BASE_URL, 'gallery', 'examples', exampleName, 'codesandbox');
+};
+
+export const getExamplePlunkrUrl = ({ exampleName }: { exampleName: string }) => {
+    return pathJoin(SITE_BASE_URL, 'gallery', 'examples', exampleName, 'plunkr');
 };
 
 export const getPageUrl = (pageName: string) => {

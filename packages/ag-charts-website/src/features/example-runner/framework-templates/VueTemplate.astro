@@ -12,7 +12,6 @@ interface Props {
     title: string;
 
     modifiedTimeMs: number;
-    isEnterprise: boolean;
     entryFileName: string;
     /**
      * Extra script file names (not including entry file)
@@ -20,8 +19,9 @@ interface Props {
     scriptFiles?: string[];
     styleFiles?: string[];
     appLocation: string;
-    library: Library;
     boilerplatePath: string;
+    extraStyles?: string;
+    children?: any;
 
     vueFramework: 'vue' | 'vue3';
 }
@@ -30,14 +30,13 @@ const {
     isDev,
     title,
     modifiedTimeMs,
-    library,
     boilerplatePath,
     appLocation,
-    isEnterprise,
     entryFileName,
     scriptFiles = [],
     styleFiles = [],
     vueFramework,
+    extraStyles
 } = Astro.props as Props;
 
 const startFile = pathJoin(appLocation, entryFileName);
@@ -47,21 +46,19 @@ const vueFrameworkTitle = vueFramework === 'vue3' ? 'Vue 3' : 'Vue';
 <html lang="en">
     <head>
         <MetaData isDev={isDev} title={`${vueFrameworkTitle} Example - ${title}`} modifiedTimeMs={modifiedTimeMs} />
-        <ExampleStyle rootId="app" />
+        <ExampleStyle rootSelector="#app" extraStyles={extraStyles} />
         <Styles baseUrl={appLocation} files={styleFiles} />
     </head>
     <body>
-        <div><my-component></my-component></div>
+        <div id="app"><my-component></my-component></div>
 
         <Scripts baseUrl={appLocation} files={scriptFiles} />
         <SystemJs
             isDev={isDev}
-            library={library}
             boilerplatePath={boilerplatePath}
             appLocation={appLocation}
             startFile={startFile}
             internalFramework={vueFramework}
-            isEnterprise={isEnterprise}
         />
         <slot />
     </body>

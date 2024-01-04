@@ -26,7 +26,8 @@ const getDocsExamplePaths = async () => {
         return [
             docsUrlPaths.getExampleUrl({ internalFramework, pageName, exampleName }),
             docsUrlPaths.getExampleRunnerExampleUrl({ internalFramework, pageName, exampleName }),
-            docsUrlPaths.getExampleWithRelativePathUrl({ internalFramework, pageName, exampleName }),
+            docsUrlPaths.getExampleCodeSandboxUrl({ internalFramework, pageName, exampleName }),
+            docsUrlPaths.getExamplePlunkrUrl({ internalFramework, pageName, exampleName }),
         ];
     });
 
@@ -47,7 +48,8 @@ const getGalleryExamplePaths = async () => {
             galleryUrlPaths.getExampleUrl({ exampleName }),
             galleryUrlPaths.getExampleRunnerExampleUrl({ exampleName }),
             galleryUrlPaths.getPlainExampleUrl({ exampleName }),
-            galleryUrlPaths.getExampleWithRelativePathUrl({ exampleName }),
+            galleryUrlPaths.getExampleCodeSandboxUrl({ exampleName }),
+            galleryUrlPaths.getExamplePlunkrUrl({ exampleName }),
         ];
     });
 

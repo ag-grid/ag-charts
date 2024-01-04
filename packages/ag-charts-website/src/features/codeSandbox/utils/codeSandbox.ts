@@ -1,19 +1,15 @@
 import type { InternalFramework } from '@ag-grid-types';
-import type { FileContents } from '@features/examples-generator/types';
-import { pathJoin } from '@utils/pathJoin';
+import type { FileContents } from '@features/example-generator/types';
+import { isReactInternalFramework } from '@utils/framework';
+import { getParameters } from 'codesandbox/lib/api/define';
 
-const CREATE_CODE_SANDBOX_URL = 'https://codesandbox.io/api/v1/sandboxes/define?json=1';
-const CODE_SANDBOX_URL_PREFIX = 'https://codesandbox.io/p/sandbox/';
+type SandboxFiles = Parameters<typeof getParameters>[0]['files'];
 
-type SandboxFiles = Record<string, { content: string }>;
+const CREATE_CODE_SANDBOX_URL = 'https://codesandbox.io/api/v1/sandboxes/define';
 
 const getCodeSandboxTemplate = (config: object) => {
     return { ...config, tags: ['ag-grid', 'ag-charts', 'example'], published: false };
 };
-
-function isReactFramework(internalFramework: InternalFramework) {
-    return new Set(['reactFunctional', 'reactFunctionalTs']).has(internalFramework);
-}
 
 const getPathForFile = ({
     fileName,
@@ -22,7 +18,7 @@ const getPathForFile = ({
     fileName: string;
     internalFramework: InternalFramework;
 }) => {
-    if (!isReactFramework(internalFramework)) {
+    if (!isReactInternalFramework(internalFramework)) {
         return fileName;
     }
 
@@ -31,7 +27,7 @@ const getPathForFile = ({
     }
 
     if (/(.js|.jsx|.tsx|.ts|.css)$/.test(fileName)) {
-        if (fileName.endsWith('.js')) {
+        if (fileName.endsWith('.js') || fileName.endsWith('.css')) {
             return `public/${fileName}`;
         }
 
@@ -39,9 +35,6 @@ const getPathForFile = ({
             return `src/${fileName === 'index.jsx' ? 'index.js' : fileName}`;
         }
 
-        if (fileName === 'styles.css') {
-            return `src/styles.css`;
-        }
         return `src/${fileName}`;
     }
 
@@ -69,7 +62,7 @@ const getCodeSandboxFiles = ({
     internalFramework: InternalFramework;
 }) => {
     const sandboxFiles: SandboxFiles = {};
-    const allFiles = isReactFramework(internalFramework)
+    const allFiles = isReactInternalFramework(internalFramework)
         ? {
               ...files,
           }
@@ -79,13 +72,25 @@ const getCodeSandboxFiles = ({
         const key = getPathForFile({ fileName: name, internalFramework });
         sandboxFiles[key] = {
             content: content as string,
+            isBinary: false,
         };
     }
 
     return sandboxFiles;
 };
 
-const getCodeSandboxBody = ({
+const createHiddenInputFactory =
+    (form: HTMLFormElement) =>
+    ({ name, value }: { name: string; value: string }) => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = name;
+        input.value = value;
+
+        form.appendChild(input);
+    };
+
+const getCodeSandboxFilesToSubmit = ({
     title,
     files,
     boilerPlateFiles,
@@ -97,12 +102,13 @@ const getCodeSandboxBody = ({
     internalFramework: InternalFramework;
 }) => {
     const runtime = getCodeSandboxRuntime(internalFramework);
-    const configFiles = {
+    const configFiles: SandboxFiles = {
         '.codesandbox/template.json': {
             content: JSON.stringify(getCodeSandboxTemplate({ title, runtime }), null, 2),
+            isBinary: false,
         },
     };
-    const sandboxFiles = {
+    const sandboxFiles: SandboxFiles = {
         ...configFiles,
         ...getCodeSandboxFiles({
             files,
@@ -111,12 +117,16 @@ const getCodeSandboxBody = ({
         }),
     };
 
-    return {
-        files: sandboxFiles,
-    };
+    return sandboxFiles;
 };
 
-export const createNewCodeSandbox = async ({
+/**
+ * Open example in code sandbox
+ *
+ * NOTE: Creating a form and submitting parameters instead of using the JSON API so
+ * that there is no pop up warning
+ */
+export const openCodeSandbox = ({
     title,
     files,
     boilerPlateFiles,
@@ -127,33 +137,31 @@ export const createNewCodeSandbox = async ({
     boilerPlateFiles: FileContents;
     internalFramework: InternalFramework;
 }) => {
-    const bodyObj = getCodeSandboxBody({
-        title,
-        files,
-        boilerPlateFiles,
-        internalFramework,
+    const form = document.createElement('form');
+    form.method = 'post';
+    form.style.display = 'none';
+    form.action = CREATE_CODE_SANDBOX_URL;
+    form.target = '_blank';
+
+    const addHiddenInput = createHiddenInputFactory(form);
+    const parameters = getParameters({
+        files: getCodeSandboxFilesToSubmit({
+            title,
+            files,
+            boilerPlateFiles,
+            internalFramework,
+        }),
+        template: getCodeSandboxRuntime(internalFramework),
     });
-    const body = JSON.stringify(bodyObj);
 
-    return fetch(CREATE_CODE_SANDBOX_URL, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-        },
-        body,
-    })
-        .then((x) => x.json())
-        .then((result) => {
-            const sandboxId = result?.sandbox_id;
-            return {
-                sandboxId,
-            };
-        });
-};
+    addHiddenInput({ name: 'tags[0]', value: 'ag-grid' });
+    addHiddenInput({ name: 'tags[1]', value: 'ag-charts' });
+    addHiddenInput({ name: 'tags[2]', value: 'example' });
+    addHiddenInput({ name: 'published', value: 'false' });
+    addHiddenInput({ name: 'title', value: title });
+    addHiddenInput({ name: 'parameters', value: parameters });
 
-export const getCodeSandboxUrl = (sandboxId: string) => {
-    if (!sandboxId) return;
-
-    return pathJoin(CODE_SANDBOX_URL_PREFIX, sandboxId);
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
 };

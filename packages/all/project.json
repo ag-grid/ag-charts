@@ -93,7 +93,7 @@
         "commands": ["nx run-many -t test --parallel 1"]
       }
     },
-    "clean": { "command": "rimraf dist/ 'packages/*/dist/'" }
+    "clean": { "command": "rimraf dist/ 'packages/**/dist/'" }
   },
   "implicitDependencies": [
     "ag-charts-community",
