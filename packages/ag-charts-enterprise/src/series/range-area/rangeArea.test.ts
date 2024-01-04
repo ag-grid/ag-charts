@@ -137,7 +137,7 @@ describe('RangeAreaSeries', () => {
         await waitForChartStability(chart);
 
         const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 });
     };
 
     it(`should render a range-area chart as expected`, async () => {
@@ -280,7 +280,7 @@ describe('RangeAreaSeries', () => {
                 },
             ],
         };
-        prepareEnterpriseTestOptions(options as any);
+        prepareEnterpriseTestOptions(options);
 
         chart = AgCharts.create(options);
         await compare();
@@ -306,7 +306,7 @@ describe('RangeAreaSeries', () => {
                 },
             ],
         };
-        prepareEnterpriseTestOptions(options as any);
+        prepareEnterpriseTestOptions(options);
 
         chart = AgCharts.create(options);
         await compare();
@@ -327,7 +327,45 @@ describe('RangeAreaSeries', () => {
                 },
             ],
         };
-        prepareEnterpriseTestOptions(options as any);
+        prepareEnterpriseTestOptions(options);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
+    it(`should render the legend shape as expected`, async () => {
+        const options: AgChartOptions = {
+            data: [
+                { x: 'q1', fHi: 22, fLo: 18, gHi: 15, gLo: 14, kHi: 7, kLo: 4 },
+                { x: 'q2', fHi: 24, fLo: 19, gHi: 18, gLo: 17, kHi: 11, kLo: 6 },
+                { x: 'q3', fHi: 21, fLo: 18, gHi: 17, gLo: 16, kHi: 13, kLo: 7 },
+                { x: 'q4', fHi: 20, fLo: 17, gHi: 14, gLo: 13, kHi: 9, kLo: 5 },
+            ],
+            series: [
+                {
+                    type: 'range-area',
+                    xKey: 'x',
+                    yHighKey: 'fHi',
+                    yLowKey: 'fLo',
+                    marker: { shape: 'cross', enabled: false }, // should draw a square
+                },
+                {
+                    type: 'range-area',
+                    xKey: 'x',
+                    yHighKey: 'gHi',
+                    yLowKey: 'gLo',
+                    marker: { shape: 'triangle', enabled: true },
+                },
+                {
+                    type: 'range-area',
+                    xKey: 'x',
+                    yHighKey: 'kHi',
+                    yLowKey: 'kLo',
+                    marker: { shape: 'circle', enabled: true },
+                },
+            ],
+        };
+        prepareEnterpriseTestOptions(options);
 
         chart = AgCharts.create(options);
         await compare();

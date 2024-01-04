@@ -404,6 +404,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
                     fillOpacity: marker.fillOpacity ?? 1,
                     strokeOpacity: marker.strokeOpacity ?? strokeOpacity ?? 1,
                     strokeWidth: marker.strokeWidth ?? 0,
+                    enabled: marker.enabled,
                 },
                 line: {
                     stroke: stroke ?? color0,
