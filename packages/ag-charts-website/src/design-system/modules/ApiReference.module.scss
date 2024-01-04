@@ -228,8 +228,13 @@
     }
 
     .description p,
+    .description ul,
     .actions button {
         font-size: calc(var(--text-fs-base) * 0.9);
+    }
+
+    .description code {
+        font-size: calc(var(--text-fs-base) * 0.8125);
     }
 
     .metaValue {
@@ -256,5 +261,5 @@
 }
 
 .expandedContent > td {
-    padding: $spacing-size-4 $spacing-size-3
+    padding: $spacing-size-4 $spacing-size-3;
 }

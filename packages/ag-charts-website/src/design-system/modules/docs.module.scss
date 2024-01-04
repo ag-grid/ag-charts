@@ -31,13 +31,21 @@
 }
 
 .docPage {
-    position: relative;
-    max-width: 100%;
-    padding-top: $spacing-size-8 + $spacing-size-1;
+    flex: 1 1 0px;
+    min-width: 0px;
+    padding-top: $spacing-size-8 + $spacing-size-2;
     padding-bottom: $spacing-size-16;
 
-    :global(#{$selector-darkmode}) & {
-        color: var(--color-fg-secondary);
+    padding-right: $spacing-size-6;
+    padding-left: $spacing-size-6;
+
+    border-right: 1px solid var(--color-border-secondary);
+    border-left: 1px solid var(--color-border-secondary);
+
+    @media screen and (max-width: $breakpoint-docs-nav-large) {
+        border: none;
+        padding-right: 0;
+        padding-left: 0;
     }
 
     @media screen and (min-width: $breakpoint-docs-nav-medium) {

@@ -12,11 +12,11 @@
 
     padding-right: $spacing-size-6;
     padding-left: $spacing-size-6;
-    
+
     border-right: 1px solid var(--color-border-secondary);
     border-left: 1px solid var(--color-border-secondary);
 
-    @media screen and (max-width: $breakpoint-docs-nav-large) {   
+    @media screen and (max-width: $breakpoint-docs-nav-large) {
         border: none;
         padding-right: 0;
         padding-left: 0;
@@ -34,9 +34,6 @@
         width: var(--layout-width-6-12);
         margin-right: calc(var(--layout-width-1-12) + var(--layout-gap));
         margin-left: calc(var(--layout-width-1-12) + var(--layout-gap));
-    }
-
-    &.noSideMenu {
     }
 
     h1,
@@ -200,6 +197,3 @@
         line-height: var(--text-lh-xs);
     }
 }
-
-
-
