@@ -25,16 +25,18 @@
 
     @media screen and (min-width: $breakpoint-docs-nav-large) {
         :global(.noLeftMenu) & {
-            width: var(--layout-width-3-12);
+            width: var(--layout-width-2-12);
         }
     }
 
     > div {
         @supports (position: sticky) {
+            margin-right: calc(var(--layout-horizontal-margins) * -1); // Improve scrollbar position
             padding-top: $spacing-size-8;
+            padding-right: var(--layout-horizontal-margins); // Improve scrollbar position
             padding-bottom: $spacing-size-16;
             position: sticky;
-            top: calc(var(--layout-site-header-height) + #{$top-bar-height});
+            top: var(--layout-site-header-height);
             max-height: calc(100vh - var(--layout-site-header-height) + #{$top-bar-height});
             overflow: hidden;
             overflow-y: auto;
@@ -47,7 +49,6 @@
 
     position: relative;
     list-style: none;
-    padding-top: $spacing-size-2;
     padding-bottom: $spacing-size-12;
     padding-left: 0;
     z-index: -2;
@@ -113,24 +114,17 @@
         top: -$spacing-size-1;
         bottom: -$spacing-size-1;
         left: 0;
-        // border-left: 1px solid var(--nav-line-color);
         opacity: 0;
         z-index: -1;
-        transition:
-            color 0.33s ease-in-out,
-            border-color 0.33s ease-in-out,
-            background-color 0.33s ease-in-out;
+        transition: color 0.33s ease-in-out, border-color 0.33s ease-in-out, background-color 0.33s ease-in-out;
     }
 
     &:hover::before {
         opacity: 1;
-        // background-color: var(--hover-background);
     }
 
     &:global(.active)::before {
         opacity: 1;
-        // border-left-color: var(--active-border);
-        // background-color: var(--active-background);
     }
 }
 

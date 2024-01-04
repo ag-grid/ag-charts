@@ -58,7 +58,7 @@
     }
 }
 
-.mobileNavButton {
+button.mobileNavButton {
     width: 100%;
     margin-bottom: $spacing-size-2;
 
@@ -169,16 +169,26 @@
 
 #mainNav {
     width: 100%;
+
+    @media screen and (max-width: $breakpoint-site-header-small) {
+        position: relative;
+        min-width: calc(100% + var(--layout-horizontal-margins) * 2);
+        left: calc(var(--layout-horizontal-margins) * -1);
+    }
 }
 
 .mainNav {
     width: 100%;
     background-color: var(--color-bg-mobile-nav);
 
+    @media screen and (max-width: $breakpoint-site-header-small) {
+        width: calc(100% + var(--layout-horizontal-margins) * 2);
+    }
+
     @media screen and (min-width: $breakpoint-site-header-small) {
         position: absolute;
         top: 0;
-        right: var(--layout-gap);
+        right: var(--layout-horizontal-margins);
         width: calc(100vw - 240px);
         background-color: unset;
     }
@@ -239,15 +249,17 @@
 
     display: block;
     position: relative;
-    padding: 19px 18px 16px;
+    padding: 19px var(--layout-horizontal-margins) 16px;
     font-size: 17px;
     font-weight: 500;
     letter-spacing: 0.01em;
     color: var(--color-white);
-    transition:
-        color $transition-default-timing,
-        opacity $transition-default-timing;
+    transition: color $transition-default-timing, opacity $transition-default-timing;
     cursor: pointer;
+
+    @at-root button#{&} {
+        color: var(--color-white);
+    }
 
     &:hover {
         text-decoration: none;
@@ -269,9 +281,7 @@
             background-color: var(--color-white);
             opacity: 0;
             transform: scaleX(0);
-            transition:
-                transform 0.33s ease-in-out,
-                opacity 0.33s ease-in-out;
+            transition: transform 0.33s ease-in-out, opacity 0.33s ease-in-out;
         }
     }
 
@@ -287,14 +297,14 @@
 
 .buttonItem {
     .navLink {
-        padding: 19px 18px 16px;
+        padding: 19px var(--layout-horizontal-margins) 16px;
     }
 
     a::after {
         display: none;
     }
 
-    svg {
+    svg:global(.icon) {
         --icon-size: 24px;
 
         margin-right: 4px;
@@ -318,9 +328,7 @@
         }
 
         .navLink:hover svg {
-            box-shadow:
-                0 0 0 4px var(--color-bg-site-header),
-                0 0 0 6px rgba(white, 0.3);
+            box-shadow: 0 0 0 4px var(--color-bg-site-header), 0 0 0 6px rgba(white, 0.3);
         }
     }
 }
