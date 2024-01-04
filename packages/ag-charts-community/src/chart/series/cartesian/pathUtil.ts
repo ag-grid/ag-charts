@@ -143,7 +143,11 @@ export function renderPartialPath(pairData: PathPoint[], ratios: Partial<Record<
     }
 }
 
-export function pathSwipeInAnimation({ id }: { id: string }, animationManager: AnimationManager, paths: Path[]) {
+export function pathSwipeInAnimation(
+    { id, visible }: { id: string; visible: boolean },
+    animationManager: AnimationManager,
+    paths: Path[]
+) {
     staticFromToMotion(
         id,
         'path_properties',
@@ -152,8 +156,8 @@ export function pathSwipeInAnimation({ id }: { id: string }, animationManager: A
         { clipScalingX: 0 },
         { clipScalingX: 1 },
         {
-            start: { clipMode: 'normal' },
-            finish: { clipMode: undefined },
+            start: { clipMode: 'normal', visible },
+            finish: { clipMode: undefined, visible },
         }
     );
 }
