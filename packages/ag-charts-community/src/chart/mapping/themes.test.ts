@@ -16,7 +16,7 @@ import { themes } from './themes';
 expect.extend({ toMatchImageSnapshot });
 
 /* eslint-disable no-console */
-describe('validateChartThemeObject', () => {
+describe('themes module', () => {
     beforeEach(() => {
         console.warn = jest.fn();
     });
