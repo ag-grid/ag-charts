@@ -1,4 +1,5 @@
 import { enterpriseModule } from '../../module/enterpriseModule';
+import { ChartOptions } from '../../module/optionModules';
 import type {
     AgAxisGridLineOptions,
     AgCartesianChartOptions,
@@ -8,22 +9,12 @@ import type {
     AgTooltipPositionOptions,
     AgTooltipPositionType,
 } from '../../options/agChartOptions';
-import type { JsonMergeOptions } from '../../util/json';
-import { DELETE, jsonMerge, jsonWalk } from '../../util/json';
+import { DELETE, type JsonMergeOptions, jsonMerge, jsonWalk } from '../../util/json';
 import { Logger } from '../../util/logger';
 import { isArray, isDefined } from '../../util/type-guards';
-import type { DeepPartial } from '../../util/types';
 import { AXIS_TYPES } from '../factory/axisTypes';
-import { CHART_TYPES } from '../factory/chartTypes';
-import { isEnterpriseSeriesType } from '../factory/expectedEnterpriseModules';
 import { removeUsedEnterpriseOptions } from '../factory/processEnterpriseOptions';
-import {
-    executeCustomDefaultsFunctions,
-    getSeriesDefaults,
-    getSeriesPaletteFactory,
-    isDefaultAxisSwapNeeded,
-    isSoloSeries,
-} from '../factory/seriesTypes';
+import { getSeriesDefaults, getSeriesPaletteFactory, isDefaultAxisSwapNeeded } from '../factory/seriesTypes';
 import { type ChartTheme, resolvePartialPalette } from '../themes/chartTheme';
 import { resolveModuleConflicts, swapAxes } from './defaults';
 import type { SeriesOptions } from './prepareSeries';
@@ -36,7 +27,6 @@ import {
     isAgHierarchyChartOptions,
     isAgPolarChartOptions,
     isAxisOptionType,
-    isSeriesOptionType,
     optionsType,
 } from './types';
 
@@ -86,26 +76,40 @@ function getGlobalTooltipPositionOptions(position: unknown): AgTooltipPositionOp
     return result;
 }
 
-export function prepareOptions<T extends AgChartOptions>(options: T): T {
-    sanityCheckOptions(options);
+export function prepareOptions<T extends AgChartOptions>(userOptions: T): T {
+    const chartOptions = new ChartOptions();
+    chartOptions.setUserOptions(userOptions);
 
-    // Determine type and ensure it's explicit in the options config.
-    const type = optionsType(options);
+    let options = chartOptions.userOptions!;
 
-    const checkSeriesType = (type?: string) => {
-        if (type != null && !(isSeriesOptionType(type) || isEnterpriseSeriesType(type) || getSeriesDefaults(type))) {
-            throw new Error(`AG Charts - unknown series type: ${type}; expected one of: ${CHART_TYPES.seriesTypes}`);
-        }
-    };
+    let defaultOverrides = getSeriesDefaults(optionsType(options), options.series![0]);
 
-    for (const { type: seriesType } of options.series ?? []) {
-        if (seriesType == null) continue;
-        checkSeriesType(seriesType);
+    if (isDefaultAxisSwapNeeded(options)) {
+        defaultOverrides = swapAxes(defaultOverrides);
     }
 
-    options = validateSoloSeries(options);
+    const conflictOverrides = resolveModuleConflicts(options);
 
-    let defaultSeriesType = 'line';
+    removeDisabledOptions(options);
+
+    const { theme, cleanedTheme, axesThemes, seriesThemes, userPalette: partialPalette } = prepareTheme(options);
+
+    const userPalette = resolvePartialPalette(partialPalette, theme.palette);
+    const context: PreparationContext = { colourIndex: 0, palette: theme.palette, userPalette, theme };
+
+    defaultOverrides = theme.templateTheme(defaultOverrides);
+    const mergedOptions: T = jsonMerge(
+        [defaultOverrides, cleanedTheme, options, conflictOverrides],
+        noDataCloneMergeOptions
+    );
+
+    if (!enterpriseModule.isEnterprise) {
+        removeUsedEnterpriseOptions(mergedOptions);
+    }
+
+    const globalTooltipPositionOptions = getGlobalTooltipPositionOptions(options.tooltip?.position);
+
+    let defaultSeriesType: string;
     if (isAgCartesianChartOptions(options)) {
         defaultSeriesType = 'line';
     } else if (isAgHierarchyChartOptions(options)) {
@@ -114,30 +118,13 @@ export function prepareOptions<T extends AgChartOptions>(options: T): T {
         defaultSeriesType = 'pie';
     }
 
-    let defaultOverrides = getSeriesDefaults(type);
-    if (isDefaultAxisSwapNeeded(options)) {
-        defaultOverrides = swapAxes(defaultOverrides);
-    }
-    defaultOverrides = executeCustomDefaultsFunctions(options, defaultOverrides);
-
-    const conflictOverrides = resolveModuleConflicts(options);
-
-    removeDisabledOptions(options);
-
-    const globalTooltipPositionOptions = getGlobalTooltipPositionOptions(options.tooltip?.position);
-    const { context, mergedOptions, axesThemes, seriesThemes, theme } = prepareMainOptions<T>(
-        defaultOverrides as T,
-        options,
-        conflictOverrides
-    );
-
     // Special cases where we have arrays of elements which need their own defaults.
 
     // Apply series themes before calling processSeriesOptions() as it reduces and renames some
     // properties, and in that case then cannot correctly have themes applied.
     mergedOptions.series = processSeriesOptions(
         mergedOptions,
-        ((mergedOptions.series as SeriesOptions[]) ?? []).map((s) => {
+        (mergedOptions.series as SeriesOptions[]).map((s) => {
             const type = s.type ?? defaultSeriesType;
             const mergedSeries = mergeSeriesOptions(s, type, seriesThemes, globalTooltipPositionOptions);
 
@@ -189,46 +176,6 @@ export function prepareOptions<T extends AgChartOptions>(options: T): T {
     return mergedOptions;
 }
 
-function sanityCheckOptions<T extends AgChartOptions>(options: T) {
-    const deprecatedArrayProps = {
-        yKeys: 'yKey',
-        yNames: 'yName',
-    };
-    Object.entries(deprecatedArrayProps).forEach(([oldProp, newProp]) => {
-        if (options.series?.some((s: any) => s[oldProp] != null)) {
-            Logger.warnOnce(
-                `Property [series.${oldProp}] is deprecated, please use [series.${newProp}] and multiple series instead.`
-            );
-        }
-    });
-}
-
-function hasSoloSeries(options: SeriesOptionsTypes[]) {
-    return options.some((series) => isSoloSeries(series.type));
-}
-
-function validateSoloSeries<T extends AgChartOptions>(options: T): T {
-    if (options.series === undefined || options.series.length <= 1 || !hasSoloSeries(options.series)) {
-        return options;
-    }
-
-    // If the first series is a solo-series, remove all trailing series, otherwise remove all solo-series.
-    let series = [...options.series];
-    if (isSoloSeries(series[0].type)) {
-        Logger.warn(
-            `series[0] of type '${series[0].type}' is incompatible with other series types. Only processing series[0]`
-        );
-        series = series.slice(0, 1);
-    } else {
-        const rejects = Array.from(new Set(series.filter((s) => isSoloSeries(s.type)).map((s) => s.type)));
-        Logger.warnOnce(`Unable to mix these series types with the lead series type: ${rejects}`);
-
-        series = series.filter((s) => !isSoloSeries(s.type));
-    }
-
-    return { ...options, series };
-}
-
 function mergeSeriesOptions<T extends SeriesOptionsTypes>(
     series: T,
     type: string,
@@ -236,39 +183,13 @@ function mergeSeriesOptions<T extends SeriesOptionsTypes>(
     globalTooltipPositionOptions: AgTooltipPositionOptions | {}
 ): T {
     const mergedTooltipPosition = jsonMerge(
-        [{ ...globalTooltipPositionOptions }, series.tooltip?.position],
+        [globalTooltipPositionOptions, series.tooltip?.position],
         noDataCloneMergeOptions
     );
     return jsonMerge(
-        [
-            seriesThemes[type] ?? {},
-            { ...series, type, tooltip: { ...series.tooltip, position: mergedTooltipPosition } },
-        ],
+        [seriesThemes[type], series, { type, tooltip: { position: mergedTooltipPosition } }],
         noDataCloneMergeOptions
     );
-}
-
-function prepareMainOptions<T extends AgChartOptions>(
-    defaultOverrides: T,
-    options: T,
-    conflictOverrides: DeepPartial<T>
-) {
-    const { theme, cleanedTheme, axesThemes, seriesThemes, userPalette: partialPalette } = prepareTheme(options);
-
-    const userPalette = resolvePartialPalette(partialPalette, theme.palette);
-    const context: PreparationContext = { colourIndex: 0, palette: theme.palette, userPalette, theme };
-
-    defaultOverrides = theme.templateTheme(defaultOverrides);
-    const mergedOptions: T = jsonMerge(
-        [defaultOverrides, cleanedTheme, options, conflictOverrides],
-        noDataCloneMergeOptions
-    );
-
-    if (!enterpriseModule.isEnterprise) {
-        removeUsedEnterpriseOptions(mergedOptions);
-    }
-
-    return { context, mergedOptions, axesThemes, seriesThemes, theme };
 }
 
 function prepareTheme<T extends AgChartOptions>(options: T) {

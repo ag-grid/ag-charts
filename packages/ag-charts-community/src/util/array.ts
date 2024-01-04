@@ -82,6 +82,15 @@ export function toArray<T>(value: T): T[] {
     return Array.isArray(value) ? value : [value];
 }
 
-export function unique(array: any[]) {
+export function unique<T>(array: T[]) {
     return Array.from(new Set(array));
+}
+
+export function groupBy<T, R extends string | number | symbol>(array: T[], iteratee: (item: T) => R) {
+    return array.reduce<{ [K in R]?: T[] }>((result, item) => {
+        const groupKey = iteratee(item);
+        result[groupKey] ??= [];
+        result[groupKey]!.push(item);
+        return result;
+    }, {});
 }

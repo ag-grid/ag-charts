@@ -6,14 +6,14 @@ export const BULLET_DEFAULTS = {
     axes: [
         {
             type: CARTESIAN_AXIS_TYPE.NUMBER,
-            position: POSITION.LEFT as 'left' | 'top',
+            position: POSITION.LEFT,
             nice: false,
             max: undefined as number | undefined,
             crosshair: { enabled: false },
         },
         {
             type: CARTESIAN_AXIS_TYPE.CATEGORY,
-            position: POSITION.BOTTOM as 'bottom' | 'left',
+            position: POSITION.BOTTOM,
         },
     ],
 };

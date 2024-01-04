@@ -18,6 +18,10 @@ export function isValidDate(value: unknown): value is Date {
     return isDate(value) && !isNaN(Number(value));
 }
 
+export function isRegExp(value: unknown): value is RegExp {
+    return value instanceof RegExp;
+}
+
 export function isFunction(value: unknown): value is Function {
     return typeof value === 'function';
 }

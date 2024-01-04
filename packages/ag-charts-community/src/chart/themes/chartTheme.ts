@@ -6,7 +6,7 @@ import type {
     AgCommonThemeableChartOptions,
     InteractionRange,
 } from '../../options/agChartOptions';
-import { jsonClone, jsonWalk } from '../../util/json';
+import { deepClone, jsonWalk } from '../../util/json';
 import { deepMerge } from '../../util/object';
 import { AXIS_TYPES, getAxisThemeTemplate } from '../factory/axisTypes';
 import { CHART_TYPES, type ChartType, getChartDefaults } from '../factory/chartTypes';
@@ -441,7 +441,7 @@ export class ChartTheme {
     }
 
     templateTheme<T>(themeTemplate: T): T {
-        const themeInstance = jsonClone(themeTemplate);
+        const themeInstance = deepClone(themeTemplate);
         const { extensions, properties } = this.getTemplateParameters();
 
         jsonWalk(themeInstance, (node: any) => {

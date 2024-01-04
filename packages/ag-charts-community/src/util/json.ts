@@ -1,9 +1,22 @@
 import { Logger } from './logger';
 import { isProperties } from './properties';
-import { isArray, isDate, isFunction, isHtmlElement, isObject, isPlainObject } from './type-guards';
+import { isArray, isDate, isFunction, isHtmlElement, isObject, isPlainObject, isRegExp } from './type-guards';
 import type { DeepPartial } from './types';
 
+/**
+ * Special value used by `jsonMerge` to signal that a property should be removed from the merged
+ * output.
+ */
+export const DELETE = Symbol('<delete-property>');
+
+const NOT_SPECIFIED = Symbol('<unspecified-property>');
+
 const CLASS_INSTANCE_TYPE = 'class-instance';
+
+export interface JsonMergeOptions {
+    /** Contains a list of properties where deep clones should be avoided */
+    avoidDeepClone: string[];
+}
 
 /**
  * Performs a recursive JSON-diff between a source and target JSON structure.
@@ -53,32 +66,48 @@ export function jsonDiff<T extends unknown>(source: T, target: T): Partial<T> | 
     return null;
 }
 
-export function jsonClone<T>(source: T): T {
+/**
+ * Recursively clones of primitives and objects.
+ *
+ * @param source object | array
+ * @param options
+ *
+ * @return deep clone of source
+ */
+export function deepClone<T>(source: T, options?: { shallow?: string[] }): T {
     if (isArray(source)) {
-        return source.map(jsonClone) as T;
+        return source.map((item) => deepClone(item, options)) as T;
     }
     if (isPlainObject(source)) {
         return Object.entries(source).reduce((result, [key, value]) => {
-            result[key as keyof T] = jsonClone(value);
+            result[key as keyof T] = options?.shallow?.includes(key) ? shallowClone(value) : deepClone(value, options);
             return result;
         }, {} as T);
     }
-    return source;
+    return shallowClone(source);
 }
 
 /**
- * Special value used by `jsonMerge` to signal that a property should be removed from the merged
- * output.
+ * Clones of primitives and objects.
+ *
+ * @param source any value
+ *
+ * @return shallow clone of source
  */
-export const DELETE = Symbol('<delete-property>');
-
-const NOT_SPECIFIED = Symbol('<unspecified-property>');
-
-export interface JsonMergeOptions {
-    /**
-     * Contains a list of properties where deep clones should be avoided
-     */
-    avoidDeepClone: string[];
+export function shallowClone<T>(source: T): T {
+    if (isArray(source)) {
+        return source.slice() as T;
+    }
+    if (isPlainObject(source)) {
+        return { ...source };
+    }
+    if (isDate(source)) {
+        return new Date(source) as T;
+    }
+    if (isRegExp(source)) {
+        return new RegExp(source.source, source.flags) as T;
+    }
+    return source;
 }
 
 /**

@@ -16,7 +16,7 @@ import { sleep } from '../util/async';
 import { CallbackCache } from '../util/callbackCache';
 import { Debug } from '../util/debug';
 import { createId } from '../util/id';
-import { jsonClone } from '../util/json';
+import { deepClone } from '../util/json';
 import type { PlacedLabel, PointLabelDatum } from '../util/labelPlacement';
 import { isPointLabelDatum, placeLabels } from '../util/labelPlacement';
 import { Logger } from '../util/logger';
@@ -137,7 +137,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     getOptions() {
         const { queuedUserOptions } = this;
         const lastUpdateOptions = queuedUserOptions[queuedUserOptions.length - 1] ?? this.userOptions;
-        return jsonClone(lastUpdateOptions);
+        return deepClone(lastUpdateOptions);
     }
 
     readonly scene: Scene;

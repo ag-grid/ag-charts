@@ -4,6 +4,7 @@ export * from './util/default';
 export { extractDecoratedProperties, isDecoratedObject, listDecoratedProperties } from './util/decorator';
 export * from './util/dom';
 export * from './util/deprecation';
+export * from './util/json';
 export * from './util/number';
 export * from './util/object';
 export * from './util/properties';
