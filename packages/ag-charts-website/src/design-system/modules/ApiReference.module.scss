@@ -61,7 +61,7 @@
     scroll-margin-top: var(--anchor-offset, 0);
 
     &:where(:not(:first-child)) {
-        border-top: 1px solid var(--color-border-primary);
+        border-top: 1px solid var(--color-border-secondary);
     }
 
     &:hover .linkIcon {
