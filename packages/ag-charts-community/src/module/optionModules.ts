@@ -14,11 +14,13 @@ export type SeriesType = NonNullable<
 
 export type PickNodeDatumResult = { datum: SeriesNodeDatum; distanceSquared: number } | undefined;
 
+type AxisType = 'category' | 'number' | 'log' | 'time';
+
 export interface AxisOptionModule<M extends ModuleInstance = ModuleInstance> extends BaseModule {
     type: 'axis-option';
-    axisTypes: ('category' | 'number' | 'log' | 'time')[];
+    axisTypes: AxisType[];
     instanceConstructor: new (ctx: ModuleContextWithParent<AxisContext>) => M;
-    themeTemplate: {};
+    themeTemplate: { [K in AxisType]?: object };
 }
 
 export interface SeriesOptionInstance extends ModuleInstance {
