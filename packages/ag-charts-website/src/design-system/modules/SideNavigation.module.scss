@@ -80,7 +80,7 @@
     padding: 0;
     color: var(--color-util-gray-500);
     transition: color $transition-default-timing;
-    font-weight: var(--text-semibold);
+    font-weight: var(--text-fs-regular);
     font-size: var(--text-fs-regular);
 
     #{$selector-darkmode} & {
@@ -116,7 +116,10 @@
         left: 0;
         opacity: 0;
         z-index: -1;
-        transition: color 0.33s ease-in-out, border-color 0.33s ease-in-out, background-color 0.33s ease-in-out;
+        transition:
+            color 0.33s ease-in-out,
+            border-color 0.33s ease-in-out,
+            background-color 0.33s ease-in-out;
     }
 
     &:hover::before {
@@ -133,10 +136,10 @@
 }
 
 .sideNav .level3 {
+    --item-gap: 0.5em;
+
     padding-top: $spacing-size-1;
     padding-bottom: $spacing-size-1;
-    --item-gap: 0.5em;
-    font-weight: var(--text-regular);
 }
 
 .sideNav .level1 + .level3,
