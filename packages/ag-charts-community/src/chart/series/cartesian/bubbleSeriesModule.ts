@@ -1,6 +1,6 @@
 import type { SeriesModule } from '../../../module/coreModules';
 import { markerPaletteFactory } from '../../../util/theme';
-import { CARTESIAN_AXIS_POSITIONS, CARTESIAN_AXIS_TYPES } from '../../themes/constants';
+import { CARTESIAN_AXIS_TYPE, POSITION } from '../../themes/constants';
 import {
     DEFAULT_FONT_FAMILY,
     DEFAULT_LABEL_COLOUR,
@@ -19,8 +19,8 @@ export const BubbleSeriesModule: SeriesModule<'bubble'> = {
     instanceConstructor: BubbleSeries,
     seriesDefaults: {
         axes: [
-            { type: CARTESIAN_AXIS_TYPES.NUMBER, position: CARTESIAN_AXIS_POSITIONS.BOTTOM },
-            { type: CARTESIAN_AXIS_TYPES.NUMBER, position: CARTESIAN_AXIS_POSITIONS.LEFT },
+            { type: CARTESIAN_AXIS_TYPE.NUMBER, position: POSITION.BOTTOM },
+            { type: CARTESIAN_AXIS_TYPE.NUMBER, position: POSITION.LEFT },
         ],
     },
     themeTemplate: {

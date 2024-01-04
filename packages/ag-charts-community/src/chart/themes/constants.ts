@@ -1,54 +1,38 @@
-import type {
-    AgCartesianAxisPosition,
-    AgCartesianAxisType,
-    AgChartLegendPosition,
-    AgPolarAxisShape,
-    AgPolarAxisType,
-    FontWeight,
-} from '../../options/agChartOptions';
+export enum FONT_SIZE {
+    SMALL = 12,
+    MEDIUM = 13,
+    LARGE = 17,
+}
 
-export const FONT_SIZE = {
-    SMALL: 12,
-    MEDIUM: 13,
-    LARGE: 17,
-};
+export enum FONT_WEIGHT {
+    NORMAL = 'normal',
+    BOLD = 'bold',
+    BOLDER = 'bolder',
+    LIGHTER = 'lighter',
+}
 
-export const FONT_WEIGHT: Record<'NORMAL' | 'BOLD' | 'BOLDER' | 'LIGHTER', FontWeight> = {
-    NORMAL: 'normal',
-    BOLD: 'bold',
-    BOLDER: 'bolder',
-    LIGHTER: 'lighter',
-};
+export enum POSITION {
+    TOP = 'top',
+    RIGHT = 'right',
+    BOTTOM = 'bottom',
+    LEFT = 'left',
+}
 
-export const BOTTOM: AgChartLegendPosition = 'bottom';
-const LEFT: AgCartesianAxisPosition = 'left';
-const TOP: AgCartesianAxisPosition = 'top';
-export const CARTESIAN_AXIS_POSITIONS = {
-    BOTTOM,
-    LEFT,
-    TOP,
-};
+export enum CARTESIAN_AXIS_TYPE {
+    CATEGORY = 'category',
+    NUMBER = 'number',
+    TIME = 'time',
+    LOG = 'log',
+}
 
-const CATEGORY: AgCartesianAxisType = 'category';
-const NUMBER: AgCartesianAxisType = 'number';
-const TIME: AgCartesianAxisType = 'time';
-const LOG: AgCartesianAxisType = 'log';
-export const CARTESIAN_AXIS_TYPES = {
-    CATEGORY,
-    NUMBER,
-    TIME,
-    LOG,
-};
+export enum POLAR_AXIS_TYPE {
+    ANGLE_CATEGORY = 'angle-category',
+    ANGLE_NUMBER = 'angle-number',
+    RADIUS_CATEGORY = 'radius-category',
+    RADIUS_NUMBER = 'radius-number',
+}
 
-const ANGLE_CATEGORY: AgPolarAxisType = 'angle-category';
-const ANGLE_NUMBER: AgPolarAxisType = 'angle-number';
-const RADIUS_CATEGORY: AgPolarAxisType = 'radius-category';
-const RADIUS_NUMBER: AgPolarAxisType = 'radius-number';
-export const POLAR_AXIS_TYPES = {
-    ANGLE_CATEGORY,
-    ANGLE_NUMBER,
-    RADIUS_CATEGORY,
-    RADIUS_NUMBER,
-};
-
-export const CIRCLE: AgPolarAxisShape = 'circle';
+export enum POLAR_AXIS_SHAPE {
+    CIRCLE = 'circle',
+    POLYGON = 'polygon',
+}

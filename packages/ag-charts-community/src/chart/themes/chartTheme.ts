@@ -12,7 +12,7 @@ import { AXIS_TYPES, getAxisThemeTemplate } from '../factory/axisTypes';
 import { CHART_TYPES, type ChartType, getChartDefaults } from '../factory/chartTypes';
 import { getLegendThemeTemplates } from '../factory/legendTypes';
 import { getSeriesThemeTemplate } from '../factory/seriesTypes';
-import { BOTTOM, FONT_SIZE, FONT_WEIGHT } from './constants';
+import { FONT_SIZE, FONT_WEIGHT, POSITION } from './constants';
 import { DEFAULT_FILLS, DEFAULT_STROKES } from './defaultColors';
 import {
     DEFAULT_AXIS_GRID_COLOUR,
@@ -250,7 +250,7 @@ export class ChartTheme {
                 wrapping: ChartTheme.getCaptionWrappingDefaults(),
             },
             legend: {
-                position: BOTTOM,
+                position: POSITION.BOTTOM,
                 spacing: 30,
                 listeners: {},
                 item: {

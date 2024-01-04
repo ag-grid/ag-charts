@@ -6,7 +6,7 @@ import { BulletSeries } from './bulletSeries';
 import { BulletColorRange } from './bulletSeriesProperties';
 import { BULLET_SERIES_THEME } from './bulletThemes';
 
-const { CARTESIAN_AXIS_POSITIONS } = _Theme;
+const { POSITION } = _Theme;
 
 export const BulletModule: _ModuleSupport.SeriesModule<'bullet'> = {
     type: 'series',
@@ -23,8 +23,8 @@ export const BulletModule: _ModuleSupport.SeriesModule<'bullet'> = {
         const axis0 = { ...BULLET_DEFAULTS.axes[0] };
         const axis1 = { ...BULLET_DEFAULTS.axes[1] };
         if (series.direction === 'horizontal') {
-            axis0.position = CARTESIAN_AXIS_POSITIONS.BOTTOM;
-            axis1.position = CARTESIAN_AXIS_POSITIONS.LEFT;
+            axis0.position = POSITION.BOTTOM;
+            axis1.position = POSITION.LEFT;
         }
         if (series.scale?.max !== undefined) {
             axis0.max = series.scale.max;

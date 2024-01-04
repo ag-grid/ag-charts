@@ -1,6 +1,6 @@
 import type { SeriesModule } from '../../../module/coreModules';
 import { singleSeriesPaletteFactory } from '../../../util/theme';
-import { CARTESIAN_AXIS_POSITIONS, CARTESIAN_AXIS_TYPES, FONT_WEIGHT } from '../../themes/constants';
+import { CARTESIAN_AXIS_TYPE, FONT_WEIGHT, POSITION } from '../../themes/constants';
 import {
     DEFAULT_FONT_FAMILY,
     DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
@@ -22,12 +22,12 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
     seriesDefaults: {
         axes: [
             {
-                type: CARTESIAN_AXIS_TYPES.NUMBER,
-                position: CARTESIAN_AXIS_POSITIONS.LEFT,
+                type: CARTESIAN_AXIS_TYPE.NUMBER,
+                position: POSITION.LEFT,
             },
             {
-                type: CARTESIAN_AXIS_TYPES.CATEGORY,
-                position: CARTESIAN_AXIS_POSITIONS.BOTTOM,
+                type: CARTESIAN_AXIS_TYPE.CATEGORY,
+                position: POSITION.BOTTOM,
             },
         ],
     },

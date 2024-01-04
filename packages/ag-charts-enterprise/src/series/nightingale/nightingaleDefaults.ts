@@ -1,12 +1,12 @@
 import { _Theme } from 'ag-charts-community';
 
-const { POLAR_AXIS_TYPES, CIRCLE } = _Theme;
+const { POLAR_AXIS_TYPE, POLAR_AXIS_SHAPE } = _Theme;
 
 export const NIGHTINGALE_DEFAULTS = {
     axes: [
         {
-            type: POLAR_AXIS_TYPES.ANGLE_CATEGORY,
-            shape: CIRCLE,
+            type: POLAR_AXIS_TYPE.ANGLE_CATEGORY,
+            shape: POLAR_AXIS_SHAPE.CIRCLE,
             groupPaddingInner: 0,
             paddingInner: 0,
             label: {
@@ -14,8 +14,8 @@ export const NIGHTINGALE_DEFAULTS = {
             },
         },
         {
-            type: POLAR_AXIS_TYPES.RADIUS_NUMBER,
-            shape: CIRCLE,
+            type: POLAR_AXIS_TYPE.RADIUS_NUMBER,
+            shape: POLAR_AXIS_SHAPE.CIRCLE,
         },
     ],
 };

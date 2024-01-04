@@ -1,5 +1,5 @@
 import type { SeriesModule } from '../../../module/coreModules';
-import { CARTESIAN_AXIS_POSITIONS, CARTESIAN_AXIS_TYPES } from '../../themes/constants';
+import { CARTESIAN_AXIS_TYPE, POSITION } from '../../themes/constants';
 import {
     DEFAULT_FONT_FAMILY,
     DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
@@ -18,8 +18,8 @@ export const HistogramSeriesModule: SeriesModule<'histogram'> = {
     instanceConstructor: HistogramSeries,
     seriesDefaults: {
         axes: [
-            { type: CARTESIAN_AXIS_TYPES.NUMBER, position: CARTESIAN_AXIS_POSITIONS.BOTTOM },
-            { type: CARTESIAN_AXIS_TYPES.NUMBER, position: CARTESIAN_AXIS_POSITIONS.LEFT },
+            { type: CARTESIAN_AXIS_TYPE.NUMBER, position: POSITION.BOTTOM },
+            { type: CARTESIAN_AXIS_TYPE.NUMBER, position: POSITION.LEFT },
         ],
     },
     themeTemplate: {

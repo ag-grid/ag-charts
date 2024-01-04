@@ -2,18 +2,18 @@ import { MODULE_CONFLICTS } from '../../module/module';
 import type { AgChartOptions } from '../../options/agChartOptions';
 import { Logger } from '../../util/logger';
 import type { DeepPartial } from '../../util/types';
-import { CARTESIAN_AXIS_POSITIONS, CARTESIAN_AXIS_TYPES } from '../themes/constants';
+import { CARTESIAN_AXIS_TYPE, POSITION } from '../themes/constants';
 import { isAgCartesianChartOptions } from './types';
 
 export const DEFAULT_CARTESIAN_CHART_OVERRIDES = {
     axes: [
         {
-            type: CARTESIAN_AXIS_TYPES.NUMBER,
-            position: CARTESIAN_AXIS_POSITIONS.LEFT,
+            type: CARTESIAN_AXIS_TYPE.NUMBER,
+            position: POSITION.LEFT,
         },
         {
-            type: CARTESIAN_AXIS_TYPES.CATEGORY,
-            position: CARTESIAN_AXIS_POSITIONS.BOTTOM,
+            type: CARTESIAN_AXIS_TYPE.CATEGORY,
+            position: POSITION.BOTTOM,
         },
     ],
 };
