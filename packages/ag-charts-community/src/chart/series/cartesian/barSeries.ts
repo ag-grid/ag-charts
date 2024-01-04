@@ -338,7 +338,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
                 const labelText = this.getLabelText(
                     this.properties.label,
                     {
-                        datum: seriesDatum[0],
+                        datum: seriesDatum[contextIndex],
                         value: yRawValue,
                         xKey,
                         yKey,
@@ -369,7 +369,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
                 const nodeData: BarNodeDatum = {
                     series: this,
                     itemId: yKey,
-                    datum: seriesDatum[0],
+                    datum: seriesDatum[contextIndex],
                     cumulativeValue: currY,
                     xValue,
                     yValue: yRawValue,
