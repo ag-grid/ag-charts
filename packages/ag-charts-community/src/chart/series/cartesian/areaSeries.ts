@@ -186,7 +186,15 @@ export class AreaSeries extends CartesianSeries<
             return [];
         }
 
-        const { yKey, xKey, marker, label, fill: seriesFill, stroke: seriesStroke, connectNulls } = this.properties;
+        const {
+            yKey,
+            xKey,
+            marker,
+            label,
+            fill: seriesFill,
+            stroke: seriesStroke,
+            connectMissingData,
+        } = this.properties;
         const { scale: xScale } = xAxis;
         const { scale: yScale } = yAxis;
 
@@ -350,7 +358,7 @@ export class AreaSeries extends CartesianSeries<
                 const [prevTop, prevBottom] = createPathCoordinates(lastXDatum, yValuePreviousStart, yValuePreviousEnd);
                 const [top, bottom] = createPathCoordinates(xDatum, yValueStart, yValueEnd);
 
-                if (xValid && (!connectNulls || yValid)) {
+                if (xValid && (!connectMissingData || yValid)) {
                     fillPoints.push(prevTop);
                     fillPhantomPoints.push(prevBottom);
                     fillPoints.push(top);

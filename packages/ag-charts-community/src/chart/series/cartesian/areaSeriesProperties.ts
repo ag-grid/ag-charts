@@ -71,5 +71,5 @@ export class AreaSeriesProperties extends CartesianSeriesProperties<AgSeriesArea
     readonly tooltip = new SeriesTooltip<AgCartesianSeriesTooltipRendererParams>();
 
     @Validate(BOOLEAN)
-    connectNulls: boolean = false;
+    connectMissingData: boolean = false;
 }

@@ -24,7 +24,7 @@ export interface AgAreaSeriesThemeableOptions<TDatum = any>
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgAreaSeriesTooltipRendererParams<TDatum>>;
     /** Set to `true` to connect across missing data points. */
-    connectNulls?: boolean;
+    connectMissingData?: boolean;
 }
 
 export interface AgAreaSeriesOptionsKeys {
