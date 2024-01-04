@@ -3,7 +3,7 @@ import { describe, expect, test } from '@jest/globals';
 import { LinearScale } from '../scale/linearScale';
 import { format } from './numberFormat';
 
-describe('format', () => {
+describe('number format', () => {
     test('fixed point', () => {
         expect(format('.1f')(0.1 + 0.2)).toBe('0.3');
         expect(format('.2f')(0.337)).toBe('0.34');

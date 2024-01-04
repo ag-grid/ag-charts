@@ -11,7 +11,7 @@ import {
     waitForChartStability,
 } from '../test/utils';
 
-describe('GridLine', () => {
+describe('AxisGridLine', () => {
     let chart: Chart;
 
     afterEach(() => {

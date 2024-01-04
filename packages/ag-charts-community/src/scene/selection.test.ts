@@ -13,7 +13,7 @@ const expectSelectionToMatchData = (selection: Selection, data: Array<any>) => {
     });
 };
 
-describe('selection', () => {
+describe('Selection', () => {
     it('should create an empty selection', () => {
         const selection = new Selection(new TestNode(), TestNode);
         expect(selection.nodes()).toHaveLength(0);

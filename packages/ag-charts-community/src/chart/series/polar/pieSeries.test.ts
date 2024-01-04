@@ -2,7 +2,6 @@ import { afterEach, beforeEach, describe, expect, jest, test } from '@jest/globa
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type { AgPolarChartOptions } from '../../../options/agChartOptions';
-import { AgCharts } from '../../agChartV2';
 import type { Chart } from '../../chart';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,

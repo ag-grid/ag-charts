@@ -3,7 +3,6 @@ import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type {
     AgBarSeriesOptions,
-    AgCartesianSeriesOptions,
     AgChartOptions,
     AgChartTheme,
     AgChartThemeName,
@@ -17,7 +16,7 @@ import { themes } from './themes';
 expect.extend({ toMatchImageSnapshot });
 
 /* eslint-disable no-console */
-describe('ThemesValidation', () => {
+describe('themes module', () => {
     beforeEach(() => {
         console.warn = jest.fn();
     });

@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`should create ticks for interval: -1 domain: [A, B] case 1`] = `
+exports[`BandScale should create ticks for interval: -1 domain: ["A", "B", "C", "D", "E", "F", "G", "H", "I"] case 1`] = `
 [
   "A",
   "B",
@@ -14,7 +14,7 @@ exports[`should create ticks for interval: -1 domain: [A, B] case 1`] = `
 ]
 `;
 
-exports[`should create ticks for interval: -1.5 domain: [A, B] case 1`] = `
+exports[`BandScale should create ticks for interval: -1.5 domain: ["A", "B", "C", "D", "E", "F", "G", "H", "I"] case 1`] = `
 [
   "A",
   "B",
@@ -28,7 +28,7 @@ exports[`should create ticks for interval: -1.5 domain: [A, B] case 1`] = `
 ]
 `;
 
-exports[`should create ticks for interval: -2 domain: [A, B] case 1`] = `
+exports[`BandScale should create ticks for interval: -2 domain: ["A", "B", "C", "D", "E", "F", "G", "H", "I"] case 1`] = `
 [
   "A",
   "C",
@@ -38,9 +38,9 @@ exports[`should create ticks for interval: -2 domain: [A, B] case 1`] = `
 ]
 `;
 
-exports[`should create ticks for interval: 0 domain: [A, B] case 1`] = `[]`;
+exports[`BandScale should create ticks for interval: 0 domain: ["A", "B", "C", "D", "E", "F", "G", "H", "I"] case 1`] = `[]`;
 
-exports[`should create ticks for interval: 1 domain: [A, B] case 1`] = `
+exports[`BandScale should create ticks for interval: 1 domain: ["A", "B", "C", "D", "E", "F", "G", "H", "I"] case 1`] = `
 [
   "A",
   "B",
@@ -54,7 +54,7 @@ exports[`should create ticks for interval: 1 domain: [A, B] case 1`] = `
 ]
 `;
 
-exports[`should create ticks for interval: 1.5 domain: [A, B] case 1`] = `
+exports[`BandScale should create ticks for interval: 1.5 domain: ["A", "B", "C", "D", "E", "F", "G", "H", "I"] case 1`] = `
 [
   "A",
   "C",
@@ -64,7 +64,7 @@ exports[`should create ticks for interval: 1.5 domain: [A, B] case 1`] = `
 ]
 `;
 
-exports[`should create ticks for interval: 2 domain: [A, B] case 1`] = `
+exports[`BandScale should create ticks for interval: 2 domain: ["A", "B", "C", "D", "E", "F", "G", "H", "I"] case 1`] = `
 [
   "A",
   "C",
@@ -74,7 +74,7 @@ exports[`should create ticks for interval: 2 domain: [A, B] case 1`] = `
 ]
 `;
 
-exports[`should create ticks for interval: 3 domain: [A, B] case 1`] = `
+exports[`BandScale should create ticks for interval: 3 domain: ["A", "B", "C", "D", "E", "F", "G", "H", "I"] case 1`] = `
 [
   "A",
   "D",
@@ -82,7 +82,7 @@ exports[`should create ticks for interval: 3 domain: [A, B] case 1`] = `
 ]
 `;
 
-exports[`should create ticks for interval: 4 domain: [A, B] case 1`] = `
+exports[`BandScale should create ticks for interval: 4 domain: ["A", "B", "C", "D", "E", "F", "G", "H", "I"] case 1`] = `
 [
   "A",
   "E",
