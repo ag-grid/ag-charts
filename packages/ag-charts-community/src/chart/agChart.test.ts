@@ -41,7 +41,7 @@ const revenueProfitData = [
     },
 ];
 
-describe('update', () => {
+describe('AgChart', () => {
     let chartProxy: AgChartInstance;
 
     beforeEach(() => {

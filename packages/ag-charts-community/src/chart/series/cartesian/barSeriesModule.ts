@@ -1,6 +1,6 @@
 import type { SeriesModule } from '../../../module/coreModules';
 import { singleSeriesPaletteFactory } from '../../../util/theme';
-import { CARTESIAN_AXIS_POSITIONS, CARTESIAN_AXIS_TYPES, NORMAL } from '../../themes/constants';
+import { CARTESIAN_AXIS_POSITIONS, CARTESIAN_AXIS_TYPES, FONT_WEIGHT } from '../../themes/constants';
 import {
     DEFAULT_FONT_FAMILY,
     DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
@@ -41,7 +41,7 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
         label: {
             enabled: false,
             fontStyle: undefined,
-            fontWeight: NORMAL,
+            fontWeight: FONT_WEIGHT.NORMAL,
             fontSize: 12,
             fontFamily: DEFAULT_FONT_FAMILY,
             color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,

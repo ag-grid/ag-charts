@@ -120,8 +120,8 @@ export class SizeMonitor {
     }
 
     static checkClientSize(element: HTMLElement, entry: Entry) {
-        const width = element.clientWidth ? element.clientWidth : 0;
-        const height = element.clientHeight ? element.clientHeight : 0;
+        const width = element.clientWidth ?? 0;
+        const height = element.clientHeight ?? 0;
         this.checkSize(entry, element, width, height);
     }
 }

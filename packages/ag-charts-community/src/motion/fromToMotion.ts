@@ -46,6 +46,12 @@ export const FROM_TO_MIXINS: Record<NodeUpdateState, AnimationTiming> = {
 
 export type FromToDiff = Pick<ProcessedOutputDiff, 'added' | 'removed'>;
 
+export interface FromToFns<N extends Node, T extends Record<string, string | number | undefined> & Partial<N>, D> {
+    fromFn: FromToMotionPropFn<N, T, D>;
+    toFn: FromToMotionPropFn<N, T, D>;
+    intermediateFn?: IntermediateFn<N, D>;
+}
+
 /**
  * Implements a per-node "to/from" animation, with support for detection of added/moved/removed
  * nodes.
@@ -65,11 +71,7 @@ export function fromToMotion<N extends Node, T extends Record<string, string | n
     subId: string,
     animationManager: AnimationManager,
     selectionsOrNodes: Selection<N, D>[] | N[],
-    fns: {
-        fromFn: FromToMotionPropFn<N, T, D>;
-        toFn: FromToMotionPropFn<N, T, D>;
-        intermediateFn?: IntermediateFn<N, D>;
-    },
+    fns: FromToFns<N, T, D>,
     getDatumId?: (node: N, datum: D) => string,
     diff?: FromToDiff
 ) {

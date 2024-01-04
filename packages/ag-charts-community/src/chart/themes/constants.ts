@@ -13,8 +13,12 @@ export const FONT_SIZE = {
     LARGE: 17,
 };
 
-export const BOLD: FontWeight = 'bold';
-export const NORMAL: FontWeight = 'normal';
+export const FONT_WEIGHT: Record<'NORMAL' | 'BOLD' | 'BOLDER' | 'LIGHTER', FontWeight> = {
+    NORMAL: 'normal',
+    BOLD: 'bold',
+    BOLDER: 'bolder',
+    LIGHTER: 'lighter',
+};
 
 export const BOTTOM: AgChartLegendPosition = 'bottom';
 const LEFT: AgCartesianAxisPosition = 'left';

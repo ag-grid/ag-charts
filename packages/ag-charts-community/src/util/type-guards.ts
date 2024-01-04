@@ -26,6 +26,14 @@ export function isObject(value: unknown): value is object {
     return typeof value === 'object' && value !== null && !isArray(value);
 }
 
+export function isObjectLike(value: unknown): value is object | unknown[] {
+    return typeof value === 'object' && value !== null;
+}
+
+export function isPlainObject(value: unknown): value is object {
+    return typeof value === 'object' && value !== null && value.constructor === Object;
+}
+
 export function isString(value: unknown): value is string {
     return typeof value === 'string';
 }
@@ -36,4 +44,8 @@ export function isNumber(value: unknown): value is number {
 
 export function isFiniteNumber(value: unknown): value is number {
     return isNumber(value) && Number.isFinite(value);
+}
+
+export function isHtmlElement(value: unknown): value is HTMLElement {
+    return typeof window !== 'undefined' && value instanceof HTMLElement;
 }

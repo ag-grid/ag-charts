@@ -13,27 +13,26 @@ interface Props {
     title: string;
 
     modifiedTimeMs: number;
-    isEnterprise: boolean;
     entryFileName: string;
 
     styleFiles?: string[];
     scriptFiles: string[];
     appLocation: string;
-    library: Library;
     boilerplatePath: string;
+    extraStyles?: string;
+    children?: any;
 }
 
 const {
     title,
     isDev,
     modifiedTimeMs,
-    isEnterprise,
     appLocation,
     entryFileName,
     styleFiles,
     scriptFiles,
-    library,
     boilerplatePath,
+    extraStyles
 } = Astro.props as Props;
 
 const startFile = pathJoin(appLocation, entryFileName);
@@ -42,7 +41,7 @@ const startFile = pathJoin(appLocation, entryFileName);
 <html lang="en">
     <head>
         <MetaData isDev={isDev} title={`Angular Example - ${title}`} modifiedTimeMs={modifiedTimeMs} />
-        <ExampleStyle rootId="app" />
+        <ExampleStyle rootSelector="my-app" extraStyles={extraStyles} />
         <Styles
             baseUrl={appLocation}
             files={isDev && styleFiles
@@ -64,12 +63,10 @@ const startFile = pathJoin(appLocation, entryFileName);
         {scriptFiles && <Scripts baseUrl={appLocation} files={scriptFiles} />}
         <SystemJs
             isDev={isDev}
-            library={library}
             boilerplatePath={boilerplatePath}
             appLocation={appLocation}
             startFile={startFile}
             internalFramework={'angular'}
-            isEnterprise={isEnterprise}
         />
         <Styles
             baseUrl={appLocation}

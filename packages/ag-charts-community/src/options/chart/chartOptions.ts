@@ -48,7 +48,7 @@ export interface AgChartOverlayOptions {
 export interface AgChartOverlaysOptions {
     /** An overlay to be displayed when there is no data. */
     noData?: AgChartOverlayOptions;
-    /** An overlay to be displayed when there is no series is visible. */
+    /** An overlay to be displayed when there are no series visible. */
     noVisibleSeries?: AgChartOverlayOptions;
 }
 

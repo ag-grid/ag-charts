@@ -62,6 +62,9 @@ export class MarkerLabel extends Group {
     @ProxyPropertyOnWrite('marker', 'strokeOpacity')
     markerStrokeOpacity?: number;
 
+    @ProxyPropertyOnWrite('marker', 'visible')
+    markerVisible?: boolean;
+
     @ProxyPropertyOnWrite('line', 'stroke')
     lineStroke?: string;
 
@@ -70,6 +73,9 @@ export class MarkerLabel extends Group {
 
     @ProxyPropertyOnWrite('line', 'strokeOpacity')
     lineStrokeOpacity?: number;
+
+    @ProxyPropertyOnWrite('line', 'visible')
+    lineVisible?: boolean;
 
     private _marker: Marker = new Square();
     set marker(value: Marker) {

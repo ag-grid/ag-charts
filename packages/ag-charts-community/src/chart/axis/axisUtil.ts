@@ -1,5 +1,5 @@
 import { FROM_TO_MIXINS } from '../../motion/fromToMotion';
-import type { FromToMotionPropFn, NodeUpdateState } from '../../motion/fromToMotion';
+import type { FromToFns } from '../../motion/fromToMotion';
 import type { Group } from '../../scene/group';
 import type { Line } from '../../scene/shape/line';
 import type { Text } from '../../scene/shape/text';
@@ -55,98 +55,103 @@ function normaliseEndRotation(start: number, end: number) {
     return end - fullCircle;
 }
 
-type WithTranslationY = { translationY: number; range?: number[] };
-export function prepareAxisAnimationFunctions<T extends AxisNodeDatum>(ctx: AxisAnimationContext) {
-    const outOfBounds = (datum: WithTranslationY) => {
-        const min = Math.min(...(datum.range ?? [ctx.min]));
-        const max = Math.max(...(datum.range ?? [ctx.max]));
-        const translationY = Math.round(datum.translationY);
-        return translationY < min || translationY > max;
+export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
+    const outOfBounds = (y: number, range?: number[]) => {
+        const min = range != null ? Math.min(...range) : ctx.min;
+        const max = range != null ? Math.max(...range) : ctx.max;
+        return y < min || y > max;
     };
-    const calculateStatus = (
-        datum: WithTranslationY,
-        nodeDatum: WithTranslationY,
-        status: NodeUpdateState
-    ): NodeUpdateState => {
-        if (status !== 'removed' && outOfBounds(datum)) {
-            return 'removed';
-        } else if (status !== 'added' && outOfBounds(nodeDatum)) {
-            return 'added';
-        }
-        return status;
-    };
-    const fromBase = (node: Line | Text, datum: WithTranslationY, status: NodeUpdateState) => {
-        // Default to starting at the same position that the node is currently in.
-        const source = { translationY: Math.round(node.translationY), opacity: node.opacity };
-        status = calculateStatus(datum, node.datum, status);
 
-        if (status === 'added') {
-            source.translationY = Math.round(datum.translationY);
-            source.opacity = 0;
-        }
+    const tick: FromToFns<Line, any, AxisNodeDatum> = {
+        fromFn(node, datum, status) {
+            // Default to starting at the same position that the node is currently in.
+            let y = node.y1 + node.translationY;
+            let opacity = node.opacity;
 
-        return { ...source, ...FROM_TO_MIXINS[status] };
-    };
-    const toBase = (_node: Line | Text, datum: WithTranslationY, status: NodeUpdateState) => {
-        const target = { translationY: Math.round(datum.translationY), opacity: 1 };
-        if (status === 'removed') {
-            target.opacity = 0;
-        }
-        return target;
-    };
-    const tick = {
-        fromFn: fromBase,
-        toFn: toBase,
-        intermediateFn: (node: Line | Text, _datum: T, _status: NodeUpdateState) => {
-            return { visible: !outOfBounds(node) };
+            if (status === 'added' || outOfBounds(node.datum.translationY, node.datum.range)) {
+                y = datum.translationY;
+                opacity = 0;
+            }
+
+            // Animate translationY so we don't constantly regenerate the line path data
+            return { y: 0, translationY: y, opacity, ...FROM_TO_MIXINS[status] };
+        },
+        toFn(_node, datum, status) {
+            const y = datum.translationY;
+            let opacity = 1;
+
+            if (status === 'removed') {
+                opacity = 0;
+            }
+
+            return {
+                y: 0,
+                translationY: y,
+                opacity,
+                finish: {
+                    // Set explicit y after animation so it's pixel aligned
+                    y: y,
+                    translationY: 0,
+                },
+            };
+        },
+        intermediateFn(node, _datum, _status) {
+            return { visible: !outOfBounds(node.y) };
         },
     };
 
-    const label = {
-        fromFn: ((node: Text, newDatum: AxisLabelDatum, status: NodeUpdateState) => {
+    const label: FromToFns<Text, Partial<Omit<AxisLabelDatum, 'range'>>, AxisLabelDatum> = {
+        fromFn(node, newDatum, status) {
             const datum: AxisLabelDatum = node.previousDatum ?? newDatum;
+
+            // Default to starting at the same position that the node is currently in.
+            const x = datum.x;
+            const y = datum.y;
+            const rotationCenterX = datum.rotationCenterX;
+            let translationY = Math.round(node.translationY);
             let rotation = datum.rotation;
-            if (status === 'added' || status === 'removed') {
+            let opacity = node.opacity;
+
+            if (status === 'removed' || outOfBounds(datum.y, datum.range)) {
+                rotation = newDatum.rotation;
+            } else if (status === 'added' || outOfBounds(node.datum.y, node.datum.range)) {
+                translationY = Math.round(datum.translationY);
+                opacity = 0;
                 rotation = newDatum.rotation;
             }
-            return {
-                ...fromBase(node, newDatum, status),
-                x: datum.x,
-                y: datum.y,
-                rotation,
-                rotationCenterX: datum.rotationCenterX,
-            };
-        }) as FromToMotionPropFn<Text, Partial<Omit<AxisLabelDatum, 'range'>>, AxisLabelDatum>,
-        toFn: ((node: Text, datum: AxisLabelDatum, status: NodeUpdateState) => {
-            let rotation;
+
+            return { x, y, rotationCenterX, translationY, rotation, opacity, ...FROM_TO_MIXINS[status] };
+        },
+        toFn(node, datum, status) {
+            const x = datum.x;
+            const y = datum.y;
+            const rotationCenterX = datum.rotationCenterX;
+            const translationY = Math.round(datum.translationY);
+            let rotation = 0;
+            const opacity = 1;
+
             if (status === 'added' || status === 'removed') {
                 rotation = datum.rotation;
             } else {
                 rotation = normaliseEndRotation(node.previousDatum?.rotation ?? datum.rotation, datum.rotation);
             }
-            return {
-                ...toBase(node, datum, status),
-                x: datum.x,
-                y: datum.y,
-                rotation,
-                rotationCenterX: datum.rotationCenterX,
-                finish: { rotation: datum.rotation },
-            };
-        }) as FromToMotionPropFn<Text, Partial<Omit<AxisLabelDatum, 'range'>>, AxisLabelDatum>,
+
+            return { x, y, rotationCenterX, translationY, rotation, opacity, finish: { rotation: datum.rotation } };
+        },
     };
-    const line = {
-        fromFn: (node: Line, datum: AxisLineDatum) => {
+    const line: FromToFns<Line, any, AxisLineDatum> = {
+        fromFn(node, datum) {
             return {
-                ...(node.previousDatum ?? datum ?? { y: node.y, x1: node.x1, x2: node.x2 }),
+                ...(node.previousDatum ?? datum),
                 ...FROM_TO_MIXINS['updated'],
             };
         },
-        toFn: (_node: Line, datum: AxisLineDatum) => {
+        toFn(_node, datum) {
             return { ...datum };
         },
     };
-    const group = {
-        fromFn: (group: Group, _datum: AxisGroupDatum) => {
+    const group: FromToFns<Group, any, AxisGroupDatum> = {
+        fromFn(group, _datum) {
             const { rotation, translationX, translationY } = group;
             return {
                 rotation,
@@ -155,7 +160,7 @@ export function prepareAxisAnimationFunctions<T extends AxisNodeDatum>(ctx: Axis
                 ...FROM_TO_MIXINS['updated'],
             };
         },
-        toFn: (_group: Group, datum: AxisGroupDatum) => {
+        toFn(_group, datum) {
             const { rotation, translationX, translationY } = datum;
             return {
                 rotation,
@@ -183,12 +188,13 @@ export function resetAxisGroupFn() {
 export function resetAxisSelectionFn(ctx: AxisAnimationContext) {
     const { visible: rangeVisible, min, max } = ctx;
 
-    return (_node: Line | Text, datum: AxisNodeDatum) => {
-        const translationY = Math.round(datum.translationY);
+    return (_node: Line, datum: AxisNodeDatum) => {
+        const y = datum.translationY;
 
-        const visible = rangeVisible && translationY >= min && translationY <= max;
+        const visible = rangeVisible && y >= min && y <= max;
         return {
-            translationY,
+            y,
+            translationY: 0,
             opacity: 1,
             visible,
         };

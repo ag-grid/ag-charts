@@ -23,7 +23,7 @@ import { AgCharts } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 import type { TreemapSeries } from './treemapSeries';
 
-describe('HierarchyChart', () => {
+describe('TreemapSeries', () => {
     let chart: any;
 
     afterEach(() => {

@@ -291,43 +291,41 @@ describe('Crosshair', () => {
         GROUPED_BAR_OPTIONS,
     ];
 
-    for (const TEST_CASE of CASES) {
-        it(`should follow mouse pointer on series hover`, async () => {
-            const options: AgChartOptions = TEST_CASE;
-            prepareEnterpriseTestOptions(options);
+    it.each(CASES)(`should follow mouse pointer on series hover`, async (TEST_CASE) => {
+        const options: AgChartOptions = TEST_CASE;
+        prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
-            await hoverAction(605, 300)(chart);
-            await compare();
-        });
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+        await hoverAction(605, 300)(chart);
+        await compare();
+    });
 
-        it(`should snap to the closest highlighted node datum`, async () => {
-            const options: AgChartOptions = applyCrosshairSnap(TEST_CASE, true);
-            prepareEnterpriseTestOptions(options);
+    it.each(CASES)(`should snap to the closest highlighted node datum`, async (TEST_CASE) => {
+        const options: AgChartOptions = applyCrosshairSnap(TEST_CASE, true);
+        prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
-            await hoverAction(605, 125)(chart);
-            await compare();
-        });
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+        await hoverAction(605, 125)(chart);
+        await compare();
+    });
 
-        it(`should layout correctly with series area padding`, async () => {
-            const options: AgChartOptions = TEST_CASE;
-            prepareEnterpriseTestOptions(options);
-            options.seriesArea = {
-                padding: {
-                    left: 100,
-                    right: 100,
-                    bottom: 100,
-                    top: 100,
-                },
-            };
+    it.each(CASES)(`should layout correctly with series area padding`, async (TEST_CASE) => {
+        const options: AgChartOptions = TEST_CASE;
+        prepareEnterpriseTestOptions(options);
+        options.seriesArea = {
+            padding: {
+                left: 100,
+                right: 100,
+                bottom: 100,
+                top: 100,
+            },
+        };
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
-            await hoverAction(300, 300)(chart);
-            await compare();
-        });
-    }
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+        await hoverAction(300, 300)(chart);
+        await compare();
+    });
 });

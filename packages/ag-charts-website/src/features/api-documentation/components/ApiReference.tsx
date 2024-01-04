@@ -7,6 +7,7 @@ import classnames from 'classnames';
 import type { AllHTMLAttributes, CSSProperties } from 'react';
 import { createContext, useContext, useEffect } from 'react';
 import Markdown from 'react-markdown';
+import remarkBreaks from 'remark-breaks';
 
 import type { ApiReferenceNode, ApiReferenceType, MemberNode, TypeAliasNode } from '../api-reference-types';
 import type { SpecialTypesMap } from '../apiReferenceHelpers';
@@ -182,7 +183,7 @@ function ApiReferenceRow({
             </div>
             <div className={styles.rightColumn}>
                 <div role="presentation" className={styles.description}>
-                    <Markdown>{member.docs?.join('\n')}</Markdown>
+                    <Markdown remarkPlugins={[remarkBreaks]}>{member.docs?.join('\n')}</Markdown>
                 </div>
                 {nestedPath ? (
                     <div className={styles.actions}>

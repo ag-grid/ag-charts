@@ -13,10 +13,9 @@ export type AxesOptionsTypes = NonNullable<AgCartesianChartOptions['axes']>[numb
 export type SeriesOptionsTypes = NonNullable<AgChartOptions['series']>[number];
 
 export function optionsType(input: {
-    type?: SeriesOptionsTypes['type'];
     series?: { type?: SeriesOptionsTypes['type'] }[];
 }): NonNullable<SeriesOptionsTypes['type']> {
-    return input.type ?? input.series?.[0]?.type ?? 'line';
+    return input.series?.[0]?.type ?? 'line';
 }
 
 export function isAgCartesianChartOptions(input: AgChartOptions): input is AgCartesianChartOptions {

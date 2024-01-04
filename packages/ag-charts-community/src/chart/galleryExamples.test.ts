@@ -37,15 +37,19 @@ describe('Gallery Examples', () => {
             expect(console.warn).not.toBeCalled();
         });
 
-        for (const [exampleName, example] of Object.entries(EXAMPLES)) {
-            it(`for ${exampleName} it should create chart instance as expected`, async () => {
+        it.each(Object.entries(EXAMPLES))(
+            'for %s it should create chart instance as expected',
+            async (_exampleName, example) => {
                 const options: AgChartOptions = example.options;
                 chart = AgCharts.create(options) as Chart;
                 await waitForChartStability(chart);
                 await example.assertions(chart);
-            });
+            }
+        );
 
-            it(`for ${exampleName} it should render to canvas as expected`, async () => {
+        it.each(Object.entries(EXAMPLES))(
+            'for %s it should render to canvas as expected',
+            async (_exampleName, example) => {
                 const compare = async () => {
                     await waitForChartStability(chart);
 
@@ -63,8 +67,8 @@ describe('Gallery Examples', () => {
                     await example.extraScreenshotActions(chart);
                     await compare();
                 }
-            });
-        }
+            }
+        );
     });
 
     describe('AgChartV2#update', () => {
@@ -78,48 +82,46 @@ describe('Gallery Examples', () => {
             expect(console.warn).not.toBeCalled();
         });
 
-        for (const [exampleName, example] of Object.entries(EXAMPLES)) {
-            describe(`for ${exampleName}`, () => {
-                let chart: Chart;
-                let options: AgChartOptions;
+        describe.each(Object.entries(EXAMPLES))('for %s', (_exampleName, example) => {
+            let chart: Chart;
+            let options: AgChartOptions;
 
-                beforeEach(async () => {
-                    options = { ...example.options };
-                    prepareTestOptions(options);
+            beforeEach(async () => {
+                options = { ...example.options };
+                prepareTestOptions(options);
 
-                    chart = AgCharts.create(options) as Chart;
-                    await waitForChartStability(chart);
-                });
-
-                afterEach(() => {
-                    chart.destroy();
-                    chart = null!;
-                    options = null!;
-                });
-
-                it(`it should update chart instance as expected`, async () => {
-                    AgCharts.update(chart, options);
-                    await waitForChartStability(chart);
-
-                    await example.assertions(chart);
-                });
-
-                it(`it should render the same after update`, async () => {
-                    const snapshot = async () => {
-                        await waitForChartStability(chart);
-
-                        return ctx.nodeCanvas.toBuffer('raw');
-                    };
-
-                    AgCharts.update(chart, options);
-
-                    const before = await snapshot();
-                    AgCharts.update(chart, options);
-                    const after = await snapshot();
-
-                    expect(after).toMatchImage(before);
-                });
+                chart = AgCharts.create(options) as Chart;
+                await waitForChartStability(chart);
             });
-        }
+
+            afterEach(() => {
+                chart.destroy();
+                chart = null!;
+                options = null!;
+            });
+
+            it(`it should update chart instance as expected`, async () => {
+                AgCharts.update(chart, options);
+                await waitForChartStability(chart);
+
+                await example.assertions(chart);
+            });
+
+            it(`it should render the same after update`, async () => {
+                const snapshot = async () => {
+                    await waitForChartStability(chart);
+
+                    return ctx.nodeCanvas.toBuffer('raw');
+                };
+
+                AgCharts.update(chart, options);
+
+                const before = await snapshot();
+                AgCharts.update(chart, options);
+                const after = await snapshot();
+
+                expect(after).toMatchImage(before);
+            });
+        });
     });
 });

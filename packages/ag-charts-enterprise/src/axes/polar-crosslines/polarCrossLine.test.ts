@@ -50,14 +50,15 @@ describe('PolarCrossLine', () => {
             expect(console.warn).not.toBeCalled();
         });
 
-        for (const [exampleName, example] of Object.entries(examples)) {
-            it(`for ${exampleName} it should render to canvas as expected`, async () => {
+        it.each(Object.entries(examples))(
+            'for %s it should render to canvas as expected',
+            async (_exampleName, example) => {
                 const options: AgPolarChartOptions = { ...example.options };
                 prepareEnterpriseTestOptions(options);
 
                 chart = AgCharts.create(options);
                 await compare(chart, ctx);
-            });
-        }
+            }
+        );
     });
 });

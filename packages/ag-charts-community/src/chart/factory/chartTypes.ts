@@ -8,7 +8,7 @@ const DEFAULTS: Record<string, {}> = {};
 
 export const CHART_TYPES = {
     has(seriesType: string) {
-        return Object.prototype.hasOwnProperty.call(TYPES, seriesType);
+        return Object.hasOwn(TYPES, seriesType);
     },
 
     isCartesian(seriesType: string) {

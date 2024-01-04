@@ -12,7 +12,7 @@ import type { AgChartOptions } from '../../main';
 import { AgCharts } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
-describe('Radial Column Chart', () => {
+describe('RadialColumnSeries', () => {
     let chart: any;
     const ctx = setupMockCanvas();
 

@@ -8,7 +8,7 @@ import type { Point } from '../scene/point';
 import type { BaseModule, ModuleInstance } from './baseModule';
 import type { AxisContext, ModuleContextWithParent, SeriesContext } from './moduleContext';
 
-type SeriesType = NonNullable<
+export type SeriesType = NonNullable<
     AgCartesianSeriesOptions['type'] | AgPolarSeriesOptions['type'] | AgHierarchySeriesOptions['type']
 >;
 

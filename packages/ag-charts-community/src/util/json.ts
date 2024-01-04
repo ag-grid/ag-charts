@@ -1,18 +1,17 @@
 import { Logger } from './logger';
 import { isProperties } from './properties';
+import { isArray, isDate, isFunction, isHtmlElement, isObject, isPlainObject } from './type-guards';
 import type { DeepPartial } from './types';
 
 const CLASS_INSTANCE_TYPE = 'class-instance';
 
 /**
- * Performs a JSON-diff between a source and target JSON structure.
+ * Performs a recursive JSON-diff between a source and target JSON structure.
  *
- * On a per property basis, takes the target property value where:
+ * On a per-property basis, takes the target property value where:
  * - types are different.
  * - type is primitive.
  * - type is array and length or content have changed.
- *
- * Recurses for object types.
  *
  * @param source starting point for diff
  * @param target target for diff vs. source
@@ -20,91 +19,51 @@ const CLASS_INSTANCE_TYPE = 'class-instance';
  * @returns `null` if no differences, or an object with the subset of properties that have changed.
  */
 export function jsonDiff<T extends unknown>(source: T, target: T): Partial<T> | null {
-    const sourceType = classify(source);
-    const targetType = classify(target);
-
-    if (targetType === 'array') {
-        const targetArray = target as any;
-        if (sourceType !== 'array' || (source as any).length !== targetArray.length) {
-            return [...targetArray] as any;
-        }
-
-        if (
-            targetArray.some((targetElement: any, i: number) => jsonDiff((source as any)?.[i], targetElement) != null)
-        ) {
-            return [...targetArray] as any;
-        }
-
-        return null;
-    }
-
-    if (targetType === 'primitive') {
-        if (sourceType !== 'primitive') {
-            return { ...(target as any) };
-        }
-
-        if (source !== target) {
+    if (isArray(target)) {
+        if (!isArray(source) || source.length !== target.length || target.some((v, i) => jsonDiff(source[i], v))) {
             return target;
         }
-
-        return null;
+    } else if (isObject(target)) {
+        if (!isObject(source)) {
+            return target;
+        }
+        const result = {} as Partial<T>;
+        const allKeys = new Set([
+            ...(Object.keys(source) as Array<keyof T>),
+            ...(Object.keys(target) as Array<keyof T>),
+        ]);
+        for (const key of allKeys) {
+            // Cheap-and-easy equality check.
+            if (source[key] === target[key]) {
+                continue;
+            }
+            if (typeof source[key] !== typeof target[key]) {
+                result[key] = target[key];
+            } else {
+                const diff = jsonDiff(source[key], target[key]);
+                if (diff !== null) {
+                    result[key] = diff as T[keyof T];
+                }
+            }
+        }
+        return Object.keys(result).length ? result : null;
+    } else if (source !== target) {
+        return target;
     }
+    return null;
+}
 
-    const lhs = source || ({} as any);
-    const rhs = target || ({} as any);
-
-    const allProps = new Set([...Object.keys(lhs), ...Object.keys(rhs)]);
-
-    let propsChangedCount = 0;
-    const result: any = {};
-    for (const prop of allProps) {
-        // Cheap-and-easy equality check.
-        if (lhs[prop] === rhs[prop]) {
-            continue;
-        }
-
-        const take = (v: any) => {
-            result[prop] = v;
-            propsChangedCount++;
-        };
-
-        const lhsType = classify(lhs[prop]);
-        const rhsType = classify(rhs[prop]);
-        if (lhsType !== rhsType) {
-            // Types changed, just take RHS.
-            take(rhs[prop]);
-            continue;
-        }
-
-        if (rhsType === 'primitive' || rhsType === null) {
-            take(rhs[prop]);
-            continue;
-        }
-
-        if (rhsType === 'array' && lhs[prop].length !== rhs[prop].length) {
-            // Arrays are different sizes, so just take target array.
-            take(rhs[prop]);
-            continue;
-        }
-
-        if (rhsType === CLASS_INSTANCE_TYPE) {
-            // Don't try to do anything tricky with array diffs!
-            take(rhs[prop]);
-            continue;
-        }
-
-        if (rhsType === 'function' && lhs[prop] !== rhs[prop]) {
-            take(rhs[prop]);
-            continue;
-        }
-
-        const diff = jsonDiff(lhs[prop], rhs[prop]);
-        if (diff !== null) {
-            take(diff);
-        }
+export function jsonClone<T>(source: T): T {
+    if (isArray(source)) {
+        return source.map(jsonClone) as T;
     }
-
-    return propsChangedCount === 0 ? null : result;
+    if (isPlainObject(source)) {
+        return Object.entries(source).reduce((result, [key, value]) => {
+            result[key as keyof T] = jsonClone(value);
+            return result;
+        }, {} as T);
+    }
+    return source;
 }
 
 /**
@@ -233,7 +192,7 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
     } & JsonApplyParams = {}
 ): Target {
     const {
-        path = undefined,
+        path,
         matcherPath = path ? path.replace(/(\[[0-9+]+])/i, '[]') : undefined,
         skip = [],
         constructors = {},
@@ -274,10 +233,7 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
             const currentValueType = classify(currentValue);
             const newValueType = classify(newValue);
 
-            if (
-                targetType === CLASS_INSTANCE_TYPE &&
-                !(property in target || Object.prototype.hasOwnProperty.call(targetAny, property))
-            ) {
+            if (targetType === CLASS_INSTANCE_TYPE && !(property in target || Object.hasOwn(targetAny, property))) {
                 Logger.warn(`unable to set [${propertyPath}] in ${targetClass?.name} - property is unknown`);
                 continue;
             }
@@ -360,43 +316,29 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
  * @param opts.skip property names to skip when walking
  * @param jsons to traverse in parallel
  */
-export function jsonWalk(
-    json: any,
-    visit: (classification: RestrictedClassification, node: any, ...otherNodes: any[]) => void,
-    opts?: { skip?: string[] },
-    ...jsons: any[]
-) {
-    const jsonType = classify(json);
-    const { skip = [] } = opts ?? {};
-
-    if (jsonType === 'array') {
-        visit(jsonType, json, ...jsons);
-        json.forEach((element: any, index: number) => {
-            jsonWalk(element, visit, opts, ...(jsons ?? []).map((o) => o?.[index]));
+export function jsonWalk<T>(json: T, visit: (...nodes: T[]) => void, opts?: { skip?: string[] }, ...jsons: T[]) {
+    if (isArray(json)) {
+        visit(json, ...jsons);
+        json.forEach((node, index) => {
+            jsonWalk(node, visit, opts, ...keyMapper(jsons, index));
         });
-        return;
-    }
-    if (jsonType !== 'object') {
-        return;
-    }
-
-    visit(jsonType, json, ...jsons);
-    for (const property in json) {
-        if (skip.includes(property)) {
-            continue;
-        }
-
-        const value = json[property];
-        const otherValues = jsons?.map((o) => o?.[property]);
-        const valueType = classify(value);
-
-        if (valueType === 'object' || valueType === 'array') {
-            jsonWalk(value, visit, opts, ...otherValues);
+    } else if (isPlainObject(json)) {
+        visit(json, ...jsons);
+        for (const key of Object.keys(json)) {
+            if (opts?.skip?.includes(key)) {
+                continue;
+            }
+            const value = json[key as keyof T] as T;
+            if (isArray(value) || isPlainObject(value)) {
+                jsonWalk(value, visit, opts, ...keyMapper(jsons, key));
+            }
         }
     }
 }
 
-const isBrowser = typeof window !== 'undefined';
+function keyMapper<T>(data: T[], key: string | number) {
+    return data.map((dataObject: T | undefined) => dataObject?.[key as keyof T] as T);
+}
 
 type Classification = RestrictedClassification | 'function' | 'class-instance';
 type RestrictedClassification = 'array' | 'object' | 'primitive';
@@ -407,23 +349,17 @@ function classify(value: any): Classification | null {
     if (value == null) {
         return null;
     }
-    if (isBrowser && value instanceof HTMLElement) {
+    if (isHtmlElement(value) || isDate(value)) {
         return 'primitive';
     }
-    if (Array.isArray(value)) {
+    if (isArray(value)) {
         return 'array';
     }
-    if (value instanceof Date) {
-        return 'primitive';
+    if (isObject(value)) {
+        return isPlainObject(value) ? 'object' : CLASS_INSTANCE_TYPE;
     }
-    if (typeof value === 'object' && value.constructor === Object) {
-        return 'object';
-    }
-    if (typeof value === 'function') {
+    if (isFunction(value)) {
         return 'function';
-    }
-    if (typeof value === 'object' && value.constructor != null) {
-        return CLASS_INSTANCE_TYPE;
     }
     return 'primitive';
 }

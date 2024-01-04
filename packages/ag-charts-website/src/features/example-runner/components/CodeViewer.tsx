@@ -2,7 +2,7 @@ import type { InternalFramework } from '@ag-grid-types';
 import Code from '@components/Code';
 import { Icon } from '@components/icon/Icon';
 import styles from '@design-system/modules/CodeViewer.module.scss';
-import type { ExampleType, FileContents } from '@features/examples-generator/types';
+import type { ExampleType, FileContents } from '@features/example-generator/types';
 import { doOnEnter } from '@utils/doOnEnter';
 import classnames from 'classnames';
 import { useEffect, useState } from 'react';

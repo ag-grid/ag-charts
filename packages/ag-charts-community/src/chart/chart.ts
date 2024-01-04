@@ -16,7 +16,7 @@ import { sleep } from '../util/async';
 import { CallbackCache } from '../util/callbackCache';
 import { Debug } from '../util/debug';
 import { createId } from '../util/id';
-import { jsonMerge } from '../util/json';
+import { jsonClone } from '../util/json';
 import type { PlacedLabel, PointLabelDatum } from '../util/labelPlacement';
 import { isPointLabelDatum, placeLabels } from '../util/labelPlacement';
 import { Logger } from '../util/logger';
@@ -137,12 +137,11 @@ export abstract class Chart extends Observable implements AgChartInstance {
     getOptions() {
         const { queuedUserOptions } = this;
         const lastUpdateOptions = queuedUserOptions[queuedUserOptions.length - 1] ?? this.userOptions;
-        return jsonMerge([lastUpdateOptions]);
+        return jsonClone(lastUpdateOptions);
     }
 
     readonly scene: Scene;
     readonly seriesRoot = new Group({ name: `${this.id}-Series-root` });
-    legend: ChartLegend | undefined;
 
     readonly tooltip: Tooltip;
     readonly overlays: ChartOverlays;
@@ -290,8 +289,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
     protected readonly callbackCache: CallbackCache;
     protected readonly seriesStateManager: SeriesStateManager;
     protected readonly seriesLayerManager: SeriesLayerManager;
-    protected readonly modules: Record<string, { instance: ModuleInstance }> = {};
-    protected readonly legendModules: Record<string, { instance: ModuleInstance }> = {};
+    public readonly modules: Map<string, ModuleInstance> = new Map(); // TODO shouldn't be public
+    protected readonly legends: Map<ChartLegendType, ChartLegend> = new Map();
+    legend: ChartLegend | undefined;
 
     private readonly specialOverrides: PickRequired<ChartExtendedOptions, 'document' | 'window'>;
 
@@ -375,26 +375,34 @@ export abstract class Chart extends Observable implements AgChartInstance {
             )
         );
 
-        this.legend = this.attachLegend('category', Legend);
+        this.attachLegend('category', Legend);
+        this.legend = this.legends.get('category');
     }
 
-    addModule(module: RootModule) {
-        if (this.modules[module.optionsKey] != null) {
-            throw new Error('AG Charts - module already initialised: ' + module.optionsKey);
+    addModule<T extends RootModule | LegendModule>(module: T) {
+        if (this.modules.has(module.optionsKey)) {
+            throw new Error(`AG Charts - module already initialised: ${module.optionsKey}`);
         }
 
         const moduleInstance = new module.instanceConstructor(this.getModuleContext());
-        this.modules[module.optionsKey] = { instance: moduleInstance };
-        (this as any)[module.optionsKey] = moduleInstance; // TODO remove
+
+        if (module.type === 'legend') {
+            const legend = moduleInstance as ChartLegend;
+            this.legends.set(module.identifier, legend);
+            legend.attachLegend(this.scene.root);
+        }
+
+        this.modules.set(module.optionsKey, moduleInstance);
     }
 
-    removeModule(module: { optionsKey: string }) {
-        this.modules[module.optionsKey]?.instance.destroy();
-        delete this.modules[module.optionsKey];
-        delete (this as any)[module.optionsKey]; // TODO remove
-    }
+    removeModule(module: RootModule | LegendModule) {
+        if (module.type === 'legend') {
+            this.legends.delete(module.identifier);
+        }
 
-    private legends: Map<ChartLegendType, ChartLegend> = new Map();
+        this.modules.get(module.optionsKey)?.destroy();
+        this.modules.delete(module.optionsKey);
+    }
 
     private attachLegend(
         legendType: ChartLegendType,
@@ -403,26 +411,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const legend = new legendConstructor(this.getModuleContext());
         this.legends.set(legendType, legend);
         legend.attachLegend(this.scene.root);
-        return legend;
-    }
-
-    addLegendModule(module: LegendModule) {
-        if (this.modules[module.optionsKey] != null) {
-            throw new Error('AG Charts - module already initialised: ' + module.optionsKey);
-        }
-
-        const legend = this.attachLegend(module.identifier, module.instanceConstructor);
-        this.modules[module.optionsKey] = { instance: legend };
-        (this as any)[module.optionsKey] = legend;
-    }
-
-    removeLegendModule(module: LegendModule) {
-        this.legends.delete(module.identifier);
-        this.removeModule(module);
     }
 
     isModuleEnabled(module: Module) {
-        return this.modules[module.optionsKey] != null;
+        return this.modules.has(module.optionsKey);
     }
 
     getModuleContext(): ModuleContext {
@@ -476,13 +468,13 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.processors.forEach((p) => p.destroy());
         this.tooltipManager.destroy();
         this.tooltip.destroy();
-        Object.values(this.legends).forEach((legend) => legend.destroy());
+        this.legends.forEach((legend) => legend.destroy());
         this.legends.clear();
         this.overlays.destroy();
         SizeMonitor.unobserve(this.element);
 
-        for (const optionsKey of Object.keys(this.modules)) {
-            this.removeModule({ optionsKey });
+        for (const { instance: moduleInstance } of Object.values(this.modules)) {
+            this.removeModule(moduleInstance as ModuleInstance & (RootModule | LegendModule));
         }
 
         this.interactionManager.destroy();

@@ -23,8 +23,7 @@ export interface AgChartLabelFormatterParams<TDatum> extends AgChartCallbackPara
 // New auto-sized labels
 export interface AgChartAutoSizedBaseLabelOptions<TDatum, TParams> extends AgChartLabelOptions<TDatum, TParams> {
     /**
-     * If the label does not fit in the container, setting this will allow the label to pick a font size between its normal `fontSize` and `minimumFontSize`
-     * to fit within the container
+     * If the label does not fit in the container, setting this will allow the label to pick a font size between its normal `fontSize` and `minimumFontSize` to fit within the container.
      */
     minimumFontSize?: FontSize;
 

@@ -35,6 +35,7 @@ export interface CategoryLegendDatum extends BaseChartLegendDatum {
         fillOpacity: number;
         strokeOpacity: number;
         strokeWidth: number;
+        enabled?: boolean;
     };
     line?: {
         stroke: string;

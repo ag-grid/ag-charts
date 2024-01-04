@@ -208,62 +208,60 @@ describe('CartesianChart', () => {
         expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
-    const seriesHighlightingTestCases = (name: string, tcOptions: AgCartesianChartOptions) => {
-        describe(`${name}${name ? ' ' : ''}Series Highlighting`, () => {
-            const YKEYS =
-                tcOptions.series?.reduce((r, s: any) => {
-                    return r.concat(s.yKey ? [s.yKey] : s.yKeys);
-                }, []) ?? [];
+    describe.each([
+        ['Series Highlighting', OPTIONS],
+        ['Line Series Highlighting', examples.SIMPLE_LINE_CHART_EXAMPLE],
+        ['Grouped Bar Series Highlighting', examples.GROUPED_BAR_CHART_EXAMPLE],
+        ['Stacked Bar Series Highlighting', examples.STACKED_BAR_CHART_EXAMPLE],
+        ['Stacked Area Series Highlighting', examples.STACKED_AREA_GRAPH_EXAMPLE],
+        ['Area Series Highlighting', examples.AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE],
+    ])(`%s`, (_name, tcOptions: AgCartesianChartOptions) => {
+        const YKEYS =
+            tcOptions.series?.reduce((r, s: any) => {
+                return r.concat(s.yKey ? [s.yKey] : s.yKeys);
+            }, []) ?? [];
 
-            const buildChart = async (chartOptions: AgChartOptions, yKey: string) => {
-                const options: AgChartOptions = { ...chartOptions };
-                prepareTestOptions(options);
+        const buildChart = async (chartOptions: AgChartOptions, yKey: string) => {
+            const options: AgChartOptions = { ...chartOptions };
+            prepareTestOptions(options);
 
-                chart = deproxy(AgCharts.create(options)) as CartesianChart;
-                await waitForChartStability(chart);
+            chart = deproxy(AgCharts.create(options)) as CartesianChart;
+            await waitForChartStability(chart);
 
-                const seriesImpl = chart.series.find(
-                    (v: any) => v.properties.yKey === yKey || v.properties.yKeys?.some((s) => s.includes(yKey))
-                );
-                if (seriesImpl == null) fail('No seriesImpl found');
+            const seriesImpl = chart.series.find(
+                (v: any) => v.properties.yKey === yKey || v.properties.yKeys?.some((s) => s.includes(yKey))
+            );
+            if (seriesImpl == null) fail('No seriesImpl found');
 
-                const nodeDataArray: SeriesNodeDataContext<any, any>[] = seriesImpl['contextNodeData'];
-                const nodeData = nodeDataArray.find((n) => n.itemId === yKey);
+            const nodeDataArray: SeriesNodeDataContext<any, any>[] = seriesImpl['contextNodeData'];
+            const nodeData = nodeDataArray.find((n) => n.itemId === yKey);
 
-                const highlightManager = (chart as any).highlightManager;
+            const highlightManager = (chart as any).highlightManager;
 
-                return { chart, nodeData, highlightManager };
-            };
+            return { chart, nodeData, highlightManager };
+        };
 
-            it.each(YKEYS)(`should render series with yKey [%s] appropriately`, async (yKey) => {
-                const { chart, highlightManager, nodeData } = await buildChart({ ...tcOptions }, yKey);
-                highlightManager.updateHighlight(chart.id, nodeData?.nodeData[3]);
-                await compare(chart);
-            });
-
-            it('should correctly change highlighting state and reset', async () => {
-                const { chart, highlightManager, nodeData } = await buildChart({ ...tcOptions }, YKEYS[0]);
-
-                const nodesToTest = nodeData?.nodeData?.slice(2, 4) ?? [];
-                expect(nodesToTest).toHaveLength(2);
-
-                for (const nodeDataItem of nodesToTest) {
-                    highlightManager.updateHighlight(chart.id, nodeDataItem);
-                    await compare(chart);
-                }
-
-                highlightManager.updateHighlight(chart.id);
-                await compare(chart);
-            });
+        it.each(YKEYS)(`should render series with yKey [%s] appropriately`, async (yKey) => {
+            const { chart, highlightManager, nodeData } = await buildChart({ ...tcOptions }, yKey);
+            highlightManager.updateHighlight(chart.id, nodeData?.nodeData[3]);
+            await compare(chart);
         });
-    };
 
-    seriesHighlightingTestCases('', OPTIONS);
-    seriesHighlightingTestCases('Line', examples.SIMPLE_LINE_CHART_EXAMPLE);
-    seriesHighlightingTestCases('Grouped Bar', examples.GROUPED_BAR_CHART_EXAMPLE);
-    seriesHighlightingTestCases('Stacked Bar', examples.STACKED_BAR_CHART_EXAMPLE);
-    seriesHighlightingTestCases('Stacked Area', examples.STACKED_AREA_GRAPH_EXAMPLE);
-    seriesHighlightingTestCases('Area', examples.AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE);
+        it('should correctly change highlighting state and reset', async () => {
+            const { chart, highlightManager, nodeData } = await buildChart({ ...tcOptions }, YKEYS[0]);
+
+            const nodesToTest = nodeData?.nodeData?.slice(2, 4) ?? [];
+            expect(nodesToTest).toHaveLength(2);
+
+            for (const nodeDataItem of nodesToTest) {
+                highlightManager.updateHighlight(chart.id, nodeDataItem);
+                await compare(chart);
+            }
+
+            highlightManager.updateHighlight(chart.id);
+            await compare(chart);
+        });
+    });
 
     describe('Small chart width', () => {
         it.each([80, 160, 240, 320, 400])('should render chart correctly at width [%s]', async (width) => {

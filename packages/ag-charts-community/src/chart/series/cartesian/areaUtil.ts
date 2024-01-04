@@ -77,7 +77,7 @@ function prepPoints(key: 'top' | 'bottom', ctx: AreaSeriesNodeDataContext, point
 function pairFillCategoryData(
     newData: AreaSeriesNodeDataContext,
     oldData: AreaSeriesNodeDataContext,
-    diff: ProcessedOutputDiff
+    diff?: ProcessedOutputDiff
 ) {
     const oldPoints = splitFillPoints(oldData);
     const newPoints = splitFillPoints(newData);
@@ -124,14 +124,14 @@ export function prepareAreaPathAnimation(
     }
 
     const prepareMarkerPairs = () => {
-        if (isCategoryBased && diff) {
+        if (isCategoryBased) {
             return pairCategoryData(newData, oldData, diff, { backfillSplitMode: 'static', multiDatum: true });
         }
         return pairContinuousData(newData, oldData, { backfillSplitMode: 'static' });
     };
 
     const prepareFillPairs = () => {
-        if (isCategoryBased && diff) {
+        if (isCategoryBased) {
             return pairFillCategoryData(newData, oldData, diff);
         }
         return pairFillContinuousData(newData, oldData);

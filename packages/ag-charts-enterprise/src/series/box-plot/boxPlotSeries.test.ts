@@ -49,7 +49,7 @@ function switchSeriesType<T>(opts: T, direction: 'horizontal' | 'vertical'): T {
     };
 }
 
-describe('Chart', () => {
+describe('BoxPlotSeries', () => {
     const ctx = setupMockCanvas();
 
     beforeEach(() => {
