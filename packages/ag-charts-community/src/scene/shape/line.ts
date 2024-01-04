@@ -58,7 +58,7 @@ export class Line extends Shape {
     }
 
     override render(renderCtx: RenderContext) {
-        const { ctx, forceRender, stats } = renderCtx;
+        const { ctx, forceRender, stats, devicePixelRatio } = renderCtx;
 
         if (this.dirty === RedrawType.NONE && !forceRender) {
             if (stats) stats.nodesSkipped += this.nodeCount.count;
@@ -73,11 +73,17 @@ export class Line extends Shape {
         // Align to the pixel grid if the line is strictly vertical
         // or horizontal (but not both, i.e. a dot).
         if (x1 === x2) {
-            const x = Math.round(x1) + (Math.floor(this.strokeWidth) % 2) / 2;
+            const { strokeWidth } = this;
+            const x =
+                Math.round(x1 * devicePixelRatio) / devicePixelRatio +
+                (Math.trunc(strokeWidth * devicePixelRatio) % 2) / (devicePixelRatio * 2);
             x1 = x;
             x2 = x;
         } else if (y1 === y2) {
-            const y = Math.round(y1) + (Math.floor(this.strokeWidth) % 2) / 2;
+            const { strokeWidth } = this;
+            const y =
+                Math.round(y1 * devicePixelRatio) / devicePixelRatio +
+                (Math.trunc(strokeWidth * devicePixelRatio) % 2) / (devicePixelRatio * 2);
             y1 = y;
             y2 = y;
         }
