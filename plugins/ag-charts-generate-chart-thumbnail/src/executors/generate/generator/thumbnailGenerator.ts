@@ -73,7 +73,6 @@ export async function generateExample({ example, theme, outputPath }: Params) {
 
         AgCharts.update(chartProxy, {
             ...options,
-            theme,
             animation: { enabled: false },
             document,
             window,
