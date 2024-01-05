@@ -1,7 +1,6 @@
 import { defineMiddleware } from 'astro/middleware';
 import { parse } from 'node-html-parser';
-
-import { format } from '../utils/format';
+import * as prettier from 'prettier';
 
 const env = import.meta.env;
 
@@ -25,11 +24,6 @@ const rewriteAstroGeneratedContent = (body: string) => {
     });
     return html.toString();
 };
-
-// We only need to format `.html` files in middleware. The example `index.html` files are fetched in
-// the example runner components since the generated content only includes the example fragment
-// and not the wrapping framework.
-const EXTENSIONS_TO_FORMAT = ['html'];
 
 const BINARY_EXTENSIONS = ['png', 'webp', 'jpeg', 'jpg'];
 
@@ -62,13 +56,15 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
     if (isHtml(context.url.pathname)) {
         body = rewriteAstroGeneratedContent(body);
-    }
 
-    try {
-        body = await format(context.url.pathname, body, EXTENSIONS_TO_FORMAT);
-    } catch (e) {
-        // eslint-disable-next-line no-console
-        console.warn(`Unable to prettier format for [${context.url.pathname}]`);
+        try {
+            body = await prettier.format(body, {
+                parser: 'html',
+            });
+        } catch (e) {
+            // eslint-disable-next-line no-console
+            console.warn(`Unable to prettier format for [${context.url.pathname}]`);
+        }
     }
 
     return new Response(body, {
