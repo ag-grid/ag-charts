@@ -1,6 +1,20 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, AgRangeBarSeriesTooltipRendererParams, AgSeriesTooltip } from 'ag-charts-enterprise';
 
 import { getData } from './data';
+
+const tooltip: AgSeriesTooltip<AgRangeBarSeriesTooltipRendererParams> = {
+    renderer: ({ datum, xName, xKey, yLowKey, yHighKey, yLowName, yHighName }) => {
+        return {
+            content: `<b>${xName}:</b> ${datum[xKey]}<br/><b>${yLowName}: </b>${datum[yLowKey].toLocaleString('en-GB', {
+                notation: 'compact',
+                compactDisplay: 'short',
+            })}<br/><b>${yHighName}: </b>${datum[yHighKey].toLocaleString('en-GB', {
+                notation: 'compact',
+                compactDisplay: 'short',
+            })}`,
+        };
+    },
+};
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
@@ -43,6 +57,7 @@ const options: AgChartOptions = {
             }),
             strokeWidth: 1,
             lineDash: [3, 5],
+            tooltip,
         },
     ],
     axes: [
@@ -62,6 +77,11 @@ const options: AgChartOptions = {
             },
             label: {
                 formatter: ({ value }) => Number(value).toLocaleString(),
+            },
+            crosshair: {
+                label: {
+                    format: `s`,
+                },
             },
         },
     ],
