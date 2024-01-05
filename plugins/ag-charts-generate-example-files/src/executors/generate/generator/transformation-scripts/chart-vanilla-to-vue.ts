@@ -145,9 +145,5 @@ new Vue({
         );
     }
 
-    mainFile = await prettier.format(mainFile, {
-        parser: 'babel',
-    });
-
     return mainFile;
 }

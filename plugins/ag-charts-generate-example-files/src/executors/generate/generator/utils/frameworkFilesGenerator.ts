@@ -66,6 +66,8 @@ const createVueFilesGenerator =
             mainJs = mainJs + '\n' + getDarkModeSnippet();
         }
 
+        mainJs = await prettier.format(mainJs, { parser: 'babel' });
+
         const entryFileName = getEntryFileName(internalFramework)!;
         const mainFileName = getMainFileName(internalFramework)!;
 
@@ -90,16 +92,6 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         const mainFileName = getMainFileName(internalFramework)!;
         let mainJs = readAsJsFile(entryFile);
 
-        mainJs = await prettier.format(mainJs, { parser: 'babel' });
-
-        // add website dark mode handling code to doc examples - this code is later striped out from the code viewer / plunker
-        if (!ignoreDarkMode) {
-            mainJs =
-                mainJs +
-                `\n
-                ${getDarkModeSnippet({ chartAPI: 'agCharts.AgCharts' })}`;
-        }
-
         // Chart classes that need scoping
         const chartImports = typedBindings.imports.find(
             (i: any) => i.module.includes('ag-charts-community') || i.module.includes('ag-charts-enterprise')
@@ -111,6 +103,16 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
                 mainJs = mainJs.replace(reg, `agCharts.${i}$1`);
             });
         }
+
+        // add website dark mode handling code to doc examples - this code is later striped out from the code viewer / plunker
+        if (!ignoreDarkMode) {
+            mainJs =
+                mainJs +
+                `\n
+            ${getDarkModeSnippet({ chartAPI: 'agCharts.AgCharts' })}`;
+        }
+
+        mainJs = await prettier.format(mainJs, { parser: 'babel' });
 
         return {
             files: {
@@ -134,7 +136,7 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         // Attach external event handlers
         let externalEventHandlersCode;
         if (externalEventHandlers?.length > 0) {
-            const externalBindings = externalEventHandlers.map((e) => ` (<any>window).${e.name} = ${e.name};`);
+            const externalBindings = externalEventHandlers.map((e) => `   (<any>window).${e.name} = ${e.name};`);
             externalEventHandlersCode = [
                 '\n',
                 "if (typeof window !== 'undefined') {",
@@ -144,22 +146,24 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             ].join('\n');
         }
 
-        let mainTsx = externalEventHandlersCode ? `${entryFile}${externalEventHandlersCode}` : entryFile;
+        let mainTs = externalEventHandlersCode ? `${entryFile}${externalEventHandlersCode}` : entryFile;
+
+        const chartAPI = 'AgCharts';
+        if (!mainTs.includes(`chart = ${chartAPI}`)) {
+            mainTs = mainTs.replace(`${chartAPI}.create(options);`, `const chart = ${chartAPI}.create(options);`);
+        }
 
         // add website dark mode handling code to doc examples - this code is later striped out from the code viewer / plunker
         if (!ignoreDarkMode) {
-            const chartAPI = 'AgCharts';
-            if (!mainTsx.includes(`chart = ${chartAPI}`)) {
-                mainTsx = mainTsx.replace(`${chartAPI}.create(options);`, `const chart = ${chartAPI}.create(options);`);
-            }
-
-            mainTsx = mainTsx + '\n' + getDarkModeSnippet({ chartAPI });
+            mainTs = mainTs + '\n' + getDarkModeSnippet({ chartAPI });
         }
+
+        mainTs = await prettier.format(mainTs, { parser: 'typescript' });
 
         return {
             files: {
                 ...otherScriptFiles,
-                [entryFileName]: mainTsx,
+                [entryFileName]: mainTs,
                 'index.html': indexHtml,
             },
             boilerPlateFiles,
@@ -180,6 +184,8 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         if (!ignoreDarkMode) {
             indexJsx = indexJsx + '\n' + getDarkModeSnippet();
         }
+
+        indexJsx = await prettier.format(indexJsx, { parser: 'babel' });
 
         return {
             files: {
@@ -207,6 +213,8 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             indexTsx = indexTsx + '\n' + getDarkModeSnippet();
         }
 
+        indexTsx = await prettier.format(indexTsx, { parser: 'typescript' });
+
         return {
             files: {
                 ...otherScriptFiles,
@@ -231,6 +239,8 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         if (!ignoreDarkMode) {
             appComponent = appComponent + '\n' + getDarkModeSnippet();
         }
+
+        appComponent = await prettier.format(appComponent, { parser: 'typescript' });
 
         return {
             files: {

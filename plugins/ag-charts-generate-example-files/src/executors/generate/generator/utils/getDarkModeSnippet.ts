@@ -12,13 +12,12 @@ const applyDarkmode = () => {
         const chart = ${chartAPI ?? 'AgChartsAPI'}.getInstance(element);
         if (chart == null) return;
         let options = chart.getOptions();
-        options = {
-            ...options,
-            theme: {
-                ...options.theme,
-                baseTheme: darkmode ? "ag-default-dark" : "ag-default",
-            },
-        };
+        let theme = options.theme;
+        if (typeof theme === "string" && theme.startsWith("ag-")) {
+            const baseTheme = theme.replace(/-dark$/, '');
+            theme = darkmode ? baseTheme + '-dark' : baseTheme;
+            options.theme = theme;
+        }
         ${chartAPI ?? 'AgChartsAPI'}.update(chart, options);
     });
     return charts.length !== 0;

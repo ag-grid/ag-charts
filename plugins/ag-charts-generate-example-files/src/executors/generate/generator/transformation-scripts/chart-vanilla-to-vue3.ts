@@ -140,9 +140,5 @@ createApp(ChartExample).mount("#app");
         );
     }
 
-    mainFile = await prettier.format(mainFile, {
-        parser: 'babel',
-    });
-
     return mainFile;
 }

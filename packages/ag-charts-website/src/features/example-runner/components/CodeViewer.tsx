@@ -16,7 +16,7 @@ const startDelimiter = DARK_MODE_START;
 const endDelimiter = DARK_MODE_END;
 const escapedStart = startDelimiter.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const escapedEnd = endDelimiter.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-const regex = new RegExp(`${escapedStart}[\\s\\S]*?${escapedEnd}`, 'g');
+const regex = new RegExp(`\\s*${escapedStart}[\\s\\S]*?${escapedEnd}\\s*`, 'g');
 
 const ExtensionMap = {
     sh: 'bash',
@@ -29,7 +29,7 @@ function stripOutDarkModeCode(files: FileContents) {
     const mainFiles = ['main.js', 'main.ts', 'index.tsx', 'index.jsx', 'app.component.ts'];
     mainFiles.forEach((mainFile) => {
         if (files[mainFile]) {
-            files[mainFile] = files[mainFile].replace(regex, '');
+            files[mainFile] = files[mainFile].replace(regex, '').trim() + '\n';
         }
     });
 }

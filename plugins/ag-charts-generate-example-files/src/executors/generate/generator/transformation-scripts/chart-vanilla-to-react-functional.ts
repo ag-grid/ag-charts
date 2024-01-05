@@ -119,9 +119,5 @@ root.render(<ChartExample />);
         indexFile = indexFile.replace(/\(this.chartRef.current.chart, options/g, '(chartRef.current.chart, options');
     }
 
-    indexFile = await prettier.format(indexFile, {
-        parser: 'babel',
-    });
-
     return indexFile;
 }

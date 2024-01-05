@@ -120,9 +120,5 @@ ${bindings.globals.join('\n')}
         appComponent = appComponent.replace(/\(this.agCharts.chart!, options/g, '(this.agCharts.chart!, this.options');
     }
 
-    appComponent = await prettier.format(appComponent, {
-        parser: 'typescript',
-    });
-
     return appComponent;
 }
