@@ -134,8 +134,7 @@
       "**/@vue/**",
       "**/vue",
       "**/vue-template-compiler",
-      "**/vue-class-component",
-      "**/ng-packagr"
+      "**/vue-class-component"
     ]
   }
 }
