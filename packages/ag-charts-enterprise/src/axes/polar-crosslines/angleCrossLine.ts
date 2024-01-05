@@ -2,7 +2,7 @@ import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import { PolarCrossLine } from './polarCrossLine';
 
-const { ChartAxisDirection } = _ModuleSupport;
+const { ChartAxisDirection, validateCrossLineValues } = _ModuleSupport;
 const { Path, Sector, Text } = _Scene;
 const { normalizeAngle360, isNumberEqual } = _Util;
 export class AngleCrossLine extends PolarCrossLine {
@@ -25,7 +25,15 @@ export class AngleCrossLine extends PolarCrossLine {
     }
 
     update(visible: boolean) {
-        const { scale, shape, type, value } = this;
+        const { scale, shape, type, value, range } = this;
+
+        if (!scale || !type || !validateCrossLineValues(type, value, range, scale)) {
+            this.group.visible = false;
+            return;
+        }
+
+        this.group.visible = visible;
+
         if (type === 'line' && shape === 'circle' && scale instanceof _Scale.BandScale) {
             this.type = 'range';
             this.range = [value, value];

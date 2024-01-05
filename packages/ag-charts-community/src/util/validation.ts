@@ -68,11 +68,23 @@ export function Validate(predicate: ValidatePredicate, options: ValidateOptions 
     );
 }
 
-export const AND = (...predicates: ValidatePredicate[]) =>
-    predicateWithMessage(
-        (value, ctx) => predicates.every((predicate) => predicate(value, ctx)),
-        (ctx) => predicates.map(getPredicateMessageMapper(ctx)).filter(Boolean).join(' AND ')
+export const AND = (...predicates: ValidatePredicate[]) => {
+    const messages: (string | undefined)[] = [];
+    return predicateWithMessage(
+        (value, ctx) => {
+            messages.length = 0;
+            return predicates.every((predicate) => {
+                const isValid = predicate(value, ctx);
+                if (!isValid) {
+                    messages.push(getPredicateMessage(predicate, ctx));
+                }
+                return isValid;
+            });
+        },
+        () => messages.filter(Boolean).join(' AND ')
     );
+};
+
 export const OR = (...predicates: ValidatePredicate[]) =>
     predicateWithMessage(
         (value, ctx) => predicates.some((predicate) => predicate(value, ctx)),
@@ -198,7 +210,11 @@ function attachArrayRestrictions(predicate: ValidatePredicate): ValidateArrayPre
                     isArray(value) &&
                     (isNumber(length) ? value.length === length : true) &&
                     (isNumber(minLength) ? value.length >= minLength : true),
-                isNumber(minLength) && minLength > 0 ? 'a non-empty array' : 'an array'
+                isNumber(minLength) && minLength > 0
+                    ? 'a non-empty array'
+                    : isNumber(length)
+                      ? `an array of length ${length}`
+                      : 'an array'
             );
         },
     });
@@ -240,7 +256,7 @@ function attachObjectRestrictions(predicate: ValidatePredicate): ValidateObjectP
     });
 }
 
-function stringify(value: any): string {
+export function stringify(value: any): string {
     if (typeof value === 'number') {
         if (isNaN(value)) return 'NaN';
         if (value === Infinity) return 'Infinity';
