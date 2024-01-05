@@ -445,12 +445,11 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
     protected override animateEmptyUpdateReady(animationData: LineAnimationData) {
         const { markerSelections, labelSelections, annotationSelections, contextData, paths } = animationData;
         const { animationManager } = this.ctx;
-        const { seriesRectWidth: width = 0 } = this.nodeDataDependencies;
 
         this.updateLinePaths(paths, contextData);
         pathSwipeInAnimation(this, animationManager, paths.flat());
         resetMotion(markerSelections, resetMarkerPositionFn);
-        markerSwipeScaleInAnimation(this, animationManager, markerSelections, width);
+        markerSwipeScaleInAnimation(this, animationManager, markerSelections);
         seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
         seriesLabelFadeInAnimation(this, 'annotations', animationManager, annotationSelections);
     }

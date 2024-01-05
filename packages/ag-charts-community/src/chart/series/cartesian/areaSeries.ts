@@ -649,12 +649,11 @@ export class AreaSeries extends CartesianSeries<
     override animateEmptyUpdateReady(animationData: AreaAnimationData) {
         const { markerSelections, labelSelections, contextData, paths } = animationData;
         const { animationManager } = this.ctx;
-        const { seriesRectWidth: width = 0 } = this.nodeDataDependencies;
 
         this.updateAreaPaths(paths, contextData);
         pathSwipeInAnimation(this, animationManager, paths.flat());
         resetMotion(markerSelections, resetMarkerPositionFn);
-        markerSwipeScaleInAnimation(this, animationManager, markerSelections, width);
+        markerSwipeScaleInAnimation(this, animationManager, markerSelections);
         seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
     }
 
