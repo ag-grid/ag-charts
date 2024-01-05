@@ -65,7 +65,7 @@ export const validateCrossLineValues = (
 
     message.push(`to match the axis scale domain.`);
 
-    Logger.warnOnce(message.filter(Boolean).join(' '));
+    Logger.warnOnce(message.join(' '));
 
     return false;
 };
