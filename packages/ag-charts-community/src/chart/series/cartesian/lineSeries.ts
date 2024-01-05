@@ -5,7 +5,6 @@ import { resetMotion } from '../../../motion/resetMotion';
 import type { FontStyle, FontWeight } from '../../../options/agChartOptions';
 import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
-import { Path2D } from '../../../scene/path2D';
 import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
 import type { Text } from '../../../scene/shape/text';
@@ -33,7 +32,7 @@ import { CartesianSeries } from './cartesianSeries';
 import { LineSeriesProperties } from './lineSeriesProperties';
 import { prepareLinePathAnimation } from './lineUtil';
 import { markerSwipeScaleInAnimation, resetMarkerFn, resetMarkerPositionFn } from './markerUtil';
-import { buildResetPathFn, pathSwipeInAnimation } from './pathUtil';
+import { buildResetPathFn, pathSwipeInAnimation, updateClipPath } from './pathUtil';
 
 export interface LineNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum {
     readonly point: CartesianSeriesNodeDatum['point'] & {
@@ -243,7 +242,6 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
             visible,
             animationEnabled,
         } = opts;
-        const { seriesRectHeight: height, seriesRectWidth: width } = this.nodeDataDependencies;
 
         lineNode.setProperties({
             fill: undefined,
@@ -261,13 +259,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
             lineNode.visible = visible;
         }
 
-        if (lineNode.clipPath == null) {
-            lineNode.clipPath = new Path2D();
-            lineNode.clipScalingX = 1;
-            lineNode.clipScalingY = 1;
-        }
-        lineNode.clipPath?.clear({ trackChanges: true });
-        lineNode.clipPath?.rect(-25, -25, (width ?? 0) + 50, (height ?? 0) + 50);
+        updateClipPath(this, lineNode);
     }
 
     protected override async updateMarkerSelection(opts: {
