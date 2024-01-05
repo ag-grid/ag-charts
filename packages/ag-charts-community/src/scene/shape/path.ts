@@ -23,17 +23,24 @@ export class Path extends Shape {
      */
     readonly path = new Path2D();
 
-    @ScenePathChangeDetection()
-    clipPath?: Path2D;
+    private _clipX: number = NaN;
+    private _clipY: number = NaN;
+    private _clipPath?: Path2D;
 
     @ScenePathChangeDetection()
     clipMode?: 'normal' | 'punch-out';
 
     @ScenePathChangeDetection()
-    clipScalingX = 1;
+    set clipX(value: number) {
+        this._clipX = value;
+        this.dirtyPath = true;
+    }
 
     @ScenePathChangeDetection()
-    clipScalingY = 1;
+    set clipY(value: number) {
+        this._clipY = value;
+        this.dirtyPath = true;
+    }
 
     /**
      * The path only has to be updated when certain attributes change.
@@ -60,7 +67,7 @@ export class Path extends Shape {
         }
 
         this.dirtyPath =
-            this.path.isDirty() || (this.fillShadow?.isDirty() ?? false) || (this.clipPath?.isDirty() ?? false);
+            this.path.isDirty() || (this.fillShadow?.isDirty() ?? false) || (this._clipPath?.isDirty() ?? false);
     }
 
     isPointInPath(x: number, y: number): boolean {
@@ -75,18 +82,6 @@ export class Path extends Shape {
 
     updatePath() {
         // Override point for subclasses.
-    }
-
-    private clip(ctx: CanvasRenderingContext2D, op: () => void) {
-        const transform = ctx.getTransform();
-        const clipScale = this.clipScalingX !== 1 || this.clipScalingY !== 1;
-        if (clipScale) {
-            ctx.scale(this.clipScalingX, this.clipScalingY);
-        }
-        op();
-        if (clipScale) {
-            ctx.setTransform(transform);
-        }
     }
 
     override render(renderCtx: RenderContext) {
@@ -105,31 +100,31 @@ export class Path extends Shape {
             this.dirtyPath = false;
         }
 
-        if (this.clipPath && this.clipMode != null) {
+        if (!isNaN(this._clipX) && !isNaN(this._clipY) && this.clipMode != null) {
             ctx.save();
 
+            this._clipPath ??= new Path2D();
+            this._clipPath.clear();
+            this._clipPath.rect(0, 0, this._clipX, this._clipY);
+
             if (this.clipMode === 'normal') {
-                this.clip(ctx, () => {
-                    // Bound the shape rendered to the clipping path.
-                    this.clipPath?.draw(ctx);
-                    ctx.clip();
-                });
+                // Bound the shape rendered to the clipping path.
+                this._clipPath?.draw(ctx);
+                ctx.clip();
             }
 
-            if (this.clipScalingX > 0 && this.clipScalingY > 0) {
+            if (this.clipX > 0 && this.clipY > 0) {
                 this.path.draw(ctx);
                 this.fillStroke(ctx);
             }
 
             if (this.clipMode === 'punch-out') {
-                this.clip(ctx, () => {
-                    // Bound the shape rendered to the clipping path.
-                    this.clipPath?.draw(ctx);
-                    ctx.clip();
-                    // Fallback values, but practically these should never be used.
-                    const { x = -10000, y = -10000, width = 20000, height = 20000 } = this.computeBBox() ?? {};
-                    ctx.clearRect(x, y, width, height);
-                });
+                // Bound the shape rendered to the clipping path.
+                this._clipPath?.draw(ctx);
+                ctx.clip();
+                // Fallback values, but practically these should never be used.
+                const { x = -10000, y = -10000, width = 20000, height = 20000 } = this.computeBBox() ?? {};
+                ctx.clearRect(x, y, width, height);
             }
 
             ctx.restore();

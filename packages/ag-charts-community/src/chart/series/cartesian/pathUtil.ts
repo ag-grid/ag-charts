@@ -1,6 +1,5 @@
 import { LABEL_PHASE } from '../../../motion/animation';
 import { staticFromToMotion } from '../../../motion/fromToMotion';
-import { Path2D } from '../../../scene/path2D';
 import type { Point } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
@@ -147,19 +146,20 @@ export function renderPartialPath(pairData: PathPoint[], ratios: Partial<Record<
 }
 
 export function pathSwipeInAnimation(
-    { id, visible }: { id: string; visible: boolean },
+    { id, visible, nodeDataDependencies }: { id: string; visible: boolean } & NodeDataDependant,
     animationManager: AnimationManager,
     paths: Path[]
 ) {
+    const { seriesRectWidth: width, seriesRectHeight: height } = nodeDataDependencies;
     staticFromToMotion(
         id,
         'path_properties',
         animationManager,
         paths,
-        { clipScalingX: 0 },
-        { clipScalingX: 1 },
+        { clipX: 0 },
+        { clipX: width },
         {
-            start: { clipMode: 'normal', visible },
+            start: { clipMode: 'normal', clipY: height, visible },
             finish: { clipMode: undefined, visible },
         }
     );
@@ -190,12 +190,6 @@ export function buildResetPathFn(opts: { getOpacity(): number }) {
 }
 
 export function updateClipPath({ nodeDataDependencies }: NodeDataDependant, path: Path): void {
-    const { seriesRectHeight: height, seriesRectWidth: width } = nodeDataDependencies;
-    if (path.clipPath == null) {
-        path.clipPath = new Path2D();
-        path.clipScalingX = 1;
-        path.clipScalingY = 1;
-    }
-    path.clipPath?.clear({ trackChanges: true });
-    path.clipPath?.rect(-25, -25, toReal(width) + 50, toReal(height) + 50);
+    path.clipX = toReal(nodeDataDependencies.seriesRectWidth);
+    path.clipY = toReal(nodeDataDependencies.seriesRectHeight);
 }
