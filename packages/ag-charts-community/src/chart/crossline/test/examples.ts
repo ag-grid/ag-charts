@@ -13,6 +13,7 @@ export const AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE: AgCartesianChartOptions =
     loadExampleOptions('area-with-negative-values');
 
 type CrossLinesRangeConfig = Record<string, { vertical: [Date, Date]; horizontal: [number, number] }>;
+type InvalidCrossLineConfig = Record<string, AgCartesianCrossLineOptions>;
 
 const baseChartOptions: AgCartesianChartOptions = {
     data: DATA_OIL_PETROLEUM,
@@ -98,6 +99,29 @@ const createChartOptions = (rangeConfig: CrossLinesRangeConfig): Record<string, 
     return result;
 };
 
+const createChartOptionsWithInvalidCrossLines = (
+    config: InvalidCrossLineConfig
+): Record<string, AgCartesianChartOptions> => {
+    const result: Record<string, AgCartesianChartOptions> = {};
+
+    for (const name in config) {
+        const invalidCrossLineOptions = config[name];
+        result[name] = {
+            ...baseChartOptions,
+            axes: baseChartOptions['axes']?.map((axis) => {
+                return axis.position === 'left'
+                    ? {
+                          ...axis,
+                          crossLines: [{ ...baseCrossLineOptions, type: undefined, ...invalidCrossLineOptions }],
+                      }
+                    : axis;
+            }),
+        };
+    }
+
+    return result;
+};
+
 const crossLinesOptions: CrossLinesRangeConfig = {
     VALID_RANGE: {
         vertical: [new Date(Date.UTC(2019, 4, 1)), new Date(Date.UTC(2019, 8, 1))],
@@ -125,6 +149,35 @@ const crossLinesOptions: CrossLinesRangeConfig = {
     },
 };
 
+const invalidCrossLinesOptions: InvalidCrossLineConfig = {
+    INVALID_RANGE_VALUE_CROSSLINE: {
+        type: 'range',
+        range: [undefined, 134],
+    },
+    INVALID_RANGE_LENGTH_CROSSLINE: {
+        type: 'range',
+        range: [128, 134, 135] as any,
+    },
+    INVALID_RANGE_WITHOUT_TYPE_CROSSLINE: {
+        range: [128, 134],
+    },
+    INVALID_RANGE_WITH_LINE_TYPE_CROSSLINE: {
+        type: 'line',
+        range: [128, 134],
+    },
+    INVALID_LINE_VALUE_CROSSLINES: {
+        type: 'line',
+        value: 'a string instead of number',
+    },
+    INVALID_LINE_WITHOUT_TYPE_CROSSLINE: {
+        value: 128,
+    },
+    INVALID_LINE_WITH_RANGE_TYPE_CROSSLINE: {
+        type: 'range',
+        value: 128,
+    },
+};
+
 const crossLineLabelPositionOptions: CrossLinesRangeConfig = {
     LABEL: {
         ...crossLinesOptions.VALID_RANGE,
@@ -136,13 +189,26 @@ const chartOptions: Record<string, AgCartesianChartOptions> = createChartOptions
     ...crossLineLabelPositionOptions,
 });
 
+const invalidChartOptions: Record<string, AgCartesianChartOptions> =
+    createChartOptionsWithInvalidCrossLines(invalidCrossLinesOptions);
+
 export const VALID_RANGE_CROSSLINES: AgCartesianChartOptions = chartOptions['VALID_RANGE'];
 export const RANGE_OUTSIDE_DOMAIN_MAX_CROSSLINES: AgCartesianChartOptions = chartOptions['RANGE_OUTSIDE_DOMAIN_MAX'];
 export const RANGE_OUTSIDE_DOMAIN_MIN_CROSSLINES: AgCartesianChartOptions = chartOptions['RANGE_OUTSIDE_DOMAIN_MIN'];
 export const RANGE_OUTSIDE_DOMAIN_MIN_MAX_CROSSLINES: AgCartesianChartOptions =
     chartOptions['RANGE_OUTSIDE_DOMAIN_MIN_MAX'];
 export const RANGE_OUTSIDE_DOMAIN_CROSSLINES: AgCartesianChartOptions = chartOptions['RANGE_OUTSIDE_DOMAIN'];
-export const INVALID_RANGE_CROSSLINES: AgCartesianChartOptions = chartOptions['INVALID_RANGE'];
+
+export const INVALID_RANGE_VALUE_CROSSLINE: AgCartesianChartOptions =
+    invalidChartOptions['INVALID_RANGE_VALUE_CROSSLINE'];
+export const INVALID_RANGE_LENGTH_CROSSLINE: AgCartesianChartOptions =
+    invalidChartOptions['INVALID_RANGE_LENGTH_CROSSLINE'];
+export const INVALID_RANGE_WITHOUT_TYPE_CROSSLINE: AgCartesianChartOptions =
+    invalidChartOptions['INVALID_RANGE_WITHOUT_TYPE_CROSSLINE'];
+export const INVALID_LINE_VALUE_CROSSLINES = invalidChartOptions['INVALID_LINE_VALUE_CROSSLINES'];
+export const INVALID_RANGE_WITH_LINE_TYPE_CROSSLINE = invalidChartOptions['INVALID_RANGE_WITH_LINE_TYPE_CROSSLINE'];
+export const INVALID_LINE_WITHOUT_TYPE_CROSSLINE = invalidChartOptions['INVALID_LINE_WITHOUT_TYPE_CROSSLINE'];
+export const INVALID_LINE_WITH_RANGE_TYPE_CROSSLINE = invalidChartOptions['INVALID_LINE_WITH_RANGE_TYPE_CROSSLINE'];
 
 export const DEFAULT_LABEL_POSITION_CROSSLINES: AgCartesianChartOptions = chartOptions['LABEL'];
 

@@ -15,7 +15,9 @@ const {
     RATIO,
     STRING,
     UNION,
+    AND,
     Validate,
+    MATCHING_CROSSLINE_TYPE,
 } = _ModuleSupport;
 
 const { Group } = _Scene;
@@ -68,8 +70,12 @@ export abstract class PolarCrossLine implements _ModuleSupport.CrossLine {
     @Validate(UNION(['range', 'line'], 'a crossLine type'), { optional: true })
     type?: _ModuleSupport.CrossLineType = undefined;
 
-    @Validate(ARRAY.restrict({ length: 2 }), { optional: true })
+    @Validate(AND(MATCHING_CROSSLINE_TYPE('range'), ARRAY.restrict({ length: 2 })), {
+        optional: true,
+    })
     range?: [any, any] = undefined;
+
+    @Validate(MATCHING_CROSSLINE_TYPE('value'), { optional: true })
     value?: any = undefined;
 
     @Validate(COLOR_STRING, { optional: true })

@@ -16,6 +16,7 @@ import { Text } from '../../scene/shape/text';
 import { createId } from '../../util/id';
 import { clampArray, isEqual } from '../../util/number';
 import {
+    AND,
     ARRAY,
     BOOLEAN,
     COLOR_STRING,
@@ -30,11 +31,10 @@ import {
     UNION,
     Validate,
 } from '../../util/validation';
-import { checkDatum } from '../../util/value';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { calculateLabelRotation } from '../label';
 import { Layers } from '../layers';
-import type { CrossLine, CrossLineType } from './crossLine';
+import { type CrossLine, type CrossLineType, MATCHING_CROSSLINE_TYPE, validateCrossLineValues } from './crossLine';
 import type { CrossLineLabelPosition } from './crossLineLabelPosition';
 import {
     POSITION_TOP_COORDINATES,
@@ -123,8 +123,12 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
     @Validate(UNION(['range', 'line'], 'a crossLine type'), { optional: true })
     type?: CrossLineType = undefined;
 
-    @Validate(ARRAY.restrict({ length: 2 }), { optional: true })
+    @Validate(AND(MATCHING_CROSSLINE_TYPE('range'), ARRAY.restrict({ length: 2 })), {
+        optional: true,
+    })
     range?: [any, any] = undefined;
+
+    @Validate(MATCHING_CROSSLINE_TYPE('value'), { optional: true })
     value?: any = undefined;
 
     @Validate(COLOR_STRING, { optional: true })
@@ -176,12 +180,20 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
     }
 
     update(visible: boolean) {
-        if (!this.enabled || !visible || this.data.length === 0) {
+        const { enabled, data, type, value, range, scale } = this;
+        if (
+            !type ||
+            !scale ||
+            !enabled ||
+            !visible ||
+            !validateCrossLineValues(type, value, range, scale) ||
+            data.length === 0
+        ) {
             this.group.visible = false;
             return;
         }
 
-        this.group.visible = true;
+        this.group.visible = visible;
         this.group.zIndex = this.getZIndex(this.isRange);
         this.updateNodes();
     }
@@ -407,22 +419,14 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
         const { value, range, scale } = this;
 
         const isContinuous = ContinuousScale.is(scale);
-
-        let [start, end] = range ?? [value, undefined];
+        const start = range?.[0] ?? value;
+        let end = range?.[1];
 
         if (!isContinuous && end === undefined) {
             end = start;
         }
 
-        start = checkDatum(start, isContinuous) != null ? start : undefined;
-        end = checkDatum(end, isContinuous) != null ? end : undefined;
-
         if (isContinuous && start === end) {
-            end = undefined;
-        }
-
-        if (start === undefined && end !== undefined) {
-            start = end;
             end = undefined;
         }
 
