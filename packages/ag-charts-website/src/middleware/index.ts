@@ -1,5 +1,6 @@
 import { defineMiddleware } from 'astro/middleware';
 import { parse } from 'node-html-parser';
+import * as prettier from 'prettier';
 
 const env = import.meta.env;
 
@@ -55,6 +56,15 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
     if (isHtml(context.url.pathname)) {
         body = rewriteAstroGeneratedContent(body);
+    }
+
+    try {
+        body = await prettier.format(body, {
+            parser: 'html',
+        });
+    } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn(`Unable to prettier format for [${context.url.pathname}]`);
     }
 
     return new Response(body, {
