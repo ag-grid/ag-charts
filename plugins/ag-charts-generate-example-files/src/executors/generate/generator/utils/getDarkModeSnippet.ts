@@ -4,7 +4,7 @@ export const DARK_MODE_END = '/** DARK MODE END **/';
 export const getDarkModeSnippet = ({ chartAPI }: { chartAPI?: string } = {}) =>
     `${DARK_MODE_START}
 ${chartAPI == null ? `import { AgCharts as AgChartsAPI } from 'ag-charts-community';` : ''}
-let darkmode = localStorage["documentation:darkmode"] === "true";
+let darkmode = (localStorage["documentation:darkmode"] || String(matchMedia("(prefers-color-scheme: dark)").matches)) === "true";
 const applyDarkmode = () => {
     document.head.setAttribute("data-dark-mode", darkmode);
     const charts = document.querySelectorAll("[data-ag-charts]")

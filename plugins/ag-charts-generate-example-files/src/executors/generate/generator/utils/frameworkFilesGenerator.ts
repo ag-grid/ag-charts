@@ -56,10 +56,16 @@ const createVueFilesGenerator =
         sourceGenerator: (bindings: any, componentFilenames: string[]) => Promise<string>;
         internalFramework: InternalFramework;
     }): ConfigGenerator =>
-    async ({ bindings, indexHtml, otherScriptFiles, isDev }) => {
+    async ({ bindings, indexHtml, otherScriptFiles, isDev, ignoreDarkMode }) => {
         const boilerPlateFiles = await getBoilerPlateFiles(isDev, internalFramework);
 
-        const mainJs = await sourceGenerator(deepCloneObject(bindings), []);
+        let mainJs = await sourceGenerator(deepCloneObject(bindings), []);
+
+        // add website dark mode handling code to doc examples - this code is later striped out from the code viewer / plunker
+        if (!ignoreDarkMode) {
+            mainJs = mainJs + '\n' + getDarkModeSnippet();
+        }
+
         const entryFileName = getEntryFileName(internalFramework)!;
         const mainFileName = getMainFileName(internalFramework)!;
 
