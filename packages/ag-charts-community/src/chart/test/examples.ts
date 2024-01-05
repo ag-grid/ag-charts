@@ -144,6 +144,158 @@ export const GROUPED_CATEGORY_AXIS_EXAMPLE: AgCartesianChartOptions = {};
     });
 }
 
+const prepareIntegratedChartsData = (data: any[], ...fields: string[]) => {
+    return data.map((d) => {
+        const result = { ...d };
+
+        for (const field of fields) {
+            const fieldData = result[field];
+            result[field] = {
+                ...result[field],
+                toString: () =>
+                    fieldData.labels
+                        .filter((s: string) => !!s)
+                        .reverse()
+                        .join(' - '),
+            };
+        }
+
+        return result;
+    });
+};
+
+export const INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_EXAMPLE: AgCartesianChartOptions & { mode: string } = {
+    mode: 'integrated',
+    data: prepareIntegratedChartsData(
+        [
+            {
+                'ag-Grid-AutoColumn-country': {
+                    labels: ['', '', 'Enchanted Kingdom of Celestria'],
+                },
+            },
+            {
+                'ag-Grid-AutoColumn-country': {
+                    labels: ['', '2008', 'Enchanted Kingdom of Celestria'],
+                },
+                gold: 8,
+                silver: 0,
+                bronze: 0,
+            },
+            {
+                'ag-Grid-AutoColumn-country': {
+                    labels: ['', '2008', 'Enchanted Kingdom of Celestria'],
+                },
+                gold: 1,
+                silver: 2,
+                bronze: 3,
+            },
+            {
+                'ag-Grid-AutoColumn-country': {
+                    labels: ['', '2008', 'Enchanted Kingdom of Celestria'],
+                },
+                gold: 8,
+                silver: 0,
+                bronze: 0,
+            },
+            {
+                'ag-Grid-AutoColumn-country': {
+                    labels: ['', '2008', 'Enchanted Kingdom of Celestria'],
+                },
+                gold: 1,
+                silver: 2,
+                bronze: 3,
+            },
+            {
+                'ag-Grid-AutoColumn-country': {
+                    labels: ['', '', 'Whimsical Wonderland of Dreamlandia'],
+                },
+            },
+            {
+                'ag-Grid-AutoColumn-country': {
+                    labels: ['', '2004', 'Whimsical Wonderland of Dreamlandia'],
+                },
+                gold: 6,
+                silver: 0,
+                bronze: 2,
+            },
+            {
+                'ag-Grid-AutoColumn-country': {
+                    labels: ['', '2004', 'Whimsical Wonderland of Dreamlandia'],
+                },
+                gold: 6,
+                silver: 0,
+                bronze: 2,
+            },
+            {
+                'ag-Grid-AutoColumn-country': {
+                    labels: ['', '', 'Eternal Empire of Nebulon'],
+                },
+            },
+            {
+                'ag-Grid-AutoColumn-country': {
+                    labels: ['', '2012', 'Eternal Empire of Nebulon'],
+                },
+                gold: 4,
+                silver: 2,
+                bronze: 0,
+            },
+            {
+                'ag-Grid-AutoColumn-country': {
+                    labels: ['', '2012', 'Eternal Empire of Nebulon'],
+                },
+                gold: 4,
+                silver: 2,
+                bronze: 0,
+            },
+            {
+                'ag-Grid-AutoColumn-country': {
+                    labels: ['', '', 'Mystical Realm of Eldoria'],
+                },
+            },
+        ],
+        'ag-Grid-AutoColumn-country'
+    ),
+    axes: [
+        {
+            type: 'grouped-category',
+            position: 'bottom',
+        },
+        {
+            type: 'number',
+            position: 'left',
+        },
+    ],
+    series: [
+        {
+            type: 'bar',
+            direction: 'vertical',
+            stacked: false,
+            xKey: 'ag-Grid-AutoColumn-country',
+            xName: 'Country',
+            yKey: 'gold',
+            yName: 'Gold',
+        },
+        {
+            type: 'bar',
+            direction: 'vertical',
+            stacked: false,
+            xKey: 'ag-Grid-AutoColumn-country',
+            xName: 'Country',
+            yKey: 'silver',
+            yName: 'Silver',
+        },
+        {
+            type: 'bar',
+            direction: 'vertical',
+            stacked: false,
+            xKey: 'ag-Grid-AutoColumn-country',
+            xName: 'Country',
+            yKey: 'bronze',
+            yName: 'Bronze',
+        },
+    ],
+};
+
 export const AREA_MISSING_Y_DATA_EXAMPLE: AgCartesianChartOptions = {
     data: DATA_INTERNET_EXPLORER_MARKET_SHARE_BAD_Y_VALUE,
     axes: [

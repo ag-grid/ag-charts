@@ -142,12 +142,13 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
             });
 
         const domain = new Array<any>().concat(...domains);
-        const values = extent(domain) ?? domain;
+        const domainExtent = extent(domain) ?? domain;
+        const values = this.reverse ? [...domainExtent].reverse() : domainExtent;
 
         const { domain: normalisedDataDomain, clipped } = this.normaliseDataDomain(values);
 
         this.dataDomain = {
-            domain: this.reverse ? [...normalisedDataDomain].reverse() : normalisedDataDomain,
+            domain: normalisedDataDomain,
             clipped,
         };
         this.scale.domain = normalisedDataDomain;
