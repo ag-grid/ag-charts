@@ -38,6 +38,7 @@ export class RadiusCrossLine extends PolarCrossLine {
         const { scale, type, value, range } = this;
         if (!scale || !type || !validateCrossLineValues(type, value, range, scale)) {
             this.group.visible = false;
+            this.labelGroup.visible = false;
             return;
         }
 
@@ -52,6 +53,7 @@ export class RadiusCrossLine extends PolarCrossLine {
         visible &&= innerRadius >= this.axisInnerRadius && outerRadius <= this.axisOuterRadius;
 
         this.group.visible = visible;
+        this.labelGroup.visible = visible;
 
         this.updatePolygonNode(visible);
         this.updateSectorNode(visible);
