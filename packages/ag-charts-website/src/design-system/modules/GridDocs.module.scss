@@ -7,33 +7,23 @@
 .doc-page {
     flex: 1 1 0px;
     min-width: 0px;
-    padding-top: $spacing-size-8 + $spacing-size-2;
+    padding-top: $spacing-size-4;
     padding-bottom: $spacing-size-16;
-
-    padding-right: $spacing-size-6;
-    padding-left: $spacing-size-6;
-
-    border-right: 1px solid var(--color-border-secondary);
-    border-left: 1px solid var(--color-border-secondary);
 
     @media screen and (max-width: $breakpoint-docs-nav-large) {
         border: none;
-        padding-right: 0;
-        padding-left: 0;
     }
 
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
         width: var(--layout-width-9-12);
+        padding-top: $spacing-size-10;
+        padding-right: $spacing-size-3;
     }
 
     @media screen and (min-width: $breakpoint-docs-nav-large) {
-        width: var(--layout-width-8-12);
-    }
-
-    @media screen and (min-width: $breakpoint-docs-nav-extra-large) {
         width: var(--layout-width-6-12);
-        margin-right: calc(var(--layout-width-1-12) + var(--layout-gap));
-        margin-left: calc(var(--layout-width-1-12) + var(--layout-gap));
+        max-width: var(--layout-width-6-12);
+        padding-right: 0;
     }
 
     h1,
@@ -75,6 +65,10 @@
 
     :global(.alert) {
         margin-bottom: $spacing-size-4;
+    }
+
+    @media screen and (max-width: $breakpoint-docs-nav-medium) {
+        padding-top: var(--spacing-size-5);
     }
 }
 
