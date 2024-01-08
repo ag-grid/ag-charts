@@ -581,6 +581,10 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
     }
 
     override animateEmptyUpdateReady({ datumSelections, labelSelections, annotationSelections }: BarAnimationData) {
+        if (this.properties.cornerRadius !== 0) {
+            this.ctx.animationManager.skipCurrentBatch();
+        }
+
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes));
 
         fromToMotion(this.id, 'nodes', this.ctx.animationManager, datumSelections, fns);
@@ -589,6 +593,10 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
     }
 
     override animateWaitingUpdateReady(data: BarAnimationData) {
+        if (this.properties.cornerRadius !== 0) {
+            this.ctx.animationManager.skipCurrentBatch();
+        }
+
         const { datumSelections, labelSelections, annotationSelections } = data;
 
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
