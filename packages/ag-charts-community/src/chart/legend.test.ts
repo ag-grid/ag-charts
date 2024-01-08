@@ -265,5 +265,21 @@ describe('Legend', () => {
                 legend: { item: { showSeriesStroke: true } },
             });
         });
+
+        test('line strokeWidth override', async () => {
+            await compareSnapshot({
+                data,
+                series: [
+                    { type: 'line', xKey: 'x', yKey: 'a', strokeWidth: 1, marker: { enabled: false } },
+                    { type: 'area', xKey: 'x', yKey: 'b', strokeWidth: 1 },
+                ],
+                legend: {
+                    item: {
+                        showSeriesStroke: true,
+                        line: { strokeWidth: 8 },
+                    },
+                },
+            });
+        });
     });
 });
