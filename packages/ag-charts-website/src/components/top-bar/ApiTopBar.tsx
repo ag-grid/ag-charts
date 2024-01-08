@@ -1,6 +1,6 @@
 import type { ApiMenuItem, Framework } from '@ag-grid-types';
 import { DEFAULT_FRAMEWORK } from '@constants';
-import styles from '@design-system/modules/ApiTopBar.module.scss';
+import styles from '@design-system/modules/Toolbar.module.scss';
 import { useStore } from '@nanostores/react';
 import { $internalFramework } from '@stores/frameworkStore';
 import { getFrameworkFromInternalFramework, replaceDynamicFrameworkPath } from '@utils/framework';
@@ -40,18 +40,21 @@ export const ApiTopBar: FunctionComponent<Props> = ({ menuItems, fullPath }) => 
     );
 
     return (
-        <div className={styles.topBar}>
-            <div className={classnames(styles.topBarInner, 'layout-page-max-width')}>
-                <nav>
-                    <ul className="list-style-none">
-                        {menuItemsWithFrameworkLinks.map(({ title, path }) => (
-                            <li key={path} className={pagePath === path ? styles.active : ''}>
-                                <a href={urlWithBaseUrl(path)}>{title}</a>
-                            </li>
-                        ))}
-                    </ul>
-                </nav>
+        <div className={classnames(styles.toolbar, styles.toolbarNav)}>
+            <div className={styles.controlsContainer}>
+                <div className={styles.controls}>
+                    <nav>
+                        <ul className="list-style-none">
+                            {menuItemsWithFrameworkLinks.map(({ title, path }) => (
+                                <li key={path} className={pagePath === path ? styles.active : ''}>
+                                    <a href={urlWithBaseUrl(path)}>{title}</a>
+                                </li>
+                            ))}
+                        </ul>
+                    </nav>
+                </div>
             </div>
+            <div className={styles.scrollIndicator}></div>
         </div>
     );
 };

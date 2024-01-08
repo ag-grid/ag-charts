@@ -1,14 +1,21 @@
 ---
+import { getEntry } from 'astro:content';
 import Layout from '@layouts/Layout.astro';
 import { getFrameworkFromPath } from '@features/docs/utils/urlPaths';
 import { FRAMEWORKS } from '@constants';
 import { Changelog } from '@features/changelog/Changelog';
+import { PagesNavigation } from '@components/pages-navigation/PagesNavigation';
 
 const path = Astro.url.pathname;
 const frameworks = FRAMEWORKS;
 const framework = getFrameworkFromPath(path);
+
+const menuEntry = await getEntry('menu', 'data');
 ---
 
-<Layout title="AG Charts Changelog">
-    <Changelog currentFramework={framework} client:only />
+<Layout title="AG Charts Changelog" showDocsNav={true}>
+    <div class="layout-grid">
+        <PagesNavigation client:load menuData={menuEntry.data} framework={framework} />
+        <Changelog currentFramework={framework} client:only />
+    </div>
 </Layout>

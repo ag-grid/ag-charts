@@ -3,7 +3,7 @@ import { getCollection } from 'astro:content';
 import type { InternalFramework } from '@ag-grid-types';
 import DocsFrameworkTemplate from '@features/docs/components/DocsFrameworkTemplate.astro';
 import { getDocsExamplePages } from '@features/docs/utils/pageData';
-import { isReactInternalFramework} from '@utils/framework'
+import { isReactInternalFramework } from '@utils/framework';
 
 /**
  * This page is the same as `[exampleName].astro`, but for Code Sandbox examples
@@ -17,7 +17,7 @@ export async function getStaticPaths() {
 
 const { internalFramework, pageName, exampleName } = Astro.params;
 
-const ignoreSystemJs = isReactInternalFramework(internalFramework)
+const ignoreSystemJs = isReactInternalFramework(internalFramework);
 /**
  * Hide highlighter element that gets added by code sandbox
  */
@@ -25,8 +25,7 @@ const extraStyles = `
 /* Hide codesandbox highlighter */
 body > #highlighter {
     display: none;
-}`
-
+}`;
 ---
 
 <DocsFrameworkTemplate
