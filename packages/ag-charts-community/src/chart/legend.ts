@@ -669,6 +669,7 @@ export class Legend {
                 markerLabel.lineStroke = line.stroke;
                 markerLabel.lineStrokeOpacity = line.strokeOpacity;
                 markerLabel.lineStrokeWidth = Math.min(2, line.strokeWidth);
+                markerLabel.lineLineDash = line.lineDash;
                 markerLabel.setSeriesStrokeOffset(line.offset);
             }
         });

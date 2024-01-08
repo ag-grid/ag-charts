@@ -254,5 +254,16 @@ describe('Legend', () => {
                 legend: { item: { showSeriesStroke: true } },
             });
         });
+
+        test('lineDash', async () => {
+            await compareSnapshot({
+                data,
+                series: [
+                    { xKey: 'x', yKey: 'a', marker: { enabled: false }, lineDash: [5, 5] },
+                    { type: 'area', xKey: 'x', yKey: 'b', strokeWidth: 2, lineDash: [2, 2] },
+                ],
+                legend: { item: { showSeriesStroke: true } },
+            });
+        });
     });
 });
