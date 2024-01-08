@@ -1030,20 +1030,16 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         maxTickCount: number;
         primaryTickCount?: number;
     }) {
-        const {
-            range,
-            scale,
-            visibleRange,
-            dataDomain: { domain },
-        } = this;
+        const { range, scale, visibleRange } = this;
 
         let rawTicks: any[] = [];
 
         switch (tickGenerationType) {
             case TickGenerationType.VALUES:
                 if (ContinuousScale.is(scale)) {
-                    const start = scale.fromDomain(domain[0]);
-                    const stop = scale.fromDomain(domain[1]);
+                    const scaleDomain = scale.getDomain();
+                    const start = scale.fromDomain(scaleDomain[0]);
+                    const stop = scale.fromDomain(scaleDomain[1]);
 
                     const d0 = Math.min(start, stop);
                     const d1 = Math.max(start, stop);
