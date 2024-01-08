@@ -32,10 +32,20 @@ interface Props {
     /**
      * Extra styles to add to HTML
      */
-     extraStyles?: string;
+    extraStyles?: string;
 }
 
-const { internalFramework, pageName, exampleName, exampleUrl, generatedContents, relativePath, addInitMessageScript, ignoreSystemJs, extraStyles } = Astro.props as Props;
+const {
+    internalFramework,
+    pageName,
+    exampleName,
+    exampleUrl,
+    generatedContents,
+    relativePath,
+    addInitMessageScript,
+    ignoreSystemJs,
+    extraStyles,
+} = Astro.props as Props;
 
 const isDev = getIsDev();
 

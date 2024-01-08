@@ -26,7 +26,8 @@ interface Props {
     extraStyles?: string;
 }
 
-const { internalFramework, pageName, exampleName, relativePath, addInitMessageScript, ignoreSystemJs, extraStyles } = Astro.props as Props;
+const { internalFramework, pageName, exampleName, relativePath, addInitMessageScript, ignoreSystemJs, extraStyles } =
+    Astro.props as Props;
 
 const generatedContents = await getGeneratedContents({
     type: 'docs',

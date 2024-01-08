@@ -23,7 +23,7 @@ interface Props {
     /**
      * Extra styles to add to HTML
      */
-     extraStyles?: string;
+    extraStyles?: string;
 }
 
 const {
@@ -31,7 +31,7 @@ const {
     relativePath,
     addInitMessageScript,
     generatedContents: generatedContentsOverride,
-    extraStyles
+    extraStyles,
 } = Astro.props as Props;
 
 const internalFramework = GALLERY_INTERNAL_FRAMEWORK;
