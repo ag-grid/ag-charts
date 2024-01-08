@@ -1,6 +1,20 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, AgRangeBarSeriesTooltipRendererParams, AgSeriesTooltip } from 'ag-charts-enterprise';
 
 import { getData } from './data';
+
+const tooltip: AgSeriesTooltip<AgRangeBarSeriesTooltipRendererParams> = {
+    renderer: ({ datum, xName, xKey, yLowKey, yHighKey, yLowName, yHighName }) => {
+        return {
+            content: `<b>${xName}:</b> ${datum[xKey]}<br/><b>${yLowName}: </b>${datum[yLowKey].toLocaleString('en-GB', {
+                notation: 'compact',
+                compactDisplay: 'short',
+            })}<br/><b>${yHighName}: </b>${datum[yHighKey].toLocaleString('en-GB', {
+                notation: 'compact',
+                compactDisplay: 'short',
+            })}`,
+        };
+    },
+};
 
 const data: any[] = getData();
 
@@ -16,10 +30,13 @@ const options: AgChartOptions = {
     series: [
         {
             type: 'range-bar',
+            yName: 'Salary Range',
             xKey: 'department',
-            xName: 'Date',
+            xName: 'Department',
             yLowKey: 'low',
+            yLowName: 'Low',
             yHighKey: 'high',
+            yHighName: 'High',
             formatter: ({ datum, yHighKey }) => {
                 return {
                     fillOpacity: getOpacity(datum[yHighKey], yHighKey, 0.4, 1),
@@ -30,6 +47,7 @@ const options: AgChartOptions = {
                 color: 'rgb(118,118,118)',
                 formatter: ({ value }) => `£${value / 1000}K`,
             },
+            tooltip,
         },
     ],
     axes: [
@@ -51,6 +69,11 @@ const options: AgChartOptions = {
                         lineDash: [2, 2],
                     },
                 ],
+            },
+            crosshair: {
+                label: {
+                    format: `s`,
+                },
             },
         },
     ],
