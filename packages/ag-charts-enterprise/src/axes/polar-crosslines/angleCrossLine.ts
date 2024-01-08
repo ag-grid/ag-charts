@@ -29,10 +29,12 @@ export class AngleCrossLine extends PolarCrossLine {
 
         if (!scale || !type || !validateCrossLineValues(type, value, range, scale)) {
             this.group.visible = false;
+            this.labelGroup.visible = false;
             return;
         }
 
         this.group.visible = visible;
+        this.labelGroup.visible = visible;
 
         if (type === 'line' && shape === 'circle' && scale instanceof _Scale.BandScale) {
             this.type = 'range';

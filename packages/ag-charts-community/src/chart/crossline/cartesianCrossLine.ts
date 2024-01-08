@@ -190,10 +190,12 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
             data.length === 0
         ) {
             this.group.visible = false;
+            this.labelGroup.visible = false;
             return;
         }
 
         this.group.visible = visible;
+        this.labelGroup.visible = visible;
         this.group.zIndex = this.getZIndex(this.isRange);
         this.updateNodes();
     }
