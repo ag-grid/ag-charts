@@ -1,6 +1,15 @@
 import { Logger } from './logger';
 import { isProperties } from './properties';
-import { isArray, isDate, isFunction, isHtmlElement, isObject, isPlainObject, isRegExp } from './type-guards';
+import {
+    isArray,
+    isDate,
+    isFunction,
+    isHtmlElement,
+    isObject,
+    isObjectLike,
+    isPlainObject,
+    isRegExp,
+} from './type-guards';
 import type { DeepPartial } from './types';
 
 /**
@@ -8,8 +17,6 @@ import type { DeepPartial } from './types';
  * output.
  */
 export const DELETE = Symbol('<delete-property>');
-
-const NOT_SPECIFIED = Symbol('<unspecified-property>');
 
 const CLASS_INSTANCE_TYPE = 'class-instance';
 
@@ -79,10 +86,10 @@ export function deepClone<T>(source: T, options?: { shallow?: string[] }): T {
         return source.map((item) => deepClone(item, options)) as T;
     }
     if (isPlainObject(source)) {
-        return Object.entries(source).reduce((result, [key, value]) => {
-            result[key as keyof T] = options?.shallow?.includes(key) ? shallowClone(value) : deepClone(value, options);
+        return Object.entries(source).reduce<{ [key: string]: unknown }>((result, [key, value]) => {
+            result[key] = options?.shallow?.includes(key) ? shallowClone(value) : deepClone(value, options);
             return result;
-        }, {} as T);
+        }, {}) as T;
     }
     return shallowClone(source);
 }
@@ -117,26 +124,28 @@ export function shallowClone<T>(source: T): T {
  * Deep-clones all objects to avoid mutation of the inputs changing the output object. For arrays,
  * just performs a deep-clone of the entire array, no merging of elements attempted.
  *
- * @param json all json objects to merge
+ * @param jsons all json objects to merge
  * @param opts merge options
  * @param opts.avoidDeepClone contains a list of properties where deep clones should be avoided
  *
  * @returns the combination of all the json inputs
  */
-export function jsonMerge<T>(json: T[], opts?: JsonMergeOptions): T {
+export function jsonMerge<T>(jsons: T[], opts?: JsonMergeOptions): T {
     const avoidDeepClone = opts?.avoidDeepClone ?? [];
-    const jsonTypes = json.map((v) => classify(v));
-    if (jsonTypes.some((v) => v === 'array')) {
+
+    if (jsons.some(isArray)) {
         // Clone final array.
-        const finalValue = json[json.length - 1];
-        if (Array.isArray(finalValue)) {
-            return finalValue.map((v) => {
-                const type = classify(v);
+        const finalValue = jsons[jsons.length - 1];
 
-                if (type === 'array') return jsonMerge([[], v], opts);
-                if (type === 'object') return jsonMerge([{}, v], opts);
-
-                return v;
+        if (isArray(finalValue)) {
+            return finalValue.map((value) => {
+                if (isArray(value)) {
+                    return jsonMerge([[], value], opts);
+                }
+                if (isPlainObject(value)) {
+                    return jsonMerge([{}, value], opts);
+                }
+                return value;
             }) as any;
         }
 
@@ -144,17 +153,15 @@ export function jsonMerge<T>(json: T[], opts?: JsonMergeOptions): T {
     }
 
     const result: any = {};
-    const props = new Set(json.map((v) => (v != null ? Object.keys(v) : [])).reduce((r, n) => r.concat(n), []));
+    const allKeys = new Set(jsons.flatMap((value) => (isObject(value) ? Object.keys(value) : [])));
 
-    for (const nextProp of props) {
-        const values = json
-            .map((j) => {
-                if (j != null && typeof j === 'object' && nextProp in j) {
-                    return (j as any)[nextProp];
-                }
-                return NOT_SPECIFIED;
-            })
-            .filter((v) => v !== NOT_SPECIFIED);
+    for (const key of allKeys) {
+        const values = [];
+        for (const value of jsons) {
+            if (isObject(value) && key in value) {
+                values.push(value[key]);
+            }
+        }
 
         if (values.length === 0) {
             continue;
@@ -165,23 +172,21 @@ export function jsonMerge<T>(json: T[], opts?: JsonMergeOptions): T {
             continue;
         }
 
-        const types = values.map((v) => classify(v));
-        const type = types[0];
-        if (types.some((t) => t !== type)) {
+        if (!allTypesMatch(values)) {
             // Short-circuit if mismatching types.
-            result[nextProp] = lastValue;
+            result[key] = lastValue;
             continue;
         }
 
-        if ((type === 'array' || type === 'object') && !avoidDeepClone.includes(nextProp)) {
-            result[nextProp] = jsonMerge(values, opts);
-        } else if (type === 'array') {
+        if (!avoidDeepClone.includes(key) && isObjectLike(lastValue)) {
+            result[key] = jsonMerge(values, opts);
+        } else if (isArray(lastValue)) {
             // Arrays need to be shallow copied to avoid external mutation and allow jsonDiff to
             // detect changes.
-            result[nextProp] = [...lastValue];
+            result[key] = [...lastValue];
         } else {
             // Just directly assign/overwrite.
-            result[nextProp] = lastValue;
+            result[key] = lastValue;
         }
     }
 
@@ -391,4 +396,23 @@ function classify(value: any): Classification | null {
         return 'function';
     }
     return 'primitive';
+}
+
+function allTypesMatch(values: unknown[]) {
+    if (values.length < 2) {
+        return true;
+    }
+    let typeIndex = null;
+    for (const value of values) {
+        const currentTypeIndex =
+            [isArray, isPlainObject].reduce<number | null>(
+                (result, classifier, index) => result ?? (classifier(value) ? index : null),
+                null
+            ) ?? -1;
+        if (typeIndex !== null && typeIndex !== currentTypeIndex) {
+            return false;
+        }
+        typeIndex = currentTypeIndex;
+    }
+    return true;
 }

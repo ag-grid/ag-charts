@@ -26,15 +26,15 @@ export function isFunction(value: unknown): value is Function {
     return typeof value === 'function';
 }
 
-export function isObject(value: unknown): value is object {
+export function isObject(value: unknown): value is { [key: string | number | symbol]: unknown } {
     return typeof value === 'object' && value !== null && !isArray(value);
 }
 
-export function isObjectLike(value: unknown): value is object | unknown[] {
-    return typeof value === 'object' && value !== null;
+export function isObjectLike(value: unknown): value is { [key: string | number | symbol]: unknown } | unknown[] {
+    return isArray(value) || isPlainObject(value);
 }
 
-export function isPlainObject(value: unknown): value is object {
+export function isPlainObject(value: unknown): value is { [key: string | number | symbol]: unknown } {
     return typeof value === 'object' && value !== null && value.constructor === Object;
 }
 

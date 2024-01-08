@@ -4,9 +4,10 @@ import type { ChartAxisDirection } from '../chart/chartAxisDirection';
 import type { PropertyDefinition } from '../chart/data/dataModel';
 import { CHART_TYPES } from '../chart/factory/chartTypes';
 import { isEnterpriseSeriesType } from '../chart/factory/expectedEnterpriseModules';
-import { isSoloSeries } from '../chart/factory/seriesTypes';
+import { getSeriesDefaults, isDefaultAxisSwapNeeded, isSoloSeries } from '../chart/factory/seriesTypes';
 import { HierarchyChart } from '../chart/hierarchyChart';
 import type { SeriesOptions } from '../chart/mapping/prepareSeries';
+import { getChartTheme } from '../chart/mapping/themes';
 import {
     isAgCartesianChartOptions,
     isAgHierarchyChartOptions,
@@ -15,16 +16,18 @@ import {
 } from '../chart/mapping/types';
 import { PolarChart } from '../chart/polarChart';
 import type { SeriesNodeDatum } from '../chart/series/seriesTypes';
+import type { ChartTheme } from '../chart/themes/chartTheme';
 import type { AgChartOptions } from '../options/chart/chartBuilderOptions';
 import type { AgCartesianSeriesOptions } from '../options/series/cartesian/cartesianSeriesTypes';
 import type { AgHierarchySeriesOptions } from '../options/series/hierarchy/hierarchyOptions';
 import type { AgPolarSeriesOptions } from '../options/series/polar/polarOptions';
 import type { Point } from '../scene/point';
 import { groupBy, unique } from '../util/array';
-import { deepClone } from '../util/json';
+import { deepClone, jsonWalk } from '../util/json';
 import { Logger } from '../util/logger';
+import { mergeDefaults } from '../util/object';
 import type { BaseModule, ModuleInstance } from './baseModule';
-import { type Module, REGISTERED_MODULES } from './module';
+import { MODULE_CONFLICTS, type Module, REGISTERED_MODULES } from './module';
 import type { AxisContext, ModuleContextWithParent, SeriesContext } from './moduleContext';
 
 export type SeriesType = NonNullable<
@@ -60,20 +63,47 @@ export interface SeriesOptionModule<M extends SeriesOptionInstance = SeriesOptio
 }
 
 export class ChartOptions<T extends AgChartOptions> {
+    activeTheme?: ChartTheme;
+    userOptions?: Partial<T>;
+    seriesDefaults?: T;
     processedOptions?: T;
     specialOptions?: ChartSpecialOverrides;
-    themeOptions?: Partial<T>;
-    userOptions?: Partial<T>;
 
     protected readonly activeModules = new Set<BaseModule>();
+
+    private getOptionsThemeConfig(options: T) {
+        const optionsType = this.optionsType(options);
+        return this.activeTheme?.config[optionsType] ?? {};
+    }
+
+    private getOptionsDefaults(options: T) {
+        const optionsType = this.optionsType(options);
+        const seriesDefaults = getSeriesDefaults<T>(optionsType, options.series![0]);
+
+        if (isDefaultAxisSwapNeeded(options)) {
+            this.swapAxesPosition(seriesDefaults);
+        }
+
+        return this.activeTheme!.templateTheme(seriesDefaults);
+    }
 
     setUserOptions(userOptions: T) {
         const options = deepClone(userOptions, { shallow: ['data'] });
 
-        // output warnings and correct options when required
-        this.sanityCheck(options);
+        this.sanityCheckAndCleanup(options);
+
+        this.activeTheme = getChartTheme(options.theme);
+        const { axes = {}, series = [], ...themeDefaults } = this.getOptionsThemeConfig(options);
+
+        // const userPalette = isObject(options.theme)
+        //     ? jsonMerge([this.activeTheme.palette, options.theme.palette])
+        //     : null;
+
+        const seriesDefaults = this.getOptionsDefaults(options);
 
         this.userOptions = options;
+        this.seriesDefaults = seriesDefaults;
+        this.processedOptions = mergeDefaults(options, themeDefaults, seriesDefaults) as T;
         // this.processedOptions = mergeDefaults(options, this.processedOptions) as T;
     }
 
@@ -115,10 +145,23 @@ export class ChartOptions<T extends AgChartOptions> {
 
     protected applyChartModules() {}
 
-    protected sanityCheck(options: Partial<T>) {
+    protected sanityCheckAndCleanup(options: Partial<T>) {
+        // output warnings and correct options when required
         this.deprecationWarnings(options);
         this.seriesTypeIntegrity(options);
         this.soloSeriesIntegrity(options);
+        this.disableConflictedModules(options);
+        this.removeDisabledOptions(options);
+    }
+
+    protected swapAxesPosition(options: T) {
+        if (isAgCartesianChartOptions(options)) {
+            const [axis0, axis1] = options.axes ?? [];
+            options.axes = [
+                { ...axis0, position: axis1.position },
+                { ...axis1, position: axis0.position },
+            ];
+        }
     }
 
     protected getOptionsDefaultSeriesType(options: T): string | null {
@@ -179,5 +222,41 @@ export class ChartOptions<T extends AgChartOptions> {
                 options.series = nonSolo as T['series'];
             }
         }
+    }
+
+    private disableConflictedModules(options: Partial<T>) {
+        type PossibleObject = { enabled?: boolean } | undefined;
+
+        for (const [source, conflicts] of MODULE_CONFLICTS.entries()) {
+            const sourceOptions = options[source] as PossibleObject;
+            if (!sourceOptions?.enabled) {
+                continue;
+            }
+            for (const conflict of conflicts) {
+                const conflictOptions = options[conflict] as PossibleObject;
+                if (conflictOptions?.enabled) {
+                    Logger.warnOnce(
+                        `the [${source}] module can not be used at the same time as [${conflict}], it will be disabled.`
+                    );
+                    conflictOptions.enabled = false;
+                }
+            }
+        }
+    }
+
+    private removeDisabledOptions(options: Partial<T>) {
+        // Remove configurations from all option objects with a `false` value for the `enabled` property.
+        jsonWalk(
+            options,
+            (optionsNode) => {
+                if ('enabled' in optionsNode && optionsNode.enabled === false) {
+                    Object.keys(optionsNode).forEach((key) => {
+                        if (key === 'enabled') return;
+                        delete optionsNode[key as keyof T];
+                    });
+                }
+            },
+            { skip: ['data', 'theme'] }
+        );
     }
 }

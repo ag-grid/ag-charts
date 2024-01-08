@@ -14,12 +14,10 @@ import { Logger } from '../../util/logger';
 import { isArray, isDefined } from '../../util/type-guards';
 import { AXIS_TYPES } from '../factory/axisTypes';
 import { removeUsedEnterpriseOptions } from '../factory/processEnterpriseOptions';
-import { getSeriesDefaults, getSeriesPaletteFactory, isDefaultAxisSwapNeeded } from '../factory/seriesTypes';
+import { getSeriesPaletteFactory } from '../factory/seriesTypes';
 import { type ChartTheme, resolvePartialPalette } from '../themes/chartTheme';
-import { resolveModuleConflicts, swapAxes } from './defaults';
 import type { SeriesOptions } from './prepareSeries';
 import { processSeriesOptions } from './prepareSeries';
-import { getChartTheme } from './themes';
 import {
     type AxesOptionsTypes,
     type SeriesOptionsTypes,
@@ -80,28 +78,26 @@ export function prepareOptions<T extends AgChartOptions>(userOptions: T): T {
     const chartOptions = new ChartOptions();
     chartOptions.setUserOptions(userOptions);
 
-    let options = chartOptions.userOptions!;
+    const options = chartOptions.userOptions!;
+    const theme = chartOptions.activeTheme!;
 
-    let defaultOverrides = getSeriesDefaults(optionsType(options), options.series![0]);
+    const themeConfig = theme.config[optionsType(options)];
 
-    if (isDefaultAxisSwapNeeded(options)) {
-        defaultOverrides = swapAxes(defaultOverrides);
-    }
+    const seriesThemes = Object.entries<any>(theme.config).reduce((result, [seriesType, { series }]) => {
+        result[seriesType] = series;
+        return result;
+    }, {} as any);
 
-    const conflictOverrides = resolveModuleConflicts(options);
+    const userTheme = options.theme;
+    const partialPalette = typeof userTheme === 'object' && userTheme.palette ? userTheme.palette : null;
 
-    removeDisabledOptions(options);
+    const axesThemes = themeConfig?.['axes'] ?? {};
+    const cleanedTheme = jsonMerge([themeConfig ?? {}, { axes: DELETE, series: DELETE }]);
 
-    const { theme, cleanedTheme, axesThemes, seriesThemes, userPalette: partialPalette } = prepareTheme(options);
+    const defaultOverrides = chartOptions.seriesDefaults!;
 
-    const userPalette = resolvePartialPalette(partialPalette, theme.palette);
-    const context: PreparationContext = { colourIndex: 0, palette: theme.palette, userPalette, theme };
-
-    defaultOverrides = theme.templateTheme(defaultOverrides);
-    const mergedOptions: T = jsonMerge(
-        [defaultOverrides, cleanedTheme, options, conflictOverrides],
-        noDataCloneMergeOptions
-    );
+    const mergedOptions = jsonMerge([defaultOverrides, cleanedTheme, options], noDataCloneMergeOptions) as T;
+    // const mergedOptions = mergeDefaults(options, cleanedTheme, defaultOverrides) as T;
 
     if (!enterpriseModule.isEnterprise) {
         removeUsedEnterpriseOptions(mergedOptions);
@@ -117,6 +113,13 @@ export function prepareOptions<T extends AgChartOptions>(userOptions: T): T {
     } else if (isAgPolarChartOptions(options)) {
         defaultSeriesType = 'pie';
     }
+
+    const context: PreparationContext = {
+        colourIndex: 0,
+        palette: theme.palette,
+        userPalette: resolvePartialPalette(partialPalette, theme.palette),
+        theme,
+    };
 
     // Special cases where we have arrays of elements which need their own defaults.
 
@@ -190,27 +193,6 @@ function mergeSeriesOptions<T extends SeriesOptionsTypes>(
         [seriesThemes[type], series, { type, tooltip: { position: mergedTooltipPosition } }],
         noDataCloneMergeOptions
     );
-}
-
-function prepareTheme<T extends AgChartOptions>(options: T) {
-    const theme = getChartTheme(options.theme);
-    const themeConfig = theme.config[optionsType(options)];
-
-    const seriesThemes = Object.entries<any>(theme.config).reduce((result, [seriesType, { series }]) => {
-        result[seriesType] = series;
-        return result;
-    }, {} as any);
-
-    const userTheme = options.theme;
-    const userPalette = typeof userTheme === 'object' && userTheme.palette ? userTheme.palette : null;
-
-    return {
-        theme,
-        axesThemes: themeConfig?.['axes'] ?? {},
-        seriesThemes: seriesThemes,
-        cleanedTheme: jsonMerge([themeConfig ?? {}, { axes: DELETE, series: DELETE }]),
-        userPalette,
-    };
 }
 
 function prepareSeries<T extends SeriesOptionsTypes>(context: PreparationContext, input: T, ...defaults: T[]): T {
@@ -288,22 +270,6 @@ function prepareAxis<T extends AxesOptionsTypes>(
     const cleanTheme = { crossLines: DELETE };
 
     return jsonMerge([axisTheme, cleanTheme, axis, removeOptions], noDataCloneMergeOptions);
-}
-
-function removeDisabledOptions<T extends object>(options: T) {
-    // Remove configurations from all option objects with a `false` value for the `enabled` property.
-    jsonWalk(
-        options,
-        (userOptionsNode) => {
-            if ('enabled' in userOptionsNode && userOptionsNode.enabled === false) {
-                Object.keys(userOptionsNode).forEach((key) => {
-                    if (key === 'enabled') return;
-                    delete userOptionsNode[key as keyof T];
-                });
-            }
-        },
-        { skip: ['data', 'theme'] }
-    );
 }
 
 function prepareLegendEnabledOption<T extends AgChartOptions>(options: T, mergedOptions: any) {

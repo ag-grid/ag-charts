@@ -74,7 +74,7 @@ const CHART_TYPE_SPECIFIC_COMMON_OPTIONS = Object.values(CHART_TYPE_CONFIG).redu
 >((r, { commonOptions }) => [...r, ...commonOptions], []);
 
 export function resolvePartialPalette(
-    partialPalette: Partial<AgChartThemePalette> | null,
+    partialPalette: Partial<AgChartThemePalette> | null | undefined,
     basePalette: AgChartThemePalette
 ): AgChartThemePalette | null {
     if (partialPalette == null) return null;
