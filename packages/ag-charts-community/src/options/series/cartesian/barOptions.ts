@@ -1,4 +1,3 @@
-import type { PixelSize } from '../../agChartOptions';
 import type { AgChartCallbackParams } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
@@ -25,10 +24,7 @@ export interface AgBarSeriesFormatterParams<TDatum>
     readonly stackGroup?: string;
 }
 
-export interface AgBarSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {
-    /** Apply round corners to each bar. */
-    cornerRadius?: PixelSize;
-}
+export interface AgBarSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {}
 
 export type AgBarSeriesLabelFormatterParams = AgBarSeriesOptionsKeys & AgBarSeriesOptionsNames;
 
