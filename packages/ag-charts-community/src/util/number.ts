@@ -40,6 +40,10 @@ export function toFixed(value: number, fractionOrSignificantDigits: number = 2):
     return value.toFixed(Math.abs(power) - 1 + fractionOrSignificantDigits); // significant digits
 }
 
+export function toReal(value: number) {
+    return isReal(value) ? value : 0;
+}
+
 /**
  * Returns the mathematically correct n modulus of m. For context, the JS % operator is remainder
  * NOT modulus, which is why this is needed.

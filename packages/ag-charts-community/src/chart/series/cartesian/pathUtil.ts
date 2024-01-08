@@ -4,6 +4,7 @@ import { Path2D } from '../../../scene/path2D';
 import type { Point } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
+import { toReal } from '../../../util/number';
 import type { AnimationManager } from '../../interaction/animationManager';
 import type { NodeDataDependant } from '../seriesTypes';
 import type { CartesianSeriesNodeDatum } from './cartesianSeries';
@@ -196,5 +197,5 @@ export function updateClipPath({ nodeDataDependencies }: NodeDataDependant, path
         path.clipScalingY = 1;
     }
     path.clipPath?.clear({ trackChanges: true });
-    path.clipPath?.rect(-25, -25, (width ?? 0) + 50, (height ?? 0) + 50);
+    path.clipPath?.rect(-25, -25, toReal(width) + 50, toReal(height) + 50);
 }
