@@ -56,8 +56,6 @@ export interface AgWaterfallSeriesThemeableOptions<TDatum = any> extends AgBaseS
     line?: AgWaterfallSeriesLineOptions;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgWaterfallSeriesTooltipRendererParams>;
-    /** Apply round corners to each bar. */
-    cornerRadius?: PixelSize;
     /** Configuration for the waterfall series items when they are hovered over. */
     highlightStyle?: AgSeriesHighlightStyle;
 }
@@ -94,6 +92,8 @@ export interface AgWaterfallSeriesItem<TDatum> {
     positive?: AgWaterfallSeriesItemOptions<TDatum>;
     /** Configuration for the total and subtotal series items. */
     total?: AgWaterfallSeriesItemOptions<TDatum>;
+    /** Apply round corners to each bar. */
+    cornerRadius?: PixelSize;
 }
 
 export interface WaterfallSeriesTotalMeta {

@@ -25,10 +25,7 @@ export interface AgBarSeriesFormatterParams<TDatum>
     readonly stackGroup?: string;
 }
 
-export interface AgBarSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {
-    /** Apply round corners to each bar. */
-    cornerRadius?: PixelSize;
-}
+export interface AgBarSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {}
 
 export type AgBarSeriesLabelFormatterParams = AgBarSeriesOptionsKeys & AgBarSeriesOptionsNames;
 
