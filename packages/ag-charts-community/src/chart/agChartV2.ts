@@ -662,7 +662,9 @@ function applyOptionValues<T extends object, S>(
 
 function applySeriesValues(target: Series<any>, options: AgBaseSeriesOptions<any>) {
     const moduleMap = target.getModuleMap();
-    target.properties.set(options);
+    const { type, data, errorBar, listeners, seriesGrouping, ...seriesOptions } = options as any;
+
+    target.properties.set(seriesOptions);
     if ('data' in options) {
         target.data = options.data;
     }
@@ -675,9 +677,8 @@ function applySeriesValues(target: Series<any>, options: AgBaseSeriesOptions<any
     }
 
     if ('seriesGrouping' in options) {
-        const seriesGrouping = options.seriesGrouping as SeriesGrouping | undefined;
         target.seriesGrouping = seriesGrouping
-            ? Object.freeze({ ...target.seriesGrouping, ...seriesGrouping })
+            ? Object.freeze({ ...target.seriesGrouping, ...(seriesGrouping as SeriesGrouping) })
             : undefined;
     }
 }

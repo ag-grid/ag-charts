@@ -1,11 +1,16 @@
 import { ChangeDetectable } from '../scene/changeDetectable';
 import { extractDecoratedPropertyMetadata, listDecoratedProperties } from './decorator';
+import { Logger } from './logger';
 import { isArray } from './type-guards';
 
 export class BaseProperties<T extends object = object> extends ChangeDetectable {
+    constructor(protected className?: string) {
+        super();
+    }
     set(properties: T) {
+        const keys = new Set(Object.keys(properties));
         for (const propertyKey of listDecoratedProperties(this)) {
-            if (Object.hasOwn(properties, propertyKey)) {
+            if (keys.has(propertyKey)) {
                 const value = properties[propertyKey as keyof T];
                 const self = this as any;
                 if (isProperties(self[propertyKey])) {
@@ -17,8 +22,14 @@ export class BaseProperties<T extends object = object> extends ChangeDetectable 
                 } else {
                     self[propertyKey] = value;
                 }
+                keys.delete(propertyKey);
             }
         }
+        for (const unknownKey of keys) {
+            const { className = this.constructor.name } = this;
+            Logger.warn(`unable to set [${unknownKey}] in ${className} - property is unknown`);
+        }
+
         return this;
     }
 
