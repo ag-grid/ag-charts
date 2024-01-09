@@ -19,7 +19,7 @@ function setYNames() {
     AgCharts.update(chart, options);
 }
 
-function resetYNames() {
+function removeYNames() {
     (options.series![0] as AgBarSeriesOptions).yName = undefined;
     (options.series![1] as AgBarSeriesOptions).yName = undefined;
     AgCharts.update(chart, options);
