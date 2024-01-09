@@ -8,7 +8,7 @@ import {
     type AgTooltipPositionOptions,
     AgTooltipPositionType,
 } from '../../options/agChartOptions';
-import { type JsonMergeOptions, jsonMerge, jsonWalk } from '../../util/json';
+import { type JsonMergeOptions, jsonWalk } from '../../util/json';
 import { Logger } from '../../util/logger';
 import { mergeDefaults } from '../../util/object';
 import { isArray, isDefined, isEnumValue, isFiniteNumber, isPlainObject, isString } from '../../util/type-guards';
@@ -180,11 +180,7 @@ function mergeSeriesOptions<T extends SeriesOptionsTypes>(
 }
 
 function prepareSeries<T extends SeriesOptionsTypes>(context: PreparationContext, input: T): T {
-    const { stacked, grouped, ...seriesOptions } = jsonMerge(
-        [calculateSeriesPalette(context, input), input],
-        noDataCloneMergeOptions
-    ) as any;
-    // const { stacked, grouped, ...seriesOptions } = mergeDefaults(input, calculateSeriesPalette(context, input)) as any;
+    const { stacked, grouped, ...seriesOptions } = mergeDefaults(input, calculateSeriesPalette(context, input)) as any;
     return seriesOptions;
 }
 
@@ -226,7 +222,7 @@ function prepareAxis<T extends AxesOptionsTypes>(
             Logger.warn('axis[].crossLines should be an array.');
             axis.crossLines = [];
         }
-        axis.crossLines = axis.crossLines.map((crossLine) => jsonMerge([axisTheme.crossLines, crossLine]));
+        axis.crossLines = axis.crossLines.map((crossLine) => mergeDefaults(crossLine, axisTheme.crossLines));
     }
 
     // Same thing grid lines (AG-8777)
@@ -250,7 +246,7 @@ function prepareAxis<T extends AxesOptionsTypes>(
     }
 
     delete (axisTheme as any).crossLines;
-    const { top, right, bottom, left, ...axisOptions } = jsonMerge([axisTheme, axis], noDataCloneMergeOptions) as any;
+    const { top, right, bottom, left, ...axisOptions } = mergeDefaults(axis, axisTheme) as any;
     return axisOptions;
 }
 

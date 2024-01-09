@@ -4042,7 +4042,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
         "rotation": undefined,
       },
       "line": {
-        "color": undefined,
+        "color": "rgb(195, 195, 195)",
         "enabled": true,
         "width": 1,
       },
@@ -4085,7 +4085,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
         "rotation": undefined,
       },
       "line": {
-        "color": undefined,
+        "color": "rgb(195, 195, 195)",
         "enabled": true,
         "width": 1,
       },
