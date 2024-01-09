@@ -1,6 +1,7 @@
 import { describe, expect, it, jest } from '@jest/globals';
 
-import { jsonApply, jsonDiff, jsonMerge, jsonWalk } from './json';
+import { deepClone, jsonApply, jsonDiff, jsonWalk } from './json';
+import { mergeDefaults } from './object';
 
 const FIXED_DATE = new Date('2022-01-27T00:00:00.000+00:00');
 
@@ -141,7 +142,7 @@ describe('json module', () => {
         });
     });
 
-    describe('#jsonMerge', () => {
+    describe('#mergeDefaults', () => {
         describe('for trivial cases', () => {
             it('should merge primitives correctly', () => {
                 const fns = [() => 'call-me1', () => 'call-me2', () => 'call-me3'];
@@ -164,7 +165,7 @@ describe('json module', () => {
                     date3: FIXED_DATE,
                 };
 
-                const merge = jsonMerge([base, mergee1 as any, mergee2]);
+                const merge = mergeDefaults(mergee2, mergee1 as any, base);
                 expect(merge).toMatchSnapshot();
                 expect(merge).toHaveProperty('no', mergee1.no);
                 expect(merge).toHaveProperty('no2', mergee2.no2);
@@ -189,7 +190,7 @@ describe('json module', () => {
                     c: [10, 9, 8, 7, 6],
                 };
 
-                const merge = jsonMerge([base, mergee1, mergee2]);
+                const merge = mergeDefaults(mergee2, mergee1, base);
                 expect(merge).toMatchSnapshot();
                 expect(merge).toHaveProperty('a', mergee2.a);
                 expect(merge).toHaveProperty('b', mergee1.b);
@@ -197,11 +198,11 @@ describe('json module', () => {
             });
 
             it('should merge arrays correctly', () => {
-                const base: any = [[{ x: 1 }, { y: 1 }], [{ m: 2, n: 2 }]];
-                const mergee1: any = [];
-                const mergee2: any = [[{ x2: 1 }, { y2: 1 }], [{ m2: 2, n2: 2 }]];
+                const base: any = { a: [[{ x: 1 }, { y: 1 }], [{ m: 2, n: 2 }]] };
+                const mergee1: any = { a: [] };
+                const mergee2: any = { a: [[{ x2: 1 }, { y2: 1 }], [{ m2: 2, n2: 2 }]] };
 
-                const merge = jsonMerge([base, mergee1, mergee2]);
+                const merge = mergeDefaults(mergee2, mergee1, base);
                 expect(merge).toMatchSnapshot();
                 expect(merge).toEqual(mergee2);
             });
@@ -211,7 +212,7 @@ describe('json module', () => {
                 const mergee1 = { a: {}, b: {} };
                 const mergee2 = { a: 'a' };
 
-                const merge = jsonMerge([base, mergee1, mergee2 as any]);
+                const merge = mergeDefaults(mergee2, mergee1, base);
                 expect(merge).toMatchSnapshot();
                 expect(merge).toHaveProperty('a', mergee2.a);
                 expect(merge).toHaveProperty('b', mergee1.b);
@@ -224,7 +225,7 @@ describe('json module', () => {
                 const mergee1 = { a: { y: 2 } };
                 const mergee2 = { a: { z: 3 } };
 
-                const merge = jsonMerge([base, mergee1, mergee2]);
+                const merge = mergeDefaults(mergee2, mergee1, base);
                 expect(merge).toMatchSnapshot();
                 expect(merge).not.toBe(base);
                 expect(merge).not.toBe(mergee1);
@@ -241,7 +242,7 @@ describe('json module', () => {
                 const base = { a: [{ x: 1 }, { x: 2 }] };
                 const mergee = { a: [{ y: 1 }] };
 
-                const merge = jsonMerge([base, mergee]);
+                const merge = deepClone(mergeDefaults(mergee, base));
                 expect(merge).toMatchSnapshot();
                 expect(merge).not.toBe(base);
                 expect(merge).not.toBe(mergee);
@@ -258,7 +259,7 @@ describe('json module', () => {
                 const base: any = {};
                 const mergee = { a: [{ x: 1 }], b: [{ y: 2 }] };
 
-                const merge = jsonMerge([base, mergee], { avoidDeepClone: ['b'] });
+                const merge = deepClone(mergeDefaults(mergee, base), { shallow: ['b'] });
                 expect(merge).toMatchSnapshot();
                 expect(merge).not.toBe(base);
                 expect(merge).not.toBe(mergee);
@@ -279,7 +280,7 @@ describe('json module', () => {
                 const source = {};
                 const target = { seriesNodeClick: (t: unknown) => console.log(t) };
 
-                const merge = jsonMerge([source, target]) as any;
+                const merge = mergeDefaults(target, source);
                 expect(merge).toHaveProperty('seriesNodeClick');
                 expect(merge.seriesNodeClick).toBeInstanceOf(Function);
             });
@@ -289,7 +290,7 @@ describe('json module', () => {
                 const source = { legend: { listeners: { seriesNodeClick } } };
                 const target = { listeners: { seriesNodeClick } };
 
-                const merge = jsonMerge([source, target]) as any;
+                const merge = mergeDefaults(target, source);
                 expect(merge).toHaveProperty('legend.listeners.seriesNodeClick');
                 expect(merge).toHaveProperty('listeners.seriesNodeClick');
                 expect(merge.legend?.listeners?.seriesNodeClick).toBeInstanceOf(Function);

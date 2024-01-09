@@ -1,15 +1,6 @@
 import { Logger } from './logger';
 import { isProperties } from './properties';
-import {
-    isArray,
-    isDate,
-    isFunction,
-    isHtmlElement,
-    isObject,
-    isObjectLike,
-    isPlainObject,
-    isRegExp,
-} from './type-guards';
+import { isArray, isDate, isFunction, isHtmlElement, isObject, isPlainObject, isRegExp } from './type-guards';
 import type { DeepPartial } from './types';
 
 const CLASS_INSTANCE_TYPE = 'class-instance';
@@ -109,52 +100,6 @@ export function shallowClone<T>(source: T): T {
         return new RegExp(source.source, source.flags) as T;
     }
     return source;
-}
-
-/**
- * Merge together the provide JSON object structures, with the precedence of application running
- * from higher indexes to lower indexes.
- *
- * Deep-clones all objects to avoid mutation of the inputs changing the output object. For arrays,
- * just performs a deep-clone of the entire array, no merging of elements attempted.
- *
- * @param jsons all json objects to merge
- * @param opts merge options
- * @param opts.avoidDeepClone contains a list of properties where deep clones should be avoided
- *
- * @returns the combination of all the json inputs
- */
-export function jsonMerge<T>(jsons: T[], opts?: JsonMergeOptions): T {
-    const avoidDeepClone = opts?.avoidDeepClone ?? [];
-
-    if (jsons.some(isArray)) {
-        return deepClone(jsons.at(-1)!);
-    }
-
-    const result: any = {};
-    const allKeys = new Set(jsons.flatMap((value) => (isObject(value) ? Object.keys(value) : [])));
-
-    for (const key of allKeys) {
-        const values = [];
-        for (const value of jsons) {
-            if (isObject(value) && key in value) {
-                values.push(value[key]);
-            }
-        }
-
-        if (values.length === 0) {
-            continue;
-        }
-
-        const lastValue = values.at(-1);
-        if (!avoidDeepClone.includes(key) && isObjectLike(lastValue)) {
-            result[key] = jsonMerge(values, opts);
-        } else {
-            result[key] = shallowClone(lastValue);
-        }
-    }
-
-    return result;
 }
 
 export type JsonApplyParams = {
