@@ -19,7 +19,7 @@ export const ExampleStyle = ({ rootSelector, extraStyles }: { rootSelector?: str
         }
 
         :root[data-dark-mode='true'] {
-            background: #182230;
+            background: #141d2c;
             color: white;
         }
 
