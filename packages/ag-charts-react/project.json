@@ -70,9 +70,6 @@
         "sourcemap": true
       },
       "configurations": {
-        "watch": {
-          "tsConfig": "packages/ag-charts-react/tsconfig.watch.json"
-        },
         "production": {
           "sourcemap": false
         }
