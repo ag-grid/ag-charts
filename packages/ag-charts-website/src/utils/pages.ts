@@ -52,6 +52,8 @@ export const DEV_FILE_PATH_MAP: Record<string, string> = {
 
     'ag-charts-angular/fesm2015/ag-charts-angular.mjs':
         'packages/ag-charts-angular/dist/ag-charts-angular/fesm2015/ag-charts-angular.mjs',
+
+    'ag-charts-thumbnails/**': 'dist/generated-thumbnails/ag-charts-website/gallery/_examples/**/*.{png,webp}',
 };
 
 /**
@@ -144,10 +146,6 @@ export const isTypescriptInternalFramework = (internalFramework: InternalFramewo
 /**
  * Get Dev File URL for referencing on the front end
  */
-export const getDevFileUrl = ({ filePath }: { filePath: string }) => {
-    return pathJoin(SITE_BASE_URL, DEV_FILE_BASE_PATH, filePath);
-};
-
 export const getDevFileList = () => {
     const distFolder = getRootUrl();
     return Object.values(DEV_FILE_PATH_MAP).map((file) => {

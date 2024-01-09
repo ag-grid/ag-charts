@@ -14,7 +14,7 @@ export async function GET({ props }: DevFileRoute) {
 
     const fileExists = fsOriginal.existsSync(fullFilePath);
     const body = fileExists
-        ? await fs.readFile(fullFilePath, 'utf-8')
+        ? await fs.readFile(fullFilePath)
         : `throw new Error("File does not exist: '${fullFilePath}'. You may need to generate it, or try reloading again.");`;
 
     return new Response(body);
