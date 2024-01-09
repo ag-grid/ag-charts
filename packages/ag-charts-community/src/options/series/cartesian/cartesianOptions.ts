@@ -188,6 +188,6 @@ export interface AgAxisNumberTickOptions extends AgAxisBaseTickOptions {
 export interface AgAxisTimeTickOptions extends AgAxisBaseTickOptions {
     /** Maximum gap in pixels between tick lines. */
     maxSpacing?: PixelSize;
-    /** The step value between ticks specified as a TimeInterval or a number. If the configured interval results in dense ticks given the data domain, the ticks will be removed. */
+    /** The step value between ticks specified as a TimeInterval or a number. If the configured interval results in too many ticks given the chart size, it will be ignored. */
     interval?: any;
 }

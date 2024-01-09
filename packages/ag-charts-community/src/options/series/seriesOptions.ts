@@ -13,16 +13,16 @@ export interface AgSeriesHighlightSeriesStyle {
 }
 
 export interface AgSeriesHighlightStyle {
-    /** Highlight style used for an individual marker when tapped or hovered over. */
+    /** Highlight style used for an individual marker when hovered. */
     item?: AgSeriesHighlightMarkerStyle;
-    /** Highlight style used for whole series when one of its markers is tapped or hovered over. */
+    /** Highlight style used for whole series when a series or legend item is hovered. */
     series?: AgSeriesHighlightSeriesStyle;
 }
 
 export interface AgBaseSeriesThemeableOptions {
     /** The cursor to use for hovered markers. This config is identical to the CSS `cursor` property. */
     cursor?: string;
-    /** Configuration for series markers and series line highlighting when a marker / data point or a legend item is hovered over. */
+    /** Configuration for marker and series highlighting when a series or legend item is hovered over. */
     highlightStyle?: AgSeriesHighlightStyle;
     /** Range from a node that a click triggers the listener. */
     nodeClickRange?: InteractionRange;

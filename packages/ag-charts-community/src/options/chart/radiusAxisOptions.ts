@@ -24,7 +24,9 @@ export interface AgRadiusNumberAxisOptions extends AgBaseAxisOptions<AgRadiusAxi
     title?: AgAxisCaptionOptions;
     /** Add cross lines or regions corresponding to data values. */
     crossLines?: AgRadiusCrossLineOptions[];
-    /** The ratio of the inner radius of the axis. */
+    /** The ratio of the inner radius of the axis as a proportion of the overall radius.
+     *  Used to create an inner circle.
+     */
     innerRadiusRatio?: Ratio;
 }
 
@@ -38,7 +40,9 @@ export interface AgRadiusCategoryAxisOptions extends AgBaseAxisOptions<AgRadiusA
     title?: AgAxisCaptionOptions;
     /** Add cross lines or regions corresponding to data values. */
     crossLines?: AgRadiusCrossLineOptions[];
-    /** The ratio of the inner radius of the axis. */
+    /** The ratio of the inner radius of the axis as a proportion of the overall radius.
+     *  Used to create an inner circle.
+     */
     innerRadiusRatio?: Ratio;
     /**
      * This property is for grouped polar series plotted on a radius category axis.
