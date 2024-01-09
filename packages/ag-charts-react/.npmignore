@@ -15,3 +15,7 @@ tsconfig.json
 
 !dist
 !dist/src
+!dist/umd
+
+dist/**/package.json
+dist/**/package.json
