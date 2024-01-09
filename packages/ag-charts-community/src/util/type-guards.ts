@@ -56,6 +56,10 @@ export function isHtmlElement(value: unknown): value is HTMLElement {
     return typeof window !== 'undefined' && value instanceof HTMLElement;
 }
 
+export function isEnumKey<T extends object>(enumObject: T, enumKey: keyof T): enumKey is keyof T {
+    return isString(enumKey) && Object.keys(enumObject).includes(enumKey);
+}
+
 export function isEnumValue<T extends object>(enumObject: T, enumValue: unknown): enumValue is T[keyof T] {
     return Object.values(enumObject).includes(enumValue);
 }

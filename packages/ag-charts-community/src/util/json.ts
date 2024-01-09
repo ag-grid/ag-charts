@@ -12,12 +12,6 @@ import {
 } from './type-guards';
 import type { DeepPartial } from './types';
 
-/**
- * Special value used by `jsonMerge` to signal that a property should be removed from the merged
- * output.
- */
-export const DELETE = Symbol('<delete-property>');
-
 const CLASS_INSTANCE_TYPE = 'class-instance';
 
 export interface JsonMergeOptions {
@@ -134,22 +128,7 @@ export function jsonMerge<T>(jsons: T[], opts?: JsonMergeOptions): T {
     const avoidDeepClone = opts?.avoidDeepClone ?? [];
 
     if (jsons.some(isArray)) {
-        const finalValue = jsons.at(-1)!;
-        // Clone final array.
-
-        if (isArray(finalValue)) {
-            return finalValue.map((value) => {
-                if (isArray(value)) {
-                    return jsonMerge([[], value], opts);
-                }
-                if (isPlainObject(value)) {
-                    return jsonMerge([{}, value], opts);
-                }
-                return value;
-            }) as any;
-        }
-
-        return finalValue;
+        return deepClone(jsons.at(-1)!);
     }
 
     const result: any = {};
@@ -168,19 +147,10 @@ export function jsonMerge<T>(jsons: T[], opts?: JsonMergeOptions): T {
         }
 
         const lastValue = values.at(-1);
-        if (lastValue === DELETE) {
-            continue;
-        }
-
         if (!avoidDeepClone.includes(key) && isObjectLike(lastValue)) {
             result[key] = jsonMerge(values, opts);
-        } else if (isArray(lastValue)) {
-            // Arrays need to be shallow copied to avoid external mutation and allow jsonDiff to
-            // detect changes.
-            result[key] = [...lastValue];
         } else {
-            // Just directly assign/overwrite.
-            result[key] = lastValue;
+            result[key] = shallowClone(lastValue);
         }
     }
 

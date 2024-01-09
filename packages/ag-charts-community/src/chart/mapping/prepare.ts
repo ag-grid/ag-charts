@@ -8,8 +8,9 @@ import {
     type AgTooltipPositionOptions,
     AgTooltipPositionType,
 } from '../../options/agChartOptions';
-import { DELETE, type JsonMergeOptions, jsonMerge, jsonWalk } from '../../util/json';
+import { type JsonMergeOptions, jsonMerge, jsonWalk } from '../../util/json';
 import { Logger } from '../../util/logger';
+import { mergeDefaults } from '../../util/object';
 import { isArray, isDefined, isEnumValue, isFiniteNumber, isPlainObject, isString } from '../../util/type-guards';
 import { AXIS_TYPES } from '../factory/axisTypes';
 import { getSeriesPaletteFactory } from '../factory/seriesTypes';
@@ -153,11 +154,11 @@ export function prepareOptions<T extends AgChartOptions>(userOptions: T): T {
                     ({ type }) => type === axisType
                 );
             }
-            const axesTheme = jsonMerge([
-                axesThemes[axisType] ?? {},
-                axesThemes[axisType]?.[axis.position ?? 'unknown'] ?? {},
+            const axesTheme = mergeDefaults(
                 axisDefaults,
-            ]);
+                axesThemes[axisType]?.[axis.position ?? 'unknown'],
+                axesThemes[axisType]
+            );
             return prepareAxis(axis, axesTheme);
         });
         prepareLegendEnabledOption(options, mergedOptions);
@@ -174,22 +175,17 @@ function mergeSeriesOptions<T extends SeriesOptionsTypes>(
     seriesThemes: any,
     globalTooltipPositionOptions: AgTooltipPositionOptions | {}
 ): T {
-    const mergedTooltipPosition = jsonMerge(
-        [globalTooltipPositionOptions, series.tooltip?.position],
-        noDataCloneMergeOptions
-    );
-    return jsonMerge(
-        [seriesThemes[type], series, { type, tooltip: { position: mergedTooltipPosition } }],
-        noDataCloneMergeOptions
-    );
+    const mergedTooltipPosition = mergeDefaults(series.tooltip?.position, globalTooltipPositionOptions);
+    return mergeDefaults({ type, tooltip: { position: mergedTooltipPosition } }, series, seriesThemes[type]);
 }
 
-function prepareSeries<T extends SeriesOptionsTypes>(context: PreparationContext, input: T, ...defaults: T[]): T {
-    const paletteOptions = calculateSeriesPalette(context, input);
-
-    // Part of the options interface, but not directly consumed by the series implementations.
-    const removeOptions = { stacked: DELETE, grouped: DELETE } as any;
-    return jsonMerge([...defaults, paletteOptions, input, removeOptions], noDataCloneMergeOptions);
+function prepareSeries<T extends SeriesOptionsTypes>(context: PreparationContext, input: T): T {
+    const { stacked, grouped, ...seriesOptions } = jsonMerge(
+        [calculateSeriesPalette(context, input), input],
+        noDataCloneMergeOptions
+    ) as any;
+    // const { stacked, grouped, ...seriesOptions } = mergeDefaults(input, calculateSeriesPalette(context, input)) as any;
+    return seriesOptions;
 }
 
 function calculateSeriesPalette<T extends SeriesOptionsTypes>(context: PreparationContext, input: T): T {
@@ -224,12 +220,9 @@ function prepareAxis<T extends AxesOptionsTypes>(
     axis: T,
     axisTheme: { crossLines: AgCartesianCrossLineOptions; gridLine: AgAxisGridLineOptions }
 ): T {
-    // Remove redundant theme overload keys.
-    const removeOptions = { top: DELETE, bottom: DELETE, left: DELETE, right: DELETE } as any;
-
     // Special cross lines case where we have an array of cross line elements which need their own defaults.
     if (axis.crossLines) {
-        if (!Array.isArray(axis.crossLines)) {
+        if (!isArray(axis.crossLines)) {
             Logger.warn('axis[].crossLines should be an array.');
             axis.crossLines = [];
         }
@@ -239,7 +232,7 @@ function prepareAxis<T extends AxesOptionsTypes>(
     // Same thing grid lines (AG-8777)
     const gridLineStyle = axisTheme.gridLine.style;
     if (axis.gridLine?.style !== undefined && gridLineStyle !== undefined && gridLineStyle.length > 0) {
-        if (!Array.isArray(axis.gridLine.style)) {
+        if (!isArray(axis.gridLine.style)) {
             Logger.warn('axis[].gridLine.style should be an array.');
             axis.gridLine.style = [];
         }
@@ -252,13 +245,13 @@ function prepareAxis<T extends AxesOptionsTypes>(
             // Themes will normally only have one element in gridLineStyle[], but cycle through the array
             // with `mod` anyway to make sure that we honour the theme's grid line style sequence.
             const themeStyle: typeof userStyle = gridLineStyle[index % gridLineStyle.length];
-            return jsonMerge([themeStyle, userStyle]);
+            return mergeDefaults(userStyle, themeStyle);
         });
     }
 
-    const cleanTheme = { crossLines: DELETE };
-
-    return jsonMerge([axisTheme, cleanTheme, axis, removeOptions], noDataCloneMergeOptions);
+    delete (axisTheme as any).crossLines;
+    const { top, right, bottom, left, ...axisOptions } = jsonMerge([axisTheme, axis], noDataCloneMergeOptions) as any;
+    return axisOptions;
 }
 
 function prepareLegendEnabledOption<T extends AgChartOptions>(options: T, mergedOptions: any) {
@@ -303,9 +296,9 @@ function prepareEnabledOptions<T extends AgChartOptions>(options: T, mergedOptio
 function preparePieOptions(pieSeriesTheme: any, seriesOptions: any, mergedSeries: any) {
     if (isArray(seriesOptions.innerLabels)) {
         mergedSeries.innerLabels = seriesOptions.innerLabels.map((innerLabel: any) =>
-            jsonMerge([pieSeriesTheme.innerLabels, innerLabel])
+            mergeDefaults(innerLabel, pieSeriesTheme.innerLabels)
         );
     } else {
-        mergedSeries.innerLabels = DELETE;
+        delete mergedSeries.innerLabels;
     }
 }

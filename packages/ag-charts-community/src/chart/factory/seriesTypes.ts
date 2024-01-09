@@ -2,7 +2,8 @@ import type { SeriesConstructor, SeriesModule, SeriesPaletteFactory } from '../.
 import { hasRegisteredEnterpriseModules } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import type { AgChartOptions } from '../../options/agChartOptions';
-import { deepClone, jsonMerge } from '../../sparklines-util';
+import { deepClone } from '../../sparklines-util';
+import { mergeDefaults } from '../../util/object';
 import { isFunction } from '../../util/type-guards';
 import type { SeriesOptions } from '../mapping/prepareSeries';
 import type { SeriesOptionsTypes } from '../mapping/types';
@@ -67,12 +68,12 @@ export function registerSeriesThemeTemplate(
     enterpriseThemeTemplate = {}
 ) {
     const existingTemplate = SERIES_THEME_TEMPLATES[seriesType];
-    SERIES_THEME_TEMPLATES[seriesType] = jsonMerge([existingTemplate, themeTemplate]);
-    ENTERPRISE_SERIES_THEME_TEMPLATES[seriesType] = jsonMerge([
-        existingTemplate,
-        themeTemplate,
+    SERIES_THEME_TEMPLATES[seriesType] = mergeDefaults(themeTemplate, existingTemplate);
+    ENTERPRISE_SERIES_THEME_TEMPLATES[seriesType] = mergeDefaults(
         enterpriseThemeTemplate,
-    ]);
+        themeTemplate,
+        existingTemplate
+    );
 }
 
 export function getSeries(chartType: string, moduleCtx: ModuleContext): Series<any> {

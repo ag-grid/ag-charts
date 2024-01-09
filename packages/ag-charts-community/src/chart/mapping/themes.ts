@@ -4,8 +4,8 @@ import type {
     AgChartThemeOverrides,
     AgChartThemePalette,
 } from '../../options/agChartOptions';
-import { jsonMerge } from '../../util/json';
 import { Logger } from '../../util/logger';
+import { mergeDefaults } from '../../util/object';
 import { ChartTheme } from '../themes/chartTheme';
 import { DarkTheme } from '../themes/darkTheme';
 import { MaterialDark } from '../themes/materialDark';
@@ -122,24 +122,21 @@ export function getChartTheme(unvalidatedValue: unknown): ChartTheme {
     }
 
     // Flatten recursive themes.
-    const overrides: AgChartThemeOverrides[] = [];
+    const overrides: (AgChartThemeOverrides | undefined)[] = [];
     let palette;
     while (typeof value === 'object') {
-        overrides.push(value.overrides ?? {});
+        overrides.push(value.overrides);
 
         // Use first palette found, they can't be merged.
-        if (value.palette && palette == null) {
-            palette = value.palette;
-        }
+        palette ??= value.palette;
 
         value = value.baseTheme;
     }
-    overrides.reverse();
 
     const flattenedTheme = {
         baseTheme: value,
-        overrides: jsonMerge(overrides),
-        ...(palette ? { palette } : {}),
+        overrides: mergeDefaults(...overrides),
+        palette,
     };
 
     const baseTheme: any = flattenedTheme.baseTheme ? getChartTheme(flattenedTheme.baseTheme) : lightTheme();

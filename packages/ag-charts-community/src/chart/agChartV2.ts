@@ -13,8 +13,9 @@ import type {
 } from '../options/agChartOptions';
 import { Debug } from '../util/debug';
 import { createDeprecationWarning } from '../util/deprecation';
-import { jsonApply, jsonDiff, jsonMerge } from '../util/json';
+import { jsonApply, jsonDiff } from '../util/json';
 import { Logger } from '../util/logger';
+import { mergeDefaults } from '../util/object';
 import type { TypedEventListener } from '../util/observable';
 import type { DeepPartial } from '../util/types';
 import { CartesianChart } from './cartesianChart';
@@ -30,7 +31,7 @@ import { registerInbuiltModules } from './factory/registerInbuiltModules';
 import { getSeries } from './factory/seriesTypes';
 import { setupModules } from './factory/setupModules';
 import { HierarchyChart } from './hierarchyChart';
-import { noDataCloneMergeOptions, prepareOptions } from './mapping/prepare';
+import { prepareOptions } from './mapping/prepare';
 import { AxisPositionGuesser } from './mapping/prepareAxis';
 import type { SeriesOptions } from './mapping/prepareSeries';
 import {
@@ -274,7 +275,7 @@ class AgChartsInternal {
         } = proxy;
 
         const lastUpdateOptions = queuedUserOptions[queuedUserOptions.length - 1] ?? chart.userOptions;
-        const userOptions = jsonMerge([lastUpdateOptions, deltaOptions]) as AgChartOptions;
+        const userOptions = mergeDefaults(deltaOptions, lastUpdateOptions);
         debug('>>> AgChartV2.updateUserDelta() user delta', deltaOptions);
         debug('AgChartV2.updateUserDelta() - base options', lastUpdateOptions);
         AgChartsInternal.createOrUpdate(userOptions, proxy);
@@ -390,7 +391,7 @@ class AgChartsInternal {
 }
 
 function applyChartOptions(chart: Chart, processedOptions: ProcessedOptions, userOptions: AgChartOptions): void {
-    const completeOptions = jsonMerge([chart.processedOptions ?? {}, processedOptions], noDataCloneMergeOptions);
+    const completeOptions = mergeDefaults(processedOptions, chart.processedOptions);
     const modulesChanged = applyModules(chart, completeOptions);
 
     const skip = ['type', 'data', 'series', 'listeners', 'theme', 'legend.listeners'];
@@ -443,7 +444,7 @@ function applyChartOptions(chart: Chart, processedOptions: ProcessedOptions, use
         chart.updateAllSeriesListeners();
     }
     chart.processedOptions = completeOptions;
-    chart.userOptions = jsonMerge([chart.userOptions ?? {}, userOptions], noDataCloneMergeOptions);
+    chart.userOptions = mergeDefaults(userOptions, chart.userOptions);
 
     const majorChange = forceNodeDataRefresh || modulesChanged;
     const updateType = majorChange ? ChartUpdateType.PROCESS_DATA : ChartUpdateType.PERFORM_LAYOUT;

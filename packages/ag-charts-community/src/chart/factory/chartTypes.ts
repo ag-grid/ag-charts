@@ -1,4 +1,4 @@
-import { jsonMerge } from '../../util/json';
+import { mergeDefaults } from '../../util/object';
 
 export type ChartType = 'cartesian' | 'polar' | 'hierarchy';
 
@@ -40,7 +40,7 @@ export function registerChartSeriesType(seriesType: string, chartType: ChartType
 }
 
 export function registerChartDefaults(chartType: ChartType, defaults: {}) {
-    DEFAULTS[chartType] = jsonMerge([DEFAULTS[chartType] ?? {}, defaults]);
+    DEFAULTS[chartType] = mergeDefaults(defaults, DEFAULTS[chartType]);
 }
 
 export function getChartDefaults(chartType: ChartType) {
