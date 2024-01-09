@@ -19,15 +19,14 @@ import { getChartLayout } from './getChartLayout';
 import { patchOptions } from './patchOptions';
 import { transformPlainEntryFile } from './transformPlainEntryFile';
 
-const DEFAULT_ASPECT_RATIO = DEFAULT_THUMBNAIL_WIDTH / DEFAULT_THUMBNAIL_HEIGHT;
-
 interface Params {
     example: GeneratedContents;
     theme: AgChartThemeName;
     outputPath: string;
+    dpi: number;
 }
 
-export async function generateExample({ example, theme, outputPath }: Params) {
+export async function generateExample({ example, theme, outputPath, dpi }: Params) {
     const { entryFileName, files = {} } = example;
 
     const entryFile = files[entryFileName];
@@ -37,11 +36,11 @@ export async function generateExample({ example, theme, outputPath }: Params) {
 
     let output: { multiple: true; canvas: Canvas; ctx: CanvasRenderingContext2D } | { multiple: false; buffer: Buffer };
     if (charts.length > 1) {
-        const canvas = new Canvas(DEFAULT_THUMBNAIL_WIDTH, DEFAULT_THUMBNAIL_HEIGHT);
+        const canvas = new Canvas(DEFAULT_THUMBNAIL_WIDTH * dpi, DEFAULT_THUMBNAIL_HEIGHT * dpi);
         const ctx = canvas.getContext('2d');
 
         ctx.fillStyle = BACKGROUND_COLORS[theme];
-        ctx.fillRect(0, 0, DEFAULT_THUMBNAIL_WIDTH, DEFAULT_THUMBNAIL_HEIGHT);
+        ctx.fillRect(0, 0, DEFAULT_THUMBNAIL_WIDTH * dpi, DEFAULT_THUMBNAIL_HEIGHT * dpi);
 
         output = { multiple: true, canvas, ctx };
     } else {
@@ -55,9 +54,10 @@ export async function generateExample({ example, theme, outputPath }: Params) {
             window: { document },
         } = new JSDOM(`<html><head><style></style></head><body></body></html>`);
 
+        // Note - we'll need one instance per DPI setting
         const mockCtx = mockCanvas.setup({
-            width: DEFAULT_THUMBNAIL_WIDTH,
-            height: DEFAULT_THUMBNAIL_HEIGHT,
+            width: DEFAULT_THUMBNAIL_WIDTH * dpi,
+            height: DEFAULT_THUMBNAIL_HEIGHT * dpi,
             document,
             window: window as any,
             mockText: false,
@@ -69,6 +69,7 @@ export async function generateExample({ example, theme, outputPath }: Params) {
             window,
             width: DEFAULT_THUMBNAIL_WIDTH,
             height: DEFAULT_THUMBNAIL_HEIGHT,
+            overrideDevicePixelRatio: dpi,
         } as any);
         /* End TODO */
 
@@ -102,13 +103,24 @@ export async function generateExample({ example, theme, outputPath }: Params) {
             window,
             width,
             height,
+            overrideDevicePixelRatio: dpi,
         } as any);
 
         const chart = (chartProxy as any).chart;
         await chart.waitForUpdate(5_000);
 
         if (output.multiple === true) {
-            output.ctx.drawImage(mockCtx.ctx.nodeCanvas, 0, 0, width, height, x0, y0, width, height);
+            output.ctx.drawImage(
+                mockCtx.ctx.nodeCanvas,
+                0,
+                0,
+                width * dpi,
+                height * dpi,
+                x0 * dpi,
+                y0 * dpi,
+                width * dpi,
+                height * dpi
+            );
         } else {
             output.buffer = mockCtx.ctx.nodeCanvas.toBuffer('image/png');
         }
@@ -118,14 +130,16 @@ export async function generateExample({ example, theme, outputPath }: Params) {
 
     const s = sharp(buffer);
 
+    const dpiExt = dpi !== 1 ? `@${dpi}x` : '';
+
     await Promise.all([
         s
             .clone()
             .png()
-            .toFile(path.join(outputPath, `${theme}.png`)),
+            .toFile(path.join(outputPath, `${theme}${dpiExt}.png`)),
         s
             .clone()
             .webp()
-            .toFile(path.join(outputPath, `${theme}.webp`)),
+            .toFile(path.join(outputPath, `${theme}${dpiExt}.webp`)),
     ]);
 }

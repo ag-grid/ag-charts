@@ -1,5 +1,6 @@
 import { SITE_BASE_URL } from '@constants';
 import type { ThemeName } from '@stores/themeStore';
+import { getDevFileUrl } from '@utils/devFileUrl';
 import { pathJoin } from '@utils/pathJoin';
 
 export const getExampleUrl = ({ exampleName, isFullPath }: { exampleName: string; isFullPath?: boolean }) => {
@@ -20,16 +21,19 @@ export const getExampleRunnerExampleUrl = ({
     return isFullPath ? fullPath : path;
 };
 
-export const getPlainExampleImageUrl = ({
+export const getExampleImageUrl = ({
     exampleName,
     theme,
+    dpi,
     ext,
 }: {
     exampleName: string;
     theme: ThemeName;
+    dpi: 1 | 2;
     ext: 'png' | 'webp';
 }) => {
-    const imageUrl = pathJoin(SITE_BASE_URL, 'gallery', 'examples', `${exampleName}/${theme}-plain.${ext}`);
+    const dpiExt = dpi !== 1 ? `@${dpi}x` : '';
+    const imageUrl = getDevFileUrl({ filePath: `/ag-charts-thumbnails/${exampleName}/${theme}${dpiExt}.${ext}` });
     return imageUrl;
 };
 
