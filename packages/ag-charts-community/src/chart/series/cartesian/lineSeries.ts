@@ -32,7 +32,7 @@ import { CartesianSeries } from './cartesianSeries';
 import { LineSeriesProperties } from './lineSeriesProperties';
 import { prepareLinePathAnimation } from './lineUtil';
 import { markerSwipeScaleInAnimation, resetMarkerFn, resetMarkerPositionFn } from './markerUtil';
-import { buildResetPathFn, pathChangeHasMotion, pathSwipeInAnimation, updateClipPath } from './pathUtil';
+import { buildResetPathFn, pathSwipeInAnimation, updateClipPath } from './pathUtil';
 
 export interface LineNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum {
     readonly point: CartesianSeriesNodeDatum['point'] & {
@@ -480,8 +480,8 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         fromToMotion(this.id, 'marker', animationManager, markerSelections, fns.marker as any);
         fromToMotion(this.id, 'path_properties', animationManager, path, fns.pathProperties);
         pathMotion(this.id, 'path_update', animationManager, path, fns.path);
-        seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
-        if (pathChangeHasMotion(fns.pairData)) {
+        if (fns.hasMotion) {
+            seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
             seriesLabelFadeInAnimation(this, 'annotations', animationManager, annotationSelections);
         }
     }

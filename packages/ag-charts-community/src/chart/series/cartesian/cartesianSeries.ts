@@ -25,6 +25,7 @@ import { SeriesNodeClickEvent } from '../series';
 import type { SeriesGroupZIndexSubOrderType } from '../seriesLayerManager';
 import { SeriesProperties } from '../seriesProperties';
 import type { SeriesNodeDatum } from '../seriesTypes';
+import type { Scaling } from './scaling';
 
 export interface CartesianSeriesNodeDatum extends SeriesNodeDatum {
     readonly xKey: string;
@@ -105,24 +106,6 @@ export interface CartesianAnimationData<
     paths: Path[][];
     seriesRect?: BBox;
     duration?: number;
-}
-
-export type Scaling = ContinuousScaling | CategoryScaling | LogScaling;
-
-export interface ContinuousScaling<T = 'continuous'> {
-    type: T;
-    domain: [number, number];
-    range: [number, number];
-}
-
-export interface LogScaling extends ContinuousScaling<'log'> {
-    convert(domain: number): number;
-}
-
-export interface CategoryScaling {
-    type: 'category';
-    domain: string[];
-    range: number[];
 }
 
 export abstract class CartesianSeriesProperties<T extends object> extends SeriesProperties<T> {
