@@ -1,30 +1,13 @@
 import { isDecoratedObject, listDecoratedProperties } from './decorator';
-import { isArray, isObject, isObjectLike, isPlainObject } from './type-guards';
+import { isObject } from './type-guards';
 import type { Intersection } from './types';
 
 type FalsyType = false | null | undefined;
 
-export function deepMerge(target: any, source: any) {
-    if (isPlainObject(target) && isPlainObject(source)) {
-        const result: Record<string, any> = {};
-        Object.keys(target).forEach((key) => {
-            if (key in source) {
-                result[key] = deepMerge(target[key], source[key]);
-            } else {
-                result[key] = target[key];
-            }
-        });
-        Object.keys(source).forEach((key) => {
-            if (!(key in target)) {
-                result[key] = source[key];
-            }
-        });
-        return result;
-    }
-    if ((isArray(target) && !isArray(source)) || (isObjectLike(target) && !isObjectLike(source))) {
-        return target;
-    }
-    return source;
+export function deepMerge<TSource extends Record<string, any>, TArgs extends (TSource | FalsyType)[]>(
+    ...sources: TArgs
+) {
+    return mergeDefaults(...sources.reverse());
 }
 
 export function mergeDefaults<TSource extends Record<string, any>, TArgs extends (TSource | FalsyType)[]>(

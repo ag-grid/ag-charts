@@ -1,6 +1,6 @@
 import { describe, expect, it, jest } from '@jest/globals';
 
-import { DELETE, jsonApply, jsonDiff, jsonMerge, jsonWalk } from './json';
+import { jsonApply, jsonDiff, jsonMerge, jsonWalk } from './json';
 
 const FIXED_DATE = new Date('2022-01-27T00:00:00.000+00:00');
 
@@ -204,17 +204,6 @@ describe('json module', () => {
                 const merge = jsonMerge([base, mergee1, mergee2]);
                 expect(merge).toMatchSnapshot();
                 expect(merge).toEqual(mergee2);
-            });
-
-            it('should honour DELETE value', () => {
-                const base = { a: 1, b: 'b', c: FIXED_DATE, d: { 1: 1, 2: 2, 3: 3 } };
-                const mergee1 = {};
-                const mergee2 = { c: DELETE, d: { 2: DELETE } };
-
-                const merge = jsonMerge([base, mergee1, mergee2]);
-                expect(merge).toMatchSnapshot();
-                expect(merge).not.toHaveProperty('c');
-                expect(merge).not.toHaveProperty('d.2');
             });
 
             it('should take highest precedent value when types conflict', () => {

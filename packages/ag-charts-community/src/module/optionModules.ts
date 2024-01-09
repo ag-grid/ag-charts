@@ -4,6 +4,7 @@ import type { ChartAxisDirection } from '../chart/chartAxisDirection';
 import type { PropertyDefinition } from '../chart/data/dataModel';
 import { CHART_TYPES } from '../chart/factory/chartTypes';
 import { isEnterpriseSeriesType } from '../chart/factory/expectedEnterpriseModules';
+import { removeUsedEnterpriseOptions } from '../chart/factory/processEnterpriseOptions';
 import { getSeriesDefaults, isDefaultAxisSwapNeeded, isSoloSeries } from '../chart/factory/seriesTypes';
 import { HierarchyChart } from '../chart/hierarchyChart';
 import type { SeriesOptions } from '../chart/mapping/prepareSeries';
@@ -27,6 +28,7 @@ import { deepClone, jsonWalk } from '../util/json';
 import { Logger } from '../util/logger';
 import { mergeDefaults } from '../util/object';
 import type { BaseModule, ModuleInstance } from './baseModule';
+import { enterpriseModule } from './enterpriseModule';
 import { MODULE_CONFLICTS, type Module, REGISTERED_MODULES } from './module';
 import type { AxisContext, ModuleContextWithParent, SeriesContext } from './moduleContext';
 
@@ -73,7 +75,7 @@ export class ChartOptions<T extends AgChartOptions> {
 
     private getOptionsThemeConfig(options: T) {
         const optionsType = this.optionsType(options);
-        return this.activeTheme?.config[optionsType] ?? {};
+        return deepClone(this.activeTheme?.config[optionsType] ?? {});
     }
 
     private getOptionsDefaults(options: T) {
@@ -88,7 +90,8 @@ export class ChartOptions<T extends AgChartOptions> {
     }
 
     setUserOptions(userOptions: T) {
-        const options = deepClone(userOptions, { shallow: ['data'] });
+        const cloneOptions = { shallow: ['data'] };
+        const options = deepClone(userOptions, cloneOptions);
 
         this.sanityCheckAndCleanup(options);
 
@@ -99,12 +102,17 @@ export class ChartOptions<T extends AgChartOptions> {
         //     ? jsonMerge([this.activeTheme.palette, options.theme.palette])
         //     : null;
 
-        const seriesDefaults = this.getOptionsDefaults(options);
-
         this.userOptions = options;
-        this.seriesDefaults = seriesDefaults;
-        this.processedOptions = mergeDefaults(options, themeDefaults, seriesDefaults) as T;
+        this.seriesDefaults = this.getOptionsDefaults(options);
+        this.processedOptions = deepClone(
+            mergeDefaults(this.userOptions, themeDefaults, this.seriesDefaults),
+            cloneOptions
+        ) as T;
         // this.processedOptions = mergeDefaults(options, this.processedOptions) as T;
+
+        if (!enterpriseModule.isEnterprise) {
+            removeUsedEnterpriseOptions(this.processedOptions);
+        }
     }
 
     setSpecialOptions(specialOptions: ChartSpecialOverrides) {

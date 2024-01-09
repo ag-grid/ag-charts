@@ -103,7 +103,7 @@ export function deepClone<T>(source: T, options?: { shallow?: string[] }): T {
  */
 export function shallowClone<T>(source: T): T {
     if (isArray(source)) {
-        return source.slice() as T;
+        return [...source] as T;
     }
     if (isPlainObject(source)) {
         return { ...source };
@@ -134,8 +134,8 @@ export function jsonMerge<T>(jsons: T[], opts?: JsonMergeOptions): T {
     const avoidDeepClone = opts?.avoidDeepClone ?? [];
 
     if (jsons.some(isArray)) {
+        const finalValue = jsons.at(-1)!;
         // Clone final array.
-        const finalValue = jsons[jsons.length - 1];
 
         if (isArray(finalValue)) {
             return finalValue.map((value) => {
@@ -167,14 +167,8 @@ export function jsonMerge<T>(jsons: T[], opts?: JsonMergeOptions): T {
             continue;
         }
 
-        const lastValue = values[values.length - 1];
+        const lastValue = values.at(-1);
         if (lastValue === DELETE) {
-            continue;
-        }
-
-        if (!allTypesMatch(values)) {
-            // Short-circuit if mismatching types.
-            result[key] = lastValue;
             continue;
         }
 
@@ -396,23 +390,4 @@ function classify(value: any): Classification | null {
         return 'function';
     }
     return 'primitive';
-}
-
-function allTypesMatch(values: unknown[]) {
-    if (values.length < 2) {
-        return true;
-    }
-    let typeIndex = null;
-    for (const value of values) {
-        const currentTypeIndex =
-            [isArray, isPlainObject].reduce<number | null>(
-                (result, classifier, index) => result ?? (classifier(value) ? index : null),
-                null
-            ) ?? -1;
-        if (typeIndex !== null && typeIndex !== currentTypeIndex) {
-            return false;
-        }
-        typeIndex = currentTypeIndex;
-    }
-    return true;
 }

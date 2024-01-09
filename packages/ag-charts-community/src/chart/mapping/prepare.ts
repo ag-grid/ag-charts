@@ -1,4 +1,3 @@
-import { enterpriseModule } from '../../module/enterpriseModule';
 import { ChartOptions } from '../../module/optionModules';
 import type {
     AgAxisGridLineOptions,
@@ -13,7 +12,6 @@ import { DELETE, type JsonMergeOptions, jsonMerge, jsonWalk } from '../../util/j
 import { Logger } from '../../util/logger';
 import { isArray, isDefined } from '../../util/type-guards';
 import { AXIS_TYPES } from '../factory/axisTypes';
-import { removeUsedEnterpriseOptions } from '../factory/processEnterpriseOptions';
 import { getSeriesPaletteFactory } from '../factory/seriesTypes';
 import { type ChartTheme, resolvePartialPalette } from '../themes/chartTheme';
 import type { SeriesOptions } from './prepareSeries';
@@ -92,16 +90,9 @@ export function prepareOptions<T extends AgChartOptions>(userOptions: T): T {
     const partialPalette = typeof userTheme === 'object' && userTheme.palette ? userTheme.palette : null;
 
     const axesThemes = themeConfig?.['axes'] ?? {};
-    const cleanedTheme = jsonMerge([themeConfig ?? {}, { axes: DELETE, series: DELETE }]);
 
     const defaultOverrides = chartOptions.seriesDefaults!;
-
-    const mergedOptions = jsonMerge([defaultOverrides, cleanedTheme, options], noDataCloneMergeOptions) as T;
-    // const mergedOptions = mergeDefaults(options, cleanedTheme, defaultOverrides) as T;
-
-    if (!enterpriseModule.isEnterprise) {
-        removeUsedEnterpriseOptions(mergedOptions);
-    }
+    const mergedOptions = chartOptions.processedOptions! as T;
 
     const globalTooltipPositionOptions = getGlobalTooltipPositionOptions(options.tooltip?.position);
 

@@ -1,3 +1,5 @@
+import type { PlainObject } from './types';
+
 export function isDefined<T>(val: T | undefined | null): val is T {
     return val != null;
 }
@@ -26,15 +28,15 @@ export function isFunction(value: unknown): value is Function {
     return typeof value === 'function';
 }
 
-export function isObject(value: unknown): value is { [key: string | number | symbol]: unknown } {
+export function isObject(value: unknown): value is PlainObject {
     return typeof value === 'object' && value !== null && !isArray(value);
 }
 
-export function isObjectLike(value: unknown): value is { [key: string | number | symbol]: unknown } | unknown[] {
+export function isObjectLike(value: unknown): value is PlainObject | unknown[] {
     return isArray(value) || isPlainObject(value);
 }
 
-export function isPlainObject(value: unknown): value is { [key: string | number | symbol]: unknown } {
+export function isPlainObject(value: unknown): value is PlainObject {
     return typeof value === 'object' && value !== null && value.constructor === Object;
 }
 

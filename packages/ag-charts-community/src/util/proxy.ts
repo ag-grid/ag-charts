@@ -1,52 +1,39 @@
-import { addTransformToInstanceProperty } from './decorator';
+import { addObserverToInstanceProperty, addTransformToInstanceProperty } from './decorator';
 
 export function ProxyProperty(...proxyProperties: string[]) {
-    const property = proxyProperties[proxyProperties.length - 1];
+    if (!proxyProperties.length) {
+        throw new Error('ProxyProperty expects at least one proxyProperties argument.');
+    }
+
+    const property = proxyProperties.at(-1)!;
+
     if (proxyProperties.length === 1) {
         return addTransformToInstanceProperty(
-            (target, _, value) => {
-                target[property] = value;
-                return value;
-            },
-            (target, _) => {
-                return target[property];
-            }
+            (target, _, value) => (target[property] = value),
+            (target, _) => target[property]
         );
     }
 
     const getTarget = (target: any) => {
         let value = target;
-        for (let i = 0; i < proxyProperties.length - 1; i += 1) {
+        for (let i = 0; i < proxyProperties.length - 1; i++) {
             value = value[proxyProperties[i]];
         }
         return value;
     };
 
     return addTransformToInstanceProperty(
-        (target, _, value) => {
-            getTarget(target)[property] = value;
-            return value;
-        },
-        (target, _) => {
-            return getTarget(target)[property];
-        }
+        (target, _, value) => (getTarget(target)[property] = value),
+        (target, _) => getTarget(target)[property]
     );
 }
 
 export function ProxyOnWrite(proxyProperty: string) {
-    return addTransformToInstanceProperty((target, _, value) => {
-        target[proxyProperty] = value;
-
-        return value;
-    });
+    return addTransformToInstanceProperty((target, _, value) => (target[proxyProperty] = value));
 }
 
 export function ProxyPropertyOnWrite(childName: string, childProperty?: string) {
-    return addTransformToInstanceProperty((target, key, value) => {
-        target[childName][childProperty ?? key] = value;
-
-        return value;
-    });
+    return addTransformToInstanceProperty((target, key, value) => (target[childName][childProperty ?? key] = value));
 }
 
 /**
@@ -76,4 +63,8 @@ export function ActionOnSet<T>(opts: {
 
         return newValue;
     });
+}
+
+export function ObserveChanges<T>(observerFn: (target: T, newValue?: any, oldValue?: any) => void) {
+    return addObserverToInstanceProperty(observerFn);
 }

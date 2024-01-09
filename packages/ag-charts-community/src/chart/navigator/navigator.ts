@@ -2,11 +2,9 @@ import type { ModuleInstance } from '../../module/baseModule';
 import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
-import { ActionOnSet } from '../../util/proxy';
+import { ActionOnSet, ObserveChanges, ProxyProperty } from '../../util/proxy';
 import { BOOLEAN, POSITIVE_NUMBER, Validate } from '../../util/validation';
 import type { LayoutCompleteEvent, LayoutContext } from '../layout/layoutService';
-import { NavigatorHandle } from './navigatorHandle';
-import { NavigatorMask } from './navigatorMask';
 import { RangeSelector } from './shapes/rangeSelector';
 
 interface Offset {
@@ -18,65 +16,44 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     private readonly rs = new RangeSelector();
 
     // Wrappers to allow option application to the scene graph nodes.
-    readonly mask = new NavigatorMask(this.rs.mask);
-    readonly minHandle = new NavigatorHandle(this.rs.minHandle);
-    readonly maxHandle = new NavigatorHandle(this.rs.maxHandle);
+    readonly mask = this.rs.mask;
+    readonly minHandle = this.rs.minHandle;
+    readonly maxHandle = this.rs.maxHandle;
 
     private minHandleDragging = false;
     private maxHandleDragging = false;
     private panHandleOffset = NaN;
 
+    @Validate(BOOLEAN)
     @ActionOnSet<Navigator>({
         changeValue(newValue) {
-            if (newValue) {
+            if (!newValue) {
                 this.min = 0;
                 this.max = 1;
             }
             this.updateGroupVisibility();
         },
     })
-    @Validate(BOOLEAN)
-    private enabled = false;
+    private enabled: boolean = false;
 
-    set width(value: number) {
-        this.rs.width = value;
-    }
-    get width(): number {
-        return this.rs.width;
-    }
+    @ProxyProperty('rs', 'width')
+    width?: number;
 
-    set height(value: number) {
-        this.rs.height = value;
-    }
-    get height(): number {
-        return this.rs.height;
-    }
+    @ProxyProperty('rs', 'height')
+    height?: number;
+
+    @ProxyProperty('rs', 'min')
+    min!: number;
+
+    @ProxyProperty('rs', 'max')
+    max!: number;
 
     @Validate(POSITIVE_NUMBER)
     margin = 10;
 
-    set min(value: number) {
-        this.rs.min = value;
-    }
-    get min(): number {
-        return this.rs.min;
-    }
-
-    set max(value: number) {
-        this.rs.max = value;
-    }
-    get max(): number {
-        return this.rs.max;
-    }
-
-    private _visible: boolean = true;
-    set visible(value: boolean) {
-        this._visible = value;
-        this.updateGroupVisibility();
-    }
-    get visible() {
-        return this._visible;
-    }
+    @Validate(BOOLEAN)
+    @ObserveChanges<Navigator>((target) => target.updateGroupVisibility())
+    visible: boolean = true;
 
     private updateGroupVisibility() {
         const visible = this.enabled && this.visible;
