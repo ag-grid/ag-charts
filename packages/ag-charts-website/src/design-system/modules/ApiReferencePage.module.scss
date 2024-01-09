@@ -8,6 +8,11 @@
     width: calc(100% + var(--layout-horizontal-margins) * 2);
     margin-left: calc(var(--layout-horizontal-margins) * -1);
 
+    @media screen and (max-width: $breakpoint-options-medium) {
+        margin-left: var(--layout--horizontal-margins);
+        padding-top: $spacing-size-5;
+    }
+
     @media screen and (min-width: $breakpoint-options-medium) {
         width: calc(var(--layout-width-4-12) + var(--layout-horizontal-margins));
         box-shadow: -1px 0 0 0 var(--color-border-primary);
