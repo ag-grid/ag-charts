@@ -134,10 +134,10 @@
     &.isActive {
         --file-border-color: var(--color-border-primary);
 
-        background-color: var(--color-bg-secondary);
+        background-color: color-mix(in srgb, var(--color-bg-secondary), var(--color-bg-primary) 70%);
 
         #{$selector-darkmode} & {
-            background-color: var(--color-bg-secondary);
+            background-color: color-mix(in srgb, var(--color-bg-secondary), var(--color-bg-primary) 70%);
         }
     }
 }
