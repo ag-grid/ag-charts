@@ -22,11 +22,6 @@
     @media screen and (min-width: $breakpoint-options-large) {
         width: calc(var(--layout-width-3-12) + var(--layout-horizontal-margins));
     }
-
-    @media screen and (min-width: $breakpoint-options-extra-large) {
-        width: var(--layout-width-2-12);
-        margin-left: 0;
-    }
 }
 
 .referenceOuter {
@@ -48,10 +43,6 @@
 
     @media screen and (min-width: $breakpoint-options-large) {
         width: var(--layout-width-9-12);
-    }
-
-    @media screen and (min-width: $breakpoint-options-extra-large) {
-        width: var(--layout-width-10-12);
     }
 
     header {
