@@ -2,16 +2,20 @@ import { AgChartOptions, AgCharts, AgRangeBarSeriesTooltipRendererParams, AgSeri
 
 import { getData } from './data';
 
+const numberFormatOptions: Intl.NumberFormatOptions = {
+    notation: 'compact',
+    compactDisplay: 'short',
+    style: 'currency',
+    currency: 'GBP',
+};
+
 const tooltip: AgSeriesTooltip<AgRangeBarSeriesTooltipRendererParams> = {
     renderer: ({ datum, xName, xKey, yLowKey, yHighKey, yLowName, yHighName }) => {
         return {
-            content: `<b>${xName}:</b> ${datum[xKey]}<br/><b>${yLowName}: </b>${datum[yLowKey].toLocaleString('en-GB', {
-                notation: 'compact',
-                compactDisplay: 'short',
-            })}<br/><b>${yHighName}: </b>${datum[yHighKey].toLocaleString('en-GB', {
-                notation: 'compact',
-                compactDisplay: 'short',
-            })}`,
+            content: `<b>${xName}:</b> ${datum[xKey]}<br/><b>${yLowName}: </b>${datum[yLowKey].toLocaleString(
+                'en-GB',
+                numberFormatOptions
+            )}<br/><b>${yHighName}: </b>${datum[yHighKey].toLocaleString('en-GB', numberFormatOptions)}`,
         };
     },
 };
@@ -76,7 +80,7 @@ const options: AgChartOptions = {
                 enabled: false,
             },
             label: {
-                formatter: ({ value }) => Number(value).toLocaleString(),
+                formatter: ({ value }) => Number(value).toLocaleString('en-GB', numberFormatOptions),
             },
             crosshair: {
                 label: {
