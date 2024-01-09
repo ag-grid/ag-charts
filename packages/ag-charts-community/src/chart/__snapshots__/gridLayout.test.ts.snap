@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`horizontal layout one row, multiple columns, one page 1`] = `
+exports[`GridLayout horizontal layout one row, multiple columns, one page 1`] = `
 [
   {
     "columns": [
@@ -73,7 +73,7 @@ exports[`horizontal layout one row, multiple columns, one page 1`] = `
 ]
 `;
 
-exports[`horizontal layout two rows, multiple columns, one page 1`] = `
+exports[`GridLayout horizontal layout two rows, multiple columns, one page 1`] = `
 [
   {
     "columns": [
@@ -174,7 +174,7 @@ exports[`horizontal layout two rows, multiple columns, one page 1`] = `
 ]
 `;
 
-exports[`horizontal layout two rows, multiple columns, one page, mixed item widths in single column  1`] = `
+exports[`GridLayout horizontal layout two rows, multiple columns, one page, mixed item widths in single column  1`] = `
 [
   {
     "columns": [
@@ -275,7 +275,7 @@ exports[`horizontal layout two rows, multiple columns, one page, mixed item widt
 ]
 `;
 
-exports[`horizontal layout two rows, multiple columns, two page, mixed item widths in single column  1`] = `
+exports[`GridLayout horizontal layout two rows, multiple columns, two page, mixed item widths in single column  1`] = `
 [
   {
     "columns": [
@@ -392,7 +392,7 @@ exports[`horizontal layout two rows, multiple columns, two page, mixed item widt
 ]
 `;
 
-exports[`horizontal layout two rows, multiple columns, two pages 1`] = `
+exports[`GridLayout horizontal layout two rows, multiple columns, two pages 1`] = `
 [
   {
     "columns": [
@@ -589,7 +589,7 @@ exports[`horizontal layout two rows, multiple columns, two pages 1`] = `
 ]
 `;
 
-exports[`vertical layout one column, multiple rows, one page 1`] = `
+exports[`GridLayout vertical layout one column, multiple rows, one page 1`] = `
 [
   {
     "columns": [
@@ -638,7 +638,7 @@ exports[`vertical layout one column, multiple rows, one page 1`] = `
 ]
 `;
 
-exports[`vertical layout two columns, multiple rows, one page 1`] = `
+exports[`GridLayout vertical layout two columns, multiple rows, one page 1`] = `
 [
   {
     "columns": [
@@ -723,7 +723,7 @@ exports[`vertical layout two columns, multiple rows, one page 1`] = `
 ]
 `;
 
-exports[`vertical layout two columns, multiple rows, one page, mixed item widths in single column  1`] = `
+exports[`GridLayout vertical layout two columns, multiple rows, one page, mixed item widths in single column  1`] = `
 [
   {
     "columns": [
@@ -808,7 +808,7 @@ exports[`vertical layout two columns, multiple rows, one page, mixed item widths
 ]
 `;
 
-exports[`vertical layout two columns, multiple rows, two page, mixed item widths in single column  1`] = `
+exports[`GridLayout vertical layout two columns, multiple rows, two page, mixed item widths in single column  1`] = `
 [
   {
     "columns": [
@@ -973,7 +973,7 @@ exports[`vertical layout two columns, multiple rows, two page, mixed item widths
 ]
 `;
 
-exports[`vertical layout two columns, multiple rows, two pages 1`] = `
+exports[`GridLayout vertical layout two columns, multiple rows, two pages 1`] = `
 [
   {
     "columns": [

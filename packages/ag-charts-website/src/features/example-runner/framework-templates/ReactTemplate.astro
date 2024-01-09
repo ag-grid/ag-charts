@@ -34,7 +34,7 @@ const {
     styleFiles = [],
     boilerplatePath,
     ignoreSystemJs,
-    extraStyles
+    extraStyles,
 } = Astro.props as Props;
 
 const startFile = pathJoin(appLocation, entryFileName);
@@ -49,13 +49,17 @@ const startFile = pathJoin(appLocation, entryFileName);
     <body>
         <div id="root"></div>
         {scriptFiles && <Scripts baseUrl={appLocation} files={scriptFiles} />}
-        {!ignoreSystemJs && <SystemJs
-            isDev={isDev}
-            boilerplatePath={boilerplatePath}
-            appLocation={appLocation}
-            startFile={startFile}
-            internalFramework={'react'}
-        />}
+        {
+            !ignoreSystemJs && (
+                <SystemJs
+                    isDev={isDev}
+                    boilerplatePath={boilerplatePath}
+                    appLocation={appLocation}
+                    startFile={startFile}
+                    internalFramework={'react'}
+                />
+            )
+        }
         <slot />
     </body>
 </html>

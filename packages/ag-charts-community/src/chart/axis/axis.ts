@@ -529,7 +529,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const x = sideFlag * tick.size;
         const x1 = Math.min(0, x);
         const x2 = x1 + Math.abs(x);
-        const y = Math.round(datum.translationY);
+        const y = datum.translationY;
         return { x1, x2, y };
     }
 
@@ -1030,20 +1030,16 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         maxTickCount: number;
         primaryTickCount?: number;
     }) {
-        const {
-            range,
-            scale,
-            visibleRange,
-            dataDomain: { domain },
-        } = this;
+        const { range, scale, visibleRange } = this;
 
         let rawTicks: any[] = [];
 
         switch (tickGenerationType) {
             case TickGenerationType.VALUES:
                 if (ContinuousScale.is(scale)) {
-                    const start = scale.fromDomain(domain[0]);
-                    const stop = scale.fromDomain(domain[1]);
+                    const scaleDomain = scale.getDomain();
+                    const start = scale.fromDomain(scaleDomain[0]);
+                    const stop = scale.fromDomain(scaleDomain[1]);
 
                     const d0 = Math.min(start, stop);
                     const d1 = Math.max(start, stop);
@@ -1212,8 +1208,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             line.stroke = tick.color;
             line.x1 = sideFlag * tick.size;
             line.x2 = 0;
-            line.y1 = 0;
-            line.y2 = 0;
         });
     }
 
@@ -1253,8 +1247,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             rotation: toRadians(this.rotation),
             rotationCenterX: 0,
             rotationCenterY: 0,
-            translationX: this.translation.x,
-            translationY: this.translation.y,
+            translationX: Math.floor(this.translation.x),
+            translationY: Math.floor(this.translation.y),
         };
     }
 
@@ -1275,7 +1269,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         gridLineGroupSelection.each((line) => {
             line.x1 = gridPadding;
             line.x2 = -sideFlag * gridLength + gridPadding;
-            line.y = 0;
         });
     }
 
@@ -1336,7 +1329,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             line.setProperties({
                 x1: gridPadding,
                 x2: -sideFlag * gridLength + gridPadding,
-                y: 0,
                 fill: undefined,
                 stroke,
                 strokeWidth: width,
@@ -1532,7 +1524,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             'line-paths',
             animationManager,
             [this.gridLineGroupSelection, this.tickLineGroupSelection],
-            fns.tick as any,
+            fns.tick,
             (_, d) => d.tickId,
             diff
         );
@@ -1541,7 +1533,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             'tick-labels',
             animationManager,
             [this.tickLabelGroupSelection],
-            fns.label as any,
+            fns.label,
             (_, d) => d.tickId,
             diff
         );

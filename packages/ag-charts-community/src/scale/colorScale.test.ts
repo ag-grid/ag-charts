@@ -3,7 +3,7 @@ import { expect, test } from '@jest/globals';
 import { Color } from '../util/color';
 import { ColorScale } from './colorScale';
 
-describe('colorScale', () => {
+describe('ColorScale', () => {
     beforeEach(() => {
         // It's too much effort to compute values in the OKLCH space
         // Use HSL instead, reordering components so it's "equivalent"

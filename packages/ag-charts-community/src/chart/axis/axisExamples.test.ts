@@ -76,6 +76,13 @@ const EXAMPLES: Record<string, TestCase> = {
                 seriesTypes: ['bar'],
             }),
         },
+        INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_EXAMPLE: {
+            options: examples.INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_EXAMPLE,
+            assertions: cartesianChartAssertions({
+                axisTypes: ['grouped-category', 'number'],
+                seriesTypes: repeat('bar', 3),
+            }),
+        },
         BASIC_TIME_AXIS: {
             options: axesExamples.TIME_AXIS_BASIC_EXAMPLE,
             assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: ['line'] }),

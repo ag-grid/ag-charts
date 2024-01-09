@@ -100,7 +100,7 @@ const EXAMPLES: Record<string, CartesianTestCase> = {
     ...NAVIGATOR_ZOOM_EXAMPLES,
 };
 
-describe('navigator', () => {
+describe('Navigator', () => {
     let chart: any;
 
     afterEach(() => {
@@ -121,17 +121,21 @@ describe('navigator', () => {
             expect(console.warn).not.toBeCalled();
         });
 
-        for (const [exampleName, example] of Object.entries(EXAMPLES)) {
-            it(`for ${exampleName} it should create chart instance as expected`, async () => {
+        it.each(Object.entries(EXAMPLES))(
+            'for %s it should create chart instance as expected',
+            async (_exampleName, example) => {
                 const options: AgCartesianChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
                 await example.assertions(chart);
-            });
+            }
+        );
 
-            it(`for ${exampleName} it should render to canvas as expected`, async () => {
+        it.each(Object.entries(EXAMPLES))(
+            'for %s it should render to canvas as expected',
+            async (_exampleName, example) => {
                 const compare = async () => {
                     await waitForChartStability(chart);
 
@@ -144,7 +148,7 @@ describe('navigator', () => {
 
                 chart = AgCharts.create(options);
                 await compare();
-            });
-        }
+            }
+        );
     });
 });

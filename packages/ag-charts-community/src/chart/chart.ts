@@ -1233,7 +1233,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     private checkSeriesNodeRange(
         event: InteractionEvent<'click' | 'dblclick' | 'hover'>,
-        callback: (series: ISeries<any>, datum: any) => void
+        callback: (series: ISeries<any>, datum: SeriesNodeDatum) => void
     ): boolean {
         const nearestNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, false);
 

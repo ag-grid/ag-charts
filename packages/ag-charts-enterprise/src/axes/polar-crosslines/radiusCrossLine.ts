@@ -2,7 +2,7 @@ import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import { PolarCrossLine, PolarCrossLineLabel } from './polarCrossLine';
 
-const { ChartAxisDirection, Validate, DEGREE } = _ModuleSupport;
+const { ChartAxisDirection, Validate, DEGREE, validateCrossLineValues } = _ModuleSupport;
 const { Path, Sector, Text } = _Scene;
 const { normalizeAngle360, toRadians, isNumberEqual } = _Util;
 
@@ -35,7 +35,13 @@ export class RadiusCrossLine extends PolarCrossLine {
     }
 
     update(visible: boolean) {
-        const { scale, type, value } = this;
+        const { scale, type, value, range } = this;
+        if (!scale || !type || !validateCrossLineValues(type, value, range, scale)) {
+            this.group.visible = false;
+            this.labelGroup.visible = false;
+            return;
+        }
+
         if (type === 'line' && scale instanceof _Scale.BandScale) {
             this.type = 'range';
             this.range = [value, value];
@@ -45,6 +51,9 @@ export class RadiusCrossLine extends PolarCrossLine {
 
         const { innerRadius, outerRadius } = this;
         visible &&= innerRadius >= this.axisInnerRadius && outerRadius <= this.axisOuterRadius;
+
+        this.group.visible = visible;
+        this.labelGroup.visible = visible;
 
         this.updatePolygonNode(visible);
         this.updateSectorNode(visible);
@@ -91,8 +100,8 @@ export class RadiusCrossLine extends PolarCrossLine {
     }
 
     private updatePolygonNode(visible: boolean) {
-        const { gridAngles, polygonNode: polygon, range, scale, shape, type, innerRadius, outerRadius } = this;
-        if (!visible || shape !== 'polygon' || !scale || !gridAngles || (type === 'range' && !range)) {
+        const { gridAngles, polygonNode: polygon, scale, shape, type, innerRadius, outerRadius } = this;
+        if (!visible || shape !== 'polygon' || !scale || !gridAngles) {
             polygon.visible = false;
             return;
         }
@@ -112,18 +121,8 @@ export class RadiusCrossLine extends PolarCrossLine {
     }
 
     private updateSectorNode(visible: boolean) {
-        const {
-            axisInnerRadius,
-            axisOuterRadius,
-            range,
-            scale,
-            sectorNode: sector,
-            shape,
-            type,
-            innerRadius,
-            outerRadius,
-        } = this;
-        if (!visible || shape !== 'circle' || !scale || (type === 'range' && !range)) {
+        const { axisInnerRadius, axisOuterRadius, scale, sectorNode: sector, shape, innerRadius, outerRadius } = this;
+        if (!visible || shape !== 'circle' || !scale) {
             sector.visible = false;
             return;
         }
@@ -141,8 +140,8 @@ export class RadiusCrossLine extends PolarCrossLine {
     }
 
     private updateLabelNode(visible: boolean) {
-        const { innerRadius, label, labelNode: node, range, scale, shape, type } = this;
-        if (!visible || label.enabled === false || !label.text || !scale || (type === 'range' && !range)) {
+        const { innerRadius, label, labelNode: node, scale, shape, type } = this;
+        if (!visible || label.enabled === false || !label.text || !scale) {
             node.visible = false;
             return;
         }

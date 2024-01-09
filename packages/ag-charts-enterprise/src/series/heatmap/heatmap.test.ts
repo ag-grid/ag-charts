@@ -11,7 +11,7 @@ import type { AgChartOptions } from '../../main';
 import { AgCharts } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
-describe('Chart', () => {
+describe('HeatmapSeries', () => {
     let chart: any;
     const ctx = setupMockCanvas();
 

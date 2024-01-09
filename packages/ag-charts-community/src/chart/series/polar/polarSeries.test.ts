@@ -114,17 +114,21 @@ describe('PolarSeries', () => {
             expect(console.warn).not.toBeCalled();
         });
 
-        for (const [exampleName, example] of Object.entries(EXAMPLES)) {
-            it(`for ${exampleName} it should create chart instance as expected`, async () => {
+        it.each(Object.entries(EXAMPLES))(
+            'for %s it should create chart instance as expected',
+            async (_exampleName, example) => {
                 const options: AgPolarChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
                 chart = deproxy(AgCharts.create(options));
                 await waitForChartStability(chart);
                 await example.assertions(chart);
-            });
+            }
+        );
 
-            it(`for ${exampleName} it should render to canvas as expected`, async () => {
+        it.each(Object.entries(EXAMPLES))(
+            'for %s it should render to canvas as expected',
+            async (_exampleName, example) => {
                 const options: AgPolarChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
@@ -135,8 +139,8 @@ describe('PolarSeries', () => {
                     await example.extraScreenshotActions(chart);
                     await compare();
                 }
-            });
-        }
+            }
+        );
     });
 
     describe('initial animation', () => {

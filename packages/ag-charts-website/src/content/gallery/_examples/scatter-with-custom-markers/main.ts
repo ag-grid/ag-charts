@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts, Marker } from 'ag-charts-enterprise';
+import { AgCartesianSeriesTooltipRendererParams, AgChartOptions, AgCharts, Marker } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -25,6 +25,18 @@ class NpmLogo extends Marker {
     }
 }
 
+const tooltip = {
+    renderer: ({ datum, xName, yName, xKey, yKey }: AgCartesianSeriesTooltipRendererParams) => {
+        return {
+            content: `<b>${xName}:</b> ${datum[xKey].toLocaleString('en-GB', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+            })}<br/><b>${yName}: </b>${datum[yKey].toLocaleString('en-GB')}`,
+        };
+    },
+};
+
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
@@ -42,6 +54,7 @@ const options: AgChartOptions = {
                 shape: AGChartsLogo,
                 fillOpacity: 1,
             },
+            tooltip,
         },
         {
             type: 'scatter',
@@ -53,6 +66,7 @@ const options: AgChartOptions = {
                 shape: NpmLogo,
                 fillOpacity: 1,
             },
+            tooltip,
         },
     ],
     axes: [
@@ -70,6 +84,11 @@ const options: AgChartOptions = {
             title: {
                 text: 'Website Visits',
             },
+            crosshair: {
+                label: {
+                    format: `s`,
+                },
+            },
         },
         {
             position: 'left',
@@ -84,6 +103,11 @@ const options: AgChartOptions = {
             label: {
                 formatter: ({ value }) => `${value / 1000}K`,
                 padding: 15,
+            },
+            crosshair: {
+                label: {
+                    format: `s`,
+                },
             },
         },
         {

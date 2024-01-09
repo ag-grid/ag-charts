@@ -51,12 +51,6 @@ const options: AgChartOptions = {
         {
             type: 'line',
             xKey: 'week',
-            yKey: 'ghana',
-            yName: 'Ghana',
-        },
-        {
-            type: 'line',
-            xKey: 'week',
             yKey: 'honduras',
             yName: 'Honduras',
         },
@@ -69,44 +63,14 @@ const options: AgChartOptions = {
         {
             type: 'line',
             xKey: 'week',
-            yKey: 'jamaica',
-            yName: 'Jamaica',
-        },
-        {
-            type: 'line',
-            xKey: 'week',
-            yKey: 'mexico',
-            yName: 'Mexico',
-        },
-        {
-            type: 'line',
-            xKey: 'week',
             yKey: 'panama',
             yName: 'Panama',
         },
         {
             type: 'line',
             xKey: 'week',
-            yKey: 'windwardIsles',
-            yName: 'Windward Isles',
-        },
-        {
-            type: 'line',
-            xKey: 'week',
-            yKey: 'guatemala',
-            yName: 'Guatemala',
-        },
-        {
-            type: 'line',
-            xKey: 'week',
             yKey: 'nicaragua',
             yName: 'Nicaragua',
-        },
-        {
-            type: 'line',
-            xKey: 'week',
-            yKey: 'brazil',
-            yName: 'Brazil',
         },
     ],
     axes: [
@@ -126,9 +90,6 @@ const options: AgChartOptions = {
             title: {
                 text: '£ per kg',
             },
-            nice: false,
-            min: 0.2,
-            max: 1,
         },
     ],
 };

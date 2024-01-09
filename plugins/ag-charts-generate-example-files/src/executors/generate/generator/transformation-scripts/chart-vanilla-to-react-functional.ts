@@ -1,4 +1,5 @@
-import { getDarkModeSnippet } from '../utils/getDarkModeSnippet';
+import prettier from 'prettier';
+
 import { toTitleCase } from './angular-utils';
 import { getChartImports, wrapOptionsUpdateCode } from './chart-utils';
 import { templatePlaceholder } from './chart-vanilla-src-parser';
@@ -52,43 +53,42 @@ function getTemplate(bindings: any, componentAttributes: string[]): string {
     return convertFunctionalTemplate(template);
 }
 
-export function vanillaToReactFunctional(bindings: any, componentFilenames: string[]): () => string {
-    return () => {
-        const { properties } = bindings;
-        const imports = getImports(componentFilenames, bindings);
-        const stateProperties = [];
-        const componentAttributes = [];
-        const instanceBindings = [];
+export async function vanillaToReactFunctional(bindings: any, componentFilenames: string[]): Promise<string> {
+    const { properties } = bindings;
+    const imports = getImports(componentFilenames, bindings);
+    const stateProperties = [];
+    const componentAttributes = [];
+    const instanceBindings = [];
 
-        properties.forEach((property) => {
-            if (property.value === 'true' || property.value === 'false') {
-                componentAttributes.push(`${property.name}={${property.value}}`);
-            } else if (property.value === null) {
-                componentAttributes.push(`${property.name}={${property.name}}`);
+    properties.forEach((property) => {
+        if (property.value === 'true' || property.value === 'false') {
+            componentAttributes.push(`${property.name}={${property.value}}`);
+        } else if (property.value === null) {
+            componentAttributes.push(`${property.name}={${property.name}}`);
+        } else {
+            // for when binding a method
+            // see javascript-grid-keyboard-navigation for an example
+            // tabToNextCell needs to be bound to the react component
+            if (isInstanceMethod(bindings.instanceMethods, property)) {
+                instanceBindings.push(`this.${property.name}=${property.value}`);
             } else {
-                // for when binding a method
-                // see javascript-grid-keyboard-navigation for an example
-                // tabToNextCell needs to be bound to the react component
-                if (isInstanceMethod(bindings.instanceMethods, property)) {
-                    instanceBindings.push(`this.${property.name}=${property.value}`);
-                } else {
-                    stateProperties.push(
-                        `const [${property.name}, set${toTitleCase(property.name)}] = useState(${property.value});`
-                    );
-                    componentAttributes.push(`${property.name}={${property.name}}`);
-                }
+                stateProperties.push(
+                    `const [${property.name}, set${toTitleCase(property.name)}] = useState(${property.value});`
+                );
+                componentAttributes.push(`${property.name}={${property.name}}`);
             }
-        });
+        }
+    });
 
-        const template = getTemplate(bindings, componentAttributes);
-        const externalEventHandlers = bindings.externalEventHandlers.map((handler) =>
-            processFunction(convertFunctionToConstCallback(handler.body, bindings.callbackDependencies))
-        );
-        const instanceMethods = bindings.instanceMethods.map((m) =>
-            processFunction(convertFunctionToConstCallback(m, bindings.callbackDependencies))
-        );
+    const template = getTemplate(bindings, componentAttributes);
+    const externalEventHandlers = bindings.externalEventHandlers.map((handler) =>
+        processFunction(convertFunctionToConstCallback(handler.body, bindings.callbackDependencies))
+    );
+    const instanceMethods = bindings.instanceMethods.map((m) =>
+        processFunction(convertFunctionToConstCallback(m, bindings.callbackDependencies))
+    );
 
-        let indexFile = `'use strict';
+    let indexFile = `'use strict';
 
 ${imports.join('\n')}
 
@@ -105,7 +105,6 @@ const ChartExample = () => {
         ${instanceBindings.join(';\n        ')}
         ${instanceMethods.concat(externalEventHandlers).join('\n\n    ')}
 
-        ${getDarkModeSnippet('reactFunctional')}
         return ${template};
     }
 
@@ -115,14 +114,10 @@ const root = createRoot(document.getElementById('root'));
 root.render(<ChartExample />);
 `;
 
-        if (bindings.usesChartApi) {
-            indexFile = indexFile.replace(/AgCharts.(\w*)\((\w*)(,|\))/g, 'AgCharts.$1(chartRef.current.chart$3');
-            indexFile = indexFile.replace(
-                /\(this.chartRef.current.chart, options/g,
-                '(chartRef.current.chart, options'
-            );
-        }
+    if (bindings.usesChartApi) {
+        indexFile = indexFile.replace(/AgCharts.(\w*)\((\w*)(,|\))/g, 'AgCharts.$1(chartRef.current.chart$3');
+        indexFile = indexFile.replace(/\(this.chartRef.current.chart, options/g, '(chartRef.current.chart, options');
+    }
 
-        return indexFile;
-    };
+    return indexFile;
 }

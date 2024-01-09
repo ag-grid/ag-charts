@@ -112,7 +112,7 @@ const mixinLabelPositionCases = (example: CartesianTestCase): Record<string, Car
     return result;
 };
 
-const CROSSLINES_LABEL_POSITON_EXAMPLES: Record<string, CartesianTestCase> = mixinLabelPositionCases({
+const CROSSLINES_LABEL_POSITION_EXAMPLES: Record<string, CartesianTestCase> = mixinLabelPositionCases({
     options: examples.DEFAULT_LABEL_POSITION_CROSSLINES,
     assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
 });
@@ -120,10 +120,6 @@ const CROSSLINES_LABEL_POSITON_EXAMPLES: Record<string, CartesianTestCase> = mix
 const CROSSLINES_RANGE_EXAMPLES: Record<string, CartesianTestCase> = mixinFlippedRangeCases({
     VALID_RANGE_CROSSLINES: {
         options: examples.VALID_RANGE_CROSSLINES,
-        assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
-    },
-    INVALID_RANGE_CROSSLINES: {
-        options: examples.INVALID_RANGE_CROSSLINES,
         assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
     },
     RANGE_OUTSIDE_DOMAIN_MAX_CROSSLINES: {
@@ -146,7 +142,7 @@ const CROSSLINES_RANGE_EXAMPLES: Record<string, CartesianTestCase> = mixinFlippe
 
 const EXAMPLES: Record<string, CartesianTestCase> = {
     ...CROSSLINES_RANGE_EXAMPLES,
-    ...CROSSLINES_LABEL_POSITON_EXAMPLES,
+    ...CROSSLINES_LABEL_POSITION_EXAMPLES,
     SCATTER_CROSSLINES: {
         options: examples.SCATTER_CROSSLINES,
         assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['scatter'] }),
@@ -181,7 +177,57 @@ const EXAMPLES: Record<string, CartesianTestCase> = {
     },
 };
 
-describe('crossLines', () => {
+const INVALID_EXAMPLES: Record<string, CartesianTestCase & { warningMessages: string[] }> = {
+    INVALID_RANGE_CROSSLINES: {
+        options: examples.INVALID_RANGE_VALUE_CROSSLINE,
+        assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
+        warningMessages: [`AG Charts - Expecting crossLine range start undefined to match the axis scale domain.`],
+    },
+    INVALID_RANGE_LENGTH_CROSSLINE: {
+        options: examples.INVALID_RANGE_LENGTH_CROSSLINE,
+        assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
+        warningMessages: [
+            `AG Charts - Property [range] of [CrossLine] cannot be set to [[128,134,135]]; expecting an array of length 2, ignoring.`,
+        ],
+    },
+    INVALID_RANGE_WITHOUT_TYPE_CROSSLINE: {
+        options: examples.INVALID_RANGE_WITHOUT_TYPE_CROSSLINE,
+        assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
+        warningMessages: [
+            `AG Charts - Property [range] of [CrossLine] cannot be set to [[128,134]]; expecting crossLine property 'type' to be 'range', ignoring.`,
+        ],
+    },
+    INVALID_LINE_VALUE_CROSSLINES: {
+        options: examples.INVALID_LINE_VALUE_CROSSLINES,
+        assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
+        warningMessages: [
+            `AG Charts - Expecting crossLine value "a string instead of number" to match the axis scale domain.`,
+        ],
+    },
+    INVALID_RANGE_WITH_LINE_TYPE_CROSSLINE: {
+        options: examples.INVALID_RANGE_WITH_LINE_TYPE_CROSSLINE,
+        assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
+        warningMessages: [
+            `AG Charts - Property [range] of [CrossLine] cannot be set to [[128,134]]; expecting crossLine type 'line' to have a 'value' property instead of 'range', ignoring.`,
+        ],
+    },
+    INVALID_LINE_WITHOUT_TYPE_CROSSLINE: {
+        options: examples.INVALID_LINE_WITHOUT_TYPE_CROSSLINE,
+        assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
+        warningMessages: [
+            `AG Charts - Property [value] of [CrossLine] cannot be set to [128]; expecting crossLine property 'type' to be 'line', ignoring.`,
+        ],
+    },
+    INVALID_LINE_WITH_RANGE_TYPE_CROSSLINE: {
+        options: examples.INVALID_LINE_WITH_RANGE_TYPE_CROSSLINE,
+        assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
+        warningMessages: [
+            `AG Charts - Property [value] of [CrossLine] cannot be set to [128]; expecting crossLine type 'range' to have a 'range' property instead of 'value', ignoring.`,
+        ],
+    },
+};
+
+describe('CrossLine', () => {
     let chart: Chart;
 
     afterEach(() => {
@@ -193,6 +239,13 @@ describe('crossLines', () => {
 
     const ctx = setupMockCanvas();
 
+    const compare = async () => {
+        await waitForChartStability(chart);
+
+        const imageData = extractImageData(ctx);
+        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+    };
+
     describe('#create', () => {
         beforeEach(() => {
             console.warn = jest.fn();
@@ -202,30 +255,57 @@ describe('crossLines', () => {
             expect(console.warn).not.toBeCalled();
         });
 
-        for (const [exampleName, example] of Object.entries(EXAMPLES)) {
-            it(`for ${exampleName} it should create chart instance as expected`, async () => {
+        it.each(Object.entries(EXAMPLES))(
+            'for %s it should create chart instance as expected',
+            async (_exampleName, example) => {
                 const options: AgCartesianChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
                 chart = AgCharts.create(options) as Chart;
                 await waitForChartStability(chart);
                 await example.assertions(chart);
-            });
+            }
+        );
 
-            it(`for ${exampleName} it should render to canvas as expected`, async () => {
-                const compare = async () => {
-                    await waitForChartStability(chart);
-
-                    const imageData = extractImageData(ctx);
-                    expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
-                };
-
+        it.each(Object.entries(EXAMPLES))(
+            'for %s it should render to canvas as expected',
+            async (_exampleName, example) => {
                 const options: AgCartesianChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
                 chart = AgCharts.create(options) as Chart;
                 await compare();
-            });
-        }
+            }
+        );
+    });
+
+    describe('#invalid options', () => {
+        beforeEach(() => {
+            console.warn = jest.fn();
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        const expectWarnings = (warnings: string[]) => {
+            for (let i = 0; i < warnings.length; i++) {
+                expect(console.warn).nthCalledWith(i + 1, warnings[i]);
+            }
+            expect(console.warn).toBeCalledTimes(warnings.length);
+        };
+
+        it.each(Object.entries(INVALID_EXAMPLES))(
+            'for %s it should render to canvas without crossLines and show warning',
+            async (_exampleName, example) => {
+                const options: AgCartesianChartOptions = { ...example.options };
+                prepareTestOptions(options);
+
+                chart = AgCharts.create(options) as Chart;
+                await compare();
+
+                expectWarnings(example.warningMessages);
+            }
+        );
     });
 });

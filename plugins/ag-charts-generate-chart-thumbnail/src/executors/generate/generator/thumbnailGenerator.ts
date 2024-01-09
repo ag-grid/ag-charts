@@ -8,11 +8,18 @@ import 'ag-charts-enterprise';
 import type { GeneratedContents } from 'ag-charts-generate-example-files/src/executors/generate/generator/types';
 import { mockCanvas } from 'ag-charts-test';
 
-import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from './constants';
+import {
+    BACKGROUND_COLORS,
+    DEFAULT_THUMBNAIL_HEIGHT,
+    DEFAULT_THUMBNAIL_WIDTH,
+    DETAIL_FULL_HEIGHT,
+    MIN_ASPECT_RATIO,
+} from './constants';
 import { getChartLayout } from './getChartLayout';
+import { patchOptions } from './patchOptions';
 import { transformPlainEntryFile } from './transformPlainEntryFile';
 
-export const prerender = true;
+const DEFAULT_ASPECT_RATIO = DEFAULT_THUMBNAIL_WIDTH / DEFAULT_THUMBNAIL_HEIGHT;
 
 interface Params {
     example: GeneratedContents;
@@ -24,7 +31,7 @@ export async function generateExample({ example, theme, outputPath }: Params) {
     const { entryFileName, files = {} } = example;
 
     const entryFile = files[entryFileName];
-    const { optionsById } = transformPlainEntryFile(entryFile, files['data.js'], theme);
+    const { optionsById } = transformPlainEntryFile(entryFile, files['data.js']);
 
     const { rows, columns, charts } = getChartLayout(files['index.html']);
 
@@ -32,6 +39,10 @@ export async function generateExample({ example, theme, outputPath }: Params) {
     if (charts.length > 1) {
         const canvas = new Canvas(DEFAULT_THUMBNAIL_WIDTH, DEFAULT_THUMBNAIL_HEIGHT);
         const ctx = canvas.getContext('2d');
+
+        ctx.fillStyle = BACKGROUND_COLORS[theme];
+        ctx.fillRect(0, 0, DEFAULT_THUMBNAIL_WIDTH, DEFAULT_THUMBNAIL_HEIGHT);
+
         output = { multiple: true, canvas, ctx };
     } else {
         output = { multiple: false, buffer: undefined! };
@@ -61,19 +72,31 @@ export async function generateExample({ example, theme, outputPath }: Params) {
         } as any);
         /* End TODO */
 
-        const width = (DEFAULT_THUMBNAIL_WIDTH / columns) | 0;
-        const height = (DEFAULT_THUMBNAIL_HEIGHT / rows) | 0;
-        const x0 = (width * column) | 0;
-        const y0 = (width * row) | 0;
-
         const options = optionsById.get(id);
         if (options == null) {
             throw new Error(`No options found for container with id "${id}"`);
         }
+        patchOptions(options, theme);
+
+        const containerWidth = (DEFAULT_THUMBNAIL_WIDTH / columns) | 0;
+        const containerHeight = (DEFAULT_THUMBNAIL_HEIGHT / rows) | 0;
+
+        let width: number;
+        let height: number;
+        if (options.width != null) {
+            const aspectRatio = Math.max(options.width / (DETAIL_FULL_HEIGHT / rows), MIN_ASPECT_RATIO);
+            width = containerHeight * aspectRatio;
+            height = containerHeight;
+        } else {
+            width = containerWidth;
+            height = containerHeight;
+        }
+
+        const x0 = (containerWidth * column + (containerWidth - width) / 2) | 0;
+        const y0 = (containerWidth * row + (containerHeight - height) / 2) | 0;
 
         AgCharts.update(chartProxy, {
             ...options,
-            theme,
             animation: { enabled: false },
             document,
             window,
