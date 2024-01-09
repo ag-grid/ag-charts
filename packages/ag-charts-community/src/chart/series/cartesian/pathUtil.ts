@@ -39,6 +39,20 @@ export function minMax(nodeData: PathNodeDatumLike[]) {
     );
 }
 
+export function pathChangeHasMotion(pairData: PathPoint[]) :boolean {
+    for (const pathPoint of pairData) {
+        const { from, to } = pathPoint;
+        if (from === undefined || to === undefined) {
+            if (from !== undefined || to !== undefined) {
+                return true;
+            }
+        } else if (from.x !== to.x || from.y !== to.y) {
+            return true
+        }
+    }
+    return false;
+}
+
 function intersectionOnLine(a: { x: number; y: number }, b: { x: number; y: number }, targetX: number) {
     const m = (b.y - a.y) / (b.x - a.x);
     // Find a point a distance along the line from `a` and `b`

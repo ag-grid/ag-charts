@@ -362,5 +362,5 @@ export function prepareLinePathAnimation(
 
     const pathFns = prepareLinePathAnimationFns(newData, oldData, pairData, 'fade', renderPartialPath);
     const marker = prepareMarkerAnimation(pairMap, status);
-    return { ...pathFns, marker };
+    return { ...pathFns, marker, pairData };
 }
