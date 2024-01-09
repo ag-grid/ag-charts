@@ -18,7 +18,6 @@ export type SeriesOptions = AgCartesianSeriesOptions | AgPolarSeriesOptions | Ag
 export function groupSeriesByType(seriesOptions: SeriesOptions[]) {
     const groupMap: Record<string, { type: 'group'; opts: SeriesOptions[] }> = {};
     const stackMap: Record<string, { type: 'stack'; opts: SeriesOptions[] }> = {};
-    const anyStacked: Record<string, boolean> = {};
     const defaultUnstackedGroup = 'default-ag-charts-group';
 
     const result = [];
@@ -36,8 +35,6 @@ export function groupSeriesByType(seriesOptions: SeriesOptions[]) {
         const { stacked: sStacked, stackGroup: sStackGroup, grouped: sGrouped = undefined, xKey } = s as any;
 
         const stacked = sStackGroup != null || sStacked === true;
-        anyStacked[type] ??= false;
-        anyStacked[type] ||= stacked && stackable;
         const grouped = sGrouped === true;
         let groupingKey = [sStackGroup ?? (sStacked === true ? 'stacked' : undefined), grouped ? 'grouped' : undefined]
             .filter((v) => v != null)
@@ -59,10 +56,6 @@ export function groupSeriesByType(seriesOptions: SeriesOptions[]) {
         } else {
             result.push({ type: 'ungrouped' as const, opts: [s] });
         }
-    }
-
-    if (!Object.values(anyStacked).some((v) => v)) {
-        return result;
     }
 
     return result;
