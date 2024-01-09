@@ -55,3 +55,7 @@ export function isFiniteNumber(value: unknown): value is number {
 export function isHtmlElement(value: unknown): value is HTMLElement {
     return typeof window !== 'undefined' && value instanceof HTMLElement;
 }
+
+export function isEnumValue<T extends object>(enumObject: T, enumValue: unknown): enumValue is T[keyof T] {
+    return Object.values(enumObject).includes(enumValue);
+}

@@ -223,15 +223,19 @@ export function formatNode(node: ts.Node) {
 
     if (ts.isEnumDeclaration(node)) {
         return {
-            kind: 'enum',
+            kind: 'typeAlias',
             name: printNode(node.name),
-            members: node.members.map((node) => ({
-                kind: 'member',
-                docs: getJsDoc(node),
-                name: printNode(node.name),
-                type: formatNode(node),
-            })),
+            type: {
+                kind: 'union',
+                type: node.members.map((node) => formatNode(node.initializer)),
+            },
         };
+    }
+
+    if (ts.isTemplateLiteralTypeNode(node)) {
+        if (node.templateSpans.length === 1) {
+            return formatNode(node.templateSpans[0].type);
+        }
     }
 
     if (ts.isTypeAliasDeclaration(node)) {

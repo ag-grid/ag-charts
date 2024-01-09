@@ -1,16 +1,16 @@
 import { ChartOptions } from '../../module/optionModules';
-import type {
-    AgAxisGridLineOptions,
-    AgCartesianChartOptions,
-    AgCartesianCrossLineOptions,
-    AgChartOptions,
-    AgChartThemePalette,
-    AgTooltipPositionOptions,
+import {
+    type AgAxisGridLineOptions,
+    type AgCartesianChartOptions,
+    type AgCartesianCrossLineOptions,
+    type AgChartOptions,
+    type AgChartThemePalette,
+    type AgTooltipPositionOptions,
     AgTooltipPositionType,
 } from '../../options/agChartOptions';
 import { DELETE, type JsonMergeOptions, jsonMerge, jsonWalk } from '../../util/json';
 import { Logger } from '../../util/logger';
-import { isArray, isDefined } from '../../util/type-guards';
+import { isArray, isDefined, isEnumValue, isFiniteNumber, isPlainObject, isString } from '../../util/type-guards';
 import { AXIS_TYPES } from '../factory/axisTypes';
 import { getSeriesPaletteFactory } from '../factory/seriesTypes';
 import { type ChartTheme, resolvePartialPalette } from '../themes/chartTheme';
@@ -51,22 +51,20 @@ function getGlobalTooltipPositionOptions(position: unknown): AgTooltipPositionOp
     // Note: we do not need to show a warning message if the validation fails. These global tooltip options
     // are already processed at the root of the chart options. Logging a message here would trigger duplicate
     // validation warnings.
-    if (position === undefined || typeof position !== 'object' || position === null) {
+    if (!isPlainObject(position)) {
         return {};
     }
-    const { type, xOffset, yOffset } = position as { type?: unknown; xOffset?: unknown; yOffset?: unknown };
-    const AgTooltipPositionTypeMap: { [K in AgTooltipPositionType]: true } = { pointer: true, node: true };
+
+    const { type, xOffset, yOffset } = position;
     const result: AgTooltipPositionOptions = {};
 
-    const isTooltipPositionType = (value: string): value is AgTooltipPositionType =>
-        Object.keys(AgTooltipPositionTypeMap).includes(value);
-    if (typeof type === 'string' && isTooltipPositionType(type)) {
+    if (isString(type) && isEnumValue(AgTooltipPositionType, type)) {
         result.type = type;
     }
-    if (typeof xOffset === 'number' && !isNaN(xOffset) && isFinite(xOffset)) {
+    if (isFiniteNumber(xOffset)) {
         result.xOffset = xOffset;
     }
-    if (typeof yOffset === 'number' && !isNaN(yOffset) && isFinite(yOffset)) {
+    if (isFiniteNumber(yOffset)) {
         result.yOffset = yOffset;
     }
     return result;
