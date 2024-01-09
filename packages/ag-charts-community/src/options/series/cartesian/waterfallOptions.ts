@@ -93,8 +93,6 @@ export interface AgWaterfallSeriesItem<TDatum> {
     positive?: AgWaterfallSeriesItemOptions<TDatum>;
     /** Configuration for the total and subtotal series items. */
     total?: AgWaterfallSeriesItemOptions<TDatum>;
-    /** Apply round corners to each bar. */
-    cornerRadius?: PixelSize;
 }
 
 export interface WaterfallSeriesTotalMeta {
