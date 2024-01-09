@@ -603,7 +603,8 @@ export class AreaSeries extends CartesianSeries<
             return [];
         }
 
-        const { yKey, yName, fill, stroke, fillOpacity, strokeOpacity, strokeWidth, marker, visible } = this.properties;
+        const { yKey, yName, fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, marker, visible } =
+            this.properties;
 
         return [
             {
@@ -627,6 +628,7 @@ export class AreaSeries extends CartesianSeries<
                     stroke,
                     strokeOpacity,
                     strokeWidth,
+                    lineDash,
                     offset: 5, // FIXME: add a styling option to change the width of the stroke in the legend.
                 },
             },

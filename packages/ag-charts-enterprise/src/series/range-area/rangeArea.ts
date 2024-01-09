@@ -602,6 +602,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             stroke,
             strokeWidth,
             strokeOpacity,
+            lineDash,
             visible,
             marker,
         } = this.properties;
@@ -627,6 +628,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                     stroke,
                     strokeOpacity,
                     strokeWidth,
+                    lineDash,
                     offset: 5, // FIXME: add a styling option to change the width of the stroke in the legend.
                 },
             },
