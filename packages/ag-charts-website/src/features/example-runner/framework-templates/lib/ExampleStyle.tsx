@@ -52,11 +52,11 @@ export const ExampleStyle = ({ rootSelector, extraStyles }: { rootSelector?: str
         button:not(#myGrid button, #myChart button, button[class*='ag-'], .ag-chart-context-menu button) {
             --background-color: transparent;
             --text-color: #212529;
-            --color-border-primary: rgba(187, 187, 187, 0.3);
+            --color-border-primary: #d0d5dd;
             --hover-background-color: rgba(0, 0, 0, 0.1);
 
             appearance: none;
-            border: 2px solid var(--color-border-primary);
+            border: 1px solid var(--color-border-primary);
             border-radius: 6px;
             height: 36px;
             color: var(--text-color);
