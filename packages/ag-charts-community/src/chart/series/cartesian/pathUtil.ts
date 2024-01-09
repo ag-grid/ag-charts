@@ -39,7 +39,7 @@ export function minMax(nodeData: PathNodeDatumLike[]) {
     );
 }
 
-export function pathChangeHasMotion(pairData: PathPoint[]) :boolean {
+export function pathChangeHasMotion(pairData: PathPoint[]): boolean {
     for (const pathPoint of pairData) {
         const { from, to } = pathPoint;
         if (from === undefined || to === undefined) {
@@ -47,7 +47,7 @@ export function pathChangeHasMotion(pairData: PathPoint[]) :boolean {
                 return true;
             }
         } else if (from.x !== to.x || from.y !== to.y) {
-            return true
+            return true;
         }
     }
     return false;
