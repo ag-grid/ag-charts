@@ -54,6 +54,13 @@ export interface AgChartDoubleClickEvent extends AgChartEvent<'doubleClick'> {
     /** Event type. */ type: 'doubleClick';
 }
 
+export interface AgChartRenderedEvent {
+    /** Event type. */
+    type: 'chartRendered';
+    /** Function that triggered the rendering. */
+    trigger: 'create' | 'update';
+}
+
 export interface AgBaseChartListeners<TDatum> {
     /** The listener to call when a node (marker, column, bar, tile or a pie sector) in any series is clicked.
      *  Useful for a chart containing multiple series.
@@ -66,6 +73,8 @@ export interface AgBaseChartListeners<TDatum> {
     click?: (event: AgChartClickEvent) => any;
     /** The listener to call when the chart is double clicked. */
     doubleClick?: (event: AgChartDoubleClickEvent) => any;
+    /** The listener to call when the chart canvas is ready to be shown to the user. */
+    chartRendered?: (event: AgChartRenderedEvent) => any;
 }
 
 export interface AgSeriesListeners<TDatum> {

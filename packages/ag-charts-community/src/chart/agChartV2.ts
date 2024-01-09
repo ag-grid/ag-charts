@@ -8,6 +8,7 @@ import type {
     AgBaseSeriesOptions,
     AgChartInstance,
     AgChartOptions,
+    AgChartRenderedEvent,
     DownloadOptions,
     ImageDataUrlOptions,
 } from '../options/agChartOptions';
@@ -47,6 +48,7 @@ import type { SeriesGrouping } from './series/seriesStateManager';
 const debug = Debug.create(true, 'opts');
 
 type ProcessedOptions = Partial<AgChartOptions> & { type?: SeriesOptionsTypes['type'] };
+type Trigger = AgChartRenderedEvent['trigger'];
 
 function chartType(options: any): 'cartesian' | 'polar' | 'hierarchy' {
     if (isAgCartesianChartOptions(options)) {
@@ -100,7 +102,7 @@ export abstract class AgCharts {
      */
     public static create(options: AgChartOptions): AgChartInstance {
         this.licenseCheck(options);
-        const chart = AgChartsInternal.createOrUpdate(options);
+        const chart = AgChartsInternal.createOrUpdate(options, 'create');
 
         if (this.licenseManager?.isDisplayWatermark()) {
             enterpriseModule.injectWatermark?.(
@@ -124,7 +126,7 @@ export abstract class AgCharts {
         if (!AgChartInstanceProxy.isInstance(chart)) {
             throw new Error(AgCharts.INVALID_CHART_REF_MESSAGE);
         }
-        AgChartsInternal.createOrUpdate(options, chart);
+        AgChartsInternal.createOrUpdate(options, 'update', chart);
     }
 
     /**
@@ -214,7 +216,14 @@ class AgChartsInternal {
         AgChartsInternal.initialised = true;
     }
 
-    static createOrUpdate(userOptions: ChartExtendedOptions, proxy?: AgChartInstanceProxy) {
+    private static fireChartRenderedEvent(userOptions: AgChartOptions, trigger: Trigger) {
+        const chartRendered = userOptions.listeners?.chartRendered;
+        if (chartRendered !== undefined && typeof chartRendered === 'function') {
+            chartRendered({ type: 'chartRendered', trigger });
+        }
+    }
+
+    static createOrUpdate(userOptions: ChartExtendedOptions, trigger: Trigger, proxy?: AgChartInstanceProxy) {
         AgChartsInternal.initialiseModules();
 
         debug('>>> AgChartV2.createOrUpdate() user options', userOptions);
@@ -268,6 +277,7 @@ class AgChartsInternal {
             dequeue();
         });
 
+        this.fireChartRenderedEvent(userOptions, trigger);
         return proxy;
     }
 
@@ -281,7 +291,7 @@ class AgChartsInternal {
         const userOptions = jsonMerge([lastUpdateOptions, deltaOptions]) as AgChartOptions;
         debug('>>> AgChartV2.updateUserDelta() user delta', deltaOptions);
         debug('AgChartV2.updateUserDelta() - base options', lastUpdateOptions);
-        AgChartsInternal.createOrUpdate(userOptions, proxy);
+        AgChartsInternal.createOrUpdate(userOptions, 'update', proxy);
     }
 
     /**
@@ -352,7 +362,7 @@ class AgChartsInternal {
             options.animation.enabled = false;
         }
 
-        const clonedChart = AgChartsInternal.createOrUpdate(options);
+        const clonedChart = AgChartsInternal.createOrUpdate(options, 'update');
 
         await clonedChart.chart.waitForUpdate();
         return clonedChart;
