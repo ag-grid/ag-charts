@@ -36,6 +36,7 @@ const scopedValue = (scope: string[] | string | undefined, property: string, gro
     valueType: 'range' as const,
     groupId,
     id,
+    useScopedValues: Array.isArray(scope) ? scope.length > 1 : false,
 });
 const value = (property: string, groupId?: string, id?: string) => scopedValue('test', property, groupId, id);
 const categoryValue = (property: string) => ({
@@ -1103,6 +1104,7 @@ describe('DataModel', () => {
                         property: 'year',
                         type: 'key' as const,
                         valueType: 'category' as const,
+                        useScopedValues: true,
                     },
                     scopedValue(['test1', 'test2'], 'ie'),
                     scopedValue(['test1', 'test2'], 'chrome'),

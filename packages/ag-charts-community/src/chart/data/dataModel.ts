@@ -210,6 +210,7 @@ export type DatumPropertyDefinition<K> = PropertyIdentifiers & {
     missing?: number;
     missingValue?: any;
     separateNegative?: boolean;
+    useScopedValues?: boolean;
     validation?: (value: any, datum: any) => boolean;
     processor?: () => ProcessorFn;
 };
@@ -640,7 +641,7 @@ export class DataModel<
                         joinedDatum[source.id][def.property] = value;
                     }
 
-                    if (def.scopes && def.scopes.length > 1) {
+                    if (def.useScopedValues) {
                         values[valueDefIdx] ??= {};
                         values[valueDefIdx][scope] = value;
                     } else {
