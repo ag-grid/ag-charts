@@ -86,7 +86,7 @@
 
 .navContainer > code {
     #{$selector-darkmode} & {
-        background: var(--color-gray-900);
+        background: var(--color-bg-tertiary);
     }
 }
 
@@ -158,7 +158,7 @@
 
 .propertyName {
     position: relative;
-    color: var(--string-color);
+    color: var(--color-fg-primary);
     cursor: pointer;
 
     .punctuation {
