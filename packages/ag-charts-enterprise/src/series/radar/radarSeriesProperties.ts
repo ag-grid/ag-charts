@@ -16,6 +16,7 @@ const {
     SeriesProperties,
     SeriesTooltip,
     Validate,
+    BOOLEAN,
     COLOR_STRING,
     DEGREE,
     FUNCTION,
@@ -68,4 +69,7 @@ export class RadarSeriesProperties<T extends AgBaseRadarSeriesOptions> extends S
 
     @Validate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgPieSeriesTooltipRendererParams>();
+
+    @Validate(BOOLEAN)
+    connectMissingData: boolean = false;
 }

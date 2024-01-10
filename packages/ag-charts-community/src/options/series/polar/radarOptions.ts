@@ -15,6 +15,8 @@ export interface AgRadarSeriesThemeableOptions<TDatum = any>
     label?: AgChartLabelOptions<TDatum, AgRadarSeriesLabelFormatterParams>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgRadarSeriesTooltipRendererParams>;
+    /** Set to `true` to connect across missing data points. */
+    connectMissingData?: boolean;
 }
 
 export interface AgBaseRadarSeriesOptions<TDatum = any>

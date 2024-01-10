@@ -61,5 +61,5 @@ export class LineSeriesProperties extends CartesianSeriesProperties<AgLineSeries
     readonly tooltip = new SeriesTooltip<AgLineSeriesTooltipRendererParams>();
 
     @Validate(BOOLEAN)
-    connectNulls: boolean = false;
+    connectMissingData: boolean = false;
 }
