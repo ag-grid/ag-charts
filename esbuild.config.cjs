@@ -14,29 +14,35 @@ const postBuildMinificationPlugin = {
 
         /** @param {string} outputFile */
         const minifyFile = async (outputFile) => {
-            if (outputFile.endsWith('.map')) return;
+            try {
+                if (outputFile.endsWith('.map')) return;
 
-            writeState.get(outputFile)?.abort();
-            const abortController = new AbortController();
-            writeState.set(outputFile, abortController);
+                writeState.get(outputFile)?.abort();
+                const abortController = new AbortController();
+                writeState.set(outputFile, abortController);
 
-            const { signal } = abortController;
+                const { signal } = abortController;
 
-            const contents = await fs.readFile(path.resolve(outputFile), 'utf-8');
+                const contents = await fs.readFile(path.resolve(outputFile), 'utf-8');
 
-            if (signal.aborted) return;
-            const minified = await esbuild.transform(contents, {
-                minify: true,
-                sourcemap: true,
-            });
+                if (signal.aborted) return;
+                const minified = await esbuild.transform(contents, {
+                    minify: true,
+                    sourcemap: true,
+                });
 
-            if (signal.aborted) return;
-            const minifiedFile = path.resolve(
-                path.dirname(outputFile),
-                `${path.basename(outputFile)}.min${path.extname(outputFile)}`
-            );
-            await fs.writeFile(minifiedFile, minified.code);
-            await fs.writeFile(`${minifiedFile}.map`, minified.map);
+                if (signal.aborted) return;
+                const minifiedFile = path.resolve(
+                    path.dirname(outputFile),
+                    `${path.basename(outputFile)}.min${path.extname(outputFile)}`
+                );
+                await Promise.all([
+                    fs.writeFile(minifiedFile, minified.code, { signal }),
+                    fs.writeFile(`${minifiedFile}.map`, minified.map, { signal }),
+                ]);
+            } catch (e) {
+                if (e.name !== 'AbortError') throw e;
+            }
         };
 
         build.onEnd(async (result) => {
