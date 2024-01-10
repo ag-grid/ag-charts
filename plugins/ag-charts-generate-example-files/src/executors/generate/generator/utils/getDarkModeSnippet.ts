@@ -18,8 +18,8 @@ const getDarkmodeTheme = (theme, darkmode) => {
 };
 
 const applyDarkmode = () => {
-    document.documentElement.setAttribute("data-dark-mode", darkmode);
-    const charts = document.querySelectorAll("[data-ag-charts]");
+    document.head.setAttribute('data-dark-mode', darkmode);
+    const charts = document.querySelectorAll('[data-ag-charts]');
     charts.forEach((element) => {
         const chart = ${chartAPI ?? 'AgChartsAPI'}.getInstance(element);
         if (chart == null) return;

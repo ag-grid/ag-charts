@@ -16,21 +16,21 @@ export const GalleryExampleImage: FunctionComponent<Props> = ({ label, exampleNa
     const [theme] = useTheme();
     const [style, setStyle] = useState<Record<string, string>>();
 
-    const urlFor = (dpi: 1 | 2, ext: 'png' | 'webp') => {
-        const url = getExampleImageUrl({ exampleName, theme, dpi, ext });
+    const urlFor = (variant: 'light' | 'dark', dpi: 1 | 2, ext: 'png' | 'webp') => {
+        const url = getExampleImageUrl({ exampleName, theme: variant === 'dark' ? `${theme}-dark` : theme, dpi, ext });
         return `url(${JSON.stringify(url)})`;
     };
 
     useEffect(() => {
         setStyle({
-            '--image-webp': urlFor(1, 'webp'),
-            '--image-webp-2x': urlFor(2, 'webp'),
-            '--image-png': urlFor(1, 'png'),
-            '--image-png-2x': urlFor(2, 'png'),
-            '--image-webp-dark': urlFor(1, 'webp'),
-            '--image-webp-dark-2x': urlFor(2, 'webp'),
-            '--image-png-dark': urlFor(1, 'png'),
-            '--image-png-dark-2x': urlFor(2, 'png'),
+            '--image-webp': urlFor('light', 1, 'webp'),
+            '--image-webp-2x': urlFor('light', 2, 'webp'),
+            '--image-png': urlFor('light', 1, 'png'),
+            '--image-png-2x': urlFor('light', 2, 'png'),
+            '--image-webp-dark': urlFor('dark', 1, 'webp'),
+            '--image-webp-dark-2x': urlFor('dark', 2, 'webp'),
+            '--image-png-dark': urlFor('dark', 1, 'png'),
+            '--image-png-dark-2x': urlFor('dark', 2, 'png'),
         });
     }, [theme]);
 
