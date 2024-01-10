@@ -1,19 +1,20 @@
-import { durationWeek } from './duration';
+import { durationMinute, durationWeek } from './duration';
 import { CountableTimeInterval } from './interval';
 
 // Set date to n-th day of the week.
-function weekday(n: number): CountableTimeInterval {
-    const base = new Date(2023, 0, 1 + n).getTime();
+function weekday(weekStart: number): CountableTimeInterval {
+    const dayShift = (7 + weekStart - 4) % 7;
 
     function encode(date: Date) {
-        const dateMs = date.getTime();
+        const tzOffsetMs = date.getTimezoneOffset() * durationMinute;
 
-        return Math.floor((dateMs - base) / durationWeek);
+        return Math.floor((date.getTime() - tzOffsetMs) / durationWeek - dayShift / 7);
     }
 
     function decode(encoded: number) {
-        const d = new Date(base);
-        d.setDate(d.getDate() + encoded * 7);
+        const d = new Date(1970, 0, 1);
+        d.setDate(d.getDate() + encoded * 7 + dayShift);
+
         return d;
     }
 
