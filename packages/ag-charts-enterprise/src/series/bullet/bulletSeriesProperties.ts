@@ -4,7 +4,6 @@ import { _ModuleSupport } from 'ag-charts-community';
 const {
     BaseProperties,
     AbstractBarSeriesProperties,
-    PropertiesArray,
     SeriesTooltip,
     Validate,
     ARRAY,
