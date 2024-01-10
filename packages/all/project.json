@@ -9,11 +9,6 @@
       "inputs": [{ "externalDependencies": ["npm:typescript"] }],
       "dependsOn": ["^build"]
     },
-    "build-tsc": {
-      "executor": "nx:noop",
-      "inputs": [{ "externalDependencies": ["npm:typescript"] }],
-      "dependsOn": ["^build-tsc"]
-    },
     "lint": {
       "executor": "nx:noop",
       "inputs": [{ "externalDependencies": ["npm:typescript"] }],
