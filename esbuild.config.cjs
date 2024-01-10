@@ -32,10 +32,8 @@ const postBuildMinificationPlugin = {
                 });
 
                 if (signal.aborted) return;
-                const minifiedFile = path.resolve(
-                    path.dirname(outputFile),
-                    `${path.basename(outputFile)}.min${path.extname(outputFile)}`
-                );
+                const { name, ext } = path.parse(outputFile);
+                const minifiedFile = path.resolve(path.dirname(outputFile), `${name}.min${ext}`);
                 await Promise.all([
                     fs.writeFile(minifiedFile, minified.code, { signal }),
                     fs.writeFile(`${minifiedFile}.map`, minified.map, { signal }),
