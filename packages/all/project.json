@@ -86,6 +86,16 @@
         }
       }
     },
+    "format-check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          {
+            "command": "nx format:check --all"
+          }
+        ]
+      }
+    },
     "blt": {
       "executor": "nx:run-commands",
       "dependsOn": ["build", "lint", "format-check"],
