@@ -80,8 +80,8 @@ export class AreaSeries extends CartesianSeries<
             return;
         }
 
-        const { data, visible, seriesGrouping: { groupIndex = this.id } = {} } = this;
-        const { xKey, yKey, normalizedTo } = this.properties;
+        const { data, visible, seriesGrouping: { groupIndex = this.id, stackCount = 1 } = {} } = this;
+        const { xKey, yKey, connectMissingData, normalizedTo } = this.properties;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
         const { isContinuousX, isContinuousY } = this.isContinuous();
         const ids = [
@@ -110,6 +110,9 @@ export class AreaSeries extends CartesianSeries<
         }
 
         const common: Partial<DatumPropertyDefinition<unknown>> = { invalidValue: null };
+        if (connectMissingData && stackCount > 1) {
+            common.invalidValue = 0;
+        }
         if (!visible) {
             common.forceValue = 0;
         }
@@ -186,7 +189,15 @@ export class AreaSeries extends CartesianSeries<
             return [];
         }
 
-        const { yKey, xKey, marker, label, fill: seriesFill, stroke: seriesStroke, connectNulls } = this.properties;
+        const {
+            yKey,
+            xKey,
+            marker,
+            label,
+            fill: seriesFill,
+            stroke: seriesStroke,
+            connectMissingData,
+        } = this.properties;
         const { scale: xScale } = xAxis;
         const { scale: yScale } = yAxis;
 
@@ -350,7 +361,7 @@ export class AreaSeries extends CartesianSeries<
                 const [prevTop, prevBottom] = createPathCoordinates(lastXDatum, yValuePreviousStart, yValuePreviousEnd);
                 const [top, bottom] = createPathCoordinates(xDatum, yValueStart, yValueEnd);
 
-                if (xValid && (!connectNulls || yValid)) {
+                if (xValid && (!connectMissingData || yValid)) {
                     fillPoints.push(prevTop);
                     fillPhantomPoints.push(prevBottom);
                     fillPoints.push(top);
