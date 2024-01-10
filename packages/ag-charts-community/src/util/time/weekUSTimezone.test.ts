@@ -1,12 +1,12 @@
 /**
- * @timezone UTC
+ * @timezone US/Pacific
  */
 import { expect, test } from '@jest/globals';
 
 import { sunday } from './week';
 
-it('should execute with UTC timezone', () => {
-    expect(new Date(2023, 0, 1).getTimezoneOffset()).toEqual(0);
+it('should execute with Los Angeles timezone', () => {
+    expect(new Date(2023, 0, 1).getTimezoneOffset()).toEqual(480);
 });
 
 test.each([

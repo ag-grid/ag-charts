@@ -1,8 +1,8 @@
-import { durationDay } from './duration';
+import { durationDay, durationMinute } from './duration';
 import { CountableTimeInterval } from './interval';
 
 function encode(date: Date) {
-    const tzOffsetMs = date.getTimezoneOffset() * 60_000;
+    const tzOffsetMs = date.getTimezoneOffset() * durationMinute;
 
     return Math.floor((date.getTime() - tzOffsetMs) / durationDay);
 }
