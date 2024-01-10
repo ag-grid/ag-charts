@@ -113,7 +113,7 @@ export class Path extends Shape {
                 ctx.clip();
             }
 
-            if (this.clipX > 0 && this.clipY > 0) {
+            if (this._clipX > 0 && this._clipY > 0) {
                 this.path.draw(ctx);
                 this.fillStroke(ctx);
             }
