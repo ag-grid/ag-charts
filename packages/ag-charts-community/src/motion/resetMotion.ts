@@ -1,6 +1,6 @@
 import type { Node } from '../scene/node';
 import type { Selection } from '../scene/selection';
-import { isNodeArray } from './animation';
+import { deconstructSelectionsOrNodes } from './animation';
 
 /**
  * Implements a per-node reset.
@@ -12,9 +12,7 @@ export function resetMotion<N extends Node, T extends Partial<N>, D>(
     selectionsOrNodes: Selection<N, D>[] | N[],
     propsFn: (node: N, datum: D) => T
 ) {
-    const isNodes = isNodeArray<N>(selectionsOrNodes);
-    const nodes = isNodes ? selectionsOrNodes : [];
-    const selections = !isNodes ? selectionsOrNodes : [];
+    const { nodes, selections } = deconstructSelectionsOrNodes(selectionsOrNodes);
 
     for (const selection of selections) {
         for (const node of selection.nodes()) {

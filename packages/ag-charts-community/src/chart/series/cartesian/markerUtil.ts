@@ -7,6 +7,7 @@ import { Debug } from '../../../util/debug';
 import { clamp } from '../../../util/number';
 import type { AnimationManager } from '../../interaction/animationManager';
 import type { Marker } from '../../marker/marker';
+import type { NodeDataDependant } from '../seriesTypes';
 import * as easing from './../../../motion/easing';
 import type { CartesianSeriesNodeDatum } from './cartesianSeries';
 import type { PathNodeDatumLike, PathPoint, PathPointMap } from './pathUtil';
@@ -40,11 +41,11 @@ export function markerScaleInAnimation<T>(
 }
 
 export function markerSwipeScaleInAnimation<T extends CartesianSeriesNodeDatum>(
-    { id }: { id: string },
+    { id, nodeDataDependencies }: { id: string } & NodeDataDependant,
     animationManager: AnimationManager,
-    markerSelections: Selection<Node, T>[],
-    seriesWidth: number
+    markerSelections: Selection<Node, T>[]
 ) {
+    const seriesWidth: number = nodeDataDependencies.seriesRectWidth;
     const fromFn = (_: Node, datum: T) => {
         const x = datum.midPoint?.x ?? seriesWidth;
         // Calculate a delay that depends on the X position of the datum, so that nodes appear

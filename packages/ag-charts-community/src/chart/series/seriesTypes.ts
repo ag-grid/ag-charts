@@ -48,3 +48,6 @@ export interface ErrorBoundSeriesNodeDatum {
     xBar?: { lowerPoint: Point; upperPoint: Point };
     yBar?: { lowerPoint: Point; upperPoint: Point };
 }
+
+export type NodeDataDependencies = { seriesRectWidth: number; seriesRectHeight: number };
+export type NodeDataDependant = { readonly nodeDataDependencies: NodeDataDependencies };

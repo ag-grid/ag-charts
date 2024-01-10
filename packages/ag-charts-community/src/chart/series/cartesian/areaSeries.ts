@@ -5,7 +5,6 @@ import { resetMotion } from '../../../motion/resetMotion';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
-import { Path2D } from '../../../scene/path2D';
 import type { SizedPoint } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
@@ -39,7 +38,7 @@ import {
 import type { CartesianAnimationData } from './cartesianSeries';
 import { CartesianSeries } from './cartesianSeries';
 import { markerSwipeScaleInAnimation, resetMarkerFn, resetMarkerPositionFn } from './markerUtil';
-import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation } from './pathUtil';
+import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, updateClipPath } from './pathUtil';
 
 type AreaAnimationData = CartesianAnimationData<
     Group,
@@ -407,7 +406,6 @@ export class AreaSeries extends CartesianSeries<
     }) {
         const { opacity, visible, animationEnabled } = opts;
         const [fill, stroke] = opts.paths;
-        const { seriesRectHeight: height, seriesRectWidth: width } = this.nodeDataDependencies;
 
         const strokeWidth = this.getStrokeWidth(this.properties.strokeWidth);
         stroke.setProperties({
@@ -439,17 +437,8 @@ export class AreaSeries extends CartesianSeries<
             strokeWidth,
         });
 
-        const updateClipPath = (path: Path) => {
-            if (path.clipPath == null) {
-                path.clipPath = new Path2D();
-                path.clipScalingX = 1;
-                path.clipScalingY = 1;
-            }
-            path.clipPath?.clear({ trackChanges: true });
-            path.clipPath?.rect(-25, -25, (width ?? 0) + 50, (height ?? 0) + 50);
-        };
-        updateClipPath(stroke);
-        updateClipPath(fill);
+        updateClipPath(this, stroke);
+        updateClipPath(this, fill);
     }
 
     protected override async updatePaths(opts: { contextData: AreaSeriesNodeDataContext; paths: Path[] }) {
@@ -649,12 +638,11 @@ export class AreaSeries extends CartesianSeries<
     override animateEmptyUpdateReady(animationData: AreaAnimationData) {
         const { markerSelections, labelSelections, contextData, paths } = animationData;
         const { animationManager } = this.ctx;
-        const { seriesRectWidth: width = 0 } = this.nodeDataDependencies;
 
         this.updateAreaPaths(paths, contextData);
         pathSwipeInAnimation(this, animationManager, paths.flat());
         resetMotion(markerSelections, resetMarkerPositionFn);
-        markerSwipeScaleInAnimation(this, animationManager, markerSelections, width);
+        markerSwipeScaleInAnimation(this, animationManager, markerSelections);
         seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
     }
 

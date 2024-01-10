@@ -34,7 +34,7 @@ import type { BaseSeriesEvent, SeriesEventType } from './seriesEvents';
 import type { SeriesGroupZIndexSubOrderType } from './seriesLayerManager';
 import type { SeriesProperties } from './seriesProperties';
 import type { SeriesGrouping } from './seriesStateManager';
-import type { ISeries, SeriesNodeDatum } from './seriesTypes';
+import type { ISeries, NodeDataDependencies, SeriesNodeDatum } from './seriesTypes';
 
 /** Modes of matching user interactions to rendered nodes (e.g. hover or click) */
 export enum SeriesNodePickMode {
@@ -762,15 +762,18 @@ export abstract class Series<
         return undefined;
     }
 
-    protected nodeDataDependencies: { seriesRectWidth?: number; seriesRectHeight?: number } = {};
+    protected _nodeDataDependencies?: NodeDataDependencies;
+
+    public get nodeDataDependencies(): NodeDataDependencies {
+        return this._nodeDataDependencies ?? { seriesRectWidth: NaN, seriesRectHeight: NaN };
+    }
+
     protected checkResize(newSeriesRect?: BBox) {
-        const newNodeDataDependencies = {
-            seriesRectWidth: newSeriesRect?.width,
-            seriesRectHeight: newSeriesRect?.height,
-        };
+        const { width: seriesRectWidth, height: seriesRectHeight } = newSeriesRect ?? { width: NaN, height: NaN };
+        const newNodeDataDependencies = newSeriesRect ? { seriesRectWidth, seriesRectHeight } : undefined;
         const resize = jsonDiff(this.nodeDataDependencies, newNodeDataDependencies) != null;
         if (resize) {
-            this.nodeDataDependencies = newNodeDataDependencies;
+            this._nodeDataDependencies = newNodeDataDependencies;
             this.markNodeDataDirty();
         }
 

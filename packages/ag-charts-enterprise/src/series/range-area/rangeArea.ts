@@ -21,8 +21,9 @@ const {
     seriesLabelFadeInAnimation,
     animationValidation,
     diff,
+    updateClipPath,
 } = _ModuleSupport;
-const { getMarker, PointerEvents, Path2D } = _Scene;
+const { getMarker, PointerEvents } = _Scene;
 const { sanitizeHtml, extent, isNumber } = _Util;
 
 const DEFAULT_DIRECTION_KEYS = {
@@ -393,7 +394,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     protected override async updatePathNodes(opts: { paths: _Scene.Path[]; opacity: number; visible: boolean }) {
         const { opacity, visible } = opts;
         const [fill, stroke] = opts.paths;
-        const { seriesRectHeight: height, seriesRectWidth: width } = this.nodeDataDependencies;
 
         const strokeWidth = this.getStrokeWidth(this.properties.strokeWidth);
         stroke.setProperties({
@@ -425,17 +425,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             visible,
         });
 
-        const updateClipPath = (path: _Scene.Path) => {
-            if (path.clipPath == null) {
-                path.clipPath = new Path2D();
-                path.clipScalingX = 1;
-                path.clipScalingY = 1;
-            }
-            path.clipPath?.clear({ trackChanges: true });
-            path.clipPath?.rect(-25, -25, (width ?? 0) + 50, (height ?? 0) + 50);
-        };
-        updateClipPath(stroke);
-        updateClipPath(fill);
+        updateClipPath(this, stroke);
+        updateClipPath(this, fill);
     }
 
     protected override async updatePaths(opts: { contextData: RangeAreaContext; paths: _Scene.Path[] }) {
@@ -655,12 +646,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     ) {
         const { markerSelections, labelSelections, contextData, paths } = animationData;
         const { animationManager } = this.ctx;
-        const { seriesRectWidth: width = 0 } = this.nodeDataDependencies;
 
         this.updateAreaPaths(paths, contextData);
         pathSwipeInAnimation(this, animationManager, paths.flat());
         resetMotion(markerSelections, resetMarkerPositionFn);
-        markerSwipeScaleInAnimation(this, animationManager, markerSelections, width);
+        markerSwipeScaleInAnimation(this, animationManager, markerSelections);
         seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
     }
 

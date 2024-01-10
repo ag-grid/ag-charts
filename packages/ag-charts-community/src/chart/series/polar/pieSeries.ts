@@ -558,7 +558,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         };
         const resize = jsonDiff(this.nodeDataDependencies, newNodeDataDependencies) != null;
         if (resize) {
-            this.nodeDataDependencies = newNodeDataDependencies;
+            this._nodeDataDependencies = newNodeDataDependencies;
         }
 
         await this.maybeRefreshNodeData();
