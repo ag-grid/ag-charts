@@ -3,7 +3,9 @@ import { CountableTimeInterval } from './interval';
 
 // Set date to n-th day of the week.
 function weekday(weekStart: number): CountableTimeInterval {
-    const dayShift = (7 + weekStart - 4) % 7;
+    // 1970-01-01 starts on a Thursday
+    const thursday = 4;
+    const dayShift = (7 + weekStart - thursday) % 7;
 
     function encode(date: Date) {
         const tzOffsetMs = date.getTimezoneOffset() * durationMinute;
