@@ -480,8 +480,10 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         fromToMotion(this.id, 'marker', animationManager, markerSelections, fns.marker as any);
         fromToMotion(this.id, 'path_properties', animationManager, path, fns.pathProperties);
         pathMotion(this.id, 'path_update', animationManager, path, fns.path);
-        seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
-        seriesLabelFadeInAnimation(this, 'annotations', animationManager, annotationSelections);
+        if (fns.hasMotion) {
+            seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
+            seriesLabelFadeInAnimation(this, 'annotations', animationManager, annotationSelections);
+        }
     }
 
     private getDatumId(datum: LineNodeDatum) {

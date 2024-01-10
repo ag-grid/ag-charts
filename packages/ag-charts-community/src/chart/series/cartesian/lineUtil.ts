@@ -1,10 +1,11 @@
 import { FROM_TO_MIXINS, type NodeUpdateState } from '../../../motion/fromToMotion';
 import type { Path } from '../../../scene/shape/path';
 import type { ProcessedOutputDiff } from '../../data/dataModel';
-import type { CartesianSeriesNodeDataContext, Scaling } from './cartesianSeries';
+import type { CartesianSeriesNodeDataContext } from './cartesianSeries';
 import { prepareMarkerAnimation } from './markerUtil';
 import type { BackfillSplitMode, PathNodeDatumLike, PathPoint, PathPointChange, PathPointMap } from './pathUtil';
 import { backfillPathPointData, minMax, renderPartialPath } from './pathUtil';
+import { Scaling, areScalingEqual } from './scaling';
 
 function scale(val: number | string | Date, scaling?: Scaling) {
     if (!scaling) return NaN;
@@ -28,6 +29,10 @@ function scale(val: number | string | Date, scaling?: Scaling) {
 
     // We failed to convert using the scale.
     return NaN;
+}
+
+function scalesChanged(newData: LineContextLike, oldData: LineContextLike) {
+    return !areScalingEqual(newData.scales.x, oldData.scales.x) || !areScalingEqual(newData.scales.y, oldData.scales.y);
 }
 
 function closeMatch<T extends number | string>(a: T, b: T) {
@@ -360,7 +365,8 @@ export function prepareLinePathAnimation(
         return;
     }
 
+    const hasMotion: boolean = (diff?.changed ?? true) || scalesChanged(newData, oldData);
     const pathFns = prepareLinePathAnimationFns(newData, oldData, pairData, 'fade', renderPartialPath);
     const marker = prepareMarkerAnimation(pairMap, status);
-    return { ...pathFns, marker };
+    return { ...pathFns, marker, hasMotion };
 }
