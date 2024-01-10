@@ -59,6 +59,34 @@ If the axis options have been configured with the [Tick Interval](./axes-ticks/#
 To enforce the axis domain minimum and maximum configurations while also respecting the [Tick Placement](./axes-ticks/#tick-placement) configurations, set the `axis.nice` property to `false`.
 {% /note %}
 
+## Reversed Domain
+
+To invert the display of data items in a chart, you can reverse the domain of an axis by setting the `axis.reverse` property to `true`.
+
+```js
+axes: [
+    {
+        type: 'number',
+        position: 'left',
+        reverse: true,
+    },
+];
+```
+
+The visual impact of using a reversed axis varies depending on the specific series type.
+
+The example below shows the contrasting data representation in a Cartesian series when the `axis.reverse` property is applied.
+
+Use the buttons to toggle the value of `axis.reverse`.
+
+{% chartExampleRunner title="Cartesian Bar Series Reversed" name="cartesian-axis-reversed" type="generated" /%}
+
+Polar series featuring axes like `nightingale` and `radial-column` can be inverted using the `axis.reverse` property.
+
+The following example demonstrates the effect of a reversed polar `radius-number` axis in a `radar-area` chart.
+
+{% chartExampleRunner title="Polar Radar Area Series Reversed" name="polar-axis-reversed" type="generated" /%}
+
 ## Next Up
 
 Continue to the next section to learn about [Axis Labels](./axes-labels/).
