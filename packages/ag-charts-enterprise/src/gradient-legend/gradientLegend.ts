@@ -34,7 +34,6 @@ class GradientBar {
 
 class GradientLegendAxisTick extends _ModuleSupport.AxisTick<_Scale.LinearScale, number> {
     override enabled = false;
-    // @todo(AG-10059): Set tickSize to zero when tick.enabled = false
     override size = 0;
 
     @Validate(MIN_SPACING)

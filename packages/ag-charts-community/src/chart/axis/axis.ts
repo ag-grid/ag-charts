@@ -524,9 +524,9 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     private getTickLineCoordinates(datum: TickDatum) {
-        const { tick, label } = this;
+        const { label } = this;
         const sideFlag = label.getSideFlag();
-        const x = sideFlag * tick.size;
+        const x = sideFlag * this.getTickSize();
         const x1 = Math.min(0, x);
         const x2 = x1 + Math.abs(x);
         const y = datum.translationY;
@@ -546,9 +546,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const { combinedRotation, textBaseline, textAlign, range } = params;
         const text = datum.tickLabel;
         const sideFlag = label.getSideFlag();
-        // @todo(AG-10059): Set tickSize to zero when tick.enabled = false
-        const tickSize = this.tick.size;
-        const labelX = sideFlag * (tickSize + label.padding + this.seriesAreaPadding);
+        const labelX = sideFlag * (this.getTickSize() + label.padding + this.seriesAreaPadding);
         const visible = text !== '' && text != undefined;
         return {
             tickId: datum.tickId,
@@ -568,6 +566,10 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             y: 0,
             range,
         };
+    }
+
+    private getTickSize() {
+        return this.tick.enabled ? this.tick.size : this.createTick().size;
     }
 
     private setTitleProps(caption: Caption, params: { spacing: number }) {
@@ -620,7 +622,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     calculateLayout(primaryTickCount?: number): { primaryTickCount: number | undefined; bbox: BBox } {
         const { rotation, parallelFlipRotation, regularFlipRotation } = this.calculateRotations();
         const sideFlag = this.label.getSideFlag();
-        const labelX = sideFlag * (this.tick.size + this.label.padding + this.seriesAreaPadding);
+        const labelX = sideFlag * (this.getTickSize() + this.label.padding + this.seriesAreaPadding);
 
         this.updateScale();
 
@@ -1206,7 +1208,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         this.tickLineGroupSelection.each((line) => {
             line.strokeWidth = tick.width;
             line.stroke = tick.color;
-            line.x1 = sideFlag * tick.size;
+            line.x1 = sideFlag * this.getTickSize();
             line.x2 = 0;
         });
     }
@@ -1483,7 +1485,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             rect: this.computeBBox(),
             gridPadding: this.gridPadding,
             seriesAreaPadding: this.seriesAreaPadding,
-            tickSize: this.tick.size,
+            tickSize: this.getTickSize(),
             ...this.layout,
         };
     }
