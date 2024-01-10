@@ -41,7 +41,7 @@ const options: AgChartOptions = {
             type: 'number',
             position: 'left',
             keys: ['price'],
-            title: { text: 'Closing Price cattle' },
+            title: { text: 'Closing Price' },
         },
         {
             type: 'number',
