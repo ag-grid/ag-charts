@@ -63,14 +63,6 @@ const ChartExample = () => {
         setOptions(clone);
     }, [options]);
 
-    const toggleDarkTheme = useCallback(() => {
-        const clone = { ...options };
-
-        clone.theme = options.theme.includes('-dark') ? clone.theme.replace('-dark', '') : clone.theme + '-dark';
-
-        setOptions(clone);
-    }, [options]);
-
     return (
         <div className="wrapper">
             <div className="toolPanel">
@@ -79,9 +71,6 @@ const ChartExample = () => {
                 <button onClick={setThemePolychroma}>Polychroma Theme</button>
                 <button onClick={setThemeVivid}>Vivid Theme</button>
                 <button onClick={setThemeMaterial}>Material Theme</button>
-            </div>
-            <div className="toolPanel">
-                <button onClick={toggleDarkTheme}>Toggle Dark Theme</button>
             </div>
             <AgChartsReact ref={chartRef} options={options} />
         </div>

@@ -59,13 +59,3 @@ function setThemeMaterial() {
 
     AgCharts.update(chart, options);
 }
-
-function toggleDarkTheme() {
-    let theme = options.theme as AgChartThemeName;
-
-    options.theme = theme.includes('-dark')
-        ? (theme.replace('-dark', '') as AgChartThemeName)
-        : ((theme + '-dark') as AgChartThemeName);
-
-    AgCharts.update(chart, options);
-}

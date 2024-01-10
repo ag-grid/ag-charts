@@ -13,8 +13,9 @@
     transition: border-color 0.5s ease-in-out;
 
     &:hover {
-        opacity: 1;
         --link-border-color: var(--color-border-primary);
+
+        opacity: 1;
     }
 
     .image {
