@@ -22,7 +22,6 @@ import type { AgRadarAreaSeriesThemeableOptions } from '../series/polar/radarAre
 import type { AgRadarSeriesThemeableOptions } from '../series/polar/radarOptions';
 import type { AgRadialBarSeriesThemeableOptions } from '../series/polar/radialBarOptions';
 import type { AgRadialColumnSeriesThemeableOptions } from '../series/polar/radialColumnOptions';
-import type { AgChartThemeOverrides } from './chartBuilderOptions';
 import type { AgBaseChartOptions, AgBaseThemeableChartOptions } from './chartOptions';
 
 export type AgChartThemeName =
@@ -125,7 +124,7 @@ export interface AgCommonThemeableChartOptions extends AgBaseThemeableChartOptio
     axes?: AgCommonThemeableAxisOptions;
 }
 
-export interface AgBaseChartThemeOverrides {
+export interface AgChartThemeOverrides {
     /** Common theme overrides for series. */
     common?: AgCommonThemeableChartOptions;
 
@@ -185,6 +184,6 @@ type VerifyAgBaseChartThemeOverrides<T = AgBaseChartOptions> = {
 };
 
 // Verification checks for completeness/correctness.
-const __THEME_OVERRIDES = {} as Required<AgBaseChartThemeOverrides>;
+const __THEME_OVERRIDES = {} as Required<AgChartThemeOverrides>;
 // @ts-ignore
 const __VERIFY_THEME_OVERRIDES: Required<VerifyAgBaseChartThemeOverrides> = __THEME_OVERRIDES;
