@@ -1,5 +1,5 @@
 import type { _ModuleSupport } from 'ag-charts-community';
-import { _Theme } from 'ag-charts-community';
+import { _Theme, _Util } from 'ag-charts-community';
 
 import { BULLET_DEFAULTS } from './bulletDefaults';
 import { BulletSeries } from './bulletSeries';
@@ -30,5 +30,25 @@ export const BulletModule: _ModuleSupport.SeriesModule<'bullet'> = {
             axis0.max = series.scale.max;
         }
         return { ...BULLET_DEFAULTS, axes: [axis0, axis1] };
+    },
+    paletteFactory: ({ takeColors, colorsCount, themeTemplateParameters }) => {
+        const { properties } = themeTemplateParameters;
+        const themeBackgroundColor = themeTemplateParameters.properties.get(_Theme.DEFAULT_BACKGROUND_COLOUR);
+        const backgroundFill =
+            (Array.isArray(themeBackgroundColor) ? themeBackgroundColor[0] : themeBackgroundColor) ?? 'white';
+
+        const defaultAxisLineColor = properties.get(_Theme.DEFAULT_AXIS_LINE_COLOUR);
+        const {
+            fills: [fill],
+            strokes: [stroke],
+        } = takeColors(colorsCount);
+        return {
+            fill,
+            stroke,
+            target: {
+                stroke: defaultAxisLineColor,
+                fill: backgroundFill,
+            },
+        };
     },
 };

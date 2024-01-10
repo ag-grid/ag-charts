@@ -420,6 +420,16 @@
                         "title": "Simple Bullet",
                         "description": "",
                         "name": "simple-bullet"
+                    },
+                    {
+                        "title": "Horizontal Bullet",
+                        "description": "",
+                        "name": "horizontal-bullet"
+                    },
+                    {
+                        "title": "Reversed Bullet",
+                        "description": "",
+                        "name": "reversed-bullet"
                     }
                 ]
             }

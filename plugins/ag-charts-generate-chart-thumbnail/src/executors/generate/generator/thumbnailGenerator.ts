@@ -13,6 +13,8 @@ import {
     DEFAULT_THUMBNAIL_HEIGHT,
     DEFAULT_THUMBNAIL_WIDTH,
     DETAIL_FULL_HEIGHT,
+    DETAIL_FULL_WIDTH,
+    MAX_ASPECT_RATIO,
     MIN_ASPECT_RATIO,
 } from './constants';
 import { getChartLayout } from './getChartLayout';
@@ -85,16 +87,24 @@ export async function generateExample({ example, theme, outputPath, dpi }: Param
         let width: number;
         let height: number;
         if (options.width != null) {
-            const aspectRatio = Math.max(options.width / (DETAIL_FULL_HEIGHT / rows), MIN_ASPECT_RATIO);
-            width = containerHeight * aspectRatio;
+            const detailContainerHeight = DETAIL_FULL_HEIGHT / rows;
+            let aspectRatio = options.width / detailContainerHeight;
+            aspectRatio = Math.min(Math.max(aspectRatio, MIN_ASPECT_RATIO), MAX_ASPECT_RATIO);
+            width = Math.min(containerHeight * aspectRatio, containerWidth);
             height = containerHeight;
+        } else if (options.height != null) {
+            const detailContainerWidth = DETAIL_FULL_WIDTH / columns;
+            let aspectRatio = detailContainerWidth / options.height;
+            aspectRatio = Math.min(Math.max(aspectRatio, MIN_ASPECT_RATIO), MAX_ASPECT_RATIO);
+            width = containerWidth;
+            height = Math.min(containerWidth / aspectRatio, containerHeight);
         } else {
             width = containerWidth;
             height = containerHeight;
         }
 
         const x0 = (containerWidth * column + (containerWidth - width) / 2) | 0;
-        const y0 = (containerWidth * row + (containerHeight - height) / 2) | 0;
+        const y0 = (containerHeight * row + (containerHeight - height) / 2) | 0;
 
         AgCharts.update(chartProxy, {
             ...options,

@@ -17,6 +17,7 @@ import {
     DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
 } from './symbols';
 
+// If this changes, update plugins/ag-charts-generate-chart-thumbnail/src/executors/generate/generator/constants.ts
 const DEFAULT_DARK_BACKGROUND_FILL = '#141D2C';
 
 const DEFAULT_DARK_FILLS = {

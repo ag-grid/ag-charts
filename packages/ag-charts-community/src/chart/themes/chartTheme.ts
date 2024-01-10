@@ -47,6 +47,7 @@ import {
     OVERRIDE_SERIES_LABEL_DEFAULTS,
 } from './symbols';
 
+// If this changes, update plugins/ag-charts-generate-chart-thumbnail/src/executors/generate/generator/constants.ts
 const DEFAULT_BACKGROUND_FILL = 'white';
 
 const palette: AgChartThemePalette = {
