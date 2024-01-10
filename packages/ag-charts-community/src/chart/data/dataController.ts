@@ -83,10 +83,11 @@ export class DataController {
             (window as any).processedData = [];
         }
 
+        const multipleSources = valid.some((v) => v.data != null);
         for (const { opts, data, resultCbs, rejects, ids } of merged) {
-            const needsValueExtraction = opts.props.some((p) =>
-                p.type === 'value' || p.type === 'key' ? p.useScopedValues ?? false : false
-            );
+            const needsValueExtraction =
+                multipleSources ||
+                opts.props.some((p) => (p.type === 'value' || p.type === 'key' ? p.useScopedValues ?? false : false));
 
             try {
                 const dataModel = new DataModel<any>({ ...opts, mode: this.mode });

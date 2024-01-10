@@ -604,7 +604,7 @@ export class DataModel<
         let partialValidDataCount = 0;
 
         for (const [datumIdx, datum] of data.entries()) {
-            const joinedDatum = { ...datum } as any;
+            const sourceDatums: Record<string, any> = {};
 
             const validScopes = scopes.size > 0 ? new Set(scopes) : undefined;
             const keys = dataVisible ? new Array(keyDefs.length) : undefined;
@@ -637,8 +637,8 @@ export class DataModel<
                     if (value === INVALID_VALUE || !values) continue;
 
                     if (source !== undefined) {
-                        joinedDatum[source.id] ??= {};
-                        joinedDatum[source.id][def.property] = value;
+                        sourceDatums[source.id] ??= {};
+                        sourceDatums[source.id][def.property] = value;
                     }
 
                     if (def.useScopedValues) {
@@ -663,7 +663,7 @@ export class DataModel<
 
             if (dataVisible) {
                 const result: UngroupedDataItem<D, any> = {
-                    datum: joinedDatum,
+                    datum: { ...datum, ...sourceDatums },
                     keys: keys!,
                     values,
                 };
