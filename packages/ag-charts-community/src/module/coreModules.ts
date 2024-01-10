@@ -1,7 +1,7 @@
 import type { ChartAxis } from '../chart/chartAxis';
 import type { ChartLegend, ChartLegendType } from '../chart/legendDatum';
 import type { Series } from '../chart/series/series';
-import type { AgBaseChartThemeOverrides, AgChartOptions, AgChartThemePalette } from '../options/agChartOptions';
+import type { AgChartOptions, AgChartThemeOverrides, AgChartThemePalette } from '../options/agChartOptions';
 import type { BaseModule, ModuleInstance } from './baseModule';
 import type { ModuleContext } from './moduleContext';
 
@@ -69,7 +69,7 @@ type RequiredSeriesType = NonNullable<SeriesOptionsTypes['type']>;
 type Extensible<T> = { [K in keyof T]?: NonNullable<T[K]> extends object ? Extensible<T[K]> : T[K] } & {
     __extends__?: string;
 };
-type SeriesTheme<SeriesType extends RequiredSeriesType> = NonNullable<AgBaseChartThemeOverrides[SeriesType]>['series'];
+type SeriesTheme<SeriesType extends RequiredSeriesType> = NonNullable<AgChartThemeOverrides[SeriesType]>['series'];
 export type ExtensibleTheme<SeriesType extends RequiredSeriesType> = Extensible<SeriesTheme<SeriesType>>;
 
 export type ExtensibleDefaults<
