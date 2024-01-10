@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, AgRangeAreaSeriesOptions } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -45,8 +45,30 @@ function missingYValues() {
         const year = d.date.getFullYear();
         if (year === 2005 || year === 2018) {
             return { ...d, flatsAndMaisonettes: undefined, detachedHouses: undefined };
-        } else return d;
+        }
+        return d;
     });
+    options.series = (options.series as Array<AgRangeAreaSeriesOptions>).map((series) => ({
+        ...series,
+        connectMissingData: false,
+    }));
+
+    AgCharts.update(chart, options);
+}
+
+function missingYValuesConnected() {
+    const data = getData();
+    options.data = data.map((d) => {
+        const year = d.date.getFullYear();
+        if (year === 2005 || year === 2018) {
+            return { ...d, flatsAndMaisonettes: undefined, detachedHouses: undefined };
+        }
+        return d;
+    });
+    options.series = (options.series as Array<AgRangeAreaSeriesOptions>).map((series) => ({
+        ...series,
+        connectMissingData: true,
+    }));
 
     AgCharts.update(chart, options);
 }

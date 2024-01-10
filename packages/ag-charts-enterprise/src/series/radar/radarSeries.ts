@@ -513,16 +513,16 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         const data = reversedRadiusAxis && !reversedAngleAxis ? [...nodeData].reverse() : nodeData;
         const points: RadarPathPoint[] = [];
         let prevPointInvalid = false;
-        let isFirstInvalid = false;
-        let isLastInvalid = false;
+        let firstValid: RadarNodeDatum | undefined;
 
         data.forEach((datum, index) => {
             let { x, y } = datum.point!;
 
             const isPointInvalid = isNaN(x) || isNaN(y);
 
-            if (index === 0) isFirstInvalid = isPointInvalid;
-            if (index === data.length - 1) isLastInvalid = isPointInvalid;
+            if (!isPointInvalid) {
+                firstValid ??= datum;
+            }
 
             if (isPointInvalid && !connectMissingData) {
                 x = 0;
@@ -537,9 +537,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
             prevPointInvalid = isPointInvalid;
         });
 
-        const closed = connectMissingData || (!isFirstInvalid && !isLastInvalid);
-        if (closed) {
-            points.push({ ...points[0], moveTo: false });
+        if (firstValid !== undefined) {
+            points.push({ x: firstValid.point!.x, y: firstValid.point!.y, moveTo: false });
         }
 
         return points;
