@@ -3,34 +3,49 @@ export const DARK_MODE_END = '/** DARK MODE END **/';
 
 export const getDarkModeSnippet = ({ chartAPI }: { chartAPI?: string } = {}) =>
     `${DARK_MODE_START}
-${chartAPI == null ? `import { AgCharts as AgChartsAPI } from 'ag-charts-community';` : ''}
+${
+    chartAPI == null
+        ? `import { AgCharts as __chartAPI } from 'ag-charts-community';`
+        : `const __chartAPI = ${chartAPI};`
+}
+
 let darkmode =
-    (localStorage["documentation:darkmode"] ||
-        String(matchMedia("(prefers-color-scheme: dark)").matches)) === "true";
+    (localStorage['documentation:darkmode'] ||
+        String(matchMedia('(prefers-color-scheme: dark)').matches)) === 'true';
 
 const isAgTheme = (theme) => {
-    return typeof theme === "string" && theme.startsWith("ag-");
+    return typeof theme === 'string' && theme.startsWith('ag-');
 };
 
 const getDarkmodeTheme = (theme, darkmode) => {
-    const baseTheme = theme.replace(/-dark$/, "");
-    return darkmode ? baseTheme + "-dark" : baseTheme;
+    const baseTheme = theme.replace(/-dark$/, '');
+    return darkmode ? baseTheme + '-dark' : baseTheme;
+};
+
+const defaultUpdate = __chartAPI.update;
+__chartAPI.update = function update(chart, options) {
+    let nextOptions = { ...options };
+    let theme = options.theme || 'ag-default';
+    if (isAgTheme(theme)) {
+        nextOptions.theme = getDarkmodeTheme(theme, darkmode);
+    } else if (typeof theme === 'object' && isAgTheme(theme.baseTheme)) {
+        nextOptions.theme = {
+            ...options.theme,
+            baseTheme: getDarkmodeTheme(theme.baseTheme, darkmode),
+        };
+    }
+    defaultUpdate(chart, nextOptions);
 };
 
 const applyDarkmode = () => {
-    document.head.setAttribute('data-dark-mode', darkmode);
+    document.documentElement.setAttribute('data-dark-mode', darkmode);
     const charts = document.querySelectorAll('[data-ag-charts]');
     charts.forEach((element) => {
-        const chart = ${chartAPI ?? 'AgChartsAPI'}.getInstance(element);
+        const chart = __chartAPI.getInstance(element);
         if (chart == null) return;
-        let options = chart.getOptions();
-        let theme = options.theme || "ag-default";
-        if (isAgTheme(theme)) {
-            options.theme = getDarkmodeTheme(theme, darkmode);
-        } else if (typeof theme === "object" && isAgTheme(theme.baseTheme)) {
-            options.theme.baseTheme = getDarkmodeTheme(theme.baseTheme, darkmode);
-        }
-        ${chartAPI ?? 'AgChartsAPI'}.update(chart, options);
+        // .update is monkey-patched to apply theme to options
+        // This is just needed to trigger the theme update
+        __chartAPI.update(chart, chart.getOptions());
     });
     return charts.length !== 0;
 };
@@ -48,8 +63,8 @@ if (!applyDarkmode()) {
         subtree: true,
     });
 }
-window.addEventListener("message", (event) => {
-    if (event.data && event.data.type === "color-scheme-change") {
+window.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'color-scheme-change') {
         darkmode = event.data.darkmode;
         applyDarkmode();
     }
