@@ -55,7 +55,7 @@ const options: AgChartOptions = {
             showSeriesStroke: true,
             line: {
                 strokeWidth: 3, // width of line (inherited from series strokeWidth if unset).
-                //length: 6, // length of the line in pixels
+                length: 6, // length of the line in pixels
             },
         },
     },
