@@ -22,6 +22,7 @@ import type { AgRadarAreaSeriesThemeableOptions } from '../series/polar/radarAre
 import type { AgRadarSeriesThemeableOptions } from '../series/polar/radarOptions';
 import type { AgRadialBarSeriesThemeableOptions } from '../series/polar/radialBarOptions';
 import type { AgRadialColumnSeriesThemeableOptions } from '../series/polar/radialColumnOptions';
+import type { AgChartThemeOverrides } from './chartBuilderOptions';
 import type { AgBaseChartOptions, AgBaseThemeableChartOptions } from './chartOptions';
 
 export type AgChartThemeName =
@@ -47,7 +48,7 @@ export interface AgBaseChartThemeOptions {
     /** The palette to use. If specified, this replaces the palette from the base theme. */
     palette?: Partial<AgChartThemePalette>;
     /** Configuration from this object is merged over the defaults specified in the base theme. */
-    overrides?: AgBaseChartThemeOverrides;
+    overrides?: AgChartThemeOverrides;
 }
 
 /** This object is used to define the configuration for a custom chart theme. */
