@@ -234,9 +234,9 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
             context.nodeData.push(nodeData);
         }
 
-        const sortedRanges = [...this.properties.colorRanges].sort(
-            (a, b) => (a.stop || maxValue) - (b.stop || maxValue)
-        );
+        const colorRanges = this.properties.colorRanges ?? this.getValueAxisColorRanges();
+
+        const sortedRanges = [...colorRanges].sort((a, b) => (a.stop || maxValue) - (b.stop || maxValue));
         let start = 0;
         this.normalizedColorRanges = sortedRanges.map((item) => {
             const stop = Math.min(maxValue, item.stop ?? Infinity);
@@ -246,6 +246,22 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
         });
 
         return [context];
+    }
+
+    private getValueAxisColorRanges() {
+        const valueAxisScale = this.getValueAxis()?.scale;
+        const valueAxisTicks = valueAxisScale?.ticks?.().filter(Boolean) ?? [];
+        const valueAxisBands = [...valueAxisTicks, this.getMaxValue()];
+        const {
+            fill,
+            target: { fill: backgroundFill },
+        } = this.properties;
+        const bandFill = _Util.Color.interpolate(fill, backgroundFill)(0.5);
+        const numberOfBands = valueAxisBands.length;
+        return valueAxisBands.map((band, index) => ({
+            color: _Util.Color.interpolate(bandFill, backgroundFill)(index / numberOfBands),
+            stop: band,
+        }));
     }
 
     override getLegendData(_legendType: _ModuleSupport.ChartLegendType) {
