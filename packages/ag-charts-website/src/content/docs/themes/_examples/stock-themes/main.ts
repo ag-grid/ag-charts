@@ -21,41 +21,31 @@ const options: AgChartOptions = {
 const chart = AgCharts.create(options);
 
 function setThemeDefault() {
-    let theme = options.theme as AgChartThemeName;
-
-    options.theme = theme.includes('-dark') ? 'ag-default-dark' : 'ag-default';
+    options.theme = 'ag-default';
 
     AgCharts.update(chart, options);
 }
 
 function setThemeSheets() {
-    let theme = options.theme as AgChartThemeName;
-
-    options.theme = theme.includes('-dark') ? 'ag-sheets-dark' : 'ag-sheets';
+    options.theme = 'ag-sheets';
 
     AgCharts.update(chart, options);
 }
 
 function setThemePolychroma() {
-    let theme = options.theme as AgChartThemeName;
-
-    options.theme = theme.includes('-dark') ? 'ag-polychroma-dark' : 'ag-polychroma';
+    options.theme = 'ag-polychroma';
 
     AgCharts.update(chart, options);
 }
 
 function setThemeVivid() {
-    let theme = options.theme as AgChartThemeName;
-
-    options.theme = theme.includes('-dark') ? 'ag-vivid-dark' : 'ag-vivid';
+    options.theme = 'ag-vivid';
 
     AgCharts.update(chart, options);
 }
 
 function setThemeMaterial() {
-    let theme = options.theme as AgChartThemeName;
-
-    options.theme = theme.includes('-dark') ? 'ag-material-dark' : 'ag-material';
+    options.theme = 'ag-material';
 
     AgCharts.update(chart, options);
 }
