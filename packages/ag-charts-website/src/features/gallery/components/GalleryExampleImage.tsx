@@ -3,7 +3,7 @@ import classNames from 'classnames';
 import { type FunctionComponent, useEffect, useState } from 'react';
 
 import { type BaseThemeName, useTheme } from '../../../utils/hooks/useTheme';
-import { getPlainExampleImageUrl } from '../utils/urlPaths';
+import { getExampleImageUrl } from '../utils/urlPaths';
 
 interface Props {
     label: string;
@@ -16,16 +16,21 @@ export const GalleryExampleImage: FunctionComponent<Props> = ({ label, exampleNa
     const [theme] = useTheme();
     const [style, setStyle] = useState<Record<string, string>>();
 
+    const urlFor = (dpi: 1 | 2, ext: 'png' | 'webp') => {
+        const url = getExampleImageUrl({ exampleName, theme, dpi, ext });
+        return `url(${JSON.stringify(url)})`;
+    };
+
     useEffect(() => {
         setStyle({
-            '--image-webp': `url(${getPlainExampleImageUrl({ exampleName, theme, ext: 'webp' })})`,
-            '--image-png': `url(${getPlainExampleImageUrl({ exampleName, theme, ext: 'png' })})`,
-            '--image-webp-dark': `url(${getPlainExampleImageUrl({
-                exampleName,
-                theme: `${theme}-dark`,
-                ext: 'webp',
-            })})`,
-            '--image-png-dark': `url(${getPlainExampleImageUrl({ exampleName, theme: `${theme}-dark`, ext: 'png' })})`,
+            '--image-webp': urlFor(1, 'webp'),
+            '--image-webp-2x': urlFor(2, 'webp'),
+            '--image-png': urlFor(1, 'png'),
+            '--image-png-2x': urlFor(2, 'png'),
+            '--image-webp-dark': urlFor(1, 'webp'),
+            '--image-webp-dark-2x': urlFor(2, 'webp'),
+            '--image-png-dark': urlFor(1, 'png'),
+            '--image-png-dark-2x': urlFor(2, 'png'),
         });
     }, [theme]);
 

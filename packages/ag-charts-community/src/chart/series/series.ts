@@ -255,7 +255,7 @@ export abstract class Series<
 
     protected readonly NodeClickEvent: INodeClickEventConstructor<TDatum, any> = SeriesNodeClickEvent;
 
-    protected readonly internalId = createId(this);
+    readonly internalId = createId(this);
 
     get id() {
         return this.properties?.id ?? this.internalId;
@@ -344,20 +344,20 @@ export abstract class Series<
     }
 
     private onSeriesGroupingChange(prev?: SeriesGrouping, next?: SeriesGrouping) {
-        const { id, type, visible, rootGroup, highlightGroup, annotationGroup } = this;
+        const { internalId, type, visible, rootGroup, highlightGroup, annotationGroup } = this;
 
         if (prev) {
-            this.ctx.seriesStateManager.deregisterSeries({ id, type });
+            this.ctx.seriesStateManager.deregisterSeries({ id: internalId, type });
         }
         if (next) {
-            this.ctx.seriesStateManager.registerSeries({ id, type, visible, seriesGrouping: next });
+            this.ctx.seriesStateManager.registerSeries({ id: internalId, type, visible, seriesGrouping: next });
         }
 
         // Short-circuit if series isn't already attached to the scene-graph yet.
         if (this.rootGroup.parent == null) return;
 
         this.ctx.seriesLayerManager.changeGroup({
-            id,
+            internalId,
             type,
             rootGroup,
             highlightGroup,

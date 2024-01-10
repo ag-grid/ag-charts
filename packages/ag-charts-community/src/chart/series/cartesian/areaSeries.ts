@@ -603,8 +603,10 @@ export class AreaSeries extends CartesianSeries<
             return [];
         }
 
-        const { yKey, yName, fill, stroke, fillOpacity, strokeOpacity, strokeWidth, marker, visible } = this.properties;
+        const { yKey, yName, fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, marker, visible } =
+            this.properties;
 
+        const useAreaFill = !(marker.enabled && strokeWidth === 0) || marker.fill === undefined;
         return [
             {
                 legendType,
@@ -617,9 +619,9 @@ export class AreaSeries extends CartesianSeries<
                 },
                 marker: {
                     shape: marker.shape,
-                    fill: marker.fill ?? fill,
+                    fill: useAreaFill ? fill : marker.fill,
+                    fillOpacity: useAreaFill ? fillOpacity : marker.fillOpacity,
                     stroke: marker.stroke ?? stroke,
-                    fillOpacity: marker.fillOpacity ?? fillOpacity,
                     strokeOpacity: marker.strokeOpacity ?? strokeOpacity,
                     strokeWidth: marker.strokeWidth ?? 0,
                 },
@@ -627,6 +629,7 @@ export class AreaSeries extends CartesianSeries<
                     stroke,
                     strokeOpacity,
                     strokeWidth,
+                    lineDash,
                     offset: 5, // FIXME: add a styling option to change the width of the stroke in the legend.
                 },
             },

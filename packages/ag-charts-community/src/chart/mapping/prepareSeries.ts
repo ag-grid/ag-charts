@@ -74,24 +74,13 @@ export function groupSeriesByType(seriesOptions: SeriesOptions[]) {
 export function processSeriesOptions(_opts: AgChartOptions, seriesOptions: SeriesOptions[]) {
     const result: SeriesOptions[] = [];
 
-    const uniqueIds = new Map<string, number>();
-    const checkId = (id: string | undefined, index: number): number | undefined => {
-        if (id === undefined) return undefined;
-        const firstIndex = uniqueIds.get(id);
-        if (firstIndex === undefined) {
-            uniqueIds.set(id, index);
-        }
-        return firstIndex;
-    };
-
     type BarOptions = { stacked?: boolean; grouped?: boolean };
-    const preprocessed = seriesOptions.map((series: SeriesOptions & BarOptions, index: number) => {
+    const preprocessed = seriesOptions.map((series: SeriesOptions & BarOptions) => {
         // Change the default for bar/columns when yKey is used to be grouped rather than stacked.
         const sType = series.type ?? 'line';
         const groupable = isGroupableSeries(sType);
         const stackable = isStackableSeries(sType);
         const stackedByDefault = isSeriesStackedByDefault(sType);
-        const idMatchIndex = checkId(series.id, index);
 
         if (series.grouped && !groupable) {
             Logger.warnOnce(`unsupported grouping of series type: ${sType}`);
@@ -99,15 +88,6 @@ export function processSeriesOptions(_opts: AgChartOptions, seriesOptions: Serie
 
         if (series.stacked && !stackable) {
             Logger.warnOnce(`unsupported stacking of series type: ${sType}`);
-        }
-
-        // AG-10089 Ignore duplicate user input id values:
-        if (idMatchIndex !== undefined) {
-            Logger.warnOnce(
-                `series[${index}].id "${series.id}" ignored because it duplicates series[${idMatchIndex}].id`
-            );
-            series = { ...series };
-            delete series.id;
         }
 
         if (!groupable && !stackable) {
