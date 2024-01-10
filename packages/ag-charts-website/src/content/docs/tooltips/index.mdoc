@@ -28,8 +28,8 @@ The name keys mirror the data keys and differ between series types. See the seri
 
 The tooltip has two position options:
 
--   `node` - Anchors the tooltip to the highlighted node. This is the default for marker based series such as `line` and `scatter`.
--   `pointer` - Anchors the tooltip to the mouse pointer. This is the default for shape based series such as `bar` and `pie`.
+-   `node` - Anchors the tooltip to the highlighted node. This is the default for marker-based series such as `line` and `scatter`.
+-   `pointer` - Anchors the tooltip to the mouse pointer. This is the default for shape-based series such as `bar` and `pie`.
 
 The tooltip position can be changed using the `tooltip.position.type` property, and further modified using `xOffset` and `yOffset`.
 
@@ -47,8 +47,8 @@ tooltip: {
 
 In this configuration:
 
--   The `xOffset` and `yOffset` options define the distance in pixels from the tooltip to the anchor point.
 -   Instead of the tooltip being anchored to the highlighted marker node, it is anchored 80 pixels to the left and below the mouse pointer.
+-   The `xOffset` and `yOffset` options define the distance in pixels from the tooltip to the anchor point.
 -   By default, when `tooltip.position.xOffset` or `tooltip.position.yOffset` are configured, the tooltip arrow is removed.
 
 ## Tooltip Arrow
@@ -104,7 +104,7 @@ Note that your styles don't override the default tooltip styles but complement t
 
 To modify the text used for the title and content of a tooltip, use a `renderer` function.
 
-This receives values associated with the highlighted data point, and should return an object with the `title` and `content`.
+This receives values associated with the highlighted data point, and should return an object with `title` and `content` fields.
 
 {% chartExampleRunner title="Modifying Tooltip Content" name="tooltip-content-title" type="generated" /%}
 
@@ -158,7 +158,7 @@ Notice that in the above example:
 
 ## Tooltip Range
 
-By default, the tooltip of the nearest node is visible when the cursor is on the chart. However, this behaviour can be changed with the `chart.tooltip.range` property.
+By default, the tooltip for the nearest node is visible when the cursor is on the chart. However, this behaviour can be changed with the `chart.tooltip.range` property.
 
 {% chartExampleRunner title="Tooltip Range" name="interaction-range" type="generated" /%}
 

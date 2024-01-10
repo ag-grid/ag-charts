@@ -601,14 +601,13 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             fill,
             stroke,
             strokeWidth,
-            fillOpacity,
             strokeOpacity,
+            lineDash,
             visible,
             marker,
         } = this.properties;
         const legendItemText = yName ?? `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`;
 
-        const shape = marker.enabled ? marker.shape : undefined;
         return [
             {
                 legendType: 'category',
@@ -617,7 +616,21 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 seriesId: this.id,
                 enabled: visible,
                 label: { text: `${legendItemText}` },
-                marker: { shape, fill, stroke, fillOpacity, strokeOpacity, strokeWidth },
+                marker: {
+                    shape: marker.shape,
+                    fill: marker.fill ?? fill,
+                    stroke: marker.stroke ?? stroke,
+                    fillOpacity: marker.fillOpacity,
+                    strokeOpacity: marker.strokeOpacity,
+                    strokeWidth: marker.strokeWidth,
+                },
+                line: {
+                    stroke,
+                    strokeOpacity,
+                    strokeWidth,
+                    lineDash,
+                    offset: 5, // FIXME: add a styling option to change the width of the stroke in the legend.
+                },
             },
         ];
     }

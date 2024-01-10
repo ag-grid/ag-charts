@@ -1,5 +1,6 @@
 import util from 'node:util';
 
+import { patchOptions } from './patchOptions';
 import { transformPlainEntryFile } from './transformPlainEntryFile';
 
 const getEntryFile = (chartOptions: object) => {
@@ -18,12 +19,15 @@ const getChartsOptionsPlainEntryFile = (chartsOptions: object) => {
     const sourceStr = getEntryFile(chartsOptions);
     const output = transformPlainEntryFile(sourceStr);
 
-    return output;
+    const options = output.optionsById.get('container');
+    patchOptions(options, 'ag-default');
+
+    return options;
 };
 
 describe('transformPlainEntryFile', () => {
     test('default entry file', () => {
-        expect(getChartsOptionsPlainEntryFile({}).code).toMatchSnapshot();
+        expect(getChartsOptionsPlainEntryFile({})).toMatchSnapshot();
     });
 
     test('remove subtitle', () => {
@@ -33,7 +37,7 @@ describe('transformPlainEntryFile', () => {
                     enabled: true,
                     text: 'Test Subtitle',
                 },
-            }).code
+            })
         ).toMatchSnapshot();
     });
 
@@ -44,7 +48,7 @@ describe('transformPlainEntryFile', () => {
                     enabled: true,
                     text: 'Test footnote',
                 },
-            }).code
+            })
         ).toMatchSnapshot();
     });
 
@@ -55,7 +59,7 @@ describe('transformPlainEntryFile', () => {
                     enabled: true,
                     text: 'Test legend',
                 },
-            }).code
+            })
         ).toMatchSnapshot();
     });
 
@@ -78,7 +82,7 @@ describe('transformPlainEntryFile', () => {
                         },
                     },
                 ],
-            }).code
+            })
         ).toMatchSnapshot();
     });
 
@@ -96,7 +100,7 @@ describe('transformPlainEntryFile', () => {
                     bottom: 30,
                     left: 40,
                 },
-            }).code
+            })
         ).toMatchSnapshot();
     });
 });

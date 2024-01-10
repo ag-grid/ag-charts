@@ -96,9 +96,16 @@ class LegendMarker {
     parent?: { onMarkerShapeChange(): void };
 }
 
+class LegendLine {
+    @Validate(POSITIVE_NUMBER, { optional: true })
+    strokeWidth?: number = undefined;
+}
+
 class LegendItem {
     readonly marker = new LegendMarker();
     readonly label = new LegendLabel();
+    readonly line = new LegendLine();
+
     /** Used to constrain the width of legend items. */
     @Validate(POSITIVE_NUMBER, { optional: true })
     maxWidth?: number = undefined;
@@ -652,6 +659,7 @@ export class Legend {
         const {
             label: { color },
             marker: itemMarker,
+            line: itemLine,
             showSeriesStroke,
         } = this.item;
         this.itemSelection.each((markerLabel, datum) => {
@@ -668,7 +676,8 @@ export class Legend {
             if (showSeriesStroke && line !== undefined) {
                 markerLabel.lineStroke = line.stroke;
                 markerLabel.lineStrokeOpacity = line.strokeOpacity;
-                markerLabel.lineStrokeWidth = Math.min(2, line.strokeWidth);
+                markerLabel.lineStrokeWidth = itemLine.strokeWidth ?? Math.min(2, line.strokeWidth);
+                markerLabel.lineLineDash = line.lineDash;
                 markerLabel.setSeriesStrokeOffset(line.offset);
             }
         });

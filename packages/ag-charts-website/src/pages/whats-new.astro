@@ -19,7 +19,7 @@ const framework = getFrameworkFromInternalFramework($internalFramework.get());
 ---
 
 <Layout title={"What's new"} showTopBar={true} showSearchBar={true}>
-    <div class={'contentViewport'}>
+    <div class={'contentViewport layout-grid'}>
         <PagesNavigation client:load menuData={menuEntry.data} pageName={'whats-new'} framework={framework} />
 
         <div id="doc-content" class="docPage">
@@ -51,7 +51,7 @@ const framework = getFrameworkFromInternalFramework($internalFramework.get());
     .versions {
         max-width: var(--max-page-width);
         display: grid;
-        grid-template-columns: repeat(3, minmax(300px, 1fr));
+        grid-template-columns: repeat(3, minmax(400px, 1fr));
         grid-gap: 16px;
         margin-top: 32px;
         margin-bottom: 32px;
@@ -61,7 +61,7 @@ const framework = getFrameworkFromInternalFramework($internalFramework.get());
         .versions {
             display: flex;
             flex-direction: column;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)) !important;
         }
     }
 

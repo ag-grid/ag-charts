@@ -74,6 +74,9 @@ export class MarkerLabel extends Group {
     @ProxyPropertyOnWrite('line', 'strokeOpacity')
     lineStrokeOpacity?: number;
 
+    @ProxyPropertyOnWrite('line', 'lineDash')
+    lineLineDash?: number[];
+
     @ProxyPropertyOnWrite('line', 'visible')
     lineVisible?: boolean;
 

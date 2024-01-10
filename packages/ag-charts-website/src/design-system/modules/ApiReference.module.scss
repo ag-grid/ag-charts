@@ -23,6 +23,10 @@
         margin-bottom: -$spacing-size-2;
         border-bottom: none;
     }
+
+    :global(.docPage) & {
+        margin-bottom: $spacing-size-4;
+    }
 }
 
 .propertyDescription {
@@ -61,7 +65,7 @@
     scroll-margin-top: var(--anchor-offset, 0);
 
     &:where(:not(:first-child)) {
-        border-top: 1px solid var(--color-border-primary);
+        border-top: 1px solid var(--color-border-secondary);
     }
 
     &:hover .linkIcon {
@@ -216,7 +220,7 @@
     }
     10%,
     50% {
-        background-color: var(--color-util-brand-100);
+        background-color: color-mix(in srgb, var(--color-brand-300), var(--color-bg-primary) 90%);
     }
 }
 
@@ -228,8 +232,13 @@
     }
 
     .description p,
+    .description ul,
     .actions button {
         font-size: calc(var(--text-fs-base) * 0.9);
+    }
+
+    .description code {
+        font-size: calc(var(--text-fs-base) * 0.8125);
     }
 
     .metaValue {
@@ -249,4 +258,12 @@
     .level-3 .rightColumn {
         padding-left: $spacing-size-6;
     }
+}
+
+.expandedContent {
+    border-top: none;
+}
+
+.expandedContent > td {
+    padding: $spacing-size-4 $spacing-size-3;
 }

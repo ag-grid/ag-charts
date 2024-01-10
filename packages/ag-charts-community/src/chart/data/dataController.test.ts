@@ -253,6 +253,7 @@ describe('DataController', () => {
             await controller.execute();
             const results = await Promise.all([promise1, promise2]);
 
+            expect(results.length).toEqual(2);
             expect(results[0].processedData.data[0].values).toEqual([100]);
             expect(results[1].processedData.data[0].values).toEqual([40]);
         });

@@ -13,11 +13,3 @@ const { exampleName } = Astro.params;
 ---
 
 <GalleryFrameworkTemplate exampleName={exampleName!} addInitMessageScript={true} />
-
-<style lang="scss" is:global>
-    /* Note - we're in an iframe */
-    :root[data-dark-mode='true'] {
-        background: #182732;
-        color: white;
-    }
-</style>

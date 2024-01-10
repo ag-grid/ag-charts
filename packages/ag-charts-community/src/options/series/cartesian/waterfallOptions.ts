@@ -46,8 +46,9 @@ export type AgWaterfallSeriesLabelPlacement = 'start' | 'end' | 'inside';
 
 export interface AgWaterfallSeriesThemeableOptions<TDatum = any> extends AgBaseSeriesThemeableOptions {
     /**
-     * Sets the bar orientation. When `vertical` (default), bars are vertical with categories on the x-axis.
-     * When set to `horizontal`, bars run horizontally with categories on the y-axis.
+     * Bar rendering direction.
+     *
+     * __Note:__ This option affects the layout direction of X and Y data values.
      */
     direction?: 'horizontal' | 'vertical';
     /** Configuration used for the waterfall series item types. */
@@ -92,8 +93,6 @@ export interface AgWaterfallSeriesItem<TDatum> {
     positive?: AgWaterfallSeriesItemOptions<TDatum>;
     /** Configuration for the total and subtotal series items. */
     total?: AgWaterfallSeriesItemOptions<TDatum>;
-    /** Apply round corners to each bar. */
-    cornerRadius?: PixelSize;
 }
 
 export interface WaterfallSeriesTotalMeta {

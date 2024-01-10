@@ -9,6 +9,20 @@
       "executor": "nx:noop"
     },
     "build": {
+      "executor": "nx:noop",
+      "dependsOn": ["build:package", "build:umd"],
+      "inputs": [
+        {
+          "externalDependencies": ["npm:typescript"]
+        }
+      ],
+      "cache": false,
+      "configurations": {
+        "watch": {},
+        "production": {}
+      }
+    },
+    "build:package": {
       "executor": "@nx/rollup:rollup",
       "inputs": ["tsDefaults", "{projectRoot}/package.json", { "externalDependencies": ["react"] }],
       "outputs": ["{options.outputPath}"],
@@ -34,6 +48,31 @@
           }
         ],
         "format": ["cjs", "esm"]
+      }
+    },
+    "build:umd": {
+      "executor": "@nx/esbuild:esbuild",
+      "dependsOn": ["build:package"],
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "packages/ag-charts-react/dist/umd",
+        "outputFileName": "ag-charts-react",
+        "main": "packages/ag-charts-react/dist/index.cjs",
+        "tsConfig": "packages/ag-charts-react/tsconfig.lib.json",
+        "esbuildConfig": "esbuild.config.cjs",
+        "platform": "browser",
+        "target": "es6",
+        "bundle": true,
+        "thirdParty": true,
+        "skipTypeCheck": true,
+        "external": ["react", "react-dom", "react/jsx-runtime", "ag-charts-community"],
+        "format": ["cjs"],
+        "sourcemap": true
+      },
+      "configurations": {
+        "production": {
+          "sourcemap": false
+        }
       }
     },
     "test": {

@@ -109,7 +109,11 @@ export interface AgPieSeriesThemeableOptions<TDatum = any> extends AgBaseSeriesT
     innerLabels?: AgDoughnutInnerLabelThemeOptions;
     /** Configuration for the area inside the series, only visible when rendering a doughnut chart by using innerRadiusOffset or innerRadiusRatio */
     innerCircle?: AgDoughnutInnerCircle;
-    /** The spacing between pie sectors */
+    /**
+     * The spacing between pie sectors.
+     *
+     * __Important:__ When this property is used, strokes are rendered on the inside of the pie sectors, and no longer have a default colour.
+     */
     sectorSpacing?: PixelSize;
     /** A formatter function for adjusting the styling of the pie sectors. */
     formatter?: (params: AgPieSeriesFormatterParams<TDatum>) => AgPieSeriesFormat;
