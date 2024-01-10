@@ -194,7 +194,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
 
-        const { xKey, yLowKey, yHighKey, marker } = this.properties;
+        const { xKey, yLowKey, yHighKey, connectMissingData, marker } = this.properties;
 
         const itemId = `${yLowKey}-${yHighKey}`;
         const xOffset = (xScale.bandwidth ?? 0) / 2;
@@ -293,16 +293,18 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
             let [high, low] = createCoordinates(xValue, yHighValue ?? 0, yLowValue ?? 0);
 
-            // Handle missing Y-values by 'hiding' the area by making the area height zero between
-            // valid points.
-            if (!yValid) {
-                const [prevHigh, prevLow] = createCoordinates(lastXValue, 0, 0);
-                fillHighPoints.push(prevHigh);
-                fillLowPoints.push(prevLow);
-            } else if (!lastYValid) {
-                const [prevHigh, prevLow] = createCoordinates(xValue, 0, 0);
-                fillHighPoints.push(prevHigh);
-                fillLowPoints.push(prevLow);
+            if (!connectMissingData) {
+                // Handle missing Y-values by 'hiding' the area by making the area height zero between
+                // valid points.
+                if (!yValid) {
+                    const [prevHigh, prevLow] = createCoordinates(lastXValue, 0, 0);
+                    fillHighPoints.push(prevHigh);
+                    fillLowPoints.push(prevLow);
+                } else if (!lastYValid) {
+                    const [prevHigh, prevLow] = createCoordinates(xValue, 0, 0);
+                    fillHighPoints.push(prevHigh);
+                    fillLowPoints.push(prevLow);
+                }
             }
 
             if (xValid && yValid) {
@@ -311,7 +313,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             }
 
             // stroke data
-            const move = xValid && yValid && !lastValid && datumIdx > 0;
+            const move = xValid && yValid && !lastValid && !connectMissingData && datumIdx > 0;
             if (move) {
                 high = createMovePoint(high);
                 low = createMovePoint(low);

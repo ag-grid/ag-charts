@@ -74,7 +74,7 @@ When the axes types are continuous (`'number'`, `'time'` or `'log'`), the `yLowK
 -   `NaN`
 
 {% note %}
-Data entries with invalid `yLowKey` and `yHighKey` values will result in gaps in the series. Missing or invalid `xKey` values are skipped.
+Data entries with invalid `yLowKey` and `yHighKey` values will result in gaps in the series. Missing or invalid `xKey` values are skipped. Set `connectMissingData: true` to draw a connecting line between points either side of invalid `yLowKey` and `yHighKey` values.
 {% /note %}
 
 ## Customisation
