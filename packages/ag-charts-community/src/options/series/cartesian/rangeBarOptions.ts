@@ -74,8 +74,6 @@ export interface AgRangeBarSeriesThemeableOptions<TDatum = any>
     label?: AgRangeBarSeriesLabelOptions<TDatum>;
     /** Configuration for the shadow used behind the series items. */
     shadow?: AgDropShadowOptions;
-    /** Apply round corners to each bar. */
-    cornerRadius?: PixelSize;
     /** Function used to return formatting for individual RangeBar series item cells, based on the given parameters. If the current cell is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     formatter?: (params: AgRangeBarSeriesFormatterParams<TDatum>) => AgRangeBarSeriesFormat;
 }

@@ -3,6 +3,7 @@ const { umdWrapper } = require('esbuild-plugin-umd-wrapper');
 const exportedNames = {
     'ag-charts-community': 'agCharts',
     'ag-charts-enterprise': 'agCharts',
+    'ag-charts-react': 'AgChartsReact',
 };
 const exportedName = exportedNames[process.env.NX_TASK_TARGET_PROJECT];
 

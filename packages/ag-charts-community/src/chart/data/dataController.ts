@@ -83,7 +83,15 @@ export class DataController {
             (window as any).processedData = [];
         }
 
+        const multipleSources = valid.some((v) => v.data != null);
         for (const { opts, data, resultCbs, rejects, ids } of merged) {
+            const needsValueExtraction =
+                multipleSources ||
+                opts.props.some((p) => {
+                    if (p.type !== 'value' && p.type !== 'key') return false;
+                    return p.useScopedValues ?? false;
+                });
+
             try {
                 const dataModel = new DataModel<any>({ ...opts, mode: this.mode });
                 const processedData = dataModel.processData(data, valid);
@@ -96,7 +104,7 @@ export class DataController {
                     resultCbs.forEach((cb, requestIdx) => {
                         const id = ids[requestIdx];
                         let requestProcessedData = processedData;
-                        if (merged.length > 1 || ids.length > 1) {
+                        if (needsValueExtraction) {
                             requestProcessedData = this.extractScopedData(id, processedData);
                         }
                         cb({ dataModel, processedData: requestProcessedData });
@@ -188,8 +196,18 @@ export class DataController {
             delete diff['scopes'];
             delete diff['id'];
             delete diff['ids'];
+            if ('useScopedValues' in diff) {
+                delete diff['useScopedValues'];
+            }
 
             return Object.keys(diff).length === 0;
+        };
+
+        const updateKeyValueOpts = (prop: PropertyDefinition<any>) => {
+            if (prop.type !== 'key' && prop.type !== 'value') return;
+
+            const uniqueScopes = new Set(prop.scopes ?? []);
+            prop.useScopedValues = uniqueScopes.size > 1;
         };
 
         const mergeOpts = (opts: DataModelOptions<any, any>[]): DataModelOptions<any, any> => {
@@ -204,12 +222,15 @@ export class DataController {
 
                         const match = result.find(propMatch(prop));
                         if (!match) {
+                            updateKeyValueOpts(prop);
                             result.push(prop);
                             continue;
                         }
 
                         match.scopes ??= [];
                         match.scopes.push(...(prop.scopes ?? []));
+                        updateKeyValueOpts(prop);
+
                         if (match.type !== 'key' && match.type !== 'value') continue;
                         match.ids?.push(...(prop.ids ?? []));
                     }
