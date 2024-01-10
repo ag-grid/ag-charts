@@ -234,7 +234,9 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
             context.nodeData.push(nodeData);
         }
 
-        const colorRanges = this.properties.colorRanges ?? this.getValueAxisColorRanges();
+        const colorRanges = this.properties.colorRanges.some((range) => range.stop != null)
+            ? this.properties.colorRanges
+            : this.getValueAxisColorRanges();
 
         const sortedRanges = [...colorRanges].sort((a, b) => (a.stop || maxValue) - (b.stop || maxValue));
         let start = 0;
