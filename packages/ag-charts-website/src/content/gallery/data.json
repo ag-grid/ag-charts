@@ -43,6 +43,11 @@
                         "name": "stacked-bar"
                     },
                     {
+                        "title": "Reversed Bar",
+                        "description": "",
+                        "name": "reversed-bar"
+                    },
+                    {
                         "title": "Simple Horizontal Bar",
                         "description": "",
                         "name": "simple-horizontal-bar"
@@ -56,6 +61,11 @@
                         "title": "Grouped Horizontal Bar",
                         "description": "",
                         "name": "grouped-horizontal-bar"
+                    },
+                    {
+                        "title": "Reversed Horizontal Bar",
+                        "description": "",
+                        "name": "reversed-horizontal-bar"
                     }
                 ]
             }
