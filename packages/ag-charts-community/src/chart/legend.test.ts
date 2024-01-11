@@ -237,7 +237,15 @@ describe('Legend', () => {
             await compareSnapshot({
                 data,
                 series: [
-                    { type: 'area', xKey: 'x', yKey: 'a', strokeWidth: 2, stroke: 'palegreen', fill: '#f0e0e0' },
+                    {
+                        type: 'area',
+                        xKey: 'x',
+                        yKey: 'a',
+                        strokeWidth: 2,
+                        stroke: 'palegreen',
+                        fill: '#f0e0e0',
+                        marker: { enabled: true },
+                    },
                     { type: 'line', xKey: 'x', yKey: 'b', stroke: 'blue' },
                 ],
                 legend: { item: { showSeriesStroke: true } },
