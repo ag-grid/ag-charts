@@ -63,6 +63,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
 
     protected nodeData: RadarNodeDatum[] = [];
 
+    protected resetInvalidToZero: boolean = false;
+
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
@@ -494,9 +496,9 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         lineNode.lineDashOffset = this.properties.lineDashOffset;
     }
 
-    protected getLinePoints(options: { breakMissingPoints: boolean }): RadarPathPoint[] {
-        const { nodeData } = this;
-        const { breakMissingPoints } = options;
+    protected getLinePoints(): RadarPathPoint[] {
+        const { nodeData, resetInvalidToZero } = this;
+        const { connectMissingData } = this.properties;
         if (nodeData.length === 0) {
             return [];
         }
@@ -506,34 +508,39 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         const reversedAngleAxis = angleAxis?.isReversed();
         const reversedRadiusAxis = radiusAxis?.isReversed();
 
-        // For inverted radar area the inner line shape points must be anti-clockwise and the zero line points (outer shape must be clockwise) to create a hole in the middle of the shape
+        // For inverted radar area the inner line shape points must be anti-clockwise and the zero line points (outer
+        // shape must be clockwise) to create a hole in the middle of the shape
         const data = reversedRadiusAxis && !reversedAngleAxis ? [...nodeData].reverse() : nodeData;
         const points: RadarPathPoint[] = [];
         let prevPointInvalid = false;
-        const invalidDatums = new Set<RadarNodeDatum>();
+        let firstValid: RadarNodeDatum | undefined;
+
         data.forEach((datum, index) => {
             let { x, y } = datum.point!;
+
             const isPointInvalid = isNaN(x) || isNaN(y);
-            if (isPointInvalid) {
-                prevPointInvalid = true;
-                if (breakMissingPoints) {
-                    invalidDatums.add(datum);
-                    return;
-                } else {
-                    x = 0;
-                    y = 0;
-                }
+
+            if (!isPointInvalid) {
+                firstValid ??= datum;
             }
-            const moveTo = index === 0 || (breakMissingPoints && prevPointInvalid);
+
+            if (isPointInvalid && !connectMissingData) {
+                x = 0;
+                y = 0;
+            }
+
+            const moveTo =
+                index === 0 || (!resetInvalidToZero && !connectMissingData && (isPointInvalid || prevPointInvalid));
+
             points.push({ x, y, moveTo });
-            prevPointInvalid = false;
+
+            prevPointInvalid = isPointInvalid;
         });
-        const isFirstInvalid = invalidDatums.has(data[0]);
-        const isLastInvalid = invalidDatums.has(data[data.length - 1]);
-        const closed = !breakMissingPoints || (!isFirstInvalid && !isLastInvalid);
-        if (closed) {
-            points.push({ ...points[0], moveTo: false });
+
+        if (firstValid !== undefined) {
+            points.push({ x: firstValid.point!.x, y: firstValid.point!.y, moveTo: false });
         }
+
         return points;
     }
 
@@ -571,7 +578,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
     }
 
     protected animatePaths(ratio: number) {
-        const linePoints = this.getLinePoints({ breakMissingPoints: true });
+        const linePoints = this.getLinePoints();
         this.animateSinglePath(this.getLineNode(), linePoints, ratio);
     }
 
@@ -612,7 +619,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
 
         if (lineNode) {
             const { path: linePath } = lineNode;
-            const linePoints = this.getLinePoints({ breakMissingPoints: true });
+            const linePoints = this.getLinePoints();
 
             lineNode.fill = undefined;
             lineNode.stroke = this.properties.stroke;

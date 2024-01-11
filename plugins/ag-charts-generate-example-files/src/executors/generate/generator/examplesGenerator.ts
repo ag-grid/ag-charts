@@ -13,6 +13,7 @@ import {
     getTransformTsFileExt,
 } from './utils/fileUtils';
 import { frameworkFilesGenerator } from './utils/frameworkFilesGenerator';
+import { getDarkModeSnippet } from './utils/getDarkModeSnippet';
 import { getOtherScriptFiles } from './utils/getOtherScriptFiles';
 import { getPackageJson } from './utils/getPackageJson';
 import { getStyleFiles } from './utils/getStyleFiles';
@@ -87,9 +88,14 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
         folderPath,
         internalFramework,
     });
+    const mainEntryFilename = getEntryFileName(internalFramework);
     const providedExampleEntries = await Promise.all(
         providedExampleFileNames.map(async (fileName) => {
-            const contents = (await fs.readFile(path.join(providedExampleBasePath, fileName))).toString('utf-8');
+            let contents = (await fs.readFile(path.join(providedExampleBasePath, fileName))).toString('utf-8');
+
+            if (fileName === mainEntryFilename && !ignoreDarkMode) {
+                contents = contents + '\n' + getDarkModeSnippet();
+            }
 
             return [fileName, contents];
         })

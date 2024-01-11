@@ -5,16 +5,14 @@ function formatNumber(value: number) {
     return `$${Math.floor(value)}K`;
 }
 
-const leftOptions: AgChartOptions = {
-    container: document.getElementById('left'),
+const first: AgChartOptions = {
+    container: document.getElementById('first'),
     data: [{ revenue: 326_270, targetRevenue: 250_000 }],
-    title: { text: 'Revenue' },
-    subtitle: { text: '2020 YTD (US $)' },
     series: [
         {
             type: 'bullet',
             valueKey: 'revenue',
-            valueName: 'Actual',
+            valueName: 'Tech',
             targetKey: 'targetRevenue',
             targetName: 'Target',
             scale: { max: 350_000 },
@@ -23,18 +21,11 @@ const leftOptions: AgChartOptions = {
                     const value = formatNumber(datum[valueKey]);
                     const target = formatNumber(targetKey ? datum[targetKey] : NaN);
                     return {
-                        title: 'Revenue 2020 YTD',
-                        content: `<b>${valueName}: </b>${value}<br/><b>${targetName}: </b>${target}`,
+                        title: valueName,
+                        content: `<b>Revenue 2020 YTD: </b>${value}<br/><b>${targetName}: </b>${target}`,
                     };
                 },
             },
-            target: { strokeWidth: 5, stroke: 'red' },
-            colorRanges: [
-                { color: '#666666', stop: 100_000 },
-                { color: '#888888', stop: 200_000 },
-                { color: '#AAAAAA', stop: 300_000 },
-                { color: '#CCCCCC' },
-            ],
         },
     ],
     axes: [
@@ -46,24 +37,21 @@ const leftOptions: AgChartOptions = {
         {
             type: 'category',
             position: 'bottom',
-            label: { formatter: () => '' },
         },
     ],
     width: 150,
 };
 
-AgCharts.create(leftOptions);
+AgCharts.create(first);
 
-const centerOptions: AgChartOptions = {
-    container: document.getElementById('center'),
+const second: AgChartOptions = {
+    container: document.getElementById('second'),
     data: [{ revenue: 123_456, targetRevenue: 250_000 }],
-    title: { text: 'Revenue' },
-    subtitle: { text: '2020 YTD (US $)' },
     series: [
         {
             type: 'bullet',
             valueKey: 'revenue',
-            valueName: 'Actual',
+            valueName: 'Travel',
             targetKey: 'targetRevenue',
             targetName: 'Target',
             scale: { max: 350_000 },
@@ -72,18 +60,11 @@ const centerOptions: AgChartOptions = {
                     const value = formatNumber(datum[valueKey]);
                     const target = formatNumber(targetKey ? datum[targetKey] : NaN);
                     return {
-                        title: 'Revenue 2020 YTD',
-                        content: `<b>${valueName}: </b>${value}<br/><b>${targetName}: </b>${target}`,
+                        title: valueName,
+                        content: `<b>Revenue 2020 YTD: </b>${value}<br/><b>${targetName}: </b>${target}`,
                     };
                 },
             },
-            target: { strokeWidth: 5, stroke: 'red' },
-            colorRanges: [
-                { color: '#666666', stop: 100_000 },
-                { color: '#888888', stop: 200_000 },
-                { color: '#AAAAAA', stop: 300_000 },
-                { color: '#CCCCCC' },
-            ],
         },
     ],
     axes: [
@@ -95,24 +76,21 @@ const centerOptions: AgChartOptions = {
         {
             type: 'category',
             position: 'bottom',
-            label: { formatter: () => '' },
         },
     ],
     width: 150,
 };
 
-AgCharts.create(centerOptions);
+AgCharts.create(second);
 
-const rightOptions: AgChartOptions = {
-    container: document.getElementById('right'),
+const third: AgChartOptions = {
+    container: document.getElementById('third'),
     data: [{ revenue: 225_000, targetRevenue: 250_000 }],
-    title: { text: 'Revenue' },
-    subtitle: { text: '2020 YTD (US $)' },
     series: [
         {
             type: 'bullet',
             valueKey: 'revenue',
-            valueName: 'Actual',
+            valueName: 'Energy',
             targetKey: 'targetRevenue',
             targetName: 'Target',
             scale: { max: 350_000 },
@@ -121,18 +99,11 @@ const rightOptions: AgChartOptions = {
                     const value = formatNumber(datum[valueKey]);
                     const target = formatNumber(targetKey ? datum[targetKey] : NaN);
                     return {
-                        title: 'Revenue 2020 YTD',
-                        content: `<b>${valueName}: </b>${value}<br/><b>${targetName}: </b>${target}`,
+                        title: valueName,
+                        content: `<b>Revenue 2020 YTD: </b>${value}<br/><b>${targetName}: </b>${target}`,
                     };
                 },
             },
-            target: { strokeWidth: 5, stroke: 'red' },
-            colorRanges: [
-                { color: '#666666', stop: 100_000 },
-                { color: '#888888', stop: 200_000 },
-                { color: '#AAAAAA', stop: 300_000 },
-                { color: '#CCCCCC' },
-            ],
         },
     ],
     axes: [
@@ -144,10 +115,87 @@ const rightOptions: AgChartOptions = {
         {
             type: 'category',
             position: 'bottom',
-            label: { formatter: () => '' },
         },
     ],
     width: 150,
 };
 
-AgCharts.create(rightOptions);
+AgCharts.create(third);
+
+const fourth: AgChartOptions = {
+    container: document.getElementById('fourth'),
+    data: [{ revenue: 95_000, targetRevenue: 120_000 }],
+    series: [
+        {
+            type: 'bullet',
+            valueKey: 'revenue',
+            valueName: 'Education',
+            targetKey: 'targetRevenue',
+            targetName: 'Target',
+            scale: { max: 350_000 },
+            tooltip: {
+                renderer: ({ datum, valueKey, valueName, targetKey, targetName }) => {
+                    const value = formatNumber(datum[valueKey]);
+                    const target = formatNumber(targetKey ? datum[targetKey] : NaN);
+                    return {
+                        title: valueName,
+                        content: `<b>Revenue 2020 YTD: </b>${value}<br/><b>${targetName}: </b>${target}`,
+                    };
+                },
+            },
+        },
+    ],
+    axes: [
+        {
+            type: 'number',
+            position: 'left',
+            label: { formatter: ({ value }) => formatNumber(value) },
+        },
+        {
+            type: 'category',
+            position: 'bottom',
+        },
+    ],
+    width: 150,
+};
+
+AgCharts.create(fourth);
+
+const fifth: AgChartOptions = {
+    container: document.getElementById('fifth'),
+    data: [{ revenue: 225_000, targetRevenue: 330_000 }],
+    series: [
+        {
+            type: 'bullet',
+            valueKey: 'revenue',
+            valueName: 'Government',
+            targetKey: 'targetRevenue',
+            targetName: 'Target',
+            scale: { max: 350_000 },
+            tooltip: {
+                renderer: ({ datum, valueKey, valueName, targetKey, targetName }) => {
+                    const value = formatNumber(datum[valueKey]);
+                    const target = formatNumber(targetKey ? datum[targetKey] : NaN);
+                    return {
+                        title: valueName,
+                        content: `<b>Revenue 2020 YTD: </b>${value}<br/><b>${targetName}: </b>${target}`,
+                    };
+                },
+            },
+        },
+    ],
+    axes: [
+        {
+            type: 'number',
+            position: 'left',
+            label: { formatter: ({ value }) => formatNumber(value) },
+        },
+        {
+            type: 'category',
+            position: 'bottom',
+        },
+    ],
+    width: 150,
+};
+
+AgCharts.create(fifth);

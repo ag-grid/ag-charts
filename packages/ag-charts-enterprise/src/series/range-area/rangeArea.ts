@@ -21,8 +21,9 @@ const {
     seriesLabelFadeInAnimation,
     animationValidation,
     diff,
+    updateClipPath,
 } = _ModuleSupport;
-const { getMarker, PointerEvents, Path2D } = _Scene;
+const { getMarker, PointerEvents } = _Scene;
 const { sanitizeHtml, extent, isNumber } = _Util;
 
 const DEFAULT_DIRECTION_KEYS = {
@@ -193,7 +194,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
 
-        const { xKey, yLowKey, yHighKey, marker } = this.properties;
+        const { xKey, yLowKey, yHighKey, connectMissingData, marker } = this.properties;
 
         const itemId = `${yLowKey}-${yHighKey}`;
         const xOffset = (xScale.bandwidth ?? 0) / 2;
@@ -292,16 +293,18 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
             let [high, low] = createCoordinates(xValue, yHighValue ?? 0, yLowValue ?? 0);
 
-            // Handle missing Y-values by 'hiding' the area by making the area height zero between
-            // valid points.
-            if (!yValid) {
-                const [prevHigh, prevLow] = createCoordinates(lastXValue, 0, 0);
-                fillHighPoints.push(prevHigh);
-                fillLowPoints.push(prevLow);
-            } else if (!lastYValid) {
-                const [prevHigh, prevLow] = createCoordinates(xValue, 0, 0);
-                fillHighPoints.push(prevHigh);
-                fillLowPoints.push(prevLow);
+            if (!connectMissingData) {
+                // Handle missing Y-values by 'hiding' the area by making the area height zero between
+                // valid points.
+                if (!yValid) {
+                    const [prevHigh, prevLow] = createCoordinates(lastXValue, 0, 0);
+                    fillHighPoints.push(prevHigh);
+                    fillLowPoints.push(prevLow);
+                } else if (!lastYValid) {
+                    const [prevHigh, prevLow] = createCoordinates(xValue, 0, 0);
+                    fillHighPoints.push(prevHigh);
+                    fillLowPoints.push(prevLow);
+                }
             }
 
             if (xValid && yValid) {
@@ -310,7 +313,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             }
 
             // stroke data
-            const move = xValid && yValid && !lastValid && datumIdx > 0;
+            const move = xValid && yValid && !lastValid && !connectMissingData && datumIdx > 0;
             if (move) {
                 high = createMovePoint(high);
                 low = createMovePoint(low);
@@ -393,7 +396,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     protected override async updatePathNodes(opts: { paths: _Scene.Path[]; opacity: number; visible: boolean }) {
         const { opacity, visible } = opts;
         const [fill, stroke] = opts.paths;
-        const { seriesRectHeight: height, seriesRectWidth: width } = this.nodeDataDependencies;
 
         const strokeWidth = this.getStrokeWidth(this.properties.strokeWidth);
         stroke.setProperties({
@@ -425,17 +427,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             visible,
         });
 
-        const updateClipPath = (path: _Scene.Path) => {
-            if (path.clipPath == null) {
-                path.clipPath = new Path2D();
-                path.clipScalingX = 1;
-                path.clipScalingY = 1;
-            }
-            path.clipPath?.clear({ trackChanges: true });
-            path.clipPath?.rect(-25, -25, (width ?? 0) + 50, (height ?? 0) + 50);
-        };
-        updateClipPath(stroke);
-        updateClipPath(fill);
+        updateClipPath(this, stroke);
+        updateClipPath(this, fill);
     }
 
     protected override async updatePaths(opts: { contextData: RangeAreaContext; paths: _Scene.Path[] }) {
@@ -629,7 +622,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                     strokeOpacity,
                     strokeWidth,
                     lineDash,
-                    offset: 5, // FIXME: add a styling option to change the width of the stroke in the legend.
                 },
             },
         ];
@@ -655,12 +647,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     ) {
         const { markerSelections, labelSelections, contextData, paths } = animationData;
         const { animationManager } = this.ctx;
-        const { seriesRectWidth: width = 0 } = this.nodeDataDependencies;
 
         this.updateAreaPaths(paths, contextData);
         pathSwipeInAnimation(this, animationManager, paths.flat());
         resetMotion(markerSelections, resetMarkerPositionFn);
-        markerSwipeScaleInAnimation(this, animationManager, markerSelections, width);
+        markerSwipeScaleInAnimation(this, animationManager, markerSelections);
         seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
     }
 

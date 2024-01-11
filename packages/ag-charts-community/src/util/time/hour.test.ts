@@ -2,6 +2,10 @@ import { expect, test } from '@jest/globals';
 
 import hour from './hour';
 
+it('should execute with UTC timezone', () => {
+    expect(new Date(2023, 0, 1).getTimezoneOffset()).toEqual(0);
+});
+
 test('hour', () => {
     const interval = hour;
     const date = new Date(2023, 0, 18, 8, 31, 5, 100);

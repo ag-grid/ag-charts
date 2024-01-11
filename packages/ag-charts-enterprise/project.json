@@ -6,7 +6,7 @@
   "targets": {
     "build": {
       "executor": "nx:noop",
-      "dependsOn": ["build:types", "build:package", "build:umd", "build-tsc"],
+      "dependsOn": ["build:types", "build:package", "build:umd"],
       "cache": false,
       "inputs": [
         {
@@ -87,17 +87,6 @@
         "production": {
           "sourcemap": false
         }
-      }
-    },
-    "build-tsc": {
-      "executor": "@nx/js:tsc",
-      "inputs": ["tsDefaults"],
-      "outputs": ["{options.outputPath}"],
-      "options": {
-        "main": "packages/ag-charts-enterprise/src/main.ts",
-        "outputPath": "dist/packages/ag-charts-enterprise/out-tsc",
-        "tsConfig": "packages/ag-charts-enterprise/tsconfig.lib.json",
-        "compiler": "tsc"
       }
     },
     "lint-eslint": {

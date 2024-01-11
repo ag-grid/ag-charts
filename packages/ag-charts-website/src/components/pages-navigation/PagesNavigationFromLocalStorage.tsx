@@ -1,4 +1,4 @@
-import type { MenuData } from '@ag-grid-types';
+import type { Framework, MenuData } from '@ag-grid-types';
 import { useStore } from '@nanostores/react';
 import { $internalFramework } from '@stores/frameworkStore';
 import { getFrameworkFromInternalFramework } from '@utils/framework';
@@ -8,7 +8,7 @@ import { PagesNavigation } from './PagesNavigation';
 
 export function PagesNavigationFromLocalStorage({ menuData, pageName }: { menuData: MenuData; pageName: string }) {
     const internalFramework = useStore($internalFramework);
-    const [framework, setFramework] = useState(getFrameworkFromInternalFramework(internalFramework));
+    const [framework, setFramework] = useState<Framework>();
 
     useEffect(() => {
         const newFramework = getFrameworkFromInternalFramework(internalFramework);
@@ -18,5 +18,7 @@ export function PagesNavigationFromLocalStorage({ menuData, pageName }: { menuDa
         }
     }, [internalFramework]);
 
-    return <PagesNavigation menuData={menuData} framework={framework} pageName={pageName}></PagesNavigation>;
+    return (
+        framework && <PagesNavigation menuData={menuData} framework={framework} pageName={pageName}></PagesNavigation>
+    );
 }

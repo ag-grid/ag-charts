@@ -3,33 +3,41 @@
  */
 import { expect, test } from '@jest/globals';
 
-import { durationMinute } from './duration';
 import { sunday } from './week';
 
-test('sunday.get/floor', () => {
-    const date = new Date(Date.UTC(2019, 7, 23, 15, 10, 5, 100)); // 7 == August
+it('should execute with UTC timezone', () => {
+    expect(new Date(2023, 0, 1).getTimezoneOffset()).toEqual(0);
+});
+
+test.each([
+    // 7 == August
+    new Date(2019, 7, 18, 15, 10, 5, 100),
+    new Date(2019, 7, 19, 15, 10, 5, 100),
+    new Date(2019, 7, 20, 15, 10, 5, 100),
+    new Date(2019, 7, 21, 15, 10, 5, 100),
+    new Date(2019, 7, 22, 15, 10, 5, 100),
+    new Date(2019, 7, 23, 15, 10, 5, 100),
+    new Date(2019, 7, 24, 15, 10, 5, 100),
+])('sunday.get/floor for %s', (date) => {
     const sundayDate = sunday.floor(date);
-    const utcSundayMs = Date.UTC(2019, 7, 18, 0, 0, 0, 0);
-    expect(sundayDate.getTime()).toBe(utcSundayMs + sundayDate.getTimezoneOffset() * durationMinute);
+    expect(sundayDate).toEqual(new Date(2019, 7, 18, 0, 0, 0, 0));
+});
+
+test('sunday.get/floor twice', () => {
+    const date = new Date(2019, 7, 23, 15, 10, 5, 100); // 7 == August
+    const sundayDate = sunday.floor(date);
+    expect(sundayDate).toEqual(sunday.floor(sundayDate));
 });
 
 test('sunday.range', () => {
-    const d0 = new Date(Date.UTC(2019, 7, 23, 15, 10, 5, 100));
-    const d1 = new Date(Date.UTC(2019, 8, 27, 10, 12, 2, 700));
+    const d0 = new Date(2019, 7, 23, 15, 10, 5, 100);
+    const d1 = new Date(2019, 8, 27, 10, 12, 2, 700);
 
-    const utcAug25Ms = Date.UTC(2019, 7, 25, 0, 0, 0, 0);
-    const utcSep01Ms = Date.UTC(2019, 8, 1, 0, 0, 0, 0);
-    const utcSep08Ms = Date.UTC(2019, 8, 8, 0, 0, 0, 0);
-    const utcSep15Ms = Date.UTC(2019, 8, 15, 0, 0, 0, 0);
-    const utcSep22Ms = Date.UTC(2019, 8, 22, 0, 0, 0, 0);
-
-    {
-        const sundays = sunday.range(d0, d1);
-        expect(sundays.length).toBe(5);
-        expect(sundays[0].getTime()).toBe(utcAug25Ms + sundays[0].getTimezoneOffset() * durationMinute);
-        expect(sundays[1].getTime()).toBe(utcSep01Ms + sundays[1].getTimezoneOffset() * durationMinute);
-        expect(sundays[2].getTime()).toBe(utcSep08Ms + sundays[2].getTimezoneOffset() * durationMinute);
-        expect(sundays[3].getTime()).toBe(utcSep15Ms + sundays[3].getTimezoneOffset() * durationMinute);
-        expect(sundays[4].getTime()).toBe(utcSep22Ms + sundays[4].getTimezoneOffset() * durationMinute);
-    }
+    const sundays = sunday.range(d0, d1);
+    expect(sundays.length).toBe(5);
+    expect(sundays[0]).toEqual(new Date(2019, 7, 25, 0, 0, 0, 0));
+    expect(sundays[1]).toEqual(new Date(2019, 8, 1, 0, 0, 0, 0));
+    expect(sundays[2]).toEqual(new Date(2019, 8, 8, 0, 0, 0, 0));
+    expect(sundays[3]).toEqual(new Date(2019, 8, 15, 0, 0, 0, 0));
+    expect(sundays[4]).toEqual(new Date(2019, 8, 22, 0, 0, 0, 0));
 });

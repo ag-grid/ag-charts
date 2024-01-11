@@ -5,7 +5,6 @@ import { resetMotion } from '../../../motion/resetMotion';
 import type { FontStyle, FontWeight } from '../../../options/agChartOptions';
 import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
-import { Path2D } from '../../../scene/path2D';
 import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
 import type { Text } from '../../../scene/shape/text';
@@ -33,7 +32,7 @@ import { CartesianSeries } from './cartesianSeries';
 import { LineSeriesProperties } from './lineSeriesProperties';
 import { prepareLinePathAnimation } from './lineUtil';
 import { markerSwipeScaleInAnimation, resetMarkerFn, resetMarkerPositionFn } from './markerUtil';
-import { buildResetPathFn, pathSwipeInAnimation } from './pathUtil';
+import { buildResetPathFn, pathSwipeInAnimation, updateClipPath } from './pathUtil';
 
 export interface LineNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum {
     readonly point: CartesianSeriesNodeDatum['point'] & {
@@ -143,7 +142,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
             return [];
         }
 
-        const { xKey, yKey, xName, yName, marker, label, connectNulls } = this.properties;
+        const { xKey, yKey, xName, yName, marker, label, connectMissingData } = this.properties;
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
         const xOffset = (xScale.bandwidth ?? 0) / 2;
@@ -162,11 +161,11 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
             const yDatum = values[yIdx];
 
             if (yDatum === undefined) {
-                moveTo = !connectNulls;
+                moveTo = !connectMissingData;
             } else {
                 const x = xScale.convert(xDatum) + xOffset;
                 if (isNaN(x)) {
-                    moveTo = !connectNulls;
+                    moveTo = !connectMissingData;
                     nextPoint = undefined;
                     continue;
                 }
@@ -243,7 +242,6 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
             visible,
             animationEnabled,
         } = opts;
-        const { seriesRectHeight: height, seriesRectWidth: width } = this.nodeDataDependencies;
 
         lineNode.setProperties({
             fill: undefined,
@@ -261,13 +259,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
             lineNode.visible = visible;
         }
 
-        if (lineNode.clipPath == null) {
-            lineNode.clipPath = new Path2D();
-            lineNode.clipScalingX = 1;
-            lineNode.clipScalingY = 1;
-        }
-        lineNode.clipPath?.clear({ trackChanges: true });
-        lineNode.clipPath?.rect(-25, -25, (width ?? 0) + 50, (height ?? 0) + 50);
+        updateClipPath(this, lineNode);
     }
 
     protected override async updateMarkerSelection(opts: {
@@ -411,7 +403,6 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
                     strokeOpacity,
                     strokeWidth,
                     lineDash,
-                    offset: 5, // FIXME: add a styling option to change the width of the stroke in the legend.
                 },
             },
         ];
@@ -445,12 +436,11 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
     protected override animateEmptyUpdateReady(animationData: LineAnimationData) {
         const { markerSelections, labelSelections, annotationSelections, contextData, paths } = animationData;
         const { animationManager } = this.ctx;
-        const { seriesRectWidth: width = 0 } = this.nodeDataDependencies;
 
         this.updateLinePaths(paths, contextData);
         pathSwipeInAnimation(this, animationManager, paths.flat());
         resetMotion(markerSelections, resetMarkerPositionFn);
-        markerSwipeScaleInAnimation(this, animationManager, markerSelections, width);
+        markerSwipeScaleInAnimation(this, animationManager, markerSelections);
         seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
         seriesLabelFadeInAnimation(this, 'annotations', animationManager, annotationSelections);
     }
@@ -489,8 +479,10 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         fromToMotion(this.id, 'marker', animationManager, markerSelections, fns.marker as any);
         fromToMotion(this.id, 'path_properties', animationManager, path, fns.pathProperties);
         pathMotion(this.id, 'path_update', animationManager, path, fns.path);
-        seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
-        seriesLabelFadeInAnimation(this, 'annotations', animationManager, annotationSelections);
+        if (fns.hasMotion) {
+            seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
+            seriesLabelFadeInAnimation(this, 'annotations', animationManager, annotationSelections);
+        }
     }
 
     private getDatumId(datum: LineNodeDatum) {

@@ -99,6 +99,9 @@ class LegendMarker {
 class LegendLine {
     @Validate(POSITIVE_NUMBER, { optional: true })
     strokeWidth?: number = undefined;
+
+    @Validate(POSITIVE_NUMBER, { optional: true })
+    length?: number = undefined;
 }
 
 class LegendItem {
@@ -678,7 +681,7 @@ export class Legend {
                 markerLabel.lineStrokeOpacity = line.strokeOpacity;
                 markerLabel.lineStrokeWidth = itemLine.strokeWidth ?? Math.min(2, line.strokeWidth);
                 markerLabel.lineLineDash = line.lineDash;
-                markerLabel.setSeriesStrokeOffset(line.offset);
+                markerLabel.setSeriesStrokeOffset(itemLine.length ?? 5);
             }
         });
     }

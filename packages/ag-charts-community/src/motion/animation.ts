@@ -1,5 +1,6 @@
 import { interpolateColor, interpolateNumber } from '../interpolate';
 import { Node } from '../scene/node';
+import type { Selection } from '../scene/selection';
 import { clamp } from '../util/number';
 import { linear } from './easing';
 
@@ -80,8 +81,16 @@ export interface IAnimation<T extends AnimationValue> {
     readonly update: (time: number) => this;
 }
 
-export function isNodeArray<N extends Node>(array: (object | N)[]): array is N[] {
+function isNodeArray<N extends Node>(array: (object | N)[]): array is N[] {
     return array.every((n) => n instanceof Node);
+}
+
+export function deconstructSelectionsOrNodes<N extends Node, D>(
+    selectionsOrNodes: Selection<N, D>[] | N[]
+): { nodes: N[]; selections: Selection<N, D>[] } {
+    return isNodeArray(selectionsOrNodes)
+        ? { nodes: selectionsOrNodes, selections: [] }
+        : { nodes: [], selections: selectionsOrNodes };
 }
 
 export class Animation<T extends AnimationValue> implements IAnimation<T> {

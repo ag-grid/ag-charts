@@ -80,6 +80,8 @@ export interface AgRangeAreaSeriesOptions<TDatum = any>
         AgRangeAreaSeriesThemeableOptions<TDatum> {
     /** Configuration for the Range Area Series. */
     type: 'range-area';
+    /** Set to `true` to connect across missing data points. */
+    connectMissingData?: boolean;
 }
 
 /**

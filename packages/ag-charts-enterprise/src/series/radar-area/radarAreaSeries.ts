@@ -14,6 +14,8 @@ export class RadarAreaSeries extends RadarSeries {
 
     protected areaSelection: _Scene.Selection<_Scene.Path, boolean>;
 
+    override resetInvalidToZero = true;
+
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super(moduleCtx);
         const areaGroup = new Group();
@@ -48,12 +50,11 @@ export class RadarAreaSeries extends RadarSeries {
 
     protected override animatePaths(ratio: number) {
         super.animatePaths(ratio);
-        const areaPoints = this.getAreaPoints({ breakMissingPoints: false });
-        this.animateSinglePath(this.getAreaNode(), areaPoints, ratio);
+        this.animateSinglePath(this.getAreaNode(), this.getAreaPoints(), ratio);
     }
 
-    private getAreaPoints(options: { breakMissingPoints: boolean }): RadarPathPoint[] {
-        const points: RadarPathPoint[] = this.getLinePoints(options);
+    private getAreaPoints(): RadarPathPoint[] {
+        const points: RadarPathPoint[] = this.getLinePoints();
 
         const getPolarAxis = (direction: _ModuleSupport.ChartAxisDirection): _ModuleSupport.PolarAxis | undefined => {
             const axis = this.axes[direction];
@@ -80,7 +81,7 @@ export class RadarAreaSeries extends RadarSeries {
 
         if (areaNode) {
             const { path: areaPath } = areaNode;
-            const areaPoints = this.getAreaPoints({ breakMissingPoints: false });
+            const areaPoints = this.getAreaPoints();
 
             areaNode.fill = this.properties.fill;
             areaNode.fillOpacity = this.properties.fillOpacity;

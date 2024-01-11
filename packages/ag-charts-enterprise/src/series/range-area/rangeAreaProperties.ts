@@ -15,6 +15,7 @@ const {
     SeriesMarker,
     SeriesTooltip,
     Validate,
+    BOOLEAN,
     COLOR_STRING,
     LINE_DASH,
     OBJECT,
@@ -86,4 +87,7 @@ export class RangeAreaProperties extends CartesianSeriesProperties<AgRangeAreaSe
 
     @Validate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgRangeAreaSeriesTooltipRendererParams>();
+
+    @Validate(BOOLEAN)
+    connectMissingData: boolean = false;
 }

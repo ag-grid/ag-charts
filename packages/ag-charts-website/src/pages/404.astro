@@ -7,10 +7,10 @@ import { PagesNavigationFromLocalStorage } from '@components/pages-navigation/Pa
 const menuEntry = await getEntry('menu', 'data');
 ---
 
-<Layout title="AG Charts: Page Not Found">
-    <div class={'contentViewport'}>
+<Layout title="AG Charts: Page Not Found" showDocsNav={true}>
+    <div class="layout-grid">
         <!-- NOTE: 404 is used for all paths, so will need to get framework from localstorage -->
-        <PagesNavigationFromLocalStorage client:only menuData={menuEntry.data} pageName={'404'} />
+        <PagesNavigationFromLocalStorage client:load menuData={menuEntry.data} pageName={'404'} />
 
         <div id="doc-content" class:list={['docPage', 'noSideMenu']}>
             <h1>Page Not Found</h1>
@@ -26,7 +26,11 @@ const menuEntry = await getEntry('menu', 'data');
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        plausible('404', { props: { path: document.location.pathname } });
+        if (!window.plausible) {
+            return;
+        }
+
+        window.plausible('404', { props: { path: document.location.pathname } });
     });
 </script>
 

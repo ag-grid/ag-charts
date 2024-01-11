@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 import {
-    IMAGE_SNAPSHOT_DEFAULTS,
     extractImageData,
     setupMockCanvas,
     spyOnAnimationManager,
@@ -59,7 +58,7 @@ describe('RadarAreaSeries', () => {
         await waitForChartStability(chart);
 
         const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        expect(imageData).toMatchImageSnapshot();
     };
 
     it(`should render polar chart as expected`, async () => {
@@ -140,6 +139,44 @@ describe('RadarAreaSeries', () => {
                 { type: 'angle-category', label: { avoidCollisions: true, minSpacing: 2 } },
                 { type: 'radius-number' },
             ],
+        };
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
+    it(`should render polar chart with invalid data disconnected`, async () => {
+        const options: AgChartOptions = {
+            ...EXAMPLE_OPTIONS,
+            data: [
+                { subject: 'Maths', gradeA: 7.0, gradeB: 4.2 },
+                { subject: 'Physics', gradeA: undefined, gradeB: 8.5 },
+                { subject: 'Biology', gradeA: 3.0, gradeB: 3.0 },
+                { subject: 'History', gradeA: 6.5, gradeB: 4.3 },
+                { subject: 'P.E.', gradeA: 9.8, gradeB: 6.4 },
+            ],
+        };
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
+    it(`should render polar chart with invalid data connected`, async () => {
+        const options: AgChartOptions = {
+            ...EXAMPLE_OPTIONS,
+            data: [
+                { subject: 'Maths', gradeA: 7.0, gradeB: 4.2 },
+                { subject: 'Physics', gradeA: undefined, gradeB: 8.5 },
+                { subject: 'Biology', gradeA: 3.0, gradeB: 3.0 },
+                { subject: 'History', gradeA: 6.5, gradeB: 4.3 },
+                { subject: 'P.E.', gradeA: 9.8, gradeB: 6.4 },
+            ],
+            series: EXAMPLE_OPTIONS.series!.map((series) => ({
+                ...series,
+                connectMissingData: true,
+            })),
         };
         prepareEnterpriseTestOptions(options as any);
 

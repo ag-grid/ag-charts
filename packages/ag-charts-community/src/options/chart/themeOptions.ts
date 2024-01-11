@@ -47,7 +47,7 @@ export interface AgBaseChartThemeOptions {
     /** The palette to use. If specified, this replaces the palette from the base theme. */
     palette?: Partial<AgChartThemePalette>;
     /** Configuration from this object is merged over the defaults specified in the base theme. */
-    overrides?: AgBaseChartThemeOverrides;
+    overrides?: AgChartThemeOverrides;
 }
 
 /** This object is used to define the configuration for a custom chart theme. */
@@ -124,7 +124,7 @@ export interface AgCommonThemeableChartOptions extends AgBaseThemeableChartOptio
     axes?: AgCommonThemeableAxisOptions;
 }
 
-export interface AgBaseChartThemeOverrides {
+export interface AgChartThemeOverrides {
     /** Common theme overrides for series. */
     common?: AgCommonThemeableChartOptions;
 
@@ -184,6 +184,6 @@ type VerifyAgBaseChartThemeOverrides<T = AgBaseChartOptions> = {
 };
 
 // Verification checks for completeness/correctness.
-const __THEME_OVERRIDES = {} as Required<AgBaseChartThemeOverrides>;
+const __THEME_OVERRIDES = {} as Required<AgChartThemeOverrides>;
 // @ts-ignore
 const __VERIFY_THEME_OVERRIDES: Required<VerifyAgBaseChartThemeOverrides> = __THEME_OVERRIDES;

@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport, _Theme } from 'ag-charts-community';
 
 import { BULLET_DEFAULTS } from './bulletDefaults';
 import { BulletSeries } from './bulletSeries';
@@ -23,4 +23,24 @@ export const BulletModule: _ModuleSupport.SeriesModule<'bullet'> = {
     },
     themeTemplate: BULLET_SERIES_THEME,
     swapDefaultAxesCondition: (series) => series?.direction === 'horizontal',
+    paletteFactory: ({ takeColors, colorsCount, themeTemplateParameters }) => {
+        const { properties } = themeTemplateParameters;
+        const themeBackgroundColor = themeTemplateParameters.properties.get(_Theme.DEFAULT_BACKGROUND_COLOUR);
+        const backgroundFill =
+            (Array.isArray(themeBackgroundColor) ? themeBackgroundColor[0] : themeBackgroundColor) ?? 'white';
+
+        const defaultAxisLineColor = properties.get(_Theme.DEFAULT_AXIS_LINE_COLOUR);
+        const {
+            fills: [fill],
+            strokes: [stroke],
+        } = takeColors(colorsCount);
+        return {
+            fill,
+            stroke,
+            target: {
+                stroke: defaultAxisLineColor,
+                fill: backgroundFill,
+            },
+        };
+    },
 };

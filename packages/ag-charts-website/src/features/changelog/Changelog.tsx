@@ -332,7 +332,7 @@ export const Changelog = () => {
     );
 
     const releaseNotesMarkdownContent = fixVersion === ALL_FIX_VERSIONS ? undefined : markdownContent;
-    const hideExpander = fixVersion === ALL_FIX_VERSIONS || releaseNotesMarkdownContent;
+    const hideExpander = fixVersion === ALL_FIX_VERSIONS || Boolean(releaseNotesMarkdownContent);
 
     return (
         <>

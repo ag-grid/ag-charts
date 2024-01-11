@@ -9,11 +9,6 @@
       "inputs": [{ "externalDependencies": ["npm:typescript"] }],
       "dependsOn": ["^build"]
     },
-    "build-tsc": {
-      "executor": "nx:noop",
-      "inputs": [{ "externalDependencies": ["npm:typescript"] }],
-      "dependsOn": ["^build-tsc"]
-    },
     "lint": {
       "executor": "nx:noop",
       "inputs": [{ "externalDependencies": ["npm:typescript"] }],
@@ -73,7 +68,7 @@
         "commands": [
           "while true ; do nx watch -p ag-charts-community,ag-charts-enterprise -- {projectRoot}/dev.sh \\${NX_PROJECT_NAME} ; done",
           "while true ; do nx watch -p ag-charts-website-* -- nx build \\${NX_PROJECT_NAME}:generate; done",
-          "nx run ag-charts-website:dev --configuration watch"
+          "nx run ag-charts-website:dev"
         ]
       },
       "configurations": {
@@ -84,6 +79,16 @@
             }
           ]
         }
+      }
+    },
+    "format-check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          {
+            "command": "nx format:check --all"
+          }
+        ]
       }
     },
     "blt": {

@@ -2,7 +2,7 @@ import { AgChartOptions, AgCharts } from 'ag-charts-community';
 
 import { getData } from './data';
 
-let connectNulls = false;
+let connectMissingData = false;
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
@@ -17,19 +17,19 @@ const options: AgChartOptions = {
         {
             xKey: 'year',
             yKey: 'visitors',
-            connectNulls,
+            connectMissingData,
         },
     ],
 };
 
 const chart = AgCharts.create(options);
 
-function toggleConnectNulls() {
-    connectNulls = !connectNulls;
+function toggleConnectMissingData() {
+    connectMissingData = !connectMissingData;
     AgCharts.updateDelta(chart, {
         series: options.series.map((series) => ({
             ...series,
-            connectNulls,
+            connectMissingData,
         })),
     });
 }

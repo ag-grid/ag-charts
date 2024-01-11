@@ -102,6 +102,7 @@
     font-weight: var(--text-bold);
     overflow: hidden;
     text-overflow: ellipsis;
+    color: var(--color-fg-primary);
     border-top: 1px solid var(--file-border-color);
     border-left: 1px solid var(--file-border-color);
     border-bottom: 1px solid var(--file-border-color);
@@ -117,6 +118,7 @@
     &:hover {
         --file-border-color: var(--color-border-primary);
 
+        color: var(--color-fg-primary);
         background-color: var(--color-bg-primary);
         border-top: 1px solid var(--file-border-color);
         border-left: 1px solid var(--file-border-color);
@@ -134,10 +136,10 @@
     &.isActive {
         --file-border-color: var(--color-border-primary);
 
-        background-color: var(--color-bg-secondary);
+        background-color: color-mix(in srgb, var(--color-bg-secondary), var(--color-bg-primary) 70%);
 
         #{$selector-darkmode} & {
-            background-color: var(--color-bg-secondary);
+            background-color: color-mix(in srgb, var(--color-bg-secondary), var(--color-bg-primary) 70%);
         }
     }
 }

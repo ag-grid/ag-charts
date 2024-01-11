@@ -29,7 +29,7 @@ export interface AgLineSeriesThemeableOptions<TDatum = any>
     /** Configuration for the Error Bars. */
     errorBar?: AgErrorBarThemeableOptions;
     /** Set to `true` to connect across missing data points. */
-    connectNulls?: boolean;
+    connectMissingData?: boolean;
 }
 
 export interface AgLineSeriesOptionsKeys {

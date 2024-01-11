@@ -3,7 +3,7 @@ import type { AnimationManager } from '../chart/interaction/animationManager';
 import type { Node } from '../scene/node';
 import type { Selection } from '../scene/selection';
 import { zipObject } from '../util/zip';
-import { ADD_PHASE, INITIAL_LOAD, REMOVE_PHASE, UPDATE_PHASE, isNodeArray } from './animation';
+import { ADD_PHASE, INITIAL_LOAD, REMOVE_PHASE, UPDATE_PHASE, deconstructSelectionsOrNodes } from './animation';
 import type { AnimationTiming, AnimationValue } from './animation';
 import * as easing from './easing';
 
@@ -77,9 +77,7 @@ export function fromToMotion<N extends Node, T extends Record<string, string | n
 ) {
     const { defaultDuration } = animationManager;
     const { fromFn, toFn, intermediateFn } = fns;
-    const isNodes = isNodeArray(selectionsOrNodes);
-    const nodes = isNodes ? selectionsOrNodes : [];
-    const selections = !isNodes ? selectionsOrNodes : [];
+    const { nodes, selections } = deconstructSelectionsOrNodes(selectionsOrNodes);
 
     // Dynamic case with varying add/update/remove behavior.
     const ids = { added: {}, removed: {} };
@@ -201,9 +199,7 @@ export function staticFromToMotion<N extends Node, T extends AnimationValue & Pa
     to: T,
     extraOpts: ExtraOpts<N> = {}
 ) {
-    const isNodes = isNodeArray(selectionsOrNodes);
-    const nodes = isNodes ? selectionsOrNodes : [];
-    const selections = !isNodes ? selectionsOrNodes : [];
+    const { nodes, selections } = deconstructSelectionsOrNodes(selectionsOrNodes);
     const { animationDelay = 0, animationDuration = 1, start = {}, finish = {} } = extraOpts;
     const { defaultDuration } = animationManager;
 

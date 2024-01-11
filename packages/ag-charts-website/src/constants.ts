@@ -16,7 +16,7 @@ export const INTERNAL_FRAMEWORKS: readonly InternalFramework[] = [
 export const TYPESCRIPT_INTERNAL_FRAMEWORKS: InternalFramework[] = ['typescript', 'reactFunctionalTs', 'angular'];
 
 export const FRAMEWORK_DISPLAY_TEXT: Record<Framework, string> = {
-    javascript: 'JavaScript',
+    javascript: 'Javascript',
     react: 'React',
     angular: 'Angular',
     vue: 'Vue',

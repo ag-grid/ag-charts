@@ -17,6 +17,8 @@ export interface AgChartLegendMarkerOptions {
 export interface AgChartLegendLineOptions {
     /** The width in pixels of the stroke for line in the legend. This requires `showSeriesStroke` to be set to `true`. */
     strokeWidth?: PixelSize;
+    /** The length of the legend item line in pixels. This requires `showSeriesStroke` to be set to `true`. */
+    length?: PixelSize;
 }
 
 export interface AgChartLegendLabelFormatterParams {

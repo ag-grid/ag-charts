@@ -5,7 +5,6 @@ import { resetMotion } from '../../../motion/resetMotion';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
-import { Path2D } from '../../../scene/path2D';
 import type { SizedPoint } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
@@ -39,7 +38,7 @@ import {
 import type { CartesianAnimationData } from './cartesianSeries';
 import { CartesianSeries } from './cartesianSeries';
 import { markerSwipeScaleInAnimation, resetMarkerFn, resetMarkerPositionFn } from './markerUtil';
-import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation } from './pathUtil';
+import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, updateClipPath } from './pathUtil';
 
 type AreaAnimationData = CartesianAnimationData<
     Group,
@@ -80,8 +79,8 @@ export class AreaSeries extends CartesianSeries<
             return;
         }
 
-        const { data, visible, seriesGrouping: { groupIndex = this.id } = {} } = this;
-        const { xKey, yKey, normalizedTo } = this.properties;
+        const { data, visible, seriesGrouping: { groupIndex = this.id, stackCount = 1 } = {} } = this;
+        const { xKey, yKey, connectMissingData, normalizedTo } = this.properties;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
         const { isContinuousX, isContinuousY } = this.isContinuous();
         const ids = [
@@ -110,6 +109,9 @@ export class AreaSeries extends CartesianSeries<
         }
 
         const common: Partial<DatumPropertyDefinition<unknown>> = { invalidValue: null };
+        if (connectMissingData && stackCount > 1) {
+            common.invalidValue = 0;
+        }
         if (!visible) {
             common.forceValue = 0;
         }
@@ -186,7 +188,15 @@ export class AreaSeries extends CartesianSeries<
             return [];
         }
 
-        const { yKey, xKey, marker, label, fill: seriesFill, stroke: seriesStroke, connectNulls } = this.properties;
+        const {
+            yKey,
+            xKey,
+            marker,
+            label,
+            fill: seriesFill,
+            stroke: seriesStroke,
+            connectMissingData,
+        } = this.properties;
         const { scale: xScale } = xAxis;
         const { scale: yScale } = yAxis;
 
@@ -350,7 +360,7 @@ export class AreaSeries extends CartesianSeries<
                 const [prevTop, prevBottom] = createPathCoordinates(lastXDatum, yValuePreviousStart, yValuePreviousEnd);
                 const [top, bottom] = createPathCoordinates(xDatum, yValueStart, yValueEnd);
 
-                if (xValid && (!connectNulls || yValid)) {
+                if (xValid && (!connectMissingData || yValid)) {
                     fillPoints.push(prevTop);
                     fillPhantomPoints.push(prevBottom);
                     fillPoints.push(top);
@@ -396,7 +406,6 @@ export class AreaSeries extends CartesianSeries<
     }) {
         const { opacity, visible, animationEnabled } = opts;
         const [fill, stroke] = opts.paths;
-        const { seriesRectHeight: height, seriesRectWidth: width } = this.nodeDataDependencies;
 
         const strokeWidth = this.getStrokeWidth(this.properties.strokeWidth);
         stroke.setProperties({
@@ -428,17 +437,8 @@ export class AreaSeries extends CartesianSeries<
             strokeWidth,
         });
 
-        const updateClipPath = (path: Path) => {
-            if (path.clipPath == null) {
-                path.clipPath = new Path2D();
-                path.clipScalingX = 1;
-                path.clipScalingY = 1;
-            }
-            path.clipPath?.clear({ trackChanges: true });
-            path.clipPath?.rect(-25, -25, (width ?? 0) + 50, (height ?? 0) + 50);
-        };
-        updateClipPath(stroke);
-        updateClipPath(fill);
+        updateClipPath(this, stroke);
+        updateClipPath(this, fill);
     }
 
     protected override async updatePaths(opts: { contextData: AreaSeriesNodeDataContext; paths: Path[] }) {
@@ -606,7 +606,6 @@ export class AreaSeries extends CartesianSeries<
         const { yKey, yName, fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, marker, visible } =
             this.properties;
 
-        const useAreaFill = !(marker.enabled && strokeWidth === 0) || marker.fill === undefined;
         return [
             {
                 legendType,
@@ -619,9 +618,9 @@ export class AreaSeries extends CartesianSeries<
                 },
                 marker: {
                     shape: marker.shape,
-                    fill: useAreaFill ? fill : marker.fill,
-                    fillOpacity: useAreaFill ? fillOpacity : marker.fillOpacity,
+                    fill: marker.fill ?? fill,
                     stroke: marker.stroke ?? stroke,
+                    fillOpacity: marker.fillOpacity ?? fillOpacity,
                     strokeOpacity: marker.strokeOpacity ?? strokeOpacity,
                     strokeWidth: marker.strokeWidth ?? 0,
                 },
@@ -630,7 +629,6 @@ export class AreaSeries extends CartesianSeries<
                     strokeOpacity,
                     strokeWidth,
                     lineDash,
-                    offset: 5, // FIXME: add a styling option to change the width of the stroke in the legend.
                 },
             },
         ];
@@ -639,12 +637,11 @@ export class AreaSeries extends CartesianSeries<
     override animateEmptyUpdateReady(animationData: AreaAnimationData) {
         const { markerSelections, labelSelections, contextData, paths } = animationData;
         const { animationManager } = this.ctx;
-        const { seriesRectWidth: width = 0 } = this.nodeDataDependencies;
 
         this.updateAreaPaths(paths, contextData);
         pathSwipeInAnimation(this, animationManager, paths.flat());
         resetMotion(markerSelections, resetMarkerPositionFn);
-        markerSwipeScaleInAnimation(this, animationManager, markerSelections, width);
+        markerSwipeScaleInAnimation(this, animationManager, markerSelections);
         seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
     }
 
