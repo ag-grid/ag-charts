@@ -495,6 +495,11 @@
                         "name": "simple-nightingale"
                     },
                     {
+                        "title": "Multiple Nightingale Series",
+                        "description": "",
+                        "name": "multiple-nightingale-series"
+                    },
+                    {
                         "title": "Reversed Nightingale",
                         "description": "",
                         "name": "reversed-nightingale"
