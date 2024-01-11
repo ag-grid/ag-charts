@@ -1,6 +1,6 @@
 import { expect, test } from '@jest/globals';
 
-import { toFixed } from './number';
+import { countFractionDigits, toFixed } from './number';
 
 describe('number module', () => {
     test('toFixed', () => {
@@ -11,5 +11,16 @@ describe('number module', () => {
         expect(toFixed(-0.0830894028175203)).toBe('-0.083');
         expect(toFixed(-0.0830894028175203, 4)).toBe('-0.08309');
         expect(toFixed(0)).toBe('0.00');
+    });
+
+    test('countFractionDigits', () => {
+        expect(countFractionDigits(0)).toBe(0);
+        expect(countFractionDigits(0.5)).toBe(1);
+        expect(countFractionDigits(0.25)).toBe(2);
+        expect(countFractionDigits(1)).toBe(0);
+        expect(countFractionDigits(1.5)).toBe(1);
+        expect(countFractionDigits(1.25)).toBe(2);
+        // AG-10143
+        expect(countFractionDigits(400 - 0.6)).toBe(1);
     });
 });

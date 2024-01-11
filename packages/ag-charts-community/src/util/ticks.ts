@@ -1,3 +1,5 @@
+import { countFractionDigits } from './number';
+
 // @todo(AG-10085): Improve types for this
 export type NumericTicks = number[] & {
     fractionDigits: number;
@@ -73,15 +75,10 @@ export function singleTickDomain(a: number, b: number): number[] {
 }
 
 export function range(start: number, stop: number, step: number): NumericTicks {
-    const countDigits = (expNo: string) => {
-        const parts = expNo.split('e');
-        return Math.max((parts[0].split('.')[1]?.length ?? 0) - Number(parts[1]), 0);
-    };
-
     const d0 = Math.min(start, stop);
     const d1 = Math.max(start, stop);
 
-    const fractionalDigits = countDigits((step % 1).toExponential());
+    const fractionalDigits = countFractionDigits(step);
     const f = Math.pow(10, fractionalDigits);
     const n = Math.ceil((d1 - d0) / step);
     const values = createNumericTicks(fractionalDigits);
