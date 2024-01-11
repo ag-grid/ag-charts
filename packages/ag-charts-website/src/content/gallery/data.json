@@ -536,9 +536,19 @@
                 "enterprise": true,
                 "examples": [
                     {
+                        "title": "Simple Radial Bar",
+                        "description": "",
+                        "name": "simple-radial-bar"
+                    },
+                    {
                         "title": "Stacked Radial Bar",
                         "description": "",
                         "name": "stacked-radial-bar"
+                    },
+                    {
+                        "title": "Reversed Radial Bar",
+                        "description": "",
+                        "name": "reversed-radial-bar"
                     }
                 ]
             }
