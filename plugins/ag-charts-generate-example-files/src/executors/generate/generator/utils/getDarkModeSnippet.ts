@@ -10,14 +10,13 @@ ${
 }
 
 let darkmode =
-    (localStorage['documentation:darkmode'] ||
-        String(matchMedia('(prefers-color-scheme: dark)').matches)) === 'true';
+    (localStorage['documentation:darkmode'] || String(matchMedia('(prefers-color-scheme: dark)').matches)) === 'true';
 
-const isAgTheme = (theme) => {
-    return typeof theme === 'string' && theme.startsWith('ag-');
+const isAgThemeOrUndefined = (theme) => {
+    return theme == null || (typeof theme === 'string' && theme.startsWith('ag-'));
 };
 
-const getDarkmodeTheme = (theme) => {
+const getDarkmodeTheme = (theme = 'ag-default') => {
     const baseTheme = theme.replace(/-dark$/, '');
     return darkmode ? baseTheme + '-dark' : baseTheme;
 };
@@ -25,10 +24,10 @@ const getDarkmodeTheme = (theme) => {
 const defaultUpdate = __chartAPI.update;
 __chartAPI.update = function update(chart, options) {
     const nextOptions = { ...options };
-    const theme = options.theme || 'ag-default';
-    if (isAgTheme(theme)) {
+    const theme = options.theme;
+    if (isAgThemeOrUndefined(theme)) {
         nextOptions.theme = getDarkmodeTheme(theme);
-    } else if (typeof theme === 'object' && isAgTheme(theme.baseTheme)) {
+    } else if (typeof theme === 'object' && isAgThemeOrUndefined(theme.baseTheme)) {
         nextOptions.theme = {
             ...options.theme,
             baseTheme: getDarkmodeTheme(theme.baseTheme),
@@ -46,7 +45,7 @@ __chartAPI.updateDelta = function updateDelta(chart, options) {
         nextOptions.theme = {
             ...options.theme,
             baseTheme: getDarkmodeTheme(theme),
-        }
+        };
     }
     defaultUpdateDelta(chart, nextOptions);
 };
