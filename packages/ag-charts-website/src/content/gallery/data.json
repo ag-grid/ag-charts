@@ -516,6 +516,16 @@
                         "title": "Simple Radial Column",
                         "description": "",
                         "name": "simple-radial-column"
+                    },
+                    {
+                        "title": "Grouped Radial Column",
+                        "description": "",
+                        "name": "grouped-radial-column"
+                    },
+                    {
+                        "title": "Reversed Radial Column",
+                        "description": "",
+                        "name": "reversed-radial-column"
                     }
                 ]
             },
