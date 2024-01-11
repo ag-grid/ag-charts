@@ -41,6 +41,7 @@ const options: AgCartesianChartOptions = {
             nice: false,
             crossLines: [
                 {
+                    type: 'line',
                     value: 0,
                     label: {
                         text: 'North',
@@ -60,6 +61,7 @@ const options: AgCartesianChartOptions = {
             nice: false,
             crossLines: [
                 {
+                    type: 'line',
                     value: 0,
                     label: {
                         text: 'East',
