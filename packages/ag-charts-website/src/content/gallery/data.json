@@ -450,6 +450,11 @@
                         "title": "Radar With Markers",
                         "description": "",
                         "name": "radar-with-markers"
+                    },
+                    {
+                        "title": "Reversed Radar With Markers",
+                        "description": "",
+                        "name": "reversed-radar-with-markers"
                     }
                 ]
             },
