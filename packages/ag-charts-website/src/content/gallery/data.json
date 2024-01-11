@@ -468,6 +468,16 @@
                         "title": "Simple Radar Area",
                         "description": "",
                         "name": "simple-radar-area"
+                    },
+                    {
+                        "title": "Radar Area With Labels",
+                        "description": "",
+                        "name": "radar-area-with-labels"
+                    },
+                    {
+                        "title": "Reversed Radar Area",
+                        "description": "",
+                        "name": "reversed-radar-area"
                     }
                 ]
             }
