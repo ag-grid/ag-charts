@@ -649,6 +649,11 @@
                         "title": "Horizontal Range Bar And Scatter Combination",
                         "description": "",
                         "name": "horizontal-range-bar-scatter-combination"
+                    },
+                    {
+                        "title": "Radar Line, Radar Area And Nightingale Combination",
+                        "description": "",
+                        "name": "radar-line-radar-area-nightingale-combination"
                     }
                 ]
             }
