@@ -2,7 +2,6 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import { BULLET_DEFAULTS } from './bulletDefaults';
 import { BulletSeries } from './bulletSeries';
-import { BulletColorRange } from './bulletSeriesProperties';
 import { BULLET_SERIES_THEME } from './bulletThemes';
 
 const { deepClone, isNumber } = _ModuleSupport;
@@ -14,7 +13,6 @@ export const BulletModule: _ModuleSupport.SeriesModule<'bullet'> = {
     chartTypes: ['cartesian'],
     identifier: 'bullet',
     solo: true,
-    optionConstructors: { 'series[].colorRanges': BulletColorRange },
     instanceConstructor: BulletSeries,
     seriesDefaults: ({ scale }) => {
         const seriesDefaults = deepClone(BULLET_DEFAULTS);

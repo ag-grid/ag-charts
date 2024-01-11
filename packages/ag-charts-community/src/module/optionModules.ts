@@ -1,12 +1,17 @@
-import { CartesianChart } from '../chart/cartesianChart';
-import type { Chart, ChartSpecialOverrides } from '../chart/chart';
+import type { ChartSpecialOverrides } from '../chart/chart';
 import type { ChartAxisDirection } from '../chart/chartAxisDirection';
 import type { PropertyDefinition } from '../chart/data/dataModel';
 import { CHART_TYPES } from '../chart/factory/chartTypes';
 import { isEnterpriseSeriesType } from '../chart/factory/expectedEnterpriseModules';
 import { removeUsedEnterpriseOptions } from '../chart/factory/processEnterpriseOptions';
-import { getSeriesDefaults, isDefaultAxisSwapNeeded, isSoloSeries } from '../chart/factory/seriesTypes';
-import { HierarchyChart } from '../chart/hierarchyChart';
+import {
+    getSeriesDefaults,
+    isDefaultAxisSwapNeeded,
+    isGroupableSeries,
+    isSeriesStackedByDefault,
+    isSoloSeries,
+    isStackableSeries,
+} from '../chart/factory/seriesTypes';
 import type { SeriesOptions } from '../chart/mapping/prepareSeries';
 import { getChartTheme } from '../chart/mapping/themes';
 import {
@@ -15,10 +20,10 @@ import {
     isAgPolarChartOptions,
     isSeriesOptionType,
 } from '../chart/mapping/types';
-import { PolarChart } from '../chart/polarChart';
 import type { SeriesNodeDatum } from '../chart/series/seriesTypes';
 import type { ChartTheme } from '../chart/themes/chartTheme';
 import type { AgChartOptions } from '../options/chart/chartBuilderOptions';
+import { type AgTooltipPositionOptions, AgTooltipPositionType } from '../options/chart/tooltipOptions';
 import type { AgCartesianSeriesOptions } from '../options/series/cartesian/cartesianSeriesTypes';
 import type { AgHierarchySeriesOptions } from '../options/series/hierarchy/hierarchyOptions';
 import type { AgPolarSeriesOptions } from '../options/series/polar/polarOptions';
@@ -27,9 +32,11 @@ import { groupBy, unique } from '../util/array';
 import { deepClone, jsonWalk } from '../util/json';
 import { Logger } from '../util/logger';
 import { mergeDefaults } from '../util/object';
+import { isArray, isEnumValue, isFiniteNumber, isPlainObject } from '../util/type-guards';
+import { isString } from '../util/value';
 import type { BaseModule, ModuleInstance } from './baseModule';
 import { enterpriseModule } from './enterpriseModule';
-import { MODULE_CONFLICTS, type Module, REGISTERED_MODULES } from './module';
+import { MODULE_CONFLICTS } from './module';
 import type { AxisContext, ModuleContextWithParent, SeriesContext } from './moduleContext';
 
 export type SeriesType = NonNullable<
@@ -64,7 +71,10 @@ export interface SeriesOptionModule<M extends SeriesOptionInstance = SeriesOptio
     themeTemplate: {};
 }
 
-export class ChartOptions<T extends AgChartOptions> {
+type GroupingOptions = { grouped?: boolean; stacked?: boolean; stackGroup?: string };
+type GroupingSeriesOptions = SeriesOptions & GroupingOptions & { xKey: string };
+
+export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     activeTheme?: ChartTheme;
     userOptions?: Partial<T>;
     seriesDefaults?: T;
@@ -73,12 +83,46 @@ export class ChartOptions<T extends AgChartOptions> {
 
     protected readonly activeModules = new Set<BaseModule>();
 
-    private getOptionsThemeConfig(options: T) {
-        const optionsType = this.optionsType(options);
-        return deepClone(this.activeTheme?.config[optionsType] ?? {});
+    setUserOptions(userOptions: T, specialOptions?: ChartSpecialOverrides) {
+        const cloneOptions = { shallow: ['data'] };
+        const options = deepClone(userOptions, cloneOptions);
+        const mainOptionsType = this.optionsType(options);
+
+        this.sanityCheckAndCleanup(options);
+
+        this.userOptions = options;
+        this.specialOptions = specialOptions;
+        this.activeTheme = getChartTheme(options.theme);
+        this.seriesDefaults = this.getOptionsDefaults(options);
+
+        const {
+            axes: axesThemes = {},
+            series: seriesThemes = [],
+            ...themeDefaults
+        } = this.getSeriesThemeConfig(mainOptionsType);
+
+        // const userPalette = isObject(options.theme)
+        //     ? jsonMerge([this.activeTheme.palette, options.theme.palette])
+        //     : null;
+
+        this.processedOptions = deepClone(
+            mergeDefaults(this.userOptions, themeDefaults, this.seriesDefaults),
+            cloneOptions
+        ) as T;
+        // this.processedOptions = mergeDefaults(options, this.processedOptions) as T;
+
+        this.processSeriesOptions(this.processedOptions);
+
+        if (!enterpriseModule.isEnterprise) {
+            removeUsedEnterpriseOptions(this.processedOptions);
+        }
     }
 
-    private getOptionsDefaults(options: T) {
+    getSeriesThemeConfig(seriesType: string) {
+        return deepClone(this.activeTheme?.config[seriesType] ?? {});
+    }
+
+    getOptionsDefaults(options: T) {
         const optionsType = this.optionsType(options);
         const seriesDefaults = getSeriesDefaults<T>(optionsType, options.series![0]);
 
@@ -86,72 +130,42 @@ export class ChartOptions<T extends AgChartOptions> {
             this.swapAxesPosition(seriesDefaults);
         }
 
-        return this.activeTheme!.templateTheme(seriesDefaults);
+        return this.activeTheme?.templateTheme(seriesDefaults) ?? seriesDefaults;
     }
 
-    setUserOptions(userOptions: T) {
-        const cloneOptions = { shallow: ['data'] };
-        const options = deepClone(userOptions, cloneOptions);
-
-        this.sanityCheckAndCleanup(options);
-
-        this.activeTheme = getChartTheme(options.theme);
-        const { axes = {}, series = [], ...themeDefaults } = this.getOptionsThemeConfig(options);
-
-        // const userPalette = isObject(options.theme)
-        //     ? jsonMerge([this.activeTheme.palette, options.theme.palette])
-        //     : null;
-
-        this.userOptions = options;
-        this.seriesDefaults = this.getOptionsDefaults(options);
-        this.processedOptions = deepClone(
-            mergeDefaults(this.userOptions, themeDefaults, this.seriesDefaults),
-            cloneOptions
-        ) as T;
-        // this.processedOptions = mergeDefaults(options, this.processedOptions) as T;
-
-        if (!enterpriseModule.isEnterprise) {
-            removeUsedEnterpriseOptions(this.processedOptions);
-        }
-    }
-
-    setSpecialOptions(specialOptions: ChartSpecialOverrides) {
-        this.specialOptions = specialOptions;
-    }
-
-    applyChartOptions(chart: Chart) {
-        let modulesChanged = false;
-        for (const moduleDef of REGISTERED_MODULES) {
-            if (moduleDef.type !== 'root' && moduleDef.type !== 'legend') {
-                continue;
-            }
-
-            const shouldBeEnabled =
-                this.testModuleChartType(chart, moduleDef) &&
-                this.processedOptions?.[moduleDef.optionsKey as keyof T] != null;
-            const isEnabled = chart.isModuleEnabled(moduleDef);
-
-            if (shouldBeEnabled === isEnabled) {
-                continue;
-            }
-
-            if (shouldBeEnabled) {
-                chart.addModule(moduleDef);
-            } else {
-                chart.removeModule(moduleDef);
-            }
-
-            modulesChanged = true;
-        }
-
-        return modulesChanged;
-    }
+    // applyChartOptions(chart: Chart) {
+    //     let modulesChanged = false;
+    //     for (const moduleDef of REGISTERED_MODULES) {
+    //         if (moduleDef.type !== 'root' && moduleDef.type !== 'legend') {
+    //             continue;
+    //         }
+    //
+    //         const shouldBeEnabled =
+    //             this.testModuleChartType(chart, moduleDef) &&
+    //             this.processedOptions?.[moduleDef.optionsKey as keyof T] != null;
+    //         const isEnabled = chart.isModuleEnabled(moduleDef);
+    //
+    //         if (shouldBeEnabled === isEnabled) {
+    //             continue;
+    //         }
+    //
+    //         if (shouldBeEnabled) {
+    //             chart.addModule(moduleDef);
+    //         } else {
+    //             chart.removeModule(moduleDef);
+    //         }
+    //
+    //         modulesChanged = true;
+    //     }
+    //
+    //     return modulesChanged;
+    // }
 
     protected optionsType(options: Partial<T>) {
         return options.series?.[0]?.type ?? 'line';
     }
 
-    protected applyChartModules() {}
+    // protected applyChartModules() {}
 
     protected sanityCheckAndCleanup(options: Partial<T>) {
         // output warnings and correct options when required
@@ -172,7 +186,116 @@ export class ChartOptions<T extends AgChartOptions> {
         }
     }
 
-    protected getOptionsDefaultSeriesType(options: T): string | null {
+    protected processSeriesOptions(options: T) {
+        const defaultSeriesType = this.getDefaultSeriesType(options);
+        const defaultTooltipPosition = this.getTooltipPositionDefaults(options);
+
+        options.series = options.series!.map((series) => {
+            series.type ??= defaultSeriesType;
+            const { innerLabels: innerLabelsTheme, ...seriesTheme } = this.getSeriesThemeConfig(series.type).series;
+            const seriesOptions = mergeDefaults(
+                this.getSeriesGroupingOptions(series),
+                series,
+                defaultTooltipPosition,
+                seriesTheme
+            );
+
+            if (series.type === 'pie' && isArray(series.innerLabels)) {
+                seriesOptions.innerLabels = series.innerLabels.map((innerLabel) =>
+                    mergeDefaults(innerLabel, innerLabelsTheme)
+                );
+            }
+
+            return seriesOptions;
+        }) as T['series'];
+    }
+
+    protected getSeriesGroupingOptions(series: SeriesOptions & GroupingOptions) {
+        const groupable = isGroupableSeries(series.type);
+        const stackable = isStackableSeries(series.type);
+        const stackedByDefault = isSeriesStackedByDefault(series.type);
+
+        if (series.grouped && !groupable) {
+            Logger.warnOnce(`Unsupported grouping of series type "${series.type}".`);
+        }
+        if ((series.stacked || series.stackGroup) && !stackable) {
+            Logger.warnOnce(`Unsupported stacking of series type "${series.type}".`);
+        }
+
+        let { grouped, stacked } = series;
+
+        stacked ??= (stackedByDefault || series.stackGroup != null) && !(groupable && grouped);
+        grouped ??= true;
+
+        return {
+            stacked: stackable && stacked,
+            grouped: groupable && grouped && !(stackable && stacked),
+        };
+    }
+
+    protected getSeriesGroupId(series: GroupingSeriesOptions) {
+        if (!series.stacked && !series.grouped) {
+            return 'default-ag-charts-group';
+        }
+        return [series.type, series.xKey, series.stacked ? series.stackGroup ?? 'stacked' : 'grouped']
+            .filter(Boolean)
+            .join('-');
+    }
+
+    public getSeriesGrouping() {
+        // enum GroupingType {
+        //     DEFAULT = 'default',
+        //     STACK = 'stack',
+        //     GROUP = 'group',
+        // }
+        //
+        // type SeriesGroup = { type: string; series: GroupingSeriesOptions[] };
+        // const series = this.processedOptions?.series as GroupingSeriesOptions[];
+        // const groupMap = new Map<string, SeriesGroup>();
+        //
+        // const getGroupRecord = (groupId: string) => {
+        //     if (!groupMap.has(groupId)) {
+        //         // const type = series.stacked ? 'stack' : series.grouped ? 'group' : 'ungrouped';
+        //         groupMap.set(groupId, { type: 'stack', series: [] });
+        //     }
+        // };
+        //
+        // return series.reduce<SeriesGroup[]>((result, series) => {
+        //     if (!series.stacked && !series.grouped) {
+        //         result.push({ type: 'ungrouped' as const, opts: [series] });
+        //         return result;
+        //     }
+        //
+        //     const groupId = this.getSeriesGroupId(series);
+        //
+        //     const type = series.stacked ? 'stack' : series.grouped ? 'group' : 'ungrouped';
+        //     if (!groupMap.has(groupId)) {
+        //         groupMap.set(groupId, { type: 'stack', series: [] });
+        //     }
+        //
+        //     if (series.stacked) {
+        //         if (!groupMap.has(groupId)) {
+        //             groupMap.set(groupId, { type: 'stack', series: [] });
+        //         }
+        //
+        //         groupMap[groupId] ??= { type: 'stack', series: [] };
+        //     } else if (series.grouped) {
+        //         groupMap[groupId] ??= { type: 'group', series: [] };
+        //     } else {
+        //     }
+        // return result;
+        // }, []);
+    }
+
+    // private testModuleChartType(chart: Chart, { chartTypes }: Module) {
+    //     return (
+    //         (chart instanceof CartesianChart && chartTypes.includes('cartesian')) ||
+    //         (chart instanceof PolarChart && chartTypes.includes('polar')) ||
+    //         (chart instanceof HierarchyChart && chartTypes.includes('hierarchy'))
+    //     );
+    // }
+
+    private getDefaultSeriesType(options: T): SeriesType {
         if (isAgCartesianChartOptions(options)) {
             return 'line';
         } else if (isAgHierarchyChartOptions(options)) {
@@ -180,15 +303,28 @@ export class ChartOptions<T extends AgChartOptions> {
         } else if (isAgPolarChartOptions(options)) {
             return 'pie';
         }
-        return null;
+        throw new Error('Invalid chart options type detected.');
     }
 
-    private testModuleChartType(chart: Chart, { chartTypes }: Module) {
-        return (
-            (chart instanceof CartesianChart && chartTypes.includes('cartesian')) ||
-            (chart instanceof PolarChart && chartTypes.includes('polar')) ||
-            (chart instanceof HierarchyChart && chartTypes.includes('hierarchy'))
-        );
+    private getTooltipPositionDefaults(options: T) {
+        const position = options.tooltip?.position;
+        if (!isPlainObject(position)) {
+            return {};
+        }
+
+        const { type, xOffset, yOffset } = position;
+        const result: AgTooltipPositionOptions = {};
+
+        if (isString(type) && isEnumValue(AgTooltipPositionType, type)) {
+            result.type = type;
+        }
+        if (isFiniteNumber(xOffset)) {
+            result.xOffset = xOffset;
+        }
+        if (isFiniteNumber(yOffset)) {
+            result.yOffset = yOffset;
+        }
+        return { tooltip: { position: result } };
     }
 
     private deprecationWarnings(options: Partial<T>) {

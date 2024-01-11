@@ -1,7 +1,6 @@
 import { REGISTERED_MODULES, hasRegisteredEnterpriseModules, registerModuleConflicts } from '../../module/module';
 import type { AgChartOptions } from '../../options/agChartOptions';
 import { Logger } from '../../util/logger';
-import { JSON_APPLY_PLUGINS } from '../chartOptions';
 import { registerAxis, registerAxisThemeTemplate } from './axisTypes';
 import { registerChartDefaults } from './chartTypes';
 import { getUnusedExpectedModules, verifyIfModuleExpected } from './expectedEnterpriseModules';
@@ -12,10 +11,6 @@ export function setupModules() {
     for (const m of REGISTERED_MODULES) {
         if (m.packageType === 'enterprise' && !verifyIfModuleExpected(m)) {
             Logger.errorOnce('Unexpected enterprise module registered: ' + m.identifier);
-        }
-
-        if (JSON_APPLY_PLUGINS.constructors != null && m.optionConstructors != null) {
-            Object.assign(JSON_APPLY_PLUGINS.constructors, m.optionConstructors);
         }
 
         if (m.type === 'root' && m.themeTemplate) {

@@ -6,7 +6,7 @@ import { deepClone } from '../../sparklines-util';
 import { mergeDefaults } from '../../util/object';
 import { isFunction } from '../../util/type-guards';
 import type { SeriesOptions } from '../mapping/prepareSeries';
-import type { SeriesOptionsTypes } from '../mapping/types';
+import type { SeriesType } from '../mapping/types';
 import type { Series } from '../series/series';
 import { registerChartSeriesType } from './chartTypes';
 
@@ -15,10 +15,10 @@ const SERIES_DEFAULTS: Record<string, any> = {};
 const SERIES_THEME_TEMPLATES: Record<string, {}> = {};
 const ENTERPRISE_SERIES_THEME_TEMPLATES: Record<string, {}> = {};
 const SERIES_PALETTE_FACTORIES: Record<string, SeriesPaletteFactory> = {};
-const SOLO_SERIES_TYPES = new Set<SeriesOptionsTypes['type']>();
-const STACKABLE_SERIES_TYPES = new Set<SeriesOptionsTypes['type']>();
-const GROUPABLE_SERIES_TYPES = new Set<SeriesOptionsTypes['type']>();
-const STACKED_BY_DEFAULT_SERIES_TYPES = new Set<string>();
+const SOLO_SERIES_TYPES = new Set<SeriesType>();
+const STACKABLE_SERIES_TYPES = new Set<SeriesType>();
+const GROUPABLE_SERIES_TYPES = new Set<SeriesType>();
+const STACKED_BY_DEFAULT_SERIES_TYPES = new Set<SeriesType>();
 const SWAP_DEFAULT_AXES_CONDITIONS: Record<string, (opts: any) => boolean> = {};
 
 export function registerSeries({
@@ -63,7 +63,7 @@ export function registerSeries({
 }
 
 export function registerSeriesThemeTemplate(
-    seriesType: NonNullable<SeriesOptionsTypes['type']>,
+    seriesType: NonNullable<SeriesType>,
     themeTemplate: {},
     enterpriseThemeTemplate = {}
 ) {
@@ -105,35 +105,35 @@ export function getSeriesPaletteFactory(seriesType: string) {
     return SERIES_PALETTE_FACTORIES[seriesType];
 }
 
-export function isSoloSeries(seriesType: SeriesOptionsTypes['type']) {
+export function isSoloSeries(seriesType: SeriesType) {
     return SOLO_SERIES_TYPES.has(seriesType);
 }
 
-export function isStackableSeries(seriesType: SeriesOptionsTypes['type']) {
+export function isStackableSeries(seriesType: SeriesType) {
     return STACKABLE_SERIES_TYPES.has(seriesType);
 }
 
-export function isGroupableSeries(seriesType: SeriesOptionsTypes['type']) {
+export function isGroupableSeries(seriesType: SeriesType) {
     return GROUPABLE_SERIES_TYPES.has(seriesType);
 }
 
-export function isSeriesStackedByDefault(seriesType: string) {
+export function isSeriesStackedByDefault(seriesType: SeriesType) {
     return STACKED_BY_DEFAULT_SERIES_TYPES.has(seriesType);
 }
 
-export function addGroupableSeriesType(seriesType: SeriesOptionsTypes['type']) {
+export function addGroupableSeriesType(seriesType: SeriesType) {
     GROUPABLE_SERIES_TYPES.add(seriesType);
 }
 
-export function addSoloSeriesType(seriesType: SeriesOptionsTypes['type']) {
+export function addSoloSeriesType(seriesType: SeriesType) {
     SOLO_SERIES_TYPES.add(seriesType);
 }
 
-export function addStackableSeriesType(seriesType: SeriesOptionsTypes['type']) {
+export function addStackableSeriesType(seriesType: SeriesType) {
     STACKABLE_SERIES_TYPES.add(seriesType);
 }
 
-export function addStackedByDefaultSeriesType(seriesType: string) {
+export function addStackedByDefaultSeriesType(seriesType: SeriesType) {
     STACKED_BY_DEFAULT_SERIES_TYPES.add(seriesType);
 }
 

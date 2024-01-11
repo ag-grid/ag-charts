@@ -18,10 +18,11 @@ import { Logger } from '../util/logger';
 import { mergeDefaults } from '../util/object';
 import type { TypedEventListener } from '../util/observable';
 import type { DeepPartial } from '../util/types';
+import { Caption } from './caption';
 import { CartesianChart } from './cartesianChart';
 import { Chart, type ChartExtendedOptions, type ChartSpecialOverrides } from './chart';
 import type { ChartAxis } from './chartAxis';
-import { getJsonApplyOptions } from './chartOptions';
+import { JSON_APPLY_OPTIONS, JSON_APPLY_PLUGINS } from './chartOptions';
 import { AgChartInstanceProxy } from './chartProxy';
 import { ChartUpdateType } from './chartUpdateType';
 import { getAxis } from './factory/axisTypes';
@@ -653,12 +654,27 @@ function applyOptionValues<T extends object, S>(
     options?: S,
     { skip, path }: { skip?: string[]; path?: string } = {}
 ): T {
-    const applyOpts = {
-        ...getJsonApplyOptions(moduleContext),
+    // Allow context to be injected and meet the type requirements
+    class CaptionWithContext extends Caption {
+        constructor() {
+            super();
+            this.registerInteraction(moduleContext);
+        }
+    }
+    return jsonApply<T, any>(target, options, {
+        constructors: {
+            ...JSON_APPLY_OPTIONS.constructors,
+            title: CaptionWithContext,
+            subtitle: CaptionWithContext,
+            footnote: CaptionWithContext,
+        },
+        constructedArrays: JSON_APPLY_PLUGINS.constructedArrays,
+        allowedTypes: {
+            ...JSON_APPLY_OPTIONS.allowedTypes,
+        },
         skip,
-        ...(path ? { path } : {}),
-    };
-    return jsonApply<T, any>(target, options, applyOpts);
+        path,
+    });
 }
 
 function applySeriesValues(target: Series<any>, options: AgBaseSeriesOptions<any>) {

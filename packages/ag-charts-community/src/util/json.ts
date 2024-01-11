@@ -102,6 +102,37 @@ export function shallowClone<T>(source: T): T {
     return source;
 }
 
+/**
+ * Walk the given JSON object graphs, invoking the visit() callback for every object encountered.
+ * Arrays are descended into without a callback, however their elements will have the visit()
+ * callback invoked if they are objects.
+ *
+ * @param json to traverse
+ * @param visit callback for each non-primitive and non-array object found
+ * @param opts
+ * @param opts.skip property names to skip when walking
+ * @param jsons to traverse in parallel
+ */
+export function jsonWalk<T>(json: T, visit: (...nodes: T[]) => void, opts?: { skip?: string[] }, ...jsons: T[]) {
+    if (isArray(json)) {
+        visit(json, ...jsons);
+        json.forEach((node, index) => {
+            jsonWalk(node, visit, opts, ...keyMapper(jsons, index));
+        });
+    } else if (isPlainObject(json)) {
+        visit(json, ...jsons);
+        for (const key of Object.keys(json)) {
+            if (opts?.skip?.includes(key)) {
+                continue;
+            }
+            const value = json[key as keyof T] as T;
+            if (isArray(value) || isPlainObject(value)) {
+                jsonWalk(value, visit, opts, ...keyMapper(jsons, key));
+            }
+        }
+    }
+}
+
 export type JsonApplyParams = {
     constructors?: Record<string, new () => any>;
     constructedArrays?: WeakMap<Array<any>, new () => any>;
@@ -246,37 +277,6 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
     }
 
     return target;
-}
-
-/**
- * Walk the given JSON object graphs, invoking the visit() callback for every object encountered.
- * Arrays are descended into without a callback, however their elements will have the visit()
- * callback invoked if they are objects.
- *
- * @param json to traverse
- * @param visit callback for each non-primitive and non-array object found
- * @param opts
- * @param opts.skip property names to skip when walking
- * @param jsons to traverse in parallel
- */
-export function jsonWalk<T>(json: T, visit: (...nodes: T[]) => void, opts?: { skip?: string[] }, ...jsons: T[]) {
-    if (isArray(json)) {
-        visit(json, ...jsons);
-        json.forEach((node, index) => {
-            jsonWalk(node, visit, opts, ...keyMapper(jsons, index));
-        });
-    } else if (isPlainObject(json)) {
-        visit(json, ...jsons);
-        for (const key of Object.keys(json)) {
-            if (opts?.skip?.includes(key)) {
-                continue;
-            }
-            const value = json[key as keyof T] as T;
-            if (isArray(value) || isPlainObject(value)) {
-                jsonWalk(value, visit, opts, ...keyMapper(jsons, key));
-            }
-        }
-    }
 }
 
 function keyMapper<T>(data: T[], key: string | number) {

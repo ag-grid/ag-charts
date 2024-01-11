@@ -3130,7 +3130,6 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
-      "seriesGrouping": undefined,
       "shadow": {
         "blur": 5,
         "color": "rgba(0, 0, 0, 0.5)",
@@ -3187,7 +3186,6 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
-      "seriesGrouping": undefined,
       "shadow": {
         "blur": 5,
         "color": "rgba(0, 0, 0, 0.5)",
@@ -3244,7 +3242,6 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
-      "seriesGrouping": undefined,
       "shadow": {
         "blur": 5,
         "color": "rgba(0, 0, 0, 0.5)",
@@ -3301,7 +3298,6 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
-      "seriesGrouping": undefined,
       "shadow": {
         "blur": 5,
         "color": "rgba(0, 0, 0, 0.5)",
@@ -3358,7 +3354,6 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
-      "seriesGrouping": undefined,
       "shadow": {
         "blur": 5,
         "color": "rgba(0, 0, 0, 0.5)",
@@ -9040,7 +9035,6 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
-      "seriesGrouping": undefined,
       "shadow": {
         "blur": 5,
         "color": "rgba(0, 0, 0, 0.5)",
@@ -9105,7 +9099,6 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
-      "seriesGrouping": undefined,
       "shadow": {
         "blur": 5,
         "color": "rgba(0, 0, 0, 0.5)",
@@ -9170,7 +9163,6 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
-      "seriesGrouping": undefined,
       "shadow": {
         "blur": 5,
         "color": "rgba(0, 0, 0, 0.5)",
@@ -9235,7 +9227,6 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
         "strokeWidth": 0,
       },
       "nodeClickRange": "nearest",
-      "seriesGrouping": undefined,
       "shadow": {
         "blur": 5,
         "color": "rgba(0, 0, 0, 0.5)",

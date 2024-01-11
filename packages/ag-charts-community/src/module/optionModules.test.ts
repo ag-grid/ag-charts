@@ -1,114 +1,113 @@
-import { describe, expect, test } from '@jest/globals';
+import { describe } from '@jest/globals';
 import 'jest-canvas-mock';
 
-import type { AgAreaSeriesOptions, AgBarSeriesOptions, AgLineSeriesOptions } from '../../options/agChartOptions';
-import { clearDoOnceFlags } from '../../util/function';
+import { clearDoOnceFlags } from '../util/function';
 
-function switchSeriesType(
-    type: 'bar' | 'line' | 'area',
-    series: AgBarSeriesOptions | AgLineSeriesOptions | AgAreaSeriesOptions
-): AgBarSeriesOptions | AgLineSeriesOptions | AgAreaSeriesOptions {
-    return {
-        ...series,
-        type,
-    } as any;
-}
+// function switchSeriesType(
+//     type: 'bar' | 'line' | 'area',
+//     series: AgBarSeriesOptions | AgLineSeriesOptions | AgAreaSeriesOptions
+// ): AgBarSeriesOptions | AgLineSeriesOptions | AgAreaSeriesOptions {
+//     return {
+//         ...series,
+//         type,
+//     } as any;
+// }
+//
+// const baseSeriesIPhone = {
+//     xKey: 'quarter',
+//     yKey: 'iphone',
+//     yName: 'IPhone',
+// };
+// const baseSeriesMac = {
+//     xKey: 'quarter',
+//     yKey: 'mac',
+//     yName: 'Mac',
+// };
+// const baseSeriesWearables = {
+//     xKey: 'quarter',
+//     yKey: 'wearables',
+//     yName: 'Wearables',
+// };
+// const baseSeriesServices = {
+//     xKey: 'quarter',
+//     yKey: 'services',
+//     yName: 'Services',
+// };
+//
+// const colSeriesIPhone = switchSeriesType('bar', baseSeriesIPhone);
+// const colSeriesMac = switchSeriesType('bar', baseSeriesMac);
+// const colSeriesWearables = switchSeriesType('bar', baseSeriesWearables);
+// const colSeriesServices = switchSeriesType('bar', baseSeriesServices);
+// const lineSeriesIPhone = switchSeriesType('line', baseSeriesIPhone);
+// const lineSeriesMac = switchSeriesType('line', baseSeriesMac);
+// const areaSeriesIPhone = switchSeriesType('area', baseSeriesIPhone);
+// const areaSeriesMac = switchSeriesType('area', baseSeriesMac);
+// const areaSeriesWearables = switchSeriesType('area', baseSeriesWearables);
+// const areaSeriesServices = switchSeriesType('area', baseSeriesServices);
+//
+// const seriesOptions: Array<AgBarSeriesOptions | AgLineSeriesOptions | AgAreaSeriesOptions> = [
+//     {
+//         ...colSeriesIPhone,
+//         fill: 'pink',
+//         showInLegend: true,
+//     } as AgBarSeriesOptions,
+//     lineSeriesMac,
+//     {
+//         ...colSeriesMac,
+//         fill: 'red',
+//         showInLegend: false,
+//     } as AgBarSeriesOptions,
+//     lineSeriesIPhone,
+//     {
+//         ...colSeriesWearables,
+//         showInLegend: true,
+//         grouped: true,
+//     } as AgBarSeriesOptions,
+//     {
+//         ...colSeriesServices,
+//         showInLegend: false,
+//         grouped: true,
+//     } as AgBarSeriesOptions,
+// ];
+//
+// const areas = [areaSeriesIPhone, areaSeriesMac, areaSeriesWearables, areaSeriesServices];
+// const lines = [lineSeriesIPhone, lineSeriesMac];
+// const columns = [colSeriesIPhone, colSeriesMac, colSeriesWearables, colSeriesServices];
+// const rangeColumns = [
+//     {
+//         type: 'range-bar',
+//         xKey: 'date',
+//         yLowKey: 'low',
+//         yHighKey: 'high',
+//     },
+//     {
+//         type: 'range-bar',
+//         xKey: 'date',
+//         yLowKey: 'low2',
+//         yHighKey: 'high2',
+//     },
+// ];
+//
+// const nightingales = [
+//     {
+//         type: 'nightingale',
+//         angleKey: 'product',
+//         radiusKey: 'A sales',
+//     },
+//     {
+//         type: 'nightingale',
+//         angleKey: 'product',
+//         radiusKey: 'B sales',
+//     },
+// ];
 
-const baseSeriesIPhone = {
-    xKey: 'quarter',
-    yKey: 'iphone',
-    yName: 'IPhone',
-};
-const baseSeriesMac = {
-    xKey: 'quarter',
-    yKey: 'mac',
-    yName: 'Mac',
-};
-const baseSeriesWearables = {
-    xKey: 'quarter',
-    yKey: 'wearables',
-    yName: 'Wearables',
-};
-const baseSeriesServices = {
-    xKey: 'quarter',
-    yKey: 'services',
-    yName: 'Services',
-};
-
-const colSeriesIPhone = switchSeriesType('bar', baseSeriesIPhone);
-const colSeriesMac = switchSeriesType('bar', baseSeriesMac);
-const colSeriesWearables = switchSeriesType('bar', baseSeriesWearables);
-const colSeriesServices = switchSeriesType('bar', baseSeriesServices);
-const lineSeriesIPhone = switchSeriesType('line', baseSeriesIPhone);
-const lineSeriesMac = switchSeriesType('line', baseSeriesMac);
-const areaSeriesIPhone = switchSeriesType('area', baseSeriesIPhone);
-const areaSeriesMac = switchSeriesType('area', baseSeriesMac);
-const areaSeriesWearables = switchSeriesType('area', baseSeriesWearables);
-const areaSeriesServices = switchSeriesType('area', baseSeriesServices);
-
-const seriesOptions: Array<AgBarSeriesOptions | AgLineSeriesOptions | AgAreaSeriesOptions> = [
-    {
-        ...colSeriesIPhone,
-        fill: 'pink',
-        showInLegend: true,
-    } as AgBarSeriesOptions,
-    lineSeriesMac,
-    {
-        ...colSeriesMac,
-        fill: 'red',
-        showInLegend: false,
-    } as AgBarSeriesOptions,
-    lineSeriesIPhone,
-    {
-        ...colSeriesWearables,
-        showInLegend: true,
-        grouped: true,
-    } as AgBarSeriesOptions,
-    {
-        ...colSeriesServices,
-        showInLegend: false,
-        grouped: true,
-    } as AgBarSeriesOptions,
-];
-
-const areas = [areaSeriesIPhone, areaSeriesMac, areaSeriesWearables, areaSeriesServices];
-const lines = [lineSeriesIPhone, lineSeriesMac];
-const columns = [colSeriesIPhone, colSeriesMac, colSeriesWearables, colSeriesServices];
-const rangeColumns = [
-    {
-        type: 'range-bar',
-        xKey: 'date',
-        yLowKey: 'low',
-        yHighKey: 'high',
-    },
-    {
-        type: 'range-bar',
-        xKey: 'date',
-        yLowKey: 'low2',
-        yHighKey: 'high2',
-    },
-];
-
-const nightingales = [
-    {
-        type: 'nightingale',
-        angleKey: 'product',
-        radiusKey: 'A sales',
-    },
-    {
-        type: 'nightingale',
-        angleKey: 'product',
-        radiusKey: 'B sales',
-    },
-];
-
-describe('prepareSeries', () => {
+describe('ChartOptions', () => {
     beforeEach(() => {
         console.warn = jest.fn();
         clearDoOnceFlags();
     });
 
-    test('to remove', () => {
+    test('getSeriesGroupingOptions', () => {
         expect(true).toBe(true);
     });
 

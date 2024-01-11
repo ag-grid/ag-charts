@@ -1,31 +1,20 @@
 import { ChartOptions } from '../../module/optionModules';
-import {
-    type AgAxisGridLineOptions,
-    type AgCartesianChartOptions,
-    type AgCartesianCrossLineOptions,
-    type AgChartOptions,
-    type AgChartThemePalette,
-    type AgTooltipPositionOptions,
-    AgTooltipPositionType,
+import type {
+    AgAxisGridLineOptions,
+    AgCartesianChartOptions,
+    AgCartesianCrossLineOptions,
+    AgChartOptions,
+    AgChartThemePalette,
 } from '../../options/agChartOptions';
-import { type JsonMergeOptions, jsonWalk } from '../../util/json';
+import { jsonWalk } from '../../util/json';
 import { Logger } from '../../util/logger';
 import { mergeDefaults } from '../../util/object';
-import { isArray, isDefined, isEnumValue, isFiniteNumber, isPlainObject, isString } from '../../util/type-guards';
+import { isArray, isDefined } from '../../util/type-guards';
 import { AXIS_TYPES } from '../factory/axisTypes';
 import { getSeriesPaletteFactory } from '../factory/seriesTypes';
 import { type ChartTheme, resolvePartialPalette } from '../themes/chartTheme';
-import type { SeriesOptions } from './prepareSeries';
 import { processSeriesOptions } from './prepareSeries';
-import {
-    type AxesOptionsTypes,
-    type SeriesOptionsTypes,
-    isAgCartesianChartOptions,
-    isAgHierarchyChartOptions,
-    isAgPolarChartOptions,
-    isAxisOptionType,
-    optionsType,
-} from './types';
+import { type AxesOptionsTypes, type SeriesOptionsTypes, isAxisOptionType, optionsType } from './types';
 
 function takeColours(context: PreparationContext, colours: string[], maxCount: number): string[] {
     const result = [];
@@ -44,33 +33,6 @@ interface PreparationContext {
     theme: ChartTheme;
 }
 
-export const noDataCloneMergeOptions: JsonMergeOptions = {
-    avoidDeepClone: ['data'],
-};
-
-function getGlobalTooltipPositionOptions(position: unknown): AgTooltipPositionOptions {
-    // Note: we do not need to show a warning message if the validation fails. These global tooltip options
-    // are already processed at the root of the chart options. Logging a message here would trigger duplicate
-    // validation warnings.
-    if (!isPlainObject(position)) {
-        return {};
-    }
-
-    const { type, xOffset, yOffset } = position;
-    const result: AgTooltipPositionOptions = {};
-
-    if (isString(type) && isEnumValue(AgTooltipPositionType, type)) {
-        result.type = type;
-    }
-    if (isFiniteNumber(xOffset)) {
-        result.xOffset = xOffset;
-    }
-    if (isFiniteNumber(yOffset)) {
-        result.yOffset = yOffset;
-    }
-    return result;
-}
-
 export function prepareOptions<T extends AgChartOptions>(userOptions: T): T {
     const chartOptions = new ChartOptions();
     chartOptions.setUserOptions(userOptions);
@@ -78,12 +40,7 @@ export function prepareOptions<T extends AgChartOptions>(userOptions: T): T {
     const options = chartOptions.userOptions!;
     const theme = chartOptions.activeTheme!;
 
-    const themeConfig = theme.config[optionsType(options)];
-
-    const seriesThemes = Object.entries<any>(theme.config).reduce((result, [seriesType, { series }]) => {
-        result[seriesType] = series;
-        return result;
-    }, {} as any);
+    const themeConfig = chartOptions.getSeriesThemeConfig(optionsType(options));
 
     const userTheme = options.theme;
     const partialPalette = typeof userTheme === 'object' && userTheme.palette ? userTheme.palette : null;
@@ -92,17 +49,6 @@ export function prepareOptions<T extends AgChartOptions>(userOptions: T): T {
 
     const defaultOverrides = chartOptions.seriesDefaults!;
     const mergedOptions = chartOptions.processedOptions! as T;
-
-    const globalTooltipPositionOptions = getGlobalTooltipPositionOptions(options.tooltip?.position);
-
-    let defaultSeriesType: string;
-    if (isAgCartesianChartOptions(options)) {
-        defaultSeriesType = 'line';
-    } else if (isAgHierarchyChartOptions(options)) {
-        defaultSeriesType = 'treemap';
-    } else if (isAgPolarChartOptions(options)) {
-        defaultSeriesType = 'pie';
-    }
 
     const context: PreparationContext = {
         colourIndex: 0,
@@ -115,20 +61,10 @@ export function prepareOptions<T extends AgChartOptions>(userOptions: T): T {
 
     // Apply series themes before calling processSeriesOptions() as it reduces and renames some
     // properties, and in that case then cannot correctly have themes applied.
-    mergedOptions.series = processSeriesOptions(
-        mergedOptions,
-        (mergedOptions.series as SeriesOptions[]).map((s) => {
-            const type = s.type ?? defaultSeriesType;
-            const mergedSeries = mergeSeriesOptions(s, type, seriesThemes, globalTooltipPositionOptions);
-
-            if (type === 'pie') {
-                preparePieOptions(seriesThemes.pie, s, mergedSeries);
-            }
-            return mergedSeries;
-        })
-    )
-        .map((s) => prepareSeries(context, s))
-        .map((s) => theme.templateTheme(s)) as any[];
+    mergedOptions.series = processSeriesOptions(chartOptions).map((s) => {
+        const { stacked, grouped, ...seriesOptions } = mergeDefaults(s, calculateSeriesPalette(context, s)) as any;
+        return theme.templateTheme(seriesOptions);
+    }) as any[];
 
     const checkAxisType = (type?: string) => {
         const isAxisType = isAxisOptionType(type);
@@ -167,21 +103,6 @@ export function prepareOptions<T extends AgChartOptions>(userOptions: T): T {
     prepareEnabledOptions(options, mergedOptions);
 
     return mergedOptions;
-}
-
-function mergeSeriesOptions<T extends SeriesOptionsTypes>(
-    series: T,
-    type: string,
-    seriesThemes: any,
-    globalTooltipPositionOptions: AgTooltipPositionOptions | {}
-): T {
-    const mergedTooltipPosition = mergeDefaults(series.tooltip?.position, globalTooltipPositionOptions);
-    return mergeDefaults({ type, tooltip: { position: mergedTooltipPosition } }, series, seriesThemes[type]);
-}
-
-function prepareSeries<T extends SeriesOptionsTypes>(context: PreparationContext, input: T): T {
-    const { stacked, grouped, ...seriesOptions } = mergeDefaults(input, calculateSeriesPalette(context, input)) as any;
-    return seriesOptions;
 }
 
 function calculateSeriesPalette<T extends SeriesOptionsTypes>(context: PreparationContext, input: T): T {
@@ -287,14 +208,4 @@ function prepareEnabledOptions<T extends AgChartOptions>(options: T, mergedOptio
         },
         { skip: ['data', 'theme'] }
     );
-}
-
-function preparePieOptions(pieSeriesTheme: any, seriesOptions: any, mergedSeries: any) {
-    if (isArray(seriesOptions.innerLabels)) {
-        mergedSeries.innerLabels = seriesOptions.innerLabels.map((innerLabel: any) =>
-            mergeDefaults(innerLabel, pieSeriesTheme.innerLabels)
-        );
-    } else {
-        delete mergedSeries.innerLabels;
-    }
 }

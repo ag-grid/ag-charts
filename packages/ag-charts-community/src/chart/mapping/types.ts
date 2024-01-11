@@ -11,10 +11,9 @@ import { isEnterpriseCartesian, isEnterpriseHierarchy, isEnterprisePolar } from 
 
 export type AxesOptionsTypes = NonNullable<AgCartesianChartOptions['axes']>[number];
 export type SeriesOptionsTypes = NonNullable<AgChartOptions['series']>[number];
+export type SeriesType = SeriesOptionsTypes['type'];
 
-export function optionsType(input: {
-    series?: { type?: SeriesOptionsTypes['type'] }[];
-}): NonNullable<SeriesOptionsTypes['type']> {
+export function optionsType(input: { series?: { type?: SeriesType }[] }): NonNullable<SeriesType> {
     return input.series?.[0]?.type ?? 'line';
 }
 
@@ -60,7 +59,7 @@ export function isAgPolarChartOptions(input: AgChartOptions): input is AgPolarCh
     return CHART_TYPES.isPolar(specifiedType) || isEnterprisePolar(specifiedType);
 }
 
-export function isSeriesOptionType(input?: string): input is NonNullable<SeriesOptionsTypes['type']> {
+export function isSeriesOptionType(input?: string): input is NonNullable<SeriesType> {
     if (input == null) {
         return false;
     }
