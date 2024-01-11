@@ -17,6 +17,7 @@ const options: AgChartOptions = {
             xKey: 'date',
             yLowKey: 'flatsAndMaisonettes',
             yHighKey: 'detachedHouses',
+            connectMissingData: false,
         },
     ],
     axes: [
@@ -39,49 +40,11 @@ const options: AgChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function missingYValues() {
-    const data = getData();
-    options.data = data.map((d) => {
-        const year = d.date.getFullYear();
-        if (year === 2005 || year === 2018) {
-            return { ...d, flatsAndMaisonettes: undefined, detachedHouses: undefined };
-        }
-        return d;
-    });
+function toggleConnectMissingData() {
     options.series = (options.series as Array<AgRangeAreaSeriesOptions>).map((series) => ({
         ...series,
-        connectMissingData: false,
+        connectMissingData: !series.connectMissingData,
     }));
-
-    AgCharts.update(chart, options);
-}
-
-function missingYValuesConnected() {
-    const data = getData();
-    options.data = data.map((d) => {
-        const year = d.date.getFullYear();
-        if (year === 2005 || year === 2018) {
-            return { ...d, flatsAndMaisonettes: undefined, detachedHouses: undefined };
-        }
-        return d;
-    });
-    options.series = (options.series as Array<AgRangeAreaSeriesOptions>).map((series) => ({
-        ...series,
-        connectMissingData: true,
-    }));
-
-    AgCharts.update(chart, options);
-}
-
-function missingXValue() {
-    const data = getData();
-
-    options.data = data.map((d) => {
-        const year = d.date.getFullYear();
-        if (year === 2005 || year === 2006 || year === 2017 || year === 2018) {
-            return { ...d, date: undefined };
-        } else return d;
-    });
 
     AgCharts.update(chart, options);
 }

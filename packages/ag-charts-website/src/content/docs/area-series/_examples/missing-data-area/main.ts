@@ -1,8 +1,6 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgAreaSeriesOptions, AgChartOptions, AgCharts } from 'ag-charts-community';
 
 import { getData } from './data';
-
-let connectMissingData = false;
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
@@ -16,21 +14,21 @@ const options: AgChartOptions = {
             xKey: 'month',
             yKey: 'subscriptions',
             yName: 'Subscriptions',
-            connectMissingData,
+            connectMissingData: false,
         },
         {
             type: 'area',
             xKey: 'month',
             yKey: 'services',
             yName: 'Services',
-            connectMissingData,
+            connectMissingData: false,
         },
         {
             type: 'area',
             xKey: 'month',
             yKey: 'products',
             yName: 'Products',
-            connectMissingData,
+            connectMissingData: false,
         },
     ],
 };
@@ -38,11 +36,9 @@ const options: AgChartOptions = {
 const chart = AgCharts.create(options);
 
 function toggleConnectMissingData() {
-    connectMissingData = !connectMissingData;
-    AgCharts.updateDelta(chart, {
-        series: options.series.map((series) => ({
-            ...series,
-            connectMissingData,
-        })),
-    });
+    options.series = (options.series as Array<AgAreaSeriesOptions>).map((series) => ({
+        ...series,
+        connectMissingData: !series.connectMissingData,
+    }));
+    AgCharts.updateDelta(chart, options);
 }
