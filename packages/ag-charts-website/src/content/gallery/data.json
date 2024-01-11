@@ -425,11 +425,6 @@
                         "title": "Horizontal Bullet",
                         "description": "",
                         "name": "horizontal-bullet"
-                    },
-                    {
-                        "title": "Reversed Bullet",
-                        "description": "",
-                        "name": "reversed-bullet"
                     }
                 ]
             }

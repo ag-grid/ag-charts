@@ -24,44 +24,6 @@ const greatBritain: AgChartOptions = {
             },
         },
     ],
-    axes: [
-        {
-            type: 'number',
-            position: 'bottom',
-            label: {
-                enabled: false,
-            },
-            crossLines: [
-                {
-                    type: 'line',
-                    value: 65,
-                    strokeOpacity: 0,
-                    label: {
-                        text: '65',
-                        position: 'left',
-                        color: 'white',
-                    },
-                },
-                {
-                    type: 'line',
-                    value: 130,
-                    strokeOpacity: 0,
-                    label: {
-                        text: '-3%',
-                        position: 'left',
-                    },
-                },
-            ],
-        },
-        {
-            type: 'category',
-            position: 'left',
-            thickness: 80,
-            line: {
-                enabled: false,
-            },
-        },
-    ],
     height: 80,
 };
 
@@ -88,44 +50,6 @@ const unitedStates: AgChartOptions = {
                         content: `<b>2020: </b>${value}<br/><b>${targetName}: </b>${target}`,
                     };
                 },
-            },
-        },
-    ],
-    axes: [
-        {
-            type: 'number',
-            position: 'bottom',
-            label: {
-                enabled: false,
-            },
-            crossLines: [
-                {
-                    type: 'line',
-                    value: 113,
-                    strokeOpacity: 0,
-                    label: {
-                        text: '113',
-                        position: 'left',
-                        color: 'white',
-                    },
-                },
-                {
-                    type: 'line',
-                    value: 130,
-                    strokeOpacity: 0,
-                    label: {
-                        text: '-7%',
-                        position: 'left',
-                    },
-                },
-            ],
-        },
-        {
-            type: 'category',
-            position: 'left',
-            thickness: 80,
-            line: {
-                enabled: false,
             },
         },
     ],
@@ -158,44 +82,6 @@ const china: AgChartOptions = {
             },
         },
     ],
-    axes: [
-        {
-            type: 'number',
-            position: 'bottom',
-            label: {
-                enabled: false,
-            },
-            crossLines: [
-                {
-                    type: 'line',
-                    value: 88,
-                    strokeOpacity: 0,
-                    label: {
-                        text: '88',
-                        position: 'left',
-                        color: 'white',
-                    },
-                },
-                {
-                    type: 'line',
-                    value: 130,
-                    strokeOpacity: 0,
-                    label: {
-                        text: '+25%',
-                        position: 'left',
-                    },
-                },
-            ],
-        },
-        {
-            type: 'category',
-            position: 'left',
-            thickness: 80,
-            line: {
-                enabled: false,
-            },
-        },
-    ],
     height: 80,
 };
 
@@ -222,44 +108,6 @@ const russia: AgChartOptions = {
                         content: `<b>2020: </b>${value}<br/><b>${targetName}: </b>${target}`,
                     };
                 },
-            },
-        },
-    ],
-    axes: [
-        {
-            type: 'number',
-            position: 'bottom',
-            label: {
-                enabled: false,
-            },
-            crossLines: [
-                {
-                    type: 'line',
-                    value: 71,
-                    strokeOpacity: 0,
-                    label: {
-                        text: '71',
-                        position: 'left',
-                        color: 'white',
-                    },
-                },
-                {
-                    type: 'line',
-                    value: 130,
-                    strokeOpacity: 0,
-                    label: {
-                        text: '+27%',
-                        position: 'left',
-                    },
-                },
-            ],
-        },
-        {
-            type: 'category',
-            position: 'left',
-            thickness: 80,
-            line: {
-                enabled: false,
             },
         },
     ],
@@ -292,44 +140,6 @@ const germany: AgChartOptions = {
             },
         },
     ],
-    axes: [
-        {
-            type: 'number',
-            position: 'bottom',
-            label: {
-                enabled: false,
-            },
-            crossLines: [
-                {
-                    type: 'line',
-                    value: 92,
-                    strokeOpacity: 0,
-                    label: {
-                        text: '65',
-                        position: 'left',
-                        color: 'white',
-                    },
-                },
-                {
-                    type: 'line',
-                    value: 130,
-                    strokeOpacity: 0,
-                    label: {
-                        text: '+119%',
-                        position: 'left',
-                    },
-                },
-            ],
-        },
-        {
-            type: 'category',
-            position: 'left',
-            thickness: 80,
-            line: {
-                enabled: false,
-            },
-        },
-    ],
     height: 80,
 };
 
@@ -356,44 +166,6 @@ const france: AgChartOptions = {
                         content: `<b>2020: </b>${value}<br/><b>${targetName}: </b>${target}`,
                     };
                 },
-            },
-        },
-    ],
-    axes: [
-        {
-            type: 'number',
-            position: 'bottom',
-            label: {
-                enabled: false,
-            },
-            crossLines: [
-                {
-                    type: 'line',
-                    value: 33,
-                    strokeOpacity: 0,
-                    label: {
-                        text: '33',
-                        position: 'left',
-                        color: 'white',
-                    },
-                },
-                {
-                    type: 'line',
-                    value: 130,
-                    strokeOpacity: 0,
-                    label: {
-                        text: '-20%',
-                        position: 'left',
-                    },
-                },
-            ],
-        },
-        {
-            type: 'category',
-            position: 'left',
-            thickness: 80,
-            line: {
-                enabled: false,
             },
         },
     ],
@@ -426,44 +198,6 @@ const japan: AgChartOptions = {
             },
         },
     ],
-    axes: [
-        {
-            type: 'number',
-            position: 'bottom',
-            label: {
-                enabled: false,
-            },
-            crossLines: [
-                {
-                    type: 'line',
-                    value: 91,
-                    strokeOpacity: 0,
-                    label: {
-                        text: '91',
-                        position: 'left',
-                        color: 'white',
-                    },
-                },
-                {
-                    type: 'line',
-                    value: 130,
-                    strokeOpacity: 0,
-                    label: {
-                        text: '-3%',
-                        position: 'left',
-                    },
-                },
-            ],
-        },
-        {
-            type: 'category',
-            position: 'left',
-            thickness: 80,
-            line: {
-                enabled: false,
-            },
-        },
-    ],
     height: 80,
 };
 
@@ -489,44 +223,6 @@ const australia: AgChartOptions = {
                         content: `<b>2020: </b>${value}<br/><b>${targetName}: </b>${target}`,
                     };
                 },
-            },
-        },
-    ],
-    axes: [
-        {
-            type: 'number',
-            position: 'bottom',
-            label: {
-                enabled: false,
-            },
-            crossLines: [
-                {
-                    type: 'line',
-                    value: 76,
-                    strokeOpacity: 0,
-                    label: {
-                        text: '76',
-                        position: 'left',
-                        color: 'white',
-                    },
-                },
-                {
-                    type: 'line',
-                    value: 130,
-                    strokeOpacity: 0,
-                    label: {
-                        text: '+23%',
-                        position: 'left',
-                    },
-                },
-            ],
-        },
-        {
-            type: 'category',
-            position: 'left',
-            thickness: 80,
-            line: {
-                enabled: false,
             },
         },
     ],
