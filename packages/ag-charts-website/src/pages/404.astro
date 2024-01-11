@@ -26,7 +26,11 @@ const menuEntry = await getEntry('menu', 'data');
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        plausible('404', { props: { path: document.location.pathname } });
+        if (!window.plausible) {
+            return;
+        }
+
+        window.plausible('404', { props: { path: document.location.pathname } });
     });
 </script>
 
