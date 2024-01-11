@@ -146,14 +146,14 @@ export const Changelog = () => {
         (params: any) => {
             setGridApi(params.api);
             searchBarEl.current.value = URLFilterItemKey;
-            params.api.setQuickFilter(URLFilterItemKey);
+            params.api.updateGridOptions({ quickFilterText: URLFilterItemKey });
         },
         [URLFilterItemKey]
     );
 
     const onQuickFilterChange = useCallback(
         (event: any) => {
-            gridApi.setQuickFilter(event.target.value);
+            gridApi.updateGridOptions({ quickFilterText: event.target.value });
         },
         [gridApi]
     );
