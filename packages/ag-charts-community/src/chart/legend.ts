@@ -212,6 +212,9 @@ export class Legend {
     @Validate(UNION(['horizontal', 'vertical'], 'an orientation'), { optional: true })
     orientation?: AgChartLegendOrientation;
 
+    @Validate(BOOLEAN, { optional: true })
+    preventHidingAll?: boolean = undefined;
+
     private destroyFns: Function[] = [];
 
     constructor(private readonly ctx: ModuleContext) {
@@ -744,6 +747,7 @@ export class Legend {
             listeners: { legendItemClick },
             ctx: { chartService, highlightManager },
             item: { toggleSeriesVisible },
+            preventHidingAll,
         } = this;
         const { offsetX, offsetY } = event;
 
@@ -765,6 +769,17 @@ export class Legend {
         let newEnabled = enabled;
         if (toggleSeriesVisible) {
             newEnabled = !enabled;
+
+            if (preventHidingAll && !newEnabled) {
+                const numVisibleItems = chartService.series
+                    .flatMap((series) => series.getLegendData('category'))
+                    .filter((datum) => datum.enabled).length;
+
+                if (numVisibleItems < 2) {
+                    newEnabled = true;
+                }
+            }
+
             this.ctx.chartEventManager.legendItemClick(series, itemId, newEnabled, datum.legendItemName);
         }
 
