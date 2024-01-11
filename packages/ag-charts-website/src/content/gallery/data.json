@@ -478,6 +478,11 @@
                         "title": "Simple Nightingale",
                         "description": "",
                         "name": "simple-nightingale"
+                    },
+                    {
+                        "title": "Reversed Nightingale",
+                        "description": "",
+                        "name": "reversed-nightingale"
                     }
                 ]
             },
