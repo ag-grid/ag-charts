@@ -54,6 +54,28 @@ legend: {
 }
 ```
 
+## Series Stroke
+
+Is it possible to reflect the stroke styling options of the series using the
+`showSeriesStroke`.
+
+{% chartExampleRunner title="Series Stroke" name="legend-seriesStroke" type="generated" /%}
+
+```js
+legend: {
+    item: {
+        showSeriesStroke: true,
+    }
+}
+```
+
+In this configuration:
+
+-   Stroke styling of the series is shown in the legend.
+-   Legend marker are only shown if the series has markers enabled.
+
+Some stroke styling values can be overriden in [Customisation](#Customisation).
+
 ## Pagination
 
 If the Legend items don't fit within the size constraints, the items are paginated and the pagination component is displayed.
@@ -102,29 +124,32 @@ It is possible to override this behaviour and set the `size`, `stroke` and `shap
 ```js
 legend: {
     item: {
+        showSeriesStroke: true,
         marker: {
             size: 20,
             strokeWidth: 3,
             shape: 'diamond', // 'circle', 'square', 'cross', 'plus', 'triangle'
+        },
+        line: {
+            strokeWidth: 4,
+            length: 10,
         }
     }
 }
 ```
 
-### Series Stroke
 
-{% chartExampleRunner title="Legend Customisation" name="legend-seriesStroke" type="generated" /%}
+### Stroke
 
-The style of line strokes of some series types can be enabled using the
-`showSeriesStroke` property.
+When `showSeriesStroke` is enabled, some of the styling value of the strokes can be override:
 
 ```js
 legend: {
     item: {
         showSeriesStroke: true,
         line: {
-            strokeWidth: 3, // width of line (inherited from series strokeWidth if unset).
-            length: 6, // length of the line in pixels
+            strokeWidth: 4,
+            length: 15,
         }
     }
 }
