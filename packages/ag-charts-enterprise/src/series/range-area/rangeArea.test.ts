@@ -15,6 +15,7 @@ import { prepareEnterpriseTestOptions } from '../../test/utils';
 describe('RangeAreaSeries', () => {
     let chart: any;
     const ctx = setupMockCanvas();
+    let expectWarning = false;
 
     beforeEach(() => {
         // eslint-disable-next-line no-console
@@ -26,8 +27,11 @@ describe('RangeAreaSeries', () => {
             chart.destroy();
             (chart as unknown) = undefined;
         }
-        // eslint-disable-next-line no-console
-        expect(console.warn).not.toBeCalled();
+        if (!expectWarning) {
+            // eslint-disable-next-line no-console
+            expect(console.warn).not.toBeCalled();
+        }
+        expectWarning = false;
     });
 
     const CATEGORY_DATA: { month: string | Date; high: number; low: number; average: number }[] = [
@@ -284,6 +288,10 @@ describe('RangeAreaSeries', () => {
 
         chart = AgCharts.create(options);
         await compare();
+
+        // eslint-disable-next-line no-console
+        expect(console.warn).toHaveBeenCalledWith('AG Charts - invalid value [invalid] of type [string] ignored.');
+        expectWarning = true;
     });
 
     it(`should render a range-area chart with reversed number x-axis`, async () => {
