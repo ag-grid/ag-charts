@@ -50,7 +50,7 @@ const Collapsible: FunctionComponent<Props> = ({
                     {title && !isEmptyContent && title}
                     {!isEmptyContent && (
                         <span className={classNames(styles.collapseIndicator, showNotes ? styles.isOpen : undefined)}>
-                            {showNotes ? <Icon name="chevronDown" /> : <Icon name="chevronRight" />}
+                            <Icon name={showNotes ? 'chevronDown' : 'chevronRight'} />
                         </span>
                     )}
                 </div>
