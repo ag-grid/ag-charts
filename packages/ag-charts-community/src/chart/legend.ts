@@ -793,7 +793,7 @@ export class Legend {
 
         // Integrated charts do not handle double click behaviour correctly due to multiple instances of the
         // chart being created. See https://ag-grid.atlassian.net/browse/RTI-1381
-        if (this.ctx.chartService.mode === 'integrated') {
+        if (chartService.mode === 'integrated') {
             return;
         }
 
@@ -813,15 +813,8 @@ export class Legend {
         event.consume();
 
         if (toggleSeriesVisible) {
-            const numVisibleItems: Record<string, number> = {};
             const legendData = chartService.series.flatMap((series) => series.getLegendData('category'));
-
-            legendData.forEach((d) => {
-                numVisibleItems[d.seriesId] ??= 0;
-                if (d.enabled) {
-                    numVisibleItems[d.seriesId]++;
-                }
-            });
+            const numVisibleItems = legendData.filter((datum) => datum.enabled).length;
 
             const clickedItem = legendData.find((d) => d.itemId === itemId && d.seriesId === seriesId);
 
