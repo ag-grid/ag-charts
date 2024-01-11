@@ -28,10 +28,14 @@ import {
 
 expect.extend({ toMatchImageSnapshot });
 
-const buildLogAxisTestCase = (data: any[]): CartesianOrPolarTestCase => {
+const buildLogAxisTestCase = (
+    data: any[],
+    extra?: { warnings?: string[]; skipWarningsReversed?: boolean }
+): CartesianOrPolarTestCase => {
     return {
         options: examples.CARTESIAN_CATEGORY_X_AXIS_LOG_Y_AXIS(data, 'line'),
         assertions: cartesianChartAssertions({ axisTypes: ['category', 'log'], seriesTypes: ['line'] }),
+        ...extra,
     };
 };
 
@@ -51,11 +55,19 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
         },
         LINE_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: {
             options: examples.LINE_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE,
-            assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['line'] }),
+            assertions: cartesianChartAssertions({
+                axisTypes: ['number', 'number'],
+                seriesTypes: ['line'],
+            }),
+            warnings: ['AG Charts - invalid value [undefined] of type [undefined] ignored.'],
         },
         LINE_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: {
             options: examples.LINE_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE,
-            assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: ['line'] }),
+            assertions: cartesianChartAssertions({
+                axisTypes: ['time', 'number'],
+                seriesTypes: ['line'],
+            }),
+            warnings: ['AG Charts - invalid value [null] of type [object] ignored.'],
         },
         LINE_NUMBER_AXES_0_X_DOMAIN: {
             options: examples.LINE_NUMBER_AXES_0_X_DOMAIN,
@@ -87,11 +99,13 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
         LINE_CATEGORY_X_AXIS_NEGATIVE_LOG_Y_AXIS: buildLogAxisTestCase(DATA_NEGATIVE_LOG_AXIS),
         LINE_CATEGORY_X_AXIS_FRACTIONAL_LOG_Y_AXIS: buildLogAxisTestCase(DATA_FRACTIONAL_LOG_AXIS),
         LINE_CATEGORY_X_AXIS_ZERO_EXTENT_LOG_Y_AXIS: buildLogAxisTestCase(DATA_ZERO_EXTENT_LOG_AXIS),
+        LINE_CATEGORY_X_AXIS_INVALID_DOMAIN_LOG_Y_AXIS: buildLogAxisTestCase(DATA_INVALID_DOMAIN_LOG_AXIS, {
+            warnings: [
+                'AG Charts - the data domain crosses zero, the chart data cannot be rendered. See log axis documentation for more information.',
+            ],
+            skipWarningsReversed: false,
+        }),
     }),
-};
-
-const INVALID_DATA_EXAMPLES: Record<string, TestCase> = {
-    LINE_CATEGORY_X_AXIS_INVALID_DOMAIN_LOG_Y_AXIS: buildLogAxisTestCase(DATA_INVALID_DOMAIN_LOG_AXIS),
 };
 
 describe('LineSeries', () => {
@@ -118,19 +132,24 @@ describe('LineSeries', () => {
             console.warn = jest.fn();
         });
 
-        afterEach(() => {
-            expect(console.warn).not.toBeCalled();
-        });
-
         it.each(Object.entries(EXAMPLES))(
             'for %s it should create chart instance as expected',
             async (_exampleName, example) => {
-                const options: AgChartOptions = { ...example.options };
+                const { assertions, options, warnings = [] } = example;
                 prepareTestOptions(options);
 
                 chart = AgCharts.create(options) as Chart;
                 await waitForChartStability(chart);
-                await example.assertions(chart);
+                await assertions(chart);
+
+                warnings.forEach((message, index) => {
+                    // eslint-disable-next-line no-console
+                    expect(console.warn).toHaveBeenNthCalledWith(index + 1, message);
+                });
+                if (warnings.length === 0) {
+                    // eslint-disable-next-line no-console
+                    expect(console.warn).not.toBeCalled();
+                }
             }
         );
 
@@ -355,42 +374,6 @@ describe('LineSeries', () => {
                 });
             }
         });
-    });
-
-    describe('invalid data domain', () => {
-        beforeEach(() => {
-            console.warn = jest.fn();
-        });
-
-        it.each(Object.entries(INVALID_DATA_EXAMPLES))(
-            'for %s it should create chart instance as expected',
-            async (_exampleName, example) => {
-                const options: AgChartOptions = { ...example.options };
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options) as Chart;
-                await waitForChartStability(chart);
-                await example.assertions(chart);
-            }
-        );
-
-        it.each(Object.entries(INVALID_DATA_EXAMPLES))(
-            'for %s it should render to canvas as expected',
-            async (_exampleName, example) => {
-                const options: AgChartOptions = { ...example.options };
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options) as Chart;
-                await compare();
-
-                if (example.extraScreenshotActions) {
-                    await example.extraScreenshotActions(chart);
-                    await compare();
-                }
-
-                expect(console.warn).toBeCalled();
-            }
-        );
     });
 
     describe('multiple overlapping lines', () => {
