@@ -713,7 +713,6 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
-        "position": {},
         "renderer": undefined,
       },
       "type": "bar",
@@ -771,7 +770,6 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
-        "position": {},
         "renderer": undefined,
       },
       "type": "bar",
@@ -1716,7 +1714,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "stroke": "#2b5c95",
       "strokeWidth": 0,
       "tooltip": {
-        "position": {},
         "renderer": [Function],
       },
       "type": "bar",
@@ -1773,7 +1770,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "stroke": "#cc6f10",
       "strokeWidth": 0,
       "tooltip": {
-        "position": {},
         "renderer": [Function],
       },
       "type": "bar",
@@ -1830,7 +1826,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "stroke": "#1e652e",
       "strokeWidth": 0,
       "tooltip": {
-        "position": {},
         "renderer": [Function],
       },
       "type": "bar",
@@ -1887,7 +1882,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "stroke": "#18859e",
       "strokeWidth": 0,
       "tooltip": {
-        "position": {},
         "renderer": [Function],
       },
       "type": "bar",
@@ -1944,7 +1938,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "stroke": "#a69400",
       "strokeWidth": 0,
       "tooltip": {
-        "position": {},
         "renderer": [Function],
       },
       "type": "bar",
@@ -2001,7 +1994,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "stroke": "#603c88",
       "strokeWidth": 0,
       "tooltip": {
-        "position": {},
         "renderer": [Function],
       },
       "type": "bar",
@@ -2058,7 +2050,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "stroke": "#575757",
       "strokeWidth": 0,
       "tooltip": {
-        "position": {},
         "renderer": [Function],
       },
       "type": "bar",
@@ -2115,7 +2106,6 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "stroke": "#7d2f6d",
       "strokeWidth": 0,
       "tooltip": {
-        "position": {},
         "renderer": [Function],
       },
       "type": "bar",
@@ -3677,7 +3667,6 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
-        "position": {},
         "renderer": undefined,
       },
       "type": "bar",
@@ -3965,7 +3954,6 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
-        "position": {},
         "renderer": undefined,
       },
       "type": "bar",
@@ -4787,7 +4775,6 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
-        "position": {},
         "renderer": undefined,
       },
       "type": "bar",
@@ -4837,7 +4824,6 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
-        "position": {},
         "renderer": undefined,
       },
       "type": "bar",
@@ -5132,7 +5118,6 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
-        "position": {},
         "renderer": undefined,
       },
       "type": "bar",
@@ -5184,7 +5169,6 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
-        "position": {},
         "renderer": undefined,
       },
       "type": "bar",
@@ -5483,7 +5467,6 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
-        "position": {},
         "renderer": undefined,
       },
       "type": "bar",
@@ -5536,7 +5519,6 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
-        "position": {},
         "renderer": undefined,
       },
       "type": "bar",
@@ -5589,7 +5571,6 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
-        "position": {},
         "renderer": undefined,
       },
       "type": "bar",
@@ -5642,7 +5623,6 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
-        "position": {},
         "renderer": undefined,
       },
       "type": "bar",
@@ -5695,7 +5675,6 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
-        "position": {},
         "renderer": undefined,
       },
       "type": "bar",
@@ -5748,7 +5727,6 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
-        "position": {},
         "renderer": undefined,
       },
       "type": "bar",
@@ -5801,7 +5779,6 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
-        "position": {},
         "renderer": undefined,
       },
       "type": "bar",
@@ -8070,7 +8047,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
-        "position": {},
         "renderer": undefined,
       },
       "type": "bar",
@@ -8123,7 +8099,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
-        "position": {},
         "renderer": undefined,
       },
       "type": "bar",
@@ -8176,7 +8151,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
-        "position": {},
         "renderer": undefined,
       },
       "type": "bar",
@@ -8475,7 +8449,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
-        "position": {},
         "renderer": undefined,
       },
       "type": "bar",
@@ -8526,7 +8499,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
-        "position": {},
         "renderer": undefined,
       },
       "type": "bar",
@@ -8577,7 +8549,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
-        "position": {},
         "renderer": undefined,
       },
       "type": "bar",
@@ -8628,7 +8599,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
-        "position": {},
         "renderer": undefined,
       },
       "type": "bar",
@@ -8679,7 +8649,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
-        "position": {},
         "renderer": undefined,
       },
       "type": "bar",
@@ -8730,7 +8699,6 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
-        "position": {},
         "renderer": undefined,
       },
       "type": "bar",
@@ -9531,7 +9499,6 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
-        "position": {},
         "renderer": [Function],
       },
       "type": "bar",
@@ -9757,7 +9724,6 @@ exports[`prepare #prepareOptions for SIMPLE_DOUGHNUT_CHART_EXAMPLE it should pre
       },
       "tooltip": {
         "enabled": true,
-        "position": {},
         "renderer": [Function],
       },
       "type": "pie",
@@ -10292,7 +10258,6 @@ exports[`prepare #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare 
       },
       "tooltip": {
         "enabled": true,
-        "position": {},
         "renderer": [Function],
       },
       "type": "pie",
@@ -11459,7 +11424,6 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
-        "position": {},
         "renderer": undefined,
       },
       "type": "bar",
@@ -11511,7 +11475,6 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
-        "position": {},
         "renderer": undefined,
       },
       "type": "bar",
@@ -11563,7 +11526,6 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
-        "position": {},
         "renderer": undefined,
       },
       "type": "bar",
@@ -11615,7 +11577,6 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
-        "position": {},
         "renderer": undefined,
       },
       "type": "bar",
@@ -11899,7 +11860,6 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
-        "position": {},
         "renderer": [Function],
       },
       "type": "bar",
@@ -11950,7 +11910,6 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
-        "position": {},
         "renderer": [Function],
       },
       "type": "bar",
@@ -12001,7 +11960,6 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
-        "position": {},
         "renderer": [Function],
       },
       "type": "bar",
@@ -12052,7 +12010,6 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
-        "position": {},
         "renderer": [Function],
       },
       "type": "bar",
@@ -12103,7 +12060,6 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       "strokeWidth": 0,
       "tooltip": {
         "enabled": true,
-        "position": {},
         "renderer": [Function],
       },
       "type": "bar",

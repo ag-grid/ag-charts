@@ -309,7 +309,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     private getTooltipPositionDefaults(options: T) {
         const position = options.tooltip?.position;
         if (!isPlainObject(position)) {
-            return {};
+            return;
         }
 
         const { type, xOffset, yOffset } = position;
