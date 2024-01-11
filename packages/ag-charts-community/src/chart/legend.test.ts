@@ -281,5 +281,21 @@ describe('Legend', () => {
                 },
             });
         });
+
+        test('line length', async () => {
+            await compareSnapshot({
+                data,
+                series: [
+                    { type: 'line', xKey: 'x', yKey: 'a', strokeWidth: 1 },
+                    { type: 'area', xKey: 'x', yKey: 'b', strokeWidth: 1 },
+                ],
+                legend: {
+                    item: {
+                        showSeriesStroke: true,
+                        line: { length: 35 },
+                    },
+                },
+            });
+        });
     });
 });

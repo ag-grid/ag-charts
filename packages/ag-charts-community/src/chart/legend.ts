@@ -325,6 +325,7 @@ export class Legend {
             maxWidth,
             marker: { size: markerSize, padding: markerPadding, shape: markerShape },
             label: { maxLength = Infinity, fontStyle, fontWeight, fontSize, fontFamily },
+            line: itemLine,
             showSeriesStroke,
         } = this.item;
         const data = [...this.data];
@@ -365,6 +366,7 @@ export class Legend {
             if (showSeriesStroke && datum.line !== undefined) {
                 markerLabel.lineVisible = true;
                 markerLabel.markerVisible = markerEnabled;
+                markerLabel.setSeriesStrokeOffset(itemLine.length ?? 5);
             } else {
                 markerLabel.lineVisible = false;
                 markerLabel.markerVisible = true;
@@ -681,7 +683,6 @@ export class Legend {
                 markerLabel.lineStrokeOpacity = line.strokeOpacity;
                 markerLabel.lineStrokeWidth = itemLine.strokeWidth ?? Math.min(2, line.strokeWidth);
                 markerLabel.lineLineDash = line.lineDash;
-                markerLabel.setSeriesStrokeOffset(itemLine.length ?? 5);
             }
         });
     }
