@@ -375,7 +375,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
             return [];
         }
 
-        const { radiusKey, radiusName, stroke, strokeOpacity, visible, marker } = this.properties;
+        const { radiusKey, radiusName, stroke, strokeWidth, strokeOpacity, lineDash, visible, marker } =
+            this.properties;
 
         return [
             {
@@ -394,6 +395,13 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
                     fillOpacity: marker.fillOpacity ?? 1,
                     strokeOpacity: marker.strokeOpacity ?? strokeOpacity ?? 1,
                     strokeWidth: marker.strokeWidth ?? 0,
+                    enabled: marker.enabled || strokeWidth <= 0,
+                },
+                line: {
+                    stroke,
+                    strokeOpacity,
+                    strokeWidth,
+                    lineDash,
                 },
             },
         ];
