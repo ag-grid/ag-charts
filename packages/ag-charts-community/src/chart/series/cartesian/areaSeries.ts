@@ -629,7 +629,6 @@ export class AreaSeries extends CartesianSeries<
                     strokeOpacity,
                     strokeWidth,
                     lineDash,
-                    offset: 5, // FIXME: add a styling option to change the width of the stroke in the legend.
                 },
             },
         ];

@@ -42,7 +42,6 @@ export interface CategoryLegendDatum extends BaseChartLegendDatum {
         strokeOpacity: number;
         strokeWidth: number;
         lineDash: number[];
-        offset: number; // how far the series stroke extends to left/right of the legend marker.
     };
     /** Optional deduplication id - used to coordinate synced toggling of multiple items. */
     legendItemName?: string;
