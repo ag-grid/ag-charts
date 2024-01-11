@@ -27,6 +27,7 @@
             margin-right: calc(var(--layout-horizontal-margins) * -1); // Improve scrollbar position
             padding-top: $spacing-size-8 + 2px; // Tweak top docs page vertical alignment (+ 2px)
             padding-right: $spacing-size-8;
+            padding-bottom: $spacing-size-1;
             position: sticky;
             top: var(--layout-site-header-height);
             max-height: calc(100vh - var(--layout-site-header-height));
