@@ -633,6 +633,9 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             labelX,
             sideFlag,
         });
+
+        this.updateLayoutState();
+
         const { tickData, combinedRotation, textBaseline, textAlign, ...ticksResult } = this.tickGenerationResult;
 
         const boxes: BBox[] = [];
@@ -725,8 +728,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             crossLine.regularFlipRotation = regularFlipRotation;
             crossLine.calculateLayout(anySeriesActive, this.reverse);
         });
-
-        this.updateLayoutState();
 
         primaryTickCount = ticksResult.primaryTickCount;
         return { primaryTickCount, bbox: transformedBBox };
@@ -1063,10 +1064,10 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                 break;
         }
 
-        // When the scale domain or the ticks change, the label format may change
-        this.onLabelFormatChange(rawTicks, this.label.format);
         // `ticks instanceof NumericTicks` doesn't work here, so we feature detect.
         this.fractionDigits = (rawTicks as any).fractionDigits >= 0 ? (rawTicks as any).fractionDigits : 0;
+        // When the scale domain or the ticks change, the label format may change
+        this.onLabelFormatChange(rawTicks, this.label.format);
 
         const halfBandwidth = (scale.bandwidth ?? 0) / 2;
         const ticks: TickDatum[] = [];
