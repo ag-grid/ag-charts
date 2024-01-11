@@ -105,6 +105,8 @@ export interface AgChartLegendOptions {
     listeners?: AgChartLegendListeners;
     /** Configuration for the pagination controls. */
     pagination?: AgChartLegendPaginationOptions;
+    /** Set to `true` to prevent the last visible series from being toggled hidden. */
+    preventHidingAll?: boolean;
 }
 
 export interface AgChartLegendPaginationOptions {

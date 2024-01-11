@@ -212,6 +212,9 @@ export class Legend {
     @Validate(UNION(['horizontal', 'vertical'], 'an orientation'), { optional: true })
     orientation?: AgChartLegendOrientation;
 
+    @Validate(BOOLEAN, { optional: true })
+    preventHidingAll?: boolean = undefined;
+
     private destroyFns: Function[] = [];
 
     constructor(private readonly ctx: ModuleContext) {
@@ -745,6 +748,7 @@ export class Legend {
             listeners: { legendItemClick },
             ctx: { chartService, highlightManager },
             item: { toggleSeriesVisible },
+            preventHidingAll,
         } = this;
         const { offsetX, offsetY } = event;
 
@@ -766,6 +770,17 @@ export class Legend {
         let newEnabled = enabled;
         if (toggleSeriesVisible) {
             newEnabled = !enabled;
+
+            if (preventHidingAll && !newEnabled) {
+                const numVisibleItems = chartService.series
+                    .flatMap((series) => series.getLegendData('category'))
+                    .filter((datum) => datum.enabled).length;
+
+                if (numVisibleItems < 2) {
+                    newEnabled = true;
+                }
+            }
+
             this.ctx.chartEventManager.legendItemClick(series, itemId, newEnabled, datum.legendItemName);
         }
 
@@ -794,7 +809,7 @@ export class Legend {
 
         // Integrated charts do not handle double click behaviour correctly due to multiple instances of the
         // chart being created. See https://ag-grid.atlassian.net/browse/RTI-1381
-        if (this.ctx.chartService.mode === 'integrated') {
+        if (chartService.mode === 'integrated') {
             return;
         }
 
@@ -814,15 +829,8 @@ export class Legend {
         event.consume();
 
         if (toggleSeriesVisible) {
-            const numVisibleItems: Record<string, number> = {};
             const legendData = chartService.series.flatMap((series) => series.getLegendData('category'));
-
-            legendData.forEach((d) => {
-                numVisibleItems[d.seriesId] ??= 0;
-                if (d.enabled) {
-                    numVisibleItems[d.seriesId]++;
-                }
-            });
+            const numVisibleItems = legendData.filter((datum) => datum.enabled).length;
 
             const clickedItem = legendData.find((d) => d.itemId === itemId && d.seriesId === seriesId);
 

@@ -171,8 +171,16 @@ To disable series toggling on Legend item click or double click, set the `legend
 ```js
 legend: {
     item: {
-        toggleSeriesVisible: false;
+        toggleSeriesVisible: false,
     }
+}
+```
+
+To prevent the last visible series from being hidden, use the `preventHidingAll` option.
+
+```js
+legend: {
+    preventHidingAll: true,
 }
 ```
 
