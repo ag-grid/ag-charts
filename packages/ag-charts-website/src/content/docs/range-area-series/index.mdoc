@@ -66,16 +66,8 @@ The series handles missing or invalid data based on the presence or validity of 
 
 {% chartExampleRunner title="Range Area Missing Data" name="range-area-missing-data" type="generated" /%}
 
-When the axes types are continuous (`'number'`, `'time'` or `'log'`), the `yLowKey`, `yHighKey` and `xKey` values in the data object are considered invalid if they are:
-
--   `+/-Infinity`
--   `null`
--   `undefined`
--   `NaN`
-
-{% note %}
-Data entries with invalid `yLowKey` and `yHighKey` values will result in gaps in the series. Missing or invalid `xKey` values are skipped. Set `connectMissingData: true` to draw a connecting line between points either side of invalid `yLowKey` and `yHighKey` values.
-{% /note %}
+-   Data points with a `yKey` value of positive or negative `Infinity`, `null`, `undefined` or `NaN` will be rendered as a gap in the range. Set `connectMissingData: true` to draw a connecting area between points either side of a missing section.
+-   Data points with invalid `xKey` values will be ignored.
 
 ## Customisation
 
