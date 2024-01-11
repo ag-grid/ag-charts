@@ -33,18 +33,24 @@ const Collapsible: FunctionComponent<Props> = ({
         event.stopPropagation();
     };
 
+    const buttonDisabledProps = isEmptyContent
+        ? {
+              'aria-disabled': true,
+          }
+        : {};
+
     return (
-        <div className={showNotes ? styles.isOpen : undefined}>
+        <div className={showNotes && !isEmptyContent ? styles.isOpen : undefined}>
             <button
-                className={classNames(styles.showHideButton, isEmptyContent ? styles.noHyperlink : '')}
+                className={classNames(styles.showHideButton, isEmptyContent ? 'button-tertiary' : '')}
                 onClick={!isEmptyContent ? collapsibleHandler : undefined}
-                disabled={isEmptyContent}
+                {...buttonDisabledProps}
             >
                 <div>
                     {title && !isEmptyContent && title}
                     {!isEmptyContent && (
                         <span className={classNames(styles.collapseIndicator, showNotes ? styles.isOpen : undefined)}>
-                            <Icon name="chevronRight" />
+                            {showNotes ? <Icon name="chevronDown" /> : <Icon name="chevronRight" />}
                         </span>
                     )}
                 </div>
