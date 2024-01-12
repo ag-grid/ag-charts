@@ -78,7 +78,7 @@ describe('Chart Heap Memory', () => {
                 position: 'left',
             },
         ],
-        series: genSeries('bar'),
+        series: genSeries('area'),
     };
 
     beforeEach(() => {
