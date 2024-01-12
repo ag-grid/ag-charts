@@ -65,7 +65,7 @@
         "bundle": true,
         "thirdParty": true,
         "skipTypeCheck": true,
-        "external": ["react", "react-dom", "react/jsx-runtime", "ag-charts-community"],
+        "external": ["ag-charts-community", "react", "react-dom"],
         "format": ["cjs"],
         "sourcemap": true
       },
