@@ -38,6 +38,7 @@ export const BulletModule: _ModuleSupport.SeriesModule<'bullet'> = {
             (Array.isArray(themeBackgroundColor) ? themeBackgroundColor[0] : themeBackgroundColor) ?? 'white';
 
         const defaultAxisLineColor = properties.get(_Theme.DEFAULT_AXIS_LINE_COLOUR);
+        const defaultCrossLineColor = properties.get(_Theme.DEFAULT_CROSS_LINES_COLOUR);
         const {
             fills: [fill],
             strokes: [stroke],
@@ -46,9 +47,10 @@ export const BulletModule: _ModuleSupport.SeriesModule<'bullet'> = {
             fill,
             stroke,
             target: {
-                stroke: defaultAxisLineColor,
+                stroke: defaultCrossLineColor,
                 fill: backgroundFill,
             },
+            colorRanges: [{ color: defaultAxisLineColor }],
         };
     },
 };
