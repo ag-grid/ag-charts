@@ -45,6 +45,7 @@ const options: AgChartOptions = {
         {
             position: 'left',
             type: 'number',
+            reverse: true,
             title: {
                 text: 'Highway MPG',
             },

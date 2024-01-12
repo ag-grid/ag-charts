@@ -6,7 +6,7 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'Hardware Revenue',
+        text: 'Software Revenue',
     },
     subtitle: {
         text: 'Millions USD',
@@ -15,28 +15,44 @@ const options: AgChartOptions = {
         {
             type: 'nightingale',
             angleKey: 'quarter',
-            radiusKey: 'hardware',
-            radiusName: 'Hardware',
+            radiusKey: 'software',
+            radiusName: 'Software',
             fillOpacity: 0.8,
         },
     ],
     axes: [
         {
             type: 'radius-number',
+            innerRadiusRatio: 0,
+            reverse: true,
+            gridLine: {
+                width: 2,
+            },
+            positionAngle: 90,
             label: {
-                enabled: false,
+                rotation: -90,
+                padding: 12,
+                formatter: ({ value }) => `$${value}M`,
+            },
+            tick: {
+                size: 0,
+                values: [1, 3, 5],
+            },
+            line: {
+                enabled: true,
             },
         },
         {
             type: 'angle-category',
+            paddingInner: 0.1,
             gridLine: {
                 enabled: true,
             },
-            label: {
-                padding: 0,
+            tick: {
+                enabled: true,
             },
-            line: {
-                enabled: false,
+            label: {
+                padding: 5,
             },
         },
     ],

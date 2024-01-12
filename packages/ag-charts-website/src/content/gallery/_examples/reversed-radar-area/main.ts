@@ -6,35 +6,39 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'Hardware Revenue',
-    },
-    subtitle: {
-        text: 'Millions USD',
+        text: 'Efficiency KPI',
     },
     series: [
         {
-            type: 'nightingale',
-            angleKey: 'quarter',
-            radiusKey: 'hardware',
-            radiusName: 'Hardware',
-            fillOpacity: 0.8,
+            type: 'radar-area',
+            angleKey: 'department',
+            radiusKey: 'efficiency',
+            radiusName: 'Efficiency',
+            strokeWidth: 2,
+            fillOpacity: 0.2,
         },
     ],
     axes: [
-        {
-            type: 'radius-number',
-            label: {
-                enabled: false,
-            },
-        },
         {
             type: 'angle-category',
             gridLine: {
                 enabled: true,
             },
-            label: {
-                padding: 0,
+            line: {
+                enabled: false,
             },
+            label: {
+                padding: 5,
+            },
+        },
+        {
+            type: 'radius-number',
+            shape: 'circle',
+            positionAngle: 180,
+            label: {
+                rotation: 180,
+            },
+            reverse: true,
             line: {
                 enabled: false,
             },

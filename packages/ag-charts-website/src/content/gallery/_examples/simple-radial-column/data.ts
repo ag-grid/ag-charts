@@ -1,52 +1,104 @@
 export function getData() {
     return [
         {
-            quarter: `Q1'22`,
-            software: 4.35,
-            hardware: 2.14,
-            services: 3.91,
+            quarter: `1 Jan`,
+            product: 4.14,
         },
         {
-            quarter: `Q2'22`,
-            software: 4.28,
-            hardware: 3.13,
-            services: 3.04,
+            quarter: `15 Jan`,
+            product: 4.35,
         },
         {
-            quarter: `Q3'22`,
-            software: 4.14,
-            hardware: 3.34,
-            services: 3.18,
+            quarter: `1 Feb`,
+            product: 4.34,
+        },
+
+        {
+            quarter: `15 Feb`,
+            product: 4.28,
         },
         {
-            quarter: `Q4'22`,
-            software: 3.48,
-            hardware: 3.56,
-            services: 3.61,
+            quarter: `1 Mar`,
+            product: 4.56,
         },
         {
-            quarter: `Q1'23`,
-            software: 3.35,
-            hardware: 3.14,
-            services: 3.91,
+            quarter: `15 Mar`,
+            product: 4.14,
         },
         {
-            quarter: `Q2'23`,
-            software: 3.28,
-            hardware: 3.13,
-            services: 3.54,
+            quarter: `1 Apr`,
+
+            product: 3.14,
         },
         {
-            quarter: `Q3'23`,
-            software: 3.14,
-            hardware: 2.84,
-            services: 3.18,
+            quarter: `15 Apr`,
+            product: 3.48,
         },
         {
-            quarter: `Q4'23`,
-            software: 2.48,
-            hardware: 2.46,
-            services: 3.21,
+            quarter: `1 May`,
+            product: 3.68,
+        },
+        {
+            quarter: `15 May`,
+            product: 3.35,
+        },
+        {
+            quarter: `1 Jun`,
+            product: 2.84,
+        },
+        {
+            quarter: `15 Jun`,
+            product: 3.28,
+        },
+        {
+            quarter: `1 Jul`,
+            product: 2.46,
+        },
+
+        {
+            quarter: `15 Jul`,
+            product: 3.14,
+        },
+        {
+            quarter: `1 Aug`,
+            product: 2.13,
+        },
+        {
+            quarter: `15 Aug`,
+            product: 2.48,
+        },
+        {
+            quarter: `1 Sep`,
+            product: 2.91,
+        },
+
+        {
+            quarter: `15 Sep`,
+            product: 2.46,
+        },
+        {
+            quarter: `1 Oct`,
+            product: 2.04,
+        },
+        {
+            quarter: `15 Oct`,
+            product: 3.21,
+        },
+        {
+            quarter: `1 Nov`,
+            product: 2.18,
+        },
+        {
+            quarter: `15 Nov`,
+            product: 2.84,
+        },
+        {
+            quarter: `1 Dec`,
+            product: 2.61,
+        },
+        {
+            quarter: `15 Dec`,
+            product: 3.18,
         },
     ];
 }

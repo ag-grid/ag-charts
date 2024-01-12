@@ -6,40 +6,47 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'Hardware Revenue',
+        text: 'Services Revenue',
     },
     subtitle: {
         text: 'Millions USD',
     },
     series: [
         {
-            type: 'nightingale',
-            angleKey: 'quarter',
-            radiusKey: 'hardware',
-            radiusName: 'Hardware',
+            type: 'radial-bar',
+            radiusKey: 'quarter',
+            angleKey: 'services',
+            angleName: 'Services',
+            stacked: true,
             fillOpacity: 0.8,
         },
     ],
     axes: [
         {
-            type: 'radius-number',
+            type: 'radius-category',
+            innerRadiusRatio: 0,
+            paddingOuter: 0.2,
             label: {
+                enabled: false,
+            },
+            gridLine: {
                 enabled: false,
             },
         },
         {
-            type: 'angle-category',
+            type: 'angle-number',
+            startAngle: 135,
+            endAngle: 360,
+            tick: {
+                interval: 0.2,
+            },
             gridLine: {
                 enabled: true,
             },
             label: {
-                padding: 0,
-            },
-            line: {
-                enabled: false,
+                formatter: ({ value }) => value.toFixed(1),
             },
         },
     ],
 };
-
 AgCharts.create(options);

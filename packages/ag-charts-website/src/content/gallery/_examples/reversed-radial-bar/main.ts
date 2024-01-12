@@ -17,17 +17,13 @@ const options: AgChartOptions = {
             radiusKey: 'quarter',
             angleKey: 'software',
             angleName: 'Software',
-            stacked: true,
-            strokeWidth: 1,
-            fillOpacity: 0.6,
+            fillOpacity: 0.8,
         },
         {
             type: 'radial-bar',
             radiusKey: 'quarter',
             angleKey: 'hardware',
             angleName: 'Hardware',
-            stacked: true,
-            strokeWidth: 1,
             fillOpacity: 0.6,
         },
         {
@@ -35,23 +31,23 @@ const options: AgChartOptions = {
             radiusKey: 'quarter',
             angleKey: 'services',
             angleName: 'Services',
-            stacked: true,
-            strokeWidth: 1,
-            fillOpacity: 0.6,
+            fillOpacity: 0.4,
         },
     ],
     axes: [
         {
             type: 'radius-category',
+            reverse: true,
             innerRadiusRatio: 0.1,
-            paddingInner: 0.5,
+            paddingInner: 0.4,
+            label: {
+                enabled: false,
+            },
         },
         {
             type: 'angle-number',
+            reverse: true,
             line: {
-                enabled: false,
-            },
-            label: {
                 enabled: false,
             },
         },

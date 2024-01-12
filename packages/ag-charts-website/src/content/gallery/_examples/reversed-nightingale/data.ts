@@ -2,52 +2,51 @@ export function getData() {
     return [
         {
             quarter: `Jan`,
-            hardware: 4.14,
+            software: 4.35,
         },
         {
             quarter: `Feb`,
-            hardware: 4.34,
+            software: 4.28,
         },
         {
             quarter: `Mar`,
-            hardware: 4.56,
+            software: 4.14,
         },
         {
             quarter: `Apr`,
-
-            hardware: 3.14,
+            software: 3.48,
         },
         {
             quarter: `May`,
-            hardware: 3.68,
+            software: 3.35,
         },
         {
             quarter: `Jun`,
-            hardware: 2.84,
+            software: 3.28,
         },
         {
             quarter: `Jul`,
-            hardware: 2.46,
+            software: 3.14,
         },
         {
             quarter: `Aug`,
-            hardware: 2.13,
+            software: 2.48,
         },
         {
             quarter: `Sep`,
-            hardware: 2.91,
+            software: 2.46,
         },
         {
             quarter: `Oct`,
-            hardware: 2.04,
+            software: 3.21,
         },
         {
             quarter: `Nov`,
-            hardware: 2.18,
+            software: 2.84,
         },
         {
             quarter: `Dec`,
-            hardware: 2.61,
+            software: 3.18,
         },
     ];
 }

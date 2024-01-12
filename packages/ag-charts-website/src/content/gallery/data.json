@@ -43,6 +43,11 @@
                         "name": "stacked-bar"
                     },
                     {
+                        "title": "Reversed Bar",
+                        "description": "",
+                        "name": "reversed-bar"
+                    },
+                    {
                         "title": "Simple Horizontal Bar",
                         "description": "",
                         "name": "simple-horizontal-bar"
@@ -56,6 +61,11 @@
                         "title": "Grouped Horizontal Bar",
                         "description": "",
                         "name": "grouped-horizontal-bar"
+                    },
+                    {
+                        "title": "Reversed Horizontal Bar",
+                        "description": "",
+                        "name": "reversed-horizontal-bar"
                     }
                 ]
             }
@@ -425,11 +435,6 @@
                         "title": "Horizontal Bullet",
                         "description": "",
                         "name": "horizontal-bullet"
-                    },
-                    {
-                        "title": "Reversed Bullet",
-                        "description": "",
-                        "name": "reversed-bullet"
                     }
                 ]
             }
@@ -450,6 +455,11 @@
                         "title": "Radar With Markers",
                         "description": "",
                         "name": "radar-with-markers"
+                    },
+                    {
+                        "title": "Reversed Radar With Markers",
+                        "description": "",
+                        "name": "reversed-radar-with-markers"
                     }
                 ]
             },
@@ -463,6 +473,16 @@
                         "title": "Simple Radar Area",
                         "description": "",
                         "name": "simple-radar-area"
+                    },
+                    {
+                        "title": "Radar Area With Labels",
+                        "description": "",
+                        "name": "radar-area-with-labels"
+                    },
+                    {
+                        "title": "Reversed Radar Area",
+                        "description": "",
+                        "name": "reversed-radar-area"
                     }
                 ]
             }
@@ -478,6 +498,16 @@
                         "title": "Simple Nightingale",
                         "description": "",
                         "name": "simple-nightingale"
+                    },
+                    {
+                        "title": "Multiple Nightingale Series",
+                        "description": "",
+                        "name": "multiple-nightingale-series"
+                    },
+                    {
+                        "title": "Reversed Nightingale",
+                        "description": "",
+                        "name": "reversed-nightingale"
                     }
                 ]
             },
@@ -491,6 +521,16 @@
                         "title": "Simple Radial Column",
                         "description": "",
                         "name": "simple-radial-column"
+                    },
+                    {
+                        "title": "Grouped Radial Column",
+                        "description": "",
+                        "name": "grouped-radial-column"
+                    },
+                    {
+                        "title": "Reversed Radial Column",
+                        "description": "",
+                        "name": "reversed-radial-column"
                     }
                 ]
             },
@@ -501,9 +541,19 @@
                 "enterprise": true,
                 "examples": [
                     {
+                        "title": "Simple Radial Bar",
+                        "description": "",
+                        "name": "simple-radial-bar"
+                    },
+                    {
                         "title": "Stacked Radial Bar",
                         "description": "",
                         "name": "stacked-radial-bar"
+                    },
+                    {
+                        "title": "Reversed Radial Bar",
+                        "description": "",
+                        "name": "reversed-radial-bar"
                     }
                 ]
             }
@@ -604,6 +654,11 @@
                         "title": "Horizontal Range Bar And Scatter Combination",
                         "description": "",
                         "name": "horizontal-range-bar-scatter-combination"
+                    },
+                    {
+                        "title": "Radar Line, Radar Area And Nightingale Combination",
+                        "description": "",
+                        "name": "radar-line-radar-area-nightingale-combination"
                     }
                 ]
             }
