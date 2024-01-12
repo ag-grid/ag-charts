@@ -25,7 +25,7 @@ const options: AgCartesianChartOptions = {
         {
             type: 'number',
             position: 'left',
-            reverse: true,
+            reverse: false,
             title: {
                 text: 'Market Share (%)',
             },
