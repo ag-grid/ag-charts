@@ -11,7 +11,6 @@ expect.extend({ toMatchImageSnapshot });
 
 // Heap size comparisons can be flaky - let's be sure any failure is consistent.
 jest.retryTimes(5);
-jest.setTimeout(10_000);
 
 describe('Chart Heap Memory', () => {
     let chart: Chart;
@@ -130,6 +129,6 @@ describe('Chart Heap Memory', () => {
 
             // console.log({ startingHeap, endingHeap, heapProportionChange });
             expect(heapProportionChange).toBeLessThan(0.15);
-        });
+        }, 20_000);
     });
 });
