@@ -81,7 +81,13 @@ const options: AgChartOptions = {
                 text: 'Week',
             },
             label: {
-                formatter: (params) => (params.index % 3 ? '' : params.value),
+                enabled: false,
+            },
+            gridLine: {
+                enabled: true,
+            },
+            line: {
+                enabled: false,
             },
         },
         {
@@ -89,6 +95,13 @@ const options: AgChartOptions = {
             position: 'left',
             title: {
                 text: '£ per kg',
+            },
+            tick: {
+                size: 0,
+                interval: 0.05,
+            },
+            label: {
+                enabled: false,
             },
         },
     ],
