@@ -5,16 +5,82 @@ import { memoryUsage } from 'process';
 import { AgCharts } from './agChartV2';
 import type { Chart } from './chart';
 import type { AgChartProxy } from './chartProxy';
-import { EXAMPLES } from './test/examples-integrated-charts';
 import { deproxy, prepareTestOptions, setupMockCanvas, waitForChartStability } from './test/utils';
 
 expect.extend({ toMatchImageSnapshot });
 
 // Heap size comparisons can be flaky - let's be sure any failure is consistent.
 jest.retryTimes(5);
+jest.setTimeout(10_000);
 
 describe('Chart Heap Memory', () => {
     let chart: Chart;
+
+    function genData(dMax = 30, sMax = 80) {
+        const result = [];
+        for (let d = 0; d < dMax; d++) {
+            const datum: any = {};
+            const group = Math.floor(d / 5);
+            datum.key = {
+                labels: [`Group-${group}`, `Datum-${d}`],
+                toString() {
+                    return `Group-${group} - Datum-${d}`;
+                },
+            };
+            for (let s = 0; s < sMax; s++) {
+                datum[`value-${s}`] = Math.random();
+            }
+            result.push(datum);
+        }
+        return result;
+    }
+
+    function genSeries(type: string, sMax = 80) {
+        const result = [];
+        for (let s = 0; s < sMax; s++) {
+            const series = {
+                type,
+                xKey: 'key',
+                yKey: `value-${s}`,
+                yName: `Series-${s}`,
+                stacked: false,
+                grouped: true,
+            };
+            result.push(series);
+        }
+        return result;
+    }
+
+    const options1 = {
+        mode: 'integrated',
+        data: genData(),
+        axes: [
+            {
+                type: 'grouped-category',
+                position: 'bottom',
+            },
+            {
+                type: 'number',
+                position: 'left',
+            },
+        ],
+        series: genSeries('bar'),
+    };
+    const options2 = {
+        mode: 'integrated',
+        data: genData(),
+        axes: [
+            {
+                type: 'grouped-category',
+                position: 'bottom',
+            },
+            {
+                type: 'number',
+                position: 'left',
+            },
+        ],
+        series: genSeries('bar'),
+    };
 
     beforeEach(() => {
         console.warn = jest.fn();
@@ -49,12 +115,12 @@ describe('Chart Heap Memory', () => {
         it('should not leak memory after many updates', async () => {
             const startingHeap = memoryUsage().heapUsed;
 
-            const options = Object.values(EXAMPLES);
+            const options = [options1, options2, options1, options2];
             const { chartProxy } = await createChart({});
 
             for (let i = 0; i < 3; i++) {
                 for (const nextOpts of options) {
-                    await updateChart(chartProxy, nextOpts.options);
+                    await updateChart(chartProxy, nextOpts);
                 }
             }
 
@@ -62,6 +128,7 @@ describe('Chart Heap Memory', () => {
             const endingHeap = memoryUsage().heapUsed;
             const heapProportionChange = Math.abs(endingHeap - startingHeap) / startingHeap;
 
+            // console.log({ startingHeap, endingHeap, heapProportionChange });
             expect(heapProportionChange).toBeLessThan(0.15);
         });
     });

@@ -168,7 +168,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
     }
 
     override addChartEventListeners(): void {
-        this.ctx.chartEventManager?.addListener('legend-item-click', (event) => this.onLegendItemClick(event));
+        this.destroyFns.push(
+            this.ctx.chartEventManager?.addListener('legend-item-click', (event) => this.onLegendItemClick(event))
+        );
     }
 
     override visibleChanged() {

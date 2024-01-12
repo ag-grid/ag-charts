@@ -241,6 +241,8 @@ export class Legend {
 
     public destroy() {
         this.destroyFns.forEach((f) => f());
+
+        this.pagination.destroy();
     }
 
     public onMarkerShapeChange() {
