@@ -25,7 +25,7 @@ export interface TestCase {
     options: AgChartOptions;
     assertions: (chart: Chart | AgChartProxy) => Promise<void>;
     extraScreenshotActions?: (chart: AgChartInstance) => Promise<void>;
-    warnings?: string[];
+    warnings?: Array<string | Array<string>>;
 }
 
 export interface CartesianOrPolarTestCase extends TestCase {

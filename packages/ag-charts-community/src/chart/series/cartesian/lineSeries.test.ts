@@ -59,7 +59,7 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
                 axisTypes: ['number', 'number'],
                 seriesTypes: ['line'],
             }),
-            warnings: ['AG Charts - invalid value of type [undefined] ignored: [undefined]'],
+            warnings: [['AG Charts - invalid value of type [undefined] ignored:', '[undefined]']],
         },
         LINE_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: {
             options: examples.LINE_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE,
@@ -67,7 +67,7 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
                 axisTypes: ['time', 'number'],
                 seriesTypes: ['line'],
             }),
-            warnings: ['AG Charts - invalid value of type [object] ignored: [null]'],
+            warnings: [['AG Charts - invalid value of type [object] ignored:', '[null]']],
         },
         LINE_NUMBER_AXES_0_X_DOMAIN: {
             options: examples.LINE_NUMBER_AXES_0_X_DOMAIN,
@@ -144,7 +144,10 @@ describe('LineSeries', () => {
 
                 warnings.forEach((message, index) => {
                     // eslint-disable-next-line no-console
-                    expect(console.warn).toHaveBeenNthCalledWith(index + 1, message);
+                    expect(console.warn).toHaveBeenNthCalledWith(
+                        index + 1,
+                        ...(Array.isArray(message) ? message : [message])
+                    );
                 });
                 if (warnings.length === 0) {
                     // eslint-disable-next-line no-console
