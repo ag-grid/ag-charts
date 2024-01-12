@@ -324,8 +324,8 @@ describe('WaterfallSeries', () => {
         chart = AgCharts.create(options);
         await compare();
 
-        expect(console.warn).toHaveBeenNthCalledWith(1, 'AG Charts - invalid value [-30] of type [string] ignored.');
-        expect(console.warn).toHaveBeenNthCalledWith(2, 'AG Charts - invalid value [50] of type [object] ignored.');
+        expect(console.warn).toHaveBeenNthCalledWith(1, 'AG Charts - invalid value of type [string] ignored: [-30]');
+        expect(console.warn).toHaveBeenNthCalledWith(2, 'AG Charts - invalid value of type [object] ignored: [50]');
         expectWarning = true;
     });
 

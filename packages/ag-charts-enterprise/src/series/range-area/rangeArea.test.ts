@@ -290,7 +290,7 @@ describe('RangeAreaSeries', () => {
         await compare();
 
         // eslint-disable-next-line no-console
-        expect(console.warn).toHaveBeenCalledWith('AG Charts - invalid value [invalid] of type [string] ignored.');
+        expect(console.warn).toHaveBeenCalledWith('AG Charts - invalid value of type [string] ignored: [invalid]');
         expectWarning = true;
     });
 

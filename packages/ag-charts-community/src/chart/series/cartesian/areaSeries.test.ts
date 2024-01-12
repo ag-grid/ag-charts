@@ -58,12 +58,12 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase & { skip?: boolean }> = 
         AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: {
             options: examples.AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE,
             assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['area'] }),
-            warnings: ['AG Charts - invalid value [undefined] of type [undefined] ignored.'],
+            warnings: ['AG Charts - invalid value of type [undefined] ignored: [undefined]'],
         },
         AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: {
             options: examples.AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE,
             assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: ['area'] }),
-            warnings: ['AG Charts - invalid value [null] of type [object] ignored.'],
+            warnings: ['AG Charts - invalid value of type [object] ignored: [null]'],
         },
         STACKED_AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: {
             options: examples.STACKED_AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE,

@@ -59,7 +59,7 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
                 axisTypes: ['number', 'number'],
                 seriesTypes: ['line'],
             }),
-            warnings: ['AG Charts - invalid value [undefined] of type [undefined] ignored.'],
+            warnings: ['AG Charts - invalid value of type [undefined] ignored: [undefined]'],
         },
         LINE_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: {
             options: examples.LINE_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE,
@@ -67,7 +67,7 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
                 axisTypes: ['time', 'number'],
                 seriesTypes: ['line'],
             }),
-            warnings: ['AG Charts - invalid value [null] of type [object] ignored.'],
+            warnings: ['AG Charts - invalid value of type [object] ignored: [null]'],
         },
         LINE_NUMBER_AXES_0_X_DOMAIN: {
             options: examples.LINE_NUMBER_AXES_0_X_DOMAIN,
