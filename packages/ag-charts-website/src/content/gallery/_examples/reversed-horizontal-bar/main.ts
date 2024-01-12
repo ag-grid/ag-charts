@@ -5,7 +5,7 @@ import { getData } from './data';
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
-        text: "Apple's Revenue by Product Category",
+        text: 'MacBook Sales',
     },
     subtitle: {
         text: 'In Billion U.S. Dollars',
@@ -16,44 +16,28 @@ const options: AgChartOptions = {
             type: 'bar',
             direction: 'horizontal',
             xKey: 'quarter',
-            yKey: 'iphone',
-            yName: 'iPhone',
-        },
-        {
-            type: 'bar',
-            direction: 'horizontal',
-            xKey: 'quarter',
-            yKey: 'mac',
-            yName: 'Mac',
-        },
-        {
-            type: 'bar',
-            direction: 'horizontal',
-            xKey: 'quarter',
-            yKey: 'ipad',
-            yName: 'iPad',
-        },
-        {
-            type: 'bar',
-            direction: 'horizontal',
-            xKey: 'quarter',
-            yKey: 'wearables',
-            yName: 'Wearables',
-        },
-        {
-            type: 'bar',
-            direction: 'horizontal',
-            xKey: 'quarter',
-            yKey: 'services',
-            yName: 'Services',
+            yKey: 'sales',
+            yName: 'Sales',
+            label: {
+                formatter: ({ value }) => `$${value.toFixed(0)}B`,
+            },
         },
     ],
     axes: [
         {
             type: 'category',
             position: 'left',
+            paddingInner: 0.4,
+            paddingOuter: 0.5,
+            groupPaddingInner: 0,
             line: {
                 enabled: false,
+            },
+            gridLine: {
+                enabled: true,
+            },
+            tick: {
+                enabled: true,
             },
         },
         {
@@ -61,7 +45,7 @@ const options: AgChartOptions = {
             position: 'bottom',
             reverse: true,
             tick: {
-                interval: 60,
+                enabled: true,
             },
         },
     ],
