@@ -23,6 +23,7 @@ const options: AgChartOptions = {
             xKey: 'quarter',
             yKey: 'ipad',
             yName: 'iPad',
+            fillOpacity: 0.6,
         },
         {
             type: 'bar',
@@ -35,6 +36,7 @@ const options: AgChartOptions = {
             xKey: 'quarter',
             yKey: 'services',
             yName: 'Services',
+            fillOpacity: 0.6,
         },
     ],
     axes: [
