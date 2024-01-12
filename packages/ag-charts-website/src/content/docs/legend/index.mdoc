@@ -56,8 +56,7 @@ legend: {
 
 ## Series Stroke
 
-Is it possible to reflect the stroke styling options of the series using the
-`showSeriesStroke`.
+It is possible to display a line in the Legend item, representing the stroke style of the series.
 
 {% chartExampleRunner title="Series Stroke" name="legend-seriesStroke" type="generated" /%}
 
@@ -71,10 +70,8 @@ legend: {
 
 In this configuration:
 
--   Stroke styling of the series is shown in the legend.
--   Legend marker are only shown if the series has markers enabled.
-
-Some stroke styling values can be overriden in [Customisation](#Customisation).
+-   The stroke styling of the series is shown as a line in the Legend item.
+-   Legend item markers are only shown if the series has markers enabled.
 
 ## Pagination
 
@@ -138,9 +135,10 @@ legend: {
 }
 ```
 
-### Stroke
+### Line
 
-When `showSeriesStroke` is enabled, some of the styling value of the strokes can be override:
+The look of the Legend lines is based on the styling of the series that they represent.
+It is possible to override this behaviour and set the `strokeWidth` and `length` of the `legend.item.line`.
 
 ```js
 legend: {
