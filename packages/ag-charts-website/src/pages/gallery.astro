@@ -20,7 +20,7 @@ const { series } = galleryData;
                 {
                     series.flat().map((series: GalleryExampleChartType) => (
                         <li>
-                            <a href={getPageHashUrl({ chartSeriesName: series.name, isRelative: true })}>
+                            <a href={getPageHashUrl({ chartSeriesName: series.seriesName, isRelative: true })}>
                                 <span class="seriesIcon">
                                     <Icon client:only name={series.icon as IconName} />
                                 </span>
@@ -47,13 +47,15 @@ const { series } = galleryData;
                     series.map((series: GalleryExampleChartType[]) => (
                         <div class="chart-type">
                             <div class="gallery-list">
-                                {series.map(({ title, name, examples }) => (
+                                {series.map(({ title, seriesName, examples }) => (
                                     <>
-                                        <h3 id={name} class="gallery-list-title">
-                                            {title}
-                                        </h3>
-                                        {examples.map(({ title, name }: GalleryExample) => (
-                                            <GalleryExampleLink client:visible label={title} exampleName={name} />
+                                        {examples.map(({ title, name }: GalleryExample, i) => (
+                                            <GalleryExampleLink
+                                                client:visible
+                                                label={title}
+                                                exampleName={name}
+                                                id={i === 0 ? seriesName : null}
+                                            />
                                         ))}
                                     </>
                                 ))}
@@ -150,16 +152,17 @@ const { series } = galleryData;
             display: inline-flex;
             align-items: center;
             height: 100%;
-            margin-bottom: 0 !important;
-            padding-left: var(--horizontal-padding) !important;
+            margin-bottom: 0;
+            padding-left: var(--horizontal-padding);
         }
     }
 
     .menu li {
-        margin-bottom: $spacing-size-4 !important;
+        margin-bottom: $spacing-size-4;
 
         @media screen and (max-width: $breakpoint-gallery-small) {
-            margin-bottom: 0 !important;
+            margin-bottom: 0;
+            margin-right: $spacing-size-8;
             flex-shrink: 0;
 
             &:last-child {
@@ -226,6 +229,12 @@ const { series } = galleryData;
         padding-top: var(--layout-site-header-height);
         padding-bottom: $spacing-size-24;
 
+        > div {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--gallery-list-gap);
+        }
+
         @media screen and (min-width: $breakpoint-gallery-small) {
             padding-top: $spacing-size-4;
             padding-bottom: $spacing-size-56;
@@ -239,15 +248,9 @@ const { series } = galleryData;
         padding-top: $spacing-size-4;
     }
 
-    .chart-type {
-        padding-bottom: $spacing-size-8;
-    }
-
+    .chart-type,
     .gallery-list {
-        display: flex;
-        flex-direction: row;
-        flex-wrap: wrap;
-        gap: var(--gallery-list-gap);
+        display: contents;
     }
 
     .gallery-list-title {
