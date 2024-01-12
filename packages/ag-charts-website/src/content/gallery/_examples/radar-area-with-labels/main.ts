@@ -35,13 +35,6 @@ const options: AgChartOptions = {
                 enabled: true,
             },
         },
-        // {
-        //   type: "radar-area",
-        //   angleKey: "quarter",
-        //   radiusKey: "services",
-        //   radiusName: "Services",
-        //   fillOpacity: 0.3,
-        // },
     ],
     axes: [
         {
