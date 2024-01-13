@@ -15,6 +15,7 @@ import { prepareEnterpriseTestOptions } from '../../test/utils';
 describe('WaterfallSeries', () => {
     let chart: any;
     const ctx = setupMockCanvas();
+    let expectWarning = false;
 
     beforeEach(() => {
         // eslint-disable-next-line no-console
@@ -26,8 +27,11 @@ describe('WaterfallSeries', () => {
             chart.destroy();
             (chart as unknown) = undefined;
         }
-        // eslint-disable-next-line no-console
-        expect(console.warn).not.toBeCalled();
+        if (!expectWarning) {
+            // eslint-disable-next-line no-console
+            expect(console.warn).not.toBeCalled();
+        }
+        expectWarning = false;
     });
 
     const TOTALS_META_DATA = [
@@ -319,6 +323,10 @@ describe('WaterfallSeries', () => {
 
         chart = AgCharts.create(options);
         await compare();
+
+        expect(console.warn).toHaveBeenNthCalledWith(1, 'AG Charts - invalid value of type [string] ignored:', '[-30]');
+        expect(console.warn).toHaveBeenNthCalledWith(2, 'AG Charts - invalid value of type [object] ignored:', '[50]');
+        expectWarning = true;
     });
 
     it(`should render a horizontal waterfall chart with missing and invalid values`, async () => {

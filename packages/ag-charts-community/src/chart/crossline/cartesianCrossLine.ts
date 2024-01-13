@@ -14,7 +14,7 @@ import type { Point } from '../../scene/point';
 import { Range } from '../../scene/shape/range';
 import { Text } from '../../scene/shape/text';
 import { createId } from '../../util/id';
-import { clampArray, isEqual } from '../../util/number';
+import { clampArray } from '../../util/number';
 import {
     AND,
     ARRAY,
@@ -270,25 +270,21 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
         clampedYEnd = clampArray(clampedYEnd, clippedRange);
         [yStart, yEnd] = [Number(scale.convert(yStart)), scale.convert(yEnd) + bandwidth];
 
-        if (yStart - padding >= clampedYStart) yStart -= padding;
-        if (yEnd + padding <= clampedYEnd) yEnd += padding;
-
         const validRange =
             (yStart === clampedYStart || yEnd === clampedYEnd || clampedYStart !== clampedYEnd) &&
             Math.abs(clampedYEnd - clampedYStart) > 0;
 
-        if (validRange) {
-            const reverse = clampedYStart !== Math.min(clampedYStart, clampedYEnd);
-
-            if (reverse) {
-                [clampedYStart, clampedYEnd] = [clampedYEnd, clampedYStart];
-                [yStart, yEnd] = [yEnd, yStart];
-            }
+        if (validRange && clampedYStart > clampedYEnd) {
+            [clampedYStart, clampedYEnd] = [clampedYEnd, clampedYStart];
+            [yStart, yEnd] = [yEnd, yStart];
         }
 
+        if (yStart - padding >= clampedYStart) yStart -= padding;
+        if (yEnd + padding <= clampedYEnd) yEnd += padding;
+
         this.isRange = validRange;
-        this.startLine = strokeWidth > 0 && isEqual(yStart, clampedYStart);
-        this.endLine = strokeWidth > 0 && isEqual(yEnd, clampedYEnd);
+        this.startLine = strokeWidth > 0 && yStart >= clampedYStart && yStart <= clampedYStart + padding;
+        this.endLine = strokeWidth > 0 && yEnd >= clampedYEnd - bandwidth - padding && yEnd <= clampedYEnd;
 
         if (!validRange && !this.startLine && !this.endLine) {
             return false;

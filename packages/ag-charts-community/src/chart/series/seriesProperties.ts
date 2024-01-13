@@ -15,16 +15,16 @@ import type { SeriesTooltip } from './seriesTooltip';
 
 export class SeriesItemHighlightStyle extends BaseProperties {
     @Validate(COLOR_STRING, { optional: true })
-    fill?: string = 'yellow';
+    fill?: string = 'rgba(255,255,255, 0.33)';
 
     @Validate(RATIO, { optional: true })
     fillOpacity?: number;
 
     @Validate(COLOR_STRING, { optional: true })
-    stroke?: string;
+    stroke?: string = `rgba(0, 0, 0, 0.4)`;
 
     @Validate(POSITIVE_NUMBER, { optional: true })
-    strokeWidth?: number;
+    strokeWidth?: number = 2;
 
     @Validate(RATIO, { optional: true })
     strokeOpacity?: number;

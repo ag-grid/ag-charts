@@ -58,10 +58,12 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase & { skip?: boolean }> = 
         AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: {
             options: examples.AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE,
             assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['area'] }),
+            warnings: [['AG Charts - invalid value of type [undefined] ignored:', '[undefined]']],
         },
         AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: {
             options: examples.AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE,
             assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: ['area'] }),
+            warnings: [['AG Charts - invalid value of type [object] ignored:', '[null]']],
         },
         STACKED_AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: {
             options: examples.STACKED_AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE,
@@ -158,10 +160,6 @@ describe('AreaSeries', () => {
             console.warn = jest.fn();
         });
 
-        afterEach(() => {
-            expect(console.warn).not.toBeCalled();
-        });
-
         test('no data', async () => {
             chart = AgCharts.create(
                 prepareTestOptions({ data: [], series: [{ type: 'area', xKey: 'x', yKey: 'y' }] })
@@ -175,12 +173,24 @@ describe('AreaSeries', () => {
                 it.skip(`for ${exampleName} it should render to canvas as expected`, async () => {});
             } else {
                 it(`for ${exampleName} it should create chart instance as expected`, async () => {
-                    const options: AgChartOptions = { ...example.options };
+                    const { assertions, options, warnings = [] } = example;
                     prepareTestOptions(options);
 
                     chart = AgCharts.create(options) as Chart;
                     await waitForChartStability(chart);
-                    await example.assertions(chart);
+                    await assertions(chart);
+
+                    warnings.forEach((message, index) => {
+                        // eslint-disable-next-line no-console
+                        expect(console.warn).toHaveBeenNthCalledWith(
+                            index + 1,
+                            ...(Array.isArray(message) ? message : [message])
+                        );
+                    });
+                    if (warnings.length === 0) {
+                        // eslint-disable-next-line no-console
+                        expect(console.warn).not.toBeCalled();
+                    }
                 });
 
                 it(`for ${exampleName} it should render to canvas as expected`, async () => {

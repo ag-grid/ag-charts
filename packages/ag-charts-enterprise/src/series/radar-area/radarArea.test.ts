@@ -184,6 +184,17 @@ describe('RadarAreaSeries', () => {
         await compare();
     });
 
+    it(`should support legend.item.showSeriesStroke`, async () => {
+        const options: AgChartOptions = {
+            ...EXAMPLE_OPTIONS,
+            legend: { item: { showSeriesStroke: true } },
+        };
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
     describe('initial animation', () => {
         const animate = spyOnAnimationManager();
 

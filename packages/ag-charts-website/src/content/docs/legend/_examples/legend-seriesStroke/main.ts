@@ -3,10 +3,10 @@ import { AgChartOptions, AgCharts } from 'ag-charts-community';
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: [
-        { month: 'Jan', price: 150.2, volume: 2.5 },
-        { month: 'Feb', price: 152.4, volume: 3.1 },
-        { month: 'Mar', price: 148.9, volume: 2.8 },
-        { month: 'Apr', price: 155.75, volume: 4.2 },
+        { month: 'Jan', price: 148.9, volume: 2.5 },
+        { month: 'Feb', price: 153.4, volume: 3.1 },
+        { month: 'Mar', price: 155.75, volume: 2.8 },
+        { month: 'Apr', price: 158.9, volume: 4.2 },
         { month: 'May', price: 160.6, volume: 5.5 },
         { month: 'Jun', price: 158.45, volume: 3.7 },
         { month: 'Jul', price: 162.3, volume: 4.9 },
@@ -30,6 +30,8 @@ const options: AgChartOptions = {
             xKey: 'month',
             yKey: 'price',
             yName: 'Closing Price',
+            lineDash: [3, 3],
+            marker: { enabled: false },
         },
     ],
     axes: [
@@ -61,4 +63,9 @@ const options: AgChartOptions = {
     },
 };
 
-AgCharts.create(options);
+const chart = AgCharts.create(options);
+
+function toggleSeriesStroke() {
+    options.legend!.item!.showSeriesStroke = !options.legend!.item!.showSeriesStroke;
+    AgCharts.update(chart, options);
+}

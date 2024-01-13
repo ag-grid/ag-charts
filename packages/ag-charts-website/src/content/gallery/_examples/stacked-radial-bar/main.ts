@@ -18,6 +18,8 @@ const options: AgChartOptions = {
             angleKey: 'software',
             angleName: 'Software',
             stacked: true,
+            strokeWidth: 1,
+            fillOpacity: 0.6,
         },
         {
             type: 'radial-bar',
@@ -26,7 +28,7 @@ const options: AgChartOptions = {
             angleName: 'Hardware',
             stacked: true,
             strokeWidth: 1,
-            fillOpacity: 0.3,
+            fillOpacity: 0.6,
         },
         {
             type: 'radial-bar',
@@ -34,6 +36,8 @@ const options: AgChartOptions = {
             angleKey: 'services',
             angleName: 'Services',
             stacked: true,
+            strokeWidth: 1,
+            fillOpacity: 0.6,
         },
     ],
     axes: [

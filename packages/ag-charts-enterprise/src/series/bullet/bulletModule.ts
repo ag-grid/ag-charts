@@ -25,22 +25,21 @@ export const BulletModule: _ModuleSupport.SeriesModule<'bullet'> = {
     swapDefaultAxesCondition: (series) => series?.direction === 'horizontal',
     paletteFactory: ({ takeColors, colorsCount, themeTemplateParameters }) => {
         const { properties } = themeTemplateParameters;
-        const themeBackgroundColor = themeTemplateParameters.properties.get(_Theme.DEFAULT_BACKGROUND_COLOUR);
-        const backgroundFill =
-            (Array.isArray(themeBackgroundColor) ? themeBackgroundColor[0] : themeBackgroundColor) ?? 'white';
-
-        const defaultAxisLineColor = properties.get(_Theme.DEFAULT_AXIS_LINE_COLOUR);
         const {
             fills: [fill],
             strokes: [stroke],
         } = takeColors(colorsCount);
+        const themeBackgroundColor = themeTemplateParameters.properties.get(_Theme.DEFAULT_BACKGROUND_COLOUR);
+        const backgroundFill =
+            (Array.isArray(themeBackgroundColor) ? themeBackgroundColor[0] : themeBackgroundColor) ?? 'white';
+
+        const targetStroke = properties.get(_Theme.DEFAULT_CROSS_LINES_COLOUR);
+        const colorRangeColor = _Util.Color.interpolate(fill, backgroundFill)(0.7);
         return {
             fill,
             stroke,
-            target: {
-                stroke: defaultAxisLineColor,
-                fill: backgroundFill,
-            },
+            target: { stroke: targetStroke },
+            colorRanges: [{ color: colorRangeColor }],
         };
     },
 };

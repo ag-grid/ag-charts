@@ -65,6 +65,13 @@
       "cache": true
     },
     "pack": {
+      "inputs": [
+        "{projectRoot}/dist/**",
+        "{projectRoot}/.npmignore",
+        "{projectRoot}/README.md",
+        "{projectRoot}/LICENSE*",
+        "{projectRoot}/package.json"
+      ],
       "cache": true
     },
     "@nx/jest:jest": {

@@ -23,7 +23,7 @@
         [
             {
                 "title": "Bar",
-                "name": "bar",
+                "seriesName": "bar",
                 "icon": "chartsBar",
                 "enterprise": false,
                 "examples": [
@@ -43,6 +43,11 @@
                         "name": "stacked-bar"
                     },
                     {
+                        "title": "Reversed Bar",
+                        "description": "",
+                        "name": "reversed-bar"
+                    },
+                    {
                         "title": "Simple Horizontal Bar",
                         "description": "",
                         "name": "simple-horizontal-bar"
@@ -56,6 +61,11 @@
                         "title": "Grouped Horizontal Bar",
                         "description": "",
                         "name": "grouped-horizontal-bar"
+                    },
+                    {
+                        "title": "Reversed Horizontal Bar",
+                        "description": "",
+                        "name": "reversed-horizontal-bar"
                     }
                 ]
             }
@@ -63,7 +73,7 @@
         [
             {
                 "title": "Line",
-                "name": "line",
+                "seriesName": "line",
                 "icon": "chartsLine",
                 "enterprise": false,
                 "examples": [
@@ -103,7 +113,7 @@
         [
             {
                 "title": "Area",
-                "name": "area",
+                "seriesName": "area",
                 "icon": "chartsArea",
                 "enterprise": false,
                 "examples": [
@@ -143,7 +153,7 @@
         [
             {
                 "title": "Scatter",
-                "name": "scatter",
+                "seriesName": "scatter",
                 "icon": "chartsScatter",
                 "enterprise": false,
                 "examples": [
@@ -183,7 +193,7 @@
         [
             {
                 "title": "Bubble",
-                "name": "bubble",
+                "seriesName": "bubble",
                 "icon": "chartsBubble",
                 "enterprise": false,
                 "examples": [
@@ -223,7 +233,7 @@
         [
             {
                 "title": "Pie",
-                "name": "pie",
+                "seriesName": "pie",
                 "icon": "chartsPie",
                 "enterprise": false,
                 "examples": [
@@ -248,7 +258,7 @@
         [
             {
                 "title": "Doughnut",
-                "name": "doughnut",
+                "seriesName": "doughnut",
                 "icon": "chartsDoughnut",
                 "enterprise": false,
                 "examples": [
@@ -273,7 +283,7 @@
         [
             {
                 "title": "Histogram",
-                "name": "histogram",
+                "seriesName": "histogram",
                 "icon": "chartsHistogram",
                 "examples": [
                     {
@@ -297,7 +307,7 @@
         [
             {
                 "title": "Range Bar",
-                "name": "range-bar",
+                "seriesName": "range-bar",
                 "icon": "chartsRangeBar",
                 "enterprise": true,
                 "examples": [
@@ -337,7 +347,7 @@
         [
             {
                 "title": "Range Area",
-                "name": "range-area",
+                "seriesName": "range-area",
                 "icon": "chartsRangeArea",
                 "enterprise": true,
                 "examples": [
@@ -362,7 +372,7 @@
         [
             {
                 "title": "Waterfall",
-                "name": "waterfall",
+                "seriesName": "waterfall",
                 "icon": "chartsWaterfall",
                 "enterprise": true,
                 "examples": [
@@ -387,7 +397,7 @@
         [
             {
                 "title": "Box Plot",
-                "name": "box-plot",
+                "seriesName": "box-plot",
                 "icon": "chartsBoxPlot",
                 "enterprise": true,
                 "examples": [
@@ -412,7 +422,7 @@
         [
             {
                 "title": "Bullet Chart",
-                "name": "bullet-chart",
+                "seriesName": "bullet-chart",
                 "icon": "chartsBullet",
                 "enterprise": true,
                 "examples": [
@@ -425,11 +435,6 @@
                         "title": "Horizontal Bullet",
                         "description": "",
                         "name": "horizontal-bullet"
-                    },
-                    {
-                        "title": "Reversed Bullet",
-                        "description": "",
-                        "name": "reversed-bullet"
                     }
                 ]
             }
@@ -437,7 +442,7 @@
         [
             {
                 "title": "Radar Line",
-                "name": "radar-line",
+                "seriesName": "radar-line",
                 "icon": "chartsRadar",
                 "enterprise": true,
                 "examples": [
@@ -450,12 +455,17 @@
                         "title": "Radar With Markers",
                         "description": "",
                         "name": "radar-with-markers"
+                    },
+                    {
+                        "title": "Reversed Radar With Markers",
+                        "description": "",
+                        "name": "reversed-radar-with-markers"
                     }
                 ]
             },
             {
                 "title": "Radar Area",
-                "name": "radar-area",
+                "seriesName": "radar-area",
                 "icon": "chartsRadar",
                 "enterprise": true,
                 "examples": [
@@ -463,6 +473,16 @@
                         "title": "Simple Radar Area",
                         "description": "",
                         "name": "simple-radar-area"
+                    },
+                    {
+                        "title": "Radar Area With Labels",
+                        "description": "",
+                        "name": "radar-area-with-labels"
+                    },
+                    {
+                        "title": "Reversed Radar Area",
+                        "description": "",
+                        "name": "reversed-radar-area"
                     }
                 ]
             }
@@ -470,7 +490,7 @@
         [
             {
                 "title": "Nightingale",
-                "name": "nightingale",
+                "seriesName": "nightingale",
                 "icon": "chartsNightingale",
                 "enterprise": true,
                 "examples": [
@@ -478,12 +498,22 @@
                         "title": "Simple Nightingale",
                         "description": "",
                         "name": "simple-nightingale"
+                    },
+                    {
+                        "title": "Multiple Nightingale Series",
+                        "description": "",
+                        "name": "multiple-nightingale-series"
+                    },
+                    {
+                        "title": "Reversed Nightingale",
+                        "description": "",
+                        "name": "reversed-nightingale"
                     }
                 ]
             },
             {
                 "title": "Radial Column",
-                "name": "radial-column",
+                "seriesName": "radial-column",
                 "icon": "chartsRadialColumn",
                 "enterprise": true,
                 "examples": [
@@ -491,19 +521,39 @@
                         "title": "Simple Radial Column",
                         "description": "",
                         "name": "simple-radial-column"
+                    },
+                    {
+                        "title": "Grouped Radial Column",
+                        "description": "",
+                        "name": "grouped-radial-column"
+                    },
+                    {
+                        "title": "Reversed Radial Column",
+                        "description": "",
+                        "name": "reversed-radial-column"
                     }
                 ]
             },
             {
                 "title": "Radial Bar",
-                "name": "radial-bar",
+                "seriesName": "radial-bar",
                 "icon": "chartsRadialBar",
                 "enterprise": true,
                 "examples": [
                     {
+                        "title": "Simple Radial Bar",
+                        "description": "",
+                        "name": "simple-radial-bar"
+                    },
+                    {
                         "title": "Stacked Radial Bar",
                         "description": "",
                         "name": "stacked-radial-bar"
+                    },
+                    {
+                        "title": "Reversed Radial Bar",
+                        "description": "",
+                        "name": "reversed-radial-bar"
                     }
                 ]
             }
@@ -511,7 +561,7 @@
         [
             {
                 "title": "Sunburst",
-                "name": "sunburst",
+                "seriesName": "sunburst",
                 "icon": "chartsSunburst",
                 "enterprise": true,
                 "examples": [
@@ -536,7 +586,7 @@
         [
             {
                 "title": "Treemap",
-                "name": "treemap",
+                "seriesName": "treemap",
                 "icon": "chartsTreemap",
                 "enterprise": true,
                 "examples": [
@@ -561,7 +611,7 @@
         [
             {
                 "title": "Heatmap",
-                "name": "heatmap",
+                "seriesName": "heatmap",
                 "icon": "chartsHeatmap",
                 "enterprise": true,
                 "examples": [
@@ -586,7 +636,7 @@
         [
             {
                 "title": "Combination",
-                "name": "combination",
+                "seriesName": "combination",
                 "icon": "chartsCombination",
                 "enterprise": false,
                 "examples": [
@@ -604,6 +654,11 @@
                         "title": "Horizontal Range Bar And Scatter Combination",
                         "description": "",
                         "name": "horizontal-range-bar-scatter-combination"
+                    },
+                    {
+                        "title": "Radar Line, Radar Area And Nightingale Combination",
+                        "description": "",
+                        "name": "radar-line-radar-area-nightingale-combination"
                     }
                 ]
             }

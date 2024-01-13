@@ -122,11 +122,15 @@ export class MarkerLabel extends Group {
         this.line.y1 = 0;
         this.line.y2 = 0;
         this.line.markDirtyTransform();
+        this.update();
     }
 
     private update() {
         this.marker.size = this.markerSize;
-        this.label.x = this.markerSize / 2 + this.spacing;
+
+        const lineEnd = this.line.visible ? this.line.x2 : -Infinity;
+        const markerEnd = this.markerSize / 2;
+        this.label.x = Math.max(lineEnd, markerEnd) + this.spacing;
     }
 
     override render(renderCtx: RenderContext): void {

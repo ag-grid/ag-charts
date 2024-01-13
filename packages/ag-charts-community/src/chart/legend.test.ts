@@ -237,7 +237,15 @@ describe('Legend', () => {
             await compareSnapshot({
                 data,
                 series: [
-                    { type: 'area', xKey: 'x', yKey: 'a', strokeWidth: 2, stroke: 'palegreen', fill: '#f0e0e0' },
+                    {
+                        type: 'area',
+                        xKey: 'x',
+                        yKey: 'a',
+                        strokeWidth: 2,
+                        stroke: 'palegreen',
+                        fill: '#f0e0e0',
+                        marker: { enabled: true },
+                    },
                     { type: 'line', xKey: 'x', yKey: 'b', stroke: 'blue' },
                 ],
                 legend: { item: { showSeriesStroke: true } },
@@ -277,6 +285,22 @@ describe('Legend', () => {
                     item: {
                         showSeriesStroke: true,
                         line: { strokeWidth: 8 },
+                    },
+                },
+            });
+        });
+
+        test('line length', async () => {
+            await compareSnapshot({
+                data,
+                series: [
+                    { type: 'line', xKey: 'x', yKey: 'a', strokeWidth: 1 },
+                    { type: 'area', xKey: 'x', yKey: 'b', strokeWidth: 1 },
+                ],
+                legend: {
+                    item: {
+                        showSeriesStroke: true,
+                        line: { length: 35 },
                     },
                 },
             });

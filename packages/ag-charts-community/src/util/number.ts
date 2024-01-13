@@ -55,3 +55,13 @@ export function mod(n: number, m: number) {
 
     return Math.floor((n % m) + m);
 }
+
+export const countFractionDigits = (value: number, maxFractionDigits = 10) => {
+    const decimal = (Math.abs(value) % 1).toFixed(maxFractionDigits); // 0.123 or 1.000
+    for (let i = decimal.length - 1; i >= 2 /* Decimal characters from index >= 2 */; i -= 1) {
+        if (decimal[i] !== '0') {
+            return maxFractionDigits - (decimal.length - 1 - i);
+        }
+    }
+    return 0;
+};

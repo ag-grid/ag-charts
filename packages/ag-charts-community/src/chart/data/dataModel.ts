@@ -998,6 +998,7 @@ export class DataModel<
                     if ('invalidValue' in def) {
                         value = def.invalidValue;
                     } else {
+                        Logger.warnOnce(`invalid value of type [${typeof value}] ignored:`, `[${value}]`);
                         return INVALID_VALUE;
                     }
                 }

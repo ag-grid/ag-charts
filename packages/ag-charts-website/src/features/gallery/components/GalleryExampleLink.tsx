@@ -8,13 +8,15 @@ import { GalleryExampleImage } from './GalleryExampleImage';
 interface Props {
     label: string;
     exampleName: string;
+    id?: string;
 }
 
-export const GalleryExampleLink: FunctionComponent<Props> = ({ label, exampleName }) => {
+export const GalleryExampleLink: FunctionComponent<Props> = ({ label, exampleName, id }) => {
     return (
         <a
             className={classnames(styles.link, 'galleryExample', styles[`layout-3-col`], 'text-sm', 'text-secondary')}
             href={getPageUrl(exampleName)}
+            id={id}
         >
             <div className={styles.image}>
                 <GalleryExampleImage label={label} exampleName={exampleName} />

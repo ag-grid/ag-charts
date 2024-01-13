@@ -1,20 +1,18 @@
-.vscode
-cypress
-jest
 node_modules
 src
 .gitignore
 .npmignore
 .prettierrc
-cypress.json
-github-banner.png
-github-grid-demo.jpg
-gulpfile.js
-tsconfig.build.json
-tsconfig.json
+.eslintrc.json
+rollup.*
+tsconfig.*
+project.json
+jest.*
+CONTRIBUTING.md
 
 !dist
 !dist/src
 !dist/umd
 
 dist/**/package.json
+dist/**/*.map

@@ -218,9 +218,11 @@ export abstract class CartesianSeries<
     }
 
     override addChartEventListeners(): void {
-        this.ctx.chartEventManager.addListener('legend-item-click', (event) => this.onLegendItemClick(event));
-        this.ctx.chartEventManager.addListener('legend-item-double-click', (event) =>
-            this.onLegendItemDoubleClick(event)
+        this.destroyFns.push(
+            this.ctx.chartEventManager.addListener('legend-item-click', (event) => this.onLegendItemClick(event)),
+            this.ctx.chartEventManager.addListener('legend-item-double-click', (event) =>
+                this.onLegendItemDoubleClick(event)
+            )
         );
     }
 
@@ -714,13 +716,11 @@ export abstract class CartesianSeries<
         const { enabled, itemId, series, numVisibleItems } = event;
         const { legendItemName } = this.properties;
 
-        const totalVisibleItems = Object.values(numVisibleItems).reduce((p, v) => p + v, 0);
-
         const matchedLegendItemName = legendItemName != null && legendItemName === event.legendItemName;
         if (series.id === this.id || matchedLegendItemName) {
             // Double-clicked item should always become visible.
             this.toggleSeriesItem(itemId, true);
-        } else if (enabled && totalVisibleItems === 1) {
+        } else if (enabled && numVisibleItems === 1) {
             // Other items should become visible if there is only one existing visible item.
             this.toggleSeriesItem(itemId, true);
         } else {

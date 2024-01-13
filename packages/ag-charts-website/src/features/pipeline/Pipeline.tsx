@@ -162,12 +162,12 @@ export const Pipeline = ({ location, currentFramework }) => {
 
     const gridReady = (params: any) => {
         setGridApi(params.api);
-        params.api.setQuickFilter(URLFilterSearchQuery);
+        params.api.updateGridOptions({ quickFilterText: URLFilterSearchQuery });
     };
 
     const onQuickFilterChange = useCallback(
         (event: any) => {
-            gridApi!.setQuickFilter(event.target.value);
+            gridApi.updateGridOptions({ quickFilterText: event.target.value });
         },
         [gridApi]
     );

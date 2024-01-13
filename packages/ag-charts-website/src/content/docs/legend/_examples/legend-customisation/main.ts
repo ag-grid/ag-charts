@@ -9,31 +9,31 @@ const options: AgChartOptions = {
 
     series: [
         {
-            type: 'bar',
+            type: 'line',
             xKey: 'quarter',
             yKey: 'naturalGas',
             yName: 'Natural gas',
         },
         {
-            type: 'bar',
+            type: 'line',
             xKey: 'quarter',
             yKey: 'coal',
             yName: 'Coal',
         },
         {
-            type: 'bar',
+            type: 'line',
             xKey: 'quarter',
             yKey: 'primaryOil',
             yName: 'Primary oil',
         },
         {
-            type: 'bar',
+            type: 'line',
             xKey: 'quarter',
             yKey: 'petroleum',
             yName: 'Petroleum',
         },
         {
-            type: 'bar',
+            type: 'line',
             xKey: 'quarter',
             yKey: 'manufacturedFuels',
             yName: 'Manufactured fuels',
@@ -41,6 +41,7 @@ const options: AgChartOptions = {
     ],
     legend: {
         item: {
+            showSeriesStroke: true,
             label: {
                 fontSize: 14,
                 fontStyle: 'italic',
@@ -53,6 +54,10 @@ const options: AgChartOptions = {
                 size: 20,
                 strokeWidth: 3,
                 shape: 'diamond', // 'circle', 'square', 'cross', 'plus', 'triangle'
+            },
+            line: {
+                strokeWidth: 4,
+                length: 15,
             },
         },
     },

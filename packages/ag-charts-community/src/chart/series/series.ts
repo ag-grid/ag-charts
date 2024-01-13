@@ -240,6 +240,7 @@ export abstract class Series<
     extends Observable
     implements ISeries<TDatum>
 {
+    protected destroyFns: (() => void)[] = [];
     abstract readonly properties: SeriesProperties<any>;
 
     pickModes: SeriesNodePickMode[];
@@ -481,6 +482,7 @@ export abstract class Series<
     }
 
     destroy(): void {
+        this.destroyFns.forEach((f) => f());
         this.ctx.seriesStateManager.deregisterSeries(this);
         this.ctx.seriesLayerManager.releaseGroup(this);
     }

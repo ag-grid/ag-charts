@@ -146,14 +146,14 @@ export const Changelog = () => {
         (params: any) => {
             setGridApi(params.api);
             searchBarEl.current.value = URLFilterItemKey;
-            params.api.setQuickFilter(URLFilterItemKey);
+            params.api.updateGridOptions({ quickFilterText: URLFilterItemKey });
         },
         [URLFilterItemKey]
     );
 
     const onQuickFilterChange = useCallback(
         (event: any) => {
-            gridApi.setQuickFilter(event.target.value);
+            gridApi.updateGridOptions({ quickFilterText: event.target.value });
         },
         [gridApi]
     );
@@ -172,25 +172,28 @@ export const Changelog = () => {
         [setFixVersion]
     );
 
-    const defaultColDef = {
-        sortable: true,
-        resizable: true,
-        cellClass: styles.fontClass,
-        headerClass: styles.fontClass,
-        autoHeaderHeight: true,
-        wrapHeaderText: true,
-        suppressMenu: true,
-        filter: true,
-        floatingFilter: true,
-        suppressKeyboardEvent: (params: any) => {
-            if (params.event.key === 'Enter' && params.node.master && params.event.type === 'keydown') {
-                params.api.getCellRendererInstances({ rowNodes: [params.node] })[0].clickHandlerFunc();
-                return true;
-            }
-            return false;
-        },
-        cellDataType: false,
-    };
+    const defaultColDef = useMemo(
+        () => ({
+            sortable: true,
+            resizable: true,
+            cellClass: styles.fontClass,
+            headerClass: styles.fontClass,
+            autoHeaderHeight: true,
+            wrapHeaderText: true,
+            suppressMenu: true,
+            filter: true,
+            floatingFilter: true,
+            suppressKeyboardEvent: (params: any) => {
+                if (params.event.key === 'Enter' && params.node.master && params.event.type === 'keydown') {
+                    params.api.getCellRendererInstances({ rowNodes: [params.node] })[0].clickHandlerFunc();
+                    return true;
+                }
+                return false;
+            },
+            cellDataType: false,
+        }),
+        []
+    );
 
     const detailCellRendererParams = useCallback((params: any) => {
         function produceHTML(fieldName: any, fieldInfo: any) {

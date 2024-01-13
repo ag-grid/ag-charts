@@ -20,7 +20,7 @@ export interface LegendItemDoubleClickChartEvent extends ChartEvent<'legend-item
     itemId: any;
     enabled: boolean;
     legendItemName?: string;
-    numVisibleItems: { [key: string]: number };
+    numVisibleItems: number;
 }
 
 export interface AxisHoverChartEvent extends ChartEvent<'axis-hover'> {
@@ -45,7 +45,7 @@ export class ChartEventManager extends BaseManager<ChartEventType, ChartEvents> 
         series: any,
         itemId: any,
         enabled: boolean,
-        numVisibleItems: { [key: string]: number },
+        numVisibleItems: number,
         legendItemName?: string
     ) {
         const event: LegendItemDoubleClickChartEvent = {

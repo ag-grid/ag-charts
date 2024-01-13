@@ -623,6 +623,7 @@ export class AreaSeries extends CartesianSeries<
                     fillOpacity: marker.fillOpacity ?? fillOpacity,
                     strokeOpacity: marker.strokeOpacity ?? strokeOpacity,
                     strokeWidth: marker.strokeWidth ?? 0,
+                    enabled: marker.enabled || strokeWidth <= 0,
                 },
                 line: {
                     stroke,

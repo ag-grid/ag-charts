@@ -25,6 +25,7 @@ export interface TestCase {
     options: AgChartOptions;
     assertions: (chart: Chart | AgChartProxy) => Promise<void>;
     extraScreenshotActions?: (chart: AgChartInstance) => Promise<void>;
+    warnings?: Array<string | Array<string>>;
 }
 
 export interface CartesianOrPolarTestCase extends TestCase {
@@ -402,7 +403,7 @@ export function reverseAxes<T extends AgCartesianChartOptions | AgPolarChartOpti
 }
 
 export function mixinReversedAxesCases(
-    baseCases: Record<string, CartesianOrPolarTestCase & { skip?: boolean }>
+    baseCases: Record<string, CartesianOrPolarTestCase & { skip?: boolean; skipWarningsReversed?: boolean }>
 ): Record<string, CartesianOrPolarTestCase> {
     const result = { ...baseCases };
 
@@ -410,6 +411,7 @@ export function mixinReversedAxesCases(
         result[name + '_REVERSED_AXES'] = {
             ...baseCase,
             options: reverseAxes(baseCase.options, true),
+            warnings: baseCase.skipWarningsReversed === false ? baseCase.warnings : [],
         };
     });
 

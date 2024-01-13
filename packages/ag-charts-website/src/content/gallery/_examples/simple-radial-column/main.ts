@@ -6,7 +6,7 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'Revenue by Product Category',
+        text: 'Product Revenue',
     },
     subtitle: {
         text: 'Millions USD',
@@ -15,40 +15,36 @@ const options: AgChartOptions = {
         {
             type: 'radial-column',
             angleKey: 'quarter',
-            radiusKey: 'software',
-            radiusName: 'Software',
-            strokeWidth: 1,
-            fillOpacity: 0.6,
-        },
-        {
-            type: 'radial-column',
-            angleKey: 'quarter',
-            radiusKey: 'hardware',
-            radiusName: 'Hardware',
-            strokeWidth: 1,
-            fillOpacity: 0.6,
-        },
-        {
-            type: 'radial-column',
-            angleKey: 'quarter',
-            radiusKey: 'services',
-            radiusName: 'Services',
-            strokeWidth: 1,
-            fillOpacity: 0.6,
+            radiusKey: 'product',
+            radiusName: 'Product',
+            fillOpacity: 0.8,
         },
     ],
     axes: [
         {
             type: 'radius-number',
-            innerRadiusRatio: 0.4,
+            innerRadiusRatio: 0.5,
             label: {
                 enabled: false,
+            },
+            tick: {
+                size: 0,
+                interval: 0.5,
+            },
+            gridLine: {
+                enabled: true,
             },
         },
         {
             type: 'angle-category',
-            groupPaddingInner: 0.3,
-            paddingInner: 0.3,
+            paddingInner: 0.4,
+            label: {
+                formatter: ({ value }) => (value.includes('1 ') ? value.substring(2) : ''),
+                padding: 0,
+            },
+            gridLine: {
+                enabled: true,
+            },
         },
     ],
 };
