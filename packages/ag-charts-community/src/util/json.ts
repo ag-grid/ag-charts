@@ -242,15 +242,15 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
             } else if (newValueType === CLASS_INSTANCE_TYPE) {
                 targetAny[property] = newValue;
             } else if (newValueType === 'object') {
-                if (currentValue != null) {
+                if (isProperties(currentValue)) {
+                    targetAny[property].set(newValue);
+                } else if (currentValue != null) {
                     jsonApply(currentValue, newValue as any, {
                         ...params,
                         path: propertyPath,
                         matcherPath: propertyMatcherPath,
                         idx: undefined,
                     });
-                } else if (isProperties(targetAny[property])) {
-                    targetAny[property].set(newValue);
                 } else if (ctr != null) {
                     const obj = new ctr();
                     if (isProperties(obj)) {

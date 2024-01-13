@@ -1,5 +1,5 @@
 import { isDecoratedObject, listDecoratedProperties } from './decorator';
-import { isObject } from './type-guards';
+import { isArray, isObject } from './type-guards';
 import type { Intersection } from './types';
 
 type FalsyType = false | null | undefined;
@@ -30,6 +30,18 @@ export function mergeDefaults<TSource extends Record<string, any>, TArgs extends
     }
 
     return target as Intersection<Exclude<TArgs[number], FalsyType>>;
+}
+
+export function getPath(object: object, path: string | string[]) {
+    const pathArray = isArray(path) ? path : path.split('.');
+    return pathArray.reduce<any>((value, pathKey) => value[pathKey], object);
+}
+
+export function setPath(object: object, path: string | string[], newValue: unknown) {
+    const pathArray = isArray(path) ? path.slice() : path.split('.');
+    const lastKey = pathArray.pop()!;
+    const lastObject = pathArray.reduce<any>((value, pathKey) => value[pathKey], object);
+    lastObject[lastKey] = newValue;
 }
 
 // Similar to Object.assign, but only copy an explicit set of keys.

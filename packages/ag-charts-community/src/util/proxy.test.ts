@@ -34,7 +34,7 @@ describe('proxy module', () => {
 
             nestedProperty = { inner: 1 };
 
-            @ProxyProperty('nestedProperty', 'inner')
+            @ProxyProperty('nestedProperty.inner')
             multipleProperties?: number;
 
             @ProxyOnWrite('target')

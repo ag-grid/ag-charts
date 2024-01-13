@@ -1,30 +1,21 @@
 import { addObserverToInstanceProperty, addTransformToInstanceProperty } from './decorator';
+import { getPath, setPath } from './object';
+import { isArray } from './type-guards';
 
-export function ProxyProperty(...proxyProperties: string[]) {
-    if (!proxyProperties.length) {
-        throw new Error('ProxyProperty expects at least one proxyProperties argument.');
-    }
+export function ProxyProperty(proxyPath: string | string[]) {
+    const pathArray = isArray(proxyPath) ? proxyPath : proxyPath.split('.');
 
-    const property = proxyProperties.at(-1)!;
-
-    if (proxyProperties.length === 1) {
+    if (pathArray.length === 1) {
+        const [property] = pathArray;
         return addTransformToInstanceProperty(
             (target, _, value) => (target[property] = value),
-            (target, _) => target[property]
+            (target) => target[property]
         );
     }
 
-    const getTarget = (target: any) => {
-        let value = target;
-        for (let i = 0; i < proxyProperties.length - 1; i++) {
-            value = value[proxyProperties[i]];
-        }
-        return value;
-    };
-
     return addTransformToInstanceProperty(
-        (target, _, value) => (getTarget(target)[property] = value),
-        (target, _) => getTarget(target)[property]
+        (target, _, value) => setPath(target, pathArray, value),
+        (target) => getPath(target, pathArray)
     );
 }
 

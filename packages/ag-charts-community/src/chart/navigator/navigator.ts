@@ -5,6 +5,8 @@ import { BBox } from '../../scene/bbox';
 import { ActionOnSet, ObserveChanges, ProxyProperty } from '../../util/proxy';
 import { BOOLEAN, POSITIVE_NUMBER, Validate } from '../../util/validation';
 import type { LayoutCompleteEvent, LayoutContext } from '../layout/layoutService';
+import { RangeHandle } from './shapes/rangeHandle';
+import { RangeMask } from './shapes/rangeMask';
 import { RangeSelector } from './shapes/rangeSelector';
 
 interface Offset {
@@ -14,11 +16,6 @@ interface Offset {
 
 export class Navigator extends BaseModuleInstance implements ModuleInstance {
     private readonly rs = new RangeSelector();
-
-    // Wrappers to allow option application to the scene graph nodes.
-    readonly mask = this.rs.mask;
-    readonly minHandle = this.rs.minHandle;
-    readonly maxHandle = this.rs.maxHandle;
 
     private minHandleDragging = false;
     private maxHandleDragging = false;
@@ -34,22 +31,31 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             this.updateGroupVisibility();
         },
     })
-    private enabled: boolean = false;
+    enabled: boolean = false;
 
-    @ProxyProperty('rs', 'width')
+    @ProxyProperty('rs.mask')
+    mask!: RangeMask;
+
+    @ProxyProperty('rs.minHandle')
+    minHandle!: RangeHandle;
+
+    @ProxyProperty('rs.maxHandle')
+    maxHandle!: RangeHandle;
+
+    @ProxyProperty('rs.width')
     width?: number;
 
-    @ProxyProperty('rs', 'height')
+    @ProxyProperty('rs.height')
     height?: number;
 
-    @ProxyProperty('rs', 'min')
+    @ProxyProperty('rs.min')
     min!: number;
 
-    @ProxyProperty('rs', 'max')
+    @ProxyProperty('rs.max')
     max!: number;
 
     @Validate(POSITIVE_NUMBER)
-    margin = 10;
+    margin: number = 10;
 
     @Validate(BOOLEAN)
     @ObserveChanges<Navigator>((target) => target.updateGroupVisibility())

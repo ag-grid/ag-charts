@@ -76,10 +76,10 @@ export class RangeSelector extends Group {
         return this.mask.height;
     }
 
-    @ProxyProperty('mask', 'min')
+    @ProxyProperty('mask.min')
     min!: number;
 
-    @ProxyProperty('mask', 'max')
+    @ProxyProperty('mask.max')
     max!: number;
 
     constructor() {

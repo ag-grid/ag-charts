@@ -200,14 +200,16 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 seriesTheme
             );
 
-            if (series.type === 'pie' && isArray(series.innerLabels)) {
-                seriesOptions.innerLabels = series.innerLabels.map((innerLabel) =>
+            if (innerLabelsTheme && isArray(seriesOptions.innerLabels)) {
+                seriesOptions.innerLabels = seriesOptions.innerLabels.map((innerLabel: object) =>
                     mergeDefaults(innerLabel, innerLabelsTheme)
                 );
             }
 
             return seriesOptions;
         }) as T['series'];
+
+        this.getSeriesGrouping();
     }
 
     protected getSeriesGroupingOptions(series: SeriesOptions & GroupingOptions) {
