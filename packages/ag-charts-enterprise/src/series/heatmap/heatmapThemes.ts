@@ -9,7 +9,7 @@ export const HEATMAP_SERIES_THEME: Partial<
         enabled: false,
         color: _Theme.DEFAULT_LABEL_COLOUR,
         fontStyle: undefined,
-        fontSize: 16,
+        fontSize: _Theme.FONT_SIZE.SMALL,
         minimumFontSize: undefined,
         fontFamily: _Theme.DEFAULT_FONT_FAMILY,
         wrapping: 'on-space' as const,
