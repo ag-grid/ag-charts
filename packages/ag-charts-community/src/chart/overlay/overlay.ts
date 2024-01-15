@@ -41,7 +41,7 @@ export class Overlay {
             content.style.font = '12px Verdana, sans-serif';
             content.innerText = this.text ?? 'No data to display';
 
-            element.append(content);
+            element.replaceChildren(content);
         }
 
         this.parentElement?.append(element);
