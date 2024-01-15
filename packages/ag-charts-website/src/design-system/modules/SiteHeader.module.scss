@@ -5,7 +5,10 @@
     align-items: center;
     position: relative;
     background-color: var(--color-bg-site-header);
-    overflow-x: hidden;
+
+    @media screen and (max-width: $breakpoint-docs-nav-medium) {
+        overflow-x: hidden;
+    }
 
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
         position: sticky;
