@@ -176,9 +176,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
     }
 
     override get visible() {
-        return this.seriesItemEnabled.length
-            ? this.seriesItemEnabled.some((visible) => visible)
-            : this.properties.visible;
+        return this.seriesItemEnabled.length ? this.seriesItemEnabled.some((visible) => visible) : super.visible;
     }
 
     private processSeriesItemEnabled() {
