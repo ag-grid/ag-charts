@@ -27,8 +27,6 @@ export function jsonDiff<T extends unknown>(source: T, target: T): Partial<T> | 
         ) {
             return target;
         }
-    } else if (!isPlainObject(source)) {
-        return target;
     } else if (isObject(target)) {
         if (!isObject(source)) {
             return target;
