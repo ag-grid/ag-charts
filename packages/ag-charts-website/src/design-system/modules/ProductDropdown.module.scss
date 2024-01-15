@@ -4,7 +4,7 @@
     position: relative;
     padding-right: $spacing-size-2;
     @media screen and (max-width: $breakpoint-docs-nav-medium) {
-display: none;
+        display: none;
     }
 }
 
@@ -16,7 +16,9 @@ display: none;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    transition: background-color 0.3s, color 0.3s;
+    transition:
+        background-color 0.3s,
+        color 0.3s;
     font-weight: var(--text-semibold);
     font-size: 17px;
     border: none;
@@ -30,18 +32,17 @@ display: none;
 }
 
 .customTrigger:hover {
-            background: rgba(255,255,255, 0.1);
-            border: none;
-            border-radius: var(--radius-3xl);
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: var(--radius-3xl);
 }
 
 .customTrigger.open .arrow {
     margin-top: 4px;
     transform: rotate(225deg);
-    
 }
 .customTrigger.open {
-background: rgba(255,255,255, 0.1);
+    background: rgba(255, 255, 255, 0.1);
     border: none;
 }
 .arrow {
@@ -90,7 +91,9 @@ background: rgba(255,255,255, 0.1);
     left: 0;
     opacity: 0;
     transform: translateY(10px) scale(0.95);
-    transition: opacity 0.15s ease, transform 0.15s ease;
+    transition:
+        opacity 0.15s ease,
+        transform 0.15s ease;
     padding: $spacing-size-2;
     border-radius: var(--radius-md);
     width: 400px;
