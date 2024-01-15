@@ -20,7 +20,11 @@ const CLASS_INSTANCE_TYPE = 'class-instance';
  */
 export function jsonDiff<T extends unknown>(source: T, target: T): Partial<T> | null {
     if (isArray(target)) {
-        if (!isArray(source) || source.length !== target.length || target.some((v, i) => jsonDiff(source[i], v))) {
+        if (
+            !isArray(source) ||
+            source.length !== target.length ||
+            target.some((v, i) => jsonDiff(source[i], v) != null)
+        ) {
             return target;
         }
     } else if (isObject(target)) {
