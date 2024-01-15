@@ -1,6 +1,6 @@
 {
   "name": "ag-charts-generate-example-files",
-  "version": "9.0.1-beta.20240115.1744",
+  "version": "9.0.1-beta.20240115.2224",
   "private": true,
   "dependencies": {
     "glob": "8.0.3",
