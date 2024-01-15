@@ -38,12 +38,5 @@ export const Footer = ({ path, footerItems }: FooterProps) => (
             <p className="text-sm">AG Grid Ltd registered in the United Kingdom. Company&nbsp;No.&nbsp;07318192.</p>
             <p className="text-sm">&copy; AG Grid Ltd. 2015-{new Date().getFullYear()}</p>
         </div>
-
-        {/* Only show customer logo trademark info on homepage */}
-        {(path === SITE_BASE_URL || path === undefined) && (
-            <div className={classNames(styles.trademarks, 'layout-grid')}>
-                <p className="text-sm">The Microsoft logo is a trademark of the Microsoft group of companies.</p>
-            </div>
-        )}
     </footer>
 );
