@@ -80,11 +80,11 @@ export class CartesianSeriesNodeClickEvent<TEvent extends string = SeriesNodeEve
         type: TEvent,
         nativeEvent: MouseEvent,
         datum: SeriesNodeDatum,
-        series: Series<any, any> & { xKey?: string; yKey?: string }
+        series: Series<any, any> & { properties: { xKey?: string; yKey?: string } }
     ) {
         super(type, nativeEvent, datum, series);
-        this.xKey = series.xKey;
-        this.yKey = series.yKey;
+        this.xKey = series.properties.xKey;
+        this.yKey = series.properties.yKey;
     }
 }
 

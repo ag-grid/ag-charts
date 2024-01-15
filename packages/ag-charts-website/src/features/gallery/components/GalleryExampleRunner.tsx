@@ -112,7 +112,6 @@ const GalleryExampleRunnerInner = ({ title, exampleName, loadingIFrameId }: Prop
         }
         const files = {
             ...contents.files,
-            'package.json': contents.packageJson,
             // Override `index.html` with generated file as
             // exampleFiles endpoint only gets the index html fragment
             'index.html': exampleFileHtml,

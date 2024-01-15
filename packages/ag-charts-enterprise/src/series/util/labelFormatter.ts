@@ -58,9 +58,9 @@ export function generateLabelSecondaryLabelFontSizeCandidates<FormatterParams>(
                 : -1;
 
         if (labelProgress > secondaryLabelProgress) {
-            currentLabelFontSize -= 1;
+            currentLabelFontSize--;
         } else {
-            currentSecondaryLabelFontSize -= 1;
+            currentSecondaryLabelFontSize--;
         }
 
         out.push({

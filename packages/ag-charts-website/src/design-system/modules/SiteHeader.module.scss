@@ -6,6 +6,10 @@
     position: relative;
     background-color: var(--color-bg-site-header);
 
+    @media screen and (max-width: $breakpoint-docs-nav-medium) {
+        overflow-x: hidden;
+    }
+
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
         position: sticky;
         top: 0;
@@ -52,7 +56,7 @@
     }
 
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
-        margin-right: auto;
+        margin-right: 16px;
     }
 }
 

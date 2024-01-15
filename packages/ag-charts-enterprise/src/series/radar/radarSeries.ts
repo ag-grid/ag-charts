@@ -418,10 +418,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
     onLegendItemDoubleClick(event: _ModuleSupport.LegendItemDoubleClickChartEvent) {
         const { enabled, itemId, series, numVisibleItems } = event;
 
-        const totalVisibleItems = Object.values(numVisibleItems).reduce((p, v) => p + v, 0);
-
         const wasClicked = series.id === this.id;
-        const newEnabled = wasClicked || (enabled && totalVisibleItems === 1);
+        const newEnabled = wasClicked || (enabled && numVisibleItems === 1);
 
         this.toggleSeriesItem(itemId, newEnabled);
     }

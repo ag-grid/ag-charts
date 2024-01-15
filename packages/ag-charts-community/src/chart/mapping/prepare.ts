@@ -112,7 +112,7 @@ function calculateSeriesPalette<T extends SeriesOptionsTypes>(context: Preparati
     }
 
     const {
-        palette: { fills, strokes },
+        palette: { fills = [], strokes = [] },
         userPalette,
         theme,
     } = context;
@@ -135,7 +135,7 @@ function calculateSeriesPalette<T extends SeriesOptionsTypes>(context: Preparati
 
 function prepareAxis<T extends AxesOptionsTypes>(
     axis: T,
-    axisTheme: { crossLines: AgCartesianCrossLineOptions; gridLine: AgAxisGridLineOptions }
+    axisTheme: { crossLines?: AgCartesianCrossLineOptions; gridLine?: AgAxisGridLineOptions }
 ): T {
     // Special cross lines case where we have an array of cross line elements which need their own defaults.
     if (axis.crossLines) {
@@ -147,7 +147,7 @@ function prepareAxis<T extends AxesOptionsTypes>(
     }
 
     // Same thing grid lines (AG-8777)
-    const gridLineStyle = axisTheme.gridLine.style;
+    const gridLineStyle = axisTheme.gridLine?.style;
     if (axis.gridLine?.style !== undefined && gridLineStyle !== undefined && gridLineStyle.length > 0) {
         if (!isArray(axis.gridLine.style)) {
             Logger.warn('axis[].gridLine.style should be an array.');

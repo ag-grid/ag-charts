@@ -273,7 +273,7 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
                 : `${makeLine(valueKey, valueName, valueValue)}<br/>${makeLine(targetKey, targetName, targetValue)}`;
 
         return this.properties.tooltip.toTooltipHtml(
-            { title, content },
+            { title, content, backgroundColor: this.properties.fill },
             { datum, title, seriesId: this.id, valueKey, valueName, targetKey, targetName }
         );
     }

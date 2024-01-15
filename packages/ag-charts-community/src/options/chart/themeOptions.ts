@@ -38,14 +38,14 @@ export type AgChartThemeName =
 
 export interface AgChartThemePalette {
     /** The array of fills to be used. */
-    fills: string[];
+    fills?: string[];
     /** The array of strokes to be used. */
-    strokes: string[];
+    strokes?: string[];
 }
 
 export interface AgBaseChartThemeOptions {
     /** The palette to use. If specified, this replaces the palette from the base theme. */
-    palette?: Partial<AgChartThemePalette>;
+    palette?: AgChartThemePalette;
     /** Configuration from this object is merged over the defaults specified in the base theme. */
     overrides?: AgChartThemeOverrides;
 }
