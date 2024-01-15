@@ -1,66 +1,71 @@
-import { _Scene } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 const { Image } = _Scene;
+const { BaseProperties, ObserveChanges, ProxyProperty, Validate, NUMBER, POSITIVE_NUMBER, RATIO } = _ModuleSupport;
 
-export class BackgroundImage {
-    readonly node: _Scene.Image;
-    private readonly _image: HTMLImageElement = document.createElement('img');
+export class BackgroundImage extends BaseProperties {
+    private readonly imageElement: HTMLImageElement;
     private loadedSynchronously: boolean = true;
+    readonly node: _Scene.Image;
 
     constructor() {
-        this.node = new Image(this._image);
-        this._image.onload = this.onImageLoad;
+        super();
+
+        this.imageElement = document.createElement('img');
+        this.imageElement.onload = this.onImageLoad;
+        this.node = new Image(this.imageElement);
     }
 
-    left?: number = undefined;
-    top?: number = undefined;
-    right?: number = undefined;
-    bottom?: number = undefined;
-    width?: number = undefined;
-    height?: number = undefined;
+    @Validate(NUMBER, { optional: true })
+    top?: number;
 
+    @Validate(NUMBER, { optional: true })
+    right?: number;
+
+    @Validate(NUMBER, { optional: true })
+    bottom?: number;
+
+    @Validate(NUMBER, { optional: true })
+    left?: number;
+
+    @Validate(POSITIVE_NUMBER, { optional: true })
+    width?: number;
+
+    @Validate(POSITIVE_NUMBER, { optional: true })
+    height?: number;
+
+    @Validate(RATIO)
     opacity: number = 1;
 
-    get url() {
-        return this._image.src;
-    }
-    set url(value: string) {
-        this._image.src = value;
-        this.loadedSynchronously = this.complete;
-    }
+    @ProxyProperty('imageElement.src')
+    @ObserveChanges<BackgroundImage>((target) => (target.loadedSynchronously = target.complete))
+    url?: string;
 
     get complete() {
         // In tests image is nodejs-canvas Image, which doesn't report its status in the 'complete' method correctly.
-        return this._image.width > 0 && this._image.height > 0;
+        return this.imageElement.width > 0 && this.imageElement.height > 0;
     }
 
     private containerWidth: number = 0;
     private containerHeight: number = 0;
-    onload?: () => void = undefined;
+    onLoad?: () => void = undefined;
 
     performLayout(containerWidth: number, containerHeight: number) {
         this.containerWidth = containerWidth;
         this.containerHeight = containerHeight;
-
-        if (!this.complete) {
-            this.node.visible = false;
-            return;
-        }
-
-        const position = this.calculatePosition(this._image.width, this._image.height);
-
-        Object.assign(this.node, position);
-        this.node.visible = true;
-        this.node.opacity = this.opacity;
+        this.node.setProperties(
+            this.complete
+                ? {
+                      visible: true,
+                      opacity: this.opacity,
+                      ...this.calculatePosition(this.imageElement.width, this.imageElement.height),
+                  }
+                : { visible: false }
+        );
     }
 
     calculatePosition(naturalWidth: number, naturalHeight: number) {
-        let left = this.left;
-        let right = this.right;
-        let width = this.width;
-        let top = this.top;
-        let bottom = this.bottom;
-        let height = this.height;
+        let { top, right, bottom, left, width, height } = this;
 
         if (left != null) {
             if (width != null) {
@@ -119,8 +124,6 @@ export class BackgroundImage {
         this.node.visible = false; // Ensure marked dirty.
         this.performLayout(this.containerWidth, this.containerHeight);
 
-        if (this.onload) {
-            this.onload();
-        }
+        this.onLoad?.();
     };
 }

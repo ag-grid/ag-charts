@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Theme } from 'ag-charts-community';
+import { _ModuleSupport, _Theme, _Util } from 'ag-charts-community';
 
 import { BULLET_DEFAULTS } from './bulletDefaults';
 import { BulletSeries } from './bulletSeries';
