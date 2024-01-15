@@ -330,7 +330,7 @@ function calculateSeriesPalette<T extends SeriesOptionsTypes>(context: Preparati
 
 function prepareAxis<T extends AxesOptionsTypes>(
     axis: T,
-    axisTheme: { crossLines: AgCartesianCrossLineOptions; gridLine: AgAxisGridLineOptions }
+    axisTheme: { crossLines?: AgCartesianCrossLineOptions; gridLine?: AgAxisGridLineOptions }
 ): T {
     // Remove redundant theme overload keys.
     const removeOptions = { top: DELETE, bottom: DELETE, left: DELETE, right: DELETE } as any;
@@ -341,11 +341,11 @@ function prepareAxis<T extends AxesOptionsTypes>(
             Logger.warn('axis[].crossLines should be an array.');
             axis.crossLines = [];
         }
-        axis.crossLines = axis.crossLines.map((crossLine) => jsonMerge([axisTheme.crossLines, crossLine]));
+        axis.crossLines = axis.crossLines.map((crossLine) => jsonMerge([axisTheme.crossLines ?? {}, crossLine]));
     }
 
     // Same thing grid lines (AG-8777)
-    const gridLineStyle = axisTheme.gridLine.style;
+    const gridLineStyle = axisTheme.gridLine?.style;
     if (axis.gridLine?.style !== undefined && gridLineStyle !== undefined && gridLineStyle.length > 0) {
         if (!Array.isArray(axis.gridLine.style)) {
             Logger.warn('axis[].gridLine.style should be an array.');
