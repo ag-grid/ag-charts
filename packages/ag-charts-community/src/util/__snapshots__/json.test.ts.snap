@@ -40,6 +40,15 @@ exports[`json module #jsonDiff for trivial cases should correctly diff primitive
 }
 `;
 
+exports[`json module #jsonDiff for trivial cases should correctly diff with negative values 1`] = `
+{
+  "a": [
+    0,
+  ],
+  "b": false,
+}
+`;
+
 exports[`json module #jsonMerge for objects and arrays should create deep clones for arrays 1`] = `
 {
   "a": [

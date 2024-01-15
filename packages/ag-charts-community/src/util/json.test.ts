@@ -47,6 +47,14 @@ describe('json module', () => {
                 const diff = jsonDiff(source, target);
                 expect(diff).toMatchSnapshot();
             });
+
+            it('should correctly diff with negative values', () => {
+                const source = { a: [5], b: true };
+                const target = { a: [0], b: false };
+
+                const diff = jsonDiff(source, target);
+                expect(diff).toMatchSnapshot();
+            });
         });
 
         describe('for non-trivial cases', () => {
