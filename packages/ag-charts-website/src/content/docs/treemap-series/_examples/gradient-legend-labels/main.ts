@@ -14,6 +14,9 @@ const options: AgChartOptions = {
         },
     ],
     gradientLegend: {
+        gradient: {
+            preferredLength: 200,
+        },
         scale: {
             label: {
                 fontSize: 20,
