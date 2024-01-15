@@ -13,6 +13,8 @@ const options: AgChartOptions = {
             targetKey: 'objective',
             targetName: 'Target income',
             scale: { max: 15000 },
+            fill: '#000000',
+            target: { stroke: '#3B3B3B' },
             colorRanges: [
                 { color: '#FFB6C1' /* Light Pink */, stop: 8000 },
                 { color: '#FFFACD' /* Light Yellow */, stop: 13000 },
