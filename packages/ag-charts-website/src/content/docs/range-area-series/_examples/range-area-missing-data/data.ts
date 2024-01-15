@@ -1761,14 +1761,6 @@ export function getData() {
             flatsAndMaisonettes: undefined,
         },
         {
-            date: new Date('2018-05-01'),
-            allPropertyTypes: 478485,
-            detachedHouses: 903088,
-            semiDetachedHouses: 581868,
-            terracedHouses: 497350,
-            flatsAndMaisonettes: 420076,
-        },
-        {
             date: new Date('2018-06-01'),
             allPropertyTypes: 479931,
             detachedHouses: undefined,
