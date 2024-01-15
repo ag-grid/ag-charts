@@ -11,7 +11,7 @@ import { getFrameworkFromPath } from '../../features/docs/utils/urlPaths';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import { isDynamicFrameworkPath, replaceDynamicFrameworkPath } from '@utils/framework';
 import { DarkModeToggle } from './DarkModeToggle';
-import { Dropdown } from '../dropdown/Dropdown';
+import { ProductDropdown } from '../productDropdown/ProductDropdown';
 
 const { pathname } = Astro.url;
 const { data: menuData } = await getEntry('menu', 'data');
@@ -69,7 +69,7 @@ const dropdownItems = [
 <header class:list={[gridStyles.header, 'site-header']}>
     <div class:list={[gridStyles.headerInner, 'layout-page-max-width']}>
         <SiteLogo client:load />
-        <Dropdown client:load items={dropdownItems} children={null} />
+        <ProductDropdown client:load items={dropdownItems} children={null} />
 
         {
             showDocsNav && (

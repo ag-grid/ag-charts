@@ -3,6 +3,7 @@
 .customMenu {
     position: relative;
     padding-right: $spacing-size-2;
+
     @media screen and (max-width: $breakpoint-docs-nav-medium) {
         display: none;
     }
