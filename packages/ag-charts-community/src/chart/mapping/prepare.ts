@@ -307,7 +307,7 @@ function calculateSeriesPalette<T extends SeriesOptionsTypes>(context: Preparati
     }
 
     const {
-        palette: { fills, strokes },
+        palette: { fills = [], strokes = [] },
         userPalette,
         theme,
     } = context;
