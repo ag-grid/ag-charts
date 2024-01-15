@@ -1,4 +1,4 @@
-import type { AgBulletSeriesOptions, AgBulletSeriesTooltipRendererParams } from 'ag-charts-community';
+import type { AgBulletSeriesOptions, AgBulletSeriesTooltipRendererParams, CssColor } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
 const {
@@ -92,8 +92,8 @@ export class BulletSeriesProperties extends AbstractBarSeriesProperties<AgBullet
     @Validate(RATIO)
     widthRatio: number = 0.5;
 
-    @Validate(ARRAY.restrict({ minLength: 1 }))
-    colorRanges: BulletColorRange[] = new PropertiesArray(BulletColorRange, {});
+    @Validate(ARRAY.restrict({ minLength: 1 }), { optional: true })
+    colorRanges?: BulletColorRange[] = undefined;
 
     @Validate(OBJECT)
     readonly target = new TargetStyle();
@@ -103,4 +103,7 @@ export class BulletSeriesProperties extends AbstractBarSeriesProperties<AgBullet
 
     @Validate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgBulletSeriesTooltipRendererParams>();
+
+    @Validate(COLOR_STRING) // Internal: Set by paletteFactory.
+    backgroundFill: CssColor = 'white';
 }

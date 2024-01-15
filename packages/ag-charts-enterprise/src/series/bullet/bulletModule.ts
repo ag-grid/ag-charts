@@ -42,12 +42,11 @@ export const BulletModule: _ModuleSupport.SeriesModule<'bullet'> = {
             (Array.isArray(themeBackgroundColor) ? themeBackgroundColor[0] : themeBackgroundColor) ?? 'white';
 
         const targetStroke = properties.get(_Theme.DEFAULT_CROSS_LINES_COLOUR);
-        const colorRangeColor = _Util.Color.interpolate(fill, backgroundFill)(0.7);
         return {
             fill,
             stroke,
             target: { stroke: targetStroke },
-            colorRanges: [{ color: colorRangeColor }],
+            backgroundFill
         };
     },
 };
