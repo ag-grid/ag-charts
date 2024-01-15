@@ -105,7 +105,7 @@ const options: AgChartOptions = {
             type: 'number',
             nice: false,
             label: {
-                formatter: ({ value }) => `${value / Math.PI}π`,
+                formatter: ({ value }) => `${Math.round(value / Math.PI)}π`,
             },
             tick: {
                 interval: Math.PI,
