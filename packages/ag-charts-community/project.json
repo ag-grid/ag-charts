@@ -63,6 +63,7 @@
     "build:umd": {
       "executor": "@nx/esbuild:esbuild",
       "dependsOn": ["build:package"],
+      "inputs": ["jsOutputs"],
       "outputs": ["{options.outputPath}"],
       "options": {
         "outputPath": "packages/ag-charts-community/dist/umd",

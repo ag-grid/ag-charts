@@ -26,11 +26,11 @@ jobs:
               uses: actions/setup-node@v3
               with:
                   node-version: '18'
-                    cache: 'yarn'
+                  cache: 'yarn'
             - uses: actions/setup-java@v4
               with:
-                distribution: 'oracle'
-                java-version: '17'
+                  distribution: 'oracle'
+                  java-version: '17'
             - name: yarn install
               id: yarn_install
               run: yarn install --ci --prefer-offline
