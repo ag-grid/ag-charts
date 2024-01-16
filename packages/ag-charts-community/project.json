@@ -187,7 +187,7 @@
     "pack": {
       "executor": "nx:run-commands",
       "dependsOn": ["build"],
-      "outputs": ["{workspaceRoot}/dist/packages/ag-charts-community.tgz"],
+      "outputs": ["{workspaceRoot}/dist/{projectRoot}.tgz"],
       "options": {
         "cwd": "packages/ag-charts-community",
         "commands": ["mkdir -p ../../dist/packages", "yarn pack -f ../../dist/packages/ag-charts-community.tgz"]
@@ -196,6 +196,7 @@
     "pack:extract": {
       "executor": "nx:run-commands",
       "dependsOn": ["pack"],
+      "inputs": ["{workspaceRoot}/dist/{projectRoot}.tgz"],
       "outputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-community/"],
       "options": {
         "commands": [
@@ -207,6 +208,7 @@
     "pack:verify": {
       "executor": "nx:run-commands",
       "dependsOn": ["pack:extract"],
+      "inputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-community/"],
       "options": {
         "commands": ["node tools/sanity-check-package.js dist/packages/contents/ag-charts-community/package"]
       }
