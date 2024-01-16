@@ -12,7 +12,7 @@ export const LicensePricing = () => {
     return (
         <>
             {!IS_SSR && (
-                <div className={classnames(styles.container)}>
+                <div className={classnames(styles.chartsPricingOuter, 'layout-max-width-small')}>
                     <iframe
                         style={{ height: '100%', width: '100%' }}
                         frameBorder="0"

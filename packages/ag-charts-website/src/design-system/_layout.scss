@@ -15,8 +15,10 @@
     margin-left: auto;
 }
 
-.layout-copy-max-width {
-    max-width: var(--layout-copy-max-width);
+.layout-max-width-small {
+    max-width: var(--layout-max-width-small);
+    padding-left: var(--layout-horizontal-margins);
+    padding-right: var(--layout-horizontal-margins);
     margin-right: auto;
     margin-left: auto;
 }

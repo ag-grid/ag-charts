@@ -13,6 +13,8 @@ concurrency:
 env:
     NX_BRANCH: ${{ github.ref }}
     NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_ACCESS_TOKEN }}
+    # Set to --batch to enable batch execution.
+    NX_BATCH_FLAG: ''
 
 jobs:
     execute_blt:
@@ -51,7 +53,7 @@ jobs:
                   # Non-batched builds - some TS/JS targets will fail if run with --batch, so build them unbatched first.
                   yarn nx run-many -t build --parallel=3  --exclude "all,ag-charts-website,tag:supports:batch"
                   # Batched builds.
-                  yarn nx run-many -t build --parallel=3  --exclude all --batch
+                  yarn nx run-many -t build --parallel=3  --exclude all ${NX_BATCH_FLAG}
 
             - name: nx blt
               id: blt
