@@ -21,7 +21,7 @@
     "pack": {
       "executor": "nx:run-commands",
       "dependsOn": ["build"],
-      "outputs": ["{workspaceRoot}/dist/packages/ag-charts-vue.tgz"],
+      "outputs": ["{workspaceRoot}/dist/{projectRoot}.tgz"],
       "options": {
         "cwd": "packages/ag-charts-vue",
         "commands": ["mkdir -p ../../dist/packages", "yarn pack -f ../../dist/packages/ag-charts-vue.tgz"]
@@ -30,6 +30,7 @@
     "pack:extract": {
       "executor": "nx:run-commands",
       "dependsOn": ["pack"],
+      "inputs": ["{workspaceRoot}/dist/{projectRoot}.tgz"],
       "outputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-vue/"],
       "options": {
         "commands": [
@@ -41,6 +42,7 @@
     "pack:verify": {
       "executor": "nx:run-commands",
       "dependsOn": ["pack:extract"],
+      "inputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-vue/"],
       "options": {
         "commands": ["node tools/sanity-check-package.js dist/packages/contents/ag-charts-vue/package"]
       }

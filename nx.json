@@ -6,17 +6,22 @@
   },
   "namedInputs": {
     "default": ["{projectRoot}/**/*", "sharedGlobals"],
-    "production": [
-      "default",
+    "defaultExcludes": [
       "!{projectRoot}/.eslintrc.json",
       "!{projectRoot}/**/?(*.)+(spec|test).[jt]s?(x)?(.snap)",
       "!{projectRoot}/**/test/**",
       "!{projectRoot}/tsconfig.spec.json",
       "!{projectRoot}/jest.config.[jt]s"
     ],
+    "production": ["default", "defaultExcludes"],
     "tsDeclarations": [
       {
         "dependentTasksOutputFiles": "**/*.d.ts"
+      }
+    ],
+    "jsOutputs": [
+      {
+        "dependentTasksOutputFiles": "**/*.js"
       }
     ],
     "tsDefaults": [
@@ -49,7 +54,7 @@
     },
     "build:umd": {
       "dependsOn": ["build:package", "^build:package"],
-      "inputs": ["production", "^production"],
+      "inputs": ["^jsOutputs"],
       "cache": true
     },
     "lint": {

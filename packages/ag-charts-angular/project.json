@@ -12,6 +12,7 @@
         "{projectRoot}/projects/**",
         { "externalDependencies": ["@angular/cli", "@angular/core"] }
       ],
+      "cache": true,
       "outputs": ["{projectRoot}/dist"],
       "options": {
         "script": "build"
@@ -20,29 +21,29 @@
     "pack": {
       "executor": "nx:run-commands",
       "dependsOn": ["build"],
-      "outputs": ["{workspaceRoot}/dist/packages/ag-charts-angular.tgz"],
+      "inputs": ["{projectRoot}/dist/ag-charts-angular/"],
+      "outputs": ["{workspaceRoot}/dist/{projectRoot}.tgz"],
       "options": {
-        "cwd": "packages/ag-charts-angular/dist/ag-charts-angular",
-        "commands": [
-          "mkdir -p ../../../../dist/packages",
-          "yarn pack -f ../../../../dist/packages/ag-charts-angular.tgz"
-        ]
+        "cwd": "{projectRoot}//dist/ag-charts-angular",
+        "commands": ["mkdir -p ../../../../dist/packages", "yarn pack -f ../../../../dist/{projectRoot}.tgz"]
       }
     },
     "pack:extract": {
       "executor": "nx:run-commands",
       "dependsOn": ["pack"],
+      "inputs": ["{workspaceRoot}/dist/{projectRoot}.tgz"],
       "outputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-angular/"],
       "options": {
         "commands": [
           "mkdir -p dist/packages/contents/ag-charts-angular",
-          "tar -xzf dist/packages/ag-charts-angular.tgz -C dist/packages/contents/ag-charts-angular/"
+          "tar -xzf dist/{projectRoot}.tgz -C dist/packages/contents/ag-charts-angular/"
         ]
       }
     },
     "pack:verify": {
       "executor": "nx:run-commands",
       "dependsOn": ["pack:extract"],
+      "inputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-angular/"],
       "options": {
         "commands": ["node tools/sanity-check-package.js dist/packages/contents/ag-charts-angular/package"]
       }
