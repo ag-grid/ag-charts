@@ -39,6 +39,7 @@
 
     &:not(.notExpandable) > div {
         overflow: hidden;
+        padding-bottom: $spacing-size-24;
     }
 
     &.contentCollapsed:not(.notExpandable) > div {
