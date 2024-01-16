@@ -2,6 +2,7 @@ import type { AgChartThemePalette } from '../../options/agChartOptions';
 import { ChartTheme } from './chartTheme';
 import {
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
+    DEFAULT_LABEL_COLOUR,
     DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
     DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
     DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
@@ -44,6 +45,9 @@ export class VividLight extends ChartTheme {
         return {
             fill: VIVID_FILLS.BLUE,
             stroke: VIVID_STROKES.BLUE,
+            label: {
+                color: DEFAULT_LABEL_COLOUR,
+            },
         };
     }
 
@@ -51,6 +55,9 @@ export class VividLight extends ChartTheme {
         return {
             fill: VIVID_FILLS.ORANGE,
             stroke: VIVID_STROKES.ORANGE,
+            label: {
+                color: DEFAULT_LABEL_COLOUR,
+            },
         };
     }
 
@@ -58,6 +65,9 @@ export class VividLight extends ChartTheme {
         return {
             fill: VIVID_FILLS.GRAY,
             stroke: VIVID_STROKES.GRAY,
+            label: {
+                color: DEFAULT_LABEL_COLOUR,
+            },
         };
     }
 

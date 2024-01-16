@@ -2,6 +2,7 @@ import type { AgChartThemePalette } from '../../options/agChartOptions';
 import { ChartTheme } from './chartTheme';
 import {
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
+    DEFAULT_LABEL_COLOUR,
     DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
     DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
     DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
@@ -47,6 +48,9 @@ export class PolychromaLight extends ChartTheme {
         return {
             fill: POLYCHROMA_LIGHT_FILLS.BLUE,
             stroke: POLYCHROMA_LIGHT_STROKES.BLUE,
+            label: {
+                color: DEFAULT_LABEL_COLOUR,
+            },
         };
     }
 
@@ -54,6 +58,9 @@ export class PolychromaLight extends ChartTheme {
         return {
             fill: POLYCHROMA_LIGHT_FILLS.RED,
             stroke: POLYCHROMA_LIGHT_STROKES.RED,
+            label: {
+                color: DEFAULT_LABEL_COLOUR,
+            },
         };
     }
 
@@ -61,6 +68,9 @@ export class PolychromaLight extends ChartTheme {
         return {
             fill: POLYCHROMA_LIGHT_FILL_GRAY,
             stroke: POLYCHROMA_LIGHT_STROKE_GRAY,
+            label: {
+                color: DEFAULT_LABEL_COLOUR,
+            },
         };
     }
 
