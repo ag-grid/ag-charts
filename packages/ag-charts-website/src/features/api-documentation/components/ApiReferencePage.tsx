@@ -1,5 +1,6 @@
 import styles from '@design-system/modules/ApiReferencePage.module.scss';
 import { navigate, useHistory, useLocation } from '@utils/navigation';
+import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import classNames from 'classnames';
 import type { CSSProperties } from 'react';
 import { useContext, useEffect, useState } from 'react';
@@ -66,7 +67,7 @@ export function ApiReferencePage({
                     <div className={classNames(styles.container, 'layout-grid')}>
                         <div className={styles.objectViewOuter}>
                             <OptionsNavigation
-                                basePath={`${SITE_BASE_URL}${basePath}/`}
+                                basePath={`${urlWithBaseUrl(`/${basePath}`)}/`}
                                 breadcrumbs={breadcrumbs}
                                 rootInterface={rootInterface}
                             />
