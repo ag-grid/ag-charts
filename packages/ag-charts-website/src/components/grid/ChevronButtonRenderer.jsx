@@ -3,7 +3,7 @@ import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import classNames from 'classnames';
 import React, { forwardRef, useImperativeHandle, useState } from 'react';
 
-const TreeClosed = urlWithBaseUrl(`theme-icons/alpine/tree-closed.svg`);
+const TreeClosed = urlWithBaseUrl(`/theme-icons/alpine/tree-closed.svg`);
 
 const IS_SSR = typeof window === 'undefined';
 
