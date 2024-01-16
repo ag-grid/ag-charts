@@ -13,6 +13,7 @@ import { Icon } from '@components/icon/Icon';
 import ReleaseVersionNotes from '@components/release-notes/ReleaseVersionNotes';
 import styles from '@design-system/modules/pipelineChangelog.module.scss';
 import { useDarkmode } from '@utils/hooks/useDarkmode';
+import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import classnames from 'classnames';
 import { createBrowserHistory } from 'history';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -81,7 +82,7 @@ export const Changelog = () => {
     const [darkMode] = useDarkmode();
 
     useEffect(() => {
-        fetch(`/changelog/changelog.json`)
+        fetch(urlWithBaseUrl(`/changelog/changelog.json`))
             .then((response) => response.json())
             .then((data) => {
                 const chartVersions = [
@@ -91,7 +92,7 @@ export const Changelog = () => {
                 setVersions([...new Set(chartVersions)]);
                 setRowData(data);
             });
-        fetch(`/changelog/releaseVersionNotes.json`)
+        fetch(urlWithBaseUrl(`/changelog/releaseVersionNotes.json`))
             .then((response) => response.json())
             .then((data) => {
                 setAllReleaseNotes(data);
@@ -120,7 +121,7 @@ export const Changelog = () => {
 
             if (releaseNotes) {
                 if (releaseNotes['markdown']) {
-                    fetch(`/changelog` + releaseNotes['markdown'])
+                    fetch(urlWithBaseUrl(`/changelog` + releaseNotes['markdown']))
                         .then((response) => response.text())
                         .then((markdownContent) => {
                             setMarkdownContent(markdownContent);
