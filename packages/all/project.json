@@ -67,6 +67,7 @@
         "parallel": true,
         "commands": [
           "while true ; do nx watch -p ag-charts-community,ag-charts-enterprise -- {projectRoot}/dev.sh \\${NX_PROJECT_NAME} ; done",
+          "while true ; do nx watch -p ag-charts-angular,ag-charts-react,ag-charts-vue,ag-charts-vue3 -- {projectRoot}/dev.sh \\${NX_PROJECT_NAME} ; done",
           "while true ; do nx watch -p ag-charts-website-* -- nx build \\${NX_PROJECT_NAME}:generate; done",
           "nx run ag-charts-website:dev"
         ]
