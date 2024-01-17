@@ -36,4 +36,4 @@ jobs:
 
             - name: Run Scan
               run: |
-                  npx sonar-scanner -Dsonar.login=${{ secrets.SONAR_LOGIN }} -Dsonar.projectKey=${SONAR_PROJECT}
+                  npx sonar-scanner -Dsonar.token=${{ secrets.SONAR_LOGIN }} -Dsonar.projectKey=${SONAR_PROJECT}
