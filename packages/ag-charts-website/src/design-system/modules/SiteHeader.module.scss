@@ -234,6 +234,20 @@ button.mobileNavButton {
 }
 
 .navItem {
+    @media screen and (max-width: $breakpoint-site-header-small) {
+        position: relative;
+
+        &::after {
+            content: '';
+            position: absolute;
+            height: 1px;
+            right: -$spacing-size-6;
+            bottom: -1px;
+            left: -$spacing-size-6;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+    }
+
     @media screen and (min-width: $breakpoint-site-header-small) {
         &:hover a::after {
             opacity: 0.25;
@@ -284,7 +298,6 @@ button.mobileNavButton {
 
     @media screen and (max-width: $breakpoint-site-header-small) {
         padding-left: 0;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     &:hover {
