@@ -23,6 +23,7 @@ import {
 // noinspection AngularIncorrectTemplateDefinition
 @Component({
     selector: 'ag-charts-angular',
+    standalone: true,
     template: '',
     encapsulation: ViewEncapsulation.None,
 })
