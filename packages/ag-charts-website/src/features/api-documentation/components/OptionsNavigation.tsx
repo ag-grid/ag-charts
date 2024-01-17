@@ -7,7 +7,7 @@ import type { AllHTMLAttributes, CSSProperties, Dispatch, MouseEventHandler, Rea
 import { createContext, useContext, useEffect, useMemo, useRef } from 'react';
 
 import type { ApiReferenceNode, ApiReferenceType, MemberNode } from '../api-reference-types';
-import type { NavigationData, NavigationPath } from '../apiReferenceHelpers';
+import { type NavigationData, type NavigationPath, isInterfaceHidden } from '../apiReferenceHelpers';
 import {
     cleanupName,
     extractSearchData,
@@ -133,6 +133,12 @@ function NavProperty({
     const isInterfaceArray = config.specialTypes?.[memberType] === 'InterfaceArray';
     const hasNestedPages = config.specialTypes?.[memberType] === 'NestedPage';
     const expandable = isInterface || isInterfaceArray;
+    const isObjectArray =
+        !isInterfaceArray &&
+        typeof member.type === 'object' &&
+        member.type.kind === 'array' &&
+        reference?.has(memberType) &&
+        !isInterfaceHidden(memberType);
 
     const navData = getNavigationDataFromPath(path, config.specialTypes);
 
@@ -180,7 +186,12 @@ function NavProperty({
                         )}
                     </span>
                     {expandable && (
-                        <OpeningBrackets isOpen={isExpanded} isArray={isInterfaceArray} onClick={toggleExpanded} />
+                        <OpeningBrackets
+                            isOpen={isExpanded}
+                            isArray={isInterfaceArray}
+                            isObjectArray={isObjectArray}
+                            onClick={toggleExpanded}
+                        />
                     )}
                 </span>
             </div>
@@ -209,7 +220,7 @@ function NavProperty({
                                   />
                               ))}
                     </NavGroup>
-                    <ClosingBrackets depth={depth} isArray={isInterfaceArray} />
+                    <ClosingBrackets depth={depth} isArray={isInterfaceArray} isObjectArray={isObjectArray} />
                 </>
             )}
         </>
@@ -355,17 +366,19 @@ function NavBreadcrumb({
 function OpeningBrackets({
     isOpen,
     isArray,
+    isObjectArray,
     onClick,
 }: {
     isOpen?: boolean;
     isArray?: boolean;
+    isObjectArray?: boolean;
     onClick?: MouseEventHandler;
 }) {
     let bracketString = ' ';
     if (isOpen) {
-        bracketString += isArray ? '[' : '{';
+        bracketString += isObjectArray ? '[{' : isArray ? '[' : '{';
     } else {
-        bracketString += isArray ? '[ ... ]' : '{ ... }';
+        bracketString += isObjectArray ? '[{ ... }]' : isArray ? '[ ... ]' : '{ ... }';
     }
     return (
         <span className={styles.punctuation} onClick={!isOpen ? onClick : undefined}>
@@ -374,10 +387,18 @@ function OpeningBrackets({
     );
 }
 
-function ClosingBrackets({ depth, isArray }: { depth: number; isArray?: boolean }) {
+function ClosingBrackets({
+    depth,
+    isArray,
+    isObjectArray,
+}: {
+    depth: number;
+    isArray?: boolean;
+    isObjectArray?: boolean;
+}) {
     return (
         <div className={classnames(styles.punctuation, styles.navItem, depth > 1 && styles.propertyWhisker)}>
-            {isArray ? ']' : '}'}
+            {isObjectArray ? '}]' : isArray ? ']' : '}'}
         </div>
     );
 }
