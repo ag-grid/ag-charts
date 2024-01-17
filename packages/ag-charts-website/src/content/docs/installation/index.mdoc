@@ -164,12 +164,12 @@ const MyChart = (options) => {
 {% if isFramework("angular") %}
 
 ```javascript
-import { AgChartsAngularModule } from 'ag-charts-angular';
+import { AgChartsAngular } from 'ag-charts-angular';
 
 @Component({
     selector: 'my-app',
     standalone: true,
-    imports: [AgChartsAngularModule],
+    imports: [AgChartsAngular],
     template: `<ag-charts-angular style="height: 100%" [options]="options"></ag-charts-angular> `,
 })
 export class MyAppComponent {
