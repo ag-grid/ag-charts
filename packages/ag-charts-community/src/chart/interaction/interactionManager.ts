@@ -127,7 +127,9 @@ export class InteractionManager extends BaseManager<
         }
     }
 
-    public destroy() {
+    override destroy() {
+        super.destroy();
+
         for (const type of WINDOW_EVENT_HANDLERS) {
             this.window.removeEventListener(type, this.eventHandler);
         }

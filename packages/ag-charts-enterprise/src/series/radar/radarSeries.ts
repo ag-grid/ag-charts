@@ -89,9 +89,11 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
     }
 
     override addChartEventListeners(): void {
-        this.ctx.chartEventManager?.addListener('legend-item-click', (event) => this.onLegendItemClick(event));
-        this.ctx.chartEventManager?.addListener('legend-item-double-click', (event) =>
-            this.onLegendItemDoubleClick(event)
+        this.destroyFns.push(
+            this.ctx.chartEventManager?.addListener('legend-item-click', (event) => this.onLegendItemClick(event)),
+            this.ctx.chartEventManager?.addListener('legend-item-double-click', (event) =>
+                this.onLegendItemDoubleClick(event)
+            )
         );
     }
 

@@ -63,4 +63,11 @@ export class Listeners<EventType extends string, EventHandler extends Handler, M
     protected getListenersByType(eventType: EventType): Listener<EventHandler, Meta>[] {
         return this.registeredListeners.get(eventType) ?? [];
     }
+
+    destroy() {
+        for (const [, listeners] of this.registeredListeners.entries()) {
+            listeners.length = 0;
+        }
+        this.registeredListeners.clear();
+    }
 }
