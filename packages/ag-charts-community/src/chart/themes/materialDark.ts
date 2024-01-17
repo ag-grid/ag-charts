@@ -44,6 +44,9 @@ export class MaterialDark extends DarkTheme {
         return {
             fill: MATERIAL_DARK_FILLS.BLUE,
             stroke: MATERIAL_DARK_STROKES.BLUE,
+            label: {
+                color: 'white',
+            },
         };
     }
 
@@ -51,6 +54,9 @@ export class MaterialDark extends DarkTheme {
         return {
             fill: MATERIAL_DARK_FILLS.RED,
             stroke: MATERIAL_DARK_STROKES.RED,
+            label: {
+                color: 'white',
+            },
         };
     }
 
@@ -58,6 +64,9 @@ export class MaterialDark extends DarkTheme {
         return {
             fill: MATERIAL_DARK_FILLS.GRAY,
             stroke: MATERIAL_DARK_STROKES.GRAY,
+            label: {
+                color: 'white',
+            },
         };
     }
 

@@ -44,6 +44,9 @@ export class VividDark extends DarkTheme {
         return {
             fill: VIVID_DARK_FILLS.BLUE,
             stroke: VIVID_DARK_STROKES.BLUE,
+            label: {
+                color: 'white',
+            },
         };
     }
 
@@ -51,6 +54,9 @@ export class VividDark extends DarkTheme {
         return {
             fill: VIVID_DARK_FILLS.ORANGE,
             stroke: VIVID_DARK_STROKES.ORANGE,
+            label: {
+                color: 'white',
+            },
         };
     }
 
@@ -58,6 +64,9 @@ export class VividDark extends DarkTheme {
         return {
             fill: VIVID_DARK_FILLS.GRAY,
             stroke: VIVID_DARK_STROKES.GRAY,
+            label: {
+                color: 'white',
+            },
         };
     }
 
