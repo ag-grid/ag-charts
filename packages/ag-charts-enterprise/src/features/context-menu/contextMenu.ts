@@ -344,6 +344,8 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     public override destroy() {
         super.destroy();
 
+        this.destroyFns.forEach((f) => f());
+
         this.intersectionObserver?.unobserve(this.canvasElement);
         this.mutationObserver?.disconnect();
     }

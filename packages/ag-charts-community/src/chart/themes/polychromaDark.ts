@@ -47,6 +47,9 @@ export class PolychromaDark extends DarkTheme {
         return {
             fill: POLYCHROMA_DARK_FILLS.BLUE,
             stroke: POLYCHROMA_DARK_STROKES.BLUE,
+            label: {
+                color: 'white',
+            },
         };
     }
 
@@ -54,6 +57,9 @@ export class PolychromaDark extends DarkTheme {
         return {
             fill: POLYCHROMA_DARK_FILLS.RED,
             stroke: POLYCHROMA_DARK_STROKES.RED,
+            label: {
+                color: 'white',
+            },
         };
     }
 
@@ -61,6 +67,9 @@ export class PolychromaDark extends DarkTheme {
         return {
             fill: POLYCHROMA_DARK_FILL_GRAY,
             stroke: POLYCHROMA_DARK_STROKE_GRAY,
+            label: {
+                color: 'white',
+            },
         };
     }
 

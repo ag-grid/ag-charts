@@ -390,7 +390,10 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
             diff
         );
 
-        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
-        seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, annotationSelections);
+        const hasMotion = diff?.changed ?? true;
+        if (hasMotion) {
+            seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
+            seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, annotationSelections);
+        }
     }
 }

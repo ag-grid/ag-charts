@@ -87,6 +87,7 @@ export class Pagination {
     readonly label = new PaginationLabel();
 
     private highlightActive?: 'previous' | 'next';
+    private destroyFns: (() => void)[] = [];
 
     constructor(
         private readonly chartUpdateCallback: (type: ChartUpdateType) => void,
@@ -103,11 +104,17 @@ export class Pagination {
 
         this.group.append([this.nextButton, this.previousButton, labelNode]);
 
-        this.interactionManager.addListener('click', (event) => this.onPaginationClick(event));
-        this.interactionManager.addListener('hover', (event) => this.onPaginationMouseMove(event));
+        this.destroyFns.push(
+            this.interactionManager.addListener('click', (event) => this.onPaginationClick(event)),
+            this.interactionManager.addListener('hover', (event) => this.onPaginationMouseMove(event))
+        );
 
         this.update();
         this.updateMarkers();
+    }
+
+    destroy() {
+        this.destroyFns.forEach((f) => f());
     }
 
     totalPages: number = 0;

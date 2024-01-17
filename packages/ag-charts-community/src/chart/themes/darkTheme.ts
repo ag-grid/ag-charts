@@ -56,6 +56,9 @@ export class DarkTheme extends ChartTheme {
         return {
             fill: DEFAULT_DARK_FILLS.BLUE,
             stroke: DEFAULT_DARK_STROKES.BLUE,
+            label: {
+                color: 'white',
+            },
         };
     }
 
@@ -63,6 +66,9 @@ export class DarkTheme extends ChartTheme {
         return {
             fill: DEFAULT_DARK_FILLS.ORANGE,
             stroke: DEFAULT_DARK_STROKES.ORANGE,
+            label: {
+                color: 'white',
+            },
         };
     }
 
@@ -70,6 +76,9 @@ export class DarkTheme extends ChartTheme {
         return {
             fill: DEFAULT_DARK_FILLS.GRAY,
             stroke: DEFAULT_DARK_STROKES.GRAY,
+            label: {
+                color: 'white',
+            },
         };
     }
 

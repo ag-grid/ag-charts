@@ -479,6 +479,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         this.interactionManager.destroy();
         this.animationManager.stop();
+        this.animationManager.destroy();
+        this.chartEventManager.destroy();
+        this.highlightManager.destroy();
+        this.zoomManager.destroy();
 
         if (keepTransferableResources) {
             this.scene.strip();

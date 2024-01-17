@@ -492,6 +492,9 @@ export class ChartTheme {
         return {
             fill: DEFAULT_FILLS.BLUE,
             stroke: DEFAULT_STROKES.BLUE,
+            label: {
+                color: DEFAULT_LABEL_COLOUR,
+            },
         };
     }
 
@@ -499,6 +502,9 @@ export class ChartTheme {
         return {
             fill: DEFAULT_FILLS.ORANGE,
             stroke: DEFAULT_STROKES.ORANGE,
+            label: {
+                color: DEFAULT_LABEL_COLOUR,
+            },
         };
     }
 
@@ -506,6 +512,9 @@ export class ChartTheme {
         return {
             fill: DEFAULT_FILLS.GRAY,
             stroke: DEFAULT_STROKES.GRAY,
+            label: {
+                color: DEFAULT_LABEL_COLOUR,
+            },
         };
     }
 
