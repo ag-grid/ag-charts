@@ -86,6 +86,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     // Scenes
     private readonly scene: _Scene.Scene;
     private seriesRect?: _Scene.BBox;
+    private paddedRect?: _Scene.BBox;
 
     // Module context
     private readonly cursorManager: _ModuleSupport.CursorManager;
@@ -178,7 +179,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             const { id, direction } = this.hoveredAxis;
             this.updateAxisZoom(id, direction, { ...UNIT });
         } else if (
-            this.seriesRect?.containsPoint(event.offsetX, event.offsetY) &&
+            this.paddedRect?.containsPoint(event.offsetX, event.offsetY) &&
             this.highlightManager.getActivePicked() === undefined
         ) {
             this.updateZoom(unitZoomState());
@@ -186,7 +187,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private onDrag(event: _ModuleSupport.InteractionEvent<'drag'>) {
-        if (!this.enabled || !this.seriesRect) return;
+        if (!this.enabled || !this.paddedRect || !this.seriesRect) return;
 
         const sourceEvent = event.sourceEvent as DragEvent;
 
@@ -208,7 +209,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
 
         // Prevent the user from dragging outside the series rect (if not on an axis)
-        if (!this.seriesRect.containsPoint(event.offsetX, event.offsetY)) {
+        if (!this.paddedRect.containsPoint(event.offsetX, event.offsetY)) {
             return;
         }
 
@@ -239,7 +240,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             this.minRatioY,
             this.isScalingX(),
             this.isScalingY(),
-            this.seriesRect,
+            this.paddedRect,
             zoom
         );
 
@@ -268,11 +269,11 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private onWheel(event: _ModuleSupport.InteractionEvent<'wheel'>) {
-        if (!this.enabled || !this.enableScrolling || !this.seriesRect) return;
+        if (!this.enabled || !this.enableScrolling || !this.paddedRect || !this.seriesRect) return;
 
         const currentZoom = this.zoomManager.getZoom();
 
-        const isSeriesScrolling = this.seriesRect.containsPoint(event.offsetX, event.offsetY);
+        const isSeriesScrolling = this.paddedRect.containsPoint(event.offsetX, event.offsetY);
         const isAxisScrolling = this.enableAxisDragging && this.hoveredAxis != null;
 
         let isScalingX = this.isScalingX();
@@ -329,23 +330,24 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         if (!this.enabled) return;
 
         const {
-            series: { paddedRect, shouldFlipXY },
+            series: { rect, paddedRect, shouldFlipXY },
         } = event;
 
-        this.seriesRect = paddedRect;
+        this.seriesRect = rect;
+        this.paddedRect = paddedRect;
         this.shouldFlipXY = shouldFlipXY;
     }
 
     private onUpdateComplete({ minRect }: _ModuleSupport.UpdateCompleteEvent) {
-        if (!this.enabled || !this.seriesRect || !minRect) return;
+        if (!this.enabled || !this.paddedRect || !minRect) return;
 
         const zoom = definedZoomState(this.zoomManager.getZoom());
 
         const minVisibleItemsWidth = this.shouldFlipXY ? this.minVisibleItemsY : this.minVisibleItemsX;
         const minVisibleItemsHeight = this.shouldFlipXY ? this.minVisibleItemsX : this.minVisibleItemsY;
 
-        const widthRatio = (minRect.width * minVisibleItemsWidth) / this.seriesRect.width;
-        const heightRatio = (minRect.height * minVisibleItemsHeight) / this.seriesRect.height;
+        const widthRatio = (minRect.width * minVisibleItemsWidth) / this.paddedRect.width;
+        const heightRatio = (minRect.height * minVisibleItemsHeight) / this.paddedRect.height;
 
         // We don't need to check flipping here again, as it is already built into the width & height ratios and the
         // zoom.x/y values themselves do not flip and are bound to width/height respectively.
@@ -365,10 +367,10 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private onContextMenuZoomToHere({ event }: ContextMenuActionParams) {
-        if (!this.enabled || !this.seriesRect || !event || !event.target) return;
+        if (!this.enabled || !this.paddedRect || !event || !event.target) return;
 
         const zoom = definedZoomState(this.zoomManager.getZoom());
-        const origin = pointToRatio(this.seriesRect, event.clientX, event.clientY);
+        const origin = pointToRatio(this.paddedRect, event.clientX, event.clientY);
 
         const scaledOriginX = origin.x * (zoom.x.max - zoom.x.min);
         const scaledOriginY = origin.y * (zoom.y.max - zoom.y.min);
@@ -392,10 +394,10 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private onContextMenuPanToHere({ event }: ContextMenuActionParams) {
-        if (!this.enabled || !this.seriesRect || !event || !event.target) return;
+        if (!this.enabled || !this.paddedRect || !event || !event.target) return;
 
         const zoom = definedZoomState(this.zoomManager.getZoom());
-        const origin = pointToRatio(this.seriesRect, event.clientX, event.clientY);
+        const origin = pointToRatio(this.paddedRect, event.clientX, event.clientY);
 
         const scaleX = zoom.x.max - zoom.x.min;
         const scaleY = zoom.y.max - zoom.y.min;
