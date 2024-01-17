@@ -6,10 +6,6 @@
     position: relative;
     background-color: var(--color-bg-site-header);
 
-    @media screen and (max-width: $breakpoint-docs-nav-medium) {
-        overflow-x: hidden;
-    }
-
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
         position: sticky;
         top: 0;
@@ -222,6 +218,10 @@ button.mobileNavButton {
     @media screen and (min-width: $breakpoint-site-header-large) {
         margin-left: auto;
     }
+
+    @media screen and (max-width: $breakpoint-site-header-small) {
+        width: 100%;
+    }
 }
 
 .navItemList {
@@ -282,6 +282,11 @@ button.mobileNavButton {
         color: var(--color-white);
     }
 
+    @media screen and (max-width: $breakpoint-site-header-small) {
+        padding-left: 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
     &:hover {
         text-decoration: none;
         color: var(--color-white);
@@ -321,6 +326,9 @@ button.mobileNavButton {
 .buttonItem {
     .navLink {
         padding: 19px var(--layout-horizontal-margins) 16px;
+        @media screen and (max-width: $breakpoint-site-header-small) {
+            padding-left: 0;
+        }
     }
 
     a::after {
@@ -355,5 +363,12 @@ button.mobileNavButton {
                 0 0 0 4px var(--color-bg-site-header),
                 0 0 0 6px rgba(white, 0.3);
         }
+    }
+}
+
+.toggleDarkText {
+    display: none;
+    @media screen and (max-width: $breakpoint-site-header-small) {
+        display: inline;
     }
 }

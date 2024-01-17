@@ -14,6 +14,7 @@ export const DarkModeToggle = () => {
                 onClick={() => setDarkmode(!darkmode)}
             >
                 {darkmode ? <Icon name="sun" /> : <Icon name="moon" />}
+                <span className={gridHeaderStyles.toggleDarkText}>Toggle Darkmode</span>
             </button>
         </li>
     );
