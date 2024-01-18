@@ -1,9 +1,10 @@
+import type { AnimationManager } from '../interaction/animationManager';
 import { Overlay } from './overlay';
 
 export class ChartOverlays {
-    constructor(parent: HTMLElement) {
-        this.noData = new Overlay('ag-chart-no-data-overlay', parent);
-        this.noVisibleSeries = new Overlay('ag-chart-no-visible-series', parent);
+    constructor(parent: HTMLElement, animationManager: AnimationManager) {
+        this.noData = new Overlay('ag-chart-no-data-overlay', parent, animationManager);
+        this.noVisibleSeries = new Overlay('ag-chart-no-visible-series', parent, animationManager);
         this.noVisibleSeries.text = 'No visible series';
     }
 
