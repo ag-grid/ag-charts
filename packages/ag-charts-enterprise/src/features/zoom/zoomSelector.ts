@@ -1,7 +1,14 @@
 import type { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import type { ZoomRect } from './scenes/zoomRect';
-import { constrainZoom, definedZoomState, pointToRatio, scaleZoom, translateZoom } from './zoomTransformers';
+import {
+    constrainZoom,
+    definedZoomState,
+    multiplyZoom,
+    pointToRatio,
+    scaleZoom,
+    translateZoom,
+} from './zoomTransformers';
 import type { DefinedZoomState, ZoomCoords } from './zoomTypes';
 
 // "Re-rewind, when the crowd say..."
@@ -38,14 +45,21 @@ export class ZoomSelector {
         this.updateRect(bbox);
     }
 
-    stop(bbox?: _Scene.BBox, currentZoom?: _ModuleSupport.AxisZoomState): DefinedZoomState {
+    stop(innerBBox?: _Scene.BBox, bbox?: _Scene.BBox, currentZoom?: _ModuleSupport.AxisZoomState): DefinedZoomState {
         let zoom = definedZoomState();
 
-        if (!bbox) return zoom;
+        if (!innerBBox || !bbox) return zoom;
 
         if (this.coords) {
             zoom = this.createZoomFromCoords(bbox, currentZoom);
         }
+
+        // Zoom is a ratio of the inner unpadded series area, but selection encompasses the padded area. So here we need
+        // to multiply it by the ratios of the outer and inner areas. Note: we don't use the `scaleZoom()` method as
+        // we need to combine translation and scale into a single operation to ensure the correct result.
+        const multiplyX = bbox.width / innerBBox.width;
+        const multiplyY = bbox.height / innerBBox.height;
+        zoom = constrainZoom(multiplyZoom(zoom, multiplyX, multiplyY));
 
         this.reset();
 
