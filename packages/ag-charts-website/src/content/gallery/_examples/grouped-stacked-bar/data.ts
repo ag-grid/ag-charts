@@ -28,7 +28,7 @@ export function getData() {
             interactionDurationTMLower: 1.32,
             interactionDurationTMUpper: 1.46,
             interactionDurationYM: 1.45,
-            interactionDurationYMLower: 1.10,
+            interactionDurationYMLower: 1.1,
             interactionDurationYMUpper: 1.54,
             numberOfLooksTM: 238,
             numberOfLooksYM: 217,
