@@ -50,7 +50,7 @@ function update() {
 }
 
 function getUpdatedData() {
-    const optionsData = options.data ?? [];
+    const optionsData = options.data != null ? options.data : [];
 
     // Update
     console.log('updating');
