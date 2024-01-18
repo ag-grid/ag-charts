@@ -4,6 +4,7 @@ import { isNumber } from '../../util/value';
 import { rangedValueProperty } from '../series/series';
 import { DATA_BROWSER_MARKET_SHARE } from '../test/data';
 import * as examples from '../test/examples';
+import { expectWarning, expectWarnings, setupMockConsole } from '../test/mockConsole';
 import {
     accumulatedValue,
     area as actualArea,
@@ -69,6 +70,8 @@ const normalisePropertyTo = (prop: PropertyId<any>, normaliseTo: [number, number
     actualNormalisePropertyTo({ id: 'test' }, prop, normaliseTo);
 
 describe('DataModel', () => {
+    setupMockConsole();
+
     describe('ungrouped processing', () => {
         it('should generated the expected results', () => {
             const data = examples.SIMPLE_LINE_CHART_EXAMPLE.data ?? [];
@@ -431,6 +434,7 @@ describe('DataModel', () => {
                 expect(result?.data[1].keys).toEqual([new Date('2023-01-02T00:00:00.000Z')]);
                 expect(result?.data[2].keys).toEqual([new Date('2023-01-03T00:00:00.000Z')]);
                 expect(result?.data[3].keys).toEqual([new Date('2023-01-04T00:00:00.000Z')]);
+                expectWarning('AG Charts - invalid value of type [object] ignored:', '[null]');
             });
 
             it('should extract the configured values', () => {
@@ -442,6 +446,7 @@ describe('DataModel', () => {
                 expect(result?.data[1].values).toEqual([[1, 2]]);
                 expect(result?.data[2].values).toEqual([[6, 9]]);
                 expect(result?.data[3].values).toEqual([[6, 9]]);
+                expectWarning('AG Charts - invalid value of type [object] ignored:', '[null]');
             });
 
             it('should calculate the domains', () => {
@@ -453,6 +458,7 @@ describe('DataModel', () => {
                     [1, 6],
                     [2, 9],
                 ]);
+                expectWarning('AG Charts - invalid value of type [object] ignored:', '[null]');
             });
 
             it('should not include sums', () => {
@@ -460,6 +466,7 @@ describe('DataModel', () => {
 
                 expect(result?.data.filter((g) => g.aggValues != null)).toEqual([]);
                 expect(result?.domain.aggValues).toBeUndefined();
+                expectWarning('AG Charts - invalid value of type [object] ignored:', '[null]');
             });
 
             it('should only sum per data-item', () => {
@@ -1002,6 +1009,10 @@ describe('DataModel', () => {
             expect(dataModel.processData(data)).toMatchSnapshot({
                 time: expect.any(Number),
             });
+            expectWarnings([
+                ['AG Charts - invalid value of type [string] ignored:', '[illegal value]'],
+                ['AG Charts - invalid value of type [undefined] ignored:', '[undefined]'],
+            ]);
         });
 
         describe('property tests', () => {
@@ -1030,6 +1041,7 @@ describe('DataModel', () => {
                 expect(result?.data[0].validScopes).toEqual(['scope-2']);
                 expect(result?.data[1].validScopes).toBeUndefined();
                 expect(result?.data[2].validScopes).toBeUndefined();
+                expectWarning('AG Charts - invalid value of type [string] ignored:', '[illegal value]');
             });
 
             it('should handle scope validations distinctly for values', () => {
@@ -1039,6 +1051,7 @@ describe('DataModel', () => {
                 expect(result?.data[0].values).toEqual([[1, undefined, 2]]);
                 expect(result?.data[1].values).toEqual([[6, 9, 'illegal value']]);
                 expect(result?.data[2].values).toEqual([[6, 9, 4]]);
+                expectWarning('AG Charts - invalid value of type [string] ignored:', '[illegal value]');
             });
         });
     });
