@@ -84,6 +84,10 @@ export abstract class AgCharts {
         this.licenseKey = licenseKey;
     }
 
+    public static getLicenseDetails(licenseKey: string) {
+        return enterpriseModule.licenseManager?.({}).getLicenseDetails(licenseKey);
+    }
+
     /**
      * Returns the `AgChartInstance` for a DOM node, if there is one.
      */
