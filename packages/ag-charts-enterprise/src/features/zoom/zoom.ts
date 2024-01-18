@@ -260,7 +260,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         } else if (this.enablePanning && this.panner.isPanning) {
             this.panner.stop();
         } else if (this.enableSelecting && !this.isMinZoom(zoom)) {
-            const newZoom = this.selector.stop(this.seriesRect, zoom);
+            const newZoom = this.selector.stop(this.seriesRect, this.paddedRect, zoom);
             this.updateZoom(newZoom);
         }
 
