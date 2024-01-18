@@ -46,7 +46,7 @@ export const BulletModule: _ModuleSupport.SeriesModule<'bullet'> = {
             fill,
             stroke,
             target: { stroke: targetStroke },
-            backgroundFill
+            backgroundFill,
         };
     },
 };
