@@ -69,7 +69,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     public axes: 'x' | 'y' | 'xy' = 'x';
 
     @Validate(RATIO)
-    public scrollingStep = UNIT.max / 10;
+    public scrollingStep = (UNIT.max - UNIT.min) / 10;
 
     @Validate(NUMBER.restrict({ min: 1 }))
     public minVisibleItemsX = 2;
