@@ -196,6 +196,10 @@ export class InteractionManager extends BaseManager<
                 return ['contextmenu'];
 
             case 'mousedown':
+                if (event instanceof MouseEvent && event.button !== 0) {
+                    // Reject this event if it is not the primary mouse button.
+                    return [];
+                }
                 this.mouseDown = true;
                 this.dragStartElement = event.target as HTMLElement;
                 return [dragStart];
