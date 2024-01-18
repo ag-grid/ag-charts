@@ -94,3 +94,14 @@ export function groupBy<T, R extends string | number | symbol>(array: T[], itera
         return result;
     }, {});
 }
+
+export function circularSliceArray<T>(data: T[], size: number, offset = 0): T[] {
+    if (data.length === 0) {
+        return [];
+    }
+    const result: T[] = [];
+    for (let i = 0; i < size; i++) {
+        result.push(data.at((i + offset) % data.length)!);
+    }
+    return result;
+}

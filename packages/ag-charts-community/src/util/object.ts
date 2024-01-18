@@ -1,19 +1,15 @@
 import { isDecoratedObject, listDecoratedProperties } from './decorator';
 import { isArray, isObject } from './type-guards';
-import type { Intersection } from './types';
+import type { Intersection, PlainObject } from './types';
 
 type FalsyType = false | null | undefined;
 
-export function deepMerge<TSource extends Record<string, any>, TArgs extends (TSource | FalsyType)[]>(
-    ...sources: TArgs
-) {
+export function deepMerge<TSource extends PlainObject, TArgs extends (TSource | FalsyType)[]>(...sources: TArgs) {
     return mergeDefaults(...sources.reverse());
 }
 
-export function mergeDefaults<TSource extends Record<string, any>, TArgs extends (TSource | FalsyType)[]>(
-    ...sources: TArgs
-) {
-    const target: Record<string, any> = {};
+export function mergeDefaults<TSource extends PlainObject, TArgs extends (TSource | FalsyType)[]>(...sources: TArgs) {
+    const target: PlainObject = {};
 
     for (const source of sources) {
         if (!source) continue;
@@ -30,6 +26,13 @@ export function mergeDefaults<TSource extends Record<string, any>, TArgs extends
     }
 
     return target as Intersection<Exclude<TArgs[number], FalsyType>>;
+}
+
+export function mergeArrayDefaults(dataArray: PlainObject[], ...itemDefaults: PlainObject[]) {
+    if (itemDefaults && isArray(dataArray)) {
+        return dataArray.map((item) => mergeDefaults(item, ...itemDefaults));
+    }
+    return dataArray;
 }
 
 export function getPath(object: object, path: string | string[]) {

@@ -1,14 +1,20 @@
 import type { SeriesConstructor, SeriesModule, SeriesPaletteFactory } from '../../module/coreModules';
 import { hasRegisteredEnterpriseModules } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
-import type { AgChartOptions } from '../../options/agChartOptions';
+import type {
+    AgCartesianSeriesOptions,
+    AgChartOptions,
+    AgHierarchySeriesOptions,
+    AgPolarSeriesOptions,
+} from '../../options/agChartOptions';
 import { deepClone } from '../../sparklines-util';
 import { mergeDefaults } from '../../util/object';
 import { isFunction } from '../../util/type-guards';
-import type { SeriesOptions } from '../mapping/prepareSeries';
 import type { SeriesType } from '../mapping/types';
 import type { Series } from '../series/series';
 import { registerChartSeriesType } from './chartTypes';
+
+export type SeriesOptions = AgCartesianSeriesOptions | AgPolarSeriesOptions | AgHierarchySeriesOptions;
 
 const SERIES_FACTORIES: Record<string, SeriesConstructor> = {};
 const SERIES_DEFAULTS: Record<string, any> = {};

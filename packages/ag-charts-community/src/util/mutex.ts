@@ -1,6 +1,6 @@
 import { Logger } from './logger';
 
-type MutexCallback = () => Promise<void>;
+type MutexCallback = (...args: any[]) => Promise<void>;
 
 export class Mutex {
     private available: boolean = true;

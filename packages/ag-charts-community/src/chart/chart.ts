@@ -511,10 +511,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
-    requestFactoryUpdate(cb: () => Promise<void>) {
+    requestFactoryUpdate(cb: (chart: Chart) => Promise<void>) {
         this._pendingFactoryUpdatesCount++;
         this.updateMutex.acquire(async () => {
-            await cb();
+            await cb(this);
             this._pendingFactoryUpdatesCount--;
         });
     }

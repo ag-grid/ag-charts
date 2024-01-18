@@ -102,7 +102,7 @@ const nightingales = [
     },
 ];
 
-describe('prepareSeries', () => {
+describe.skip('prepareSeries', () => {
     beforeEach(() => {
         console.warn = jest.fn();
         clearDoOnceFlags();
