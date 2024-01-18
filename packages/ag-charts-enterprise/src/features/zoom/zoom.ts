@@ -191,9 +191,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         const sourceEvent = event.sourceEvent as DragEvent;
 
-        const isPrimaryMouseButton = sourceEvent.button === 0;
-        if (!isPrimaryMouseButton) return;
-
         this.isDragging = true;
         this.tooltipManager.updateTooltip(TOOLTIP_ID);
 
