@@ -1,10 +1,11 @@
-import { afterEach, beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { beforeAll, describe, expect, it } from '@jest/globals';
 
 import { ChartOptions } from '../../module/optionsModule';
 import type { AgCartesianChartOptions, AgChartOptions, AgLineSeriesOptions } from '../../options/agChartOptions';
 import { registerInbuiltModules } from '../factory/registerInbuiltModules';
 import { setupModules } from '../factory/setupModules';
 import * as examples from '../test/examples';
+import { setupMockConsole } from '../test/mockConsole';
 import { ChartTheme } from '../themes/chartTheme';
 
 function prepareOptions<T extends AgChartOptions>(userOptions: T): T {
@@ -262,20 +263,14 @@ const ENABLED_FALSE_OPTIONS: AgCartesianChartOptions = {
 };
 
 describe('prepare', () => {
+    setupMockConsole();
+
     beforeAll(() => {
         registerInbuiltModules();
         setupModules();
     });
 
     describe('#prepareOptions', () => {
-        beforeEach(() => {
-            console.warn = jest.fn();
-        });
-
-        afterEach(() => {
-            expect(console.warn).not.toBeCalled();
-        });
-
         it.each(Object.entries(EXAMPLES))(
             'for %s it should prepare options as expected',
             async (_exampleName, example) => {

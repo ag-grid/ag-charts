@@ -13,6 +13,7 @@ import {
     extractImageData,
     hoverAction,
     setupMockCanvas,
+    setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
@@ -252,21 +253,16 @@ const HISTOGRAM_OPTIONS: AgCartesianChartOptions = {
 };
 
 describe('Crosshair', () => {
+    setupMockConsole();
+
     let chart: any;
     const ctx = setupMockCanvas();
-
-    beforeEach(() => {
-        // eslint-disable-next-line no-console
-        console.warn = jest.fn();
-    });
 
     afterEach(() => {
         if (chart) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
-        // eslint-disable-next-line no-console
-        expect(console.warn).not.toBeCalled();
     });
 
     const compare = async () => {

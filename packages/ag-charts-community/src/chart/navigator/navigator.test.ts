@@ -1,8 +1,9 @@
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, describe, expect, it } from '@jest/globals';
 
 import { AgCharts } from '../../main';
 import type { AgCartesianChartOptions } from '../../options/agChartOptions';
 import * as CROSSLINE_EXAMPLES from '../crossline/test/examples';
+import { setupMockConsole } from '../test/mockConsole';
 import {
     type CartesianTestCase,
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -97,6 +98,8 @@ const NAVIGATOR_ZOOM_EXAMPLES: Record<string, CartesianTestCase> = {
 };
 
 describe('Navigator', () => {
+    setupMockConsole();
+
     let chart: any;
 
     afterEach(() => {
@@ -109,14 +112,6 @@ describe('Navigator', () => {
     const ctx = setupMockCanvas();
 
     describe('#create', () => {
-        beforeEach(() => {
-            console.warn = jest.fn();
-        });
-
-        afterEach(() => {
-            expect(console.warn).not.toBeCalled();
-        });
-
         it.each(Object.entries(NAVIGATOR_ZOOM_EXAMPLES))(
             'for %s it should create chart instance as expected',
             async (_exampleName, example) => {

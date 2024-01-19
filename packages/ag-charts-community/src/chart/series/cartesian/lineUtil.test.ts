@@ -1,22 +1,20 @@
-import { afterEach, beforeEach, describe, expect, jest, test } from '@jest/globals';
+import { afterEach, describe, expect, test } from '@jest/globals';
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type { AgChartOptions } from '../../../options/agChartOptions';
 import { AgCharts } from '../../agChartV2';
 import type { Chart } from '../../chart';
+import { setupMockConsole } from '../../test/mockConsole';
 import { clickAction, prepareTestOptions } from '../../test/utils';
 import { IMAGE_SNAPSHOT_DEFAULTS, extractImageData, setupMockCanvas, waitForChartStability } from '../../test/utils';
 
 expect.extend({ toMatchImageSnapshot });
 
 describe('LineUtil', () => {
-    beforeEach(() => {
-        console.warn = jest.fn();
-    });
+    setupMockConsole();
 
     afterEach(() => {
         if (chart) chart.destroy();
-        expect(console.warn).not.toBeCalled();
     });
 
     const compare = async () => {

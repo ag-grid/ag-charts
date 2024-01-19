@@ -19,15 +19,22 @@ export function setupMockConsole() {
 }
 
 export function expectWarnings(callArgs: any[][]) {
-    for (let i = 0; i < callArgs.length; i++) {
-        expect(console.warn).nthCalledWith(i + 1, ...callArgs[i]);
+    try {
+        for (let i = 0; i < callArgs.length; i++) {
+            expect(console.warn).nthCalledWith(i + 1, ...callArgs[i]);
+        }
+        expect(console.warn).toBeCalledTimes(callArgs.length);
+    } finally {
+        (console.warn as jest.Mock).mockClear();
     }
-    expect(console.warn).toBeCalledTimes(callArgs.length);
-    (console.warn as jest.Mock).mockClear();
 }
 
 export function expectWarning(...args: any) {
     expectWarnings([[...args]]);
+}
+
+export function expectWarningMessages(...messages: any) {
+    expectWarnings([...messages].map((message) => [message]));
 }
 
 /* eslint-enable no-console */

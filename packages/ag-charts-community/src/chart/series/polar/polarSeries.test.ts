@@ -5,6 +5,7 @@ import type { AgPolarChartOptions } from '../../../options/agChartOptions';
 import { AgCharts } from '../../agChartV2';
 import type { Chart } from '../../chart';
 import { ChartUpdateType } from '../../chartUpdateType';
+import { setupMockConsole } from '../../test/mockConsole';
 import type { PolarTestCase } from '../../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -86,6 +87,8 @@ const EXAMPLES: Record<string, PolarTestCase> = {
 };
 
 describe('PolarSeries', () => {
+    setupMockConsole();
+
     let chart: Chart;
 
     afterEach(() => {
@@ -106,14 +109,6 @@ describe('PolarSeries', () => {
     };
 
     describe('#create', () => {
-        beforeEach(() => {
-            console.warn = jest.fn();
-        });
-
-        afterEach(() => {
-            expect(console.warn).not.toBeCalled();
-        });
-
         it.each(Object.entries(EXAMPLES))(
             'for %s it should create chart instance as expected',
             async (_exampleName, example) => {

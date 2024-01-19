@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type { AgChartOptions } from '../../../options/agChartOptions';
@@ -12,6 +12,7 @@ import {
     DATA_ZERO_EXTENT_LOG_AXIS,
 } from '../../test/data';
 import * as examples from '../../test/examples';
+import { expectWarningMessages, setupMockConsole } from '../../test/mockConsole';
 import type { CartesianOrPolarTestCase } from '../../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -119,6 +120,8 @@ const INVALID_DATA_EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
 };
 
 describe('BarSeries', () => {
+    setupMockConsole();
+
     let chart: Chart;
 
     afterEach(() => {
@@ -139,14 +142,6 @@ describe('BarSeries', () => {
     };
 
     describe('#create', () => {
-        beforeEach(() => {
-            console.warn = jest.fn();
-        });
-
-        afterEach(() => {
-            expect(console.warn).not.toBeCalled();
-        });
-
         test('no data', async () => {
             chart = AgCharts.create(
                 prepareTestOptions({ data: [], series: [{ type: 'bar', xKey: 'x', yKey: 'y' }] })
@@ -352,10 +347,6 @@ describe('BarSeries', () => {
     });
 
     describe('invalid data domain', () => {
-        beforeEach(() => {
-            console.warn = jest.fn();
-        });
-
         it.each(Object.entries(INVALID_DATA_EXAMPLES))(
             'for %s it should create chart instance as expected',
             async (_exampleName, example) => {
@@ -365,6 +356,11 @@ describe('BarSeries', () => {
                 chart = AgCharts.create(options) as Chart;
                 await waitForChartStability(chart);
                 await example.assertions(chart);
+
+                expectWarningMessages(
+                    'AG Charts - the data domain crosses zero, the chart data cannot be rendered. See log axis documentation for more information.',
+                    'AG Charts - the data domain crosses zero, the chart data cannot be rendered. See log axis documentation for more information.'
+                );
             }
         );
 
@@ -382,7 +378,10 @@ describe('BarSeries', () => {
                     await compare();
                 }
 
-                expect(console.warn).toBeCalled();
+                expectWarningMessages(
+                    'AG Charts - the data domain crosses zero, the chart data cannot be rendered. See log axis documentation for more information.',
+                    'AG Charts - the data domain crosses zero, the chart data cannot be rendered. See log axis documentation for more information.'
+                );
             }
         );
     });

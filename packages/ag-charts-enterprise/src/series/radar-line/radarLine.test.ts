@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals
 import {
     extractImageData,
     setupMockCanvas,
+    setupMockConsole,
     spyOnAnimationManager,
     waitForChartStability,
 } from 'ag-charts-community-test';
@@ -12,21 +13,16 @@ import { AgCharts } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
 describe('RadarLineSeries', () => {
+    setupMockConsole();
+
     let chart: any;
     const ctx = setupMockCanvas();
-
-    beforeEach(() => {
-        // eslint-disable-next-line no-console
-        console.warn = jest.fn();
-    });
 
     afterEach(() => {
         if (chart) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
-        // eslint-disable-next-line no-console
-        expect(console.warn).not.toBeCalled();
     });
 
     const EXAMPLE_OPTIONS: AgChartOptions = {

@@ -1,9 +1,10 @@
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it } from '@jest/globals';
 
 import type { AgChartOptions } from '../options/agChartOptions';
 import { AgCharts } from './agChartV2';
 import type { Chart } from './chart';
 import { EXAMPLES } from './test/examples-gallery';
+import { setupMockConsole } from './test/mockConsole';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     extractImageData,
@@ -13,6 +14,8 @@ import {
 } from './test/utils';
 
 describe('Gallery Examples', () => {
+    setupMockConsole();
+
     let chart: Chart;
 
     afterEach(() => {
@@ -28,14 +31,6 @@ describe('Gallery Examples', () => {
 
     describe('AgChartV2#create', () => {
         const ctx = setupMockCanvas();
-
-        beforeEach(() => {
-            console.warn = jest.fn();
-        });
-
-        afterEach(() => {
-            expect(console.warn).not.toBeCalled();
-        });
 
         it.each(Object.entries(EXAMPLES))(
             'for %s it should create chart instance as expected',
@@ -73,14 +68,6 @@ describe('Gallery Examples', () => {
 
     describe('AgChartV2#update', () => {
         const ctx = setupMockCanvas();
-
-        beforeEach(() => {
-            console.warn = jest.fn();
-        });
-
-        afterEach(() => {
-            expect(console.warn).not.toBeCalled();
-        });
 
         describe.each(Object.entries(EXAMPLES))('for %s', (_exampleName, example) => {
             let chart: Chart;

@@ -1,9 +1,10 @@
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it } from '@jest/globals';
 
 import type { AgCartesianChartOptions, AgChartInstance, AgChartOptions } from '../options/agChartOptions';
 import { AgCharts } from './agChartV2';
 import type { Chart } from './chart';
 import * as examples from './test/examples';
+import { setupMockConsole } from './test/mockConsole';
 import type { TestCase } from './test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -26,13 +27,13 @@ const EXAMPLES: Record<string, TestCase> = {
 };
 
 describe('AgChartV2', () => {
+    setupMockConsole();
+
     const ctx = setupMockCanvas();
     let chart: AgChartInstance;
     let container: HTMLElement;
 
     beforeEach(() => {
-        console.warn = jest.fn();
-        console.error = jest.fn();
         container = document.createElement('div');
         document.body.append(container);
     });
@@ -43,7 +44,6 @@ describe('AgChartV2', () => {
             (chart as unknown) = undefined;
         }
         document.body.removeChild(container);
-        expect(console.error).not.toBeCalled();
     });
 
     const compare = async () => {
@@ -60,10 +60,6 @@ describe('AgChartV2', () => {
     };
 
     describe('#create', () => {
-        afterEach(() => {
-            expect(console.warn).not.toBeCalled();
-        });
-
         it.each(Object.entries(EXAMPLES))(
             'for %s it should create chart instance as expected',
             async (_exampleName, example) => {
@@ -94,10 +90,6 @@ describe('AgChartV2', () => {
     });
 
     describe('#update', () => {
-        afterEach(() => {
-            expect(console.warn).not.toBeCalled();
-        });
-
         it('should allow switching between grouped and stacked types of chart', async () => {
             const exampleCycle = [
                 { ...examples.GROUPED_BAR_CHART_EXAMPLE },

@@ -1,13 +1,14 @@
 /**
  * @timezone US/Pacific
  */
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, describe, expect, it } from '@jest/globals';
 
 import type { AgChartOptions } from '../options/agChartOptions';
 import { AgCharts } from './agChartV2';
 import type { Chart } from './chart';
 import { isAgCartesianChartOptions } from './mapping/types';
 import { EXAMPLES } from './test/examples-gallery';
+import { setupMockConsole } from './test/mockConsole';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     extractImageData,
@@ -30,19 +31,15 @@ const TIME_AXIS_EXAMPLES = Object.entries(EXAMPLES)
     }, {});
 
 describe('Gallery Examples (US TZ)', () => {
-    let chart: Chart;
+    setupMockConsole();
 
-    beforeEach(() => {
-        console.warn = jest.fn();
-    });
+    let chart: Chart;
 
     afterEach(() => {
         if (chart) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
-
-        expect(console.warn).not.toBeCalled();
     });
 
     it('should execute with Los Angeles timezone', () => {

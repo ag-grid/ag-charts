@@ -1,17 +1,15 @@
-import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { describe, expect, it } from '@jest/globals';
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import { AgCharts } from '../agChartV2';
 import type { Chart } from '../chart';
+import { expectWarning, setupMockConsole } from '../test/mockConsole';
 import { prepareTestOptions, waitForChartStability } from '../test/utils';
 
 expect.extend({ toMatchImageSnapshot });
 
-/* eslint-disable no-console */
 describe('TooltipValidation', () => {
-    beforeEach(() => {
-        console.warn = jest.fn();
-    });
+    setupMockConsole();
 
     const opts = prepareTestOptions({});
 
@@ -30,8 +28,7 @@ describe('TooltipValidation', () => {
         }) as Chart;
         await waitForChartStability(chart);
 
-        expect(console.warn).toBeCalledTimes(1);
-        expect(console.warn).toBeCalledWith(
+        expectWarning(
             `AG Charts - unable to set [tooltip.position] in Tooltip - can't apply type of [primitive], allowed types are: [class-instance]`
         );
     });
@@ -51,10 +48,8 @@ describe('TooltipValidation', () => {
         }) as Chart;
         await waitForChartStability(chart);
 
-        expect(console.warn).toBeCalledTimes(1);
-        expect(console.warn).toBeCalledWith(
+        expectWarning(
             `AG Charts - Property [type] of [TooltipPosition] cannot be set to ["ponter"]; expecting a position type keyword such as 'pointer' or 'node', ignoring.`
         );
     });
 });
-/* eslint-enable no-console */

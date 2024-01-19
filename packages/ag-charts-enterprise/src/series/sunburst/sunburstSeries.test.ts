@@ -16,6 +16,7 @@ import {
     hierarchyChartAssertions,
     hoverAction,
     setupMockCanvas,
+    setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
@@ -24,6 +25,7 @@ import { prepareEnterpriseTestOptions } from '../../test/utils';
 import type { SunburstSeries } from './sunburstSeries';
 
 describe('SunburstSeries', () => {
+    setupMockConsole();
     let chart: any;
 
     afterEach(() => {
@@ -43,14 +45,6 @@ describe('SunburstSeries', () => {
     };
 
     describe('Series Highlighting', () => {
-        beforeEach(() => {
-            console.warn = jest.fn();
-        });
-
-        afterEach(() => {
-            expect(console.warn).not.toBeCalled();
-        });
-
         const SIMPLIFIED_EXAMPLE = {
             ...GALLERY_EXAMPLES.SIMPLE_SUNBURST_EXAMPLE.options,
         };

@@ -1,9 +1,10 @@
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, describe, expect, it } from '@jest/globals';
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type { AgChartOptions } from '../../options/agChartOptions';
 import { AgCharts } from '../agChartV2';
 import type { Chart } from '../chart';
+import { setupMockConsole } from '../test/mockConsole';
 import type { TestCase } from '../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -132,6 +133,8 @@ const EXAMPLES: Record<string, TestCase> = {
 };
 
 describe('series labels', () => {
+    setupMockConsole();
+
     let chart: Chart;
 
     afterEach(() => {
@@ -144,14 +147,6 @@ describe('series labels', () => {
     const ctx = setupMockCanvas();
 
     describe('#create', () => {
-        beforeEach(() => {
-            console.warn = jest.fn();
-        });
-
-        afterEach(() => {
-            expect(console.warn).not.toBeCalled();
-        });
-
         it.each(Object.entries(EXAMPLES))(
             'for %s it should create chart instance as expected',
             async (_exampleName, example) => {

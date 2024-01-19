@@ -5,6 +5,7 @@ import type { AgChartOptions } from '../../../options/agChartOptions';
 import { AgCharts } from '../../agChartV2';
 import type { Chart } from '../../chart';
 import * as examples from '../../test/examples';
+import { setupMockConsole } from '../../test/mockConsole';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     extractImageData,
@@ -18,6 +19,8 @@ import {
 expect.extend({ toMatchImageSnapshot });
 
 describe('BubbleSeries', () => {
+    setupMockConsole();
+
     const compare = async () => {
         await waitForChartStability(chart);
 
@@ -38,10 +41,6 @@ describe('BubbleSeries', () => {
     const ctx = setupMockCanvas();
 
     describe('multiple overlapping bubbles', () => {
-        beforeEach(() => {
-            console.warn = jest.fn();
-        });
-
         it('should render bubble series with the correct relative Z-index', async () => {
             const options: AgChartOptions = {
                 data: repeat(null, 30).reduce(

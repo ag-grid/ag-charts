@@ -1,9 +1,11 @@
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, describe, expect, it } from '@jest/globals';
 
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    expectWarning,
     extractImageData,
     setupMockCanvas,
+    setupMockConsole,
     spyOnAnimationManager,
     waitForChartStability,
 } from 'ag-charts-community-test';
@@ -13,25 +15,16 @@ import { AgCharts } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
 describe('RangeAreaSeries', () => {
+    setupMockConsole();
+
     let chart: any;
     const ctx = setupMockCanvas();
-    let expectWarning = false;
-
-    beforeEach(() => {
-        // eslint-disable-next-line no-console
-        console.warn = jest.fn();
-    });
 
     afterEach(() => {
         if (chart) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
-        if (!expectWarning) {
-            // eslint-disable-next-line no-console
-            expect(console.warn).not.toBeCalled();
-        }
-        expectWarning = false;
     });
 
     const CATEGORY_DATA: { month: string | Date; high: number; low: number; average: number }[] = [
@@ -288,10 +281,7 @@ describe('RangeAreaSeries', () => {
 
         chart = AgCharts.create(options);
         await compare();
-
-        // eslint-disable-next-line no-console
-        expect(console.warn).toHaveBeenCalledWith('AG Charts - invalid value of type [string] ignored:', '[invalid]');
-        expectWarning = true;
+        expectWarning('AG Charts - invalid value of type [string] ignored:', '[invalid]');
     });
 
     it(`should render a range-area chart with reversed number x-axis`, async () => {
@@ -318,6 +308,7 @@ describe('RangeAreaSeries', () => {
 
         chart = AgCharts.create(options);
         await compare();
+        expectWarning('AG Charts - invalid value of type [string] ignored:', '[invalid]');
     });
 
     it(`should render a range-area chart with missing and invalid x values`, async () => {

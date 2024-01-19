@@ -5,6 +5,7 @@ import { AgCharts } from './agChartV2';
 import type { CartesianChart } from './cartesianChart';
 import type { Chart } from './chart';
 import * as examples from './test/examples';
+import { setupMockConsole } from './test/mockConsole';
 import { seedRandom } from './test/random';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -46,18 +47,14 @@ const OPTIONS: AgCartesianChartOptions = {
 };
 
 describe('Legend', () => {
+    setupMockConsole();
     let chart: Chart;
-
-    beforeEach(() => {
-        console.warn = jest.fn();
-    });
 
     afterEach(() => {
         if (chart) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
-        expect(console.warn).not.toBeCalled();
     });
 
     const ctx = setupMockCanvas();

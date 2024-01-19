@@ -7,6 +7,7 @@ import {
     extractImageData,
     scrollAction,
     setupMockCanvas,
+    setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
@@ -15,6 +16,8 @@ import { AgCharts } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
 describe('Zoom', () => {
+    setupMockConsole();
+
     let chart: any;
     const ctx = setupMockCanvas();
 
@@ -66,18 +69,11 @@ describe('Zoom', () => {
         } as AgChartOptions);
     }
 
-    beforeEach(async () => {
-        // eslint-disable-next-line no-console
-        console.warn = jest.fn();
-    });
-
     afterEach(() => {
         if (chart) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
-        // eslint-disable-next-line no-console
-        expect(console.warn).not.toBeCalled();
     });
 
     const compare = async () => {

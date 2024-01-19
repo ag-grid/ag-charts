@@ -1,25 +1,23 @@
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, describe, expect, it } from '@jest/globals';
 
 import * as examples from '../chart/test/examples';
+import { setupMockConsole } from '../chart/test/mockConsole';
 import { IMAGE_SNAPSHOT_DEFAULTS, extractImageData, setupMockCanvas, waitForChartStability } from '../chart/test/utils';
 import type { AgCartesianChartOptions, AgChartInstance, AgChartLegendOptions } from '../options/agChartOptions';
 import { AgCharts } from './../chart/agChartV2';
 
 describe('Scene', () => {
+    setupMockConsole();
+
     let chart: AgChartInstance;
 
     const ctx = setupMockCanvas();
-
-    beforeEach(() => {
-        console.warn = jest.fn();
-    });
 
     afterEach(() => {
         if (chart) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
-        expect(console.warn).not.toBeCalled();
     });
 
     const compare = async () => {

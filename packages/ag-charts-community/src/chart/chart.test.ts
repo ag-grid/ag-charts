@@ -11,6 +11,7 @@ import { AgCharts } from './agChartV2';
 import type { Chart } from './chart';
 import type { AgChartProxy } from './chartProxy';
 import { Circle } from './marker/circle';
+import { setupMockConsole } from './test/mockConsole';
 import {
     clickAction,
     createChart,
@@ -24,18 +25,15 @@ import {
 expect.extend({ toMatchImageSnapshot });
 
 describe('Chart', () => {
-    let chart: Chart;
+    setupMockConsole();
 
-    beforeEach(() => {
-        console.warn = jest.fn();
-    });
+    let chart: Chart;
 
     afterEach(() => {
         if (chart) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
-        expect(console.warn).not.toBeCalled();
     });
 
     setupMockCanvas();
