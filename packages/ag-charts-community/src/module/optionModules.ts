@@ -25,7 +25,7 @@ import {
 import type { SeriesNodeDatum } from '../chart/series/seriesTypes';
 import type { ChartTheme } from '../chart/themes/chartTheme';
 import type { AgBaseAxisOptions } from '../options/chart/axisOptions';
-import type { AgChartOptions } from '../options/chart/chartBuilderOptions';
+import type { AgCartesianChartOptions, AgChartOptions } from '../options/chart/chartBuilderOptions';
 import { type AgTooltipPositionOptions, AgTooltipPositionType } from '../options/chart/tooltipOptions';
 import type { AgCartesianAxisOptions } from '../options/series/cartesian/cartesianOptions';
 import type { AgCartesianSeriesOptions } from '../options/series/cartesian/cartesianSeriesTypes';
@@ -223,6 +223,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         if (!('axes' in options)) return;
         options.axes = options.axes!.map((axis: any) => {
             const { crossLines: crossLinesTheme, ...axisTheme } = mergeDefaults(
+                (this.seriesDefaults as AgCartesianChartOptions).axes?.find(({ type }) => type === axis.type),
                 axesThemes[axis.type]?.[axis.position],
                 axesThemes[axis.type]
             );
