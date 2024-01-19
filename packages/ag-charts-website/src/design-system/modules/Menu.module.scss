@@ -21,6 +21,7 @@
     &:hover,
     &:focus {
         background-color: color-mix(in srgb, var(--color-logo-orange) 5%, var(--color-bg-primary));
+        color: var(--color-logo-orange);
     }
 
     #{$selector-darkmode} & {

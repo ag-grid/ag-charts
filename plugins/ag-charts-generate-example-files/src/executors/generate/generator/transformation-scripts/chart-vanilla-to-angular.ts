@@ -22,9 +22,7 @@ function getImports(bindings, componentFileNames: string[], { typeParts }): stri
     });
 
     const imports = [`import { Component${bindings.usesChartApi ? ', ViewChild' : ''} } from '@angular/core';`];
-    imports.push(
-        `import { AgChartsAngularModule${bindings.usesChartApi ? ', AgChartsAngular' : ''} } from 'ag-charts-angular';`
-    );
+    imports.push(`import { AgChartsAngular } from 'ag-charts-angular';`);
 
     addBindingImports([...bImports], imports, true, true);
 
@@ -83,7 +81,7 @@ export async function vanillaToAngular(bindings: any, componentFileNames: string
 @Component({
     selector: 'my-app',
     standalone: true,
-    imports: [AgChartsAngularModule],
+    imports: [AgChartsAngular],
     template: \`${template}\`
 })
 

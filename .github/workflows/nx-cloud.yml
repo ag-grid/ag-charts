@@ -41,7 +41,7 @@ jobs:
               id: setup_node
               uses: actions/setup-node@v4
               with:
-                  node-version: '18'
+                  node-version: '20'
                   cache: 'yarn'
             - name: yarn install
               id: yarn_install

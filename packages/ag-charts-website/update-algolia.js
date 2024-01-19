@@ -86,7 +86,7 @@ const extractTitle = (titleTag) => {
               .replace('React Charts', '')
               .replace('Vue Charts', '')
               .replace('Javascript Charts', '')
-              .replace('ReactAngularVueJavaScript', '')
+              .replace('ReactAngularVueJavascript', '')
         : title;
 };
 

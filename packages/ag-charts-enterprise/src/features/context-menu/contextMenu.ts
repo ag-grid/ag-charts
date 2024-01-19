@@ -189,7 +189,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
         this.groups.default = [...ContextMenu.defaultActions];
 
-        this.pickedNode = this.highlightManager.getActivePicked();
+        this.pickedNode = this.highlightManager.getActiveHighlight();
         if (this.pickedNode) {
             this.groups.node = [...ContextMenu.nodeActions];
         }
@@ -343,6 +343,8 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
     public override destroy() {
         super.destroy();
+
+        this.destroyFns.forEach((f) => f());
 
         this.intersectionObserver?.unobserve(this.canvasElement);
         this.mutationObserver?.disconnect();

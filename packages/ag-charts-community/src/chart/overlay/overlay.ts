@@ -1,12 +1,15 @@
+import { ADD_PHASE, REMOVE_PHASE } from '../../motion/animation';
 import type { BBox } from '../../scene/bbox';
 import { FUNCTION, STRING, Validate } from '../../util/validation';
+import type { AnimationManager } from '../interaction/animationManager';
 
 export class Overlay {
     private element?: HTMLElement;
 
     constructor(
         private className: string,
-        private parentElement: HTMLElement
+        private parentElement: HTMLElement,
+        private animationManager: AnimationManager
     ) {}
 
     @Validate(FUNCTION, { optional: true })
@@ -42,13 +45,42 @@ export class Overlay {
             content.innerText = this.text ?? 'No data to display';
 
             element.replaceChildren(content);
+
+            this.animationManager.animate({
+                from: 0,
+                to: 1,
+                delay: ADD_PHASE.animationDelay * this.animationManager.defaultDuration,
+                duration: ADD_PHASE.animationDuration * this.animationManager.defaultDuration,
+                id: 'overlay',
+                groupId: 'opacity',
+                onUpdate(value) {
+                    element.style.opacity = String(value);
+                },
+            });
         }
 
         this.parentElement?.append(element);
     }
 
     hide() {
-        this.element?.remove();
+        if (!this.element) return;
+
+        const element = this.element;
+        this.animationManager.animate({
+            from: 1,
+            to: 0,
+            delay: REMOVE_PHASE.animationDelay * this.animationManager.defaultDuration,
+            duration: REMOVE_PHASE.animationDuration * this.animationManager.defaultDuration,
+            id: 'overlay',
+            groupId: 'opacity',
+            onUpdate(value) {
+                element.style.opacity = String(value);
+            },
+            onStop() {
+                element.remove();
+            },
+        });
+
         this.element = undefined;
     }
 

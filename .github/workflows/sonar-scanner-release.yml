@@ -21,17 +21,21 @@ jobs:
               id: checkout
               uses: actions/checkout@v3
               with:
-                  fetch-depth: 1
+                  fetch-depth: 0
             - name: Setup Node.js
               id: setup_node
               uses: actions/setup-node@v3
               with:
-                  node-version: '18'
+                  node-version: '20'
                   cache: 'yarn'
+            - uses: actions/setup-java@v4
+              with:
+                  distribution: 'oracle'
+                  java-version: '17'
             - name: yarn install
               id: yarn_install
               run: yarn install --ci --prefer-offline
 
             - name: Run Scan
               run: |
-                  npx sonar-scanner -Dsonar.login=${{ secrets.SONAR_LOGIN }} -Dsonar.projectKey=${SONAR_PROJECT}
+                  npx sonar-scanner -Dsonar.token=${{ secrets.SONAR_LOGIN }} -Dsonar.projectKey=${SONAR_PROJECT}

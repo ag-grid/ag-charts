@@ -44,6 +44,9 @@ export class SheetsDark extends DarkTheme {
         return {
             fill: SHEETS_DARK_FILLS.BLUE,
             stroke: SHEETS_DARK_STROKES.BLUE,
+            label: {
+                color: 'white',
+            },
         };
     }
 
@@ -51,6 +54,9 @@ export class SheetsDark extends DarkTheme {
         return {
             fill: SHEETS_DARK_FILLS.ORANGE,
             stroke: SHEETS_DARK_STROKES.ORANGE,
+            label: {
+                color: 'white',
+            },
         };
     }
 
@@ -58,6 +64,9 @@ export class SheetsDark extends DarkTheme {
         return {
             fill: SHEETS_DARK_FILLS.GRAY,
             stroke: SHEETS_DARK_STROKES.GRAY,
+            label: {
+                color: 'white',
+            },
         };
     }
 

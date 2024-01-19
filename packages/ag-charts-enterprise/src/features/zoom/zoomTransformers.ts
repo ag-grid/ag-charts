@@ -116,6 +116,13 @@ export function scaleZoomAxisWithPoint(
     return { min, max };
 }
 
+export function multiplyZoom(zoom: DefinedZoomState, nx: number, ny: number) {
+    return {
+        x: { min: zoom.x.min * nx, max: zoom.x.max * nx },
+        y: { min: zoom.y.min * ny, max: zoom.y.max * ny },
+    };
+}
+
 /**
  * Constrain a zoom bounding box such that no corner exceeds an edge while maintaining the same width and height.
  */

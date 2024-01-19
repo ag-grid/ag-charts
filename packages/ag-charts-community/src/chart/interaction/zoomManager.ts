@@ -66,12 +66,12 @@ export class ZoomManager extends BaseManager<'zoom-change', ZoomChangeEvent> {
         let x: ZoomState | undefined;
         let y: ZoomState | undefined;
 
-        // TODO: this only works when there is a single axis on each direction as it gets the last of each
+        // Use the zoom on the primary (first) axis in each direction
         Object.values(this.axes).forEach((axis) => {
             if (axis.getDirection() === ChartAxisDirection.X) {
-                x = axis.getZoom();
+                x ??= axis.getZoom();
             } else if (axis.getDirection() === ChartAxisDirection.Y) {
-                y = axis.getZoom();
+                y ??= axis.getZoom();
             }
         });
 

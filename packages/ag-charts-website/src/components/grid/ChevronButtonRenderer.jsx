@@ -1,10 +1,9 @@
 import styles from '@design-system/modules/ChevronButtonRenderer.module.scss';
+import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import classNames from 'classnames';
 import React, { forwardRef, useImperativeHandle, useState } from 'react';
 
-import { SITE_BASE_URL, SITE_URL } from '../../constants';
-
-const TreeClosed = `${SITE_URL}${SITE_BASE_URL ?? ''}theme-icons/alpine/tree-closed.svg`;
+const TreeClosed = urlWithBaseUrl(`/theme-icons/alpine/tree-closed.svg`);
 
 const IS_SSR = typeof window === 'undefined';
 

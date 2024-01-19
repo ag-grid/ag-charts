@@ -2,7 +2,9 @@ import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type {
+    AgBarSeriesOptions,
     AgChartInstance,
+    AgChartOptions,
     AgErrorBarFormatterParams,
     AgErrorBarOptions,
     AgScatterSeriesTooltipRendererParams,
@@ -113,6 +115,21 @@ const SERIES_ALTERNATE_NAMES = {
     errorBar: { yLowerKey: 'lower', yUpperKey: 'upper' },
 };
 
+const AUSTRALIA_AND_CANADA_DATA = [
+    { month: 'Jan', aus: 8.0, ausLo: 6.5, ausHi: 10.0, can: 12.5, canLo: 10.0, canHi: 15.0 },
+    { month: 'Feb', aus: 8.5, ausLo: 7.0, ausHi: 10.5, can: 13.0, canLo: 11.5, canHi: 15.5 },
+    { month: 'Mar', aus: 10.0, ausLo: 8.5, ausHi: 12.0, can: 15.5, canLo: 13.0, canHi: 18.0 },
+    { month: 'Apr', aus: 12.0, ausLo: 10.5, ausHi: 13.5, can: 18.0, canLo: 16.5, canHi: 19.5 },
+    { month: 'May', aus: 14.5, ausLo: 13.0, ausHi: 16.0, can: 21.5, canLo: 19.0, canHi: 24.0 },
+    { month: 'Jun', aus: 16.5, ausLo: 15.0, ausHi: 18.0, can: 24.0, canLo: 22.5, canHi: 26.0 },
+    { month: 'Jul', aus: 18.0, ausLo: 16.5, ausHi: 19.5, can: 26.5, canLo: 24.0, canHi: 29.0 },
+    { month: 'Aug', aus: 17.0, ausLo: 15.5, ausHi: 18.5, can: 25.0, canLo: 22.5, canHi: 28.0 },
+    { month: 'Sep', aus: 15.5, ausLo: 14.0, ausHi: 17.0, can: 23.5, canLo: 21.0, canHi: 27.0 },
+    { month: 'Oct', aus: 12.5, ausLo: 11.0, ausHi: 14.0, can: 20.0, canLo: 17.5, canHi: 22.5 },
+    { month: 'Nov', aus: 10.0, ausLo: 8.5, ausHi: 11.5, can: 16.5, canLo: 14.0, canHi: 19.0 },
+    { month: 'Dec', aus: 8.5, ausLo: 7.0, ausHi: 10.0, can: 13.0, canLo: 11.5, canHi: 15.5 },
+];
+
 const SERIES_BOYLESLAW = {
     type: 'scatter',
     data: [
@@ -206,6 +223,64 @@ describe('ErrorBars', () => {
                 { ...SERIES_ALTERNATE_NAMES, type: 'bar' },
             ],
         });
+        await compare();
+    });
+
+    it('should render vertical grouped bar series as expected', async () => {
+        const myOpts: AgChartOptions = {
+            ...opts,
+            data: AUSTRALIA_AND_CANADA_DATA,
+            series: [
+                {
+                    type: 'bar',
+                    stackGroup: 'myGroup',
+                    xKey: 'month',
+                    yKey: 'can',
+                    yName: 'Canada',
+                    errorBar: { yLowerKey: 'canLo', yUpperKey: 'canHi' },
+                },
+                {
+                    type: 'bar',
+                    stackGroup: 'myGroup',
+                    xKey: 'month',
+                    yKey: 'aus',
+                    yName: 'Australia',
+                    errorBar: { yLowerKey: 'ausLo', yUpperKey: 'ausHi' },
+                },
+            ],
+        };
+
+        chart = AgCharts.create(myOpts);
+        await compare();
+    });
+
+    it('should render horizontal grouped bar series as expected', async () => {
+        const myOpts: AgChartOptions = {
+            ...opts,
+            data: AUSTRALIA_AND_CANADA_DATA,
+            series: [
+                {
+                    type: 'bar',
+                    stackGroup: 'myGroup',
+                    xKey: 'month',
+                    yKey: 'can',
+                    yName: 'Canada',
+                    direction: 'horizontal',
+                    errorBar: { yLowerKey: 'canLo', yUpperKey: 'canHi' },
+                },
+                {
+                    type: 'bar',
+                    stackGroup: 'myGroup',
+                    xKey: 'month',
+                    yKey: 'aus',
+                    yName: 'Australia',
+                    direction: 'horizontal',
+                    errorBar: { yLowerKey: 'ausLo', yUpperKey: 'ausHi' },
+                },
+            ],
+        };
+
+        chart = AgCharts.create(myOpts);
         await compare();
     });
 

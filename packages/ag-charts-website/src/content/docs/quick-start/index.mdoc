@@ -182,13 +182,13 @@ Replace your `app.component.ts` file (or root component) with the following:
 
 ```js
 import { Component } from '@angular/core';
-import { AgChartsAngularModule } from 'ag-charts-angular';
+import { AgChartsAngular } from 'ag-charts-angular';
 import { AgChartOptions } from 'ag-charts-community';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [AgChartsAngularModule],
+  imports: [AgChartsAngular],
   // ag-charts-angular component with chartOptions attribute
   template:
   `<ag-charts-angular

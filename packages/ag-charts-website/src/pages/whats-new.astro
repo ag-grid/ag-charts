@@ -3,7 +3,7 @@ import { getCollection, getEntry } from 'astro:content';
 import { $internalFramework } from '@stores/frameworkStore';
 import { getFrameworkFromInternalFramework } from '@utils/framework';
 import Layout from '../layouts/Layout.astro';
-import { PagesNavigation } from '@components/pages-navigation/PagesNavigation';
+import { PagesNavigationFromLocalStorage } from '@components/pages-navigation/PagesNavigationFromLocalStorage';
 import { getDocsPages } from '@features/docs/utils/pageData';
 import { Version } from '../components/version/Version';
 
@@ -15,12 +15,11 @@ export async function getStaticPaths() {
 const menuEntry = await getEntry('menu', 'data');
 const versionsContent = await getEntry('versions', 'data');
 const versionsData: any[] = versionsContent ? versionsContent.data : [];
-const framework = getFrameworkFromInternalFramework($internalFramework.get());
 ---
 
 <Layout title={"What's new"} showTopBar={true} showSearchBar={true}>
     <div class={'contentViewport layout-grid'}>
-        <PagesNavigation client:load menuData={menuEntry.data} pageName={'whats-new'} framework={framework} />
+        <PagesNavigationFromLocalStorage client:load menuData={menuEntry.data} pageName={'whats-new'} />
 
         <div id="doc-content" class="docPage">
             <div class="pageSections">
