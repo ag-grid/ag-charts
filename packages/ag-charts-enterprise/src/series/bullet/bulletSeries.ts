@@ -247,7 +247,8 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
     }
 
     private getColorRanges(): BulletColorRange[] {
-        const { colorRanges, fill, backgroundFill } = this.properties;
+        const { fill, backgroundFill } = this.properties;
+        const colorRanges = this.properties.colorRanges.getArray();
         if (colorRanges !== undefined && colorRanges.length > 0) {
             return colorRanges;
         }
