@@ -7,7 +7,8 @@ import type {
     InteractionRange,
 } from '../../options/agChartOptions';
 import { jsonClone, jsonWalk } from '../../util/json';
-import { deepMerge } from '../../util/object';
+import { deepMerge, mergeDefaults } from '../../util/object';
+import { isObject } from '../../util/type-guards';
 import { AXIS_TYPES, getAxisThemeTemplate } from '../factory/axisTypes';
 import { CHART_TYPES, type ChartType, getChartDefaults } from '../factory/chartTypes';
 import { getLegendThemeTemplates } from '../factory/legendTypes';
@@ -455,6 +456,8 @@ export class ChartTheme {
                 Object.keys(source).forEach((key) => {
                     if (!(key in node)) {
                         node[key] = source[key];
+                    } else if (isObject(node[key])) {
+                        node[key] = mergeDefaults(node[key], source[key]);
                     }
                 });
                 delete node['__extends__'];
