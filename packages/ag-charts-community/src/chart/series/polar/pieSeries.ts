@@ -20,7 +20,7 @@ import type { Has } from '../../../util/types';
 import { isNumber } from '../../../util/value';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
-import type { DataModel } from '../../data/dataModel';
+import { DataModel, getMissCount } from '../../data/dataModel';
 import { animationValidation, diff, normalisePropertyTo } from '../../data/processors';
 import type { LegendItemClickChartEvent } from '../../interaction/chartEventManager';
 import { Layers } from '../../layers';
@@ -270,10 +270,11 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
             // If any 'angleRaw' values are missing, then we'll also be missing 'angleValue' values and
             // will log a warning anyway.
             const { id, missing, property } = valueDef;
-            if (id !== 'angleRaw' && missing !== undefined && missing > 0) {
+            const missCount = getMissCount(this, missing);
+            if (id !== 'angleRaw' && missCount > 0) {
                 Logger.warnOnce(
-                    `no value was found for the key '${String(property)}' on ${missing} data element${
-                        missing > 1 ? 's' : ''
+                    `no value was found for the key '${String(property)}' on ${missCount} data element${
+                        missCount > 1 ? 's' : ''
                     }`
                 );
             }

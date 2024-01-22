@@ -4,7 +4,7 @@ import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 import { formatLabels } from '../util/labelFormatter';
 import { HeatmapSeriesProperties } from './heatmapSeriesProperties';
 
-const { SeriesNodePickMode, valueProperty, ChartAxisDirection } = _ModuleSupport;
+const { SeriesNodePickMode, getMissCount, valueProperty, ChartAxisDirection } = _ModuleSupport;
 const { Rect, PointerEvents } = _Scene;
 const { ColorScale } = _Scale;
 const { sanitizeHtml, Color, Logger } = _Util;
@@ -114,7 +114,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
 
         const colorDataIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue').index;
         const dataCount = processedData.data.length;
-        const colorDataMissing = dataCount === 0 || dataCount === processedData.defs.values[colorDataIdx].missing;
+        const missCount = getMissCount(this, processedData.defs.values[colorDataIdx].missing);
+        const colorDataMissing = dataCount === 0 || dataCount === missCount;
         return !colorDataMissing;
     }
 
