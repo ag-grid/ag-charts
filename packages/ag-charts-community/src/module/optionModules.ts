@@ -236,12 +236,14 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             if (axis.gridLine?.style && gridLineStyle?.length) {
                 axis.gridLine.style = axis.gridLine.style.map((style: any, index: number) =>
                     style.stroke != null || style.lineDash != null
-                        ? mergeDefaults(style, gridLineStyle[index % gridLineStyle.length])
+                        ? mergeDefaults(style, gridLineStyle.at(index % gridLineStyle.length))
                         : style
                 );
             }
-
+            // console.log({ axisTheme });
             const { top, right, bottom, left, ...axisOptions } = mergeDefaults(axis, axisTheme);
+            // console.log({ axisTheme });
+            // console.log({ axis, axisTheme, axisOptions });
             return axisOptions;
         }) as AgCartesianAxisOptions[] | AgPolarAxisOptions[];
     }

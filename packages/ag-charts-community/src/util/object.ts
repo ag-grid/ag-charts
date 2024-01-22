@@ -12,7 +12,7 @@ export function mergeDefaults<TSource extends PlainObject, TArgs extends (TSourc
     const target: PlainObject = {};
 
     for (const source of sources) {
-        if (!source) continue;
+        if (!isObject(source)) continue;
 
         const keys = isDecoratedObject(source) ? listDecoratedProperties(source) : Object.keys(source);
 
