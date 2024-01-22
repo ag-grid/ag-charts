@@ -7,6 +7,7 @@ import type { AgBaseSeriesThemeableOptions } from '../seriesOptions';
 export interface AgBaseRadialSeriesThemeableOptions<TDatum = any>
     extends StrokeOptions,
         LineDashOptions,
+        FillOptions,
         AgBaseSeriesThemeableOptions {
     /** Configuration for the labels shown on top of data points. */
     label?: AgChartLabelOptions<TDatum, AgRadialSeriesLabelFormatterParams>;

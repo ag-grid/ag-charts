@@ -30,11 +30,16 @@ export interface AgBasePolarChartOptions {
     axes?: AgPolarAxisOptions[];
 }
 
+export interface AgAngleCategoryAxisThemeOptions extends Omit<AgAngleCategoryAxisOptions, 'type'> {}
+export interface AgAngleNumberAxisThemeOptions extends Omit<AgAngleNumberAxisOptions, 'type'> {}
+export interface AgRadiusCategoryAxisThemeOptions extends Omit<AgRadiusCategoryAxisOptions, 'type'> {}
+export interface AgRadiusNumberAxisThemeOptions extends Omit<AgRadiusNumberAxisOptions, 'type'> {}
+
 export interface AgPolarAxesTheme {
-    'angle-category'?: AgAngleCategoryAxisOptions;
-    'angle-number'?: AgAngleNumberAxisOptions;
-    'radius-category'?: AgRadiusCategoryAxisOptions;
-    'radius-number'?: AgRadiusNumberAxisOptions;
+    'angle-category'?: AgAngleCategoryAxisThemeOptions;
+    'angle-number'?: AgAngleNumberAxisThemeOptions;
+    'radius-category'?: AgRadiusCategoryAxisThemeOptions;
+    'radius-number'?: AgRadiusNumberAxisThemeOptions;
 }
 
 export interface AgBasePolarThemeOptions extends AgBaseThemeableChartOptions {
