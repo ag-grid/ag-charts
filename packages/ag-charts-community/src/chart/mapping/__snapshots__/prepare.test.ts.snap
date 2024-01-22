@@ -250,9 +250,11 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
       "strokeOpacity": 1,
       "strokeWidth": 5,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "line",
       "visible": true,
@@ -304,9 +306,11 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
       "strokeOpacity": 1,
       "strokeWidth": 5,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "line",
       "visible": true,
@@ -358,9 +362,11 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
       "strokeOpacity": 1,
       "strokeWidth": 5,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "line",
       "visible": true,
@@ -822,9 +828,11 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
       "strokeOpacity": 1,
       "strokeWidth": 5,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "line",
       "visible": true,
@@ -1083,9 +1091,17 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
   "series": [
     {
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 3,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -1119,9 +1135,11 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
       "strokeWidth": 2,
       "title": "Still wine",
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "line",
       "visible": true,
@@ -1130,9 +1148,17 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
     },
     {
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 3,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -1166,9 +1192,11 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
       "strokeWidth": 2,
       "title": "Sparkling wine",
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "line",
       "visible": true,
@@ -1177,9 +1205,17 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
     },
     {
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 3,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -1213,9 +1249,11 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
       "strokeWidth": 2,
       "title": "Made-wine",
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "line",
       "visible": true,
@@ -1224,9 +1262,17 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
     },
     {
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 3,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -1260,9 +1306,11 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
       "strokeWidth": 2,
       "title": "Whisky",
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "line",
       "visible": true,
@@ -1271,9 +1319,17 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
     },
     {
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 3,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -1307,9 +1363,11 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
       "strokeWidth": 2,
       "title": "Potable spirits",
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "line",
       "visible": true,
@@ -1318,9 +1376,17 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
     },
     {
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 3,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -1354,9 +1420,11 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
       "strokeWidth": 2,
       "title": "Beer",
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "line",
       "visible": true,
@@ -1365,9 +1433,17 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
     },
     {
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 3,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -1401,9 +1477,11 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
       "strokeWidth": 2,
       "title": "Cider",
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "line",
       "visible": true,
@@ -1714,6 +1792,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "stroke": "#2b5c95",
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "renderer": [Function],
       },
       "type": "bar",
@@ -1770,6 +1849,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "stroke": "#cc6f10",
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "renderer": [Function],
       },
       "type": "bar",
@@ -1826,6 +1906,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "stroke": "#1e652e",
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "renderer": [Function],
       },
       "type": "bar",
@@ -1882,6 +1963,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "stroke": "#18859e",
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "renderer": [Function],
       },
       "type": "bar",
@@ -1938,6 +2020,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "stroke": "#a69400",
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "renderer": [Function],
       },
       "type": "bar",
@@ -1994,6 +2077,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "stroke": "#603c88",
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "renderer": [Function],
       },
       "type": "bar",
@@ -2050,6 +2134,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "stroke": "#575757",
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "renderer": [Function],
       },
       "type": "bar",
@@ -2106,6 +2191,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "stroke": "#7d2f6d",
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "renderer": [Function],
       },
       "type": "bar",
@@ -2384,9 +2470,11 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
       "sizeKey": "magnitude",
       "sizeName": "Magnitude",
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "bubble",
       "visible": true,
@@ -2665,9 +2753,11 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
       "strokeWidth": 3,
       "title": "Southern California Seismic Network",
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "line",
       "visible": true,
@@ -2719,9 +2809,11 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
       "strokeWidth": 3,
       "title": "Hawaiian Volcano Observatory Network",
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "line",
       "visible": true,
@@ -2773,9 +2865,11 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
       "strokeWidth": 3,
       "title": "USGS Northern California Network",
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "line",
       "visible": true,
@@ -2827,9 +2921,11 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
       "strokeWidth": 3,
       "title": "Oklahoma Seismic Network",
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "line",
       "visible": true,
@@ -3090,9 +3186,17 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "fill": "#FA7921",
       "fillOpacity": 0.6,
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.1,
           "strokeWidth": 3,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -3132,9 +3236,11 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "area",
       "visible": true,
@@ -3146,9 +3252,17 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "fill": "#5BC0EB",
       "fillOpacity": 0.6,
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.1,
           "strokeWidth": 3,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -3188,9 +3302,11 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "area",
       "visible": true,
@@ -3202,9 +3318,17 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "fill": "#9BC53D",
       "fillOpacity": 0.6,
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.1,
           "strokeWidth": 3,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -3244,9 +3368,11 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "area",
       "visible": true,
@@ -3258,9 +3384,17 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "fill": "#E55934",
       "fillOpacity": 0.6,
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.1,
           "strokeWidth": 3,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -3300,9 +3434,11 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "area",
       "visible": true,
@@ -3314,9 +3450,17 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "fill": "#FDE74C",
       "fillOpacity": 0.6,
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.1,
           "strokeWidth": 3,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -3356,9 +3500,11 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "area",
       "visible": true,
@@ -4227,9 +4373,11 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
       "sizeName": "Commits",
       "title": "Punch Card",
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "bubble",
       "visible": true,
@@ -4503,9 +4651,11 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
       "sizeName": "Population",
       "title": "Most populous cities",
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "bubble",
       "visible": true,
@@ -4738,8 +4888,16 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
       "fill": "#19A0AA",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.3,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -4787,8 +4945,16 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
       "fill": "#F15F36",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.3,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -5080,9 +5246,17 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
       "fill": "rgba(0, 117, 163, 0.9)",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -5131,9 +5305,17 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
       "fill": "rgba(226, 188, 34, 0.9)",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -5427,11 +5609,16 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 1,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -5479,11 +5666,16 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 1,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -5531,11 +5723,16 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 1,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -5583,11 +5780,16 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 1,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -5635,11 +5837,16 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 1,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -5687,11 +5894,16 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 1,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -5739,11 +5951,16 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "fillOpacity": 1,
       "highlightStyle": {
         "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 1,
         },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -6029,9 +6246,17 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
   "series": [
     {
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -6064,9 +6289,11 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "line",
       "visible": true,
@@ -6076,9 +6303,17 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     },
     {
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -6111,9 +6346,11 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "line",
       "visible": true,
@@ -6123,9 +6360,17 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     },
     {
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -6158,9 +6403,11 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "line",
       "visible": true,
@@ -6170,9 +6417,17 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     },
     {
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -6205,9 +6460,11 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "line",
       "visible": true,
@@ -6217,9 +6474,17 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     },
     {
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -6252,9 +6517,11 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "line",
       "visible": true,
@@ -6264,9 +6531,17 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     },
     {
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -6299,9 +6574,11 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "line",
       "visible": true,
@@ -6311,9 +6588,17 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     },
     {
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -6346,9 +6631,11 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "line",
       "visible": true,
@@ -6358,9 +6645,17 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     },
     {
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -6393,9 +6688,11 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "line",
       "visible": true,
@@ -6405,9 +6702,17 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     },
     {
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -6440,9 +6745,11 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "line",
       "visible": true,
@@ -6452,9 +6759,17 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     },
     {
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -6487,9 +6802,11 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "line",
       "visible": true,
@@ -6499,9 +6816,17 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     },
     {
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -6534,9 +6859,11 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "line",
       "visible": true,
@@ -6546,9 +6873,17 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     },
     {
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -6581,9 +6916,11 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "line",
       "visible": true,
@@ -6593,9 +6930,17 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     },
     {
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -6628,9 +6973,11 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "line",
       "visible": true,
@@ -6640,9 +6987,17 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     },
     {
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -6675,9 +7030,11 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "line",
       "visible": true,
@@ -6687,9 +7044,17 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     },
     {
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -6722,9 +7087,11 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "line",
       "visible": true,
@@ -6734,9 +7101,17 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     },
     {
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 4,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -6769,9 +7144,11 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "line",
       "visible": true,
@@ -7097,6 +7474,7 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
@@ -7331,9 +7709,17 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "fill": "#5090dc",
       "fillOpacity": 0.8,
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 4,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -7380,9 +7766,11 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "area",
       "visible": true,
@@ -7394,9 +7782,17 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "fill": "#ffa03a",
       "fillOpacity": 0.8,
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 4,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -7443,9 +7839,11 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "area",
       "visible": true,
@@ -7457,9 +7855,17 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "fill": "#459d55",
       "fillOpacity": 0.8,
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 4,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -7506,9 +7912,11 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "area",
       "visible": true,
@@ -7520,9 +7928,17 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "fill": "#34bfe1",
       "fillOpacity": 0.8,
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 4,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -7569,9 +7985,11 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "area",
       "visible": true,
@@ -7583,9 +8001,17 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "fill": "#e1cc00",
       "fillOpacity": 0.8,
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 4,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -7632,9 +8058,11 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "area",
       "visible": true,
@@ -7646,9 +8074,17 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "fill": "#9669cb",
       "fillOpacity": 0.8,
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 4,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -7695,9 +8131,11 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "area",
       "visible": true,
@@ -7709,9 +8147,17 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "fill": "#b5b5b5",
       "fillOpacity": 0.8,
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 4,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -7758,9 +8204,11 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "area",
       "visible": true,
@@ -8008,9 +8456,17 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
       "fill": "#00c851",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -8060,9 +8516,17 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
       "fill": "#ffbb33",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -8112,9 +8576,17 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
       "fill": "#ff4444",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 1,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -8411,8 +8883,16 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       "fill": "#f1c40f",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.3,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -8461,8 +8941,16 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       "fill": "#e67e22",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.3,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -8511,8 +8999,16 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       "fill": "#2ecc71",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.3,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -8561,8 +9057,16 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       "fill": "#3498db",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.3,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -8611,8 +9115,16 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       "fill": "#9b59b6",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.3,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -8661,8 +9173,16 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       "fill": "#34495e",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.3,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -9015,6 +9535,7 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
@@ -9079,6 +9600,7 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
@@ -9143,6 +9665,7 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
@@ -9207,6 +9730,7 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
@@ -9956,9 +10480,17 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
   "series": [
     {
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 3,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -9991,6 +10523,7 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
@@ -10003,9 +10536,17 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
     },
     {
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.2,
           "strokeWidth": 3,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -10038,6 +10579,7 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
       "strokeOpacity": 1,
       "strokeWidth": 2,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
@@ -10517,9 +11059,11 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
       "nodeClickRange": "exact",
       "showInLegend": true,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
+        "renderer": undefined,
       },
       "type": "scatter",
       "visible": true,
@@ -10755,8 +11299,16 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "fill": "#5BC0EB",
       "fillOpacity": 0.8,
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.2,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -10802,6 +11354,7 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
@@ -10817,8 +11370,16 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "fill": "#FDE74C",
       "fillOpacity": 0.8,
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.2,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -10864,6 +11425,7 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
@@ -10879,8 +11441,16 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "fill": "#9BC53D",
       "fillOpacity": 0.8,
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.2,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -10926,6 +11496,7 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
@@ -10941,8 +11512,16 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "fill": "#E55934",
       "fillOpacity": 0.8,
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.2,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -10988,6 +11567,7 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
@@ -11003,8 +11583,16 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "fill": "#FA7921",
       "fillOpacity": 0.8,
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.2,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -11050,6 +11638,7 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
@@ -11065,8 +11654,16 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "fill": "#fa3081",
       "fillOpacity": 0.8,
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.2,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -11112,6 +11709,7 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
+        "enabled": true,
         "position": {
           "type": "node",
         },
@@ -11386,9 +11984,17 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
       "fill": "#5090dc",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -11437,9 +12043,17 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
       "fill": "#ffa03a",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -11488,9 +12102,17 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
       "fill": "#459d55",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -11539,9 +12161,17 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
       "fill": "#34bfe1",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -11822,9 +12452,17 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       "fill": "#5BC0EB",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -11872,9 +12510,17 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       "fill": "#FDE74C",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -11922,9 +12568,17 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       "fill": "#9BC53D",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -11972,9 +12626,17 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       "fill": "#E55934",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
@@ -12022,9 +12684,17 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       "fill": "#FA7921",
       "fillOpacity": 1,
       "highlightStyle": {
+        "item": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
         "series": {
           "dimOpacity": 0.3,
           "strokeWidth": 1,
+        },
+        "text": {
+          "color": "black",
         },
       },
       "label": {
