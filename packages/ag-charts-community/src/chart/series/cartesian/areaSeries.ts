@@ -606,6 +606,7 @@ export class AreaSeries extends CartesianSeries<
         const { yKey, yName, fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, marker, visible } =
             this.properties;
 
+        const useAreaFill = !(marker.enabled && strokeWidth === 0) || marker.fill === undefined;
         return [
             {
                 legendType,
@@ -618,9 +619,9 @@ export class AreaSeries extends CartesianSeries<
                 },
                 marker: {
                     shape: marker.shape,
-                    fill: marker.fill ?? fill,
+                    fill: useAreaFill ? fill : marker.fill,
+                    fillOpacity: useAreaFill ? fillOpacity : marker.fillOpacity,
                     stroke: marker.stroke ?? stroke,
-                    fillOpacity: marker.fillOpacity ?? fillOpacity,
                     strokeOpacity: marker.strokeOpacity ?? strokeOpacity,
                     strokeWidth: marker.strokeWidth ?? 0,
                     enabled: marker.enabled || strokeWidth <= 0,
