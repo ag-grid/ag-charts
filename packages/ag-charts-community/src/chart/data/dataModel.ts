@@ -158,6 +158,17 @@ export function fixNumericExtent(extent?: (number | Date)[], axis?: ChartAxis): 
     return [min, max];
 }
 
+// AG-10337 Keep track of the number of missing values in each per-series data array.
+type MissMap = Map<string | undefined, number>;
+
+function defaultMissMap(): MissMap {
+    return new Map([[undefined, 0]]);
+}
+
+export function getMissCount(scopeProvider: ScopeProvider, missMap: MissMap | undefined) {
+    return missMap === undefined ? 0 : missMap.get(scopeProvider.id) ?? 0;
+}
+
 type GroupingFn<K> = (data: UngroupedDataItem<K, any[]>) => K[];
 export type GroupByFn = (extractedData: UngroupedData<any>) => GroupingFn<any>;
 export type DataModelOptions<K, Grouped extends boolean | undefined> = {
@@ -207,7 +218,7 @@ export type DatumPropertyDefinition<K> = PropertyIdentifiers & {
     property: K;
     forceValue?: any;
     invalidValue?: any;
-    missing?: number;
+    missing?: MissMap;
     missingValue?: any;
     separateNegative?: boolean;
     useScopedValues?: boolean;
@@ -221,7 +232,7 @@ type InternalDefinition = {
 
 type InternalDatumPropertyDefinition<K> = DatumPropertyDefinition<K> &
     InternalDefinition & {
-        missing: number;
+        missing: MissMap;
     };
 
 export type AggregatePropertyDefinition<
@@ -304,10 +315,10 @@ export class DataModel<
         this.opts = { dataVisible: true, ...opts };
         this.keys = props
             .filter((def): def is DatumPropertyDefinition<K> => def.type === 'key')
-            .map((def, index) => ({ ...def, index, missing: 0 }));
+            .map((def, index) => ({ ...def, index, missing: defaultMissMap() }));
         this.values = props
             .filter((def): def is DatumPropertyDefinition<K> => def.type === 'value')
-            .map((def, index) => ({ ...def, index, missing: 0 }));
+            .map((def, index) => ({ ...def, index, missing: defaultMissMap() }));
         this.aggregates = props
             .filter((def): def is AggregatePropertyDefinition<D, K> => def.type === 'aggregate')
             .map((def, index) => ({ ...def, index }));
@@ -491,10 +502,6 @@ export class DataModel<
         } = this;
         const start = performance.now();
 
-        for (const def of [...this.keys, ...this.values]) {
-            def.missing = 0;
-        }
-
         if (groupByKeys && this.keys.length === 0) {
             return undefined;
         }
@@ -522,8 +529,13 @@ export class DataModel<
         }
 
         for (const def of [...this.keys, ...this.values]) {
-            if (data.length > 0 && def.missing >= data.length) {
-                Logger.warnOnce(`the key '${def.property}' was not found in any data element.`);
+            if (data.length > 0) {
+                for (const [scope, missCount] of def.missing) {
+                    if (missCount >= data.length) {
+                        const scopeHint = scope === undefined ? '' : ` for ${scope}`;
+                        Logger.warnOnce(`the key '${def.property}' was not found in any data element${scopeHint}.`);
+                    }
+                }
             }
         }
 
@@ -632,7 +644,7 @@ export class DataModel<
                     const source = sourcesById[scope];
                     const valueDatum = source?.data[datumIdx] ?? datum;
 
-                    value = processValue(def, valueDatum, value);
+                    value = processValue(def, valueDatum, value, scope);
 
                     if (value === INVALID_VALUE || !values) continue;
 
@@ -959,7 +971,12 @@ export class DataModel<
 
         const accessors = this.buildAccessors(...keyDefs, ...valueDefs);
 
-        const processValue = (def: InternalDatumPropertyDefinition<K>, datum: any, previousDatum?: any) => {
+        const processValue = (
+            def: InternalDatumPropertyDefinition<K>,
+            datum: any,
+            previousDatum?: any,
+            scope?: string
+        ) => {
             const hasAccessor = def.property in accessors;
             let valueInDatum = false;
             let value;
@@ -985,7 +1002,8 @@ export class DataModel<
 
             const missingValueDef = 'missingValue' in def;
             if (!valueInDatum && !missingValueDef) {
-                def.missing++;
+                const missCount = def.missing.get(scope) ?? 0;
+                def.missing.set(scope, missCount + 1);
             }
 
             if (!dataDomain.has(def)) {
