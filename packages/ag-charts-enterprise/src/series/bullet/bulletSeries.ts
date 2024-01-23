@@ -1,7 +1,7 @@
 import type { AgBarSeriesStyle } from 'ag-charts-community';
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
-import { BulletSeriesProperties } from './bulletSeriesProperties';
+import { BulletColorRange, BulletSeriesProperties } from './bulletSeriesProperties';
 
 const {
     animationValidation,
@@ -234,9 +234,7 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
             context.nodeData.push(nodeData);
         }
 
-        const sortedRanges = [...this.properties.colorRanges].sort(
-            (a, b) => (a.stop || maxValue) - (b.stop || maxValue)
-        );
+        const sortedRanges = [...this.getColorRanges()].sort((a, b) => (a.stop || maxValue) - (b.stop || maxValue));
         let start = 0;
         this.normalizedColorRanges = sortedRanges.map((item) => {
             const stop = Math.min(maxValue, item.stop ?? Infinity);
@@ -246,6 +244,16 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
         });
 
         return [context];
+    }
+
+    private getColorRanges(): BulletColorRange[] {
+        const { colorRanges, fill, backgroundFill } = this.properties;
+        if (colorRanges !== undefined && colorRanges.length > 0) {
+            return colorRanges;
+        }
+        const defaultColorRange = new BulletColorRange();
+        defaultColorRange.color = _Util.Color.interpolate(fill, backgroundFill)(0.7);
+        return [defaultColorRange];
     }
 
     override getLegendData(_legendType: _ModuleSupport.ChartLegendType) {
