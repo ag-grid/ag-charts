@@ -138,10 +138,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         return this;
     }
 
-    get chartType() {
-        return this.optionsType(this.getOptions());
-    }
-
     getOptions() {
         return this.processedOptions ?? {};
     }
@@ -164,34 +160,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         return this.activeTheme?.templateTheme(seriesDefaults) ?? seriesDefaults;
     }
-
-    // applyChartOptions(chart: Chart) {
-    //     let modulesChanged = false;
-    //     for (const moduleDef of REGISTERED_MODULES) {
-    //         if (moduleDef.type !== 'root' && moduleDef.type !== 'legend') {
-    //             continue;
-    //         }
-    //
-    //         const shouldBeEnabled =
-    //             this.testModuleChartType(chart, moduleDef) &&
-    //             this.processedOptions?.[moduleDef.optionsKey as keyof T] != null;
-    //         const isEnabled = chart.isModuleEnabled(moduleDef);
-    //
-    //         if (shouldBeEnabled === isEnabled) {
-    //             continue;
-    //         }
-    //
-    //         if (shouldBeEnabled) {
-    //             chart.addModule(moduleDef);
-    //         } else {
-    //             chart.removeModule(moduleDef);
-    //         }
-    //
-    //         modulesChanged = true;
-    //     }
-    //
-    //     return modulesChanged;
-    // }
 
     protected optionsType(options: Partial<T>) {
         return options.series?.[0]?.type ?? 'line';
@@ -397,14 +365,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             return result;
         }, []);
     }
-
-    // private testModuleChartType(chart: Chart, { chartTypes }: Module) {
-    //     return (
-    //         (chart instanceof CartesianChart && chartTypes.includes('cartesian')) ||
-    //         (chart instanceof PolarChart && chartTypes.includes('polar')) ||
-    //         (chart instanceof HierarchyChart && chartTypes.includes('hierarchy'))
-    //     );
-    // }
 
     private getDefaultSeriesType(options: T): SeriesType {
         if (isAgCartesianChartOptions(options)) {

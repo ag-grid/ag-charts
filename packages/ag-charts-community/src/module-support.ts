@@ -15,7 +15,7 @@ export * from './util/type-guards';
 export * from './util/theme';
 export * from './module/baseModule';
 export * from './module/coreModules';
-export * from './module/optionModules';
+export * from './module/optionsModule';
 export * from './module/module';
 export * from './module/moduleContext';
 export * from './module/enterpriseModule';

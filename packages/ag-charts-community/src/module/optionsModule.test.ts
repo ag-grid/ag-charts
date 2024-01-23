@@ -14,7 +14,7 @@ import type {
     AgLineSeriesOptions,
 } from '../options/agChartOptions';
 import { clearDoOnceFlags } from '../util/function';
-import { ChartOptions, SeriesType } from './optionModules';
+import { ChartOptions, SeriesType } from './optionsModule';
 
 function prepareOptions<T extends AgChartOptions>(userOptions: T): T {
     const chartOptions = new ChartOptions(userOptions);
