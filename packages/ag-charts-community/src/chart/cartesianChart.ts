@@ -2,6 +2,7 @@ import type { AgCartesianAxisPosition } from '../options/agChartOptions';
 import type { BBox } from '../scene/bbox';
 import { toRadians } from '../util/angle';
 import { Logger } from '../util/logger';
+import { mapValues } from '../util/object';
 import { CategoryAxis } from './axis/categoryAxis';
 import { GroupedCategoryAxis } from './axis/groupedCategoryAxis';
 import type { ChartSpecialOverrides, TransferableResources } from './chart';
@@ -34,17 +35,8 @@ export class CartesianChart extends Chart {
         this.seriesRoot.translationX = Math.floor(seriesRect.x);
         this.seriesRoot.translationY = Math.floor(seriesRect.y);
 
-        const {
-            seriesArea: { padding },
-        } = this;
-
         // Recreate padding object to prevent issues with getters in `BBox.shrink()`
-        const seriesPaddedRect = seriesRect.clone().grow({
-            top: padding.top,
-            right: padding.right,
-            bottom: padding.bottom,
-            left: padding.left,
-        });
+        const seriesPaddedRect = seriesRect.clone().grow(this.seriesArea.padding);
 
         this.hoverRect = seriesPaddedRect;
 
@@ -127,15 +119,14 @@ export class CartesianChart extends Chart {
                 })
             );
         };
-        const ceilValues = <T extends Record<string, number | undefined>>(records: T) => {
-            return Object.entries(records).reduce<Record<string, number | undefined>>((out, [key, value]) => {
+
+        const ceilValues = (records: Record<string, number | undefined>) =>
+            mapValues(records, (value) => {
                 if (value && Math.abs(value) === Infinity) {
-                    value = 0;
+                    return 0;
                 }
-                out[key] = value != null ? Math.ceil(value) : value;
-                return out;
-            }, {});
-        };
+                return value != null ? Math.ceil(value) : value;
+            });
 
         // Iteratively try to resolve axis widths - since X axis width affects Y axis range,
         // and vice-versa, we need to iteratively try and find a fit for the axes and their
@@ -164,9 +155,7 @@ export class CartesianChart extends Chart {
         } while (!stableOutputs(lastPassAxisWidths, lastPassVisibility));
 
         this.axes.forEach((axis) => {
-            const { direction } = axis;
-            const primaryTickCount = primaryTickCounts[direction];
-            axis.update(primaryTickCount);
+            axis.update(primaryTickCounts[axis.direction]);
         });
 
         const clipRectPadding = 5;
@@ -232,7 +221,6 @@ export class CartesianChart extends Chart {
         const paddedBounds = this.applySeriesPadding(bounds);
         const crossLinePadding = lastPassSeriesRect ? this.buildCrossLinePadding(axisWidths) : {};
         const axisBound = this.buildAxisBound(paddedBounds, axisWidths, crossLinePadding, visibility);
-
         const seriesRect = this.buildSeriesRect(axisBound, axisWidths);
 
         // Set the number of ticks for continuous axes based on the available range

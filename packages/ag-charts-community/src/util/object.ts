@@ -35,6 +35,19 @@ export function mergeArrayDefaults(dataArray: PlainObject[], ...itemDefaults: Pl
     return dataArray;
 }
 
+export function mapValues<T extends PlainObject, R>(
+    object: T,
+    mapper: (value: T[keyof T], key: keyof T, object: T) => R
+) {
+    return Object.entries(object).reduce(
+        (result, [key, value]) => {
+            result[key as keyof T] = mapper(value, key, object);
+            return result;
+        },
+        {} as Record<keyof T, R>
+    );
+}
+
 export function getPath(object: object, path: string | string[]) {
     const pathArray = isArray(path) ? path : path.split('.');
     return pathArray.reduce<any>((value, pathKey) => value[pathKey], object);

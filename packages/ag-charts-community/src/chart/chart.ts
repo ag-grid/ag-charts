@@ -28,7 +28,7 @@ import { ActionOnSet } from '../util/proxy';
 import { debouncedAnimationFrame, debouncedCallback } from '../util/render';
 import { SizeMonitor } from '../util/sizeMonitor';
 import type { PickRequired } from '../util/types';
-import { BOOLEAN, UNION, Validate } from '../util/validation';
+import { BOOLEAN, OBJECT, UNION, Validate } from '../util/validation';
 import type { Caption } from './caption';
 import type { ChartAxis } from './chartAxis';
 import type { ChartAxisDirection } from './chartAxisDirection';
@@ -114,8 +114,9 @@ export type ChartExtendedOptions = AgChartOptions & ChartSpecialOverrides;
 
 class SeriesArea {
     @Validate(BOOLEAN, { optional: true })
-    clip?: boolean = undefined;
+    clip?: boolean;
 
+    @Validate(OBJECT)
     padding = new Padding(0);
 }
 
