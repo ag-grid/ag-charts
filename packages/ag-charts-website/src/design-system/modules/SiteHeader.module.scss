@@ -26,7 +26,9 @@
     min-height: var(--layout-site-header-height);
 
     @media screen and (max-width: $breakpoint-site-header-small) {
-        max-width: 100%;
+        &:global(.layout-page-max-width) {
+            max-width: 100%;
+        }
 
         // Required for collapsible mobile menu
         :global(#main-nav),
@@ -196,17 +198,8 @@ button.mobileNavButton {
     }
 }
 
+.mainNav,
 #mainNav {
-    width: 100%;
-
-    @media screen and (max-width: $breakpoint-site-header-small) {
-        position: relative;
-        min-width: calc(100% + var(--layout-horizontal-margins) * 2);
-        left: calc(var(--layout-horizontal-margins) * -1);
-    }
-}
-
-.mainNav {
     width: 100%;
     background-color: var(--color-bg-mobile-nav);
 
@@ -282,7 +275,8 @@ button.mobileNavButton {
     }
 }
 
-.navLink {
+.navLink,
+button.navLink {
     --horizontal-padding: #{$spacing-size-4 - 2px};
 
     display: block;
