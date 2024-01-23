@@ -380,8 +380,7 @@ export class CartesianChart extends Chart {
                 break;
         }
 
-        const zoom = this.zoomManager.getAxisZoom(axis.id);
-        const { min = 0, max = 1 } = zoom ?? {};
+        const { min, max } = this.zoomManager.getAxisZoom(axis.id);
         axis.visibleRange = [min, max];
 
         const rangeClipped = axis.dataDomain.clipped || axis.visibleRange[0] > 0 || axis.visibleRange[1] < 1;

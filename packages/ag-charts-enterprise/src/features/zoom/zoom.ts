@@ -37,7 +37,7 @@ const round = (value: number, decimals: number = DECIMALS) => {
 
 export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @ActionOnSet<Zoom>({
-        changeValue(newValue) {
+        newValue(newValue) {
             if (newValue) {
                 this.updateZoom(unitZoomState());
                 this.registerContextMenuActions();
@@ -199,7 +199,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         if (this.enableAxisDragging && this.hoveredAxis) {
             const { id: axisId, direction } = this.hoveredAxis;
             const anchor = direction === _ModuleSupport.ChartAxisDirection.X ? this.anchorPointX : this.anchorPointY;
-            const axisZoom = this.zoomManager.getAxisZoom(axisId) ?? { ...UNIT };
+            const axisZoom = this.zoomManager.getAxisZoom(axisId);
             const newZoom = this.axisDragger.update(event, direction, anchor, this.seriesRect, zoom, axisZoom);
             this.updateAxisZoom(axisId, direction, newZoom);
             return;

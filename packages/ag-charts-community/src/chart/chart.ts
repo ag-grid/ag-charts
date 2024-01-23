@@ -367,11 +367,11 @@ export abstract class Chart extends Observable implements AgChartInstance {
             // Block redundant and interfering attempts to update the hovered element during dragging.
             this.interactionManager.addListener('drag-start', () => this.disablePointer()),
 
-            this.animationManager.addListener('animation-frame', (_) => {
+            this.animationManager.addListener('animation-frame', () => {
                 this.update(ChartUpdateType.SCENE_RENDER);
             }),
             this.highlightManager.addListener('highlight-change', (event) => this.changeHighlightDatum(event)),
-            this.zoomManager.addListener('zoom-change', (_) =>
+            this.zoomManager.addListener('zoom-change', () =>
                 this.update(ChartUpdateType.PROCESS_DATA, { forceNodeDataRefresh: true, skipAnimations: true })
             )
         );
@@ -605,7 +605,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const { _performUpdateType: performUpdateType, extraDebugStats } = this;
         const seriesToUpdate = [...this.seriesToUpdate];
 
-        // Clear state immediately so that side-effects can be detected prior to SCENE_RENDER.
+        // Clear state immediately so that side effects can be detected prior to SCENE_RENDER.
         this._performUpdateType = ChartUpdateType.NONE;
         this.seriesToUpdate.clear();
 
@@ -1338,7 +1338,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const start = performance.now();
 
         if (this._pendingFactoryUpdatesCount > 0) {
-            // Await until any pending updates are flushed through.
+            // wait until any pending updates are flushed through.
             await this.updateMutex.waitForClearAcquireQueue();
         }
 
@@ -1349,7 +1349,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             await sleep(5);
         }
 
-        // Await until any remaining updates are flushed through.
+        // wait until any remaining updates are flushed through.
         await this.updateMutex.waitForClearAcquireQueue();
     }
 

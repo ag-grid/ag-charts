@@ -21,13 +21,9 @@ export class ZoomAxisDragger {
         this.isAxisDragging = true;
 
         // Store the initial zoom state, merged with the state for this axis
-        if (this.oldZoom == null) {
-            if (direction === _ModuleSupport.ChartAxisDirection.X) {
-                this.oldZoom = definedZoomState({ ...zoom, x: axisZoom });
-            } else {
-                this.oldZoom = definedZoomState({ ...zoom, y: axisZoom });
-            }
-        }
+        this.oldZoom ??= definedZoomState(
+            direction === _ModuleSupport.ChartAxisDirection.X ? { ...zoom, x: axisZoom } : { ...zoom, y: axisZoom }
+        );
 
         this.updateCoords(event.offsetX, event.offsetY);
         return this.updateZoom(direction, anchor, bbox);
