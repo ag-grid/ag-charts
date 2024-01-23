@@ -4,9 +4,9 @@ import { Text } from '../../scene/shape/text';
 import { Logger } from '../../util/logger';
 import { Caption } from '../caption';
 import type { LayoutCompleteEvent, LayoutService } from '../layout/layoutService';
-import type { ChartLike } from './processor';
+import type { ChartLike, UpdateProcessor } from './processor';
 
-export class BaseLayoutProcessor {
+export class BaseLayoutProcessor implements UpdateProcessor {
     private destroyFns: (() => void)[] = [];
 
     constructor(

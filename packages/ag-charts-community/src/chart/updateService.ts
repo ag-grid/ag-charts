@@ -13,11 +13,8 @@ export interface UpdateCompleteEvent {
 }
 
 export class UpdateService extends Listeners<'update-complete', (event: UpdateCompleteEvent) => void> {
-    private updateCallback: UpdateCallback;
-
-    constructor(updateCallback: UpdateCallback) {
+    constructor(private readonly updateCallback: UpdateCallback) {
         super();
-        this.updateCallback = updateCallback;
     }
 
     public update(type = ChartUpdateType.FULL, { forceNodeDataRefresh = false, skipAnimations = false } = {}) {
