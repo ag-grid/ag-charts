@@ -2,8 +2,9 @@ import type { AgBulletSeriesOptions, AgBulletSeriesTooltipRendererParams, CssCol
 import { _ModuleSupport } from 'ag-charts-community';
 
 const {
-    BaseProperties,
     AbstractBarSeriesProperties,
+    BaseProperties,
+    PropertiesArray,
     SeriesTooltip,
     Validate,
     ARRAY,
@@ -91,8 +92,8 @@ export class BulletSeriesProperties extends AbstractBarSeriesProperties<AgBullet
     @Validate(RATIO)
     widthRatio: number = 0.5;
 
-    @Validate(ARRAY.restrict({ minLength: 1 }), { optional: true })
-    colorRanges?: BulletColorRange[] = undefined;
+    @Validate(ARRAY.restrict({ minLength: 0 }))
+    colorRanges: BulletColorRange[] = new PropertiesArray(BulletColorRange);
 
     @Validate(OBJECT)
     readonly target = new TargetStyle();
