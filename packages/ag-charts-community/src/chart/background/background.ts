@@ -4,7 +4,7 @@ import type { ModuleContext } from '../../module/moduleContext';
 import { Group } from '../../scene/group';
 import { Rect } from '../../scene/shape/rect';
 import { ProxyPropertyOnWrite } from '../../util/proxy';
-import { BOOLEAN, COLOR_STRING, Validate } from '../../util/validation';
+import { BOOLEAN, COLOR_STRING, OBJECT, Validate } from '../../util/validation';
 import { Layers } from '../layers';
 import type { LayoutCompleteEvent } from '../layout/layoutService';
 
@@ -21,6 +21,7 @@ export class Background<TImage = never> extends BaseModuleInstance implements Mo
     fill?: string = 'white';
 
     // placeholder for enterprise module
+    @Validate(OBJECT, { optional: true })
     image?: TImage = undefined;
 
     constructor(ctx: ModuleContext) {

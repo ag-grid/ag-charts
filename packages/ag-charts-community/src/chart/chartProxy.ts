@@ -1,4 +1,5 @@
 import type { AgChartInstance } from '../options/chart/chartBuilderOptions';
+import { ActionOnSet } from '../util/proxy';
 import type { Chart } from './chart';
 
 export interface AgChartProxy extends AgChartInstance {
@@ -10,6 +11,8 @@ export interface AgChartProxy extends AgChartInstance {
  * to switch concrete class (e.g. when switching between CartesianChart vs. PolarChart).
  */
 export class AgChartInstanceProxy implements AgChartProxy {
+    static chartInstances = new WeakMap<Chart, AgChartInstanceProxy>();
+
     static isInstance(x: any): x is AgChartInstanceProxy {
         if (x instanceof AgChartInstanceProxy) {
             // Simple case.
@@ -30,7 +33,19 @@ export class AgChartInstanceProxy implements AgChartProxy {
         return chartProps.every((prop) => signatureProps.includes(prop));
     }
 
-    constructor(public chart: Chart) {}
+    @ActionOnSet<AgChartInstanceProxy>({
+        oldValue(chart) {
+            AgChartInstanceProxy.chartInstances.delete(chart);
+        },
+        newValue(chart) {
+            AgChartInstanceProxy.chartInstances.set(chart, this);
+        },
+    })
+    chart: Chart;
+
+    constructor(chart: Chart) {
+        this.chart = chart;
+    }
 
     getOptions() {
         return this.chart.getOptions();

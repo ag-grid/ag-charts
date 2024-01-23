@@ -6,14 +6,14 @@ import type {
     AgCommonThemeableChartOptions,
     InteractionRange,
 } from '../../options/agChartOptions';
-import { jsonClone, jsonWalk } from '../../util/json';
-import { deepMerge, mergeDefaults } from '../../util/object';
-import { isObject } from '../../util/type-guards';
+import { deepClone, jsonWalk } from '../../util/json';
+import { mergeDefaults } from '../../util/object';
+import { isArray, isObject } from '../../util/type-guards';
 import { AXIS_TYPES, getAxisThemeTemplate } from '../factory/axisTypes';
 import { CHART_TYPES, type ChartType, getChartDefaults } from '../factory/chartTypes';
 import { getLegendThemeTemplates } from '../factory/legendTypes';
 import { getSeriesThemeTemplate } from '../factory/seriesTypes';
-import { BOTTOM, FONT_SIZE, FONT_WEIGHT } from './constants';
+import { FONT_SIZE, FONT_WEIGHT, POSITION } from './constants';
 import { DEFAULT_FILLS, DEFAULT_STROKES } from './defaultColors';
 import {
     DEFAULT_AXIS_GRID_COLOUR,
@@ -76,7 +76,7 @@ const CHART_TYPE_SPECIFIC_COMMON_OPTIONS = Object.values(CHART_TYPE_CONFIG).redu
 >((r, { commonOptions }) => [...r, ...commonOptions], []);
 
 export function resolvePartialPalette(
-    partialPalette: Partial<AgChartThemePalette> | null,
+    partialPalette: Partial<AgChartThemePalette> | null | undefined,
     basePalette: AgChartThemePalette
 ): AgChartThemePalette | null {
     if (partialPalette == null) return null;
@@ -252,7 +252,7 @@ export class ChartTheme {
                 wrapping: ChartTheme.getCaptionWrappingDefaults(),
             },
             legend: {
-                position: BOTTOM,
+                position: POSITION.BOTTOM,
                 spacing: 30,
                 listeners: {},
                 item: {
@@ -337,7 +337,7 @@ export class ChartTheme {
     };
 
     constructor(options?: AgChartTheme) {
-        options = deepMerge({}, options ?? {}) as AgChartThemeOptions;
+        options = deepClone(options ?? {}) as AgChartThemeOptions;
         const { overrides = null, palette = null } = options;
 
         const defaults = this.createChartConfigPerChartType(this.getDefaults());
@@ -345,14 +345,14 @@ export class ChartTheme {
         if (overrides) {
             const { common } = overrides;
 
-            const applyOverrides = <K extends keyof typeof defaults>(
+            const applyOverrides = (
                 seriesTypes: string[],
-                overrideOpts: AgChartThemeOverrides[K]
+                overrideOpts: AgChartThemeOverrides[keyof AgChartThemeOverrides]
             ) => {
                 if (!overrideOpts) return;
                 for (const s of seriesTypes) {
                     const seriesType = s as keyof AgChartThemeOverrides;
-                    defaults[seriesType] = deepMerge(defaults[seriesType], overrideOpts);
+                    defaults[seriesType] = mergeDefaults(overrideOpts, defaults[seriesType]);
                 }
             };
             for (const [, { seriesTypes, commonOptions }] of Object.entries(CHART_TYPE_CONFIG)) {
@@ -368,7 +368,7 @@ export class ChartTheme {
             CHART_TYPES.seriesTypes.forEach((s) => {
                 const seriesType = s as keyof AgChartThemeOverrides;
                 if (overrides[seriesType]) {
-                    defaults[seriesType] = deepMerge(defaults[seriesType], overrides[seriesType]);
+                    defaults[seriesType] = mergeDefaults(overrides[seriesType], defaults[seriesType]);
                 }
             });
         }
@@ -383,12 +383,9 @@ export class ChartTheme {
         Object.entries(CHART_TYPE_CONFIG).forEach(([nextType, { seriesTypes }]) => {
             const typeDefaults = getChartDefaults(nextType as ChartType) as any;
 
-            seriesTypes.forEach((next) => {
-                const alias = next as keyof AgChartThemeOverrides;
-                if (!config[alias]) {
-                    config[alias] = {};
-                    deepMerge(config[alias], typeDefaults);
-                }
+            seriesTypes.forEach((seriesType) => {
+                const alias = seriesType as keyof AgChartThemeOverrides;
+                config[alias] ||= deepClone(typeDefaults);
             });
         });
 
@@ -396,8 +393,6 @@ export class ChartTheme {
     }
 
     private getDefaults(): AgChartThemeOverrides {
-        let defaults = {};
-
         const getChartTypeDefaults = (chartType: ChartType) => {
             return {
                 ...getLegendThemeTemplates(),
@@ -410,40 +405,35 @@ export class ChartTheme {
             const chartDefaults = getChartTypeDefaults(chartType) as any;
             const result: Record<string, { series?: {}; axes?: {} }> = {};
             for (const seriesType of seriesTypes) {
-                result[seriesType] ??= deepMerge({}, chartDefaults);
+                result[seriesType] ??= deepClone(chartDefaults);
                 const axes: Record<string, {}> = (result[seriesType].axes ??= {});
 
-                const template = getSeriesThemeTemplate(seriesType);
-                if (template) {
-                    result[seriesType].series = deepMerge(result[seriesType].series, template);
-                }
+                result[seriesType].series = mergeDefaults(
+                    getSeriesThemeTemplate(seriesType),
+                    result[seriesType].series
+                );
 
                 for (const axisType of AXIS_TYPES.axesTypes) {
-                    const template = getAxisThemeTemplate(axisType);
-                    if (chartType === 'cartesian') {
-                        axes[axisType] = deepMerge(
-                            axes[axisType],
-                            (ChartTheme.cartesianAxisDefault as any)[axisType] ?? {}
-                        );
-                    }
-                    if (template) {
-                        axes[axisType] = deepMerge(axes[axisType], template);
-                    }
+                    axes[axisType] = mergeDefaults(
+                        getAxisThemeTemplate(axisType),
+                        chartType === 'cartesian' && (ChartTheme.cartesianAxisDefault as any)[axisType],
+                        axes[axisType]
+                    );
                 }
             }
 
             return result;
         };
 
-        defaults = deepMerge(defaults, getOverridesByType('cartesian', CHART_TYPES.cartesianTypes));
-        defaults = deepMerge(defaults, getOverridesByType('polar', CHART_TYPES.polarTypes));
-        defaults = deepMerge(defaults, getOverridesByType('hierarchy', CHART_TYPES.hierarchyTypes));
-
-        return defaults;
+        return mergeDefaults(
+            getOverridesByType('cartesian', CHART_TYPES.cartesianTypes),
+            getOverridesByType('polar', CHART_TYPES.polarTypes),
+            getOverridesByType('hierarchy', CHART_TYPES.hierarchyTypes)
+        );
     }
 
     templateTheme<T>(themeTemplate: T): T {
-        const themeInstance = jsonClone(themeTemplate);
+        const themeInstance = deepClone(themeTemplate);
         const { extensions, properties } = this.getTemplateParameters();
 
         jsonWalk(themeInstance, (node: any) => {
@@ -472,7 +462,7 @@ export class ChartTheme {
                 delete node['__overrides__'];
             }
 
-            if (Array.isArray(node)) {
+            if (isArray(node)) {
                 for (let i = 0; i < node.length; i++) {
                     const symbol = node[i];
                     if (properties.has(symbol)) {
@@ -488,7 +478,7 @@ export class ChartTheme {
             }
         });
 
-        return themeInstance;
+        return deepClone(themeInstance);
     }
 
     protected static getWaterfallSeriesDefaultPositiveColors() {

@@ -413,7 +413,7 @@ export const BUBBLE_SERIES_LABELS: AgCartesianChartOptions = {
                 minSpacing: 300,
             },
             line: {
-                color: undefined,
+                color: 'transparent',
             },
             gridLine: {
                 style: [
@@ -435,7 +435,7 @@ export const BUBBLE_SERIES_LABELS: AgCartesianChartOptions = {
                 minSpacing: 200,
             },
             line: {
-                color: undefined,
+                color: 'transparent',
             },
             gridLine: {
                 style: [

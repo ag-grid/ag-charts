@@ -51,13 +51,13 @@ export function removeUsedEnterpriseOptions<T extends AgChartOptions>(options: T
             });
         }
     }
-    if (usedOptions.length > 0) {
+    if (usedOptions.length) {
         Logger.warnOnce(
             [
-                `unable to use these enterprise features as 'ag-charts-enterprise' has not been loaded:`,
-                ``,
+                `unable to use these enterprise features as 'ag-charts-enterprise' has not been loaded:\n`,
+                '',
                 ...usedOptions,
-                ``,
+                '',
                 'See: https://charts.ag-grid.com/javascript/installation/',
             ].join('\n')
         );

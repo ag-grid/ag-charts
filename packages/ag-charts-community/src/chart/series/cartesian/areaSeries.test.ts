@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type { AgChartOptions } from '../../../options/agChartOptions';
-import { jsonMerge } from '../../../sparklines-util';
+import { deepClone } from '../../../sparklines-util';
 import { AgCharts } from '../../agChartV2';
 import type { Chart } from '../../chart';
 import {
@@ -232,7 +232,7 @@ describe('AreaSeries', () => {
     describe('add/update/remove animation', () => {
         const animate = spyOnAnimationManager();
 
-        const EXAMPLE = jsonMerge([{ ...examples.STACKED_AREA_GRAPH_EXAMPLE }]);
+        const EXAMPLE = deepClone(examples.STACKED_AREA_GRAPH_EXAMPLE);
         EXAMPLE.axes![0].label!.format = '%b %Y';
 
         const mutateData = (count: number) => {
@@ -292,7 +292,7 @@ describe('AreaSeries', () => {
                 it(`for STACKED_AREA_GRAPH_EXAMPLE should animate at ${ratio * 100}%`, async () => {
                     animate(1200, 1);
 
-                    const options: AgChartOptions = jsonMerge([examples.STACKED_AREA_GRAPH_EXAMPLE]);
+                    const options: AgChartOptions = deepClone(examples.STACKED_AREA_GRAPH_EXAMPLE);
                     prepareTestOptions(options);
 
                     chart = AgCharts.create(options) as Chart;
@@ -312,7 +312,7 @@ describe('AreaSeries', () => {
                 it(`for STACKED_AREA_GRAPH_EXAMPLE should animate at ${ratio * 100}%`, async () => {
                     animate(1200, 1);
 
-                    const options: AgChartOptions = jsonMerge([examples.STACKED_AREA_GRAPH_EXAMPLE]);
+                    const options: AgChartOptions = deepClone(examples.STACKED_AREA_GRAPH_EXAMPLE);
                     options.series![1].visible = false;
                     prepareTestOptions(options);
 

@@ -1,5 +1,6 @@
 import { Group } from '../../../scene/group';
 import { RedrawType, type RenderContext } from '../../../scene/node';
+import { ProxyProperty } from '../../../util/proxy';
 import { RangeHandle } from './rangeHandle';
 import { RangeMask } from './rangeMask';
 
@@ -43,7 +44,6 @@ export class RangeSelector extends Group {
         return mask;
     })();
 
-    protected _x: number = RangeSelector.defaults.x;
     set x(value: number) {
         this.mask.x = value;
         this.updateHandles();
@@ -52,7 +52,6 @@ export class RangeSelector extends Group {
         return this.mask.x;
     }
 
-    protected _y: number = RangeSelector.defaults.y;
     set y(value: number) {
         this.mask.y = value;
         this.updateHandles();
@@ -61,7 +60,6 @@ export class RangeSelector extends Group {
         return this.mask.y;
     }
 
-    protected _width: number = RangeSelector.defaults.width;
     set width(value: number) {
         this.mask.width = value;
         this.updateHandles();
@@ -70,7 +68,6 @@ export class RangeSelector extends Group {
         return this.mask.width;
     }
 
-    protected _height: number = RangeSelector.defaults.height;
     set height(value: number) {
         this.mask.height = value;
         this.updateHandles();
@@ -79,21 +76,11 @@ export class RangeSelector extends Group {
         return this.mask.height;
     }
 
-    protected _min: number = RangeSelector.defaults.min;
-    set min(value: number) {
-        this.mask.min = value;
-    }
-    get min(): number {
-        return this.mask.min;
-    }
+    @ProxyProperty('mask.min')
+    min!: number;
 
-    protected _max: number = RangeSelector.defaults.max;
-    set max(value: number) {
-        this.mask.max = value;
-    }
-    get max(): number {
-        return this.mask.max;
-    }
+    @ProxyProperty('mask.max')
+    max!: number;
 
     constructor() {
         super({ name: 'rangeSelectorGroup' });
@@ -104,9 +91,9 @@ export class RangeSelector extends Group {
     onRangeChange?: () => any;
 
     private updateHandles() {
-        const { minHandle, maxHandle, x, y, width, height, mask } = this;
-        minHandle.centerX = x + width * mask.min;
-        maxHandle.centerX = x + width * mask.max;
+        const { minHandle, maxHandle, x, y, width, height, min, max } = this;
+        minHandle.centerX = x + width * min;
+        maxHandle.centerX = x + width * max;
         minHandle.centerY = maxHandle.centerY = y + height / 2;
     }
 

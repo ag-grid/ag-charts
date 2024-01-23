@@ -1,50 +1,18 @@
 import { isDecoratedObject, listDecoratedProperties } from './decorator';
-import type { Intersection } from './types';
+import { isArray, isObject } from './type-guards';
+import type { Intersection, PlainObject } from './types';
 
 type FalsyType = false | null | undefined;
 
-export function deepMerge(target: any, source: any) {
-    if (isPlainObject(target) && isPlainObject(source)) {
-        const result: Record<string, any> = {};
-        Object.keys(target).forEach((key) => {
-            if (key in source) {
-                result[key] = deepMerge(target[key], source[key]);
-            } else {
-                result[key] = target[key];
-            }
-        });
-        Object.keys(source).forEach((key) => {
-            if (!(key in target)) {
-                result[key] = source[key];
-            }
-        });
-        return result;
-    }
-    if ((Array.isArray(target) && !Array.isArray(source)) || (isObjectLike(target) && !isObjectLike(source))) {
-        return target;
-    }
-    return source;
+export function deepMerge<TSource extends PlainObject, TArgs extends (TSource | FalsyType)[]>(...sources: TArgs) {
+    return mergeDefaults(...sources.reverse());
 }
 
-function isObjectLike(value: any): value is object {
-    return typeof value === 'object' && value !== null;
-}
-
-function isObject(value: any): value is object {
-    return isObjectLike(value) && !Array.isArray(value);
-}
-
-function isPlainObject(x: any): x is Object {
-    return isObject(x) && x.constructor === Object;
-}
-
-export function mergeDefaults<TSource extends Record<string, any>, TArgs extends (TSource | FalsyType)[]>(
-    ...sources: TArgs
-) {
-    const target: Record<string, any> = {};
+export function mergeDefaults<TSource extends PlainObject, TArgs extends (TSource | FalsyType)[]>(...sources: TArgs) {
+    const target: PlainObject = {};
 
     for (const source of sources) {
-        if (!source) continue;
+        if (!isObject(source)) continue;
 
         const keys = isDecoratedObject(source) ? listDecoratedProperties(source) : Object.keys(source);
 
@@ -58,6 +26,38 @@ export function mergeDefaults<TSource extends Record<string, any>, TArgs extends
     }
 
     return target as Intersection<Exclude<TArgs[number], FalsyType>>;
+}
+
+export function mergeArrayDefaults(dataArray: PlainObject[], ...itemDefaults: PlainObject[]) {
+    if (itemDefaults && isArray(dataArray)) {
+        return dataArray.map((item) => mergeDefaults(item, ...itemDefaults));
+    }
+    return dataArray;
+}
+
+export function mapValues<T extends PlainObject, R>(
+    object: T,
+    mapper: (value: T[keyof T], key: keyof T, object: T) => R
+) {
+    return Object.entries(object).reduce(
+        (result, [key, value]) => {
+            result[key as keyof T] = mapper(value, key, object);
+            return result;
+        },
+        {} as Record<keyof T, R>
+    );
+}
+
+export function getPath(object: object, path: string | string[]) {
+    const pathArray = isArray(path) ? path : path.split('.');
+    return pathArray.reduce<any>((value, pathKey) => value[pathKey], object);
+}
+
+export function setPath(object: object, path: string | string[], newValue: unknown) {
+    const pathArray = isArray(path) ? path.slice() : path.split('.');
+    const lastKey = pathArray.pop()!;
+    const lastObject = pathArray.reduce<any>((value, pathKey) => value[pathKey], object);
+    lastObject[lastKey] = newValue;
 }
 
 // Similar to Object.assign, but only copy an explicit set of keys.

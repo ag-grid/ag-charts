@@ -1,3 +1,5 @@
+import type { PlainObject } from './types';
+
 export function isDefined<T>(val: T | undefined | null): val is T {
     return val != null;
 }
@@ -18,19 +20,23 @@ export function isValidDate(value: unknown): value is Date {
     return isDate(value) && !isNaN(Number(value));
 }
 
+export function isRegExp(value: unknown): value is RegExp {
+    return value instanceof RegExp;
+}
+
 export function isFunction(value: unknown): value is Function {
     return typeof value === 'function';
 }
 
-export function isObject(value: unknown): value is object {
+export function isObject(value: unknown): value is PlainObject {
     return typeof value === 'object' && value !== null && !isArray(value);
 }
 
-export function isObjectLike(value: unknown): value is object | unknown[] {
-    return typeof value === 'object' && value !== null;
+export function isObjectLike(value: unknown): value is PlainObject | unknown[] {
+    return isArray(value) || isPlainObject(value);
 }
 
-export function isPlainObject(value: unknown): value is object {
+export function isPlainObject(value: unknown): value is PlainObject {
     return typeof value === 'object' && value !== null && value.constructor === Object;
 }
 
@@ -48,4 +54,12 @@ export function isFiniteNumber(value: unknown): value is number {
 
 export function isHtmlElement(value: unknown): value is HTMLElement {
     return typeof window !== 'undefined' && value instanceof HTMLElement;
+}
+
+export function isEnumKey<T extends object>(enumObject: T, enumKey: keyof T): enumKey is keyof T {
+    return isString(enumKey) && Object.keys(enumObject).includes(enumKey);
+}
+
+export function isEnumValue<T extends object>(enumObject: T, enumValue: unknown): enumValue is T[keyof T] {
+    return Object.values(enumObject).includes(enumValue);
 }

@@ -12,6 +12,7 @@ export const WaterfallModule: _ModuleSupport.SeriesModule<'waterfall'> = {
     chartTypes: ['cartesian'],
 
     identifier: 'waterfall',
+    solo: true,
     instanceConstructor: WaterfallSeries,
     seriesDefaults: WATERFALL_DEFAULTS,
     themeTemplate: WATERFALL_SERIES_THEME,

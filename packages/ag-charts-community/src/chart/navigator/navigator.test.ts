@@ -27,7 +27,7 @@ const NAVIGATOR_ZOOM_EXAMPLES: Record<string, CartesianTestCase> = {
     NAV_ZOOMED_NO_CROSSLINES: {
         options: {
             ...VALID_RANGE_CROSSLINES,
-            navigator: { min: 0.0, max: 0.05 },
+            navigator: { min: 0, max: 0.05 },
         },
         assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
     },
@@ -41,7 +41,7 @@ const NAVIGATOR_ZOOM_EXAMPLES: Record<string, CartesianTestCase> = {
     NAV_ZOOMED_CLIPPED_CROSSLINES_1: {
         options: {
             ...VALID_RANGE_CROSSLINES,
-            navigator: { min: 0.0, max: 0.5 },
+            navigator: { min: 0, max: 0.5 },
         },
         assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
     },
@@ -96,10 +96,6 @@ const NAVIGATOR_ZOOM_EXAMPLES: Record<string, CartesianTestCase> = {
     },
 };
 
-const EXAMPLES: Record<string, CartesianTestCase> = {
-    ...NAVIGATOR_ZOOM_EXAMPLES,
-};
-
 describe('Navigator', () => {
     let chart: any;
 
@@ -121,7 +117,7 @@ describe('Navigator', () => {
             expect(console.warn).not.toBeCalled();
         });
 
-        it.each(Object.entries(EXAMPLES))(
+        it.each(Object.entries(NAVIGATOR_ZOOM_EXAMPLES))(
             'for %s it should create chart instance as expected',
             async (_exampleName, example) => {
                 const options: AgCartesianChartOptions = { ...example.options };
@@ -133,7 +129,7 @@ describe('Navigator', () => {
             }
         );
 
-        it.each(Object.entries(EXAMPLES))(
+        it.each(Object.entries(NAVIGATOR_ZOOM_EXAMPLES))(
             'for %s it should render to canvas as expected',
             async (_exampleName, example) => {
                 const compare = async () => {

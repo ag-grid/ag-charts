@@ -1,9 +1,14 @@
 import { Logger } from './logger';
 import { isProperties } from './properties';
-import { isArray, isDate, isFunction, isHtmlElement, isObject, isPlainObject } from './type-guards';
+import { isArray, isDate, isFunction, isHtmlElement, isObject, isPlainObject, isRegExp } from './type-guards';
 import type { DeepPartial } from './types';
 
 const CLASS_INSTANCE_TYPE = 'class-instance';
+
+export interface JsonMergeOptions {
+    /** Contains a list of properties where deep clones should be avoided */
+    avoidDeepClone: string[];
+}
 
 /**
  * Performs a recursive JSON-diff between a source and target JSON structure.
@@ -27,8 +32,8 @@ export function jsonDiff<T extends unknown>(source: T, target: T): Partial<T> | 
         ) {
             return target;
         }
-    } else if (isObject(target)) {
-        if (!isObject(source) || !isPlainObject(target)) {
+    } else if (isPlainObject(target)) {
+        if (!isPlainObject(source)) {
             return target;
         }
         const result = {} as Partial<T>;
@@ -57,110 +62,79 @@ export function jsonDiff<T extends unknown>(source: T, target: T): Partial<T> | 
     return null;
 }
 
-export function jsonClone<T>(source: T): T {
+/**
+ * Recursively clones of primitives and objects.
+ *
+ * @param source object | array
+ * @param options
+ *
+ * @return deep clone of source
+ */
+export function deepClone<T>(source: T, options?: { shallow?: string[] }): T {
     if (isArray(source)) {
-        return source.map(jsonClone) as T;
+        return source.map((item) => deepClone(item, options)) as T;
     }
     if (isPlainObject(source)) {
-        return Object.entries(source).reduce((result, [key, value]) => {
-            result[key as keyof T] = jsonClone(value);
+        return Object.entries(source).reduce<{ [key: string]: unknown }>((result, [key, value]) => {
+            result[key] = options?.shallow?.includes(key) ? shallowClone(value) : deepClone(value, options);
             return result;
-        }, {} as T);
+        }, {}) as T;
+    }
+    return shallowClone(source);
+}
+
+/**
+ * Clones of primitives and objects.
+ *
+ * @param source any value
+ *
+ * @return shallow clone of source
+ */
+export function shallowClone<T>(source: T): T {
+    if (isArray(source)) {
+        return [...source] as T;
+    }
+    if (isPlainObject(source)) {
+        return { ...source };
+    }
+    if (isDate(source)) {
+        return new Date(source) as T;
+    }
+    if (isRegExp(source)) {
+        return new RegExp(source.source, source.flags) as T;
     }
     return source;
 }
 
 /**
- * Special value used by `jsonMerge` to signal that a property should be removed from the merged
- * output.
+ * Walk the given JSON object graphs, invoking the visit() callback for every object encountered.
+ * Arrays are descended into without a callback, however their elements will have the visit()
+ * callback invoked if they are objects.
+ *
+ * @param json to traverse
+ * @param visit callback for each non-primitive and non-array object found
+ * @param opts
+ * @param opts.skip property names to skip when walking
+ * @param jsons to traverse in parallel
  */
-export const DELETE = Symbol('<delete-property>');
-
-const NOT_SPECIFIED = Symbol('<unspecified-property>');
-
-export interface JsonMergeOptions {
-    /**
-     * Contains a list of properties where deep clones should be avoided
-     */
-    avoidDeepClone: string[];
-}
-
-/**
- * Merge together the provide JSON object structures, with the precedence of application running
- * from higher indexes to lower indexes.
- *
- * Deep-clones all objects to avoid mutation of the inputs changing the output object. For arrays,
- * just performs a deep-clone of the entire array, no merging of elements attempted.
- *
- * @param json all json objects to merge
- * @param opts merge options
- * @param opts.avoidDeepClone contains a list of properties where deep clones should be avoided
- *
- * @returns the combination of all the json inputs
- */
-export function jsonMerge<T>(json: T[], opts?: JsonMergeOptions): T {
-    const avoidDeepClone = opts?.avoidDeepClone ?? [];
-    const jsonTypes = json.map((v) => classify(v));
-    if (jsonTypes.some((v) => v === 'array')) {
-        // Clone final array.
-        const finalValue = json[json.length - 1];
-        if (Array.isArray(finalValue)) {
-            return finalValue.map((v) => {
-                const type = classify(v);
-
-                if (type === 'array') return jsonMerge([[], v], opts);
-                if (type === 'object') return jsonMerge([{}, v], opts);
-
-                return v;
-            }) as any;
-        }
-
-        return finalValue;
-    }
-
-    const result: any = {};
-    const props = new Set(json.map((v) => (v != null ? Object.keys(v) : [])).reduce((r, n) => r.concat(n), []));
-
-    for (const nextProp of props) {
-        const values = json
-            .map((j) => {
-                if (j != null && typeof j === 'object' && nextProp in j) {
-                    return (j as any)[nextProp];
-                }
-                return NOT_SPECIFIED;
-            })
-            .filter((v) => v !== NOT_SPECIFIED);
-
-        if (values.length === 0) {
-            continue;
-        }
-
-        const lastValue = values[values.length - 1];
-        if (lastValue === DELETE) {
-            continue;
-        }
-
-        const types = values.map((v) => classify(v));
-        const type = types[0];
-        if (types.some((t) => t !== type)) {
-            // Short-circuit if mismatching types.
-            result[nextProp] = lastValue;
-            continue;
-        }
-
-        if ((type === 'array' || type === 'object') && !avoidDeepClone.includes(nextProp)) {
-            result[nextProp] = jsonMerge(values, opts);
-        } else if (type === 'array') {
-            // Arrays need to be shallow copied to avoid external mutation and allow jsonDiff to
-            // detect changes.
-            result[nextProp] = [...lastValue];
-        } else {
-            // Just directly assign/overwrite.
-            result[nextProp] = lastValue;
+export function jsonWalk<T>(json: T, visit: (...nodes: T[]) => void, opts?: { skip?: string[] }, ...jsons: T[]) {
+    if (isArray(json)) {
+        visit(json, ...jsons);
+        json.forEach((node, index) => {
+            jsonWalk(node, visit, opts, ...keyMapper(jsons, index));
+        });
+    } else if (isPlainObject(json)) {
+        visit(json, ...jsons);
+        for (const key of Object.keys(json)) {
+            if (opts?.skip?.includes(key)) {
+                continue;
+            }
+            const value = json[key as keyof T] as T;
+            if (isArray(value) || isPlainObject(value)) {
+                jsonWalk(value, visit, opts, ...keyMapper(jsons, key));
+            }
         }
     }
-
-    return result;
 }
 
 export type JsonApplyParams = {
@@ -272,15 +246,15 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
             } else if (newValueType === CLASS_INSTANCE_TYPE) {
                 targetAny[property] = newValue;
             } else if (newValueType === 'object') {
-                if (currentValue != null) {
+                if (isProperties(currentValue)) {
+                    targetAny[property].set(newValue);
+                } else if (currentValue != null) {
                     jsonApply(currentValue, newValue as any, {
                         ...params,
                         path: propertyPath,
                         matcherPath: propertyMatcherPath,
                         idx: undefined,
                     });
-                } else if (isProperties(targetAny[property])) {
-                    targetAny[property].set(newValue);
                 } else if (ctr != null) {
                     const obj = new ctr();
                     if (isProperties(obj)) {
@@ -307,37 +281,6 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
     }
 
     return target;
-}
-
-/**
- * Walk the given JSON object graphs, invoking the visit() callback for every object encountered.
- * Arrays are descended into without a callback, however their elements will have the visit()
- * callback invoked if they are objects.
- *
- * @param json to traverse
- * @param visit callback for each non-primitive and non-array object found
- * @param opts
- * @param opts.skip property names to skip when walking
- * @param jsons to traverse in parallel
- */
-export function jsonWalk<T>(json: T, visit: (...nodes: T[]) => void, opts?: { skip?: string[] }, ...jsons: T[]) {
-    if (isArray(json)) {
-        visit(json, ...jsons);
-        json.forEach((node, index) => {
-            jsonWalk(node, visit, opts, ...keyMapper(jsons, index));
-        });
-    } else if (isPlainObject(json)) {
-        visit(json, ...jsons);
-        for (const key of Object.keys(json)) {
-            if (opts?.skip?.includes(key)) {
-                continue;
-            }
-            const value = json[key as keyof T] as T;
-            if (isArray(value) || isPlainObject(value)) {
-                jsonWalk(value, visit, opts, ...keyMapper(jsons, key));
-            }
-        }
-    }
 }
 
 function keyMapper<T>(data: T[], key: string | number) {

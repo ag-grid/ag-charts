@@ -1,7 +1,7 @@
 import type { ModuleInstance } from '../../module/baseModule';
 import type { AxisContext, ModuleContext, ModuleContextWithParent } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
-import type { AxisOptionModule } from '../../module/optionModules';
+import type { AxisOptionModule } from '../../module/optionsModule';
 import type { FromToDiff } from '../../motion/fromToMotion';
 import { fromToMotion } from '../../motion/fromToMotion';
 import { resetMotion } from '../../motion/resetMotion';

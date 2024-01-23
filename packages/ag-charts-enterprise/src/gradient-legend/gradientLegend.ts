@@ -77,25 +77,25 @@ class GradientLegendLabel implements AgGradientLegendLabelOptions {
         this.label = label;
     }
 
-    @ProxyProperty('label', 'fontStyle')
+    @ProxyProperty('label.fontStyle')
     fontStyle?: GradientLegendAxis['label']['fontStyle'];
 
-    @ProxyProperty('label', 'fontWeight')
+    @ProxyProperty('label.fontWeight')
     fontWeight?: GradientLegendAxis['label']['fontWeight'];
 
-    @ProxyProperty('label', 'fontSize')
+    @ProxyProperty('label.fontSize')
     fontSize?: GradientLegendAxis['label']['fontSize'];
 
-    @ProxyProperty('label', 'fontFamily')
+    @ProxyProperty('label.fontFamily')
     fontFamily?: GradientLegendAxis['label']['fontFamily'];
 
-    @ProxyProperty('label', 'color')
+    @ProxyProperty('label.color')
     color?: GradientLegendAxis['label']['color'];
 
-    @ProxyProperty('label', 'format')
+    @ProxyProperty('label.format')
     format?: GradientLegendAxis['label']['format'];
 
-    @ProxyProperty('label', 'formatter')
+    @ProxyProperty('label.formatter')
     formatter?: GradientLegendAxis['label']['formatter'];
 }
 
@@ -106,16 +106,16 @@ class GradientLegendInterval implements AgGradientLegendIntervalOptions {
         this.tick = tick;
     }
 
-    @ProxyProperty('tick', 'values')
+    @ProxyProperty('tick.values')
     values?: GradientLegendAxisTick['values'];
 
-    @ProxyProperty('tick', 'minSpacing')
+    @ProxyProperty('tick.minSpacing')
     minSpacing?: GradientLegendAxisTick['minSpacing'];
 
-    @ProxyProperty('tick', 'maxSpacing')
+    @ProxyProperty('tick.maxSpacing')
     maxSpacing?: GradientLegendAxisTick['maxSpacing'];
 
-    @ProxyProperty('tick', 'interval')
+    @ProxyProperty('tick.interval')
     step?: GradientLegendAxisTick['interval'];
 }
 
@@ -130,7 +130,7 @@ class GradientLegendScale implements AgGradientLegendScaleOptions {
         this.interval = new GradientLegendInterval(axis.tick as GradientLegendAxisTick);
     }
 
-    @ProxyProperty('axis', 'seriesAreaPadding')
+    @ProxyProperty('axis.seriesAreaPadding')
     padding?: GradientLegendAxis['seriesAreaPadding'];
 }
 

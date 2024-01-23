@@ -12,6 +12,7 @@ type TransformFn = (
 interface TransformConfig {
     setters: TransformFn[];
     getters: TransformFn[];
+    observers: TransformFn[];
     valuesMap: WeakMap<object, Map<string, unknown>>;
     optional?: boolean;
 }
@@ -31,7 +32,7 @@ function initialiseConfig(target: any, propertyKeyOrSymbol: string | symbol) {
     }
 
     const valuesMap = new WeakMap();
-    config[propertyKey] = { setters: [], getters: [], valuesMap };
+    config[propertyKey] = { setters: [], getters: [], observers: [], valuesMap };
 
     const descriptor = Object.getOwnPropertyDescriptor(target, propertyKeyOrSymbol);
     const prevSet = descriptor?.set;
@@ -50,7 +51,7 @@ function initialiseConfig(target: any, propertyKeyOrSymbol: string | symbol) {
         return value;
     };
     const setter = function (this: any, value: unknown) {
-        const { setters } = config[propertyKey];
+        const { setters, observers } = config[propertyKey];
 
         let oldValue;
         if (setters.some((f) => f.length > 2)) {
@@ -71,6 +72,10 @@ function initialiseConfig(target: any, propertyKeyOrSymbol: string | symbol) {
         } else {
             valuesMap.set(this, value);
         }
+
+        for (const observerFn of observers) {
+            observerFn(this, propertyKeyOrSymbol, value, oldValue);
+        }
     };
 
     Object.defineProperty(target, propertyKeyOrSymbol, {
@@ -86,7 +91,7 @@ function initialiseConfig(target: any, propertyKeyOrSymbol: string | symbol) {
 export function addTransformToInstanceProperty(
     setTransform: TransformFn,
     getTransform?: TransformFn,
-    configMetadata?: Omit<TransformConfig, 'setters' | 'getters' | 'valuesMap'>
+    configMetadata?: Omit<TransformConfig, 'setters' | 'getters' | 'observers' | 'valuesMap'>
 ): PropertyDecorator {
     return (target: any, propertyKeyOrSymbol: string | symbol) => {
         const config = initialiseConfig(target, propertyKeyOrSymbol);
@@ -97,6 +102,12 @@ export function addTransformToInstanceProperty(
         if (configMetadata) {
             Object.assign(config, configMetadata);
         }
+    };
+}
+
+export function addObserverToInstanceProperty(setObserver: TransformFn): PropertyDecorator {
+    return (target: any, propertyKeyOrSymbol: string | symbol) => {
+        initialiseConfig(target, propertyKeyOrSymbol).observers.push(setObserver);
     };
 }
 

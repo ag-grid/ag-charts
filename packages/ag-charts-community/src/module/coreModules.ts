@@ -1,7 +1,7 @@
 import type { ChartAxis } from '../chart/chartAxis';
 import type { ChartLegend, ChartLegendType } from '../chart/legendDatum';
 import type { Series } from '../chart/series/series';
-import type { AgChartOptions, AgChartThemeOverrides, AgChartThemePalette } from '../options/agChartOptions';
+import type { AgChartOptions, AgChartThemeOverrides } from '../options/agChartOptions';
 import type { BaseModule, ModuleInstance } from './baseModule';
 import type { ModuleContext } from './moduleContext';
 
@@ -25,7 +25,7 @@ export type SeriesPaletteOptions<
 export interface SeriesPaletteFactoryParams {
     takeColors: (count: number) => { fills: string[]; strokes: string[] };
     colorsCount: number;
-    userPalette: AgChartThemePalette | null;
+    userPalette: boolean;
     themeTemplateParameters: {
         extensions: Map<string, any>;
         properties: Map<string, string | string[]>;
@@ -72,10 +72,9 @@ type Extensible<T> = { [K in keyof T]?: NonNullable<T[K]> extends object ? Exten
 type SeriesTheme<SeriesType extends RequiredSeriesType> = NonNullable<AgChartThemeOverrides[SeriesType]>['series'];
 export type ExtensibleTheme<SeriesType extends RequiredSeriesType> = Extensible<SeriesTheme<SeriesType>>;
 
-export type ExtensibleDefaults<
-    SeriesType extends RequiredSeriesType,
-    ChartOptions = AgChartOptions & { series?: { type: SeriesType } },
-> = Extensible<ChartOptions>;
+export type ExtensibleDefaults<SeriesType extends RequiredSeriesType> = Extensible<
+    AgChartOptions & { series?: { type: SeriesType } }
+>;
 
 export type SeriesOptions<SeriesType extends RequiredSeriesType> = Extract<SeriesOptionsTypes, { type: SeriesType }>;
 
@@ -85,7 +84,9 @@ export interface SeriesModule<SeriesType extends RequiredSeriesType = RequiredSe
     identifier: SeriesType;
     instanceConstructor: SeriesConstructor;
 
-    seriesDefaults: ExtensibleDefaults<SeriesType>;
+    seriesDefaults:
+        | ExtensibleDefaults<SeriesType>
+        | ((opts: SeriesOptions<SeriesType>) => ExtensibleDefaults<SeriesType>);
     themeTemplate: ExtensibleTheme<SeriesType>;
     enterpriseThemeTemplate?: ExtensibleTheme<SeriesType>;
     paletteFactory?: SeriesPaletteFactory<SeriesType>;
@@ -94,5 +95,4 @@ export interface SeriesModule<SeriesType extends RequiredSeriesType = RequiredSe
     groupable?: boolean;
     stackedByDefault?: boolean;
     swapDefaultAxesCondition?: (opts: SeriesOptions<SeriesType>) => boolean;
-    customDefaultsFunction?: (opts: SeriesOptions<SeriesType>) => AgChartOptions;
 }

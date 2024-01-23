@@ -15,7 +15,7 @@ export const NightingaleModule: _ModuleSupport.SeriesModule<'nightingale'> = {
     instanceConstructor: NightingaleSeries,
     seriesDefaults: NIGHTINGALE_DEFAULTS,
     themeTemplate: NIGHTINGALE_SERIES_THEME,
-    paletteFactory: ({ takeColors, userPalette }) => {
+    paletteFactory({ takeColors, userPalette }) {
         const {
             fills: [fill],
             strokes: [stroke],

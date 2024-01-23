@@ -1,13 +1,12 @@
 import type { AgCartesianAxisPosition } from 'ag-charts-community';
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import type { LabelMeta } from './crosshairLabel';
-import { CrosshairLabel } from './crosshairLabel';
+import { CrosshairLabel, type LabelMeta } from './crosshairLabel';
 
 type AgCrosshairLabelRendererResult = any;
 
 const { Group, Line, BBox } = _Scene;
-const { Validate, POSITIVE_NUMBER, RATIO, BOOLEAN, COLOR_STRING, LINE_DASH, Layers } = _ModuleSupport;
+const { POSITIVE_NUMBER, RATIO, BOOLEAN, COLOR_STRING, LINE_DASH, OBJECT, Validate, Layers } = _ModuleSupport;
 
 export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @Validate(BOOLEAN)
@@ -31,7 +30,9 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     @Validate(BOOLEAN)
     snap: boolean = true;
 
+    @Validate(OBJECT)
     readonly label: CrosshairLabel;
+
     private seriesRect: _Scene.BBox = new BBox(0, 0, 0, 0);
     private hoverRect: _Scene.BBox = new BBox(0, 0, 0, 0);
     private bounds: _Scene.BBox = new BBox(0, 0, 0, 0);

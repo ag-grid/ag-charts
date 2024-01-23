@@ -2,7 +2,7 @@ import type { LicenseManager } from '../module/enterpriseModule';
 import { enterpriseModule } from '../module/enterpriseModule';
 import { type Module, REGISTERED_MODULES, hasRegisteredEnterpriseModules } from '../module/module';
 import type { ModuleContext } from '../module/moduleContext';
-import type { AxisOptionModule, SeriesOptionModule } from '../module/optionModules';
+import { type AxisOptionModule, ChartOptions, type SeriesOptionModule } from '../module/optionsModule';
 import type {
     AgBaseAxisOptions,
     AgBaseSeriesOptions,
@@ -13,26 +13,26 @@ import type {
 } from '../options/agChartOptions';
 import { Debug } from '../util/debug';
 import { createDeprecationWarning } from '../util/deprecation';
-import { jsonApply, jsonDiff, jsonMerge } from '../util/json';
+import { jsonApply, jsonDiff } from '../util/json';
 import { Logger } from '../util/logger';
+import { mergeDefaults } from '../util/object';
 import type { TypedEventListener } from '../util/observable';
 import type { DeepPartial } from '../util/types';
+import { Caption } from './caption';
 import { CartesianChart } from './cartesianChart';
 import { Chart, type ChartExtendedOptions, type ChartSpecialOverrides } from './chart';
 import type { ChartAxis } from './chartAxis';
-import { getJsonApplyOptions } from './chartOptions';
+import { JSON_APPLY_OPTIONS, JSON_APPLY_PLUGINS } from './chartOptions';
 import { AgChartInstanceProxy } from './chartProxy';
 import { ChartUpdateType } from './chartUpdateType';
 import { getAxis } from './factory/axisTypes';
 import { isEnterpriseSeriesType, isEnterpriseSeriesTypeLoaded } from './factory/expectedEnterpriseModules';
 import { getLegendKeys } from './factory/legendTypes';
 import { registerInbuiltModules } from './factory/registerInbuiltModules';
-import { getSeries } from './factory/seriesTypes';
+import { type SeriesOptions, getSeries } from './factory/seriesTypes';
 import { setupModules } from './factory/setupModules';
 import { HierarchyChart } from './hierarchyChart';
-import { noDataCloneMergeOptions, prepareOptions } from './mapping/prepare';
 import { AxisPositionGuesser } from './mapping/prepareAxis';
-import type { SeriesOptions } from './mapping/prepareSeries';
 import {
     type SeriesOptionsTypes,
     isAgCartesianChartOptions,
@@ -196,12 +196,10 @@ export class AgChart {
     }
 }
 
-const proxyInstances = new WeakMap<Chart, AgChartInstanceProxy>();
-
 class AgChartsInternal {
     static getInstance(element: HTMLElement): AgChartInstanceProxy | undefined {
         const chart = Chart.getInstance(element);
-        return chart != null ? proxyInstances.get(chart) : undefined;
+        return chart != null ? AgChartInstanceProxy.chartInstances.get(chart) : undefined;
     }
 
     static initialised = false;
@@ -214,22 +212,18 @@ class AgChartsInternal {
         AgChartsInternal.initialised = true;
     }
 
-    static createOrUpdate(userOptions: ChartExtendedOptions, proxy?: AgChartInstanceProxy) {
+    static createOrUpdate(options: ChartExtendedOptions, proxy?: AgChartInstanceProxy) {
         AgChartsInternal.initialiseModules();
 
-        debug('>>> AgChartV2.createOrUpdate() user options', userOptions);
+        debug('>>> AgChartV2.createOrUpdate() user options', options);
 
-        const { overrideDevicePixelRatio, document, window: userWindow, ...chartOptions } = userOptions;
-        const specialOverrides = { overrideDevicePixelRatio, document, window: userWindow };
+        const { overrideDevicePixelRatio, document, window: userWindow, ...userOptions } = options;
+        const chartOptions = new ChartOptions(userOptions);
 
-        const processedOptions = prepareOptions(chartOptions);
         let chart = proxy?.chart;
-        if (chart != null) {
-            proxyInstances.delete(chart);
-        }
-
-        if (chart == null || chartType(chartOptions) !== chartType(chart.processedOptions)) {
-            chart = AgChartsInternal.createChartInstance(processedOptions, specialOverrides, chart);
+        if (chart == null || chartType(userOptions) !== chartType(chart.processedOptions)) {
+            const specialOverrides = { overrideDevicePixelRatio, document, window: userWindow };
+            chart = AgChartsInternal.createChartInstance(chartOptions.processedOptions, specialOverrides, chart);
         }
 
         if (proxy == null) {
@@ -238,47 +232,31 @@ class AgChartsInternal {
             proxy.chart = chart;
         }
 
-        proxyInstances.set(chart, proxy);
-
         if (Debug.check() && typeof window !== 'undefined') {
             (window as any).agChartInstances ??= {};
             (window as any).agChartInstances[chart.id] = chart;
         }
 
-        const chartToUpdate = chart;
-        chartToUpdate.queuedUserOptions.push(chartOptions);
-        const dequeue = () => {
+        chart.queuedUserOptions.push(userOptions);
+        chart.requestFactoryUpdate(async (chart) => {
+            // Chart destroyed, skip processing.
+            if (chart.destroyed) return;
+            const deltaOptions = chartOptions.diffOptions(chart.processedOptions);
+            if (deltaOptions != null) {
+                await AgChartsInternal.updateDelta(chart, deltaOptions, userOptions);
+            }
             // If there are a lot of update calls, `requestFactoryUpdate()` may skip callbacks,
             // so we need to remove all queue items up to the last successfully applied item.
-            const queuedOptionsIdx = chartToUpdate.queuedUserOptions.indexOf(chartOptions);
-            chartToUpdate.queuedUserOptions.splice(0, queuedOptionsIdx);
-        };
-
-        chartToUpdate.requestFactoryUpdate(async () => {
-            // Chart destroyed, skip processing.
-            if (chartToUpdate.destroyed) return;
-
-            const deltaOptions = jsonDiff(chartToUpdate.processedOptions, processedOptions);
-            if (deltaOptions == null) {
-                dequeue();
-                return;
-            }
-
-            await AgChartsInternal.updateDelta(chartToUpdate, deltaOptions, chartOptions);
-            dequeue();
+            chart.queuedUserOptions.splice(0, chart.queuedUserOptions.indexOf(userOptions));
         });
 
         return proxy;
     }
 
     static updateUserDelta(proxy: AgChartInstanceProxy, deltaOptions: DeepPartial<AgChartOptions>) {
-        const {
-            chart,
-            chart: { queuedUserOptions },
-        } = proxy;
-
-        const lastUpdateOptions = queuedUserOptions[queuedUserOptions.length - 1] ?? chart.userOptions;
-        const userOptions = jsonMerge([lastUpdateOptions, deltaOptions]) as AgChartOptions;
+        const { chart } = proxy;
+        const lastUpdateOptions = chart.queuedUserOptions.at(-1) ?? chart.userOptions;
+        const userOptions = mergeDefaults(deltaOptions, lastUpdateOptions);
         debug('>>> AgChartV2.updateUserDelta() user delta', deltaOptions);
         debug('AgChartV2.updateUserDelta() - base options', lastUpdateOptions);
         AgChartsInternal.createOrUpdate(userOptions, proxy);
@@ -379,12 +357,7 @@ class AgChartsInternal {
     }
 
     private static async updateDelta(chart: Chart, processedOptions: ProcessedOptions, userOptions: AgChartOptions) {
-        if (processedOptions.type == null) {
-            processedOptions = {
-                ...processedOptions,
-                type: chart.processedOptions.type ?? optionsType(processedOptions),
-            };
-        }
+        processedOptions.type ??= chart.processedOptions.type ?? optionsType(processedOptions);
 
         if (chart.destroyed) return;
 
@@ -394,7 +367,7 @@ class AgChartsInternal {
 }
 
 function applyChartOptions(chart: Chart, processedOptions: ProcessedOptions, userOptions: AgChartOptions): void {
-    const completeOptions = jsonMerge([chart.processedOptions ?? {}, processedOptions], noDataCloneMergeOptions);
+    const completeOptions = mergeDefaults(processedOptions, chart.processedOptions);
     const modulesChanged = applyModules(chart, completeOptions);
 
     const skip = ['type', 'data', 'series', 'listeners', 'theme', 'legend.listeners'];
@@ -422,11 +395,8 @@ function applyChartOptions(chart: Chart, processedOptions: ProcessedOptions, use
         seriesRecreated = applySeries(chart, processedOptions);
         forceNodeDataRefresh = true;
     }
-    if ('axes' in completeOptions && Array.isArray(completeOptions.axes)) {
-        const axesPresent = applyAxes(chart, completeOptions, seriesRecreated);
-        if (axesPresent) {
-            forceNodeDataRefresh = true;
-        }
+    if (applyAxes(chart, completeOptions, seriesRecreated)) {
+        forceNodeDataRefresh = true;
     }
 
     const seriesOpts: SeriesOptions[] | undefined = processedOptions.series;
@@ -447,7 +417,7 @@ function applyChartOptions(chart: Chart, processedOptions: ProcessedOptions, use
         chart.updateAllSeriesListeners();
     }
     chart.processedOptions = completeOptions;
-    chart.userOptions = jsonMerge([chart.userOptions ?? {}, userOptions], noDataCloneMergeOptions);
+    chart.userOptions = mergeDefaults(userOptions, chart.userOptions);
 
     const majorChange = forceNodeDataRefresh || modulesChanged;
     const updateType = majorChange ? ChartUpdateType.PROCESS_DATA : ChartUpdateType.PERFORM_LAYOUT;
@@ -507,7 +477,7 @@ function applySeries(chart: Chart, options: AgChartOptions) {
     // Try to optimise series updates if series count and types didn't change.
     if (matchingTypes) {
         chart.series.forEach((s, i) => {
-            const previousOpts = chart.processedOptions?.series?.[i] ?? {};
+            const previousOpts = chart.processedOptions.series?.[i] ?? {};
             const seriesDiff = jsonDiff(previousOpts, optSeries[i] ?? {});
 
             if (!seriesDiff) {
@@ -528,16 +498,14 @@ function applySeries(chart: Chart, options: AgChartOptions) {
     return true;
 }
 
-function applyAxes(chart: Chart, options: { axes?: AgBaseAxisOptions[] }, forceRecreate: boolean) {
-    const optAxes = options.axes;
-    if (!optAxes) {
+function applyAxes(chart: Chart, options: AgChartOptions, forceRecreate: boolean) {
+    if (!('axes' in options) || !options.axes) {
         return false;
     }
 
+    const { axes } = options;
     const matchingTypes =
-        !forceRecreate &&
-        chart.axes.length === optAxes.length &&
-        chart.axes.every((a, i) => a.type === optAxes[i].type);
+        !forceRecreate && chart.axes.length === axes.length && chart.axes.every((a, i) => a.type === axes[i].type);
 
     // Try to optimise series updates if series count and types didn't change.
     if (matchingTypes) {
@@ -546,7 +514,7 @@ function applyAxes(chart: Chart, options: { axes?: AgBaseAxisOptions[] }, forceR
         if (isAgCartesianChartOptions(oldOpts)) {
             chart.axes.forEach((a, i) => {
                 const previousOpts = oldOpts.axes?.[i] ?? {};
-                const axisDiff = jsonDiff(previousOpts, optAxes[i]) as any;
+                const axisDiff = jsonDiff(previousOpts, axes[i]) as any;
 
                 debug(`AgChartV2.applyAxes() - applying axis diff idx ${i}`, axisDiff);
 
@@ -558,7 +526,7 @@ function applyAxes(chart: Chart, options: { axes?: AgBaseAxisOptions[] }, forceR
         }
     }
 
-    chart.axes = createAxis(chart, optAxes);
+    chart.axes = createAxis(chart, axes);
     return true;
 }
 
@@ -656,12 +624,27 @@ function applyOptionValues<T extends object, S>(
     options?: S,
     { skip, path }: { skip?: string[]; path?: string } = {}
 ): T {
-    const applyOpts = {
-        ...getJsonApplyOptions(moduleContext),
+    // Allow context to be injected and meet the type requirements
+    class CaptionWithContext extends Caption {
+        constructor() {
+            super();
+            this.registerInteraction(moduleContext);
+        }
+    }
+    return jsonApply<T, any>(target, options, {
+        constructors: {
+            ...JSON_APPLY_OPTIONS.constructors,
+            title: CaptionWithContext,
+            subtitle: CaptionWithContext,
+            footnote: CaptionWithContext,
+        },
+        constructedArrays: JSON_APPLY_PLUGINS.constructedArrays,
+        allowedTypes: {
+            ...JSON_APPLY_OPTIONS.allowedTypes,
+        },
         skip,
-        ...(path ? { path } : {}),
-    };
-    return jsonApply<T, any>(target, options, applyOpts);
+        path,
+    });
 }
 
 function applySeriesValues(target: Series<any>, options: AgBaseSeriesOptions<any>) {

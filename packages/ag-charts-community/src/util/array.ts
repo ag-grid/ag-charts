@@ -82,6 +82,26 @@ export function toArray<T>(value: T): T[] {
     return Array.isArray(value) ? value : [value];
 }
 
-export function unique(array: any[]) {
+export function unique<T>(array: T[]) {
     return Array.from(new Set(array));
+}
+
+export function groupBy<T, R extends string | number | symbol>(array: T[], iteratee: (item: T) => R) {
+    return array.reduce<{ [K in R]?: T[] }>((result, item) => {
+        const groupKey = iteratee(item);
+        result[groupKey] ??= [];
+        result[groupKey]!.push(item);
+        return result;
+    }, {});
+}
+
+export function circularSliceArray<T>(data: T[], size: number, offset = 0): T[] {
+    if (data.length === 0) {
+        return [];
+    }
+    const result: T[] = [];
+    for (let i = 0; i < size; i++) {
+        result.push(data.at((i + offset) % data.length)!);
+    }
+    return result;
 }

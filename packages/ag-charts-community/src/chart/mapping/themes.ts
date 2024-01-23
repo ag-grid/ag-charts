@@ -4,8 +4,8 @@ import type {
     AgChartThemeOverrides,
     AgChartThemePalette,
 } from '../../options/agChartOptions';
-import { jsonMerge } from '../../util/json';
 import { Logger } from '../../util/logger';
+import { mergeDefaults } from '../../util/object';
 import { ChartTheme } from '../themes/chartTheme';
 import { DarkTheme } from '../themes/darkTheme';
 import { MaterialDark } from '../themes/materialDark';
@@ -47,14 +47,15 @@ export const themes: ThemeMap = {
     ...lightThemes,
 };
 
-type Unvalidate<T> = { [K in keyof T]?: unknown };
+type UnknownProperties<T> = { [K in keyof T]?: unknown };
+
 function validateChartThemeObject(unknownObject: object | null): AgChartTheme | undefined {
     if (unknownObject === null) {
-        return undefined;
+        return;
     }
 
     let valid = true;
-    const { baseTheme, palette, overrides } = unknownObject as Unvalidate<AgChartTheme>;
+    const { baseTheme, palette, overrides } = unknownObject as UnknownProperties<AgChartTheme>;
 
     if (baseTheme !== undefined && typeof baseTheme !== 'string' && typeof baseTheme !== 'object') {
         Logger.warn(`invalid theme.baseTheme type ${typeof baseTheme}, expected (string | object).`);
@@ -66,7 +67,7 @@ function validateChartThemeObject(unknownObject: object | null): AgChartTheme | 
     }
     if (typeof palette === 'object') {
         if (palette !== null) {
-            const { fills, strokes } = palette as Unvalidate<AgChartThemePalette>;
+            const { fills, strokes } = palette as UnknownProperties<AgChartThemePalette>;
             if (fills !== undefined && !Array.isArray(fills)) {
                 Logger.warn(`theme.overrides.fills must be undefined or an array`);
                 valid = false;
@@ -84,7 +85,6 @@ function validateChartThemeObject(unknownObject: object | null): AgChartTheme | 
     if (valid) {
         return unknownObject as AgChartTheme;
     }
-    return undefined;
 }
 
 function validateChartTheme(value: unknown): string | ChartTheme | AgChartTheme | undefined {
@@ -96,7 +96,7 @@ function validateChartTheme(value: unknown): string | ChartTheme | AgChartTheme 
         return validateChartThemeObject(value);
     }
 
-    Logger.warn(`invalid theme value type ${typeof value}, expected object.`);
+    Logger.warn(`invalid theme value type ${typeof value}, expected object or string.`);
     return undefined;
 }
 
@@ -122,24 +122,21 @@ export function getChartTheme(unvalidatedValue: unknown): ChartTheme {
     }
 
     // Flatten recursive themes.
-    const overrides: AgChartThemeOverrides[] = [];
+    const overrides: (AgChartThemeOverrides | undefined)[] = [];
     let palette;
     while (typeof value === 'object') {
-        overrides.push(value.overrides ?? {});
+        overrides.push(value.overrides);
 
         // Use first palette found, they can't be merged.
-        if (value.palette && palette == null) {
-            palette = value.palette;
-        }
+        palette ??= value.palette;
 
         value = value.baseTheme;
     }
-    overrides.reverse();
 
     const flattenedTheme = {
         baseTheme: value,
-        overrides: jsonMerge(overrides),
-        ...(palette ? { palette } : {}),
+        overrides: mergeDefaults(...overrides),
+        palette,
     };
 
     const baseTheme: any = flattenedTheme.baseTheme ? getChartTheme(flattenedTheme.baseTheme) : lightTheme();

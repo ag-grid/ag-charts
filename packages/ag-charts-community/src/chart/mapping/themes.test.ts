@@ -76,7 +76,7 @@ describe('themes module', () => {
         await waitForChartStability(chart);
 
         expect(console.warn).toBeCalledTimes(1);
-        expect(console.warn).toBeCalledWith('AG Charts - invalid theme value type boolean, expected object.');
+        expect(console.warn).toBeCalledWith('AG Charts - invalid theme value type boolean, expected object or string.');
     });
 
     test('missing strokes', async () => {

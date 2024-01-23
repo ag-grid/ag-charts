@@ -1,19 +1,19 @@
 import { _Theme } from 'ag-charts-community';
 
-const { CARTESIAN_AXIS_TYPES, CARTESIAN_AXIS_POSITIONS } = _Theme;
+const { CARTESIAN_AXIS_TYPE, POSITION } = _Theme;
 
 export const BULLET_DEFAULTS = {
     axes: [
         {
-            type: CARTESIAN_AXIS_TYPES.NUMBER,
-            position: CARTESIAN_AXIS_POSITIONS.LEFT as 'left' | 'top',
+            type: CARTESIAN_AXIS_TYPE.NUMBER,
+            position: POSITION.LEFT,
             nice: false,
             max: undefined as number | undefined,
             crosshair: { enabled: false },
         },
         {
-            type: CARTESIAN_AXIS_TYPES.CATEGORY,
-            position: CARTESIAN_AXIS_POSITIONS.BOTTOM as 'bottom' | 'left',
+            type: CARTESIAN_AXIS_TYPE.CATEGORY,
+            position: POSITION.BOTTOM,
         },
     ],
 };

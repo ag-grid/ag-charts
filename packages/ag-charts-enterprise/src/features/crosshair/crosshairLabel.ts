@@ -3,7 +3,7 @@ import { _ModuleSupport, _Scene } from 'ag-charts-community';
 type AgCrosshairLabelRendererParams = any;
 type AgCrosshairLabelRendererResult = any;
 
-const { ActionOnSet, Validate, NUMBER, BOOLEAN, STRING, FUNCTION } = _ModuleSupport;
+const { ActionOnSet, BaseProperties, BOOLEAN, FUNCTION, NUMBER, STRING, Validate } = _ModuleSupport;
 const { BBox } = _Scene;
 
 const DEFAULT_LABEL_CLASS = 'ag-crosshair-label';
@@ -40,10 +40,10 @@ export interface LabelMeta {
     y: number;
 }
 
-export class CrosshairLabel {
+export class CrosshairLabel extends BaseProperties {
     private static labelDocuments: Document[] = [];
-    private readonly element: HTMLElement;
 
+    private readonly element: HTMLElement;
     private readonly labelRoot: HTMLElement;
 
     @Validate(BOOLEAN)
@@ -62,7 +62,7 @@ export class CrosshairLabel {
             }
         },
     })
-    className?: string = undefined;
+    override className?: string;
 
     @Validate(NUMBER)
     xOffset: number = 0;
@@ -77,10 +77,11 @@ export class CrosshairLabel {
     renderer?: (params: AgCrosshairLabelRendererParams) => string | AgCrosshairLabelRendererResult = undefined;
 
     constructor(document: Document, container: HTMLElement) {
-        this.labelRoot = container;
-        const element = document.createElement('div');
-        this.element = this.labelRoot.appendChild(element);
+        super();
+
+        this.element = container.appendChild(document.createElement('div'));
         this.element.classList.add(DEFAULT_LABEL_CLASS);
+        this.labelRoot = container;
 
         if (CrosshairLabel.labelDocuments.indexOf(document) < 0) {
             const styleElement = document.createElement('style');

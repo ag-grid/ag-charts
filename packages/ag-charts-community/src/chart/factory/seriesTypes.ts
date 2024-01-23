@@ -1,46 +1,50 @@
-import { hasRegisteredEnterpriseModules } from '../../module-support';
-import type { SeriesConstructor, SeriesPaletteFactory } from '../../module/coreModules';
+import type { SeriesConstructor, SeriesModule, SeriesPaletteFactory } from '../../module/coreModules';
+import { hasRegisteredEnterpriseModules } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
-import type { AgChartOptions } from '../../options/agChartOptions';
-import { jsonMerge } from '../../sparklines-util';
-import type { SeriesOptionsTypes } from '../mapping/types';
+import type {
+    AgCartesianSeriesOptions,
+    AgChartOptions,
+    AgHierarchySeriesOptions,
+    AgPolarSeriesOptions,
+} from '../../options/agChartOptions';
+import { deepClone } from '../../sparklines-util';
+import { mergeDefaults } from '../../util/object';
+import { isFunction } from '../../util/type-guards';
+import type { SeriesType } from '../mapping/types';
 import type { Series } from '../series/series';
-import type { ChartType } from './chartTypes';
 import { registerChartSeriesType } from './chartTypes';
 
-type DefaultsFunction = (opts: unknown) => AgChartOptions;
+export type SeriesOptions = AgCartesianSeriesOptions | AgPolarSeriesOptions | AgHierarchySeriesOptions;
 
 const SERIES_FACTORIES: Record<string, SeriesConstructor> = {};
 const SERIES_DEFAULTS: Record<string, any> = {};
 const SERIES_THEME_TEMPLATES: Record<string, {}> = {};
 const ENTERPRISE_SERIES_THEME_TEMPLATES: Record<string, {}> = {};
 const SERIES_PALETTE_FACTORIES: Record<string, SeriesPaletteFactory> = {};
-const SOLO_SERIES_TYPES = new Set<SeriesOptionsTypes['type']>();
-const STACKABLE_SERIES_TYPES = new Set<SeriesOptionsTypes['type']>();
-const GROUPABLE_SERIES_TYPES = new Set<SeriesOptionsTypes['type']>();
-const STACKED_BY_DEFAULT_SERIES_TYPES = new Set<string>();
-const SWAP_DEFAULT_AXES_CONDITIONS: Record<string, (opts: unknown) => boolean> = {};
-const CUSTOM_DEFAULTS_FUNCTIONS: Record<string, DefaultsFunction> = {};
+const SOLO_SERIES_TYPES = new Set<SeriesType>();
+const STACKABLE_SERIES_TYPES = new Set<SeriesType>();
+const GROUPABLE_SERIES_TYPES = new Set<SeriesType>();
+const STACKED_BY_DEFAULT_SERIES_TYPES = new Set<SeriesType>();
+const SWAP_DEFAULT_AXES_CONDITIONS: Record<string, (opts: any) => boolean> = {};
 
-export function registerSeries(
-    seriesType: NonNullable<SeriesOptionsTypes['type']>,
-    chartType: ChartType,
-    cstr: SeriesConstructor,
-    defaults: {},
-    theme: {},
-    enterpriseTheme: {} | undefined,
-    paletteFactory: SeriesPaletteFactory | undefined,
-    solo: boolean | undefined,
-    stackable: boolean | undefined,
-    groupable: boolean | undefined,
-    stackedByDefault: boolean | undefined,
-    swapDefaultAxesCondition: ((opts: any) => boolean) | undefined,
-    customDefaultsFunction: ((opts: any) => AgChartOptions) | undefined
-) {
-    SERIES_FACTORIES[seriesType] = cstr;
-    SERIES_DEFAULTS[seriesType] = defaults;
+export function registerSeries({
+    identifier: seriesType,
+    chartTypes: [chartType],
+    instanceConstructor,
+    seriesDefaults,
+    themeTemplate,
+    enterpriseThemeTemplate,
+    paletteFactory,
+    solo,
+    stackable,
+    groupable,
+    stackedByDefault,
+    swapDefaultAxesCondition,
+}: SeriesModule<any>) {
+    SERIES_FACTORIES[seriesType] = instanceConstructor;
+    SERIES_DEFAULTS[seriesType] = seriesDefaults;
 
-    registerSeriesThemeTemplate(seriesType, theme, enterpriseTheme);
+    registerSeriesThemeTemplate(seriesType, themeTemplate, enterpriseThemeTemplate);
 
     if (paletteFactory) {
         addSeriesPaletteFactory(seriesType, paletteFactory);
@@ -60,25 +64,22 @@ export function registerSeries(
     if (swapDefaultAxesCondition) {
         addSwapDefaultAxesCondition(seriesType, swapDefaultAxesCondition);
     }
-    if (customDefaultsFunction) {
-        addCustomDefaultsFunctions(seriesType, customDefaultsFunction);
-    }
 
     registerChartSeriesType(seriesType, chartType);
 }
 
 export function registerSeriesThemeTemplate(
-    seriesType: NonNullable<SeriesOptionsTypes['type']>,
+    seriesType: NonNullable<SeriesType>,
     themeTemplate: {},
     enterpriseThemeTemplate = {}
 ) {
     const existingTemplate = SERIES_THEME_TEMPLATES[seriesType];
-    SERIES_THEME_TEMPLATES[seriesType] = jsonMerge([existingTemplate, themeTemplate]);
-    ENTERPRISE_SERIES_THEME_TEMPLATES[seriesType] = jsonMerge([
-        existingTemplate,
-        themeTemplate,
+    SERIES_THEME_TEMPLATES[seriesType] = mergeDefaults(themeTemplate, existingTemplate);
+    ENTERPRISE_SERIES_THEME_TEMPLATES[seriesType] = mergeDefaults(
         enterpriseThemeTemplate,
-    ]);
+        themeTemplate,
+        existingTemplate
+    );
 }
 
 export function getSeries(chartType: string, moduleCtx: ModuleContext): Series<any> {
@@ -90,8 +91,9 @@ export function getSeries(chartType: string, moduleCtx: ModuleContext): Series<a
     throw new Error(`AG Charts - unknown series type: ${chartType}`);
 }
 
-export function getSeriesDefaults(chartType: string): {} {
-    return SERIES_DEFAULTS[chartType];
+export function getSeriesDefaults<T extends AgChartOptions>(chartType: string, options: SeriesOptions): T {
+    const seriesDefaults = SERIES_DEFAULTS[chartType];
+    return deepClone(isFunction(seriesDefaults) ? seriesDefaults(options) : seriesDefaults);
 }
 
 export function getSeriesThemeTemplate(chartType: string): {} {
@@ -109,44 +111,40 @@ export function getSeriesPaletteFactory(seriesType: string) {
     return SERIES_PALETTE_FACTORIES[seriesType];
 }
 
-export function isSoloSeries(seriesType: SeriesOptionsTypes['type']) {
+export function isSoloSeries(seriesType: SeriesType) {
     return SOLO_SERIES_TYPES.has(seriesType);
 }
 
-export function isStackableSeries(seriesType: SeriesOptionsTypes['type']) {
+export function isStackableSeries(seriesType: SeriesType) {
     return STACKABLE_SERIES_TYPES.has(seriesType);
 }
 
-export function isGroupableSeries(seriesType: SeriesOptionsTypes['type']) {
+export function isGroupableSeries(seriesType: SeriesType) {
     return GROUPABLE_SERIES_TYPES.has(seriesType);
 }
 
-export function isSeriesStackedByDefault(seriesType: string) {
+export function isSeriesStackedByDefault(seriesType: SeriesType) {
     return STACKED_BY_DEFAULT_SERIES_TYPES.has(seriesType);
 }
 
-export function addGroupableSeriesType(seriesType: SeriesOptionsTypes['type']) {
+export function addGroupableSeriesType(seriesType: SeriesType) {
     GROUPABLE_SERIES_TYPES.add(seriesType);
 }
 
-export function addSoloSeriesType(seriesType: SeriesOptionsTypes['type']) {
+export function addSoloSeriesType(seriesType: SeriesType) {
     SOLO_SERIES_TYPES.add(seriesType);
 }
 
-export function addStackableSeriesType(seriesType: SeriesOptionsTypes['type']) {
+export function addStackableSeriesType(seriesType: SeriesType) {
     STACKABLE_SERIES_TYPES.add(seriesType);
 }
 
-export function addStackedByDefaultSeriesType(seriesType: string) {
+export function addStackedByDefaultSeriesType(seriesType: SeriesType) {
     STACKED_BY_DEFAULT_SERIES_TYPES.add(seriesType);
 }
 
-export function addSwapDefaultAxesCondition(seriesType: string, predicate: (opts: unknown) => boolean) {
+export function addSwapDefaultAxesCondition(seriesType: string, predicate: (opts: any) => boolean) {
     SWAP_DEFAULT_AXES_CONDITIONS[seriesType] = predicate;
-}
-
-export function addCustomDefaultsFunctions(seriesType: string, predicate: DefaultsFunction) {
-    CUSTOM_DEFAULTS_FUNCTIONS[seriesType] = predicate;
 }
 
 export function isDefaultAxisSwapNeeded(opts: AgChartOptions) {
@@ -158,25 +156,11 @@ export function isDefaultAxisSwapNeeded(opts: AgChartOptions) {
 
         if (isDefaultAxisSwapped != null) {
             if (result != null && result != isDefaultAxisSwapped) {
+                // TODO change to a warning
                 throw new Error('AG Charts - The provided series have incompatible directions');
             }
 
             result = isDefaultAxisSwapped;
-        }
-    }
-
-    return result;
-}
-
-export function executeCustomDefaultsFunctions(opts: AgChartOptions, initialDefaults: {}): {} {
-    let result = initialDefaults;
-
-    for (const series of opts.series ?? []) {
-        const { type } = series;
-
-        const fn = type != null ? CUSTOM_DEFAULTS_FUNCTIONS[type] : undefined;
-        if (fn !== undefined) {
-            result = { ...result, ...fn(series) };
         }
     }
 

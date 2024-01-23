@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type { AgChartOptions } from '../../../options/agChartOptions';
-import { jsonMerge } from '../../../util/json';
+import { deepClone } from '../../../util/json';
 import { AgCharts } from '../../agChartV2';
 import type { Chart } from '../../chart';
 import {
@@ -342,7 +342,7 @@ describe('LineSeries', () => {
                 it(`should animate at ${ratio * 100}%`, async () => {
                     animate(1200, 1);
 
-                    const options: AgChartOptions = jsonMerge([OPTIONS]);
+                    const options: AgChartOptions = deepClone(OPTIONS);
                     prepareTestOptions(options);
 
                     chart = AgCharts.create(options) as Chart;
@@ -362,7 +362,7 @@ describe('LineSeries', () => {
                 it(`should animate at ${ratio * 100}%`, async () => {
                     animate(1200, 1);
 
-                    const options: AgChartOptions = jsonMerge([OPTIONS]);
+                    const options: AgChartOptions = deepClone(OPTIONS);
                     options.series![1].visible = false;
                     prepareTestOptions(options);
 

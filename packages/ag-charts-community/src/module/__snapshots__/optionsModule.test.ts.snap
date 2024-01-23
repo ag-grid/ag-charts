@@ -1,0 +1,613 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'false' for series type [nightingale] appropriately 1`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'false' for series type [nightingale] appropriately 2`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'false', stacked property 'true' for series type [area] appropriately 1`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'false', stacked property 'true' for series type [area] appropriately 2`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'false', stacked property 'true' for series type [area] appropriately 3`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'false', stacked property 'true' for series type [area] appropriately 4`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'false', stacked property 'true' for series type [bar] appropriately 1`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'false', stacked property 'true' for series type [bar] appropriately 2`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'false', stacked property 'true' for series type [bar] appropriately 3`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'false', stacked property 'true' for series type [bar] appropriately 4`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'false', stacked property 'true' for series type [nightingale] appropriately 1`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'false', stacked property 'true' for series type [nightingale] appropriately 2`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true' for series type [bar] appropriately 1`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": 0,
+  "stackIndex": 0,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true' for series type [bar] appropriately 2`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": 0,
+  "stackIndex": 0,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true' for series type [bar] appropriately 3`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": 0,
+  "stackIndex": 0,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true' for series type [bar] appropriately 4`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": 0,
+  "stackIndex": 0,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true' for series type [nightingale] appropriately 1`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": 0,
+  "stackIndex": 0,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true' for series type [nightingale] appropriately 2`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": 0,
+  "stackIndex": 0,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'false' for series type [bar] appropriately 1`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": 0,
+  "stackIndex": 0,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'false' for series type [bar] appropriately 2`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": 0,
+  "stackIndex": 0,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'false' for series type [bar] appropriately 3`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": 0,
+  "stackIndex": 0,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'false' for series type [bar] appropriately 4`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": 0,
+  "stackIndex": 0,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'false' for series type [nightingale] appropriately 1`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": 0,
+  "stackIndex": 0,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'false' for series type [nightingale] appropriately 2`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": 0,
+  "stackIndex": 0,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'true' for series type [area] appropriately 1`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'true' for series type [area] appropriately 2`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'true' for series type [area] appropriately 3`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'true' for series type [area] appropriately 4`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'true' for series type [bar] appropriately 1`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'true' for series type [bar] appropriately 2`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'true' for series type [bar] appropriately 3`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'true' for series type [bar] appropriately 4`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'true' for series type [nightingale] appropriately 1`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'true' for series type [nightingale] appropriately 2`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted grouped and stacked properties for series type [bar] appropriately 1`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted grouped and stacked properties for series type [bar] appropriately 2`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted grouped and stacked properties for series type [bar] appropriately 3`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted grouped and stacked properties for series type [bar] appropriately 4`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted grouped and stacked properties for series type [nightingale] appropriately 1`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted grouped and stacked properties for series type [nightingale] appropriately 2`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted grouped property for series type [bar] appropriately 1`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted grouped property for series type [bar] appropriately 2`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted grouped property for series type [bar] appropriately 3`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted grouped property for series type [bar] appropriately 4`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted grouped property for series type [nightingale] appropriately 1`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted grouped property for series type [nightingale] appropriately 2`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted stacked property for series type [bar] appropriately 1`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": 0,
+  "stackIndex": 0,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted stacked property for series type [bar] appropriately 2`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": 0,
+  "stackIndex": 0,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted stacked property for series type [bar] appropriately 3`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": 0,
+  "stackIndex": 0,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted stacked property for series type [bar] appropriately 4`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": 0,
+  "stackIndex": 0,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted stacked property for series type [nightingale] appropriately 1`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted stacked property for series type [nightingale] appropriately 2`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'false' for series type [bar] appropriately 1`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": 0,
+  "stackIndex": 0,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'false' for series type [bar] appropriately 2`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": 0,
+  "stackIndex": 0,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'false' for series type [bar] appropriately 3`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": 0,
+  "stackIndex": 0,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'false' for series type [bar] appropriately 4`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": 0,
+  "stackIndex": 0,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'false' for series type [nightingale] appropriately 1`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": 0,
+  "stackIndex": 0,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'false' for series type [nightingale] appropriately 2`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": 0,
+  "stackIndex": 0,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'true' for series type [area] appropriately 1`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'true' for series type [area] appropriately 2`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'true' for series type [area] appropriately 3`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'true' for series type [area] appropriately 4`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'true' for series type [bar] appropriately 1`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'true' for series type [bar] appropriately 2`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'true' for series type [bar] appropriately 3`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'true' for series type [bar] appropriately 4`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'true' for series type [nightingale] appropriately 1`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;
+
+exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'true' for series type [nightingale] appropriately 2`] = `
+{
+  "groupCount": Any<Number>,
+  "groupIndex": Any<Number>,
+  "stackCount": Any<Number>,
+  "stackIndex": Any<Number>,
+}
+`;

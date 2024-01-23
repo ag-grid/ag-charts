@@ -500,10 +500,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
         }
 
         const crossLineLabelBBox = this.computeLabelBBox();
-        const labelX = crossLineLabelBBox?.x;
-        const labelY = crossLineLabelBBox?.y;
-
-        if (!crossLineLabelBBox || labelX == undefined || labelY == undefined) {
+        if (crossLineLabelBBox?.x == null || crossLineLabelBBox?.y == null) {
             return;
         }
 

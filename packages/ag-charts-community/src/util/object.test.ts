@@ -1,28 +1,30 @@
 import { expect, test } from '@jest/globals';
 
-import { deepMerge } from './object';
+import { mergeDefaults } from './object';
 
 describe('object module', () => {
-    test('deepMerge', () => {
-        const target = {
-            x: 1,
-            y: null,
-            z: {
-                a: [0],
-                b: {
-                    c: 4,
+    test('mergeDefaults', () => {
+        const sources = [
+            {
+                y: 2,
+                z: {
+                    a: [3],
+                    d: [],
                 },
-                d: {},
             },
-        };
-        const source = {
-            y: 2,
-            z: {
-                a: [3],
-                d: [],
+            {
+                x: 1,
+                y: null,
+                z: {
+                    a: [0],
+                    b: {
+                        c: 4,
+                    },
+                    d: {},
+                },
             },
-        };
-        expect(deepMerge(target, source)).toEqual({
+        ];
+        expect(mergeDefaults(...sources)).toEqual({
             x: 1,
             y: 2,
             z: {

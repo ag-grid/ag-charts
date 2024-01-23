@@ -16,7 +16,7 @@ import { sleep } from '../util/async';
 import { CallbackCache } from '../util/callbackCache';
 import { Debug } from '../util/debug';
 import { createId } from '../util/id';
-import { jsonClone } from '../util/json';
+import { deepClone } from '../util/json';
 import type { PlacedLabel, PointLabelDatum } from '../util/labelPlacement';
 import { isPointLabelDatum, placeLabels } from '../util/labelPlacement';
 import { Logger } from '../util/logger';
@@ -28,7 +28,7 @@ import { ActionOnSet } from '../util/proxy';
 import { debouncedAnimationFrame, debouncedCallback } from '../util/render';
 import { SizeMonitor } from '../util/sizeMonitor';
 import type { PickRequired } from '../util/types';
-import { BOOLEAN, UNION, Validate } from '../util/validation';
+import { BOOLEAN, OBJECT, UNION, Validate } from '../util/validation';
 import type { Caption } from './caption';
 import type { ChartAxis } from './chartAxis';
 import type { ChartAxisDirection } from './chartAxisDirection';
@@ -114,8 +114,9 @@ export type ChartExtendedOptions = AgChartOptions & ChartSpecialOverrides;
 
 class SeriesArea {
     @Validate(BOOLEAN, { optional: true })
-    clip?: boolean = undefined;
+    clip?: boolean;
 
+    @Validate(OBJECT)
     padding = new Padding(0);
 }
 
@@ -137,7 +138,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     getOptions() {
         const { queuedUserOptions } = this;
         const lastUpdateOptions = queuedUserOptions[queuedUserOptions.length - 1] ?? this.userOptions;
-        return jsonClone(lastUpdateOptions);
+        return deepClone(lastUpdateOptions);
     }
 
     readonly scene: Scene;
@@ -515,10 +516,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
-    requestFactoryUpdate(cb: () => Promise<void>) {
+    requestFactoryUpdate(cb: (chart: Chart) => Promise<void>) {
         this._pendingFactoryUpdatesCount++;
         this.updateMutex.acquire(async () => {
-            await cb();
+            await cb(this);
             this._pendingFactoryUpdatesCount--;
         });
     }
