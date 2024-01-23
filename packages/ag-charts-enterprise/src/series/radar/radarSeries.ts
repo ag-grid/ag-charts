@@ -246,6 +246,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         }
 
         this.updatePathSelections();
+        this.updateMarkerSelection();
         this.updateMarkers(this.itemSelection, false);
         this.updateMarkers(this.highlightSelection, true);
         this.updateLabels();
@@ -261,6 +262,15 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         this.lineSelection.update(pathData);
     }
 
+    protected updateMarkerSelection() {
+        if (this.properties.marker.isDirty()) {
+            this.itemSelection.clear();
+            this.itemSelection.cleanup();
+            this.itemSelection = Selection.select(this.itemGroup, () => this.nodeFactory(), false);
+        }
+
+        this.itemSelection.update(this.properties.marker.enabled ? this.nodeData : []);
+    }
     protected getMarkerFill(highlightedStyle?: _ModuleSupport.SeriesItemHighlightStyle) {
         return highlightedStyle?.fill ?? this.properties.marker.fill;
     }

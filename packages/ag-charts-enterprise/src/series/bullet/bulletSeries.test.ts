@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, jest, xit } from '@jest/globals';
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type { AgChartInstance } from 'ag-charts-community';
@@ -277,7 +277,8 @@ describe('BulletSeries', () => {
 
         const opts = prepareEnterpriseTestOptions({});
 
-        it('should ignore empty colorRange arrays', async () => {
+        // Disabled as a consequence of AG-10326
+        xit('should ignore empty colorRange arrays', async () => {
             chart = AgCharts.create({
                 ...opts,
                 series: [

@@ -18,10 +18,10 @@ export type PolarAnimationEvent = 'update' | 'updateData' | 'highlight' | 'highl
 export type PolarAnimationData = { duration?: number };
 
 export abstract class PolarSeries<TDatum extends SeriesNodeDatum, TNode extends Node> extends DataModelSeries<TDatum> {
-    protected sectorGroup = this.contentGroup.appendChild(new Group());
+    protected itemGroup = this.contentGroup.appendChild(new Group());
 
     protected itemSelection: Selection<TNode, TDatum> = Selection.select(
-        this.sectorGroup,
+        this.itemGroup,
         () => this.nodeFactory(),
         false
     );
@@ -85,7 +85,7 @@ export abstract class PolarSeries<TDatum extends SeriesNodeDatum, TNode extends 
             canHaveAxes,
         });
 
-        this.sectorGroup.zIndexSubOrder = [() => this._declarationOrder, 1];
+        this.itemGroup.zIndexSubOrder = [() => this._declarationOrder, 1];
         this.animationResetFns = animationResetFns;
 
         this.animationState = new StateMachine<PolarAnimationState, PolarAnimationEvent>(
