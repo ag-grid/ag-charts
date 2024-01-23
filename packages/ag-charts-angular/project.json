@@ -10,6 +10,7 @@
         "tsDefaults",
         "{projectRoot}/angular.json",
         "{projectRoot}/projects/**",
+        "!{projectRoot}/dist",
         { "externalDependencies": ["@angular/cli", "@angular/core"] }
       ],
       "cache": true,
