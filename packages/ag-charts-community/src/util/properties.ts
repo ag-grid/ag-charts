@@ -15,11 +15,10 @@ export class BaseProperties<T extends object = object> extends ChangeDetectable 
                 const self = this as any;
                 if (isProperties(self[propertyKey])) {
                     // re-set property to force re-validation
-                    if (isResettable(self[propertyKey])) {
-                        self[propertyKey] = self[propertyKey].reset(value);
-                    } else {
-                        self[propertyKey] = self[propertyKey].set(value);
-                    }
+                    self[propertyKey] =
+                        self[propertyKey] instanceof PropertiesArray
+                            ? self[propertyKey].reset(value)
+                            : self[propertyKey].set(value);
                 } else {
                     self[propertyKey] = value;
                 }
@@ -73,58 +72,6 @@ export class PropertiesArray<T extends BaseProperties> extends Array {
     }
 }
 
-export class OptionalPropertiesArray<T extends BaseProperties> {
-    private array: PropertiesArray<T>;
-    private value: PropertiesArray<T> | undefined;
-
-    constructor(itemFactory: new () => T) {
-        this.array = new PropertiesArray(itemFactory);
-        this.value = undefined;
-    }
-
-    private undefine() {
-        this.array.length = 0;
-        this.value = undefined;
-    }
-
-    private define(array: PropertiesArray<T>) {
-        this.array = array;
-        this.value = array;
-    }
-
-    getArray(): PropertiesArray<T> | undefined {
-        return this.value;
-    }
-
-    set(properties: object[] | undefined): OptionalPropertiesArray<T> {
-        if (properties === undefined) {
-            this.undefine();
-        } else {
-            this.define(this.array.set(properties));
-        }
-        return this;
-    }
-
-    reset(properties: object[] | undefined): OptionalPropertiesArray<T> {
-        if (properties === undefined) {
-            this.undefine();
-        } else {
-            this.define(this.array.reset(properties));
-        }
-        return this;
-    }
-}
-
 export function isProperties<T extends object>(value: unknown): value is BaseProperties<T> {
-    return (
-        value instanceof BaseProperties || value instanceof PropertiesArray || value instanceof OptionalPropertiesArray
-    );
-}
-
-type Resettable<T extends BaseProperties> = {
-    reset(properties: object[] | undefined): Resettable<T>;
-};
-
-function isResettable<T extends BaseProperties>(value: unknown): value is Resettable<T> {
-    return value instanceof PropertiesArray || value instanceof OptionalPropertiesArray;
+    return value instanceof BaseProperties || value instanceof PropertiesArray;
 }

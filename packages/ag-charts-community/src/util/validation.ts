@@ -1,7 +1,7 @@
 import { Color } from './color';
 import { BREAK_TRANSFORM_CHAIN, addTransformToInstanceProperty } from './decorator';
 import { Logger } from './logger';
-import { OptionalPropertiesArray, isProperties } from './properties';
+import { isProperties } from './properties';
 import {
     isArray,
     isBoolean,
@@ -39,44 +39,12 @@ export interface ValidateObjectPredicate extends ValidatePredicate {
     restrict(objectType: Function): ValidatePredicate;
 }
 
-function logValidateWarning(
-    predicate: ValidatePredicate,
-    ctx: ValidationContext,
-    target: any,
-    property: string | symbol,
-    value: any
-) {
-    const cleanKey = String(property).replace(/^_*/, '');
-    const targetName = target.constructor.className ?? target.constructor.name.replace(/Properties$/, '');
-
-    Logger.warn(
-        `Property [${cleanKey}] of [${targetName}] cannot be set to [${stringify(value)}]${
-            predicate.message ? `; expecting ${getPredicateMessage(predicate, ctx)}` : ''
-        }, ignoring.`
-    );
-}
-
 export function Validate(predicate: ValidatePredicate, options: ValidateOptions = {}) {
     const { optional = false } = options;
     return addTransformToInstanceProperty(
         (target, property, value: any) => {
             const context = { ...options, target, property };
-            if (value instanceof OptionalPropertiesArray) {
-                if (!optional) Logger.error('{ optional: false } is not compatible with OptionalPropertiesArray');
-                const array = value.getArray();
-                if (array === undefined) {
-                    return value;
-                } else if (predicate(array, context)) {
-                    if (isProperties(target[property]) && !isProperties(value)) {
-                        target[property].set(array);
-                        return target[property];
-                    }
-                    return value;
-                }
-
-                logValidateWarning(predicate, context, target, property, array);
-                return BREAK_TRANSFORM_CHAIN;
-            } else if ((optional && value === undefined) || predicate(value, context)) {
+            if ((optional && typeof value === 'undefined') || predicate(value, context)) {
                 if (isProperties(target[property]) && !isProperties(value)) {
                     target[property].set(value);
                     return target[property];
@@ -84,7 +52,15 @@ export function Validate(predicate: ValidatePredicate, options: ValidateOptions 
                 return value;
             }
 
-            logValidateWarning(predicate, context, target, property, value);
+            const cleanKey = String(property).replace(/^_*/, '');
+            const targetName = target.constructor.className ?? target.constructor.name.replace(/Properties$/, '');
+
+            Logger.warn(
+                `Property [${cleanKey}] of [${targetName}] cannot be set to [${stringify(value)}]${
+                    predicate.message ? `; expecting ${getPredicateMessage(predicate, context)}` : ''
+                }, ignoring.`
+            );
+
             return BREAK_TRANSFORM_CHAIN;
         },
         undefined,
