@@ -183,6 +183,9 @@ export class TypeMapper {
                 }
                 return isFirstAppearance;
             })
+            .filter(({ docs }) => {
+                return docs?.some((d) => d.includes('@deprecated')) !== true;
+            })
             .sort((a, b) => (a.optional && !b.optional ? 1 : !a.optional && b.optional ? -1 : 0))
             .sort((a, b) => (prioritisedMembers.includes(a.name) ? -1 : prioritisedMembers.includes(b.name) ? 1 : 0));
     }
