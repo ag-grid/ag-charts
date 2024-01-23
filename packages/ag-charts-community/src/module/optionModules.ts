@@ -240,10 +240,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                         : style
                 );
             }
-            // console.log({ axisTheme });
             const { top, right, bottom, left, ...axisOptions } = mergeDefaults(axis, axisTheme);
-            // console.log({ axisTheme });
-            // console.log({ axis, axisTheme, axisOptions });
             return axisOptions;
         }) as AgCartesianAxisOptions[] | AgPolarAxisOptions[];
     }
@@ -258,7 +255,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         const series = options.series!.map((series) => {
             series.type ??= defaultSeriesType;
-            const { innerLabels: innerLabelsTheme, ...seriesTheme } = this.getSeriesThemeConfig(series.type).series;
+            const { innerLabels: innerLabelsTheme, ...seriesTheme } =
+                this.getSeriesThemeConfig(series.type).series ?? {};
             const seriesOptions = mergeDefaults(
                 this.getSeriesGroupingOptions(series),
                 series,
@@ -302,10 +300,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const stackedByDefault = isSeriesStackedByDefault(series.type);
 
         if (series.grouped && !groupable) {
-            Logger.warnOnce(`Unsupported grouping of series type "${series.type}".`);
+            Logger.warnOnce(`unsupported grouping of series type "${series.type}".`);
         }
         if ((series.stacked || series.stackGroup) && !stackable) {
-            Logger.warnOnce(`Unsupported stacking of series type "${series.type}".`);
+            Logger.warnOnce(`unsupported stacking of series type "${series.type}".`);
         }
 
         let { grouped, stacked } = series;
