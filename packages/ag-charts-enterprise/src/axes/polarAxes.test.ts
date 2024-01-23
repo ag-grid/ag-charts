@@ -279,7 +279,7 @@ describe('Polar Axes', () => {
                             type: 'range',
                             fill: 'rgb(224, 64, 112)',
                             fillOpacity: 0.2,
-                            stroke: undefined,
+                            stroke: 'transparent',
                             range: [0, 5],
                             label: {
                                 text: 'Needs\nImprovement',
@@ -292,7 +292,7 @@ describe('Polar Axes', () => {
                             type: 'range',
                             fill: 'rgb(32, 128, 192)',
                             fillOpacity: 0.2,
-                            stroke: undefined,
+                            stroke: 'transparent',
                             range: [7, 10],
                             label: {
                                 text: 'Excellent',
@@ -325,7 +325,7 @@ describe('Polar Axes', () => {
                             type: 'range',
                             fill: 'rgb(224, 64, 112)',
                             fillOpacity: 0.2,
-                            stroke: undefined,
+                            stroke: 'transparent',
                             range: [0, 5],
                             label: {
                                 text: 'Needs\nImprovement',
@@ -338,7 +338,7 @@ describe('Polar Axes', () => {
                             type: 'range',
                             fill: 'rgb(32, 128, 192)',
                             fillOpacity: 0.2,
-                            stroke: undefined,
+                            stroke: 'transparent',
                             range: [7, 10],
                             label: {
                                 text: 'Excellent',
