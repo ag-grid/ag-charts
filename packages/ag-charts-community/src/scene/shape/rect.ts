@@ -314,7 +314,7 @@ export class Rect extends Path {
             return true;
         }
 
-        return !!(this.path.isDirty() || this.borderPath.isDirty() || this.clipPath?.isDirty());
+        return !!(this.path.isDirty() || this.borderPath.isDirty());
     }
 
     private effectiveStrokeWidth: number = Shape.defaultStyles.strokeWidth;
