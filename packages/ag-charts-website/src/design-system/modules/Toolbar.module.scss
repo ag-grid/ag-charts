@@ -1,6 +1,6 @@
 @use '../core' as *;
 
-$toolbar-width: 1050px;
+$toolbar-width: 600px;
 
 .toolbar {
     width: 100%;
@@ -14,8 +14,8 @@ $toolbar-width: 1050px;
 }
 
 .controlsContainer {
-    padding-top: $spacing-size-2;
-    padding-bottom: $spacing-size-2;
+    padding-top: $spacing-size-4;
+    padding-bottom: $spacing-size-4;
     padding-left: var(--layout-horizontal-margins);
     margin-left: auto;
     margin-right: auto;
@@ -46,7 +46,7 @@ $toolbar-width: 1050px;
     right: 0;
     height: 100%;
     width: 70px;
-    background: linear-gradient(90deg, transparent 0%, var(--color-bg-primary) 110%);
+    background: linear-gradient(90deg, transparent 0%, var(--color-util-brand-100) 110%);
     pointer-events: none;
 
     @media (min-width: $toolbar-width) {
@@ -71,8 +71,6 @@ $toolbar-width: 1050px;
 .toolbarNav {
     position: sticky;
     top: var(--header-nav-height);
-    padding-top: $spacing-size-2;
-    padding-bottom: $spacing-size-2;
     z-index: 2;
 
     ul {
