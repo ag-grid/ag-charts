@@ -14,7 +14,7 @@ env:
     NX_BRANCH: ${{ github.ref }}
     NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_ACCESS_TOKEN }}
     # Set to --batch to enable batch execution.
-    NX_BATCH_FLAG: ''
+    NX_BATCH_FLAG: '--batch'
 
 jobs:
     execute_blt:
