@@ -3,7 +3,6 @@ import { staticFromToMotion } from '../../../motion/fromToMotion';
 import type { Point } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
-import { toReal } from '../../../util/number';
 import type { AnimationManager } from '../../interaction/animationManager';
 import type { NodeDataDependant } from '../seriesTypes';
 import type { CartesianSeriesNodeDatum } from './cartesianSeries';
@@ -190,6 +189,7 @@ export function buildResetPathFn(opts: { getOpacity(): number }) {
 }
 
 export function updateClipPath({ nodeDataDependencies }: NodeDataDependant, path: Path): void {
+    const toReal = (value: number) => (isFinite(value) ? value : 0);
     path.clipX = toReal(nodeDataDependencies.seriesRectWidth);
     path.clipY = toReal(nodeDataDependencies.seriesRectHeight);
 }

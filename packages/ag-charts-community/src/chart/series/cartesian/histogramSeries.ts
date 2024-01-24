@@ -7,7 +7,6 @@ import type { Selection } from '../../../scene/selection';
 import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
 import { sanitizeHtml, tickStep, ticks } from '../../../sparklines-util';
-import { isReal } from '../../../util/number';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { area, groupAverage, groupCount, groupSum } from '../../data/aggregateFunctions';
 import type { DataController } from '../../data/dataController';
@@ -117,7 +116,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramNodeDatum> {
 
     private calculatePrecision(step: number): number {
         let precision = 10;
-        if (isReal(step) && step > 0) {
+        if (isFinite(step) && step > 0) {
             while (step < 1) {
                 precision *= 10;
                 step *= 10;

@@ -10,17 +10,13 @@ export function isEqual(a: number, b: number, epsilon: number = 1e-10) {
     return Math.abs(a - b) < epsilon;
 }
 
-export function isNegative(a: number) {
-    return Math.sign(a) < 0 || Object.is(a, -0);
-}
-
-export function isReal(a: number) {
-    return isFinite(a) && !isNaN(a);
+export function isNegative(value: number) {
+    return Math.sign(value) === -1 || Object.is(value, -0);
 }
 
 export function round(value: number, decimals: number = 2) {
-    const pow = Math.pow(10, decimals);
-    return Math.round(value * pow) / pow;
+    const base = 10 ** decimals;
+    return Math.round(value * base) / base;
 }
 
 /**
@@ -40,28 +36,17 @@ export function toFixed(value: number, fractionOrSignificantDigits: number = 2):
     return value.toFixed(Math.abs(power) - 1 + fractionOrSignificantDigits); // significant digits
 }
 
-export function toReal(value: number) {
-    return isReal(value) ? value : 0;
-}
-
 /**
  * Returns the mathematically correct n modulus of m. For context, the JS % operator is remainder
  * NOT modulus, which is why this is needed.
  */
 export function mod(n: number, m: number) {
-    if (n >= 0) {
-        return Math.floor(n % m);
-    }
-
-    return Math.floor((n % m) + m);
+    return Math.floor((n % m) + (n < 0 ? m : 0));
 }
 
-export const countFractionDigits = (value: number, maxFractionDigits = 10) => {
-    const decimal = (Math.abs(value) % 1).toFixed(maxFractionDigits); // 0.123 or 1.000
-    for (let i = decimal.length - 1; i >= 2 /* Decimal characters from index >= 2 */; i -= 1) {
-        if (decimal[i] !== '0') {
-            return maxFractionDigits - (decimal.length - 1 - i);
-        }
-    }
-    return 0;
-};
+export function countFractionDigits(value: number, maximumFractionDigits = 10) {
+    const [, decimal = ''] = (Math.abs(value) % 1) // 0.123 or 1.000
+        .toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits })
+        .split('.');
+    return decimal.length;
+}
