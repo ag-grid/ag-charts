@@ -123,11 +123,10 @@ export function renderPartialPath(pairData: PathPoint[], ratios: Partial<Record<
     const { path: linePath } = path;
     let previousTo: PathPoint['to'];
     for (const data of pairData) {
-        const ratio = ratios[data.change];
-        if (ratio == null) continue;
-
         const { from, to } = data;
-        if (from == null || to == null) continue;
+        const ratio = ratios[data.change];
+
+        if (ratio == null || from == null || to == null) continue;
 
         const { x, y } = calculatePoint(from, to, ratio);
         if (data.moveTo === false) {
@@ -189,7 +188,7 @@ export function buildResetPathFn(opts: { getOpacity(): number }) {
 }
 
 export function updateClipPath({ nodeDataDependencies }: NodeDataDependant, path: Path): void {
-    const toReal = (value: number) => (isFinite(value) ? value : 0);
-    path.clipX = toReal(nodeDataDependencies.seriesRectWidth);
-    path.clipY = toReal(nodeDataDependencies.seriesRectHeight);
+    const toFinite = (value: number) => (isFinite(value) ? value : 0);
+    path.clipX = toFinite(nodeDataDependencies.seriesRectWidth);
+    path.clipY = toFinite(nodeDataDependencies.seriesRectHeight);
 }
