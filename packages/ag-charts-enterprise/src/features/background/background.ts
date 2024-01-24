@@ -18,11 +18,12 @@ export class Background extends _ModuleSupport.Background<BackgroundImage> {
             image.onLoad = undefined;
         },
     })
-    override image = new BackgroundImage();
+    override image: BackgroundImage;
 
     constructor(ctx: _ModuleSupport.ModuleContext) {
         super(ctx);
 
+        this.image = new BackgroundImage(ctx);
         this.updateService = ctx.updateService;
     }
 

@@ -8,10 +8,10 @@ export class BackgroundImage extends BaseProperties {
     private loadedSynchronously: boolean = true;
     readonly node: _Scene.Image;
 
-    constructor() {
+    constructor(ctx: Pick<_ModuleSupport.ModuleContext, 'document'>) {
         super();
 
-        this.imageElement = document.createElement('img');
+        this.imageElement = ctx.document.createElement('img');
         this.imageElement.onload = this.onImageLoad;
         this.node = new Image(this.imageElement);
     }
