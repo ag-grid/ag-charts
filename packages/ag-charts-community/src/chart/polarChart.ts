@@ -104,7 +104,7 @@ export class PolarChart extends Chart {
                         return { series, innerRadius };
                     })
                     .sort((a, b) => a.innerRadius - b.innerRadius);
-                innerRadii[innerRadii.length - 1].series.surroundingRadius = undefined;
+                innerRadii.at(-1)!.series.surroundingRadius = undefined;
                 for (let i = 0; i < innerRadii.length - 1; i++) {
                     innerRadii[i].series.surroundingRadius = innerRadii[i + 1].innerRadius;
                 }

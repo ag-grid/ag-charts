@@ -153,7 +153,7 @@ export function collapsedStartingBarPosition(
     const { startingX, startingY } = getStartingValues(isVertical, axes);
 
     const isDatumNegative = (datum: AnimatableBarDatum) => {
-        return isNegative((datum as any)['yValue'] ?? 0);
+        return isNegative((datum as any).yValue ?? 0);
     };
 
     const calculate = (datum: AnimatableBarDatum, prevDatum?: AnimatableBarDatum) => {

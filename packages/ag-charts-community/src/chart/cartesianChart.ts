@@ -380,23 +380,17 @@ export class CartesianChart extends Chart {
                 break;
         }
 
-        const zoom = this.zoomManager.getAxisZoom(axis.id);
-        const { min = 0, max = 1 } = zoom ?? {};
+        const { min, max } = this.zoomManager.getAxisZoom(axis.id);
         axis.visibleRange = [min, max];
 
-        const rangeClipped = axis.dataDomain.clipped || axis.visibleRange[0] > 0 || axis.visibleRange[1] < 1;
-        clipSeries ||= rangeClipped;
+        clipSeries ||= axis.dataDomain.clipped || axis.visibleRange[0] > 0 || axis.visibleRange[1] < 1;
 
         let primaryTickCount = axis.nice ? primaryTickCounts[direction] : undefined;
+        const isVertical = direction === ChartAxisDirection.Y;
         const paddedBoundsCoefficient = 0.3;
 
-        if (axis.thickness != null && axis.thickness > 0) {
-            axis.maxThickness = axis.thickness;
-        } else if (direction === ChartAxisDirection.Y) {
-            axis.maxThickness = paddedBounds.width * paddedBoundsCoefficient;
-        } else {
-            axis.maxThickness = paddedBounds.height * paddedBoundsCoefficient;
-        }
+        axis.maxThickness =
+            axis.thickness || (isVertical ? paddedBounds.width : paddedBounds.height) * paddedBoundsCoefficient;
 
         const layout = axis.calculateLayout(primaryTickCount);
         primaryTickCount = layout.primaryTickCount;
@@ -407,7 +401,7 @@ export class CartesianChart extends Chart {
             axisThickness = axis.thickness;
         } else {
             const { bbox } = layout;
-            axisThickness = direction === ChartAxisDirection.X ? bbox.height : bbox.width;
+            axisThickness = isVertical ? bbox.width : bbox.height;
         }
 
         // for multiple axes in the same direction and position, apply padding at the top of each inner axis (i.e. between axes).

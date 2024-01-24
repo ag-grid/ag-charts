@@ -46,14 +46,14 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         immutable = true,
         ...opts
     }: AnimationOptions<T> & AdditionalAnimationOptions) {
-        const { batch } = this;
+        const { controllers } = this.batch;
 
         try {
-            if (opts.id != null && batch.controllers.has(opts.id)) {
+            if (opts.id != null && controllers.has(opts.id)) {
                 if (!immutable) {
-                    return batch.controllers.get(opts.id)!.reset(opts);
+                    return controllers.get(opts.id)!.reset(opts);
                 }
-                batch.controllers.get(opts.id)!.stop();
+                controllers.get(opts.id)!.stop();
 
                 this.debug(`Skipping animation batch due to update of existing animation: ${opts.id}`);
                 this.batch.skip();
@@ -76,19 +76,21 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
             autoplay: this.isPlaying ? opts.autoplay : false,
             duration: opts.duration ?? this.defaultDuration,
             onPlay: (controller) => {
-                batch.controllers.set(id, controller);
+                controllers.set(id, controller);
                 this.requestAnimation();
                 if (disableInteractions) {
-                    this.interactionManager.pause('animation');
+                    const { PauseType } = this.interactionManager;
+                    this.interactionManager.pause(PauseType.ANIMATION);
                 }
-                opts.onPlay?.call(controller, controller);
+                opts.onPlay?.(controller);
             },
             onStop: (controller) => {
-                batch.controllers.delete(id);
+                controllers.delete(id);
                 if (disableInteractions) {
-                    this.interactionManager.resume('animation');
+                    const { PauseType } = this.interactionManager;
+                    this.interactionManager.resume(PauseType.ANIMATION);
                 }
-                opts.onStop?.call(controller, controller);
+                opts.onStop?.(controller);
             },
         });
     }

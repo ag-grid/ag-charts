@@ -36,8 +36,8 @@ const MATERIAL_LIGHT_STROKES = {
 };
 
 const palette: AgChartThemePalette = {
-    fills: Array.from(Object.values(MATERIAL_LIGHT_FILLS)),
-    strokes: Array.from(Object.values(MATERIAL_LIGHT_STROKES)),
+    fills: Object.values(MATERIAL_LIGHT_FILLS),
+    strokes: Object.values(MATERIAL_LIGHT_STROKES),
 };
 
 export class MaterialLight extends ChartTheme {

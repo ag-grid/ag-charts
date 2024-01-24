@@ -1,5 +1,6 @@
 import { Color } from '../util/color';
 import { Logger } from '../util/logger';
+import { clamp } from '../util/number';
 import { Invalidating } from './invalidating';
 import type { Scale } from './scale';
 
@@ -12,7 +13,7 @@ const convertColorStringToOklcha = (v: string): OKLCHA => {
 };
 
 const interpolateOklch = (x: OKLCHA, y: OKLCHA, d: number): Color => {
-    d = Math.min(Math.max(d, 0), 1);
+    d = clamp(0, d, 1);
     let h: number;
     let c: number;
     if (Number.isNaN(x.h) && Number.isNaN(y.h)) {
@@ -89,7 +90,7 @@ export class ColorScale implements Scale<number, string, number> {
 
         const { domain, range, parsedRange } = this;
         const d0 = domain[0];
-        const d1 = domain[domain.length - 1];
+        const d1 = domain.at(-1)!;
         const r0 = range[0];
         const r1 = range[range.length - 1];
 

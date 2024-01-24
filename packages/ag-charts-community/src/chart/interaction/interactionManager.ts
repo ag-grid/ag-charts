@@ -45,6 +45,11 @@ const EVENT_HANDLERS: SUPPORTED_EVENTS[] = [
     'wheel',
 ];
 
+enum PauseType {
+    ANIMATION = 'animation',
+    CONTEXT_MENU = 'context-menu',
+}
+
 export type InteractionEvent<T extends InteractionTypes = InteractionTypes> = {
     type: T;
     offsetX: number;
@@ -52,7 +57,7 @@ export type InteractionEvent<T extends InteractionTypes = InteractionTypes> = {
     pageX: number;
     pageY: number;
     sourceEvent: Event;
-    pauses: PauseTypes[];
+    pauses: PauseType[];
     /** Consume the event, don't notify other listeners! */
     consume(): void;
     consumed?: boolean;
@@ -74,8 +79,7 @@ const CSS = `
 `;
 
 type SupportedEvent = MouseEvent | TouchEvent | Event;
-type PauseTypes = 'animation' | 'context-menu';
-type ListenerMeta = { bypassPause?: PauseTypes[] };
+type ListenerMeta = { bypassPause?: PauseType[] };
 
 /**
  * Manages user interactions with a specific HTMLElement (or interactions that bubble from it's
@@ -86,6 +90,8 @@ export class InteractionManager extends BaseManager<
     InteractionEvent<InteractionTypes>,
     ListenerMeta
 > {
+    readonly PauseType = PauseType;
+
     private static interactionDocuments: Document[] = [];
 
     private readonly rootElement: HTMLElement;
@@ -98,7 +104,7 @@ export class InteractionManager extends BaseManager<
     private touchDown = false;
     private dragStartElement?: HTMLElement;
 
-    private pausers: Record<PauseTypes, number> = { animation: 0, 'context-menu': 0 };
+    private pausers: Record<PauseType, number> = { animation: 0, 'context-menu': 0 };
 
     public constructor(element: HTMLElement, document: Document, window: Window) {
         super();
@@ -139,11 +145,11 @@ export class InteractionManager extends BaseManager<
         }
     }
 
-    resume(pauseType: PauseTypes) {
+    resume(pauseType: PauseType) {
         this.pausers[pauseType]--;
     }
 
-    pause(pauseType: PauseTypes) {
+    pause(pauseType: PauseType) {
         this.pausers[pauseType]++;
     }
 
@@ -165,7 +171,7 @@ export class InteractionManager extends BaseManager<
 
         const pauses = Object.entries(this.pausers)
             .filter(([, count]) => count > 0)
-            .map(([pause]) => pause as PauseTypes);
+            .map(([pause]) => pause as PauseType);
         for (const type of types) {
             this.listeners.dispatchWrapHandlers(
                 type,
@@ -187,13 +193,10 @@ export class InteractionManager extends BaseManager<
 
         switch (event.type) {
             case 'click':
-                return ['click'];
-
             case 'dblclick':
-                return ['dblclick'];
-
             case 'contextmenu':
-                return ['contextmenu'];
+            case 'wheel':
+                return [event.type];
 
             case 'mousedown':
                 if (event instanceof MouseEvent && event.button !== 0) {
@@ -250,9 +253,6 @@ export class InteractionManager extends BaseManager<
 
             case 'pagehide':
                 return ['page-left'];
-
-            case 'wheel':
-                return ['wheel'];
         }
 
         return [];
@@ -273,8 +273,7 @@ export class InteractionManager extends BaseManager<
 
     private calculateCoordinates(event: SupportedEvent): Coords | undefined {
         if (event instanceof MouseEvent) {
-            const { clientX, clientY, pageX, pageY, offsetX, offsetY } = event;
-            return this.fixOffsets(event, { clientX, clientY, pageX, pageY, offsetX, offsetY });
+            return this.getMouseEventCoords(event);
         } else if (typeof TouchEvent !== 'undefined' && event instanceof TouchEvent) {
             const lastTouch = event.touches[0] ?? event.changedTouches[0];
             const { clientX, clientY, pageX, pageY } = lastTouch;
@@ -290,7 +289,9 @@ export class InteractionManager extends BaseManager<
         // Unsupported event - abort.
     }
 
-    private fixOffsets(event: MouseEvent, coords: Coords) {
+    private getMouseEventCoords(event: MouseEvent): Coords {
+        const { clientX, clientY, pageX, pageY } = event;
+        let { offsetX, offsetY } = event;
         const offsets = (el: HTMLElement) => {
             let x = 0;
             let y = 0;
@@ -310,10 +311,10 @@ export class InteractionManager extends BaseManager<
 
             const offsetDragStart = offsets(this.dragStartElement);
             const offsetEvent = offsets(event.target as HTMLElement);
-            coords.offsetX -= offsetDragStart.x - offsetEvent.x;
-            coords.offsetY -= offsetDragStart.y - offsetEvent.y;
+            offsetX -= offsetDragStart.x - offsetEvent.x;
+            offsetY -= offsetDragStart.y - offsetEvent.y;
         }
-        return coords;
+        return { clientX, clientY, pageX, pageY, offsetX, offsetY };
     }
 
     private buildEvent(opts: {
@@ -325,7 +326,7 @@ export class InteractionManager extends BaseManager<
         offsetY?: number;
         pageX?: number;
         pageY?: number;
-        pauses: PauseTypes[];
+        pauses: PauseType[];
     }): InteractionEvent<(typeof opts)['type']> {
         const { type, event, clientX, clientY, pauses } = opts;
         let { offsetX, offsetY, pageX, pageY } = opts;

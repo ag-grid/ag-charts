@@ -38,8 +38,8 @@ const POLYCHROMA_DARK_FILL_GRAY = '#bbbbbb';
 const POLYCHROMA_DARK_STROKE_GRAY = '#eeeeee';
 
 const palette: AgChartThemePalette = {
-    fills: Array.from(Object.values(POLYCHROMA_DARK_FILLS)),
-    strokes: Array.from(Object.values(POLYCHROMA_DARK_STROKES)),
+    fills: Object.values(POLYCHROMA_DARK_FILLS),
+    strokes: Object.values(POLYCHROMA_DARK_STROKES),
 };
 
 export class PolychromaDark extends DarkTheme {

@@ -1,6 +1,7 @@
 import { Debug } from '../../util/debug';
 import { Logger } from '../../util/logger';
 import { isNegative } from '../../util/number';
+import { isObject } from '../../util/type-guards';
 import { isNumber } from '../../util/value';
 import type { ChartAxis } from '../chartAxis';
 import type { ChartMode } from '../chartMode';
@@ -81,18 +82,7 @@ export type ProcessedData<D> = UngroupedData<D> | GroupedData<D>;
 export type DatumPropertyType = 'range' | 'category';
 
 function toKeyString(keys: any[]) {
-    return keys
-        .map((v) => {
-            if (v == null) {
-                return v;
-            } else if (typeof v === 'number' || typeof v === 'string' || typeof v === 'boolean') {
-                return v;
-            } else if (typeof v === 'object') {
-                return JSON.stringify(v);
-            }
-            return v;
-        })
-        .join('-');
+    return keys.map((key) => (isObject(key) ? JSON.stringify(key) : key)).join('-');
 }
 
 function round(val: number): number {
@@ -113,8 +103,8 @@ function fixNumericExtentInternal(extent?: (number | Date)[]): [] | [number, num
     }
 
     let [min, max] = extent;
-    min = +min;
-    max = +max;
+    min = Number(min);
+    max = Number(max);
 
     if (min === 0 && max === 0) {
         // domain has zero length and the single valid value is 0. Use the default of [0, 1].
@@ -132,11 +122,7 @@ function fixNumericExtentInternal(extent?: (number | Date)[]): [] | [number, num
         max = 0;
     }
 
-    if (!(isNumber(min) && isNumber(max))) {
-        return [];
-    }
-
-    return [min, max];
+    return isNumber(min) && isNumber(max) ? [min, max] : [];
 }
 
 export function fixNumericExtent(extent?: (number | Date)[], axis?: ChartAxis): [] | [number, number] {

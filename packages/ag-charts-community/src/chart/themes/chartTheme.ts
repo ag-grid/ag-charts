@@ -52,8 +52,8 @@ import {
 const DEFAULT_BACKGROUND_FILL = 'white';
 
 const palette: AgChartThemePalette = {
-    fills: Array.from(Object.values(DEFAULT_FILLS)),
-    strokes: Array.from(Object.values(DEFAULT_STROKES)),
+    fills: Object.values(DEFAULT_FILLS),
+    strokes: Object.values(DEFAULT_STROKES),
 };
 
 type ChartTypeConfig = {

@@ -24,7 +24,6 @@ export type ContextMenuActionParams = {
 
 const { BOOLEAN, Validate } = _ModuleSupport;
 const TOOLTIP_ID = 'context-menu';
-const PAUSE_TYPE = 'context-menu';
 
 export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @Validate(BOOLEAN)
@@ -226,7 +225,8 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
         this.menuElement = newMenuElement;
 
-        this.interactionManager.pause(PAUSE_TYPE);
+        const { PauseType } = this.interactionManager;
+        this.interactionManager.pause(PauseType.CONTEXT_MENU);
         this.tooltipManager.updateTooltip(TOOLTIP_ID);
 
         this.element.style.display = 'block';
@@ -244,7 +244,8 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             this.menuElement = undefined;
         }
 
-        this.interactionManager.resume(PAUSE_TYPE);
+        const { PauseType } = this.interactionManager;
+        this.interactionManager.resume(PauseType.CONTEXT_MENU);
         this.tooltipManager.removeTooltip(TOOLTIP_ID);
 
         this.element.style.display = 'none';

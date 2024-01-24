@@ -47,8 +47,8 @@ const DEFAULT_DARK_STROKES = {
 };
 
 const palette: AgChartThemePalette = {
-    fills: Array.from(Object.values(DEFAULT_DARK_FILLS)),
-    strokes: Array.from(Object.values(DEFAULT_DARK_STROKES)),
+    fills: Object.values(DEFAULT_DARK_FILLS),
+    strokes: Object.values(DEFAULT_DARK_STROKES),
 };
 
 export class DarkTheme extends ChartTheme {

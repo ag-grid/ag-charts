@@ -88,7 +88,7 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
         };
 
         const firstLabel = labelData[0];
-        const lastLabel = labelData[labelData.length - 1];
+        const lastLabel = labelData.at(-1)!;
         if (
             firstLabel !== lastLabel &&
             isNumberEqual(firstLabel.x, lastLabel.x) &&

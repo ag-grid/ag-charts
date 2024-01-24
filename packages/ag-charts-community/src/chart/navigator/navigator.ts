@@ -86,7 +86,8 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
 
         ctx.scene.root?.appendChild(this.rs);
 
-        const interactionOpts = { bypassPause: ['animation' as const] };
+        const { PauseType } = ctx.interactionManager;
+        const interactionOpts = { bypassPause: [PauseType.ANIMATION] };
         this.destroyFns.push(
             ctx.interactionManager.addListener('drag-start', (event) => this.onDragStart(event), interactionOpts),
             ctx.interactionManager.addListener('drag', (event) => this.onDrag(event), interactionOpts),

@@ -27,6 +27,7 @@ import { Padding } from '../util/padding';
 import { ActionOnSet } from '../util/proxy';
 import { debouncedAnimationFrame, debouncedCallback } from '../util/render';
 import { SizeMonitor } from '../util/sizeMonitor';
+import { isFiniteNumber } from '../util/type-guards';
 import type { PickRequired } from '../util/types';
 import { BOOLEAN, OBJECT, UNION, Validate } from '../util/validation';
 import type { Caption } from './caption';
@@ -95,12 +96,7 @@ function initialiseSpecialOverrides(
     } else {
         throw new Error('AG Charts - unable to resolve global document');
     }
-    return {
-        document: globalDocument,
-        window: globalWindow,
-        overrideDevicePixelRatio: opts.overrideDevicePixelRatio,
-        sceneMode: opts.sceneMode,
-    };
+    return { ...opts, document: globalDocument, window: globalWindow };
 }
 
 export interface ChartSpecialOverrides {
@@ -136,9 +132,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     queuedUserOptions: AgChartOptions[] = [];
 
     getOptions() {
-        const { queuedUserOptions } = this;
-        const lastUpdateOptions = queuedUserOptions[queuedUserOptions.length - 1] ?? this.userOptions;
-        return deepClone(lastUpdateOptions);
+        return deepClone(this.queuedUserOptions.at(-1) ?? this.userOptions);
     }
 
     readonly scene: Scene;
@@ -367,11 +361,11 @@ export abstract class Chart extends Observable implements AgChartInstance {
             // Block redundant and interfering attempts to update the hovered element during dragging.
             this.interactionManager.addListener('drag-start', () => this.disablePointer()),
 
-            this.animationManager.addListener('animation-frame', (_) => {
+            this.animationManager.addListener('animation-frame', () => {
                 this.update(ChartUpdateType.SCENE_RENDER);
             }),
             this.highlightManager.addListener('highlight-change', (event) => this.changeHighlightDatum(event)),
-            this.zoomManager.addListener('zoom-change', (_) =>
+            this.zoomManager.addListener('zoom-change', () =>
                 this.update(ChartUpdateType.PROCESS_DATA, { forceNodeDataRefresh: true, skipAnimations: true })
             )
         );
@@ -511,9 +505,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.tooltipManager.removeTooltip(this.id);
         }
         this.highlightManager.updateHighlight(this.id);
-        if (this.lastInteractionEvent) {
-            this.lastInteractionEvent = undefined;
-        }
+        this.lastInteractionEvent = undefined;
     }
 
     requestFactoryUpdate(cb: (chart: Chart) => Promise<void>) {
@@ -605,7 +597,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const { _performUpdateType: performUpdateType, extraDebugStats } = this;
         const seriesToUpdate = [...this.seriesToUpdate];
 
-        // Clear state immediately so that side-effects can be detected prior to SCENE_RENDER.
+        // Clear state immediately so that side effects can be detected prior to SCENE_RENDER.
         this._performUpdateType = ChartUpdateType.NONE;
         this.seriesToUpdate.clear();
 
@@ -914,7 +906,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         width ??= this.width ?? (this.autoSize ? this._lastAutoSize?.[0] : this.scene.canvas.width);
         height ??= this.height ?? (this.autoSize ? this._lastAutoSize?.[1] : this.scene.canvas.height);
         this.debug(`Chart.resize() from ${source}`, { width, height, stack: new Error().stack });
-        if (!width || !height || !Number.isFinite(width) || !Number.isFinite(height)) return;
+        if (!width || !height || !isFiniteNumber(width) || !isFiniteNumber(height)) return;
 
         if (this.scene.resize(width, height)) {
             this.disablePointer();
@@ -947,19 +939,14 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const visibleSeries: Series<any>[] = [];
         const data: (readonly PointLabelDatum[])[] = [];
         for (const series of this.series) {
-            if (!series.visible) {
-                continue;
-            }
+            if (!series.visible) continue;
 
             const labelData: PointLabelDatum[] = series.getLabelData();
 
-            if (!(labelData && isPointLabelDatum(labelData[0]))) {
-                continue;
+            if (isPointLabelDatum(labelData?.[0])) {
+                data.push(labelData);
+                visibleSeries.push(series);
             }
-
-            data.push(labelData);
-
-            visibleSeries.push(series);
         }
 
         const { seriesRect } = this;
@@ -1100,20 +1087,18 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     protected onLeave(event: InteractionEvent<'leave'>): void {
-        if (this.tooltip.pointerLeftOntoTooltip(event)) {
-            return;
+        if (!this.tooltip.pointerLeftOntoTooltip(event)) {
+            this.disablePointer();
+            this.update(ChartUpdateType.SCENE_RENDER);
         }
-
-        this.disablePointer();
-        this.update(ChartUpdateType.SCENE_RENDER);
     }
 
     private lastInteractionEvent?: InteractionEvent<'hover'> = undefined;
     private pointerScheduler = debouncedAnimationFrame(() => {
         if (this.lastInteractionEvent) {
             this.handlePointer(this.lastInteractionEvent);
+            this.lastInteractionEvent = undefined;
         }
-        this.lastInteractionEvent = undefined;
     });
     protected handlePointer(event: InteractionEvent<'hover'>) {
         const { lastPick, hoverRect } = this;
@@ -1147,7 +1132,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const { offsetX, offsetY } = event;
 
         let pixelRange;
-        if (typeof range === 'number' && Number.isFinite(range)) {
+        if (isFiniteNumber(range)) {
             pixelRange = range;
         }
         const pick = this.pickSeriesNode({ x: offsetX, y: offsetY }, range === 'exact', pixelRange);
@@ -1246,7 +1231,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const nodeClickRange = datum?.series.properties.nodeClickRange;
 
         let pixelRange;
-        if (typeof nodeClickRange === 'number' && Number.isFinite(nodeClickRange)) {
+        if (isFiniteNumber(nodeClickRange)) {
             pixelRange = nodeClickRange;
         }
 
@@ -1338,7 +1323,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const start = performance.now();
 
         if (this._pendingFactoryUpdatesCount > 0) {
-            // Await until any pending updates are flushed through.
+            // wait until any pending updates are flushed through.
             await this.updateMutex.waitForClearAcquireQueue();
         }
 
@@ -1349,7 +1334,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             await sleep(5);
         }
 
-        // Await until any remaining updates are flushed through.
+        // wait until any remaining updates are flushed through.
         await this.updateMutex.waitForClearAcquireQueue();
     }
 

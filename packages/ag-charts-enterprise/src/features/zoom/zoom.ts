@@ -19,7 +19,17 @@ import {
 } from './zoomTransformers';
 import type { DefinedZoomState } from './zoomTypes';
 
-const { BOOLEAN, NUMBER, RATIO, UNION, ActionOnSet, ChartAxisDirection, ChartUpdateType, Validate } = _ModuleSupport;
+const {
+    BOOLEAN,
+    NUMBER,
+    RATIO,
+    UNION,
+    ActionOnSet,
+    ChartAxisDirection,
+    ChartUpdateType,
+    Validate,
+    round: sharedRound,
+} = _ModuleSupport;
 
 const ANCHOR_CORD = UNION(['pointer', 'start', 'middle', 'end'], 'an anchor cord');
 
@@ -30,14 +40,11 @@ const TOOLTIP_ID = 'zoom-tooltip';
 const ZOOM_ID = 'zoom';
 const DECIMALS = 3;
 
-const round = (value: number, decimals: number = DECIMALS) => {
-    const pow = Math.pow(10, decimals);
-    return Math.round(value * pow) / pow;
-};
+const round = (value: number) => sharedRound(value, DECIMALS);
 
 export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @ActionOnSet<Zoom>({
-        changeValue(newValue) {
+        newValue(newValue) {
             if (newValue) {
                 this.updateZoom(unitZoomState());
                 this.registerContextMenuActions();
@@ -121,7 +128,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.zoomManager = ctx.zoomManager;
         this.updateService = ctx.updateService;
 
-        const interactionOpts = { bypassPause: ['animation' as const] };
+        const { PauseType } = ctx.interactionManager;
+        const interactionOpts = { bypassPause: [PauseType.ANIMATION] };
         this.destroyFns.push(
             ctx.interactionManager.addListener('dblclick', (event) => this.onDoubleClick(event), interactionOpts),
             ctx.interactionManager.addListener('drag', (event) => this.onDrag(event), interactionOpts),
@@ -199,7 +207,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         if (this.enableAxisDragging && this.hoveredAxis) {
             const { id: axisId, direction } = this.hoveredAxis;
             const anchor = direction === _ModuleSupport.ChartAxisDirection.X ? this.anchorPointX : this.anchorPointY;
-            const axisZoom = this.zoomManager.getAxisZoom(axisId) ?? { ...UNIT };
+            const axisZoom = this.zoomManager.getAxisZoom(axisId);
             const newZoom = this.axisDragger.update(event, direction, anchor, this.seriesRect, zoom, axisZoom);
             this.updateAxisZoom(axisId, direction, newZoom);
             return;
