@@ -26,6 +26,7 @@
       "outputs": ["{workspaceRoot}/dist/{projectRoot}.tgz"],
       "options": {
         "cwd": "{projectRoot}//dist/ag-charts-angular",
+        "parallel": false,
         "commands": ["mkdir -p ../../../../dist/packages", "yarn pack -f ../../../../dist/{projectRoot}.tgz"]
       }
     },
@@ -35,6 +36,7 @@
       "inputs": ["{workspaceRoot}/dist/{projectRoot}.tgz"],
       "outputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-angular/"],
       "options": {
+        "parallel": false,
         "commands": [
           "mkdir -p dist/packages/contents/ag-charts-angular",
           "tar -xzf dist/{projectRoot}.tgz -C dist/packages/contents/ag-charts-angular/"

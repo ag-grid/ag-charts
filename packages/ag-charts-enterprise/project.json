@@ -148,6 +148,7 @@
       "outputs": ["{workspaceRoot}/dist/{projectRoot}.tgz"],
       "options": {
         "cwd": "packages/ag-charts-enterprise",
+        "parallel": false,
         "commands": ["mkdir -p ../../dist/packages", "yarn pack -f ../../dist/packages/ag-charts-enterprise.tgz"]
       }
     },
@@ -157,6 +158,7 @@
       "inputs": ["{workspaceRoot}/dist/{projectRoot}.tgz"],
       "outputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-enterprise/"],
       "options": {
+        "parallel": false,
         "commands": [
           "mkdir -p dist/packages/contents/ag-charts-enterprise",
           "tar -xzf dist/packages/ag-charts-enterprise.tgz -C dist/packages/contents/ag-charts-enterprise/"

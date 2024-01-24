@@ -88,6 +88,7 @@
       "outputs": ["{workspaceRoot}/dist/{projectRoot}.tgz"],
       "options": {
         "cwd": "packages/ag-charts-react",
+        "parallel": false,
         "commands": ["mkdir -p ../../dist/packages", "yarn pack -f ../../dist/packages/ag-charts-react.tgz"]
       }
     },
@@ -97,6 +98,7 @@
       "inputs": ["{workspaceRoot}/dist/{projectRoot}.tgz"],
       "outputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-react/"],
       "options": {
+        "parallel": false,
         "commands": [
           "mkdir -p dist/packages/contents/ag-charts-react",
           "tar -xzf dist/packages/ag-charts-react.tgz -C dist/packages/contents/ag-charts-react/"
