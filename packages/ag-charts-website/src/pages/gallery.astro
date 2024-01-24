@@ -6,11 +6,13 @@ import { getPageHashUrl } from '@features/gallery/utils/urlPaths';
 import type { GalleryData, GalleryExample, GalleryExampleChartType } from '@ag-grid-types';
 import { GalleryExampleLink } from '@features/gallery/components/GalleryExampleLink';
 import { GalleryExampleThemeDropdown } from '@features/gallery/components/GalleryExampleThemeDropdown';
+import { GALLERY_IMAGE_DPR_ENHANCEMENT } from '@constants';
 import styles from '@design-system/modules/gallery.module.scss';
 
 const galleryDataEntry = await getEntry('gallery', 'data');
 const galleryData: GalleryData = galleryDataEntry?.data;
 const { series } = galleryData;
+const enableDprScaling = GALLERY_IMAGE_DPR_ENHANCEMENT;
 ---
 
 <Layout title="AG Charts Gallery">
@@ -55,6 +57,7 @@ const { series } = galleryData;
                                                 label={title}
                                                 exampleName={name}
                                                 id={i === 0 ? seriesName : null}
+                                                enableDprScaling={enableDprScaling}
                                             />
                                         ))}
                                     </>

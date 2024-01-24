@@ -9,9 +9,10 @@ interface Props {
     label: string;
     exampleName: string;
     id?: string;
+    enableDprScaling: boolean;
 }
 
-export const GalleryExampleLink: FunctionComponent<Props> = ({ label, exampleName, id }) => {
+export const GalleryExampleLink: FunctionComponent<Props> = ({ label, exampleName, id, enableDprScaling }) => {
     return (
         <a
             className={classnames(styles.link, 'galleryExample', styles[`layout-3-col`], 'text-sm', 'text-secondary')}
@@ -19,7 +20,7 @@ export const GalleryExampleLink: FunctionComponent<Props> = ({ label, exampleNam
             id={id}
         >
             <div className={styles.image}>
-                <GalleryExampleImage label={label} exampleName={exampleName} />
+                <GalleryExampleImage label={label} exampleName={exampleName} enableDprScaling={enableDprScaling} />
             </div>
             <span className={styles.label}>{label}</span>
         </a>

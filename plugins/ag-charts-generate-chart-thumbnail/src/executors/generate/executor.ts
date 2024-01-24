@@ -41,6 +41,8 @@ export async function generateFiles(options: ExecutorOptions, ctx: ExecutorConte
     const name = `${ctx.projectName}:${ctx.targetName}:${ctx.configurationName ?? ''}`;
     const jsonPath = path.join(generatedExamplePath, 'plain', 'vanilla', 'contents.json');
     const example = await readJSONFile(jsonPath);
+    const production = process.env.NX_TASK_TARGET_CONFIGURATION === 'production';
+    const dpiOutputs = production ? [1, 2] : [1];
 
     if (example == null) {
         throw new Error(`Unable to read generated example: [${jsonPath}]`);
@@ -50,7 +52,7 @@ export async function generateFiles(options: ExecutorOptions, ctx: ExecutorConte
 
     await consolePrefix(`[${ctx.projectName}] `, async () => {
         for (const theme of Object.keys(THEMES) as AgChartThemeName[]) {
-            for (const dpi of [1, 2]) {
+            for (const dpi of dpiOutputs) {
                 try {
                     await generateExample({ example, theme, outputPath, dpi });
                 } catch (e) {

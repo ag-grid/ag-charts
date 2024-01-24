@@ -22,13 +22,18 @@ const {
     PUBLIC_SITE_URL,
     PUBLIC_BASE_URL = DEFAULT_BASE_URL,
     PUBLIC_HTTPS_SERVER = '1',
+    PUBLIC_GALLERY_IMAGE_DPR_ENHANCEMENT,
 } = dotenvExpand.expand(dotenv).parsed;
 
 const OUTPUT_DIR = '../../dist/packages/ag-charts-website';
 
 console.log(
     'Astro configuration',
-    JSON.stringify({ NODE_ENV, PORT, PUBLIC_SITE_URL, PUBLIC_BASE_URL, OUTPUT_DIR }, null, 2)
+    JSON.stringify(
+        { NODE_ENV, PORT, PUBLIC_SITE_URL, PUBLIC_BASE_URL, OUTPUT_DIR, PUBLIC_GALLERY_IMAGE_DPR_ENHANCEMENT },
+        null,
+        2
+    )
 );
 
 // https://astro.build/config

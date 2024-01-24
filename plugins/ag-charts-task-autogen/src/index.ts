@@ -49,6 +49,9 @@ export const createNodes: CreateNodes = [
                             inputs: [{ externalDependencies: ['npm:typescript'] }],
                             outputs: [],
                             cache: true,
+                            configurations: {
+                                production: {},
+                            },
                         },
                         'generate-thumbnails': {
                             executor: 'nx:noop',
@@ -56,6 +59,9 @@ export const createNodes: CreateNodes = [
                             inputs: [{ externalDependencies: ['npm:typescript'] }],
                             outputs: [],
                             cache: true,
+                            configurations: {
+                                production: {},
+                            },
                         },
                     },
                 },
