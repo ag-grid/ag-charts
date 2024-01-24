@@ -163,7 +163,7 @@ export abstract class AgCharts {
     }
 }
 
-/** @deprecated use AgCharts instead */
+/** @deprecated v9.0 use AgCharts instead */
 export class AgChart {
     private static warnDeprecated(memberName: string) {
         const warnDeprecated = createDeprecationWarning();

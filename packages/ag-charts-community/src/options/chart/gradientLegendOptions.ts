@@ -51,7 +51,7 @@ export interface AgGradientLegendOptions {
     /** The spacing in pixels to use outside the legend. */
     spacing?: PixelSize;
     /**
-     * @deprecated Use `scale` instead.
+     * @deprecated v9.0.2 Use `scale` instead.
      * Configuration for the legend gradient stops that consist of a color and a label.
      */
     stop?: AgGradientLegendScaleOptions;
