@@ -1,10 +1,12 @@
-import type { AgZoomAnchorPoint, _ModuleSupport, _Scene } from 'ag-charts-community';
+import { AgZoomAnchorPoint, _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import type { DefinedZoomState } from './zoomTypes';
 
+const { clamp } = _ModuleSupport;
+
 export const UNIT = { min: 0, max: 1 };
 
-const constrain = (value: number, min = 0, max = 1) => Math.max(min, Math.min(max, value));
+const constrain = (value: number, min = UNIT.min, max = UNIT.max) => clamp(min, value, max);
 
 export function unitZoomState(): DefinedZoomState {
     return { x: { ...UNIT }, y: { ...UNIT } };
@@ -82,24 +84,22 @@ export function scaleZoomAxisWithAnchor(
     anchor: AgZoomAnchorPoint,
     origin?: number
 ): _ModuleSupport.ZoomState {
-    let { min, max } = oldState;
+    const { min, max } = oldState;
     const center = min + (max - min) / 2;
     const diff = newState.max - newState.min;
 
-    if (anchor === 'start') {
-        max = oldState.min + diff;
-    } else if (anchor === 'end') {
-        min = oldState.max - diff;
-    } else if (anchor === 'middle') {
-        min = center - diff / 2;
-        max = center + diff / 2;
-    } else if (anchor === 'pointer') {
-        const point = scaleZoomAxisWithPoint(newState, oldState, origin ?? center);
-        min = point.min;
-        max = point.max;
+    switch (anchor) {
+        case 'start':
+            return { min, max: oldState.min + diff };
+        case 'end':
+            return { min: oldState.max - diff, max };
+        case 'middle':
+            return { min: center - diff / 2, max: center + diff / 2 };
+        case 'pointer':
+            return scaleZoomAxisWithPoint(newState, oldState, origin ?? center);
+        default:
+            return { min, max };
     }
-
-    return { min, max };
 }
 
 export function scaleZoomAxisWithPoint(

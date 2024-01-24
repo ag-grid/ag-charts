@@ -121,7 +121,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.zoomManager = ctx.zoomManager;
         this.updateService = ctx.updateService;
 
-        const interactionOpts = { bypassPause: ['animation' as const] };
+        const { PauseType } = ctx.interactionManager;
+        const interactionOpts = { bypassPause: [PauseType.ANIMATION] };
         this.destroyFns.push(
             ctx.interactionManager.addListener('dblclick', (event) => this.onDoubleClick(event), interactionOpts),
             ctx.interactionManager.addListener('drag', (event) => this.onDrag(event), interactionOpts),

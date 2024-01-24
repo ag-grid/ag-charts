@@ -365,8 +365,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 this.update(ChartUpdateType.SCENE_RENDER);
             }),
             this.highlightManager.addListener('highlight-change', (event) => this.changeHighlightDatum(event)),
-            this.zoomManager.addListener('zoom-change', (event) => {
-                console.log(event);
+            this.zoomManager.addListener('zoom-change', () => {
                 this.update(ChartUpdateType.PROCESS_DATA, { forceNodeDataRefresh: true, skipAnimations: true });
             })
         );
