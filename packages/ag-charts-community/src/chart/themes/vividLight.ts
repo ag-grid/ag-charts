@@ -36,8 +36,8 @@ const VIVID_STROKES = {
 };
 
 const palette: AgChartThemePalette = {
-    fills: Array.from(Object.values(VIVID_FILLS)),
-    strokes: Array.from(Object.values(VIVID_STROKES)),
+    fills: Object.values(VIVID_FILLS),
+    strokes: Object.values(VIVID_STROKES),
 };
 
 export class VividLight extends ChartTheme {

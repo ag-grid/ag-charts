@@ -36,8 +36,8 @@ const SHEETS_LIGHT_STROKES = {
 };
 
 const palette: AgChartThemePalette = {
-    fills: Array.from(Object.values(SHEETS_LIGHT_FILLS)),
-    strokes: Array.from(Object.values(SHEETS_LIGHT_STROKES)),
+    fills: Object.values(SHEETS_LIGHT_FILLS),
+    strokes: Object.values(SHEETS_LIGHT_STROKES),
 };
 
 export class SheetsLight extends ChartTheme {

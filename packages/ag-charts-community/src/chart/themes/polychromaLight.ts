@@ -39,8 +39,8 @@ const POLYCHROMA_LIGHT_FILL_GRAY = '#bbbbbb';
 const POLYCHROMA_LIGHT_STROKE_GRAY = '#888888';
 
 const palette: AgChartThemePalette = {
-    fills: Array.from(Object.values(POLYCHROMA_LIGHT_FILLS)),
-    strokes: Array.from(Object.values(POLYCHROMA_LIGHT_STROKES)),
+    fills: Object.values(POLYCHROMA_LIGHT_FILLS),
+    strokes: Object.values(POLYCHROMA_LIGHT_STROKES),
 };
 
 export class PolychromaLight extends ChartTheme {
