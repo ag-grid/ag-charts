@@ -114,9 +114,8 @@ export class ZoomManager extends BaseManager<'zoom-change', ZoomChangeEvent> {
 }
 
 class AxisZoomManager {
-    private readonly states: Record<string, ZoomState> = {};
+    private readonly states = new Map<string, ZoomState>();
     private currentZoom: ZoomState;
-
     private axis: ChartAxis;
 
     constructor(axis: ChartAxis) {
@@ -124,7 +123,7 @@ class AxisZoomManager {
 
         const [min = 0, max = 1] = axis.visibleRange;
         this.currentZoom = { min, max };
-        this.states['__initial__'] = this.currentZoom;
+        this.states.set('__initial__', this.currentZoom);
     }
 
     getDirection(): ChartAxisDirection {
@@ -132,10 +131,10 @@ class AxisZoomManager {
     }
 
     public updateZoom(callerId: string, newZoom?: ZoomState) {
-        delete this.states[callerId];
+        this.states.delete(callerId);
 
         if (newZoom != null) {
-            this.states[callerId] = { ...newZoom };
+            this.states.set(callerId, { ...newZoom });
         }
     }
 
@@ -145,10 +144,7 @@ class AxisZoomManager {
 
     public applyStates(): boolean {
         const prevZoom = this.currentZoom;
-        const last = Object.keys(this.states)[Object.keys(this.states).length - 1];
-
-        this.currentZoom = { ...this.states[last] };
-
+        this.currentZoom = Array.from(this.states.values()).pop()!;
         return prevZoom?.min !== this.currentZoom?.min || prevZoom?.max !== this.currentZoom?.max;
     }
 }

@@ -119,7 +119,7 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
         }
 
         const firstTick = toNumber(ticks[0]);
-        const lastTick = toNumber(ticks[ticks.length - 1]);
+        const lastTick = toNumber(ticks.at(-1)!);
         const startYear = new Date(firstTick).getFullYear();
         const stopYear = new Date(lastTick).getFullYear();
         const yearChange = stopYear - startYear > 0;
@@ -424,7 +424,7 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
             const intervalRange = i.range(new Date(start), new Date(stop), true);
             const domain = isReversed ? [...intervalRange].reverse() : intervalRange;
             const n0 = domain[0];
-            const n1 = domain[domain.length - 1];
+            const n1 = domain.at(-1)!;
             this.niceDomain = [n0, n1];
         }
     }

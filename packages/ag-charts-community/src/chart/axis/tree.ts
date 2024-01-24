@@ -197,7 +197,7 @@ function firstWalk(node: TreeNode, distance: number) {
 
         executeShifts(node);
 
-        const midpoint = (children[0].prelim + children[children.length - 1].prelim) / 2;
+        const midpoint = (children[0].prelim + children.at(-1)!.prelim) / 2;
         const leftSibling = node.getLeftSibling();
         if (leftSibling) {
             node.prelim = leftSibling.prelim + distance;

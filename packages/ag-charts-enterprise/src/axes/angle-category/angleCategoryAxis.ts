@@ -83,7 +83,7 @@ export class AngleCategoryAxis extends AngleAxis<string, _Scale.BandScale<string
         };
 
         const firstLabel = labelData[0];
-        const lastLabel = labelData[labelData.length - 1];
+        const lastLabel = labelData.at(-1)!;
         const visibleLabels = new Set<AngleAxisLabelDatum>([firstLabel]);
         const lastLabelIsOverFirst =
             isNumberEqual(firstLabel.x, lastLabel.x) && isNumberEqual(firstLabel.y, lastLabel.y);
