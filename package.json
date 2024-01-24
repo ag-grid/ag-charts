@@ -10,6 +10,10 @@
     "postinstall": "patch-package && nx run-many -p ag-charts-generate-chart-thumbnail,ag-charts-generate-code-reference-files,ag-charts-generate-example-files,ag-charts-task-autogen -t build"
   },
   "private": true,
+  "engines": {
+    "node": "^20.10.0",
+    "yarn": "^1.22.21"
+  },
   "dependencies": {
     "@nicolo-ribaudo/semver-v6": "^6.3.3",
     "@nx/devkit": "17.2.6",
