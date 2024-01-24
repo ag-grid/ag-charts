@@ -158,7 +158,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             this.swapAxesPosition(seriesDefaults);
         }
 
-        return this.activeTheme?.templateTheme(seriesDefaults) ?? seriesDefaults;
+        return seriesDefaults;
     }
 
     protected optionsType(options: Partial<T>) {
@@ -237,7 +237,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 seriesOptions.innerLabels = mergeArrayDefaults(seriesOptions.innerLabels, innerLabelsTheme);
             }
 
-            return seriesOptions;
+            return this.activeTheme.templateTheme(seriesOptions);
         });
 
         options.series = this.setSeriesGroupingOptions(series);
