@@ -4,7 +4,6 @@ import { Debug } from '../../util/debug';
 import { Logger } from '../../util/logger';
 import type { Mutex } from '../../util/mutex';
 import { BaseManager } from './baseManager';
-import type { InteractionManager } from './interactionManager';
 
 type AnimationEventType = 'animation-frame';
 
@@ -30,10 +29,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
     private requestId: number | null = null;
     private skipAnimations = false;
 
-    constructor(
-        private readonly interactionManager: InteractionManager,
-        private readonly chartUpdateMutex: Mutex
-    ) {
+    constructor(private readonly chartUpdateMutex: Mutex) {
         super();
     }
 
@@ -78,18 +74,10 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
             onPlay: (controller) => {
                 controllers.set(id, controller);
                 this.requestAnimation();
-                if (disableInteractions) {
-                    const { PauseType } = this.interactionManager;
-                    this.interactionManager.pause(PauseType.ANIMATION);
-                }
                 opts.onPlay?.(controller);
             },
             onStop: (controller) => {
                 controllers.delete(id);
-                if (disableInteractions) {
-                    const { PauseType } = this.interactionManager;
-                    this.interactionManager.resume(PauseType.ANIMATION);
-                }
                 opts.onStop?.(controller);
             },
         });

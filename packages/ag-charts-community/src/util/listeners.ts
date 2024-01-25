@@ -2,17 +2,16 @@ import { Logger } from './logger';
 
 type Handler = (...args: any[]) => void;
 
-export type Listener<H extends Handler, Meta = unknown> = {
+export type Listener<H extends Handler> = {
     symbol?: Symbol;
     handler: H;
-    meta?: Meta;
 };
 
-export class Listeners<EventType extends string, EventHandler extends Handler, Meta = unknown> {
-    protected readonly registeredListeners: Map<EventType, Listener<EventHandler, Meta>[]> = new Map();
+export class Listeners<EventType extends string, EventHandler extends Handler> {
+    protected readonly registeredListeners: Map<EventType, Listener<EventHandler>[]> = new Map();
 
-    public addListener(eventType: EventType, handler: EventHandler, meta?: Meta) {
-        const record = { symbol: Symbol(eventType), handler, meta };
+    public addListener(eventType: EventType, handler: EventHandler) {
+        const record = { symbol: Symbol(eventType), handler };
 
         if (this.registeredListeners.has(eventType)) {
             this.registeredListeners.get(eventType)!.push(record);
@@ -48,19 +47,19 @@ export class Listeners<EventType extends string, EventHandler extends Handler, M
 
     public dispatchWrapHandlers(
         eventType: EventType,
-        wrapFn: (handler: EventHandler, meta?: Meta, ...params: Parameters<EventHandler>) => void,
+        wrapFn: (handler: EventHandler, ...params: Parameters<EventHandler>) => void,
         ...params: Parameters<EventHandler>
     ) {
         for (const listener of this.getListenersByType(eventType)) {
             try {
-                wrapFn(listener.handler, listener.meta, ...params);
+                wrapFn(listener.handler, ...params);
             } catch (e) {
                 Logger.errorOnce(e);
             }
         }
     }
 
-    protected getListenersByType(eventType: EventType): Listener<EventHandler, Meta>[] {
+    protected getListenersByType(eventType: EventType): Listener<EventHandler>[] {
         return this.registeredListeners.get(eventType) ?? [];
     }
 

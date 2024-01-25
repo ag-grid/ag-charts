@@ -46,11 +46,6 @@ const EVENT_HANDLERS: SUPPORTED_EVENTS[] = [
     'wheel',
 ];
 
-enum PauseType {
-    ANIMATION = 'animation',
-    CONTEXT_MENU = 'context-menu',
-}
-
 export type InteractionEvent<T extends InteractionTypes = InteractionTypes> = {
     type: T;
     offsetX: number;
@@ -60,7 +55,6 @@ export type InteractionEvent<T extends InteractionTypes = InteractionTypes> = {
     deltaX: number;
     deltaY: number;
     sourceEvent: Event;
-    pauses: PauseType[];
     /** Consume the event, don't notify other listeners! */
     consume(): void;
     consumed?: boolean;
@@ -82,7 +76,6 @@ const CSS = `
 `;
 
 type SupportedEvent = MouseEvent | TouchEvent | Event;
-type ListenerMeta = { bypassPause?: PauseType[] };
 
 const DEBUG_SELECTORS = [true, 'interaction'];
 
@@ -90,14 +83,8 @@ const DEBUG_SELECTORS = [true, 'interaction'];
  * Manages user interactions with a specific HTMLElement (or interactions that bubble from it's
  * children)
  */
-export class InteractionManager extends BaseManager<
-    InteractionTypes,
-    InteractionEvent<InteractionTypes>,
-    ListenerMeta
-> {
+export class InteractionManager extends BaseManager<InteractionTypes, InteractionEvent<InteractionTypes>> {
     private readonly debug = Debug.create(...DEBUG_SELECTORS);
-
-    readonly PauseType = PauseType;
 
     private static interactionDocuments: Document[] = [];
 
@@ -110,8 +97,6 @@ export class InteractionManager extends BaseManager<
     private mouseDown = false;
     private touchDown = false;
     private dragStartElement?: HTMLElement;
-
-    private pausers: Record<PauseType, number> = { animation: 0, 'context-menu': 0 };
 
     public constructor(element: HTMLElement, document: Document, window: Window) {
         super();
@@ -152,14 +137,6 @@ export class InteractionManager extends BaseManager<
         }
     }
 
-    resume(pauseType: PauseType) {
-        this.pausers[pauseType]--;
-    }
-
-    pause(pauseType: PauseType) {
-        this.pausers[pauseType]++;
-    }
-
     private processEvent(event: SupportedEvent) {
         const types: InteractionTypes[] = this.decideInteractionEventTypes(event);
 
@@ -176,21 +153,15 @@ export class InteractionManager extends BaseManager<
             return;
         }
 
-        const pauses = Object.entries(this.pausers)
-            .filter(([, count]) => count > 0)
-            .map(([pause]) => pause as PauseType);
         for (const type of types) {
             this.listeners.dispatchWrapHandlers(
                 type,
-                (handler, meta, interactionEvent) => {
-                    if (pauses.length > 0 && !meta?.bypassPause?.some((p) => pauses.includes(p))) {
-                        return;
-                    }
+                (handler, interactionEvent) => {
                     if (!interactionEvent.consumed) {
                         handler(interactionEvent);
                     }
                 },
-                this.buildEvent({ type, event, pauses, ...coords })
+                this.buildEvent({ type, event, ...coords })
             );
         }
     }
@@ -333,9 +304,8 @@ export class InteractionManager extends BaseManager<
         offsetY?: number;
         pageX?: number;
         pageY?: number;
-        pauses: PauseType[];
     }): InteractionEvent<(typeof opts)['type']> {
-        const { type, event, clientX, clientY, pauses } = opts;
+        const { type, event, clientX, clientY } = opts;
         let { offsetX, offsetY, pageX, pageY } = opts;
 
         if (!isFiniteNumber(offsetX) || !isFiniteNumber(offsetY)) {
@@ -366,7 +336,6 @@ export class InteractionManager extends BaseManager<
             deltaY,
             sourceEvent: event,
             consumed: false,
-            pauses,
             consume() {
                 builtEvent.consumed = true;
             },

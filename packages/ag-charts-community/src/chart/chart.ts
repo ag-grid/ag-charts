@@ -328,7 +328,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.seriesLayerManager = new SeriesLayerManager(this.seriesRoot);
         this.callbackCache = new CallbackCache();
 
-        this.animationManager = new AnimationManager(this.interactionManager, this.updateMutex);
+        this.animationManager = new AnimationManager(this.updateMutex);
         this.animationManager.skip();
         this.animationManager.play();
 
@@ -355,10 +355,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.interactionManager.addListener('hover', (event) => this.onMouseMove(event)),
             this.interactionManager.addListener('leave', (event) => this.onLeave(event)),
             this.interactionManager.addListener('page-left', () => this.destroy()),
-            this.interactionManager.addListener('wheel', () => this.disablePointer()),
 
-            // Block redundant and interfering attempts to update the hovered element during dragging.
-            this.interactionManager.addListener('drag', () => this.disablePointer()),
+            this.interactionManager.addListener('wheel', () => this.resetPointer()),
+            this.interactionManager.addListener('drag', () => this.resetPointer()),
 
             this.animationManager.addListener('animation-frame', () => {
                 this.update(ChartUpdateType.SCENE_RENDER);
@@ -517,7 +516,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         return result;
     }
 
-    disablePointer(highlightOnly = false) {
+    resetPointer(highlightOnly = false) {
         if (!highlightOnly) {
             this.tooltipManager.removeTooltip(this.id);
         }
@@ -628,7 +627,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
             case ChartUpdateType.PROCESS_DATA:
                 await this.processData();
-                this.disablePointer(true);
+                this.resetPointer(true);
                 splits['🏭'] = performance.now();
             // fallthrough
 
@@ -903,7 +902,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         if (!width || !height || !isFiniteNumber(width) || !isFiniteNumber(height)) return;
 
         if (this.scene.resize(width, height)) {
-            this.disablePointer();
+            this.resetPointer();
             this.animationManager.reset();
 
             let skipAnimations = true;
@@ -1095,7 +1094,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     protected onLeave(event: InteractionEvent<'leave'>): void {
         if (!this.tooltip.pointerLeftOntoTooltip(event)) {
-            this.disablePointer();
+            this.resetPointer();
             this.update(ChartUpdateType.SCENE_RENDER);
         }
     }
@@ -1113,8 +1112,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         const disablePointer = (highlightOnly = false) => {
             if (lastPick) {
-                // Cursor moved from a non-marker node to empty space.
-                this.disablePointer(highlightOnly);
+                this.resetPointer(highlightOnly);
             }
         };
 
