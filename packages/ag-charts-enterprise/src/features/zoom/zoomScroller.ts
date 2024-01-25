@@ -24,7 +24,9 @@ export class ZoomScroller {
         const sourceEvent = event.sourceEvent as WheelEvent;
 
         // Scale the zoom bounding box
-        const dir = sourceEvent.deltaY < 0 ? -1 : 1;
+        const deltaY = sourceEvent.deltaY;
+        const factor = sourceEvent.deltaMode === 0 ? 0.1 : 1;
+        const dir = deltaY * factor;
         let newZoom = definedZoomState(oldZoom);
         newZoom.x.max += isScalingX ? step * dir * (oldZoom.x.max - oldZoom.x.min) : 0;
         newZoom.y.max += isScalingY ? step * dir * (oldZoom.y.max - oldZoom.y.min) : 0;
