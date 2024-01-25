@@ -182,15 +182,15 @@ export class Color implements IColor {
             }
             if (part.indexOf('%') >= 0) {
                 // percentage r, g, or b value
-                value = Math.max(0, Math.min(100, value));
+                value = clamp(0, value, 100);
                 value /= 100;
             } else {
                 if (i === 3) {
                     // alpha component
-                    value = Math.max(0, Math.min(1, value));
+                    value = clamp(0, value, 1);
                 } else {
                     // absolute r, g, or b value
-                    value = Math.max(0, Math.min(255, value));
+                    value = clamp(0, value, 255);
                     value /= 255;
                 }
             }
@@ -482,9 +482,9 @@ export class Color implements IColor {
         }
 
         const h = (((hsb[0] + hueShift) % 360) + 360) % 360;
-        const s = Math.max(Math.min(hsb[1] * saturationFactor, 1.0), 0.0);
-        b = Math.max(Math.min(b * brightnessFactor, 1.0), 0.0);
-        const a = Math.max(Math.min(this.a * opacityFactor, 1.0), 0.0);
+        const s = clamp(0, hsb[1] * saturationFactor, 1);
+        b = clamp(0, b * brightnessFactor, 1);
+        const a = clamp(0, this.a * opacityFactor, 1);
         const rgba = Color.HSBtoRGB(h, s, b);
         rgba.push(a);
         return Color.fromArray(rgba);

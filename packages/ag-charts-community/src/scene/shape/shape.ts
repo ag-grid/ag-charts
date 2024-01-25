@@ -1,3 +1,4 @@
+import { clamp } from '../../util/number';
 import type { DropShadow } from '../dropShadow';
 import { LinearGradient } from '../gradient/linearGradient';
 import { Node, RedrawType, SceneChangeDetection } from '../node';
@@ -147,7 +148,7 @@ export abstract class Shape extends Node {
 
     @SceneChangeDetection({
         redraw: RedrawType.MINOR,
-        convertor: (v: number) => Math.min(1, Math.max(0, v)),
+        convertor: (v: number) => clamp(0, v, 1),
     })
     opacity: number = Shape.defaultStyles.opacity;
 

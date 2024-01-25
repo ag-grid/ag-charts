@@ -26,7 +26,7 @@ import { Selection } from '../../scene/selection';
 import { Line } from '../../scene/shape/line';
 import type { TextSizeProperties } from '../../scene/shape/text';
 import { Text, measureText, splitText } from '../../scene/shape/text';
-import { jsonDiff } from '../../sparklines-util';
+import { findMinMax, findRangeExtent, jsonDiff } from '../../sparklines-util';
 import { normalizeAngle360, toRadians } from '../../util/angle';
 import { areArrayNumbersEqual } from '../../util/equal';
 import { createId } from '../../util/id';
@@ -360,8 +360,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
      * @param tolerance Expands the range on both ends by this amount.
      */
     inRange(x: number, width = 0, tolerance = 0): boolean {
-        const min = Math.min(...this.range);
-        const max = Math.max(...this.range);
+        const [min, max] = findMinMax(this.range);
         return x + width >= min - tolerance && x <= max + tolerance;
     }
 
@@ -1214,24 +1213,13 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         });
     }
 
-    protected calculateAvailableRange(): number {
-        const { range } = this;
-
-        const min = Math.min(...range);
-        const max = Math.max(...range);
-
-        return max - min;
-    }
-
     /**
      * Calculates the available range with an additional "bleed" beyond the canvas that encompasses the full axis when
      * the visible range is only a portion of the axis.
      */
     protected calculateRangeWithBleed() {
-        const { visibleRange } = this;
-        const visibleScale = 1 / (visibleRange[1] - visibleRange[0]);
-
-        return round(this.calculateAvailableRange() * visibleScale, 2);
+        const visibleScale = 1 / findRangeExtent(this.visibleRange);
+        return round(findRangeExtent(this.range) * visibleScale, 2);
     }
 
     protected calculateDomain() {
@@ -1365,7 +1353,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const { parallel, maxWidth, maxHeight } = this.label;
 
         let defaultMaxWidth = this.maxThickness;
-        let defaultMaxHeight = Math.round(this.calculateAvailableRange() / tickData.labelCount);
+        let defaultMaxHeight = Math.round(findRangeExtent(this.range) / tickData.labelCount);
 
         if (parallel) {
             [defaultMaxWidth, defaultMaxHeight] = [defaultMaxHeight, defaultMaxWidth];

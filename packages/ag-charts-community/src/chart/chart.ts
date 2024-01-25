@@ -628,8 +628,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 if (this.checkUpdateShortcut(ChartUpdateType.SERIES_UPDATE)) break;
 
                 const { seriesRect } = this;
-                const seriesUpdates = [...seriesToUpdate].map((series) => series.update({ seriesRect }));
-                await Promise.all(seriesUpdates);
+                await Promise.all(seriesToUpdate.map((series) => series.update({ seriesRect })));
 
                 splits['🤔'] = performance.now();
             // fallthrough
@@ -752,9 +751,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     private addSeries(series: Series<any>): boolean {
         const { series: allSeries } = this;
-        const canAdd = allSeries.indexOf(series) < 0;
 
-        if (canAdd) {
+        if (!allSeries.includes(series)) {
             allSeries.push(series);
 
             if (series.rootGroup.parent == null) {
@@ -862,9 +860,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     private findMatchingAxis(directionAxes: ChartAxis[], directionKeys?: string[]): ChartAxis | undefined {
         for (const axis of directionAxes) {
-            const axisKeys = axis.keys;
-
-            if (!axisKeys.length) {
+            if (!axis.keys.length) {
                 return axis;
             }
 
@@ -873,7 +869,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             }
 
             for (const directionKey of directionKeys) {
-                if (axisKeys.indexOf(directionKey) >= 0) {
+                if (axis.keys.includes(directionKey)) {
                     return axis;
                 }
             }

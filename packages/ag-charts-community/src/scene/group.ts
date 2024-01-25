@@ -1,4 +1,5 @@
 import { ascendingStringNumberUndefined, compoundAscending } from '../util/compare';
+import { clamp } from '../util/number';
 import { BBox } from './bbox';
 import type { HdpiCanvas } from './canvas/hdpiCanvas';
 import type { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
@@ -16,7 +17,7 @@ export class Group extends Node {
 
     @SceneChangeDetection({
         redraw: RedrawType.MAJOR,
-        convertor: (v: number) => Math.min(1, Math.max(0, v)),
+        convertor: (v: number) => clamp(0, v, 1),
     })
     opacity: number = 1;
 

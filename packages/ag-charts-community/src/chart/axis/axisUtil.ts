@@ -3,6 +3,7 @@ import type { FromToFns, NodeUpdateState } from '../../motion/fromToMotion';
 import type { Group } from '../../scene/group';
 import type { Line } from '../../scene/shape/line';
 import type { Text } from '../../scene/shape/text';
+import { findMinMax } from '../../util/number';
 
 export type AxisLineDatum = { x: number; y1: number; y2: number };
 export type AxisDatum = {
@@ -34,14 +35,10 @@ type AxisLabelDatum = {
 };
 
 export function prepareAxisAnimationContext(axis: { range: number[] }): AxisAnimationContext {
-    const requestedRangeMin = Math.min(...axis.range);
-    const requestedRangeMax = Math.max(...axis.range);
-
+    const [requestedRangeMin, requestedRangeMax] = findMinMax(axis.range);
     const min = Math.floor(requestedRangeMin);
     const max = Math.ceil(requestedRangeMax);
-    const visible = min !== max;
-
-    return { min, max, visible };
+    return { min, max, visible: min !== max };
 }
 
 const fullCircle = Math.PI * 2;
@@ -57,8 +54,7 @@ function normaliseEndRotation(start: number, end: number) {
 
 export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
     const outOfBounds = (y: number, range?: number[]) => {
-        const min = range != null ? Math.min(...range) : ctx.min;
-        const max = range != null ? Math.max(...range) : ctx.max;
+        const [min = ctx.min, max = ctx.max] = findMinMax(range ?? []);
         return y < min || y > max;
     };
     const calculateStatus = (node: Text, datum: AxisLabelDatum, status: NodeUpdateState): NodeUpdateState => {

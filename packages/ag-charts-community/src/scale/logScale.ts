@@ -1,4 +1,5 @@
 import { Logger } from '../util/logger';
+import { findMinMax } from '../util/number';
 import { format } from '../util/numberFormat';
 import generateTicks, { createNumericTicks, range } from '../util/ticks';
 import { ContinuousScale } from './continuousScale';
@@ -157,9 +158,7 @@ export class LogScale extends ContinuousScale<number> {
         p0 = Math.floor(p0) - 1;
         p1 = Math.round(p1) + 1;
 
-        const min = Math.min(...this.range);
-        const max = Math.max(...this.range);
-
+        const [min, max] = findMinMax(this.range);
         const availableSpacing = (max - min) / count;
         let lastTickPosition = Infinity;
         for (let p = p0; p <= p1; p++) {

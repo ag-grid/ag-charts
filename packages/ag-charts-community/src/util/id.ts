@@ -1,9 +1,7 @@
-const ID_MAP: Record<string, number> = {};
+const ID_MAP = new Map<string, number>();
 
 export function resetIds() {
-    for (const key in ID_MAP) {
-        delete ID_MAP[key];
-    }
+    ID_MAP.clear();
 }
 
 export function createId(instance: any): string {
@@ -13,8 +11,8 @@ export function createId(instance: any): string {
     if (!className) {
         throw new Error(`The ${constructor} is missing the 'className' property.`);
     }
-    const nextId = (ID_MAP[className] ?? 0) + 1;
-    ID_MAP[className] = nextId;
+    const nextId = (ID_MAP.get(className) ?? 0) + 1;
+    ID_MAP.set(className, nextId);
 
-    return className + '-' + nextId;
+    return `${className}-${nextId}`;
 }

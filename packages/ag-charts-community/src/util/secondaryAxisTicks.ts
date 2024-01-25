@@ -1,3 +1,4 @@
+import { findMinMax } from './number';
 import { type NumericTicks, createNumericTicks } from './ticks';
 
 export function calculateNiceSecondaryAxis(
@@ -8,10 +9,9 @@ export function calculateNiceSecondaryAxis(
     // Make secondary axis domain nice using strict tick count, matching the tick count from the primary axis.
     // This is to make the secondary axis grid lines/ tick positions align with the ones from the primary axis.
 
-    let start = Math.floor(Math.min(domain[0], domain[1]));
-    let stop = Math.max(domain[0], domain[1]);
+    let [start, stop] = findMinMax(domain);
 
-    start = calculateNiceStart(start, stop, primaryTickCount);
+    start = calculateNiceStart(Math.floor(start), stop, primaryTickCount);
     const step = getTickStep(start, stop, primaryTickCount);
 
     const segments = primaryTickCount - 1;

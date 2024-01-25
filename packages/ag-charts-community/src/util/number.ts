@@ -3,7 +3,17 @@ export function clamp(min: number, value: number, max: number) {
 }
 
 export function clampArray(value: number, array: number[]) {
-    return clamp(Math.min(...array), value, Math.max(...array));
+    const [min, max] = findMinMax(array);
+    return clamp(min, value, max);
+}
+
+export function findMinMax(array: number[]) {
+    return array.length ? [Math.min(...array), Math.max(...array)] : [];
+}
+
+export function findRangeExtent(array: number[]) {
+    const [min, max] = findMinMax(array);
+    return max - min;
 }
 
 export function isEqual(a: number, b: number, epsilon: number = 1e-10) {
@@ -28,7 +38,7 @@ export function round(value: number, decimals: number = 2) {
  * @param value
  * @param fractionOrSignificantDigits
  */
-export function toFixed(value: number, fractionOrSignificantDigits: number = 2): string {
+export function toFixed(value: number, fractionOrSignificantDigits = 2): string {
     const power = Math.floor(Math.log(Math.abs(value)) / Math.LN10);
     if (power >= 0 || !isFinite(power)) {
         return value.toFixed(fractionOrSignificantDigits); // fraction digits

@@ -15,6 +15,7 @@ import { createId } from '../../util/id';
 import { jsonDiff } from '../../util/json';
 import type { PlacedLabel, PointLabelDatum } from '../../util/labelPlacement';
 import { Listeners } from '../../util/listeners';
+import { clamp } from '../../util/number';
 import { mergeDefaults } from '../../util/object';
 import type { TypedEvent } from '../../util/observable';
 import { Observable } from '../../util/observable';
@@ -110,8 +111,7 @@ export function rangedValueProperty<K>(
         processor: () => (datum) => {
             if (typeof datum !== 'number') return datum;
             if (isNaN(datum)) return datum;
-
-            return Math.min(Math.max(datum, min), max);
+            return clamp(min, datum, max);
         },
         ...defOpts,
     };

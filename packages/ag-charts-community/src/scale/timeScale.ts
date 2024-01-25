@@ -1,3 +1,4 @@
+import { findRangeExtent } from '../util/number';
 import { tickStep } from '../util/ticks';
 import timeDay from '../util/time/day';
 import {
@@ -132,9 +133,7 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
         let timeEndIndex = 0;
 
         const domain = this.getDomain();
-        const start = Math.min(...domain.map(toNumber));
-        const stop = Math.max(...domain.map(toNumber));
-        const extent = stop - start;
+        const extent = findRangeExtent(domain.map(toNumber));
 
         switch (defaultTimeFormat) {
             case DefaultTimeFormats.SECOND:
