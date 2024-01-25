@@ -1,6 +1,5 @@
 export function createTask(parentProject: string, srcRelativeInputPath: string) {
     const generatedExamplePath = `dist/generated-examples/${parentProject}/${srcRelativeInputPath}`;
-    const dependsOn = ['generate-example'];
 
     return {
         'generate-thumbnail': {
@@ -18,6 +17,9 @@ export function createTask(parentProject: string, srcRelativeInputPath: string) 
                 mode: 'dev',
                 generatedExamplePath,
                 outputPath: `dist/generated-thumbnails/${parentProject}/${srcRelativeInputPath}`,
+            },
+            configurations: {
+                production: {},
             },
         },
     };

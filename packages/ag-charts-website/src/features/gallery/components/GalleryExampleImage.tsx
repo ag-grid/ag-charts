@@ -10,9 +10,10 @@ interface Props {
     exampleName: string;
     className?: string;
     themeName?: BaseThemeName;
+    enableDprScaling: boolean;
 }
 
-export const GalleryExampleImage: FunctionComponent<Props> = ({ label, exampleName, className }) => {
+export const GalleryExampleImage: FunctionComponent<Props> = ({ label, exampleName, className, enableDprScaling }) => {
     const [theme] = useTheme();
     const [style, setStyle] = useState<Record<string, string>>();
 
@@ -22,15 +23,16 @@ export const GalleryExampleImage: FunctionComponent<Props> = ({ label, exampleNa
     };
 
     useEffect(() => {
+        const dprFor2x = enableDprScaling ? 2 : 1;
         setStyle({
             '--image-webp': urlFor('light', 1, 'webp'),
-            '--image-webp-2x': urlFor('light', 2, 'webp'),
+            '--image-webp-2x': urlFor('light', dprFor2x, 'webp'),
             '--image-png': urlFor('light', 1, 'png'),
-            '--image-png-2x': urlFor('light', 2, 'png'),
+            '--image-png-2x': urlFor('light', dprFor2x, 'png'),
             '--image-webp-dark': urlFor('dark', 1, 'webp'),
-            '--image-webp-dark-2x': urlFor('dark', 2, 'webp'),
+            '--image-webp-dark-2x': urlFor('dark', dprFor2x, 'webp'),
             '--image-png-dark': urlFor('dark', 1, 'png'),
-            '--image-png-dark-2x': urlFor('dark', 2, 'png'),
+            '--image-png-dark-2x': urlFor('dark', dprFor2x, 'png'),
         });
     }, [theme]);
 

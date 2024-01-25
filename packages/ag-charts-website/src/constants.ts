@@ -88,3 +88,5 @@ export const GRID_URL = SITE_URL
           ? 'https://grid-staging.ag-grid.com'
           : 'https://ag-grid.com'
     : undefined;
+
+export const GALLERY_IMAGE_DPR_ENHANCEMENT = import.meta.env?.PUBLIC_GALLERY_IMAGE_DPR_ENHANCEMENT === 'true';
