@@ -7,6 +7,7 @@ import { NumberAxis } from './axis/numberAxis';
 import { AreaSeries } from './series/cartesian/areaSeries';
 import { BarSeries } from './series/cartesian/barSeries';
 import { LineSeries } from './series/cartesian/lineSeries';
+import { setupMockConsole } from './test/mockConsole';
 import { deproxy, waitForChartStability } from './test/utils';
 import { ChartTheme } from './themes/chartTheme';
 
@@ -42,18 +43,15 @@ const revenueProfitData = [
 ];
 
 describe('AgChart', () => {
-    let chartProxy: AgChartInstance;
+    setupMockConsole();
 
-    beforeEach(() => {
-        console.warn = jest.fn();
-    });
+    let chartProxy: AgChartInstance;
 
     afterEach(() => {
         if (chartProxy) {
             chartProxy.destroy();
             chartProxy = undefined as any;
         }
-        expect(console.warn).not.toBeCalled();
     });
 
     test('cartesian chart top-level properties', async () => {

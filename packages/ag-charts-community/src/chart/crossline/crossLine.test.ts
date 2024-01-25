@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, describe, expect, it } from '@jest/globals';
 
 import type {
     AgCartesianChartOptions,
@@ -7,6 +7,7 @@ import type {
 } from '../../options/agChartOptions';
 import { AgCharts } from '../agChartV2';
 import type { Chart } from '../chart';
+import { expectWarningMessages, setupMockConsole } from '../test/mockConsole';
 import type { CartesianTestCase } from '../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -228,6 +229,8 @@ const INVALID_EXAMPLES: Record<string, CartesianTestCase & { warningMessages: st
 };
 
 describe('CrossLine', () => {
+    setupMockConsole();
+
     let chart: Chart;
 
     afterEach(() => {
@@ -247,14 +250,6 @@ describe('CrossLine', () => {
     };
 
     describe('#create', () => {
-        beforeEach(() => {
-            console.warn = jest.fn();
-        });
-
-        afterEach(() => {
-            expect(console.warn).not.toBeCalled();
-        });
-
         it.each(Object.entries(EXAMPLES))(
             'for %s it should create chart instance as expected',
             async (_exampleName, example) => {
@@ -280,21 +275,6 @@ describe('CrossLine', () => {
     });
 
     describe('#invalid options', () => {
-        beforeEach(() => {
-            console.warn = jest.fn();
-        });
-
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
-
-        const expectWarnings = (warnings: string[]) => {
-            for (let i = 0; i < warnings.length; i++) {
-                expect(console.warn).nthCalledWith(i + 1, warnings[i]);
-            }
-            expect(console.warn).toBeCalledTimes(warnings.length);
-        };
-
         it.each(Object.entries(INVALID_EXAMPLES))(
             'for %s it should render to canvas without crossLines and show warning',
             async (_exampleName, example) => {
@@ -304,7 +284,7 @@ describe('CrossLine', () => {
                 chart = AgCharts.create(options) as Chart;
                 await compare();
 
-                expectWarnings(example.warningMessages);
+                expectWarningMessages(...example.warningMessages);
             }
         );
     });

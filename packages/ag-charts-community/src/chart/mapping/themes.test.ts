@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { describe, expect, it, jest } from '@jest/globals';
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type {
@@ -10,16 +10,14 @@ import type {
 } from '../../options/agChartOptions';
 import { AgCharts } from '../agChartV2';
 import type { Chart } from '../chart';
+import { expectWarning, expectWarnings, setupMockConsole } from '../test/mockConsole';
 import { deproxy, prepareTestOptions, waitForChartStability } from '../test/utils';
 import { themes } from './themes';
 
 expect.extend({ toMatchImageSnapshot });
 
-/* eslint-disable no-console */
 describe('themes module', () => {
-    beforeEach(() => {
-        console.warn = jest.fn();
-    });
+    setupMockConsole();
 
     const getPalette = (themeName: AgChartThemeName): AgChartThemePalette | undefined => {
         const ctr = themes[themeName];
@@ -75,8 +73,7 @@ describe('themes module', () => {
         }) as Chart;
         await waitForChartStability(chart);
 
-        expect(console.warn).toBeCalledTimes(1);
-        expect(console.warn).toBeCalledWith('AG Charts - invalid theme value type boolean, expected object or string.');
+        expectWarning('AG Charts - invalid theme value type boolean, expected object or string.');
     });
 
     test('missing strokes', async () => {
@@ -91,7 +88,6 @@ describe('themes module', () => {
         }) as Chart;
         await waitForChartStability(chart);
 
-        expect(console.warn).toBeCalledTimes(0);
         expect(getActualPalette(chart)?.strokes).toEqual(getPalette('ag-default-dark')?.strokes);
     });
 
@@ -107,7 +103,6 @@ describe('themes module', () => {
         }) as Chart;
         await waitForChartStability(chart);
 
-        expect(console.warn).toBeCalledTimes(0);
         expect(getActualPalette(chart)?.fills).toEqual(getPalette('ag-default-dark')?.fills);
     });
 
@@ -122,13 +117,11 @@ describe('themes module', () => {
         }) as Chart;
         await waitForChartStability(chart);
 
-        expect(console.warn).toBeCalledTimes(3);
-        expect(console.warn).nthCalledWith(
-            1,
-            'AG Charts - invalid theme.baseTheme type number, expected (string | object).'
-        );
-        expect(console.warn).nthCalledWith(2, 'AG Charts - invalid theme.overrides type boolean, expected object.');
-        expect(console.warn).nthCalledWith(3, 'AG Charts - invalid theme.palette type string, expected object.');
+        expectWarnings([
+            ['AG Charts - invalid theme.baseTheme type number, expected (string | object).'],
+            ['AG Charts - invalid theme.overrides type boolean, expected object.'],
+            ['AG Charts - invalid theme.palette type string, expected object.'],
+        ]);
     });
 
     it('should show 2 warnings for invalid types - palette', async () => {
@@ -144,9 +137,9 @@ describe('themes module', () => {
         }) as Chart;
         await waitForChartStability(chart);
 
-        expect(console.warn).toBeCalledTimes(2);
-        expect(console.warn).nthCalledWith(1, 'AG Charts - theme.overrides.fills must be undefined or an array');
-        expect(console.warn).nthCalledWith(2, 'AG Charts - theme.overrides.strokes must be undefined or an array');
+        expectWarnings([
+            ['AG Charts - theme.overrides.fills must be undefined or an array'],
+            ['AG Charts - theme.overrides.strokes must be undefined or an array'],
+        ]);
     });
 });
-/* eslint-enable no-console */

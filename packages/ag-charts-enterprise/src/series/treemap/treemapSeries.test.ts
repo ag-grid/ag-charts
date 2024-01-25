@@ -16,6 +16,7 @@ import {
     hierarchyChartAssertions,
     hoverAction,
     setupMockCanvas,
+    setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
@@ -24,6 +25,7 @@ import { prepareEnterpriseTestOptions } from '../../test/utils';
 import type { TreemapSeries } from './treemapSeries';
 
 describe('TreemapSeries', () => {
+    setupMockConsole();
     let chart: any;
 
     afterEach(() => {
@@ -43,14 +45,6 @@ describe('TreemapSeries', () => {
     };
 
     describe('Series Highlighting', () => {
-        beforeEach(() => {
-            console.warn = jest.fn();
-        });
-
-        afterEach(() => {
-            expect(console.warn).not.toBeCalled();
-        });
-
         const SIMPLIFIED_EXAMPLE = {
             ...GALLERY_EXAMPLES.TREEMAP_WITH_COLOR_RANGE_EXAMPLE.options,
             data: GALLERY_EXAMPLES.TREEMAP_WITH_COLOR_RANGE_EXAMPLE.options.data.slice(0, 1),

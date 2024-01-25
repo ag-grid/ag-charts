@@ -7,6 +7,7 @@ import {
     extractImageData,
     prepareTestOptions,
     setupMockCanvas,
+    setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
@@ -24,6 +25,8 @@ const ENTERPRISE_GALLERY_EXAMPLES = Object.entries(GALLERY_EXAMPLES)
     );
 
 describe('Gallery Examples', () => {
+    setupMockConsole();
+
     let chart: any;
     afterEach(() => {
         if (chart) {
@@ -38,14 +41,6 @@ describe('Gallery Examples', () => {
 
     describe('AgChartV2#create', () => {
         const ctx = setupMockCanvas();
-
-        beforeEach(() => {
-            console.warn = jest.fn();
-        });
-
-        afterEach(() => {
-            expect(console.warn).not.toBeCalled();
-        });
 
         for (const [exampleName, example] of Object.entries(ENTERPRISE_GALLERY_EXAMPLES)) {
             it(`for ${exampleName} it should create chart instance as expected`, async () => {

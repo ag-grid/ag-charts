@@ -1,9 +1,11 @@
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, describe, expect, it } from '@jest/globals';
 
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    expectWarnings,
     extractImageData,
     setupMockCanvas,
+    setupMockConsole,
     spyOnAnimationManager,
     waitForChartStability,
 } from 'ag-charts-community-test';
@@ -13,25 +15,16 @@ import { AgCharts } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
 describe('WaterfallSeries', () => {
+    setupMockConsole();
+
     let chart: any;
     const ctx = setupMockCanvas();
-    let expectWarning = false;
-
-    beforeEach(() => {
-        // eslint-disable-next-line no-console
-        console.warn = jest.fn();
-    });
 
     afterEach(() => {
         if (chart) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
-        if (!expectWarning) {
-            // eslint-disable-next-line no-console
-            expect(console.warn).not.toBeCalled();
-        }
-        expectWarning = false;
     });
 
     const TOTALS_META_DATA = [
@@ -324,9 +317,10 @@ describe('WaterfallSeries', () => {
         chart = AgCharts.create(options);
         await compare();
 
-        expect(console.warn).toHaveBeenNthCalledWith(1, 'AG Charts - invalid value of type [string] ignored:', '[-30]');
-        expect(console.warn).toHaveBeenNthCalledWith(2, 'AG Charts - invalid value of type [object] ignored:', '[50]');
-        expectWarning = true;
+        expectWarnings([
+            ['AG Charts - invalid value of type [string] ignored:', '[-30]'],
+            ['AG Charts - invalid value of type [object] ignored:', '[50]'],
+        ]);
     });
 
     it(`should render a horizontal waterfall chart with missing and invalid values`, async () => {
@@ -341,6 +335,11 @@ describe('WaterfallSeries', () => {
 
         chart = AgCharts.create(options);
         await compare();
+
+        expectWarnings([
+            ['AG Charts - invalid value of type [string] ignored:', '[-30]'],
+            ['AG Charts - invalid value of type [object] ignored:', '[50]'],
+        ]);
     });
 
     describe('initial animation', () => {

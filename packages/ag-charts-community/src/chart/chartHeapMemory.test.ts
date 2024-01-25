@@ -5,6 +5,7 @@ import { memoryUsage } from 'process';
 import { AgCharts } from './agChartV2';
 import type { Chart } from './chart';
 import type { AgChartProxy } from './chartProxy';
+import { setupMockConsole } from './test/mockConsole';
 import { deproxy, prepareTestOptions, setupMockCanvas, waitForChartStability } from './test/utils';
 
 expect.extend({ toMatchImageSnapshot });
@@ -13,6 +14,8 @@ expect.extend({ toMatchImageSnapshot });
 jest.retryTimes(5);
 
 describe('Chart Heap Memory', () => {
+    setupMockConsole();
+
     let chart: Chart;
 
     function genData(dMax = 30, sMax = 80) {
@@ -81,16 +84,11 @@ describe('Chart Heap Memory', () => {
         series: genSeries('area'),
     };
 
-    beforeEach(() => {
-        console.warn = jest.fn();
-    });
-
     afterEach(() => {
         if (chart) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
-        expect(console.warn).not.toBeCalled();
     });
 
     setupMockCanvas();

@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals
 import type { AgChartOptions } from '../../../options/agChartOptions';
 import { AgCharts } from '../../agChartV2';
 import { COMMUNITY_AND_ENTERPRISE_EXAMPLES as GALLERY_EXAMPLES, type TestCase } from '../../test/examples-gallery';
+import { setupMockConsole } from '../../test/mockConsole';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
@@ -24,18 +25,15 @@ const EXAMPLES: Record<string, TestCase> = {
 };
 
 describe('HistogramSeries', () => {
-    let chart: any;
+    setupMockConsole();
 
-    beforeEach(() => {
-        console.warn = jest.fn();
-    });
+    let chart: any;
 
     afterEach(() => {
         if (chart) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
-        expect(console.warn).not.toBeCalled();
     });
 
     const ctx = setupMockCanvas();

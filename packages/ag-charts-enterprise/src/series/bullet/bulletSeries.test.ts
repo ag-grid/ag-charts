@@ -5,9 +5,11 @@ import type { AgChartInstance } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     deproxy,
+    expectWarning,
     extractImageData,
     hoverAction,
     setupMockCanvas,
+    setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
@@ -29,22 +31,19 @@ const compare = async (chart: TChart | AgChartInstance | undefined, ctx: TCtx) =
 };
 
 describe('BulletSeries', () => {
+    setupMockConsole();
+
+    let chart: AgChartInstance | undefined;
+    const ctx = setupMockCanvas();
+
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+    });
+
+    const opts = prepareEnterpriseTestOptions({});
+
     describe('rendering', () => {
-        let chart: AgChartInstance | undefined;
-        const ctx = setupMockCanvas();
-
-        beforeEach(() => {
-            // eslint-disable-next-line no-console
-            console.warn = jest.fn();
-        });
-
-        afterEach(() => {
-            chart?.destroy();
-            chart = undefined;
-            // eslint-disable-next-line no-console
-            expect(console.warn).not.toBeCalled();
-        });
-
         const getTooltipHtml = (): string => {
             const series = (chart as any)['series'][0];
             const datum = (chart as any)['series'][0].contextNodeData[0].nodeData[0];
@@ -57,8 +56,6 @@ describe('BulletSeries', () => {
             const { x, y } = series.rootGroup.inverseTransformPoint(item.midPoint.x, item.midPoint.y);
             await hoverAction(x, y)(chart);
         };
-
-        const opts = prepareEnterpriseTestOptions({});
 
         it('should render simple bullet', async () => {
             chart = AgCharts.create({
@@ -261,22 +258,7 @@ describe('BulletSeries', () => {
         });
     });
 
-    /* eslint-disable no-console */
     describe('validation', () => {
-        let chart: AgChartInstance | undefined;
-        const ctx = setupMockCanvas();
-
-        beforeEach(() => {
-            console.warn = jest.fn();
-        });
-
-        afterEach(() => {
-            chart?.destroy();
-            chart = undefined;
-        });
-
-        const opts = prepareEnterpriseTestOptions({});
-
         // Disabled as a consequence of AG-10326
         xit('should ignore empty colorRange arrays', async () => {
             chart = AgCharts.create({
@@ -293,8 +275,7 @@ describe('BulletSeries', () => {
             });
             await waitForChartStability(chart);
 
-            expect(console.warn).toBeCalledTimes(1);
-            expect(console.warn).toBeCalledWith(
+            expectWarning(
                 'AG Charts - Property [colorRanges] of [BulletSeries] cannot be set to [[]]; expecting a non-empty array, ignoring.'
             );
             await compare(chart, ctx);
@@ -331,8 +312,7 @@ describe('BulletSeries', () => {
             });
             await waitForChartStability(chart);
 
-            expect(console.warn).toBeCalledTimes(1);
-            expect(console.warn).toBeCalledWith(
+            expectWarning(
                 `AG Charts - series[0] of type 'bullet' is incompatible with other series types. Only processing series[0]`
             );
             await compare(chart, ctx);
@@ -362,8 +342,7 @@ describe('BulletSeries', () => {
             });
             await waitForChartStability(chart);
 
-            expect(console.warn).toBeCalledTimes(1);
-            expect(console.warn).toBeCalledWith(
+            expectWarning(
                 `AG Charts - series[0] of type 'bullet' is incompatible with other series types. Only processing series[0]`
             );
             await compare(chart, ctx);
@@ -400,10 +379,7 @@ describe('BulletSeries', () => {
             });
             await waitForChartStability(chart);
 
-            expect(console.warn).toBeCalledTimes(1);
-            expect(console.warn).toBeCalledWith(
-                'AG Charts - Unable to mix these series types with the lead series type: bullet'
-            );
+            expectWarning('AG Charts - Unable to mix these series types with the lead series type: bullet');
             await compare(chart, ctx);
         });
 
@@ -414,8 +390,7 @@ describe('BulletSeries', () => {
             });
             await waitForChartStability(chart);
 
-            expect(console.warn).toBeCalledTimes(1);
-            expect(console.warn).toBeCalledWith('AG Charts - negative values are not supported, clipping to 0.');
+            expectWarning('AG Charts - negative values are not supported, clipping to 0.');
             await compare(chart, ctx);
         });
 
@@ -426,8 +401,7 @@ describe('BulletSeries', () => {
             });
             await waitForChartStability(chart);
 
-            expect(console.warn).toBeCalledTimes(1);
-            expect(console.warn).toBeCalledWith('AG Charts - negative targets are not supported, ignoring.');
+            expectWarning('AG Charts - negative targets are not supported, ignoring.');
             await compare(chart, ctx);
         });
 
@@ -438,8 +412,7 @@ describe('BulletSeries', () => {
             });
             await waitForChartStability(chart);
 
-            expect(console.warn).toBeCalledTimes(1);
-            expect(console.warn).toBeCalledWith(
+            expectWarning(
                 'AG Charts - Property [max] of [BulletScale] cannot be set to [-1]; expecting a number greater than or equal to 0, ignoring.'
             );
             await compare(chart, ctx);
@@ -454,12 +427,10 @@ describe('BulletSeries', () => {
             });
             await waitForChartStability(chart);
 
-            expect(console.warn).toBeCalledTimes(1);
-            expect(console.warn).toBeCalledWith(
+            expectWarning(
                 'AG Charts - Property [stop] of [BulletColorRange] cannot be set to [-1]; expecting a number greater than or equal to 0, ignoring.'
             );
             await compare(chart, ctx);
         });
     });
-    /* eslint-enable no-console */
 });

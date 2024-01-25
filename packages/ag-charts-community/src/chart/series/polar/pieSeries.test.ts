@@ -1,8 +1,9 @@
-import { afterEach, beforeEach, describe, expect, jest, test } from '@jest/globals';
+import { afterEach, describe, expect, jest, test } from '@jest/globals';
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type { AgPolarChartOptions } from '../../../options/agChartOptions';
 import type { Chart } from '../../chart';
+import { expectWarnings, setupMockConsole } from '../../test/mockConsole';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     createChart,
@@ -15,21 +16,13 @@ import {
 expect.extend({ toMatchImageSnapshot });
 
 describe('PieSeries', () => {
-    beforeEach(() => {
-        /* eslint-disable no-console */
-        console.warn = jest.fn();
-        console.error = jest.fn();
-        /* eslint-enable no-console */
-    });
+    setupMockConsole();
 
     afterEach(() => {
         if (chart) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
-
-        // eslint-disable-next-line no-console
-        expect(console.error).not.toBeCalled();
     });
 
     const compare = async () => {
@@ -38,25 +31,11 @@ describe('PieSeries', () => {
         expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 });
     };
 
-    const expectWarnings = (warnings: string[]) => {
-        /* eslint-disable no-console */
-        expect(console.warn).toBeCalledTimes(warnings.length);
-        for (let i = 0; i < warnings.length; i++) {
-            expect(console.warn).nthCalledWith(i + 1, warnings[i]);
-        }
-        /* eslint-enable no-console */
-    };
-
     let chart: Chart;
     const ctx = setupMockCanvas();
     const options: AgPolarChartOptions = prepareTestOptions({});
 
     describe('#create', () => {
-        afterEach(() => {
-            // eslint-disable-next-line no-console
-            expect(console.warn).not.toBeCalled();
-        });
-
         test('multiple doughnuts', async () => {
             chart = await createChart({
                 ...options,
@@ -168,9 +147,9 @@ describe('PieSeries', () => {
             });
 
             expectWarnings([
-                `AG Charts - no value was found for the key 'dog' on 3 data elements`,
-                `AG Charts - no value was found for the key 'cat' on 1 data element`,
-                `AG Charts - no value was found for the key 'fox' on 4 data elements`,
+                [`AG Charts - no value was found for the key 'dog' on 3 data elements`],
+                [`AG Charts - no value was found for the key 'cat' on 1 data element`],
+                [`AG Charts - no value was found for the key 'fox' on 4 data elements`],
             ]);
         });
     });

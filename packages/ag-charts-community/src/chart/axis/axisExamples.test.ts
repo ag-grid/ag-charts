@@ -13,6 +13,7 @@ import { ChartAxisDirection } from '../chartAxisDirection';
 import { ChartUpdateType } from '../chartUpdateType';
 import * as examples from '../test/examples';
 import * as axesExamples from '../test/examples-axes';
+import { setupMockConsole } from '../test/mockConsole';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
@@ -376,6 +377,8 @@ function calculateAxisBBox(axis: ChartAxis): { x: number; y: number; width: numb
 }
 
 describe('Axis Examples', () => {
+    setupMockConsole();
+
     let chart: Chart;
 
     afterEach(() => {
@@ -386,16 +389,6 @@ describe('Axis Examples', () => {
     });
 
     const ctx = setupMockCanvas();
-
-    beforeEach(() => {
-        console.warn = jest.fn();
-        console.error = jest.fn();
-    });
-
-    afterEach(() => {
-        expect(console.warn).not.toBeCalled();
-        expect(console.error).not.toBeCalled();
-    });
 
     const snapshot = async () => {
         await waitForChartStability(chart);

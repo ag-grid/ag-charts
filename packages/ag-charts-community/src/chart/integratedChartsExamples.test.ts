@@ -4,6 +4,7 @@ import type { AgChartOptions } from '../options/agChartOptions';
 import { AgCharts } from './agChartV2';
 import type { Chart } from './chart';
 import { EXAMPLES } from './test/examples-integrated-charts';
+import { setupMockConsole } from './test/mockConsole';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     extractImageData,
@@ -13,6 +14,8 @@ import {
 } from './test/utils';
 
 describe('Integrated Charts Examples', () => {
+    setupMockConsole();
+
     let chart: Chart;
 
     afterEach(() => {
@@ -28,14 +31,6 @@ describe('Integrated Charts Examples', () => {
 
     describe('Changing Chart Type', () => {
         const ctx = setupMockCanvas();
-
-        beforeEach(() => {
-            console.warn = jest.fn();
-        });
-
-        afterEach(() => {
-            expect(console.warn).not.toBeCalled();
-        });
 
         let index = 0;
         for (const [exampleName, example] of Object.entries(EXAMPLES)) {

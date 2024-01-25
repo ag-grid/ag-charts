@@ -1,27 +1,23 @@
-import { afterEach, beforeEach, describe, expect, jest } from '@jest/globals';
+import { afterEach, describe, expect } from '@jest/globals';
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type { Chart } from '../chart';
+import { expectWarningMessages, expectWarnings, setupMockConsole } from '../test/mockConsole';
 import { createChart } from '../test/utils';
 import { IMAGE_SNAPSHOT_DEFAULTS, extractImageData, setupMockCanvas, waitForChartStability } from '../test/utils';
 
 expect.extend({ toMatchImageSnapshot });
 
 describe('Overlay', () => {
+    setupMockConsole();
+
     const ctx = setupMockCanvas();
     let chart: Chart;
-
-    beforeEach(() => {
-        console.warn = jest.fn();
-        console.error = jest.fn();
-    });
 
     afterEach(() => {
         if (chart) {
             chart.destroy();
         }
-        jest.restoreAllMocks();
-        expect(console.error).not.toBeCalled();
     });
 
     const compare = async () => {
@@ -30,29 +26,22 @@ describe('Overlay', () => {
         expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 });
     };
 
-    const expectWarnings = (warnings: string[]) => {
-        for (let i = 0; i < warnings.length; i++) {
-            expect(console.warn).nthCalledWith(i + 1, warnings[i]);
-        }
-        expect(console.warn).toBeCalledTimes(warnings.length);
-    };
-
     describe('#validation', () => {
         test('invalid objects', async () => {
             const invalidObj = 0 as unknown as object;
             chart = await createChart({ overlays: { noData: invalidObj, noVisibleSeries: invalidObj } });
-            expectWarnings([
+            expectWarningMessages(
                 `AG Charts - unable to set [overlays.noData] in ChartOverlays - can't apply type of [primitive], allowed types are: [class-instance]`,
-                `AG Charts - unable to set [overlays.noVisibleSeries] in ChartOverlays - can't apply type of [primitive], allowed types are: [class-instance]`,
-            ]);
+                `AG Charts - unable to set [overlays.noVisibleSeries] in ChartOverlays - can't apply type of [primitive], allowed types are: [class-instance]`
+            );
         });
 
         test('invalid text', async () => {
             const invalidObj = { text: 0 as unknown as string };
             chart = await createChart({ overlays: { noData: invalidObj, noVisibleSeries: invalidObj } });
             expectWarnings([
-                `AG Charts - Property [text] of [Overlay] cannot be set to [0]; expecting a string, ignoring.`,
-                `AG Charts - Property [text] of [Overlay] cannot be set to [0]; expecting a string, ignoring.`,
+                [`AG Charts - Property [text] of [Overlay] cannot be set to [0]; expecting a string, ignoring.`],
+                [`AG Charts - Property [text] of [Overlay] cannot be set to [0]; expecting a string, ignoring.`],
             ]);
         });
 
@@ -60,18 +49,14 @@ describe('Overlay', () => {
             const invalidObj = { renderer: 0 as unknown as () => string };
             chart = await createChart({ overlays: { noData: invalidObj, noVisibleSeries: invalidObj } });
             expectWarnings([
-                `AG Charts - Property [renderer] of [Overlay] cannot be set to [0]; expecting a function, ignoring.`,
-                `AG Charts - Property [renderer] of [Overlay] cannot be set to [0]; expecting a function, ignoring.`,
+                [`AG Charts - Property [renderer] of [Overlay] cannot be set to [0]; expecting a function, ignoring.`],
+                [`AG Charts - Property [renderer] of [Overlay] cannot be set to [0]; expecting a function, ignoring.`],
             ]);
         });
     });
 
     // FIXME: unfortunately, overlays do not render on mock canvases.
     xdescribe('#create', () => {
-        afterEach(() => {
-            expect(console.warn).not.toBeCalled();
-        });
-
         test('no data', async () => {
             chart = await createChart({
                 data: [],

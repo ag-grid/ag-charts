@@ -4,6 +4,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     extractImageData,
     setupMockCanvas,
+    setupMockConsole,
     spyOnAnimationManager,
     waitForChartStability,
 } from 'ag-charts-community-test';
@@ -50,17 +51,8 @@ function switchSeriesType<T>(opts: T, direction: 'horizontal' | 'vertical'): T {
 }
 
 describe('BoxPlotSeries', () => {
+    setupMockConsole();
     const ctx = setupMockCanvas();
-
-    beforeEach(() => {
-        // eslint-disable-next-line no-console
-        console.warn = jest.fn();
-    });
-
-    afterEach(() => {
-        // eslint-disable-next-line no-console
-        expect(console.warn).not.toBeCalled();
-    });
 
     const compareSnapshot = async (chart: any) => {
         await waitForChartStability(chart);

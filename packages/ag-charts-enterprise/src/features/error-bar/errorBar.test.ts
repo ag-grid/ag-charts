@@ -16,6 +16,7 @@ import {
     extractImageData,
     hoverAction,
     setupMockCanvas,
+    setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
@@ -153,19 +154,14 @@ const SERIES_BOYLESLAW = {
 };
 
 describe('ErrorBars', () => {
+    setupMockConsole();
+
     let chart: AgChartInstance | undefined;
     const ctx = setupMockCanvas();
-
-    beforeEach(() => {
-        // eslint-disable-next-line no-console
-        console.warn = jest.fn();
-    });
 
     afterEach(() => {
         chart?.destroy();
         chart = undefined;
-        // eslint-disable-next-line no-console
-        expect(console.warn).not.toBeCalled();
     });
 
     const compare = async () => {

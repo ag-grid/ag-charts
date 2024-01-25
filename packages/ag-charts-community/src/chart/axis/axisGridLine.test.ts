@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, jest } from '@jest/globals';
 import type { AgChartOptions } from '../../options/agChartOptions';
 import { AgCharts } from '../agChartV2';
 import type { Chart } from '../chart';
+import { setupMockConsole } from '../test/mockConsole';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     extractImageData,
@@ -12,6 +13,7 @@ import {
 } from '../test/utils';
 
 describe('AxisGridLine', () => {
+    setupMockConsole();
     let chart: Chart;
 
     afterEach(() => {
@@ -23,16 +25,6 @@ describe('AxisGridLine', () => {
 
     const ctx = setupMockCanvas();
     const opts: AgChartOptions = prepareTestOptions({});
-
-    beforeEach(() => {
-        console.warn = jest.fn();
-        console.error = jest.fn();
-    });
-
-    afterEach(() => {
-        expect(console.warn).not.toBeCalled();
-        expect(console.error).not.toBeCalled();
-    });
 
     const compare = async () => {
         await waitForChartStability(chart);

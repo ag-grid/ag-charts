@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, describe, expect, it } from '@jest/globals';
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type { AgChartInstance, AgPolarChartOptions } from 'ag-charts-community';
@@ -6,6 +6,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     extractImageData,
     setupMockCanvas,
+    setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
@@ -28,28 +29,17 @@ const compare = async (chart: TChart | AgChartInstance | undefined, ctx: TCtx) =
 };
 
 describe('PolarCrossLine', () => {
+    setupMockConsole();
+
     let chart: AgChartInstance | undefined;
     const ctx = setupMockCanvas();
-
-    beforeEach(() => {
-        console.warn = jest.fn();
-    });
 
     afterEach(() => {
         chart?.destroy();
         chart = undefined;
-        expect(console.warn).not.toBeCalled();
     });
 
     describe('#create', () => {
-        beforeEach(() => {
-            console.warn = jest.fn();
-        });
-
-        afterEach(() => {
-            expect(console.warn).not.toBeCalled();
-        });
-
         it.each(Object.entries(examples))(
             'for %s it should render to canvas as expected',
             async (_exampleName, example) => {
