@@ -20,6 +20,7 @@ import { mergeDefaults } from '../../util/object';
 import type { TypedEvent } from '../../util/observable';
 import { Observable } from '../../util/observable';
 import { ActionOnSet } from '../../util/proxy';
+import { isFiniteNumber } from '../../util/type-guards';
 import { checkDatum } from '../../util/value';
 import type { ChartAxis } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
@@ -108,11 +109,7 @@ export function rangedValueProperty<K>(
         property: propName,
         valueType: 'range',
         validation: basicContinuousCheckDatumValidation,
-        processor: () => (datum) => {
-            if (typeof datum !== 'number') return datum;
-            if (isNaN(datum)) return datum;
-            return clamp(min, datum, max);
-        },
+        processor: () => (datum) => (isFiniteNumber(datum) ? clamp(min, datum, max) : datum),
         ...defOpts,
     };
 }

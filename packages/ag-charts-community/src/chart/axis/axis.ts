@@ -1213,13 +1213,17 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         });
     }
 
+    protected calculateAvailableRange(): number {
+        return findRangeExtent(this.range);
+    }
+
     /**
      * Calculates the available range with an additional "bleed" beyond the canvas that encompasses the full axis when
      * the visible range is only a portion of the axis.
      */
     protected calculateRangeWithBleed() {
         const visibleScale = 1 / findRangeExtent(this.visibleRange);
-        return round(findRangeExtent(this.range) * visibleScale, 2);
+        return round(this.calculateAvailableRange() * visibleScale, 2);
     }
 
     protected calculateDomain() {
@@ -1353,7 +1357,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const { parallel, maxWidth, maxHeight } = this.label;
 
         let defaultMaxWidth = this.maxThickness;
-        let defaultMaxHeight = Math.round(findRangeExtent(this.range) / tickData.labelCount);
+        let defaultMaxHeight = Math.round(this.calculateAvailableRange() / tickData.labelCount);
 
         if (parallel) {
             [defaultMaxWidth, defaultMaxHeight] = [defaultMaxHeight, defaultMaxWidth];

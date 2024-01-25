@@ -1,6 +1,7 @@
 import { arraysEqual } from '../../util/array';
 import { memo } from '../../util/memo';
 import { isNegative } from '../../util/number';
+import { isFiniteNumber } from '../../util/type-guards';
 import type {
     DatumPropertyDefinition,
     GroupValueProcessorDefinition,
@@ -227,7 +228,7 @@ function buildGroupAccFn({ mode, separateNegative }: { mode: 'normal' | 'trailin
         for (const valueIdx of valueIndexes) {
             const currentVal = values[valueIdx];
             const accIndex = isNegative(currentVal) && separateNegative ? 0 : 1;
-            if (typeof currentVal !== 'number' || isNaN(currentVal)) continue;
+            if (!isFiniteNumber(currentVal)) continue;
 
             if (mode === 'normal') acc[accIndex] += currentVal;
             values[valueIdx] = acc[accIndex];
@@ -252,11 +253,7 @@ function buildGroupWindowAccFn({ mode, sum }: { mode: 'normal' | 'trailing'; sum
                     lastValues[valueIdx] = currentVal;
 
                     const sumValue = sum === 'current' ? currentVal : lastValue;
-                    if (typeof currentVal !== 'number' || isNaN(currentVal)) {
-                        values[valueIdx] = acc;
-                        continue;
-                    }
-                    if (typeof lastValue !== 'number' || isNaN(lastValue)) {
+                    if (!isFiniteNumber(currentVal) || !isFiniteNumber(lastValue)) {
                         values[valueIdx] = acc;
                         continue;
                     }
