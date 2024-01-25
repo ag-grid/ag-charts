@@ -188,7 +188,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
         this.groups.default = [...ContextMenu.defaultActions];
 
-        this.pickedNode = this.highlightManager.getActiveHighlight();
+        this.pickedNode = this.highlightManager.getActivePicked();
         if (this.pickedNode) {
             this.groups.node = [...ContextMenu.nodeActions];
         }
