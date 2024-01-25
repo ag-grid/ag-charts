@@ -1,11 +1,11 @@
+import { identity } from '../util/function';
 import { Logger } from '../util/logger';
 import { findRangeExtent } from '../util/number';
 import { format } from '../util/numberFormat';
 import generateTicks, { createNumericTicks, range } from '../util/ticks';
+import { isString } from '../util/type-guards';
 import { ContinuousScale } from './continuousScale';
 import { Invalidating } from './invalidating';
-
-const identity = (x: any) => x;
 
 export class LogScale extends ContinuousScale<number> {
     readonly type = 'log';
@@ -25,11 +25,12 @@ export class LogScale extends ContinuousScale<number> {
     base = 10;
 
     protected override transform(x: any) {
-        const start = Math.min(this.domain[0], this.domain[1]);
+        const start = Math.min(...this.domain);
         return start >= 0 ? Math.log(x) : -Math.log(-x);
     }
+
     protected override transformInvert(x: any) {
-        const start = Math.min(this.domain[0], this.domain[1]);
+        const start = Math.min(...this.domain);
         return start >= 0 ? Math.exp(x) : -Math.exp(-x);
     }
 
@@ -46,8 +47,8 @@ export class LogScale extends ContinuousScale<number> {
         if (!this.domain || this.domain.length < 2) {
             return;
         }
-        this.updateLogFn();
-        this.updatePowFn();
+        this.baseLog = LogScale.getBaseLogMethod(this.base);
+        this.basePow = LogScale.getBasePowerMethod(this.base);
         if (this.nice) {
             this.updateNiceDomain();
         }
@@ -57,58 +58,24 @@ export class LogScale extends ContinuousScale<number> {
     private basePow: (x: number) => number = identity;
 
     private log = (x: number) => {
-        const start = Math.min(this.domain[0], this.domain[1]);
-
+        const start = Math.min(...this.domain);
         return start >= 0 ? this.baseLog(x) : -this.baseLog(-x);
     };
 
     private pow = (x: number) => {
-        const start = Math.min(this.domain[0], this.domain[1]);
+        const start = Math.min(...this.domain);
         return start >= 0 ? this.basePow(x) : -this.basePow(-x);
     };
-
-    private updateLogFn() {
-        const { base } = this;
-        let log: (x: number) => number;
-        if (base === 10) {
-            log = Math.log10;
-        } else if (base === Math.E) {
-            log = Math.log;
-        } else if (base === 2) {
-            log = Math.log2;
-        } else {
-            const logBase = Math.log(base);
-            log = (x) => Math.log(x) / logBase;
-        }
-        this.baseLog = log;
-    }
-
-    private updatePowFn() {
-        const { base } = this;
-        let pow: (x: number) => number;
-        if (base === 10) {
-            pow = LogScale.pow10;
-        } else if (base === Math.E) {
-            pow = Math.exp;
-        } else {
-            pow = (x) => Math.pow(base, x);
-        }
-        this.basePow = pow;
-    }
 
     protected updateNiceDomain() {
         const [d0, d1] = this.domain;
 
         const roundStart = d0 > d1 ? Math.ceil : Math.floor;
-        const roundStop = d1 < d0 ? Math.floor : Math.ceil;
+        const roundStop = d0 > d1 ? Math.floor : Math.ceil;
 
         const n0 = this.pow(roundStart(this.log(d0)));
         const n1 = this.pow(roundStop(this.log(d1)));
         this.niceDomain = [n0, n1];
-    }
-
-    static pow10(x: number): number {
-        return x >= 0 ? Math.pow(10, x) : 1 / Math.pow(10, -x);
     }
 
     ticks() {
@@ -187,26 +154,36 @@ export class LogScale extends ContinuousScale<number> {
         ticks?: any[];
         specifier?: string | ((x: number) => string);
     }): (x: number) => string {
-        const { base } = this;
-
-        if (specifier == null) {
-            specifier = base === 10 ? '.0e' : ',';
-        }
-
-        if (typeof specifier === 'string') {
-            specifier = format(specifier);
-        }
-
-        if (count === Infinity) {
-            return specifier;
-        }
-
-        if (ticks == null) {
+        if (count !== Infinity && ticks == null) {
             this.ticks();
         }
 
-        return (d) => {
-            return (specifier as (x: number) => string)(d);
-        };
+        specifier ??= this.base === 10 ? '.0e' : ',';
+        return isString(specifier) ? format(specifier) : specifier;
+    }
+
+    static getBaseLogMethod(base: number) {
+        switch (base) {
+            case 10:
+                return Math.log10;
+            case Math.E:
+                return Math.log;
+            case 2:
+                return Math.log2;
+            default:
+                const logBase = Math.log(base);
+                return (x: number) => Math.log(x) / logBase;
+        }
+    }
+
+    static getBasePowerMethod(base: number) {
+        switch (base) {
+            case 10:
+                return (x: number) => (x >= 0 ? 10 ** x : 1 / 10 ** -x);
+            case Math.E:
+                return Math.exp;
+            default:
+                return (x: number) => base ** x;
+        }
     }
 }

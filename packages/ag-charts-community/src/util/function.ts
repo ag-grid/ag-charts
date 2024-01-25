@@ -18,3 +18,7 @@ export function clearDoOnceFlags() {
         delete doOnceFlags[key];
     }
 }
+
+export function identity<T>(x: T): T {
+    return x;
+}
