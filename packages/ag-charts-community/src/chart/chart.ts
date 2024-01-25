@@ -750,19 +750,14 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     private addSeries(series: Series<any>): boolean {
-        const { series: allSeries } = this;
-
-        if (!allSeries.includes(series)) {
-            allSeries.push(series);
-
+        if (!this.series.includes(series)) {
+            this.series.push(series);
             if (series.rootGroup.parent == null) {
                 this.seriesLayerManager.requestGroup(series);
             }
             this.initSeries(series);
-
             return true;
         }
-
         return false;
     }
 
@@ -781,7 +776,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
         };
         series.setChartData(this.data);
         this.addSeriesListeners(series);
-
         series.addChartEventListeners();
     }
 
