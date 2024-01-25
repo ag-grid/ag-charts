@@ -10,6 +10,7 @@
       "!{projectRoot}/.eslintrc.json",
       "!{projectRoot}/**/?(*.)+(spec|test).[jt]s?(x)?(.snap)",
       "!{projectRoot}/**/test/**",
+      "!{projectRoot}/**/__image_snapshots__/**",
       "!{projectRoot}/tsconfig.spec.json",
       "!{projectRoot}/jest.config.[jt]s"
     ],
@@ -30,6 +31,7 @@
       "{projectRoot}/tsconfig.*.json",
       "tsDeclarations",
       "sharedGlobals",
+      "defaultExcludes",
       {
         "externalDependencies": ["typescript", "esbuild"]
       }
@@ -62,7 +64,7 @@
       "cache": true
     },
     "test": {
-      "inputs": ["default", "production", "^production", "{workspaceRoot}/jest.preset.js"],
+      "inputs": ["default", "^production", "{workspaceRoot}/jest.preset.js"],
       "cache": true
     },
     "e2e": {
@@ -80,7 +82,7 @@
       "cache": true
     },
     "@nx/jest:jest": {
-      "inputs": ["default", "production", "^production", "{workspaceRoot}/jest.preset.js"],
+      "inputs": ["default", "^production", "{workspaceRoot}/jest.preset.js"],
       "cache": true,
       "options": {
         "passWithNoTests": true
