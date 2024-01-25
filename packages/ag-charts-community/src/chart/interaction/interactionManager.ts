@@ -77,6 +77,13 @@ const CSS = `
 
 type SupportedEvent = MouseEvent | TouchEvent | Event;
 
+export enum InteractionState {
+    Default = -Infinity,
+    ZoomPan = 1,
+    ContextMenu = 2,
+    Animation = 3,
+}
+
 const DEBUG_SELECTORS = [true, 'interaction'];
 
 /**
@@ -97,6 +104,12 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     private mouseDown = false;
     private touchDown = false;
     private dragStartElement?: HTMLElement;
+
+    private stateQueue: Set<InteractionState> = new Set();
+    private _state: InteractionState = InteractionState.Default;
+    public get state() {
+        return this._state;
+    }
 
     public constructor(element: HTMLElement, document: Document, window: Window) {
         super();
@@ -135,6 +148,20 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         for (const type of EVENT_HANDLERS) {
             this.element.removeEventListener(type, this.eventHandler);
         }
+    }
+
+    public pushState(state: InteractionState) {
+        this.stateQueue.add(state);
+        this.updateCurrentState();
+    }
+
+    public popState(state: InteractionState) {
+        this.stateQueue.delete(state);
+        this.updateCurrentState();
+    }
+
+    private updateCurrentState() {
+        this._state = Array.from(this.stateQueue).reduce((max, s) => Math.max(max, s), InteractionState.Default);
     }
 
     private processEvent(event: SupportedEvent) {

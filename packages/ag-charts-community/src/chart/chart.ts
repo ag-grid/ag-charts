@@ -46,7 +46,7 @@ import { CursorManager } from './interaction/cursorManager';
 import { GestureDetector } from './interaction/gestureDetector';
 import type { HighlightChangeEvent } from './interaction/highlightManager';
 import { HighlightManager } from './interaction/highlightManager';
-import type { InteractionEvent } from './interaction/interactionManager';
+import { InteractionEvent, InteractionState } from './interaction/interactionManager';
 import { InteractionManager } from './interaction/interactionManager';
 import { SyncManager } from './interaction/syncManager';
 import { TooltipManager } from './interaction/tooltipManager';
@@ -328,7 +328,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.seriesLayerManager = new SeriesLayerManager(this.seriesRoot);
         this.callbackCache = new CallbackCache();
 
-        this.animationManager = new AnimationManager(this.updateMutex);
+        this.animationManager = new AnimationManager(this.interactionManager, this.updateMutex);
         this.animationManager.skip();
         this.animationManager.play();
 
@@ -1084,6 +1084,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
     };
 
     protected onMouseMove(event: InteractionEvent<'hover'>): void {
+        if (this.interactionManager.state !== InteractionState.Default) {
+            return;
+        }
+
         this.lastInteractionEvent = event;
         this.pointerScheduler.schedule();
 
@@ -1107,6 +1111,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     });
     protected handlePointer(event: InteractionEvent<'hover'>) {
+        if (this.interactionManager.state !== InteractionState.Default) {
+            return;
+        }
+
         const { lastPick, hoverRect } = this;
         const { offsetX, offsetY } = event;
 

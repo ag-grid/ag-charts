@@ -4,6 +4,7 @@ import { Debug } from '../../util/debug';
 import { Logger } from '../../util/logger';
 import type { Mutex } from '../../util/mutex';
 import { BaseManager } from './baseManager';
+import { InteractionManager, InteractionState } from './interactionManager';
 
 type AnimationEventType = 'animation-frame';
 
@@ -29,7 +30,10 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
     private requestId: number | null = null;
     private skipAnimations = false;
 
-    constructor(private readonly chartUpdateMutex: Mutex) {
+    constructor(
+        private readonly interactionManager: InteractionManager,
+        private readonly chartUpdateMutex: Mutex
+    ) {
         super();
     }
 
@@ -206,6 +210,8 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
                     controllersCount: this.batch.controllers.size,
                 });
 
+                this.interactionManager.pushState(InteractionState.Animation);
+
                 for (const controller of this.batch.controllers.values()) {
                     try {
                         controller.update(deltaTime);
@@ -269,6 +275,10 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
                 this.batch.controllers.size
             } animations; skipped: ${this.batch.isSkipped()}.`
         );
+
+        if (!this.batch.isActive()) {
+            this.interactionManager.popState(InteractionState.Animation);
+        }
 
         if (this.batch.isSkipped() && !this.batch.isActive()) {
             this.batch.skip(false);
