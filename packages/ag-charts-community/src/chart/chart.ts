@@ -359,7 +359,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.interactionManager.addListener('wheel', () => this.disablePointer()),
 
             // Block redundant and interfering attempts to update the hovered element during dragging.
-            this.interactionManager.addListener('drag-start', () => this.disablePointer()),
+            this.interactionManager.addListener('drag', () => this.disablePointer()),
 
             this.animationManager.addListener('animation-frame', () => {
                 this.update(ChartUpdateType.SCENE_RENDER);
