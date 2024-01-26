@@ -20,6 +20,7 @@ export type FromToMotionPropFnContext<T> = {
     nextLive?: T;
 };
 export type ExtraOpts<T> = {
+    phase?: NodeUpdateState;
     animationDelay?: number;
     animationDuration?: number;
     start?: Partial<T>;
@@ -200,8 +201,14 @@ export function staticFromToMotion<N extends Node, T extends AnimationValue & Pa
     extraOpts: ExtraOpts<N> = {}
 ) {
     const { nodes, selections } = deconstructSelectionsOrNodes(selectionsOrNodes);
-    const { animationDelay = 0, animationDuration = 1, start = {}, finish = {} } = extraOpts;
+    let { animationDelay = 0, animationDuration = 1 } = extraOpts;
+    const { start = {}, finish = {}, phase } = extraOpts;
     const { defaultDuration } = animationManager;
+
+    if (phase != null) {
+        animationDelay = FROM_TO_MIXINS[phase].animationDelay;
+        animationDuration = FROM_TO_MIXINS[phase].animationDuration;
+    }
 
     // Simple static to/from case, we can batch updates.
     animationManager.animate({
