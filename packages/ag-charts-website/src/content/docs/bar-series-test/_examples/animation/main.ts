@@ -4,12 +4,33 @@ import { getData } from './data';
 
 const legendPositions: Array<AgChartLegendPosition> = ['bottom', 'left', 'right', 'top'];
 
+function toIntegratedData(key: string, d: any[]) {
+    const result = [];
+    let id = 0;
+    for (const next of d) {
+        result.push({
+            ...next,
+            [key]: {
+                id: id++,
+                value: next[key],
+                toString() {
+                    return next[key];
+                },
+            },
+        });
+    }
+    return result;
+}
+
+let data = toIntegratedData('quarter', getData());
+
 const options: AgChartOptions = {
+    theme: 'ag-default',
     container: document.getElementById('myChart'),
     animation: {
         enabled: true,
     },
-    data: getData(),
+    data,
     series: [
         {
             type: 'bar',
@@ -71,13 +92,14 @@ const options: AgChartOptions = {
 const chart = AgCharts.create(options);
 
 function reset() {
-    options.data = getData();
+    data = toIntegratedData('quarter', getData());
+    options.data = data;
     AgCharts.update(chart, options as any);
 }
 
 function randomise() {
     options.data = [
-        ...getData().map((d: any) => ({
+        ...data.map((d: any) => ({
             ...d,
             iphone: d.iphone + Math.floor(Math.random() * 50 - 25),
         })),
@@ -87,7 +109,7 @@ function randomise() {
 
 function remove() {
     options.data = [
-        ...getData().filter(
+        ...data.filter(
             (d: any) =>
                 !d.quarter.startsWith("Q1'19") && !d.quarter.startsWith("Q3'19") && !d.quarter.startsWith("Q4'18")
         ),
@@ -119,4 +141,12 @@ function moveLegend() {
     options.legend ??= {};
     options.legend.position = legendPositions[(currentPosition + 1) % 4];
     AgCharts.update(chart, options as any);
+}
+
+function changeTheme() {
+    const themes = ['ag-default', 'ag-sheets', 'ag-polychroma'] as const;
+    const idx = themes.indexOf(options.theme as any);
+
+    options.theme = themes[(idx + 1) % themes.length];
+    AgCharts.update(chart, options);
 }
