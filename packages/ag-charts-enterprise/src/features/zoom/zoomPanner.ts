@@ -9,13 +9,26 @@ export type Zooms = ReturnType<_ModuleSupport.ZoomManager['getAxisZooms']>;
 export class ZoomPanner {
     public isPanning: boolean = false;
 
-    private coords?: ZoomCoords;
+    // Mouse drag actions have a 'start' and 'stop' event. `dragCoord` is initialised whenever
+    // drag starts, and is reset to `undefined` once the drag stops.
+    private dragCoords?: ZoomCoords;
+    // Horizontal scrolling however does not have a 'start' and 'stop' event, it simply pans
+    // by a fixed deltaX value whenever an event is fired.
+    private hscrollCoords: ZoomCoords = { x1: 0, x2: 0, y1: 0, y2: 0 };
 
     updateDrag(event: _ModuleSupport.InteractionEvent<'drag'>, bbox: _Scene.BBox, zooms: Zooms): Zooms {
         this.isPanning = true;
 
-        this.updateCoords(event.offsetX, event.offsetY);
-        return this.translateZooms(bbox, zooms);
+        const { offsetX: x, offsetY: y } = event;
+        if (!this.dragCoords) {
+            this.dragCoords = { x1: x, y1: y, x2: x, y2: y };
+        } else {
+            this.dragCoords.x1 = this.dragCoords.x2;
+            this.dragCoords.y1 = this.dragCoords.y2;
+            this.dragCoords.x2 = x;
+            this.dragCoords.y2 = y;
+        }
+        return this.translateZooms(bbox, zooms, this.dragCoords);
     }
 
     updateHScroll(sourceEvent: { deltaX: number; deltaMode: number }, bbox: _Scene.BBox, zooms: Zooms): Zooms {
@@ -24,28 +37,17 @@ export class ZoomPanner {
         const pixelFactor = sourceEvent.deltaMode === 0 ? 1 : 10;
         const deltaX = sourceEvent.deltaX * pixelFactor;
 
-        this.updateCoords((this.coords?.x2 ?? 0) - deltaX, 0);
-        return this.translateZooms(bbox, zooms);
+        this.hscrollCoords.x1 = deltaX;
+        return this.translateZooms(bbox, zooms, this.hscrollCoords);
     }
 
     stop() {
         this.isPanning = false;
-        this.coords = undefined;
+        this.dragCoords = undefined;
     }
 
-    private updateCoords(x: number, y: number): void {
-        if (!this.coords) {
-            this.coords = { x1: x, y1: y, x2: x, y2: y };
-        } else {
-            this.coords.x1 = this.coords.x2;
-            this.coords.y1 = this.coords.y2;
-            this.coords.x2 = x;
-            this.coords.y2 = y;
-        }
-    }
-
-    private translateZooms(bbox: _Scene.BBox, currentZooms: Zooms) {
-        const { x1 = 0, y1 = 0, x2 = 0, y2 = 0 } = this.coords ?? {};
+    private translateZooms(bbox: _Scene.BBox, currentZooms: Zooms, coords: ZoomCoords) {
+        const { x1, y1, x2, y2 } = coords;
 
         const dx = x1 <= x2 ? x2 - x1 : x1 - x2;
         const dy = y1 <= y2 ? y2 - y1 : y1 - y2;

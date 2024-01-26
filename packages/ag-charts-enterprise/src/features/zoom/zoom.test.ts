@@ -111,15 +111,12 @@ describe('Zoom', () => {
 
     describe('horizontal scrolling', () => {
         it('should pan', async () => {
+            // Initialise zoom
             await prepareChart();
-            // Initialise zoomPan
             await scrollAction(cx, cy, -1)(chart);
-            await scrollAction(cx, cy, 0, WheelDeltaMode.Lines, -1)(chart);
-
             // Pan left
             await scrollAction(cx, cy, 0, WheelDeltaMode.Pixels, -300)(chart);
             await compare();
-
             // Pan right
             await scrollAction(cx, cy, 0, WheelDeltaMode.Pixels, 200)(chart);
             await compare();
