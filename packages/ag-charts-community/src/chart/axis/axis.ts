@@ -26,14 +26,14 @@ import { Selection } from '../../scene/selection';
 import { Line } from '../../scene/shape/line';
 import type { TextSizeProperties } from '../../scene/shape/text';
 import { Text, measureText, splitText } from '../../scene/shape/text';
-import { jsonDiff } from '../../sparklines-util';
 import { normalizeAngle360, toRadians } from '../../util/angle';
 import { areArrayNumbersEqual } from '../../util/equal';
 import { createId } from '../../util/id';
+import { jsonDiff } from '../../util/json';
 import type { PointLabelDatum } from '../../util/labelPlacement';
 import { axisLabelsOverlap } from '../../util/labelPlacement';
 import { Logger } from '../../util/logger';
-import { clamp, round } from '../../util/number';
+import { clamp, findMinMax, findRangeExtent, round } from '../../util/number';
 import { BOOLEAN, STRING_ARRAY, Validate, predicateWithMessage } from '../../util/validation';
 import { Caption } from '../caption';
 import type { ChartAxis, ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
@@ -360,8 +360,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
      * @param tolerance Expands the range on both ends by this amount.
      */
     inRange(x: number, width = 0, tolerance = 0): boolean {
-        const min = Math.min(...this.range);
-        const max = Math.max(...this.range);
+        const [min, max] = findMinMax(this.range);
         return x + width >= min - tolerance && x <= max + tolerance;
     }
 
@@ -1215,12 +1214,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     protected calculateAvailableRange(): number {
-        const { range } = this;
-
-        const min = Math.min(...range);
-        const max = Math.max(...range);
-
-        return max - min;
+        return findRangeExtent(this.range);
     }
 
     /**
@@ -1228,9 +1222,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
      * the visible range is only a portion of the axis.
      */
     protected calculateRangeWithBleed() {
-        const { visibleRange } = this;
-        const visibleScale = 1 / (visibleRange[1] - visibleRange[0]);
-
+        const visibleScale = 1 / findRangeExtent(this.visibleRange);
         return round(this.calculateAvailableRange() * visibleScale, 2);
     }
 

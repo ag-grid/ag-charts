@@ -1,3 +1,4 @@
+import { isFiniteNumber } from '../../util/type-guards';
 import type { AggregatePropertyDefinition, DatumPropertyDefinition, ScopeProvider } from './dataModel';
 import { extendDomain } from './utilFunctions';
 
@@ -153,8 +154,7 @@ export function accumulatedValue(onlyPositive?: boolean): DatumPropertyDefinitio
         let value = 0;
 
         return (datum: any) => {
-            if (typeof datum !== 'number') return datum;
-            if (isNaN(datum)) return datum;
+            if (!isFiniteNumber(datum)) return datum;
 
             value += onlyPositive ? Math.max(0, datum) : datum;
             return value;
@@ -167,8 +167,7 @@ export function trailingAccumulatedValue(): DatumPropertyDefinition<any>['proces
         let value = 0;
 
         return (datum: any) => {
-            if (typeof datum !== 'number') return datum;
-            if (isNaN(datum)) return datum;
+            if (!isFiniteNumber(datum)) return datum;
 
             const trailingValue = value;
             value += datum;

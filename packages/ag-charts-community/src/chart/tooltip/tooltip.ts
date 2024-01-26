@@ -1,6 +1,7 @@
 import type { AgTooltipRendererResult, InteractionRange, TextWrap } from '../../options/agChartOptions';
 import { BBox } from '../../scene/bbox';
 import { injectStyle } from '../../util/dom';
+import { clamp } from '../../util/number';
 import { BaseProperties } from '../../util/properties';
 import {
     BOOLEAN,
@@ -374,10 +375,6 @@ export class Tooltip {
             return;
         }
 
-        const limit = (low: number, actual: number, high: number) => {
-            return Math.max(Math.min(actual, high), low);
-        };
-
         const xOffset = meta.position?.xOffset ?? 0;
         const yOffset = meta.position?.yOffset ?? 0;
         const canvasRect = canvasElement.getBoundingClientRect();
@@ -388,8 +385,8 @@ export class Tooltip {
         const maxLeft = windowBounds.x + windowBounds.width - element.clientWidth - 1;
         const maxTop = windowBounds.y + windowBounds.height - element.clientHeight;
 
-        const left = limit(windowBounds.x, naiveLeft, maxLeft);
-        const top = limit(windowBounds.y, naiveTop, maxTop);
+        const left = clamp(windowBounds.x, naiveLeft, maxLeft);
+        const top = clamp(windowBounds.y, naiveTop, maxTop);
 
         const constrained = left !== naiveLeft || top !== naiveTop;
         const defaultShowArrow = !constrained && !xOffset && !yOffset;

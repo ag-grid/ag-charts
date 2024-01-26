@@ -1,4 +1,5 @@
 // For small data structs like a bounding box, objects are superior to arrays
+import { clamp } from '../util/number';
 // in terms of performance (by 3-4% in Chrome 71, Safari 12 and by 20% in Firefox 64).
 // They are also self descriptive and harder to abuse.
 // For example, one has to do:
@@ -70,8 +71,9 @@ export class BBox implements DistantObject {
             return 0;
         }
 
-        const dx = point.x - Math.max(this.x, Math.min(point.x, this.x + this.width));
-        const dy = point.y - Math.max(this.y, Math.min(point.y, this.y + this.height));
+        const dx = point.x - clamp(this.x, point.x, this.x + this.width);
+        const dy = point.y - clamp(this.y, point.y, this.y + this.height);
+
         return dx * dx + dy * dy;
     }
 

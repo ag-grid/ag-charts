@@ -1,3 +1,5 @@
+import { clamp } from './number';
+
 interface FormatterOptions {
     prefix?: string;
     fill?: string;
@@ -214,9 +216,7 @@ function getSIPrefix(n: number) {
 }
 
 function getSIPrefixPower(n: number) {
-    const power = Math.log10(Math.abs(n));
-    const p = Math.floor(power / 3) * 3;
-    return Math.max(minSIPrefix, Math.min(maxSIPrefix, p));
+    return clamp(minSIPrefix, Math.floor(Math.log10(Math.abs(n)) / 3) * 3, maxSIPrefix);
 }
 
 const minSIPrefix = -24;

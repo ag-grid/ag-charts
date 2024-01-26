@@ -18,6 +18,7 @@ import { Selection } from '../scene/selection';
 import { getFont } from '../scene/shape/text';
 import { createId } from '../util/id';
 import { Logger } from '../util/logger';
+import { clamp } from '../util/number';
 import {
     BOOLEAN,
     COLOR_STRING,
@@ -496,7 +497,7 @@ export class Legend {
         );
 
         const newCurrentPage = pages.findIndex((p) => p.endIndex >= trackingIndex);
-        this.pagination.currentPage = Math.min(Math.max(newCurrentPage, 0), pages.length - 1);
+        this.pagination.currentPage = clamp(0, newCurrentPage, pages.length - 1);
 
         const { paddingX: itemPaddingX, paddingY: itemPaddingY } = this.item;
         const paginationComponentPadding = 8;

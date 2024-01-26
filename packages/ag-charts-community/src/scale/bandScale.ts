@@ -1,10 +1,7 @@
 import { Logger } from '../util/logger';
+import { clamp } from '../util/number';
 import { Invalidating } from './invalidating';
 import type { Scale } from './scale';
-
-function clamp(x: number, min: number, max: number) {
-    return Math.max(min, Math.min(max, x));
-}
 
 /**
  * Maps a discrete domain to a continuous numeric range.
@@ -119,7 +116,7 @@ export class BandScale<D> implements Scale<D, number, number> {
     }
 
     set padding(value: number) {
-        value = clamp(value, 0, 1);
+        value = clamp(0, value, 1);
         this._paddingInner = value;
         this._paddingOuter = value;
     }
@@ -132,7 +129,7 @@ export class BandScale<D> implements Scale<D, number, number> {
      */
     private _paddingInner = 0;
     set paddingInner(value: number) {
-        this._paddingInner = clamp(value, 0, 1);
+        this._paddingInner = clamp(0, value, 1);
     }
     get paddingInner(): number {
         return this._paddingInner;
@@ -144,7 +141,7 @@ export class BandScale<D> implements Scale<D, number, number> {
      */
     private _paddingOuter = 0;
     set paddingOuter(value: number) {
-        this._paddingOuter = clamp(value, 0, 1);
+        this._paddingOuter = clamp(0, value, 1);
     }
     get paddingOuter(): number {
         return this._paddingOuter;
