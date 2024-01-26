@@ -41,12 +41,21 @@ export class SeriesStateManager {
         }
     }
 
-    public getVisiblePeerGroupIndex({ type, seriesGrouping }: { type: string; seriesGrouping?: SeriesGrouping }): {
+    public getVisiblePeerGroupIndex({
+        type,
+        seriesGrouping,
+        visible,
+    }: {
+        type: string;
+        seriesGrouping?: SeriesGrouping;
+        visible: boolean;
+    }): {
         visibleGroupCount: number;
         visibleSameStackCount: number;
         index: number;
     } {
-        if (!seriesGrouping) return { visibleGroupCount: 1, visibleSameStackCount: 1, index: 0 };
+        if (!seriesGrouping)
+            return { visibleGroupCount: visible ? 1 : 0, visibleSameStackCount: visible ? 1 : 0, index: 0 };
 
         const visibleGroupsSet = new Set<number>();
         const visibleSameStackSet = new Set<number>();
