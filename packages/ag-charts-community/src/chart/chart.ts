@@ -788,7 +788,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
             series.chart = undefined;
         });
         this._series = []; // using `_series` instead of `series` to prevent infinite recursion
-        this.animationRect = undefined; // reset animation state.
+
+        // Reset animation state.
+        this.animationRect = undefined;
+        this.animationManager.reset();
     }
 
     private addSeriesListeners(series: Series<any>) {
