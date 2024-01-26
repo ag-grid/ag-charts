@@ -14,10 +14,6 @@
                 "path": "/options"
             },
             {
-                "title": "Blog",
-                "url": "https://blog.ag-grid.com/"
-            },
-            {
                 "title": "Pricing",
                 "path": "/license-pricing"
             },
