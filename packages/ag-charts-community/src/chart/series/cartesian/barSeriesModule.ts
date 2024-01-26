@@ -34,6 +34,7 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
     swapDefaultAxesCondition: (series) => series?.direction === 'horizontal',
     themeTemplate: {
         __extends__: EXTENDS_SERIES_DEFAULTS,
+        direction: 'vertical',
         fillOpacity: 1,
         strokeWidth: 0,
         lineDash: [0],
