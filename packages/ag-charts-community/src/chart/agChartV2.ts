@@ -533,6 +533,7 @@ function applyAxes(chart: Chart, options: AgChartOptions, forceRecreate: boolean
         }
     }
 
+    debug(`AgChartV2.applyAxes() - creating new axes instances`);
     chart.axes = createAxis(chart, axes);
     return true;
 }
