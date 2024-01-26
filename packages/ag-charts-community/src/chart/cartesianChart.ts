@@ -52,7 +52,7 @@ export class CartesianChart extends Chart {
                 this.animationManager,
                 [this.seriesRoot],
                 { translationX, translationY },
-                { translationX: Math.floor(seriesRect.x), translationY: Math.floor(seriesRect.y) },
+                { translationX: Math.floor(x), translationY: Math.floor(y) },
                 { phase: 'updated' }
             );
         }
