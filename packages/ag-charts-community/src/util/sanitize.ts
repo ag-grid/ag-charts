@@ -5,7 +5,7 @@ export function sanitizeHtml(text: string | undefined): string | undefined;
 
 export function sanitizeHtml(text: string | undefined): string | undefined {
     if (text == null) {
-        return undefined;
+        return;
     } else if (text === '') {
         return '';
     }

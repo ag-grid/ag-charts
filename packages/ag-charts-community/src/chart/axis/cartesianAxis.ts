@@ -54,9 +54,9 @@ export abstract class CartesianAxis<
         }
     }
 
-    override update(primaryTickCount?: number): number | undefined {
+    override update() {
         this.updateDirection();
-        return super.update(primaryTickCount);
+        return super.update();
     }
 
     override calculateLayout(primaryTickCount?: number) {

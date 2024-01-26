@@ -8,6 +8,7 @@ import { Line } from '../../scene/shape/line';
 import { Text } from '../../scene/shape/text';
 import { normalizeAngle360, toRadians } from '../../util/angle';
 import { extent } from '../../util/array';
+import { isNumber } from '../../util/type-guards';
 import { BOOLEAN, COLOR_STRING, Validate } from '../../util/validation';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { calculateLabelRotation } from '../label';
@@ -107,51 +108,38 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
     /**
      * The length of the grid. The grid is only visible in case of a non-zero value.
      */
-    override set gridLength(value: number) {
-        // Was visible and now invisible, or was invisible and now visible.
-        if ((this._gridLength && !value) || (!this._gridLength && value)) {
-            this.gridLineSelection.clear();
-            this.labelSelection.clear();
-        }
-        this._gridLength = value;
-    }
-    override get gridLength(): number {
-        return this._gridLength;
+    override onGridVisibilityChange() {
+        this.gridLineSelection.clear();
+        this.labelSelection.clear();
     }
 
     protected override calculateDomain() {
         const { direction } = this;
-        const domains: any[][] = [];
-        let isNumericX: boolean | undefined;
-        this.boundSeries
+        let isNumericX: boolean | null = null;
+
+        const domain = this.boundSeries
             .filter((s) => s.visible)
-            .forEach((series) => {
-                if (direction === ChartAxisDirection.X) {
-                    if (isNumericX === undefined) {
-                        // always add first X domain
-                        const domain = series.getDomain(direction);
-                        domains.push(domain);
-                        isNumericX = typeof domain[0] === 'number';
-                    } else if (isNumericX) {
-                        // only add further X domains if the axis is numeric
-                        domains.push(series.getDomain(direction));
-                    }
-                } else {
-                    domains.push(series.getDomain(direction));
+            .flatMap((series) => {
+                if (direction === ChartAxisDirection.Y || isNumericX) {
+                    return series.getDomain(direction);
                 }
+                if (isNumericX === null) {
+                    // always add first X domain
+                    const domain = series.getDomain(direction);
+                    isNumericX = isNumber(domain[0]);
+                    return domain;
+                }
+                return [];
             });
 
-        const domain = new Array<any>().concat(...domains);
         const domainExtent = extent(domain) ?? domain;
-        const values = this.reverse ? [...domainExtent].reverse() : domainExtent;
 
-        const { domain: normalisedDataDomain, clipped } = this.normaliseDataDomain(values);
+        if (this.reverse) {
+            domainExtent.reverse();
+        }
 
-        this.dataDomain = {
-            domain: normalisedDataDomain,
-            clipped,
-        };
-        this.scale.domain = normalisedDataDomain;
+        this.dataDomain = this.normaliseDataDomain(domainExtent);
+        this.scale.domain = this.dataDomain.domain;
     }
 
     override normaliseDataDomain(d: any[]) {
@@ -160,10 +148,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
 
         const tickTree = ticksToTree(values);
         this.tickTreeLayout = treeLayout(tickTree);
-
-        const tickScaleDomain = values.slice();
-        tickScaleDomain.push('');
-        this.tickScale.domain = tickScaleDomain;
+        this.tickScale.domain = values.concat('');
 
         this.resizeTickTree();
 
