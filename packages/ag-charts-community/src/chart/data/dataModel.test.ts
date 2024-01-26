@@ -67,7 +67,7 @@ const area = (groupId: string, aggFn: AggregatePropertyDefinition<any, any>) =>
 const normaliseGroupTo = (groupId: string, normaliseTo: number, mode?: 'sum' | 'range') =>
     actualNormaliseGroupTo({ id: 'test' }, [groupId], normaliseTo, mode);
 const normalisePropertyTo = (prop: PropertyId<any>, normaliseTo: [number, number]) =>
-    actualNormalisePropertyTo({ id: 'test' }, prop, normaliseTo);
+    actualNormalisePropertyTo({ id: 'test' }, prop, normaliseTo, 0);
 
 describe('DataModel', () => {
     setupMockConsole();
@@ -154,6 +154,41 @@ describe('DataModel', () => {
                     expect(result?.data[1].keys).toEqual(['Q1']);
                     expect(result?.data[2].keys).toEqual(['Q2']);
                     expect(result?.data[3].keys).toEqual(['Q2']);
+                });
+
+                it('should extract the configured values', () => {
+                    const result = dataModel.processData(data);
+
+                    expect(result?.type).toEqual('ungrouped');
+                    expect(result?.data.length).toEqual(4);
+                    expect(result?.data[0].values).toEqual([5, 7]);
+                    expect(result?.data[1].values).toEqual([1, 2]);
+                    expect(result?.data[2].values).toEqual([6, 9]);
+                    expect(result?.data[3].values).toEqual([6, 9]);
+                });
+            });
+
+            describe('category data with toString()', () => {
+                const dataModel = new DataModel<any, any, false>({
+                    props: [categoryKey('kp'), value('vp1'), value('vp2')],
+                    groupByKeys: false,
+                });
+                const data = [
+                    { kp: { toString: () => 'Q1' }, vp1: 5, vp2: 7 },
+                    { kp: { toString: () => 'Q1' }, vp1: 1, vp2: 2 },
+                    { kp: { toString: () => 'Q2' }, vp1: 6, vp2: 9 },
+                    { kp: { toString: () => 'Q2' }, vp1: 6, vp2: 9 },
+                ];
+
+                it('should extract the configured keys', () => {
+                    const result = dataModel.processData(data);
+
+                    expect(result?.type).toEqual('ungrouped');
+                    expect(result?.data.length).toEqual(4);
+                    expect(result?.data[0].keys).toEqual([data[0].kp]);
+                    expect(result?.data[1].keys).toEqual([data[1].kp]);
+                    expect(result?.data[2].keys).toEqual([data[2].kp]);
+                    expect(result?.data[3].keys).toEqual([data[3].kp]);
                 });
 
                 it('should extract the configured values', () => {
@@ -937,9 +972,9 @@ describe('DataModel', () => {
                 ],
             });
             data.forEach((datum, idx) => {
-                delete datum[['ie', 'chrome', 'firefox', 'safari'][idx % 4]];
+                delete (datum as any)[['ie', 'chrome', 'firefox', 'safari'][idx % 4]];
                 if (idx % 3 === 0) {
-                    datum[['ie', 'chrome', 'firefox', 'safari'][(idx + 1) % 4]] = 'illegal value';
+                    (datum as any)[['ie', 'chrome', 'firefox', 'safari'][(idx + 1) % 4]] = 'illegal value';
                 }
             });
 
@@ -1000,9 +1035,9 @@ describe('DataModel', () => {
                 ],
             });
             data.forEach((datum, idx) => {
-                delete datum[['ie', 'chrome', 'firefox', 'safari'][idx % 4]];
+                delete (datum as any)[['ie', 'chrome', 'firefox', 'safari'][idx % 4]];
                 if (idx % 3 === 0) {
-                    datum[['ie', 'chrome', 'firefox', 'safari'][(idx + 1) % 4]] = 'illegal value';
+                    (datum as any)[['ie', 'chrome', 'firefox', 'safari'][(idx + 1) % 4]] = 'illegal value';
                 }
             });
 

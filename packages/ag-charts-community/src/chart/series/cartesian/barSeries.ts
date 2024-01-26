@@ -416,7 +416,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
             (rect) => {
                 rect.tag = BarSeriesNodeTag.Bar;
             },
-            (datum) => datum.xValue
+            (datum) => String(datum.xValue)
         );
     }
 
