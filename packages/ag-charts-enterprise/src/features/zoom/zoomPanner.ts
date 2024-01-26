@@ -4,22 +4,27 @@ import { _ModuleSupport } from 'ag-charts-community';
 import { constrainZoom, definedZoomState, pointToRatio, translateZoom } from './zoomTransformers';
 import type { ZoomCoords } from './zoomTypes';
 
+export type Zooms = ReturnType<_ModuleSupport.ZoomManager['getAxisZooms']>;
+
 export class ZoomPanner {
     public isPanning: boolean = false;
 
     private coords?: ZoomCoords;
 
-    update(
-        event: _ModuleSupport.InteractionEvent<'drag'>,
-        bbox: _Scene.BBox,
-        zooms: Record<
-            string,
-            { direction: _ModuleSupport.ChartAxisDirection; zoom: _ModuleSupport.ZoomState | undefined }
-        >
-    ): Record<string, { direction: _ModuleSupport.ChartAxisDirection; zoom: _ModuleSupport.ZoomState }> {
+    updateDrag(event: _ModuleSupport.InteractionEvent<'drag'>, bbox: _Scene.BBox, zooms: Zooms): Zooms {
         this.isPanning = true;
 
         this.updateCoords(event.offsetX, event.offsetY);
+        return this.translateZooms(bbox, zooms);
+    }
+
+    updateHScroll(sourceEvent: { deltaX: number; deltaMode: number }, bbox: _Scene.BBox, zooms: Zooms): Zooms {
+        this.isPanning = true;
+
+        const pixelFactor = sourceEvent.deltaMode === 1 ? 1 : 10;
+        const deltaX = sourceEvent.deltaX * pixelFactor;
+
+        this.updateCoords((this.coords?.x2 ?? 0) - deltaX, 0);
         return this.translateZooms(bbox, zooms);
     }
 
@@ -39,13 +44,7 @@ export class ZoomPanner {
         }
     }
 
-    private translateZooms(
-        bbox: _Scene.BBox,
-        currentZooms: Record<
-            string,
-            { direction: _ModuleSupport.ChartAxisDirection; zoom: _ModuleSupport.ZoomState | undefined }
-        >
-    ) {
+    private translateZooms(bbox: _Scene.BBox, currentZooms: Zooms) {
         const { x1 = 0, y1 = 0, x2 = 0, y2 = 0 } = this.coords ?? {};
 
         const dx = x1 <= x2 ? x2 - x1 : x1 - x2;
@@ -56,10 +55,7 @@ export class ZoomPanner {
         const offsetX = x1 <= x2 ? -offset.x : offset.x;
         const offsetY = y1 <= y2 ? offset.y : -offset.y;
 
-        const newZooms: Record<
-            string,
-            { direction: _ModuleSupport.ChartAxisDirection; zoom: _ModuleSupport.ZoomState }
-        > = {};
+        const newZooms: Zooms = {};
 
         for (const [axisId, { direction, zoom: currentZoom }] of Object.entries(currentZooms)) {
             let zoom;
