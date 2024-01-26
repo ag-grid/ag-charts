@@ -176,7 +176,7 @@ export function wheelEvent({
     clientY: number;
     deltaY: number;
 }): WheelEvent {
-    return new WheelEvent('wheel', { bubbles: true, clientX, clientY, deltaY });
+    return new WheelEvent('wheel', { bubbles: true, clientX, clientY, deltaY, deltaMode: 1 });
 }
 
 export function cartesianChartAssertions(params?: { type?: string; axisTypes?: string[]; seriesTypes?: string[] }) {
