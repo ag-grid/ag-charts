@@ -21,7 +21,7 @@ export class ZoomPanner {
     updateHScroll(sourceEvent: { deltaX: number; deltaMode: number }, bbox: _Scene.BBox, zooms: Zooms): Zooms {
         this.isPanning = true;
 
-        const pixelFactor = sourceEvent.deltaMode === 1 ? 1 : 10;
+        const pixelFactor = sourceEvent.deltaMode === 0 ? 1 : 10;
         const deltaX = sourceEvent.deltaX * pixelFactor;
 
         this.updateCoords((this.coords?.x2 ?? 0) - deltaX, 0);
