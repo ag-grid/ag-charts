@@ -464,7 +464,7 @@ function applySeries(chart: Chart, options: AgChartOptions) {
         return false;
     }
 
-    const keysToConsider = ['direction', 'xKey', 'yKey', 'sizeKey', 'angleKey', 'stacked', 'stackGroup'];
+    const keysToConsider = ['direction', 'xKey', 'yKey', 'sizeKey', 'angleKey', 'normalizedTo'];
 
     let matchingTypes = chart.series.length === optSeries.length;
     for (let i = 0; i < chart.series.length && matchingTypes; i++) {
@@ -474,20 +474,27 @@ function applySeries(chart: Chart, options: AgChartOptions) {
         }
     }
 
+    let seriesDiffs = []; // Only diff if coarsely series types are matching.
+    if (matchingTypes) {
+        seriesDiffs = chart.series.map((_, i) => {
+            const previousOpts = chart.processedOptions.series?.[i] ?? {};
+            return jsonDiff(previousOpts, optSeries[i] ?? {}) as any;
+        });
+
+        // Check if seriesGrouping has changed.
+        matchingTypes = seriesDiffs.every((diff) => !('seriesGrouping' in (diff ?? {})));
+    }
+
     // Try to optimise series updates if series count and types didn't change.
     if (matchingTypes) {
-        chart.series.forEach((s, i) => {
-            const previousOpts = chart.processedOptions.series?.[i] ?? {};
-            const seriesDiff = jsonDiff(previousOpts, optSeries[i] ?? {});
-
-            if (!seriesDiff) {
-                return;
-            }
+        seriesDiffs.forEach((seriesDiff, i) => {
+            if (!seriesDiff) return;
 
             debug(`AgChartV2.applySeries() - applying series diff idx ${i}`, seriesDiff);
 
-            applySeriesValues(s as any, seriesDiff);
-            s.markNodeDataDirty();
+            const series = chart.series[i];
+            applySeriesValues(series as any, seriesDiff);
+            series.markNodeDataDirty();
         });
 
         return false;
@@ -526,6 +533,7 @@ function applyAxes(chart: Chart, options: AgChartOptions, forceRecreate: boolean
         }
     }
 
+    debug(`AgChartV2.applyAxes() - creating new axes instances`);
     chart.axes = createAxis(chart, axes);
     return true;
 }

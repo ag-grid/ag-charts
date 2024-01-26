@@ -779,7 +779,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         series.addChartEventListeners();
     }
 
-    private removeAllSeries(): void {
+    protected removeAllSeries(): void {
         this.series.forEach((series) => {
             series.removeEventListener('nodeClick', this.onSeriesNodeClick);
             series.removeEventListener('nodeDoubleClick', this.onSeriesNodeDoubleClick);
@@ -788,6 +788,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             series.chart = undefined;
         });
         this._series = []; // using `_series` instead of `series` to prevent infinite recursion
+        this.animationRect = undefined; // reset animation state.
     }
 
     private addSeriesListeners(series: Series<any>) {

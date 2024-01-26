@@ -28,6 +28,12 @@ export class CartesianChart extends Chart {
 
     private firstSeriesTranslation = true;
 
+    override removeAllSeries() {
+        super.removeAllSeries();
+
+        this.firstSeriesTranslation = true;
+    }
+
     override async performLayout() {
         const shrinkRect = await super.performLayout();
         const { firstSeriesTranslation, seriesRoot } = this;
