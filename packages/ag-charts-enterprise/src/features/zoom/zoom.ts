@@ -317,7 +317,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             for (const [axisId, { direction, zoom: newZoom }] of Object.entries(newZooms)) {
                 this.updateAxisZoom(axisId, direction, newZoom);
             }
-            this.cursorManager.updateCursor(CURSOR_ID, 'grabbing');
             return;
         }
 
