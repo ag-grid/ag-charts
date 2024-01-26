@@ -250,6 +250,7 @@ export class AreaSeries extends CartesianSeries<
         const itemId = yKey;
         const labelData: LabelSelectionDatum[] = [];
         const markerData: MarkerSelectionDatum[] = [];
+        const { visibleSameStackCount } = this.ctx.seriesStateManager.getVisiblePeerGroupIndex(this);
         const context: AreaSeriesNodeDataContext = {
             itemId,
             fillData: { itemId, points: [] },
@@ -258,6 +259,7 @@ export class AreaSeries extends CartesianSeries<
             nodeData: markerData,
             scales: super.calculateScaling(),
             visible: this.visible,
+            stackVisible: visibleSameStackCount > 0,
         };
 
         const fillPoints = context.fillData.points;

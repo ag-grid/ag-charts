@@ -59,6 +59,7 @@ export interface AreaSeriesNodeDataContext
     extends CartesianSeriesNodeDataContext<MarkerSelectionDatum, LabelSelectionDatum> {
     fillData: AreaPathDatum;
     strokeData: AreaPathDatum;
+    stackVisible: boolean;
 }
 
 function splitFillPoints(context: AreaSeriesNodeDataContext) {
@@ -145,7 +146,9 @@ export function prepareAreaPathAnimation(
     }
 
     const pairData = [...top.result, ...bottom.result.reverse()];
-    const fill = prepareLinePathAnimationFns(newData, oldData, pairData, 'none', renderPartialPath);
+    const stackVisible = oldData.stackVisible ? newData.stackVisible : false;
+    const fadeMode = stackVisible ? 'none' : 'fade';
+    const fill = prepareLinePathAnimationFns(newData, oldData, pairData, fadeMode, renderPartialPath);
     const marker = prepareMarkerAnimation(markerPairMap, status);
     return { fill, marker };
 }

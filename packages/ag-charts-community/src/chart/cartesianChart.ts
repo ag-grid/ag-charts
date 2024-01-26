@@ -1,3 +1,4 @@
+import { staticFromToMotion } from '../motion/fromToMotion';
 import type { AgCartesianAxisPosition } from '../options/agChartOptions';
 import type { BBox } from '../scene/bbox';
 import { toRadians } from '../util/angle';
@@ -25,15 +26,36 @@ export class CartesianChart extends Chart {
         super(specialOverrides, resources);
     }
 
+    private firstSeriesTranslation = true;
+
     override async performLayout() {
         const shrinkRect = await super.performLayout();
+        const { firstSeriesTranslation, seriesRoot } = this;
 
         const { animationRect, seriesRect, visibility, clipSeries } = this.updateAxes(shrinkRect);
         this.seriesRoot.visible = visibility.series;
         this.seriesRect = seriesRect;
         this.animationRect = animationRect;
-        this.seriesRoot.translationX = Math.floor(seriesRect.x);
-        this.seriesRoot.translationY = Math.floor(seriesRect.y);
+
+        const { x, y } = seriesRect;
+        if (firstSeriesTranslation) {
+            // For initial rendering, don't animate.
+            seriesRoot.translationX = Math.floor(x);
+            seriesRoot.translationY = Math.floor(y);
+            this.firstSeriesTranslation = false;
+        } else {
+            // Animate seriesRect movements - typically caused by axis size changes.
+            const { translationX, translationY } = seriesRoot;
+            staticFromToMotion(
+                this.id,
+                'seriesRect',
+                this.animationManager,
+                [this.seriesRoot],
+                { translationX, translationY },
+                { translationX: Math.floor(x), translationY: Math.floor(y) },
+                { phase: 'updated' }
+            );
+        }
 
         // Recreate padding object to prevent issues with getters in `BBox.shrink()`
         const seriesPaddedRect = seriesRect.clone().grow(this.seriesArea.padding);
