@@ -56,6 +56,8 @@ export type InteractionEvent<T extends InteractionTypes = InteractionTypes> = {
     offsetY: number;
     pageX: number;
     pageY: number;
+    deltaX: number;
+    deltaY: number;
     sourceEvent: Event;
     pauses: PauseType[];
     /** Consume the event, don't notify other listeners! */
@@ -313,6 +315,10 @@ export class InteractionManager extends BaseManager<
         return { clientX, clientY, pageX, pageY, offsetX, offsetY };
     }
 
+    private isWheelEvent(event: Event): event is WheelEvent {
+        return event.type === 'wheel';
+    }
+
     private buildEvent(opts: {
         type: InteractionTypes;
         event: Event;
@@ -338,12 +344,21 @@ export class InteractionManager extends BaseManager<
             pageY = clientY - pageRect.top;
         }
 
+        let [deltaX, deltaY] = [NaN, NaN];
+        if (this.isWheelEvent(event)) {
+            const factor = event.deltaMode === 0 ? 0.1 : 1;
+            deltaX = event.deltaX * factor;
+            deltaY = event.deltaY * factor;
+        }
+
         const builtEvent = {
             type,
             offsetX: offsetX!,
             offsetY: offsetY!,
             pageX: pageX!,
             pageY: pageY!,
+            deltaX,
+            deltaY,
             sourceEvent: event,
             consumed: false,
             pauses,
