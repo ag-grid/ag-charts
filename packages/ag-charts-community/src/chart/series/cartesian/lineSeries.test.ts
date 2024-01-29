@@ -416,4 +416,35 @@ describe('LineSeries', () => {
             await compare();
         });
     });
+
+    describe('clipping animation', () => {
+        const animate = spyOnAnimationManager();
+
+        describe('AG-10477', () => {
+            for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
+                it(`should render correctly at ${ratio * 100}%`, async () => {
+                    animate(1200, ratio);
+                    const options: AgChartOptions = {
+                        data: [
+                            { month: 'Jun', a: 50, b: 50 },
+                            { month: 'Jul', a: 100, b: 0 },
+                            { month: 'Aug', a: 100, b: 0 },
+                            { month: 'Sep', a: 100, b: 0 },
+                            { month: 'Oct', a: 100, b: 0 },
+                        ],
+                        series: [
+                            { type: 'line', xKey: 'month', yKey: 'a', strokeWidth: 22 },
+                            { type: 'line', xKey: 'month', yKey: 'b', strokeWidth: 22 },
+                        ],
+                    };
+
+                    prepareTestOptions(options);
+
+                    chart = AgCharts.create(options) as Chart;
+                    await waitForChartStability(chart);
+                    await compare();
+                });
+            }
+        });
+    });
 });
