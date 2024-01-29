@@ -36,8 +36,7 @@ export function getData(
     return data.slice(offset - (length - NUM_DATA_POINTS));
 }
 
-// Simple seeded randomisation for consistent data - https://stackoverflow.com/a/19303725
 export function random() {
-    const x = Math.sin(_seed++) * 10000;
-    return x - Math.floor(x);
+    _seed = (_seed * 16807) % 2147483647;
+    return (_seed - 1) / 2147483646;
 }

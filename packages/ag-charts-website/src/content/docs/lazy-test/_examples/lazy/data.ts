@@ -8,11 +8,10 @@ const week = day * 7;
 
 type Datum = { time: number; value: number };
 
-// Simple seeded randomisation for consistent data - https://stackoverflow.com/a/19303725
 let seed = 1234;
 function random() {
-    const x = Math.sin(seed++) * 10000;
-    return x - Math.floor(x);
+    seed = (seed * 16807) % 2147483647;
+    return (seed - 1) / 2147483646;
 }
 
 const data: Array<Datum> = [];
