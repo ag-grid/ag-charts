@@ -135,6 +135,14 @@ export function tsCollect(tsTree, tsBindings, collectors, recurse = true) {
     return tsBindings;
 }
 
+export function tsNodeIsGlobalVar(node: any): boolean {
+    // eg: var currentRowHeight = 10;
+    if (ts.isVariableDeclaration(node) && ts.isSourceFile(node.parent.parent.parent)) {
+        return true;
+    }
+    return false;
+}
+
 export function tsNodeIsGlobalVarWithName(node: any, name: string): boolean {
     // eg: var currentRowHeight = 10;
     if (ts.isVariableDeclaration(node) && ts.isSourceFile(node.parent.parent.parent)) {
@@ -213,8 +221,21 @@ export function tsNodeIsTypeDeclaration(node: any): boolean {
     return false;
 }
 
+export function tsNodeIsPropertyAccessExpressionOf(node: any, properties: string[]): boolean {
+    if (properties.length !== 2) {
+        throw new Error('Implement this');
+    }
+    return (
+        ts.isPropertyAccessExpression(node) &&
+        ts.isIdentifier(node.expression) &&
+        node.expression.escapedText === properties[0] &&
+        ts.isIdentifier(node.name) &&
+        node.name.escapedText === properties[1]
+    );
+}
+
 export function tsNodeIsFunctionCall(node: any): boolean {
-    return ts.isExpressionStatement(node) && ts.isCallExpression(node.expression);
+    return ts.isCallExpression(node);
 }
 
 export function tsNodeIsGlobalFunctionCall(node: ts.Node) {

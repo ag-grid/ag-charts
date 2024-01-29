@@ -33,7 +33,7 @@ export class AgChartsReact extends Component<AgChartProps, AgChartState> {
     createStyleForDiv() {
         return {
             height: '100%',
-            ...(this.props.containerStyle ?? {}),
+            ...this.props.containerStyle,
         };
     }
 

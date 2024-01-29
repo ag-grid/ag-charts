@@ -15,10 +15,13 @@ import {
     removeInScopeJsDoc,
     tsCollect,
     tsGenerate,
+    tsNodeIsFunctionCall,
     tsNodeIsFunctionWithName,
     tsNodeIsGlobalFunctionCall,
+    tsNodeIsGlobalVar,
     tsNodeIsGlobalVarWithName,
     tsNodeIsInScope,
+    tsNodeIsPropertyAccessExpressionOf,
     tsNodeIsPropertyWithName,
     tsNodeIsTopLevelFunction,
     tsNodeIsTopLevelVariable,
@@ -27,11 +30,17 @@ import {
     usesChartApi,
 } from './parser-utils';
 
-export const templatePlaceholder = '$$CHART$$';
-
 const chartVariableName = 'chart';
 const optionsVariableName = 'options';
-const PROPERTIES = [optionsVariableName];
+const REMOVE_ME = [
+    optionsVariableName,
+    'chartOptions1',
+    'chartOptions2',
+    'chartOptions3',
+    'chartOptions4',
+    'chartOptions5',
+];
+const PROPERTIES = REMOVE_ME;
 
 function tsGenerateWithOptionReferences(node, srcFile) {
     return tsGenerate(node, srcFile).replace(new RegExp(`AgCharts\\.update\\(chart, options\\);?`, 'g'), '');
@@ -96,42 +105,48 @@ export function internalParser(js, html, exampleSettings) {
         apply: (bindings, node) => bindings.globals.push(tsGenerate(node, tsTree)),
     });
 
+    tsCollectors.push({
+        matches: (node) => tsNodeIsPropertyWithName(node, 'container'),
+        apply: (bindings, node) => {
+            const { initializer } = node;
+            if (
+                !tsNodeIsFunctionCall(initializer) ||
+                !tsNodeIsPropertyAccessExpressionOf(initializer.expression, ['document', 'getElementById'])
+            ) {
+                throw new Error('Invalid container definition (must be in form of document.getElementById)');
+            }
+
+            let propertyAssignment = node;
+            while (propertyAssignment != null && !tsNodeIsGlobalVar(propertyAssignment)) {
+                propertyAssignment = propertyAssignment.parent;
+            }
+            if (propertyAssignment == null || !tsNodeIsGlobalVar(propertyAssignment)) {
+                throw new Error('AgChartOptions was not assigned to variable');
+            }
+
+            const propertyName = propertyAssignment.name.escapedText;
+            const id = initializer.arguments[0].text;
+
+            let code = tsGenerate(propertyAssignment.initializer, tsTree);
+            code = code.replace(/container:.*/, '');
+
+            registered.push(propertyName);
+            bindings.chartProperties[id] = propertyName;
+            bindings.properties.push({ name: propertyName, value: code });
+        },
+    });
+
     // anything vars is considered an "global" var
     tsCollectors.push({
         matches: (node) => tsNodeIsTopLevelVariable(node, registered),
-        apply: (bindings, node) => bindings.globals.push(tsGenerate(node, tsTree)),
-    });
+        apply: (bindings, node) => {
+            const code = tsGenerate(node, tsTree);
 
-    PROPERTIES.forEach((propertyName) => {
-        registered.push(propertyName);
+            // FIXME - removes AgChartOptions. There's got to be a better way to do this...
+            if (code.includes('document.getElementById')) return;
 
-        // grab global variables named as chart properties
-        tsCollectors.push({
-            matches: (node) => tsNodeIsGlobalVarWithName(node, propertyName),
-            apply: (bindings, node) => {
-                try {
-                    let code = tsGenerate(node.initializer, tsTree);
-
-                    if (propertyName === optionsVariableName) {
-                        code = code.replace(/container:.*/, '');
-                    }
-
-                    bindings.properties.push({ name: propertyName, value: code });
-                } catch (e) {
-                    // eslint-disable-next-line no-console
-                    console.error('We failed generating', node, node.declarations[0].id);
-                }
-            },
-        });
-
-        tsOptionsCollectors.push({
-            matches: (node) => tsNodeIsPropertyWithName(node, propertyName),
-            apply: (bindings, node) =>
-                bindings.properties.push({
-                    name: propertyName,
-                    value: tsGenerate(node.value, tsTree),
-                }),
-        });
+            bindings.globals.push(code);
+        },
     });
 
     // optionsCollectors captures all events, properties etc that are related to options
@@ -205,6 +220,7 @@ export function internalParser(js, html, exampleSettings) {
         tsTree,
         {
             properties: [],
+            chartProperties: {},
             externalEventHandlers: [],
             instanceMethods: [],
             globals: [],
@@ -215,7 +231,20 @@ export function internalParser(js, html, exampleSettings) {
         tsCollectors
     );
 
-    domTree('#myChart').replaceWith(templatePlaceholder);
+    // Must be record for serialization
+    const placeholders: Record<string, string> = {};
+    const chartAttributes: Record<string, Record<string, string>> = {};
+
+    domTree('div[id]').each((index, elem) => {
+        const { id, ...rest } = elem.attribs;
+        const templatePlaceholder = `$$CHART${index}$$`;
+        placeholders[id] = templatePlaceholder;
+        chartAttributes[id] = rest;
+        domTree(elem).replaceWith(templatePlaceholder);
+    });
+
+    tsBindings.placeholders = placeholders;
+    tsBindings.chartAttributes = chartAttributes;
     tsBindings.template = domTree.html();
     tsBindings.imports = extractImportStatements(tsTree);
     tsBindings.optionsTypeInfo = extractTypeInfoForVariable(tsTree, 'options');

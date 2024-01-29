@@ -59,7 +59,7 @@ const ChartExample = () => {
 
     return (
         <div className="wrapper">
-            <div id="toolPanel">
+            <div class="toolPanel">
                 <button onClick={startUpdates}>Start Updates</button>
             </div>
             <AgChartsReact ref={chartRef} options={options} />

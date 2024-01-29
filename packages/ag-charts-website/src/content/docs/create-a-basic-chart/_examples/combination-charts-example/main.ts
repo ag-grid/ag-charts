@@ -9,7 +9,7 @@ interface IData {
 
 // Chart Options Configuration
 const options: AgChartOptions = {
-    container: document.getElementById('myChart') as HTMLElement, // Container: HTML Element to hold the chart
+    container: document.getElementById('myChart'), // Container: HTML Element to hold the chart
     // Data: Data to be displayed within the chart
     data: [
         { month: 'Jan', avgTemp: 2.3, iceCreamSales: 162000 },

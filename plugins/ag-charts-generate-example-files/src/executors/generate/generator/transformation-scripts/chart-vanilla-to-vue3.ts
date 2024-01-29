@@ -1,7 +1,4 @@
-import prettier from 'prettier';
-
 import { getChartImports, wrapOptionsUpdateCode } from './chart-utils';
-import { templatePlaceholder } from './chart-vanilla-src-parser';
 import { getFunctionName, isInstanceMethod, removeFunctionKeyword } from './parser-utils';
 import { convertTemplate, getImport, toAssignment, toConst, toInput, toMember } from './vue-utils';
 
@@ -64,7 +61,10 @@ function getTemplate(bindings: any, attributes: string[]): string {
     ${attributes.join('\n')}
 />`;
 
-    const template = bindings.template ? bindings.template.replace(templatePlaceholder, agChartTag) : agChartTag;
+    let template = bindings.template ?? agChartTag;
+    Object.values(bindings.placeholders).forEach((placeholder) => {
+        template = template.replace(placeholder, agChartTag);
+    });
 
     return convertTemplate(template);
 }

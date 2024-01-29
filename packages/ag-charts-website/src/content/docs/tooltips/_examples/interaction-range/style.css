@@ -5,11 +5,11 @@
     overflow: hidden;
 }
 
-#toolPanel {
+.toolPanel {
     text-align: center;
 }
 
-#toolPanel button {
+.toolPanel button {
     margin-left: 20px;
 }
 

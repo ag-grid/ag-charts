@@ -1,6 +1,6 @@
 import { recognizedDomEvents } from './parser-utils';
 
-export const toKebabCase = (value: string) => value.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+export const toKebabCase = (value: string) => value.replace(/([a-z])([A-Z0-9])/g, '$1-$2').toLowerCase();
 
 const toTitleCase = (value) => {
     const camelCased = value.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
