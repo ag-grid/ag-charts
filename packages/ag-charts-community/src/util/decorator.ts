@@ -9,13 +9,17 @@ type TransformFn = (
     oldValue?: any
 ) => any | typeof BREAK_TRANSFORM_CHAIN;
 
+type ObserveFn = (target: any, value: any, oldValue?: any) => void;
+
 interface TransformConfig {
     setters: TransformFn[];
     getters: TransformFn[];
-    observers: TransformFn[];
+    observers: ObserveFn[];
     valuesMap: WeakMap<object, Map<string, unknown>>;
     optional?: boolean;
 }
+
+type ConfigMetadata = Omit<TransformConfig, 'setters' | 'getters' | 'observers' | 'valuesMap'>;
 
 type DecoratedObject = { __decorator_config: Record<string, TransformConfig> };
 
@@ -74,7 +78,7 @@ function initialiseConfig(target: any, propertyKeyOrSymbol: string | symbol) {
         }
 
         for (const observerFn of observers) {
-            observerFn(this, propertyKeyOrSymbol, value, oldValue);
+            observerFn(this, value, oldValue);
         }
     };
 
@@ -91,7 +95,7 @@ function initialiseConfig(target: any, propertyKeyOrSymbol: string | symbol) {
 export function addTransformToInstanceProperty(
     setTransform: TransformFn,
     getTransform?: TransformFn,
-    configMetadata?: Omit<TransformConfig, 'setters' | 'getters' | 'observers' | 'valuesMap'>
+    configMetadata?: ConfigMetadata
 ): PropertyDecorator {
     return (target: any, propertyKeyOrSymbol: string | symbol) => {
         const config = initialiseConfig(target, propertyKeyOrSymbol);
