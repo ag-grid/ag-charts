@@ -822,6 +822,16 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         this.resetConnectorLinesPath(data);
     }
 
+    protected override async updatePaths(opts: {
+        seriesHighlighted?: boolean | undefined;
+        itemId?: string | undefined;
+        contextData: WaterfallContext;
+        paths: _Scene.Path[];
+        seriesIdx: number;
+    }): Promise<void> {
+        this.resetConnectorLinesPath({ contextData: [opts.contextData], paths: [opts.paths] });
+    }
+
     resetConnectorLinesPath({
         contextData,
         paths,
