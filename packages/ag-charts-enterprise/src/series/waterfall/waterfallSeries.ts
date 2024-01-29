@@ -254,15 +254,11 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const yScale = valueAxis.scale;
 
         const categoryAxisReversed = categoryAxis.isReversed();
-        const valueAxisReversed = valueAxis.isReversed();
 
         const barAlongX = this.getBarDirection() === ChartAxisDirection.X;
 
         const barWidth =
             (ContinuousScale.is(xScale) ? xScale.calcBandwidth(smallestDataInterval?.x) : xScale.bandwidth) ?? 10;
-        const halfLineWidth = line.strokeWidth / 2;
-        const offsetDirection = (barAlongX && !valueAxisReversed) || (!barAlongX && valueAxisReversed) ? -1 : 1;
-        const offset = offsetDirection * halfLineWidth;
 
         if (this.processedData?.type !== 'ungrouped') {
             return [];
@@ -345,8 +341,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             const seriesItemType = this.getSeriesItemType(isPositive, datumType);
             const { fill, stroke, strokeWidth, label } = this.getItemConfig(seriesItemType);
 
-            const y = (isPositive ? currY : trailY) - offset;
-            const bottomY = (isPositive ? trailY : currY) + offset;
+            const y = isPositive ? currY : trailY;
+            const bottomY = isPositive ? trailY : currY;
             const barHeight = Math.max(strokeWidth, Math.abs(bottomY - y));
 
             const itemId = seriesItemType;
