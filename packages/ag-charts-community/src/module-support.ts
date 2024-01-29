@@ -35,6 +35,7 @@ export * from './chart/interaction/chartEventManager';
 export * from './chart/interaction/cursorManager';
 export * from './chart/interaction/highlightManager';
 export * from './chart/interaction/interactionManager';
+export * from './chart/interaction/gestureDetector';
 export * from './chart/interaction/tooltipManager';
 export * from './chart/interaction/zoomManager';
 export * from './chart/layers';
