@@ -18,6 +18,7 @@ const {
     POSITIVE_NUMBER,
     RATIO,
     STRING,
+    mergeDefaults,
 } = _ModuleSupport;
 
 class BoxPlotSeriesCap extends BaseProperties {
@@ -114,4 +115,19 @@ export class BoxPlotSeriesProperties extends AbstractBarSeriesProperties<AgBoxPl
 
     @Validate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgBoxPlotSeriesTooltipRendererParams>();
+
+    override toJson() {
+        const { stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this;
+        const properties = super.toJson();
+
+        properties.whisker = mergeDefaults(properties.whisker, {
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+        });
+
+        return properties;
+    }
 }
