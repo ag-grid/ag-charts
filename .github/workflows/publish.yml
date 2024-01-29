@@ -3,7 +3,7 @@ name: Bump Beta Version
 on:
     workflow_dispatch: {}
     schedule:
-        - cron: '0 7 * * 1'
+        - cron: '0 20 * * 0'
 
 env:
     NX_REJECT_UNKNOWN_LOCAL_CACHE: 0
