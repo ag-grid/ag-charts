@@ -67,7 +67,7 @@ export class DataController {
         });
     }
 
-    public async execute() {
+    public execute() {
         if (this.status !== 'setup') throw new Error(`AG Charts - data request after data setup phase.`);
 
         this.status = 'executed';

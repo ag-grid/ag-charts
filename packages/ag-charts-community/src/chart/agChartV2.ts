@@ -420,7 +420,7 @@ function applyChartOptions(chart: Chart, processedOptions: ProcessedOptions, use
     chart.userOptions = mergeDefaults(userOptions, chart.userOptions);
 
     const majorChange = forceNodeDataRefresh || modulesChanged;
-    const updateType = majorChange ? ChartUpdateType.PROCESS_DATA : ChartUpdateType.PERFORM_LAYOUT;
+    const updateType = majorChange ? ChartUpdateType.UPDATE_DATA : ChartUpdateType.PERFORM_LAYOUT;
     debug('AgChartV2.applyChartOptions() - update type', ChartUpdateType[updateType]);
     chart.update(updateType, { forceNodeDataRefresh, newAnimationBatch: true });
 }

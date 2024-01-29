@@ -37,6 +37,7 @@ import { ChartHighlight } from './chartHighlight';
 import type { ChartMode } from './chartMode';
 import { ChartUpdateType } from './chartUpdateType';
 import { DataController } from './data/dataController';
+import { DataService } from './data/dataService';
 import { AnimationManager } from './interaction/animationManager';
 import { ChartEventManager } from './interaction/chartEventManager';
 import { CursorManager } from './interaction/cursorManager';
@@ -60,6 +61,7 @@ import { SeriesStateManager } from './series/seriesStateManager';
 import type { ISeries, SeriesNodeDatum } from './series/seriesTypes';
 import { Tooltip } from './tooltip/tooltip';
 import { BaseLayoutProcessor } from './update/baseLayoutProcessor';
+import { DataWindowProcessor } from './update/dataWindowProcessor';
 import type { UpdateProcessor } from './update/processor';
 import { UpdateService } from './updateService';
 
@@ -162,13 +164,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
     })
     container: OptionalHTMLElement = undefined;
 
-    @ActionOnSet<Chart>({
-        newValue(value) {
-            this.series?.forEach((series) => {
-                series.setChartData(value);
-            });
-        },
-    })
     public data: any = [];
 
     @ActionOnSet<Chart>({
@@ -277,6 +272,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     protected readonly interactionManager: InteractionManager;
     protected readonly tooltipManager: TooltipManager;
     protected readonly zoomManager: ZoomManager;
+    protected readonly dataService: DataService<any>;
     protected readonly layoutService: LayoutService;
     protected readonly updateService: UpdateService;
     protected readonly axisGridGroup: Group;
@@ -328,6 +324,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.highlightManager = new HighlightManager();
         this.interactionManager = new InteractionManager(element, document, window);
         this.zoomManager = new ZoomManager();
+        this.dataService = new DataService<any>((data) => {
+            this.data = data;
+        });
         this.layoutService = new LayoutService();
         this.updateService = new UpdateService(
             (type = ChartUpdateType.FULL, { forceNodeDataRefresh, skipAnimations }) =>
@@ -341,7 +340,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.animationManager.skip();
         this.animationManager.play();
 
-        this.processors = [new BaseLayoutProcessor(this, this.layoutService)];
+        this.processors = [
+            new BaseLayoutProcessor(this, this.layoutService),
+            new DataWindowProcessor(this, this.dataService, this.updateService, this.zoomManager),
+        ];
 
         this.tooltip = new Tooltip(this.scene.canvas.element, document, window, document.body);
         this.tooltipManager = new TooltipManager(this.tooltip, this.interactionManager);
@@ -610,6 +612,11 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         switch (performUpdateType) {
             case ChartUpdateType.FULL:
+            case ChartUpdateType.UPDATE_DATA:
+                await this.updateData();
+                splits['⬇️'] = performance.now();
+            // fallthrough
+
             case ChartUpdateType.PROCESS_DATA:
                 await this.processData();
                 this.disablePointer(true);
@@ -774,7 +781,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 return chart.placeLabels();
             },
         };
-        series.setChartData(this.data);
         this.addSeriesListeners(series);
         series.addChartEventListeners();
     }
@@ -916,6 +922,13 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
+    async updateData() {
+        const data = await this.dataService.fetchFull(this.data);
+        this.series.map((s) => {
+            s.setChartData(data);
+        });
+    }
+
     async processData() {
         if (this.series.some((s) => s.canHaveAxes)) {
             this.assignAxesToSeries();
@@ -924,7 +937,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         const dataController = new DataController(this.mode);
         const seriesPromises = this.series.map((s) => s.processData(dataController));
-        await dataController.execute();
+        dataController.execute();
         await Promise.all(seriesPromises);
         await this.updateLegend();
     }
