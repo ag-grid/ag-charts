@@ -309,11 +309,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             event.consume();
             event.sourceEvent.preventDefault();
 
-            const newZooms = this.panner.updateHScroll(
-                { deltaX, deltaMode },
-                this.seriesRect,
-                this.zoomManager.getAxisZooms()
-            );
+            const newZooms = this.panner.updateHScroll(event.deltaX, this.seriesRect, this.zoomManager.getAxisZooms());
             for (const [axisId, { direction, zoom: newZoom }] of Object.entries(newZooms)) {
                 this.updateAxisZoom(axisId, direction, newZoom);
             }

@@ -31,9 +31,9 @@ export class ZoomPanner {
         return this.translateZooms(bbox, zooms, this.dragCoords);
     }
 
-    updateHScroll(event: _ModuleSupport.InteractionEvent<'drag'>, bbox: _Scene.BBox, zooms: Zooms): Zooms {
+    updateHScroll(deltaX: number, bbox: _Scene.BBox, zooms: Zooms): Zooms {
         this.isPanning = true;
-        this.hscrollCoords.x1 = event.deltaX * 5;
+        this.hscrollCoords.x1 = deltaX * 5;
         return this.translateZooms(bbox, zooms, this.hscrollCoords);
     }
 
