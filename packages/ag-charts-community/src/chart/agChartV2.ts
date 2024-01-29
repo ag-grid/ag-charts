@@ -671,9 +671,7 @@ function applySeriesValues(target: Series<any>, options: AgBaseSeriesOptions<any
         registerListeners(target, options.listeners);
     }
 
-    if ('seriesGrouping' in options) {
-        target.seriesGrouping = seriesGrouping
-            ? Object.freeze({ ...target.seriesGrouping, ...(seriesGrouping as SeriesGrouping) })
-            : undefined;
+    if (seriesGrouping) {
+        target.seriesGrouping = Object.freeze({ ...target.seriesGrouping, ...(seriesGrouping as SeriesGrouping) });
     }
 }
