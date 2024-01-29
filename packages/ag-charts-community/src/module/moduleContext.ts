@@ -2,6 +2,7 @@ import type { ChartService } from '../chart/chartService';
 import type { AnimationManager } from '../chart/interaction/animationManager';
 import type { ChartEventManager } from '../chart/interaction/chartEventManager';
 import type { CursorManager } from '../chart/interaction/cursorManager';
+import type { GestureDetector } from '../chart/interaction/gestureDetector';
 import type { HighlightManager } from '../chart/interaction/highlightManager';
 import type { InteractionManager } from '../chart/interaction/interactionManager';
 import type { TooltipManager } from '../chart/interaction/tooltipManager';
@@ -23,6 +24,7 @@ export interface ModuleContext {
     cursorManager: CursorManager;
     highlightManager: HighlightManager;
     interactionManager: InteractionManager;
+    gestureDetector: GestureDetector;
     tooltipManager: TooltipManager;
     zoomManager: ZoomManager;
     chartService: ChartService;

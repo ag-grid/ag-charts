@@ -41,6 +41,7 @@ import { DataService } from './data/dataService';
 import { AnimationManager } from './interaction/animationManager';
 import { ChartEventManager } from './interaction/chartEventManager';
 import { CursorManager } from './interaction/cursorManager';
+import { GestureDetector } from './interaction/gestureDetector';
 import type { HighlightChangeEvent } from './interaction/highlightManager';
 import { HighlightManager } from './interaction/highlightManager';
 import type { InteractionEvent } from './interaction/interactionManager';
@@ -270,6 +271,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     protected readonly cursorManager: CursorManager;
     protected readonly highlightManager: HighlightManager;
     protected readonly interactionManager: InteractionManager;
+    protected readonly gestureDetector: GestureDetector;
     protected readonly tooltipManager: TooltipManager;
     protected readonly zoomManager: ZoomManager;
     protected readonly dataService: DataService<any>;
@@ -323,6 +325,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.cursorManager = new CursorManager(element);
         this.highlightManager = new HighlightManager();
         this.interactionManager = new InteractionManager(element, document, window);
+        this.gestureDetector = new GestureDetector(element);
         this.zoomManager = new ZoomManager();
         this.dataService = new DataService<any>((data) => {
             this.data = data;
@@ -422,6 +425,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             cursorManager,
             highlightManager,
             interactionManager,
+            gestureDetector,
             tooltipManager,
             zoomManager,
             layoutService,
@@ -440,6 +444,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             cursorManager,
             highlightManager,
             interactionManager,
+            gestureDetector,
             tooltipManager,
             zoomManager,
             chartService: this,

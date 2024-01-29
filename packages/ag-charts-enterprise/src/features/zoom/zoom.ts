@@ -13,11 +13,14 @@ import {
     constrainZoom,
     definedZoomState,
     pointToRatio,
+    scaleZoomAxisWithPoint,
     scaleZoomCenter,
     translateZoom,
     unitZoomState,
 } from './zoomTransformers';
 import type { DefinedZoomState } from './zoomTypes';
+
+type PinchEvent = _ModuleSupport.PinchEvent;
 
 const {
     BOOLEAN,
@@ -137,6 +140,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx.interactionManager.addListener('wheel', (event) => this.onWheel(event), interactionOpts),
             ctx.interactionManager.addListener('hover', () => this.onHover(), interactionOpts),
             ctx.chartEventManager.addListener('axis-hover', (event) => this.onAxisHover(event)),
+            ctx.gestureDetector.addListener('pinch-move', (event) => this.onPinchMove(event as PinchEvent)),
             ctx.layoutService.addListener('layout-complete', (event) => this.onLayoutComplete(event)),
             ctx.updateService.addListener('update-complete', (event) => this.onUpdateComplete(event))
         );
@@ -332,6 +336,28 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
                 event.direction === ChartAxisDirection.X ? 'ew-resize' : 'ns-resize'
             );
         }
+    }
+
+    private onPinchMove(event: PinchEvent) {
+        if (!this.enabled || !this.enableScrolling || !this.paddedRect || !this.seriesRect) return;
+
+        const currentZoom = this.zoomManager.getZoom();
+        const oldZoom = definedZoomState(currentZoom);
+        const newZoom = definedZoomState(currentZoom);
+
+        const delta = event.deltaDistance * -0.01;
+        const origin = pointToRatio(this.seriesRect, event.origin.x, event.origin.y);
+
+        if (this.isScalingX()) {
+            newZoom.x.max += delta * (oldZoom.x.max - oldZoom.x.min);
+            newZoom.x = scaleZoomAxisWithPoint(newZoom.x, oldZoom.x, origin.x);
+        }
+        if (this.isScalingY()) {
+            newZoom.y.max += delta * (oldZoom.y.max - oldZoom.y.min);
+            newZoom.y = scaleZoomAxisWithPoint(newZoom.y, oldZoom.y, origin.y);
+        }
+
+        this.updateZoom(constrainZoom(newZoom));
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
