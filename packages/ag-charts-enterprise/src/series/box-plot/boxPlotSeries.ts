@@ -357,11 +357,9 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup
 
     protected override async updateDatumNodes({
         datumSelection,
-        // highlightedItems,
         isHighlight: highlighted,
     }: {
         datumSelection: _Scene.Selection<BoxPlotGroup, BoxPlotNodeDatum>;
-        // highlightedItems?: BoxPlotNodeDatum[];
         isHighlight: boolean;
     }) {
         const isVertical = this.isVertical();
@@ -382,10 +380,6 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup
                 lineDash,
                 lineDashOffset,
             });
-
-            // hide duplicates of highlighted nodes
-            // boxPlotGroup.opacity =
-            //     highlighted || !highlightedItems?.some((datum) => datum.itemId === nodeDatum.itemId) ? 1 : 0;
 
             boxPlotGroup.updateDatumStyles(
                 nodeDatum,

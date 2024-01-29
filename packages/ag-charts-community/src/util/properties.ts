@@ -42,7 +42,8 @@ export class BaseProperties<T extends object = object> extends ChangeDetectable 
 
     toJson<T>(this: T) {
         return listDecoratedProperties(this).reduce<Record<string, any>>((object, propertyKey) => {
-            object[propertyKey] = this[propertyKey as keyof T];
+            const propertyValue = this[propertyKey as keyof T];
+            object[propertyKey] = isProperties(propertyValue) ? propertyValue.toJson() : propertyValue;
             return object;
         }, {});
     }
@@ -69,6 +70,10 @@ export class PropertiesArray<T extends BaseProperties> extends Array {
 
     reset(properties: object[]): PropertiesArray<T> {
         return new PropertiesArray(this.itemFactory, ...properties);
+    }
+
+    toJson() {
+        return this.slice();
     }
 }
 
