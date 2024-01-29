@@ -19,6 +19,7 @@ export type PinchEvent<T extends PinchEventTypes = PinchEventTypes> = {
     type: T;
     finger1: Finger;
     finger2: Finger;
+    origin: { x: number; y: number };
     deltaDistance: number;
 };
 
@@ -53,6 +54,7 @@ export class GestureDetector extends BaseManager<GestureEventTypes, GestureEvent
     private pinch = {
         finger1: { identifier: NaN, screenX: NaN, screenY: NaN },
         finger2: { identifier: NaN, screenX: NaN, screenY: NaN },
+        origin: { x: NaN, y: NaN },
         distance: NaN,
         status: PinchTrackingStatus.Off,
     };
@@ -96,8 +98,8 @@ export class GestureDetector extends BaseManager<GestureEventTypes, GestureEvent
     }
 
     private dispatchPinchEvent<T extends PinchEventTypes>(type: T, deltaDistance: number) {
-        const { finger1, finger2 } = this.pinch;
-        const newEvent: PinchEvent<T> = { type, finger1, finger2, deltaDistance };
+        const { finger1, finger2, origin } = this.pinch;
+        const newEvent: PinchEvent<T> = { type, finger1, finger2, deltaDistance, origin };
         this.listeners.dispatch(type, newEvent);
     }
 
@@ -108,6 +110,8 @@ export class GestureDetector extends BaseManager<GestureEventTypes, GestureEvent
         if (event.touches.length === 2) {
             pinch.status = PinchTrackingStatus.Initialized;
             this.copyTouchData(event);
+            pinch.origin.x = (event.touches[0].clientX + event.touches[1].clientX) / 2;
+            pinch.origin.y = (event.touches[0].clientY + event.touches[1].clientY) / 2;
         }
     }
 
