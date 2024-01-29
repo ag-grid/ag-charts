@@ -346,7 +346,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const newZoom = definedZoomState(currentZoom);
 
         const delta = event.deltaDistance * -0.01;
-        const origin = pointToRatio(this.seriesRect, event.origin.x, event.origin.y)
+        const origin = pointToRatio(this.seriesRect, event.origin.x, event.origin.y);
 
         if (this.isScalingX()) {
             newZoom.x.max += delta * (oldZoom.x.max - oldZoom.x.min);
