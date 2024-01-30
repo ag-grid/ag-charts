@@ -1,11 +1,11 @@
 @use '../core' as *;
 
 .customMenu {
-    position: relative;
     padding-right: $spacing-size-2;
+    user-select: none;
 
-    @media screen and (max-width: $breakpoint-docs-nav-medium) {
-        display: none;
+    @media screen and (min-width: $breakpoint-hero-small) {
+        position: relative;
     }
 }
 
@@ -42,12 +42,14 @@
     margin-top: 4px;
     transform: rotate(225deg);
 }
+
 .customTrigger.open {
     background: rgba(255, 255, 255, 0.1);
     border: none;
 }
+
 .arrow {
-    display: inline-block;
+    display: none;
     border: solid #fff;
     border-width: 0 2px 2px 0;
     padding: 3px;
@@ -55,6 +57,10 @@
     transition: transform 0.3s;
     margin-left: 12px;
     margin-bottom: 2px;
+
+    @media screen and (min-width: $breakpoint-hero-small) {
+        display: inline-block;
+    }
 }
 
 @keyframes fadeInUp {
@@ -66,10 +72,6 @@
         opacity: 1;
         transform: translateY(0);
     }
-}
-
-.customMenu {
-    position: relative;
 }
 
 @keyframes fadeInUp {
@@ -84,20 +86,26 @@
 }
 
 .customContent {
+    position: absolute;
+    top: 52px;
+    width: calc(100% - #{$spacing-size-3 * 2});
+    left: $spacing-size-3;
+    padding: $spacing-size-2;
+    border-radius: var(--radius-md);
     background: var(--color-bg-primary);
     border: 1px solid var(--color-border-primary);
     box-shadow: var(--shadow-sm);
-    position: absolute;
-    top: 100%;
-    left: 0;
     opacity: 0;
     transform: translateY(10px) scale(0.95);
     transition:
         opacity 0.15s ease,
         transform 0.15s ease;
-    padding: $spacing-size-2;
-    border-radius: var(--radius-md);
-    width: 400px;
+
+    @media screen and (min-width: $breakpoint-hero-small) {
+        top: 100%;
+        left: 0;
+        width: 380px;
+    }
 }
 
 .customMenu.open .customContent {
@@ -108,8 +116,12 @@
 
 .productTitle {
     font-weight: var(--text-semibold);
-    color: var(--color-primary-text);
+
+    #{$selector-darkmode} & {
+        color: var(--color-fg-primary);
+    }
 }
+
 .productDescription {
     color: var(--color-text-secondary);
     opacity: 1;
@@ -136,9 +148,10 @@
 }
 
 .placeholderIcon {
-    background: var(--color-util-brand-50);
+    background: var(--color-util-brand-100);
     padding: 12px;
     border-radius: var(--radius-md);
+
     #{$selector-darkmode} & {
         background: color-mix(in srgb, var(--color-brand-300), var(--color-bg-primary) 90%);
     }
@@ -148,8 +161,9 @@
     background: var(--color-util-brand-50);
     cursor: pointer;
     transition: 0.3s all ease-in-out;
+
     #{$selector-darkmode} & {
-        background: color-mix(in srgb, var(--color-brand-300), var(--color-bg-primary) 90%);
+        background: color-mix(in srgb, var(--color-brand-300), var(--color-bg-primary) 96%);
     }
 }
 

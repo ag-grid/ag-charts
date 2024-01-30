@@ -48,7 +48,6 @@
     min-height: var(--layout-site-header-height);
     padding: $spacing-size-2 10px;
     margin-left: -16px;
-    margin-right: 100%;
 
     svg {
         width: unset;
@@ -219,12 +218,8 @@ button.mobileNavButton {
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
         position: unset;
         width: unset;
-        margin-left: $spacing-size-4;
-        overflow: visible;
-    }
-
-    @media screen and (min-width: $breakpoint-site-header-large) {
         margin-left: auto;
+        overflow: visible;
     }
 
     @media screen and (max-width: $breakpoint-site-header-small) {
