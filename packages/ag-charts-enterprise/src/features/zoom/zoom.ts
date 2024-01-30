@@ -34,6 +34,8 @@ const {
     round: sharedRound,
 } = _ModuleSupport;
 
+const InteractionState = _ModuleSupport.InteractionState;
+
 const ANCHOR_CORD = UNION(['pointer', 'start', 'middle', 'end'], 'an anchor cord');
 
 const CONTEXT_ZOOM_ACTION_ID = 'zoom-action';
@@ -184,6 +186,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     private onDoubleClick(event: _ModuleSupport.InteractionEvent<'dblclick'>) {
         if (!this.enabled || !this.enableDoubleClickToReset) return;
+        if (this.ctx.interactionManager.state !== InteractionState.Default) return;
 
         if (this.hoveredAxis) {
             const { id, direction } = this.hoveredAxis;
@@ -197,7 +200,11 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private onDrag(event: _ModuleSupport.InteractionEvent<'drag'>) {
+        const state = this.ctx.interactionManager.state;
         if (!this.enabled || !this.paddedRect || !this.seriesRect) return;
+        if (state !== InteractionState.Default && state !== InteractionState.ZoomPan) return;
+
+        this.ctx.interactionManager.pushState(InteractionState.ZoomPan);
 
         const sourceEvent = event.sourceEvent as DragEvent;
 
@@ -261,6 +268,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         // Stop single clicks from triggering drag end and resetting the zoom
         if (!this.enabled || !this.isDragging) return;
 
+        this.ctx.interactionManager.popState(InteractionState.ZoomPan);
+
         const zoom = definedZoomState(this.zoomManager.getZoom());
 
         this.cursorManager.updateCursor(CURSOR_ID);
@@ -280,6 +289,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     private onWheel(event: _ModuleSupport.InteractionEvent<'wheel'>) {
         if (!this.enabled || !this.enableScrolling || !this.paddedRect || !this.seriesRect) return;
+        if (this.ctx.interactionManager.state !== InteractionState.Default) return;
 
         const currentZoom = this.zoomManager.getZoom();
 
@@ -329,6 +339,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     private onHover() {
         if (!this.enabled) return;
+        if (this.ctx.interactionManager.state !== InteractionState.Default) return;
 
         this.hoveredAxis = undefined;
         this.cursorManager.updateCursor(CURSOR_ID);
@@ -336,6 +347,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     private onAxisHover(event: _ModuleSupport.AxisHoverChartEvent) {
         if (!this.enabled) return;
+        if (this.ctx.interactionManager.state !== InteractionState.Default) return;
 
         this.hoveredAxis = {
             id: event.axisId,
@@ -352,6 +364,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     private onPinchMove(event: PinchEvent) {
         if (!this.enabled || !this.enableScrolling || !this.paddedRect || !this.seriesRect) return;
+        if (this.ctx.interactionManager.state !== InteractionState.Default) return;
 
         const currentZoom = this.zoomManager.getZoom();
         const oldZoom = definedZoomState(currentZoom);
