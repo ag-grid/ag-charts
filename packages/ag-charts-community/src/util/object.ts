@@ -1,5 +1,5 @@
 import { isDecoratedObject, listDecoratedProperties } from './decorator';
-import { isArray, isObject } from './type-guards';
+import { isArray, isObject, isPlainObject } from './type-guards';
 import type { Intersection, PlainObject } from './types';
 
 type FalsyType = false | null | undefined;
@@ -17,7 +17,7 @@ export function mergeDefaults<TSource extends PlainObject, TArgs extends (TSourc
         const keys = isDecoratedObject(source) ? listDecoratedProperties(source) : Object.keys(source);
 
         for (const key of keys) {
-            if (isObject(target[key]) && isObject(source[key])) {
+            if (isPlainObject(target[key]) && isPlainObject(source[key])) {
                 target[key] = mergeDefaults(target[key], source[key]);
             } else {
                 target[key] ??= source[key];
