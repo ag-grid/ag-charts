@@ -1,7 +1,7 @@
-import { toTitleCase } from './angular-utils';
 import { getChartImports, wrapOptionsUpdateCode } from './chart-utils';
 import { convertFunctionToProperty, isInstanceMethod } from './parser-utils';
 import { convertFunctionToConstCallback, convertFunctionalTemplate, getImport, styleAsObject } from './react-utils';
+import { toTitleCase } from './string-utils';
 
 export function processFunction(code: string): string {
     return wrapOptionsUpdateCode(

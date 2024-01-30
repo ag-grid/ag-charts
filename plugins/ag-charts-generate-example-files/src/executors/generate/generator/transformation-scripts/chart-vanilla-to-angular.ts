@@ -1,7 +1,7 @@
-import { convertTemplate, getImport, toTitleCase } from './angular-utils';
+import { convertTemplate, getImport } from './angular-utils';
 import { wrapOptionsUpdateCode } from './chart-utils';
 import { addBindingImports, convertFunctionToProperty, isInstanceMethod } from './parser-utils';
-import { toKebabCase } from './vue-utils';
+import { toKebabCase, toTitleCase } from './string-utils';
 
 export function processFunction(code: string): string {
     return wrapOptionsUpdateCode(convertFunctionToProperty(code));

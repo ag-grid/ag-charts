@@ -1,11 +1,5 @@
 import { recognizedDomEvents } from './parser-utils';
-
-export const toKebabCase = (value: string) => value.replace(/([a-z])([A-Z0-9])/g, '$1-$2').toLowerCase();
-
-const toTitleCase = (value) => {
-    const camelCased = value.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
-    return camelCased[0].toUpperCase() + camelCased.slice(1);
-};
+import { toKebabCase, toTitleCase } from './string-utils';
 
 export const toInput = (property) => `:${property.name}="${property.name}"`;
 export const toConst = (property) => `:${property.name}="${property.value}"`;
