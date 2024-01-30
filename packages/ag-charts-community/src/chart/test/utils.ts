@@ -267,7 +267,7 @@ export function scrollAction(
     y: number,
     deltaY: number,
     deltaMode: WheelDeltaMode = WheelDeltaMode.Lines,
-    deltaX: number = 0,
+    deltaX: number = 0
 ): (chart: Chart | AgChartProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
