@@ -26,6 +26,8 @@ export type ContextMenuActionParams = {
     event: MouseEvent;
 };
 
+const InteractionState = _ModuleSupport.InteractionState;
+
 const { BOOLEAN, Validate } = _ModuleSupport;
 
 export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
@@ -48,6 +50,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     // Module context
     private scene: _Scene.Scene;
     private highlightManager: _ModuleSupport.HighlightManager;
+    private interactionManager: _ModuleSupport.InteractionManager;
 
     // State
     private groups: ContextMenuGroups;
@@ -75,9 +78,11 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
         // Module context
         this.highlightManager = ctx.highlightManager;
+        this.interactionManager = ctx.interactionManager;
         this.scene = ctx.scene;
 
         this.destroyFns.push(ctx.interactionManager.addListener('contextmenu', (event) => this.onContextMenu(event)));
+        this.destroyFns.push(ctx.interactionManager.addListener('click', () => this.onClick()));
 
         // State
         this.groups = { default: [], node: [], extra: [], extraNode: [] };
@@ -164,8 +169,20 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.disabledActions.add(actionId);
     }
 
+    private isShown(): boolean {
+        return this.menuElement !== undefined;
+    }
+
+    private onClick() {
+        if (this.isShown()) {
+            this.hide();
+        }
+    }
+
     private onContextMenu(event: _ModuleSupport.InteractionEvent<'contextmenu'>) {
+        const state = this.ctx.interactionManager.state;
         if (!this.enabled) return;
+        if (state !== InteractionState.Default && state !== InteractionState.ContextMenu) return;
 
         this.showEvent = event.sourceEvent as MouseEvent;
         this.x = event.pageX;
@@ -198,6 +215,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     public show() {
+        this.interactionManager.pushState(_ModuleSupport.InteractionState.ContextMenu);
         this.element.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
 
         const newMenuElement = this.renderMenu();
@@ -214,6 +232,8 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     public hide() {
+        this.interactionManager.popState(_ModuleSupport.InteractionState.ContextMenu);
+
         if (this.menuElement) {
             this.element.removeChild(this.menuElement);
             this.menuElement = undefined;
