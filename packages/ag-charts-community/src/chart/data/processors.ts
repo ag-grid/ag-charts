@@ -2,6 +2,7 @@ import { arraysEqual } from '../../util/array';
 import { memo } from '../../util/memo';
 import { isNegative } from '../../util/number';
 import { isFiniteNumber } from '../../util/type-guards';
+import { transformIntegratedCategoryValue } from '../../util/value';
 import type {
     DatumPropertyDefinition,
     GroupValueProcessorDefinition,
@@ -380,6 +381,7 @@ export function diff(
     };
 }
 
-export function createDatumId(keys: string[]) {
-    return keys.join('___');
+export function createDatumId(keys: any | any[]) {
+    if (!Array.isArray(keys)) return transformIntegratedCategoryValue(keys);
+    return keys.map((key) => `${transformIntegratedCategoryValue(key)}`).join('___');
 }

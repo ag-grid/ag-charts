@@ -523,15 +523,11 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramNodeDatum> {
             this.ctx.animationManager,
             data.datumSelections,
             fns,
-            (_, datum) => this.getDatumId(datum),
+            (_, datum) => createDatumId(datum.domain),
             diff
         );
 
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, data.labelSelections);
-    }
-
-    getDatumId(datum: HistogramNodeDatum) {
-        return createDatumId(datum.domain.map((d) => `${d}`));
     }
 
     protected isLabelEnabled() {
