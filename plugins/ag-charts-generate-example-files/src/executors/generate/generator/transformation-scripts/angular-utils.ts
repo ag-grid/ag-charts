@@ -1,4 +1,5 @@
 import { recognizedDomEvents } from './parser-utils';
+import { toTitleCase } from './string-utils';
 
 export const toInput = (property: any) => `[${property.name}]="${property.name}"`;
 export const toConst = (property: any) => `[${property.name}]="${property.value}"`;
@@ -27,11 +28,6 @@ export function convertTemplate(template: string) {
     });
 
     return template.replace(/\(event\)/g, '($event)');
-}
-
-export function toTitleCase(value) {
-    const camelCased = value.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
-    return camelCased[0].toUpperCase() + camelCased.slice(1);
 }
 
 export function getImport(filename: string) {

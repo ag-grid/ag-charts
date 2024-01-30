@@ -3,7 +3,7 @@ import { AgChartOptions, AgCharts } from 'ag-charts-community';
 import { getData } from './data';
 
 const options: AgChartOptions = {
-    container: document.querySelector('#myChart') as HTMLElement,
+    container: document.getElementById('myChart'),
     data: getData(),
     title: {
         text: 'Cattle Holdings and Beef Exports (UK)',

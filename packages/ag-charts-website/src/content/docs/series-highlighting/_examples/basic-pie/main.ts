@@ -38,7 +38,7 @@ const highlightStyle = {
 
 const options: AgChartOptions = {
     data: data,
-    container: document.body,
+    container: document.getElementById('myChart'),
     title: {
         text: 'Beverage Expenses',
     },

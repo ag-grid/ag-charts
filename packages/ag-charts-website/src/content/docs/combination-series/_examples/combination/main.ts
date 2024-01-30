@@ -59,7 +59,7 @@ const AREA_AND_BAR: AgCartesianSeriesOptions[] = [
 ];
 
 const options: AgCartesianChartOptions = {
-    container: document.querySelector('#myChart') as HTMLElement,
+    container: document.getElementById('myChart'),
     data: getData(),
     title: {
         text: 'Fruit & Vegetable Consumption',

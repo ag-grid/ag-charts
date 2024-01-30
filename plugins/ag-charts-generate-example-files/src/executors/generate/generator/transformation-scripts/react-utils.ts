@@ -5,17 +5,19 @@ import { getFunctionName, recognizedDomEvents } from './parser-utils';
 const toTitleCase = (value: string) => value[0].toUpperCase() + value.slice(1);
 const toCamelCase = (value: string) => value.replace(/(?:-)(\w)/g, (_, c: string) => (c ? c.toUpperCase() : ''));
 
-function convertStyles(code: string) {
-    return code.replace(/style=['"](.+?);?['"]/g, (_, styles) => {
-        const parsed = styles.split(';').reduce((obj, declaration) => {
-            const [property, value] = declaration.split(':');
-            if (value) {
-                obj[toCamelCase(property.trim())] = value.trim();
-            }
-            return obj;
-        }, {});
+export function styleAsObject(styles: string) {
+    return styles.split(';').reduce((obj, declaration) => {
+        const [property, value] = declaration.split(':');
+        if (value) {
+            obj[toCamelCase(property.trim())] = value.trim();
+        }
+        return obj;
+    }, {});
+}
 
-        return `style={${JSON.stringify(parsed)}}`;
+export function convertStyles(code: string) {
+    return code.replace(/style=['"](.+?);?['"]/g, (_, styles) => {
+        return `style={${JSON.stringify(styleAsObject(styles))}}`;
     });
 }
 
@@ -41,11 +43,14 @@ export function convertTemplate(template: string) {
         .replace(/ for=/g, ' htmlFor=')
         .replace(/ <option (.*)selected=""/g, '<option $1selected={true}');
 
+    if (Array.from(template.matchAll(/<AgChartsReact/g)).length > 1) {
+        template = `<Fragment>\n${template}\n</Fragment>`;
+    }
+
     return convertStyles(template);
 }
 
 export function convertFunctionalTemplate(template: string) {
-    if (template.includes('grid-area')) return 'null';
     // React events are case sensitive, so need to ensure casing is correct
     const caseSensitiveEvents = {
         dragover: 'onDragOver',
@@ -84,6 +89,10 @@ export function convertFunctionalTemplate(template: string) {
         // I had some fancy regex here to exclude rows with <i class but I thought this was easier to grok and maintain
         .replace(/<i className=/g, '<i class=')
         .replace(/ <option (.*)selected=""/g, '<option $1selected={true}');
+
+    if (Array.from(template.matchAll(/<AgChartsReact/g)).length > 1) {
+        template = `<Fragment>\n${template}\n</Fragment>`;
+    }
 
     return convertStyles(template);
 }

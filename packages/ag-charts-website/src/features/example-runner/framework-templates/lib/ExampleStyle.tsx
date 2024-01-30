@@ -33,8 +33,8 @@ export const ExampleStyle = ({ rootSelector, extraStyles }: { rootSelector?: str
 
         ${rootSelector ?? 'body'} {
             display: grid;
-            grid-auto-rows: 1fr;
-            grid-auto-columns: 1fr;
+            grid-auto-rows: minmax(0, 1fr);
+            grid-auto-columns: minmax(0, 1fr);
             padding: 1rem;
         }
 

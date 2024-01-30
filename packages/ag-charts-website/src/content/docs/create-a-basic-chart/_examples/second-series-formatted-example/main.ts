@@ -20,7 +20,7 @@ interface IData {
 
 // Chart Options Configuration
 const options: AgChartOptions = {
-    container: document.getElementById('myChart') as HTMLElement, // Container: HTML Element to hold the chart
+    container: document.getElementById('myChart'), // Container: HTML Element to hold the chart
     // Chart Title
     title: { text: 'Ice Cream Sales and Avg Temp' } as AgChartCaptionOptions,
     // Chart Subtitle

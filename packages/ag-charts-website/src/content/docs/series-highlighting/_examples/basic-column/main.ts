@@ -26,7 +26,7 @@ var data = [
 
 const options: AgChartOptions = {
     data: data,
-    container: document.body,
+    container: document.getElementById('myChart'),
     theme: {
         overrides: {
             bar: {

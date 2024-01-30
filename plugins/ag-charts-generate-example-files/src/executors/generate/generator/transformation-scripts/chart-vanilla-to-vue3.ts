@@ -1,9 +1,7 @@
-import prettier from 'prettier';
-
 import { getChartImports, wrapOptionsUpdateCode } from './chart-utils';
-import { templatePlaceholder } from './chart-vanilla-src-parser';
 import { getFunctionName, isInstanceMethod, removeFunctionKeyword } from './parser-utils';
-import { convertTemplate, getImport, toAssignment, toConst, toInput, toMember } from './vue-utils';
+import { toKebabCase, toTitleCase } from './string-utils';
+import { convertTemplate, getImport, indentTemplate, toAssignment, toConst, toInput, toMember } from './vue-utils';
 
 function processFunction(code: string): string {
     return wrapOptionsUpdateCode(removeFunctionKeyword(code));
@@ -28,43 +26,29 @@ function getImports(componentFileNames: string[], bindings): string[] {
     return imports;
 }
 
-function getPropertyBindings(bindings: any): [string[], string[], string[]] {
+function getPropertyBindings(bindings: any, property: any) {
     const propertyAssignments = [];
     const propertyVars = [];
     const propertyAttributes = [];
 
-    bindings.properties.forEach((property) => {
-        if (property.name === 'options') {
-            propertyAttributes.push(toInput(property));
-            propertyVars.push(`${property.name}: ${property.value}`);
-        } else if (property.value === 'true' || property.value === 'false') {
-            propertyAttributes.push(toConst(property));
-        } else if (property.value === null || property.value === 'null') {
-            propertyAttributes.push(toInput(property));
-        } else {
-            // for when binding a method
-            // see javascript-grid-keyboard-navigation for an example
-            // tabToNextCell needs to be bound to the react component
-            if (!isInstanceMethod(bindings.instanceMethods, property)) {
-                propertyAttributes.push(toInput(property));
-                propertyVars.push(toMember(property));
-            }
+    propertyVars.push(`${property.name}: ${property.value}`);
+    propertyAttributes.push(`:options="${property.name}"`);
 
-            propertyAssignments.push(toAssignment(property));
-        }
-    });
+    return { propertyAssignments, propertyVars, propertyAttributes };
+}
 
-    return [propertyAssignments, propertyVars, propertyAttributes];
+function getVueTag(bindings: any, attributes: string[]) {
+    return `<ag-charts-vue\n` + (bindings.usesChartApi ? `ref="agCharts"\n` : '') + attributes.join('\n') + `\n/>`;
 }
 
 function getTemplate(bindings: any, attributes: string[]): string {
     /* prettier-ignore */
-    const agChartTag = `<ag-charts-vue${bindings.usesChartApi ? `
-    ref="agCharts"` : ''}
-    ${attributes.join('\n')}
-/>`;
+    const agChartTag = getVueTag(bindings, attributes)
 
-    const template = bindings.template ? bindings.template.replace(templatePlaceholder, agChartTag) : agChartTag;
+    let template = bindings.template ?? agChartTag;
+    Object.values(bindings.placeholders).forEach((placeholder) => {
+        template = template.replace(placeholder, agChartTag);
+    });
 
     return convertTemplate(template);
 }
@@ -88,49 +72,127 @@ function getAllMethods(bindings: any): [string[], string[], string[]] {
 }
 
 export async function vanillaToVue3(bindings: any, componentFileNames: string[]): Promise<string> {
+    const { properties } = bindings;
     const imports = getImports(componentFileNames, bindings);
-    const [propertyAssignments, propertyVars, propertyAttributes] = getPropertyBindings(bindings);
     const [externalEventHandlers, instanceMethods, globalMethods] = getAllMethods(bindings);
-    const template = getTemplate(bindings, propertyAttributes);
+    const placeholders = Object.keys(bindings.placeholders);
 
     const methods = instanceMethods.concat(externalEventHandlers);
 
-    /* prettier-ignore */
-    let mainFile = `${imports.join('\n')}
+    let mainFile: string;
 
-const ChartExample = {
-    template: \`
-        ${template}
-    \`,
-    components: {
-        'ag-charts-vue': AgChartsVue
-    },
-    data() {
-        return {
-            ${propertyVars.join(',\n            ')}
+    if (placeholders.length <= 1) {
+        const options = properties.find((p) => p.name === 'options');
+        const { propertyAssignments, propertyVars, propertyAttributes } = getPropertyBindings(bindings, options);
+        const template = getTemplate(bindings, propertyAttributes);
+
+        mainFile = `
+            ${imports.join('\n')}
+
+            ${globalMethods.join('\n\n')}
+
+            const ChartExample = {
+                template: \`\n${template}\n  \`,
+                components: {
+                    'ag-charts-vue': AgChartsVue
+                },
+                data() {
+                    return {
+                        ${propertyVars.join(`,
+                        `)}
+                    }
+                },
+                ${
+                    propertyAssignments.length !== 0
+                        ? `
+                created() {
+                    ${propertyAssignments.join(`;
+                    `)}
+                },`
+                        : ''
+                }
+                ${
+                    bindings.init.length !== 0
+                        ? `
+                mounted() {
+                    ${bindings.init.join(`;
+                    `)}
+                },`
+                        : ''
+                }
+                ${
+                    methods.length !== 0
+                        ? `
+                methods: {
+                    ${methods.map((snippet) => `${snippet.trim()},`).join(`
+                    `)}
+                },
+                `
+                        : ''
+                }
+            }
+
+            createApp(ChartExample).mount("#app");
+        `;
+    } else {
+        const components: Array<{ selector: string; className: string }> = [];
+
+        let template = bindings.template.trim();
+        Object.entries(bindings.placeholders).forEach(([id, placeholder]) => {
+            const selector = toKebabCase(id);
+            const { style } = bindings.chartAttributes[id];
+            template = template.replace(placeholder, `<${selector} style="${style}"></${selector}>`);
+        });
+
+        mainFile = `
+            ${imports.join('\n')}
+
+            ${globalMethods.join('\n\n')}
+        `;
+
+        placeholders.forEach((id) => {
+            const selector = toKebabCase(id);
+            const className = toTitleCase(id);
+
+            const propertyName = bindings.chartProperties[id];
+            const { propertyVars, propertyAttributes } = getPropertyBindings(
+                bindings,
+                properties.find((p) => p.name === propertyName)
+            );
+            const template = getVueTag(bindings, propertyAttributes);
+
+            mainFile = `${mainFile}
+
+            const ${className} = {
+                template: \`\n${indentTemplate(template, 2, 2)}\n  \`,
+                components: {
+                    'ag-charts-vue': AgChartsVue
+                },
+                data() {
+                    return {
+                        ${propertyVars.join(`,
+                        `)}
+                    }
+                },
+            }
+            `;
+
+            components.push({ selector, className });
+        });
+
+        mainFile = `${mainFile}
+
+        const ChartExample = {
+            template: \`\n${indentTemplate(template, 2, 2)}\n  \`,
+            components: {
+                ${components.map((c) => `'${c.selector}': ${c.className}`).join(`,
+                `)}
+            },
         }
-    },
-    ${propertyAssignments.length !== 0 ? `
-    created() {
-        ${propertyAssignments.join(';\n           ')}
-    },` : ''}
-    ${bindings.init.length !== 0 ? `
-    mounted() {
-        ${bindings.init.join(';\n        ')}
-    },` : ''}
-    ${methods.length !== 0 ? `
-    methods: {
-        ${methods
-            .map((snippet) => `${snippet.trim()},`)
-            .join('        ')}
-    },
-    ` : ''}
-}
 
-${globalMethods.join('\n\n')}
-
-createApp(ChartExample).mount("#app");
-`;
+        createApp(ChartExample).mount("#app");
+        `;
+    }
 
     if (bindings.usesChartApi) {
         mainFile = mainFile.replace(/AgCharts.(\w*)\((\w*)(,|\))/g, 'AgCharts.$1(this.$refs.agCharts.chart$3');

@@ -1,11 +1,5 @@
 import { recognizedDomEvents } from './parser-utils';
-
-export const toKebabCase = (value: string) => value.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
-
-const toTitleCase = (value) => {
-    const camelCased = value.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
-    return camelCased[0].toUpperCase() + camelCased.slice(1);
-};
+import { toKebabCase, toTitleCase } from './string-utils';
 
 export const toInput = (property) => `:${property.name}="${property.name}"`;
 export const toConst = (property) => `:${property.name}="${property.value}"`;
@@ -28,6 +22,32 @@ export function getImport(filename: string, tokenReplace, replaceValue) {
     return `import ${toTitleCase(componentName)} from './${filename}';`;
 }
 
+export function indentTemplate(template: string, spaceWidth: number, start: number = 0) {
+    let indent = start;
+    return template
+        .split('\n')
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0)
+        .map((line) => {
+            const match = line.match(/^(<\w+)?[^/]*(\/>|<\/\w+>)?$/);
+            const open = match?.[1] != null;
+            const close = match?.[2] != null;
+
+            if (!open && close) {
+                indent -= 1;
+            }
+
+            const out = ' '.repeat(indent * spaceWidth) + line;
+
+            if (open && !close) {
+                indent += 1;
+            }
+
+            return out;
+        })
+        .join('\n');
+}
+
 export function convertTemplate(template: string) {
     recognizedDomEvents.forEach((event) => {
         template = template.replace(new RegExp(`on${event}=`, 'g'), `v-on:${event}=`);
@@ -35,9 +55,5 @@ export function convertTemplate(template: string) {
 
     template = template.replace(/\(event\)/g, '($event)');
 
-    // re-indent
-    return template
-        .split('\n')
-        .filter((line) => line.trim().length > 0)
-        .join('\n        ');
+    return indentTemplate(template, 2, 2);
 }

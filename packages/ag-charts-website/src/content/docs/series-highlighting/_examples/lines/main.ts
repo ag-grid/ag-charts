@@ -3,7 +3,7 @@ import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 import { getData } from './data';
 
 const options: AgCartesianChartOptions = {
-    container: document.body,
+    container: document.getElementById('myChart'),
     data: getData(),
     theme: {
         overrides: {

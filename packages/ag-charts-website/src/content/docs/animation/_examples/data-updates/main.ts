@@ -256,7 +256,7 @@ const pieOptions: AgChartOptions = {
 const chart = AgCharts.create(options);
 
 // Elements
-const tickingButton = document.getElementById('animation-data-updates__toggle-ticking');
+const tickingButton = document.getElementsByClassName('animation-data-updates__toggle-ticking');
 const actionButtons = document.getElementsByClassName('animation-data-updates__action');
 
 if (tickingButton) {

@@ -1,9 +1,7 @@
-import prettier from 'prettier';
-
-import { convertTemplate, getImport, toAssignment, toConst, toInput, toMember } from './angular-utils';
+import { convertTemplate, getImport } from './angular-utils';
 import { wrapOptionsUpdateCode } from './chart-utils';
-import { templatePlaceholder } from './chart-vanilla-src-parser';
 import { addBindingImports, convertFunctionToProperty, isInstanceMethod } from './parser-utils';
+import { toKebabCase, toTitleCase } from './string-utils';
 
 export function processFunction(code: string): string {
     return wrapOptionsUpdateCode(convertFunctionToProperty(code));
@@ -33,13 +31,35 @@ function getImports(bindings, componentFileNames: string[], { typeParts }): stri
     return imports;
 }
 
-function getTemplate(bindings: any, attributes: string[]): string {
-    const agChartTag = `<ag-charts-angular
-    style="height: 100%"
-    ${attributes.join('\n    ')}
-    ></ag-charts-angular>`;
+function getComponentMetadata(bindings: any, property: any) {
+    const propertyAttributes = [];
+    const propertyVars = [];
+    const propertyAssignments = [];
 
-    const template = bindings.template ? bindings.template.replace(templatePlaceholder, agChartTag) : agChartTag;
+    if (!isInstanceMethod(bindings.instanceMethods, property)) {
+        propertyAttributes.push(`[options]="${property.name}"`);
+        propertyVars.push(`public ${property.name};`);
+        propertyAssignments.push(`this.${property.name} = ${property.value};`);
+    }
+
+    return { propertyAttributes, propertyVars, propertyAssignments };
+}
+
+function getAngularTag(attributes: string[]) {
+    return `<ag-charts-angular
+        style="height: 100%;"
+        ${attributes.join(`
+        `)}
+    ></ag-charts-angular>`;
+}
+
+function getTemplate(bindings: any, attributes: string[]): string {
+    const agChartTag = getAngularTag(attributes);
+
+    let template = bindings.template ?? agChartTag;
+    Object.values(bindings.placeholders).forEach((placeholder) => {
+        template = template.replace(placeholder, agChartTag);
+    });
 
     return convertTemplate(template);
 }
@@ -48,75 +68,122 @@ export async function vanillaToAngular(bindings: any, componentFileNames: string
     const { properties, declarations, optionsTypeInfo } = bindings;
     const opsTypeInfo = optionsTypeInfo;
     const imports = getImports(bindings, componentFileNames, opsTypeInfo);
+    const placeholders = Object.keys(bindings.placeholders);
 
-    const propertyAttributes = [];
-    const propertyVars = [];
-    const propertyAssignments = [];
+    let indexFile: string;
 
-    properties.forEach((property) => {
-        if (property.value === 'true' || property.value === 'false') {
-            propertyAttributes.push(toConst(property));
-        } else if (property.value === null || property.value === 'null') {
-            propertyAttributes.push(toInput(property));
-        } else {
-            // for when binding a method
-            // see javascript-grid-keyboard-navigation for an example
-            // tabToNextCell needs to be bound to the angular component
-            if (!isInstanceMethod(bindings.instanceMethods, property)) {
-                propertyAttributes.push(toInput(property));
-                propertyVars.push(toMember(property));
+    if (placeholders.length <= 1) {
+        const options = properties.find((p) => p.name === 'options');
+        const { propertyAttributes, propertyAssignments, propertyVars } = getComponentMetadata(bindings, options);
+        const template = getTemplate(bindings, propertyAttributes);
+
+        const instanceMethods = bindings.instanceMethods.map(processFunction);
+        const externalEventHandlers = bindings.externalEventHandlers.map((handler) => processFunction(handler.body));
+
+        indexFile = `${imports.join('\n')}${declarations.length > 0 ? '\n' + declarations.join('\n') : ''}
+
+        ${bindings.globals.join('\n')}
+
+        @Component({
+            selector: 'my-app',
+            standalone: true,
+            imports: [AgChartsAngular],
+            template: \`${template}\`
+        })
+        export class AppComponent {
+            ${propertyVars.join(`
+            `)}
+
+            ${
+                bindings.usesChartApi
+                    ? `\n    @ViewChild(AgChartsAngular)
+            public agCharts!: AgChartsAngular;\n`
+                    : ''
+            }
+            constructor() {
+                ${propertyAssignments.join(';\n')}
             }
 
-            propertyAssignments.push(toAssignment(property));
+            ${
+                bindings.init.length !== 0
+                    ? `
+            ngOnInit() {
+                ${bindings.init.join(';\n    ')}
+            }
+            `
+                    : ''
+            }
+
+            ${instanceMethods
+                .concat(externalEventHandlers)
+                .map((snippet) => snippet.trim())
+                .join('\n\n')}
         }
-    });
+        `;
+    } else {
+        const components: Array<{ selector: string; className: string }> = [];
 
-    const instanceMethods = bindings.instanceMethods.map(processFunction);
-    const template = getTemplate(bindings, propertyAttributes);
-    const externalEventHandlers = bindings.externalEventHandlers.map((handler) => processFunction(handler.body));
+        let template = bindings.template.trim();
+        Object.entries(bindings.placeholders).forEach(([id, placeholder]) => {
+            const selector = toKebabCase(id);
+            const { style } = bindings.chartAttributes[id];
+            template = template.replace(placeholder, `<${selector} style="${style}"></${selector}>`);
+        });
 
-    /* prettier-ignore */
-    let appComponent = `${imports.join('\n')}${declarations.length > 0 ? '\n' + declarations.join('\n') : ''}
+        indexFile = `${imports.join('\n')}${declarations.length > 0 ? '\n' + declarations.join('\n') : ''}
 
-@Component({
-    selector: 'my-app',
-    standalone: true,
-    imports: [AgChartsAngular],
-    template: \`${template}\`
-})
+        ${bindings.globals.join('\n')}
+        `;
 
-export class AppComponent {
-    public options: ${opsTypeInfo.typeStr};
-    ${propertyVars.filter((p) => p.name === 'options').join('\n')}
-    ${
-        bindings.usesChartApi
-            ? `\n    @ViewChild(AgChartsAngular)
-    public agCharts!: AgChartsAngular;\n`
-            : ''
+        placeholders.forEach((id) => {
+            const selector = toKebabCase(id);
+            const className = toTitleCase(id);
+
+            const propertyName = bindings.chartProperties[id];
+            const { propertyAttributes, propertyAssignments, propertyVars } = getComponentMetadata(
+                bindings,
+                properties.find((p) => p.name === propertyName)
+            );
+
+            const template = getAngularTag(propertyAttributes);
+
+            indexFile = `${indexFile}
+
+            @Component({
+                selector: '${selector}',
+                standalone: true,
+                imports: [AgChartsAngular],
+                template: \`${template}\`
+            })
+            class ${className} {
+                ${propertyVars.join(`
+                `)}
+
+                constructor() {
+                    ${propertyAssignments.join(';\n')}
+                }
+            }`;
+
+            components.push({ selector, className });
+        });
+
+        indexFile = `${indexFile}
+
+        @Component({
+            selector: 'my-app',
+            standalone: true,
+            imports: [${components.map((c) => c.className).join(', ')}],
+            template: \`${template}\`
+        })
+        export class AppComponent {
+        }
+        `;
     }
-    constructor() {
-        ${propertyAssignments.join(';\n')}
-    }
-
-    ${bindings.init.length !== 0 ? `
-    ngOnInit() {
-        ${bindings.init.join(';\n    ')}
-    }
-    ` : ''}
-
-    ${instanceMethods
-        .concat(externalEventHandlers)
-        .map((snippet) => snippet.trim())
-        .join('\n\n')}
-}
-
-${bindings.globals.join('\n')}
-`;
 
     if (bindings.usesChartApi) {
-        appComponent = appComponent.replace(/AgCharts.(\w*)\((\w*)(,|\))/g, 'AgCharts.$1(this.agCharts.chart!$3');
-        appComponent = appComponent.replace(/\(this.agCharts.chart!, options/g, '(this.agCharts.chart!, this.options');
+        indexFile = indexFile.replace(/AgCharts.(\w*)\((\w*)(,|\))/g, 'AgCharts.$1(this.agCharts.chart!$3');
+        indexFile = indexFile.replace(/\(this.agCharts.chart!, options/g, '(this.agCharts.chart!, this.options');
     }
 
-    return appComponent;
+    return indexFile;
 }
