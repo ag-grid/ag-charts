@@ -3,14 +3,47 @@ import styles from '@design-system/modules/SideNavigation.module.scss';
 import { addNonBreakingSpaceBetweenLastWords } from '@utils/addNonBreakingSpaceBetweenLastWords';
 import { navigate, scrollIntoViewById } from '@utils/navigation';
 import type { MarkdownHeading } from 'astro';
-import { RefObject, useEffect } from 'react';
+import { type RefObject, useEffect } from 'react';
 
 interface Props {
     headings: MarkdownHeading[];
 }
 
+/**
+ * Remove nav links of headings that are not shown
+ *
+ * This can happen when the markdoc is commented out.
+ */
+function useRemoveHiddenHeadings({
+    headings,
+    menuRef,
+}: {
+    headings: MarkdownHeading[];
+    menuRef: RefObject<HTMLElement>;
+}) {
+    useEffect(() => {
+        if (!menuRef?.current) {
+            return;
+        }
+        const hiddenHeadings = headings.filter(({ slug }) => {
+            return !document.getElementById(slug);
+        });
+
+        hiddenHeadings.forEach(({ slug }) => {
+            const navHeading = menuRef.current!.querySelector(`a[href='#${slug}']`);
+            if (!navHeading) {
+                return;
+            }
+            const navHeadingContainer = navHeading.parentElement;
+            navHeadingContainer?.classList.add(styles.hidden);
+        });
+    }, [headings, menuRef?.current]);
+}
+
 export function SideNavigation({ headings }: Props) {
     const menuRef = useScrollSpy({ headings });
+
+    useRemoveHiddenHeadings({ headings, menuRef });
 
     if (headings.length < 2) {
         return null;
