@@ -1,7 +1,7 @@
 import { getChartImports, wrapOptionsUpdateCode } from './chart-utils';
 import { getFunctionName, isInstanceMethod, removeFunctionKeyword } from './parser-utils';
 import { toKebabCase, toTitleCase } from './string-utils';
-import { convertTemplate, getImport, toAssignment, toConst, toInput, toMember } from './vue-utils';
+import { convertTemplate, getImport, indentTemplate, toAssignment, toConst, toInput, toMember } from './vue-utils';
 
 function processFunction(code: string): string {
     return wrapOptionsUpdateCode(removeFunctionKeyword(code));
@@ -38,12 +38,7 @@ function getPropertyBindings(bindings: any, property: any) {
 }
 
 function getVueTag(bindings: any, attributes: string[]) {
-    return (
-        `<ag-charts-vue\n` +
-        (bindings.usesChartApi ? `      ref="agCharts"\n` : '') +
-        attributes.map((a) => `      ${a}`).join('\n') +
-        `\n    />`
-    );
+    return `<ag-charts-vue\n` + (bindings.usesChartApi ? `ref="agCharts"\n` : '') + attributes.join('\n') + `\n/>`;
 }
 
 function getTemplate(bindings: any, attributes: string[]): string {
@@ -89,7 +84,11 @@ export async function vanillaToVue(bindings: any, componentFileNames: string[]):
     if (placeholders.length <= 1) {
         const options = properties.find((p) => p.name === 'options');
         const { propertyAssignments, propertyVars, propertyAttributes } = getPropertyBindings(bindings, options);
-        const template = getTemplate(bindings, propertyAttributes);
+        let template = getTemplate(bindings, propertyAttributes);
+        template = template
+            .split('\n')
+            .map((t) => `      ${t.trim()}`)
+            .join('\n');
 
         mainFile = `
             ${imports.join('\n')}
@@ -153,10 +152,7 @@ export async function vanillaToVue(bindings: any, componentFileNames: string[]):
             const { style } = bindings.chartAttributes[id];
             template = template.replace(placeholder, `<${selector} style="${style}"></${selector}>`);
         });
-        template = template
-            .split('\n')
-            .map((t) => `      ${t.trim()}`)
-            .join('\n');
+        template = `<div style="display: grid; grid: inherit">\n${template}\n</div>`;
 
         mainFile = `
             ${imports.join('\n')}
@@ -178,7 +174,7 @@ export async function vanillaToVue(bindings: any, componentFileNames: string[]):
             mainFile = `${mainFile}
 
             const ${className} = {
-                template: \`\n    ${template}\n  \`,
+                template: \`\n${indentTemplate(template, 2, 2)}\n  \`,
                 components: {
                     'ag-charts-vue': AgChartsVue
                 },
@@ -197,7 +193,7 @@ export async function vanillaToVue(bindings: any, componentFileNames: string[]):
         mainFile = `${mainFile}
 
         const ChartExample = {
-            template: \`\n    <div style="display: grid; grid: inherit">\n${template}\n    </div>\n  \`,
+            template: \`\n${indentTemplate(template, 2, 2)}\n  \`,
             components: {
                 ${components.map((c) => `'${c.selector}': ${c.className}`).join(`,
                 `)}

@@ -1,13 +1,4 @@
-import {
-    convertTemplate,
-    getImport,
-    toAssignment,
-    toConst,
-    toInput,
-    toMember,
-    toOutput,
-    toTitleCase,
-} from './angular-utils';
+import { convertTemplate, getImport, toAssignment, toConst, toInput, toMember, toOutput } from './angular-utils';
 
 describe('toInput', () => {
     it('returns input definition', () => {
@@ -67,21 +58,6 @@ describe('convertTemplate', () => {
         const converted = convertTemplate(template);
 
         expect(converted).toBe('<button (dragover)="foo($event)">Hello!</button>');
-    });
-});
-
-describe('toTitleCase', () => {
-    it('converts kebab case to title case', () => {
-        const titleCase = toTitleCase('my-component-name');
-
-        expect(titleCase).toBe('MyComponentName');
-    });
-
-    it('does nothing when already title cased', () => {
-        const name = 'MyComponentName';
-        const titleCase = toTitleCase(name);
-
-        expect(titleCase).toBe(name);
     });
 });
 

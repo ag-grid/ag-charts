@@ -1,7 +1,7 @@
 import { getChartImports, wrapOptionsUpdateCode } from './chart-utils';
 import { getFunctionName, isInstanceMethod, removeFunctionKeyword } from './parser-utils';
 import { toKebabCase, toTitleCase } from './string-utils';
-import { convertTemplate, getImport, toAssignment, toConst, toInput, toMember } from './vue-utils';
+import { convertTemplate, getImport, indentTemplate, toAssignment, toConst, toInput, toMember } from './vue-utils';
 
 function processFunction(code: string): string {
     return wrapOptionsUpdateCode(removeFunctionKeyword(code));
@@ -38,12 +38,7 @@ function getPropertyBindings(bindings: any, property: any) {
 }
 
 function getVueTag(bindings: any, attributes: string[]) {
-    return (
-        `<ag-charts-vue\n` +
-        (bindings.usesChartApi ? `      ref="agCharts"\n` : '') +
-        attributes.map((a) => `      ${a}`).join('\n') +
-        `\n    />`
-    );
+    return `<ag-charts-vue\n` + (bindings.usesChartApi ? `ref="agCharts"\n` : '') + attributes.join('\n') + `\n/>`;
 }
 
 function getTemplate(bindings: any, attributes: string[]): string {
@@ -97,7 +92,7 @@ export async function vanillaToVue3(bindings: any, componentFileNames: string[])
             ${globalMethods.join('\n\n')}
 
             const ChartExample = {
-                template: \`\n    ${template}\n  \`,
+                template: \`\n${template}\n  \`,
                 components: {
                     'ag-charts-vue': AgChartsVue
                 },
@@ -148,10 +143,6 @@ export async function vanillaToVue3(bindings: any, componentFileNames: string[])
             const { style } = bindings.chartAttributes[id];
             template = template.replace(placeholder, `<${selector} style="${style}"></${selector}>`);
         });
-        template = template
-            .split('\n')
-            .map((t) => `    ${t.trim()}`)
-            .join('\n');
 
         mainFile = `
             ${imports.join('\n')}
@@ -173,7 +164,7 @@ export async function vanillaToVue3(bindings: any, componentFileNames: string[])
             mainFile = `${mainFile}
 
             const ${className} = {
-                template: \`\n    ${template}\n  \`,
+                template: \`\n${indentTemplate(template, 2, 2)}\n  \`,
                 components: {
                     'ag-charts-vue': AgChartsVue
                 },
@@ -192,7 +183,7 @@ export async function vanillaToVue3(bindings: any, componentFileNames: string[])
         mainFile = `${mainFile}
 
         const ChartExample = {
-            template: \`\n${template}\n  \`,
+            template: \`\n${indentTemplate(template, 2, 2)}\n  \`,
             components: {
                 ${components.map((c) => `'${c.selector}': ${c.className}`).join(`,
                 `)}

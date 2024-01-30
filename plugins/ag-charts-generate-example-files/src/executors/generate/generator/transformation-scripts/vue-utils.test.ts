@@ -1,36 +1,13 @@
 import {
     convertTemplate,
     getImport,
+    indentTemplate,
     toAssignment,
     toConst,
     toInput,
-    toKebabCase,
     toMember,
     toOutput,
 } from './vue-utils';
-
-describe('toKebabCase', () => {
-    it('converts camel case to kebab case', () => {
-        const name = 'myComponent';
-        const kebabCase = toKebabCase(name);
-
-        expect(kebabCase).toBe('my-component');
-    });
-
-    it('converts title case to kebab case', () => {
-        const name = 'MyComponent';
-        const kebabCase = toKebabCase(name);
-
-        expect(kebabCase).toBe('my-component');
-    });
-
-    it('leaves kebab case untouched', () => {
-        const name = 'my-component';
-        const kebabCase = toKebabCase(name);
-
-        expect(kebabCase).toBe(name);
-    });
-});
 
 describe('toInput', () => {
     it('returns input definition', () => {
@@ -96,8 +73,46 @@ describe('getImport', () => {
 describe('convertTemplate', () => {
     it('converts event handlers', () => {
         const template = '<button onclick="foo(true)">Hello!</button>';
-        const converted = convertTemplate(template);
+        const converted = convertTemplate(template).trim();
 
         expect(converted).toBe('<button v-on:click="foo(true)">Hello!</button>');
     });
+});
+
+describe('indentTemplate', () => {
+    expect(
+        indentTemplate(
+            `
+                <div style="display: flex; flex-direction: column">
+                    <div style="flex: none; display: flex; flex-direction: row; justify-content: center; gap: 0.5em">
+                        <button v-on:click="changeSeriesBar()">Bar</button>
+                        <button v-on:click="changeSeriesLine()">Line</button>
+                        <button v-on:click="changeSeriesArea()">Area</button>
+                        <button v-on:click="changeSeriesPie()">Pie</button>
+                    </div>
+                    <ag-charts-vue
+                        ref="agCharts"
+                        :options="options"
+                    />
+                </div>
+            `.trim(),
+            4,
+            3
+        )
+    ).toBe(
+        `
+            <div style="display: flex; flex-direction: column">
+                <div style="flex: none; display: flex; flex-direction: row; justify-content: center; gap: 0.5em">
+                    <button v-on:click="changeSeriesBar()">Bar</button>
+                    <button v-on:click="changeSeriesLine()">Line</button>
+                    <button v-on:click="changeSeriesArea()">Area</button>
+                    <button v-on:click="changeSeriesPie()">Pie</button>
+                </div>
+                <ag-charts-vue
+                    ref="agCharts"
+                    :options="options"
+                />
+            </div>
+        `.slice(1, -9)
+    );
 });
