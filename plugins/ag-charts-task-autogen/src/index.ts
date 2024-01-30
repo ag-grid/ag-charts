@@ -50,6 +50,7 @@ export const createNodes: CreateNodes = [
                             outputs: [],
                             cache: true,
                             configurations: {
+                                staging: {},
                                 production: {},
                             },
                         },
@@ -60,6 +61,7 @@ export const createNodes: CreateNodes = [
                             outputs: [],
                             cache: true,
                             configurations: {
+                                staging: {},
                                 production: {},
                             },
                         },

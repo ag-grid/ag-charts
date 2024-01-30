@@ -19,6 +19,7 @@ export function createTask(parentProject: string, srcRelativeInputPath: string) 
                 outputPath: `dist/generated-thumbnails/${parentProject}/${srcRelativeInputPath}`,
             },
             configurations: {
+                staging: {},
                 production: {},
             },
         },

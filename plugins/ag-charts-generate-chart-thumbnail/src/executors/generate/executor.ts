@@ -41,7 +41,7 @@ export async function generateFiles(options: ExecutorOptions, ctx: ExecutorConte
     const name = `${ctx.projectName}:${ctx.targetName}:${ctx.configurationName ?? ''}`;
     const jsonPath = path.join(generatedExamplePath, 'plain', 'vanilla', 'contents.json');
     const example = await readJSONFile(jsonPath);
-    const production = process.env.NX_TASK_TARGET_CONFIGURATION === 'production';
+    const production = ['production', 'staging'].includes(process.env.NX_TASK_TARGET_CONFIGURATION);
     const dpiOutputs = production ? [1, 2] : [1];
 
     if (example == null) {
