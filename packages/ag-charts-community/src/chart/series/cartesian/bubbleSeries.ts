@@ -225,7 +225,9 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
         }
 
         const data = this.properties.marker.enabled ? nodeData : [];
-        return markerSelection.update(data, undefined, (datum) => this.getDatumId(datum));
+        return markerSelection.update(data, undefined, (datum) =>
+            createDatumId([datum.xValue, datum.yValue, datum.label.text])
+        );
     }
 
     protected override async updateMarkerNodes(opts: {
@@ -377,10 +379,6 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
     override animateEmptyUpdateReady({ markerSelections, labelSelections }: BubbleAnimationData) {
         markerScaleInAnimation(this, this.ctx.animationManager, markerSelections);
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
-    }
-
-    getDatumId(datum: BubbleNodeDatum) {
-        return createDatumId([`${datum.xValue}`, `${datum.yValue}`, datum.label.text]);
     }
 
     protected isLabelEnabled() {

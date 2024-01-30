@@ -18,7 +18,13 @@ import { LogAxis } from '../../axis/logAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { fixNumericExtent } from '../../data/dataModel';
-import { SMALLEST_KEY_INTERVAL, animationValidation, diff, normaliseGroupTo } from '../../data/processors';
+import {
+    SMALLEST_KEY_INTERVAL,
+    animationValidation,
+    createDatumId,
+    diff,
+    normaliseGroupTo,
+} from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import { SeriesNodePickMode, groupAccumulativeValueProperty, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
@@ -416,7 +422,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
             (rect) => {
                 rect.tag = BarSeriesNodeTag.Bar;
             },
-            (datum) => String(datum.xValue)
+            (datum) => createDatumId(datum.xValue)
         );
     }
 

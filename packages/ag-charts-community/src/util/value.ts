@@ -26,3 +26,17 @@ export function checkDatum<T>(value: T, isContinuousScale: boolean): T | string 
 }
 
 export const isNumber = (v: any): v is number => typeof v === 'number' && Number.isFinite(v);
+
+/**
+ * To enable duplicate categories, a category axis value on a datum from integrated charts is transformed into an
+ * object with `getString()` and `id` properties. The string value can be non-unique so we must instead use the
+ * unique id property.
+ *
+ * @see https://ag-grid.atlassian.net/browse/AG-10526
+ */
+export function transformIntegratedCategoryValue(v: any) {
+    if (isStringObject(v) && Object.hasOwn(v, 'id')) {
+        return v.id;
+    }
+    return v;
+}

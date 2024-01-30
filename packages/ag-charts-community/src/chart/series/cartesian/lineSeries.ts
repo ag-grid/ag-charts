@@ -277,7 +277,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
             markerSelection.cleanup();
         }
 
-        return markerSelection.update(nodeData, undefined, (datum) => this.getDatumId(datum));
+        return markerSelection.update(nodeData, undefined, (datum) => createDatumId(datum.xValue));
     }
 
     protected override async updateMarkerNodes(opts: {
@@ -483,10 +483,6 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
             seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
             seriesLabelFadeInAnimation(this, 'annotations', animationManager, annotationSelections);
         }
-    }
-
-    private getDatumId(datum: LineNodeDatum) {
-        return createDatumId([`${datum.xValue}`]);
     }
 
     protected isLabelEnabled() {
