@@ -136,12 +136,12 @@ const defaultTooltipCss = `
 }
 
 .${DEFAULT_TOOLTIP_CLASS}.${DEFAULT_TOOLTIP_DARK_CLASS} {
-    color: white;
-    background: #15181c;
+    // color: white;
+    // background: #15181c;
 }
 
 .${DEFAULT_TOOLTIP_CLASS}.${DEFAULT_TOOLTIP_DARK_CLASS} .${DEFAULT_TOOLTIP_CLASS}-content {
-    border-color: rgba(255, 255, 255, 0.15);
+    // border-color: rgba(255, 255, 255, 0.15);
 }
 
 .ag-chart-wrapper {
@@ -233,6 +233,9 @@ export class Tooltip {
     @Validate(TEXT_WRAP)
     wrapping: TextWrap = 'hyphenate';
 
+    @Validate(BOOLEAN)
+    darkMode: boolean = false;
+
     private lastVisibilityChange: number = Date.now();
 
     readonly position: TooltipPosition = new TooltipPosition();
@@ -322,6 +325,12 @@ export class Tooltip {
         toggleClass('no-interaction', !enableInteraction); // Prevent interaction.
         toggleClass('hidden', !visible); // Hide if not visible.
         toggleClass('arrow', !!showArrow); // Add arrow if tooltip is constrained.
+
+        if (this.darkMode) {
+            element.classList.add(DEFAULT_TOOLTIP_DARK_CLASS);
+        } else {
+            element.classList.remove(DEFAULT_TOOLTIP_DARK_CLASS);
+        }
 
         this.updateWrapping();
 
