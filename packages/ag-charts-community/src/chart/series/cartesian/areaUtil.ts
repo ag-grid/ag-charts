@@ -117,6 +117,12 @@ export function prepareAreaPathAnimation(
     diff?: ProcessedOutputDiff
 ) {
     const isCategoryBased = newData.scales.x?.type === 'category';
+    const wasCategoryBased = oldData.scales.x?.type === 'category';
+    if (isCategoryBased !== wasCategoryBased) {
+        // Not comparable.
+        return;
+    }
+
     let status: NodeUpdateState = 'updated';
     if (oldData.visible && !newData.visible) {
         status = 'removed';

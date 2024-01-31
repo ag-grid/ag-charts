@@ -20,9 +20,9 @@ export class ChartOverlays {
         this.noVisibleSeries = new Overlay('ag-chart-no-visible-series', parent, animationManager);
         this.noVisibleSeries.text = 'No visible series';
 
-        if (ChartOverlays.overlayDocuments.indexOf(document) < 0) {
-            injectStyle(document, defaultOverlayCss);
-            ChartOverlays.overlayDocuments.push(document);
+        if (ChartOverlays.overlayDocuments.indexOf(parent.ownerDocument) < 0) {
+            injectStyle(parent.ownerDocument, defaultOverlayCss);
+            ChartOverlays.overlayDocuments.push(parent.ownerDocument);
         }
     }
 
