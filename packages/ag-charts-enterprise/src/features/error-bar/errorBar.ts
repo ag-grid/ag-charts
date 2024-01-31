@@ -1,5 +1,5 @@
 import type { AgErrorBarThemeableOptions, _Scale } from 'ag-charts-community';
-import { AgErrorBarSupportedSeriesTypes, _ModuleSupport, _Scene } from 'ag-charts-community';
+import { AgErrorBarSupportedSeriesTypes, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import type { ErrorBarNodeDatum, ErrorBarStylingOptions } from './errorBarNode';
 import { ErrorBarGroup, ErrorBarNode } from './errorBarNode';
@@ -78,6 +78,11 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
             () => annotationGroup.removeChild(this.groupNode),
             () => annotationSelections.delete(this.selection)
         );
+    }
+
+    private hasErrorBars(): boolean {
+        const { xLowerKey, xUpperKey, yLowerKey, yUpperKey } = this.properties;
+        return (isDefined(xLowerKey) && isDefined(xUpperKey)) || (isDefined(yLowerKey) && isDefined(yUpperKey));
     }
 
     private isStacked(): boolean {
@@ -205,7 +210,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
         const xScale = this.cartesianSeries.axes[ChartAxisDirection.X]?.scale;
         const yScale = this.cartesianSeries.axes[ChartAxisDirection.Y]?.scale;
 
-        if (!xScale || !yScale || !nodeData) {
+        if (!this.hasErrorBars() || !xScale || !yScale || !nodeData) {
             return;
         }
 
@@ -242,6 +247,27 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
         return { xLowerKey, xUpperKey, xErrorsID, yLowerKey, yUpperKey, yErrorsID };
     }
 
+    private static getDatumKey(datum: ErrorBarNodeDatum, key: string | undefined, offset: number): number | undefined {
+        // Check if the user input datum has the error value for `key`:
+        if (key === undefined) {
+            return undefined;
+        }
+        const value: unknown = datum.datum[key];
+        if (value === undefined) {
+            return undefined;
+        }
+
+        // The datum has an error value for `key`. Validate this user input value:
+        if (typeof value !== 'number') {
+            _Util.Logger.warnOnce(
+                `Found [${key}] error value (${value}) of type ${typeof value}. Expected number type`
+            );
+            return undefined;
+        }
+
+        return value + offset;
+    }
+
     private getDatum(nodeData: ErrorBarNodeDatum[], datumIndex: number) {
         const { xLowerKey, xUpperKey, yLowerKey, yUpperKey } = this.getMaybeFlippedKeys();
         const datum = nodeData[datumIndex];
@@ -253,10 +279,10 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         return {
             midPoint: datum.midPoint,
-            xLower: datum.datum[xLowerKey ?? ''] + xOffset,
-            xUpper: datum.datum[xUpperKey ?? ''] + xOffset,
-            yLower: datum.datum[yLowerKey ?? ''] + yOffset,
-            yUpper: datum.datum[yUpperKey ?? ''] + yOffset,
+            xLower: ErrorBars.getDatumKey(datum, xLowerKey, xOffset),
+            xUpper: ErrorBars.getDatumKey(datum, xUpperKey, xOffset),
+            yLower: ErrorBars.getDatumKey(datum, yLowerKey, yOffset),
+            yUpper: ErrorBars.getDatumKey(datum, yUpperKey, yOffset),
         };
     }
 
