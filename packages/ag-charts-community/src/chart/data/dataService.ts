@@ -1,3 +1,4 @@
+import { throttleAsyncTrailing } from '../../util/debounceThrottle';
 import { Debug } from '../../util/debug';
 import { Listeners } from '../../util/listeners';
 
@@ -15,7 +16,11 @@ export interface AxisDomain {
 
 export class DataService<D extends object> extends Listeners<never, never> {
     private load?: LoadCallback;
+    private throttleTime = 100;
+
     private readonly debug = Debug.create(...DEBUG_SELECTORS);
+
+    private throttledFetch = throttleAsyncTrailing((axes?: Array<AxisDomain>) => this.fetch(axes), this.throttleTime);
 
     constructor(private readonly updateCallback: UpdateCallback<D>) {
         super();
@@ -29,11 +34,11 @@ export class DataService<D extends object> extends Listeners<never, never> {
     public async fetchFull(load: LoadCallback | any): Promise<D[]> {
         if (typeof load !== 'function') return load;
         this.load = load;
-        return this.fetch();
+        return this.throttledFetch();
     }
 
     public async fetchFullAndWindow(axes: Array<AxisDomain>): Promise<D[]> {
-        return this.fetch(axes);
+        return this.throttledFetch(axes);
     }
 
     public isLazy() {
