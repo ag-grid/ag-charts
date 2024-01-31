@@ -106,7 +106,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
     private readonly radiusScale: LinearScale = new LinearScale();
     private readonly calloutLabelSelection: Selection<Group, PieNodeDatum>;
     private readonly sectorLabelSelection: Selection<Text, PieNodeDatum>;
-    /** @deprecated Remove this */
     private readonly innerLabelsSelection: Selection<Text, DonutInnerLabel>;
     private readonly innerCircleSelection: Selection<Circle, { radius: number }>;
 
@@ -151,7 +150,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
 
         const pieCalloutLabels = new Group({ name: 'pieCalloutLabels' });
         const pieSectorLabels = new Group({ name: 'pieSectorLabels' });
-        /** @deprecated remove this */
         const innerLabels = new Group({ name: 'innerLabels' });
         this.labelGroup.append(pieCalloutLabels);
         this.labelGroup.append(pieSectorLabels);
@@ -1151,7 +1149,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         const { fontSize, fontStyle, fontWeight, fontFamily, positionOffset, positionRatio, color } =
             this.properties.sectorLabel;
 
-        /** @deprecated Remove this */
         const isDonut = innerRadius > 0;
         const singleVisibleSector = this.seriesItemEnabled.filter(Boolean).length === 1;
 

@@ -462,7 +462,8 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
 
     private getSectorFormat(datum: any, formatIndex: number, highlight: boolean) {
         const { callbackCache, highlightManager } = this.ctx;
-        const { angleKey, radiusKey, fills, strokes, formatter } = this.properties;
+        const { angleKey, radiusKey, fills, strokes, formatter, sectorSpacing, __BACKGROUND_COLOR_DO_NOT_USE } =
+            this.properties;
 
         const highlightedDatum = highlightManager.getActiveHighlight();
         const isDatumHighlighted =
@@ -473,7 +474,15 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
             {
                 fill: fills.length > 0 ? fills[formatIndex % fills.length] : undefined,
                 fillOpacity: this.properties.fillOpacity,
-                stroke: strokes.length > 0 ? strokes[formatIndex % strokes.length] : undefined,
+                // @todo(AG-10275) Remove sectorSpacing null case
+                stroke:
+                    sectorSpacing != null
+                        ? strokes.length > 0
+                            ? strokes[formatIndex % strokes.length]
+                            : undefined
+                        : strokes.length > 0
+                          ? strokes[formatIndex % strokes.length]
+                          : __BACKGROUND_COLOR_DO_NOT_USE,
                 strokeWidth: this.getStrokeWidth(this.properties.strokeWidth),
                 strokeOpacity: this.getOpacity(),
             }
@@ -723,6 +732,13 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
             sector.lineDashOffset = this.properties.lineDashOffset;
             sector.fillShadow = this.properties.shadow;
             sector.inset = (this.properties.sectorSpacing + (format.stroke != null ? format.strokeWidth! : 0)) / 2;
+            // @todo(AG-10275) Remove sectorSpacing null case
+            sector.inset =
+                this.properties.sectorSpacing != null
+                    ? (this.properties.sectorSpacing + (format.stroke != null ? format.strokeWidth! : 0)) / 2
+                    : 0;
+            // @todo(AG-10275) Remove this line completely
+            sector.lineJoin = this.properties.sectorSpacing != null ? 'miter' : 'round';
         };
 
         this.itemSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false));

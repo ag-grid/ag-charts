@@ -75,19 +75,19 @@ export interface AgPieSeriesThemeableOptions<TDatum = any> extends AgBaseSeriesT
     /** The rotation of the pie series in degrees. */
     rotation?: Degree;
     /**
-     * @deprecated v9.0.2 Use a Donut Series instead.
+     * @deprecated v9.1.0 Use a Donut Series instead.
      * The offset in pixels of the outer radius of the series. Used to construct donut charts.
      */
     outerRadiusOffset?: PixelSize;
     /** The ratio of the outer radius of the series. Used to adjust the outer radius proportionally to the automatically calculated value. */
     outerRadiusRatio?: Ratio;
     /**
-     * @deprecated v9.0.2 Use a Donut Series instead.
+     * @deprecated v9.1.0 Use a Donut Series instead.
      * The offset in pixels of the inner radius of the series. Used to construct donut charts. If this is not provided, or innerRadiusRatio is unset, or a value of zero is given, a pie chart will be rendered.
      */
     innerRadiusOffset?: PixelSize;
     /**
-     * @deprecated v9.0.2 Use a Donut Series instead.
+     * @deprecated v9.1.0 Use a Donut Series instead.
      * The ratio of the inner radius of the series. Used to construct donut charts. If this is not provided, or innerRadiusOffset is unset, or a value of zero or one is given, a pie chart will be rendered.
      */
     innerRadiusRatio?: Ratio;
@@ -100,12 +100,12 @@ export interface AgPieSeriesThemeableOptions<TDatum = any> extends AgBaseSeriesT
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgPieSeriesTooltipRendererParams>;
     /**
-     * @deprecated v9.0.2 Use a Donut Series instead.
+     * @deprecated v9.1.0 Use a Donut Series instead.
      * Configuration for the text lines to display inside the series, typically used when rendering a donut chart
      */
     innerLabels?: AgDonutInnerLabelThemeOptions;
     /**
-     * @deprecated v9.0.2 Use a Donut Series instead.
+     * @deprecated v9.1.0 Use a Donut Series instead.
      * Configuration for the area inside the series, only visible when rendering a donut chart by using innerRadiusOffset or innerRadiusRatio
      */
     innerCircle?: AgDonutInnerCircle;
@@ -127,7 +127,7 @@ export interface AgPieSeriesOptions<TDatum = any>
     /** Configuration for Pie Series. */
     type: 'pie';
     /**
-     * @deprecated v9.0.2 Use a Donut Series instead.
+     * @deprecated v9.1.0 Use a Donut Series instead.
      * Configuration for the text lines to display inside the series, typically used when rendering a donut chart
      */
     innerLabels?: AgDonutInnerLabel[];

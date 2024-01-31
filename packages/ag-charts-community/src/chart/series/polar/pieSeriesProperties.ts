@@ -35,14 +35,11 @@ export class PieTitle extends Caption {
     showInLegend = false;
 }
 
-/** @deprecated Remove this */
 export class DonutInnerLabel<T extends object = any> extends Label<AgPieSeriesLabelFormatterParams> {
-    /** @deprecated Remove this */
     @Deprecated('Use a Donut Series instead')
     @Validate(STRING, { optional: true })
     text?: string;
 
-    /** @deprecated Remove this */
     @Deprecated('Use a Donut Series instead')
     @Validate(NUMBER, { optional: true })
     margin?: number;
@@ -52,14 +49,11 @@ export class DonutInnerLabel<T extends object = any> extends Label<AgPieSeriesLa
     }
 }
 
-/** @deprecated Remove this */
 export class DonutInnerCircle extends BaseProperties {
-    /** @deprecated Remove this */
     @Deprecated('Use a Donut Series instead')
     @Validate(COLOR_STRING, { optional: true })
     fill?: string;
 
-    /** @deprecated Remove this */
     @Deprecated('Use a Donut Series instead')
     @Validate(RATIO, { optional: true })
     fillOpacity?: number;
@@ -159,7 +153,6 @@ export class PieSeriesProperties extends SeriesProperties<AgPieSeriesOptions> {
     @Validate(DEGREE)
     rotation: number = 0;
 
-    /** @deprecated Remove this */
     @Deprecated('Use a Donut Series instead')
     @Validate(NUMBER, { optional: true })
     outerRadiusOffset?: number;
@@ -167,12 +160,10 @@ export class PieSeriesProperties extends SeriesProperties<AgPieSeriesOptions> {
     @Validate(RATIO)
     outerRadiusRatio: number = 1;
 
-    /** @deprecated Remove this */
     @Deprecated('Use a Donut Series instead')
     @Validate(NUMBER, { optional: true })
     innerRadiusOffset?: number;
 
-    /** @deprecated Remove this */
     @Deprecated('Use a Donut Series instead')
     @Validate(RATIO, { optional: true })
     innerRadiusRatio?: number;
@@ -184,14 +175,12 @@ export class PieSeriesProperties extends SeriesProperties<AgPieSeriesOptions> {
     @Validate(POSITIVE_NUMBER, { optional: true })
     sectorSpacing?: number = undefined;
 
-    /** @deprecated Remove this */
     @Validate(OBJECT_ARRAY)
     readonly innerLabels = new PropertiesArray(DonutInnerLabel);
 
     @Validate(OBJECT)
     readonly title = new PieTitle();
 
-    /** @deprecated Remove this */
     @Validate(OBJECT)
     readonly innerCircle = new DonutInnerCircle();
 
