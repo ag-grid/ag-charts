@@ -16,7 +16,6 @@ import { groupBy } from '../util/array';
 import { sleep } from '../util/async';
 import { CallbackCache } from '../util/callbackCache';
 import { Debug } from '../util/debug';
-import { Default } from '../util/default';
 import { createId } from '../util/id';
 import { deepClone } from '../util/json';
 import type { PlacedLabel, PointLabelDatum } from '../util/labelPlacement';
@@ -26,6 +25,7 @@ import { Mutex } from '../util/mutex';
 import type { TypedEvent } from '../util/observable';
 import { Observable } from '../util/observable';
 import { Padding } from '../util/padding';
+import { BaseProperties } from '../util/properties';
 import { ActionOnSet, type ActionOnSetOptions } from '../util/proxy';
 import { debouncedAnimationFrame, debouncedCallback } from '../util/render';
 import { SizeMonitor } from '../util/sizeMonitor';
@@ -112,7 +112,7 @@ export interface ChartSpecialOverrides {
 
 export type ChartExtendedOptions = AgChartOptions & ChartSpecialOverrides;
 
-class SeriesArea {
+class SeriesArea extends BaseProperties {
     @Validate(BOOLEAN, { optional: true })
     clip?: boolean;
 
@@ -216,10 +216,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     @Validate(OBJECT)
-    padding = new Padding(20);
+    readonly padding = new Padding(20);
 
-    @Default(() => new SeriesArea())
-    seriesArea = new SeriesArea();
+    @Validate(OBJECT)
+    readonly seriesArea = new SeriesArea();
 
     @ActionOnSet(Chart.NodeValueChangeOptions)
     public title?: Caption;
