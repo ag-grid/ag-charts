@@ -28,8 +28,8 @@ export class CartesianChart extends Chart {
 
     private firstSeriesTranslation = true;
 
-    override removeAllSeries() {
-        super.removeAllSeries();
+    override destroySeries() {
+        super.destroySeries();
 
         this.firstSeriesTranslation = true;
     }
