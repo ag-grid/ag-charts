@@ -5,12 +5,12 @@ import { normalisedExtentWithMetadata } from '../../util/array';
 import { Default } from '../../util/default';
 import { Logger } from '../../util/logger';
 import { calculateNiceSecondaryAxis } from '../../util/secondaryAxisTicks';
-import { AND, GREATER_THAN, LESS_THAN, NAN, NUMBER, NUMBER_OR_NAN, OR, Validate } from '../../util/validation';
+import { AND, GREATER_THAN, LESS_THAN, MAX_SPACING, NUMBER_OR_NAN, Validate } from '../../util/validation';
 import { AxisTick } from './axisTick';
 import { CartesianAxis } from './cartesianAxis';
 
 class NumberAxisTick extends AxisTick<LinearScale | LogScale, number> {
-    @Validate(OR(AND(NUMBER.restrict({ min: 1 }), GREATER_THAN('minSpacing')), NAN))
+    @Validate(MAX_SPACING)
     @Default(NaN)
     override maxSpacing: number = NaN;
 }

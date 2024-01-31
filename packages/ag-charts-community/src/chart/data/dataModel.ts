@@ -1,8 +1,7 @@
 import { Debug } from '../../util/debug';
 import { Logger } from '../../util/logger';
 import { isNegative } from '../../util/number';
-import { isObject } from '../../util/type-guards';
-import { isNumber } from '../../util/value';
+import { isFiniteNumber, isObject } from '../../util/type-guards';
 import type { ChartAxis } from '../chartAxis';
 import type { ChartMode } from '../chartMode';
 import { DataDomain } from './dataDomain';
@@ -122,7 +121,7 @@ function fixNumericExtentInternal(extent?: (number | Date)[]): [] | [number, num
         max = 0;
     }
 
-    return isNumber(min) && isNumber(max) ? [min, max] : [];
+    return isFiniteNumber(min) && isFiniteNumber(max) ? [min, max] : [];
 }
 
 export function fixNumericExtent(extent?: (number | Date)[], axis?: ChartAxis): [] | [number, number] {

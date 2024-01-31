@@ -38,7 +38,6 @@ import {
     isAgCartesianChartOptions,
     isAgHierarchyChartOptions,
     isAgPolarChartOptions,
-    optionsType,
 } from './mapping/types';
 import { PolarChart } from './polarChart';
 import type { Series } from './series/series';
@@ -357,8 +356,6 @@ class AgChartsInternal {
     }
 
     private static async updateDelta(chart: Chart, processedOptions: ProcessedOptions, userOptions: AgChartOptions) {
-        processedOptions.type ??= chart.processedOptions.type ?? optionsType(processedOptions);
-
         if (chart.destroyed) return;
 
         debug('AgChartV2.updateDelta() - applying delta', processedOptions);

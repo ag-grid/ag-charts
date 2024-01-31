@@ -180,7 +180,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     abstract get direction(): ChartAxisDirection;
 
     boundSeries: ISeries<unknown>[] = [];
-    linkedTo?: Axis<any, any>;
     includeInvisibleDomains: boolean = false;
 
     readonly axisGroup = new Group({ name: `${this.id}-axis`, zIndex: Layers.AXIS_ZINDEX });
@@ -388,14 +387,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     @Validate(predicateWithMessage((title) => typeof title == 'object', 'Title object'), { optional: true })
     public title?: AxisTitle = undefined;
     protected _titleCaption = new Caption();
-
-    private setDomain() {
-        const {
-            scale,
-            dataDomain: { domain },
-        } = this;
-        scale.domain = domain;
-    }
 
     private setTickInterval(interval?: TickInterval<S>) {
         this.scale.interval = this.tick.interval ?? interval;
@@ -727,10 +718,17 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         };
     }
 
+    setDomain(domain: D[]) {
+        this.dataDomain = this.normaliseDataDomain(domain);
+        if (this.reverse) {
+            this.dataDomain.domain.reverse();
+        }
+        this.scale.domain = this.dataDomain.domain;
+    }
+
     updateScale() {
         this.updateRange();
         this.calculateDomain();
-        this.setDomain();
         this.setTickInterval(this.tick.interval);
 
         const { scale, nice } = this;
@@ -1021,7 +1019,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }) {
         const { range, scale, visibleRange } = this;
 
-        let rawTicks: any[] = [];
+        let rawTicks: any[];
 
         switch (tickGenerationType) {
             case TickGenerationType.VALUES:
@@ -1214,14 +1212,9 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     protected calculateDomain() {
-        if (this.linkedTo) {
-            this.dataDomain = this.linkedTo.dataDomain;
-        } else {
-            const visibleSeries = this.boundSeries.filter((s) => this.includeInvisibleDomains || s.isEnabled());
-            const domains = visibleSeries.flatMap((series) => series.getDomain(this.direction));
-            const { domain, clipped } = this.normaliseDataDomain(domains);
-            this.dataDomain = { domain: this.reverse ? [...domain].reverse() : domain, clipped };
-        }
+        const visibleSeries = this.boundSeries.filter((s) => this.includeInvisibleDomains || s.isEnabled());
+        const domains = visibleSeries.flatMap((series) => series.getDomain(this.direction));
+        this.setDomain(domains);
     }
 
     protected getAxisTransform() {
@@ -1243,10 +1236,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const translationY = Math.floor(translation.y);
 
         crossLineGroup.setProperties({ rotation, translationX, translationY });
-
-        axisGroup.datum = this.getAxisTransform();
-
         gridGroup.setProperties({ rotation, translationX, translationY });
+        axisGroup.datum = this.getAxisTransform();
 
         gridLineGroupSelection.each((line) => {
             line.x1 = gridPadding;
@@ -1457,7 +1448,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     normaliseDataDomain(d: D[]): { domain: D[]; clipped: boolean } {
-        return { domain: d, clipped: false };
+        return { domain: [...d], clipped: false };
     }
 
     getLayoutState(): AxisLayout {

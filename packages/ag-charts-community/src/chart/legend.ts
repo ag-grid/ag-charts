@@ -19,12 +19,15 @@ import { getFont } from '../scene/shape/text';
 import { createId } from '../util/id';
 import { Logger } from '../util/logger';
 import { clamp } from '../util/number';
+import { BaseProperties } from '../util/properties';
+import { ObserveChanges } from '../util/proxy';
 import {
     BOOLEAN,
     COLOR_STRING,
     FONT_STYLE,
     FONT_WEIGHT,
     FUNCTION,
+    OBJECT,
     POSITION,
     POSITIVE_NUMBER,
     STRING,
@@ -43,7 +46,7 @@ import { MarkerLabel } from './markerLabel';
 import { Pagination } from './pagination/pagination';
 import { toTooltipHtml } from './tooltip/tooltip';
 
-class LegendLabel {
+class LegendLabel extends BaseProperties {
     @Validate(POSITIVE_NUMBER, { optional: true })
     maxLength?: number = undefined;
 
@@ -66,21 +69,16 @@ class LegendLabel {
     formatter?: (params: AgChartLegendLabelFormatterParams) => string = undefined;
 }
 
-class LegendMarker {
-    @Validate(POSITIVE_NUMBER)
-    size = 15;
+class LegendMarker extends BaseProperties {
     /**
      * If the marker type is set, the legend will always use that marker type for all its items,
      * regardless of the type that comes from the `data`.
      */
-    _shape?: string | (new () => Marker) = undefined;
-    set shape(value: string | (new () => Marker) | undefined) {
-        this._shape = value;
-        this.parent?.onMarkerShapeChange();
-    }
-    get shape() {
-        return this._shape;
-    }
+    @ObserveChanges<LegendMarker>((target) => target.parent?.onMarkerShapeChange())
+    shape?: string | (new () => Marker);
+
+    @Validate(POSITIVE_NUMBER)
+    size = 15;
 
     /**
      * Padding between the marker and the label within each legend item.
@@ -89,59 +87,66 @@ class LegendMarker {
     padding: number = 8;
 
     @Validate(POSITIVE_NUMBER, { optional: true })
-    strokeWidth: number | undefined = undefined;
+    strokeWidth?: number;
 
-    @Validate(BOOLEAN, { optional: true })
-    enabled: boolean | undefined = true;
+    @Validate(BOOLEAN)
+    enabled: boolean = true;
 
     parent?: { onMarkerShapeChange(): void };
 }
 
-class LegendLine {
+class LegendLine extends BaseProperties {
     @Validate(POSITIVE_NUMBER, { optional: true })
-    strokeWidth?: number = undefined;
+    strokeWidth?: number;
 
     @Validate(POSITIVE_NUMBER, { optional: true })
-    length?: number = undefined;
+    length?: number;
 }
 
-class LegendItem {
-    readonly marker = new LegendMarker();
-    readonly label = new LegendLabel();
-    readonly line = new LegendLine();
-
+class LegendItem extends BaseProperties {
     /** Used to constrain the width of legend items. */
     @Validate(POSITIVE_NUMBER, { optional: true })
-    maxWidth?: number = undefined;
+    maxWidth?: number;
     /**
      * The legend uses grid layout for its items, occupying as few columns as possible when positioned to left or right,
      * and as few rows as possible when positioned to top or bottom. This config specifies the amount of horizontal
      * padding between legend items.
      */
     @Validate(POSITIVE_NUMBER)
-    paddingX = 16;
+    paddingX: number = 16;
     /**
      * The legend uses grid layout for its items, occupying as few columns as possible when positioned to left or right,
      * and as few rows as possible when positioned to top or bottom. This config specifies the amount of vertical
      * padding between legend items.
      */
     @Validate(POSITIVE_NUMBER)
-    paddingY = 8;
+    paddingY: number = 8;
 
     @Validate(BOOLEAN)
     toggleSeriesVisible: boolean = true;
 
     @Validate(BOOLEAN)
     showSeriesStroke: boolean = false;
+
+    @Validate(OBJECT)
+    readonly marker = new LegendMarker();
+
+    @Validate(OBJECT)
+    readonly label = new LegendLabel();
+
+    @Validate(OBJECT)
+    readonly line = new LegendLine();
 }
 
-class LegendListeners implements AgChartLegendListeners {
+class LegendListeners extends BaseProperties implements AgChartLegendListeners {
     @Validate(FUNCTION, { optional: true })
-    legendItemClick?: (event: AgChartLegendClickEvent) => void = undefined;
-    legendItemDoubleClick?: (event: AgChartLegendDoubleClickEvent) => void = undefined;
+    legendItemClick?: (event: AgChartLegendClickEvent) => void;
+
+    @Validate(FUNCTION, { optional: true })
+    legendItemDoubleClick?: (event: AgChartLegendDoubleClickEvent) => void;
 }
 
-export class Legend {
+export class Legend extends BaseProperties {
     static className = 'Legend';
 
     readonly id = createId(this);
@@ -153,12 +158,8 @@ export class Legend {
     private oldSize: [number, number] = [0, 0];
     private pages: Page[] = [];
     private maxPageSize: [number, number] = [0, 0];
-    private pagination: Pagination;
     /** Item index to track on re-pagination, so current page updates appropriately. */
     private paginationTrackingIndex: number = 0;
-
-    readonly item = new LegendItem();
-    readonly listeners = new LegendListeners();
 
     private readonly truncatedItems: Set<string> = new Set();
 
@@ -171,54 +172,53 @@ export class Legend {
         return this._data;
     }
 
+    @Validate(OBJECT)
+    readonly pagination: Pagination;
+
+    @Validate(OBJECT)
+    readonly item = new LegendItem();
+
+    @Validate(OBJECT)
+    readonly listeners = new LegendListeners();
+
+    @ObserveChanges<Legend>((target) => target.updateGroupVisibility())
     @Validate(BOOLEAN)
-    private _enabled = true;
-    set enabled(value: boolean) {
-        this._enabled = value;
-        this.updateGroupVisibility();
-    }
-    get enabled() {
-        return this._enabled;
-    }
+    enabled: boolean = true;
 
     @Validate(POSITION)
     position: AgChartLegendPosition = 'bottom';
 
-    private getOrientation(): AgChartLegendOrientation {
-        if (this.orientation !== undefined) {
-            return this.orientation;
-        }
-        switch (this.position) {
-            case 'right':
-            case 'left':
-                return 'vertical';
-            case 'bottom':
-            case 'top':
-                return 'horizontal';
-        }
-    }
-
     /** Used to constrain the width of the legend. */
     @Validate(POSITIVE_NUMBER, { optional: true })
-    maxWidth?: number = undefined;
+    maxWidth?: number;
 
     /** Used to constrain the height of the legend. */
     @Validate(POSITIVE_NUMBER, { optional: true })
-    maxHeight?: number = undefined;
+    maxHeight?: number;
 
     /** Reverse the display order of legend items if `true`. */
     @Validate(BOOLEAN, { optional: true })
-    reverseOrder?: boolean = undefined;
+    reverseOrder?: boolean;
 
     @Validate(UNION(['horizontal', 'vertical'], 'an orientation'), { optional: true })
     orientation?: AgChartLegendOrientation;
 
     @Validate(BOOLEAN, { optional: true })
-    preventHidingAll?: boolean = undefined;
+    preventHidingAll?: boolean;
+
+    /**
+     * Spacing between the legend and the edge of the chart's element.
+     */
+    @Validate(POSITIVE_NUMBER)
+    spacing = 20;
+
+    private characterWidths = new Map();
 
     private destroyFns: Function[] = [];
 
     constructor(private readonly ctx: ModuleContext) {
+        super();
+
         this.item.marker.parent = this;
         this.pagination = new Pagination(
             (type: ChartUpdateType) => ctx.updateService.update(type),
@@ -252,13 +252,19 @@ export class Legend {
         this.group.markDirty(this.group, RedrawType.MINOR);
     }
 
-    /**
-     * Spacing between the legend and the edge of the chart's element.
-     */
-    @Validate(POSITIVE_NUMBER)
-    spacing = 20;
-
-    private characterWidths = new Map();
+    private getOrientation(): AgChartLegendOrientation {
+        if (this.orientation !== undefined) {
+            return this.orientation;
+        }
+        switch (this.position) {
+            case 'right':
+            case 'left':
+                return 'vertical';
+            case 'bottom':
+            case 'top':
+                return 'horizontal';
+        }
+    }
 
     private getCharacterWidths(font: string) {
         const { characterWidths } = this;

@@ -119,7 +119,7 @@ export class CartesianChart extends Chart {
 
         // Clean any positions which aren't valid with the current axis status (otherwise we end up
         // never being able to find a stable result).
-        const liveAxisWidths = new Set(this._axes.map((a) => a.position));
+        const liveAxisWidths = new Set(this.axes.map((a) => a.position));
         for (const position of Object.keys(axisWidths) as AgCartesianAxisPosition[]) {
             if (!liveAxisWidths.has(position)) {
                 delete axisWidths[position];
@@ -235,7 +235,6 @@ export class CartesianChart extends Chart {
         bounds: BBox,
         lastPassSeriesRect?: BBox
     ) {
-        const { axes } = this;
         const visited: Partial<Record<AgCartesianAxisPosition, number>> = {};
         const newAxisWidths: Partial<Record<AgCartesianAxisPosition, number>> = {};
         const visibility: Partial<VisibilityMap> = {
@@ -253,7 +252,7 @@ export class CartesianChart extends Chart {
 
         // Set the number of ticks for continuous axes based on the available range
         // before updating the axis domain via `this.updateAxes()` as the tick count has an effect on the calculated `nice` domain extent
-        axes.forEach((axis) => {
+        this.axes.forEach((axis) => {
             const { position = 'left' } = axis;
 
             const {
@@ -366,10 +365,10 @@ export class CartesianChart extends Chart {
     private clampToOutsideSeriesRect(seriesRect: BBox, value: number, dimension: 'x' | 'y', direction: -1 | 1) {
         const { x, y, width, height } = seriesRect;
         const clampBounds = [x, y, x + width, y + height];
-        const fn = direction === 1 ? Math.min : Math.max;
         const compareTo = clampBounds[(dimension === 'x' ? 0 : 1) + (direction === 1 ? 0 : 2)];
+        const clampFn = direction === 1 ? Math.min : Math.max;
 
-        return fn(value, compareTo);
+        return clampFn(value, compareTo);
     }
 
     private calculateAxisDimensions(opts: {
@@ -422,9 +421,9 @@ export class CartesianChart extends Chart {
 
         const layout = axis.calculateLayout(primaryTickCount);
         primaryTickCount = layout.primaryTickCount;
-        primaryTickCounts[direction] = primaryTickCounts[direction] ?? primaryTickCount;
+        primaryTickCounts[direction] ??= primaryTickCount;
 
-        let axisThickness = 0;
+        let axisThickness;
         if (axis.thickness != null && axis.thickness > 0) {
             axisThickness = axis.thickness;
         } else {

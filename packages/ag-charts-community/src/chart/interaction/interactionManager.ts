@@ -1,6 +1,6 @@
 import { injectStyle } from '../../util/dom';
 import { Logger } from '../../util/logger';
-import { isNumber } from '../../util/value';
+import { isFiniteNumber } from '../../util/type-guards';
 import { BaseManager } from './baseManager';
 
 type InteractionTypes =
@@ -333,12 +333,12 @@ export class InteractionManager extends BaseManager<
         const { type, event, clientX, clientY, pauses } = opts;
         let { offsetX, offsetY, pageX, pageY } = opts;
 
-        if (!isNumber(offsetX) || !isNumber(offsetY)) {
+        if (!isFiniteNumber(offsetX) || !isFiniteNumber(offsetY)) {
             const rect = this.element.getBoundingClientRect();
             offsetX = clientX - rect.left;
             offsetY = clientY - rect.top;
         }
-        if (!isNumber(pageX) || !isNumber(pageY)) {
+        if (!isFiniteNumber(pageX) || !isFiniteNumber(pageY)) {
             const pageRect = this.rootElement.getBoundingClientRect();
             pageX = clientX - pageRect.left;
             pageY = clientY - pageRect.top;
@@ -353,10 +353,10 @@ export class InteractionManager extends BaseManager<
 
         const builtEvent = {
             type,
-            offsetX: offsetX!,
-            offsetY: offsetY!,
-            pageX: pageX!,
-            pageY: pageY!,
+            offsetX,
+            offsetY,
+            pageX,
+            pageY,
             deltaX,
             deltaY,
             sourceEvent: event,

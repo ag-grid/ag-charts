@@ -27,6 +27,12 @@ export function ProxyPropertyOnWrite(childName: string, childProperty?: string) 
     return addTransformToInstanceProperty((target, key, value) => (target[childName][childProperty ?? key] = value));
 }
 
+export interface ActionOnSetOptions<T> {
+    newValue?: (this: T, newValue: any) => void;
+    oldValue?: (this: T, oldValue: any) => void;
+    changeValue?: (this: T, newValue?: any, oldValue?: any) => void;
+}
+
 /**
  * Allows side-effects to be triggered on property write.
  *
@@ -35,11 +41,7 @@ export function ProxyPropertyOnWrite(childName: string, childProperty?: string) 
  *                      undefined values.
  * @param opts.changeValue called on any change to the value - always called.
  */
-export function ActionOnSet<T>(opts: {
-    newValue?: (this: T, newValue: any) => void;
-    oldValue?: (this: T, oldValue: any) => void;
-    changeValue?: (this: T, newValue?: any, oldValue?: any) => void;
-}) {
+export function ActionOnSet<T>(opts: ActionOnSetOptions<T>) {
     const { newValue: newValueFn, oldValue: oldValueFn, changeValue: changeValueFn } = opts;
     return addTransformToInstanceProperty((target, _, newValue, oldValue) => {
         if (newValue !== oldValue) {
