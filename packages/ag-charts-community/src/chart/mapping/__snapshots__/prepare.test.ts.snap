@@ -199,6 +199,14 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
       "width": 8,
     },
   },
+  "overlays": {
+    "noData": {
+      "darkTheme": false,
+    },
+    "noVisibleSeries": {
+      "darkTheme": false,
+    },
+  },
   "padding": {
     "bottom": 30,
     "left": 10,
@@ -422,6 +430,7 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
     "wrapping": "hyphenate",
   },
   "tooltip": {
+    "darkTheme": false,
     "delay": 0,
     "enabled": true,
     "range": "nearest",
@@ -663,6 +672,14 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
       "width": 8,
     },
   },
+  "overlays": {
+    "noData": {
+      "darkTheme": false,
+    },
+    "noVisibleSeries": {
+      "darkTheme": false,
+    },
+  },
   "padding": {
     "bottom": 20,
     "left": 20,
@@ -895,6 +912,7 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
     "wrapping": "hyphenate",
   },
   "tooltip": {
+    "darkTheme": false,
     "delay": 0,
     "enabled": true,
     "range": "nearest",
@@ -1082,6 +1100,14 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
       "stroke": "#999999",
       "strokeWidth": 1,
       "width": 8,
+    },
+  },
+  "overlays": {
+    "noData": {
+      "darkTheme": false,
+    },
+    "noVisibleSeries": {
+      "darkTheme": false,
     },
   },
   "padding": {
@@ -1550,6 +1576,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
     "wrapping": "hyphenate",
   },
   "tooltip": {
+    "darkTheme": false,
     "delay": 0,
     "enabled": true,
     "range": "nearest",
@@ -1737,6 +1764,14 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
       "stroke": "#999999",
       "strokeWidth": 1,
       "width": 8,
+    },
+  },
+  "overlays": {
+    "noData": {
+      "darkTheme": false,
+    },
+    "noVisibleSeries": {
+      "darkTheme": false,
     },
   },
   "padding": {
@@ -2247,6 +2282,7 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
   },
   "tooltip": {
     "class": "my-tooltip",
+    "darkTheme": false,
     "delay": 0,
     "enabled": true,
     "range": "nearest",
@@ -2434,6 +2470,14 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
       "width": 8,
     },
   },
+  "overlays": {
+    "noData": {
+      "darkTheme": false,
+    },
+    "noVisibleSeries": {
+      "darkTheme": false,
+    },
+  },
   "padding": {
     "bottom": 20,
     "left": 20,
@@ -2523,6 +2567,7 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
     "wrapping": "hyphenate",
   },
   "tooltip": {
+    "darkTheme": false,
     "delay": 0,
     "enabled": true,
     "range": "nearest",
@@ -2709,6 +2754,14 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
       "stroke": "#999999",
       "strokeWidth": 1,
       "width": 8,
+    },
+  },
+  "overlays": {
+    "noData": {
+      "darkTheme": false,
+    },
+    "noVisibleSeries": {
+      "darkTheme": false,
     },
   },
   "padding": {
@@ -2996,6 +3049,7 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
     "wrapping": "hyphenate",
   },
   "tooltip": {
+    "darkTheme": false,
     "delay": 0,
     "enabled": true,
     "range": "nearest",
@@ -3183,6 +3237,14 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
       "stroke": "#999999",
       "strokeWidth": 1,
       "width": 8,
+    },
+  },
+  "overlays": {
+    "noData": {
+      "darkTheme": false,
+    },
+    "noVisibleSeries": {
+      "darkTheme": false,
     },
   },
   "padding": {
@@ -3577,6 +3639,7 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
     "wrapping": "hyphenate",
   },
   "tooltip": {
+    "darkTheme": false,
     "delay": 0,
     "enabled": true,
     "range": "nearest",
@@ -3766,6 +3829,14 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
       "width": 8,
     },
   },
+  "overlays": {
+    "noData": {
+      "darkTheme": false,
+    },
+    "noVisibleSeries": {
+      "darkTheme": false,
+    },
+  },
   "padding": {
     "bottom": 20,
     "left": 20,
@@ -3864,6 +3935,7 @@ by Occupation",
     "wrapping": "hyphenate",
   },
   "tooltip": {
+    "darkTheme": false,
     "delay": 0,
     "enabled": true,
     "range": "nearest",
@@ -4053,6 +4125,14 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
       "width": 8,
     },
   },
+  "overlays": {
+    "noData": {
+      "darkTheme": false,
+    },
+    "noVisibleSeries": {
+      "darkTheme": false,
+    },
+  },
   "padding": {
     "bottom": 20,
     "left": 20,
@@ -4142,6 +4222,7 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
     "wrapping": "hyphenate",
   },
   "tooltip": {
+    "darkTheme": false,
     "delay": 0,
     "enabled": true,
     "range": "nearest",
@@ -4336,6 +4417,14 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
       "width": 8,
     },
   },
+  "overlays": {
+    "noData": {
+      "darkTheme": false,
+    },
+    "noVisibleSeries": {
+      "darkTheme": false,
+    },
+  },
   "padding": {
     "bottom": 20,
     "left": 20,
@@ -4419,6 +4508,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
     "wrapping": "hyphenate",
   },
   "tooltip": {
+    "darkTheme": false,
     "delay": 0,
     "enabled": true,
     "range": "nearest",
@@ -4612,6 +4702,14 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
       "width": 8,
     },
   },
+  "overlays": {
+    "noData": {
+      "darkTheme": false,
+    },
+    "noVisibleSeries": {
+      "darkTheme": false,
+    },
+  },
   "padding": {
     "bottom": 20,
     "left": 20,
@@ -4698,6 +4796,7 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
     "wrapping": "hyphenate",
   },
   "tooltip": {
+    "darkTheme": false,
     "delay": 0,
     "enabled": true,
     "range": "nearest",
@@ -4887,6 +4986,14 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
       "width": 8,
     },
   },
+  "overlays": {
+    "noData": {
+      "darkTheme": false,
+    },
+    "noVisibleSeries": {
+      "darkTheme": false,
+    },
+  },
   "padding": {
     "bottom": 20,
     "left": 20,
@@ -5057,6 +5164,7 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
     "wrapping": "hyphenate",
   },
   "tooltip": {
+    "darkTheme": false,
     "delay": 0,
     "enabled": true,
     "range": "nearest",
@@ -5246,6 +5354,14 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
       "width": 8,
     },
   },
+  "overlays": {
+    "noData": {
+      "darkTheme": false,
+    },
+    "noVisibleSeries": {
+      "darkTheme": false,
+    },
+  },
   "padding": {
     "bottom": 20,
     "left": 20,
@@ -5420,6 +5536,7 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
     "wrapping": "hyphenate",
   },
   "tooltip": {
+    "darkTheme": false,
     "delay": 0,
     "enabled": true,
     "range": "nearest",
@@ -5607,6 +5724,14 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
       "stroke": "#999999",
       "strokeWidth": 1,
       "width": 8,
+    },
+  },
+  "overlays": {
+    "noData": {
+      "darkTheme": false,
+    },
+    "noVisibleSeries": {
+      "darkTheme": false,
     },
   },
   "padding": {
@@ -6064,6 +6189,7 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
     "wrapping": "hyphenate",
   },
   "tooltip": {
+    "darkTheme": false,
     "delay": 0,
     "enabled": true,
     "range": "nearest",
@@ -6254,6 +6380,14 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
       "stroke": "#999999",
       "strokeWidth": 1,
       "width": 8,
+    },
+  },
+  "overlays": {
+    "noData": {
+      "darkTheme": false,
+    },
+    "noVisibleSeries": {
+      "darkTheme": false,
     },
   },
   "padding": {
@@ -7254,6 +7388,7 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     "wrapping": "hyphenate",
   },
   "tooltip": {
+    "darkTheme": false,
     "delay": 0,
     "enabled": true,
     "range": "nearest",
@@ -7442,6 +7577,14 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
       "width": 8,
     },
   },
+  "overlays": {
+    "noData": {
+      "darkTheme": false,
+    },
+    "noVisibleSeries": {
+      "darkTheme": false,
+    },
+  },
   "padding": {
     "bottom": 20,
     "left": 20,
@@ -7527,6 +7670,7 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
     "wrapping": "hyphenate",
   },
   "tooltip": {
+    "darkTheme": false,
     "delay": 0,
     "enabled": true,
     "range": "nearest",
@@ -7715,6 +7859,14 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
       "stroke": "#999999",
       "strokeWidth": 1,
       "width": 8,
+    },
+  },
+  "overlays": {
+    "noData": {
+      "darkTheme": false,
+    },
+    "noVisibleSeries": {
+      "darkTheme": false,
     },
   },
   "padding": {
@@ -8273,6 +8425,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
     "wrapping": "hyphenate",
   },
   "tooltip": {
+    "darkTheme": false,
     "delay": 0,
     "enabled": true,
     "range": "nearest",
@@ -8461,6 +8614,14 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
       "stroke": "#999999",
       "strokeWidth": 1,
       "width": 8,
+    },
+  },
+  "overlays": {
+    "noData": {
+      "darkTheme": false,
+    },
+    "noVisibleSeries": {
+      "darkTheme": false,
     },
   },
   "padding": {
@@ -8701,6 +8862,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
     "wrapping": "hyphenate",
   },
   "tooltip": {
+    "darkTheme": false,
     "delay": 0,
     "enabled": true,
     "range": "nearest",
@@ -8889,6 +9051,14 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
       "stroke": "#999999",
       "strokeWidth": 1,
       "width": 8,
+    },
+  },
+  "overlays": {
+    "noData": {
+      "darkTheme": false,
+    },
+    "noVisibleSeries": {
+      "darkTheme": false,
     },
   },
   "padding": {
@@ -9308,6 +9478,7 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
     "wrapping": "hyphenate",
   },
   "tooltip": {
+    "darkTheme": false,
     "delay": 0,
     "enabled": true,
     "range": "nearest",
@@ -9498,6 +9669,14 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
       "stroke": "#999999",
       "strokeWidth": 1,
       "width": 8,
+    },
+  },
+  "overlays": {
+    "noData": {
+      "darkTheme": false,
+    },
+    "noVisibleSeries": {
+      "darkTheme": false,
     },
   },
   "padding": {
@@ -9803,6 +9982,7 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
     "wrapping": "hyphenate",
   },
   "tooltip": {
+    "darkTheme": false,
     "delay": 0,
     "enabled": true,
     "range": "nearest",
@@ -9992,6 +10172,14 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
       "width": 8,
     },
   },
+  "overlays": {
+    "noData": {
+      "darkTheme": false,
+    },
+    "noVisibleSeries": {
+      "darkTheme": false,
+    },
+  },
   "padding": {
     "bottom": 20,
     "left": 20,
@@ -10080,6 +10268,7 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
     "wrapping": "hyphenate",
   },
   "tooltip": {
+    "darkTheme": false,
     "delay": 0,
     "enabled": true,
     "range": "nearest",
@@ -10148,6 +10337,14 @@ exports[`prepare #prepareOptions for SIMPLE_DOUGHNUT_CHART_EXAMPLE it should pre
     "spacing": 30,
   },
   "listeners": {},
+  "overlays": {
+    "noData": {
+      "darkTheme": false,
+    },
+    "noVisibleSeries": {
+      "darkTheme": false,
+    },
+  },
   "padding": {
     "bottom": 20,
     "left": 20,
@@ -10303,6 +10500,7 @@ exports[`prepare #prepareOptions for SIMPLE_DOUGHNUT_CHART_EXAMPLE it should pre
     "wrapping": "hyphenate",
   },
   "tooltip": {
+    "darkTheme": false,
     "delay": 0,
     "enabled": true,
     "range": "nearest",
@@ -10497,6 +10695,14 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
       "width": 8,
     },
   },
+  "overlays": {
+    "noData": {
+      "darkTheme": false,
+    },
+    "noVisibleSeries": {
+      "darkTheme": false,
+    },
+  },
   "padding": {
     "bottom": 20,
     "left": 20,
@@ -10654,6 +10860,7 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
     "wrapping": "hyphenate",
   },
   "tooltip": {
+    "darkTheme": false,
     "delay": 0,
     "enabled": true,
     "range": "nearest",
@@ -10722,6 +10929,14 @@ exports[`prepare #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare 
     "spacing": 30,
   },
   "listeners": {},
+  "overlays": {
+    "noData": {
+      "darkTheme": false,
+    },
+    "noVisibleSeries": {
+      "darkTheme": false,
+    },
+  },
   "padding": {
     "bottom": 20,
     "left": 20,
@@ -10855,6 +11070,7 @@ exports[`prepare #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare 
     "wrapping": "hyphenate",
   },
   "tooltip": {
+    "darkTheme": false,
     "delay": 0,
     "enabled": true,
     "range": "nearest",
@@ -11042,6 +11258,14 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
       "width": 8,
     },
   },
+  "overlays": {
+    "noData": {
+      "darkTheme": false,
+    },
+    "noVisibleSeries": {
+      "darkTheme": false,
+    },
+  },
   "padding": {
     "bottom": 20,
     "left": 20,
@@ -11120,6 +11344,7 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
     "wrapping": "hyphenate",
   },
   "tooltip": {
+    "darkTheme": false,
     "delay": 0,
     "enabled": true,
     "range": "nearest",
@@ -11312,6 +11537,14 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
       "stroke": "#999999",
       "strokeWidth": 1,
       "width": 8,
+    },
+  },
+  "overlays": {
+    "noData": {
+      "darkTheme": false,
+    },
+    "noVisibleSeries": {
+      "darkTheme": false,
     },
   },
   "padding": {
@@ -11808,6 +12041,7 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
     "wrapping": "hyphenate",
   },
   "tooltip": {
+    "darkTheme": false,
     "delay": 0,
     "enabled": true,
     "range": "nearest",
@@ -11996,6 +12230,14 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
       "stroke": "#999999",
       "strokeWidth": 1,
       "width": 8,
+    },
+  },
+  "overlays": {
+    "noData": {
+      "darkTheme": false,
+    },
+    "noVisibleSeries": {
+      "darkTheme": false,
     },
   },
   "padding": {
@@ -12278,6 +12520,7 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
     "wrapping": "hyphenate",
   },
   "tooltip": {
+    "darkTheme": false,
     "delay": 0,
     "enabled": true,
     "range": "nearest",
@@ -12465,6 +12708,14 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
       "stroke": "#999999",
       "strokeWidth": 1,
       "width": 8,
+    },
+  },
+  "overlays": {
+    "noData": {
+      "darkTheme": false,
+    },
+    "noVisibleSeries": {
+      "darkTheme": false,
     },
   },
   "padding": {
@@ -12823,6 +13074,7 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
     "wrapping": "hyphenate",
   },
   "tooltip": {
+    "darkTheme": false,
     "delay": 0,
     "enabled": true,
     "range": "nearest",
