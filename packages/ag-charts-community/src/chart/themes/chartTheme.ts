@@ -294,6 +294,14 @@ export class ChartTheme {
                 range: 'nearest' as InteractionRange,
                 delay: 0,
             },
+            overlays: {
+                noData: {
+                    darkMode: IS_DARK_MODE,
+                },
+                noVisibleSeries: {
+                    darkMode: IS_DARK_MODE,
+                },
+            },
             listeners: {},
         };
     }
