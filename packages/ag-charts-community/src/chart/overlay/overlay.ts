@@ -19,7 +19,7 @@ export class Overlay {
     text?: string;
 
     @Validate(BOOLEAN)
-    darkMode = false;
+    darkTheme = false;
 
     show(rect: BBox) {
         if (!this.element) {
@@ -27,11 +27,7 @@ export class Overlay {
             this.element.className = this.className;
         }
 
-        if (this.darkMode) {
-            this.element.classList.add(`${this.className}-dark`);
-        } else {
-            this.element.classList.remove(`${this.className}-dark`);
-        }
+        this.element.classList.toggle(`${this.className}-dark`, this.darkTheme);
 
         const { element } = this;
         element.style.position = 'absolute';
