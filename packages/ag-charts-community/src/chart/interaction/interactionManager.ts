@@ -79,7 +79,7 @@ type SupportedEvent = MouseEvent | TouchEvent | Event;
 
 export enum InteractionState {
     Default = -Infinity,
-    ZoomPan = 1,
+    ZoomDrag = 1,
     ContextMenu = 2,
     Animation = 3,
 }
