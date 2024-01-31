@@ -198,7 +198,7 @@ const areaOptions: AgChartOptions = {
 const donutOptions: AgChartOptions = {
     series: [
         {
-            type: 'donut',
+            type: 'pie',
             title: {
                 text: 'Morning Peak',
             },
@@ -206,7 +206,6 @@ const donutOptions: AgChartOptions = {
             legendItemKey: 'station',
             angleKey: 'morningPeak',
             outerRadiusRatio: 0.6,
-            innerRadiusRatio: 0.3,
         },
         {
             type: 'donut',

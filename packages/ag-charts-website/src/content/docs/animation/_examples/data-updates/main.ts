@@ -228,7 +228,7 @@ const areaOptions: AgChartOptions = {
 const donutOptions: AgChartOptions = {
     series: [
         {
-            type: 'donut',
+            type: 'pie',
             title: {
                 text: 'One',
             },
@@ -236,7 +236,6 @@ const donutOptions: AgChartOptions = {
             legendItemKey: 'year',
             angleKey: 'one',
             outerRadiusRatio: 0.6,
-            innerRadiusRatio: 0.3,
         },
         {
             type: 'donut',
@@ -256,7 +255,7 @@ const donutOptions: AgChartOptions = {
 const chart = AgCharts.create(options);
 
 // Elements
-const tickingButton = document.getElementsByClassName('animation-data-updates__toggle-ticking');
+const tickingButton = document.getElementsByClassName('animation-data-updates__toggle-ticking')[0];
 const actionButtons = document.getElementsByClassName('animation-data-updates__action');
 
 if (tickingButton) {
