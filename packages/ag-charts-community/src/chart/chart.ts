@@ -693,7 +693,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     private checkFirstAutoSize(seriesToUpdate: ISeries<any>[]) {
         if (this.autoSize && !this._lastAutoSize) {
             const count = this._performUpdateNoRenderCount++;
-            const backOffMs = (count ^ 2) * 10;
+            const backOffMs = count ** 2 * 10;
 
             if (count < 8) {
                 // Reschedule if canvas size hasn't been set yet to avoid a race.
