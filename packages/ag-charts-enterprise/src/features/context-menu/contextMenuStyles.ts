@@ -1,4 +1,5 @@
 export const DEFAULT_CONTEXT_MENU_CLASS = 'ag-chart-context-menu';
+export const DEFAULT_CONTEXT_MENU_DARK_CLASS = `ag-charts-dark-context-menu`;
 
 export const defaultContextMenuCss = `
 .${DEFAULT_CONTEXT_MENU_CLASS} {
@@ -12,6 +13,11 @@ export const defaultContextMenuCss = `
     transition: transform 0.1s ease;
     white-space: nowrap;
     z-index: 99999;
+}
+
+.${DEFAULT_CONTEXT_MENU_CLASS}.${DEFAULT_CONTEXT_MENU_DARK_CLASS} {
+    color: white;
+    background: #15181c;
 }
 
 .${DEFAULT_CONTEXT_MENU_CLASS}__cover {
@@ -37,12 +43,24 @@ export const defaultContextMenuCss = `
     -moz-appearance: none;
 }
 
+.${DEFAULT_CONTEXT_MENU_CLASS}__item.${DEFAULT_CONTEXT_MENU_DARK_CLASS} {
+    color: white;
+}
+
 .${DEFAULT_CONTEXT_MENU_CLASS}__item:hover {
+    background: rgb(33, 150, 243, 0.1);
+}
+
+.${DEFAULT_CONTEXT_MENU_CLASS}__item:hover.${DEFAULT_CONTEXT_MENU_DARK_CLASS} {
     background: rgb(33, 150, 243, 0.1);
 }
 
 .${DEFAULT_CONTEXT_MENU_CLASS}__item:active {
     background: rgb(33, 150, 243, 0.2);
+}
+
+.${DEFAULT_CONTEXT_MENU_CLASS}__item:active.${DEFAULT_CONTEXT_MENU_DARK_CLASS} {
+    background: rgb(33, 150, 243, 0.1);
 }
 
 .${DEFAULT_CONTEXT_MENU_CLASS}__item[disabled] {
@@ -60,5 +78,9 @@ export const defaultContextMenuCss = `
     margin: 5px 0;
     background: #babfc7;
     height: 1px;
+}
+
+.${DEFAULT_CONTEXT_MENU_CLASS}__divider.${DEFAULT_CONTEXT_MENU_DARK_CLASS} {
+    background: rgb(33, 150, 243, 0.1);
 }
 `;

@@ -1,3 +1,4 @@
+export const IS_DARK_MODE = Symbol('is-dark-mode') as unknown as string;
 export const EXTENDS_CHART_DEFAULTS = Symbol('extends-chart-defaults') as unknown as string;
 export const EXTENDS_LEGEND_DEFAULTS = Symbol('extends-legend-defaults') as unknown as string;
 export const EXTENDS_LEGEND_ITEM_DEFAULTS = Symbol('extends-legend-item-defaults') as unknown as string;

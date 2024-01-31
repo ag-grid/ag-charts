@@ -1,4 +1,5 @@
 import type { _ModuleSupport } from 'ag-charts-community';
+import { _Theme } from 'ag-charts-community';
 
 import { ContextMenu } from './contextMenu';
 
@@ -14,6 +15,7 @@ export const ContextMenuModule: _ModuleSupport.Module = {
     themeTemplate: {
         contextMenu: {
             enabled: true,
+            darkMode: _Theme.IS_DARK_MODE,
         },
     },
 };

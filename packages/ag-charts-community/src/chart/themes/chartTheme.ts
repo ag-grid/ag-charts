@@ -45,6 +45,7 @@ import {
     EXTENDS_LEGEND_ITEM_DEFAULTS,
     EXTENDS_LEGEND_ITEM_MARKER_DEFAULTS,
     EXTENDS_SERIES_DEFAULTS,
+    IS_DARK_MODE,
     OVERRIDE_SERIES_LABEL_DEFAULTS,
 } from './symbols';
 
@@ -289,6 +290,7 @@ export class ChartTheme {
             },
             tooltip: {
                 enabled: true,
+                darkMode: IS_DARK_MODE,
                 range: 'nearest' as InteractionRange,
                 delay: 0,
             },
@@ -527,6 +529,7 @@ export class ChartTheme {
         extensions.set(EXTENDS_CARTESIAN_MARKER_DEFAULTS, ChartTheme.getCartesianSeriesMarkerDefaults());
 
         const properties = new Map();
+        properties.set(IS_DARK_MODE, false);
         properties.set(DEFAULT_FONT_FAMILY, 'Verdana, sans-serif');
         properties.set(DEFAULT_LABEL_COLOUR, 'rgb(70, 70, 70)');
         properties.set(DEFAULT_INVERTED_LABEL_COLOUR, 'white');

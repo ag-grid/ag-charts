@@ -15,6 +15,7 @@ import {
     DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
     DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
     DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
+    IS_DARK_MODE,
 } from './symbols';
 
 // If this changes, update plugins/ag-charts-generate-chart-thumbnail/src/executors/generate/generator/constants.ts
@@ -85,6 +86,7 @@ export class DarkTheme extends ChartTheme {
     override getTemplateParameters() {
         const result = super.getTemplateParameters();
 
+        result.properties.set(IS_DARK_MODE, true);
         result.properties.set(
             DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
             DarkTheme.getWaterfallSeriesDefaultPositiveColors()
