@@ -106,10 +106,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     private dragStartElement?: HTMLElement;
 
     private stateQueue: Set<InteractionState> = new Set();
-    private _state: InteractionState = InteractionState.Default;
-    public get state() {
-        return this._state;
-    }
+    public state: InteractionState = InteractionState.Default;
 
     public constructor(element: HTMLElement, document: Document, window: Window) {
         super();
@@ -161,7 +158,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     }
 
     private updateCurrentState() {
-        this._state = Array.from(this.stateQueue).reduce((max, s) => Math.max(max, s), InteractionState.Default);
+        this.state = Array.from(this.stateQueue).reduce((max, s) => Math.max(max, s), InteractionState.Default);
     }
 
     private processEvent(event: SupportedEvent) {
