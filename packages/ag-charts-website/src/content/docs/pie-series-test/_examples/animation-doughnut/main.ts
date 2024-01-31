@@ -16,7 +16,7 @@ const options: AgChartOptions = {
     data,
     series: [
         {
-            type: 'pie',
+            type: 'donut',
             calloutLabelKey: 'asset',
             angleKey: 'amount',
             innerRadiusRatio: 0.9,

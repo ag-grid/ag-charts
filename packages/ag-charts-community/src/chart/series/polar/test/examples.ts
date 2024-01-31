@@ -129,14 +129,14 @@ export const PIE_SECTORS_LABELS: AgPolarChartOptions = {
     ],
 };
 
-export const DOUGHNUT_SERIES: AgPolarChartOptions = {
+export const DONUT_SERIES: AgPolarChartOptions = {
     title: {
         text: 'Market Share',
     },
     data: DATA_MARKET_SHARE,
     series: [
         {
-            type: 'pie',
+            type: 'donut',
             calloutLabelKey: 'os',
             angleKey: 'share',
             innerRadiusOffset: -70,
@@ -144,14 +144,14 @@ export const DOUGHNUT_SERIES: AgPolarChartOptions = {
     ],
 };
 
-export const DOUGHNUT_SERIES_INNER_TEXT: AgPolarChartOptions = {
+export const DONUT_SERIES_INNER_TEXT: AgPolarChartOptions = {
     title: {
         text: 'Market Share',
     },
     data: DATA_MARKET_SHARE,
     series: [
         {
-            type: 'pie',
+            type: 'donut',
             calloutLabelKey: 'os',
             angleKey: 'share',
             innerRadiusOffset: -30,
@@ -166,14 +166,14 @@ export const DOUGHNUT_SERIES_INNER_TEXT: AgPolarChartOptions = {
     ],
 };
 
-export const DOUGHNUT_SERIES_RATIO: AgPolarChartOptions = {
+export const DONUT_SERIES_RATIO: AgPolarChartOptions = {
     title: {
         text: 'Market Share',
     },
     data: DATA_MARKET_SHARE,
     series: [
         {
-            type: 'pie',
+            type: 'donut',
             sectorLabelKey: 'share',
             angleKey: 'share',
             outerRadiusRatio: 0.9,
@@ -185,14 +185,14 @@ export const DOUGHNUT_SERIES_RATIO: AgPolarChartOptions = {
     ],
 };
 
-export const GROUPED_DOUGHNUT_SERIES: AgPolarChartOptions = {
+export const GROUPED_DONUT_SERIES: AgPolarChartOptions = {
     title: {
         text: 'Market Share',
     },
     data: DATA_MARKET_SHARE,
     series: [
         {
-            type: 'pie',
+            type: 'donut',
             title: {
                 text: 'Market Share',
             },
@@ -201,7 +201,7 @@ export const GROUPED_DOUGHNUT_SERIES: AgPolarChartOptions = {
             innerRadiusOffset: -40,
         },
         {
-            type: 'pie',
+            type: 'donut',
             title: {
                 text: 'Satisfaction',
             },
@@ -213,14 +213,14 @@ export const GROUPED_DOUGHNUT_SERIES: AgPolarChartOptions = {
     ],
 };
 
-export const DOUGHNUT_SERIES_DIFFERENT_RADII: AgPolarChartOptions = {
+export const DONUT_SERIES_DIFFERENT_RADII: AgPolarChartOptions = {
     title: {
         text: 'Market Share',
     },
     data: DATA_MARKET_SHARE,
     series: [
         {
-            type: 'pie',
+            type: 'donut',
             title: {
                 text: 'Market Share',
             },
@@ -232,14 +232,14 @@ export const DOUGHNUT_SERIES_DIFFERENT_RADII: AgPolarChartOptions = {
     ],
 };
 
-export const GROUPED_DOUGHNUT_SERIES_DIFFERENT_RADII: AgPolarChartOptions = {
+export const GROUPED_DONUT_SERIES_DIFFERENT_RADII: AgPolarChartOptions = {
     title: {
         text: 'Market Share',
     },
     data: DATA_MARKET_SHARE,
     series: [
         {
-            type: 'pie',
+            type: 'donut',
             title: {
                 text: 'Market Share',
             },
@@ -249,7 +249,7 @@ export const GROUPED_DOUGHNUT_SERIES_DIFFERENT_RADII: AgPolarChartOptions = {
             innerRadiusOffset: -100,
         },
         {
-            type: 'pie',
+            type: 'donut',
             title: {
                 text: 'Satisfaction',
             },

@@ -1,7 +1,6 @@
 import type { SeriesModule } from '../../../module/coreModules';
 import { FONT_WEIGHT } from '../../themes/constants';
 import {
-    DEFAULT_BACKGROUND_COLOUR,
     DEFAULT_FONT_FAMILY,
     DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
     DEFAULT_LABEL_COLOUR,
@@ -9,16 +8,16 @@ import {
     DEFAULT_SHADOW_COLOUR,
     EXTENDS_SERIES_DEFAULTS,
 } from '../../themes/symbols';
-import { PieSeries } from './pieSeries';
+import { DonutSeries } from './donutSeries';
 
-export const PieSeriesModule: SeriesModule<'pie'> = {
+export const DonutSeriesModule: SeriesModule<'donut'> = {
     type: 'series',
     optionsKey: 'series[]',
     packageType: 'community',
     chartTypes: ['polar'],
 
-    identifier: 'pie',
-    instanceConstructor: PieSeries,
+    identifier: 'donut',
+    instanceConstructor: DonutSeries,
     seriesDefaults: {},
     themeTemplate: {
         __extends__: EXTENDS_SERIES_DEFAULTS,
@@ -61,8 +60,9 @@ export const PieSeriesModule: SeriesModule<'pie'> = {
         lineDash: [0],
         lineDashOffset: 0,
         rotation: 0,
-        // @todo(AG-10275) Uncomment this
-        // sectorSpacing: 1,
+        outerRadiusOffset: 0,
+        innerRadiusOffset: 0,
+        sectorSpacing: 1,
         shadow: {
             enabled: false,
             color: DEFAULT_SHADOW_COLOUR,
@@ -76,10 +76,8 @@ export const PieSeriesModule: SeriesModule<'pie'> = {
             fontSize: 12,
             fontFamily: DEFAULT_FONT_FAMILY,
             color: DEFAULT_LABEL_COLOUR,
+            margin: 2,
         },
-        // @todo(AG-10275) Remove this
-        // @ts-expect-error
-        __BACKGROUND_COLOR_DO_NOT_USE: DEFAULT_BACKGROUND_COLOUR,
     },
     paletteFactory: ({ takeColors, colorsCount, userPalette }) => {
         const { fills, strokes } = takeColors(colorsCount);

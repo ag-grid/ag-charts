@@ -17,7 +17,7 @@ const options: AgChartOptions = {
     },
     series: [
         {
-            type: 'pie',
+            type: 'donut',
             calloutLabelKey: 'type',
             angleKey: 'count',
             sectorLabelKey: 'count',

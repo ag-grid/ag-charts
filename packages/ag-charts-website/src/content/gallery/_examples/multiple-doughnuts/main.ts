@@ -20,7 +20,7 @@ const options: AgChartOptions = {
     series: [
         {
             data: data['cities'],
-            type: 'pie',
+            type: 'donut',
             angleKey: 'value',
             sectorLabelKey: 'city',
             outerRadiusRatio: 0.8,
@@ -37,7 +37,7 @@ const options: AgChartOptions = {
         },
         {
             data: data['countries'],
-            type: 'pie',
+            type: 'donut',
             angleKey: 'value',
             sectorLabelKey: 'country',
             outerRadiusRatio: 0.6,
@@ -54,7 +54,7 @@ const options: AgChartOptions = {
         },
         {
             data: data['continents'],
-            type: 'pie',
+            type: 'donut',
             angleKey: 'value',
             sectorLabelKey: 'continent',
             outerRadiusRatio: 0.2,

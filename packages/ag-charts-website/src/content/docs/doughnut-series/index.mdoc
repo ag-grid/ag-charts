@@ -8,12 +8,12 @@ A Doughnut Series is a variation of a Pie Series, and allows displaying multiple
 
 {% chartExampleRunner title="Doughnut Chart" name="simple-doughnut" type="generated" /%}
 
-To create a Doughnut Series, use the `pie` series type and specify an `innerRadiusRatio`.
+To create a Doughnut Series, use the `donut` series type and specify an `innerRadiusRatio`.
 
 ```js
 series: [
     {
-        type: 'pie',
+        type: 'donut',
         calloutLabelKey: 'asset',
         angleKey: 'amount',
         innerRadiusRatio: 0.7,
@@ -58,7 +58,7 @@ series: [
 
 {% chartExampleRunner title="Multi-Doughnut Chart" name="multi-doughnut" type="generated" /%}
 
-To render multiple pie series in a single chart without overlapping, set an `outerRadiusRatio` in conjunction with an `innerRadiusRatio`.
+To render multiple donut series in a single chart without overlapping, set an `outerRadiusRatio` in conjunction with an `innerRadiusRatio`.
 
 ```js
 series: [
@@ -113,8 +113,8 @@ Using `showInLegend: false` for the second series, ensures that there are no dup
 
 {% tabs %}
 
-{% tabItem id="AgPieSeriesOptions" label="Pie Series" %}
-{% apiReference id="AgPieSeriesOptions" /%}
+{% tabItem id="AgDonutSeriesOptions" label="Donut Series" %}
+{% apiReference id="AgDonutSeriesOptions" /%}
 {% /tabItem %}
 
 {% /tabs %}

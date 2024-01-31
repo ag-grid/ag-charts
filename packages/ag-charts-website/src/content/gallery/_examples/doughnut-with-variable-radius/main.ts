@@ -21,7 +21,7 @@ const options: AgChartOptions = {
     series: [
         {
             data: data['categories'],
-            type: 'pie',
+            type: 'donut',
             calloutLabelKey: 'category',
             calloutLabel: {
                 offset: 10,
@@ -35,7 +35,7 @@ const options: AgChartOptions = {
         },
         {
             data: data['departments'],
-            type: 'pie',
+            type: 'donut',
             sectorLabelKey: 'department',
             angleKey: 'value',
             outerRadiusRatio: 0.6,
@@ -45,7 +45,7 @@ const options: AgChartOptions = {
         },
         {
             data: data['stores'],
-            type: 'pie',
+            type: 'donut',
             sectorLabelKey: 'store',
             angleKey: 'total',
             outerRadiusRatio: 0.4,

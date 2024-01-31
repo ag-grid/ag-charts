@@ -225,10 +225,10 @@ const areaOptions: AgChartOptions = {
     ],
 };
 
-const pieOptions: AgChartOptions = {
+const donutOptions: AgChartOptions = {
     series: [
         {
-            type: 'pie',
+            type: 'donut',
             title: {
                 text: 'One',
             },
@@ -239,7 +239,7 @@ const pieOptions: AgChartOptions = {
             innerRadiusRatio: 0.3,
         },
         {
-            type: 'pie',
+            type: 'donut',
             title: {
                 text: 'Two',
             },
@@ -290,13 +290,13 @@ function changeSeriesArea() {
     AgCharts.updateDelta(chart, { ...areaOptions, data: getGeneratedData() });
 }
 
-function changeSeriesPie() {
+function changeSeriesDonut() {
     variance = 30;
     offset = 0;
     length = 6;
     seed = 1234;
 
-    AgCharts.updateDelta(chart, { ...pieOptions, data: getGeneratedData() });
+    AgCharts.updateDelta(chart, { ...donutOptions, data: getGeneratedData() });
 }
 
 function toggleTickingUpdates() {

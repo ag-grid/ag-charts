@@ -1,6 +1,6 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
-import type { AgPieSeriesFormat } from '../../../options/agChartOptions';
+import type { AgDonutSeriesFormat } from '../../../options/agChartOptions';
 import { LinearScale } from '../../../scale/linearScale';
 import { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
@@ -36,20 +36,20 @@ import {
 } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
 import type { SeriesNodeDatum } from '../seriesTypes';
-import type { DonutInnerLabel, PieTitle } from './pieSeriesProperties';
-import { PieSeriesProperties } from './pieSeriesProperties';
+import type { DonutInnerLabel, DonutTitle } from './donutSeriesProperties';
+import { DonutSeriesProperties } from './donutSeriesProperties';
 import { preparePieSeriesAnimationFunctions, resetPieSelectionsFn } from './pieUtil';
 import { type PolarAnimationData, PolarSeries } from './polarSeries';
 
-class PieSeriesNodeClickEvent<TEvent extends string = SeriesNodeEventTypes> extends SeriesNodeClickEvent<
-    PieNodeDatum,
+class DonutSeriesNodeClickEvent<TEvent extends string = SeriesNodeEventTypes> extends SeriesNodeClickEvent<
+    DonutNodeDatum,
     TEvent
 > {
     readonly angleKey: string;
     readonly radiusKey?: string;
     readonly calloutLabelKey?: string;
     readonly sectorLabelKey?: string;
-    constructor(type: TEvent, nativeEvent: MouseEvent, datum: PieNodeDatum, series: PieSeries) {
+    constructor(type: TEvent, nativeEvent: MouseEvent, datum: DonutNodeDatum, series: DonutSeries) {
         super(type, nativeEvent, datum, series);
         this.angleKey = series.properties.angleKey;
         this.radiusKey = series.properties.radiusKey;
@@ -58,7 +58,7 @@ class PieSeriesNodeClickEvent<TEvent extends string = SeriesNodeEventTypes> exte
     }
 }
 
-interface PieNodeDatum extends SeriesNodeDatum {
+interface DonutNodeDatum extends SeriesNodeDatum {
     readonly index: number;
     readonly radius: number; // in the [0, 1] range
     readonly innerRadius: number;
@@ -85,7 +85,7 @@ interface PieNodeDatum extends SeriesNodeDatum {
         readonly text: string;
     };
 
-    readonly sectorFormat: { [key in keyof Required<AgPieSeriesFormat>]: AgPieSeriesFormat[key] };
+    readonly sectorFormat: { [key in keyof Required<AgDonutSeriesFormat>]: AgDonutSeriesFormat[key] };
     readonly legendItem?: { key: string; text: string };
     readonly legendItemValue?: string;
 }
@@ -96,17 +96,16 @@ enum PieNodeTag {
     Label,
 }
 
-export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
-    static className = 'PieSeries';
-    static type = 'pie' as const;
+export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
+    static className = 'DonutSeries';
+    static type = 'donut' as const;
 
-    override properties = new PieSeriesProperties();
+    override properties = new DonutSeriesProperties();
 
     private readonly previousRadiusScale: LinearScale = new LinearScale();
     private readonly radiusScale: LinearScale = new LinearScale();
-    private readonly calloutLabelSelection: Selection<Group, PieNodeDatum>;
-    private readonly sectorLabelSelection: Selection<Text, PieNodeDatum>;
-    /** @deprecated Remove this */
+    private readonly calloutLabelSelection: Selection<Group, DonutNodeDatum>;
+    private readonly sectorLabelSelection: Selection<Text, DonutNodeDatum>;
     private readonly innerLabelsSelection: Selection<Text, DonutInnerLabel>;
     private readonly innerCircleSelection: Selection<Circle, { radius: number }>;
 
@@ -126,13 +125,13 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
 
     readonly innerCircleGroup = this.backgroundGroup.appendChild(new Group({ name: `${this.id}-innerCircle` }));
 
-    private nodeData: PieNodeDatum[] = [];
+    private nodeData: DonutNodeDatum[] = [];
     private angleScale: LinearScale;
 
     // When a user toggles a series item (e.g. from the legend), its boolean state is recorded here.
     public seriesItemEnabled: boolean[] = [];
 
-    private oldTitle?: PieTitle;
+    private oldTitle?: DonutTitle;
 
     surroundingRadius?: number = undefined;
 
@@ -151,7 +150,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
 
         const pieCalloutLabels = new Group({ name: 'pieCalloutLabels' });
         const pieSectorLabels = new Group({ name: 'pieSectorLabels' });
-        /** @deprecated remove this */
         const innerLabels = new Group({ name: 'innerLabels' });
         this.labelGroup.append(pieCalloutLabels);
         this.labelGroup.append(pieSectorLabels);
@@ -321,7 +319,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
 
         let currentStart = 0;
         let sum = 0;
-        const nodeData = processedData.data.map((group, index): PieNodeDatum => {
+        const nodeData = processedData.data.map((group, index): DonutNodeDatum => {
             const { datum, values } = group;
             const currentValue = values[angleIdx];
 
@@ -370,8 +368,8 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         });
 
         this.zerosumOuterRing.visible = sum === 0;
-        const { innerRadiusRatio = 1 } = this.properties;
-        this.zerosumInnerRing.visible = sum === 0 && innerRadiusRatio !== 1 && innerRadiusRatio > 0;
+        this.zerosumInnerRing.visible =
+            sum === 0 && this.properties.innerRadiusRatio !== 1 && this.properties.innerRadiusRatio > 0;
 
         return [{ itemId: seriesId, nodeData, labelData: nodeData }];
     }
@@ -464,8 +462,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
 
     private getSectorFormat(datum: any, formatIndex: number, highlight: boolean) {
         const { callbackCache, highlightManager } = this.ctx;
-        const { angleKey, radiusKey, fills, strokes, formatter, sectorSpacing, __BACKGROUND_COLOR_DO_NOT_USE } =
-            this.properties;
+        const { angleKey, radiusKey, fills, strokes, formatter } = this.properties;
 
         const highlightedDatum = highlightManager.getActiveHighlight();
         const isDatumHighlighted =
@@ -476,21 +473,13 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
             {
                 fill: fills.length > 0 ? fills[formatIndex % fills.length] : undefined,
                 fillOpacity: this.properties.fillOpacity,
-                // @todo(AG-10275) Remove sectorSpacing null case
-                stroke:
-                    sectorSpacing != null
-                        ? strokes.length > 0
-                            ? strokes[formatIndex % strokes.length]
-                            : undefined
-                        : strokes.length > 0
-                          ? strokes[formatIndex % strokes.length]
-                          : __BACKGROUND_COLOR_DO_NOT_USE,
+                stroke: strokes.length > 0 ? strokes[formatIndex % strokes.length] : undefined,
                 strokeWidth: this.getStrokeWidth(this.properties.strokeWidth),
                 strokeOpacity: this.getOpacity(),
             }
         );
 
-        let format: AgPieSeriesFormat | undefined;
+        let format: AgDonutSeriesFormat | undefined;
         if (formatter) {
             format = callbackCache.call(formatter, {
                 datum,
@@ -517,7 +506,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
 
     getInnerRadius() {
         const { radius } = this;
-        const { innerRadiusRatio = 1, innerRadiusOffset = 0 } = this.properties;
+        const { innerRadiusRatio, innerRadiusOffset } = this.properties;
         const innerRadius = radius * innerRadiusRatio + innerRadiusOffset;
         if (innerRadius === radius || innerRadius < 0) {
             return 0;
@@ -526,8 +515,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
     }
 
     getOuterRadius() {
-        const { outerRadiusOffset = 0 } = this.properties;
-        return Math.max(this.radius * this.properties.outerRadiusRatio + outerRadiusOffset, 0);
+        return Math.max(this.radius * this.properties.outerRadiusRatio + this.properties.outerRadiusOffset, 0);
     }
 
     updateRadiusScale(resize: boolean) {
@@ -710,7 +698,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
             });
         });
 
-        const updateSectorFn = (sector: Sector, datum: PieNodeDatum, _index: number, isDatumHighlighted: boolean) => {
+        const updateSectorFn = (sector: Sector, datum: DonutNodeDatum, _index: number, isDatumHighlighted: boolean) => {
             const format = this.getSectorFormat(datum.datum, datum.itemId, isDatumHighlighted);
 
             datum.sectorFormat.fill = format.fill;
@@ -734,13 +722,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
             sector.lineDash = this.properties.lineDash;
             sector.lineDashOffset = this.properties.lineDashOffset;
             sector.fillShadow = this.properties.shadow;
-            // @todo(AG-10275) Remove sectorSpacing null case
-            sector.inset =
-                this.properties.sectorSpacing != null
-                    ? (this.properties.sectorSpacing + (format.stroke != null ? format.strokeWidth! : 0)) / 2
-                    : 0;
-            // @todo(AG-10275) Remove this line completely
-            sector.lineJoin = this.properties.sectorSpacing != null ? 'miter' : 'round';
+            sector.inset = (this.properties.sectorSpacing + (format.stroke != null ? format.strokeWidth! : 0)) / 2;
         };
 
         this.itemSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false));
@@ -769,7 +751,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         const { offset } = this.properties.calloutLabel;
 
         this.calloutLabelSelection.selectByTag<Line>(PieNodeTag.Callout).forEach((line, index) => {
-            const datum = line.datum as PieNodeDatum;
+            const datum = line.datum as DonutNodeDatum;
             const { calloutLabel: label, outerRadius } = datum;
 
             if (label?.text && !label.hidden && outerRadius !== 0) {
@@ -860,13 +842,13 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         const { offset, minSpacing } = calloutLabel;
         const innerRadius = radiusScale.convert(0);
 
-        const shouldSkip = (datum: PieNodeDatum) => {
+        const shouldSkip = (datum: DonutNodeDatum) => {
             const label = datum.calloutLabel;
             return !label || datum.outerRadius === 0;
         };
 
         const fullData = this.nodeData;
-        const data = this.nodeData.filter((t): t is Has<'calloutLabel', PieNodeDatum> => !shouldSkip(t));
+        const data = this.nodeData.filter((t): t is Has<'calloutLabel', DonutNodeDatum> => !shouldSkip(t));
         data.forEach((datum) => {
             const label = datum.calloutLabel;
             if (label == null) return;
@@ -1151,10 +1133,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         const { fontSize, fontStyle, fontWeight, fontFamily, positionOffset, positionRatio, color } =
             this.properties.sectorLabel;
 
-        /** @deprecated Remove this */
-        const isDonut = innerRadius > 0;
-        const singleVisibleSector = this.seriesItemEnabled.filter(Boolean).length === 1;
-
         this.sectorLabelSelection.each((text, datum) => {
             const { sectorLabel, outerRadius } = datum;
 
@@ -1168,14 +1146,8 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
                 text.fontSize = fontSize;
                 text.fontFamily = fontFamily;
                 text.text = sectorLabel.text;
-                const shouldPutTextInCenter = !isDonut && singleVisibleSector;
-                if (shouldPutTextInCenter) {
-                    text.x = 0;
-                    text.y = 0;
-                } else {
-                    text.x = datum.midCos * labelRadius;
-                    text.y = datum.midSin * labelRadius;
-                }
+                text.x = datum.midCos * labelRadius;
+                text.y = datum.midSin * labelRadius;
                 text.textAlign = 'center';
                 text.textBaseline = 'middle';
 
@@ -1200,7 +1172,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         const textBBoxes: BBox[] = [];
         const margins: number[] = [];
         this.innerLabelsSelection.each((text, datum) => {
-            const { fontStyle, fontWeight, fontSize, fontFamily, color, margin = 2 } = datum;
+            const { fontStyle, fontWeight, fontSize, fontFamily, color } = datum;
             text.fontStyle = fontStyle;
             text.fontWeight = fontWeight;
             text.fontSize = fontSize;
@@ -1212,7 +1184,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
             text.textAlign = 'center';
             text.textBaseline = 'alphabetic';
             textBBoxes.push(text.computeBBox());
-            margins.push(margin);
+            margins.push(datum.margin);
         });
         const getMarginTop = (index: number) => (index === 0 ? 0 : margins[index]);
         const getMarginBottom = (index: number) => (index === margins.length - 1 ? 0 : margins[index]);
@@ -1243,9 +1215,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         this.zerosumInnerRing.size = this.getInnerRadius() * 2;
     }
 
-    protected override readonly NodeClickEvent = PieSeriesNodeClickEvent;
+    protected override readonly NodeClickEvent = DonutSeriesNodeClickEvent;
 
-    private getDatumLegendName(nodeDatum: PieNodeDatum) {
+    private getDatumLegendName(nodeDatum: DonutNodeDatum) {
         const { angleKey, calloutLabelKey, sectorLabelKey, legendItemKey } = this.properties;
         const { sectorLabel, calloutLabel, legendItem } = nodeDatum;
 
@@ -1258,7 +1230,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         }
     }
 
-    getTooltipHtml(nodeDatum: PieNodeDatum): string {
+    getTooltipHtml(nodeDatum: DonutNodeDatum): string {
         if (!this.properties.isValid()) {
             return '';
         }
@@ -1374,7 +1346,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         if (series.id === this.id) {
             this.toggleSeriesItem(itemId, enabled);
         } else if (series.type === 'pie') {
-            this.toggleOtherSeriesItems(series as PieSeries, itemId, enabled);
+            this.toggleOtherSeriesItems(series as DonutSeries, itemId, enabled);
         }
     }
 
@@ -1383,7 +1355,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         this.nodeDataRefresh = true;
     }
 
-    toggleOtherSeriesItems(series: PieSeries, itemId: number, enabled: boolean): void {
+    toggleOtherSeriesItems(series: DonutSeries, itemId: number, enabled: boolean): void {
         if (!this.properties.legendItemKey || !this.dataModel) {
             return;
         }
@@ -1498,7 +1470,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         }
     }
 
-    getDatumId(datum: PieNodeDatum) {
+    getDatumId(datum: DonutNodeDatum) {
         const { index } = datum;
 
         return this.getDatumIdFromData(datum.datum) ?? `${index}`;

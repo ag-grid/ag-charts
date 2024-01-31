@@ -22,7 +22,7 @@ const SCATTER_EXAMPLE: AgCartesianChartOptions = loadExampleOptions('simple-scat
 const GROUPED_LINE_EXAMPLE: AgCartesianChartOptions = loadExampleOptions('time-axis-with-irregular-intervals');
 const BUBBLE_EXAMPLE: AgCartesianChartOptions = loadExampleOptions('bubble-with-negative-values');
 const PIE_EXAMPLE: AgPolarChartOptions = loadExampleOptions('simple-pie');
-const DOUGHNUT_EXAMPLE: AgPolarChartOptions = loadExampleOptions('simple-doughnut');
+const DONUT_EXAMPLE: AgPolarChartOptions = loadExampleOptions('simple-doughnut');
 
 const columnSeriesLabelFormatter: ({ value }: { value: any }) => string = ({ value }) =>
     value == null ? '' : value.toFixed(0);
@@ -534,10 +534,10 @@ export const PIE_SERIES_LABELS: AgPolarChartOptions = {
     ...PIE_EXAMPLE,
 };
 
-export const DOUGHNUT_SERIES_LABELS: AgPolarChartOptions = {
-    ...DOUGHNUT_EXAMPLE,
+export const DONUT_SERIES_LABELS: AgPolarChartOptions = {
+    ...DONUT_EXAMPLE,
     series: [
-        ...(DOUGHNUT_EXAMPLE.series?.map((s) => {
+        ...(DONUT_EXAMPLE.series?.map((s) => {
             return {
                 ...s,
                 calloutLabel: {
@@ -548,11 +548,11 @@ export const DOUGHNUT_SERIES_LABELS: AgPolarChartOptions = {
     ],
 };
 
-export const GROUPED_DOUGHNUT_SERIES_LABELS: AgPolarChartOptions = {
+export const GROUPED_DONUT_SERIES_LABELS: AgPolarChartOptions = {
     data: DATA_MARKET_SHARE,
     series: [
         {
-            type: 'pie',
+            type: 'donut',
             title: {
                 text: 'Market Share',
             },
@@ -561,7 +561,7 @@ export const GROUPED_DOUGHNUT_SERIES_LABELS: AgPolarChartOptions = {
             innerRadiusOffset: -40,
         },
         {
-            type: 'pie',
+            type: 'donut',
             title: {
                 text: 'Satisfaction',
             },

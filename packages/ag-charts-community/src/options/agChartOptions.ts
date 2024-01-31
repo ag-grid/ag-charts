@@ -35,6 +35,7 @@ export * from './series/hierarchy/hierarchyOptions';
 export * from './series/hierarchy/sunburstOptions';
 export * from './series/hierarchy/treemapOptions';
 export * from './series/polar/nightingaleOptions';
+export * from './series/polar/donutOptions';
 export * from './series/polar/pieOptions';
 export * from './series/polar/polarOptions';
 export * from './series/polar/radarOptions';

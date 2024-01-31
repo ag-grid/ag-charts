@@ -786,11 +786,11 @@ const PIE_BASIC: AgPolarChartOptions = {
     ],
 };
 
-const DOUGHNUT_BASIC: AgPolarChartOptions = {
+const DONUT_BASIC: AgPolarChartOptions = {
     ...COMMON_POLAR,
     series: [
         {
-            type: 'pie',
+            type: 'donut',
             angleKey: 'gold',
             angleName: 'Gold',
             sectorLabelKey: 'gold',
@@ -807,7 +807,7 @@ const DOUGHNUT_BASIC: AgPolarChartOptions = {
             },
         },
         {
-            type: 'pie',
+            type: 'donut',
             angleKey: 'silver',
             angleName: 'Silver',
             sectorLabelKey: 'silver',
@@ -824,7 +824,7 @@ const DOUGHNUT_BASIC: AgPolarChartOptions = {
             },
         },
         {
-            type: 'pie',
+            type: 'donut',
             angleKey: 'bronze',
             angleName: 'Bronze',
             sectorLabelKey: 'bronze',
@@ -1713,7 +1713,7 @@ export const EXAMPLES: Record<string, TestCase> = {
     BAR_STACKED: { options: BAR_STACKED },
     BAR_STACKED_NORMALISED: { options: BAR_STACKED_NORMALISED },
     PIE_BASIC: { options: PIE_BASIC },
-    DOUGHNUT_BASIC: { options: DOUGHNUT_BASIC },
+    DONUT_BASIC: { options: DONUT_BASIC },
     LINE_BASIC: { options: LINE_BASIC },
     SCATTER_BASIC: { options: SCATTER_BASIC },
     BUBBLE_BASIC: { options: BUBBLE_BASIC },

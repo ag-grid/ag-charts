@@ -20,7 +20,7 @@ const options: AgChartOptions = {
   },
   series: [
     {
-      type: "pie",
+      type: "donut",
       calloutLabelKey: "type",
       fillOpacity: 0.9,
       strokeWidth: 0,

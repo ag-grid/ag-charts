@@ -42,17 +42,17 @@
             "example": "column-with-negative-values"
         }
     },
-    "Pie / Doughnut": {
+    "Pie / Donut": {
         "Simple Pie": {
             "description": "Pie charts are used to express a part-to-whole relationship, where all the slices combine to represent 100%. They work best for a small number of categories.",
             "example": "simple-pie"
         },
-        "Simple Doughnut": {
-            "description": "Doughnut charts are similar to <a href='../simple-pie/'>pie charts</a>, being used to express a part-to-whole relationship, but allow for multiple series to be shown on the same chart for comparison.",
+        "Simple Donut": {
+            "description": "Donut charts are similar to <a href='../simple-pie/'>pie charts</a>, being used to express a part-to-whole relationship, but allow for multiple series to be shown on the same chart for comparison.",
             "example": "simple-doughnut"
         },
-        "Pie In A Doughnut": {
-            "description": "There can be multiple levels of Pie/Doughnut charts. It can be used when comparing shares for different periods.",
+        "Pie In A Donut": {
+            "description": "There can be multiple levels of Pie/Donut charts. It can be used when comparing shares for different periods.",
             "example": "pie-in-a-doughnut"
         },
         "Pie With Variable Radius": {

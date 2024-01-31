@@ -65,9 +65,9 @@ export const COMMUNITY_AND_ENTERPRISE_EXAMPLES: Record<string, TestCase> = {
         assertions: polarChartAssertions(),
         enterprise: false,
     },
-    SIMPLE_DOUGHNUT_CHART_EXAMPLE: {
-        options: examples.SIMPLE_DOUGHNUT_CHART_EXAMPLE,
-        assertions: polarChartAssertions(),
+    SIMPLE_DONUT_CHART_EXAMPLE: {
+        options: examples.SIMPLE_DONUT_CHART_EXAMPLE,
+        assertions: polarChartAssertions({ seriesTypes: ['donut'] }),
         enterprise: false,
     },
     SIMPLE_LINE_CHART_EXAMPLE: {

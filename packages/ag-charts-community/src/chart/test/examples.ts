@@ -73,8 +73,8 @@ export const ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE: AgCartesianChartOption
 export const COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE: AgCartesianChartOptions =
     DOCS_EXAMPLES['column-with-negative-values'];
 export const SIMPLE_PIE_CHART_EXAMPLE: AgPolarChartOptions = DOCS_EXAMPLES['simple-pie'];
-export const SIMPLE_DOUGHNUT_CHART_EXAMPLE: AgPolarChartOptions = DOCS_EXAMPLES['simple-doughnut'];
-export const PIE_IN_A_DOUGHNUT: AgPolarChartOptions = DOCS_EXAMPLES['pie-in-a-doughnut'];
+export const SIMPLE_DONUT_CHART_EXAMPLE: AgPolarChartOptions = DOCS_EXAMPLES['simple-doughnut'];
+export const PIE_IN_A_DONUT: AgPolarChartOptions = DOCS_EXAMPLES['pie-in-a-doughnut'];
 export const PIE_WITH_VARIABLE_RADIUS: AgPolarChartOptions = DOCS_EXAMPLES['pie-with-variable-radius'];
 export const SIMPLE_LINE_CHART_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['simple-line'];
 export const LINE_GRAPH_WITH_GAPS_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['line-with-gaps'];
