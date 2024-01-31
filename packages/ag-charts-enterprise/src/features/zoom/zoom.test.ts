@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals
 
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    WheelDeltaMode,
     clickAction,
     doubleClickAction,
     extractImageData,
@@ -94,6 +95,30 @@ describe('Zoom', () => {
             await prepareChart();
             await scrollAction(cx, cy, -1)(chart);
             await scrollAction(cx, cy, 1)(chart);
+            await compare();
+        });
+    });
+
+    describe('pixel scrolling', () => {
+        it('should zoom in then out', async () => {
+            await prepareChart();
+            await scrollAction(cx, cy, -7, WheelDeltaMode.Pixels)(chart);
+            await compare();
+            await scrollAction(cx, cy, 5, WheelDeltaMode.Pixels)(chart);
+            await compare();
+        });
+    });
+
+    describe('horizontal scrolling', () => {
+        it('should pan', async () => {
+            // Initialise zoom
+            await prepareChart();
+            await scrollAction(cx, cy, -1)(chart);
+            // Pan left
+            await scrollAction(cx, cy, 0, WheelDeltaMode.Pixels, -300)(chart);
+            await compare();
+            // Pan right
+            await scrollAction(cx, cy, 0, WheelDeltaMode.Pixels, 200)(chart);
             await compare();
         });
     });

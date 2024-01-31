@@ -167,16 +167,22 @@ export function doubleClickEvent({ offsetX, offsetY }: { offsetX: number; offset
     return event;
 }
 
-export function wheelEvent({
-    clientX,
-    clientY,
-    deltaY,
-}: {
+export enum WheelDeltaMode {
+    Pixels = 0,
+    Lines = 1,
+    Pages = 2,
+}
+
+type WheelEventData = {
     clientX: number;
     clientY: number;
+    deltaX: number;
     deltaY: number;
-}): WheelEvent {
-    return new WheelEvent('wheel', { bubbles: true, clientX, clientY, deltaY });
+    deltaMode: WheelDeltaMode;
+};
+
+export function wheelEvent({ clientX, clientY, deltaX, deltaY, deltaMode }: WheelEventData): WheelEvent {
+    return new WheelEvent('wheel', { bubbles: true, clientX, clientY, deltaX, deltaY, deltaMode });
 }
 
 export function cartesianChartAssertions(params?: { type?: string; axisTypes?: string[]; seriesTypes?: string[] }) {
@@ -256,11 +262,17 @@ export function doubleClickAction(x: number, y: number): (chart: Chart | AgChart
     };
 }
 
-export function scrollAction(x: number, y: number, delta: number): (chart: Chart | AgChartProxy) => Promise<void> {
+export function scrollAction(
+    x: number,
+    y: number,
+    deltaY: number,
+    deltaMode: WheelDeltaMode = WheelDeltaMode.Lines,
+    deltaX: number = 0
+): (chart: Chart | AgChartProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
         const target = chart.scene.canvas.element;
-        target?.dispatchEvent(wheelEvent({ clientX: x, clientY: y, deltaY: delta }));
+        target?.dispatchEvent(wheelEvent({ clientX: x, clientY: y, deltaY, deltaX, deltaMode }));
         await delay(50);
     };
 }

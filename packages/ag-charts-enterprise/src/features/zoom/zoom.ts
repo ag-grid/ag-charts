@@ -227,7 +227,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         // Allow panning if either selection is disabled or the panning key is pressed.
         if (this.enablePanning && (!this.enableSelecting || this.isPanningKeyPressed(sourceEvent))) {
-            const newZooms = this.panner.update(event, this.seriesRect, this.zoomManager.getAxisZooms());
+            const newZooms = this.panner.updateDrag(event, this.seriesRect, this.zoomManager.getAxisZooms());
             for (const [axisId, { direction, zoom: newZoom }] of Object.entries(newZooms)) {
                 this.updateAxisZoom(axisId, direction, newZoom);
             }
@@ -294,6 +294,26 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         if (isAxisScrolling) {
             isScalingX = this.hoveredAxis!.direction === _ModuleSupport.ChartAxisDirection.X;
             isScalingY = !isScalingX;
+        }
+
+        // Allow panning if either selection is disabled or the panning key is pressed.
+        const sourceEvent: Partial<WheelEvent> = event.sourceEvent;
+        const { deltaX, deltaY, deltaMode } = sourceEvent;
+        if (
+            this.enablePanning &&
+            deltaX !== undefined &&
+            deltaY !== undefined &&
+            deltaMode !== undefined &&
+            Math.abs(deltaX) > Math.abs(deltaY)
+        ) {
+            event.consume();
+            event.sourceEvent.preventDefault();
+
+            const newZooms = this.panner.updateHScroll(event.deltaX, this.seriesRect, this.zoomManager.getAxisZooms());
+            for (const [axisId, { direction, zoom: newZoom }] of Object.entries(newZooms)) {
+                this.updateAxisZoom(axisId, direction, newZoom);
+            }
+            return;
         }
 
         if (isSeriesScrolling || isAxisScrolling) {
