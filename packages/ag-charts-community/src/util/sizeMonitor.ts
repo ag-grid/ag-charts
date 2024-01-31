@@ -17,7 +17,13 @@ export class SizeMonitor {
     private static queuedObserveRequests: [HTMLElement, OnSizeChange][] = [];
 
     static init(document: Document) {
-        if (typeof ResizeObserver === 'undefined') return;
+        if (typeof ResizeObserver === 'undefined') {
+            for (const [element, entry] of this.elements) {
+                this.checkClientSize(element, entry);
+            }
+            return;
+        }
+
         this.resizeObserver = new ResizeObserver((entries: any) => {
             for (const entry of entries) {
                 const { width, height } = entry.contentRect;
