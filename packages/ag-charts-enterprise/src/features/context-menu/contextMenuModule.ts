@@ -15,7 +15,7 @@ export const ContextMenuModule: _ModuleSupport.Module = {
     themeTemplate: {
         contextMenu: {
             enabled: true,
-            darkMode: _Theme.IS_DARK_MODE,
+            darkTheme: _Theme.IS_DARK_THEME,
         },
     },
 };

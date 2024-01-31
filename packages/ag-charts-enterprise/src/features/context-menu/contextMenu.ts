@@ -34,7 +34,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     enabled = true;
 
     @Validate(BOOLEAN)
-    darkMode: boolean = false;
+    darkTheme = false;
 
     /**
      * Extra menu actions with a label and callback.
@@ -222,11 +222,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     public show() {
         if (!this.coverElement) return;
 
-        if (this.darkMode) {
-            this.element.classList.add(DEFAULT_CONTEXT_MENU_DARK_CLASS);
-        } else {
-            this.element.classList.remove(DEFAULT_CONTEXT_MENU_DARK_CLASS);
-        }
+        this.element.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
 
         const newMenuElement = this.renderMenu();
 
@@ -268,7 +264,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     public renderMenu() {
         const menuElement = this.ctx.document.createElement('div');
         menuElement.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__menu`);
-        if (this.darkMode) {
+        if (this.darkTheme) {
             menuElement.classList.add(DEFAULT_CONTEXT_MENU_DARK_CLASS);
         }
 
@@ -298,7 +294,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     private createDividerElement(): HTMLElement {
         const el = this.ctx.document.createElement('div');
         el.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__divider`);
-        if (this.darkMode) {
+        if (this.darkTheme) {
             el.classList.add(DEFAULT_CONTEXT_MENU_DARK_CLASS);
         }
         return el;
@@ -314,7 +310,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     private createButtonElement(label: string, callback: (params: ContextMenuActionParams) => void): HTMLElement {
         const el = this.ctx.document.createElement('button');
         el.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__item`);
-        if (this.darkMode) {
+        if (this.darkTheme) {
             el.classList.add(DEFAULT_CONTEXT_MENU_DARK_CLASS);
         }
         el.innerHTML = label;
@@ -334,7 +330,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     private createDisabledElement(label: string): HTMLElement {
         const el = this.ctx.document.createElement('button');
         el.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__item`);
-        if (this.darkMode) {
+        if (this.darkTheme) {
             el.classList.add(DEFAULT_CONTEXT_MENU_DARK_CLASS);
         }
         el.disabled = true;
