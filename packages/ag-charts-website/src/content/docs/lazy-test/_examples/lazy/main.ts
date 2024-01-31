@@ -34,6 +34,10 @@ const options: any = {
             type: 'time',
             position: 'bottom',
             nice: false,
+            tick: {
+                minSpacing: 50,
+                maxSpacing: 200,
+            },
         },
     ],
     animation: { enabled: false },
