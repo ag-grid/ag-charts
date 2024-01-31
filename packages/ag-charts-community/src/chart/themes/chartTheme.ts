@@ -260,6 +260,7 @@ export class ChartTheme {
                     paddingX: 16,
                     paddingY: 8,
                     marker: ChartTheme.getLegendItemMarkerDefaults(),
+                    toggleSeriesVisible: true,
                     label: {
                         color: DEFAULT_LABEL_COLOUR,
                         fontStyle: undefined,
