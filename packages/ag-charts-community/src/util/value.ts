@@ -1,31 +1,25 @@
-export const isString = (v: any) => typeof v === 'string';
-export const isStringObject = (v: any) => !!v && Object.hasOwn(v, 'toString') && isString(v.toString());
-export const isDate = (v: any) => v instanceof Date && !isNaN(+v);
+import { isFiniteNumber, isString, isValidDate } from './type-guards';
+import type { PlainObject } from './types';
 
-export function isDiscrete(value: any): boolean {
-    return isString(value) || isStringObject(value);
-}
+type StringObject = PlainObject & { toString: () => string };
+type NumberObject = PlainObject & { valueOf: () => string };
 
-export function isContinuous(value: any): boolean {
-    const isNumberObject = (v: any) => !!v && Object.hasOwn(v, 'valueOf') && isNumber(v.valueOf());
-    const isDate = (v: any) => v instanceof Date && !isNaN(+v);
+export const isStringObject = (value: unknown): value is StringObject =>
+    !!value && Object.hasOwn(value, 'toString') && isString(value.toString());
 
-    return isNumber(value) || isNumberObject(value) || isDate(value);
-}
+const isNumberObject = (value: unknown): value is NumberObject =>
+    !!value && Object.hasOwn(value, 'valueOf') && isFiniteNumber(value.valueOf());
+
+export const isContinuous = (value: unknown): value is number | Date | NumberObject =>
+    isFiniteNumber(value) || isNumberObject(value) || isValidDate(value);
 
 export function checkDatum<T>(value: T, isContinuousScale: boolean): T | string | undefined {
     if (isContinuousScale && isContinuous(value)) {
         return value;
     } else if (!isContinuousScale) {
-        if (!isDiscrete(value)) {
-            return String(value);
-        }
-        return value;
+        return isString(value) || isStringObject(value) ? value : String(value);
     }
-    return undefined;
 }
-
-export const isNumber = (v: any): v is number => typeof v === 'number' && Number.isFinite(v);
 
 /**
  * To enable duplicate categories, a category axis value on a datum from integrated charts is transformed into an
@@ -34,9 +28,9 @@ export const isNumber = (v: any): v is number => typeof v === 'number' && Number
  *
  * @see https://ag-grid.atlassian.net/browse/AG-10526
  */
-export function transformIntegratedCategoryValue(v: any) {
-    if (isStringObject(v) && Object.hasOwn(v, 'id')) {
-        return v.id;
+export function transformIntegratedCategoryValue(value: unknown) {
+    if (isStringObject(value) && Object.hasOwn(value, 'id')) {
+        return value.id;
     }
-    return v;
+    return value;
 }

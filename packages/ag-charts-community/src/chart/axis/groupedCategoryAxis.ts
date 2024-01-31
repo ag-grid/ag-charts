@@ -7,7 +7,7 @@ import { Selection } from '../../scene/selection';
 import { Line } from '../../scene/shape/line';
 import { Text } from '../../scene/shape/text';
 import { normalizeAngle360, toRadians } from '../../util/angle';
-import { extent } from '../../util/array';
+import { extent, unique } from '../../util/array';
 import { isNumber } from '../../util/type-guards';
 import { BOOLEAN, COLOR_STRING, Validate } from '../../util/validation';
 import { ChartAxisDirection } from '../chartAxisDirection';
@@ -37,10 +37,10 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
     // We don't call is `labelScale` for consistency with other axes.
     readonly tickScale = new BandScale<string | number>();
 
-    private gridLineSelection: Selection<Line, any>;
-    private axisLineSelection: Selection<Line, any>;
-    private separatorSelection: Selection<Line, any>;
-    private labelSelection: Selection<Text, any>;
+    private gridLineSelection: Selection<Line>;
+    private axisLineSelection: Selection<Line>;
+    private separatorSelection: Selection<Line>;
+    private labelSelection: Selection<Text>;
     private tickTreeLayout?: TreeLayout;
 
     constructor(moduleCtx: ModuleContext) {
@@ -51,7 +51,6 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
 
         scale.paddingOuter = 0.1;
         scale.paddingInner = scale.paddingOuter * 2;
-        this.range = scale.range.slice();
         this.refreshScale();
 
         tickScale.paddingInner = 1;
@@ -117,7 +116,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
         const { direction } = this;
         let isNumericX: boolean | null = null;
 
-        const domain = this.boundSeries
+        const flatDomains = this.boundSeries
             .filter((s) => s.visible)
             .flatMap((series) => {
                 if (direction === ChartAxisDirection.Y || isNumericX) {
@@ -132,27 +131,12 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
                 return [];
             });
 
-        const domainExtent = extent(domain) ?? domain;
+        this.setDomain(extent(flatDomains) ?? unique(flatDomains));
 
-        if (this.reverse) {
-            domainExtent.reverse();
-        }
-
-        this.dataDomain = this.normaliseDataDomain(domainExtent);
-        this.scale.domain = this.dataDomain.domain;
-    }
-
-    override normaliseDataDomain(d: any[]) {
-        // Prevent duplicate categories.
-        const values = d.filter((s, i, arr) => arr.indexOf(s) === i);
-
-        const tickTree = ticksToTree(values);
-        this.tickTreeLayout = treeLayout(tickTree);
-        this.tickScale.domain = values.concat('');
-
+        const { domain } = this.dataDomain;
+        this.tickTreeLayout = treeLayout(ticksToTree(domain));
+        this.tickScale.domain = domain.concat('');
         this.resizeTickTree();
-
-        return { domain: values, clipped: false };
     }
 
     /**

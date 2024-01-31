@@ -1,7 +1,7 @@
 import { arraysEqual } from '../../util/array';
 import { memo } from '../../util/memo';
 import { isNegative } from '../../util/number';
-import { isFiniteNumber } from '../../util/type-guards';
+import { isArray, isFiniteNumber } from '../../util/type-guards';
 import { transformIntegratedCategoryValue } from '../../util/value';
 import type {
     DatumPropertyDefinition,
@@ -382,6 +382,8 @@ export function diff(
 }
 
 export function createDatumId(keys: any | any[]) {
-    if (!Array.isArray(keys)) return transformIntegratedCategoryValue(keys);
-    return keys.map((key) => `${transformIntegratedCategoryValue(key)}`).join('___');
+    if (isArray(keys)) {
+        return keys.map((key) => transformIntegratedCategoryValue(key)).join('___');
+    }
+    return transformIntegratedCategoryValue(keys);
 }

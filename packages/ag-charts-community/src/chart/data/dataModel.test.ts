@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { isNumber } from '../../util/value';
+import { isFiniteNumber } from '../../util/type-guards';
 import { rangedValueProperty } from '../series/series';
 import { DATA_BROWSER_MARKET_SHARE } from '../test/data';
 import * as examples from '../test/examples';
@@ -960,7 +960,7 @@ describe('DataModel', () => {
             const DEFAULTS = {
                 invalidValue: NaN,
                 missingValue: null,
-                validation: isNumber,
+                validation: isFiniteNumber,
             };
             const dataModel = new DataModel<any, any>({
                 props: [
@@ -1023,7 +1023,7 @@ describe('DataModel', () => {
             const data = [...DATA_BROWSER_MARKET_SHARE.map((v) => ({ ...v }))];
             const DEFAULTS = {
                 missingValue: null,
-                validation: isNumber,
+                validation: isFiniteNumber,
             };
             const dataModel = new DataModel<any, any>({
                 props: [

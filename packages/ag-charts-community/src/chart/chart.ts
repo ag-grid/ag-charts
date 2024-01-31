@@ -12,6 +12,7 @@ import { BBox } from '../scene/bbox';
 import { Group } from '../scene/group';
 import type { Point } from '../scene/point';
 import { Scene } from '../scene/scene';
+import { groupBy } from '../util/array';
 import { sleep } from '../util/async';
 import { CallbackCache } from '../util/callbackCache';
 import { Debug } from '../util/debug';
@@ -24,7 +25,8 @@ import { Mutex } from '../util/mutex';
 import type { TypedEvent } from '../util/observable';
 import { Observable } from '../util/observable';
 import { Padding } from '../util/padding';
-import { ActionOnSet } from '../util/proxy';
+import { BaseProperties } from '../util/properties';
+import { ActionOnSet, type ActionOnSetOptions } from '../util/proxy';
 import { debouncedAnimationFrame, debouncedCallback } from '../util/render';
 import { SizeMonitor } from '../util/sizeMonitor';
 import { isFiniteNumber } from '../util/type-guards';
@@ -32,7 +34,6 @@ import type { PickRequired } from '../util/types';
 import { BOOLEAN, OBJECT, UNION, Validate } from '../util/validation';
 import type { Caption } from './caption';
 import type { ChartAxis } from './chartAxis';
-import type { ChartAxisDirection } from './chartAxisDirection';
 import { ChartHighlight } from './chartHighlight';
 import type { ChartMode } from './chartMode';
 import { ChartUpdateType } from './chartUpdateType';
@@ -111,7 +112,7 @@ export interface ChartSpecialOverrides {
 
 export type ChartExtendedOptions = AgChartOptions & ChartSpecialOverrides;
 
-class SeriesArea {
+class SeriesArea extends BaseProperties {
     @Validate(BOOLEAN, { optional: true })
     clip?: boolean;
 
@@ -119,11 +120,11 @@ class SeriesArea {
     padding = new Padding(0);
 }
 
-export const chartsInstances = new WeakMap<HTMLElement, Chart>();
-
 export abstract class Chart extends Observable implements AgChartInstance {
+    static chartsInstances = new WeakMap<HTMLElement, Chart>();
+
     static getInstance(element: HTMLElement): Chart | undefined {
-        return chartsInstances.get(element);
+        return Chart.chartsInstances.get(element);
     }
 
     readonly id = createId(this);
@@ -155,15 +156,15 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
             value.setAttribute('data-ag-charts', '');
             value.appendChild(this.element);
-            chartsInstances.set(value, this);
+            Chart.chartsInstances.set(value, this);
         },
         oldValue(value: HTMLElement) {
             value.removeAttribute('data-ag-charts');
             value.removeChild(this.element);
-            chartsInstances.delete(value);
+            Chart.chartsInstances.delete(value);
         },
     })
-    container: OptionalHTMLElement = undefined;
+    container: OptionalHTMLElement;
 
     public data: any = [];
 
@@ -182,16 +183,17 @@ export abstract class Chart extends Observable implements AgChartInstance {
     height?: number;
 
     @ActionOnSet<Chart>({
-        changeValue(value) {
-            this.autoSizeChanged(value);
+        newValue(value) {
+            this.onAutoSizeChange(value);
         },
     })
     @Validate(BOOLEAN)
-    public autoSize;
+    autoSize;
+
     private _lastAutoSize?: [number, number];
     private _firstAutoSize = true;
 
-    private autoSizeChanged(value: boolean) {
+    private onAutoSizeChange(value: boolean) {
         const { style } = this.element;
         if (value) {
             style.display = 'block';
@@ -213,52 +215,32 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.scene.download(fileName, fileFormat);
     }
 
-    padding = new Padding(20);
+    @Validate(OBJECT)
+    readonly padding = new Padding(20);
 
-    _seriesArea = new SeriesArea();
-    get seriesArea() {
-        return this._seriesArea;
-    }
-    set seriesArea(newArea: SeriesArea) {
-        if (!newArea) {
-            this._seriesArea = new SeriesArea();
-        } else {
-            this._seriesArea = newArea;
-        }
-    }
+    @Validate(OBJECT)
+    readonly seriesArea = new SeriesArea();
 
-    @ActionOnSet<Chart>({
-        newValue(value) {
-            this.scene.root?.appendChild(value.node);
-        },
-        oldValue(oldValue) {
-            this.scene.root?.removeChild(oldValue.node);
-        },
-    })
-    public title?: Caption = undefined;
+    @ActionOnSet(Chart.NodeValueChangeOptions)
+    public title?: Caption;
 
-    @ActionOnSet<Chart>({
-        newValue(value) {
-            this.scene.root?.appendChild(value.node);
-        },
-        oldValue(oldValue) {
-            this.scene.root?.removeChild(oldValue.node);
-        },
-    })
-    public subtitle?: Caption = undefined;
+    @ActionOnSet(Chart.NodeValueChangeOptions)
+    public subtitle?: Caption;
 
-    @ActionOnSet<Chart>({
-        newValue(value) {
-            this.scene.root?.appendChild(value.node);
-        },
-        oldValue(oldValue) {
-            this.scene.root?.removeChild(oldValue.node);
-        },
-    })
-    public footnote?: Caption = undefined;
+    @ActionOnSet(Chart.NodeValueChangeOptions)
+    public footnote?: Caption;
 
     @Validate(UNION(['standalone', 'integrated'], 'a chart mode'))
     mode: ChartMode = 'standalone';
+
+    static NodeValueChangeOptions: ActionOnSetOptions<Chart> = {
+        newValue(value) {
+            this.scene.root?.appendChild(value.node);
+        },
+        oldValue(oldValue) {
+            this.scene.root?.removeChild(oldValue.node);
+        },
+    };
 
     private _destroyed: boolean = false;
     private readonly _destroyFns: (() => void)[] = [];
@@ -273,7 +255,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     protected readonly interactionManager: InteractionManager;
     protected readonly gestureDetector: GestureDetector;
     protected readonly tooltipManager: TooltipManager;
-    protected readonly zoomManager: ZoomManager;
+    protected readonly zoomManager = new ZoomManager();
     protected readonly dataService: DataService<any>;
     protected readonly layoutService: LayoutService;
     protected readonly updateService: UpdateService;
@@ -326,7 +308,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.highlightManager = new HighlightManager();
         this.interactionManager = new InteractionManager(element, document, window);
         this.gestureDetector = new GestureDetector(element);
-        this.zoomManager = new ZoomManager();
         this.dataService = new DataService<any>((data) => {
             this.data = data;
         });
@@ -494,13 +475,17 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.container = undefined;
         }
 
-        this.removeAllSeries();
+        this.destroySeries();
         this.seriesLayerManager.destroy();
 
         this.axes.forEach((a) => a.destroy());
         this.axes = [];
 
         this.callbackCache.invalidateCache();
+
+        // Reset animation state.
+        this.animationRect = undefined;
+        this.animationManager.reset();
 
         this._destroyed = true;
 
@@ -708,7 +693,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     private checkFirstAutoSize(seriesToUpdate: ISeries<any>[]) {
         if (this.autoSize && !this._lastAutoSize) {
             const count = this._performUpdateNoRenderCount++;
-            const backOffMs = (count ^ 2) * 10;
+            const backOffMs = count ** 2 * 10;
 
             if (count < 8) {
                 // Reschedule if canvas size hasn't been set yet to avoid a race.
@@ -730,79 +715,72 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     readonly element: HTMLElement;
 
-    protected _axes: ChartAxis[] = [];
-    set axes(values: ChartAxis[]) {
-        const removedAxes = new Set<ChartAxis>();
-        this._axes.forEach((axis) => {
-            axis.detachAxis(this.axisGroup, this.axisGridGroup);
-            removedAxes.add(axis);
-        });
-        // make linked axes go after the regular ones (simulates stable sort by `linkedTo` property)
-        this._axes = values.filter((a) => !a.linkedTo).concat(values.filter((a) => a.linkedTo));
-        this._axes.forEach((axis) => {
-            axis.attachAxis(this.axisGroup, this.axisGridGroup);
-            removedAxes.delete(axis);
-        });
-        this.zoomManager.updateAxes(this._axes);
+    @ActionOnSet<Chart>({
+        changeValue(newValue, oldValue = []) {
+            for (const axis of oldValue) {
+                if (newValue.includes(axis)) continue;
+                axis.detachAxis(this.axisGroup, this.axisGridGroup);
+                axis.destroy();
+            }
 
-        removedAxes.forEach((axis) => axis.destroy());
-    }
-    get axes(): ChartAxis[] {
-        return this._axes;
-    }
+            for (const axis of newValue) {
+                if (oldValue?.includes(axis)) continue;
+                axis.attachAxis(this.axisGroup, this.axisGridGroup);
+            }
 
-    protected _series: Series<any>[] = [];
-    set series(values: Series<any>[]) {
-        this.removeAllSeries();
-        this.seriesLayerManager.setSeriesCount(values.length);
-        values.forEach((series) => this.addSeries(series));
-    }
-    get series(): Series<any>[] {
-        return this._series;
-    }
+            this.zoomManager.updateAxes(newValue);
+        },
+    })
+    axes: ChartAxis[] = [];
 
-    private addSeries(series: Series<any>): boolean {
-        if (!this.series.includes(series)) {
-            this.series.push(series);
+    @ActionOnSet<Chart>({
+        changeValue(newValue, oldValue) {
+            this.onSeriesChange(newValue, oldValue);
+        },
+    })
+    series: Series<any>[] = [];
+
+    private onSeriesChange(newValue: Series<any>[], oldValue?: Series<any>[]) {
+        this.destroySeries(oldValue?.filter((series) => !newValue.includes(series)));
+        this.seriesLayerManager?.setSeriesCount(newValue.length);
+
+        for (const series of newValue) {
+            if (oldValue?.includes(series)) continue;
+
             if (series.rootGroup.parent == null) {
                 this.seriesLayerManager.requestGroup(series);
             }
-            this.initSeries(series);
-            return true;
+
+            const chart = this;
+            series.chart = {
+                get mode() {
+                    return chart.mode;
+                },
+                get seriesRect() {
+                    return chart.seriesRect;
+                },
+                placeLabels() {
+                    return chart.placeLabels();
+                },
+            };
+
+            this.addSeriesListeners(series);
+            series.addChartEventListeners();
         }
-        return false;
+
+        // Reset animation state.
+        this.animationRect = undefined;
+        this.animationManager?.reset();
     }
 
-    private initSeries(series: Series<any>) {
-        const chart = this;
-        series.chart = {
-            get mode() {
-                return chart.mode;
-            },
-            get seriesRect() {
-                return chart.seriesRect;
-            },
-            placeLabels() {
-                return chart.placeLabels();
-            },
-        };
-        this.addSeriesListeners(series);
-        series.addChartEventListeners();
-    }
-
-    protected removeAllSeries(): void {
-        this.series.forEach((series) => {
+    protected destroySeries(series = this.series): void {
+        series?.forEach((series) => {
             series.removeEventListener('nodeClick', this.onSeriesNodeClick);
             series.removeEventListener('nodeDoubleClick', this.onSeriesNodeDoubleClick);
             series.destroy();
 
             series.chart = undefined;
         });
-        this._series = []; // using `_series` instead of `series` to prevent infinite recursion
-
-        // Reset animation state.
-        this.animationRect = undefined;
-        this.animationManager.reset();
     }
 
     private addSeriesListeners(series: Series<any>) {
@@ -835,13 +813,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     protected assignAxesToSeries() {
         // This method has to run before `assignSeriesToAxes`.
-        const directionToAxesMap: { [key in ChartAxisDirection]?: ChartAxis[] } = {};
-
-        this.axes.forEach((axis) => {
-            const direction = axis.direction;
-            const directionAxes = (directionToAxesMap[direction] ??= []);
-            directionAxes.push(axis);
-        });
+        const directionToAxesMap = groupBy(this.axes, (axis) => axis.direction);
 
         this.series.forEach((series) => {
             series.directions.forEach((direction) => {

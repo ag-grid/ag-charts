@@ -1,14 +1,12 @@
 export function extent(values: Array<number | Date>): [number, number] | undefined {
-    const { length } = values;
-    if (length === 0) {
-        return undefined;
+    if (values.length === 0) {
+        return;
     }
 
     let min = Infinity;
     let max = -Infinity;
 
-    for (let i = 0; i < length; i++) {
-        let v = values[i];
+    for (let v of values) {
         if (v instanceof Date) {
             v = v.getTime();
         }
@@ -22,11 +20,10 @@ export function extent(values: Array<number | Date>): [number, number] | undefin
             max = v;
         }
     }
-    const extent = [min, max] as [number, number];
-    if (extent.some((v) => !isFinite(v))) {
-        return undefined;
+    const extent = [min, max];
+    if (extent.every(isFinite)) {
+        return extent as [number, number];
     }
-    return extent;
 }
 
 export function normalisedExtent(d: number[], min: number, max: number): number[] {

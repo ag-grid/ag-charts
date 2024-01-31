@@ -51,7 +51,7 @@ class GradientLegendAxis extends _ModuleSupport.CartesianAxis<_Scale.LinearScale
     }
 
     override calculateDomain() {
-        this.dataDomain = this.normaliseDataDomain(this.colorDomain);
+        this.setDomain(this.colorDomain);
     }
 
     override formatDatum(datum: number): string {

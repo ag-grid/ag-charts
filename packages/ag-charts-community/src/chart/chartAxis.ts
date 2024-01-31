@@ -33,7 +33,6 @@ export interface ChartAxis {
     inRange(x: number, width?: number, tolerance?: number): boolean;
     keys: string[];
     label: ChartAxisLabel;
-    linkedTo?: ChartAxis;
     maxThickness: number;
     nice: boolean;
     position?: AgCartesianAxisPosition;

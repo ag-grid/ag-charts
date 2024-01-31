@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, describe, expect, it } from '@jest/globals';
 
 import type { AgChartOptions } from '../options/agChartOptions';
 import { AgCharts } from './agChartV2';

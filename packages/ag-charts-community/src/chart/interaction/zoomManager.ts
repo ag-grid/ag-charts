@@ -26,17 +26,13 @@ export class ZoomManager extends BaseManager<'zoom-change', ZoomChangeEvent> {
     private initialZoom?: { callerId: string; newZoom?: AxisZoomState };
 
     public updateAxes(axes: Array<ChartAxis>) {
-        const axesToRemove = new Set(this.axisZoomManagers.keys());
+        const zoomManagers = new Map(axes.map((axis) => [axis.id, this.axisZoomManagers.get(axis.id)]));
 
-        axes.forEach((axis) => {
-            if (this.axisZoomManagers.has(axis.id)) {
-                axesToRemove.delete(axis.id);
-            } else {
-                this.axisZoomManagers.set(axis.id, new AxisZoomManager(axis));
-            }
-        });
+        this.axisZoomManagers.clear();
 
-        axesToRemove.forEach((axisId) => this.axisZoomManagers.delete(axisId));
+        for (const axis of axes) {
+            this.axisZoomManagers.set(axis.id, zoomManagers.get(axis.id) ?? new AxisZoomManager(axis));
+        }
 
         if (this.initialZoom?.newZoom) {
             this.updateZoom(this.initialZoom.callerId, this.initialZoom.newZoom);
