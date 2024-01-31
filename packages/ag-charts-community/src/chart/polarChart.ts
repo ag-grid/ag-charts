@@ -57,7 +57,7 @@ export class PolarChart extends Chart {
 
         radiusAxis.gridAngles = angles;
         radiusAxis.gridRange = angleAxis.range;
-        radiusAxis.scale.range = [radius, radius * innerRadiusRatio];
+        radiusAxis.range = [radius, radius * innerRadiusRatio];
 
         [angleAxis, radiusAxis].forEach((axis) => {
             axis.translation.x = cx;
