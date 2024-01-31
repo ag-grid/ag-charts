@@ -1,0 +1,62 @@
+---
+title: 'Lazy Loading'
+---
+
+Data can be lazily loaded in from remote APIs and in response to changes in the visible window.
+
+{% chartExampleRunner title="Lazy Loading" name="lazy-loading" type="generated" /%}
+
+```ts
+{
+    data: () => {
+        return fetch('https://www.ag-grid.com/example-assets/olympic-winners.json')
+            .then((response) => response.json())
+            .then((json) => {
+                // ... do some manipulation of the data ...
+                return data;
+            });
+    },
+}
+```
+
+In this example, json data is fetched from a remote url, formatted and returned to the chart. When the response is returned the chart displays the new data.
+
+## Axis Domains
+
+The parameters to the lazy loading function include the axis domains that define the visible window of the chart. This can be used with the [Navigator](./navigator) and [Zoom](./zoom) modules to load coarse or fine grained data based on the size of the window.
+
+Zoom in to the chart below to see fine grained data being lazily loaded.
+
+{% chartExampleRunner title="Lazy Loading Window" name="lazy-loading-window" type="generated" /%}
+
+```ts
+{
+    data: ({ axes }) => {
+        const timeAxis = axes?.find((a: any) => a.type === 'time');
+        if (!timeAxis) return getCoarseData();
+        return getCoarseAndFineData(timeAxis.min, timeAxis.max);
+    };
+}
+```
+
+In this example, when no axis domains are provided, the lazy data function returns just the coarse data set. This covers the full time range with a data point per day. When a time axis domain is provided, the function returns this coarse data set plus additional data for the visible time window at small intervals based on the size of the time window.
+
+{% note %}
+The data returned from the lazy function should always include the coarse data set to ensure the chart knows the full extent of the data. If this is not provided users will not be able to zoom back out or pan around.
+
+Alternatively, you can always provide the four data points that represent the full extents of your data set - the min and max values in each of the x and y directions.
+{% /note %}
+
+{% note %}
+Only continuous time axes are provided in the parameters to the lazy loading function.
+{% /note %}
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgBaseChartOptions" label="Data" %}
+{% apiReference id="AgBaseChartOptions" include=["data"] hideHeader=true /%}
+{% /tabItem %}
+
+{% /tabs %}
