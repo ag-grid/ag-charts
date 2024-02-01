@@ -3,14 +3,29 @@ import ChartsDark from '@images/inline-svgs/chart-dark.svg?react';
 import ChartsLight from '@images/inline-svgs/chart-light.svg?react';
 import GridDark from '@images/inline-svgs/grid-dark.svg?react';
 import GridLight from '@images/inline-svgs/grid-light.svg?react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export const ProductDropdown = ({ items, children }) => {
     const [isOpen, setIsOpen] = useState(false);
+    const dropdownRef = useRef(null);
 
     const handleMenuToggle = () => {
         setIsOpen(!isOpen);
     };
+
+    const handleClickOutside = (event) => {
+        if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+            setIsOpen(false);
+        }
+    };
+
+    useEffect(() => {
+        document.addEventListener('click', handleClickOutside);
+
+        return () => {
+            document.removeEventListener('click', handleClickOutside);
+        };
+    }, []);
 
     const getIconComponent = (title: any) => {
         switch (title) {
@@ -33,7 +48,7 @@ export const ProductDropdown = ({ items, children }) => {
     };
 
     return (
-        <div className={`${styles.customMenu} ${isOpen ? styles.open : ''}`}>
+        <div ref={dropdownRef} className={`${styles.customMenu} ${isOpen ? styles.open : ''}`}>
             <button className={`${styles.customTrigger} ${isOpen ? styles.open : ''}`} onClick={handleMenuToggle}>
                 Products
                 <span className={styles.arrow}></span>
