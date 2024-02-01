@@ -67,29 +67,32 @@ const dropdownItems = [
 ---
 
 <header class:list={[gridStyles.header, 'site-header']}>
-    <div class:list={[gridStyles.headerInner, 'layout-page-max-width']}>
+    <div class={gridStyles.headerInner}>
         <SiteLogo client:load />
+
         <ProductDropdown client:load items={dropdownItems} children={null} />
 
-        {
-            showDocsNav && (
-                <button
-                    id="top-bar-docs-button"
-                    class:list={[gridStyles.mobileNavButton, 'button-secondary']}
-                    type="button"
-                    data-toggle="collapse"
-                    data-target="#side-nav"
-                    aria-controls="side-nav"
-                    aria-expanded="false"
-                    aria-label="Toggle docs page navigation"
-                >
-                    <span>Docs</span>
-                    <Icon name="collapseCategories" />
-                </button>
-            )
-        }
+        <div class={gridStyles.docsNavBtnSearchContainer}>
+            {
+                showDocsNav && (
+                    <button
+                        id="top-bar-docs-button"
+                        class:list={[gridStyles.mobileNavButton, 'button-secondary']}
+                        type="button"
+                        data-toggle="collapse"
+                        data-target="#side-nav"
+                        aria-controls="side-nav"
+                        aria-expanded="false"
+                        aria-label="Toggle docs page navigation"
+                    >
+                        <span>Docs</span>
+                        <Icon name="collapseCategories" />
+                    </button>
+                )
+            }
 
-        {showSearchBar && <Search client:load currentFramework={framework} isDev={isDev} />}
+            {showSearchBar && <Search client:load currentFramework={framework} isDev={isDev} />}
+        </div>
 
         <HeaderNav currentPath={pathname} items={topNavItems} allPaths={allPaths} client:load>
             <li class:list={[gridStyles.navItem, gridStyles.buttonItem, 'darkModeItem']}>
@@ -101,10 +104,6 @@ const dropdownItems = [
 
 <style lang="scss">
     @use '../../design-system' as *;
-
-    .darkModeItem {
-        min-width: 48px;
-    }
 
     // Required to stop mobile docs nav flash on page load
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
