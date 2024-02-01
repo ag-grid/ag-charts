@@ -461,45 +461,56 @@ function applySeries(chart: Chart, options: AgChartOptions) {
         return false;
     }
 
-    const keysToConsider = ['direction', 'xKey', 'yKey', 'sizeKey', 'angleKey', 'normalizedTo'];
+    const unmatchedKeys = new Set<string>();
+    const matchedKeys = new Set(['direction', 'xKey', 'yKey', 'sizeKey', 'angleKey', 'normalizedTo']);
+    const recreateAllSeries = () => {
+        debug(`AgChartV2.applySeries() - creating new series instances; mismatching keys: `, unmatchedKeys);
+        chart.series = createSeries(chart, optSeries);
+        return true;
+    };
 
-    let matchingTypes = chart.series.length === optSeries.length;
-    for (let i = 0; i < chart.series.length && matchingTypes; i++) {
-        matchingTypes &&= chart.series[i].type === (optSeries[i] as any).type;
-        for (const key of keysToConsider) {
-            matchingTypes &&= (chart.series[i].properties as any)[key] === (optSeries[i] as any)[key];
+    if (chart.series.length !== optSeries.length) {
+        debug(`AgChartV2.applySeries() - series count changed`);
+        return recreateAllSeries();
+    }
+
+    for (let i = 0; i < chart.series.length; i++) {
+        if (chart.series[0]?.type !== optSeries[i]?.type) unmatchedKeys.add('type');
+
+        for (const key of matchedKeys) {
+            const matches = (chart.series[i].properties as any)[key] === (optSeries[i] as any)[key];
+
+            if (!matches) unmatchedKeys.add(key);
         }
     }
 
-    let seriesDiffs = []; // Only diff if coarsely series types are matching.
-    if (matchingTypes) {
-        seriesDiffs = chart.series.map((_, i) => {
-            const previousOpts = chart.processedOptions.series?.[i] ?? {};
-            return jsonDiff(previousOpts, optSeries[i] ?? {}) as any;
-        });
+    if (unmatchedKeys.size > 0) return recreateAllSeries();
 
-        // Check if seriesGrouping has changed.
-        matchingTypes = seriesDiffs.every((diff) => !('seriesGrouping' in (diff ?? {})));
+    const seriesDiffs = chart.series.map((_, i) => {
+        const previousOpts = chart.processedOptions.series?.[i] ?? {};
+        return jsonDiff(previousOpts, optSeries[i] ?? {}) as any;
+    });
+
+    // Check if seriesGrouping has changed.
+    const matchingGrouping = seriesDiffs.every((diff) => !('seriesGrouping' in (diff ?? {})));
+    if (!matchingGrouping) {
+        unmatchedKeys.add('seriesGrouping');
+        return recreateAllSeries();
     }
 
     // Try to optimise series updates if series count and types didn't change.
-    if (matchingTypes) {
-        seriesDiffs.forEach((seriesDiff, i) => {
-            if (!seriesDiff) return;
+    for (let i = 0; i < seriesDiffs.length; i++) {
+        const seriesDiff = seriesDiffs[i];
+        if (!seriesDiff) continue;
 
-            debug(`AgChartV2.applySeries() - applying series diff idx ${i}`, seriesDiff);
+        debug(`AgChartV2.applySeries() - applying series diff idx ${i}`, seriesDiff);
 
-            const series = chart.series[i];
-            applySeriesValues(series as any, seriesDiff);
-            series.markNodeDataDirty();
-        });
-
-        return false;
+        const series = chart.series[i];
+        applySeriesValues(series as any, seriesDiff);
+        series.markNodeDataDirty();
     }
 
-    debug(`AgChartV2.applySeries() - creating new series instances`);
-    chart.series = createSeries(chart, optSeries);
-    return true;
+    return false;
 }
 
 function applyAxes(chart: Chart, options: AgChartOptions, forceRecreate: boolean) {

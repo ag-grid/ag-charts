@@ -1,6 +1,7 @@
 import { _Theme } from 'ag-charts-community';
 
 export const BULLET_SERIES_THEME = {
+    direction: 'vertical' as const,
     strokeWidth: 0,
     strokeOpacity: 1,
     fillOpacity: 1,

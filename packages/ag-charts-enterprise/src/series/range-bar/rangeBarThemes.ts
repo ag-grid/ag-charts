@@ -2,6 +2,7 @@ import { _Theme } from 'ag-charts-community';
 
 export const RANGE_BAR_SERIES_THEME = {
     __extends__: _Theme.EXTENDS_SERIES_DEFAULTS,
+    direction: 'vertical' as const,
     xKey: '',
     yLowKey: '',
     yHighKey: '',
