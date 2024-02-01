@@ -56,7 +56,7 @@ export interface AgRangeBarSeriesLabelOptions<TDatum>
 export type AgRangeBarSeriesLabelPlacement = 'inside' | 'outside';
 
 export interface AgRangeBarSeriesThemeableOptions<TDatum = any>
-    extends AgBaseSeriesThemeableOptions,
+    extends AgBaseSeriesThemeableOptions<TDatum>,
         FillOptions,
         StrokeOptions,
         LineDashOptions {

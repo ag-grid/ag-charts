@@ -8,7 +8,7 @@ export interface AgBaseRadialSeriesThemeableOptions<TDatum = any>
     extends StrokeOptions,
         LineDashOptions,
         FillOptions,
-        AgBaseSeriesThemeableOptions {
+        AgBaseSeriesThemeableOptions<TDatum> {
     /** Configuration for the labels shown on top of data points. */
     label?: AgChartLabelOptions<TDatum, AgRadialSeriesLabelFormatterParams>;
     /** Series-specific tooltip configuration. */

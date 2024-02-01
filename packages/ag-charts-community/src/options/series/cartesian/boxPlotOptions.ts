@@ -58,7 +58,7 @@ export interface AgBoxPlotSeriesStyles extends FillOptions, StrokeOptions, LineD
 }
 
 export interface AgBoxPlotSeriesThemeableOptions<TDatum = any>
-    extends AgBaseSeriesThemeableOptions,
+    extends AgBaseSeriesThemeableOptions<TDatum>,
         AgBoxPlotSeriesStyles {
     /**
      * Bar rendering direction.

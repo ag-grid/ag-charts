@@ -13,7 +13,7 @@ export interface AgScatterSeriesTooltipRendererParams<TDatum = any>
 
 export type AgScatterSeriesLabelFormatterParams = AgScatterSeriesOptionsKeys & AgScatterSeriesOptionsNames;
 
-export interface AgScatterSeriesThemeableOptions<TDatum = any> extends AgBaseSeriesThemeableOptions {
+export interface AgScatterSeriesThemeableOptions<TDatum = any> extends AgBaseSeriesThemeableOptions<TDatum> {
     /** Configuration for the markers used in the series.  */
     marker?: AgSeriesMarkerOptions<AgScatterSeriesOptionsKeys, TDatum>;
     /** Configuration for the labels shown on top of data points.  */

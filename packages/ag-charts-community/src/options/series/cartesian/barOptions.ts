@@ -36,7 +36,9 @@ export interface AgBarSeriesTooltipRendererParams<TDatum = any>
     readonly stackGroup?: string;
 }
 
-export interface AgBarSeriesThemeableOptions<TDatum = any> extends AgBarSeriesStyle, AgBaseSeriesThemeableOptions {
+export interface AgBarSeriesThemeableOptions<TDatum = any>
+    extends AgBarSeriesStyle,
+        AgBaseSeriesThemeableOptions<TDatum> {
     /**
      * Bar rendering direction.
      *

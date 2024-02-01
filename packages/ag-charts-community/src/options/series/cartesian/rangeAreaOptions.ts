@@ -40,7 +40,7 @@ export interface AgRangeAreaSeriesThemeableOptions<TDatum = any>
     extends StrokeOptions,
         FillOptions,
         LineDashOptions,
-        AgBaseSeriesThemeableOptions {
+        AgBaseSeriesThemeableOptions<TDatum> {
     /** Configuration for the markers used in the series.  */
     marker?: AgSeriesMarkerOptions<TDatum, AgRangeAreaSeriesOptionsKeys>;
     /** Configuration for the range series items when they are hovered over. */

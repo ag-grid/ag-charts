@@ -25,7 +25,9 @@ export interface AgHeatmapSeriesTooltipRendererParams extends AgCartesianSeriesT
     readonly colorName?: string;
 }
 
-export interface AgHeatmapSeriesThemeableOptions<TDatum = any> extends StrokeOptions, AgBaseSeriesThemeableOptions {
+export interface AgHeatmapSeriesThemeableOptions<TDatum = any>
+    extends StrokeOptions,
+        AgBaseSeriesThemeableOptions<TDatum> {
     /** Options for the label in each cell. */
     label?: AgChartAutoSizedSecondaryLabelOptions<TDatum, AgHeatmapSeriesLabelFormatterParams>;
     /** Minimum distance between the label text and the edges of the cell. */

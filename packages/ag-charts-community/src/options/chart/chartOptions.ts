@@ -104,7 +104,7 @@ export interface AgChartHighlightOptions {
     range?: AgChartHighlightRange;
 }
 
-export interface AgBaseThemeableChartOptions {
+export interface AgBaseThemeableChartOptions<TDatum = any> {
     /** The width of the chart in pixels. */
     width?: PixelSize;
     /** The height of the chart in pixels. */
@@ -147,10 +147,12 @@ export interface AgBaseThemeableChartOptions {
     zoom?: AgZoomOptions;
     /** Configuration for the Navigator. */
     navigator?: AgNavigatorOptions;
+    /** A map of event names to event listeners. */
+    listeners?: AgBaseChartListeners<TDatum>;
 }
 
 /** Configuration common to all charts.  */
-export interface AgBaseChartOptions<TDatum = any> extends AgBaseThemeableChartOptions {
+export interface AgBaseChartOptions<TDatum = any> extends AgBaseThemeableChartOptions<TDatum> {
     /** The data to render the chart from. If this is not specified, it must be set on individual series instead. */
     data?: TDatum[];
     /**
@@ -159,6 +161,4 @@ export interface AgBaseChartOptions<TDatum = any> extends AgBaseThemeableChartOp
      * __Important:__ Make sure to read the `autoSize` config description for information on how the container element affects the chart size (by default).
      */
     container?: HTMLElement | null;
-    /** A map of event names to event listeners. */
-    listeners?: AgBaseChartListeners<TDatum>;
 }

@@ -44,7 +44,7 @@ export interface AgWaterfallSeriesLabelOptions<TDatum, TParams> extends AgChartL
 
 export type AgWaterfallSeriesLabelPlacement = 'start' | 'end' | 'inside';
 
-export interface AgWaterfallSeriesThemeableOptions<TDatum = any> extends AgBaseSeriesThemeableOptions {
+export interface AgWaterfallSeriesThemeableOptions<TDatum = any> extends AgBaseSeriesThemeableOptions<TDatum> {
     /**
      * Bar rendering direction.
      *

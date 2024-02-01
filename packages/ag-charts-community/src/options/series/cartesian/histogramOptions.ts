@@ -21,7 +21,7 @@ export interface AgHistogramBinDatum<TDatum> {
 }
 
 export interface AgHistogramSeriesThemeableOptions<TDatum = any>
-    extends AgBaseSeriesThemeableOptions,
+    extends AgBaseSeriesThemeableOptions<TDatum>,
         FillOptions,
         StrokeOptions,
         LineDashOptions {

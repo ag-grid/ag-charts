@@ -17,7 +17,7 @@ export interface AgBubbleSeriesMarker<TDatum> extends AgSeriesMarkerOptions<AgBu
 
 export type AgBubbleSeriesLabelFormatterParams = AgBubbleSeriesOptionsKeys & AgBubbleSeriesOptionsNames;
 
-export interface AgBubbleSeriesThemeableOptions<TDatum = any> extends AgBaseSeriesThemeableOptions {
+export interface AgBubbleSeriesThemeableOptions<TDatum = any> extends AgBaseSeriesThemeableOptions<TDatum> {
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not.  */
     title?: string;
     /** Configuration for the markers used in the series.  */

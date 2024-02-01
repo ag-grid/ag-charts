@@ -14,7 +14,7 @@ export interface AgAreaSeriesThemeableOptions<TDatum = any>
     extends StrokeOptions,
         FillOptions,
         LineDashOptions,
-        AgBaseSeriesThemeableOptions {
+        AgBaseSeriesThemeableOptions<TDatum> {
     /** Configuration for the markers used in the series. */
     marker?: AgSeriesMarkerOptions<AgAreaSeriesOptionsKeys, TDatum>;
     /** Configuration for the shadow used behind the chart series. */

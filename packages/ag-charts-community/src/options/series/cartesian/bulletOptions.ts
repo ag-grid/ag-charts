@@ -31,7 +31,9 @@ export interface AgBulletScaleOptions {
     max?: number;
 }
 
-export interface AgBulletSeriesThemeableOptions extends AgBulletSeriesStyle, AgBaseSeriesThemeableOptions {
+export interface AgBulletSeriesThemeableOptions<TDatum = any>
+    extends AgBulletSeriesStyle,
+        AgBaseSeriesThemeableOptions<TDatum> {
     /** Width of the bar relative to the width/height of the series area. */
     widthRatio?: Ratio;
     /** Styling options for the target node. */
@@ -47,7 +49,7 @@ export interface AgBulletColorRange {
 
 export interface AgBulletSeriesOptions<TDatum = any>
     extends AgBaseSeriesOptions<TDatum>,
-        AgBulletSeriesThemeableOptions,
+        AgBulletSeriesThemeableOptions<TDatum>,
         BulletSeriesKeysAndNames {
     /** Configuration for the Bullet Series. */
     type: 'bullet';

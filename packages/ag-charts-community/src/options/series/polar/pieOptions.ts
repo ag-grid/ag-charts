@@ -53,7 +53,9 @@ export interface AgPieSeriesCalloutOptions {
     strokeWidth?: PixelSize;
 }
 
-export interface AgPieSeriesThemeableOptions<TDatum = any> extends AgBaseSeriesThemeableOptions, LineDashOptions {
+export interface AgPieSeriesThemeableOptions<TDatum = any>
+    extends AgBaseSeriesThemeableOptions<TDatum>,
+        LineDashOptions {
     /** Configuration for the series title. */
     title?: AgPieTitleOptions;
     /** Configuration for the labels used outside the sectors. */

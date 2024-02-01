@@ -92,7 +92,7 @@ export interface AgTreemapSeriesHighlightStyle<TDatum> extends AgSeriesHighlight
 }
 
 export interface AgTreemapSeriesThemeableOptions<TDatum = any>
-    extends Omit<AgBaseSeriesThemeableOptions, 'highlightStyle'> {
+    extends Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle'> {
     /** The colours to cycle through for the fills of the groups and tiles. */
     fills?: CssColor[];
     /** The colours to cycle through for the strokes of the groups and tiles. */
