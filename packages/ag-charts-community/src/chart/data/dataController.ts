@@ -217,7 +217,9 @@ export class DataController {
                     for (const prop of next.props) {
                         if (prop.id != null) {
                             prop.ids ??= [];
-                            prop.scopes?.forEach((scope) => prop.ids?.push([scope, prop.id!]));
+                            for (const scope of prop.scopes ?? []) {
+                                prop.ids.push([scope, prop.id]);
+                            }
                         }
 
                         const match = result.find(propMatch(prop));
@@ -231,8 +233,9 @@ export class DataController {
                         match.scopes.push(...(prop.scopes ?? []));
                         updateKeyValueOpts(prop);
 
-                        if (match.type !== 'key' && match.type !== 'value') continue;
-                        match.ids?.push(...(prop.ids ?? []));
+                        if ((match.type === 'key' || match.type === 'value') && prop.ids?.length) {
+                            match.ids?.push(...prop.ids);
+                        }
                     }
 
                     return result;

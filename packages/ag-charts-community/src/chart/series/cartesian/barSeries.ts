@@ -11,7 +11,7 @@ import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
 import { sanitizeHtml } from '../../../util/sanitize';
-import { isNumber } from '../../../util/value';
+import { isFiniteNumber } from '../../../util/type-guards';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import { GroupedCategoryAxis } from '../../axis/groupedCategoryAxis';
 import { LogAxis } from '../../axis/logAxis';
@@ -352,7 +352,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
                         yName,
                         legendItemName,
                     },
-                    (value) => (isNumber(value) ? value.toFixed(2) : '')
+                    (value) => (isFiniteNumber(value) ? value.toFixed(2) : '')
                 );
                 const labelDatum = labelText
                     ? {

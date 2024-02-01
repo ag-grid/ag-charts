@@ -11,7 +11,7 @@ import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
 import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
-import { isNumber } from '../../../util/value';
+import { isFiniteNumber } from '../../../util/type-guards';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import type { DataModelOptions, UngroupedDataItem } from '../../data/dataModel';
@@ -178,7 +178,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
                 const labelText = this.getLabelText(
                     label,
                     { value: yDatum, datum, xKey, yKey, xName, yName },
-                    (value) => (isNumber(value) ? value.toFixed(2) : String(value))
+                    (value) => (isFiniteNumber(value) ? value.toFixed(2) : String(value))
                 );
 
                 nodeData.push({

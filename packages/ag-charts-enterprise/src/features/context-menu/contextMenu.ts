@@ -1,7 +1,11 @@
 import type { _Scene } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
-import { DEFAULT_CONTEXT_MENU_CLASS, defaultContextMenuCss } from './contextMenuStyles';
+import {
+    DEFAULT_CONTEXT_MENU_CLASS,
+    DEFAULT_CONTEXT_MENU_DARK_CLASS,
+    defaultContextMenuCss,
+} from './contextMenuStyles';
 
 type ContextMenuGroups = {
     default: Array<ContextMenuItem>;
@@ -28,6 +32,9 @@ const TOOLTIP_ID = 'context-menu';
 export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @Validate(BOOLEAN)
     enabled = true;
+
+    @Validate(BOOLEAN)
+    darkTheme = false;
 
     /**
      * Extra menu actions with a label and callback.
@@ -215,6 +222,8 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     public show() {
         if (!this.coverElement) return;
 
+        this.element.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
+
         const newMenuElement = this.renderMenu();
 
         if (this.menuElement) {
@@ -255,6 +264,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     public renderMenu() {
         const menuElement = this.ctx.document.createElement('div');
         menuElement.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__menu`);
+        menuElement.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
 
         this.groups.default.forEach((i) => {
             const item = this.renderItem(i);
@@ -282,6 +292,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     private createDividerElement(): HTMLElement {
         const el = this.ctx.document.createElement('div');
         el.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__divider`);
+        el.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
         return el;
     }
 
@@ -295,6 +306,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     private createButtonElement(label: string, callback: (params: ContextMenuActionParams) => void): HTMLElement {
         const el = this.ctx.document.createElement('button');
         el.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__item`);
+        el.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
         el.innerHTML = label;
         el.onclick = () => {
             const params: ContextMenuActionParams = {
@@ -312,6 +324,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     private createDisabledElement(label: string): HTMLElement {
         const el = this.ctx.document.createElement('button');
         el.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__item`);
+        el.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
         el.disabled = true;
         el.innerHTML = label;
         return el;

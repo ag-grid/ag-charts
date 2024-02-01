@@ -12,8 +12,8 @@ import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
 import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
-import { isDefined } from '../../../util/type-guards';
-import { isContinuous, isNumber } from '../../../util/value';
+import { isDefined, isFiniteNumber } from '../../../util/type-guards';
+import { isContinuous } from '../../../util/value';
 import { LogAxis } from '../../axis/logAxis';
 import { TimeAxis } from '../../axis/timeAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
@@ -322,7 +322,7 @@ export class AreaSeries extends CartesianSeries<
                             xName: this.properties.xName,
                             yName: this.properties.yName,
                         },
-                        (value) => (isNumber(value) ? value.toFixed(2) : String(value))
+                        (value) => (isFiniteNumber(value) ? value.toFixed(2) : String(value))
                     );
 
                     labelData.push({
@@ -566,7 +566,7 @@ export class AreaSeries extends CartesianSeries<
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!this.properties.isValid() || !(xAxis && yAxis && isNumber(yValue)) || !dataModel) {
+        if (!this.properties.isValid() || !(xAxis && yAxis && isFiniteNumber(yValue)) || !dataModel) {
             return '';
         }
 

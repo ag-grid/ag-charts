@@ -1,7 +1,10 @@
 import { ADD_PHASE, REMOVE_PHASE } from '../../motion/animation';
 import type { BBox } from '../../scene/bbox';
-import { FUNCTION, STRING, Validate } from '../../util/validation';
+import { BOOLEAN, FUNCTION, STRING, Validate } from '../../util/validation';
 import type { AnimationManager } from '../interaction/animationManager';
+
+export const DEFAULT_OVERLAY_CLASS = 'ag-chart-overlay';
+export const DEFAULT_OVERLAY_DARK_CLASS = 'ag-chart-dark-overlay';
 
 export class Overlay {
     private element?: HTMLElement;
@@ -18,11 +21,16 @@ export class Overlay {
     @Validate(STRING, { optional: true })
     text?: string;
 
+    @Validate(BOOLEAN)
+    darkTheme = false;
+
     show(rect: BBox) {
         if (!this.element) {
             this.element = this.createElement('div');
-            this.element.className = this.className;
+            this.element.classList.add(this.className, DEFAULT_OVERLAY_CLASS);
         }
+
+        this.element.classList.toggle(DEFAULT_OVERLAY_DARK_CLASS, this.darkTheme);
 
         const { element } = this;
         element.style.position = 'absolute';

@@ -4,8 +4,18 @@ import { Group } from '../../scene/group';
 import type { Node } from '../../scene/node';
 import { Text } from '../../scene/shape/text';
 import { createId } from '../../util/id';
+import { BaseProperties } from '../../util/properties';
 import { ActionOnSet } from '../../util/proxy';
-import { COLOR_STRING, FONT_STYLE, FONT_WEIGHT, POSITIVE_NUMBER, RATIO, STRING, Validate } from '../../util/validation';
+import {
+    COLOR_STRING,
+    FONT_STYLE,
+    FONT_WEIGHT,
+    OBJECT,
+    POSITIVE_NUMBER,
+    RATIO,
+    STRING,
+    Validate,
+} from '../../util/validation';
 import { ChartUpdateType } from '../chartUpdateType';
 import type { CursorManager } from '../interaction/cursorManager';
 import type { InteractionEvent, InteractionManager } from '../interaction/interactionManager';
@@ -13,7 +23,7 @@ import type { Marker } from '../marker/marker';
 import { Triangle } from '../marker/triangle';
 import { type MarkerShape, getMarker } from '../marker/util';
 
-class PaginationLabel {
+class PaginationLabel extends BaseProperties {
     @Validate(COLOR_STRING)
     color: string = 'black';
 
@@ -30,7 +40,7 @@ class PaginationLabel {
     fontFamily: string = 'Verdana, sans-serif';
 }
 
-class PaginationMarkerStyle {
+class PaginationMarkerStyle extends BaseProperties {
     @Validate(POSITIVE_NUMBER)
     size = 15;
 
@@ -50,7 +60,7 @@ class PaginationMarkerStyle {
     strokeOpacity: number = 1;
 }
 
-class PaginationMarker {
+class PaginationMarker extends BaseProperties {
     @ActionOnSet<PaginationMarker>({
         changeValue() {
             if (this.parent.marker === this) {
@@ -69,23 +79,33 @@ class PaginationMarker {
     @Validate(POSITIVE_NUMBER)
     padding: number = 8;
 
-    constructor(readonly parent: Pagination) {}
+    constructor(readonly parent: Pagination) {
+        super();
+    }
 }
 
-export class Pagination {
+export class Pagination extends BaseProperties {
     static className = 'Pagination';
 
     readonly id = createId(this);
 
-    private readonly group = new Group({ name: 'pagination' });
-    private readonly labelNode: Text = new Text();
-
+    @Validate(OBJECT)
     readonly marker = new PaginationMarker(this);
+
+    @Validate(OBJECT)
     readonly activeStyle = new PaginationMarkerStyle();
+
+    @Validate(OBJECT)
     readonly inactiveStyle = new PaginationMarkerStyle();
+
+    @Validate(OBJECT)
     readonly highlightStyle = new PaginationMarkerStyle();
+
+    @Validate(OBJECT)
     readonly label = new PaginationLabel();
 
+    private readonly group = new Group({ name: 'pagination' });
+    private readonly labelNode: Text = new Text();
     private highlightActive?: 'previous' | 'next';
     private destroyFns: (() => void)[] = [];
 
@@ -95,14 +115,17 @@ export class Pagination {
         private readonly interactionManager: InteractionManager,
         private readonly cursorManager: CursorManager
     ) {
-        const { labelNode } = this;
-        labelNode.textBaseline = 'middle';
-        labelNode.fontSize = 12;
-        labelNode.fontFamily = 'Verdana, sans-serif';
-        labelNode.fill = 'black';
-        labelNode.y = HdpiCanvas.has.textMetrics ? 1 : 0;
+        super();
 
-        this.group.append([this.nextButton, this.previousButton, labelNode]);
+        this.labelNode.setProperties({
+            textBaseline: 'middle',
+            fontSize: 12,
+            fontFamily: 'Verdana, sans-serif',
+            fill: 'black',
+            y: HdpiCanvas.has.textMetrics ? 1 : 0,
+        });
+
+        this.group.append([this.nextButton, this.previousButton, this.labelNode]);
 
         this.destroyFns.push(
             this.interactionManager.addListener('click', (event) => this.onPaginationClick(event)),

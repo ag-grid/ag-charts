@@ -350,6 +350,12 @@ export function prepareLinePathAnimation(
     diff?: ProcessedOutputDiff
 ) {
     const isCategoryBased = newData.scales.x?.type === 'category';
+    const wasCategoryBased = oldData.scales.x?.type === 'category';
+    if (isCategoryBased !== wasCategoryBased) {
+        // Not comparable.
+        return;
+    }
+
     const { result: pairData, resultMap: pairMap } = isCategoryBased
         ? pairCategoryData(newData, oldData, diff)
         : pairContinuousData(newData, oldData);

@@ -16,8 +16,8 @@ import { mod, toFixed } from '../../../util/number';
 import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
 import { boxCollidesSector, isPointInSector } from '../../../util/sector';
+import { isFiniteNumber } from '../../../util/type-guards';
 import type { Has } from '../../../util/types';
-import { isNumber } from '../../../util/value';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { DataModel, getMissCount } from '../../data/dataModel';
@@ -1267,7 +1267,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         } = nodeDatum;
 
         const title = sanitizeHtml(this.properties.title?.text);
-        const content = isNumber(angleValue) ? toFixed(angleValue) : String(angleValue);
+        const content = isFiniteNumber(angleValue) ? toFixed(angleValue) : String(angleValue);
         const labelText = this.getDatumLegendName(nodeDatum);
 
         return this.properties.tooltip.toTooltipHtml(

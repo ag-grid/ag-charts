@@ -2,11 +2,9 @@ import type { ModuleContext } from '../../module/moduleContext';
 import { TimeScale } from '../../scale/timeScale';
 import { extent } from '../../util/array';
 import { Default } from '../../util/default';
-import { AND, DATE_OR_DATETIME_MS, GREATER_THAN, LESS_THAN, NAN, NUMBER, OR, Validate } from '../../util/validation';
+import { AND, DATE_OR_DATETIME_MS, GREATER_THAN, LESS_THAN, MAX_SPACING, Validate } from '../../util/validation';
 import { AxisTick } from './axisTick';
 import { CartesianAxis } from './cartesianAxis';
-
-const MAX_SPACING = OR(AND(NUMBER.restrict({ min: 1 }), GREATER_THAN('minSpacing')), NAN);
 
 class TimeAxisTick extends AxisTick<TimeScale, number | Date> {
     @Validate(MAX_SPACING)
