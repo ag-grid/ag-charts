@@ -33,6 +33,7 @@ import { type SeriesOptions, getSeries } from './factory/seriesTypes';
 import { setupModules } from './factory/setupModules';
 import { HierarchyChart } from './hierarchyChart';
 import { AxisPositionGuesser } from './mapping/prepareAxis';
+import { matchSeriesOptions } from './mapping/prepareSeries';
 import {
     type SeriesOptionsTypes,
     isAgCartesianChartOptions,
@@ -387,12 +388,12 @@ function applyChartOptions(chart: Chart, processedOptions: ProcessedOptions, use
     applyOptionValues(chart, chart.getModuleContext(), processedOptions, { skip });
 
     let forceNodeDataRefresh = false;
-    let seriesRecreated = false;
+    let seriesStatus: ReturnType<typeof applySeries> = 'updated';
     if (processedOptions.series && processedOptions.series.length > 0) {
-        seriesRecreated = applySeries(chart, processedOptions);
+        seriesStatus = applySeries(chart, processedOptions);
         forceNodeDataRefresh = true;
     }
-    if (applyAxes(chart, completeOptions, seriesRecreated)) {
+    if (applyAxes(chart, completeOptions, seriesStatus)) {
         forceNodeDataRefresh = true;
     }
 
@@ -458,67 +459,55 @@ function applyModules(chart: Chart, options: AgChartOptions) {
 function applySeries(chart: Chart, options: AgChartOptions) {
     const optSeries = options.series;
     if (!optSeries) {
-        return false;
+        return 'no-change';
     }
 
-    const unmatchedKeys = new Set<string>();
-    const matchedKeys = new Set(['direction', 'xKey', 'yKey', 'sizeKey', 'angleKey', 'normalizedTo']);
-    const recreateAllSeries = () => {
-        debug(`AgChartV2.applySeries() - creating new series instances; mismatching keys: `, unmatchedKeys);
+    const matchResult = matchSeriesOptions(chart.series, chart.processedOptions, optSeries);
+    if (matchResult.status === 'no-overlap' || matchResult.status === 'series-grouping-changed') {
+        debug(`AgChartV2.applySeries() - creating new series instances, status: ${matchResult.status}`, matchResult);
         chart.series = createSeries(chart, optSeries);
-        return true;
-    };
-
-    if (chart.series.length !== optSeries.length) {
-        debug(`AgChartV2.applySeries() - series count changed`);
-        return recreateAllSeries();
+        return 'replaced';
     }
 
-    for (let i = 0; i < chart.series.length; i++) {
-        if (chart.series[0]?.type !== optSeries[i]?.type) unmatchedKeys.add('type');
+    debug(`AgChartV2.applySeries() - matchResult`, matchResult);
 
-        for (const key of matchedKeys) {
-            const matches = (chart.series[i].properties as any)[key] === (optSeries[i] as any)[key];
-
-            if (!matches) unmatchedKeys.add(key);
+    const seriesInstances = [];
+    for (const change of matchResult.changes) {
+        if (change.status === 'add') {
+            seriesInstances[change.idx] = createSeries(chart, [change.opts])[0];
+            debug(`AgChartV2.applySeries() - created new series at idx ${change.idx}`, seriesInstances[change.idx]);
+            continue;
+        } else if (change.status === 'remove') {
+            debug(`AgChartV2.applySeries() - removing series at idx ${change.idx}`, change.series);
+            continue;
+        } else if (change.status === 'no-op') {
+            seriesInstances[change.idx] = change.series;
+            debug(`AgChartV2.applySeries() - no change to series at idx ${change.idx}`, change.series);
+            continue;
         }
-    }
 
-    if (unmatchedKeys.size > 0) return recreateAllSeries();
-
-    const seriesDiffs = chart.series.map((_, i) => {
-        const previousOpts = chart.processedOptions.series?.[i] ?? {};
-        return jsonDiff(previousOpts, optSeries[i] ?? {}) as any;
-    });
-
-    // Check if seriesGrouping has changed.
-    const matchingGrouping = seriesDiffs.every((diff) => !('seriesGrouping' in (diff ?? {})));
-    if (!matchingGrouping) {
-        unmatchedKeys.add('seriesGrouping');
-        return recreateAllSeries();
-    }
-
-    // Try to optimise series updates if series count and types didn't change.
-    for (let i = 0; i < seriesDiffs.length; i++) {
-        const seriesDiff = seriesDiffs[i];
-        if (!seriesDiff) continue;
-
-        debug(`AgChartV2.applySeries() - applying series diff idx ${i}`, seriesDiff);
-
-        const series = chart.series[i];
-        applySeriesValues(series as any, seriesDiff);
+        const { series, diff, idx } = change;
+        debug(`AgChartV2.applySeries() - applying series diff idx ${idx}`, diff, series);
+        applySeriesValues(series, diff);
         series.markNodeDataDirty();
+        seriesInstances[change.idx] = series;
     }
 
-    return false;
+    debug(`AgChartV2.applySeries() - final series instances`, seriesInstances);
+    chart.series = seriesInstances;
+
+    const seriesAddedRemoved = matchResult.changes.some((c) => ['add', 'remove'].includes(c.status));
+    const noop = matchResult.changes.every((c) => c.status === 'no-op');
+    return seriesAddedRemoved ? 'series-count-changed' : noop ? 'no-op' : 'updated';
 }
 
-function applyAxes(chart: Chart, options: AgChartOptions, forceRecreate: boolean) {
+function applyAxes(chart: Chart, options: AgChartOptions, seriesStatus: ReturnType<typeof applySeries>) {
     if (!('axes' in options) || !options.axes) {
         return false;
     }
 
     const { axes } = options;
+    const forceRecreate = seriesStatus === 'replaced';
     const matchingTypes =
         !forceRecreate && chart.axes.length === axes.length && chart.axes.every((a, i) => a.type === axes[i].type);
 
@@ -541,7 +530,7 @@ function applyAxes(chart: Chart, options: AgChartOptions, forceRecreate: boolean
         }
     }
 
-    debug(`AgChartV2.applyAxes() - creating new axes instances`);
+    debug(`AgChartV2.applyAxes() - creating new axes instances; seriesStatus: ${seriesStatus}`);
     chart.axes = createAxis(chart, axes);
     return true;
 }

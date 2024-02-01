@@ -11,6 +11,7 @@ import { Chart } from './chart';
 import type { ChartAxis } from './chartAxis';
 import { ChartAxisDirection } from './chartAxisDirection';
 import { CartesianSeries } from './series/cartesian/cartesianSeries';
+import type { Series } from './series/series';
 
 type VisibilityMap = { crossLines: boolean; series: boolean };
 const directions: AgCartesianAxisPosition[] = ['top', 'right', 'bottom', 'left'];
@@ -28,8 +29,8 @@ export class CartesianChart extends Chart {
 
     private firstSeriesTranslation = true;
 
-    override destroySeries() {
-        super.destroySeries();
+    override destroySeries(series: Series<any>[]) {
+        super.destroySeries(series);
 
         this.firstSeriesTranslation = true;
     }
