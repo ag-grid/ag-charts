@@ -1,3 +1,4 @@
+import { Debug } from '../../util/debug';
 import { injectStyle } from '../../util/dom';
 import { Logger } from '../../util/logger';
 import { isFiniteNumber } from '../../util/type-guards';
@@ -83,6 +84,8 @@ const CSS = `
 type SupportedEvent = MouseEvent | TouchEvent | Event;
 type ListenerMeta = { bypassPause?: PauseType[] };
 
+const DEBUG_SELECTORS = [true, 'interaction'];
+
 /**
  * Manages user interactions with a specific HTMLElement (or interactions that bubble from it's
  * children)
@@ -92,6 +95,8 @@ export class InteractionManager extends BaseManager<
     InteractionEvent<InteractionTypes>,
     ListenerMeta
 > {
+    private readonly debug = Debug.create(...DEBUG_SELECTORS);
+
     readonly PauseType = PauseType;
 
     private static interactionDocuments: Document[] = [];
@@ -367,6 +372,7 @@ export class InteractionManager extends BaseManager<
             },
         };
 
+        this.debug('InteractionManager - builtEvent: ', builtEvent);
         return builtEvent;
     }
 }
