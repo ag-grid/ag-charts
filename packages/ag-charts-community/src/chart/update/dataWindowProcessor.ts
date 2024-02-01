@@ -12,9 +12,7 @@ interface AxisDomain {
 }
 
 export class DataWindowProcessor<D extends object> implements UpdateProcessor {
-    // Flags if a zoom change has come in before the initial full data load, in which case we need to refetch the data
-    // with the new zoom state after the update has completed.
-    private isDirty = false;
+    private dirty = true;
 
     private destroyFns: (() => void)[] = [];
 
@@ -35,12 +33,12 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
     }
 
     private onUpdateComplete() {
-        if (!this.isDirty) return;
+        if (!this.dirty) return;
         this.updateWindow();
     }
 
     private onZoomChange() {
-        this.isDirty = true;
+        this.dirty = true;
         this.updateWindow();
     }
 
@@ -48,9 +46,9 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
         if (!this.dataService.isLazy()) {
             return;
         }
-        this.isDirty = false;
+        this.dirty = false;
         const domains = this.getValidAxisDomains();
-        const data = await this.dataService.fetchFullAndWindow(domains);
+        const data = await this.dataService.load(domains);
         this.dataService.update(data);
         this.updateService.update(ChartUpdateType.UPDATE_DATA);
     }

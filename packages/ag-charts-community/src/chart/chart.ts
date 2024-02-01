@@ -900,7 +900,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     async updateData() {
-        const data = await this.dataService.fetchFull(this.data);
+        const data = this.dataService.init(this.data);
         this.series.map((s) => {
             s.setChartData(data);
         });
