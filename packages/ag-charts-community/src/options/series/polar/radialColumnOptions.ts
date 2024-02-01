@@ -14,6 +14,8 @@ export interface AgBaseRadialColumnSeriesOptions<TDatum = any>
     /** Base configuration for Radial Column series. */
     type: 'radial-column' | 'nightingale';
 
+    /** The number to normalise the bar stacks to. Has no effect unless series are stacked. */
+    normalizedTo?: number;
     /** Whether to group together (adjacently) separate sectors. */
     grouped?: boolean;
     /** An option indicating if the sectors should be stacked. */
