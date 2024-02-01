@@ -1084,10 +1084,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
     };
 
     protected onMouseMove(event: InteractionEvent<'hover'>): void {
-        if (this.interactionManager.state !== InteractionState.Default) {
-            return;
-        }
-
         this.lastInteractionEvent = event;
         this.pointerScheduler.schedule();
 

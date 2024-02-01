@@ -81,8 +81,11 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.interactionManager = ctx.interactionManager;
         this.scene = ctx.scene;
 
-        this.destroyFns.push(ctx.interactionManager.addListener('contextmenu', (event) => this.onContextMenu(event)));
-        this.destroyFns.push(ctx.interactionManager.addListener('click', () => this.onClick()));
+        const contextState = InteractionState.Default & InteractionState.ContextMenu;
+        this.destroyFns.push(
+            ctx.interactionManager.addListener('contextmenu', (event) => this.onContextMenu(event), contextState),
+            ctx.interactionManager.addListener('click', () => this.onClick(), InteractionState.All)
+        );
 
         // State
         this.groups = { default: [], node: [], extra: [], extraNode: [] };
@@ -180,9 +183,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onContextMenu(event: _ModuleSupport.InteractionEvent<'contextmenu'>) {
-        const state = this.ctx.interactionManager.state;
         if (!this.enabled) return;
-        if (state !== InteractionState.Default && state !== InteractionState.ContextMenu) return;
 
         this.showEvent = event.sourceEvent as MouseEvent;
         this.x = event.pageX;

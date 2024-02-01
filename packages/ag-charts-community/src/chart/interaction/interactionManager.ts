@@ -78,10 +78,11 @@ const CSS = `
 type SupportedEvent = MouseEvent | TouchEvent | Event;
 
 export enum InteractionState {
-    Default = -Infinity,
-    ZoomDrag = 1,
-    ContextMenu = 2,
-    Animation = 3,
+    Default = 1,
+    ZoomDrag = 2,
+    ContextMenu = 4,
+    Animation = 8,
+    All = Default | ZoomDrag | ContextMenu | Animation,
 }
 
 const DEBUG_SELECTORS = [true, 'interaction'];
@@ -145,6 +146,19 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         for (const type of EVENT_HANDLERS) {
             this.element.removeEventListener(type, this.eventHandler);
         }
+    }
+
+    // Wrapper to only broadcast events when the InteractionManager is a given state.
+    override addListener<T extends InteractionTypes>(
+        type: T,
+        handler: (event: InteractionEvent<T> & { type: T }) => void,
+        triggeringStates: InteractionState = InteractionState.Default
+    ) {
+        return super.addListener(type, (e) => {
+            if (this.state & triggeringStates) {
+                handler(e);
+            }
+        });
     }
 
     public pushState(state: InteractionState) {

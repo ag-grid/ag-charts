@@ -133,10 +133,11 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.zoomManager = ctx.zoomManager;
         this.updateService = ctx.updateService;
 
+        const dragState = InteractionState.Default & InteractionState.ZoomDrag;
         this.destroyFns.push(
             ctx.interactionManager.addListener('dblclick', (event) => this.onDoubleClick(event)),
-            ctx.interactionManager.addListener('drag', (event) => this.onDrag(event)),
-            ctx.interactionManager.addListener('drag-end', () => this.onDragEnd()),
+            ctx.interactionManager.addListener('drag', (event) => this.onDrag(event), dragState),
+            ctx.interactionManager.addListener('drag-end', () => this.onDragEnd(), dragState),
             ctx.interactionManager.addListener('wheel', (event) => this.onWheel(event)),
             ctx.interactionManager.addListener('hover', () => this.onHover()),
             ctx.chartEventManager.addListener('axis-hover', (event) => this.onAxisHover(event)),
@@ -186,7 +187,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     private onDoubleClick(event: _ModuleSupport.InteractionEvent<'dblclick'>) {
         if (!this.enabled || !this.enableDoubleClickToReset) return;
-        if (this.ctx.interactionManager.state !== InteractionState.Default) return;
 
         if (this.hoveredAxis) {
             const { id, direction } = this.hoveredAxis;
@@ -200,9 +200,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private onDrag(event: _ModuleSupport.InteractionEvent<'drag'>) {
-        const state = this.ctx.interactionManager.state;
         if (!this.enabled || !this.paddedRect || !this.seriesRect) return;
-        if (state !== InteractionState.Default && state !== InteractionState.ZoomDrag) return;
 
         this.ctx.interactionManager.pushState(InteractionState.ZoomDrag);
 
@@ -289,7 +287,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     private onWheel(event: _ModuleSupport.InteractionEvent<'wheel'>) {
         if (!this.enabled || !this.enableScrolling || !this.paddedRect || !this.seriesRect) return;
-        if (this.ctx.interactionManager.state !== InteractionState.Default) return;
 
         const currentZoom = this.zoomManager.getZoom();
 
@@ -339,7 +336,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     private onHover() {
         if (!this.enabled) return;
-        if (this.ctx.interactionManager.state !== InteractionState.Default) return;
 
         this.hoveredAxis = undefined;
         this.cursorManager.updateCursor(CURSOR_ID);
@@ -347,7 +343,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     private onAxisHover(event: _ModuleSupport.AxisHoverChartEvent) {
         if (!this.enabled) return;
-        if (this.ctx.interactionManager.state !== InteractionState.Default) return;
 
         this.hoveredAxis = {
             id: event.axisId,
@@ -364,7 +359,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     private onPinchMove(event: PinchEvent) {
         if (!this.enabled || !this.enableScrolling || !this.paddedRect || !this.seriesRect) return;
-        if (this.ctx.interactionManager.state !== InteractionState.Default) return;
 
         const currentZoom = this.zoomManager.getZoom();
         const oldZoom = definedZoomState(currentZoom);
