@@ -13,7 +13,7 @@ const options: AgChartOptions = {
     },
     series: [
         {
-            type: 'pie',
+            type: 'donut',
             title: {
                 text: 'Previous Year',
                 showInLegend: true,
@@ -24,7 +24,7 @@ const options: AgChartOptions = {
             innerRadiusRatio: 0.9,
         },
         {
-            type: 'pie',
+            type: 'donut',
             title: {
                 text: 'Current Year',
                 showInLegend: true,

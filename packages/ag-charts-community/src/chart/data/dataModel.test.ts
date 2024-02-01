@@ -1124,7 +1124,7 @@ describe('DataModel', () => {
 
     describe('repeated property processing', () => {
         it('should generated the expected results', () => {
-            const data = [...(examples.PIE_IN_A_DOUGHNUT.series?.[0]?.data?.map((v) => ({ ...v })) ?? [])];
+            const data = [...(examples.PIE_IN_A_DONUT.series?.[0]?.data?.map((v) => ({ ...v })) ?? [])];
             const dataModel = new DataModel<any, any>({
                 props: [
                     accumulatedPropertyValue('share', 'angleGroup', 'angle'),

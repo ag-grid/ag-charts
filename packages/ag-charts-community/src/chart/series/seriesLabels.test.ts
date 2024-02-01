@@ -108,13 +108,13 @@ const EXAMPLES: Record<string, TestCase> = {
         options: examples.PIE_SERIES_LABELS,
         assertions: polarChartAssertions({ seriesTypes: ['pie'] }),
     },
-    DOUGHNUT_SERIES_LABELS: {
-        options: examples.DOUGHNUT_SERIES_LABELS,
-        assertions: polarChartAssertions({ seriesTypes: ['pie'] }),
+    DONUT_SERIES_LABELS: {
+        options: examples.DONUT_SERIES_LABELS,
+        assertions: polarChartAssertions({ seriesTypes: ['donut'] }),
     },
-    GROUPED_DOUGHNUT_SERIES_LABELS: {
-        options: examples.GROUPED_DOUGHNUT_SERIES_LABELS,
-        assertions: polarChartAssertions({ seriesTypes: repeat('pie', 2) }),
+    GROUPED_DONUT_SERIES_LABELS: {
+        options: examples.GROUPED_DONUT_SERIES_LABELS,
+        assertions: polarChartAssertions({ seriesTypes: repeat('donut', 2) }),
     },
     LINE_COLUMN_COMBO_SERIES_LABELS: {
         options: examples.LINE_COLUMN_COMBO_SERIES_LABELS,

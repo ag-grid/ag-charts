@@ -1,15 +1,15 @@
 import type { SeriesModule } from '../../../module/coreModules';
-import { PieSeries } from './pieSeries';
+import { DonutSeries } from './donutSeries';
 import { piePaletteFactory, pieTheme } from './pieTheme';
 
-export const PieSeriesModule: SeriesModule<'pie'> = {
+export const DonutSeriesModule: SeriesModule<'donut'> = {
     type: 'series',
     optionsKey: 'series[]',
     packageType: 'community',
     chartTypes: ['polar'],
 
-    identifier: 'pie',
-    instanceConstructor: PieSeries,
+    identifier: 'donut',
+    instanceConstructor: DonutSeries,
     seriesDefaults: {},
     themeTemplate: pieTheme,
     paletteFactory: piePaletteFactory,

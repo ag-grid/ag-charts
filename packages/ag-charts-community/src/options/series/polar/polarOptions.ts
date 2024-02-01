@@ -1,6 +1,7 @@
 import type { AgBaseThemeableChartOptions } from '../../chart/chartOptions';
 import type { AgAngleCategoryAxisOptions, AgAngleNumberAxisOptions } from '../../chart/polarAxisOptions';
 import type { AgRadiusCategoryAxisOptions, AgRadiusNumberAxisOptions } from '../../chart/radiusAxisOptions';
+import type { AgDonutSeriesOptions } from './donutOptions';
 import type { AgNightingaleSeriesOptions } from './nightingaleOptions';
 import type { AgPieSeriesOptions } from './pieOptions';
 import type { AgRadarAreaSeriesOptions } from './radarAreaOptions';
@@ -9,6 +10,7 @@ import type { AgRadialBarSeriesOptions } from './radialBarOptions';
 import type { AgRadialColumnSeriesOptions } from './radialColumnOptions';
 
 export type AgPolarSeriesOptions =
+    | AgDonutSeriesOptions
     | AgPieSeriesOptions
     | AgRadarLineSeriesOptions
     | AgRadarAreaSeriesOptions

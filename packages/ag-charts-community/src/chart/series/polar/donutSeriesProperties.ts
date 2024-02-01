@@ -1,13 +1,11 @@
-/* eslint-disable sonarjs/no-duplicate-string */
 import type {
-    AgPieSeriesFormat,
-    AgPieSeriesFormatterParams,
-    AgPieSeriesLabelFormatterParams,
-    AgPieSeriesOptions,
-    AgPieSeriesTooltipRendererParams,
-} from '../../../options/series/polar/pieOptions';
+    AgDonutSeriesFormat,
+    AgDonutSeriesFormatterParams,
+    AgDonutSeriesLabelFormatterParams,
+    AgDonutSeriesOptions,
+    AgDonutSeriesTooltipRendererParams,
+} from '../../../options/series/polar/donutOptions';
 import { DropShadow } from '../../../scene/dropShadow';
-import { Deprecated } from '../../../util/deprecation';
 import { BaseProperties, PropertiesArray } from '../../../util/properties';
 import {
     BOOLEAN,
@@ -30,19 +28,17 @@ import { DEFAULT_FILLS, DEFAULT_STROKES } from '../../themes/defaultColors';
 import { SeriesProperties } from '../seriesProperties';
 import { SeriesTooltip } from '../seriesTooltip';
 
-export class PieTitle extends Caption {
+export class DonutTitle extends Caption {
     @Validate(BOOLEAN)
     showInLegend = false;
 }
 
-export class DonutInnerLabel<T extends object = any> extends Label<AgPieSeriesLabelFormatterParams> {
-    @Deprecated('Use a Donut Series instead')
-    @Validate(STRING, { optional: true })
-    text?: string;
+export class DonutInnerLabel<T extends object = any> extends Label<AgDonutSeriesLabelFormatterParams> {
+    @Validate(STRING)
+    text!: string;
 
-    @Deprecated('Use a Donut Series instead')
-    @Validate(NUMBER, { optional: true })
-    margin?: number;
+    @Validate(NUMBER)
+    margin: number = 2;
 
     override set(properties: T, _reset?: boolean) {
         return super.set(properties);
@@ -50,16 +46,14 @@ export class DonutInnerLabel<T extends object = any> extends Label<AgPieSeriesLa
 }
 
 export class DonutInnerCircle extends BaseProperties {
-    @Deprecated('Use a Donut Series instead')
-    @Validate(COLOR_STRING, { optional: true })
-    fill?: string;
+    @Validate(COLOR_STRING)
+    fill: string = 'transparent';
 
-    @Deprecated('Use a Donut Series instead')
-    @Validate(RATIO, { optional: true })
-    fillOpacity?: number;
+    @Validate(RATIO)
+    fillOpacity: number = 1;
 }
 
-class PieSeriesCalloutLabel extends Label<AgPieSeriesLabelFormatterParams> {
+class DonutSeriesCalloutLabel extends Label<AgDonutSeriesLabelFormatterParams> {
     @Validate(POSITIVE_NUMBER)
     offset = 3; // from the callout line
 
@@ -76,7 +70,7 @@ class PieSeriesCalloutLabel extends Label<AgPieSeriesLabelFormatterParams> {
     avoidCollisions = true;
 }
 
-class PieSeriesSectorLabel extends Label<AgPieSeriesLabelFormatterParams> {
+class DonutSeriesSectorLabel extends Label<AgDonutSeriesLabelFormatterParams> {
     @Validate(NUMBER)
     positionOffset = 0;
 
@@ -84,7 +78,7 @@ class PieSeriesSectorLabel extends Label<AgPieSeriesLabelFormatterParams> {
     positionRatio = 0.5;
 }
 
-class PieSeriesCalloutLine extends BaseProperties {
+class DonutSeriesCalloutLine extends BaseProperties {
     @Validate(COLOR_STRING_ARRAY, { optional: true })
     colors?: string[];
 
@@ -95,7 +89,7 @@ class PieSeriesCalloutLine extends BaseProperties {
     strokeWidth: number = 1;
 }
 
-export class PieSeriesProperties extends SeriesProperties<AgPieSeriesOptions> {
+export class DonutSeriesProperties extends SeriesProperties<AgDonutSeriesOptions> {
     @Validate(STRING)
     angleKey!: string;
 
@@ -148,38 +142,34 @@ export class PieSeriesProperties extends SeriesProperties<AgPieSeriesOptions> {
     lineDashOffset: number = 0;
 
     @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgPieSeriesFormatterParams<any>) => AgPieSeriesFormat;
+    formatter?: (params: AgDonutSeriesFormatterParams<any>) => AgDonutSeriesFormat;
 
     @Validate(DEGREE)
     rotation: number = 0;
 
-    @Deprecated('Use a Donut Series instead')
-    @Validate(NUMBER, { optional: true })
-    outerRadiusOffset?: number;
+    @Validate(NUMBER)
+    outerRadiusOffset: number = 0;
 
     @Validate(RATIO)
     outerRadiusRatio: number = 1;
 
-    @Deprecated('Use a Donut Series instead')
-    @Validate(NUMBER, { optional: true })
-    innerRadiusOffset?: number;
+    @Validate(NUMBER)
+    innerRadiusOffset: number = 0;
 
-    @Deprecated('Use a Donut Series instead')
-    @Validate(RATIO, { optional: true })
-    innerRadiusRatio?: number;
+    @Validate(RATIO)
+    innerRadiusRatio: number = 1;
 
     @Validate(POSITIVE_NUMBER)
     strokeWidth: number = 1;
 
-    // @todo(AG-10275) remove optionality, set default
-    @Validate(POSITIVE_NUMBER, { optional: true })
-    sectorSpacing?: number = undefined;
+    @Validate(POSITIVE_NUMBER)
+    sectorSpacing: number = 0;
 
     @Validate(OBJECT_ARRAY)
     readonly innerLabels = new PropertiesArray(DonutInnerLabel);
 
     @Validate(OBJECT)
-    readonly title = new PieTitle();
+    readonly title = new DonutTitle();
 
     @Validate(OBJECT)
     readonly innerCircle = new DonutInnerCircle();
@@ -188,16 +178,16 @@ export class PieSeriesProperties extends SeriesProperties<AgPieSeriesOptions> {
     readonly shadow = new DropShadow();
 
     @Validate(OBJECT)
-    readonly calloutLabel = new PieSeriesCalloutLabel();
+    readonly calloutLabel = new DonutSeriesCalloutLabel();
 
     @Validate(OBJECT)
-    readonly sectorLabel = new PieSeriesSectorLabel();
+    readonly sectorLabel = new DonutSeriesSectorLabel();
 
     @Validate(OBJECT)
-    readonly calloutLine = new PieSeriesCalloutLine();
+    readonly calloutLine = new DonutSeriesCalloutLine();
 
     @Validate(OBJECT)
-    readonly tooltip = new SeriesTooltip<AgPieSeriesTooltipRendererParams>();
+    readonly tooltip = new SeriesTooltip<AgDonutSeriesTooltipRendererParams>();
 
     // @todo(AG-10275) Remove this
     @Validate(STRING, { optional: true })

@@ -10297,7 +10297,7 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
 }
 `;
 
-exports[`prepare #prepareOptions for SIMPLE_DOUGHNUT_CHART_EXAMPLE it should prepare options as expected 1`] = `
+exports[`prepare #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should prepare options as expected 1`] = `
 {
   "autoSize": true,
   "background": {
@@ -10449,14 +10449,12 @@ exports[`prepare #prepareOptions for SIMPLE_DOUGHNUT_CHART_EXAMPLE it should pre
           "text": "Total",
         },
       ],
-      "innerRadiusOffset": 0,
       "innerRadiusRatio": 0.5,
       "lineDash": [
         0,
       ],
       "lineDashOffset": 0,
       "nodeClickRange": "exact",
-      "outerRadiusOffset": 0,
       "rotation": 0,
       "sectorLabel": {
         "color": "white",
@@ -10495,7 +10493,7 @@ exports[`prepare #prepareOptions for SIMPLE_DOUGHNUT_CHART_EXAMPLE it should pre
         "enabled": true,
         "renderer": [Function],
       },
-      "type": "pie",
+      "type": "donut",
       "visible": true,
     },
   ],
@@ -11023,13 +11021,11 @@ exports[`prepare #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare 
           "color": "black",
         },
       },
-      "innerRadiusOffset": 0,
       "lineDash": [
         0,
       ],
       "lineDashOffset": 0,
       "nodeClickRange": "exact",
-      "outerRadiusOffset": 0,
       "rotation": 0,
       "sectorLabel": {
         "color": "white",

@@ -195,7 +195,7 @@ const areaOptions: AgChartOptions = {
     ],
 };
 
-const pieOptions: AgChartOptions = {
+const donutOptions: AgChartOptions = {
     series: [
         {
             type: 'pie',
@@ -206,10 +206,9 @@ const pieOptions: AgChartOptions = {
             legendItemKey: 'station',
             angleKey: 'morningPeak',
             outerRadiusRatio: 0.6,
-            innerRadiusRatio: 0.3,
         },
         {
-            type: 'pie',
+            type: 'donut',
             title: {
                 text: 'Afternoon Peak',
             },
@@ -236,8 +235,8 @@ function changeSeriesArea() {
     AgCharts.updateDelta(chart, areaOptions);
 }
 
-function changeSeriesPie() {
-    AgCharts.updateDelta(chart, pieOptions);
+function changeSeriesDonut() {
+    AgCharts.updateDelta(chart, donutOptions);
 }
 
 function changeDuration(duration: number) {

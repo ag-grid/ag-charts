@@ -50,8 +50,8 @@ const EXAMPLES: Record<string, TestCase> = {
     SIMPLE_PIE_CHART_EXAMPLE: {
         options: examples.SIMPLE_PIE_CHART_EXAMPLE,
     },
-    SIMPLE_DOUGHNUT_CHART_EXAMPLE: {
-        options: examples.SIMPLE_DOUGHNUT_CHART_EXAMPLE,
+    SIMPLE_DONUT_CHART_EXAMPLE: {
+        options: examples.SIMPLE_DONUT_CHART_EXAMPLE,
     },
     SIMPLE_LINE_CHART_EXAMPLE: {
         options: examples.SIMPLE_LINE_CHART_EXAMPLE,

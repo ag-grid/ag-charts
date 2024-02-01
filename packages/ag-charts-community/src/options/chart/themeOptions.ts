@@ -15,6 +15,7 @@ import type { AgWaterfallSeriesThemeableOptions } from '../series/cartesian/wate
 import type { AgBaseHierarchyThemeOptions, AgHierarchySeriesOptions } from '../series/hierarchy/hierarchyOptions';
 import type { AgSunburstSeriesThemeableOptions } from '../series/hierarchy/sunburstOptions';
 import type { AgTreemapSeriesThemeableOptions } from '../series/hierarchy/treemapOptions';
+import type { AgDonutSeriesThemeableOptions } from '../series/polar/donutOptions';
 import type { AgNightingaleSeriesThemeableOptions } from '../series/polar/nightingaleOptions';
 import type { AgPieSeriesThemeableOptions } from '../series/polar/pieOptions';
 import type { AgBasePolarThemeOptions, AgPolarAxesTheme, AgPolarSeriesOptions } from '../series/polar/polarOptions';
@@ -93,6 +94,9 @@ export interface AgRangeAreaSeriesThemeOverrides extends AgBaseCartesianThemeOpt
 export interface AgBulletSeriesThemeOverrides extends AgBaseCartesianThemeOptions {
     series?: AgBulletSeriesThemeableOptions;
 }
+export interface AgDonutSeriesThemeOverrides extends AgBasePolarThemeOptions {
+    series?: AgDonutSeriesThemeableOptions;
+}
 export interface AgPieSeriesThemeOverrides extends AgBasePolarThemeOptions {
     series?: AgPieSeriesThemeableOptions;
 }
@@ -150,8 +154,10 @@ export interface AgChartThemeOverrides {
     'range-bar'?: AgRangeBarSeriesThemeOverrides;
     /** Range-area series theme overrides. */
     'range-area'?: AgRangeAreaSeriesThemeOverrides;
+    /** Bullet series theme overrides. */
     bullet?: AgBulletSeriesThemeOverrides;
-
+    /** Pie series theme overrides. */
+    donut?: AgDonutSeriesThemeOverrides;
     /** Pie series theme overrides. */
     pie?: AgPieSeriesThemeOverrides;
     /** Radar-line series theme overrides. */

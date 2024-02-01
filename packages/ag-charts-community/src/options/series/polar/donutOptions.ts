@@ -5,37 +5,36 @@ import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart
 import type { CssColor, Degree, Opacity, PixelSize, Ratio } from '../../chart/types';
 import type { FillOptions, FontOptions, LineDashOptions, StrokeOptions, Toggleable } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
-import type { AgDonutInnerCircle, AgDonutInnerLabel, AgDonutInnerLabelThemeOptions } from './donutOptions';
 
-export interface AgPieSeriesLabelOptions<TDatum, TParams> extends AgChartLabelOptions<TDatum, TParams> {
+export interface AgDonutSeriesLabelOptions<TDatum, TParams> extends AgChartLabelOptions<TDatum, TParams> {
     /** Distance in pixels between the callout line and the label text. */
     offset?: PixelSize;
     /** Minimum angle in degrees required for a sector to show a label. */
     minAngle?: Degree;
-    /** Avoid callout label collision and overflow by automatically moving colliding labels or reducing the pie radius. If set to `false`, callout labels may collide with each other and the pie radius will not change to prevent clipping of callout labels. */
+    /** Avoid callout label collision and overflow by automatically moving colliding labels or reducing the donut radius. If set to `false`, callout labels may collide with each other and the donut radius will not change to prevent clipping of callout labels. */
     avoidCollisions?: boolean;
 }
 
-export interface AgPieSeriesSectorLabelOptions<TDatum, TParams> extends AgChartLabelOptions<TDatum, TParams> {
+export interface AgDonutSeriesSectorLabelOptions<TDatum, TParams> extends AgChartLabelOptions<TDatum, TParams> {
     /** Distance in pixels, used to make the label text closer to or further from the center. This offset is applied after positionRatio. */
     positionOffset?: PixelSize;
-    /** Position of labels as a ratio proportional to pie radius. Additional offset in pixels can be applied by using positionOffset. */
+    /** Position of labels as a ratio proportional to donut radius (or donut thickness). Additional offset in pixels can be applied by using positionOffset. */
     positionRatio?: Ratio;
 }
 
-export interface AgPieSeriesFormatterParams<TDatum>
+export interface AgDonutSeriesFormatterParams<TDatum>
     extends AgChartCallbackParams<TDatum>,
         FillOptions,
         StrokeOptions,
-        AgPieSeriesOptionsKeys {
+        AgDonutSeriesOptionsKeys {
     readonly highlighted: boolean;
     readonly fills: CssColor[];
     readonly strokes: CssColor[];
 }
 
-export type AgPieSeriesFormat = FillOptions & StrokeOptions;
+export type AgDonutSeriesFormat = FillOptions & StrokeOptions;
 
-export interface AgPieTitleOptions extends Toggleable, FontOptions {
+export interface AgDonutTitleOptions extends Toggleable, FontOptions {
     /** The text to display. */
     text?: string;
     /** Spacing added to help position the text. */
@@ -44,7 +43,7 @@ export interface AgPieTitleOptions extends Toggleable, FontOptions {
     showInLegend?: boolean;
 }
 
-export interface AgPieSeriesCalloutOptions {
+export interface AgDonutSeriesCalloutOptions {
     /** The colours to cycle through for the strokes of the callouts. */
     colors?: CssColor[];
     /** The length in pixels of the callout lines. */
@@ -53,15 +52,31 @@ export interface AgPieSeriesCalloutOptions {
     strokeWidth?: PixelSize;
 }
 
-export interface AgPieSeriesThemeableOptions<TDatum = any> extends AgBaseSeriesThemeableOptions, LineDashOptions {
+export interface AgDonutInnerLabel extends FontOptions {
+    /** The text to show in the inner label. */
+    text: string;
+    /** The margin in pixels before and after the inner label. */
+    margin?: PixelSize;
+}
+
+export interface AgDonutInnerLabelThemeOptions extends Omit<AgDonutInnerLabel, 'text'> {}
+
+export interface AgDonutInnerCircle {
+    /** The colour of the fill for the inner circle. */
+    fill: CssColor;
+    /** The opacity of the fill for the inner circle. */
+    fillOpacity?: Opacity;
+}
+
+export interface AgDonutSeriesThemeableOptions<TDatum = any> extends AgBaseSeriesThemeableOptions, LineDashOptions {
     /** Configuration for the series title. */
-    title?: AgPieTitleOptions;
+    title?: AgDonutTitleOptions;
     /** Configuration for the labels used outside the sectors. */
-    calloutLabel?: AgPieSeriesLabelOptions<TDatum, AgPieSeriesLabelFormatterParams>;
+    calloutLabel?: AgDonutSeriesLabelOptions<TDatum, AgDonutSeriesLabelFormatterParams>;
     /** Configuration for the labels used inside the sectors. */
-    sectorLabel?: AgPieSeriesSectorLabelOptions<TDatum, AgPieSeriesLabelFormatterParams>;
+    sectorLabel?: AgDonutSeriesSectorLabelOptions<TDatum, AgDonutSeriesLabelFormatterParams>;
     /** Configuration for the callout lines used with the labels for the sectors. */
-    calloutLine?: AgPieSeriesCalloutOptions;
+    calloutLine?: AgDonutSeriesCalloutOptions;
     /** The colours to cycle through for the fills of the sectors. */
     fills?: CssColor[];
     /** The colours to cycle through for the strokes of the sectors. */
@@ -72,24 +87,15 @@ export interface AgPieSeriesThemeableOptions<TDatum = any> extends AgBaseSeriesT
     strokeOpacity?: Opacity;
     /** The width in pixels of the stroke for the sectors. */
     strokeWidth?: PixelSize;
-    /** The rotation of the pie series in degrees. */
+    /** The rotation of the donut series in degrees. */
     rotation?: Degree;
-    /**
-     * @deprecated v9.1.0 Use a Donut Series instead.
-     * The offset in pixels of the outer radius of the series. Used to construct donut charts.
-     */
+    /** The offset in pixels of the outer radius of the series. Used to construct donut charts. */
     outerRadiusOffset?: PixelSize;
     /** The ratio of the outer radius of the series. Used to adjust the outer radius proportionally to the automatically calculated value. */
     outerRadiusRatio?: Ratio;
-    /**
-     * @deprecated v9.1.0 Use a Donut Series instead.
-     * The offset in pixels of the inner radius of the series. Used to construct donut charts. If this is not provided, or innerRadiusRatio is unset, or a value of zero is given, a pie chart will be rendered.
-     */
+    /** The offset in pixels of the inner radius of the series. Used to construct donut charts. If this is not provided, or innerRadiusRatio is unset, or a value of zero is given, a donut chart will be rendered. */
     innerRadiusOffset?: PixelSize;
-    /**
-     * @deprecated v9.1.0 Use a Donut Series instead.
-     * The ratio of the inner radius of the series. Used to construct donut charts. If this is not provided, or innerRadiusOffset is unset, or a value of zero or one is given, a pie chart will be rendered.
-     */
+    /** The ratio of the inner radius of the series. Used to construct donut charts. If this is not provided, or innerRadiusOffset is unset, or a value of zero or one is given, a donut chart will be rendered. */
     innerRadiusRatio?: Ratio;
     /** Override of the automatically determined minimum radiusKey value from the data. */
     radiusMin?: number;
@@ -98,42 +104,29 @@ export interface AgPieSeriesThemeableOptions<TDatum = any> extends AgBaseSeriesT
     /** Configuration for the shadow used behind the chart series. */
     shadow?: AgDropShadowOptions;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgPieSeriesTooltipRendererParams>;
-    /**
-     * @deprecated v9.1.0 Use a Donut Series instead.
-     * Configuration for the text lines to display inside the series, typically used when rendering a donut chart
-     */
+    tooltip?: AgSeriesTooltip<AgDonutSeriesTooltipRendererParams>;
+    /** Configuration for the text lines to display inside the series, typically used when rendering a donut chart */
     innerLabels?: AgDonutInnerLabelThemeOptions;
-    /**
-     * @deprecated v9.1.0 Use a Donut Series instead.
-     * Configuration for the area inside the series, only visible when rendering a donut chart by using innerRadiusOffset or innerRadiusRatio
-     */
+    /** Configuration for the area inside the series, only visible when rendering a donut chart by using innerRadiusOffset or innerRadiusRatio */
     innerCircle?: AgDonutInnerCircle;
-    /**
-     * The spacing between pie sectors.
-     *
-     * __Important:__ When this property is used, strokes are rendered on the inside of the pie sectors, and no longer have a default colour.
-     */
+    /** The spacing between donut sectors. */
     sectorSpacing?: PixelSize;
-    /** A formatter function for adjusting the styling of the pie sectors. */
-    formatter?: (params: AgPieSeriesFormatterParams<TDatum>) => AgPieSeriesFormat;
+    /** A formatter function for adjusting the styling of the donut sectors. */
+    formatter?: (params: AgDonutSeriesFormatterParams<TDatum>) => AgDonutSeriesFormat;
 }
 
-export interface AgPieSeriesOptions<TDatum = any>
-    extends Omit<AgPieSeriesThemeableOptions<TDatum>, 'innerLabels'>,
-        AgPieSeriesOptionsKeys,
-        AgPieSeriesOptionsNames,
+export interface AgDonutSeriesOptions<TDatum = any>
+    extends Omit<AgDonutSeriesThemeableOptions<TDatum>, 'innerLabels'>,
+        AgDonutSeriesOptionsKeys,
+        AgDonutSeriesOptionsNames,
         AgBaseSeriesOptions<TDatum> {
-    /** Configuration for Pie Series. */
-    type: 'pie';
-    /**
-     * @deprecated v9.1.0 Use a Donut Series instead.
-     * Configuration for the text lines to display inside the series, typically used when rendering a donut chart
-     */
+    /** Configuration for Donut Series. */
+    type: 'donut';
+    /** Configuration for the text lines to display inside the series, typically used when rendering a donut chart */
     innerLabels?: AgDonutInnerLabel[];
 }
 
-export interface AgPieSeriesOptionsKeys {
+export interface AgDonutSeriesOptionsKeys {
     /** The key to use to retrieve angle values from the data. */
     angleKey: string;
     /** The key to use to retrieve radius values from the data. */
@@ -142,11 +135,11 @@ export interface AgPieSeriesOptionsKeys {
     calloutLabelKey?: string;
     /** The key to use to retrieve sector label values from the data. */
     sectorLabelKey?: string;
-    /** The key to use to retrieve legend item labels from the data. If multiple pie series share this key they will be merged in the legend. */
+    /** The key to use to retrieve legend item labels from the data. If multiple donut series share this key they will be merged in the legend. */
     legendItemKey?: string;
 }
 
-export interface AgPieSeriesOptionsNames {
+export interface AgDonutSeriesOptionsNames {
     /** A human-readable description of the angle values. If supplied, this will be passed to the tooltip renderer as one of the parameters. */
     angleName?: string;
     /** A human-readable description of the radius values. If supplied, this will be passed to the tooltip renderer as one of the parameters. */
@@ -157,9 +150,9 @@ export interface AgPieSeriesOptionsNames {
     sectorLabelName?: string;
 }
 
-export interface AgPieSeriesTooltipRendererParams
+export interface AgDonutSeriesTooltipRendererParams
     extends AgSeriesTooltipRendererParams,
-        AgPieSeriesOptionsKeys,
-        AgPieSeriesOptionsNames {}
+        AgDonutSeriesOptionsKeys,
+        AgDonutSeriesOptionsNames {}
 
-export type AgPieSeriesLabelFormatterParams = AgPieSeriesOptionsKeys & AgPieSeriesOptionsNames;
+export type AgDonutSeriesLabelFormatterParams = AgDonutSeriesOptionsKeys & AgDonutSeriesOptionsNames;

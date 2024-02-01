@@ -225,7 +225,7 @@ const areaOptions: AgChartOptions = {
     ],
 };
 
-const pieOptions: AgChartOptions = {
+const donutOptions: AgChartOptions = {
     series: [
         {
             type: 'pie',
@@ -236,10 +236,9 @@ const pieOptions: AgChartOptions = {
             legendItemKey: 'year',
             angleKey: 'one',
             outerRadiusRatio: 0.6,
-            innerRadiusRatio: 0.3,
         },
         {
-            type: 'pie',
+            type: 'donut',
             title: {
                 text: 'Two',
             },
@@ -256,7 +255,7 @@ const pieOptions: AgChartOptions = {
 const chart = AgCharts.create(options);
 
 // Elements
-const tickingButton = document.getElementsByClassName('animation-data-updates__toggle-ticking');
+const tickingButton = document.getElementsByClassName('animation-data-updates__toggle-ticking')[0];
 const actionButtons = document.getElementsByClassName('animation-data-updates__action');
 
 if (tickingButton) {
@@ -290,13 +289,13 @@ function changeSeriesArea() {
     AgCharts.updateDelta(chart, { ...areaOptions, data: getGeneratedData() });
 }
 
-function changeSeriesPie() {
+function changeSeriesDonut() {
     variance = 30;
     offset = 0;
     length = 6;
     seed = 1234;
 
-    AgCharts.updateDelta(chart, { ...pieOptions, data: getGeneratedData() });
+    AgCharts.updateDelta(chart, { ...donutOptions, data: getGeneratedData() });
 }
 
 function toggleTickingUpdates() {

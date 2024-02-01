@@ -56,29 +56,29 @@ const EXAMPLES: Record<string, PolarTestCase> = {
         options: examples.PIE_SECTORS_LABELS,
         assertions: polarChartAssertions({ seriesTypes: ['pie'] }),
     },
-    DOUGHNUT_SERIES: {
-        options: examples.DOUGHNUT_SERIES,
-        assertions: polarChartAssertions({ seriesTypes: ['pie'] }),
+    DONUT_SERIES: {
+        options: examples.DONUT_SERIES,
+        assertions: polarChartAssertions({ seriesTypes: ['donut'] }),
     },
-    DOUGHNUT_SERIES_INNER_TEXT: {
-        options: examples.DOUGHNUT_SERIES_INNER_TEXT,
-        assertions: polarChartAssertions({ seriesTypes: ['pie'] }),
+    DONUT_SERIES_INNER_TEXT: {
+        options: examples.DONUT_SERIES_INNER_TEXT,
+        assertions: polarChartAssertions({ seriesTypes: ['donut'] }),
     },
-    DOUGHNUT_SERIES_RATIO: {
-        options: examples.DOUGHNUT_SERIES_RATIO,
-        assertions: polarChartAssertions({ seriesTypes: ['pie'] }),
+    DONUT_SERIES_RATIO: {
+        options: examples.DONUT_SERIES_RATIO,
+        assertions: polarChartAssertions({ seriesTypes: ['donut'] }),
     },
-    DOUGHNUT_SERIES_DIFFERENT_RADII: {
-        options: examples.DOUGHNUT_SERIES_DIFFERENT_RADII,
-        assertions: polarChartAssertions({ seriesTypes: ['pie'] }),
+    DONUT_SERIES_DIFFERENT_RADII: {
+        options: examples.DONUT_SERIES_DIFFERENT_RADII,
+        assertions: polarChartAssertions({ seriesTypes: ['donut'] }),
     },
-    GROUPED_DOUGHNUT_SERIES: {
-        options: examples.GROUPED_DOUGHNUT_SERIES,
-        assertions: polarChartAssertions({ seriesTypes: repeat('pie', 2) }),
+    GROUPED_DONUT_SERIES: {
+        options: examples.GROUPED_DONUT_SERIES,
+        assertions: polarChartAssertions({ seriesTypes: repeat('donut', 2) }),
     },
-    GROUPED_DOUGHNUT_SERIES_DIFFERENT_RADII: {
-        options: examples.GROUPED_DOUGHNUT_SERIES_DIFFERENT_RADII,
-        assertions: polarChartAssertions({ seriesTypes: repeat('pie', 2) }),
+    GROUPED_DONUT_SERIES_DIFFERENT_RADII: {
+        options: examples.GROUPED_DONUT_SERIES_DIFFERENT_RADII,
+        assertions: polarChartAssertions({ seriesTypes: repeat('donut', 2) }),
     },
     PIE_CALLOUT_LABELS_COLLISIONS: {
         options: examples.PIE_CALLOUT_LABELS_COLLISIONS,
