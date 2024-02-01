@@ -242,6 +242,8 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
 
             if (this.batch.isActive()) {
                 this.scheduleAnimationFrame(onAnimationFrame);
+            } else {
+                this.batch.dispatchStopped();
             }
         };
 
@@ -265,6 +267,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
     public startBatch(skipAnimations?: boolean) {
         this.debug(`AnimationManager - startBatch() with skipAnimations=${skipAnimations}.`);
         this.reset();
+        this.batch.dispatchStopped();
         this.batch.destroy();
         this.batch = new AnimationBatch();
         if (skipAnimations === true) {
@@ -282,6 +285,11 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         if (this.batch.isSkipped() && !this.batch.isActive()) {
             this.batch.skip(false);
         }
+        this.batch.dispatchStopped();
+    }
+
+    public onBatchStop(cb: () => void) {
+        this.batch.stoppedCbs.push(cb);
     }
 }
 
@@ -291,6 +299,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
  */
 class AnimationBatch {
     public readonly controllers: Map<string, IAnimation<any>> = new Map();
+    public readonly stoppedCbs: (() => void)[] = [];
 
     private skipAnimations = false;
     // private phase?: 'initial-load' | 'remove' | 'update' | 'add';
@@ -307,6 +316,11 @@ class AnimationBatch {
             this.controllers.clear();
         }
         this.skipAnimations = skip;
+    }
+
+    dispatchStopped() {
+        this.stoppedCbs.forEach((cb) => cb());
+        this.stoppedCbs.length = 0;
     }
 
     isSkipped() {

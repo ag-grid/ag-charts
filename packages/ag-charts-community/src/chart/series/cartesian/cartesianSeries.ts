@@ -14,6 +14,7 @@ import { Debug } from '../../../util/debug';
 import type { PointLabelDatum } from '../../../util/labelPlacement';
 import { STRING, Validate } from '../../../util/validation';
 import { CategoryAxis } from '../../axis/categoryAxis';
+import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { LegendItemClickChartEvent, LegendItemDoubleClickChartEvent } from '../../interaction/chartEventManager';
 import { Layers } from '../../layers';
@@ -89,7 +90,15 @@ export class CartesianSeriesNodeClickEvent<TEvent extends string = SeriesNodeEve
 }
 
 type CartesianAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
-type CartesianAnimationEvent = 'update' | 'updateData' | 'highlight' | 'highlightMarkers' | 'resize' | 'clear';
+type CartesianAnimationEvent =
+    | 'update'
+    | 'updateData'
+    | 'highlight'
+    | 'highlightMarkers'
+    | 'resize'
+    | 'clear'
+    | 'reset'
+    | 'skip';
 
 export interface CartesianAnimationData<
     TNode extends Node,
@@ -192,6 +201,8 @@ export abstract class CartesianSeries<
                         target: 'ready',
                         action: (data) => this.animateEmptyUpdateReady(data),
                     },
+                    reset: 'empty',
+                    skip: 'ready',
                 },
                 ready: {
                     updateData: 'waiting',
@@ -199,22 +210,36 @@ export abstract class CartesianSeries<
                     highlight: (data) => this.animateReadyHighlight(data),
                     highlightMarkers: (data) => this.animateReadyHighlightMarkers(data),
                     resize: (data) => this.animateReadyResize(data),
+                    reset: 'empty',
+                    skip: 'ready',
                 },
                 waiting: {
                     update: {
                         target: 'ready',
                         action: (data) => this.animateWaitingUpdateReady(data),
                     },
+                    reset: 'empty',
+                    skip: 'ready',
                 },
                 clearing: {
                     update: {
                         target: 'empty',
                         action: (data) => this.animateClearingUpdateEmpty(data),
                     },
+                    reset: 'empty',
+                    skip: 'ready',
                 },
             },
             () => this.checkProcessedDataAnimatable()
         );
+    }
+
+    override resetAnimation(phase: ChartAnimationPhase): void {
+        if (phase === 'initial') {
+            this.animationState.transition('reset');
+        } else if (phase === 'ready') {
+            this.animationState.transition('skip');
+        }
     }
 
     override addChartEventListeners(): void {
