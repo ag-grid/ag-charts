@@ -1,14 +1,14 @@
 ---
-title: 'Doughnut Series'
+title: 'Donut Series'
 ---
 
-A Doughnut Series has all the benefits of a Pie Series and allows displaying multiple datasets in a single chart.
+A Donut Series has all the benefits of a Pie Series and allows displaying multiple datasets in a single chart.
 
-## Simple Doughnut
+## Simple Donut
 
-{% chartExampleRunner title="Doughnut Chart" name="simple-doughnut" type="generated" /%}
+{% chartExampleRunner title="Donut Chart" name="simple-donut" type="generated" /%}
 
-To create a Doughnut Series, use the `donut` series type and specify an `innerRadiusRatio`.
+To create a Donut Series, use the `donut` series type and specify an `innerRadiusRatio`.
 
 ```js
 series: [
@@ -25,9 +25,9 @@ The `innerRadiusRatio` should be a value between `0` and `1` and defines the rad
 
 ## Inner Labels
 
-{% chartExampleRunner title="Text Inside a Doughnut Chart" name="text-inside-doughnut" type="generated" /%}
+{% chartExampleRunner title="Text Inside a Donut Chart" name="text-inside-donut" type="generated" /%}
 
-The `innerLabels` property can be used to put several lines of text in the space inside a Doughnut Series.
+The `innerLabels` property can be used to put several lines of text in the space inside a Donut Series.
 
 The colour of the centre area can be changed by using `innerCircle`.
 
@@ -54,11 +54,11 @@ series: [
 ];
 ```
 
-## Multiple Doughnuts
+## Multiple Donuts
 
-{% chartExampleRunner title="Multi-Doughnut Chart" name="multi-doughnut" type="generated" /%}
+{% chartExampleRunner title="Multi-Donut Chart" name="multi-donut" type="generated" /%}
 
-To render multiple Doughnut Series in a single chart without overlapping, set an `outerRadiusRatio` in conjunction with an `innerRadiusRatio`.
+To render multiple Donut Series in a single chart without overlapping, set an `outerRadiusRatio` in conjunction with an `innerRadiusRatio`.
 
 ```js
 series: [
@@ -83,14 +83,14 @@ In the above configuration:
 
 -   The difference of `0.3` between the `innerRadiusRatio` of the outer series and the `outerRadiusRatio` of the inner series determines the size of the gap between the outer and inner series.
 -   The difference between `outerRadiusRatio` and `innerRadiusRatio` for each series determines the thickness of the ring for that series.
--   The `title` provided for each series is displayed above the Doughnut Series if there is space.
+-   The `title` provided for each series is displayed above the Donut Series if there is space.
 -   Using `showInLegend` displays the title within the legend item, allowing differentiation between the two series within the legend.
 
 ### Shared Legend
 
-{% chartExampleRunner title="Multi-Doughnut Chart with Shared Legend" name="multi-doughnut-shared" type="generated" /%}
+{% chartExampleRunner title="Multi-Donut Chart with Shared Legend" name="multi-donut-shared" type="generated" /%}
 
-Providing a matching `legendItemKey` allows synchronising of legend items across multiple Doughnut Series. When a legend item is clicked, all items with a matching `legendItemKey` are toggled.
+Providing a matching `legendItemKey` allows synchronising of legend items across multiple Donut Series. When a legend item is clicked, all items with a matching `legendItemKey` are toggled.
 
 ```js
 series: [
@@ -113,7 +113,7 @@ Using `showInLegend: false` for the second series, ensures that there are no dup
 
 {% tabs %}
 
-{% tabItem id="AgDonutSeriesOptions" label="Doughnut Series" %}
+{% tabItem id="AgDonutSeriesOptions" label="Donut Series" %}
 {% apiReference id="AgDonutSeriesOptions" /%}
 {% /tabItem %}
 

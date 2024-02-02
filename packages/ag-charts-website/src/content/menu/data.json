@@ -243,9 +243,9 @@
                         "path": "pie-series"
                     },
                     {
-                        "title": "Doughnut",
-                        "icon": "chartsDoughnut",
-                        "path": "doughnut-series"
+                        "title": "Donut",
+                        "icon": "chartsDonut",
+                        "path": "donut-series"
                     },
                     {
                         "title": "Histogram",

@@ -11,14 +11,14 @@ export interface AgDonutSeriesLabelOptions<TDatum, TParams> extends AgChartLabel
     offset?: PixelSize;
     /** Minimum angle in degrees required for a sector to show a label. */
     minAngle?: Degree;
-    /** Avoid callout label collision and overflow by automatically moving colliding labels or reducing the Doughnut radius. If set to `false`, callout labels may collide with each other and the Doughnut radius will not change to prevent clipping of callout labels. */
+    /** Avoid callout label collision and overflow by automatically moving colliding labels or reducing the Donut radius. If set to `false`, callout labels may collide with each other and the Donut radius will not change to prevent clipping of callout labels. */
     avoidCollisions?: boolean;
 }
 
 export interface AgDonutSeriesSectorLabelOptions<TDatum, TParams> extends AgChartLabelOptions<TDatum, TParams> {
     /** Distance in pixels, used to make the label text closer to or further from the center. This offset is applied after positionRatio. */
     positionOffset?: PixelSize;
-    /** Position of labels as a ratio proportional to Doughnut radius (or Doughnut thickness). Additional offset in pixels can be applied by using positionOffset. */
+    /** Position of labels as a ratio proportional to Donut radius (or Donut thickness). Additional offset in pixels can be applied by using positionOffset. */
     positionRatio?: Ratio;
 }
 
@@ -89,7 +89,7 @@ export interface AgDonutSeriesThemeableOptions<TDatum = any>
     strokeOpacity?: Opacity;
     /** The width in pixels of the stroke for the sectors. */
     strokeWidth?: PixelSize;
-    /** The rotation of the Doughnut series in degrees. */
+    /** The rotation of the Donut series in degrees.f */
     rotation?: Degree;
     /** The offset in pixels of the outer radius of the series. */
     outerRadiusOffset?: PixelSize;
@@ -97,11 +97,11 @@ export interface AgDonutSeriesThemeableOptions<TDatum = any>
     outerRadiusRatio?: Ratio;
     /** The offset in pixels of the inner radius of the series.
      *
-     * __Note:__ An `innerRadiusRatio` or an `innerRadiusOffset` must be provided in order to render a Doughnut series. */
+     * __Note:__ An `innerRadiusRatio` or an `innerRadiusOffset` must be provided in order to render a Donut series. */
     innerRadiusOffset?: PixelSize;
     /** The ratio of the inner radius of the series.
      *
-     *  __Note:__ An `innerRadiusRatio` or an `innerRadiusOffset` must be provided in order to render a Doughnut series. */
+     *  __Note:__ An `innerRadiusRatio` or an `innerRadiusOffset` must be provided in order to render a Donut series. */
     innerRadiusRatio?: Ratio;
     /** Override of the automatically determined minimum radiusKey value from the data. */
     radiusMin?: number;
@@ -116,12 +116,12 @@ export interface AgDonutSeriesThemeableOptions<TDatum = any>
     /** Configuration for the area inside the series. */
     innerCircle?: AgDonutInnerCircle;
     /**
-     * The spacing between Doughnut sectors.
+     * The spacing between Donut sectors.
      *
-     * __Important:__ When this property is used, strokes are rendered on the inside of the Doughnut sectors, and no longer have a default colour.
+     * __Important:__ When this property is used, strokes are rendered on the inside of the Donut sectors, and no longer have a default colour.
      */
     sectorSpacing?: PixelSize;
-    /** A formatter function for adjusting the styling of the Doughnut sectors. */
+    /** A formatter function for adjusting the styling of the Donut sectors. */
     formatter?: (params: AgDonutSeriesFormatterParams<TDatum>) => AgDonutSeriesFormat;
 }
 
@@ -130,7 +130,7 @@ export interface AgDonutSeriesOptions<TDatum = any>
         AgDonutSeriesOptionsKeys,
         AgDonutSeriesOptionsNames,
         AgBaseSeriesOptions<TDatum> {
-    /** Configuration for Doughnut Series. */
+    /** Configuration for Donut Series. */
     type: 'donut';
     /** Configuration for the text lines to display inside the series. */
     innerLabels?: AgDonutInnerLabel[];
