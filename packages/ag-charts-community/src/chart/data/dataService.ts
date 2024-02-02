@@ -15,7 +15,7 @@ export interface AxisDomain {
 }
 
 export class DataService<D extends object> extends Listeners<never, never> {
-    private load?: LoadCallback;
+    private loadCb?: LoadCallback;
     private throttleTime = 100;
 
     private readonly debug = Debug.create(...DEBUG_SELECTORS);
@@ -31,30 +31,32 @@ export class DataService<D extends object> extends Listeners<never, never> {
         this.updateCallback(data, options);
     }
 
-    public async fetchFull(load: LoadCallback | any): Promise<D[]> {
-        if (typeof load !== 'function') return load;
-        this.load = load;
-        return this.throttledFetch();
+    public init(loadOrData: LoadCallback | any): any {
+        if (typeof loadOrData !== 'function') return loadOrData;
+        this.loadCb = loadOrData;
+
+        // Return an empty array with the expectation that the load function will be called later
+        return [];
     }
 
-    public async fetchFullAndWindow(axes: Array<AxisDomain>): Promise<D[]> {
+    public async load(axes: Array<AxisDomain>): Promise<D[]> {
         return this.throttledFetch(axes);
     }
 
     public isLazy() {
-        return this.load != null;
+        return this.loadCb != null;
     }
 
     private async fetch(axes?: Array<AxisDomain>): Promise<D[]> {
         this.debug('DataLazyLoader.fetch() - start');
         const start = performance.now();
 
-        if (!this.load) {
+        if (!this.loadCb) {
             throw new Error('lazy data loading callback not initialised');
         }
 
         try {
-            const response = await this.load({ axes });
+            const response = await this.loadCb({ axes });
             this.debug(`DataLazyLoader.fetch() - end: ${performance.now() - start}ms`);
 
             if (Array.isArray(response)) {

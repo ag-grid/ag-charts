@@ -1,13 +1,13 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-import { getData } from './data';
+import { getCoarseAndFineData, getCoarseData } from './data';
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: (({ axes }: any) => {
         const timeAxis = axes ? axes.find((a: any) => a.type === 'time') : undefined;
-        if (!timeAxis) return [];
-        return getData(timeAxis.min, timeAxis.max);
+        if (!timeAxis) return getCoarseData();
+        return getCoarseAndFineData(timeAxis.min, timeAxis.max);
     }) as any,
     series: [
         {
@@ -39,17 +39,17 @@ const options: AgCartesianChartOptions = {
             type: 'time',
             position: 'bottom',
             nice: false,
+            min: new Date('2024-01-01'),
+            max: new Date('2024-07-01'),
             tick: {
                 minSpacing: 50,
                 maxSpacing: 200,
             },
         },
     ],
-    zoom: {
-        enabled: true,
-        axes: 'x',
-        anchorPointX: 'pointer',
-        minVisibleItemsX: 1,
+    navigator: {
+        min: 0.95,
+        max: 1.0,
     },
 };
 

@@ -27,7 +27,11 @@ for (let time = dataStart; time < dataEnd; time += hour) {
     data.push({ time, price, quantity });
 }
 
-export function getData(windowStart: number, windowEnd: number) {
+export function getCoarseData() {
+    return data.filter(({ time }) => time % day === 0);
+}
+
+export function getCoarseAndFineData(windowStart: number, windowEnd: number) {
     const diff = windowEnd - windowStart;
     let granularity = day;
     if (diff < day * 4) {
