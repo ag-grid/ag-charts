@@ -1,7 +1,6 @@
-import { _Scene, _Util } from 'ag-charts-community';
-
-const { Path, Path2D, ScenePathChangeDetection } = _Scene;
-const { angleBetween, isNumberEqual, normalizeAngle360 } = _Util;
+import { angleBetween, normalizeAngle360 } from '../../util/angle';
+import { isEqual } from '../../util/number';
+import { Path, ScenePathChangeDetection } from './path';
 
 function rotatePoint(x: number, y: number, rotation: number) {
     const radius = Math.sqrt(x ** 2 + y ** 2);
@@ -95,7 +94,7 @@ export class RadialColumnShape extends Path {
         const { columnWidth, path, outerRadius, innerRadius, axisInnerRadius, axisOuterRadius, isRadiusAxisReversed } =
             this;
 
-        const isStackBottom = isNumberEqual(innerRadius, axisInnerRadius);
+        const isStackBottom = isEqual(innerRadius, axisInnerRadius);
         const sideRotation = Math.asin(columnWidth / 2 / innerRadius);
         const pointRotation = this.getRotation();
         const rotate = (x: number, y: number) => rotatePoint(x, y, pointRotation);
@@ -138,7 +137,7 @@ export class RadialColumnShape extends Path {
         path.moveTo(bottomLeftPt.x, bottomLeftPt.y);
 
         // Top
-        const isEmpty = isNumberEqual(innerRadius, outerRadius);
+        const isEmpty = isEqual(innerRadius, outerRadius);
         const hasSideIntersection = compare(
             axisOuterRadius,
             getTriangleHypotenuse(outerRadius, columnWidth / 2),
@@ -171,7 +170,7 @@ export class RadialColumnShape extends Path {
                 Math.atan2(top, -topIntersectionX) + pointRotation,
                 false
             );
-            if (!isNumberEqual(topIntersectionX, 0)) {
+            if (!isEqual(topIntersectionX, 0)) {
                 // Connecting line between two top bevels
                 const topRightBevelPt = rotate(topIntersectionX, top);
                 path.lineTo(topRightBevelPt.x, topRightBevelPt.y);
