@@ -388,7 +388,7 @@ function applyChartOptions(chart: Chart, processedOptions: ProcessedOptions, use
     applyOptionValues(chart, chart.getModuleContext(), processedOptions, { skip });
 
     let forceNodeDataRefresh = false;
-    let seriesStatus: ReturnType<typeof applySeries> = 'updated';
+    let seriesStatus: SeriesChangeType = 'updated';
     if (processedOptions.series && processedOptions.series.length > 0) {
         seriesStatus = applySeries(chart, processedOptions);
         forceNodeDataRefresh = true;
@@ -456,7 +456,9 @@ function applyModules(chart: Chart, options: AgChartOptions) {
     return modulesChanged;
 }
 
-function applySeries(chart: Chart, options: AgChartOptions) {
+type SeriesChangeType = 'no-change' | 'replaced' | 'no-op' | 'series-count-changed' | 'updated';
+
+function applySeries(chart: Chart, options: AgChartOptions): SeriesChangeType {
     const optSeries = options.series;
     if (!optSeries) {
         return 'no-change';
@@ -501,7 +503,7 @@ function applySeries(chart: Chart, options: AgChartOptions) {
     return seriesAddedRemoved ? 'series-count-changed' : noop ? 'no-op' : 'updated';
 }
 
-function applyAxes(chart: Chart, options: AgChartOptions, seriesStatus: ReturnType<typeof applySeries>) {
+function applyAxes(chart: Chart, options: AgChartOptions, seriesStatus: SeriesChangeType) {
     if (!('axes' in options) || !options.axes) {
         return false;
     }
