@@ -467,6 +467,7 @@ function applySeries(chart: Chart, options: AgChartOptions): SeriesChangeType {
     const matchResult = matchSeriesOptions(chart.series, chart.processedOptions, optSeries);
     if (matchResult.status === 'no-overlap' || matchResult.status === 'series-grouping-changed') {
         debug(`AgChartV2.applySeries() - creating new series instances, status: ${matchResult.status}`, matchResult);
+        chart.resetAnimations();
         chart.series = createSeries(chart, optSeries);
         return 'replaced';
     }

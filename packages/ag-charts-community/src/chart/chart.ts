@@ -33,6 +33,7 @@ import { isFiniteNumber } from '../util/type-guards';
 import type { PickRequired } from '../util/types';
 import { BOOLEAN, OBJECT, UNION, Validate } from '../util/validation';
 import type { Caption } from './caption';
+import type { ChartAnimationPhase } from './chartAnimationPhase';
 import type { ChartAxis } from './chartAxis';
 import { ChartHighlight } from './chartHighlight';
 import type { ChartMode } from './chartMode';
@@ -248,6 +249,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
         return this._destroyed;
     }
 
+    chartAnimationPhase: ChartAnimationPhase = 'initial';
+
     protected readonly animationManager: AnimationManager;
     protected readonly chartEventManager: ChartEventManager;
     protected readonly cursorManager: CursorManager;
@@ -437,6 +440,18 @@ export abstract class Chart extends Observable implements AgChartInstance {
         };
     }
 
+    resetAnimations() {
+        this.chartAnimationPhase = 'initial';
+
+        for (const series of this.series) {
+            series.resetAnimation(this.chartAnimationPhase);
+        }
+
+        // Reset animation state.
+        this.animationRect = undefined;
+        this.animationManager?.reset();
+    }
+
     destroy(opts?: { keepTransferableResources: boolean }): TransferableResources | undefined {
         if (this._destroyed) {
             return;
@@ -595,6 +610,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         if (this.updateShortcutCount === 0 && performUpdateType < ChartUpdateType.SCENE_RENDER) {
             this.animationManager.startBatch(this._performUpdateSkipAnimations);
+            this.animationManager.onBatchStop(() => (this.chartAnimationPhase = 'ready'));
         }
 
         this.debug('Chart.performUpdate() - start', ChartUpdateType[performUpdateType]);
@@ -765,13 +781,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 },
             };
 
+            series.resetAnimation(this.chartAnimationPhase);
             this.addSeriesListeners(series);
             series.addChartEventListeners();
         }
-
-        // Reset animation state.
-        this.animationRect = undefined;
-        this.animationManager?.reset();
     }
 
     protected destroySeries(series: Series<any>[]): void {
@@ -1020,6 +1033,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     // Should be available after the first layout.
     protected seriesRect?: BBox;
+    // BBox of the chart area containing animatable elements; if this changes, we skip animations.
     protected animationRect?: BBox;
 
     // x/y are local canvas coordinates in CSS pixels, not actual pixels
