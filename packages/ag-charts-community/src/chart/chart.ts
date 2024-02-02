@@ -475,7 +475,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.container = undefined;
         }
 
-        this.destroySeries();
+        this.destroySeries(this.series);
         this.seriesLayerManager.destroy();
 
         this.axes.forEach((a) => a.destroy());
@@ -741,7 +741,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
     series: Series<any>[] = [];
 
     private onSeriesChange(newValue: Series<any>[], oldValue?: Series<any>[]) {
-        this.destroySeries(oldValue?.filter((series) => !newValue.includes(series)));
+        const seriesToDestroy = oldValue?.filter((series) => !newValue.includes(series)) ?? [];
+        this.destroySeries(seriesToDestroy);
         this.seriesLayerManager?.setSeriesCount(newValue.length);
 
         for (const series of newValue) {
@@ -773,7 +774,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.animationManager?.reset();
     }
 
-    protected destroySeries(series = this.series): void {
+    protected destroySeries(series: Series<any>[]): void {
         series?.forEach((series) => {
             series.removeEventListener('nodeClick', this.onSeriesNodeClick);
             series.removeEventListener('nodeDoubleClick', this.onSeriesNodeDoubleClick);
