@@ -1,5 +1,5 @@
 import type {
-    AgBaseRadialColumnSeriesOptions,
+    AgRadialBarSeriesOptions,
     AgRadialSeriesFormat,
     AgRadialSeriesFormatterParams,
     AgRadialSeriesLabelFormatterParams,
@@ -23,7 +23,7 @@ const {
     STRING,
 } = _ModuleSupport;
 
-export class RadialBarSeriesProperties<T extends AgBaseRadialColumnSeriesOptions> extends SeriesProperties<T> {
+export class RadialBarSeriesProperties<T extends AgRadialBarSeriesOptions> extends SeriesProperties<T> {
     @Validate(STRING)
     angleKey!: string;
 
