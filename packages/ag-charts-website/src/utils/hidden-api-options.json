@@ -1,12 +1,12 @@
 {
-    "AgCategoryAxisOptions": ["keys"],
     "AgGradientLegendOptions": ["stop"],
     "AgHeatmapSeriesOptions": ["showInLegend"],
-    "AgLogAxisOptions": ["keys"],
-    "AgNumberAxisOptions": ["keys"],
     "AgSunburstSeriesHighlightStyle": ["item", "series"],
     "AgSunburstSeriesOptions": ["showInLegend"],
-    "AgTimeAxisOptions": ["keys"],
     "AgTreemapSeriesHighlightStyle": ["item", "series"],
-    "AgTreemapSeriesOptions": ["showInLegend"]
+    "AgTreemapSeriesOptions": ["showInLegend"],
+    "AgAngleCategoryAxisOptions": ["keys"],
+    "AgAngleNumberAxisOptions": ["keys"],
+    "AgRadiusCategoryAxisOptions": ["keys"],
+    "AgRadiusNumberAxisOptions": ["keys"]
 }
