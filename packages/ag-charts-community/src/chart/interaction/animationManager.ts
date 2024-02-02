@@ -289,7 +289,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
     }
 
     public onBatchStop(cb: () => void) {
-        this.batch.stoppedCbs.push(cb);
+        this.batch.stoppedCbs.add(cb);
     }
 }
 
@@ -299,7 +299,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
  */
 class AnimationBatch {
     public readonly controllers: Map<string, IAnimation<any>> = new Map();
-    public readonly stoppedCbs: (() => void)[] = [];
+    public readonly stoppedCbs: Set<() => void> = new Set();
 
     private skipAnimations = false;
     // private phase?: 'initial-load' | 'remove' | 'update' | 'add';
@@ -320,7 +320,7 @@ class AnimationBatch {
 
     dispatchStopped() {
         this.stoppedCbs.forEach((cb) => cb());
-        this.stoppedCbs.length = 0;
+        this.stoppedCbs.clear();
     }
 
     isSkipped() {
