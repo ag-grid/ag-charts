@@ -49,11 +49,11 @@
         },
         "Simple Donut": {
             "description": "Donut charts are similar to <a href='../simple-pie/'>pie charts</a>, being used to express a part-to-whole relationship, but allow for multiple series to be shown on the same chart for comparison.",
-            "example": "simple-doughnut"
+            "example": "simple-donut"
         },
         "Pie In A Donut": {
             "description": "There can be multiple levels of Pie/Donut charts. It can be used when comparing shares for different periods.",
-            "example": "pie-in-a-doughnut"
+            "example": "pie-in-a-donut"
         },
         "Pie With Variable Radius": {
             "description": "Pie sectors radius can be encoded by an additional numeric scale.",
