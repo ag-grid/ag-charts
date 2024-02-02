@@ -480,7 +480,7 @@ export abstract class Series<
 
     destroy(): void {
         this.destroyFns.forEach((f) => f());
-        this.destroyFns.length = 0;
+        this.destroyFns = [];
         this.ctx.seriesStateManager.deregisterSeries(this);
         this.ctx.seriesLayerManager.releaseGroup(this);
     }
