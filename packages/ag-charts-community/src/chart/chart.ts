@@ -1033,6 +1033,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     // Should be available after the first layout.
     protected seriesRect?: BBox;
+    // BBox of the chart area containing animatable elements; if this changes, we skip animations.
     protected animationRect?: BBox;
 
     // x/y are local canvas coordinates in CSS pixels, not actual pixels
