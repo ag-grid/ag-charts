@@ -524,8 +524,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
     }
 
     getOuterRadius() {
-        const { outerRadiusOffset = 0 } = this.properties;
-        return Math.max(this.radius * this.properties.outerRadiusRatio + outerRadiusOffset, 0);
+        return Math.max(this.radius * this.properties.outerRadiusRatio + this.properties.outerRadiusOffset, 0);
     }
 
     updateRadiusScale(resize: boolean) {

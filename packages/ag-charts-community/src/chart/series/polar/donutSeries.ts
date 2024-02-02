@@ -16,6 +16,7 @@ import { mod, toFixed } from '../../../util/number';
 import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
 import { boxCollidesSector, isPointInSector } from '../../../util/sector';
+import { isFiniteNumber } from '../../../util/type-guards';
 import type { Has } from '../../../util/types';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
@@ -367,8 +368,12 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
         });
 
         this.zerosumOuterRing.visible = sum === 0;
-        this.zerosumInnerRing.visible =
-            sum === 0 && this.properties.innerRadiusRatio !== 1 && this.properties.innerRadiusRatio > 0;
+        const { innerRadiusRatio, innerRadiusOffset } = this.properties;
+        if (innerRadiusRatio == null) {
+            this.zerosumInnerRing.visible = innerRadiusOffset == null;
+        } else {
+            this.zerosumInnerRing.visible = sum === 0 && innerRadiusRatio !== 1 && innerRadiusRatio > 0;
+        }
 
         return [{ itemId: seriesId, nodeData, labelData: nodeData }];
     }
@@ -514,8 +519,8 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
 
     getInnerRadius() {
         const { radius } = this;
-        const { innerRadiusRatio, innerRadiusOffset } = this.properties;
-        const innerRadius = radius * innerRadiusRatio + innerRadiusOffset;
+        const { innerRadiusRatio = 1, innerRadiusOffset = 0 } = this.properties;
+        const innerRadius = radius * (innerRadiusRatio ?? 0) + (innerRadiusOffset ?? 0);
         if (innerRadius === radius || innerRadius < 0) {
             return 0;
         }
@@ -730,7 +735,6 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
             sector.lineDash = this.properties.lineDash;
             sector.lineDashOffset = this.properties.lineDashOffset;
             sector.fillShadow = this.properties.shadow;
-            sector.inset = (this.properties.sectorSpacing + (format.stroke != null ? format.strokeWidth! : 0)) / 2;
             // @todo(AG-10275) Remove sectorSpacing null case
             sector.inset =
                 this.properties.sectorSpacing != null
@@ -1257,7 +1261,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
         } = nodeDatum;
 
         const title = sanitizeHtml(this.properties.title?.text);
-        const content = typeof angleValue === 'number' ? toFixed(angleValue) : String(angleValue);
+        const content = isFiniteNumber(angleValue) ? toFixed(angleValue) : String(angleValue);
         const labelText = this.getDatumLegendName(nodeDatum);
 
         return this.properties.tooltip.toTooltipHtml(

@@ -153,9 +153,8 @@ export class PieSeriesProperties extends SeriesProperties<AgPieSeriesOptions> {
     @Validate(DEGREE)
     rotation: number = 0;
 
-    @Deprecated('Use a Donut Series instead')
-    @Validate(NUMBER, { optional: true })
-    outerRadiusOffset?: number;
+    @Validate(NUMBER)
+    outerRadiusOffset: number = 0;
 
     @Validate(RATIO)
     outerRadiusRatio: number = 1;
