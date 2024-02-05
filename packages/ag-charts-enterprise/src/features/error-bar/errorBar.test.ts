@@ -598,7 +598,7 @@ describe('ErrorBars', () => {
         await hoverAction(x, y)(chart);
         await waitForChartStability(chart);
 
-        expect(document.body).toMatchSnapshot();
+        expect(document.body.getElementsByClassName('ag-chart-tooltip')).toMatchSnapshot();
     });
 
     it('AG-10525 should render tooltips with no errorbars', async () => {
@@ -609,7 +609,7 @@ describe('ErrorBars', () => {
         await hoverAction(x, y)(chart);
         await waitForChartStability(chart);
 
-        expect(document.body).toMatchSnapshot();
+        expect(document.body.getElementsByClassName('ag-chart-tooltip')).toMatchSnapshot();
     });
 
     it('should provide tooltip params', async () => {
