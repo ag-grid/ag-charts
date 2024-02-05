@@ -47,6 +47,7 @@ import type { HighlightChangeEvent } from './interaction/highlightManager';
 import { HighlightManager } from './interaction/highlightManager';
 import type { InteractionEvent } from './interaction/interactionManager';
 import { InteractionManager } from './interaction/interactionManager';
+import { SyncManager } from './interaction/syncManager';
 import { TooltipManager } from './interaction/tooltipManager';
 import { ZoomManager } from './interaction/zoomManager';
 import { Layers } from './layers';
@@ -70,6 +71,8 @@ import { UpdateService } from './updateService';
 type OptionalHTMLElement = HTMLElement | undefined | null;
 
 export type TransferableResources = { container?: OptionalHTMLElement; scene: Scene; element: HTMLElement };
+
+type SyncModule = ModuleInstance & { syncAxes: (skipSync: boolean) => void };
 
 type PickedNode = {
     series: Series<any>;
@@ -242,11 +245,18 @@ export abstract class Chart extends Observable implements AgChartInstance {
         },
     };
 
+    private _skipSync = false;
+
     private _destroyed: boolean = false;
     private readonly _destroyFns: (() => void)[] = [];
     get destroyed() {
         return this._destroyed;
     }
+
+    public readonly modules: Map<string, ModuleInstance> = new Map();
+
+    public readonly syncManager = new SyncManager(this);
+    public readonly zoomManager = new ZoomManager();
 
     protected readonly animationManager: AnimationManager;
     protected readonly chartEventManager: ChartEventManager;
@@ -255,7 +265,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
     protected readonly interactionManager: InteractionManager;
     protected readonly gestureDetector: GestureDetector;
     protected readonly tooltipManager: TooltipManager;
-    protected readonly zoomManager = new ZoomManager();
     protected readonly dataService: DataService<any>;
     protected readonly layoutService: LayoutService;
     protected readonly updateService: UpdateService;
@@ -264,7 +273,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
     protected readonly callbackCache: CallbackCache;
     protected readonly seriesStateManager: SeriesStateManager;
     protected readonly seriesLayerManager: SeriesLayerManager;
-    public readonly modules: Map<string, ModuleInstance> = new Map(); // TODO shouldn't be public
     protected readonly legends: Map<ChartLegendType, ChartLegend> = new Map();
     legend: ChartLegend | undefined;
 
@@ -312,10 +320,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.data = data;
         });
         this.layoutService = new LayoutService();
-        this.updateService = new UpdateService(
-            (type = ChartUpdateType.FULL, { forceNodeDataRefresh, skipAnimations }) =>
-                this.update(type, { forceNodeDataRefresh, skipAnimations })
-        );
+        this.updateService = new UpdateService((type = ChartUpdateType.FULL, options) => this.update(type, options));
         this.seriesStateManager = new SeriesStateManager();
         this.seriesLayerManager = new SeriesLayerManager(this.seriesRoot);
         this.callbackCache = new CallbackCache();
@@ -338,6 +343,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.attachLegend('category', Legend);
         this.legend = this.legends.get('category');
 
+        this.syncManager.subscribe();
+
         SizeMonitor.observe(this.element, (size) => this.rawResize(size));
         this._destroyFns.push(
             this.interactionManager.addListener('click', (event) => this.onClick(event)),
@@ -356,7 +363,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.highlightManager.addListener('highlight-change', (event) => this.changeHighlightDatum(event)),
             this.zoomManager.addListener('zoom-change', () =>
                 this.update(ChartUpdateType.PROCESS_DATA, { forceNodeDataRefresh: true, skipAnimations: true })
-            )
+            ),
+            () => this.syncManager.unsubscribe()
         );
     }
 
@@ -408,6 +416,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             interactionManager,
             gestureDetector,
             tooltipManager,
+            syncManager,
             zoomManager,
             layoutService,
             updateService,
@@ -427,6 +436,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             interactionManager,
             gestureDetector,
             tooltipManager,
+            syncManager,
             zoomManager,
             chartService: this,
             layoutService,
@@ -544,6 +554,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             newAnimationBatch?: boolean;
             seriesToUpdate?: Iterable<ISeries<any>>;
             backOffMs?: number;
+            skipSync?: boolean;
         }
     ) {
         const {
@@ -573,6 +584,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 this._performUpdateSkipAnimations ??= false;
             }
         }
+
+        this._skipSync = opts?.skipSync ?? false;
 
         if (Debug.check(true)) {
             let stack = new Error().stack ?? '<unknown>';
@@ -804,6 +817,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     protected assignSeriesToAxes() {
         this.axes.forEach((axis) => {
+            // axis.boundSeries = this.syncManager.getSyncedSeries().filter((s) => {
+            //     const seriesKeys = s.getKeys(axis.direction);
+            //     return axis.keys.length ? axis.keys.some((key) => seriesKeys?.includes(key)) : true;
+            // });
             axis.boundSeries = this.series.filter((s) => {
                 const seriesAxis = s.axes[axis.direction];
                 return seriesAxis === axis;
@@ -901,21 +918,28 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     async updateData() {
         const data = await this.dataService.fetchFull(this.data);
-        this.series.map((s) => {
-            s.setChartData(data);
-        });
+        this.series.forEach((s) => s.setChartData(data));
     }
 
-    async processData() {
+    async processData(shouldSync = true) {
         if (this.series.some((s) => s.canHaveAxes)) {
             this.assignAxesToSeries();
             this.assignSeriesToAxes();
+            if (shouldSync) {
+                const syncModule = this.modules.get('sync') as SyncModule | undefined;
+                syncModule?.syncAxes(this._skipSync);
+                // if (!this._skipSync) {
+                //     syncModule?.syncSiblings();
+                // }
+            }
         }
 
         const dataController = new DataController(this.mode);
+
         const seriesPromises = this.series.map((s) => s.processData(dataController));
         dataController.execute();
         await Promise.all(seriesPromises);
+
         await this.updateLegend();
     }
 

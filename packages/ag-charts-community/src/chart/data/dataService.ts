@@ -4,7 +4,7 @@ import { Listeners } from '../../util/listeners';
 
 const DEBUG_SELECTORS = [true, 'data-model', 'data-lazy'];
 
-type UpdateCallback<D extends object> = (data: D[], options: {}) => void;
+type UpdateCallback<D extends object> = (data: D[]) => void;
 type LoadCallback = (params: { axes?: Array<AxisDomain> }) => Promise<unknown>;
 
 export interface AxisDomain {
@@ -26,13 +26,15 @@ export class DataService<D extends object> extends Listeners<never, never> {
         super();
     }
 
-    public update(data: D[], options: {} = {}) {
+    public update(data: D[]) {
         if (data == null) return;
-        this.updateCallback(data, options);
+        this.updateCallback(data);
     }
 
     public async fetchFull(load: LoadCallback | any): Promise<D[]> {
-        if (typeof load !== 'function') return load;
+        if (typeof load !== 'function') {
+            return load;
+        }
         this.load = load;
         return this.throttledFetch();
     }
@@ -53,17 +55,17 @@ export class DataService<D extends object> extends Listeners<never, never> {
             throw new Error('lazy data loading callback not initialised');
         }
 
+        let response: unknown;
         try {
-            const response = await this.load({ axes });
+            response = await this.load({ axes });
             this.debug(`DataLazyLoader.fetch() - end: ${performance.now() - start}ms`);
 
             if (Array.isArray(response)) {
                 return response;
             }
-
-            throw new Error(`lazy data was bad: ${response}`);
         } catch (error) {
             throw new Error(`lazy data errored: ${error}`);
         }
+        throw new Error(`lazy data was bad: ${response}`);
     }
 }

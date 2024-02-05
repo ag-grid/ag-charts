@@ -352,6 +352,7 @@ export function formatNode(node: ts.Node) {
         case ts.SyntaxKind.NumberKeyword:
         case ts.SyntaxKind.StringKeyword:
         case ts.SyntaxKind.StringLiteral:
+        case ts.SyntaxKind.SymbolKeyword:
         case ts.SyntaxKind.TypeOperator:
         case ts.SyntaxKind.UndefinedKeyword:
         case ts.SyntaxKind.UnknownKeyword:

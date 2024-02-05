@@ -1,11 +1,9 @@
 import type { BBox } from '../scene/bbox';
 import { Listeners } from '../util/listeners';
+import type { Chart } from './chart';
 import { ChartUpdateType } from './chartUpdateType';
 
-type UpdateCallback = (
-    type: ChartUpdateType,
-    options: { forceNodeDataRefresh?: boolean; skipAnimations?: boolean }
-) => void;
+type UpdateCallback = (...args: Parameters<Chart['update']>) => void;
 
 export interface UpdateCompleteEvent {
     type: 'update-complete';
@@ -17,12 +15,11 @@ export class UpdateService extends Listeners<'update-complete', (event: UpdateCo
         super();
     }
 
-    public update(type = ChartUpdateType.FULL, { forceNodeDataRefresh = false, skipAnimations = false } = {}) {
-        this.updateCallback(type, { forceNodeDataRefresh, skipAnimations });
+    public update(type = ChartUpdateType.FULL, options?: Parameters<Chart['update']>[1]) {
+        this.updateCallback(type, options);
     }
 
     public dispatchUpdateComplete(minRect?: BBox) {
-        const event: UpdateCompleteEvent = { type: 'update-complete', minRect };
-        this.dispatch('update-complete', event);
+        this.dispatch('update-complete', { type: 'update-complete', minRect });
     }
 }

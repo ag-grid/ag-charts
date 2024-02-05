@@ -38,6 +38,7 @@ export * from './chart/interaction/interactionManager';
 export * from './chart/interaction/gestureDetector';
 export * from './chart/interaction/tooltipManager';
 export * from './chart/interaction/zoomManager';
+export { type Chart } from './chart/chart';
 export * from './chart/layers';
 export * from './chart/series/series';
 export * from './chart/series/seriesEvents';

@@ -13,7 +13,7 @@ import type {
     AgChartOptions,
     AgLineSeriesOptions,
 } from '../options/agChartOptions';
-import { clearDoOnceFlags } from '../util/function';
+import { doOnce } from '../util/function';
 import { ChartOptions, SeriesType } from './optionsModule';
 
 function prepareOptions<T extends AgChartOptions>(userOptions: T): T {
@@ -132,7 +132,7 @@ const seriesOptionsMap: Record<string, any[]> = {
 describe('ChartOptions', () => {
     beforeEach(() => {
         console.warn = jest.fn();
-        clearDoOnceFlags();
+        doOnce.clear();
     });
 
     describe('#processSeriesOptions', () => {
