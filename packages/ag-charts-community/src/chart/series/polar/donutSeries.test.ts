@@ -102,7 +102,7 @@ describe('DonutSeries', () => {
             chart = await createChart({
                 ...options,
                 data: [{ value: 0 }, { value: 0 }],
-                series: [{ type: 'donut', angleKey: 'value' }],
+                series: [{ type: 'donut', angleKey: 'value', innerRadiusRatio: 0.5 }],
             });
             await compare();
         });
@@ -143,7 +143,15 @@ describe('DonutSeries', () => {
             chart = await createChart({
                 ...options,
                 data: [{ cat: '1' }, { cat: '2' }, { fox: 'L' }, { cat: '4', dog: 10 }, { cat: '5', dog: 20 }],
-                series: [{ type: 'donut', calloutLabelKey: 'cat', angleKey: 'dog', sectorLabelKey: 'fox' }],
+                series: [
+                    {
+                        type: 'donut',
+                        calloutLabelKey: 'cat',
+                        angleKey: 'dog',
+                        sectorLabelKey: 'fox',
+                        innerRadiusRatio: 0.5,
+                    },
+                ],
             });
 
             expectWarnings([

@@ -523,7 +523,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
             );
             return 0;
         }
-        const innerRadius = radius * (innerRadiusRatio ?? 0) + (innerRadiusOffset ?? 0);
+        const innerRadius = radius * (innerRadiusRatio ?? 1) + (innerRadiusOffset ?? 0);
         if (innerRadius === radius || innerRadius < 0) {
             return 0;
         }
