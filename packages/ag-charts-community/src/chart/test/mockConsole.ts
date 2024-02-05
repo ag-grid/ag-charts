@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { expect } from '@jest/globals';
 
-import { clearDoOnceFlags } from '../../util/function';
+import { doOnce } from '../../util/function';
 
 export function setupMockConsole() {
     beforeEach(() => {
@@ -14,7 +14,7 @@ export function setupMockConsole() {
         expect(console.error).not.toBeCalled();
         (console.warn as jest.Mock).mockClear();
         (console.error as jest.Mock).mockClear();
-        clearDoOnceFlags();
+        doOnce.clear();
     });
 }
 

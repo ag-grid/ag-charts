@@ -138,11 +138,9 @@ export abstract class ChangeDetectable {
     protected _dirty: RedrawType = RedrawType.MAJOR;
 
     protected markDirty(_source: any, type = RedrawType.TRIVIAL) {
-        if (this._dirty > type) {
-            return;
+        if (this._dirty < type) {
+            this._dirty = type;
         }
-
-        this._dirty = type;
     }
 
     markClean(_opts?: { force?: boolean; recursive?: boolean }) {

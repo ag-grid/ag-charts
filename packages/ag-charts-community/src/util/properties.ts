@@ -26,7 +26,7 @@ export class BaseProperties<T extends object = object> extends ChangeDetectable 
             }
         }
         for (const unknownKey of keys) {
-            const { className = this.constructor.name } = this;
+            const { className = this.constructor.name } = this.constructor as { className?: string };
             Logger.warn(`unable to set [${unknownKey}] in ${className} - property is unknown`);
         }
 
