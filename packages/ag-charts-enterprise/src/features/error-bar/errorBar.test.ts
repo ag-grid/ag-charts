@@ -6,6 +6,7 @@ import type {
     AgChartOptions,
     AgErrorBarFormatterParams,
     AgErrorBarOptions,
+    AgLineSeriesOptions,
     AgScatterSeriesOptions,
     AgScatterSeriesTooltipRendererParams,
 } from 'ag-charts-community';
@@ -640,6 +641,19 @@ describe('ErrorBars', () => {
 
     it('should render default tooltips', async () => {
         chart = deproxy(AgCharts.create({ ...opts, series: [SERIES_BOYLESLAW] }));
+        await waitForChartStability(chart);
+
+        const { x, y } = getItemCoords(4);
+        await hoverAction(x, y)(chart);
+        await waitForChartStability(chart);
+
+        expect(document.body).toMatchSnapshot();
+    });
+
+    it('AG-10525 should render tooltips with no errorbars', async () => {
+        const { data, xKey, yKey } = SERIES_AUSTRALIA;
+        const series: AgLineSeriesOptions[] = [{ type: 'line', xKey, yKey }];
+        chart = deproxy(AgCharts.create({ ...opts, data, series }));
         await waitForChartStability(chart);
 
         const { x, y } = getItemCoords(4);
