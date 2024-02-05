@@ -154,8 +154,8 @@ export interface AgBaseThemeableChartOptions<TDatum = any> {
     zoom?: AgZoomOptions;
     /** Configuration for the Navigator. */
     navigator?: AgNavigatorOptions;
-    /** Configuration for synchronizing multiple charts. */
-    sync?: AgChartSyncOptions;
+    // /** Configuration for synchronizing multiple charts. */
+    // sync?: AgChartSyncOptions;
     /** A map of event names to event listeners. */
     listeners?: AgBaseChartListeners<TDatum>;
 }
