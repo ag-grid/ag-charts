@@ -1,5 +1,6 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-community';
+import type { AgChartOptions } from 'ag-charts-community';
 import { AgChartProxy, Chart, deproxy, prepareTestOptions, waitForChartStability } from 'ag-charts-community-test';
+import { AgCharts } from '../main';
 
 export function prepareEnterpriseTestOptions<T extends AgChartOptions>(options: T, container = document.body) {
     if (!options.animation && !options.series?.some(({ type }) => type === 'treemap')) {
