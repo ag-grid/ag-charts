@@ -13,12 +13,16 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         const { syncManager } = target.moduleContext;
         syncManager.unsubscribe(oldValue);
         syncManager.subscribe(newValue);
-        target.syncSiblings(oldValue);
-        target.syncSiblings(newValue);
+        target.updateSiblings(oldValue);
+        target.updateSiblings(newValue);
     })
     groupId?: string;
 
     @Validate(UNION(['x', 'y', 'xy'], 'an axis'))
+    @ObserveChanges<ChartSync>((target) => {
+        const { syncManager } = target.moduleContext;
+        target.updateChart(syncManager.getChart());
+    })
     axes: 'x' | 'y' | 'xy' = 'x';
 
     @Validate(BOOLEAN)
@@ -35,6 +39,16 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         super();
     }
 
+    private updateChart(chart: any) {
+        chart.updateService.update(ChartUpdateType.UPDATE_DATA, { skipSync: true });
+    }
+
+    private updateSiblings(groupId?: string) {
+        for (const chart of this.moduleContext.syncManager.getSiblings(groupId)) {
+            this.updateChart(chart);
+        }
+    }
+
     private enabledZoomSync() {
         const { syncManager, zoomManager } = this.moduleContext;
         this.disableZoomSync = zoomManager.addListener('zoom-change', (e) => {
@@ -47,12 +61,6 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
     }
 
     private disableZoomSync?: () => void;
-
-    syncSiblings(groupId?: string) {
-        this.moduleContext.syncManager.getSiblings(groupId).forEach((chart) => {
-            (chart as any).updateService.update(ChartUpdateType.UPDATE_DATA, { skipSync: true });
-        });
-    }
 
     syncAxes(stopPropagation = false) {
         const { syncManager } = this.moduleContext;
@@ -68,7 +76,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         }
 
         if (!stopPropagation) {
-            this.syncSiblings(this.groupId);
+            this.updateSiblings(this.groupId);
         }
     }
 
@@ -92,7 +100,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
     destroy() {
         const { syncManager } = this.moduleContext;
         syncManager.unsubscribe(this.groupId);
-        this.syncSiblings(this.groupId);
+        this.updateSiblings(this.groupId);
         this.disableZoomSync?.();
     }
 }
