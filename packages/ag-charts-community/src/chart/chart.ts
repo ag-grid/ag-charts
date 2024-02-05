@@ -970,7 +970,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 .filter((s) => s.properties.showInLegend)
                 .flatMap((s) => s.getLegendData(legendType));
 
-            if (isCategoryLegendData(legendData)) {
+            if (isCategoryLegendData(legendData) && this.mode !== 'integrated') {
                 this.validateCategoryLegendData(legendData);
             }
 
