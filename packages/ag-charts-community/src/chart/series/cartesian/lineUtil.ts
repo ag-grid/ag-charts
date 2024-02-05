@@ -1,5 +1,6 @@
 import { FROM_TO_MIXINS, type NodeUpdateState } from '../../../motion/fromToMotion';
 import type { Path } from '../../../scene/shape/path';
+import { transformIntegratedCategoryValue } from '../../../util/value';
 import type { ProcessedOutputDiff } from '../../data/dataModel';
 import type { CartesianSeriesNodeDataContext } from './cartesianSeries';
 import { prepareMarkerAnimation } from './markerUtil';
@@ -202,45 +203,47 @@ export function pairCategoryData(
     while (oldIndex < oldData.nodeData.length || newIndex < newData.nodeData.length) {
         const before = oldData.nodeData[oldIndex];
         const after = newData.nodeData[newIndex];
+        const bXValue = transformIntegratedCategoryValue(before?.xValue);
+        const aXValue = transformIntegratedCategoryValue(after?.xValue);
 
         let resultPoint: PathPoint;
-        if (before?.xValue === after?.xValue) {
+        if (bXValue === aXValue) {
             resultPoint = {
                 change: 'move',
                 moveTo: calculateMoveTo(before.point.moveTo ?? false, after.point.moveTo),
                 from: before.point,
                 to: after.point,
             };
-            addToResultMap(before.xValue, resultPoint);
+            addToResultMap(before?.xValue, resultPoint);
             oldIndex++;
             newIndex++;
-        } else if (diff !== undefined && diff.removed.indexOf(before?.xValue) >= 0) {
+        } else if (diff !== undefined && diff.removed.indexOf(String(bXValue)) >= 0) {
             resultPoint = {
                 change: 'out',
                 moveTo: before.point.moveTo ?? false,
                 from: before.point,
             };
-            addToResultMap(before.xValue, resultPoint);
+            addToResultMap(before?.xValue, resultPoint);
             oldIndex++;
-        } else if (diff !== undefined && diff.added.indexOf(after?.xValue) >= 0) {
+        } else if (diff !== undefined && diff.added.indexOf(String(aXValue)) >= 0) {
             resultPoint = {
                 change: 'in',
                 moveTo: after.point.moveTo ?? false,
                 to: after.point,
             };
-            addToResultMap(after.xValue, resultPoint);
+            addToResultMap(after?.xValue, resultPoint);
             newIndex++;
         } else if (multiDatum && previousResultPoint && previousXValue === before?.xValue) {
             resultPoint = {
                 ...(previousResultPoint as PathPoint),
             };
-            addToResultMap(before.xValue, resultPoint);
+            addToResultMap(before?.xValue, resultPoint);
             oldIndex++;
         } else if (multiDatum && previousResultPoint && previousXValue === after?.xValue) {
             resultPoint = {
                 ...(previousResultPoint as PathPoint),
             };
-            addToResultMap(after.xValue, resultPoint);
+            addToResultMap(after?.xValue, resultPoint);
             newIndex++;
         } else {
             isXUnordered = true;

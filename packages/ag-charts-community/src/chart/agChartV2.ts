@@ -29,7 +29,7 @@ import { getAxis } from './factory/axisTypes';
 import { isEnterpriseSeriesType, isEnterpriseSeriesTypeLoaded } from './factory/expectedEnterpriseModules';
 import { getLegendKeys } from './factory/legendTypes';
 import { registerInbuiltModules } from './factory/registerInbuiltModules';
-import { type SeriesOptions, getSeries } from './factory/seriesTypes';
+import { getSeries } from './factory/seriesTypes';
 import { setupModules } from './factory/setupModules';
 import { HierarchyChart } from './hierarchyChart';
 import { AxisPositionGuesser } from './mapping/prepareAxis';
@@ -278,7 +278,7 @@ class AgChartsInternal {
             }
         };
 
-        asyncDownload().catch((e) => Logger.errorOnce(e));
+        asyncDownload().catch(Logger.errorOnce);
     }
 
     static async getImageDataURL(proxy: AgChartInstanceProxy, opts?: ImageDataUrlOptions): Promise<string> {
@@ -385,10 +385,13 @@ function applyChartOptions(chart: Chart, processedOptions: ProcessedOptions, use
         registerListeners(chart, processedOptions.listeners);
     }
 
+    // PROBLEM CASES:
+    // - Line/area series data change doesn't animate.
+
     applyOptionValues(chart, chart.getModuleContext(), processedOptions, { skip });
 
     let forceNodeDataRefresh = false;
-    let seriesStatus: SeriesChangeType = 'updated';
+    let seriesStatus: SeriesChangeType = 'no-op';
     if (processedOptions.series && processedOptions.series.length > 0) {
         seriesStatus = applySeries(chart, processedOptions);
         forceNodeDataRefresh = true;
@@ -397,8 +400,7 @@ function applyChartOptions(chart: Chart, processedOptions: ProcessedOptions, use
         forceNodeDataRefresh = true;
     }
 
-    const seriesOpts: SeriesOptions[] | undefined = processedOptions.series;
-    const seriesDataUpdate = !!processedOptions.data || seriesOpts?.some((s) => s.data != null);
+    const seriesDataUpdate = !!processedOptions.data || seriesStatus === 'data-change' || seriesStatus === 'replaced';
     const legendKeys = getLegendKeys();
     const optionsHaveLegend = Object.values(legendKeys).some(
         (legendKey) => (processedOptions as any)[legendKey] != null
@@ -456,7 +458,14 @@ function applyModules(chart: Chart, options: AgChartOptions) {
     return modulesChanged;
 }
 
-type SeriesChangeType = 'no-change' | 'replaced' | 'no-op' | 'series-count-changed' | 'updated';
+type SeriesChangeType =
+    | 'no-op'
+    | 'no-change'
+    | 'replaced'
+    | 'no-op'
+    | 'data-change'
+    | 'series-count-changed'
+    | 'updated';
 
 function applySeries(chart: Chart, options: AgChartOptions): SeriesChangeType {
     const optSeries = options.series;
@@ -465,7 +474,7 @@ function applySeries(chart: Chart, options: AgChartOptions): SeriesChangeType {
     }
 
     const matchResult = matchSeriesOptions(chart.series, chart.processedOptions, optSeries);
-    if (matchResult.status === 'no-overlap' || matchResult.status === 'series-grouping-changed') {
+    if (matchResult.status === 'no-overlap') {
         debug(`AgChartV2.applySeries() - creating new series instances, status: ${matchResult.status}`, matchResult);
         chart.resetAnimations();
         chart.series = createSeries(chart, optSeries);
@@ -477,31 +486,34 @@ function applySeries(chart: Chart, options: AgChartOptions): SeriesChangeType {
     const seriesInstances = [];
     for (const change of matchResult.changes) {
         if (change.status === 'add') {
-            seriesInstances[change.idx] = createSeries(chart, [change.opts])[0];
-            debug(`AgChartV2.applySeries() - created new series at idx ${change.idx}`, seriesInstances[change.idx]);
+            const newSeries = createSeries(chart, [change.opts])[0];
+            seriesInstances.push(newSeries);
+            debug(`AgChartV2.applySeries() - created new series`, newSeries);
             continue;
         } else if (change.status === 'remove') {
-            debug(`AgChartV2.applySeries() - removing series at idx ${change.idx}`, change.series);
+            debug(`AgChartV2.applySeries() - removing series at previous idx ${change.idx}`, change.series);
             continue;
         } else if (change.status === 'no-op') {
-            seriesInstances[change.idx] = change.series;
-            debug(`AgChartV2.applySeries() - no change to series at idx ${change.idx}`, change.series);
+            seriesInstances.push(change.series);
+            debug(`AgChartV2.applySeries() - no change to series at previous idx ${change.idx}`, change.series);
             continue;
         }
 
         const { series, diff, idx } = change;
-        debug(`AgChartV2.applySeries() - applying series diff idx ${idx}`, diff, series);
+        debug(`AgChartV2.applySeries() - applying series diff previous idx ${idx}`, diff, series);
         applySeriesValues(series, diff);
         series.markNodeDataDirty();
-        seriesInstances[change.idx] = series;
+        seriesInstances.push(series);
     }
 
     debug(`AgChartV2.applySeries() - final series instances`, seriesInstances);
     chart.series = seriesInstances;
 
-    const seriesAddedRemoved = matchResult.changes.some((c) => ['add', 'remove'].includes(c.status));
+    const dataChanged = matchResult.changes.some(({ diff }) => {
+        return diff && (diff.seriesGrouping != null || diff.data != null);
+    });
     const noop = matchResult.changes.every((c) => c.status === 'no-op');
-    return seriesAddedRemoved ? 'series-count-changed' : noop ? 'no-op' : 'updated';
+    return dataChanged ? 'data-change' : noop ? 'no-op' : 'updated';
 }
 
 function applyAxes(chart: Chart, options: AgChartOptions, seriesStatus: SeriesChangeType) {

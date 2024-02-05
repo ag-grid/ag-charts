@@ -68,8 +68,6 @@ export interface AgSeriesTooltip<TParams extends AgSeriesTooltipRendererParams> 
     interaction?: AgSeriesTooltipInteraction;
     /** Function used to create the content for tooltips. */
     renderer?: (params: TParams) => string | AgTooltipRendererResult;
-    /** String used to format the tooltip content. */
-    format?: string;
 }
 
 export interface AgSeriesTooltipInteraction {
