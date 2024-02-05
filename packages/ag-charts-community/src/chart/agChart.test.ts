@@ -250,8 +250,8 @@ describe('AgChart', () => {
         const updatedSeries = chart.series;
 
         expect(updatedSeries.length).toEqual(4);
-        expect(updatedSeries[0]).not.toBe(createdSeries[0]);
-        expect(updatedSeries[1]).not.toBe(createdSeries[1]);
+        expect(updatedSeries[0].id).toEqual(createdSeries[0].id);
+        expect(updatedSeries[1].id).toEqual(createdSeries[1].id);
         expect((updatedSeries[0].properties as any).marker.shape).toEqual('square');
         expect((updatedSeries[0].properties as any).marker.size).toEqual(10);
         expect((updatedSeries[1].properties as any).fill).toEqual('lime');
@@ -291,10 +291,10 @@ describe('AgChart', () => {
         await waitForChartStability(chartProxy);
         const updatedSeries2 = chart.series;
 
-        expect(updatedSeries2.length).toBe(3);
-        expect(updatedSeries2[0]).not.toBe(updatedSeries[0]);
-        expect(updatedSeries2[1]).not.toBe(updatedSeries[1]);
-        expect(updatedSeries2[2]).not.toBe(updatedSeries[2]);
+        expect(updatedSeries2.length).toEqual(3);
+        expect(updatedSeries2[0].id).toEqual(updatedSeries[0].id);
+        expect(updatedSeries2[1].id).toEqual(updatedSeries[1].id);
+        expect(updatedSeries2[2].id).toEqual(updatedSeries[2].id);
 
         AgCharts.update(chartProxy, {
             data: revenueProfitData,
@@ -327,10 +327,10 @@ describe('AgChart', () => {
         await waitForChartStability(chartProxy);
         const updatedSeries3 = chart.series;
 
-        expect(updatedSeries3.length).toBe(3);
-        expect(updatedSeries3[0]).not.toBe(updatedSeries2[0]);
-        expect(updatedSeries3[1]).not.toBe(updatedSeries2[1]);
-        expect(updatedSeries3[2]).not.toBe(updatedSeries2[2]);
+        expect(updatedSeries3.length).toEqual(3);
+        expect(updatedSeries3[0].id).toEqual(updatedSeries2[1].id);
+        expect(updatedSeries3[1].id).toEqual(updatedSeries2[2].id);
+        expect(updatedSeries3[2].id).toEqual(updatedSeries2[0].id);
         expect(updatedSeries3[0]).toBeInstanceOf(BarSeries);
         expect(updatedSeries3[1]).toBeInstanceOf(BarSeries);
         expect(updatedSeries3[2]).toBeInstanceOf(LineSeries);
@@ -376,7 +376,7 @@ describe('AgChart', () => {
         expect(updatedSeries4[0]).toBeInstanceOf(AreaSeries);
         expect(updatedSeries4[1]).toBeInstanceOf(AreaSeries);
         expect(updatedSeries4[2]).toBeInstanceOf(LineSeries);
-        expect(updatedSeries4[2]).not.toBe(lineSeries);
+        expect(updatedSeries4[2].id).not.toEqual(lineSeries.id);
     });
 
     test('axes', async () => {

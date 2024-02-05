@@ -62,9 +62,6 @@ export function matchSeriesOptions<S extends ISeries<any>>(
             const previousOpts = processedOptions.series?.[idx] ?? {};
             const diff = jsonDiff(previousOpts, opts ?? {}) as any;
 
-            // Short-circuit if series grouping has changed.
-            if (diff && 'seriesGrouping' in diff) return { status: 'series-grouping-changed' as const };
-
             if (diff) {
                 changes.push({ opts, series, diff, idx, status: 'update' as const });
             } else {
