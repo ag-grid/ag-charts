@@ -65,9 +65,6 @@ export class Listeners<EventType extends string, EventHandler extends Handler, M
     }
 
     destroy() {
-        for (const [, listeners] of this.registeredListeners.entries()) {
-            listeners.length = 0;
-        }
         this.registeredListeners.clear();
     }
 }
