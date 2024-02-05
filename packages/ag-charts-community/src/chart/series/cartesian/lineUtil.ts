@@ -194,7 +194,7 @@ export function pairCategoryData(
         }
 
         previousResultPoint = result;
-        previousXValue = xValue;
+        previousXValue = transformIntegratedCategoryValue(xValue);
     };
 
     let oldIndex = 0;
@@ -233,13 +233,13 @@ export function pairCategoryData(
             };
             addToResultMap(after?.xValue, resultPoint);
             newIndex++;
-        } else if (multiDatum && previousResultPoint && previousXValue === before?.xValue) {
+        } else if (multiDatum && previousResultPoint && previousXValue === bXValue) {
             resultPoint = {
                 ...(previousResultPoint as PathPoint),
             };
             addToResultMap(before?.xValue, resultPoint);
             oldIndex++;
-        } else if (multiDatum && previousResultPoint && previousXValue === after?.xValue) {
+        } else if (multiDatum && previousResultPoint && previousXValue === aXValue) {
             resultPoint = {
                 ...(previousResultPoint as PathPoint),
             };

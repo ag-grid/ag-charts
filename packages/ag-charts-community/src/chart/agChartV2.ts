@@ -385,9 +385,6 @@ function applyChartOptions(chart: Chart, processedOptions: ProcessedOptions, use
         registerListeners(chart, processedOptions.listeners);
     }
 
-    // PROBLEM CASES:
-    // - Line/area series data change doesn't animate.
-
     applyOptionValues(chart, chart.getModuleContext(), processedOptions, { skip });
 
     let forceNodeDataRefresh = false;
