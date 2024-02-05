@@ -385,6 +385,9 @@ function applyChartOptions(chart: Chart, processedOptions: ProcessedOptions, use
         registerListeners(chart, processedOptions.listeners);
     }
 
+    // PROBLEM CASES:
+    // - Line/area series data change doesn't animate.
+
     applyOptionValues(chart, chart.getModuleContext(), processedOptions, { skip });
 
     let forceNodeDataRefresh = false;
@@ -483,23 +486,24 @@ function applySeries(chart: Chart, options: AgChartOptions): SeriesChangeType {
     const seriesInstances = [];
     for (const change of matchResult.changes) {
         if (change.status === 'add') {
-            seriesInstances[change.idx] = createSeries(chart, [change.opts])[0];
-            debug(`AgChartV2.applySeries() - created new series at idx ${change.idx}`, seriesInstances[change.idx]);
+            const newSeries = createSeries(chart, [change.opts])[0];
+            seriesInstances.push(newSeries);
+            debug(`AgChartV2.applySeries() - created new series`, newSeries);
             continue;
         } else if (change.status === 'remove') {
-            debug(`AgChartV2.applySeries() - removing series at idx ${change.idx}`, change.series);
+            debug(`AgChartV2.applySeries() - removing series at previous idx ${change.idx}`, change.series);
             continue;
         } else if (change.status === 'no-op') {
-            seriesInstances[change.idx] = change.series;
-            debug(`AgChartV2.applySeries() - no change to series at idx ${change.idx}`, change.series);
+            seriesInstances.push(change.series);
+            debug(`AgChartV2.applySeries() - no change to series at previous idx ${change.idx}`, change.series);
             continue;
         }
 
         const { series, diff, idx } = change;
-        debug(`AgChartV2.applySeries() - applying series diff idx ${idx}`, diff, series);
+        debug(`AgChartV2.applySeries() - applying series diff previous idx ${idx}`, diff, series);
         applySeriesValues(series, diff);
         series.markNodeDataDirty();
-        seriesInstances[change.idx] = series;
+        seriesInstances.push(series);
     }
 
     debug(`AgChartV2.applySeries() - final series instances`, seriesInstances);
