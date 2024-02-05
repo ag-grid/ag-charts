@@ -29,7 +29,7 @@ import { getAxis } from './factory/axisTypes';
 import { isEnterpriseSeriesType, isEnterpriseSeriesTypeLoaded } from './factory/expectedEnterpriseModules';
 import { getLegendKeys } from './factory/legendTypes';
 import { registerInbuiltModules } from './factory/registerInbuiltModules';
-import { type SeriesOptions, getSeries } from './factory/seriesTypes';
+import { getSeries } from './factory/seriesTypes';
 import { setupModules } from './factory/setupModules';
 import { HierarchyChart } from './hierarchyChart';
 import { AxisPositionGuesser } from './mapping/prepareAxis';
@@ -388,7 +388,7 @@ function applyChartOptions(chart: Chart, processedOptions: ProcessedOptions, use
     applyOptionValues(chart, chart.getModuleContext(), processedOptions, { skip });
 
     let forceNodeDataRefresh = false;
-    let seriesStatus: SeriesChangeType = 'updated';
+    let seriesStatus: SeriesChangeType = 'no-op';
     if (processedOptions.series && processedOptions.series.length > 0) {
         seriesStatus = applySeries(chart, processedOptions);
         forceNodeDataRefresh = true;
@@ -397,8 +397,7 @@ function applyChartOptions(chart: Chart, processedOptions: ProcessedOptions, use
         forceNodeDataRefresh = true;
     }
 
-    const seriesOpts: SeriesOptions[] | undefined = processedOptions.series;
-    const seriesDataUpdate = !!processedOptions.data || seriesOpts?.some((s) => s.data != null);
+    const seriesDataUpdate = !!processedOptions.data || seriesStatus === 'data-change' || seriesStatus === 'replaced';
     const legendKeys = getLegendKeys();
     const optionsHaveLegend = Object.values(legendKeys).some(
         (legendKey) => (processedOptions as any)[legendKey] != null
@@ -456,7 +455,14 @@ function applyModules(chart: Chart, options: AgChartOptions) {
     return modulesChanged;
 }
 
-type SeriesChangeType = 'no-change' | 'replaced' | 'no-op' | 'series-count-changed' | 'updated';
+type SeriesChangeType =
+    | 'no-op'
+    | 'no-change'
+    | 'replaced'
+    | 'no-op'
+    | 'data-change'
+    | 'series-count-changed'
+    | 'updated';
 
 function applySeries(chart: Chart, options: AgChartOptions): SeriesChangeType {
     const optSeries = options.series;
@@ -465,7 +471,7 @@ function applySeries(chart: Chart, options: AgChartOptions): SeriesChangeType {
     }
 
     const matchResult = matchSeriesOptions(chart.series, chart.processedOptions, optSeries);
-    if (matchResult.status === 'no-overlap' || matchResult.status === 'series-grouping-changed') {
+    if (matchResult.status === 'no-overlap') {
         debug(`AgChartV2.applySeries() - creating new series instances, status: ${matchResult.status}`, matchResult);
         chart.resetAnimations();
         chart.series = createSeries(chart, optSeries);
@@ -499,9 +505,11 @@ function applySeries(chart: Chart, options: AgChartOptions): SeriesChangeType {
     debug(`AgChartV2.applySeries() - final series instances`, seriesInstances);
     chart.series = seriesInstances;
 
-    const seriesAddedRemoved = matchResult.changes.some((c) => ['add', 'remove'].includes(c.status));
+    const dataChanged = matchResult.changes.some(({ diff }) => {
+        return diff && (diff.seriesGrouping != null || diff.data != null);
+    });
     const noop = matchResult.changes.every((c) => c.status === 'no-op');
-    return seriesAddedRemoved ? 'series-count-changed' : noop ? 'no-op' : 'updated';
+    return dataChanged ? 'data-change' : noop ? 'no-op' : 'updated';
 }
 
 function applyAxes(chart: Chart, options: AgChartOptions, seriesStatus: SeriesChangeType) {
