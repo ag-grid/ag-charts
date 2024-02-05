@@ -831,10 +831,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     protected assignSeriesToAxes() {
         this.axes.forEach((axis) => {
-            // axis.boundSeries = this.syncManager.getSyncedSeries().filter((s) => {
-            //     const seriesKeys = s.getKeys(axis.direction);
-            //     return axis.keys.length ? axis.keys.some((key) => seriesKeys?.includes(key)) : true;
-            // });
             axis.boundSeries = this.series.filter((s) => {
                 const seriesAxis = s.axes[axis.direction];
                 return seriesAxis === axis;
@@ -935,17 +931,13 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.series.forEach((s) => s.setChartData(data));
     }
 
-    async processData(shouldSync = true) {
+    async processData() {
         if (this.series.some((s) => s.canHaveAxes)) {
             this.assignAxesToSeries();
             this.assignSeriesToAxes();
-            if (shouldSync) {
-                const syncModule = this.modules.get('sync') as SyncModule | undefined;
-                syncModule?.syncAxes(this._skipSync);
-                // if (!this._skipSync) {
-                //     syncModule?.syncSiblings();
-                // }
-            }
+
+            const syncModule = this.modules.get('sync') as SyncModule | undefined;
+            syncModule?.syncAxes(this._skipSync);
         }
 
         const dataController = new DataController(this.mode);
