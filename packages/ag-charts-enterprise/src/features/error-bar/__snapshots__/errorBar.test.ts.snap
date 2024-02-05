@@ -1,0 +1,39 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ErrorBars AG-10525 should render tooltips with no errorbars 1`] = `
+HTMLCollection [
+  <div
+    class="ag-chart-tooltip ag-chart-tooltip-no-interaction ag-chart-tooltip-arrow ag-chart-tooltip-wrap-hyphenate"
+    style="transform: translate(314px, 200px);"
+  >
+    <div
+      class="ag-chart-tooltip-content"
+    >
+      May: 14.50
+    </div>
+  </div>,
+]
+`;
+
+exports[`ErrorBars should render default tooltips 1`] = `
+HTMLCollection [
+  <div
+    class="ag-chart-tooltip ag-chart-tooltip-no-interaction ag-chart-tooltip-arrow ag-chart-tooltip-wrap-hyphenate"
+    style="transform: translate(413px, 380px);"
+  >
+    <div
+      class="ag-chart-tooltip-content"
+    >
+      <b>
+        volume
+      </b>
+      : 2.50
+      <br />
+      <b>
+        pressure
+      </b>
+      : 4.20
+    </div>
+  </div>,
+]
+`;
