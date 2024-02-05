@@ -2,11 +2,11 @@ import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type {
-    AgBarSeriesOptions,
     AgChartInstance,
     AgChartOptions,
     AgErrorBarFormatterParams,
     AgErrorBarOptions,
+    AgScatterSeriesOptions,
     AgScatterSeriesTooltipRendererParams,
 } from 'ag-charts-community';
 import {
@@ -131,7 +131,7 @@ const AUSTRALIA_AND_CANADA_DATA = [
     { month: 'Dec', aus: 8.5, ausLo: 7.0, ausHi: 10.0, can: 13.0, canLo: 11.5, canHi: 15.5 },
 ];
 
-const SERIES_BOYLESLAW = {
+const SERIES_BOYLESLAW: AgScatterSeriesOptions = {
     type: 'scatter',
     data: [
         { volume: 0.5, volumeLower: 0.45, volumeUpper: 0.55, pressure: 9.5, pressureLower: 10.3, pressureUpper: 8.7 },
@@ -636,6 +636,17 @@ describe('ErrorBars', () => {
         // Unhighlight Canada (Australia opacity to should be restored)
         await hoverAction(0, 0)(chart);
         await compare();
+    });
+
+    it('should render default tooltips', async () => {
+        chart = deproxy(AgCharts.create({ ...opts, series: [SERIES_BOYLESLAW] }));
+        await waitForChartStability(chart);
+
+        const { x, y } = getItemCoords(4);
+        await hoverAction(x, y)(chart);
+        await waitForChartStability(chart);
+
+        expect(document.body).toMatchSnapshot();
     });
 
     it('should provide tooltip params', async () => {

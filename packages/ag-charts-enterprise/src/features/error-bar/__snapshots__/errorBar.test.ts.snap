@@ -1,0 +1,326 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ErrorBars should render default tooltips 1`] = `
+<body
+  data-ag-charts=""
+>
+  <div
+    class="ag-chart-context-menu"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu__cover"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu__cover"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu__cover"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu__cover"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu__cover"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu__cover"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu__cover"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu__cover"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu__cover"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu__cover"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu__cover"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu__cover"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu__cover"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu__cover"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu__cover"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu__cover"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu__cover"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu__cover"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu__cover"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu__cover"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu__cover"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu__cover"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu__cover"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu__cover"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu__cover"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu__cover"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu__cover"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu__cover"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu__cover"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu__cover"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu__cover"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-tooltip ag-chart-tooltip-no-interaction ag-chart-tooltip-arrow ag-chart-tooltip-wrap-hyphenate"
+    style="transform: translate(413px, 380px);"
+  >
+    <div
+      class="ag-chart-tooltip-content"
+    >
+      <b>
+        volume
+      </b>
+      : 2.50
+      <br />
+      <b>
+        pressure
+      </b>
+      : 4.20
+    </div>
+  </div>
+  <div
+    class="ag-chart-context-menu"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-context-menu__cover"
+    style="display: none;"
+  />
+  <div
+    class="ag-chart-wrapper"
+    style="position: relative; display: inline-block; width: auto; height: auto; cursor: default;"
+  >
+    <canvas
+      height="600"
+      style="user-select: none; display: block; width: 800px; height: 600px;"
+      width="800"
+    />
+    <div
+      class="ag-crosshair-label"
+      style="transform: translate(1px, 0px);"
+    >
+      <div
+        class="ag-crosshair-label-content"
+        style="opacity: 1; background-color: undefined; color: undefined"
+      >
+        
+                    
+        <span>
+          2.5
+        </span>
+        
+                
+      </div>
+    </div>
+    <div
+      class="ag-crosshair-label"
+      style="transform: translate(1px, 0px);"
+    >
+      <div
+        class="ag-crosshair-label-content"
+        style="opacity: 1; background-color: undefined; color: undefined"
+      >
+        
+                    
+        <span>
+          4.2
+        </span>
+        
+                
+      </div>
+    </div>
+  </div>
+</body>
+`;
