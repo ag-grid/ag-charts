@@ -76,7 +76,7 @@ export interface AgPieSeriesThemeableOptions<TDatum = any>
     strokeWidth?: PixelSize;
     /** The rotation of the pie series in degrees. */
     rotation?: Degree;
-    /** The offset in pixels of the outer radius of the series. Used to construct donut charts. */
+    /** The offset in pixels of the outer radius of the series. */
     outerRadiusOffset?: PixelSize;
     /** The ratio of the outer radius of the series. Used to adjust the outer radius proportionally to the automatically calculated value. */
     outerRadiusRatio?: Ratio;

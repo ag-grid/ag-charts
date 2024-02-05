@@ -368,12 +368,9 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
         });
 
         this.zerosumOuterRing.visible = sum === 0;
-        const { innerRadiusRatio, innerRadiusOffset } = this.properties;
-        if (innerRadiusRatio == null) {
-            this.zerosumInnerRing.visible = innerRadiusOffset == null;
-        } else {
-            this.zerosumInnerRing.visible = sum === 0 && innerRadiusRatio !== 1 && innerRadiusRatio > 0;
-        }
+        const { innerRadiusRatio } = this.properties;
+        this.zerosumInnerRing.visible =
+            sum === 0 && innerRadiusRatio != null && innerRadiusRatio !== 1 && innerRadiusRatio > 0;
 
         return [{ itemId: seriesId, nodeData, labelData: nodeData }];
     }
@@ -519,8 +516,14 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
 
     getInnerRadius() {
         const { radius } = this;
-        const { innerRadiusRatio = 1, innerRadiusOffset = 0 } = this.properties;
-        const innerRadius = radius * (innerRadiusRatio ?? 0) + (innerRadiusOffset ?? 0);
+        const { innerRadiusRatio, innerRadiusOffset } = this.properties;
+        if (innerRadiusRatio == null && innerRadiusOffset == null) {
+            Logger.warnOnce(
+                'Either an [innerRadiusRatio] or an [innerRadiusOffset] must be set to render a donut series'
+            );
+            return 0;
+        }
+        const innerRadius = radius * (innerRadiusRatio ?? 1) + (innerRadiusOffset ?? 0);
         if (innerRadius === radius || innerRadius < 0) {
             return 0;
         }
@@ -528,7 +531,11 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
     }
 
     getOuterRadius() {
-        return Math.max(this.radius * this.properties.outerRadiusRatio + this.properties.outerRadiusOffset, 0);
+        const { innerRadiusRatio, innerRadiusOffset, outerRadiusRatio, outerRadiusOffset } = this.properties;
+        if (innerRadiusRatio == null && innerRadiusOffset == null) {
+            return 0;
+        }
+        return Math.max(this.radius * outerRadiusRatio + outerRadiusOffset, 0);
     }
 
     updateRadiusScale(resize: boolean) {
