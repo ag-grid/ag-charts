@@ -1,8 +1,7 @@
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, describe, expect, it } from '@jest/globals';
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type {
-    AgChartInstance,
     AgChartOptions,
     AgErrorBarFormatterParams,
     AgErrorBarOptions,
@@ -11,9 +10,9 @@ import type {
     AgScatterSeriesTooltipRendererParams,
 } from 'ag-charts-community';
 import {
+    Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
     clickAction,
-    deproxy,
     extractImageData,
     hoverAction,
     setupMockCanvas,
@@ -22,7 +21,7 @@ import {
 } from 'ag-charts-community-test';
 
 import { AgCharts } from '../../main';
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 
 export type ErrorBarFormatter = NonNullable<AgErrorBarOptions['formatter']>;
 export type ErrorBarCapFormatter = NonNullable<NonNullable<AgErrorBarOptions['cap']>['formatter']>;
@@ -157,12 +156,11 @@ const SERIES_BOYLESLAW: AgScatterSeriesOptions = {
 describe('ErrorBars', () => {
     setupMockConsole();
 
-    let chart: AgChartInstance | undefined;
+    let chart: Chart;
     const ctx = setupMockCanvas();
 
     afterEach(() => {
-        chart?.destroy();
-        chart = undefined;
+        chart.destroy();
     });
 
     const compare = async () => {
@@ -173,7 +171,7 @@ describe('ErrorBars', () => {
     };
 
     const getItemCoords = (itemIndex: number): { x: number; y: number } => {
-        const series = chart['series'][0];
+        const series = chart['series'][0] as any;
         const item = series['contextNodeData'][0].nodeData[itemIndex];
         return series.rootGroup.inverseTransformPoint(item.midPoint.x, item.midPoint.y);
     };
@@ -181,17 +179,17 @@ describe('ErrorBars', () => {
     const opts = prepareEnterpriseTestOptions({});
 
     it('should render 1 line series as expected', async () => {
-        chart = AgCharts.create({ ...opts, series: [{ ...SERIES_CANADA, type: 'line' }] });
+        chart = await createEnterpriseChart({ ...opts, series: [{ ...SERIES_CANADA, type: 'line' }] });
         await compare();
     });
 
     it('should render 1 bar series as expected', async () => {
-        chart = AgCharts.create({ ...opts, series: [{ ...SERIES_CANADA, type: 'bar' }] });
+        chart = await createEnterpriseChart({ ...opts, series: [{ ...SERIES_CANADA, type: 'bar' }] });
         await compare();
     });
 
     it('should render 2 line series as expected', async () => {
-        chart = AgCharts.create({
+        chart = await createEnterpriseChart({
             ...opts,
             series: [
                 { ...SERIES_CANADA, type: 'line' },
@@ -202,7 +200,7 @@ describe('ErrorBars', () => {
     });
 
     it('should render 2 bar series as expected', async () => {
-        chart = AgCharts.create({
+        chart = await createEnterpriseChart({
             ...opts,
             series: [
                 { ...SERIES_CANADA, type: 'bar' },
@@ -213,7 +211,7 @@ describe('ErrorBars', () => {
     });
 
     it('should render 2 bar series with alternate key names as expected', async () => {
-        chart = AgCharts.create({
+        chart = await createEnterpriseChart({
             ...opts,
             series: [
                 { ...SERIES_CANADA, type: 'bar' },
@@ -247,7 +245,7 @@ describe('ErrorBars', () => {
             ],
         };
 
-        chart = AgCharts.create(myOpts);
+        chart = await createEnterpriseChart(myOpts);
         await compare();
     });
 
@@ -277,12 +275,12 @@ describe('ErrorBars', () => {
             ],
         };
 
-        chart = AgCharts.create(myOpts);
+        chart = await createEnterpriseChart(myOpts);
         await compare();
     });
 
     it('should render horizontal bar series as expected', async () => {
-        chart = AgCharts.create({
+        chart = await createEnterpriseChart({
             ...opts,
             series: [
                 { ...SERIES_CANADA, type: 'bar', direction: 'horizontal' },
@@ -293,12 +291,12 @@ describe('ErrorBars', () => {
     });
 
     it('should render both errorbars on scatter series as expected', async () => {
-        chart = AgCharts.create({ ...opts, series: [SERIES_BOYLESLAW] });
+        chart = await createEnterpriseChart({ ...opts, series: [SERIES_BOYLESLAW] });
         await compare();
     });
 
     it('should render both errorbars on continuous line series as expected', async () => {
-        chart = AgCharts.create({
+        chart = await createEnterpriseChart({
             ...opts,
             series: [{ ...SERIES_BOYLESLAW, type: 'line' }],
             axes: [
@@ -310,7 +308,7 @@ describe('ErrorBars', () => {
     });
 
     it('should extend Y axis on line series as expected', async () => {
-        chart = AgCharts.create({
+        chart = await createEnterpriseChart({
             ...opts,
             series: [{ ...SERIES_CANADA, data: EXTENDING_BARS }],
         });
@@ -318,7 +316,7 @@ describe('ErrorBars', () => {
     });
 
     it('should extend Y axis on vertical bar series as expected', async () => {
-        chart = AgCharts.create({
+        chart = await createEnterpriseChart({
             ...opts,
             series: [{ ...SERIES_CANADA, type: 'bar', data: EXTENDING_BARS }],
         });
@@ -326,7 +324,7 @@ describe('ErrorBars', () => {
     });
 
     it('should extend X axis on horizontal bar series as expected', async () => {
-        chart = AgCharts.create({
+        chart = await createEnterpriseChart({
             ...opts,
             series: [{ ...SERIES_CANADA, type: 'bar', direction: 'horizontal', data: EXTENDING_BARS }],
         });
@@ -334,7 +332,7 @@ describe('ErrorBars', () => {
     });
 
     it('should apply stroke styling to whiskers and cap as expected', async () => {
-        chart = AgCharts.create({
+        chart = await createEnterpriseChart({
             ...opts,
             series: [
                 {
@@ -354,7 +352,7 @@ describe('ErrorBars', () => {
     });
 
     it('should apply line dash styling to whiskers and cap as expected', async () => {
-        chart = AgCharts.create({
+        chart = await createEnterpriseChart({
             ...opts,
             series: [
                 {
@@ -373,7 +371,7 @@ describe('ErrorBars', () => {
     });
 
     it('should override cap styling as expected', async () => {
-        chart = AgCharts.create({
+        chart = await createEnterpriseChart({
             ...opts,
             series: [
                 {
@@ -400,7 +398,7 @@ describe('ErrorBars', () => {
     });
 
     it('should default to marker size for cap length on line series', async () => {
-        chart = AgCharts.create({
+        chart = await createEnterpriseChart({
             ...opts,
             series: [
                 {
@@ -415,7 +413,7 @@ describe('ErrorBars', () => {
     });
 
     it('should default to marker size for cap length on scatter series', async () => {
-        chart = AgCharts.create({
+        chart = await createEnterpriseChart({
             ...opts,
             series: [
                 {
@@ -429,7 +427,7 @@ describe('ErrorBars', () => {
     });
 
     it('should default to half lengthRatio for cap length on bar series', async () => {
-        chart = AgCharts.create({
+        chart = await createEnterpriseChart({
             ...opts,
             series: [
                 {
@@ -444,7 +442,7 @@ describe('ErrorBars', () => {
     });
 
     it('should use marker size for lengthRatio on line series', async () => {
-        chart = AgCharts.create({
+        chart = await createEnterpriseChart({
             ...opts,
             series: [
                 {
@@ -460,7 +458,7 @@ describe('ErrorBars', () => {
     });
 
     it('should use marker size for lengthRatio on scatter series', async () => {
-        chart = AgCharts.create({
+        chart = await createEnterpriseChart({
             ...opts,
             series: [
                 {
@@ -474,7 +472,7 @@ describe('ErrorBars', () => {
     });
 
     it('should use bar width for lengthRatio on vertical bar series', async () => {
-        chart = AgCharts.create({
+        chart = await createEnterpriseChart({
             ...opts,
             series: [
                 {
@@ -490,7 +488,7 @@ describe('ErrorBars', () => {
     });
 
     it('should use bar height for lengthRatio on horizontal bar series', async () => {
-        chart = AgCharts.create({
+        chart = await createEnterpriseChart({
             ...opts,
             series: [
                 {
@@ -506,7 +504,7 @@ describe('ErrorBars', () => {
     });
 
     it('should use absolute cap.length on line series', async () => {
-        chart = AgCharts.create({
+        chart = await createEnterpriseChart({
             ...opts,
             series: [
                 {
@@ -519,7 +517,7 @@ describe('ErrorBars', () => {
     });
 
     it('should use absolute cap.length on bar series', async () => {
-        chart = AgCharts.create({
+        chart = await createEnterpriseChart({
             ...opts,
             series: [
                 {
@@ -533,7 +531,7 @@ describe('ErrorBars', () => {
     });
 
     it('should use absolute cap.length on scatter series', async () => {
-        chart = AgCharts.create({
+        chart = await createEnterpriseChart({
             ...opts,
             series: [
                 {
@@ -546,7 +544,7 @@ describe('ErrorBars', () => {
     });
 
     it('should limit cap.length to bar width', async () => {
-        chart = AgCharts.create({
+        chart = await createEnterpriseChart({
             ...opts,
             series: [
                 {
@@ -560,7 +558,7 @@ describe('ErrorBars', () => {
     });
 
     it('should favour cap length over cap ratio', async () => {
-        chart = AgCharts.create({
+        chart = await createEnterpriseChart({
             ...opts,
             series: [
                 {
@@ -581,7 +579,7 @@ describe('ErrorBars', () => {
     });
 
     it('should use marker strokeWidth for cap lengthRatio', async () => {
-        chart = AgCharts.create({
+        chart = await createEnterpriseChart({
             ...opts,
             series: [
                 {
@@ -597,20 +595,17 @@ describe('ErrorBars', () => {
     });
 
     it('should render caps over highlight', async () => {
-        chart = deproxy(
-            AgCharts.create({
-                ...opts,
-                series: [
-                    {
-                        ...SERIES_CANADA,
-                        type: 'bar',
-                        data: FEWER_MONTHS,
-                        errorBar: { ...SERIES_CANADA.errorBar, strokeWidth: 10, cap: { lengthRatio: 1 } },
-                    },
-                ],
-            })
-        );
-        await waitForChartStability(chart);
+        chart = await createEnterpriseChart({
+            ...opts,
+            series: [
+                {
+                    ...SERIES_CANADA,
+                    type: 'bar',
+                    data: FEWER_MONTHS,
+                    errorBar: { ...SERIES_CANADA.errorBar, strokeWidth: 10, cap: { lengthRatio: 1 } },
+                },
+            ],
+        });
 
         const { x, y } = getItemCoords(2);
         await hoverAction(x, y)(chart);
@@ -618,16 +613,10 @@ describe('ErrorBars', () => {
     });
 
     it('should dim opacity on highlight', async () => {
-        chart = deproxy(
-            AgCharts.create({
-                ...opts,
-                series: [
-                    { ...SERIES_CANADA },
-                    { ...SERIES_AUSTRALIA, highlightStyle: { series: { dimOpacity: 0.3 } } },
-                ],
-            })
-        );
-        await waitForChartStability(chart);
+        chart = await createEnterpriseChart({
+            ...opts,
+            series: [{ ...SERIES_CANADA }, { ...SERIES_AUSTRALIA, highlightStyle: { series: { dimOpacity: 0.3 } } }],
+        });
 
         // Highlight Canada (Australia should be dimmed)
         const { x, y } = getItemCoords(2);
@@ -640,8 +629,7 @@ describe('ErrorBars', () => {
     });
 
     it('should render default tooltips', async () => {
-        chart = deproxy(AgCharts.create({ ...opts, series: [SERIES_BOYLESLAW] }));
-        await waitForChartStability(chart);
+        chart = await createEnterpriseChart({ ...opts, series: [SERIES_BOYLESLAW] });
 
         const { x, y } = getItemCoords(4);
         await hoverAction(x, y)(chart);
@@ -652,9 +640,7 @@ describe('ErrorBars', () => {
 
     it('AG-10525 should render tooltips with no errorbars', async () => {
         const { data, xKey, yKey } = SERIES_AUSTRALIA;
-        const series: AgLineSeriesOptions[] = [{ type: 'line', xKey, yKey }];
-        chart = deproxy(AgCharts.create({ ...opts, data, series }));
-        await waitForChartStability(chart);
+        chart = await createEnterpriseChart({ ...opts, data, series: [{ type: 'line', xKey, yKey }] });
 
         const { x, y } = getItemCoords(4);
         await hoverAction(x, y)(chart);
@@ -680,13 +666,10 @@ describe('ErrorBars', () => {
             return { content: '' };
         }
 
-        chart = deproxy(
-            AgCharts.create({
-                ...opts,
-                series: [{ ...SERIES_BOYLESLAW, errorBar: { ...expectedParams }, tooltip: { renderer } }],
-            })
-        );
-        await waitForChartStability(chart);
+        chart = await createEnterpriseChart({
+            ...opts,
+            series: [{ ...SERIES_BOYLESLAW, errorBar: { ...expectedParams }, tooltip: { renderer } }],
+        });
 
         const { x, y } = getItemCoords(4);
         await hoverAction(x, y)(chart);
@@ -715,13 +698,10 @@ describe('ErrorBars', () => {
             return { content: '' };
         }
 
-        chart = deproxy(
-            AgCharts.create({
-                ...opts,
-                series: [{ ...SERIES_BOYLESLAW, errorBar: { ...expectedParams }, tooltip: { renderer } }],
-            })
-        );
-        await waitForChartStability(chart);
+        chart = await createEnterpriseChart({
+            ...opts,
+            series: [{ ...SERIES_BOYLESLAW, errorBar: { ...expectedParams }, tooltip: { renderer } }],
+        });
 
         const { x, y } = getItemCoords(4);
         await hoverAction(x, y)(chart);
@@ -734,16 +714,13 @@ describe('ErrorBars', () => {
     });
 
     it('should toggle visibility as expected', async () => {
-        chart = deproxy(
-            AgCharts.create({
-                ...opts,
-                series: [
-                    { ...SERIES_CANADA, type: 'line' },
-                    { ...SERIES_AUSTRALIA, type: 'line' },
-                ],
-            })
-        );
-        await waitForChartStability(chart);
+        chart = await createEnterpriseChart({
+            ...opts,
+            series: [
+                { ...SERIES_CANADA, type: 'line' },
+                { ...SERIES_AUSTRALIA, type: 'line' },
+            ],
+        });
 
         const { x = 0, y = 0, width = 0 } = chart.legend?.computeBBox() ?? {};
 
@@ -801,7 +778,7 @@ describe('ErrorBars', () => {
                     return { lengthRatio: 0.5 };
             }
         };
-        chart = AgCharts.create({
+        chart = await createEnterpriseChart({
             ...opts,
             series: [
                 {
@@ -822,32 +799,29 @@ describe('ErrorBars', () => {
     it('should set formatter highlighted param as expected', async () => {
         const whiskerResult: boolean[] = [];
         const capResult: boolean[] = [];
-        chart = deproxy(
-            AgCharts.create({
-                ...opts,
-                series: [
-                    {
-                        ...SERIES_CANADA,
-                        errorBar: {
-                            ...SERIES_CANADA.errorBar,
+        chart = await createEnterpriseChart({
+            ...opts,
+            series: [
+                {
+                    ...SERIES_CANADA,
+                    errorBar: {
+                        ...SERIES_CANADA.errorBar,
+                        formatter: (param: AgErrorBarFormatterParams) => {
+                            whiskerResult.push(param.highlighted);
+                            return {};
+                        },
+                        cap: {
                             formatter: (param: AgErrorBarFormatterParams) => {
-                                whiskerResult.push(param.highlighted);
+                                capResult.push(param.highlighted);
                                 return {};
-                            },
-                            cap: {
-                                formatter: (param: AgErrorBarFormatterParams) => {
-                                    capResult.push(param.highlighted);
-                                    return {};
-                                },
                             },
                         },
                     },
-                ],
-            })
-        );
+                },
+            ],
+        });
 
         // Check formatter initialisation
-        await waitForChartStability(chart);
         const allfalse = [false, false, false, false, false, false, false, false, false, false, false, false];
         expect(whiskerResult).toStrictEqual(allfalse);
         expect(capResult).toStrictEqual(allfalse);
@@ -874,14 +848,12 @@ describe('ErrorBars', () => {
         const getCursor = () => {
             return chart.getModuleContext().cursorManager.getCursor();
         };
-        chart = deproxy(
-            AgCharts.create({
-                ...opts,
-                tooltip: { range: 2 },
-                series: [{ ...SERIES_BOYLESLAW, cursor: 'grab' }],
-            })
-        );
-        await waitForChartStability(chart);
+        chart = await createEnterpriseChart({
+            ...opts,
+            tooltip: { range: 2 },
+            series: [{ ...SERIES_BOYLESLAW, cursor: 'grab' }],
+        });
+
         const { x, y } = getItemCoords(4);
 
         // Hover over an error bar

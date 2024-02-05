@@ -19,6 +19,9 @@ import type {
 import type { Chart } from '../chart';
 import type { AgChartProxy } from '../chartProxy';
 
+export type { Chart } from '../chart';
+export type { AgChartProxy } from '../chartProxy';
+
 const { Animation, AnimationManager, resetIds } = _ModuleSupport;
 
 export interface TestCase {
