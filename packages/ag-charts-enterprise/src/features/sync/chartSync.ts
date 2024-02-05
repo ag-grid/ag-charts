@@ -60,6 +60,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         const syncSeries = syncManager.getGroup(this.groupId).flatMap((chart) => chart.series);
 
         for (const axis of chart.axes) {
+            if (this.axes !== 'xy' && this.axes !== axis.direction) continue;
             axis.boundSeries = syncSeries.filter((series) => {
                 const seriesKeys = series.getKeys(axis.direction);
                 return axis.keys.length ? axis.keys.some((key) => seriesKeys?.includes(key)) : true;
@@ -89,6 +90,9 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
     // }
 
     destroy() {
+        const { syncManager } = this.moduleContext;
+        syncManager.unsubscribe(this.groupId);
+        this.syncSiblings(this.groupId);
         this.disableZoomSync?.();
     }
 }
