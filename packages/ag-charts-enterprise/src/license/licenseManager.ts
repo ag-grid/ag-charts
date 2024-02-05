@@ -19,8 +19,9 @@ const LICENSE_TYPES = {
 };
 
 export class LicenseManager {
-    private static RELEASE_INFORMATION: string = 'MTcwMDc2MzcxODkzNg==';
+    private static RELEASE_INFORMATION: string = 'MTcwNTIyNzE3MTAzNg==';
     private licenseKey?: string;
+    private gridContext: boolean = false;
     private watermarkMessage: string | undefined = undefined;
 
     private md5: MD5;
@@ -34,7 +35,7 @@ export class LicenseManager {
     }
 
     public validateLicense(): void {
-        const licenseDetails = this.getLicenseDetails(this.licenseKey!);
+        const licenseDetails = this.getLicenseDetails(this.licenseKey!, this.gridContext);
         if (licenseDetails.missing) {
             if (!this.isWebsiteUrl() || this.isForceWatermark()) {
                 this.outputMissingLicenseKey();
@@ -47,6 +48,8 @@ export class LicenseManager {
             const chartsReleaseDate = LicenseManager.getchartsReleaseDate();
             const formattedReleaseDate = LicenseManager.formatDate(chartsReleaseDate);
             this.outputIncompatibleVersion(licenseDetails.expiry, formattedReleaseDate);
+        } else if (licenseDetails.invalidLicenseTypeForCombo) {
+            this.watermarkMessage = 'Invalid License';
         }
     }
 
@@ -74,7 +77,8 @@ export class LicenseManager {
         return { md5, license, version, isTrial, type };
     }
 
-    public getLicenseDetails(licenseKey: string) {
+    // gridContext supplied here for testing purposes
+    public getLicenseDetails(licenseKey: string, gridContext = false) {
         if (missingOrEmpty(licenseKey)) {
             return {
                 licenseKey,
@@ -115,6 +119,7 @@ export class LicenseManager {
                         if (missingOrEmpty(type)) {
                             valid = false;
                         } else {
+                            licenseType = type;
                             if (type !== LICENSE_TYPES['02'] && type !== LICENSE_TYPES['0102']) {
                                 valid = false;
                                 incorrectLicenseType = true;
@@ -145,6 +150,7 @@ export class LicenseManager {
             version,
             isTrial,
             trialExpired,
+            invalidLicenseTypeForCombo: gridContext ? licenseType !== 'BOTH' : undefined,
         };
     }
 
@@ -269,7 +275,8 @@ export class LicenseManager {
         return t;
     }
 
-    public setLicenseKey(licenseKey?: string): void {
+    public setLicenseKey(licenseKey?: string, gridContext = false): void {
+        this.gridContext = gridContext;
         this.licenseKey = licenseKey;
     }
 
