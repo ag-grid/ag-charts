@@ -364,7 +364,9 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
 
         let [deltaX, deltaY] = [NaN, NaN];
         if (this.isWheelEvent(event)) {
-            const factor = event.deltaMode === 0 ? 0.1 : 1;
+            // AG-10475 On Chrome (Windows), wheel clicks send deltaMode: 0 events with deltaY: -100 or +100.
+            // So we divide this by 100 to give us the desired step.
+            const factor = event.deltaMode === 0 ? 0.01 : 1;
             deltaX = event.deltaX * factor;
             deltaY = event.deltaY * factor;
         }
