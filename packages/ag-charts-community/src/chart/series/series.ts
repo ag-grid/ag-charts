@@ -22,6 +22,7 @@ import { Observable } from '../../util/observable';
 import { ActionOnSet } from '../../util/proxy';
 import { isFiniteNumber } from '../../util/type-guards';
 import { checkDatum } from '../../util/value';
+import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import type { ChartAxis } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { ChartMode } from '../chartMode';
@@ -480,9 +481,12 @@ export abstract class Series<
 
     destroy(): void {
         this.destroyFns.forEach((f) => f());
+        this.destroyFns = [];
         this.ctx.seriesStateManager.deregisterSeries(this);
         this.ctx.seriesLayerManager.releaseGroup(this);
     }
+
+    abstract resetAnimation(chartAnimationPhase: ChartAnimationPhase): void;
 
     private getDirectionValues(
         direction: ChartAxisDirection,

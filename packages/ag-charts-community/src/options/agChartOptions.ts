@@ -41,6 +41,7 @@ export * from './series/polar/polarOptions';
 export * from './series/polar/radarOptions';
 export * from './series/polar/radarLineOptions';
 export * from './series/polar/radarAreaOptions';
+export * from './series/polar/radialBarOptions';
 export * from './series/polar/radialColumnOptions';
 export * from './series/polar/radialOptions';
 

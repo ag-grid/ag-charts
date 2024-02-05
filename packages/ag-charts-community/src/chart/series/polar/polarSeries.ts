@@ -8,13 +8,22 @@ import type { Node } from '../../../scene/node';
 import { Selection } from '../../../scene/selection';
 import { Text } from '../../../scene/shape/text';
 import type { PointLabelDatum } from '../../../util/labelPlacement';
+import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { DataModelSeries } from '../dataModelSeries';
 import { SeriesNodePickMode } from '../series';
 import type { SeriesNodeDatum } from '../seriesTypes';
 
 export type PolarAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
-export type PolarAnimationEvent = 'update' | 'updateData' | 'highlight' | 'highlightMarkers' | 'resize' | 'clear';
+export type PolarAnimationEvent =
+    | 'update'
+    | 'updateData'
+    | 'highlight'
+    | 'highlightMarkers'
+    | 'resize'
+    | 'clear'
+    | 'reset'
+    | 'skip';
 export type PolarAnimationData = { duration?: number };
 
 export abstract class PolarSeries<TDatum extends SeriesNodeDatum, TNode extends Node> extends DataModelSeries<TDatum> {
@@ -96,6 +105,8 @@ export abstract class PolarSeries<TDatum extends SeriesNodeDatum, TNode extends 
                         target: 'ready',
                         action: (data) => this.animateEmptyUpdateReady(data),
                     },
+                    reset: 'empty',
+                    skip: 'ready',
                 },
                 ready: {
                     updateData: 'waiting',
@@ -103,22 +114,36 @@ export abstract class PolarSeries<TDatum extends SeriesNodeDatum, TNode extends 
                     highlight: (data) => this.animateReadyHighlight(data),
                     highlightMarkers: (data) => this.animateReadyHighlightMarkers(data),
                     resize: (data) => this.animateReadyResize(data),
+                    reset: 'empty',
+                    skip: 'ready',
                 },
                 waiting: {
                     update: {
                         target: 'ready',
                         action: (data) => this.animateWaitingUpdateReady(data),
                     },
+                    reset: 'empty',
+                    skip: 'ready',
                 },
                 clearing: {
                     update: {
                         target: 'empty',
                         action: (data) => this.animateClearingUpdateEmpty(data),
                     },
+                    reset: 'empty',
+                    skip: 'ready',
                 },
             },
             () => this.checkProcessedDataAnimatable()
         );
+    }
+
+    override resetAnimation(phase: ChartAnimationPhase): void {
+        if (phase === 'initial') {
+            this.animationState.transition('reset');
+        } else if (phase === 'ready') {
+            this.animationState.transition('skip');
+        }
     }
 
     protected abstract nodeFactory(): TNode;

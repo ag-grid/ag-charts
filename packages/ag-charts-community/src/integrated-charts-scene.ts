@@ -15,6 +15,7 @@ export { LinearGradientFill } from './scene/shape/linearGradientFill';
 export { Path, ScenePathChangeDetection } from './scene/shape/path';
 export { Rect } from './scene/shape/rect';
 export { Sector } from './scene/shape/sector';
+export { RadialColumnShape, getRadialColumnWidth } from './scene/shape/radialColumnShape';
 export { Shape } from './scene/shape/shape';
 export type { ShapeLineCap } from './scene/shape/shape';
 export { Text, getFont } from './scene/shape/text';

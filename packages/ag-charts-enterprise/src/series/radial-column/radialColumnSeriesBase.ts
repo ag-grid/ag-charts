@@ -3,7 +3,6 @@ import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import { AngleCategoryAxis } from '../../axes/angle-category/angleCategoryAxis';
 import type { RadialColumnSeriesBaseProperties } from './radialColumnSeriesBaseProperties';
-import type { RadialColumnShape } from './radialColumnShape';
 
 const {
     isDefined,
@@ -65,7 +64,7 @@ export interface RadialColumnNodeDatum extends _ModuleSupport.SeriesNodeDatum {
 }
 
 export abstract class RadialColumnSeriesBase<
-    ItemPathType extends _Scene.Sector | RadialColumnShape,
+    ItemPathType extends _Scene.Sector | _Scene.RadialColumnShape,
 > extends _ModuleSupport.PolarSeries<RadialColumnNodeDatum, ItemPathType> {
     protected override readonly NodeClickEvent = RadialColumnSeriesNodeClickEvent;
 

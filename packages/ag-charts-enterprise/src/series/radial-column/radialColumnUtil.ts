@@ -1,7 +1,5 @@
 import { _Scene } from 'ag-charts-community';
 
-import type { RadialColumnShape } from './radialColumnShape';
-
 const { motion } = _Scene;
 
 export type AnimatableRadialColumnDatum = {
@@ -73,7 +71,11 @@ export function fixRadialColumnAnimationStatus(
 export function prepareRadialColumnAnimationFunctions(axisZeroRadius: number) {
     const angles = createAngleMotionCalculator();
 
-    const fromFn = (node: RadialColumnShape, datum: AnimatableRadialColumnDatum, status: _Scene.NodeUpdateState) => {
+    const fromFn = (
+        node: _Scene.RadialColumnShape,
+        datum: AnimatableRadialColumnDatum,
+        status: _Scene.NodeUpdateState
+    ) => {
         status = fixRadialColumnAnimationStatus(node, datum, status);
 
         angles.calculate(node, datum, status);
@@ -111,7 +113,11 @@ export function prepareRadialColumnAnimationFunctions(axisZeroRadius: number) {
         };
     };
 
-    const toFn = (node: RadialColumnShape, datum: AnimatableRadialColumnDatum, status: _Scene.NodeUpdateState) => {
+    const toFn = (
+        node: _Scene.RadialColumnShape,
+        datum: AnimatableRadialColumnDatum,
+        status: _Scene.NodeUpdateState
+    ) => {
         const { startAngle, endAngle } = angles.to(datum);
 
         let innerRadius: number;
@@ -140,7 +146,7 @@ export function prepareRadialColumnAnimationFunctions(axisZeroRadius: number) {
 }
 
 export function resetRadialColumnSelectionFn(
-    _node: RadialColumnShape,
+    _node: _Scene.RadialColumnShape,
     {
         innerRadius,
         outerRadius,

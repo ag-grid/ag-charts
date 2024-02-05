@@ -22,7 +22,7 @@ const SCATTER_EXAMPLE: AgCartesianChartOptions = loadExampleOptions('simple-scat
 const GROUPED_LINE_EXAMPLE: AgCartesianChartOptions = loadExampleOptions('time-axis-with-irregular-intervals');
 const BUBBLE_EXAMPLE: AgCartesianChartOptions = loadExampleOptions('bubble-with-negative-values');
 const PIE_EXAMPLE: AgPolarChartOptions = loadExampleOptions('simple-pie');
-const DONUT_EXAMPLE: AgPolarChartOptions = loadExampleOptions('simple-doughnut');
+const DONUT_EXAMPLE: AgPolarChartOptions = loadExampleOptions('simple-donut');
 
 const columnSeriesLabelFormatter: ({ value }: { value: any }) => string = ({ value }) =>
     value == null ? '' : value.toFixed(0);

@@ -103,11 +103,11 @@ export class Path extends Shape {
         if (!isNaN(this._clipX) && !isNaN(this._clipY) && this.clipMode != null) {
             ctx.save();
 
-            // AG-10477 avoid clipping thick lines that run in parellel near the top & bottom edges of the clip rect
-            const yOff = this.strokeWidth;
+            // AG-10477 avoid clipping thick lines that touch the top, bottom and left edges of the clip rect
+            const margin = this.strokeWidth / 2;
             this._clipPath ??= new Path2D();
             this._clipPath.clear();
-            this._clipPath.rect(0, -yOff, this._clipX, this._clipY + yOff + yOff);
+            this._clipPath.rect(-margin, -margin, this._clipX + margin, this._clipY + margin + margin);
 
             if (this.clipMode === 'normal') {
                 // Bound the shape rendered to the clipping path.

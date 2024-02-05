@@ -298,14 +298,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         // Allow panning if either selection is disabled or the panning key is pressed.
         const sourceEvent: Partial<WheelEvent> = event.sourceEvent;
-        const { deltaX, deltaY, deltaMode } = sourceEvent;
-        if (
-            this.enablePanning &&
-            deltaX !== undefined &&
-            deltaY !== undefined &&
-            deltaMode !== undefined &&
-            Math.abs(deltaX) > Math.abs(deltaY)
-        ) {
+        const { deltaX, deltaY } = sourceEvent;
+        if (this.enablePanning && deltaX !== undefined && deltaY !== undefined && Math.abs(deltaX) > Math.abs(deltaY)) {
             event.consume();
             event.sourceEvent.preventDefault();
 

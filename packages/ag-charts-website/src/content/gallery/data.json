@@ -5,7 +5,7 @@
         { "seriesExampleName": "stacked-area" },
         { "seriesExampleName": "simple-scatter" },
         { "seriesExampleName": "simple-pie" },
-        { "seriesExampleName": "simple-doughnut" },
+        { "seriesExampleName": "simple-donut" },
         { "seriesExampleName": "simple-histogram" },
         { "seriesExampleName": "simple-heatmap" },
         { "seriesExampleName": "simple-range-bar" },
@@ -238,34 +238,34 @@
                         "name": "pie-with-variable-radius"
                     },
                     {
-                        "title": "Pie In A Doughnut",
+                        "title": "Pie In A Donut",
                         "description": "",
-                        "name": "pie-in-a-doughnut"
+                        "name": "pie-in-a-donut"
                     }
                 ]
             }
         ],
         [
             {
-                "title": "Doughnut",
-                "seriesName": "doughnut",
-                "icon": "chartsDoughnut",
+                "title": "Donut",
+                "seriesName": "donut",
+                "icon": "chartsDonut",
                 "enterprise": false,
                 "examples": [
                     {
-                        "title": "Simple Doughnut",
+                        "title": "Simple Donut",
                         "description": "",
-                        "name": "simple-doughnut"
+                        "name": "simple-donut"
                     },
                     {
-                        "title": "Doughnut With Variable Radius",
+                        "title": "Donut With Variable Radius",
                         "description": "",
-                        "name": "doughnut-with-variable-radius"
+                        "name": "donut-with-variable-radius"
                     },
                     {
-                        "title": "Multiple Doughnuts",
+                        "title": "Multiple Donuts",
                         "description": "",
-                        "name": "multiple-doughnuts"
+                        "name": "multiple-donuts"
                     }
                 ]
             }

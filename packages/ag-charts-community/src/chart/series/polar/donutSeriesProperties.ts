@@ -153,17 +153,17 @@ export class DonutSeriesProperties extends SeriesProperties<AgDonutSeriesOptions
     @Validate(RATIO)
     outerRadiusRatio: number = 1;
 
-    @Validate(NUMBER)
-    innerRadiusOffset: number = 0;
+    @Validate(NUMBER, { optional: true })
+    innerRadiusOffset?: number;
 
-    @Validate(RATIO)
-    innerRadiusRatio: number = 1;
+    @Validate(RATIO, { optional: true })
+    innerRadiusRatio?: number;
 
     @Validate(POSITIVE_NUMBER)
     strokeWidth: number = 1;
 
-    @Validate(POSITIVE_NUMBER)
-    sectorSpacing: number = 0;
+    @Validate(POSITIVE_NUMBER, { optional: true })
+    sectorSpacing?: number = undefined;
 
     @Validate(OBJECT_ARRAY)
     readonly innerLabels = new PropertiesArray(DonutInnerLabel);

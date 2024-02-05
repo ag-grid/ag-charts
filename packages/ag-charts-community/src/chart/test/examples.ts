@@ -39,14 +39,14 @@ export const DOCS_EXAMPLES = {
     'line-with-gaps': loadExampleOptions('line-with-gaps'),
     'log-axis': loadExampleOptions('log-axis'),
     'per-marker-customisation': loadExampleOptions('per-marker-customisation'),
-    'pie-in-a-doughnut': loadExampleOptions('pie-in-a-doughnut'),
+    'pie-in-a-donut': loadExampleOptions('pie-in-a-donut'),
     'pie-with-variable-radius': loadExampleOptions('pie-with-variable-radius'),
     'real-time-data-updates': loadExampleOptions('real-time-data-updates'),
     'simple-area': loadExampleOptions('simple-area'),
     'simple-bar': loadExampleOptions('simple-bar'),
     'simple-bubble': loadExampleOptions('simple-bubble'),
     'simple-column': loadExampleOptions('simple-column'),
-    'simple-doughnut': loadExampleOptions('simple-doughnut'),
+    'simple-donut': loadExampleOptions('simple-donut'),
     'simple-histogram': loadExampleOptions('simple-histogram'),
     'simple-line': loadExampleOptions('simple-line'),
     'simple-pie': loadExampleOptions('simple-pie'),
@@ -73,8 +73,8 @@ export const ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE: AgCartesianChartOption
 export const COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE: AgCartesianChartOptions =
     DOCS_EXAMPLES['column-with-negative-values'];
 export const SIMPLE_PIE_CHART_EXAMPLE: AgPolarChartOptions = DOCS_EXAMPLES['simple-pie'];
-export const SIMPLE_DONUT_CHART_EXAMPLE: AgPolarChartOptions = DOCS_EXAMPLES['simple-doughnut'];
-export const PIE_IN_A_DONUT: AgPolarChartOptions = DOCS_EXAMPLES['pie-in-a-doughnut'];
+export const SIMPLE_DONUT_CHART_EXAMPLE: AgPolarChartOptions = DOCS_EXAMPLES['simple-donut'];
+export const PIE_IN_A_DONUT: AgPolarChartOptions = DOCS_EXAMPLES['pie-in-a-donut'];
 export const PIE_WITH_VARIABLE_RADIUS: AgPolarChartOptions = DOCS_EXAMPLES['pie-with-variable-radius'];
 export const SIMPLE_LINE_CHART_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['simple-line'];
 export const LINE_GRAPH_WITH_GAPS_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['line-with-gaps'];

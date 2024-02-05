@@ -8,6 +8,7 @@ import type { Group } from '../../../scene/group';
 import type { Node } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
 import type { PointLabelDatum } from '../../../util/labelPlacement';
+import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import type { HighlightNodeDatum } from '../../interaction/highlightManager';
 import type { ChartLegendType, GradientLegendDatum } from '../../legendDatum';
 import { Series, SeriesNodePickMode } from '../series';
@@ -19,7 +20,7 @@ type Mutable<T> = {
 };
 
 type HierarchyAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
-type HierarchyAnimationEvent = 'update' | 'updateData' | 'highlight' | 'resize' | 'clear';
+type HierarchyAnimationEvent = 'update' | 'updateData' | 'highlight' | 'resize' | 'clear' | 'reset' | 'skip';
 
 export interface HierarchyAnimationData<TNode extends Node, TDatum> {
     datumSelections: Selection<TNode, HierarchyNode<TDatum>>[];
@@ -131,28 +132,44 @@ export abstract class HierarchySeries<
                         target: 'ready',
                         action: (data) => this.animateEmptyUpdateReady(data),
                     },
+                    reset: 'empty',
+                    skip: 'ready',
                 },
                 ready: {
                     updateData: 'waiting',
                     clear: 'clearing',
                     highlight: (data) => this.animateReadyHighlight(data),
                     resize: (data) => this.animateReadyResize(data),
+                    reset: 'empty',
+                    skip: 'ready',
                 },
                 waiting: {
                     update: {
                         target: 'ready',
                         action: (data) => this.animateWaitingUpdateReady(data),
                     },
+                    reset: 'empty',
+                    skip: 'ready',
                 },
                 clearing: {
                     update: {
                         target: 'empty',
                         action: (data) => this.animateClearingUpdateEmpty(data),
                     },
+                    reset: 'empty',
+                    skip: 'ready',
                 },
             },
             () => this.checkProcessedDataAnimatable()
         );
+    }
+
+    override resetAnimation(phase: ChartAnimationPhase): void {
+        if (phase === 'initial') {
+            this.animationState.transition('reset');
+        } else if (phase === 'ready') {
+            this.animationState.transition('skip');
+        }
     }
 
     override hasData() {

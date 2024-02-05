@@ -26,6 +26,8 @@ export type AgChartOptions = AgCartesianChartOptions | AgPolarChartOptions | AgH
 export interface AgChartInstance {
     /** Get the `AgChartOptions` representing the current chart configuration. */
     getOptions(): AgChartOptions;
+    /** Reset animation state; treat the next AgChart.update() as-if the chart is being created from scratch. */
+    resetAnimations(): void;
     /** Destroy the chart instance and any allocated resources to support its rendering. */
     destroy(): void;
 }

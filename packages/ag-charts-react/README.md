@@ -29,7 +29,7 @@ Here are some of the features that make AG Charts stand out:
     -   Scatter
     -   Bubble
     -   Pie
-    -   Doughnut
+    -   Donut
     -   Histogram
     -   Box Plot \*
     -   Heatmap \*

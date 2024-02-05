@@ -33,6 +33,7 @@ import { isFiniteNumber } from '../util/type-guards';
 import type { PickRequired } from '../util/types';
 import { BOOLEAN, OBJECT, UNION, Validate } from '../util/validation';
 import type { Caption } from './caption';
+import type { ChartAnimationPhase } from './chartAnimationPhase';
 import type { ChartAxis } from './chartAxis';
 import { ChartHighlight } from './chartHighlight';
 import type { ChartMode } from './chartMode';
@@ -253,6 +254,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
         return this._destroyed;
     }
 
+    chartAnimationPhase: ChartAnimationPhase = 'initial';
+
     public readonly modules: Map<string, ModuleInstance> = new Map();
 
     public readonly syncManager = new SyncManager(this);
@@ -447,6 +450,18 @@ export abstract class Chart extends Observable implements AgChartInstance {
         };
     }
 
+    resetAnimations() {
+        this.chartAnimationPhase = 'initial';
+
+        for (const series of this.series) {
+            series.resetAnimation(this.chartAnimationPhase);
+        }
+
+        // Reset animation state.
+        this.animationRect = undefined;
+        this.animationManager?.reset();
+    }
+
     destroy(opts?: { keepTransferableResources: boolean }): TransferableResources | undefined {
         if (this._destroyed) {
             return;
@@ -485,7 +500,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.container = undefined;
         }
 
-        this.destroySeries();
+        this.destroySeries(this.series);
         this.seriesLayerManager.destroy();
 
         this.axes.forEach((a) => a.destroy());
@@ -608,6 +623,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         if (this.updateShortcutCount === 0 && performUpdateType < ChartUpdateType.SCENE_RENDER) {
             this.animationManager.startBatch(this._performUpdateSkipAnimations);
+            this.animationManager.onBatchStop(() => (this.chartAnimationPhase = 'ready'));
         }
 
         this.debug('Chart.performUpdate() - start', ChartUpdateType[performUpdateType]);
@@ -754,7 +770,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
     series: Series<any>[] = [];
 
     private onSeriesChange(newValue: Series<any>[], oldValue?: Series<any>[]) {
-        this.destroySeries(oldValue?.filter((series) => !newValue.includes(series)));
+        const seriesToDestroy = oldValue?.filter((series) => !newValue.includes(series)) ?? [];
+        this.destroySeries(seriesToDestroy);
         this.seriesLayerManager?.setSeriesCount(newValue.length);
 
         for (const series of newValue) {
@@ -777,16 +794,13 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 },
             };
 
+            series.resetAnimation(this.chartAnimationPhase);
             this.addSeriesListeners(series);
             series.addChartEventListeners();
         }
-
-        // Reset animation state.
-        this.animationRect = undefined;
-        this.animationManager?.reset();
     }
 
-    protected destroySeries(series = this.series): void {
+    protected destroySeries(series: Series<any>[]): void {
         series?.forEach((series) => {
             series.removeEventListener('nodeClick', this.onSeriesNodeClick);
             series.removeEventListener('nodeDoubleClick', this.onSeriesNodeDoubleClick);
@@ -917,7 +931,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     async updateData() {
-        const data = await this.dataService.fetchFull(this.data);
+        const data = this.dataService.init(this.data);
         this.series.forEach((s) => s.setChartData(data));
     }
 
@@ -1043,6 +1057,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     // Should be available after the first layout.
     protected seriesRect?: BBox;
+    // BBox of the chart area containing animatable elements; if this changes, we skip animations.
     protected animationRect?: BBox;
 
     // x/y are local canvas coordinates in CSS pixels, not actual pixels
