@@ -133,13 +133,13 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.zoomManager = ctx.zoomManager;
         this.updateService = ctx.updateService;
 
-        const dragState = InteractionState.Default & InteractionState.ZoomDrag;
+        const { Default, ZoomDrag, Animation } = _ModuleSupport.InteractionState;
         this.destroyFns.push(
-            ctx.interactionManager.addListener('dblclick', (event) => this.onDoubleClick(event)),
-            ctx.interactionManager.addListener('drag', (event) => this.onDrag(event), dragState),
-            ctx.interactionManager.addListener('drag-end', () => this.onDragEnd(), dragState),
-            ctx.interactionManager.addListener('wheel', (event) => this.onWheel(event)),
-            ctx.interactionManager.addListener('hover', () => this.onHover()),
+            ctx.interactionManager.addListener('dblclick', (event) => this.onDoubleClick(event), Default & Animation),
+            ctx.interactionManager.addListener('drag', (event) => this.onDrag(event), Default & ZoomDrag & Animation),
+            ctx.interactionManager.addListener('drag-end', () => this.onDragEnd(), Default & ZoomDrag & Animation),
+            ctx.interactionManager.addListener('wheel', (event) => this.onWheel(event), Default & Animation),
+            ctx.interactionManager.addListener('hover', () => this.onHover(), Default & Animation),
             ctx.chartEventManager.addListener('axis-hover', (event) => this.onAxisHover(event)),
             ctx.gestureDetector.addListener('pinch-move', (event) => this.onPinchMove(event as PinchEvent)),
             ctx.layoutService.addListener('layout-complete', (event) => this.onLayoutComplete(event)),
@@ -202,7 +202,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private onDrag(event: _ModuleSupport.InteractionEvent<'drag'>) {
         if (!this.enabled || !this.paddedRect || !this.seriesRect) return;
 
-        this.ctx.interactionManager.pushState(InteractionState.ZoomDrag);
+        this.ctx.interactionManager.pushState(_ModuleSupport.InteractionState.ZoomDrag);
 
         const sourceEvent = event.sourceEvent as DragEvent;
 
@@ -266,7 +266,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         // Stop single clicks from triggering drag end and resetting the zoom
         if (!this.enabled || !this.isDragging) return;
 
-        this.ctx.interactionManager.popState(InteractionState.ZoomDrag);
+        this.ctx.interactionManager.popState(_ModuleSupport.InteractionState.ZoomDrag);
 
         const zoom = definedZoomState(this.zoomManager.getZoom());
 
