@@ -73,7 +73,7 @@ type OptionalHTMLElement = HTMLElement | undefined | null;
 
 export type TransferableResources = { container?: OptionalHTMLElement; scene: Scene; element: HTMLElement };
 
-type SyncModule = ModuleInstance & { syncAxes: (skipSync: boolean) => void };
+type SyncModule = ModuleInstance & { enabled?: boolean; syncAxes: (skipSync: boolean) => void };
 
 type PickedNode = {
     series: Series<any>;
@@ -937,7 +937,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.assignSeriesToAxes();
 
             const syncModule = this.modules.get('sync') as SyncModule | undefined;
-            syncModule?.syncAxes(this._skipSync);
+            if (syncModule?.enabled) {
+                syncModule.syncAxes(this._skipSync);
+            }
         }
 
         const dataController = new DataController(this.mode);
