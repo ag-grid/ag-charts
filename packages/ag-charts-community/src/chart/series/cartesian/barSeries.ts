@@ -96,6 +96,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
             pathsPerSeries: 0,
             hasHighlightedLabels: true,
             datumSelectionGarbageCollection: false,
+            animationAlwaysUpdateSelections: true,
             animationResetFns: {
                 datum: resetBarSelectionsFn,
                 label: resetLabelFn,

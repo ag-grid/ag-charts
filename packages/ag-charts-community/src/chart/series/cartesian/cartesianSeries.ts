@@ -53,6 +53,7 @@ interface SeriesOpts<TNode extends Node, TDatum extends CartesianSeriesNodeDatum
     directionNames: { [key in ChartAxisDirection]?: string[] };
     datumSelectionGarbageCollection: boolean;
     markerSelectionGarbageCollection: boolean;
+    animationAlwaysUpdateSelections: boolean;
     animationResetFns?: {
         path?: (path: Path) => Partial<Path>;
         datum?: (node: TNode, datum: TDatum) => AnimationValue & Partial<TNode>;
@@ -170,6 +171,7 @@ export abstract class CartesianSeries<
         directionNames = DEFAULT_DIRECTION_NAMES,
         datumSelectionGarbageCollection = true,
         markerSelectionGarbageCollection = true,
+        animationAlwaysUpdateSelections = false,
         animationResetFns,
         ...otherOpts
     }: Partial<SeriesOpts<TNode, TDatum, TLabel>> & ConstructorParameters<typeof DataModelSeries>[0]) {
@@ -189,6 +191,7 @@ export abstract class CartesianSeries<
             directionKeys,
             directionNames,
             animationResetFns,
+            animationAlwaysUpdateSelections,
             datumSelectionGarbageCollection,
             markerSelectionGarbageCollection,
         };
@@ -277,7 +280,8 @@ export abstract class CartesianSeries<
     }
 
     protected async updateSelections(anySeriesItemEnabled: boolean) {
-        if (!anySeriesItemEnabled && this.ctx.animationManager.isSkipped()) {
+        const animationSkipUpdate = !this.opts.animationAlwaysUpdateSelections && this.ctx.animationManager.isSkipped();
+        if (!anySeriesItemEnabled && animationSkipUpdate) {
             return;
         }
         if (!this.nodeDataRefresh && !this.isPathOrSelectionDirty()) {
