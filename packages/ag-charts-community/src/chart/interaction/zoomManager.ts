@@ -1,4 +1,3 @@
-import type { ChartAxis } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { BaseManager } from './baseManager';
 
@@ -17,6 +16,12 @@ export interface ZoomChangeEvent extends AxisZoomState {
     axes: Record<string, ZoomState | undefined>;
 }
 
+type ChartAxisLike = {
+    id: string;
+    direction: ChartAxisDirection;
+    visibleRange: [number, number];
+};
+
 /**
  * Manages the current zoom state for a chart. Tracks the requested zoom from distinct dependents
  * and handles conflicting zoom requests.
@@ -25,7 +30,7 @@ export class ZoomManager extends BaseManager<'zoom-change', ZoomChangeEvent> {
     private axisZoomManagers = new Map<string, AxisZoomManager>();
     private initialZoom?: { callerId: string; newZoom?: AxisZoomState };
 
-    public updateAxes(axes: Array<ChartAxis>) {
+    public updateAxes(axes: Array<ChartAxisLike>) {
         const zoomManagers = new Map(axes.map((axis) => [axis.id, this.axisZoomManagers.get(axis.id)]));
 
         this.axisZoomManagers.clear();
@@ -112,9 +117,9 @@ export class ZoomManager extends BaseManager<'zoom-change', ZoomChangeEvent> {
 class AxisZoomManager {
     private readonly states = new Map<string, ZoomState>();
     private currentZoom: ZoomState;
-    private axis: ChartAxis;
+    private axis: ChartAxisLike;
 
-    constructor(axis: ChartAxis) {
+    constructor(axis: ChartAxisLike) {
         this.axis = axis;
 
         const [min = 0, max = 1] = axis.visibleRange;

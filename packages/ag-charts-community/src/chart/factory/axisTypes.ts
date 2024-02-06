@@ -1,20 +1,9 @@
-import type { AxisConstructor } from '../../module/coreModules';
 import type { ModuleContext } from '../../module/moduleContext';
-import { CategoryAxis } from '../axis/categoryAxis';
-import { GroupedCategoryAxis } from '../axis/groupedCategoryAxis';
-import { LogAxis } from '../axis/logAxis';
-import { NumberAxis } from '../axis/numberAxis';
-import { TimeAxis } from '../axis/timeAxis';
+import type { ChartAxis } from '../chartAxis';
 
-const AXIS_CONSTRUCTORS: Record<string, AxisConstructor> = {
-    [NumberAxis.type]: NumberAxis,
-    [CategoryAxis.type]: CategoryAxis,
-    [TimeAxis.type]: TimeAxis,
-    [GroupedCategoryAxis.type]: GroupedCategoryAxis,
-    [LogAxis.type]: LogAxis,
-};
+const AXIS_CONSTRUCTORS: Record<string, new (moduleContext: ModuleContext) => ChartAxis> = {};
 
-export function registerAxis(axisType: string, ctor: AxisConstructor) {
+export function registerAxis(axisType: string, ctor: new (moduleContext: ModuleContext) => ChartAxis) {
     AXIS_CONSTRUCTORS[axisType] = ctor;
 }
 

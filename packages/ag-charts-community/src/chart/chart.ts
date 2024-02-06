@@ -67,7 +67,7 @@ import { Tooltip } from './tooltip/tooltip';
 import { BaseLayoutProcessor } from './update/baseLayoutProcessor';
 import { DataWindowProcessor } from './update/dataWindowProcessor';
 import type { UpdateProcessor } from './update/processor';
-import { UpdateService } from './updateService';
+import { UpdateOpts, UpdateService } from './updateService';
 
 type OptionalHTMLElement = HTMLElement | undefined | null;
 
@@ -561,17 +561,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             }
         });
     });
-    public update(
-        type = ChartUpdateType.FULL,
-        opts?: {
-            forceNodeDataRefresh?: boolean;
-            skipAnimations?: boolean;
-            newAnimationBatch?: boolean;
-            seriesToUpdate?: Iterable<ISeries<any>>;
-            backOffMs?: number;
-            skipSync?: boolean;
-        }
-    ) {
+    public update(type = ChartUpdateType.FULL, opts?: UpdateOpts) {
         const {
             forceNodeDataRefresh = false,
             skipAnimations,

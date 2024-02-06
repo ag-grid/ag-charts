@@ -1,15 +1,10 @@
 import type { LegendConstructor } from '../../module/coreModules';
 import type { ModuleContext } from '../../module/moduleContext';
-import { Legend } from '../legend';
 import type { ChartLegend, ChartLegendType } from '../legendDatum';
 
-const LEGEND_FACTORIES: Partial<Record<ChartLegendType, LegendConstructor>> = {
-    category: Legend,
-};
+const LEGEND_FACTORIES: Partial<Record<ChartLegendType, LegendConstructor>> = {};
 
-const LEGEND_KEYS: Partial<Record<ChartLegendType, string>> = {
-    category: 'legend',
-};
+const LEGEND_KEYS: Partial<Record<ChartLegendType, string>> = {};
 
 export function registerLegend(type: ChartLegendType, key: string, ctr: LegendConstructor, theme: {} | undefined) {
     LEGEND_FACTORIES[type] = ctr;

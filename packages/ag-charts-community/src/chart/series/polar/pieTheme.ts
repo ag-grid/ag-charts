@@ -1,4 +1,5 @@
-import type { ExtensibleTheme, SeriesPaletteFactory } from '../../../module/coreModules';
+import type { ExtensibleTheme } from '../../../module/coreModules';
+import type { SeriesPaletteFactory } from '../../../module/coreModulesTypes';
 import { FONT_WEIGHT } from '../../themes/constants';
 import {
     DEFAULT_BACKGROUND_COLOUR,

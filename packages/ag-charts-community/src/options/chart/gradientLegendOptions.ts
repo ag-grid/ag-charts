@@ -1,4 +1,4 @@
-import type { AgAxisLabelFormatterParams } from '../agChartOptions';
+import type { AgAxisLabelFormatterParams } from './axisOptions';
 import type { AgChartLegendPosition } from './legendOptions';
 import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, PixelSize } from './types';
 

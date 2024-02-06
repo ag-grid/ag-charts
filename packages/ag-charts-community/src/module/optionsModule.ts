@@ -1,5 +1,3 @@
-import type { ChartAxisDirection } from '../chart/chartAxisDirection';
-import type { PropertyDefinition } from '../chart/data/dataModel';
 import { AXIS_TYPES } from '../chart/factory/axisTypes';
 import { CHART_TYPES } from '../chart/factory/chartTypes';
 import { isEnterpriseSeriesType } from '../chart/factory/expectedEnterpriseModules';
@@ -22,16 +20,12 @@ import {
     isAxisOptionType,
     isSeriesOptionType,
 } from '../chart/mapping/types';
-import type { SeriesNodeDatum } from '../chart/series/seriesTypes';
 import type { ChartTheme } from '../chart/themes/chartTheme';
 import type { AgBaseAxisOptions } from '../options/chart/axisOptions';
 import type { AgCartesianChartOptions, AgChartOptions } from '../options/chart/chartBuilderOptions';
 import { type AgTooltipPositionOptions, AgTooltipPositionType } from '../options/chart/tooltipOptions';
 import type { AgCartesianAxisOptions } from '../options/series/cartesian/cartesianOptions';
-import type { AgCartesianSeriesOptions } from '../options/series/cartesian/cartesianSeriesTypes';
-import type { AgHierarchySeriesOptions } from '../options/series/hierarchy/hierarchyOptions';
-import type { AgPolarAxisOptions, AgPolarSeriesOptions } from '../options/series/polar/polarOptions';
-import type { Point } from '../scene/point';
+import type { AgPolarAxisOptions } from '../options/series/polar/polarOptions';
 import { circularSliceArray, groupBy, unique } from '../util/array';
 import { Debug } from '../util/debug';
 import { deepClone, jsonDiff, jsonWalk } from '../util/json';
@@ -40,14 +34,9 @@ import { mergeArrayDefaults, mergeDefaults } from '../util/object';
 import { isEnumValue, isFiniteNumber, isObject, isPlainObject, isString } from '../util/type-guards';
 import type { BaseModule, ModuleInstance } from './baseModule';
 import { enterpriseModule } from './enterpriseModule';
-import { MODULE_CONFLICTS } from './module';
-import type { AxisContext, ModuleContextWithParent, SeriesContext } from './moduleContext';
-
-export type SeriesType = NonNullable<
-    AgCartesianSeriesOptions['type'] | AgPolarSeriesOptions['type'] | AgHierarchySeriesOptions['type']
->;
-
-export type PickNodeDatumResult = { datum: SeriesNodeDatum; distanceSquared: number } | undefined;
+import { MODULE_CONFLICTS } from './moduleConflicts';
+import type { AxisContext, ModuleContextWithParent } from './moduleContext';
+import type { SeriesType } from './optionsModuleTypes';
 
 type AxisType = 'category' | 'number' | 'log' | 'time';
 
@@ -56,23 +45,6 @@ export interface AxisOptionModule<M extends ModuleInstance = ModuleInstance> ext
     axisTypes: AxisType[];
     instanceConstructor: new (ctx: ModuleContextWithParent<AxisContext>) => M;
     themeTemplate: { [K in AxisType]?: object };
-}
-
-export interface SeriesOptionInstance extends ModuleInstance {
-    pickNodeExact(point: Point): PickNodeDatumResult;
-    pickNodeNearest(point: Point): PickNodeDatumResult;
-    pickNodeMainAxisFirst(point: Point): PickNodeDatumResult;
-
-    getPropertyDefinitions(opts: { isContinuousX: boolean; isContinuousY: boolean }): PropertyDefinition<unknown>[];
-    getDomain(direction: ChartAxisDirection): any[];
-    getTooltipParams(): object;
-}
-
-export interface SeriesOptionModule<M extends SeriesOptionInstance = SeriesOptionInstance> extends BaseModule {
-    type: 'series-option';
-    seriesTypes: readonly SeriesType[];
-    instanceConstructor: new (ctx: SeriesContext) => M;
-    themeTemplate: {};
 }
 
 type GroupingOptions = {
