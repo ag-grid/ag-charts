@@ -81,8 +81,11 @@ export abstract class AgCharts {
         this.licenseChecked = true;
     }
 
-    public static setLicenseKey(licenseKey: string, gridContext = false) {
+    public static setLicenseKey(licenseKey: string) {
         this.licenseKey = licenseKey;
+    }
+
+    public static setGridContext(gridContext: boolean) {
         this.gridContext = gridContext;
     }
 
