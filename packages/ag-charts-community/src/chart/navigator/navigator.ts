@@ -87,7 +87,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
 
         ctx.scene.root?.appendChild(this.rs);
 
-        const dragStates = InteractionState.Default & InteractionState.Animation;
+        const dragStates = InteractionState.Default | InteractionState.Animation;
         this.destroyFns.push(
             ctx.interactionManager.addListener('drag-start', (event) => this.onDragStart(event), dragStates),
             ctx.interactionManager.addListener('drag', (event) => this.onDrag(event), dragStates),

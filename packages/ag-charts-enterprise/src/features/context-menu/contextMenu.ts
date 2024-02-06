@@ -26,8 +26,6 @@ export type ContextMenuActionParams = {
     event: MouseEvent;
 };
 
-const InteractionState = _ModuleSupport.InteractionState;
-
 const { BOOLEAN, Validate } = _ModuleSupport;
 
 export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
@@ -81,10 +79,11 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.interactionManager = ctx.interactionManager;
         this.scene = ctx.scene;
 
-        const contextState = InteractionState.Default & InteractionState.ContextMenu;
+        const { Default, ContextMenu: ContextMenuState, All } = _ModuleSupport.InteractionState;
+        const contextState = Default | ContextMenuState;
         this.destroyFns.push(
             ctx.interactionManager.addListener('contextmenu', (event) => this.onContextMenu(event), contextState),
-            ctx.interactionManager.addListener('click', () => this.onClick(), InteractionState.All)
+            ctx.interactionManager.addListener('click', () => this.onClick(), All)
         );
 
         // State
