@@ -41,7 +41,7 @@ import {
     isAgPolarChartOptions,
 } from './mapping/types';
 import { PolarChart } from './polarChart';
-import type { Series } from './series/series';
+import { type Series, checkSeriesUpcast } from './series/series';
 import type { SeriesGrouping } from './series/seriesStateManager';
 
 const debug = Debug.create(true, 'opts');
@@ -562,9 +562,11 @@ function createSeries(chart: Chart, options: SeriesOptionsTypes[]): Series<any>[
             continue;
         }
         const seriesInstance = getSeries(type, moduleContext);
-        applySeriesOptionModules(seriesInstance, seriesOptions);
-        applySeriesValues(seriesInstance, seriesOptions);
-        series.push(seriesInstance);
+        if (checkSeriesUpcast(seriesInstance)) {
+            applySeriesOptionModules(seriesInstance, seriesOptions);
+            applySeriesValues(seriesInstance, seriesOptions);
+            series.push(seriesInstance);
+        }
     }
 
     return series;

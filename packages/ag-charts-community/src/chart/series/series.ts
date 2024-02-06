@@ -182,6 +182,12 @@ export function groupAccumulativeValueProperty<K>(
     ];
 }
 
+// Series is the only class that implements ISeries. However using a type-guard is safer and
+// more maintainable that using `as Series<T>` to upcast an ISeries object.
+export function checkSeriesUpcast<T extends SeriesNodeDatum>(_s: ISeries<T>) : _s is Series<T> {
+    return true;
+}
+
 export type SeriesNodeEventTypes = 'nodeClick' | 'nodeDoubleClick';
 
 interface INodeClickEvent<TEvent extends string = SeriesNodeEventTypes> extends TypedEvent {
