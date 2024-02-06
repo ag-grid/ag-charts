@@ -34,8 +34,6 @@ const {
     round: sharedRound,
 } = _ModuleSupport;
 
-const InteractionState = _ModuleSupport.InteractionState;
-
 const ANCHOR_CORD = UNION(['pointer', 'start', 'middle', 'end'], 'an anchor cord');
 
 const CONTEXT_ZOOM_ACTION_ID = 'zoom-action';
