@@ -1,4 +1,5 @@
-import { REGISTERED_MODULES, hasRegisteredEnterpriseModules, registerModuleConflicts } from '../../module/module';
+import { REGISTERED_MODULES, hasRegisteredEnterpriseModules } from '../../module/module';
+import { registerModuleConflicts } from '../../module/moduleConflicts';
 import type { AgChartOptions } from '../../options/agChartOptions';
 import { Logger } from '../../util/logger';
 import { registerAxis, registerAxisThemeTemplate } from './axisTypes';

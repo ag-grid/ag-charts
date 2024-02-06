@@ -34,7 +34,7 @@ import { mergeArrayDefaults, mergeDefaults } from '../util/object';
 import { isEnumValue, isFiniteNumber, isObject, isPlainObject, isString } from '../util/type-guards';
 import type { BaseModule, ModuleInstance } from './baseModule';
 import { enterpriseModule } from './enterpriseModule';
-import { MODULE_CONFLICTS } from './module';
+import { MODULE_CONFLICTS } from './moduleConflicts';
 import type { AxisContext, ModuleContextWithParent } from './moduleContext';
 import type { SeriesType } from './optionsModuleTypes';
 
