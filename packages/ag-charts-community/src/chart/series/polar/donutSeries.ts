@@ -310,7 +310,18 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
 
     async createNodeData() {
         const { id: seriesId, processedData, dataModel, angleScale } = this;
-        const { rotation } = this.properties;
+        const { rotation, innerRadiusRatio, innerRadiusOffset } = this.properties;
+
+        if (innerRadiusRatio == null && innerRadiusOffset == null) {
+            Logger.warnOnce(
+                'Either an [innerRadiusRatio] or an [innerRadiusOffset] must be set to render a donut series.'
+            );
+
+            this.zerosumOuterRing.visible = true;
+            this.zerosumInnerRing.visible = true;
+
+            return [{ itemId: seriesId, nodeData: [], labelData: [] }];
+        }
 
         if (!processedData || !dataModel || processedData.type !== 'ungrouped') return [];
 
@@ -368,7 +379,6 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
         });
 
         this.zerosumOuterRing.visible = sum === 0;
-        const { innerRadiusRatio } = this.properties;
         this.zerosumInnerRing.visible =
             sum === 0 && innerRadiusRatio != null && innerRadiusRatio !== 1 && innerRadiusRatio > 0;
 
@@ -516,14 +526,8 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
 
     getInnerRadius() {
         const { radius } = this;
-        const { innerRadiusRatio, innerRadiusOffset } = this.properties;
-        if (innerRadiusRatio == null && innerRadiusOffset == null) {
-            Logger.warnOnce(
-                'Either an [innerRadiusRatio] or an [innerRadiusOffset] must be set to render a donut series'
-            );
-            return 0;
-        }
-        const innerRadius = radius * (innerRadiusRatio ?? 1) + (innerRadiusOffset ?? 0);
+        const { innerRadiusRatio = 1, innerRadiusOffset = 0 } = this.properties;
+        const innerRadius = radius * innerRadiusRatio + innerRadiusOffset;
         if (innerRadius === radius || innerRadius < 0) {
             return 0;
         }
@@ -531,10 +535,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
     }
 
     getOuterRadius() {
-        const { innerRadiusRatio, innerRadiusOffset, outerRadiusRatio, outerRadiusOffset } = this.properties;
-        if (innerRadiusRatio == null && innerRadiusOffset == null) {
-            return 0;
-        }
+        const { outerRadiusRatio, outerRadiusOffset } = this.properties;
         return Math.max(this.radius * outerRadiusRatio + outerRadiusOffset, 0);
     }
 
