@@ -1,5 +1,6 @@
 import { angleBetween, normalizeAngle360 } from '../../util/angle';
 import { isEqual } from '../../util/number';
+import { Path2D } from '../path2d';
 import { Path, ScenePathChangeDetection } from './path';
 
 function rotatePoint(x: number, y: number, rotation: number) {
