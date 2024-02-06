@@ -1,6 +1,7 @@
 import { throttleAsyncTrailing } from '../../util/debounceThrottle';
 import { Debug } from '../../util/debug';
 import { Listeners } from '../../util/listeners';
+import type { AnimationManager } from '../interaction/animationManager';
 
 const DEBUG_SELECTORS = [true, 'data-model', 'data-lazy'];
 
@@ -22,7 +23,10 @@ export class DataService<D extends object> extends Listeners<never, never> {
 
     private throttledFetch = throttleAsyncTrailing((axes?: Array<AxisDomain>) => this.fetch(axes), this.throttleTime);
 
-    constructor(private readonly updateCallback: UpdateCallback<D>) {
+    constructor(
+        private readonly animationManager: AnimationManager,
+        private readonly updateCallback: UpdateCallback<D>
+    ) {
         super();
     }
 
@@ -34,6 +38,9 @@ export class DataService<D extends object> extends Listeners<never, never> {
     public init(loadOrData: LoadCallback | any): any {
         if (typeof loadOrData !== 'function') return loadOrData;
         this.loadCb = loadOrData;
+
+        // Disable animations when using lazy loading due to conflicts
+        this.animationManager.skip();
 
         // Return an empty array with the expectation that the load function will be called later
         return [];
