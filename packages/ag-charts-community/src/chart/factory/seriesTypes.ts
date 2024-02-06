@@ -12,7 +12,7 @@ import { deepClone } from '../../sparklines-util';
 import { mergeDefaults } from '../../util/object';
 import { isFunction } from '../../util/type-guards';
 import type { SeriesType } from '../mapping/types';
-import type { Series } from '../series/series';
+import type { ISeries } from '../series/seriesTypes';
 import { registerChartSeriesType } from './chartTypes';
 
 export type SeriesOptions = AgCartesianSeriesOptions | AgPolarSeriesOptions | AgHierarchySeriesOptions;
@@ -83,7 +83,7 @@ export function registerSeriesThemeTemplate(
     );
 }
 
-export function getSeries(chartType: string, moduleCtx: ModuleContext): Series<any> {
+export function getSeries(chartType: string, moduleCtx: ModuleContext): ISeries<any> {
     const seriesConstructor = SERIES_FACTORIES[chartType];
     if (seriesConstructor) {
         return new seriesConstructor(moduleCtx);
