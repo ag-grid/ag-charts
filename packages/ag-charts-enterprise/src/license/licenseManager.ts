@@ -77,7 +77,6 @@ export class LicenseManager {
         return { md5, license, version, isTrial, type };
     }
 
-    // gridContext supplied here for testing purposes
     public getLicenseDetails(licenseKey: string, gridContext = false) {
         if (missingOrEmpty(licenseKey)) {
             return {

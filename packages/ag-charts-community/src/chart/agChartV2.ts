@@ -70,18 +70,20 @@ export abstract class AgCharts {
     private static licenseManager?: LicenseManager;
     private static licenseChecked = false;
     private static licenseKey?: string;
+    private static gridContext = false;
 
     private static licenseCheck(options: AgChartOptions) {
         if (this.licenseChecked) return;
 
         this.licenseManager = enterpriseModule.licenseManager?.(options);
-        this.licenseManager?.setLicenseKey(this.licenseKey);
+        this.licenseManager?.setLicenseKey(this.licenseKey, this.gridContext);
         this.licenseManager?.validateLicense();
         this.licenseChecked = true;
     }
 
-    public static setLicenseKey(licenseKey: string) {
+    public static setLicenseKey(licenseKey: string, gridContext = false) {
         this.licenseKey = licenseKey;
+        this.gridContext = gridContext;
     }
 
     public static getLicenseDetails(licenseKey: string) {
