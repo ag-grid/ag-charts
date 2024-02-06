@@ -9,6 +9,6 @@ export const SyncModule: _ModuleSupport.RootModule = {
     chartTypes: ['cartesian'],
     instanceConstructor: ChartSync,
     themeTemplate: {
-        sync: { enabled: true },
+        sync: { enabled: false },
     },
 };
