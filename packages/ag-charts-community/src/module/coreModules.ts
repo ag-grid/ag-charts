@@ -69,8 +69,9 @@ type RequiredSeriesType = NonNullable<SeriesOptionsTypes['type']>;
 type Extensible<T> = { [K in keyof T]?: NonNullable<T[K]> extends object ? Extensible<T[K]> : T[K] } & {
     __extends__?: string;
 };
-type SeriesTheme<SeriesType extends RequiredSeriesType> = NonNullable<AgChartThemeOverrides[SeriesType]>['series'];
-export type ExtensibleTheme<SeriesType extends RequiredSeriesType> = Extensible<SeriesTheme<SeriesType>>;
+export type ExtensibleTheme<SeriesType extends RequiredSeriesType> = Extensible<
+    NonNullable<AgChartThemeOverrides[SeriesType]>
+>;
 
 export type ExtensibleDefaults<SeriesType extends RequiredSeriesType> = Extensible<
     AgChartOptions & { series?: { type: SeriesType } }

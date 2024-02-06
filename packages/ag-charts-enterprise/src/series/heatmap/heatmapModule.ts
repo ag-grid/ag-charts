@@ -1,7 +1,6 @@
 import type { _ModuleSupport } from 'ag-charts-community';
 import { _Theme } from 'ag-charts-community';
 
-import { HEATMAP_DEFAULTS } from './heatmapDefaults';
 import { HeatmapSeries } from './heatmapSeries';
 import { HEATMAP_SERIES_THEME } from './heatmapThemes';
 
@@ -13,7 +12,18 @@ export const HeatmapModule: _ModuleSupport.SeriesModule<'heatmap'> = {
 
     identifier: 'heatmap',
     instanceConstructor: HeatmapSeries,
-    seriesDefaults: HEATMAP_DEFAULTS,
+    seriesDefaults: {
+        axes: [
+            {
+                type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
+                position: _Theme.POSITION.LEFT,
+            },
+            {
+                type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
+                position: _Theme.POSITION.BOTTOM,
+            },
+        ],
+    },
     themeTemplate: HEATMAP_SERIES_THEME,
     paletteFactory: ({ takeColors, colorsCount, userPalette, themeTemplateParameters }) => {
         const { properties } = themeTemplateParameters;

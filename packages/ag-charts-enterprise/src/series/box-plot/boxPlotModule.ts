@@ -1,6 +1,5 @@
 import { type _ModuleSupport, _Theme, _Util } from 'ag-charts-community';
 
-import { BOX_PLOT_SERIES_DEFAULTS } from './boxPlotDefaults';
 import { BoxPlotSeries } from './boxPlotSeries';
 import { BOX_PLOT_SERIES_THEME } from './boxPlotThemes';
 
@@ -12,7 +11,18 @@ export const BoxPlotModule: _ModuleSupport.SeriesModule<'box-plot'> = {
 
     identifier: 'box-plot',
     instanceConstructor: BoxPlotSeries,
-    seriesDefaults: BOX_PLOT_SERIES_DEFAULTS,
+    seriesDefaults: {
+        axes: [
+            {
+                type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER,
+                position: _Theme.POSITION.LEFT,
+            },
+            {
+                type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
+                position: _Theme.POSITION.BOTTOM,
+            },
+        ],
+    },
     themeTemplate: BOX_PLOT_SERIES_THEME,
     groupable: true,
 
@@ -31,7 +41,5 @@ export const BoxPlotModule: _ModuleSupport.SeriesModule<'box-plot'> = {
         };
     },
 
-    swapDefaultAxesCondition({ direction }) {
-        return direction === 'horizontal';
-    },
+    swapDefaultAxesCondition: ({ direction }) => direction === 'horizontal',
 };

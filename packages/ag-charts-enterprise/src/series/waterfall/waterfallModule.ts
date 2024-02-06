@@ -1,7 +1,6 @@
 import type { _ModuleSupport } from 'ag-charts-community';
 import { _Theme } from 'ag-charts-community';
 
-import { WATERFALL_DEFAULTS } from './waterfallDefaults';
 import { WaterfallSeries } from './waterfallSeries';
 import { WATERFALL_SERIES_THEME } from './waterfallThemes';
 
@@ -14,7 +13,18 @@ export const WaterfallModule: _ModuleSupport.SeriesModule<'waterfall'> = {
     identifier: 'waterfall',
     solo: true,
     instanceConstructor: WaterfallSeries,
-    seriesDefaults: WATERFALL_DEFAULTS,
+    seriesDefaults: {
+        axes: [
+            {
+                type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
+                position: _Theme.POSITION.BOTTOM,
+            },
+            {
+                type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER,
+                position: _Theme.POSITION.LEFT,
+            },
+        ],
+    },
     themeTemplate: WATERFALL_SERIES_THEME,
     swapDefaultAxesCondition: ({ direction }) => direction === 'horizontal',
     paletteFactory: ({ takeColors, colorsCount, userPalette, themeTemplateParameters }) => {

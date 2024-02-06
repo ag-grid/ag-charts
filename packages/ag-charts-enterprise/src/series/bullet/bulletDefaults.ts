@@ -9,7 +9,6 @@ export const BULLET_DEFAULTS = {
             position: POSITION.LEFT,
             nice: false,
             max: undefined as number | undefined,
-            crosshair: { enabled: false },
         },
         {
             type: CARTESIAN_AXIS_TYPE.CATEGORY,

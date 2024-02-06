@@ -1,7 +1,6 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport, _Theme } from 'ag-charts-community';
 
 import { RangeAreaSeries } from './rangeArea';
-import { RANGE_AREA_DEFAULTS } from './rangeAreaDefaults';
 import { RANGE_AREA_SERIES_THEME } from './rangeAreaThemes';
 
 const { markerPaletteFactory } = _ModuleSupport;
@@ -13,7 +12,22 @@ export const RangeAreaModule: _ModuleSupport.SeriesModule<'range-area'> = {
 
     identifier: 'range-area',
     instanceConstructor: RangeAreaSeries,
-    seriesDefaults: RANGE_AREA_DEFAULTS,
+    seriesDefaults: {
+        axes: [
+            {
+                type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER,
+                position: _Theme.POSITION.LEFT,
+                crosshair: {
+                    enabled: true,
+                    snap: false,
+                },
+            },
+            {
+                type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
+                position: _Theme.POSITION.BOTTOM,
+            },
+        ],
+    },
     themeTemplate: RANGE_AREA_SERIES_THEME,
 
     paletteFactory: (params) => {

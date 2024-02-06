@@ -11,66 +11,68 @@ import {
 } from '../../themes/symbols';
 
 export const pieTheme: ExtensibleTheme<'pie'> = {
-    __extends__: EXTENDS_SERIES_DEFAULTS,
-    title: {
-        enabled: true,
-        fontStyle: undefined,
-        fontWeight: FONT_WEIGHT.NORMAL,
-        fontSize: 14,
-        fontFamily: DEFAULT_FONT_FAMILY,
-        color: DEFAULT_MUTED_LABEL_COLOUR,
-        spacing: 5,
+    series: {
+        __extends__: EXTENDS_SERIES_DEFAULTS,
+        title: {
+            enabled: true,
+            fontStyle: undefined,
+            fontWeight: FONT_WEIGHT.NORMAL,
+            fontSize: 14,
+            fontFamily: DEFAULT_FONT_FAMILY,
+            color: DEFAULT_MUTED_LABEL_COLOUR,
+            spacing: 5,
+        },
+        calloutLabel: {
+            enabled: true,
+            fontStyle: undefined,
+            fontWeight: undefined,
+            fontSize: 12,
+            fontFamily: DEFAULT_FONT_FAMILY,
+            color: DEFAULT_LABEL_COLOUR,
+            offset: 3,
+            minAngle: 0,
+        },
+        sectorLabel: {
+            enabled: true,
+            fontStyle: undefined,
+            fontWeight: FONT_WEIGHT.NORMAL,
+            fontSize: 12,
+            fontFamily: DEFAULT_FONT_FAMILY,
+            color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
+            positionOffset: 0,
+            positionRatio: 0.5,
+        },
+        calloutLine: {
+            length: 10,
+            strokeWidth: 2,
+        },
+        fillOpacity: 1,
+        strokeOpacity: 1,
+        strokeWidth: 1,
+        lineDash: [0],
+        lineDashOffset: 0,
+        rotation: 0,
+        // @todo(AG-10275) Uncomment this
+        // sectorSpacing: 1,
+        shadow: {
+            enabled: false,
+            color: DEFAULT_SHADOW_COLOUR,
+            xOffset: 3,
+            yOffset: 3,
+            blur: 5,
+        },
+        innerLabels: {
+            fontStyle: undefined,
+            fontWeight: undefined,
+            fontSize: 12,
+            fontFamily: DEFAULT_FONT_FAMILY,
+            color: DEFAULT_LABEL_COLOUR,
+            margin: 2,
+        },
+        // @todo(AG-10275) Remove this
+        // @ts-expect-error
+        __BACKGROUND_COLOR_DO_NOT_USE: DEFAULT_BACKGROUND_COLOUR,
     },
-    calloutLabel: {
-        enabled: true,
-        fontStyle: undefined,
-        fontWeight: undefined,
-        fontSize: 12,
-        fontFamily: DEFAULT_FONT_FAMILY,
-        color: DEFAULT_LABEL_COLOUR,
-        offset: 3,
-        minAngle: 0,
-    },
-    sectorLabel: {
-        enabled: true,
-        fontStyle: undefined,
-        fontWeight: FONT_WEIGHT.NORMAL,
-        fontSize: 12,
-        fontFamily: DEFAULT_FONT_FAMILY,
-        color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
-        positionOffset: 0,
-        positionRatio: 0.5,
-    },
-    calloutLine: {
-        length: 10,
-        strokeWidth: 2,
-    },
-    fillOpacity: 1,
-    strokeOpacity: 1,
-    strokeWidth: 1,
-    lineDash: [0],
-    lineDashOffset: 0,
-    rotation: 0,
-    // @todo(AG-10275) Uncomment this
-    // sectorSpacing: 1,
-    shadow: {
-        enabled: false,
-        color: DEFAULT_SHADOW_COLOUR,
-        xOffset: 3,
-        yOffset: 3,
-        blur: 5,
-    },
-    innerLabels: {
-        fontStyle: undefined,
-        fontWeight: undefined,
-        fontSize: 12,
-        fontFamily: DEFAULT_FONT_FAMILY,
-        color: DEFAULT_LABEL_COLOUR,
-        margin: 2,
-    },
-    // @todo(AG-10275) Remove this
-    // @ts-expect-error
-    __BACKGROUND_COLOR_DO_NOT_USE: DEFAULT_BACKGROUND_COLOUR,
 };
 
 export const piePaletteFactory: SeriesPaletteFactory<'pie'> = ({ takeColors, colorsCount, userPalette }) => {
