@@ -1,7 +1,10 @@
 /* eslint-disable sonarjs/no-collapsible-if */
-import type { Module } from '../../module-support';
-
-type EnterpriseModuleStub = Pick<Module<any>, 'type' | 'identifier' | 'optionsKey' | 'chartTypes'> & {
+type EnterpriseModuleStub = {
+    type: 'axis' | 'axis-option' | 'series' | 'series-option' | 'root' | 'legend';
+    packageType?: 'enterprise';
+    identifier?: string;
+    optionsKey: string;
+    chartTypes: ('cartesian' | 'polar' | 'hierarchy')[];
     useCount?: number;
     optionsInnerKey?: string;
 };
@@ -69,8 +72,13 @@ export function isEnterpriseHierarchy(seriesType: string) {
     return type === 'hierarchy';
 }
 
-export function verifyIfModuleExpected(module: Module<any>) {
-    if (module.packageType !== 'enterprise') {
+type UnknownPackage = { packageType: string } | EnterpriseModuleStub;
+function isEnterpriseModule(module: UnknownPackage): module is EnterpriseModuleStub {
+    return module.packageType === 'enterprise';
+}
+
+export function verifyIfModuleExpected(module: UnknownPackage) {
+    if (!isEnterpriseModule(module)) {
         throw new Error('AG Charts - internal configuration error, only enterprise modules need verification.');
     }
 
