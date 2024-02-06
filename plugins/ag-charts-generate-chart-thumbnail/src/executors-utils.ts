@@ -149,18 +149,28 @@ export function batchWorkerExecutor<ExecutorOptions>(workerModule: string) {
 
 export async function consolePrefix(prefix: string, cb: () => Promise<void>) {
     const fns = {};
-    for (const fn of ['log', 'debug', 'info', 'warn', 'error']) {
+    const fnNames = ['log', 'debug', 'info', 'warn', 'error'] as const;
+    const timesCalled: Record<(typeof fnNames)[number], number> = {
+        debug: 0,
+        error: 0,
+        info: 0,
+        log: 0,
+        warn: 0,
+    };
+    for (const fn of fnNames) {
         fns[fn] = console[fn];
 
         console[fn] = (arg: any, ...args: any[]) => {
             // Filter license message.
             if (typeof arg === 'string' && arg.startsWith('*')) return;
 
+            timesCalled[fn]++;
             fns[fn].call(console, prefix, arg, ...args);
         };
     }
     try {
         await cb();
+        return timesCalled;
     } finally {
         Object.assign(console, fns);
     }

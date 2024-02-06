@@ -50,7 +50,7 @@ export async function generateFiles(options: ExecutorOptions, ctx: ExecutorConte
 
     await ensureDirectory(outputPath);
 
-    await consolePrefix(`[${ctx.projectName}] `, async () => {
+    const timesCalled = await consolePrefix(`[${ctx.projectName}] `, async () => {
         for (const theme of Object.keys(THEMES) as AgChartThemeName[]) {
             for (const dpi of dpiOutputs) {
                 try {
@@ -61,4 +61,8 @@ export async function generateFiles(options: ExecutorOptions, ctx: ExecutorConte
             }
         }
     });
+
+    if (timesCalled.error > 0) {
+        throw new Error(`Error when rendering example [${name}] - see console output.`);
+    }
 }
