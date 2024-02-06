@@ -74,14 +74,16 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
 
             this.lastAxisZooms.set(axis.id, zoom);
 
-            const diff = Number(domain[1]) - Number(domain[0]);
+            let min;
+            let max;
 
-            domains.push({
-                id: axis.id,
-                type: axis.type,
-                min: new Date(Number(domain[0]) + diff * zoom.min),
-                max: new Date(Number(domain[0]) + diff * zoom.max),
-            });
+            if (domain.length > 0 && !isNaN(Number(domain[0]))) {
+                const diff = Number(domain[1]) - Number(domain[0]);
+                min = new Date(Number(domain[0]) + diff * zoom.min);
+                max = new Date(Number(domain[0]) + diff * zoom.max);
+            }
+
+            domains.push({ id: axis.id, type: axis.type, min, max });
         }
 
         return domains;
