@@ -131,7 +131,7 @@ export class TooltipManager {
             pageY,
             offsetX,
             offsetY,
-            event: event,
+            event,
             showArrow: tooltip.showArrow,
             position,
         };

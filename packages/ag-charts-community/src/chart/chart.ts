@@ -656,7 +656,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 const tooltipMeta = this.tooltipManager.getTooltipMeta(this.id);
                 const isHovered = tooltipMeta?.event?.type === 'hover';
                 if (performUpdateType <= ChartUpdateType.SERIES_UPDATE && isHovered) {
-                    this.handlePointer(tooltipMeta.event as InteractionEvent<'hover'>);
+                    this.handlePointer(tooltipMeta.event);
                 }
                 splits['↖'] = performance.now();
             // fallthrough

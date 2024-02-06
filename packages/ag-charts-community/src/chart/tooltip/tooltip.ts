@@ -152,7 +152,7 @@ export interface TooltipMeta {
         yOffset?: number;
     };
     enableInteraction?: boolean;
-    event: Event | InteractionEvent<any>;
+    event: InteractionEvent<'hover'>;
     addCustomClass?: boolean;
 }
 
