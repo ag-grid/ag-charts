@@ -358,6 +358,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
             this.interactionManager.addListener('wheel', () => this.resetPointer()),
             this.interactionManager.addListener('drag', () => this.resetPointer()),
+            this.interactionManager.addListener('contextmenu', () => this.resetPointer()),
 
             this.animationManager.addListener('animation-frame', () => {
                 this.update(ChartUpdateType.SCENE_RENDER);
