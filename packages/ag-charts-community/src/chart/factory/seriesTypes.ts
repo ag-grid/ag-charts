@@ -1,4 +1,5 @@
-import type { SeriesConstructor, SeriesModule, SeriesPaletteFactory } from '../../module/coreModules';
+import type { SeriesConstructor, SeriesModule } from '../../module/coreModules';
+import type { SeriesPaletteFactory } from '../../module/coreModulesTypes';
 import { hasRegisteredEnterpriseModules } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import type {

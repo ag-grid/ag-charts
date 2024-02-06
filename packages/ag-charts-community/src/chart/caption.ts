@@ -16,10 +16,11 @@ import {
     TEXT_WRAP,
     Validate,
 } from '../util/validation';
+import type { CaptionLike } from './captionLike';
 import type { InteractionEvent } from './interaction/interactionManager';
 import { toTooltipHtml } from './tooltip/tooltip';
 
-export class Caption extends BaseProperties {
+export class Caption extends BaseProperties implements CaptionLike {
     static readonly SMALL_PADDING = 10;
     static readonly LARGE_PADDING = 20;
 

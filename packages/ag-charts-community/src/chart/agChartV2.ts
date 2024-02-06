@@ -2,7 +2,8 @@ import type { LicenseManager } from '../module/enterpriseModule';
 import { enterpriseModule } from '../module/enterpriseModule';
 import { type Module, REGISTERED_MODULES, hasRegisteredEnterpriseModules } from '../module/module';
 import type { ModuleContext } from '../module/moduleContext';
-import { type AxisOptionModule, ChartOptions, type SeriesOptionModule } from '../module/optionsModule';
+import { type AxisOptionModule, ChartOptions } from '../module/optionsModule';
+import type { SeriesOptionModule } from '../module/optionsModuleTypes';
 import type {
     AgBaseAxisOptions,
     AgBaseSeriesOptions,

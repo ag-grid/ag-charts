@@ -1,5 +1,5 @@
 /* eslint-disable sonarjs/no-collapsible-if */
-import type { Module } from '../../module-support';
+import type { Module } from '../../module/module';
 
 type EnterpriseModuleStub = Pick<Module<any>, 'type' | 'identifier' | 'optionsKey' | 'chartTypes'> & {
     useCount?: number;

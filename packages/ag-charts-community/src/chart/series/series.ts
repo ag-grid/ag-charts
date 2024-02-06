@@ -1,6 +1,6 @@
 import type { ModuleContext, SeriesContext } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
-import type { SeriesOptionInstance, SeriesOptionModule, SeriesType } from '../../module/optionsModule';
+import type { SeriesOptionInstance, SeriesOptionModule, SeriesType } from '../../module/optionsModuleTypes';
 import type { AgChartLabelFormatterParams, AgChartLabelOptions } from '../../options/agChartOptions';
 import type {
     AgSeriesMarkerFormatterParams,

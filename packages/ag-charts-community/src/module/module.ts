@@ -1,7 +1,8 @@
 import type { AgChartOptions } from '../options/agChartOptions';
 import type { ModuleInstance } from './baseModule';
 import type { AxisModule, LegendModule, RootModule, SeriesModule } from './coreModules';
-import type { AxisOptionModule, SeriesOptionModule } from './optionsModule';
+import type { AxisOptionModule } from './optionsModule';
+import type { SeriesOptionModule } from './optionsModuleTypes';
 
 export type Module<M extends ModuleInstance = ModuleInstance> =
     | RootModule<M>
