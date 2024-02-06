@@ -13,6 +13,7 @@ interface AxisDomain {
 
 export class DataWindowProcessor<D extends object> implements UpdateProcessor {
     private dirty = true;
+    private lastAxisZooms = new Map();
 
     private destroyFns: (() => void)[] = [];
 
@@ -46,8 +47,11 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
         if (!this.dataService.isLazy()) {
             return;
         }
-        this.dirty = false;
         const domains = this.getValidAxisDomains();
+        if (domains.length === 0) {
+            return;
+        }
+        this.dirty = false;
         const data = await this.dataService.load(domains);
         this.dataService.update(data);
         this.updateService.update(ChartUpdateType.UPDATE_DATA);
@@ -63,6 +67,12 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
             const domain = axis.scale.getDomain?.();
 
             if (!domain || !zoom) continue;
+
+            // Only run the callback if the zoom has changed on this axis, ignoring invalid axes
+            const lastZoom = this.lastAxisZooms.get(axis.id);
+            if (lastZoom && zoom.min === lastZoom.min && zoom.max === lastZoom.max) continue;
+
+            this.lastAxisZooms.set(axis.id, zoom);
 
             const diff = Number(domain[1]) - Number(domain[0]);
 
