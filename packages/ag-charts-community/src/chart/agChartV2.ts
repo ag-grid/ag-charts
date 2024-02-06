@@ -237,7 +237,7 @@ class AgChartsInternal {
             proxy.chart = chart;
         }
 
-        if (Debug.check() && typeof window !== 'undefined') {
+        if (debug.check() && typeof window !== 'undefined') {
             (window as any).agChartInstances ??= {};
             (window as any).agChartInstances[chart.id] = chart;
         }

@@ -78,8 +78,7 @@ export class DataController {
         const merged = this.mergeRequested(valid);
         this.debug('DataController.execute() - merged', merged);
 
-        const debugMode = Debug.check(true, 'data-model');
-        if (debugMode) {
+        if (this.debug.check()) {
             (window as any).processedData = [];
         }
 
@@ -96,7 +95,7 @@ export class DataController {
                 const dataModel = new DataModel<any>({ ...opts, mode: this.mode });
                 const processedData = dataModel.processData(data, valid);
 
-                if (debugMode) {
+                if (this.debug.check()) {
                     (window as any).processedData.push(processedData);
                 }
 

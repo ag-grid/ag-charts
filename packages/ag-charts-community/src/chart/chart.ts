@@ -602,7 +602,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         this._skipSync = opts?.skipSync ?? false;
 
-        if (Debug.check(true)) {
+        if (this.debug.check()) {
             let stack = new Error().stack ?? '<unknown>';
             stack = stack.replace(/\([^)]*/g, '');
             this.updateRequestors[stack] = type;

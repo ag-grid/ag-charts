@@ -188,7 +188,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
     }
 
     public skipCurrentBatch() {
-        if (Debug.check(...DEBUG_SELECTORS)) {
+        if (this.debug.check()) {
             this.debug(`AnimationManager - skipCurrentBatch()`, { stack: new Error().stack });
         }
         this.batch.skip();

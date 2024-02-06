@@ -2,7 +2,7 @@ import { toArray } from './array';
 import { Logger } from './logger';
 import { windowValue } from './window';
 
-type DebugLogger = (...logContent: any[]) => void;
+type DebugLogger = ((...logContent: any[]) => void) & { check(): boolean };
 
 const LONG_TIME_PERIOD_THRESHOLD = 2000;
 
@@ -18,7 +18,7 @@ const logTimeGap = () => {
 
 export const Debug = {
     create(...debugSelectors: Array<boolean | string>): DebugLogger {
-        return (...logContent: any[]) => {
+        const resultFn = (...logContent: any[]) => {
             if (Debug.check(...debugSelectors)) {
                 if (typeof logContent[0] === 'function') {
                     logContent = toArray(logContent[0]());
@@ -27,6 +27,7 @@ export const Debug = {
                 Logger.log(...logContent);
             }
         };
+        return Object.assign(resultFn, { check: () => Debug.check(...debugSelectors) });
     },
 
     check(...debugSelectors: Array<boolean | string>) {

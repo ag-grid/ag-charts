@@ -271,6 +271,8 @@ export class DataModel<
     K extends keyof D & string = keyof D & string,
     Grouped extends boolean | undefined = undefined,
 > {
+    private readonly debug = Debug.create(true, 'data-model');
+
     private readonly opts: DataModelOptions<K, Grouped>;
     private readonly keys: InternalDatumPropertyDefinition<K>[];
     private readonly values: InternalDatumPropertyDefinition<K>[];
@@ -527,7 +529,7 @@ export class DataModel<
         const end = performance.now();
         processedData.time = end - start;
 
-        if (Debug.check(true, 'data-model')) {
+        if (this.debug.check()) {
             logProcessedData(processedData);
         }
 

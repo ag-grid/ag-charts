@@ -511,6 +511,10 @@ export class Scene {
     buildTree(node: Node): { name?: string; node?: any; dirty?: string; virtualParent?: Node } {
         const name = (node instanceof Group ? node.name : null) ?? node.id;
 
+        if (!this.debug.check()) {
+            return {};
+        }
+
         return {
             name,
             node,
