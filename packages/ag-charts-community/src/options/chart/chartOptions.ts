@@ -104,6 +104,13 @@ export interface AgChartHighlightOptions {
     range?: AgChartHighlightRange;
 }
 
+export interface AgChartSyncOptions {
+    enabled?: boolean;
+    groupId?: string;
+    axes?: 'x' | 'y' | 'xy';
+    zoom?: boolean;
+}
+
 export interface AgBaseThemeableChartOptions<TDatum = any> {
     /** The width of the chart in pixels. */
     width?: PixelSize;
@@ -147,6 +154,8 @@ export interface AgBaseThemeableChartOptions<TDatum = any> {
     zoom?: AgZoomOptions;
     /** Configuration for the Navigator. */
     navigator?: AgNavigatorOptions;
+    // /** Configuration for synchronizing multiple charts. */
+    // sync?: AgChartSyncOptions;
     /** A map of event names to event listeners. */
     listeners?: AgBaseChartListeners<TDatum>;
 }

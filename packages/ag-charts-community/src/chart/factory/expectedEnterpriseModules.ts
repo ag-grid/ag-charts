@@ -15,6 +15,7 @@ export const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
         optionsInnerKey: 'image',
     },
     { type: 'root', optionsKey: 'contextMenu', chartTypes: ['cartesian', 'polar', 'hierarchy'] },
+    { type: 'root', optionsKey: 'sync', chartTypes: ['cartesian'] },
     { type: 'root', optionsKey: 'zoom', chartTypes: ['cartesian'] },
     {
         type: 'legend',
