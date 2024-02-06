@@ -1107,7 +1107,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     });
     protected handlePointer(event: InteractionEvent<'hover'>) {
-        if (this.interactionManager.state !== InteractionState.Default) {
+        if (this.interactionManager.getState() !== InteractionState.Default) {
             return;
         }
 

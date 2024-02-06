@@ -77,11 +77,14 @@ const CSS = `
 
 type SupportedEvent = MouseEvent | TouchEvent | Event;
 
+// These interaction state are both bitflags and priorities.
+// Smaller numbers have higher priority, because it is possible to find the least
+// significant bit in O(1) complexity using a bitwise operation.
 export enum InteractionState {
-    Default = 1,
-    ZoomDrag = 2,
-    ContextMenu = 4,
-    Animation = 8,
+    Default = 8,
+    ZoomDrag = 4,
+    ContextMenu = 2,
+    Animation = 1,
     All = Default | ZoomDrag | ContextMenu | Animation,
 }
 
@@ -106,8 +109,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     private touchDown = false;
     private dragStartElement?: HTMLElement;
 
-    private stateQueue: Set<InteractionState> = new Set();
-    public state: InteractionState = InteractionState.Default;
+    private stateQueue: InteractionState = InteractionState.Default;
 
     public constructor(element: HTMLElement, document: Document, window: Window) {
         super();
@@ -155,24 +157,24 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         triggeringStates: InteractionState = InteractionState.Default
     ) {
         return super.addListener(type, (e) => {
-            if (this.state & triggeringStates) {
+            const currentState = this.getState();
+            if (currentState & triggeringStates) {
                 handler(e);
             }
         });
     }
 
     public pushState(state: InteractionState) {
-        this.stateQueue.add(state);
-        this.updateCurrentState();
+        this.stateQueue |= state;
     }
 
     public popState(state: InteractionState) {
-        this.stateQueue.delete(state);
-        this.updateCurrentState();
+        this.stateQueue &= ~state;
     }
 
-    private updateCurrentState() {
-        this.state = Array.from(this.stateQueue).reduce((max, s) => Math.max(max, s), InteractionState.Default);
+    public getState() {
+        // Bitwise operation to get the least significant bit:
+        return this.stateQueue & -this.stateQueue;
     }
 
     private processEvent(event: SupportedEvent) {
