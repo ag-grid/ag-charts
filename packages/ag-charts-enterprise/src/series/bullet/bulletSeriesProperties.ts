@@ -44,7 +44,7 @@ class TargetStyle extends BaseProperties {
 
 class BulletScale extends BaseProperties {
     @Validate(POSITIVE_NUMBER, { optional: true })
-    max?: number; // alias for AgChartOptions.axes[0].max
+    max?: number;
 }
 
 export class BulletColorRange extends BaseProperties {

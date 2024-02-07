@@ -15,7 +15,10 @@ export const BULLET_SERIES_THEME = {
     },
     axes: {
         [_Theme.CARTESIAN_AXIS_TYPE.NUMBER]: {
-            crosshair: { enabled: false },
+            nice: false,
+            crosshair: {
+                enabled: false,
+            },
         },
     },
 };

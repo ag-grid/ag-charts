@@ -405,7 +405,7 @@ describe('BulletSeries', () => {
             await compare(chart, ctx);
         });
 
-        test('warning negative max', async () => {
+        test('warning negative max, ignore max', async () => {
             chart = AgCharts.create({
                 ...opts,
                 series: [{ type: 'bullet', data: [{ v: 11 }], valueKey: 'v', scale: { max: -1 } }],

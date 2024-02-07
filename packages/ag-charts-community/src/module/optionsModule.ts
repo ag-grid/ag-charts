@@ -151,7 +151,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     protected getOptionsDefaults(options: T) {
         const optionsType = this.optionsType(options);
-        const seriesDefaults = getSeriesDefaults<T>(optionsType, options.series![0]) ?? {};
+        const seriesDefaults = getSeriesDefaults<T>(optionsType);
 
         if (isDefaultAxisSwapNeeded(options)) {
             this.swapAxesPosition(seriesDefaults);

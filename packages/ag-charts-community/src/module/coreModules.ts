@@ -85,9 +85,7 @@ export interface SeriesModule<SeriesType extends RequiredSeriesType = RequiredSe
     identifier: SeriesType;
     instanceConstructor: SeriesConstructor;
 
-    seriesDefaults:
-        | ExtensibleDefaults<SeriesType>
-        | ((opts: SeriesOptions<SeriesType>) => ExtensibleDefaults<SeriesType>);
+    seriesDefaults: ExtensibleDefaults<SeriesType>;
     themeTemplate: ExtensibleTheme<SeriesType>;
     enterpriseThemeTemplate?: ExtensibleTheme<SeriesType>;
     paletteFactory?: SeriesPaletteFactory<SeriesType>;
