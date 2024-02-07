@@ -202,7 +202,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         if (!this.enabled || !this.paddedRect || !this.seriesRect) return;
 
         this.ctx.interactionManager.pushState(_ModuleSupport.InteractionState.ZoomDrag);
-        console.log(event);
 
         const sourceEvent = event.sourceEvent as DragEvent;
 
