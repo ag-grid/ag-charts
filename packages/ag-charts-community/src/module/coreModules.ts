@@ -6,17 +6,17 @@ import type { BaseModule, ModuleInstance } from './baseModule';
 import type { SeriesPaletteFactory } from './coreModulesTypes';
 import type { ModuleContext } from './moduleContext';
 
-export type AxisConstructor = new (moduleContext: ModuleContext) => ChartAxis;
-export type SeriesConstructor = new (moduleContext: ModuleContext) => Series<any>;
-export type LegendConstructor = new (moduleContext: ModuleContext) => ChartLegend;
+export type ModuleInstanceConstructor<M> = new (moduleContext: ModuleContext) => M;
+export type AxisConstructor = ModuleInstanceConstructor<ChartAxis>;
+export type SeriesConstructor = ModuleInstanceConstructor<Series<any>>;
+export type LegendConstructor = ModuleInstanceConstructor<ChartLegend>;
 
 export interface RootModule<M extends ModuleInstance = ModuleInstance> extends BaseModule {
     type: 'root';
 
-    instanceConstructor: new (ctx: ModuleContext) => M;
+    instanceConstructor: ModuleInstanceConstructor<M>;
 
     themeTemplate?: {};
-    conflicts?: Array<keyof AgChartOptions>;
 }
 
 export interface AxisModule extends BaseModule {
