@@ -6,6 +6,7 @@ import type {
     AgDonutSeriesTooltipRendererParams,
 } from '../../../options/series/polar/donutOptions';
 import { DropShadow } from '../../../scene/dropShadow';
+import { Logger } from '../../../util/logger';
 import { BaseProperties, PropertiesArray } from '../../../util/properties';
 import {
     BOOLEAN,
@@ -90,6 +91,20 @@ class DonutSeriesCalloutLine extends BaseProperties {
 }
 
 export class DonutSeriesProperties extends SeriesProperties<AgDonutSeriesOptions> {
+    override isValid(): boolean {
+        if (!super.isValid()) {
+            return false;
+        } else if (this.innerRadiusRatio == null && this.innerRadiusOffset == null) {
+            Logger.warnOnce(
+                'Either an [innerRadiusRatio] or an [innerRadiusOffset] must be set to render a donut series.'
+            );
+
+            return false;
+        }
+
+        return true;
+    }
+
     @Validate(STRING)
     angleKey!: string;
 

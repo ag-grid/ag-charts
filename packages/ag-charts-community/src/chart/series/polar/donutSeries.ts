@@ -310,13 +310,9 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
 
     async createNodeData() {
         const { id: seriesId, processedData, dataModel, angleScale } = this;
-        const { rotation, innerRadiusRatio, innerRadiusOffset } = this.properties;
+        const { rotation, innerRadiusRatio } = this.properties;
 
-        if (innerRadiusRatio == null && innerRadiusOffset == null) {
-            Logger.warnOnce(
-                'Either an [innerRadiusRatio] or an [innerRadiusOffset] must be set to render a donut series.'
-            );
-
+        if (!this.properties.isValid()) {
             this.zerosumOuterRing.visible = true;
             this.zerosumInnerRing.visible = true;
 
@@ -1298,7 +1294,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
         const { processedData, dataModel } = this;
 
-        if (!dataModel || !processedData?.data.length || legendType !== 'category') {
+        if (!dataModel || !processedData?.data.length || !this.properties.isValid() || legendType !== 'category') {
             return [];
         }
 
