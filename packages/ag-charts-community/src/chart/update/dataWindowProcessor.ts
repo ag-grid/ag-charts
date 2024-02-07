@@ -2,7 +2,7 @@ import { ChartUpdateType } from '../chartUpdateType';
 import type { DataService } from '../data/dataService';
 import type { ZoomManager } from '../interaction/zoomManager';
 import type { UpdateService } from '../updateService';
-import type { ChartLike, UpdateProcessor } from './processor';
+import type { AxisLike, ChartLike, UpdateProcessor } from './processor';
 
 interface AxisDomain {
     id: string;
@@ -47,8 +47,9 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
         if (!this.dataService.isLazy()) {
             return;
         }
-        const domains = this.getValidAxisDomains();
-        if (domains.length === 0) {
+        const axes = this.getValidAxes();
+        const domains = this.getAxisDomains(axes);
+        if (axes.length > 0 && domains.length === 0) {
             return;
         }
         this.dirty = false;
@@ -57,12 +58,14 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
         this.updateService.update(ChartUpdateType.UPDATE_DATA);
     }
 
-    private getValidAxisDomains() {
+    private getValidAxes() {
+        return this.chart.axes.filter((axis) => axis.type === 'time');
+    }
+
+    private getAxisDomains(axes: Array<AxisLike>) {
         const domains: Array<AxisDomain> = [];
 
-        for (const axis of this.chart.axes) {
-            if (axis.type !== 'time') continue;
-
+        for (const axis of axes) {
             const zoom = this.zoomManager.getAxisZoom(axis.id);
             const domain = axis.scale.getDomain?.();
 
