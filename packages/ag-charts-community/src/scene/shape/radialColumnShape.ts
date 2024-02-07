@@ -227,6 +227,10 @@ export function getRadialColumnWidth(
     startAngle += pad;
     endAngle -= pad;
 
+    if (rotation < 1e-3) {
+        return 2 * axisOuterRadius * maxColumnWidthRatio;
+    }
+
     if (rotation >= 2 * Math.PI) {
         const midAngle = startAngle + rotation / 2;
         startAngle = midAngle - Math.PI;
