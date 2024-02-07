@@ -13,7 +13,7 @@ import {
     UNION,
     Validate,
 } from '../../util/validation';
-import type { InteractionEvent } from '../interaction/interactionManager';
+import type { InteractionEvent, PointerData } from '../interaction/interactionManager';
 
 const DEFAULT_TOOLTIP_CLASS = 'ag-chart-tooltip';
 const DEFAULT_TOOLTIP_DARK_CLASS = 'ag-chart-dark-tooltip';
@@ -141,18 +141,13 @@ const defaultTooltipCss = `
 }
 `;
 
-export interface TooltipMeta {
-    pageX: number;
-    pageY: number;
-    offsetX: number;
-    offsetY: number;
+export type TooltipMeta = PointerData & {
     showArrow?: boolean;
     position?: {
         xOffset?: number;
         yOffset?: number;
     };
     enableInteraction?: boolean;
-    event: InteractionEvent<'hover'>;
     addCustomClass?: boolean;
 }
 

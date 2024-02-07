@@ -3,7 +3,7 @@ import type { HdpiCanvas } from '../../scene/canvas/hdpiCanvas';
 import type { Point } from '../../scene/point';
 import type { ErrorBoundSeriesNodeDatum, SeriesNodeDatum } from '../series/seriesTypes';
 import type { Tooltip, TooltipMeta } from '../tooltip/tooltip';
-import type { InteractionEvent, InteractionManager } from './interactionManager';
+import type { InteractionEvent, InteractionManager, PointerData } from './interactionManager';
 
 interface TooltipState {
     content: string;
@@ -115,7 +115,7 @@ export class TooltipManager {
     }
 
     public static makeTooltipMeta(
-        event: InteractionEvent<'hover'>,
+        event: PointerData,
         canvas: HdpiCanvas,
         datum: SeriesNodeDatum & Pick<ErrorBoundSeriesNodeDatum, 'yBar'>,
         window: Window
@@ -131,7 +131,6 @@ export class TooltipManager {
             pageY,
             offsetX,
             offsetY,
-            event,
             showArrow: tooltip.showArrow,
             position,
         };
