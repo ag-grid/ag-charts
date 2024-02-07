@@ -4,6 +4,7 @@ import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
 import { ActionOnSet, ObserveChanges, ProxyProperty } from '../../util/proxy';
 import { BOOLEAN, POSITIVE_NUMBER, Validate } from '../../util/validation';
+import { InteractionState } from '../interaction/interactionManager';
 import type { LayoutCompleteEvent, LayoutContext } from '../layout/layoutService';
 import { RangeHandle } from './shapes/rangeHandle';
 import { RangeMask } from './shapes/rangeMask';
@@ -86,13 +87,12 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
 
         ctx.scene.root?.appendChild(this.rs);
 
-        const { PauseType } = ctx.interactionManager;
-        const interactionOpts = { bypassPause: [PauseType.ANIMATION] };
+        const dragStates = InteractionState.Default | InteractionState.Animation;
         this.destroyFns.push(
-            ctx.interactionManager.addListener('drag-start', (event) => this.onDragStart(event), interactionOpts),
-            ctx.interactionManager.addListener('drag', (event) => this.onDrag(event), interactionOpts),
-            ctx.interactionManager.addListener('hover', (event) => this.onDrag(event), interactionOpts),
-            ctx.interactionManager.addListener('drag-end', () => this.onDragStop(), interactionOpts),
+            ctx.interactionManager.addListener('drag-start', (event) => this.onDragStart(event), dragStates),
+            ctx.interactionManager.addListener('drag', (event) => this.onDrag(event), dragStates),
+            ctx.interactionManager.addListener('hover', (event) => this.onDrag(event), dragStates),
+            ctx.interactionManager.addListener('drag-end', () => this.onDragStop(), dragStates),
             ctx.layoutService.addListener('before-series', (event) => this.layout(event)),
             ctx.layoutService.addListener('layout-complete', (event) => this.layoutComplete(event)),
             () => ctx.scene.root?.removeChild(this.rs),

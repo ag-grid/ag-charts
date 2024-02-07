@@ -230,11 +230,9 @@ export class Legend extends BaseProperties {
 
         this.item.marker.parent = this;
 
-        const { PauseType } = ctx.interactionManager;
-        const interactionOpts = { bypassPause: [PauseType.ANIMATION] };
         this.destroyFns.push(
-            ctx.interactionManager.addListener('click', (e) => this.checkLegendClick(e), interactionOpts),
-            ctx.interactionManager.addListener('dblclick', (e) => this.checkLegendDoubleClick(e), interactionOpts),
+            ctx.interactionManager.addListener('click', (e) => this.checkLegendClick(e)),
+            ctx.interactionManager.addListener('dblclick', (e) => this.checkLegendDoubleClick(e)),
             ctx.interactionManager.addListener('hover', (e) => this.handleLegendMouseMove(e)),
             ctx.layoutService.addListener('start-layout', (e) => this.positionLegend(e.shrinkRect)),
             () => this.detachLegend()

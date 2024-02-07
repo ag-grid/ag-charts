@@ -4,7 +4,7 @@ import { Debug } from '../../util/debug';
 import { Logger } from '../../util/logger';
 import type { Mutex } from '../../util/mutex';
 import { BaseManager } from './baseManager';
-import type { InteractionManager } from './interactionManager';
+import { InteractionManager, InteractionState } from './interactionManager';
 
 type AnimationEventType = 'animation-frame';
 
@@ -78,18 +78,10 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
             onPlay: (controller) => {
                 controllers.set(id, controller);
                 this.requestAnimation();
-                if (disableInteractions) {
-                    const { PauseType } = this.interactionManager;
-                    this.interactionManager.pause(PauseType.ANIMATION);
-                }
                 opts.onPlay?.(controller);
             },
             onStop: (controller) => {
                 controllers.delete(id);
-                if (disableInteractions) {
-                    const { PauseType } = this.interactionManager;
-                    this.interactionManager.resume(PauseType.ANIMATION);
-                }
                 opts.onStop?.(controller);
             },
         });
@@ -218,6 +210,8 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
                     controllersCount: this.batch.controllers.size,
                 });
 
+                this.interactionManager.pushState(InteractionState.Animation);
+
                 for (const controller of this.batch.controllers.values()) {
                     try {
                         controller.update(deltaTime);
@@ -281,6 +275,10 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
                 this.batch.controllers.size
             } animations; skipped: ${this.batch.isSkipped()}.`
         );
+
+        if (!this.batch.isActive()) {
+            this.interactionManager.popState(InteractionState.Animation);
+        }
 
         if (this.batch.isSkipped() && !this.batch.isActive()) {
             this.batch.skip(false);
