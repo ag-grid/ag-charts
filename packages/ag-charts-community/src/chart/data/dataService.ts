@@ -1,11 +1,10 @@
-import { throttleAsyncTrailing } from '../../util/debounceThrottle';
 import { Debug } from '../../util/debug';
+import { throttle } from '../../util/function';
 import { Listeners } from '../../util/listeners';
 import type { AnimationManager } from '../interaction/animationManager';
 
 const DEBUG_SELECTORS = [true, 'data-model', 'data-lazy'];
 
-type UpdateCallback<D extends object> = (data: D[], options: {}) => void;
 type LoadCallback = (params: { axes?: Array<AxisDomain> }) => Promise<unknown>;
 
 export interface AxisDomain {
@@ -15,25 +14,28 @@ export interface AxisDomain {
     max: any;
 }
 
-export class DataService<D extends object> extends Listeners<never, never> {
+type EventType = 'data-load';
+type EventHandler<D extends object> = (event: DataLoadEvent<D>) => void;
+
+export interface DataLoadEvent<D extends object> {
+    type: 'data-load';
+    data: D[];
+}
+
+export class DataService<D extends object> extends Listeners<EventType, EventHandler<D>> {
     private loadCb?: LoadCallback;
     private loading = false;
     private throttleTime = 100;
 
     private readonly debug = Debug.create(...DEBUG_SELECTORS);
 
-    private throttledFetch = throttleAsyncTrailing((axes?: Array<AxisDomain>) => this.fetch(axes), this.throttleTime);
+    private throttledFetch = throttle((axes?: Array<AxisDomain>) => this.fetch(axes), this.throttleTime, {
+        leading: false,
+        trailing: true,
+    });
 
-    constructor(
-        private readonly animationManager: AnimationManager,
-        private readonly updateCallback: UpdateCallback<D>
-    ) {
+    constructor(private readonly animationManager: AnimationManager) {
         super();
-    }
-
-    public update(data: D[], options: {} = {}) {
-        if (data == null) return;
-        this.updateCallback(data, options);
     }
 
     public init(loadOrData: LoadCallback | any): any {
@@ -48,8 +50,8 @@ export class DataService<D extends object> extends Listeners<never, never> {
         return [];
     }
 
-    public async load(axes: Array<AxisDomain>): Promise<D[]> {
-        return this.throttledFetch(axes);
+    public async load(axes: Array<AxisDomain>) {
+        this.throttledFetch(axes);
     }
 
     public isLazy() {
@@ -60,7 +62,7 @@ export class DataService<D extends object> extends Listeners<never, never> {
         return this.isLazy() && this.loading;
     }
 
-    private async fetch(axes?: Array<AxisDomain>): Promise<D[]> {
+    private async fetch(axes?: Array<AxisDomain>) {
         this.debug('DataLazyLoader.fetch() - start');
         const start = performance.now();
 
@@ -76,11 +78,11 @@ export class DataService<D extends object> extends Listeners<never, never> {
 
             this.loading = false;
 
-            if (Array.isArray(response)) {
-                return response;
+            if (!Array.isArray(response)) {
+                throw new Error(`lazy data was bad: ${response}`);
             }
 
-            throw new Error(`lazy data was bad: ${response}`);
+            this.dispatch('data-load', { type: 'data-load', data: response });
         } catch (error) {
             throw new Error(`lazy data errored: ${error}`);
         }

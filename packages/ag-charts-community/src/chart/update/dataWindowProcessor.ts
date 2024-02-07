@@ -1,5 +1,5 @@
 import { ChartUpdateType } from '../chartUpdateType';
-import type { DataService } from '../data/dataService';
+import type { DataLoadEvent, DataService } from '../data/dataService';
 import type { ZoomManager } from '../interaction/zoomManager';
 import type { UpdateService } from '../updateService';
 import type { AxisLike, ChartLike, UpdateProcessor } from './processor';
@@ -24,6 +24,7 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
         private readonly zoomManager: ZoomManager
     ) {
         this.destroyFns.push(
+            this.dataService.addListener('data-load', (event) => this.onDataLoad(event)),
             this.updateService.addListener('update-complete', () => this.onUpdateComplete()),
             this.zoomManager.addListener('zoom-change', () => this.onZoomChange())
         );
@@ -31,6 +32,10 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
 
     public destroy() {
         this.destroyFns.forEach((cb) => cb());
+    }
+
+    private onDataLoad(_event: DataLoadEvent<D>) {
+        this.updateService.update(ChartUpdateType.UPDATE_DATA);
     }
 
     private onUpdateComplete() {
@@ -53,9 +58,7 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
             return;
         }
         this.dirty = false;
-        const data = await this.dataService.load(domains);
-        this.dataService.update(data);
-        this.updateService.update(ChartUpdateType.UPDATE_DATA);
+        this.dataService.load(domains);
     }
 
     private getValidAxes() {
