@@ -66,7 +66,7 @@ export interface AgBoxPlotSeriesThemeableOptions<TDatum = any>
      */
     direction?: 'horizontal' | 'vertical';
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgCartesianSeriesTooltipRendererParams>;
+    tooltip?: AgSeriesTooltip<AgBoxPlotSeriesTooltipRendererParams>;
     /** Function used to return formatting for individual columns, based on the given parameters. If the current column is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     formatter?: (params: AgBoxPlotSeriesFormatterParams<TDatum>) => AgBoxPlotSeriesStyles;
 }
