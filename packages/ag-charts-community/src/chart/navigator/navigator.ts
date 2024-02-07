@@ -4,8 +4,9 @@ import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
 import { ActionOnSet, ObserveChanges, ProxyProperty } from '../../util/proxy';
 import { BOOLEAN, POSITIVE_NUMBER, Validate } from '../../util/validation';
+import type { DataController } from '../data/dataController';
 import { InteractionState } from '../interaction/interactionManager';
-import type { LayoutCompleteEvent, LayoutContext } from '../layout/layoutService';
+import { MiniChart } from './miniChart';
 import { RangeHandle } from './shapes/rangeHandle';
 import { RangeMask } from './shapes/rangeMask';
 import { RangeSelector } from './shapes/rangeSelector';
@@ -17,6 +18,8 @@ interface Offset {
 
 export class Navigator extends BaseModuleInstance implements ModuleInstance {
     private readonly rs = new RangeSelector();
+
+    private miniChartInstance: MiniChart | undefined = undefined;
 
     private minHandleDragging = false;
     private maxHandleDragging = false;
@@ -43,11 +46,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     @ProxyProperty('rs.maxHandle')
     maxHandle!: RangeHandle;
 
-    @ProxyProperty('rs.width')
-    width?: number;
-
-    @ProxyProperty('rs.height')
-    height?: number;
+    height: number = 30;
 
     @ProxyProperty('rs.min')
     min!: number;
@@ -61,6 +60,22 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     @Validate(BOOLEAN)
     @ObserveChanges<Navigator>((target) => target.updateGroupVisibility())
     visible: boolean = true;
+
+    @Validate(BOOLEAN)
+    @ObserveChanges<Navigator, boolean>((target, value) => {
+        if (target.miniChartInstance != null) {
+            target.rs.background.removeChild(target.miniChartInstance.root);
+        }
+
+        if (value) {
+            const miniChartInstance = new MiniChart(target.ctx);
+            target.rs.background.appendChild(miniChartInstance.root);
+            target.miniChartInstance = miniChartInstance;
+        } else {
+            target.miniChartInstance = undefined;
+        }
+    })
+    miniChart: boolean = false;
 
     private updateGroupVisibility() {
         const visible = this.enabled && this.visible;
@@ -93,8 +108,6 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             ctx.interactionManager.addListener('drag', (event) => this.onDrag(event), dragStates),
             ctx.interactionManager.addListener('hover', (event) => this.onDrag(event), dragStates),
             ctx.interactionManager.addListener('drag-end', () => this.onDragStop(), dragStates),
-            ctx.layoutService.addListener('before-series', (event) => this.layout(event)),
-            ctx.layoutService.addListener('layout-complete', (event) => this.layoutComplete(event)),
             () => ctx.scene.root?.removeChild(this.rs),
             () => this.ctx.zoomManager.updateZoom('navigator')
         );
@@ -102,22 +115,49 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         this.updateGroupVisibility();
     }
 
-    private layout({ shrinkRect }: LayoutContext) {
+    async updateData(opts: { data: any }): Promise<void> {
+        await this.miniChartInstance?.updateData(opts);
+    }
+
+    async processData(opts: { dataController: DataController }): Promise<void> {
+        await this.miniChartInstance?.processData(opts);
+    }
+
+    private x = 0;
+    private y = 0;
+    private width = 0;
+
+    async performLayout({ shrinkRect }: { shrinkRect: BBox }): Promise<{ shrinkRect: BBox }> {
         if (this.enabled) {
-            const navigatorTotalHeight = this.rs.height + this.margin;
+            const navigatorTotalHeight = this.height + this.margin;
             shrinkRect.shrink(navigatorTotalHeight, 'bottom');
-            this.rs.y = shrinkRect.y + shrinkRect.height + this.margin;
+            this.y = shrinkRect.y + shrinkRect.height + this.margin;
+        } else {
+            this.y = 0;
         }
 
         return { shrinkRect };
     }
 
-    private layoutComplete({ series: { rect, visible } }: LayoutCompleteEvent) {
+    async performCartesianLayout(opts: { seriesRect: BBox }): Promise<void> {
+        const { x, width } = opts.seriesRect;
+        const visible = true;
         if (this.enabled && visible) {
-            this.rs.x = rect.x;
-            this.rs.width = rect.width;
+            const { y, height } = this;
+            this.rs.layout(x, y, width, height);
+
+            if (this.miniChartInstance != null) {
+                this.miniChartInstance.width = width;
+                this.miniChartInstance.height = height;
+
+                await this.miniChartInstance.performCartesianLayout();
+            }
         }
+
         this.visible = visible;
+
+        this.x = x;
+        this.width = width;
     }
 
     private onDragStart(offset: Offset) {
@@ -127,7 +167,8 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
 
         const { offsetX, offsetY } = offset;
         const { rs } = this;
-        const { minHandle, maxHandle, x, width, min } = rs;
+        const { minHandle, maxHandle, min } = rs;
+        const { x, width } = this;
         const visibleRange = rs.computeVisibleRangeBBox();
 
         if (!(this.minHandleDragging || this.maxHandleDragging)) {
@@ -147,7 +188,8 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         }
 
         const { rs, panHandleOffset } = this;
-        const { x, y, width, height, minHandle, maxHandle } = rs;
+        const { minHandle, maxHandle } = rs;
+        const { x, y, width, height } = this;
         const { offsetX, offsetY } = offset;
         const minX = x + width * rs.min;
         const maxX = x + width * rs.max;

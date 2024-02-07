@@ -919,6 +919,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
     async updateData() {
         const data = this.dataService.init(this.data);
         this.series.forEach((s) => s.setChartData(data));
+
+        const modulePromises = Array.from(this.modules.values(), (m) => m.updateData?.({ data: this.data }));
+        await Promise.all(modulePromises);
     }
 
     async processData() {
@@ -935,8 +938,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const dataController = new DataController(this.mode);
 
         const seriesPromises = this.series.map((s) => s.processData(dataController));
+        const modulePromises = Array.from(this.modules.values(), (m) => m.processData?.({ dataController }));
         dataController.execute();
-        await Promise.all(seriesPromises);
+        await Promise.all([...seriesPromises, ...modulePromises]);
 
         await this.updateLegend();
     }
@@ -1034,6 +1038,14 @@ export abstract class Chart extends Observable implements AgChartInstance {
         let ctx = { shrinkRect: new BBox(0, 0, width, height) };
         ctx = this.layoutService.dispatchPerformLayout('start-layout', ctx);
         ctx = this.layoutService.dispatchPerformLayout('before-series', ctx);
+
+        const modulePromises = Array.from(this.modules.values(), async (m) => {
+            if (m.performLayout != null) {
+                ctx = await m.performLayout?.(ctx);
+            }
+        });
+        await Promise.all(modulePromises);
+
         return ctx.shrinkRect;
     }
 

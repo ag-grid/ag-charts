@@ -1,91 +1,249 @@
-import { staticFromToMotion } from '../motion/fromToMotion';
-import type { AgCartesianAxisPosition } from '../options/agChartOptions';
-import type { BBox } from '../scene/bbox';
-import { toRadians } from '../util/angle';
-import { Logger } from '../util/logger';
-import { mapValues } from '../util/object';
-import { CategoryAxis } from './axis/categoryAxis';
-import { GroupedCategoryAxis } from './axis/groupedCategoryAxis';
-import type { ChartSpecialOverrides, TransferableResources } from './chart';
-import { Chart } from './chart';
-import type { ChartAxis } from './chartAxis';
-import { ChartAxisDirection } from './chartAxisDirection';
-import { CartesianSeries } from './series/cartesian/cartesianSeries';
-import type { Series } from './series/series';
+import { toRadians } from '../../integrated-charts-scene';
+import type { ModuleContext } from '../../module-support';
+import type { AgCartesianAxisPosition, AgChartInstance, AgChartOptions } from '../../options/agChartOptions';
+import { BBox } from '../../scene/bbox';
+import { Group } from '../../scene/group';
+import { createId } from '../../util/id';
+import { deepClone } from '../../util/json';
+import { Logger } from '../../util/logger';
+import { mapValues } from '../../util/object';
+import { Observable } from '../../util/observable';
+import { ActionOnSet } from '../../util/proxy';
+import { CategoryAxis } from '../axis/categoryAxis';
+import { GroupedCategoryAxis } from '../axis/groupedCategoryAxis';
+import type { ChartAxis } from '../chartAxis';
+import { ChartAxisDirection } from '../chartAxisDirection';
+import type { DataController } from '../data/dataController';
+import { Layers } from '../layers';
+import type { SeriesOptionsTypes } from '../mapping/types';
+import type { Series } from '../series/series';
 
 type VisibilityMap = { crossLines: boolean; series: boolean };
-const directions: AgCartesianAxisPosition[] = ['top', 'right', 'bottom', 'left'];
 
-export class CartesianChart extends Chart {
-    static className = 'CartesianChart';
+export class MiniChart extends Observable implements AgChartInstance {
+    static className = 'MiniChart';
     static type = 'cartesian';
 
-    /** Integrated Charts feature state - not used in Standalone Charts. */
-    public readonly paired: boolean = true;
+    readonly id = createId(this);
 
-    constructor(specialOverrides: ChartSpecialOverrides, resources?: TransferableResources) {
-        super(specialOverrides, resources);
+    processedOptions: AgChartOptions & { type?: SeriesOptionsTypes['type'] } = {};
+    userOptions: AgChartOptions = {};
+    queuedUserOptions: AgChartOptions[] = [];
+
+    getOptions() {
+        return deepClone(this.queuedUserOptions.at(-1) ?? this.userOptions);
     }
 
-    private firstSeriesTranslation = true;
+    readonly root = new Group({ name: 'root' });
+    readonly seriesRoot = new Group({
+        name: `${this.id}-Series-root`,
+        layer: true,
+        zIndex: Layers.SERIES_LAYER_ZINDEX,
+    });
 
-    override destroySeries(series: Series<any>[]) {
-        super.destroySeries(series);
+    public data: any = [];
 
-        this.firstSeriesTranslation = true;
+    width: number = 0;
+    height: number = 0;
+
+    private _destroyed: boolean = false;
+    private readonly _destroyFns: (() => void)[] = [];
+
+    protected readonly axisGridGroup: Group;
+    protected readonly axisGroup: Group;
+
+    constructor(public ctx: ModuleContext) {
+        super();
+
+        this.root.append(this.seriesRoot);
+
+        this.axisGridGroup = new Group({ name: 'Axes-Grids', layer: true, zIndex: Layers.AXIS_GRID_ZINDEX });
+        this.root.appendChild(this.axisGridGroup);
+
+        this.axisGroup = new Group({ name: 'Axes', layer: true, zIndex: Layers.AXIS_ZINDEX });
+        this.root.appendChild(this.axisGroup);
+
+        this._destroyFns.push();
     }
 
-    override async performLayout() {
-        const shrinkRect = await super.performLayout();
-        const { firstSeriesTranslation, seriesRoot } = this;
+    getModuleContext(): ModuleContext {
+        return this.ctx;
+    }
 
-        const { animationRect, seriesRect, visibility, clipSeries } = this.updateAxes(shrinkRect);
-        this.seriesRoot.visible = visibility.series;
-        this.seriesRect = seriesRect;
-        this.animationRect = animationRect;
+    resetAnimations(): void {}
 
-        const { x, y } = seriesRect;
-        if (firstSeriesTranslation) {
-            // For initial rendering, don't animate.
-            seriesRoot.translationX = Math.floor(x);
-            seriesRoot.translationY = Math.floor(y);
-            this.firstSeriesTranslation = false;
-        } else {
-            // Animate seriesRect movements - typically caused by axis size changes.
-            const { translationX, translationY } = seriesRoot;
-            staticFromToMotion(
-                this.id,
-                'seriesRect',
-                this.animationManager,
-                [this.seriesRoot],
-                { translationX, translationY },
-                { translationX: Math.floor(x), translationY: Math.floor(y) },
-                { phase: 'updated' }
-            );
+    destroy() {
+        if (this._destroyed) {
+            return;
         }
 
-        // Recreate padding object to prevent issues with getters in `BBox.shrink()`
-        const seriesPaddedRect = seriesRect.clone().grow(this.seriesArea.padding);
+        this._destroyFns.forEach((fn) => fn());
 
-        this.hoverRect = seriesPaddedRect;
+        this.destroySeries(this.series);
 
-        this.layoutService.dispatchLayoutComplete({
-            type: 'layout-complete',
-            chart: { width: this.scene.width, height: this.scene.height },
-            clipSeries,
-            series: {
-                rect: seriesRect,
-                paddedRect: seriesPaddedRect,
-                visible: visibility.series,
-                shouldFlipXY: this.shouldFlipXY(),
-            },
-            axes: this.axes.map((axis) => ({ id: axis.id, ...axis.getLayoutState() })),
+        this.axes.forEach((a) => a.destroy());
+        this.axes = [];
+
+        this._destroyed = true;
+    }
+
+    @ActionOnSet<MiniChart>({
+        changeValue(newValue: ChartAxis[], oldValue: ChartAxis[] = []) {
+            for (const axis of oldValue) {
+                if (newValue.includes(axis)) continue;
+                axis.detachAxis(this.axisGroup, this.axisGridGroup);
+                axis.destroy();
+            }
+
+            for (const axis of newValue) {
+                if (oldValue?.includes(axis)) continue;
+                axis.label.enabled = false;
+                axis.attachAxis(this.axisGroup, this.axisGridGroup);
+            }
+        },
+    })
+    axes: ChartAxis[] = [];
+
+    @ActionOnSet<MiniChart>({
+        changeValue(newValue, oldValue) {
+            this.onSeriesChange(newValue, oldValue);
+        },
+    })
+    series: Series<any>[] = [];
+
+    private onSeriesChange(newValue: Series<any>[], oldValue?: Series<any>[]) {
+        const seriesToDestroy = oldValue?.filter((series) => !newValue.includes(series)) ?? [];
+        this.destroySeries(seriesToDestroy);
+
+        for (const series of newValue) {
+            if (oldValue?.includes(series)) continue;
+
+            this.seriesRoot.appendChild(series.rootGroup);
+
+            const chart = this;
+            series.chart = {
+                get mode() {
+                    return 'standalone' as const;
+                },
+                get seriesRect() {
+                    return chart.seriesRect;
+                },
+                placeLabels() {
+                    return new Map();
+                },
+            };
+
+            series.resetAnimation('initial');
+            series.addChartEventListeners();
+        }
+    }
+
+    protected destroySeries(series: Series<any>[]): void {
+        series?.forEach((series) => {
+            series.destroy();
+
+            series.chart = undefined;
+        });
+    }
+
+    protected assignSeriesToAxes() {
+        this.axes.forEach((axis) => {
+            axis.boundSeries = this.series.filter((s) => {
+                const seriesAxis = s.axes[axis.direction];
+                return seriesAxis === axis;
+            });
+        });
+    }
+
+    protected assignAxesToSeries() {
+        // This method has to run before `assignSeriesToAxes`.
+        const directionToAxesMap: { [key in ChartAxisDirection]?: ChartAxis[] } = {};
+
+        this.axes.forEach((axis) => {
+            const direction = axis.direction;
+            const directionAxes = (directionToAxesMap[direction] ??= []);
+            directionAxes.push(axis);
         });
 
-        const modulePromises = Array.from(this.modules.values(), (m) => m.performCartesianLayout?.({ seriesRect }));
-        await Promise.all(modulePromises);
+        this.series.forEach((series) => {
+            series.directions.forEach((direction) => {
+                const directionAxes = directionToAxesMap[direction];
+                if (!directionAxes) {
+                    Logger.warnOnce(
+                        `no available axis for direction [${direction}]; check series and axes configuration.`
+                    );
+                    return;
+                }
 
-        return shrinkRect;
+                const seriesKeys = series.getKeys(direction);
+                const newAxis = this.findMatchingAxis(directionAxes, seriesKeys);
+                if (!newAxis) {
+                    Logger.warnOnce(
+                        `no matching axis for direction [${direction}] and keys [${seriesKeys}]; check series and axes configuration.`
+                    );
+                    return;
+                }
+
+                series.axes[direction] = newAxis;
+            });
+        });
+    }
+
+    private findMatchingAxis(directionAxes: ChartAxis[], directionKeys?: string[]): ChartAxis | undefined {
+        for (const axis of directionAxes) {
+            if (!axis.keys.length) {
+                return axis;
+            }
+
+            if (!directionKeys) {
+                continue;
+            }
+
+            for (const directionKey of directionKeys) {
+                if (axis.keys.includes(directionKey)) {
+                    return axis;
+                }
+            }
+        }
+    }
+
+    async updateData(opts: { data: any }) {
+        this.series.forEach((s) => s.setChartData(opts.data));
+    }
+
+    async processData(opts: { dataController: DataController }) {
+        if (this.series.some((s) => s.canHaveAxes)) {
+            this.assignAxesToSeries();
+            this.assignSeriesToAxes();
+        }
+
+        const seriesPromises = this.series.map((s) => s.processData(opts.dataController));
+        await Promise.all(seriesPromises);
+    }
+
+    async performCartesianLayout() {
+        const { width, height } = this;
+        const shrinkRect = new BBox(0, 0, width, height);
+
+        const { seriesRect, visibility } = this.updateAxes(shrinkRect);
+        this.seriesRoot.visible = visibility.series;
+        this.seriesRect = seriesRect;
+
+        await Promise.all(this.series.map((series) => series.update({ seriesRect })));
+    }
+
+    // Should be available after the first layout.
+    protected seriesRect?: BBox;
+
+    protected getMinRect() {
+        const minRects = this.series.map((series) => series.getMinRect()).filter((rect) => rect !== undefined);
+        if (!minRects.length) return undefined;
+        return new BBox(
+            0,
+            0,
+            minRects.reduce((max, rect) => Math.max(max, rect!.width), 0),
+            minRects.reduce((max, rect) => Math.max(max, rect!.height), 0)
+        );
     }
 
     private _lastCrossLineIds?: string[] = undefined;
@@ -249,7 +407,7 @@ export class CartesianChart extends Chart {
         let clipSeries = false;
         const primaryTickCounts: Partial<Record<ChartAxisDirection, number>> = {};
 
-        const paddedBounds = this.applySeriesPadding(bounds);
+        const paddedBounds = bounds.clone(); // Refactor
         const crossLinePadding = lastPassSeriesRect ? this.buildCrossLinePadding(axisWidths) : {};
         const axisBound = this.buildAxisBound(paddedBounds, axisWidths, crossLinePadding, visibility);
         const seriesRect = this.buildSeriesRect(axisBound, axisWidths);
@@ -307,21 +465,6 @@ export class CartesianChart extends Chart {
         }
 
         return crossLinePadding;
-    }
-
-    private applySeriesPadding(bounds: BBox) {
-        const paddedRect = bounds.clone();
-        const reversedAxes = this.axes.slice().reverse();
-        directions.forEach((dir) => {
-            const padding = this.seriesArea.padding[dir];
-            const axis = reversedAxes.find((axis) => axis.position === dir);
-            if (axis) {
-                axis.seriesAreaPadding = padding;
-            } else {
-                paddedRect.shrink(padding, dir);
-            }
-        });
-        return paddedRect;
     }
 
     private buildAxisBound(
@@ -411,9 +554,6 @@ export class CartesianChart extends Chart {
                 break;
         }
 
-        const { min, max } = this.zoomManager.getAxisZoom(axis.id);
-        axis.visibleRange = [min, max];
-
         clipSeries ||= axis.dataDomain.clipped || axis.visibleRange[0] > 0 || axis.visibleRange[1] < 1;
 
         let primaryTickCount = axis.nice ? primaryTickCounts[direction] : undefined;
@@ -500,10 +640,5 @@ export class CartesianChart extends Chart {
         }
 
         axis.updatePosition({ rotation: toRadians(axis.rotation), sideFlag: axis.label.getSideFlag() });
-    }
-
-    private shouldFlipXY() {
-        // Only flip the xy axes if all the series agree on flipping
-        return !this.series.some((series) => !(series instanceof CartesianSeries && series.shouldFlipXY()));
     }
 }
