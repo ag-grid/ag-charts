@@ -13,7 +13,7 @@ import { AXIS_TYPES, getAxisThemeTemplate } from '../factory/axisTypes';
 import { CHART_TYPES, type ChartType, getChartDefaults } from '../factory/chartTypes';
 import { getLegendThemeTemplates } from '../factory/legendTypes';
 import { getSeriesThemeTemplate } from '../factory/seriesTypes';
-import { FONT_SIZE, FONT_WEIGHT, POSITION } from './constants';
+import { CARTESIAN_AXIS_TYPE, FONT_SIZE, FONT_WEIGHT, POSITION } from './constants';
 import { DEFAULT_FILLS, DEFAULT_STROKES } from './defaultColors';
 import {
     DEFAULT_AXIS_GRID_COLOUR,
@@ -96,8 +96,8 @@ export class ChartTheme {
 
     readonly config: any;
 
-    private static getAxisDefaults() {
-        return {
+    private static getAxisDefaults(overrideDefaults?: object) {
+        return mergeDefaults(overrideDefaults, {
             top: {},
             right: {},
             bottom: {},
@@ -106,21 +106,16 @@ export class ChartTheme {
                 enabled: false,
                 text: 'Axis Title',
                 spacing: 25,
-                fontStyle: undefined,
                 fontWeight: FONT_WEIGHT.NORMAL,
                 fontSize: FONT_SIZE.MEDIUM,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: DEFAULT_LABEL_COLOUR,
             },
             label: {
-                fontStyle: undefined,
-                fontWeight: undefined,
                 fontSize: FONT_SIZE.SMALL,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 padding: 5,
-                rotation: undefined,
                 color: DEFAULT_LABEL_COLOUR,
-                formatter: undefined,
                 avoidCollisions: true,
             },
             line: {
@@ -150,22 +145,19 @@ export class ChartTheme {
                 strokeWidth: 1,
                 label: {
                     enabled: false,
-                    fontStyle: undefined,
-                    fontWeight: undefined,
                     fontSize: FONT_SIZE.SMALL,
                     fontFamily: DEFAULT_FONT_FAMILY,
                     padding: 5,
                     color: DEFAULT_LABEL_COLOUR,
                 },
             },
-        };
+        });
     }
 
     private static getSeriesDefaults() {
         return {
             tooltip: {
                 enabled: true,
-                renderer: undefined,
             },
             visible: true,
             showInLegend: true,
@@ -192,13 +184,11 @@ export class ChartTheme {
             shape: 'circle',
             size: 7,
             strokeWidth: 1,
-            formatter: undefined,
         };
     }
 
     private static getLegendItemMarkerDefaults() {
         return {
-            shape: undefined,
             size: 15,
             padding: 8,
         };
@@ -223,7 +213,6 @@ export class ChartTheme {
             title: {
                 enabled: false,
                 text: 'Title',
-                fontStyle: undefined,
                 fontWeight: FONT_WEIGHT.NORMAL,
                 fontSize: FONT_SIZE.LARGE,
                 fontFamily: DEFAULT_FONT_FAMILY,
@@ -234,8 +223,6 @@ export class ChartTheme {
                 enabled: false,
                 text: 'Subtitle',
                 spacing: 20,
-                fontStyle: undefined,
-                fontWeight: undefined,
                 fontSize: FONT_SIZE.MEDIUM,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: DEFAULT_MUTED_LABEL_COLOUR,
@@ -245,8 +232,6 @@ export class ChartTheme {
                 enabled: false,
                 text: 'Footnote',
                 spacing: 20,
-                fontStyle: undefined,
-                fontWeight: undefined,
                 fontSize: FONT_SIZE.MEDIUM,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: 'rgb(140, 140, 140)',
@@ -263,11 +248,8 @@ export class ChartTheme {
                     toggleSeriesVisible: true,
                     label: {
                         color: DEFAULT_LABEL_COLOUR,
-                        fontStyle: undefined,
-                        fontWeight: undefined,
                         fontSize: FONT_SIZE.SMALL,
                         fontFamily: DEFAULT_FONT_FAMILY,
-                        formatter: undefined,
                     },
                 },
                 reverseOrder: false,
@@ -308,43 +290,32 @@ export class ChartTheme {
     }
 
     private static readonly cartesianAxisDefault = {
-        number: {
-            ...ChartTheme.getAxisDefaults(),
+        [CARTESIAN_AXIS_TYPE.NUMBER]: ChartTheme.getAxisDefaults({
             line: {
-                ...ChartTheme.getAxisDefaults().line,
                 enabled: false,
             },
-        },
-        log: {
-            ...ChartTheme.getAxisDefaults(),
+        }),
+        [CARTESIAN_AXIS_TYPE.LOG]: ChartTheme.getAxisDefaults({
             base: 10,
             line: {
-                ...ChartTheme.getAxisDefaults().line,
                 enabled: false,
             },
-        },
-        category: {
-            ...ChartTheme.getAxisDefaults(),
+        }),
+        [CARTESIAN_AXIS_TYPE.CATEGORY]: ChartTheme.getAxisDefaults({
             groupPaddingInner: 0.1,
             label: {
-                ...ChartTheme.getAxisDefaults().label,
                 autoRotate: true,
             },
             gridLine: {
-                ...ChartTheme.getAxisDefaults().gridLine,
                 enabled: false,
             },
-        },
-        'grouped-category': {
-            ...ChartTheme.getAxisDefaults(),
-        },
-        time: {
-            ...ChartTheme.getAxisDefaults(),
+        }),
+        [CARTESIAN_AXIS_TYPE.TIME]: ChartTheme.getAxisDefaults({
             gridLine: {
-                ...ChartTheme.getAxisDefaults().gridLine,
                 enabled: false,
             },
-        },
+        }),
+        'grouped-category': ChartTheme.getAxisDefaults(),
     };
 
     constructor(options?: AgChartTheme) {
@@ -406,6 +377,7 @@ export class ChartTheme {
     private getDefaults(): AgChartThemeOverrides {
         const getChartTypeDefaults = (chartType: ChartType) => {
             return {
+                axes: {},
                 ...getLegendThemeTemplates(),
                 ...ChartTheme.getChartDefaults(),
                 ...getChartDefaults(chartType),
@@ -416,19 +388,18 @@ export class ChartTheme {
             const chartDefaults = getChartTypeDefaults(chartType) as any;
             const result: Record<string, { series?: {}; axes?: {} }> = {};
             for (const seriesType of seriesTypes) {
-                result[seriesType] ??= deepClone(chartDefaults);
-                const axes: Record<string, {}> = (result[seriesType].axes ??= {});
-
-                result[seriesType].series = mergeDefaults(
+                result[seriesType] = mergeDefaults(
                     getSeriesThemeTemplate(seriesType),
-                    result[seriesType].series
+                    result[seriesType] ?? deepClone(chartDefaults)
                 );
+
+                const { axes } = result[seriesType] as { axes: Record<string, {}> };
 
                 for (const axisType of AXIS_TYPES.axesTypes) {
                     axes[axisType] = mergeDefaults(
+                        axes[axisType],
                         getAxisThemeTemplate(axisType),
-                        chartType === 'cartesian' && (ChartTheme.cartesianAxisDefault as any)[axisType],
-                        axes[axisType]
+                        chartType === 'cartesian' && (ChartTheme.cartesianAxisDefault as any)[axisType]
                     );
                 }
             }

@@ -4,8 +4,6 @@ import { RATIO, UNION, Validate } from '../../util/validation';
 import { Axis } from './axis';
 import type { TickInterval } from './axisTick';
 
-export const POLAR_AXIS_SHAPE = UNION(['polygon', 'circle'], 'a polar axis shape');
-
 export interface PolarAxisPathPoint {
     x: number;
     y: number;
@@ -22,7 +20,7 @@ export abstract class PolarAxis<
     gridAngles: number[] | undefined;
     gridRange: number[] | undefined;
 
-    @Validate(POLAR_AXIS_SHAPE)
+    @Validate(UNION(['polygon', 'circle'], 'a polar axis shape'))
     shape: 'polygon' | 'circle' = 'polygon';
 
     @Validate(RATIO)

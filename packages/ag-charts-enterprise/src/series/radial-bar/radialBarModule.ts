@@ -1,6 +1,5 @@
-import type { _ModuleSupport } from 'ag-charts-community';
+import { type _ModuleSupport, _Theme } from 'ag-charts-community';
 
-import { RADIAL_BAR_DEFAULTS } from './radialBarDefaults';
 import { RadialBarSeries } from './radialBarSeries';
 import { RADIAL_BAR_SERIES_THEME } from './radialBarThemes';
 
@@ -12,7 +11,16 @@ export const RadialBarModule: _ModuleSupport.SeriesModule<'radial-bar'> = {
 
     identifier: 'radial-bar',
     instanceConstructor: RadialBarSeries,
-    seriesDefaults: RADIAL_BAR_DEFAULTS,
+    seriesDefaults: {
+        axes: [
+            {
+                type: _Theme.POLAR_AXIS_TYPE.ANGLE_NUMBER,
+            },
+            {
+                type: _Theme.POLAR_AXIS_TYPE.RADIUS_CATEGORY,
+            },
+        ],
+    },
     themeTemplate: RADIAL_BAR_SERIES_THEME,
     paletteFactory: ({ takeColors }) => {
         const {

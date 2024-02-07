@@ -1,8 +1,7 @@
-import type { _ModuleSupport } from 'ag-charts-community';
+import { type _ModuleSupport, _Theme } from 'ag-charts-community';
 
-import { POLAR_DEFAULTS } from '../polarDefaults';
+import { RADAR_LINE_SERIES_THEME } from '../radar/radarThemes';
 import { RadarLineSeries } from './radarLineSeries';
-import { RADAR_LINE_SERIES_THEME } from './radarLineThemes';
 
 export const RadarLineModule: _ModuleSupport.SeriesModule<'radar-line'> = {
     type: 'series',
@@ -12,7 +11,16 @@ export const RadarLineModule: _ModuleSupport.SeriesModule<'radar-line'> = {
 
     identifier: 'radar-line',
     instanceConstructor: RadarLineSeries,
-    seriesDefaults: POLAR_DEFAULTS,
+    seriesDefaults: {
+        axes: [
+            {
+                type: _Theme.POLAR_AXIS_TYPE.ANGLE_CATEGORY,
+            },
+            {
+                type: _Theme.POLAR_AXIS_TYPE.RADIUS_NUMBER,
+            },
+        ],
+    },
     themeTemplate: RADAR_LINE_SERIES_THEME,
     paletteFactory: ({ takeColors }) => {
         const {

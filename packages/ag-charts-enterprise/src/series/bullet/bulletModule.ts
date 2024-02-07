@@ -1,10 +1,7 @@
-import { _ModuleSupport, _Theme, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Theme } from 'ag-charts-community';
 
-import { BULLET_DEFAULTS } from './bulletDefaults';
 import { BulletSeries } from './bulletSeries';
 import { BULLET_SERIES_THEME } from './bulletThemes';
-
-const { deepClone, isNumber } = _ModuleSupport;
 
 export const BulletModule: _ModuleSupport.SeriesModule<'bullet'> = {
     type: 'series',
@@ -14,12 +11,17 @@ export const BulletModule: _ModuleSupport.SeriesModule<'bullet'> = {
     identifier: 'bullet',
     solo: true,
     instanceConstructor: BulletSeries,
-    seriesDefaults: ({ scale }) => {
-        const seriesDefaults = deepClone(BULLET_DEFAULTS);
-        if (scale && isNumber(scale.max)) {
-            seriesDefaults.axes[0].max = scale.max;
-        }
-        return seriesDefaults;
+    seriesDefaults: {
+        axes: [
+            {
+                type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER,
+                position: _Theme.POSITION.LEFT,
+            },
+            {
+                type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
+                position: _Theme.POSITION.BOTTOM,
+            },
+        ],
     },
     themeTemplate: BULLET_SERIES_THEME,
     swapDefaultAxesCondition: (series) => series?.direction === 'horizontal',

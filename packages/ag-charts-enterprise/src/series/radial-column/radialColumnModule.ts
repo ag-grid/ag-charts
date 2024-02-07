@@ -1,6 +1,5 @@
-import type { _ModuleSupport } from 'ag-charts-community';
+import { type _ModuleSupport, _Theme } from 'ag-charts-community';
 
-import { RADIAL_COLUMN_DEFAULTS } from './radialColumnDefaults';
 import { RadialColumnSeries } from './radialColumnSeries';
 import { RADIAL_COLUMN_SERIES_THEME } from './radialColumnThemes';
 
@@ -12,7 +11,16 @@ export const RadialColumnModule: _ModuleSupport.SeriesModule<'radial-column'> = 
 
     identifier: 'radial-column',
     instanceConstructor: RadialColumnSeries,
-    seriesDefaults: RADIAL_COLUMN_DEFAULTS,
+    seriesDefaults: {
+        axes: [
+            {
+                type: _Theme.POLAR_AXIS_TYPE.ANGLE_CATEGORY,
+            },
+            {
+                type: _Theme.POLAR_AXIS_TYPE.RADIUS_NUMBER,
+            },
+        ],
+    },
     themeTemplate: RADIAL_COLUMN_SERIES_THEME,
     paletteFactory: ({ takeColors }) => {
         const {

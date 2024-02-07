@@ -10,7 +10,6 @@ import type {
 } from '../../options/agChartOptions';
 import { deepClone } from '../../sparklines-util';
 import { mergeDefaults } from '../../util/object';
-import { isFunction } from '../../util/type-guards';
 import type { SeriesType } from '../mapping/types';
 import type { ISeries } from '../series/seriesTypes';
 import { registerChartSeriesType } from './chartTypes';
@@ -92,9 +91,8 @@ export function getSeries(chartType: string, moduleCtx: ModuleContext): ISeries<
     throw new Error(`AG Charts - unknown series type: ${chartType}`);
 }
 
-export function getSeriesDefaults<T extends AgChartOptions>(chartType: string, options: SeriesOptions): T {
-    const seriesDefaults = SERIES_DEFAULTS[chartType];
-    return deepClone(isFunction(seriesDefaults) ? seriesDefaults(options) : seriesDefaults);
+export function getSeriesDefaults<T extends AgChartOptions>(chartType: string): T {
+    return deepClone(SERIES_DEFAULTS[chartType] ?? {});
 }
 
 export function getSeriesThemeTemplate(chartType: string): {} {

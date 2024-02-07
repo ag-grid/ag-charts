@@ -1,7 +1,6 @@
 import type { _ModuleSupport } from 'ag-charts-community';
 import { _Theme } from 'ag-charts-community';
 
-import { NIGHTINGALE_DEFAULTS } from './nightingaleDefaults';
 import { NightingaleSeries } from './nightingaleSeries';
 import { NIGHTINGALE_SERIES_THEME } from './nightingaleThemes';
 
@@ -13,7 +12,16 @@ export const NightingaleModule: _ModuleSupport.SeriesModule<'nightingale'> = {
 
     identifier: 'nightingale',
     instanceConstructor: NightingaleSeries,
-    seriesDefaults: NIGHTINGALE_DEFAULTS,
+    seriesDefaults: {
+        axes: [
+            {
+                type: _Theme.POLAR_AXIS_TYPE.ANGLE_CATEGORY,
+            },
+            {
+                type: _Theme.POLAR_AXIS_TYPE.RADIUS_NUMBER,
+            },
+        ],
+    },
     themeTemplate: NIGHTINGALE_SERIES_THEME,
     paletteFactory({ takeColors, userPalette }) {
         const {

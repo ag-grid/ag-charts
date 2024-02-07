@@ -18,32 +18,40 @@ export const HistogramSeriesModule: SeriesModule<'histogram'> = {
     instanceConstructor: HistogramSeries,
     seriesDefaults: {
         axes: [
-            { type: CARTESIAN_AXIS_TYPE.NUMBER, position: POSITION.BOTTOM },
-            { type: CARTESIAN_AXIS_TYPE.NUMBER, position: POSITION.LEFT },
+            {
+                type: CARTESIAN_AXIS_TYPE.NUMBER,
+                position: POSITION.BOTTOM,
+            },
+            {
+                type: CARTESIAN_AXIS_TYPE.NUMBER,
+                position: POSITION.LEFT,
+            },
         ],
     },
     themeTemplate: {
-        __extends__: EXTENDS_SERIES_DEFAULTS,
-        strokeWidth: 1,
-        fillOpacity: 1,
-        strokeOpacity: 1,
-        lineDash: [0],
-        lineDashOffset: 0,
-        label: {
-            enabled: false,
-            fontStyle: undefined,
-            fontWeight: undefined,
-            fontSize: 12,
-            fontFamily: DEFAULT_FONT_FAMILY,
-            color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
-            formatter: undefined,
-        },
-        shadow: {
-            enabled: false,
-            color: DEFAULT_SHADOW_COLOUR,
-            xOffset: 3,
-            yOffset: 3,
-            blur: 5,
+        series: {
+            __extends__: EXTENDS_SERIES_DEFAULTS,
+            strokeWidth: 1,
+            fillOpacity: 1,
+            strokeOpacity: 1,
+            lineDash: [0],
+            lineDashOffset: 0,
+            label: {
+                enabled: false,
+                fontStyle: undefined,
+                fontWeight: undefined,
+                fontSize: 12,
+                fontFamily: DEFAULT_FONT_FAMILY,
+                color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
+                formatter: undefined,
+            },
+            shadow: {
+                enabled: false,
+                color: DEFAULT_SHADOW_COLOUR,
+                xOffset: 3,
+                yOffset: 3,
+                blur: 5,
+            },
         },
     },
     paletteFactory: ({ takeColors }) => {

@@ -1,6 +1,6 @@
 import type { SeriesModule } from '../../../module/coreModules';
 import { markerPaletteFactory } from '../../../util/theme';
-import { DEFAULT_CARTESIAN_CHART_OVERRIDES } from '../../mapping/defaults';
+import { CARTESIAN_AXIS_TYPE, POSITION } from '../../themes/constants';
 import {
     DEFAULT_FONT_FAMILY,
     DEFAULT_LABEL_COLOUR,
@@ -17,38 +17,53 @@ export const LineSeriesModule: SeriesModule<'line'> = {
 
     identifier: 'line',
     instanceConstructor: LineSeries,
-    seriesDefaults: DEFAULT_CARTESIAN_CHART_OVERRIDES,
-    themeTemplate: {
-        __extends__: EXTENDS_SERIES_DEFAULTS,
-        tooltip: {
-            position: {
-                type: 'node',
+    seriesDefaults: {
+        axes: [
+            {
+                type: CARTESIAN_AXIS_TYPE.NUMBER,
+                position: POSITION.LEFT,
             },
-        },
-        strokeWidth: 2,
-        strokeOpacity: 1,
-        lineDash: [0],
-        lineDashOffset: 0,
-        marker: {
-            __extends__: EXTENDS_CARTESIAN_MARKER_DEFAULTS,
-            fillOpacity: 1,
+            {
+                type: CARTESIAN_AXIS_TYPE.CATEGORY,
+                position: POSITION.BOTTOM,
+            },
+        ],
+    },
+    themeTemplate: {
+        series: {
+            __extends__: EXTENDS_SERIES_DEFAULTS,
+            tooltip: {
+                position: {
+                    type: 'node',
+                },
+            },
+            strokeWidth: 2,
             strokeOpacity: 1,
-            strokeWidth: 0,
-        },
-        label: {
-            enabled: false,
-            fontStyle: undefined,
-            fontWeight: undefined,
-            fontSize: 12,
-            fontFamily: DEFAULT_FONT_FAMILY,
-            color: DEFAULT_LABEL_COLOUR,
-            formatter: undefined,
+            lineDash: [0],
+            lineDashOffset: 0,
+            marker: {
+                __extends__: EXTENDS_CARTESIAN_MARKER_DEFAULTS,
+                fillOpacity: 1,
+                strokeOpacity: 1,
+                strokeWidth: 0,
+            },
+            label: {
+                enabled: false,
+                fontStyle: undefined,
+                fontWeight: undefined,
+                fontSize: 12,
+                fontFamily: DEFAULT_FONT_FAMILY,
+                color: DEFAULT_LABEL_COLOUR,
+                formatter: undefined,
+            },
         },
     },
     enterpriseThemeTemplate: {
-        errorBar: {
-            cap: {
-                lengthRatio: 1,
+        series: {
+            errorBar: {
+                cap: {
+                    lengthRatio: 1,
+                },
             },
         },
     },
