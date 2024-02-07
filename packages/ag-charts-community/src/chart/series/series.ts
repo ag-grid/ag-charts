@@ -1,6 +1,6 @@
 import type { ModuleContext, SeriesContext } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
-import type { SeriesOptionInstance, SeriesOptionModule, SeriesType } from '../../module/optionsModule';
+import type { SeriesOptionInstance, SeriesOptionModule, SeriesType } from '../../module/optionsModuleTypes';
 import type { AgChartLabelFormatterParams, AgChartLabelOptions } from '../../options/agChartOptions';
 import type {
     AgSeriesMarkerFormatterParams,
@@ -180,6 +180,12 @@ export function groupAccumulativeValueProperty<K>(
         accumulateGroup(scope, opts.groupId, mode, sum, opts.separateNegative),
         ...(opts.rangeId != null ? [range(scope, opts.rangeId, opts.groupId)] : []),
     ];
+}
+
+// Series is the only class that implements ISeries. However using a type-guard is safer and
+// more maintainable that using `as Series<T>` to upcast an ISeries object.
+export function checkSeriesUpcast<T extends SeriesNodeDatum>(_s: ISeries<T>): _s is Series<T> {
+    return true;
 }
 
 export type SeriesNodeEventTypes = 'nodeClick' | 'nodeDoubleClick';

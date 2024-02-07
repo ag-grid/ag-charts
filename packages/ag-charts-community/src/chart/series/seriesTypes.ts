@@ -1,14 +1,18 @@
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
 import type { Point, SizedPoint } from '../../scene/point';
-import type { ChartAxis } from '../chartAxis';
 import type { ChartAxisDirection } from '../chartAxisDirection';
 import type { ChartLegendDatum, ChartLegendType } from '../legendDatum';
 import type { SeriesProperties } from './seriesProperties';
 
+// Breaks circular dependency between ISeries and ChartAxis.
+interface ChartAxisLike {
+    id: string;
+}
+
 export interface ISeries<TDatum> {
     id: string;
-    axes: Record<ChartAxisDirection, ChartAxis | undefined>;
+    axes: Record<ChartAxisDirection, ChartAxisLike | undefined>;
     contentGroup: Group;
     properties: SeriesProperties<any>;
     hasEventListener(type: string): boolean;

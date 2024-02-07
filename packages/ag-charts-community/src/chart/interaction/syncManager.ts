@@ -1,13 +1,29 @@
-import type { Chart } from '../chart';
+import type { ChartAxisDirection } from '../chartAxisDirection';
+import type { ISeries } from '../series/seriesTypes';
 import { BaseManager } from './baseManager';
+import type { ZoomManager } from './zoomManager';
 
 type GroupId = string | symbol;
 
+/** Breaks circular dependencies which occur when importing ChartAxis. */
+type AxisLike = {
+    boundSeries: ISeries<any>[];
+    direction: ChartAxisDirection;
+    keys: string[];
+};
+
+/** Breaks circular dependencies which occur when importing Chart. */
+type ChartLike = {
+    axes: AxisLike[];
+    series: ISeries<any>[];
+    zoomManager: ZoomManager;
+};
+
 export class SyncManager extends BaseManager {
-    static chartsGroups = new Map<GroupId, Set<Chart>>();
+    static chartsGroups = new Map<GroupId, Set<ChartLike>>();
     static DEFAULT_GROUP = Symbol('sync-group-default');
 
-    constructor(protected chart: Chart) {
+    constructor(protected chart: ChartLike) {
         super();
     }
 

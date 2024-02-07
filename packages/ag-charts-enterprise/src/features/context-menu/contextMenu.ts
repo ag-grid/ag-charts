@@ -27,7 +27,6 @@ export type ContextMenuActionParams = {
 };
 
 const { BOOLEAN, Validate } = _ModuleSupport;
-const TOOLTIP_ID = 'context-menu';
 
 export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @Validate(BOOLEAN)
@@ -50,7 +49,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     private scene: _Scene.Scene;
     private highlightManager: _ModuleSupport.HighlightManager;
     private interactionManager: _ModuleSupport.InteractionManager;
-    private tooltipManager: _ModuleSupport.TooltipManager;
 
     // State
     private groups: ContextMenuGroups;
@@ -62,7 +60,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     // HTML elements
     private canvasElement: HTMLElement;
     private container: HTMLElement;
-    private coverElement: HTMLElement;
     private element: HTMLDivElement;
     private menuElement?: HTMLDivElement;
     private intersectionObserver?: IntersectionObserver;
@@ -80,10 +77,14 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         // Module context
         this.highlightManager = ctx.highlightManager;
         this.interactionManager = ctx.interactionManager;
-        this.tooltipManager = ctx.tooltipManager;
         this.scene = ctx.scene;
 
-        this.destroyFns.push(ctx.interactionManager.addListener('contextmenu', (event) => this.onContextMenu(event)));
+        const { Default, ContextMenu: ContextMenuState, All } = _ModuleSupport.InteractionState;
+        const contextState = Default | ContextMenuState;
+        this.destroyFns.push(
+            ctx.interactionManager.addListener('contextmenu', (event) => this.onContextMenu(event), contextState),
+            ctx.interactionManager.addListener('click', () => this.onClick(), All)
+        );
 
         // State
         this.groups = { default: [], node: [], extra: [], extraNode: [] };
@@ -96,23 +97,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.element.classList.add(DEFAULT_CONTEXT_MENU_CLASS);
         this.destroyFns.push(() => this.element.parentNode?.removeChild(this.element));
 
-        this.coverElement = this.container.appendChild(ctx.document.createElement('div'));
-        this.coverElement.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__cover`);
-
         this.hide();
-
-        // TODO: hmmm...
-        this.coverElement.onclick = () => this.hide();
-        this.coverElement.oncontextmenu = (event) => {
-            this.hide();
-            event.preventDefault();
-
-            this.x = event.pageX;
-            this.y = event.pageY;
-
-            this.show();
-            this.reposition();
-        };
 
         if (typeof IntersectionObserver !== 'undefined') {
             // Detect when the chart becomes invisible and hide the context menu as well.
@@ -186,6 +171,16 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.disabledActions.add(actionId);
     }
 
+    private isShown(): boolean {
+        return this.menuElement !== undefined;
+    }
+
+    private onClick() {
+        if (this.isShown()) {
+            this.hide();
+        }
+    }
+
     private onContextMenu(event: _ModuleSupport.InteractionEvent<'contextmenu'>) {
         if (!this.enabled) return;
 
@@ -220,8 +215,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     public show() {
-        if (!this.coverElement) return;
-
+        this.interactionManager.pushState(_ModuleSupport.InteractionState.ContextMenu);
         this.element.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
 
         const newMenuElement = this.renderMenu();
@@ -234,31 +228,18 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
         this.menuElement = newMenuElement;
 
-        const { PauseType } = this.interactionManager;
-        this.interactionManager.pause(PauseType.CONTEXT_MENU);
-        this.tooltipManager.updateTooltip(TOOLTIP_ID);
-
         this.element.style.display = 'block';
-
-        this.coverElement.style.display = 'block';
-        this.coverElement.style.left = `${this.canvasElement.parentElement?.offsetLeft}px`;
-        this.coverElement.style.top = `${this.canvasElement.parentElement?.offsetTop}px`;
-        this.coverElement.style.width = `${this.canvasElement.clientWidth}px`;
-        this.coverElement.style.height = `${this.canvasElement.clientHeight}px`;
     }
 
     public hide() {
+        this.interactionManager.popState(_ModuleSupport.InteractionState.ContextMenu);
+
         if (this.menuElement) {
             this.element.removeChild(this.menuElement);
             this.menuElement = undefined;
         }
 
-        const { PauseType } = this.interactionManager;
-        this.interactionManager.resume(PauseType.CONTEXT_MENU);
-        this.tooltipManager.removeTooltip(TOOLTIP_ID);
-
         this.element.style.display = 'none';
-        this.coverElement.style.display = 'none';
     }
 
     public renderMenu() {
