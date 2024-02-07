@@ -319,9 +319,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.highlightManager = new HighlightManager();
         this.interactionManager = new InteractionManager(element, document, window);
         this.gestureDetector = new GestureDetector(element);
-        this.dataService = new DataService<any>((data) => {
-            this.data = data;
-        });
         this.layoutService = new LayoutService();
         this.updateService = new UpdateService((type = ChartUpdateType.FULL, options) => this.update(type, options));
         this.seriesStateManager = new SeriesStateManager();
@@ -331,6 +328,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.animationManager = new AnimationManager(this.interactionManager, this.updateMutex);
         this.animationManager.skip();
         this.animationManager.play();
+
+        this.dataService = new DataService<any>(this.animationManager, (data) => {
+            this.data = data;
+        });
 
         this.processors = [
             new BaseLayoutProcessor(this, this.layoutService),
