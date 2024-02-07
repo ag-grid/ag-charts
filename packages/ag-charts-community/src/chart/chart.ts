@@ -1093,9 +1093,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         return result;
     }
 
-    lastPick?: {
-        datum: SeriesNodeDatum;
-    };
+    private lastPick?: SeriesNodeDatum;
 
     protected onMouseMove(event: InteractionEvent<'hover'>): void {
         this.lastInteractionEvent = event;
@@ -1163,7 +1161,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             return;
         }
 
-        const isNewDatum = this.highlight.range === 'node' || !lastPick || lastPick.datum !== pick.datum;
+        const isNewDatum = this.highlight.range === 'node' || !lastPick || lastPick !== pick.datum;
         let html;
 
         if (isNewDatum) {
@@ -1327,7 +1325,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.cursorManager.updateCursor(newSeries.id, newSeries.properties.cursor);
         }
 
-        this.lastPick = event.currentHighlight ? { datum: event.currentHighlight } : undefined;
+        this.lastPick = event.currentHighlight;
 
         const updateAll = newSeries == null || lastSeries == null;
         if (updateAll) {
