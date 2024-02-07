@@ -105,9 +105,19 @@ export interface AgChartHighlightOptions {
 }
 
 export interface AgChartSyncOptions {
+    /** Toggles the synchronization feature. It is implicitly enabled when configuration options are provided; otherwise, it defaults to `false`. */
     enabled?: boolean;
+    /** Specifies the synchronization group identifier for the chart. Omitting this assigns the chart to a default synchronization group. */
     groupId?: string;
+    /**
+     * Determines the axes to be synchronized across charts.
+     * Default: `x`
+     */
     axes?: 'x' | 'y' | 'xy';
+    /**
+     * Enables synchronization of zoom actions across charts.
+     * Default: `true`
+     */
     zoom?: boolean;
 }
 
@@ -154,8 +164,8 @@ export interface AgBaseThemeableChartOptions<TDatum = any> {
     zoom?: AgZoomOptions;
     /** Configuration for the Navigator. */
     navigator?: AgNavigatorOptions;
-    // /** Configuration for synchronizing multiple charts. */
-    // sync?: AgChartSyncOptions;
+    /** Configuration for synchronizing multiple charts. */
+    sync?: AgChartSyncOptions;
     /** A map of event names to event listeners. */
     listeners?: AgBaseChartListeners<TDatum>;
 }

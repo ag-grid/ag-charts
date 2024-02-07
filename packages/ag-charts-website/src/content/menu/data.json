@@ -164,6 +164,11 @@
                         "isEnterprise": true
                     },
                     {
+                        "title": "Synchronization",
+                        "path": "sync",
+                        "isEnterprise": true
+                    },
+                    {
                         "title": "Zoom",
                         "path": "zoom",
                         "isEnterprise": true

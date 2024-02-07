@@ -346,8 +346,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.attachLegend('category', Legend);
         this.legend = this.legends.get('category');
 
-        this.syncManager.subscribe();
-
         SizeMonitor.observe(this.element, (size) => this.rawResize(size));
         this._destroyFns.push(
             this.interactionManager.addListener('click', (event) => this.onClick(event)),
@@ -366,8 +364,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.highlightManager.addListener('highlight-change', (event) => this.changeHighlightDatum(event)),
             this.zoomManager.addListener('zoom-change', () =>
                 this.update(ChartUpdateType.PROCESS_DATA, { forceNodeDataRefresh: true, skipAnimations: true })
-            ),
-            () => this.syncManager.unsubscribe()
+            )
         );
     }
 

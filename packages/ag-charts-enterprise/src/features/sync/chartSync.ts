@@ -6,6 +6,14 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
     static className = 'Sync';
 
     @Validate(BOOLEAN)
+    @ObserveChanges<ChartSync>((target, newValue) => {
+        const { syncManager } = target.moduleContext;
+        if (newValue) {
+            syncManager.subscribe(target.groupId);
+        } else {
+            syncManager.unsubscribe(target.groupId);
+        }
+    })
     enabled: boolean = false;
 
     @Validate(STRING, { optional: true })

@@ -34,10 +34,12 @@ export class SyncManager extends BaseManager {
             SyncManager.chartsGroups.set(groupId, syncGroup);
         }
         syncGroup.add(this.chart);
+        return this;
     }
 
     unsubscribe(groupId: GroupId = SyncManager.DEFAULT_GROUP) {
         this.get(groupId)?.delete(this.chart);
+        return this;
     }
 
     getChart() {
