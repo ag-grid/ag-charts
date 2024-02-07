@@ -149,7 +149,7 @@ export type TooltipMeta = PointerOffsets & {
     };
     enableInteraction?: boolean;
     addCustomClass?: boolean;
-}
+};
 
 export function toTooltipHtml(input: string | AgTooltipRendererResult, defaults?: AgTooltipRendererResult): string {
     if (typeof input === 'string') {
