@@ -102,7 +102,6 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
                 }
             }),
             () => ctx.scene.root?.removeChild(this.rs)
-            // () => this.ctx.zoomManager.updateZoom('navigator')
         );
 
         this.updateGroupVisibility();
