@@ -268,7 +268,7 @@ export abstract class RadialColumnSeriesBase<
             }
         };
 
-        const nodeData = processedData.data.map((group, index): RadialColumnNodeDatum => {
+        const nodeData = processedData.data.map((group, index, data): RadialColumnNodeDatum => {
             const { datum, keys, values } = group;
 
             const angleDatum = keys[0];
@@ -276,9 +276,16 @@ export abstract class RadialColumnSeriesBase<
             const innerRadiusDatum = values[radiusStartIndex];
             const outerRadiusDatum = values[radiusEndIndex];
 
-            const groupAngle = angleScale.convert(angleDatum);
-            const startAngle = normalizeAngle360(groupAngle + groupScale.convert(String(groupIndex)));
-            const endAngle = normalizeAngle360(startAngle + groupScale.bandwidth);
+            let startAngle: number;
+            let endAngle: number;
+            if (data.length === 1) {
+                startAngle = -0.5 * Math.PI;
+                endAngle = 1.5 * Math.PI;
+            } else {
+                const groupAngle = angleScale.convert(angleDatum);
+                startAngle = normalizeAngle360(groupAngle + groupScale.convert(String(groupIndex)));
+                endAngle = normalizeAngle360(startAngle + groupScale.bandwidth);
+            }
             const angle = startAngle + groupScale.bandwidth / 2;
 
             const innerRadius = axisTotalRadius - radiusScale.convert(innerRadiusDatum);
