@@ -13,7 +13,7 @@ import {
     UNION,
     Validate,
 } from '../../util/validation';
-import type { InteractionEvent, PointerData } from '../interaction/interactionManager';
+import type { InteractionEvent, PointerOffsets } from '../interaction/interactionManager';
 
 const DEFAULT_TOOLTIP_CLASS = 'ag-chart-tooltip';
 const DEFAULT_TOOLTIP_DARK_CLASS = 'ag-chart-dark-tooltip';
@@ -141,7 +141,7 @@ const defaultTooltipCss = `
 }
 `;
 
-export type TooltipMeta = PointerData & {
+export type TooltipMeta = PointerOffsets & {
     showArrow?: boolean;
     position?: {
         xOffset?: number;

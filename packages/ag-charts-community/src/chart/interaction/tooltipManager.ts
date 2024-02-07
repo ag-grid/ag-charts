@@ -1,9 +1,8 @@
 import type { BBox } from '../../scene/bbox';
-import type { HdpiCanvas } from '../../scene/canvas/hdpiCanvas';
 import type { Point } from '../../scene/point';
 import type { ErrorBoundSeriesNodeDatum, SeriesNodeDatum } from '../series/seriesTypes';
 import type { Tooltip, TooltipMeta } from '../tooltip/tooltip';
-import type { InteractionEvent, InteractionManager, PointerData } from './interactionManager';
+import type { InteractionEvent, InteractionManager, PointerOffsets } from './interactionManager';
 
 interface TooltipState {
     content: string;
@@ -115,20 +114,16 @@ export class TooltipManager {
     }
 
     public static makeTooltipMeta(
-        event: PointerData,
-        canvas: HdpiCanvas,
-        datum: SeriesNodeDatum & Pick<ErrorBoundSeriesNodeDatum, 'yBar'>,
-        window: Window
+        event: PointerOffsets,
+        datum: SeriesNodeDatum & Pick<ErrorBoundSeriesNodeDatum, 'yBar'>
     ): TooltipMeta {
-        const { pageX, pageY, offsetX, offsetY } = event;
+        const { offsetX, offsetY } = event;
         const { tooltip } = datum.series.properties;
         const position = {
             xOffset: tooltip.position.xOffset,
             yOffset: tooltip.position.yOffset,
         };
         const meta: TooltipMeta = {
-            pageX,
-            pageY,
             offsetX,
             offsetY,
             showArrow: tooltip.showArrow,
@@ -142,11 +137,8 @@ export class TooltipManager {
         if (tooltip.position.type === 'node' && refPoint) {
             const { x, y } = refPoint;
             const point = datum.series.contentGroup.inverseTransformPoint(x, y);
-            const canvasRect = canvas.element.getBoundingClientRect();
             return {
                 ...meta,
-                pageX: Math.round(canvasRect.left + window.scrollX + point.x),
-                pageY: Math.round(canvasRect.top + window.scrollY + point.y),
                 offsetX: Math.round(point.x),
                 offsetY: Math.round(point.y),
             };
