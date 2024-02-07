@@ -137,7 +137,6 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
             const valueDomain = dataModel.getDomain(this, 'value', 'value', processedData);
             const targetDomain =
                 targetKey === undefined ? [] : dataModel.getDomain(this, 'target', 'value', processedData);
-            console.log('max', scale.max, [0, scale.max ?? Math.max(...valueDomain, ...targetDomain)]);
             return [0, scale.max ?? Math.max(...valueDomain, ...targetDomain)];
         }
         throw new Error(`unknown direction ${direction}`);
