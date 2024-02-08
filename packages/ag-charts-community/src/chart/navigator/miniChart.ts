@@ -1,5 +1,5 @@
 import { toRadians } from '../../integrated-charts-scene';
-import type { ModuleContext } from '../../module-support';
+import type { ModuleContext } from '../../module/moduleContext';
 import type { AgCartesianAxisPosition, AgChartInstance, AgChartOptions } from '../../options/agChartOptions';
 import { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';

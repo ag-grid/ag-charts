@@ -1,5 +1,5 @@
+import type { DataController } from '../chart/data/dataController';
 import type { BBox } from '../integrated-charts-scene';
-import type { DataController } from '../module-support';
 
 export interface ModuleInstance {
     processData?: (opts: { dataController: DataController }) => Promise<void>;
