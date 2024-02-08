@@ -28,7 +28,7 @@ type ChartAxisLike = {
  */
 export class ZoomManager extends BaseManager<'zoom-change', ZoomChangeEvent> {
     private axisZoomManagers = new Map<string, AxisZoomManager>();
-    private initialZoom?: { callerId: string; newZoom?: AxisZoomState };
+    private initialZoom?: AxisZoomState;
 
     public updateAxes(axes: Array<ChartAxisLike>) {
         const zoomManagers = new Map(axes.map((axis) => [axis.id, this.axisZoomManagers.get(axis.id)]));
@@ -39,28 +39,28 @@ export class ZoomManager extends BaseManager<'zoom-change', ZoomChangeEvent> {
             this.axisZoomManagers.set(axis.id, zoomManagers.get(axis.id) ?? new AxisZoomManager(axis));
         }
 
-        if (this.initialZoom?.newZoom) {
-            this.updateZoom(this.initialZoom.callerId, this.initialZoom.newZoom);
+        if (this.initialZoom) {
+            this.updateZoom(this.initialZoom);
         }
         this.initialZoom = undefined;
     }
 
-    public updateZoom(callerId: string, newZoom?: AxisZoomState) {
+    public updateZoom(newZoom?: AxisZoomState) {
         if (this.axisZoomManagers.size === 0) {
-            this.initialZoom = { callerId, newZoom };
+            this.initialZoom = newZoom;
             return;
         }
 
         this.axisZoomManagers.forEach((axis) => {
-            axis.updateZoom(callerId, newZoom?.[axis.getDirection()]);
+            axis.updateZoom(newZoom?.[axis.getDirection()]);
         });
 
-        this.applyStates();
+        this.applyChanges();
     }
 
-    public updateAxisZoom(callerId: string, axisId: string, newZoom?: ZoomState) {
-        this.axisZoomManagers.get(axisId)?.updateZoom(callerId, newZoom);
-        this.applyStates();
+    public updateAxisZoom(axisId: string, newZoom?: ZoomState) {
+        this.axisZoomManagers.get(axisId)?.updateZoom(newZoom);
+        this.applyChanges();
     }
 
     public getZoom(): AxisZoomState | undefined {
@@ -96,9 +96,9 @@ export class ZoomManager extends BaseManager<'zoom-change', ZoomChangeEvent> {
         return axes;
     }
 
-    private applyStates() {
+    private applyChanges() {
         const changed = Array.from(this.axisZoomManagers.values())
-            .map((axis) => axis.applyStates())
+            .map((axis) => axis.applyChanges())
             .some(Boolean);
 
         if (!changed) {
@@ -115,37 +115,33 @@ export class ZoomManager extends BaseManager<'zoom-change', ZoomChangeEvent> {
 }
 
 class AxisZoomManager {
-    private readonly states = new Map<string, ZoomState>();
-    private currentZoom: ZoomState;
     private axis: ChartAxisLike;
+    private currentZoom: ZoomState;
+    private pendingZoom: ZoomState | null = null;
+    private readonly initialZoom: ZoomState;
 
     constructor(axis: ChartAxisLike) {
         this.axis = axis;
 
         const [min = 0, max = 1] = axis.visibleRange;
-        this.currentZoom = { min, max };
-        this.states.set('__initial__', this.currentZoom);
+        this.initialZoom = this.currentZoom = { min, max };
     }
 
     getDirection(): ChartAxisDirection {
         return this.axis.direction;
     }
 
-    public updateZoom(callerId: string, newZoom?: ZoomState) {
-        this.states.delete(callerId);
-
-        if (newZoom != null) {
-            this.states.set(callerId, { ...newZoom });
-        }
+    public updateZoom(newZoom?: ZoomState) {
+        this.pendingZoom = newZoom ? { ...newZoom } : null;
     }
 
     public getZoom() {
         return this.currentZoom;
     }
 
-    public applyStates(): boolean {
+    public applyChanges(): boolean {
         const prevZoom = this.currentZoom;
-        this.currentZoom = Array.from(this.states.values()).pop()!;
+        this.currentZoom = this.pendingZoom ?? this.initialZoom;
         return prevZoom?.min !== this.currentZoom?.min || prevZoom?.max !== this.currentZoom?.max;
     }
 }
