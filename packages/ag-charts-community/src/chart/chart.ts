@@ -3,7 +3,6 @@ import type { LegendModule, RootModule } from '../module/coreModules';
 import { type Module, REGISTERED_MODULES } from '../module/module';
 import type { ModuleContext } from '../module/moduleContext';
 import type { AxisOptionModule } from '../module/optionsModule';
-import type { SeriesOptionModule } from '../module/optionsModuleTypes';
 import type { AgBaseAxisOptions } from '../options/chart/axisOptions';
 import type { AgChartInstance, AgChartOptions } from '../options/chart/chartBuilderOptions';
 import type { AgChartClickEvent, AgChartDoubleClickEvent } from '../options/chart/eventOptions';
@@ -45,7 +44,7 @@ import { DataService } from './data/dataService';
 import { getAxis } from './factory/axisTypes';
 import { isEnterpriseSeriesType, isEnterpriseSeriesTypeLoaded } from './factory/expectedEnterpriseModules';
 import { getLegendKeys } from './factory/legendTypes';
-import { getSeries } from './factory/seriesTypes';
+import { createSeries } from './factory/seriesTypes';
 import { AnimationManager } from './interaction/animationManager';
 import { ChartEventManager } from './interaction/chartEventManager';
 import { CursorManager } from './interaction/cursorManager';
@@ -70,7 +69,7 @@ import {
     isAgPolarChartOptions,
 } from './mapping/types';
 import { ChartOverlays } from './overlay/chartOverlays';
-import { type Series, SeriesNodePickMode, checkSeriesUpcast } from './series/series';
+import { type Series, SeriesNodePickMode } from './series/series';
 import { SeriesLayerManager } from './series/seriesLayerManager';
 import { type SeriesGrouping, SeriesStateManager } from './series/seriesStateManager';
 import type { ISeries, SeriesNodeDatum } from './series/seriesTypes';
@@ -274,10 +273,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     chartAnimationPhase: ChartAnimationPhase = 'initial';
 
-    public readonly modules: Map<string, ModuleInstance> = new Map();
-
     public readonly syncManager = new SyncManager(this);
     public readonly zoomManager = new ZoomManager();
+
+    protected readonly modules: Map<string, ModuleInstance> = new Map();
 
     protected readonly animationManager: AnimationManager;
     protected readonly chartEventManager: ChartEventManager;
@@ -491,7 +490,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const keepTransferableResources = opts?.keepTransferableResources;
         let result: TransferableResources | undefined;
 
-        this._performUpdateType = ChartUpdateType.NONE;
+        this.performUpdateType = ChartUpdateType.NONE;
 
         this._destroyFns.forEach((fn) => fn());
         this.processors.forEach((p) => p.destroy());
@@ -558,15 +557,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     private _pendingFactoryUpdatesCount = 0;
     private _performUpdateNoRenderCount = 0;
-    private _performUpdateType: ChartUpdateType = ChartUpdateType.NONE;
     private _performUpdateSkipAnimations?: boolean = false;
-    get performUpdateType() {
-        return this._performUpdateType;
-    }
-    private _lastPerformUpdateError?: Error;
-    get lastPerformUpdateError() {
-        return this._lastPerformUpdateError;
-    }
+    private performUpdateType: ChartUpdateType = ChartUpdateType.NONE;
 
     private updateShortcutCount = 0;
     private seriesToUpdate: Set<ISeries<any>> = new Set();
@@ -579,7 +571,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
             try {
                 await this.performUpdate(count);
             } catch (error) {
-                this._lastPerformUpdateError = error as Error;
                 Logger.error('update error', error);
             }
         });
@@ -621,17 +612,17 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.updateRequestors[stack] = type;
         }
 
-        if (type < this._performUpdateType) {
-            this._performUpdateType = type;
+        if (type < this.performUpdateType) {
+            this.performUpdateType = type;
             this.performUpdateTrigger.schedule(opts?.backOffMs);
         }
     }
     private async performUpdate(count: number) {
-        const { _performUpdateType: performUpdateType, extraDebugStats } = this;
+        const { performUpdateType, extraDebugStats } = this;
         const seriesToUpdate = [...this.seriesToUpdate];
 
         // Clear state immediately so that side effects can be detected prior to SCENE_RENDER.
-        this._performUpdateType = ChartUpdateType.NONE;
+        this.performUpdateType = ChartUpdateType.NONE;
         this.seriesToUpdate.clear();
 
         if (this.updateShortcutCount === 0 && performUpdateType < ChartUpdateType.SCENE_RENDER) {
@@ -959,7 +950,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
 
         const dataController = new DataController(this.mode);
-
         const seriesPromises = this.series.map((s) => s.processData(dataController));
         const modulePromises = Array.from(this.modules.values(), (m) => m.processData?.({ dataController }));
         dataController.execute();
@@ -1363,7 +1353,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             await this.updateMutex.waitForClearAcquireQueue();
         }
 
-        while (this._performUpdateType !== ChartUpdateType.NONE) {
+        while (this.performUpdateType !== ChartUpdateType.NONE) {
             if (performance.now() - start > timeoutMs) {
                 throw new Error('waitForUpdate() timeout reached.');
             }
@@ -1575,30 +1565,46 @@ export abstract class Chart extends Observable implements AgChartInstance {
             if (isEnterpriseSeriesType(type) && !isEnterpriseSeriesTypeLoaded(type)) {
                 continue;
             }
-            const seriesInstance = getSeries(type, moduleContext);
-            if (checkSeriesUpcast(seriesInstance)) {
-                this.applySeriesOptionModules(seriesInstance, seriesOptions);
-                this.applySeriesValues(seriesInstance, seriesOptions);
-                series.push(seriesInstance);
-            }
+            const seriesInstance = createSeries(type, moduleContext) as Series<any>;
+            this.applySeriesOptionModules(seriesInstance, seriesOptions);
+            this.applySeriesValues(seriesInstance, seriesOptions);
+            series.push(seriesInstance);
         }
 
         return series;
     }
 
     private applySeriesOptionModules(series: Series<any>, options: AgBaseSeriesOptions<any>) {
-        const seriesOptionModules = REGISTERED_MODULES.filter(
-            (m): m is SeriesOptionModule => m.type === 'series-option'
-        );
         const moduleContext = series.createModuleContext();
         const moduleMap = series.getModuleMap();
 
-        for (const module of seriesOptionModules) {
-            const supportedSeriesTypes: readonly string[] = module.seriesTypes;
-            if (module.optionsKey in options && supportedSeriesTypes.includes(series.type)) {
+        for (const module of REGISTERED_MODULES) {
+            if (module.type !== 'series-option') continue;
+            if (module.optionsKey in options && module.seriesTypes.includes(series.type)) {
                 moduleMap.addModule(module, (module) => new module.instanceConstructor(moduleContext));
-                (series as any)[module.optionsKey] = moduleMap.getModule(module); // TODO remove
             }
+        }
+    }
+
+    private applySeriesValues(target: Series<any>, options: AgBaseSeriesOptions<any>) {
+        const moduleMap = target.getModuleMap();
+        const { type, data, errorBar, listeners, seriesGrouping, ...seriesOptions } = options as any;
+
+        target.properties.set(seriesOptions);
+
+        if ('data' in options) {
+            target.data = options.data;
+        }
+        if ('errorBar' in options && moduleMap.isModuleEnabled('errorBar')) {
+            (moduleMap.getModule('errorBar') as any).properties.set(options.errorBar);
+        }
+
+        if (options?.listeners != null) {
+            this.registerListeners(target, options.listeners);
+        }
+
+        if (seriesGrouping) {
+            target.seriesGrouping = { ...target.seriesGrouping, ...(seriesGrouping as SeriesGrouping) };
         }
     }
 
@@ -1674,26 +1680,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
         });
     }
 
-    private applySeriesValues(target: Series<any>, options: AgBaseSeriesOptions<any>) {
-        const moduleMap = target.getModuleMap();
-        const { type, data, errorBar, listeners, seriesGrouping, ...seriesOptions } = options as any;
-
-        target.properties.set(seriesOptions);
-        if ('data' in options) {
-            target.data = options.data;
-        }
-        if ('errorBar' in options && moduleMap.isModuleEnabled('errorBar')) {
-            (moduleMap.getModule('errorBar') as any).properties.set(options.errorBar);
-        }
-
-        if (options?.listeners != null) {
-            this.registerListeners(target, options.listeners);
-        }
-
-        if (seriesGrouping) {
-            target.seriesGrouping = Object.freeze({ ...target.seriesGrouping, ...(seriesGrouping as SeriesGrouping) });
-        }
-    }
     private registerListeners<T>(source: ObservableLike, listeners?: T) {
         source.clearEventListeners();
         const entries: [string, TypedEventListener][] = Object.entries(listeners ?? {});

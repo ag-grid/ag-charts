@@ -23,12 +23,12 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
 
     private layoutComplete({ series: { rect } }: LayoutCompleteEvent) {
         const isLoading = this.dataService.isLoading();
-        const hasData = this.chartLike.series.some((s) => s.hasData());
+        const hasData = this.chartLike.series.some((s) => s.data?.length);
         const anySeriesVisible = this.chartLike.series.some((s) => s.visible);
 
         this.toggleOverlay(this.overlays.loading, rect, isLoading);
         this.toggleOverlay(this.overlays.noData, rect, !isLoading && !hasData);
-        this.toggleOverlay(this.overlays.noVisibleSeries, rect, !!hasData && !anySeriesVisible);
+        this.toggleOverlay(this.overlays.noVisibleSeries, rect, hasData && !anySeriesVisible);
     }
 
     private toggleOverlay(overlay: Overlay, seriesRect: BBox, visible: boolean) {

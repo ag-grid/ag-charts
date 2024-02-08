@@ -100,28 +100,24 @@ export class Caption extends BaseProperties implements CaptionLike {
             return;
         }
 
-        const bbox = this.node.computeBBox();
         const { offsetX, offsetY } = event;
+        const bbox = this.node.computeBBox();
         const pointerInsideCaption = this.node.visible && bbox.containsPoint(offsetX, offsetY);
 
-        if (!pointerInsideCaption) {
-            moduleCtx.tooltipManager.removeTooltip(this.id);
-            return;
+        if (pointerInsideCaption) {
+            // Prevent other handlers from consuming this event if it's generated inside the caption
+            // boundaries.
+            event.consume();
         }
 
-        // Prevent other handlers from consuming this event if it's generated inside the caption
-        // boundaries.
-        event.consume();
-
-        if (!this.truncated) {
+        if (!this.truncated || !pointerInsideCaption) {
             moduleCtx.tooltipManager.removeTooltip(this.id);
-            return;
+        } else {
+            moduleCtx.tooltipManager.updateTooltip(
+                this.id,
+                { offsetX, offsetY, showArrow: false, addCustomClass: false },
+                toTooltipHtml({ content: this.text })
+            );
         }
-
-        moduleCtx.tooltipManager.updateTooltip(
-            this.id,
-            { offsetX, offsetY, showArrow: false, addCustomClass: false },
-            toTooltipHtml({ content: this.text })
-        );
     }
 }

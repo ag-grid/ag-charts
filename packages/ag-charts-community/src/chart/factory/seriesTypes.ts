@@ -82,13 +82,13 @@ export function registerSeriesThemeTemplate(
     );
 }
 
-export function getSeries(chartType: string, moduleCtx: ModuleContext): ISeries<any> {
-    const seriesConstructor = SERIES_FACTORIES[chartType];
+export function createSeries(seriesType: string, moduleCtx: ModuleContext): ISeries<any> {
+    const seriesConstructor = SERIES_FACTORIES[seriesType];
     if (seriesConstructor) {
         return new seriesConstructor(moduleCtx);
     }
 
-    throw new Error(`AG Charts - unknown series type: ${chartType}`);
+    throw new Error(`AG Charts - unknown series type: ${seriesType}`);
 }
 
 export function getSeriesDefaults<T extends AgChartOptions>(chartType: string): T {
