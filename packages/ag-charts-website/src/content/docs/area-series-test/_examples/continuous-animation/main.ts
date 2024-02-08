@@ -167,7 +167,7 @@ function actionUpdatePointUndefined() {
 }
 
 function actionUpdatePointDefined() {
-    options.data = (options.data ?? []).map((d: any, idx: number) => ({
+    options.data = (options.data ?? []).map((d: any) => ({
         ...d,
         petrol: d.petrol ?? 100 + Math.random() * 40 - 20,
         diesel: d.diesel ?? 100 + Math.random() * 40 - 20,
@@ -191,7 +191,7 @@ function actionShiftRight() {
     AgCharts.update(chart, options);
 }
 
-let tick: NodeJS.Timer;
+let tick: NodeJS.Timeout;
 function actionTickStart() {
     if (tick) clearInterval(tick);
 

@@ -1,0 +1,13 @@
+{
+    "extends": "../../tsconfig.base.json",
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "es2016",
+        "strict": true,
+        "noEmit": true,
+        "noUnusedParameters": true,
+        "noUnusedLocals": false
+    },
+    "files": [],
+    "include": ["src/content/docs/*/_examples/*/*.ts", "src/content/gallery/_examples/*/*.ts"]
+}

@@ -1,9 +1,9 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgBubbleSeriesTooltipRendererParams, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
 const tooltip = {
-    renderer: ({ datum, xName, yName, sizeName, xKey, yKey, sizeKey }) => {
+    renderer: ({ datum, xName, yName, sizeName, xKey, yKey, sizeKey }: AgBubbleSeriesTooltipRendererParams<any>) => {
         return {
             content: `<b>${xName}:</b> ${datum[xKey]}<br/><b>${yName}: </b>${
                 datum[yKey]

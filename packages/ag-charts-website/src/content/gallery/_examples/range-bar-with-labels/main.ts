@@ -1,4 +1,10 @@
-import { AgChartOptions, AgCharts, AgRangeBarSeriesTooltipRendererParams, AgSeriesTooltip } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgChartOptions,
+    AgCharts,
+    AgRangeBarSeriesTooltipRendererParams,
+    AgSeriesTooltip,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -18,7 +24,7 @@ const tooltip: AgSeriesTooltip<AgRangeBarSeriesTooltipRendererParams> = {
 
 const data: any[] = getData();
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data,
     title: {
