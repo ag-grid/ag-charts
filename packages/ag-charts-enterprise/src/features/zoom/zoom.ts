@@ -135,6 +135,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.destroyFns.push(
             ctx.interactionManager.addListener('dblclick', (event) => this.onDoubleClick(event), clickableState),
             ctx.interactionManager.addListener('drag', (event) => this.onDrag(event), draggableState),
+            ctx.interactionManager.addListener('drag-start', (event) => this.onDragStart(event), draggableState),
             ctx.interactionManager.addListener('drag-end', () => this.onDragEnd(), draggableState),
             ctx.interactionManager.addListener('wheel', (event) => this.onWheel(event), clickableState),
             ctx.interactionManager.addListener('hover', () => this.onHover(), clickableState),
@@ -197,6 +198,12 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
     }
 
+    private canDragSelection?: boolean;
+
+    private onDragStart(event: _ModuleSupport.InteractionEvent<'drag-start'>) {
+        this.canDragSelection = this.paddedRect?.containsPoint(event.offsetX, event.offsetY);
+    }
+
     private onDrag(event: _ModuleSupport.InteractionEvent<'drag'>) {
         if (!this.enabled || !this.paddedRect || !this.seriesRect) return;
 
@@ -240,6 +247,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         // dragging and click to start a new drag.
         if (
             !this.enableSelecting ||
+            !this.canDragSelection ||
             this.isPanningKeyPressed(sourceEvent) ||
             this.panner.isPanning ||
             this.isMinZoom(zoom)
@@ -274,7 +282,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             this.axisDragger.stop();
         } else if (this.enablePanning && this.panner.isPanning) {
             this.panner.stop();
-        } else if (this.enableSelecting && !this.isMinZoom(zoom)) {
+        } else if (this.enableSelecting && !this.isMinZoom(zoom) && this.canDragSelection) {
             const newZoom = this.selector.stop(this.seriesRect, this.paddedRect, zoom);
             this.updateZoom(newZoom);
         }
