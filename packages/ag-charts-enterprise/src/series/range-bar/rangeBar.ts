@@ -22,6 +22,7 @@ const {
     seriesLabelFadeInAnimation,
     resetLabelFn,
     animationValidation,
+    createDatumId,
 } = _ModuleSupport;
 const { ContinuousScale, BandScale, Rect, PointerEvents, motion } = _Scene;
 const { sanitizeHtml, isNumber, extent } = _Util;
@@ -625,7 +626,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             this.ctx.animationManager,
             datumSelections,
             fns,
-            (_, datum) => String(datum.xValue),
+            (_, datum) => createDatumId(datum.xValue),
             diff
         );
 
