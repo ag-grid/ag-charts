@@ -41,8 +41,8 @@ export class ZoomManager extends BaseManager<'zoom-change', ZoomChangeEvent> {
 
         if (this.initialZoom) {
             this.updateZoom(this.initialZoom);
+            this.initialZoom = undefined;
         }
-        this.initialZoom = undefined;
     }
 
     public updateZoom(newZoom?: AxisZoomState) {
