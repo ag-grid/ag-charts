@@ -47,7 +47,7 @@ export const createNodes: CreateNodes = [
                     tags: [`scope:${parentProject}`, 'type:generated-example'],
                     targets: {
                         ...createGenerateTarget(thumbnails),
-                        ...generateExampleFiles.createTask(parentProject, srcRelativeInputPath, configFilePath),
+                        ...generateExampleFiles.createTask(parentProject, srcRelativeInputPath),
                         ...(thumbnails ? generateChartThumbnails.createTask(parentProject, srcRelativeInputPath) : {}),
                     },
                 },
