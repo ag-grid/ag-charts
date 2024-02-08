@@ -23,20 +23,6 @@ AgCharts.updateDelta(myChart, { sync: { enabled: false } });
 
 This method provides flexibility to adapt the synchronization behavior of your charts in response to user interactions or other events.
 
-## Grouping Charts
-
-Charts can be grouped using the `groupId` property. Only charts within the same group will be synchronized, allowing for multiple independent groups of synchronized charts on the same page.
-
-```js
-sync: {
-    groupId: 'mySyncGroup',
-},
-```
-
-By omitting this option, charts default to the default sync group, ensuring that all charts without a specified `groupId` are synchronized within the same group.
-
-{% chartExampleRunner title="Group Synchronization" name="group-sync" type="generated" /%}
-
 ## Axes Synchronization
 
 Determine which axes are synchronized across charts with the `axes` option, allowing you to synchronize the X axis, Y axis, or both, depending on your visualization needs. When axes are synchronized, their domain ranges are merged, ensuring all charts in the group display a unified and seamless comparison.
@@ -56,6 +42,20 @@ Zoom synchronization ensures that when one chart in a group zooms in or out, all
 {% note %}
 While individual charts can have distinct zoom settings affecting their interactivity, any zoom adjustment on one chart will harmonize zoom levels across all synced charts of the same group.
 {% /note %}
+
+## Grouping Charts
+
+Charts can be grouped using the `groupId` property. Only charts within the same group will be synchronized, allowing for multiple independent groups of synchronized charts on the same page.
+
+```js
+sync: {
+    groupId: 'mySyncGroup',
+},
+```
+
+By omitting this option, charts default to the default sync group, ensuring that all charts without a specified `groupId` are synchronized within the same group.
+
+{% chartExampleRunner title="Group Synchronization" name="group-sync" type="generated" /%}
 
 ## API Reference
 
