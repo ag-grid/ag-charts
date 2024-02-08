@@ -1,9 +1,9 @@
-import { BaseProperties } from '../util/properties';
 import { BOOLEAN, COLOR_STRING, NUMBER, POSITIVE_NUMBER, Validate } from '../util/validation';
 import { RedrawType } from './changeDetectable';
 import { SceneChangeDetection } from './node';
+import { ChangeDetectableProperties } from './util/changeDetectableProperties';
 
-export class DropShadow extends BaseProperties {
+export class DropShadow extends ChangeDetectableProperties {
     @Validate(BOOLEAN)
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
     enabled: boolean = true;

@@ -178,8 +178,15 @@ module.exports = {
             name: 'ag-isolated-options',
             comment: 'Options modules should be isolated from implementation modules.',
             severity: 'error',
-            from: { path: 'src/options' },
+            from: { path: '^src/options' },
             to: { pathNot: '^src/options' },
+        },
+        {
+            name: 'ag-isolated-utils',
+            comment: 'Options modules should be isolated from implementation modules.',
+            severity: 'error',
+            from: { path: '^src/util/' },
+            to: { pathNot: ['^src/util/', 'node_modules'] },
         },
         {
             name: 'ag-avoid-bundles',

@@ -1,6 +1,6 @@
-import type { BBox } from '../scene/bbox';
-import { arcIntersections, segmentIntersection } from '../scene/intersection';
-import { normalizeAngle180 } from './angle';
+import { normalizeAngle180 } from '../../util/angle';
+import type { BBox } from '../bbox';
+import { arcIntersections, segmentIntersection } from '../intersection';
 
 interface SectorBoundaries {
     startAngle: number;

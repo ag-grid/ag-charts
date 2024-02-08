@@ -1,5 +1,5 @@
 import type { SeriesModule } from '../../../module/coreModules';
-import { markerPaletteFactory } from '../../../util/theme';
+import { markerPaletteFactory } from '../../../module/theme';
 import { CARTESIAN_AXIS_TYPE, POSITION } from '../../themes/constants';
 import {
     DEFAULT_FONT_FAMILY,

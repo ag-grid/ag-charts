@@ -1,5 +1,5 @@
-import { isPointInSector } from '../../util/sector';
 import { BBox } from '../bbox';
+import { isPointInSector } from '../util/sector';
 import { Path, ScenePathChangeDetection } from './path';
 
 export class Sector extends Path {
