@@ -189,6 +189,13 @@ module.exports = {
             to: { pathNot: ['^src/util/', 'node_modules'] },
         },
         {
+            name: 'ag-isolated-scales',
+            comment: 'Options modules should be isolated from implementation modules.',
+            severity: 'error',
+            from: { path: '^src/scale/' },
+            to: { pathNot: ['^src/util/', '^src/scale/', 'node_modules'] },
+        },
+        {
             name: 'ag-avoid-bundles',
             comment: "Don't use top-level export bundles internally.",
             severity: 'error',
