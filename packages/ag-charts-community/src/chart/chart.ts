@@ -1072,9 +1072,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         let result: { series: Series<any>; datum: SeriesNodeDatum; distance: number } | undefined;
         for (const series of reverseSeries) {
-            if (!series.visible || !series.rootGroup.visible) {
-                continue;
-            }
             const { match, distance } = series.pickNode(point, pickModes) ?? {};
             if (!match || distance == null) {
                 continue;
