@@ -2,7 +2,6 @@ import { Debug } from '../../util/debug';
 import { Logger } from '../../util/logger';
 import { isNegative } from '../../util/number';
 import { isFiniteNumber, isObject } from '../../util/type-guards';
-import type { ChartAxis } from '../chartAxis';
 import type { ChartMode } from '../chartMode';
 import { DataDomain } from './dataDomain';
 import type { ContinuousDomain } from './utilFunctions';
@@ -124,7 +123,13 @@ function fixNumericExtentInternal(extent?: (number | Date)[]): [] | [number, num
     return isFiniteNumber(min) && isFiniteNumber(max) ? [min, max] : [];
 }
 
-export function fixNumericExtent(extent?: (number | Date)[], axis?: ChartAxis): [] | [number, number] {
+export function fixNumericExtent(
+    extent?: (number | Date)[],
+    axis?: {
+        calculatePadding(min: number, max: number, reversed: boolean): [number, number];
+        isReversed(): boolean;
+    }
+): [] | [number, number] {
     const fixedExtent = fixNumericExtentInternal(extent);
 
     if (fixedExtent.length === 0) {

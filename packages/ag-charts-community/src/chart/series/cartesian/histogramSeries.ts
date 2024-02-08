@@ -1,7 +1,6 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import type { AgTooltipRendererResult } from '../../../options/agChartOptions';
-import type { FontStyle, FontWeight } from '../../../options/chart/types';
 import { PointerEvents } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
 import { Rect } from '../../../scene/shape/rect';
@@ -18,8 +17,8 @@ import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import { Series, SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { collapsedStartingBarPosition, prepareBarAnimationFunctions, resetBarSelectionsFn } from './barUtil';
-import { type CartesianAnimationData, CartesianSeries, type CartesianSeriesNodeDatum } from './cartesianSeries';
-import { HistogramSeriesProperties } from './histogramSeriesProperties';
+import { type CartesianAnimationData, CartesianSeries } from './cartesianSeries';
+import { HistogramNodeDatum, HistogramSeriesProperties } from './histogramSeriesProperties';
 
 enum HistogramSeriesNodeTag {
     Bin,
@@ -27,29 +26,6 @@ enum HistogramSeriesNodeTag {
 }
 
 const defaultBinCount = 10;
-
-export interface HistogramNodeDatum extends CartesianSeriesNodeDatum {
-    readonly x: number;
-    readonly y: number;
-    readonly width: number;
-    readonly height: number;
-    readonly fill?: string;
-    readonly stroke?: string;
-    readonly strokeWidth: number;
-    readonly aggregatedValue: number;
-    readonly frequency: number;
-    readonly domain: [number, number];
-    readonly label?: {
-        readonly text: string;
-        readonly x: number;
-        readonly y: number;
-        readonly fontStyle?: FontStyle;
-        readonly fontWeight?: FontWeight;
-        readonly fontSize: number;
-        readonly fontFamily: string;
-        readonly fill: string;
-    };
-}
 
 type HistogramAnimationData = CartesianAnimationData<Rect, HistogramNodeDatum>;
 

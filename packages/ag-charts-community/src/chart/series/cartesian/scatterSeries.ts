@@ -5,7 +5,7 @@ import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
 import type { Text } from '../../../scene/shape/text';
-import type { MeasuredLabel, PointLabelDatum } from '../../../scene/util/labelPlacement';
+import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { extent } from '../../../util/array';
 import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
@@ -17,16 +17,10 @@ import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
 import { SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
-import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
-import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
+import type { CartesianAnimationData } from './cartesianSeries';
 import { CartesianSeries } from './cartesianSeries';
 import { markerScaleInAnimation, resetMarkerFn } from './markerUtil';
-import { ScatterSeriesProperties } from './scatterSeriesProperties';
-
-export interface ScatterNodeDatum extends Required<CartesianSeriesNodeDatum>, ErrorBoundSeriesNodeDatum {
-    readonly label: MeasuredLabel;
-    readonly fill: string | undefined;
-}
+import { ScatterNodeDatum, ScatterSeriesProperties } from './scatterSeriesProperties';
 
 type ScatterAnimationData = CartesianAnimationData<Group, ScatterNodeDatum>;
 

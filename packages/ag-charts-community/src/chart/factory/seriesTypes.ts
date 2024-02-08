@@ -1,6 +1,6 @@
 import type { SeriesConstructor, SeriesModule } from '../../module/coreModules';
 import type { SeriesPaletteFactory } from '../../module/coreModulesTypes';
-import { hasRegisteredEnterpriseModules } from '../../module/module';
+import { enterpriseModule } from '../../module/enterpriseModule';
 import type { ModuleContext } from '../../module/moduleContext';
 import type {
     AgCartesianSeriesOptions,
@@ -96,7 +96,7 @@ export function getSeriesDefaults<T extends AgChartOptions>(chartType: string): 
 }
 
 export function getSeriesThemeTemplate(chartType: string): {} {
-    if (hasRegisteredEnterpriseModules()) {
+    if (enterpriseModule.isEnterprise) {
         return ENTERPRISE_SERIES_THEME_TEMPLATES[chartType];
     }
     return SERIES_THEME_TEMPLATES[chartType];
