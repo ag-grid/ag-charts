@@ -104,8 +104,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         if (!enterpriseModule.isEnterprise) {
             removeUsedEnterpriseOptions(this.processedOptions);
         }
-
-        return this;
     }
 
     getOptions() {
@@ -134,8 +132,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     protected optionsType(options: Partial<T>) {
         return options.series?.[0]?.type ?? 'line';
     }
-
-    // protected applyChartModules() {}
 
     protected sanityCheckAndCleanup(options: Partial<T>) {
         // output warnings and correct options when required

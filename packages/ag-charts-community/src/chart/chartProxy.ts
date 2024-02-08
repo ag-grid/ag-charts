@@ -1,4 +1,5 @@
 import type { AgChartInstance } from '../options/chart/chartBuilderOptions';
+import { deepClone } from '../util/json';
 import { ActionOnSet } from '../util/proxy';
 import type { Chart } from './chart';
 
@@ -29,7 +30,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
 
     private static validateImplementation(x: object) {
         const chartProps: Array<keyof AgChartInstanceProxy> = ['getOptions', 'destroy'];
-        const signatureProps = Object.keys(x.constructor?.prototype ?? {});
+        const signatureProps = Object.keys(Object.getPrototypeOf(x) ?? {});
         return chartProps.every((prop) => signatureProps.includes(prop));
     }
 
@@ -48,7 +49,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
     }
 
     getOptions() {
-        return this.chart.getOptions();
+        return deepClone(this.chart.getOptions());
     }
 
     resetAnimations(): void {
