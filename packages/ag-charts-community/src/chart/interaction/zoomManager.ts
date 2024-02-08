@@ -1,3 +1,4 @@
+import { deepClone } from '../../util/json';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { BaseManager } from './baseManager';
 
@@ -136,12 +137,12 @@ class AxisZoomManager {
     }
 
     public getZoom() {
-        return this.currentZoom;
+        return deepClone(this.currentZoom);
     }
 
     public applyChanges(): boolean {
         const prevZoom = this.currentZoom;
         this.currentZoom = this.pendingZoom ?? this.initialZoom;
-        return prevZoom?.min !== this.currentZoom?.min || prevZoom?.max !== this.currentZoom?.max;
+        return prevZoom.min !== this.currentZoom.min || prevZoom.max !== this.currentZoom.max;
     }
 }

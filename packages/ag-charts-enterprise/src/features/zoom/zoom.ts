@@ -48,7 +48,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     @ActionOnSet<Zoom>({
         newValue(newValue) {
             if (newValue) {
-                this.updateZoom(unitZoomState());
                 this.registerContextMenuActions();
             }
         },

@@ -422,7 +422,15 @@ function applyChartOptions(chart: Chart, processedOptions: ProcessedOptions, use
     chart.processedOptions = completeOptions;
     chart.userOptions = mergeDefaults(userOptions, chart.userOptions);
 
-    const miniChartInstance = (chart.modules.get('navigator') as any)?.miniChartInstance;
+    const navigatorModule = chart.modules.get('navigator') as any;
+    const zoomModule = chart.modules.get('zoom') as any;
+
+    if (!navigatorModule?.enabled && !zoomModule?.enabled) {
+        // reset zoom to initial state
+        chart.zoomManager.updateZoom();
+    }
+
+    const miniChartInstance = navigatorModule?.miniChartInstance;
     if (miniChartInstance != null) {
         const seriesStatus = applySeries(miniChartInstance, processedOptions);
         applyAxes(miniChartInstance, processedOptions, seriesStatus);

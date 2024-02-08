@@ -1,11 +1,30 @@
-import { type AgChartSyncOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgChartSyncOptions, _ModuleSupport, _Util } from 'ag-charts-community';
 
-const { BOOLEAN, STRING, UNION, BaseProperties, ChartUpdateType, ObserveChanges, Validate } = _ModuleSupport;
+const {
+    BOOLEAN,
+    STRING,
+    UNION,
+    BaseProperties,
+    CartesianAxis,
+    ChartUpdateType,
+    isFiniteNumber,
+    ObserveChanges,
+    Validate,
+} = _ModuleSupport;
+const { Logger } = _Util;
 
 export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleInstance, AgChartSyncOptions {
     static className = 'Sync';
 
     @Validate(BOOLEAN)
+    @ObserveChanges<ChartSync>((target, newValue) => {
+        const { syncManager } = target.moduleContext;
+        if (newValue) {
+            syncManager.subscribe(target.groupId);
+        } else {
+            syncManager.unsubscribe(target.groupId);
+        }
+    })
     enabled: boolean = false;
 
     @Validate(STRING, { optional: true })
@@ -44,7 +63,8 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
     }
 
     private updateSiblings(groupId?: string) {
-        for (const chart of this.moduleContext.syncManager.getSiblings(groupId)) {
+        const { syncManager } = this.moduleContext;
+        for (const chart of syncManager.getGroupSiblings(groupId)) {
             this.updateChart(chart);
         }
     }
@@ -52,7 +72,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
     private enabledZoomSync() {
         const { syncManager, zoomManager } = this.moduleContext;
         this.disableZoomSync = zoomManager.addListener('zoom-change', () => {
-            for (const chart of syncManager.getSiblings(this.groupId)) {
+            for (const chart of syncManager.getGroupSiblings(this.groupId)) {
                 chart.zoomManager.updateZoom(zoomManager.getZoom());
             }
         });
@@ -63,10 +83,27 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
     syncAxes(stopPropagation = false) {
         const { syncManager } = this.moduleContext;
         const chart = syncManager.getChart();
-        const syncSeries = syncManager.getGroup(this.groupId).flatMap((chart) => chart.series);
 
-        for (const axis of chart.axes) {
-            if (this.axes !== 'xy' && this.axes !== axis.direction) continue;
+        const syncSeries = syncManager.getGroup(this.groupId).flatMap((chart) => chart.series);
+        const syncAxes = syncManager.getGroupSiblings(this.groupId).flatMap((chart) => chart.axes);
+
+        checkAxis: for (const axis of chart.axes) {
+            if (!CartesianAxis.is(axis) || (this.axes !== 'xy' && this.axes !== axis.direction)) continue;
+
+            for (const siblingAxis of syncAxes) {
+                if (axis.direction !== siblingAxis.direction) continue;
+                const { nice, min, max } = axis as typeof siblingAxis;
+
+                if (
+                    nice !== siblingAxis.nice ||
+                    (min !== siblingAxis.min && (isFiniteNumber(min) || isFiniteNumber(siblingAxis.min))) ||
+                    (max !== siblingAxis.max && (isFiniteNumber(max) || isFiniteNumber(siblingAxis.max)))
+                ) {
+                    Logger.warnOnce('For axes sync, ensure matching `nice`, `min`, and `max` properties.');
+                    continue checkAxis;
+                }
+            }
+
             axis.boundSeries = syncSeries.filter((series) => {
                 const seriesKeys = series.getKeys(axis.direction);
                 return axis.keys.length ? axis.keys.some((key) => seriesKeys?.includes(key)) : true;
