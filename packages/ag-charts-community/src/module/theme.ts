@@ -1,4 +1,4 @@
-import type { SeriesPaletteFactoryParams } from '../module/coreModulesTypes';
+import type { SeriesPaletteFactoryParams } from './coreModulesTypes';
 
 export const singleSeriesPaletteFactory = ({ takeColors }: SeriesPaletteFactoryParams) => {
     const {

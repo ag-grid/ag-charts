@@ -18,17 +18,17 @@ const options: AgChartOptions = {
             xName: 'Financials',
             yKey: 'amount',
             yName: 'Amount',
-            item: {
-                positive: {
-                    cornerRadius: 10,
-                },
-                negative: {
-                    cornerRadius: 10,
-                },
-                total: {
-                    cornerRadius: 10,
-                },
-            },
+            // item: {
+            //     positive: {
+            //         cornerRadius: 10,
+            //     },
+            //     negative: {
+            //         cornerRadius: 10,
+            //     },
+            //     total: {
+            //         cornerRadius: 10,
+            //     },
+            // },
         },
     ],
 };

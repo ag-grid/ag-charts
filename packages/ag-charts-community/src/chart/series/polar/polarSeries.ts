@@ -7,7 +7,7 @@ import { Group } from '../../../scene/group';
 import type { Node } from '../../../scene/node';
 import { Selection } from '../../../scene/selection';
 import { Text } from '../../../scene/shape/text';
-import type { PointLabelDatum } from '../../../util/labelPlacement';
+import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { DataModelSeries } from '../dataModelSeries';

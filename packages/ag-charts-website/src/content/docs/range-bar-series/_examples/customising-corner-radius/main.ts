@@ -17,7 +17,7 @@ const options: AgChartOptions = {
             xKey: 'department',
             yLowKey: 'low',
             yHighKey: 'high',
-            cornerRadius: 10,
+            // cornerRadius: 10,
         },
     ],
 };

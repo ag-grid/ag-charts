@@ -128,9 +128,12 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
 
     async performLayout({ shrinkRect }: { shrinkRect: BBox }): Promise<{ shrinkRect: BBox }> {
         if (this.enabled) {
-            const navigatorTotalHeight = this.height + this.margin;
+            const miniChartPadding = this.miniChartInstance?.computeAxisPadding();
+            const paddingTop = miniChartPadding?.top ?? 0;
+            const paddingBottom = miniChartPadding?.bottom ?? 0;
+            const navigatorTotalHeight = this.height + this.margin + (paddingTop + paddingBottom);
             shrinkRect.shrink(navigatorTotalHeight, 'bottom');
-            this.y = shrinkRect.y + shrinkRect.height + this.margin;
+            this.y = shrinkRect.y + paddingTop + shrinkRect.height + this.margin;
         } else {
             this.y = 0;
         }

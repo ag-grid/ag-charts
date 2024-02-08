@@ -35,9 +35,15 @@ export function getData(windowStart: number, windowEnd: number) {
     } else if (diff < week * 2) {
         granularity = hour * 6;
     }
-    return data.filter(({ time }) => {
-        const isCoarse = time % day === 0;
-        const isFineWithinWindow = time % granularity === 0 && time >= windowStart && time <= windowEnd;
-        return isCoarse || isFineWithinWindow;
-    });
+    return delay(0).then(() =>
+        data.filter(({ time }) => {
+            const isCoarse = time % day === 0;
+            const isFineWithinWindow = time % granularity === 0 && time >= windowStart && time <= windowEnd;
+            return isCoarse || isFineWithinWindow;
+        })
+    );
+}
+
+function delay(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
 }

@@ -1,7 +1,8 @@
 import { describe, expect, it } from '@jest/globals';
+import { Canvas, createCanvas } from 'canvas';
 
-import { extractImageData, setupMockCanvas } from '../../chart/test/utils';
-import type { TextWrap } from '../../options/agChartOptions';
+import type { TextWrap } from '../../options/chart/types';
+import { extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
 import type { LayerManager } from '../node';
 import { Text } from './text';
 

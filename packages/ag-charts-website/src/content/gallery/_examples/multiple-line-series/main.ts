@@ -13,7 +13,7 @@ const options: AgChartOptions = {
                         size: 5,
                     },
                     tooltip: {
-                        renderer: ({ title, datum, xKey, yKey, xName, yName }: AgLineSeriesTooltipRendererParams) => ({
+                        renderer: ({ title, datum, xKey, yKey, xName }: AgLineSeriesTooltipRendererParams) => ({
                             title,
                             content: `${xName} ${datum[xKey].toFixed(0)}: ${Math.floor(datum[yKey] / 60)}h ${Math.round(
                                 datum[yKey] % 60

@@ -1,5 +1,5 @@
 import type { SeriesModule } from '../../../module/coreModules';
-import { singleSeriesPaletteFactory } from '../../../util/theme';
+import { singleSeriesPaletteFactory } from '../../../module/theme';
 import { CARTESIAN_AXIS_TYPE, FONT_WEIGHT, POSITION } from '../../themes/constants';
 import {
     DEFAULT_FONT_FAMILY,

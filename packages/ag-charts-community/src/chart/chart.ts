@@ -12,14 +12,14 @@ import { BBox } from '../scene/bbox';
 import { Group } from '../scene/group';
 import type { Point } from '../scene/point';
 import { Scene } from '../scene/scene';
+import type { PlacedLabel, PointLabelDatum } from '../scene/util/labelPlacement';
+import { isPointLabelDatum, placeLabels } from '../scene/util/labelPlacement';
 import { groupBy } from '../util/array';
 import { sleep } from '../util/async';
 import { CallbackCache } from '../util/callbackCache';
 import { Debug } from '../util/debug';
 import { createId } from '../util/id';
 import { deepClone } from '../util/json';
-import type { PlacedLabel, PointLabelDatum } from '../util/labelPlacement';
-import { isPointLabelDatum, placeLabels } from '../util/labelPlacement';
 import { Logger } from '../util/logger';
 import { Mutex } from '../util/mutex';
 import type { TypedEvent } from '../util/observable';
@@ -46,7 +46,8 @@ import { CursorManager } from './interaction/cursorManager';
 import { GestureDetector } from './interaction/gestureDetector';
 import type { HighlightChangeEvent } from './interaction/highlightManager';
 import { HighlightManager } from './interaction/highlightManager';
-import { InteractionEvent, InteractionState } from './interaction/interactionManager';
+import { InteractionState } from './interaction/interactionManager';
+import type { InteractionEvent, PointerOffsets } from './interaction/interactionManager';
 import { InteractionManager } from './interaction/interactionManager';
 import { SyncManager } from './interaction/syncManager';
 import { TooltipManager } from './interaction/tooltipManager';
@@ -57,7 +58,6 @@ import { Legend } from './legend';
 import type { CategoryLegendDatum, ChartLegend, ChartLegendType, GradientLegendDatum } from './legendDatum';
 import type { SeriesOptionsTypes } from './mapping/types';
 import { ChartOverlays } from './overlay/chartOverlays';
-import type { Overlay } from './overlay/overlay';
 import type { Series } from './series/series';
 import { SeriesNodePickMode } from './series/series';
 import { SeriesLayerManager } from './series/seriesLayerManager';
@@ -66,6 +66,7 @@ import type { ISeries, SeriesNodeDatum } from './series/seriesTypes';
 import { Tooltip } from './tooltip/tooltip';
 import { BaseLayoutProcessor } from './update/baseLayoutProcessor';
 import { DataWindowProcessor } from './update/dataWindowProcessor';
+import { OverlaysProcessor } from './update/overlaysProcessor';
 import type { UpdateProcessor } from './update/processor';
 import { UpdateOpts, UpdateService } from './updateService';
 
@@ -333,14 +334,16 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.data = data;
         });
 
+        this.overlays = new ChartOverlays(this.element, this.animationManager);
+
         this.processors = [
             new BaseLayoutProcessor(this, this.layoutService),
             new DataWindowProcessor(this, this.dataService, this.updateService, this.zoomManager),
+            new OverlaysProcessor(this, this.overlays, this.dataService, this.layoutService),
         ];
 
         this.tooltip = new Tooltip(this.scene.canvas.element, document, window, document.body);
         this.tooltipManager = new TooltipManager(this.tooltip, this.interactionManager);
-        this.overlays = new ChartOverlays(this.element, this.animationManager);
         this.highlight = new ChartHighlight();
         this.container = container;
 
@@ -651,9 +654,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 if (this.checkUpdateShortcut(ChartUpdateType.TOOLTIP_RECALCULATION)) break;
 
                 const tooltipMeta = this.tooltipManager.getTooltipMeta(this.id);
-                const isHovered = tooltipMeta?.event?.type === 'hover';
-                if (performUpdateType <= ChartUpdateType.SERIES_UPDATE && isHovered) {
-                    this.handlePointer(tooltipMeta.event as InteractionEvent<'hover'>);
+
+                if (performUpdateType <= ChartUpdateType.SERIES_UPDATE && tooltipMeta !== undefined) {
+                    this.handlePointer(tooltipMeta);
                 }
                 splits['↖'] = performance.now();
             // fallthrough
@@ -1023,7 +1026,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.animationManager.skipCurrentBatch();
         }
 
-        this.handleOverlays();
         this.debug('Chart.performUpdate() - seriesRect', this.seriesRect);
     }
 
@@ -1089,10 +1091,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         return result;
     }
 
-    lastPick?: {
-        datum: SeriesNodeDatum;
-        event?: Event;
-    };
+    private lastPick?: SeriesNodeDatum;
 
     protected onMouseMove(event: InteractionEvent<'hover'>): void {
         this.lastInteractionEvent = event;
@@ -1117,7 +1116,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.lastInteractionEvent = undefined;
         }
     });
-    protected handlePointer(event: InteractionEvent<'hover'>) {
+    protected handlePointer(event: PointerOffsets) {
         if (this.interactionManager.getState() !== InteractionState.Default) {
             return;
         }
@@ -1143,10 +1142,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.handlePointerNode(event);
     }
 
-    protected handlePointerTooltip(
-        event: InteractionEvent<'hover'>,
-        disablePointer: (highlightOnly?: boolean) => void
-    ) {
+    protected handlePointerTooltip(event: PointerOffsets, disablePointer: (highlightOnly?: boolean) => void) {
         const { lastPick, tooltip } = this;
         const { range } = tooltip;
         const { offsetX, offsetY } = event;
@@ -1163,7 +1159,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             return;
         }
 
-        const isNewDatum = this.highlight.range === 'node' || !lastPick || lastPick.datum !== pick.datum;
+        const isNewDatum = this.highlight.range === 'node' || !lastPick || lastPick !== pick.datum;
         let html;
 
         if (isNewDatum) {
@@ -1172,8 +1168,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
             if (this.highlight.range === 'tooltip') {
                 this.highlightManager.updateHighlight(this.id, pick.datum);
             }
-        } else if (lastPick) {
-            lastPick.event = event.sourceEvent;
         }
 
         const isPixelRange = pixelRange != null;
@@ -1182,14 +1176,14 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const rangeMatched = range === 'nearest' || isPixelRange || exactlyMatched;
         const shouldUpdateTooltip = tooltipEnabled && rangeMatched && (!isNewDatum || html !== undefined);
 
-        const meta = TooltipManager.makeTooltipMeta(event, this.scene.canvas, pick.datum, this.specialOverrides.window);
+        const meta = TooltipManager.makeTooltipMeta(event, pick.datum);
 
         if (shouldUpdateTooltip) {
             this.tooltipManager.updateTooltip(this.id, meta, html);
         }
     }
 
-    protected handlePointerNode(event: InteractionEvent<'hover'>) {
+    protected handlePointerNode(event: PointerOffsets) {
         const found = this.checkSeriesNodeRange(event, (series, datum) => {
             if (series.hasEventListener('nodeClick') || series.hasEventListener('nodeDoubleClick')) {
                 this.cursorManager.updateCursor('chart', 'pointer');
@@ -1242,7 +1236,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     private checkSeriesNodeRange(
-        event: InteractionEvent<'click' | 'dblclick' | 'hover'>,
+        event: PointerOffsets,
         callback: (series: ISeries<any>, datum: SeriesNodeDatum) => void
     ): boolean {
         const nearestNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, false);
@@ -1329,7 +1323,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.cursorManager.updateCursor(newSeries.id, newSeries.properties.cursor);
         }
 
-        this.lastPick = event.currentHighlight ? { datum: event.currentHighlight } : undefined;
+        this.lastPick = event.currentHighlight;
 
         const updateAll = newSeries == null || lastSeries == null;
         if (updateAll) {
@@ -1356,25 +1350,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         // wait until any remaining updates are flushed through.
         await this.updateMutex.waitForClearAcquireQueue();
-    }
-
-    private handleOverlays() {
-        const hasNoData = !this.series.some((s) => s.hasData());
-        this.toggleOverlay(this.overlays.noData, hasNoData);
-
-        if (!hasNoData) {
-            // Don't draw both text overlays at the same time.
-            const hasNoVisibleSeries = !this.series.some((series): boolean => series.visible);
-            this.toggleOverlay(this.overlays.noVisibleSeries, hasNoVisibleSeries);
-        }
-    }
-
-    private toggleOverlay(overlay: Overlay, visible: boolean) {
-        if (visible && this.seriesRect) {
-            overlay.show(this.seriesRect);
-        } else {
-            overlay.hide();
-        }
     }
 
     protected getMinRect() {

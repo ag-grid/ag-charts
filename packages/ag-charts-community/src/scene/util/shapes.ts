@@ -1,5 +1,5 @@
-import { Line } from '../scene/shape/line';
-import { Rect } from '../scene/shape/rect';
+import { Line } from '../shape/line';
+import { Rect } from '../shape/rect';
 
 export function invertShapeDirection(...supportedShapes: (Rect | Line)[]) {
     for (const shape of supportedShapes) {

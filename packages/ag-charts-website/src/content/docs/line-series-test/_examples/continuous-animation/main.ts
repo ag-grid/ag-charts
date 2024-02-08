@@ -169,7 +169,7 @@ function actionShiftRight() {
     AgCharts.update(chart, options);
 }
 
-let tick: NodeJS.Timer;
+let tick: NodeJS.Timeout;
 function actionTickStart() {
     if (tick) clearInterval(tick);
 

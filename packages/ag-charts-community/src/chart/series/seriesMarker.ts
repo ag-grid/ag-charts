@@ -4,7 +4,7 @@ import type {
     ISeriesMarker,
 } from '../../options/series/markerOptions';
 import { RedrawType, SceneChangeDetection } from '../../scene/changeDetectable';
-import { BaseProperties } from '../../util/properties';
+import { ChangeDetectableProperties } from '../../scene/util/changeDetectableProperties';
 import type { RequireOptional } from '../../util/types';
 import {
     BOOLEAN,
@@ -26,7 +26,7 @@ const MARKER_SHAPE = predicateWithMessage(
 );
 
 export class SeriesMarker<TParams = never, TDatum = any>
-    extends BaseProperties
+    extends ChangeDetectableProperties
     implements ISeriesMarker<TDatum, RequireOptional<TParams>>
 {
     @Validate(BOOLEAN)

@@ -96,7 +96,8 @@
       "executor": "nx:run-commands",
       "dependsOn": ["build", "lint", "format-check"],
       "options": {
-        "commands": ["nx run-many -t test --parallel 1"]
+        "parallel": false,
+        "commands": ["nx run-many -t test --parallel 1", "nx run-many -t validate-examples"]
       }
     },
     "clean": { "command": "rimraf dist/ 'packages/*/dist/'" }

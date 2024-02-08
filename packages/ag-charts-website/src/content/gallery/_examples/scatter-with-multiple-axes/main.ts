@@ -3,7 +3,7 @@ import { AgCartesianSeriesTooltipRendererParams, AgChartOptions, AgCharts } from
 import { getData } from './data';
 
 const tooltip = {
-    renderer: ({ datum, xKey, yKey, yName, xName }: AgCartesianSeriesTooltipRendererParams) => {
+    renderer: ({ datum, xKey, yKey }: AgCartesianSeriesTooltipRendererParams) => {
         const year = datum[xKey].toFixed(0);
         return {
             content: `${year}: ${Math.round(datum[yKey])}`,

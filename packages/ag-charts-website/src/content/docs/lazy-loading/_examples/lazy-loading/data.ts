@@ -14,13 +14,18 @@ export function getData() {
         return collection;
     };
 
-    return fetch(endpoint)
+    return delay(0)
+        .then(() => fetch(endpoint))
         .then((response) => response.json())
         .then((json) => {
             if (!Array.isArray(json)) return [];
             const data = json.reduce(reducer, {});
             return Object.values(data).slice(0, 10);
         });
+}
+
+function delay(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 interface Athlete {

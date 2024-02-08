@@ -4,6 +4,7 @@ import type { AgAxisLabelFormatterParams, AgCartesianAxisPosition, FontOptions }
 import type { Scale } from '../scale/scale';
 import type { BBox } from '../scene/bbox';
 import type { Node } from '../scene/node';
+import type { AxisLine } from './axis/axisLine';
 import type { ChartAxisDirection } from './chartAxisDirection';
 import type { AxisLayout } from './layout/layoutService';
 import type { ISeries } from './series/seriesTypes';
@@ -32,6 +33,7 @@ export interface ChartAxis {
     id: string;
     inRange(x: number, width?: number, tolerance?: number): boolean;
     keys: string[];
+    line: AxisLine;
     label: ChartAxisLabel;
     maxThickness: number;
     nice: boolean;

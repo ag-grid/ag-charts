@@ -1,12 +1,9 @@
-import { ChangeDetectable } from '../scene/changeDetectable';
 import { extractDecoratedPropertyMetadata, listDecoratedProperties } from './decorator';
 import { Logger } from './logger';
 import { isArray } from './type-guards';
 
-export class BaseProperties<T extends object = object> extends ChangeDetectable {
-    constructor(protected className?: string) {
-        super();
-    }
+export class BaseProperties<T extends object = object> {
+    constructor(protected className?: string) {}
     set(properties: T) {
         const keys = new Set(Object.keys(properties));
         for (const propertyKey of listDecoratedProperties(this)) {

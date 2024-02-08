@@ -5,7 +5,7 @@ import type {
     FontWeight,
     OverflowStrategy,
     TextWrap,
-} from '../../options/agChartOptions';
+} from '../../options/chart/types';
 import { BBox } from '../bbox';
 import { HdpiCanvas } from '../canvas/hdpiCanvas';
 import type { RenderContext } from '../node';

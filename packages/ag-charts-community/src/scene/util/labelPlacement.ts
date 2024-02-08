@@ -1,4 +1,4 @@
-import type { Point, SizedPoint } from '../scene/point';
+import type { Point, SizedPoint } from '../point';
 
 export interface MeasuredLabel {
     readonly text: string;

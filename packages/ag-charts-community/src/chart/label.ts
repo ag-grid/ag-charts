@@ -3,8 +3,8 @@ import type { AgChartLabelFormatterParams, AgChartLabelOptions } from '../option
 import { BBox } from '../scene/bbox';
 import type { Matrix } from '../scene/matrix';
 import { getFont } from '../scene/shape/text';
+import type { PointLabelDatum } from '../scene/util/labelPlacement';
 import { normalizeAngle360, toRadians } from '../util/angle';
-import type { PointLabelDatum } from '../util/labelPlacement';
 import { BaseProperties } from '../util/properties';
 import type { RequireOptional } from '../util/types';
 import {
