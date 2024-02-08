@@ -92,9 +92,7 @@ class DonutSeriesCalloutLine extends BaseProperties {
 
 export class DonutSeriesProperties extends SeriesProperties<AgDonutSeriesOptions> {
     override isValid(): boolean {
-        if (!super.isValid()) {
-            return false;
-        } else if (this.innerRadiusRatio == null && this.innerRadiusOffset == null) {
+        if (this.innerRadiusRatio == null && this.innerRadiusOffset == null) {
             Logger.warnOnce(
                 'Either an [innerRadiusRatio] or an [innerRadiusOffset] must be set to render a donut series.'
             );
@@ -102,7 +100,7 @@ export class DonutSeriesProperties extends SeriesProperties<AgDonutSeriesOptions
             return false;
         }
 
-        return true;
+        return super.isValid();
     }
 
     @Validate(STRING)
