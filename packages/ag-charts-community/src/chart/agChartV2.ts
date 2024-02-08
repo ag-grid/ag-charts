@@ -422,6 +422,12 @@ function applyChartOptions(chart: Chart, processedOptions: ProcessedOptions, use
     chart.processedOptions = completeOptions;
     chart.userOptions = mergeDefaults(userOptions, chart.userOptions);
 
+    const miniChartInstance = (chart.modules.get('navigator') as any)?.miniChartInstance;
+    if (miniChartInstance != null) {
+        const seriesStatus = applySeries(miniChartInstance, processedOptions);
+        applyAxes(miniChartInstance, processedOptions, seriesStatus);
+    }
+
     const majorChange = forceNodeDataRefresh || modulesChanged;
     const updateType = majorChange ? ChartUpdateType.UPDATE_DATA : ChartUpdateType.PERFORM_LAYOUT;
     debug('AgChartV2.applyChartOptions() - update type', ChartUpdateType[updateType]);

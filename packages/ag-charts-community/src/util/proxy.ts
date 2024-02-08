@@ -27,10 +27,10 @@ export function ProxyPropertyOnWrite(childName: string, childProperty?: string) 
     return addTransformToInstanceProperty((target, key, value) => (target[childName][childProperty ?? key] = value));
 }
 
-export interface ActionOnSetOptions<T> {
-    newValue?: (this: T, newValue: any) => void;
-    oldValue?: (this: T, oldValue: any) => void;
-    changeValue?: (this: T, newValue?: any, oldValue?: any) => void;
+export interface ActionOnSetOptions<T, V = any> {
+    newValue?: (this: T, newValue: V) => void;
+    oldValue?: (this: T, oldValue: V) => void;
+    changeValue?: (this: T, newValue?: V, oldValue?: V | undefined) => void;
 }
 
 /**
@@ -41,7 +41,7 @@ export interface ActionOnSetOptions<T> {
  *                      undefined values.
  * @param opts.changeValue called on any change to the value - always called.
  */
-export function ActionOnSet<T>(opts: ActionOnSetOptions<T>) {
+export function ActionOnSet<T, V = any>(opts: ActionOnSetOptions<T, V>) {
     const { newValue: newValueFn, oldValue: oldValueFn, changeValue: changeValueFn } = opts;
     return addTransformToInstanceProperty((target, _, newValue, oldValue) => {
         if (newValue !== oldValue) {
@@ -58,6 +58,6 @@ export function ActionOnSet<T>(opts: ActionOnSetOptions<T>) {
     });
 }
 
-export function ObserveChanges<T>(observerFn: (target: T, newValue?: any, oldValue?: any) => void) {
-    return addObserverToInstanceProperty(observerFn);
+export function ObserveChanges<T, V = any>(observerFn: (target: T, newValue?: V, oldValue?: V) => void) {
+    return addObserverToInstanceProperty(observerFn as any);
 }

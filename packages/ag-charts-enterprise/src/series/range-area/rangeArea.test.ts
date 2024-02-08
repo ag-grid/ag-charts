@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
+import { type AgChartOptions, AgCharts } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     expectWarning,
@@ -10,8 +11,6 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import type { AgChartOptions } from '../../main';
-import { AgCharts } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
 describe('RangeAreaSeries', () => {

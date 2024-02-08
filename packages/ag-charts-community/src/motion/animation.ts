@@ -1,6 +1,6 @@
-import { interpolateColor, interpolateNumber } from '../interpolate';
 import { Node } from '../scene/node';
 import type { Selection } from '../scene/selection';
+import { interpolateColor, interpolateNumber } from '../util/interpolate';
 import { clamp } from '../util/number';
 import { linear } from './easing';
 
