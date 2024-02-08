@@ -17,6 +17,7 @@ export interface AxisDomain {
 
 export class DataService<D extends object> extends Listeners<never, never> {
     private loadCb?: LoadCallback;
+    private loading = false;
     private throttleTime = 100;
 
     private readonly debug = Debug.create(...DEBUG_SELECTORS);
@@ -38,6 +39,7 @@ export class DataService<D extends object> extends Listeners<never, never> {
     public init(loadOrData: LoadCallback | any): any {
         if (typeof loadOrData !== 'function') return loadOrData;
         this.loadCb = loadOrData;
+        this.loading = true;
 
         // Disable animations when using lazy loading due to conflicts
         this.animationManager.skip();
@@ -54,9 +56,15 @@ export class DataService<D extends object> extends Listeners<never, never> {
         return this.loadCb != null;
     }
 
+    public isLoading() {
+        return this.isLazy() && this.loading;
+    }
+
     private async fetch(axes?: Array<AxisDomain>): Promise<D[]> {
         this.debug('DataLazyLoader.fetch() - start');
         const start = performance.now();
+
+        this.loading = true;
 
         if (!this.loadCb) {
             throw new Error('lazy data loading callback not initialised');
@@ -65,6 +73,8 @@ export class DataService<D extends object> extends Listeners<never, never> {
         try {
             const response = await this.loadCb({ axes });
             this.debug(`DataLazyLoader.fetch() - end: ${performance.now() - start}ms`);
+
+            this.loading = false;
 
             if (Array.isArray(response)) {
                 return response;

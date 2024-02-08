@@ -57,7 +57,6 @@ import { Legend } from './legend';
 import type { CategoryLegendDatum, ChartLegend, ChartLegendType, GradientLegendDatum } from './legendDatum';
 import type { SeriesOptionsTypes } from './mapping/types';
 import { ChartOverlays } from './overlay/chartOverlays';
-import type { Overlay } from './overlay/overlay';
 import type { Series } from './series/series';
 import { SeriesNodePickMode } from './series/series';
 import { SeriesLayerManager } from './series/seriesLayerManager';
@@ -66,6 +65,7 @@ import type { ISeries, SeriesNodeDatum } from './series/seriesTypes';
 import { Tooltip } from './tooltip/tooltip';
 import { BaseLayoutProcessor } from './update/baseLayoutProcessor';
 import { DataWindowProcessor } from './update/dataWindowProcessor';
+import { OverlaysProcessor } from './update/overlaysProcessor';
 import type { UpdateProcessor } from './update/processor';
 import { UpdateOpts, UpdateService } from './updateService';
 
@@ -333,14 +333,16 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.data = data;
         });
 
+        this.overlays = new ChartOverlays(this.element, this.animationManager);
+
         this.processors = [
             new BaseLayoutProcessor(this, this.layoutService),
             new DataWindowProcessor(this, this.dataService, this.updateService, this.zoomManager),
+            new OverlaysProcessor(this, this.overlays, this.dataService, this.layoutService),
         ];
 
         this.tooltip = new Tooltip(this.scene.canvas.element, document, window, document.body);
         this.tooltipManager = new TooltipManager(this.tooltip, this.interactionManager);
-        this.overlays = new ChartOverlays(this.element, this.animationManager);
         this.highlight = new ChartHighlight();
         this.container = container;
 
@@ -1026,7 +1028,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.animationManager.skipCurrentBatch();
         }
 
-        this.handleOverlays();
         this.debug('Chart.performUpdate() - seriesRect', this.seriesRect);
     }
 
@@ -1359,25 +1360,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         // wait until any remaining updates are flushed through.
         await this.updateMutex.waitForClearAcquireQueue();
-    }
-
-    private handleOverlays() {
-        const hasNoData = !this.series.some((s) => s.hasData());
-        this.toggleOverlay(this.overlays.noData, hasNoData);
-
-        if (!hasNoData) {
-            // Don't draw both text overlays at the same time.
-            const hasNoVisibleSeries = !this.series.some((series): boolean => series.visible);
-            this.toggleOverlay(this.overlays.noVisibleSeries, hasNoVisibleSeries);
-        }
-    }
-
-    private toggleOverlay(overlay: Overlay, visible: boolean) {
-        if (visible && this.seriesRect) {
-            overlay.show(this.seriesRect);
-        } else {
-            overlay.hide();
-        }
     }
 
     protected getMinRect() {
