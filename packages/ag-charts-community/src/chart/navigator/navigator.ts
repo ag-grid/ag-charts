@@ -84,10 +84,9 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         this.rs.visible = visible;
 
         if (visible) {
-            const zoom = this.ctx.zoomManager.getZoom();
             this.ctx.zoomManager.updateZoom({
                 x: { min: this.rs.min, max: this.rs.max },
-                y: zoom?.y,
+                y: this.ctx.zoomManager.getZoom()?.y,
             });
         } else {
             this.ctx.zoomManager.updateZoom();
