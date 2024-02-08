@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
+import { type AgChartOptions, AgCharts } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     extractImageData,
@@ -8,7 +9,6 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { type AgChartOptions, AgCharts } from '../main';
 import { prepareEnterpriseTestOptions } from '../test/utils';
 
 describe('GradientLegend', () => {
