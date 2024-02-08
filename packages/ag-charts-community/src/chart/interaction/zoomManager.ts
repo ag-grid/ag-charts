@@ -115,15 +115,16 @@ export class ZoomManager extends BaseManager<'zoom-change', ZoomChangeEvent> {
 }
 
 class AxisZoomManager {
-    private currentZoom: ZoomState;
-    private pendingZoom?: ZoomState;
     private axis: ChartAxisLike;
+    private currentZoom: ZoomState;
+    private pendingZoom: ZoomState | null = null;
+    private readonly initialZoom: ZoomState;
 
     constructor(axis: ChartAxisLike) {
         this.axis = axis;
 
         const [min = 0, max = 1] = axis.visibleRange;
-        this.currentZoom = { min, max };
+        this.initialZoom = this.currentZoom = { min, max };
     }
 
     getDirection(): ChartAxisDirection {
@@ -131,9 +132,7 @@ class AxisZoomManager {
     }
 
     public updateZoom(newZoom?: ZoomState) {
-        if (newZoom != null) {
-            this.pendingZoom = { ...newZoom };
-        }
+        this.pendingZoom = newZoom ? { ...newZoom } : null;
     }
 
     public getZoom() {
@@ -142,7 +141,7 @@ class AxisZoomManager {
 
     public applyChanges(): boolean {
         const prevZoom = this.currentZoom;
-        this.currentZoom = this.pendingZoom ?? this.currentZoom;
+        this.currentZoom = this.pendingZoom ?? this.initialZoom;
         return prevZoom?.min !== this.currentZoom?.min || prevZoom?.max !== this.currentZoom?.max;
     }
 }
