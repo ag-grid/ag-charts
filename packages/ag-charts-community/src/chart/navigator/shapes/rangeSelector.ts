@@ -19,6 +19,7 @@ export class RangeSelector extends Group {
     readonly maxHandle = new RangeHandle();
     readonly background = (() => {
         const background = new Group({ name: 'navigator-background' });
+        background.zIndex = 1;
         this.appendChild(background);
         return background;
     })();
@@ -32,14 +33,14 @@ export class RangeSelector extends Group {
         mask.height = height;
         mask.min = min;
         mask.max = max;
-        mask.zIndex = 1;
+        mask.zIndex = 2;
 
         const { minHandle, maxHandle } = this;
         minHandle.centerX = x;
         maxHandle.centerX = x + width;
         minHandle.centerY = maxHandle.centerY = y + height / 2;
-        minHandle.zIndex = 2;
-        maxHandle.zIndex = 2;
+        minHandle.zIndex = 3;
+        maxHandle.zIndex = 3;
 
         this.append([mask, minHandle, maxHandle]);
 
@@ -58,7 +59,7 @@ export class RangeSelector extends Group {
     max!: number;
 
     constructor() {
-        super({ name: 'rangeSelectorGroup' });
+        super({ name: 'rangeSelectorGroup', layer: true });
 
         this.isContainerNode = true;
     }

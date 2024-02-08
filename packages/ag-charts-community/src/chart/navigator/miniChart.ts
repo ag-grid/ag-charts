@@ -51,7 +51,7 @@ export class MiniChart extends Observable implements AgChartInstance {
     constructor(public ctx: ModuleContext) {
         super();
 
-        this.root.append(this.seriesRoot);
+        this.root.appendChild(this.seriesRoot);
         this.root.appendChild(this.axisGridGroup);
         this.root.appendChild(this.axisGroup);
     }
