@@ -107,6 +107,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             ctx.interactionManager.addListener('drag-end', () => this.onDragStop(), dragStates),
             ctx.zoomManager.addListener('zoom-change', () => this.onZoomChange()),
             () => ctx.scene.root?.removeChild(this.rs),
+            () => delete this.rs.onRangeChange
         );
 
         this.updateGroupVisibility();
