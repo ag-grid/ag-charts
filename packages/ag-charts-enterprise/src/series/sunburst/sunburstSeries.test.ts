@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, describe, expect, it, jest } from '@jest/globals';
 
 import type {
     AgCartesianChartOptions,
@@ -6,6 +6,7 @@ import type {
     AgPolarChartOptions,
     InteractionRange,
 } from 'ag-charts-community';
+import { AgCharts } from 'ag-charts-community';
 import {
     GALLERY_EXAMPLES,
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -20,7 +21,6 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { AgCharts } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 import type { SunburstSeries } from './sunburstSeries';
 

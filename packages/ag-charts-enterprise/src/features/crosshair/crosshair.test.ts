@@ -1,5 +1,6 @@
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, describe, expect, it } from '@jest/globals';
 
+import { AgCharts } from 'ag-charts-community';
 import type {
     AgAreaSeriesOptions,
     AgBarSeriesOptions,
@@ -17,7 +18,6 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { AgCharts } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
 function applyAxesFlip<T>(opts: T): T {

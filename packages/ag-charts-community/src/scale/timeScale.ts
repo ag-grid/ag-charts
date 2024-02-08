@@ -98,7 +98,7 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
     ];
 
     public constructor() {
-        super([new Date(2022, 11, 7), new Date(2022, 11, 8)], [0, 1]);
+        super([new Date(), new Date()], [0, 1]);
     }
 
     toDomain(d: number): Date {

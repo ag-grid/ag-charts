@@ -1,5 +1,5 @@
-import { ContinuousScale } from '../../integrated-charts-scene';
 import type { AgBaseCrossLineLabelOptions, AgCrossLineLabelPosition } from '../../options/agChartOptions';
+import { ContinuousScale } from '../../scale/continuousScale';
 import type { Scale } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';

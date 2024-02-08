@@ -62,8 +62,8 @@ export class GestureDetector extends BaseManager<GestureEventTypes, GestureEvent
     public constructor(element: HTMLElement) {
         super();
         this.element = element;
-        element.addEventListener('touchstart', this.touchstart);
-        element.addEventListener('touchmove', this.touchmove);
+        element.addEventListener('touchstart', this.touchstart, { passive: true });
+        element.addEventListener('touchmove', this.touchmove, { passive: true });
         element.addEventListener('touchend', this.touchend);
         element.addEventListener('touchcancel', this.touchcancel);
     }

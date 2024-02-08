@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
 import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-community';
+import { AgCharts } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     extractImageData,
@@ -9,7 +10,6 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { AgCharts } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 import { BackgroundImage } from './backgroundImage';
 

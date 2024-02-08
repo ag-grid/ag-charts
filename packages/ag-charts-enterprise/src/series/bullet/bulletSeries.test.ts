@@ -1,7 +1,7 @@
-import { afterEach, beforeEach, describe, expect, it, jest, xit } from '@jest/globals';
+import { afterEach, describe, expect, it, xit } from '@jest/globals';
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
-import type { AgChartInstance } from 'ag-charts-community';
+import { type AgChartInstance, AgCharts } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     deproxy,
@@ -13,7 +13,6 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { AgCharts } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
 expect.extend({ toMatchImageSnapshot });

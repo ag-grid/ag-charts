@@ -128,7 +128,7 @@ module.exports = {
             severity: 'error',
             from: {},
             to: {
-                path: '.(spec|test).(js|mjs|cjs|ts|ls|coffee|litcoffee|coffee.md)$',
+                path: '\\.(spec|test)\\.(js|mjs|cjs|ts|ls|coffee|litcoffee|coffee.md)$',
             },
         },
         {
@@ -175,18 +175,14 @@ module.exports = {
             },
         },
         {
-            name: 'ag-isolated-options',
-            comment: 'Options modules should be isolated from implementation modules.',
-            severity: 'error',
-            from: { path: 'src/options' },
-            to: { pathNot: '^src/options' },
-        },
-        {
             name: 'ag-avoid-bundles',
             comment: "Don't use top-level export bundles internally.",
             severity: 'error',
             from: { path: 'src/.*/' },
-            to: { path: 'src/[^/]*.ts' },
+            to: {
+                path: '^src/[^/]*.ts',
+                pathNot: '^src/setup.ts',
+            },
         },
     ],
     options: {
@@ -196,7 +192,7 @@ module.exports = {
        for a complete list
     */
         doNotFollow: {
-            path: 'node_modules',
+            path: ['node_modules', '../ag-charts-community'],
         },
 
         /* conditions specifying which dependencies to exclude

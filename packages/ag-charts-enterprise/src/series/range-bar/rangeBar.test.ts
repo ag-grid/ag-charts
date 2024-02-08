@@ -1,6 +1,6 @@
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, describe, expect, it } from '@jest/globals';
 
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgChartOptions, AgCharts, _ModuleSupport } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     extractImageData,
@@ -9,8 +9,6 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import type { AgChartOptions } from '../../main';
-import { AgCharts } from '../../main';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
 describe('RangeBarSeries', () => {

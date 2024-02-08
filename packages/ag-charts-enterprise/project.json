@@ -102,6 +102,13 @@
         }
       }
     },
+    "lint-depcruise": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/ag-charts-enterprise",
+        "commands": ["npx depcruise src"]
+      }
+    },
     "lint-circular": {
       "executor": "nx:run-script",
       "options": {
@@ -110,7 +117,7 @@
     },
     "lint": {
       "executor": "nx:noop",
-      "dependsOn": ["lint-eslint", "lint-circular"],
+      "dependsOn": ["lint-eslint", "lint-circular", "lint-depcruise"],
       "cache": false,
       "inputs": [
         {

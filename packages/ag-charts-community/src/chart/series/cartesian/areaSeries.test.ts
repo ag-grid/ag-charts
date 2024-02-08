@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type { AgChartOptions } from '../../../options/agChartOptions';
-import { deepClone } from '../../../sparklines-util';
+import { deepClone } from '../../../util/json';
 import { AgCharts } from '../../agChartV2';
 import type { Chart } from '../../chart';
 import {

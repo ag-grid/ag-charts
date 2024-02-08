@@ -1,7 +1,7 @@
-import { ContinuousScale } from '../../../integrated-charts-scene';
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
 import { StateMachine } from '../../../motion/states';
+import { ContinuousScale } from '../../../scale/continuousScale';
 import { LogScale } from '../../../scale/logScale';
 import { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';

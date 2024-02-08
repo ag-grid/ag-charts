@@ -2,7 +2,7 @@ import { ChartUpdateType } from '../chartUpdateType';
 import type { DataService } from '../data/dataService';
 import type { ZoomManager } from '../interaction/zoomManager';
 import type { UpdateService } from '../updateService';
-import type { ChartLike, UpdateProcessor } from './processor';
+import type { AxisLike, ChartLike, UpdateProcessor } from './processor';
 
 interface AxisDomain {
     id: string;
@@ -13,6 +13,7 @@ interface AxisDomain {
 
 export class DataWindowProcessor<D extends object> implements UpdateProcessor {
     private dirty = true;
+    private lastAxisZooms = new Map();
 
     private destroyFns: (() => void)[] = [];
 
@@ -46,32 +47,46 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
         if (!this.dataService.isLazy()) {
             return;
         }
+        const axes = this.getValidAxes();
+        const domains = this.getAxisDomains(axes);
+        if (axes.length > 0 && domains.length === 0) {
+            return;
+        }
         this.dirty = false;
-        const domains = this.getValidAxisDomains();
         const data = await this.dataService.load(domains);
         this.dataService.update(data);
         this.updateService.update(ChartUpdateType.UPDATE_DATA);
     }
 
-    private getValidAxisDomains() {
+    private getValidAxes() {
+        return this.chart.axes.filter((axis) => axis.type === 'time');
+    }
+
+    private getAxisDomains(axes: Array<AxisLike>) {
         const domains: Array<AxisDomain> = [];
 
-        for (const axis of this.chart.axes) {
-            if (axis.type !== 'time') continue;
-
+        for (const axis of axes) {
             const zoom = this.zoomManager.getAxisZoom(axis.id);
             const domain = axis.scale.getDomain?.();
 
             if (!domain || !zoom) continue;
 
-            const diff = Number(domain[1]) - Number(domain[0]);
+            // Only run the callback if the zoom has changed on this axis, ignoring invalid axes
+            const lastZoom = this.lastAxisZooms.get(axis.id);
+            if (lastZoom && zoom.min === lastZoom.min && zoom.max === lastZoom.max) continue;
 
-            domains.push({
-                id: axis.id,
-                type: axis.type,
-                min: new Date(Number(domain[0]) + diff * zoom.min),
-                max: new Date(Number(domain[0]) + diff * zoom.max),
-            });
+            this.lastAxisZooms.set(axis.id, zoom);
+
+            let min;
+            let max;
+
+            if (domain.length > 0 && !isNaN(Number(domain[0]))) {
+                const diff = Number(domain[1]) - Number(domain[0]);
+                min = new Date(Number(domain[0]) + diff * zoom.min);
+                max = new Date(Number(domain[0]) + diff * zoom.max);
+            }
+
+            domains.push({ id: axis.id, type: axis.type, min, max });
         }
 
         return domains;
