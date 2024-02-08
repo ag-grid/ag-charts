@@ -4,14 +4,9 @@
         "module": "commonjs",
         "target": "es2016",
         "strict": true,
-        "noEmit": true
-        // "forceConsistentCasingInFileNames": false,
-        // "noImplicitOverride": false,
-        // "noPropertyAccessFromIndexSignature": false,
-        // "noImplicitReturns": false,
-        // "noFallthroughCasesInSwitch": false,
-        // "noUnusedParameters": true
-        // "noUnusedLocals": true,
+        "noEmit": true,
+        "noUnusedParameters": true,
+        "noUnusedLocals": false
     },
     "files": [],
     "include": ["src/content/docs/*/_examples/*/*.ts", "src/content/gallery/_examples/*/*.ts"]

@@ -107,13 +107,14 @@ function createParentTargets(parentProject: string, parentPath: string) {
                     executor: 'nx:run-commands',
                     dependsOn: ['ag-charts-community', 'ag-charts-enterprise'],
                     inputs: [
+                        '{projectRoot}/tsconfig.examples.json',
                         '{projectRoot}/**/_examples/**/main.ts',
                         { dependentTasksOutputFiles: '**/*.d.ts', transitive: false },
                         { externalDependencies: ['npm:typescript'] },
                     ],
                     cache: true,
                     options: {
-                        commands: ['npx tsc -p packages/ag-charts-website/tsconfig.examples.json'],
+                        commands: ['npx tsc -p {projectRoot}/tsconfig.examples.json'],
                     },
                 },
             },
