@@ -10,6 +10,7 @@ import type {
 import type { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
 import type { ZIndexSubOrder } from '../../scene/node';
+import type { PickOptions, PickResult, Picker } from '../../scene/picker';
 import type { Point } from '../../scene/point';
 import { createId } from '../../util/id';
 import { jsonDiff } from '../../util/json';
@@ -44,6 +45,9 @@ export type SeriesNodePickMatch = {
     datum: SeriesNodeDatum;
     distance: number;
 };
+
+export type SeriesNodePickResult = PickResult<SeriesNodePickMode, SeriesNodeDatum>;
+export type SeriesNodePickOptions = PickOptions<SeriesNodePickMode>;
 
 function basicContinuousCheckDatumValidation(v: any) {
     return checkDatum(v, true) != null;
@@ -231,7 +235,7 @@ export abstract class Series<
         TContext extends SeriesNodeDataContext<TDatum, TLabel> = SeriesNodeDataContext<TDatum, TLabel>,
     >
     extends Observable
-    implements ISeries<TDatum>
+    implements ISeries<TDatum>, Picker<SeriesNodePickMode, SeriesNodeDatum>
 {
     protected destroyFns: (() => void)[] = [];
     abstract readonly properties: SeriesProperties<any>;
@@ -609,10 +613,12 @@ export abstract class Series<
 
     abstract getTooltipHtml(seriesDatum: any): string;
 
-    pickNode(
-        point: Point,
-        limitPickModes?: SeriesNodePickMode[]
-    ): { pickMode: SeriesNodePickMode; match: SeriesNodeDatum; distance: number } | undefined {
+    pickNodes(point: Point, opts: SeriesNodePickOptions): SeriesNodePickResult[] {
+        const result = this.pickNode(point, opts.limitPickModes);
+        return result !== undefined ? [result] : [];
+    }
+
+    pickNode(point: Point, limitPickModes?: SeriesNodePickMode[]): SeriesNodePickResult | undefined {
         const { pickModes, visible, rootGroup } = this;
 
         if (!visible || !rootGroup.visible) {

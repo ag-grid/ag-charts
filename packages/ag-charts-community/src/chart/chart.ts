@@ -10,6 +10,7 @@ import type {
 } from '../options/agChartOptions';
 import { BBox } from '../scene/bbox';
 import { Group } from '../scene/group';
+import { PickerCollection } from '../scene/picker';
 import type { Point } from '../scene/point';
 import { Scene } from '../scene/scene';
 import { groupBy } from '../util/array';
@@ -146,6 +147,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     readonly scene: Scene;
     readonly seriesRoot = new Group({ name: `${this.id}-Series-root` });
+    readonly seriesNodePicker: PickerCollection<SeriesNodePickMode, SeriesNodeDatum, Series<SeriesNodeDatum>>;
 
     readonly tooltip: Tooltip;
     readonly overlays: ChartOverlays;
@@ -373,6 +375,15 @@ export abstract class Chart extends Observable implements AgChartInstance {
             ),
             () => this.syncManager.unsubscribe()
         );
+
+        const chart = this;
+        this.seriesNodePicker = new PickerCollection({
+            getPickers: () => {
+                // Iterate through series in reverse, as later declared series appears on top of earlier
+                // declared series.
+                return [...chart.series].reverse();
+            },
+        });
     }
 
     addModule<T extends RootModule | LegendModule>(module: T) {
@@ -1064,24 +1075,13 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const start = performance.now();
 
         // Disable 'nearest match' options if looking for exact matches only
-        const pickModes = exactMatchOnly ? [SeriesNodePickMode.EXACT_SHAPE_MATCH] : undefined;
-
-        // Iterate through series in reverse, as later declared series appears on top of earlier
-        // declared series.
-        const reverseSeries = [...this.series].reverse();
+        const limitPickModes = exactMatchOnly ? [SeriesNodePickMode.EXACT_SHAPE_MATCH] : undefined;
 
         let result: { series: Series<any>; datum: SeriesNodeDatum; distance: number } | undefined;
-        for (const series of reverseSeries) {
-            const { match, distance } = series.pickNode(point, pickModes) ?? {};
-            if (!match || distance == null) {
-                continue;
-            }
-            if ((!result || result.distance > distance) && distance <= (maxDistance ?? Infinity)) {
-                result = { series, distance, datum: match };
-            }
-            if (distance === 0) {
-                break;
-            }
+        const picked = this.seriesNodePicker.pickNodes(point, { limitPickModes, maxDistance });
+        if (picked.length > 0) {
+            const { picker: series, distance, match } = picked[0];
+            result = { series, distance, datum: match.datum };
         }
 
         this.extraDebugStats['pickSeriesNode'] = Math.round(
