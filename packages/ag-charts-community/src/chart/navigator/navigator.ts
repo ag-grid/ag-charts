@@ -84,8 +84,10 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         this.rs.visible = visible;
 
         if (visible) {
+            const zoom = this.ctx.zoomManager.getZoom();
             this.ctx.zoomManager.updateZoom({
                 x: { min: this.rs.min, max: this.rs.max },
+                y: zoom?.y,
             });
         } else {
             this.ctx.zoomManager.updateZoom();
@@ -162,7 +164,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         const { min, max } = this.rs;
         const zoom = this.ctx.zoomManager.getZoom();
         if (zoom?.x?.min !== min || zoom?.x?.max !== max) {
-            this.ctx.zoomManager.updateZoom({ x: { min, max } });
+            this.ctx.zoomManager.updateZoom({ x: { min, max }, y: zoom?.y });
         }
     }
 
