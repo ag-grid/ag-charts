@@ -1,4 +1,3 @@
-import { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
 import { ProxyProperty } from '../../../util/proxy';
 import { RangeHandle } from './rangeHandle';
@@ -33,13 +32,14 @@ export class RangeSelector extends Group {
         mask.height = height;
         mask.min = min;
         mask.max = max;
+        mask.zIndex = 1;
 
         const { minHandle, maxHandle } = this;
         minHandle.centerX = x;
         maxHandle.centerX = x + width;
         minHandle.centerY = maxHandle.centerY = y + height / 2;
-        minHandle.zIndex = 1;
-        maxHandle.zIndex = 1;
+        minHandle.zIndex = 2;
+        maxHandle.zIndex = 2;
 
         this.append([mask, minHandle, maxHandle]);
 
@@ -74,7 +74,6 @@ export class RangeSelector extends Group {
 
         this.background.translationX = x;
         this.background.translationY = y;
-        this.background.setClipRectInGroupCoordinateSpace(new BBox(x, y, width, height));
     }
 
     updateHandles() {
