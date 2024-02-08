@@ -62,7 +62,6 @@ const options: AgChartOptions = {
         {
             type: 'category',
             position: 'bottom',
-            nice: false,
             crossLines: [
                 {
                     type: 'line',
