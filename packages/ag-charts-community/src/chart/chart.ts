@@ -59,8 +59,8 @@ import type { CategoryLegendDatum, ChartLegend, ChartLegendType, GradientLegendD
 import type { SeriesOptionsTypes } from './mapping/types';
 import { ChartOverlays } from './overlay/chartOverlays';
 import type { Series } from './series/series';
-import { SeriesNodePickMode } from './series/series';
 import { SeriesLayerManager } from './series/seriesLayerManager';
+import { SeriesNodePickMode } from './series/seriesNodePick';
 import { SeriesStateManager } from './series/seriesStateManager';
 import type { ISeries, SeriesNodeDatum } from './series/seriesTypes';
 import { Tooltip } from './tooltip/tooltip';

@@ -45,6 +45,7 @@ export * from './chart/series/seriesEvents';
 export * from './chart/series/seriesLabelUtil';
 export * from './chart/series/seriesProperties';
 export * from './chart/series/seriesMarker';
+export * from './chart/series/seriesNodePick';
 export * from './chart/series/seriesTooltip';
 export * from './chart/series/seriesTypes';
 export * from './chart/series/cartesian/abstractBarSeries';

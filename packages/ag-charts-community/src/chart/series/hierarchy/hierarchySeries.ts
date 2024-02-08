@@ -12,7 +12,8 @@ import type { PointLabelDatum } from '../../../util/labelPlacement';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import type { HighlightNodeDatum } from '../../interaction/highlightManager';
 import type { ChartLegendType, GradientLegendDatum } from '../../legendDatum';
-import { Series, SeriesNodePickMode } from '../series';
+import { Series } from '../series';
+import { SeriesNodePickMode } from '../seriesNodePick';
 import type { ISeries, SeriesNodeDatum } from '../seriesTypes';
 import type { HierarchySeriesProperties } from './hierarchySeriesProperties';
 

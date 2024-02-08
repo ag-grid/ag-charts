@@ -24,8 +24,9 @@ import { animationValidation, diff, normaliseGroupTo } from '../../data/processo
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
-import { SeriesNodePickMode, groupAccumulativeValueProperty, keyProperty, valueProperty } from '../series';
+import { groupAccumulativeValueProperty, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
+import { SeriesNodePickMode } from '../seriesNodePick';
 import { AreaSeriesProperties } from './areaSeriesProperties';
 import {
     type AreaPathPoint,

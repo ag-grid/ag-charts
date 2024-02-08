@@ -26,8 +26,9 @@ import {
     normaliseGroupTo,
 } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
-import { SeriesNodePickMode, groupAccumulativeValueProperty, keyProperty, valueProperty } from '../series';
+import { groupAccumulativeValueProperty, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
+import { SeriesNodePickMode } from '../seriesNodePick';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import { AbstractBarSeries } from './abstractBarSeries';
 import { BarSeriesProperties } from './barSeriesProperties';

@@ -11,7 +11,7 @@ import type { PointLabelDatum } from '../../../util/labelPlacement';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { DataModelSeries } from '../dataModelSeries';
-import { SeriesNodePickMode } from '../series';
+import { SeriesNodePickMode } from '../seriesNodePick';
 import type { SeriesNodeDatum } from '../seriesTypes';
 
 export type PolarAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';

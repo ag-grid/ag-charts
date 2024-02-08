@@ -20,8 +20,9 @@ import { animationValidation, createDatumId, diff } from '../../data/processors'
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
-import { SeriesNodePickMode, keyProperty, valueProperty } from '../series';
+import { keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
+import { SeriesNodePickMode } from '../seriesNodePick';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import type {
     CartesianAnimationData,
