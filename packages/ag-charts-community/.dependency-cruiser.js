@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-duplicate-string */
 /** @type {import('dependency-cruiser').IConfiguration} */
 module.exports = {
     forbidden: [
@@ -142,7 +143,8 @@ module.exports = {
                 'from.pathNot re of the not-to-dev-dep rule in the dependency-cruiser configuration',
             from: {
                 path: '^(src)',
-                pathNot: '(src/chart/test)|(.(spec|test).(js|mjs|cjs|ts|ls|coffee|litcoffee|coffee.md)$)',
+                pathNot:
+                    '(src/chart/test)|(src/util/test)|(.(spec|test).(js|mjs|cjs|ts|ls|coffee|litcoffee|coffee.md)$)',
             },
             to: {
                 dependencyTypes: ['npm-dev'],
@@ -186,7 +188,7 @@ module.exports = {
             comment: 'Options modules should be isolated from implementation modules.',
             severity: 'error',
             from: { path: '^src/util/' },
-            to: { pathNot: ['^src/util/', 'node_modules'] },
+            to: { pathNot: ['^src/util/', 'node_modules', '^fs$', 'ag-charts-test'] },
         },
         {
             name: 'ag-isolated-scales',
@@ -194,6 +196,13 @@ module.exports = {
             severity: 'error',
             from: { path: '^src/scale/' },
             to: { pathNot: ['^src/util/', '^src/scale/', 'node_modules'] },
+        },
+        {
+            name: 'ag-isolated-scene',
+            comment: 'Options modules should be isolated from implementation modules.',
+            severity: 'error',
+            from: { path: '^src/scene/' },
+            to: { pathNot: ['^src/options/chart/types', '^src/scale/', '^src/scene/', '^src/util/', 'node_modules'] },
         },
         {
             name: 'ag-avoid-bundles',

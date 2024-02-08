@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { extractImageData, setupMockCanvas } from '../../chart/test/utils';
+import { extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
 import { DropShadow } from '../dropShadow';
 import { Sector } from './sector';
 

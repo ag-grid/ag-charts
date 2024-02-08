@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import * as examples from '../chart/test/examples';
-import { setupMockConsole } from '../chart/test/mockConsole';
-import { IMAGE_SNAPSHOT_DEFAULTS, extractImageData, setupMockCanvas, waitForChartStability } from '../chart/test/utils';
 import type { AgCartesianChartOptions, AgChartInstance, AgChartLegendOptions } from '../options/agChartOptions';
-import { AgCharts } from './../chart/agChartV2';
+import { AgCharts } from './agChartV2';
+import * as examples from './test/examples';
+import { setupMockConsole } from './test/mockConsole';
+import { IMAGE_SNAPSHOT_DEFAULTS, extractImageData, setupMockCanvas, waitForChartStability } from './test/utils';
 
 describe('Scene', () => {
     setupMockConsole();
