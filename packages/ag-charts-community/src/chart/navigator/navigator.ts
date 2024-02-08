@@ -68,14 +68,14 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         if (visible === this.rs.visible) return;
         this.rs.visible = visible;
 
-        // if (visible) {
-        //     this.ctx.zoomManager.updateZoom({
-        //         x: { min: this.rs.min, max: this.rs.max },
-        //         y: { min: 0, max: 1 },
-        //     });
-        // } else {
-        //     this.ctx.zoomManager.updateZoom();
-        // }
+        if (visible) {
+            this.ctx.zoomManager.updateZoom({
+                x: { min: this.rs.min, max: this.rs.max },
+                y: { min: 0, max: 1 },
+            });
+        } else {
+            this.ctx.zoomManager.updateZoom();
+        }
     }
 
     constructor(private readonly ctx: ModuleContext) {
