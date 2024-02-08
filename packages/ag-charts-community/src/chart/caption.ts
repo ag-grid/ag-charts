@@ -101,7 +101,7 @@ export class Caption extends BaseProperties implements CaptionLike {
         }
 
         const bbox = this.node.computeBBox();
-        const { pageX, pageY, offsetX, offsetY } = event;
+        const { offsetX, offsetY } = event;
         const pointerInsideCaption = this.node.visible && bbox.containsPoint(offsetX, offsetY);
 
         if (!pointerInsideCaption) {
@@ -120,7 +120,7 @@ export class Caption extends BaseProperties implements CaptionLike {
 
         moduleCtx.tooltipManager.updateTooltip(
             this.id,
-            { pageX, pageY, offsetX, offsetY, event, showArrow: false, addCustomClass: false },
+            { offsetX, offsetY, showArrow: false, addCustomClass: false },
             toTooltipHtml({ content: this.text })
         );
     }

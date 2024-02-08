@@ -46,7 +46,8 @@ import { CursorManager } from './interaction/cursorManager';
 import { GestureDetector } from './interaction/gestureDetector';
 import type { HighlightChangeEvent } from './interaction/highlightManager';
 import { HighlightManager } from './interaction/highlightManager';
-import { InteractionEvent, InteractionState } from './interaction/interactionManager';
+import { InteractionState } from './interaction/interactionManager';
+import type { InteractionEvent, PointerOffsets } from './interaction/interactionManager';
 import { InteractionManager } from './interaction/interactionManager';
 import { SyncManager } from './interaction/syncManager';
 import { TooltipManager } from './interaction/tooltipManager';
@@ -656,9 +657,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 if (this.checkUpdateShortcut(ChartUpdateType.TOOLTIP_RECALCULATION)) break;
 
                 const tooltipMeta = this.tooltipManager.getTooltipMeta(this.id);
-                const isHovered = tooltipMeta?.event?.type === 'hover';
-                if (performUpdateType <= ChartUpdateType.SERIES_UPDATE && isHovered) {
-                    this.handlePointer(tooltipMeta.event as InteractionEvent<'hover'>);
+
+                if (performUpdateType <= ChartUpdateType.SERIES_UPDATE && tooltipMeta !== undefined) {
+                    this.handlePointer(tooltipMeta);
                 }
                 splits['↖'] = performance.now();
             // fallthrough
@@ -1093,10 +1094,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         return result;
     }
 
-    lastPick?: {
-        datum: SeriesNodeDatum;
-        event?: Event;
-    };
+    private lastPick?: SeriesNodeDatum;
 
     protected onMouseMove(event: InteractionEvent<'hover'>): void {
         this.lastInteractionEvent = event;
@@ -1121,7 +1119,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.lastInteractionEvent = undefined;
         }
     });
-    protected handlePointer(event: InteractionEvent<'hover'>) {
+    protected handlePointer(event: PointerOffsets) {
         if (this.interactionManager.getState() !== InteractionState.Default) {
             return;
         }
@@ -1147,10 +1145,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.handlePointerNode(event);
     }
 
-    protected handlePointerTooltip(
-        event: InteractionEvent<'hover'>,
-        disablePointer: (highlightOnly?: boolean) => void
-    ) {
+    protected handlePointerTooltip(event: PointerOffsets, disablePointer: (highlightOnly?: boolean) => void) {
         const { lastPick, tooltip } = this;
         const { range } = tooltip;
         const { offsetX, offsetY } = event;
@@ -1167,7 +1162,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             return;
         }
 
-        const isNewDatum = this.highlight.range === 'node' || !lastPick || lastPick.datum !== pick.datum;
+        const isNewDatum = this.highlight.range === 'node' || !lastPick || lastPick !== pick.datum;
         let html;
 
         if (isNewDatum) {
@@ -1176,8 +1171,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
             if (this.highlight.range === 'tooltip') {
                 this.highlightManager.updateHighlight(this.id, pick.datum);
             }
-        } else if (lastPick) {
-            lastPick.event = event.sourceEvent;
         }
 
         const isPixelRange = pixelRange != null;
@@ -1186,14 +1179,14 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const rangeMatched = range === 'nearest' || isPixelRange || exactlyMatched;
         const shouldUpdateTooltip = tooltipEnabled && rangeMatched && (!isNewDatum || html !== undefined);
 
-        const meta = TooltipManager.makeTooltipMeta(event, this.scene.canvas, pick.datum, this.specialOverrides.window);
+        const meta = TooltipManager.makeTooltipMeta(event, pick.datum);
 
         if (shouldUpdateTooltip) {
             this.tooltipManager.updateTooltip(this.id, meta, html);
         }
     }
 
-    protected handlePointerNode(event: InteractionEvent<'hover'>) {
+    protected handlePointerNode(event: PointerOffsets) {
         const found = this.checkSeriesNodeRange(event, (series, datum) => {
             if (series.hasEventListener('nodeClick') || series.hasEventListener('nodeDoubleClick')) {
                 this.cursorManager.updateCursor('chart', 'pointer');
@@ -1246,7 +1239,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     private checkSeriesNodeRange(
-        event: InteractionEvent<'click' | 'dblclick' | 'hover'>,
+        event: PointerOffsets,
         callback: (series: ISeries<any>, datum: SeriesNodeDatum) => void
     ): boolean {
         const nearestNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, false);
@@ -1333,7 +1326,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.cursorManager.updateCursor(newSeries.id, newSeries.properties.cursor);
         }
 
-        this.lastPick = event.currentHighlight ? { datum: event.currentHighlight } : undefined;
+        this.lastPick = event.currentHighlight;
 
         const updateAll = newSeries == null || lastSeries == null;
         if (updateAll) {
