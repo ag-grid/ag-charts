@@ -1,7 +1,7 @@
 import { describe, expect, test } from '@jest/globals';
 
+import { Color } from './color';
 import { interpolateColor } from './interpolate';
-import { Color } from './util/color';
 
 describe('interpolate module', () => {
     describe('interpolateColor', () => {

@@ -8,7 +8,7 @@ import { PNG } from 'pngjs';
 
 import { mockCanvas } from 'ag-charts-test';
 
-import { AgCharts, _ModuleSupport } from '../../main';
+import { Animation } from '../../motion/animation';
 import type {
     AgCartesianChartOptions,
     AgChartInstance,
@@ -16,13 +16,14 @@ import type {
     AgChartTheme,
     AgPolarChartOptions,
 } from '../../options/agChartOptions';
+import { resetIds } from '../../util/id';
+import { AgCharts } from '../agChartV2';
 import type { Chart } from '../chart';
 import type { AgChartProxy } from '../chartProxy';
+import { AnimationManager } from '../interaction/animationManager';
 
 export type { Chart } from '../chart';
 export type { AgChartProxy } from '../chartProxy';
-
-const { Animation, AnimationManager, resetIds } = _ModuleSupport;
 
 export interface TestCase {
     options: AgChartOptions;
@@ -378,7 +379,7 @@ export function spyOnAnimationManager() {
         skippedMock.mockImplementation(() => false);
 
         const animateMock = jest.spyOn(AnimationManager.prototype, 'animate');
-        animateMock.mockImplementation((opts) => {
+        animateMock.mockImplementation((opts: any) => {
             const controller = new Animation(opts);
             return controller.update(animateParameters[0] * animateParameters[1]);
         });
@@ -386,7 +387,7 @@ export function spyOnAnimationManager() {
         skippingFramesMock.mockImplementation(() => false);
 
         const safMock = jest.spyOn(AnimationManager.prototype, 'scheduleAnimationFrame');
-        safMock.mockImplementation(function (this: _ModuleSupport.AnimationManager, cb) {
+        safMock.mockImplementation(function (this: AnimationManager, cb) {
             (this as any).requestId = nextRafId++;
 
             const rafId = nextRafId++;

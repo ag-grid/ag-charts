@@ -181,6 +181,13 @@ module.exports = {
             from: { path: 'src/options' },
             to: { pathNot: '^src/options' },
         },
+        {
+            name: 'ag-avoid-bundles',
+            comment: "Don't use top-level export bundles internally.",
+            severity: 'error',
+            from: { path: 'src/.*/' },
+            to: { path: 'src/[^/]*.ts' },
+        },
     ],
     options: {
         /* conditions specifying which files not to follow further when encountered:

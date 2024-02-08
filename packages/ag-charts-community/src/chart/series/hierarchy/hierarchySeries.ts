@@ -1,11 +1,12 @@
-import type { BBox, Point } from '../../../integrated-charts-scene';
 import type { ModuleContext } from '../../../module/moduleContext';
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
 import { StateMachine } from '../../../motion/states';
 import { ColorScale } from '../../../scale/colorScale';
+import type { BBox } from '../../../scene/bbox';
 import type { Group } from '../../../scene/group';
 import type { Node } from '../../../scene/node';
+import type { Point } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import type { PointLabelDatum } from '../../../util/labelPlacement';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';

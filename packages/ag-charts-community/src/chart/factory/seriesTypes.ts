@@ -8,7 +8,7 @@ import type {
     AgHierarchySeriesOptions,
     AgPolarSeriesOptions,
 } from '../../options/agChartOptions';
-import { deepClone } from '../../sparklines-util';
+import { deepClone } from '../../util/json';
 import { mergeDefaults } from '../../util/object';
 import type { SeriesType } from '../mapping/types';
 import type { ISeries } from '../series/seriesTypes';
