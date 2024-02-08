@@ -1,8 +1,8 @@
-import { toRadians } from '../../integrated-charts-scene';
 import type { ModuleContext } from '../../module/moduleContext';
 import type { AgCartesianAxisPosition, AgChartInstance, AgChartOptions } from '../../options/agChartOptions';
 import { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
+import { toRadians } from '../../util/angle';
 import { createId } from '../../util/id';
 import { deepClone } from '../../util/json';
 import { Logger } from '../../util/logger';
