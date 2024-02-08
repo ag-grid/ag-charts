@@ -40,40 +40,14 @@ export const createNodes: CreateNodes = [
         const thumbnails = generateThumbnails(projectName);
         return {
             projects: {
-                [parentProject]: {
-                    root: parentPath,
-                    targets: {
-                        'generate-examples': {
-                            executor: 'nx:noop',
-                            dependsOn: ['^generate-example'],
-                            inputs: [{ externalDependencies: ['npm:typescript'] }],
-                            outputs: [],
-                            cache: true,
-                            configurations: {
-                                staging: {},
-                                production: {},
-                            },
-                        },
-                        'generate-thumbnails': {
-                            executor: 'nx:noop',
-                            dependsOn: ['^generate-thumbnail'],
-                            inputs: [{ externalDependencies: ['npm:typescript'] }],
-                            outputs: [],
-                            cache: true,
-                            configurations: {
-                                staging: {},
-                                production: {},
-                            },
-                        },
-                    },
-                },
+                ...createParentTargets(parentProject, parentPath),
                 [projectName]: {
                     root: dirname(configFilePath),
                     name: projectName,
                     tags: [`scope:${parentProject}`, 'type:generated-example'],
                     targets: {
                         ...createGenerateTarget(thumbnails),
-                        ...generateExampleFiles.createTask(parentProject, srcRelativeInputPath),
+                        ...generateExampleFiles.createTask(parentProject, srcRelativeInputPath, configFilePath),
                         ...(thumbnails ? generateChartThumbnails.createTask(parentProject, srcRelativeInputPath) : {}),
                     },
                 },
@@ -97,6 +71,52 @@ function createGenerateTarget(thumbnails: boolean): { [targetName: string]: Targ
             dependsOn,
             inputs: [{ externalDependencies: ['npm:typescript'] }],
             cache: true,
+        },
+    };
+}
+
+function createParentTargets(parentProject: string, parentPath: string) {
+    const exampleOutputDir = `dist/validated-examples/${parentProject}`;
+    return {
+        [parentProject]: {
+            root: parentPath,
+            targets: {
+                'generate-examples': {
+                    executor: 'nx:noop',
+                    dependsOn: ['^generate-example'],
+                    inputs: [{ externalDependencies: ['npm:typescript'] }],
+                    outputs: [],
+                    cache: true,
+                    configurations: {
+                        staging: {},
+                        production: {},
+                    },
+                },
+                'generate-thumbnails': {
+                    executor: 'nx:noop',
+                    dependsOn: ['^generate-thumbnail'],
+                    inputs: [{ externalDependencies: ['npm:typescript'] }],
+                    outputs: [],
+                    cache: true,
+                    configurations: {
+                        staging: {},
+                        production: {},
+                    },
+                },
+                'validate-examples': {
+                    executor: 'nx:run-commands',
+                    dependsOn: ['ag-charts-community', 'ag-charts-enterprise'],
+                    inputs: [
+                        '{projectRoot}/**/_examples/**/main.ts',
+                        { dependentTasksOutputFiles: '**/*.d.ts', transitive: false },
+                        { externalDependencies: ['npm:typescript'] },
+                    ],
+                    cache: true,
+                    options: {
+                        commands: ['npx tsc -p packages/ag-charts-website/tsconfig.examples.json'],
+                    },
+                },
+            },
         },
     };
 }
