@@ -86,6 +86,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         if (visible) {
             this.ctx.zoomManager.updateZoom({
                 x: { min: this.rs.min, max: this.rs.max },
+                y: this.ctx.zoomManager.getZoom()?.y,
             });
         } else {
             this.ctx.zoomManager.updateZoom();
@@ -99,7 +100,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
 
         ctx.scene.root?.appendChild(this.rs);
 
-        const dragStates = InteractionState.Default | InteractionState.Animation;
+        const dragStates = InteractionState.Default | InteractionState.Animation | InteractionState.ZoomDrag;
         this.destroyFns.push(
             ctx.interactionManager.addListener('drag-start', (event) => this.onDragStart(event), dragStates),
             ctx.interactionManager.addListener('drag', (event) => this.onDrag(event), dragStates),
@@ -162,7 +163,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         const { min, max } = this.rs;
         const zoom = this.ctx.zoomManager.getZoom();
         if (zoom?.x?.min !== min || zoom?.x?.max !== max) {
-            this.ctx.zoomManager.updateZoom({ x: { min, max } });
+            this.ctx.zoomManager.updateZoom({ x: { min, max }, y: zoom?.y });
         }
     }
 
