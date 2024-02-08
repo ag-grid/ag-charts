@@ -34,7 +34,6 @@ import { mergeArrayDefaults, mergeDefaults } from '../util/object';
 import { isEnumValue, isFiniteNumber, isObject, isPlainObject, isString } from '../util/type-guards';
 import type { BaseModule, ModuleInstance } from './baseModule';
 import { enterpriseModule } from './enterpriseModule';
-import { MODULE_CONFLICTS } from './moduleConflicts';
 import type { AxisContext, ModuleContextWithParent } from './moduleContext';
 import type { SeriesType } from './optionsModuleTypes';
 
@@ -144,7 +143,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.axesTypeIntegrity(options);
         this.seriesTypeIntegrity(options);
         this.soloSeriesIntegrity(options);
-        this.disableConflictedModules(options);
         this.removeDisabledOptions(options);
     }
 
@@ -419,26 +417,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 const rejects = unique(solo!.map((s) => s.type)).join(', ');
                 Logger.warn(`Unable to mix these series types with the lead series type: ${rejects}`);
                 options.series = nonSolo as T['series'];
-            }
-        }
-    }
-
-    private disableConflictedModules(options: Partial<T>) {
-        type PossibleObject = { enabled?: boolean } | undefined;
-
-        for (const [source, conflicts] of MODULE_CONFLICTS.entries()) {
-            const sourceOptions = options[source] as PossibleObject;
-            if (!sourceOptions?.enabled) {
-                continue;
-            }
-            for (const conflict of conflicts) {
-                const conflictOptions = options[conflict] as PossibleObject;
-                if (conflictOptions?.enabled) {
-                    Logger.warnOnce(
-                        `the [${source}] module can not be used at the same time as [${conflict}], it will be disabled.`
-                    );
-                    conflictOptions.enabled = false;
-                }
             }
         }
     }

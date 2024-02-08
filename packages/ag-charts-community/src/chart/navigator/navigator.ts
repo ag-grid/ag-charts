@@ -2,6 +2,7 @@ import type { ModuleInstance } from '../../module/baseModule';
 import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
+import { debounce } from '../../util/function';
 import { ActionOnSet, ObserveChanges, ProxyProperty } from '../../util/proxy';
 import { BOOLEAN, POSITIVE_NUMBER, Validate } from '../../util/validation';
 import type { DataController } from '../data/dataController';
@@ -32,9 +33,9 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
                 this.min = 0;
                 this.max = 1;
             }
-            this.updateGroupVisibility();
         },
     })
+    @ObserveChanges<Navigator>((target) => target.updateGroupVisibility())
     enabled: boolean = false;
 
     @ProxyProperty('rs.mask')
@@ -78,27 +79,23 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     miniChart: boolean = false;
 
     private updateGroupVisibility() {
-        const visible = this.enabled && this.visible;
+        const visible = Boolean(this.enabled && this.visible);
+        if (visible === this.rs.visible) return;
         this.rs.visible = visible;
 
         if (visible) {
-            this.ctx.zoomManager.updateZoom('navigator', {
+            this.ctx.zoomManager.updateZoom({
                 x: { min: this.rs.min, max: this.rs.max },
-                y: { min: 0, max: 1 },
             });
         } else {
-            this.ctx.zoomManager.updateZoom('navigator');
+            this.ctx.zoomManager.updateZoom();
         }
     }
 
     constructor(private readonly ctx: ModuleContext) {
         super();
 
-        this.rs.onRangeChange = () =>
-            ctx.zoomManager.updateZoom('navigator', {
-                x: { min: this.rs.min, max: this.rs.max },
-                y: { min: 0, max: 1 },
-            });
+        this.rs.onRangeChange = debounce(() => this.onRangeChange());
 
         ctx.scene.root?.appendChild(this.rs);
 
@@ -108,8 +105,9 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             ctx.interactionManager.addListener('drag', (event) => this.onDrag(event), dragStates),
             ctx.interactionManager.addListener('hover', (event) => this.onDrag(event), dragStates),
             ctx.interactionManager.addListener('drag-end', () => this.onDragStop(), dragStates),
+            ctx.zoomManager.addListener('zoom-change', () => this.onZoomChange()),
             () => ctx.scene.root?.removeChild(this.rs),
-            () => this.ctx.zoomManager.updateZoom('navigator')
+            () => delete this.rs.onRangeChange
         );
 
         this.updateGroupVisibility();
@@ -158,6 +156,22 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
 
         this.x = x;
         this.width = width;
+    }
+
+    private onRangeChange() {
+        const { min, max } = this.rs;
+        const zoom = this.ctx.zoomManager.getZoom();
+        if (zoom?.x?.min !== min || zoom?.x?.max !== max) {
+            this.ctx.zoomManager.updateZoom({ x: { min, max } });
+        }
+    }
+
+    private onZoomChange() {
+        const currentZoom = this.ctx.zoomManager.getZoom();
+        if (currentZoom && currentZoom.x) {
+            this.min = currentZoom.x.min;
+            this.max = currentZoom.x.max;
+        }
     }
 
     private onDragStart(offset: Offset) {

@@ -40,7 +40,6 @@ const CONTEXT_ZOOM_ACTION_ID = 'zoom-action';
 const CONTEXT_PAN_ACTION_ID = 'pan-action';
 const CURSOR_ID = 'zoom-cursor';
 const TOOLTIP_ID = 'zoom-tooltip';
-const ZOOM_ID = 'zoom';
 const DECIMALS = 3;
 
 const round = (value: number) => sharedRound(value, DECIMALS);
@@ -534,7 +533,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         this.toggleContextMenuActions(zoom);
 
-        this.zoomManager.updateZoom(ZOOM_ID, zoom);
+        this.zoomManager.updateZoom(zoom);
     }
 
     private updateAxisZoom(
@@ -565,6 +564,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             return;
         }
 
-        this.zoomManager.updateAxisZoom(ZOOM_ID, axisId, partialZoom);
+        this.zoomManager.updateAxisZoom(axisId, partialZoom);
     }
 }
