@@ -4,8 +4,9 @@ import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
 import { debounce } from '../../util/function';
+import { clamp } from '../../util/number';
 import type { Padding } from '../../util/padding';
-import { ActionOnSet, ObserveChanges, ProxyProperty } from '../../util/proxy';
+import { ObserveChanges, ProxyProperty } from '../../util/proxy';
 import { BOOLEAN, POSITIVE_NUMBER, Validate } from '../../util/validation';
 import type { DataController } from '../data/dataController';
 import { InteractionState } from '../interaction/interactionManager';
@@ -49,14 +50,6 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     private panHandleOffset = NaN;
 
     @Validate(BOOLEAN)
-    @ActionOnSet<Navigator>({
-        changeValue(newValue) {
-            if (!newValue) {
-                this.min = 0;
-                this.max = 1;
-            }
-        },
-    })
     @ObserveChanges<Navigator>((target) => target.updateGroupVisibility())
     enabled: boolean = false;
 
@@ -90,12 +83,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         this.rs.visible = visible;
 
         if (visible) {
-            this.ctx.zoomManager.updateZoom({
-                x: { min: this.rs.min, max: this.rs.max },
-                y: this.ctx.zoomManager.getZoom()?.y,
-            });
-        } else {
-            this.ctx.zoomManager.updateZoom();
+            this.onRangeChange();
         }
     }
 
@@ -219,7 +207,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         const maxX = x + width * rs.max;
         const visibleRange = new BBox(minX, y, maxX - minX, height);
 
-        const getRatio = () => Math.min(Math.max((offsetX - x) / width, 0), 1);
+        const getRatio = () => clamp(0, (offsetX - x) / width, 1);
 
         if (minHandle.containsPoint(offsetX, offsetY) || maxHandle.containsPoint(offsetX, offsetY)) {
             this.ctx.cursorManager.updateCursor('navigator', 'ew-resize');

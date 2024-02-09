@@ -14,6 +14,10 @@ export abstract class CartesianAxis<
     S extends Scale<D, number, TickInterval<S>> = Scale<any, number, any>,
     D = any,
 > extends Axis<S, D> {
+    static is(value: any): value is CartesianAxis<any> {
+        return value instanceof CartesianAxis;
+    }
+
     @Validate(POSITIVE_NUMBER)
     thickness: number = 0;
 
