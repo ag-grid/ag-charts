@@ -1,5 +1,5 @@
 import type { ModuleInstance } from '../module/baseModule';
-import type { LegendModule, RootModule } from '../module/coreModules';
+import type { LegendModule, NavigatorModule, RootModule } from '../module/coreModules';
 import { type Module, REGISTERED_MODULES } from '../module/module';
 import type { ModuleContext } from '../module/moduleContext';
 import type { AxisOptionModule } from '../module/optionsModule';
@@ -388,7 +388,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         );
     }
 
-    addModule<T extends RootModule | LegendModule>(module: T) {
+    addModule<T extends RootModule | LegendModule | NavigatorModule>(module: T) {
         if (this.modules.has(module.optionsKey)) {
             throw new Error(`AG Charts - module already initialised: ${module.optionsKey}`);
         }
@@ -404,7 +404,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.modules.set(module.optionsKey, moduleInstance);
     }
 
-    removeModule(module: RootModule | LegendModule) {
+    removeModule(module: RootModule | LegendModule | NavigatorModule) {
         if (module.type === 'legend') {
             this.legends.delete(module.identifier);
         }
@@ -1452,7 +1452,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     private applyModules(options: AgChartOptions) {
         let modulesChanged = false;
         for (const module of REGISTERED_MODULES) {
-            if (module.type !== 'root' && module.type !== 'legend') {
+            if (module.type !== 'root' && module.type !== 'legend' && module.type !== 'navigator') {
                 continue;
             }
 
