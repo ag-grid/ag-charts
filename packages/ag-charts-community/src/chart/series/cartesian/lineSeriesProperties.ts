@@ -3,6 +3,8 @@ import type {
     AgLineSeriesOptions,
     AgLineSeriesOptionsKeys,
     AgLineSeriesTooltipRendererParams,
+    FontStyle,
+    FontWeight,
 } from '../../../options/agChartOptions';
 import {
     BOOLEAN,
@@ -17,8 +19,24 @@ import {
 import { Label } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
-import { CartesianSeriesProperties } from './cartesianSeries';
-import type { LineNodeDatum } from './lineSeries';
+import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
+import { CartesianSeriesNodeDatum, CartesianSeriesProperties } from './cartesianSeries';
+
+export interface LineNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum {
+    readonly point: CartesianSeriesNodeDatum['point'] & {
+        readonly moveTo: boolean;
+    };
+    readonly label?: {
+        readonly text: string;
+        readonly fontStyle?: FontStyle;
+        readonly fontWeight?: FontWeight;
+        readonly fontSize: number;
+        readonly fontFamily: string;
+        readonly textAlign: CanvasTextAlign;
+        readonly textBaseline: CanvasTextBaseline;
+        readonly fill: string;
+    };
+}
 
 export class LineSeriesProperties extends CartesianSeriesProperties<AgLineSeriesOptions> {
     @Validate(STRING)

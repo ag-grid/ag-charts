@@ -47,7 +47,7 @@ function buildScheduler(scheduleFn: (cb: () => void, delayMs?: number) => void, 
             return;
         }
 
-        maybePromise.then(done).catch(done);
+        maybePromise.then(done, done);
     };
 
     return {

@@ -5,12 +5,18 @@ import type {
     AgBubbleSeriesTooltipRendererParams,
 } from '../../../options/agChartOptions';
 import { RedrawType, SceneChangeDetection } from '../../../scene/changeDetectable';
+import type { MeasuredLabel } from '../../../scene/util/labelPlacement';
 import { COLOR_STRING_ARRAY, NUMBER_ARRAY, OBJECT, POSITIVE_NUMBER, STRING, Validate } from '../../../util/validation';
 import { Label } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
-import type { BubbleNodeDatum } from './bubbleSeries';
-import { CartesianSeriesProperties } from './cartesianSeries';
+import { CartesianSeriesNodeDatum, CartesianSeriesProperties } from './cartesianSeries';
+
+export interface BubbleNodeDatum extends Required<CartesianSeriesNodeDatum> {
+    readonly sizeValue: any;
+    readonly label: MeasuredLabel;
+    readonly fill: string | undefined;
+}
 
 class BubbleSeriesMarker extends SeriesMarker<AgBubbleSeriesOptionsKeys, BubbleNodeDatum> {
     /**

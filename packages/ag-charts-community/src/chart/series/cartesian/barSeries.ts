@@ -609,7 +609,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
             this.ctx.animationManager,
             datumSelections,
             fns,
-            (_, datum) => String(datum.xValue),
+            (_, datum) => createDatumId(datum.xValue),
             diff
         );
 
