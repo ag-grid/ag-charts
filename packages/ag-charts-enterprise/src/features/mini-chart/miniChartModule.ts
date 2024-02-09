@@ -4,13 +4,10 @@ import { MiniChart } from './miniChart';
 
 export const MiniChartModule: _ModuleSupport.Module = {
     type: 'root',
+    identifier: 'mini-chart',
     optionsKey: 'miniChart',
-    packageType: 'community',
+    packageType: 'enterprise',
     chartTypes: ['cartesian'],
     instanceConstructor: MiniChart,
-    themeTemplate: {
-        miniChart: {
-            enabled: false,
-        },
-    },
+    themeTemplate: {},
 };
