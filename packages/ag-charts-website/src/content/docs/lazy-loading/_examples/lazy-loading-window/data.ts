@@ -35,7 +35,7 @@ export function getData(windowStart: number, windowEnd: number) {
     } else if (diff < week * 2) {
         granularity = hour * 6;
     }
-    return delay(0).then(() =>
+    return delay(Math.random() > 0.9 ? Math.floor(Math.random() * 10000) : Math.floor(Math.random() * 1000)).then(() =>
         data.filter(({ time }) => {
             const isCoarse = time % day === 0;
             const isFineWithinWindow = time % granularity === 0 && time >= windowStart && time <= windowEnd;
