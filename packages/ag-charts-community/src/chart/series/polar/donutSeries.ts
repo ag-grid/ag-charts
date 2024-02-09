@@ -649,7 +649,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
                 // between normal and highlighted cases.
                 nodeData = nodeData.map((datum) => ({ ...datum, sectorFormat: { ...datum.sectorFormat } }));
             }
-            selection.update(nodeData);
+            selection.update(nodeData, undefined, (datum) => this.getDatumId(datum));
             if (this.ctx.animationManager.isSkipped()) {
                 selection.cleanup();
             }

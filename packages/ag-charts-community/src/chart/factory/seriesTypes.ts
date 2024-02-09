@@ -1,6 +1,6 @@
 import type { SeriesConstructor, SeriesModule } from '../../module/coreModules';
 import type { SeriesPaletteFactory } from '../../module/coreModulesTypes';
-import { hasRegisteredEnterpriseModules } from '../../module/module';
+import { enterpriseModule } from '../../module/enterpriseModule';
 import type { ModuleContext } from '../../module/moduleContext';
 import type {
     AgCartesianSeriesOptions,
@@ -82,13 +82,13 @@ export function registerSeriesThemeTemplate(
     );
 }
 
-export function getSeries(chartType: string, moduleCtx: ModuleContext): ISeries<any> {
-    const seriesConstructor = SERIES_FACTORIES[chartType];
+export function createSeries(seriesType: string, moduleCtx: ModuleContext): ISeries<any> {
+    const seriesConstructor = SERIES_FACTORIES[seriesType];
     if (seriesConstructor) {
         return new seriesConstructor(moduleCtx);
     }
 
-    throw new Error(`AG Charts - unknown series type: ${chartType}`);
+    throw new Error(`AG Charts - unknown series type: ${seriesType}`);
 }
 
 export function getSeriesDefaults<T extends AgChartOptions>(chartType: string): T {
@@ -96,7 +96,7 @@ export function getSeriesDefaults<T extends AgChartOptions>(chartType: string): 
 }
 
 export function getSeriesThemeTemplate(chartType: string): {} {
-    if (hasRegisteredEnterpriseModules()) {
+    if (enterpriseModule.isEnterprise) {
         return ENTERPRISE_SERIES_THEME_TEMPLATES[chartType];
     }
     return SERIES_THEME_TEMPLATES[chartType];

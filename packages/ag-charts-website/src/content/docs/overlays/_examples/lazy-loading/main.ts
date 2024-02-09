@@ -3,7 +3,7 @@ import { AgChartOptions, AgCharts } from 'ag-charts-community';
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: (() =>
-        new Promise((resolve) => {
+        new Promise(() => {
             // Never resolve so the loading spinner remains
         })) as any,
     series: [

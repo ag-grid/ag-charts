@@ -13,6 +13,7 @@ const {
     resetBarSelectionsFn,
     seriesLabelFadeInAnimation,
     valueProperty,
+    createDatumId,
 } = _ModuleSupport;
 const { fromToMotion } = _Scene.motion;
 const { sanitizeHtml } = _Util;
@@ -394,7 +395,7 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
             this.ctx.animationManager,
             datumSelections,
             fns,
-            (_, datum) => String(datum.xValue),
+            (_, datum) => createDatumId(datum.xValue),
             diff
         );
 

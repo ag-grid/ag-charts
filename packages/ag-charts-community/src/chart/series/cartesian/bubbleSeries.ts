@@ -5,7 +5,7 @@ import { HdpiCanvas } from '../../../scene/canvas/hdpiCanvas';
 import { Group } from '../../../scene/group';
 import type { Selection } from '../../../scene/selection';
 import type { Text } from '../../../scene/shape/text';
-import type { MeasuredLabel, PointLabelDatum } from '../../../scene/util/labelPlacement';
+import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { extent } from '../../../util/array';
 import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
@@ -19,16 +19,10 @@ import { getMarker } from '../../marker/util';
 import type { SeriesNodeEventTypes } from '../series';
 import { SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
-import { BubbleSeriesProperties } from './bubbleSeriesProperties';
-import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
+import { BubbleNodeDatum, BubbleSeriesProperties } from './bubbleSeriesProperties';
+import type { CartesianAnimationData } from './cartesianSeries';
 import { CartesianSeries, CartesianSeriesNodeClickEvent } from './cartesianSeries';
 import { markerScaleInAnimation, resetMarkerFn } from './markerUtil';
-
-export interface BubbleNodeDatum extends Required<CartesianSeriesNodeDatum> {
-    readonly sizeValue: any;
-    readonly label: MeasuredLabel;
-    readonly fill: string | undefined;
-}
 
 type BubbleAnimationData = CartesianAnimationData<Group, BubbleNodeDatum>;
 

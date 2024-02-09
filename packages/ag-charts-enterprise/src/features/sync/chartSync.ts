@@ -87,12 +87,13 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         const syncSeries = syncManager.getGroup(this.groupId).flatMap((chart) => chart.series);
         const syncAxes = syncManager.getGroupSiblings(this.groupId).flatMap((chart) => chart.axes);
 
-        checkAxis: for (const axis of chart.axes) {
-            if (!CartesianAxis.is(axis) || (this.axes !== 'xy' && this.axes !== axis.direction)) continue;
+        chart.axes.forEach((axis) => {
+            if (!CartesianAxis.is(axis) || (this.axes !== 'xy' && this.axes !== axis.direction)) return;
+
+            const { direction, nice, min, max } = axis as (typeof syncAxes)[number];
 
             for (const siblingAxis of syncAxes) {
-                if (axis.direction !== siblingAxis.direction) continue;
-                const { nice, min, max } = axis as typeof siblingAxis;
+                if (direction !== siblingAxis.direction) continue;
 
                 if (
                     nice !== siblingAxis.nice ||
@@ -100,7 +101,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
                     (max !== siblingAxis.max && (isFiniteNumber(max) || isFiniteNumber(siblingAxis.max)))
                 ) {
                     Logger.warnOnce('For axes sync, ensure matching `nice`, `min`, and `max` properties.');
-                    continue checkAxis;
+                    return;
                 }
             }
 
@@ -108,7 +109,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
                 const seriesKeys = series.getKeys(axis.direction);
                 return axis.keys.length ? axis.keys.some((key) => seriesKeys?.includes(key)) : true;
             });
-        }
+        });
 
         if (!stopPropagation) {
             this.updateSiblings(this.groupId);
