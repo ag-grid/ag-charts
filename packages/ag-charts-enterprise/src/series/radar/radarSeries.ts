@@ -604,16 +604,14 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
         const { itemSelection, labelSelection } = this;
         const { animationManager } = this.ctx;
 
-        const duration = animationManager.defaultDuration * (1 - ADD_PHASE.animationDuration);
-        const animationOptions = { from: 0, to: 1 };
-
         this.beforePathAnimation();
 
         animationManager.animate({
             id: `${this.id}_'path`,
             groupId: this.id,
-            ...animationOptions,
-            duration,
+            from: 0,
+            to: 1,
+            phase: 'initial',
             onUpdate: (ratio) => this.animatePaths(ratio),
             onStop: () => this.animatePaths(1),
         });

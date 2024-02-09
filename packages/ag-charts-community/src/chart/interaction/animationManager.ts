@@ -74,7 +74,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
             id,
             skip,
             autoplay: this.isPlaying ? opts.autoplay : false,
-            duration: opts.duration ?? this.defaultDuration,
+            phase: opts.phase,
             onPlay: (controller) => {
                 controllers.set(id, controller);
                 this.requestAnimation();

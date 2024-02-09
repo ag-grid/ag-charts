@@ -1,4 +1,3 @@
-import { LABEL_PHASE } from '../../motion/animation';
 import { staticFromToMotion } from '../../motion/fromToMotion';
 import type { NodeWithOpacity } from '../../scene/node';
 import type { Selection } from '../../scene/selection';
@@ -10,7 +9,15 @@ export function seriesLabelFadeInAnimation<T>(
     animationManager: AnimationManager,
     labelSelections: Selection<NodeWithOpacity, T>[]
 ) {
-    staticFromToMotion(id, subId, animationManager, labelSelections, { opacity: 0 }, { opacity: 1 }, LABEL_PHASE);
+    staticFromToMotion(
+        id,
+        subId,
+        animationManager,
+        labelSelections,
+        { opacity: 0 },
+        { opacity: 1 },
+        { phase: 'trailing' }
+    );
 }
 
 export function seriesLabelFadeOutAnimation<T>(
@@ -19,7 +26,15 @@ export function seriesLabelFadeOutAnimation<T>(
     animationManager: AnimationManager,
     labelSelections: Selection<NodeWithOpacity, T>[]
 ) {
-    staticFromToMotion(id, subId, animationManager, labelSelections, { opacity: 1 }, { opacity: 0 }, LABEL_PHASE);
+    staticFromToMotion(
+        id,
+        subId,
+        animationManager,
+        labelSelections,
+        { opacity: 1 },
+        { opacity: 0 },
+        { phase: 'trailing' }
+    );
 }
 
 export function resetLabelFn(_node: NodeWithOpacity) {

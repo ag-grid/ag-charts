@@ -1,4 +1,3 @@
-import { LABEL_PHASE } from '../../../motion/animation';
 import { staticFromToMotion } from '../../../motion/fromToMotion';
 import type { Point } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
@@ -169,7 +168,7 @@ export function pathFadeInAnimation<T>(
     animationManager: AnimationManager,
     selection: Selection<Path, T>[] | Path[]
 ) {
-    staticFromToMotion(id, subId, animationManager, selection, { opacity: 0 }, { opacity: 1 }, LABEL_PHASE);
+    staticFromToMotion(id, subId, animationManager, selection, { opacity: 0 }, { opacity: 1 }, { phase: 'trailing' });
 }
 
 export function pathFadeOutAnimation<T>(
@@ -178,7 +177,7 @@ export function pathFadeOutAnimation<T>(
     animationManager: AnimationManager,
     selection: Selection<Path, T>[] | Path[]
 ) {
-    staticFromToMotion(id, subId, animationManager, selection, { opacity: 1 }, { opacity: 0 }, LABEL_PHASE);
+    staticFromToMotion(id, subId, animationManager, selection, { opacity: 1 }, { opacity: 0 }, { phase: 'trailing' });
 }
 
 export function buildResetPathFn(opts: { getOpacity(): number }) {

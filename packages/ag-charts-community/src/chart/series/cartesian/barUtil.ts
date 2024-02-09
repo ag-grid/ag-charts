@@ -209,7 +209,7 @@ export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(initP
         if (status === 'unknown' || status === 'added') {
             source = initPos.calculate(datum, rect.previousDatum);
         }
-        return { ...source, ...FROM_TO_MIXINS[status] };
+        return { ...source, phase: FROM_TO_MIXINS[status] };
     };
     const toFn = (rect: Rect, datum: T, status: NodeUpdateState) => {
         if (status === 'removed' || isRemoved(datum)) {

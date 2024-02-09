@@ -18,7 +18,7 @@ export function markerFadeInAnimation<T>(
     markerSelections: Selection<NodeWithOpacity, T>[],
     status: NodeUpdateState = 'unknown'
 ) {
-    const params = { ...FROM_TO_MIXINS[status] };
+    const params = { phase: FROM_TO_MIXINS[status] };
     staticFromToMotion(id, 'markers', animationManager, markerSelections, { opacity: 0 }, { opacity: 1 }, params);
     markerSelections.forEach((s) => s.cleanup());
 }
@@ -99,7 +99,7 @@ export function prepareMarkerAnimation(pairMap: PathPointMap<any>, parentStatus:
             translationX: point?.from?.x ?? marker.translationX,
             translationY: point?.from?.y ?? marker.translationY,
             opacity: marker.opacity,
-            ...FROM_TO_MIXINS[status],
+            phase: FROM_TO_MIXINS[status],
         };
 
         if (parentStatus === 'added') {
@@ -108,7 +108,7 @@ export function prepareMarkerAnimation(pairMap: PathPointMap<any>, parentStatus:
                 opacity: 0,
                 translationX: point?.to?.x,
                 translationY: point?.to?.y,
-                ...FROM_TO_MIXINS['added'],
+                phase: FROM_TO_MIXINS['added'],
             };
         }
         if (status === 'added') {
@@ -126,7 +126,7 @@ export function prepareMarkerAnimation(pairMap: PathPointMap<any>, parentStatus:
             translationX: datum.point.x,
             translationY: datum.point.y,
             opacity: 1,
-            ...FROM_TO_MIXINS[status],
+            phase: FROM_TO_MIXINS[status],
         };
 
         if (status === 'removed' || parentStatus === 'removed') {
@@ -135,7 +135,7 @@ export function prepareMarkerAnimation(pairMap: PathPointMap<any>, parentStatus:
                 translationX: point?.to?.x,
                 translationY: point?.to?.y,
                 opacity: 0,
-                ...FROM_TO_MIXINS['removed'],
+                phase: FROM_TO_MIXINS['removed'],
             };
         }
 

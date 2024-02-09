@@ -53,8 +53,8 @@ export function prepareRadialBarSeriesAnimationFunctions(axisZeroAngle: number) 
             innerRadius = datum.innerRadius;
             outerRadius = datum.outerRadius;
         }
-        const mixin = motion.FROM_TO_MIXINS[status];
-        return { startAngle, endAngle, innerRadius, outerRadius, ...mixin };
+        const phase = motion.FROM_TO_MIXINS[status];
+        return { startAngle, endAngle, innerRadius, outerRadius, phase };
     };
     const toFn = (sect: _Scene.Sector, datum: AnimatableSectorDatum, status: _Scene.NodeUpdateState) => {
         let startAngle: number;
