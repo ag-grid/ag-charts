@@ -68,17 +68,18 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         chart.axes.forEach((axis) => {
             if (!CartesianAxis.is(axis) || (this.axes !== 'xy' && this.axes !== axis.direction)) return;
 
-            const { direction, nice, min, max } = axis as (typeof syncAxes)[number];
+            const { direction, min, max, nice, reverse } = axis as (typeof syncAxes)[number];
 
             for (const siblingAxis of syncAxes) {
                 if (direction !== siblingAxis.direction) continue;
 
                 if (
                     nice !== siblingAxis.nice ||
+                    reverse !== siblingAxis.reverse ||
                     (min !== siblingAxis.min && (isFiniteNumber(min) || isFiniteNumber(siblingAxis.min))) ||
                     (max !== siblingAxis.max && (isFiniteNumber(max) || isFiniteNumber(siblingAxis.max)))
                 ) {
-                    Logger.warnOnce('For axes sync, ensure matching `nice`, `min`, and `max` properties.');
+                    Logger.warnOnce('For axes sync, ensure matching `min`, `max`, `nice`, and `reverse` properties.');
                     return;
                 }
             }
