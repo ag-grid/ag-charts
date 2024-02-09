@@ -1,8 +1,8 @@
-import type { Group } from '../../integrated-charts-scene';
 import type { ModuleInstance } from '../../module/baseModule';
 import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
+import type { Group } from '../../scene/group';
 import { debounce } from '../../util/function';
 import { clamp } from '../../util/number';
 import type { Padding } from '../../util/padding';
