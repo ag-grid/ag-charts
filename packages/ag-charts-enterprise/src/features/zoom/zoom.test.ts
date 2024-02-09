@@ -101,9 +101,9 @@ describe('Zoom', () => {
     describe('pixel scrolling', () => {
         it('should zoom in then out', async () => {
             await prepareChart();
-            await scrollAction(cx, cy, -70, WheelDeltaMode.Pixels)(chart);
+            await scrollAction(cx, cy, -4.3, WheelDeltaMode.Pixels)(chart);
             await compare();
-            await scrollAction(cx, cy, 50, WheelDeltaMode.Pixels)(chart);
+            await scrollAction(cx, cy, 2.7, WheelDeltaMode.Pixels)(chart);
             await compare();
         });
     });
@@ -114,10 +114,10 @@ describe('Zoom', () => {
             await prepareChart();
             await scrollAction(cx, cy, -1)(chart);
             // Pan left
-            await scrollAction(cx, cy, 0, WheelDeltaMode.Pixels, -3000)(chart);
+            await scrollAction(cx, cy, 0, WheelDeltaMode.Pixels, -300)(chart);
             await compare();
             // Pan right
-            await scrollAction(cx, cy, 0, WheelDeltaMode.Pixels, 2000)(chart);
+            await scrollAction(cx, cy, 0, WheelDeltaMode.Pixels, 200)(chart);
             await compare();
         });
     });
