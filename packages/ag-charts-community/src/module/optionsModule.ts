@@ -140,6 +140,15 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.seriesTypeIntegrity(options);
         this.soloSeriesIntegrity(options);
         this.removeDisabledOptions(options);
+
+        if (
+            options.series?.some((s) => s.type === 'bullet') &&
+            options.sync != null &&
+            options.sync.enabled !== false
+        ) {
+            Logger.warnOnce('bullet series cannot be synced, disabling synchronization.');
+            delete options.sync;
+        }
     }
 
     protected swapAxesPosition(options: T) {
