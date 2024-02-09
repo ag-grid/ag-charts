@@ -10,6 +10,9 @@ type AxisLike = {
     boundSeries: ISeries<any>[];
     direction: ChartAxisDirection;
     keys: string[];
+    nice: boolean;
+    min?: number;
+    max?: number;
 };
 
 /** Breaks circular dependencies which occur when importing Chart. */
@@ -34,24 +37,25 @@ export class SyncManager extends BaseManager {
             SyncManager.chartsGroups.set(groupId, syncGroup);
         }
         syncGroup.add(this.chart);
+        return this;
     }
 
     unsubscribe(groupId: GroupId = SyncManager.DEFAULT_GROUP) {
         this.get(groupId)?.delete(this.chart);
+        return this;
     }
 
     getChart() {
         return this.chart;
     }
 
-    getSiblings(groupId: GroupId = SyncManager.DEFAULT_GROUP) {
-        const syncGroup = this.get(groupId);
-        return syncGroup ? Array.from(syncGroup).filter((chart) => chart !== this.chart) : [];
-    }
-
     getGroup(groupId: GroupId = SyncManager.DEFAULT_GROUP) {
         const syncGroup = this.get(groupId);
         return syncGroup ? Array.from(syncGroup) : [];
+    }
+
+    getGroupSiblings(groupId: GroupId = SyncManager.DEFAULT_GROUP) {
+        return this.getGroup(groupId).filter((chart) => chart !== this.chart);
     }
 
     private get(groupId: GroupId) {
