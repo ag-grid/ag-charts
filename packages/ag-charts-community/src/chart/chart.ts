@@ -1426,7 +1426,15 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.processedOptions = completeOptions;
         this.userOptions = mergeDefaults(userOptions, this.userOptions);
 
-        const miniChartInstance = (this.modules.get('navigator') as any)?.miniChartInstance;
+        const navigatorModule = this.modules.get('navigator') as any;
+        const zoomModule = this.modules.get('zoom') as any;
+
+        if (!navigatorModule?.enabled && !zoomModule?.enabled) {
+            // reset zoom to initial state
+            this.zoomManager.updateZoom();
+        }
+
+        const miniChartInstance = navigatorModule?.miniChartInstance;
         if (miniChartInstance != null) {
             const seriesStatus = this.applySeries(miniChartInstance, processedOptions);
             this.applyAxes(miniChartInstance, processedOptions, seriesStatus);
