@@ -548,8 +548,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     requestFactoryUpdate(cb: (chart: Chart) => Promise<void> | void) {
+        if (this.destroyed) return;
         this._pendingFactoryUpdatesCount++;
         this.updateMutex.acquire(async () => {
+            if (this.destroyed) return;
             await cb(this);
             this._pendingFactoryUpdatesCount--;
         });
@@ -566,7 +568,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
     private updateRequestors: Record<string, ChartUpdateType> = {};
     private performUpdateTrigger = debouncedCallback(async ({ count }) => {
         if (this.destroyed) return;
-
         this.updateMutex.acquire(async () => {
             try {
                 await this.performUpdate(count);

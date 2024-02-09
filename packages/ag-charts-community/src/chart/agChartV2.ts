@@ -215,8 +215,6 @@ class AgChartsInternal {
 
         chart.queuedUserOptions.push(userOptions);
         chart.requestFactoryUpdate((chart) => {
-            // Chart destroyed, skip processing.
-            if (chart.destroyed) return;
             const deltaOptions = chartOptions.diffOptions(chart.processedOptions);
             if (deltaOptions != null) {
                 debug('AgChartV2.updateDelta() - applying delta', deltaOptions);
