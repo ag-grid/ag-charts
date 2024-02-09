@@ -10,6 +10,7 @@ type AxisLike = {
     boundSeries: ISeries<any>[];
     direction: ChartAxisDirection;
     keys: string[];
+    reverse: boolean;
     nice: boolean;
     min?: number;
     max?: number;
