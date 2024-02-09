@@ -101,9 +101,9 @@ describe('Zoom', () => {
     describe('pixel scrolling', () => {
         it('should zoom in then out', async () => {
             await prepareChart();
-            await scrollAction(cx, cy, -7, WheelDeltaMode.Pixels)(chart);
+            await scrollAction(cx, cy, -4.3, WheelDeltaMode.Pixels)(chart);
             await compare();
-            await scrollAction(cx, cy, 5, WheelDeltaMode.Pixels)(chart);
+            await scrollAction(cx, cy, 2.7, WheelDeltaMode.Pixels)(chart);
             await compare();
         });
     });
