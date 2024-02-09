@@ -1,5 +1,8 @@
+import type { Node } from '../../scene/node';
+import { KTree } from '../../scene/util/ktree';
 import { Debug } from '../../util/debug';
 import { injectStyle } from '../../util/dom';
+import { Listeners } from '../../util/listeners';
 import { Logger } from '../../util/logger';
 import { isFiniteNumber } from '../../util/type-guards';
 import { BaseManager } from './baseManager';
@@ -9,6 +12,7 @@ type InteractionTypes =
     | 'dblclick'
     | 'contextmenu'
     | 'hover'
+    | 'hover-end'
     | 'drag-start'
     | 'drag'
     | 'drag-end'
@@ -63,6 +67,8 @@ export type InteractionEvent<T extends InteractionTypes = InteractionTypes> = Po
     consumed?: boolean;
 };
 
+type InteractionHandler<T extends InteractionTypes> = (event: InteractionEvent<T> & { type: T }) => void;
+
 interface Coords {
     clientX: number;
     clientY: number;
@@ -93,6 +99,21 @@ export enum InteractionState {
 
 const DEBUG_SELECTORS = [true, 'interaction'];
 
+type RegionName = 'legend';
+
+type InteractionRegion = {
+    name: RegionName;
+    listeners: InteractionManager['listeners'];
+};
+
+export interface ObservableRegion {
+    addListener<T extends InteractionTypes>(
+        type: T,
+        handler: InteractionHandler<T>,
+        triggeringStates?: InteractionState
+    ): () => void;
+}
+
 /**
  * Manages user interactions with a specific HTMLElement (or interactions that bubble from it's
  * children)
@@ -113,6 +134,9 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     private dragStartElement?: HTMLElement;
 
     private stateQueue: InteractionState = InteractionState.Default;
+
+    private currentRegion?: InteractionRegion;
+    private regions: KTree<InteractionRegion> = new KTree();
 
     public constructor(element: HTMLElement, document: Document, window: Window) {
         super();
@@ -156,7 +180,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     // Wrapper to only broadcast events when the InteractionManager is a given state.
     override addListener<T extends InteractionTypes>(
         type: T,
-        handler: (event: InteractionEvent<T> & { type: T }) => void,
+        handler: InteractionHandler<T>,
         triggeringStates: InteractionState = InteractionState.Default
     ) {
         return super.addListener(type, (e) => {
@@ -165,6 +189,37 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
                 handler(e);
             }
         });
+    }
+
+    private makeRegion(name: RegionName): InteractionRegion {
+        return {
+            name,
+            listeners: new Listeners<InteractionTypes, (event: InteractionEvent<InteractionTypes>) => void>(),
+        };
+    }
+
+    public addRegion(name: RegionName, node: Node): ObservableRegion {
+        const region = this.makeRegion(name);
+        const interactionManager = this;
+        this.regions.add(region, node);
+
+        class ObservableRegionImplementation implements ObservableRegion {
+            addListener<T extends InteractionTypes>(
+                type: T,
+                handler: InteractionHandler<T>,
+                triggeringStates?: InteractionState
+            ) {
+                return region.listeners.addListener(type, (e) => {
+                    if (!e.consumed) {
+                        const currentState = interactionManager.getState();
+                        if (currentState & (triggeringStates ?? InteractionState.Default)) {
+                            handler(e as InteractionEvent<T>);
+                        }
+                    }
+                });
+            }
+        }
+        return new ObservableRegionImplementation();
     }
 
     public pushState(state: InteractionState) {
@@ -181,21 +236,35 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     }
 
     private processEvent(event: SupportedEvent) {
-        const types: InteractionTypes[] = this.decideInteractionEventTypes(event);
-
-        if (types.length > 0) {
-            // Async dispatch to avoid blocking the event-processing thread.
-            this.dispatchEvent(event, types).catch((e) => Logger.errorOnce(e));
-        }
-    }
-
-    private async dispatchEvent(event: SupportedEvent, types: InteractionTypes[]) {
         const coords = this.calculateCoordinates(event);
-
         if (coords == null) {
             return;
         }
 
+        const region = this.regions.find(coords.offsetX, coords.offsetY);
+        // New K-Tree based input handling:
+        if (this.currentRegion !== undefined && region?.name !== this.currentRegion.name) {
+            const type = 'hover-end';
+            const hoverEndEvent = this.buildEvent({ type, event, ...coords });
+            this.currentRegion?.listeners.dispatch(type, hoverEndEvent);
+        } else if (region !== undefined) {
+            // Async dispatch to avoid blocking the event-processing thread.
+            this.dispatchRegionEvent(region, coords, event).catch((e) => Logger.errorOnce(e));
+        }
+        this.currentRegion = region;
+
+        // Legacy input handling:
+        if (region === undefined) {
+            const types: InteractionTypes[] = this.decideInteractionEventTypes(event);
+
+            if (types.length > 0) {
+                // Async dispatch to avoid blocking the event-processing thread.
+                this.dispatchEvent(coords, event, types).catch((e) => Logger.errorOnce(e));
+            }
+        }
+    }
+
+    private async dispatchEvent(coords: Coords, event: SupportedEvent, types: InteractionTypes[]) {
         for (const type of types) {
             this.listeners.dispatchWrapHandlers(
                 type,
@@ -206,6 +275,13 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
                 },
                 this.buildEvent({ type, event, ...coords })
             );
+        }
+    }
+
+    private async dispatchRegionEvent(region: InteractionRegion, coords: Coords, event: SupportedEvent) {
+        const types: InteractionTypes[] = this.decideInteractionEventTypes(event);
+        for (const type of types) {
+            region.listeners.dispatch(type, this.buildEvent({ type, event, ...coords }));
         }
     }
 
