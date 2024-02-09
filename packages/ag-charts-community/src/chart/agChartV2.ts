@@ -422,10 +422,13 @@ function applyChartOptions(chart: Chart, processedOptions: ProcessedOptions, use
     chart.processedOptions = completeOptions;
     chart.userOptions = mergeDefaults(userOptions, chart.userOptions);
 
-    const miniChartInstance = (chart.modules.get('navigator') as any)?.miniChartInstance;
-    if (miniChartInstance != null) {
-        const seriesStatus = applySeries(miniChartInstance, processedOptions);
-        applyAxes(miniChartInstance, processedOptions, seriesStatus);
+    const navigator = chart.modules.get('navigator') as any;
+    const miniChart = chart.modules.get('miniChart') as any;
+    if (navigator != null && miniChart != null) {
+        const seriesStatus = applySeries(miniChart, processedOptions);
+        applyAxes(miniChart, processedOptions, seriesStatus);
+
+        navigator.miniChart = miniChart;
     }
 
     const majorChange = forceNodeDataRefresh || modulesChanged;

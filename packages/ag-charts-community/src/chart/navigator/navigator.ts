@@ -1,13 +1,14 @@
+import type { Group } from '../../integrated-charts-scene';
 import type { ModuleInstance } from '../../module/baseModule';
 import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
 import { debounce } from '../../util/function';
+import type { Padding } from '../../util/padding';
 import { ActionOnSet, ObserveChanges, ProxyProperty } from '../../util/proxy';
 import { BOOLEAN, POSITIVE_NUMBER, Validate } from '../../util/validation';
 import type { DataController } from '../data/dataController';
 import { InteractionState } from '../interaction/interactionManager';
-import { MiniChart } from './miniChart';
 import { RangeHandle } from './shapes/rangeHandle';
 import { RangeMask } from './shapes/rangeMask';
 import { RangeSelector } from './shapes/rangeSelector';
@@ -17,10 +18,31 @@ interface Offset {
     offsetY: number;
 }
 
+type Required<T> = Exclude<T, undefined>;
+
+export interface MiniChart {
+    readonly root: Group;
+    width: number;
+    height: number;
+    updateData: Required<ModuleInstance['updateData']>;
+    processData: Required<ModuleInstance['processData']>;
+    performCartesianLayout(): Promise<void>;
+    computeAxisPadding(): Padding;
+}
+
 export class Navigator extends BaseModuleInstance implements ModuleInstance {
     private readonly rs = new RangeSelector();
 
-    private miniChartInstance: MiniChart | undefined = undefined;
+    @ObserveChanges<Navigator, MiniChart>((target, value, oldValue) => {
+        if (oldValue != null) {
+            target.rs.background.removeChild(oldValue.root);
+        }
+
+        if (value != null) {
+            target.rs.background.appendChild(value.root);
+        }
+    })
+    miniChart: MiniChart | undefined = undefined;
 
     private minHandleDragging = false;
     private maxHandleDragging = false;
@@ -62,22 +84,6 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     @ObserveChanges<Navigator>((target) => target.updateGroupVisibility())
     visible: boolean = true;
 
-    @Validate(BOOLEAN)
-    @ObserveChanges<Navigator, boolean>((target, value) => {
-        if (target.miniChartInstance != null) {
-            target.rs.background.removeChild(target.miniChartInstance.root);
-        }
-
-        if (value) {
-            const miniChartInstance = new MiniChart(target.ctx);
-            target.rs.background.appendChild(miniChartInstance.root);
-            target.miniChartInstance = miniChartInstance;
-        } else {
-            target.miniChartInstance = undefined;
-        }
-    })
-    miniChart: boolean = false;
-
     private updateGroupVisibility() {
         const visible = Boolean(this.enabled && this.visible);
         if (visible === this.rs.visible) return;
@@ -115,11 +121,11 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     }
 
     async updateData(opts: { data: any }): Promise<void> {
-        await this.miniChartInstance?.updateData(opts);
+        await this.miniChart?.updateData(opts);
     }
 
     async processData(opts: { dataController: DataController }): Promise<void> {
-        await this.miniChartInstance?.processData(opts);
+        await this.miniChart?.processData(opts);
     }
 
     private x = 0;
@@ -128,7 +134,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
 
     async performLayout({ shrinkRect }: { shrinkRect: BBox }): Promise<{ shrinkRect: BBox }> {
         if (this.enabled) {
-            const miniChartPadding = this.miniChartInstance?.computeAxisPadding();
+            const miniChartPadding = this.miniChart?.computeAxisPadding();
             const paddingTop = miniChartPadding?.top ?? 0;
             const paddingBottom = miniChartPadding?.bottom ?? 0;
             const navigatorTotalHeight = this.height + this.margin + (paddingTop + paddingBottom);
@@ -148,11 +154,11 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             const { y, height } = this;
             this.rs.layout(x, y, width, height);
 
-            if (this.miniChartInstance != null) {
-                this.miniChartInstance.width = width;
-                this.miniChartInstance.height = height;
+            if (this.miniChart != null) {
+                this.miniChart.width = width;
+                this.miniChart.height = height;
 
-                await this.miniChartInstance.performCartesianLayout();
+                await this.miniChart.performCartesianLayout();
             }
         }
 

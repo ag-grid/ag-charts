@@ -9,6 +9,7 @@ import { BackgroundModule } from './features/background/main';
 import { ContextMenuModule } from './features/context-menu/main';
 import { CrosshairModule } from './features/crosshair/main';
 import { ErrorBarsModule } from './features/error-bar/errorBarModule';
+import { MiniChartModule } from './features/mini-chart/miniChartModule';
 import { SyncModule } from './features/sync/syncModule';
 import { ZoomModule } from './features/zoom/main';
 import { GradientLegendModule } from './gradient-legend/main';
@@ -38,6 +39,7 @@ export function setupEnterpriseModules() {
     _ModuleSupport.registerModule(ContextMenuModule);
     _ModuleSupport.registerModule(CrosshairModule);
     _ModuleSupport.registerModule(ErrorBarsModule);
+    _ModuleSupport.registerModule(MiniChartModule);
     _ModuleSupport.registerModule(GradientLegendModule);
     _ModuleSupport.registerModule(HeatmapModule);
     _ModuleSupport.registerModule(NightingaleModule);
