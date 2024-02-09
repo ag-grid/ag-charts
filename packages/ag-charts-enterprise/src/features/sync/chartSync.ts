@@ -17,41 +17,19 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
     static className = 'Sync';
 
     @Validate(BOOLEAN)
-    @ObserveChanges<ChartSync>((target, newValue) => {
-        const { syncManager } = target.moduleContext;
-        if (newValue) {
-            syncManager.subscribe(target.groupId);
-        } else {
-            syncManager.unsubscribe(target.groupId);
-        }
-    })
+    @ObserveChanges<ChartSync>((target) => target.onEnabledChange())
     enabled: boolean = false;
 
     @Validate(STRING, { optional: true })
-    @ObserveChanges<ChartSync>((target, newValue, oldValue) => {
-        const { syncManager } = target.moduleContext;
-        syncManager.unsubscribe(oldValue);
-        syncManager.subscribe(newValue);
-        target.updateSiblings(oldValue);
-        target.updateSiblings(newValue);
-    })
+    @ObserveChanges<ChartSync>((target, newValue, oldValue) => target.onGroupIdChange(newValue, oldValue))
     groupId?: string;
 
     @Validate(UNION(['x', 'y', 'xy'], 'an axis'))
-    @ObserveChanges<ChartSync>((target) => {
-        const { syncManager } = target.moduleContext;
-        target.updateChart(syncManager.getChart());
-    })
+    @ObserveChanges<ChartSync>((target) => target.onAxesChange())
     axes: 'x' | 'y' | 'xy' = 'x';
 
     @Validate(BOOLEAN)
-    @ObserveChanges<ChartSync>((target, newValue) => {
-        if (newValue) {
-            target.enabledZoomSync();
-        } else {
-            target.disableZoomSync?.();
-        }
-    })
+    @ObserveChanges<ChartSync>((target) => target.onZoomChange())
     zoom: boolean = true;
 
     constructor(protected moduleContext: _ModuleSupport.ModuleContext) {
@@ -132,6 +110,37 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
     //         }
     //     });
     // }
+
+    private onEnabledChange() {
+        const { syncManager } = this.moduleContext;
+        if (this.enabled) {
+            syncManager.subscribe(this.groupId);
+        } else {
+            syncManager.unsubscribe(this.groupId);
+        }
+        this.updateSiblings(this.groupId);
+        this.onZoomChange();
+    }
+    private onGroupIdChange(newValue?: string, oldValue?: string) {
+        if (!this.enabled || newValue === oldValue) return;
+        const { syncManager } = this.moduleContext;
+        syncManager.unsubscribe(oldValue);
+        syncManager.subscribe(newValue);
+        this.updateSiblings(oldValue);
+        this.updateSiblings(newValue);
+    }
+    private onAxesChange() {
+        if (!this.enabled) return;
+        const { syncManager } = this.moduleContext;
+        this.updateChart(syncManager.getChart());
+    }
+    private onZoomChange() {
+        if (this.enabled && this.zoom) {
+            this.enabledZoomSync();
+        } else {
+            this.disableZoomSync?.();
+        }
+    }
 
     destroy() {
         const { syncManager } = this.moduleContext;
