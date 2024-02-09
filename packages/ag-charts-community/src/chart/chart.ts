@@ -553,6 +553,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.updateMutex.acquire(async () => {
             if (this.destroyed) return;
             await cb(this);
+            if (this.destroyed) return;
             this._pendingFactoryUpdatesCount--;
         });
     }
