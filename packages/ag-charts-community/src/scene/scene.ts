@@ -80,10 +80,6 @@ export class Scene {
         this.canvas.download(fileName, fileFormat);
     }
 
-    getDataURL(type?: string): string {
-        return this.canvas.getDataURL(type);
-    }
-
     overrideDevicePixelRatio?: number;
 
     get width(): number {

@@ -173,10 +173,6 @@ export abstract class HierarchySeries<
         }
     }
 
-    override hasData() {
-        return Array.isArray(this.data) && this.data.length > 0;
-    }
-
     override async processData(): Promise<void> {
         const { childrenKey, sizeKey, colorKey, fills, strokes, colorRange } = this.properties;
 
