@@ -5,6 +5,7 @@ import type { Scale } from '../scale/scale';
 import type { BBox } from '../scene/bbox';
 import type { Node } from '../scene/node';
 import type { AxisLine } from './axis/axisLine';
+import type { AxisTick } from './axis/axisTick';
 import type { ChartAxisDirection } from './chartAxisDirection';
 import type { AxisLayout } from './layout/layoutService';
 import type { ISeries } from './series/seriesTypes';
@@ -36,6 +37,7 @@ export interface ChartAxis {
     keys: string[];
     line: AxisLine;
     label: ChartAxisLabel;
+    tick: AxisTick<any>;
     maxThickness: number;
     nice: boolean;
     position?: AgCartesianAxisPosition;
@@ -47,7 +49,7 @@ export interface ChartAxis {
     thickness?: number;
     translation: { x: number; y: number };
     type: string;
-    update(primaryTickCount?: number): number | undefined;
+    update(primaryTickCount?: number, animated?: boolean): number | undefined;
     updateScale(): void;
     updatePosition(position: { rotation: number; sideFlag: ChartAxisLabelFlipFlag }): void;
     visibleRange: number[];
