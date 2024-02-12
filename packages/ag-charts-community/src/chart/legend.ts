@@ -894,7 +894,7 @@ export class Legend extends BaseProperties {
         if (datum && this.truncatedItems.has(datum.itemId ?? datum.id)) {
             this.ctx.tooltipManager.updateTooltip(
                 this.id,
-                { offsetX, offsetY, showArrow: false, addCustomClass: false },
+                { offsetX, offsetY, lastPointerEvent: event, showArrow: false, addCustomClass: false },
                 toTooltipHtml({ content: this.getItemLabel(datum) })
             );
         } else {

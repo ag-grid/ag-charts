@@ -671,7 +671,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 const tooltipMeta = this.tooltipManager.getTooltipMeta(this.id);
 
                 if (performUpdateType <= ChartUpdateType.SERIES_UPDATE && tooltipMeta !== undefined) {
-                    this.handlePointer(tooltipMeta);
+                    this.handlePointer(tooltipMeta.lastPointerEvent);
                 }
                 splits['↖'] = performance.now();
             // fallthrough

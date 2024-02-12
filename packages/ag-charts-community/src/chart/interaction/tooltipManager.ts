@@ -126,6 +126,7 @@ export class TooltipManager {
         const meta: TooltipMeta = {
             offsetX,
             offsetY,
+            lastPointerEvent: { offsetX, offsetY },
             showArrow: tooltip.showArrow,
             position,
         };
