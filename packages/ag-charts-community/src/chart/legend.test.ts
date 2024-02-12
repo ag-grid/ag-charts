@@ -10,6 +10,7 @@ import { seedRandom } from './test/random';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     clickAction,
+    computeLegendBBox,
     createChart,
     deproxy,
     doubleClickAction,
@@ -66,11 +67,6 @@ describe('Legend', () => {
         expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
-    const computeLegendBBox = () => {
-        const { x = 0, y = 0 } = (chart.legend as any)?.group.computeBBox() ?? {};
-        return { x, y };
-    };
-
     describe('Large series count chart', () => {
         it.each([800, 600, 400, 200])('should render legend correctly at width [%s]', async (width) => {
             const options = {
@@ -114,7 +110,7 @@ describe('Legend', () => {
 
             await waitForChartStability(chart);
 
-            const { x, y } = computeLegendBBox();
+            const { x, y } = computeLegendBBox(chart);
             await clickAction(x, y)(chart);
 
             await compare(chart);
@@ -130,7 +126,7 @@ describe('Legend', () => {
             chart = deproxy(AgCharts.create(options));
 
             await waitForChartStability(chart);
-            const { x, y } = computeLegendBBox();
+            const { x, y } = computeLegendBBox(chart);
 
             await clickAction(x, y)(chart);
             await waitForChartStability(chart);
@@ -151,7 +147,7 @@ describe('Legend', () => {
             chart = deproxy(AgCharts.create(options));
 
             await waitForChartStability(chart);
-            const { x, y } = computeLegendBBox();
+            const { x, y } = computeLegendBBox(chart);
 
             await doubleClickAction(x, y)(chart);
 
@@ -168,7 +164,7 @@ describe('Legend', () => {
             chart = deproxy(AgCharts.create(options));
 
             await waitForChartStability(chart);
-            const { x, y } = computeLegendBBox();
+            const { x, y } = computeLegendBBox(chart);
 
             await doubleClickAction(x, y)(chart);
             await waitForChartStability(chart);

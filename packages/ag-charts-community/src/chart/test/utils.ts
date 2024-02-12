@@ -9,6 +9,7 @@ import type {
     AgChartTheme,
     AgPolarChartOptions,
 } from '../../options/agChartOptions';
+import { BBox } from '../../scene/bbox';
 import {
     CANVAS_HEIGHT,
     CANVAS_TO_BUFFER_DEFAULTS,
@@ -370,4 +371,9 @@ export function mixinReversedAxesCases(
     });
 
     return result;
+}
+
+export function computeLegendBBox(chart: Chart): BBox {
+    const { x = 0, y = 0, width = 0, height = 0 } = (chart.legend as any)?.group.computeBBox() ?? {};
+    return new BBox(x, y, width, height);
 }
