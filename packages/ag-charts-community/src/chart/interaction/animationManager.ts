@@ -72,10 +72,6 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         });
         this.batch.addAnimation(animation);
 
-        if (this.isPlaying && this.requestId == null) {
-            this.requestAnimation();
-        }
-
         return animation;
     }
 
@@ -176,6 +172,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
     }
 
     private requestAnimation() {
+        if (!this.rafAvailable) return;
         if (!this.batch.isActive() || this.requestId !== null) return;
 
         let prevTime: number;
@@ -187,6 +184,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
 
                 this.debug('AnimationManager - onAnimationFrame()', {
                     controllersCount: this.batch.size,
+                    deltaTime,
                 });
 
                 this.interactionManager.pushState(InteractionState.Animation);
@@ -214,7 +212,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
             if (this.batch.isActive()) {
                 this.scheduleAnimationFrame(onAnimationFrame);
             } else {
-                this.batch.dispatchStopped();
+                this.batch.stop();
             }
         };
 
@@ -238,7 +236,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
     public startBatch(skipAnimations?: boolean) {
         this.debug(`AnimationManager - startBatch() with skipAnimations=${skipAnimations}.`);
         this.reset();
-        this.batch.dispatchStopped();
+        this.batch.stop();
         this.batch.destroy();
         this.batch = new AnimationBatch();
         if (skipAnimations === true) {
@@ -258,7 +256,8 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         if (this.batch.isSkipped() && !this.batch.isActive()) {
             this.batch.skip(false);
         }
-        this.batch.dispatchStopped();
+
+        this.requestAnimation();
     }
 
     public onBatchStop(cb: () => void) {

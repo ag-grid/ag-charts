@@ -1,6 +1,7 @@
 import { Node } from '../scene/node';
 import type { Selection } from '../scene/selection';
 import { interpolateColor, interpolateNumber } from '../util/interpolate';
+import { jsonDiff } from '../util/json';
 import { clamp } from '../util/number';
 import { linear } from './easing';
 
@@ -58,6 +59,10 @@ export interface AnimationOptions<T extends AnimationValue> {
     phase: AnimationPhase;
     skip?: boolean;
     autoplay?: boolean;
+    /** Duration of this animation, expressed as a proportion of the total animation time. */
+    duration?: number;
+    /** Delay before starting this animation, expressed as a proportion of the total animation time. */
+    delay?: number;
     ease?: (x: number) => number;
     /** Number of times to repeat the animation before stopping. Set to `0` to disable repetition. */
     repeat?: number;
@@ -82,6 +87,8 @@ export interface IAnimation {
     readonly groupId: string;
     readonly phase: AnimationPhase;
     readonly isComplete: boolean;
+    readonly delay: number;
+    readonly duration: number;
     readonly play: () => void;
     readonly pause: () => void;
     readonly stop: () => void;
@@ -105,8 +112,9 @@ export class Animation<T extends AnimationValue> implements IAnimation {
     public readonly groupId;
     public readonly phase: AnimationPhase;
     public isComplete = false;
+    public readonly delay;
+    public readonly duration;
     protected autoplay;
-    protected duration;
     protected ease;
 
     protected elapsed = 0;
@@ -129,7 +137,10 @@ export class Animation<T extends AnimationValue> implements IAnimation {
         this.autoplay = opts.autoplay ?? true;
         this.ease = opts.ease ?? linear;
         this.phase = opts.phase;
-        this.duration = ANIMATION_PHASE_TIMINGS[this.phase].animationDuration * opts.defaultDuration;
+
+        const durationProportion = opts.duration ?? ANIMATION_PHASE_TIMINGS[this.phase].animationDuration;
+        this.duration = durationProportion * opts.defaultDuration;
+        this.delay = (opts.delay ?? 0) * opts.defaultDuration;
 
         // user defined event listeners
         this.onComplete = opts.onComplete;
@@ -149,6 +160,16 @@ export class Animation<T extends AnimationValue> implements IAnimation {
             this.play();
             // Initialise the animation immediately without requesting a frame to prevent flashes
             this.onUpdate?.(opts.from, true, this);
+        }
+
+        // Treat this animation as having zero duration if there is no difference between from and to
+        // state, allowing us to run the update processing once and then skip any further updates.
+        // This additionally allows animation phases to progress if all animations in a phase are
+        // no-ops.
+        let isNoop = opts.from === opts.to;
+        isNoop ||= typeof opts.from === 'object' && jsonDiff(opts.from, opts.to) == null;
+        if (isNoop) {
+            this.duration = 0;
         }
     }
 
@@ -174,25 +195,29 @@ export class Animation<T extends AnimationValue> implements IAnimation {
     }
 
     update(time: number) {
+        const previousElapsed = this.elapsed;
         this.elapsed += time;
+
+        if (this.delay > this.elapsed) return 0;
 
         const value = this.interpolate(this.isReverse ? 1 - this.delta : this.delta);
 
         this.onUpdate?.(value, false, this);
 
-        if (this.elapsed >= this.duration) {
+        const totalDuration = this.delay + this.duration;
+        if (this.elapsed >= totalDuration) {
             this.stop();
             this.isComplete = true;
             this.onComplete?.(this);
 
-            return this.elapsed - this.duration;
+            return time - (totalDuration - previousElapsed);
         }
 
         return 0;
     }
 
     protected get delta() {
-        return this.ease(clamp(0, this.elapsed / this.duration, 1));
+        return this.ease(clamp(0, (this.elapsed - this.delay) / this.duration, 1));
     }
 
     private createInterpolator(from: AnimationValue, to: AnimationValue) {

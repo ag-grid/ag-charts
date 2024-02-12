@@ -20,7 +20,9 @@ export type FromToMotionPropFnContext<T> = {
     nextLive?: T;
 };
 export type ExtraOpts<T> = {
-    phase?: AnimationPhase;
+    phase: AnimationPhase;
+    delay?: number;
+    duration?: number;
     start?: Partial<T>;
     finish?: Partial<T>;
 };
@@ -28,7 +30,7 @@ export type FromToMotionPropFn<
     N extends Node,
     T extends Record<string, string | number | undefined> & Partial<N>,
     D,
-> = (node: N, datum: D, state: NodeUpdateState, ctx: FromToMotionPropFnContext<N>) => T & ExtraOpts<N>;
+> = (node: N, datum: D, state: NodeUpdateState, ctx: FromToMotionPropFnContext<N>) => T & Partial<ExtraOpts<N>>;
 type IntermediateFn<N extends Node, D> = (
     node: N,
     datum: D,
@@ -110,11 +112,13 @@ export function fromToMotion<N extends Node, T extends Record<string, string | n
                 status = calculateStatus(node, node.datum, getDatumId, ids);
             }
 
-            const { phase, start = {}, finish = {}, ...from } = fromFn(node, node.datum, status, ctx);
+            const { phase, start = {}, finish = {}, delay, duration, ...from } = fromFn(node, node.datum, status, ctx);
             const {
                 phase: toPhase,
                 start: toStart = {},
                 finish: toFinish = {},
+                delay: toDelay,
+                duration: toDuration,
                 ...to
             } = toFn(node, node.datum, status, ctx);
 
@@ -122,6 +126,8 @@ export function fromToMotion<N extends Node, T extends Record<string, string | n
                 id: animationId,
                 groupId,
                 phase: phase ?? toPhase ?? 'update',
+                duration: duration ?? toDuration,
+                delay: delay ?? toDelay,
                 from: from as unknown as T,
                 to: to as unknown as T,
                 ease: easing.easeOut,
@@ -188,9 +194,7 @@ export function staticFromToMotion<N extends Node, T extends AnimationValue & Pa
     selectionsOrNodes: Selection<N, D>[] | N[],
     from: T,
     to: T,
-    extraOpts: ExtraOpts<N> = {
-        phase: 'update',
-    }
+    extraOpts: ExtraOpts<N>
 ) {
     const { nodes, selections } = deconstructSelectionsOrNodes(selectionsOrNodes);
     const { start = {}, finish = {}, phase } = extraOpts;

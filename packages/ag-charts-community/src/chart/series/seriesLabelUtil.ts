@@ -33,7 +33,7 @@ export function seriesLabelFadeOutAnimation<T>(
         labelSelections,
         { opacity: 1 },
         { opacity: 0 },
-        { phase: 'trailing' }
+        { phase: 'remove' }
     );
 }
 

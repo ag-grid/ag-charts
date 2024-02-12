@@ -40,6 +40,8 @@ export class AnimationBatch {
     }
 
     addAnimation(animation: IAnimation) {
+        if (animation.isComplete) return;
+
         const animationPhaseIdx = ANIMATION_PHASE_ORDER.indexOf(animation.phase);
         if (animationPhaseIdx < this.currentPhase) {
             // Animation is for an earlier phase that the batch is currently in, so skip it.
@@ -64,37 +66,44 @@ export class AnimationBatch {
 
     progress(deltaTime: number) {
         const phase = ANIMATION_PHASE_ORDER[this.currentPhase];
-        let phaseControllers = this.getActiveControllers();
+        let phaseControllers: IAnimation[] = [...this.getActiveControllers()];
         const total = this.controllers.size;
         this.debug(
             `AnimationBatch - progressing by ${deltaTime}; current phase ${phase} with ${phaseControllers?.length} active controllers of ${total} total`,
             this.phases
         );
 
+        // Allow deltaTime 0 to progress through all phases if none of the animations consume time.
+        let unusedTime = deltaTime === 0 ? 0.01 : deltaTime;
         const arePhasesComplete = () => ANIMATION_PHASE_ORDER[this.currentPhase] == null;
         const progressPhase = () => {
+            phaseControllers = [...this.getActiveControllers()];
             while (!arePhasesComplete() && phaseControllers.length === 0) {
                 this.currentPhase++;
-                phaseControllers = this.phases.get(ANIMATION_PHASE_ORDER[this.currentPhase]) ?? [];
+                phaseControllers = [...this.getActiveControllers()];
                 this.debug(
                     `AnimationBatch - phase changing to ${ANIMATION_PHASE_ORDER[this.currentPhase]}`,
+                    { unusedTime },
                     phaseControllers
                 );
             }
         };
 
-        let unusedTime = deltaTime;
         while (unusedTime > 0 && !arePhasesComplete()) {
             progressPhase();
 
             const phaseDeltaTime = unusedTime;
+            let completeCount = 0;
             for (const controller of phaseControllers) {
                 unusedTime = Math.min(controller.update(phaseDeltaTime), unusedTime);
 
                 if (controller.isComplete) {
+                    completeCount++;
                     this.removeAnimation(controller);
                 }
             }
+
+            this.debug(`AnimationBatch - updated ${phaseControllers.length} controllers; ${completeCount} completed`);
         }
     }
 
@@ -129,6 +138,7 @@ export class AnimationBatch {
                 Logger.error('Error during animation stop', error);
             }
         }
+        this.dispatchStopped();
     }
 
     stopByAnimationId(id: string) {
@@ -149,7 +159,7 @@ export class AnimationBatch {
         }
     }
 
-    dispatchStopped() {
+    private dispatchStopped() {
         this.stoppedCbs.forEach((cb) => cb());
         this.stoppedCbs.clear();
     }

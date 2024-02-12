@@ -156,6 +156,7 @@ export function pathSwipeInAnimation(
         { clipX: 0 },
         { clipX: width },
         {
+            phase: 'initial',
             start: { clipMode: 'normal', clipY: height, visible },
             finish: { clipMode: undefined, visible },
         }
@@ -168,7 +169,7 @@ export function pathFadeInAnimation<T>(
     animationManager: AnimationManager,
     selection: Selection<Path, T>[] | Path[]
 ) {
-    staticFromToMotion(id, subId, animationManager, selection, { opacity: 0 }, { opacity: 1 }, { phase: 'trailing' });
+    staticFromToMotion(id, subId, animationManager, selection, { opacity: 0 }, { opacity: 1 }, { phase: 'add' });
 }
 
 export function pathFadeOutAnimation<T>(
@@ -177,7 +178,7 @@ export function pathFadeOutAnimation<T>(
     animationManager: AnimationManager,
     selection: Selection<Path, T>[] | Path[]
 ) {
-    staticFromToMotion(id, subId, animationManager, selection, { opacity: 1 }, { opacity: 0 }, { phase: 'trailing' });
+    staticFromToMotion(id, subId, animationManager, selection, { opacity: 1 }, { opacity: 0 }, { phase: 'remove' });
 }
 
 export function buildResetPathFn(opts: { getOpacity(): number }) {

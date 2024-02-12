@@ -34,7 +34,8 @@ export function markerScaleInAnimation<T>(
         animationManager,
         markerSelections,
         { scalingX: 0, scalingY: 0 },
-        { scalingX: 1, scalingY: 1 }
+        { scalingX: 1, scalingY: 1 },
+        { phase: 'initial' }
     );
     markerSelections.forEach((s) => s.cleanup());
 }
@@ -53,7 +54,7 @@ export function markerSwipeScaleInAnimation<T extends CartesianSeriesNodeDatum>(
         // Parallel swipe animations use the function x = easeOut(time). But in this case, we
         // know the x value and need to calculate the time delay. So use the inverse function:
         const delay = clamp(0, easing.inverseEaseOut(x / seriesWidth), 1);
-        return { scalingX: 0, scalingY: 0, animationDelay: delay, animationDuration: QUICK_TRANSITION };
+        return { scalingX: 0, scalingY: 0, delay, duration: QUICK_TRANSITION, phase: 'initial' as const };
     };
     const toFn = () => {
         return { scalingX: 1, scalingY: 1 };
