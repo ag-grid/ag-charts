@@ -2,13 +2,10 @@ import type { ModuleInstance } from '../../module/baseModule';
 import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
-import type { Group } from '../../scene/group';
 import { debounce } from '../../util/function';
 import { clamp } from '../../util/number';
-import type { Padding } from '../../util/padding';
 import { ObserveChanges, ProxyProperty } from '../../util/proxy';
-import { BOOLEAN, POSITIVE_NUMBER, Validate } from '../../util/validation';
-import type { DataController } from '../data/dataController';
+import { BOOLEAN, OBJECT, POSITIVE_NUMBER, Validate } from '../../util/validation';
 import { InteractionState } from '../interaction/interactionManager';
 import { RangeHandle } from './shapes/rangeHandle';
 import { RangeMask } from './shapes/rangeMask';
@@ -19,29 +16,11 @@ interface Offset {
     offsetY: number;
 }
 
-type Required<T> = Exclude<T, undefined>;
-
-export interface MiniChart {
-    readonly root: Group;
-    updateData: Required<ModuleInstance['updateData']>;
-    processData: Required<ModuleInstance['processData']>;
-    layout(width: number, height: number): Promise<void>;
-    computeAxisPadding(): Padding;
-}
-
 export class Navigator extends BaseModuleInstance implements ModuleInstance {
-    private readonly rs = new RangeSelector();
+    protected readonly rs = new RangeSelector();
 
-    @ObserveChanges<Navigator, MiniChart>((target, value, oldValue) => {
-        if (oldValue != null) {
-            target.rs.background.removeChild(oldValue.root);
-        }
-
-        if (value != null) {
-            target.rs.background.appendChild(value.root);
-        }
-    })
-    miniChart: MiniChart | undefined = undefined;
+    @Validate(OBJECT, { optional: true })
+    miniChart: unknown = undefined;
 
     private minHandleDragging = false;
     private maxHandleDragging = false;
@@ -106,26 +85,15 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         this.updateGroupVisibility();
     }
 
-    async updateData(opts: { data: any }): Promise<void> {
-        await this.miniChart?.updateData(opts);
-    }
-
-    async processData(opts: { dataController: DataController }): Promise<void> {
-        await this.miniChart?.processData(opts);
-    }
-
-    private x = 0;
-    private y = 0;
-    private width = 0;
+    protected x = 0;
+    protected y = 0;
+    protected width = 0;
 
     async performLayout({ shrinkRect }: { shrinkRect: BBox }): Promise<{ shrinkRect: BBox }> {
         if (this.enabled) {
-            const miniChartPadding = this.miniChart?.computeAxisPadding();
-            const paddingTop = miniChartPadding?.top ?? 0;
-            const paddingBottom = miniChartPadding?.bottom ?? 0;
-            const navigatorTotalHeight = this.height + this.margin + (paddingTop + paddingBottom);
+            const navigatorTotalHeight = this.height + this.margin;
             shrinkRect.shrink(navigatorTotalHeight, 'bottom');
-            this.y = shrinkRect.y + shrinkRect.height + this.margin + paddingTop;
+            this.y = shrinkRect.y + shrinkRect.height + this.margin;
         } else {
             this.y = 0;
         }
@@ -139,8 +107,6 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         if (this.enabled && visible) {
             const { y, height } = this;
             this.rs.layout(x, y, width, height);
-
-            await this.miniChart?.layout(width, height);
         }
 
         this.visible = visible;

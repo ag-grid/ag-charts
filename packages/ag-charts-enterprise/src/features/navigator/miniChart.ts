@@ -1,8 +1,16 @@
 import { type AgChartInstance, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-const { Validate, BOOLEAN, Layers, ActionOnSet, CategoryAxis, GroupedCategoryAxis } = _ModuleSupport;
+const { Validate, BOOLEAN, POSITIVE_NUMBER, Layers, ActionOnSet, CategoryAxis, GroupedCategoryAxis } = _ModuleSupport;
 const { toRadians, Padding, Logger } = _Util;
 const { Group, BBox } = _Scene;
+
+class MiniChartPadding {
+    @Validate(POSITIVE_NUMBER)
+    top: number = 0;
+
+    @Validate(POSITIVE_NUMBER)
+    bottom: number = 0;
+}
 
 export class MiniChart
     extends _ModuleSupport.BaseModuleInstance
@@ -11,12 +19,10 @@ export class MiniChart
     @Validate(BOOLEAN)
     enabled: boolean = false;
 
+    readonly padding = new MiniChartPadding();
+
     readonly root = new Group({ name: 'root' });
-    readonly seriesRoot = new Group({
-        name: 'Series-root',
-        layer: true,
-        zIndex: Layers.SERIES_LAYER_ZINDEX,
-    });
+    readonly seriesRoot = new Group({ name: 'Series-root', layer: true, zIndex: Layers.SERIES_LAYER_ZINDEX });
     readonly axisGridGroup = new Group({ name: 'Axes-Grids', layer: true, zIndex: Layers.AXIS_GRID_ZINDEX });
     readonly axisGroup = new Group({ name: 'Axes-Grids', layer: true, zIndex: Layers.AXIS_GRID_ZINDEX });
 
@@ -214,11 +220,17 @@ export class MiniChart
     }
 
     async layout(width: number, height: number) {
+        const { padding } = this;
+
         const animated = this.seriesRect != null;
-        const seriesRect = new BBox(0, 0, width, height);
+
+        const seriesRect = new BBox(0, 0, width, height - (padding.top + padding.bottom));
         this.seriesRect = seriesRect;
 
-        this.seriesRoot.setClipRectInGroupCoordinateSpace(this.seriesRoot.inverseTransformBBox(seriesRect));
+        this.seriesRoot.translationY = padding.top;
+        this.seriesRoot.setClipRectInGroupCoordinateSpace(
+            this.seriesRoot.inverseTransformBBox(new BBox(0, -padding.top, width, height))
+        );
 
         const axisLeftRightRange = (axis: _ModuleSupport.ChartAxis) => {
             if (axis instanceof CategoryAxis || axis instanceof GroupedCategoryAxis) {
@@ -251,10 +263,10 @@ export class MiniChart
                     break;
                 case 'bottom':
                     axis.translation.x = 0;
-                    axis.translation.y = seriesRect.height;
+                    axis.translation.y = height;
                     break;
                 case 'right':
-                    axis.translation.x = seriesRect.width;
+                    axis.translation.x = width;
                     axis.translation.y = 0;
                     break;
             }

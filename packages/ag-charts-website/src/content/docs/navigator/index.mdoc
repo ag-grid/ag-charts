@@ -1,5 +1,6 @@
 ---
 title: 'Navigator'
+enterprise: true
 ---
 
 The navigator allows to zoom in on a portion of chart's data and then pan around the chart. This is useful in charts with lots of data and real-time charts where one wants to show a slice of time, for example sensor data for the last 20 minutes.
@@ -12,7 +13,7 @@ The navigator is disabled by default, to enable it add the following config to t
 
 ```js
 navigator: {
-    enabled: true;
+    enabled: true,
 }
 ```
 
@@ -37,7 +38,7 @@ The navigator's `height` is configurable and affects chart's layout by leaving m
 
 ```js
 navigator: {
-    height: 50;
+    height: 50,
 }
 ```
 
@@ -59,6 +60,22 @@ The example below uses various navigator configs (in a deliberately exaggerated 
 -   the length of the left handle's grip lines and the distance between them
 
 {% chartExampleRunner title="Navigator Styling" name="navigator-styling" type="generated" /%}
+
+## Mini Chart
+
+The Mini Chart gives an overview of the full data of the chart to provide more context when zoomed in.
+
+{% chartExampleRunner title="Mini Chart" name="mini-chart" type="generated" /%}
+
+The Mini Chart is disabled by default, and can be enabled in the `miniChart` options on the navigator.
+
+```js
+navigator: {
+    miniChart: {
+        enabled: true,
+    }
+}
+```
 
 ## API Reference
 

@@ -37,15 +37,6 @@ export interface LegendModule extends BaseModule {
     themeTemplate?: {};
 }
 
-export interface NavigatorModule extends BaseModule {
-    type: 'navigator';
-
-    identifier: string;
-    instanceConstructor: ModuleInstanceConstructor<any>;
-
-    themeTemplate?: {};
-}
-
 type SeriesOptionsTypes = NonNullable<AgChartOptions['series']>[number];
 
 type RequiredSeriesType = NonNullable<SeriesOptionsTypes['type']>;
