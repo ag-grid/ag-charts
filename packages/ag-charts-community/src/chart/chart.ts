@@ -346,9 +346,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.animationManager.skip();
         this.animationManager.play();
 
-        this.dataService = new DataService<any>(this.animationManager, (data) => {
-            this.data = data;
-        });
+        this.dataService = new DataService<any>(this.animationManager);
 
         this.overlays = new ChartOverlays(this.element, this.animationManager);
 
@@ -368,6 +366,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         SizeMonitor.observe(this.element, (size) => this.rawResize(size));
         this._destroyFns.push(
+            this.dataService.addListener('data-load', (event) => {
+                this.data = event.data;
+            }),
+
             this.interactionManager.addListener('click', (event) => this.onClick(event)),
             this.interactionManager.addListener('dblclick', (event) => this.onDoubleClick(event)),
             this.interactionManager.addListener('hover', (event) => this.onMouseMove(event)),
