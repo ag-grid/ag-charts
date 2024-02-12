@@ -25,6 +25,7 @@ export interface ChartAxis {
     destroy(): void;
     detachAxis(axisGroup: Node, gridGroup: Node): void;
     direction: ChartAxisDirection;
+    interactionEnabled: boolean;
     formatDatum(datum: any): string;
     getLayoutState(): AxisLayout;
     getModuleMap(): ModuleMap<any, any, any>;

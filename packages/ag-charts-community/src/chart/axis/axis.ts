@@ -182,6 +182,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     boundSeries: ISeries<unknown>[] = [];
     includeInvisibleDomains: boolean = false;
 
+    interactionEnabled = true;
+
     readonly axisGroup = new Group({ name: `${this.id}-axis`, zIndex: Layers.AXIS_ZINDEX });
 
     protected lineNode = this.axisGroup.appendChild(new Line());
@@ -451,6 +453,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     private checkAxisHover(event: InteractionEvent<'hover'>) {
+        if (!this.interactionEnabled) return;
+
         const bbox = this.computeBBox();
         const isInAxis = bbox.containsPoint(event.offsetX, event.offsetY);
 

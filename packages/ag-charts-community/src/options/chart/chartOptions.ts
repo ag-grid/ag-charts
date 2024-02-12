@@ -4,6 +4,7 @@ import type { AgContextMenuOptions } from './contextMenuOptions';
 import type { AgBaseChartListeners } from './eventOptions';
 import type { AgGradientLegendOptions } from './gradientLegendOptions';
 import type { AgChartLegendOptions } from './legendOptions';
+import type { AgMiniChartOptions } from './miniChartOptions';
 import type { AgNavigatorOptions } from './navigatorOptions';
 import type { AgChartTooltipOptions } from './tooltipOptions';
 import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, PixelSize, TextAlign, TextWrap } from './types';
@@ -166,6 +167,8 @@ export interface AgBaseThemeableChartOptions<TDatum = any> {
     zoom?: AgZoomOptions;
     /** Configuration for the Navigator. */
     navigator?: AgNavigatorOptions;
+    /** MiniChart options */
+    miniChart?: AgMiniChartOptions;
     /** Configuration for synchronizing multiple charts. */
     sync?: AgChartSyncOptions;
     /** A map of event names to event listeners. */

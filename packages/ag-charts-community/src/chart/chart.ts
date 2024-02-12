@@ -1375,6 +1375,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     applyOptions(processedOptions: Partial<AgChartOptions>, userOptions: AgChartOptions) {
+        const moduleContext = this.getModuleContext();
         const completeOptions = mergeDefaults(processedOptions, this.processedOptions);
         const modulesChanged = this.applyModules(completeOptions);
 
@@ -1395,7 +1396,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.registerListeners(this, processedOptions.listeners);
         }
 
-        this.applyOptionValues(this, this.getModuleContext(), processedOptions, { skip });
+        this.applyOptionValues(this, moduleContext, processedOptions, { skip });
 
         let forceNodeDataRefresh = false;
         let seriesStatus: SeriesChangeType = 'no-op';
@@ -1438,7 +1439,25 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const miniChartModule = this.modules.get('miniChart') as any;
         if (navigatorModule != null && miniChartModule != null) {
             const seriesStatus = this.applySeries(miniChartModule, processedOptions);
-            this.applyAxes(miniChartModule, processedOptions, seriesStatus);
+            this.applyAxes(miniChartModule, processedOptions, seriesStatus, [
+                'axes[].tick',
+                'axes[].thickness',
+                'axes[].title',
+                'axes[].crosshair',
+                'axes[].gridLine',
+                'axes[].label.autoRotate',
+                'axes[].label.autoRotateAngle',
+                'axes[].label.rotation',
+            ]);
+
+            const labelOptions = processedOptions.miniChart?.label;
+            if (labelOptions != null) {
+                const params = { path: 'miniChart.label' };
+
+                for (const axis of miniChartModule.axes) {
+                    jsonApply(axis.label, labelOptions, params);
+                }
+            }
 
             navigatorModule.miniChart = miniChartModule;
         }
@@ -1531,10 +1550,12 @@ export abstract class Chart extends Observable implements AgChartInstance {
         return dataChanged ? 'data-change' : noop ? 'no-op' : 'updated';
     }
 
-    private applyAxes(chart: Chart, options: AgChartOptions, seriesStatus: SeriesChangeType) {
+    private applyAxes(chart: Chart, options: AgChartOptions, seriesStatus: SeriesChangeType, skip: string[] = []) {
         if (!('axes' in options) || !options.axes) {
             return false;
         }
+
+        skip = ['axes[].type', ...skip];
 
         const { axes } = options;
         const forceRecreate = seriesStatus === 'replaced';
@@ -1553,7 +1574,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
                     debug(`AgChartV2.applyAxes() - applying axis diff idx ${i}`, axisDiff);
 
                     const path = `axes[${i}]`;
-                    const skip = ['axes[].type'];
                     this.applyOptionValues(a, moduleContext, axisDiff, { path, skip });
                 });
                 return true;
@@ -1561,7 +1581,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
 
         debug(`AgChartV2.applyAxes() - creating new axes instances; seriesStatus: ${seriesStatus}`);
-        chart.axes = this.createAxis(chart, axes);
+        chart.axes = this.createAxis(chart, axes, skip);
         return true;
     }
 
@@ -1617,10 +1637,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
-    private createAxis(chart: Chart, options: AgBaseAxisOptions[]): ChartAxis[] {
+    private createAxis(chart: Chart, options: AgBaseAxisOptions[], skip: string[]): ChartAxis[] {
         const guesser: AxisPositionGuesser = new AxisPositionGuesser();
         const moduleContext = chart.getModuleContext();
-        const skip = ['axes[].type'];
 
         let index = 0;
         for (const axisOptions of options ?? []) {
