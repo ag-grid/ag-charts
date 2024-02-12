@@ -1,5 +1,5 @@
 import { ChartUpdateType } from '../chartUpdateType';
-import type { DataLoadEvent, DataService } from '../data/dataService';
+import type { DataService } from '../data/dataService';
 import type { ZoomManager } from '../interaction/zoomManager';
 import type { UpdateService } from '../updateService';
 import type { AxisLike, ChartLike, UpdateProcessor } from './processor';
@@ -12,7 +12,8 @@ interface AxisDomain {
 }
 
 export class DataWindowProcessor<D extends object> implements UpdateProcessor {
-    private dirty = true;
+    private dirtyZoom = false;
+    private dirtyDataSource = false;
     private lastAxisZooms = new Map();
 
     private destroyFns: (() => void)[] = [];
@@ -24,7 +25,8 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
         private readonly zoomManager: ZoomManager
     ) {
         this.destroyFns.push(
-            this.dataService.addListener('data-load', (event) => this.onDataLoad(event)),
+            this.dataService.addListener('data-source-changed', () => this.onDataSourceChanged()),
+            this.dataService.addListener('data-load', () => this.onDataLoad()),
             this.updateService.addListener('update-complete', () => this.onUpdateComplete()),
             this.zoomManager.addListener('zoom-change', () => this.onZoomChange())
         );
@@ -34,17 +36,21 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
         this.destroyFns.forEach((cb) => cb());
     }
 
-    private onDataLoad(_event: DataLoadEvent<D>) {
+    private onDataLoad() {
         this.updateService.update(ChartUpdateType.UPDATE_DATA);
     }
 
+    private onDataSourceChanged() {
+        this.dirtyDataSource = true;
+    }
+
     private onUpdateComplete() {
-        if (!this.dirty) return;
+        if (!this.dirtyZoom && !this.dirtyDataSource) return;
         this.updateWindow();
     }
 
     private onZoomChange() {
-        this.dirty = true;
+        this.dirtyZoom = true;
         this.updateWindow();
     }
 
@@ -57,7 +63,8 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
         if (axes.length > 0 && domains.length === 0) {
             return;
         }
-        this.dirty = false;
+        this.dirtyZoom = false;
+        this.dirtyDataSource = false;
         this.dataService.load(domains);
     }
 
@@ -74,9 +81,11 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
 
             if (!domain || !zoom) continue;
 
-            // Only run the callback if the zoom has changed on this axis, ignoring invalid axes
-            const lastZoom = this.lastAxisZooms.get(axis.id);
-            if (lastZoom && zoom.min === lastZoom.min && zoom.max === lastZoom.max) continue;
+            if (!this.dirtyDataSource) {
+                // Only run the callback if the zoom has changed on this axis, ignoring invalid axes
+                const lastZoom = this.lastAxisZooms.get(axis.id);
+                if (lastZoom && zoom.min === lastZoom.min && zoom.max === lastZoom.max) continue;
+            }
 
             this.lastAxisZooms.set(axis.id, zoom);
 
