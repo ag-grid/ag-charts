@@ -71,9 +71,9 @@ export class AnimationBatch {
             this.phases
         );
 
-        let unusedTime = deltaTime;
-        while (unusedTime > 0) {
-            while (this.currentPhase < ANIMATION_PHASE_ORDER.length && phaseControllers.length === 0) {
+        const arePhasesComplete = () => ANIMATION_PHASE_ORDER[this.currentPhase] == null;
+        const progressPhase = () => {
+            while (!arePhasesComplete() && phaseControllers.length === 0) {
                 this.currentPhase++;
                 phaseControllers = this.phases.get(ANIMATION_PHASE_ORDER[this.currentPhase]) ?? [];
                 this.debug(
@@ -81,9 +81,15 @@ export class AnimationBatch {
                     phaseControllers
                 );
             }
+        };
 
+        let unusedTime = deltaTime;
+        while (unusedTime > 0 && !arePhasesComplete()) {
+            progressPhase();
+
+            const phaseDeltaTime = unusedTime;
             for (const controller of phaseControllers) {
-                unusedTime = Math.min(controller.update(deltaTime), deltaTime);
+                unusedTime = Math.min(controller.update(phaseDeltaTime), unusedTime);
 
                 if (controller.isComplete) {
                     this.removeAnimation(controller);
