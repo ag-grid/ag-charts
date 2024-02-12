@@ -34,9 +34,9 @@ export class LicenseManager {
 
     public validateLicense(): void {
         const licenseDetails = this.getLicenseDetails(this.licenseKey!, this.gridContext);
-        const requiredLicenseName = `AG ${
+        const currentLicenseName = `AG ${
             licenseDetails.currentLicenseType === 'BOTH' ? 'Grid and ' : ''
-        }Charts Enterprise License`;
+        }Charts Enterprise`;
         const suppliedLicenseName =
             licenseDetails.suppliedLicenseType === undefined
                 ? ''
@@ -46,24 +46,24 @@ export class LicenseManager {
                           : licenseDetails.suppliedLicenseType === 'GRID'
                             ? 'Grid'
                             : 'Charts'
-                  } Enterprise License`;
+                  } Enterprise`;
 
         if (licenseDetails.missing) {
             if (!this.isWebsiteUrl() || this.isForceWatermark()) {
-                this.outputMissingLicenseKey(requiredLicenseName, requiredLicenseName);
+                this.outputMissingLicenseKey(currentLicenseName);
             }
         } else if (licenseDetails.expired) {
-            const gridReleaseDate = LicenseManager.getchartsReleaseDate();
+            const gridReleaseDate = LicenseManager.getChartsReleaseDate();
             const formattedReleaseDate = LicenseManager.formatDate(gridReleaseDate);
             this.outputExpiredKey(licenseDetails.expiry, formattedReleaseDate, suppliedLicenseName);
         } else if (!licenseDetails.valid) {
             this.outputInvalidLicenseKey(
                 !!licenseDetails.incorrectLicenseType,
-                licenseDetails.currentLicenseType!,
+                currentLicenseName,
                 suppliedLicenseName
             );
         } else if (licenseDetails.isTrial && licenseDetails.trialExpired) {
-            this.outputExpiredTrialKey(licenseDetails.expiry, requiredLicenseName, suppliedLicenseName);
+            this.outputExpiredTrialKey(licenseDetails.expiry, currentLicenseName, suppliedLicenseName);
         }
     }
 
@@ -102,7 +102,7 @@ export class LicenseManager {
             };
         }
 
-        const chartsReleaseDate = LicenseManager.getchartsReleaseDate();
+        const chartsReleaseDate = LicenseManager.getChartsReleaseDate();
         const { md5, license, version, isTrial, type } = LicenseManager.extractLicenseComponents(licenseKey);
         let valid = md5 === this.md5.md5(license) && licenseKey.indexOf('For_Trialing_ag-Grid_Only') === -1;
         let trialExpired: undefined | boolean = undefined;
@@ -243,7 +243,7 @@ export class LicenseManager {
         return day + ' ' + monthNames[monthIndex] + ' ' + year;
     }
 
-    private static getchartsReleaseDate() {
+    private static getChartsReleaseDate() {
         return new Date(parseInt(LicenseManager.decode(LicenseManager.RELEASE_INFORMATION), 10));
     }
 
@@ -330,17 +330,16 @@ export class LicenseManager {
 
     private outputInvalidLicenseKey(
         incorrectLicenseType: boolean,
-        currentLicenseType: string,
+        currentLicenseName: string,
         suppliedLicenseName: string
     ) {
-        const requiredLicenseName = `AG Grid ${currentLicenseType === 'BOTH' ? 'and AG Charts ' : ''}Enterprise`;
         if (incorrectLicenseType) {
             // TC4, TC5,TC10
             this.centerPadAndOutput('');
-            this.centerPadAndOutput(` ${suppliedLicenseName} `);
+            this.centerPadAndOutput(` ${currentLicenseName} License `);
             this.centerPadAndOutput(' Incompatible License Key ');
             this.padAndOutput(
-                `* Your license key is for ${suppliedLicenseName} only and does not cover you for ${requiredLicenseName}.`,
+                `* Your license key is for ${suppliedLicenseName} only and does not cover you for ${currentLicenseName}.`,
                 ' ',
                 '*'
             );
@@ -350,10 +349,10 @@ export class LicenseManager {
         } else {
             // TC3, TC9
             this.centerPadAndOutput('');
-            this.centerPadAndOutput(`${requiredLicenseName ? ' ' + requiredLicenseName + ' ' : ''}`);
-            this.centerPadAndOutput(' Invalid License ');
+            this.centerPadAndOutput(` ${currentLicenseName} License `);
+            this.centerPadAndOutput(' Invalid License Key ');
             this.padAndOutput(
-                `* Your license for ${suppliedLicenseName} is not valid - please contact info@ag-grid.com to obtain a valid license.`,
+                `* Your license key is not valid - please contact info@ag-grid.com to obtain a valid license.`,
                 ' ',
                 '*'
             );
@@ -366,14 +365,18 @@ export class LicenseManager {
 
     private outputExpiredTrialKey(
         formattedExpiryDate: string,
-        requiredLicenseName: string,
+        currentLicenseName: string,
         suppliedLicenseName: string
     ) {
         // TC14
         this.centerPadAndOutput('');
-        this.centerPadAndOutput(` ${requiredLicenseName} `);
+        this.centerPadAndOutput(` ${currentLicenseName} License `);
         this.centerPadAndOutput(' Trial Period Expired. ');
-        this.padAndOutput(`* Your license for ${suppliedLicenseName} expired on ${formattedExpiryDate}.`, ' ', '*');
+        this.padAndOutput(
+            `* Your trial only license for ${suppliedLicenseName} expired on ${formattedExpiryDate}.`,
+            ' ',
+            '*'
+        );
         this.padAndOutput('* Please email info@ag-grid.com to purchase a license.', ' ', '*');
         this.centerPadAndOutput('');
         this.centerPadAndOutput('');
@@ -381,10 +384,10 @@ export class LicenseManager {
         this.watermarkMessage = 'Trial Period Expired';
     }
 
-    private outputMissingLicenseKey(currentLicenseName: string, requiredLicenseName: string) {
+    private outputMissingLicenseKey(currentLicenseName: string) {
         // TC6, TC12
         this.centerPadAndOutput('');
-        this.centerPadAndOutput(` ${requiredLicenseName} `);
+        this.centerPadAndOutput(` ${currentLicenseName} License `);
         this.centerPadAndOutput(' License Key Not Found ');
         this.padAndOutput(`* All ${currentLicenseName} features are unlocked for trial.`, ' ', '*');
         this.padAndOutput(
@@ -398,13 +401,13 @@ export class LicenseManager {
         this.watermarkMessage = 'For Trial Use Only';
     }
 
-    private outputExpiredKey(formattedExpiryDate: string, formattedReleaseDate: string, suppliedLicenseName: string) {
+    private outputExpiredKey(formattedExpiryDate: string, formattedReleaseDate: string, currentLicenseName: string) {
         // TC2
         this.centerPadAndOutput('');
-        this.centerPadAndOutput(` ${suppliedLicenseName} `);
+        this.centerPadAndOutput(` ${currentLicenseName} License `);
         this.centerPadAndOutput(' Incompatible Software Version ');
         this.padAndOutput(
-            `* Your license key works with versions of ${suppliedLicenseName} released before ${formattedExpiryDate}.`,
+            `* Your license key works with versions of ${currentLicenseName} released before ${formattedExpiryDate}.`,
             ' ',
             '*'
         );
