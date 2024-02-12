@@ -10,7 +10,7 @@ export function removeUsedEnterpriseOptions<T extends AgChartOptions>(options: T
     for (const { type, chartTypes, optionsKey, optionsInnerKey, identifier } of EXPECTED_ENTERPRISE_MODULES) {
         if (optionsChartType !== 'unknown' && !chartTypes.includes(optionsChartType)) continue;
 
-        if (type === 'root' || type === 'legend') {
+        if (type === 'root' || type === 'legend' || type === 'navigator') {
             const optionValue = options[optionsKey as keyof T] as any;
             if (optionValue == null) continue;
 

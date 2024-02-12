@@ -1,40 +1,20 @@
-import type { ModuleContext } from '../../module/moduleContext';
-import type { AgChartInstance, AgChartOptions } from '../../options/agChartOptions';
-import { BBox } from '../../scene/bbox';
-import { Group } from '../../scene/group';
-import { toRadians } from '../../util/angle';
-import { createId } from '../../util/id';
-import { deepClone } from '../../util/json';
-import { Logger } from '../../util/logger';
-import { Observable } from '../../util/observable';
-import { Padding } from '../../util/padding';
-import { ActionOnSet } from '../../util/proxy';
-import { CategoryAxis } from '../axis/categoryAxis';
-import { GroupedCategoryAxis } from '../axis/groupedCategoryAxis';
-import type { ChartAxis } from '../chartAxis';
-import { ChartAxisDirection } from '../chartAxisDirection';
-import type { DataController } from '../data/dataController';
-import { Layers } from '../layers';
-import type { SeriesOptionsTypes } from '../mapping/types';
-import type { Series } from '../series/series';
+import { type AgChartInstance, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-export class MiniChart extends Observable implements AgChartInstance {
-    static className = 'MiniChart';
-    static type = 'cartesian';
+const { Validate, BOOLEAN, Layers, ActionOnSet, ChartAxisDirection, CategoryAxis, GroupedCategoryAxis } =
+    _ModuleSupport;
+const { toRadians, Padding, Logger } = _Util;
+const { Group, BBox } = _Scene;
 
-    readonly id = createId(this);
-
-    processedOptions: AgChartOptions & { type?: SeriesOptionsTypes['type'] } = {};
-    userOptions: AgChartOptions = {};
-    queuedUserOptions: AgChartOptions[] = [];
-
-    getOptions() {
-        return deepClone(this.queuedUserOptions.at(-1) ?? this.userOptions);
-    }
+export class MiniChart
+    extends _ModuleSupport.BaseModuleInstance
+    implements _ModuleSupport.ModuleInstance, AgChartInstance
+{
+    @Validate(BOOLEAN)
+    enabled: boolean = false;
 
     readonly root = new Group({ name: 'root' });
     readonly seriesRoot = new Group({
-        name: `${this.id}-Series-root`,
+        name: 'Series-root',
         layer: true,
         zIndex: Layers.SERIES_LAYER_ZINDEX,
     });
@@ -48,7 +28,7 @@ export class MiniChart extends Observable implements AgChartInstance {
 
     private _destroyed: boolean = false;
 
-    constructor(public ctx: ModuleContext) {
+    constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 
         this.root.appendChild(this.seriesRoot);
@@ -56,13 +36,7 @@ export class MiniChart extends Observable implements AgChartInstance {
         this.root.appendChild(this.axisGroup);
     }
 
-    getModuleContext(): ModuleContext {
-        return this.ctx;
-    }
-
-    resetAnimations(): void {}
-
-    destroy() {
+    override destroy() {
         if (this._destroyed) {
             return;
         }
@@ -75,8 +49,18 @@ export class MiniChart extends Observable implements AgChartInstance {
         this._destroyed = true;
     }
 
+    getOptions() {
+        return null!;
+    }
+
+    getModuleContext() {
+        return this.ctx;
+    }
+
+    resetAnimations(): void {}
+
     @ActionOnSet<MiniChart>({
-        changeValue(newValue: ChartAxis[], oldValue: ChartAxis[] = []) {
+        changeValue(newValue: _ModuleSupport.ChartAxis[], oldValue: _ModuleSupport.ChartAxis[] = []) {
             for (const axis of oldValue) {
                 if (newValue.includes(axis)) continue;
                 axis.detachAxis(this.axisGroup, this.axisGridGroup);
@@ -95,16 +79,16 @@ export class MiniChart extends Observable implements AgChartInstance {
             }
         },
     })
-    axes: ChartAxis[] = [];
+    axes: _ModuleSupport.ChartAxis[] = [];
 
     @ActionOnSet<MiniChart>({
         changeValue(newValue, oldValue) {
             this.onSeriesChange(newValue, oldValue);
         },
     })
-    series: Series<any>[] = [];
+    series: _ModuleSupport.Series<any>[] = [];
 
-    private onSeriesChange(newValue: Series<any>[], oldValue?: Series<any>[]) {
+    private onSeriesChange(newValue: _ModuleSupport.Series<any>[], oldValue?: _ModuleSupport.Series<any>[]) {
         const seriesToDestroy = oldValue?.filter((series) => !newValue.includes(series)) ?? [];
         this.destroySeries(seriesToDestroy);
 
@@ -131,7 +115,7 @@ export class MiniChart extends Observable implements AgChartInstance {
         }
     }
 
-    protected destroySeries(series: Series<any>[]): void {
+    protected destroySeries(series: _ModuleSupport.Series<any>[]): void {
         series?.forEach((series) => {
             series.destroy();
 
@@ -150,7 +134,7 @@ export class MiniChart extends Observable implements AgChartInstance {
 
     protected assignAxesToSeries() {
         // This method has to run before `assignSeriesToAxes`.
-        const directionToAxesMap: { [key in ChartAxisDirection]?: ChartAxis[] } = {};
+        const directionToAxesMap: { [key in _ModuleSupport.ChartAxisDirection]?: _ModuleSupport.ChartAxis[] } = {};
 
         this.axes.forEach((axis) => {
             const direction = axis.direction;
@@ -182,7 +166,10 @@ export class MiniChart extends Observable implements AgChartInstance {
         });
     }
 
-    private findMatchingAxis(directionAxes: ChartAxis[], directionKeys?: string[]): ChartAxis | undefined {
+    private findMatchingAxis(
+        directionAxes: _ModuleSupport.ChartAxis[],
+        directionKeys?: string[]
+    ): _ModuleSupport.ChartAxis | undefined {
         for (const axis of directionAxes) {
             if (!axis.keys.length) {
                 return axis;
@@ -204,7 +191,7 @@ export class MiniChart extends Observable implements AgChartInstance {
         this.series.forEach((s) => s.setChartData(opts.data));
     }
 
-    async processData(opts: { dataController: DataController }) {
+    async processData(opts: { dataController: _ModuleSupport.DataController }) {
         if (this.series.some((s) => s.canHaveAxes)) {
             this.assignAxesToSeries();
             this.assignSeriesToAxes();
@@ -235,7 +222,7 @@ export class MiniChart extends Observable implements AgChartInstance {
         const seriesRect = new BBox(0, 0, width, height);
         this.seriesRect = seriesRect;
 
-        const axisLeftRightRange = (axis: ChartAxis) => {
+        const axisLeftRightRange = (axis: _ModuleSupport.ChartAxis) => {
             if (axis instanceof CategoryAxis || axis instanceof GroupedCategoryAxis) {
                 return [0, seriesRect.height];
             }
@@ -286,5 +273,5 @@ export class MiniChart extends Observable implements AgChartInstance {
     }
 
     // Should be available after the first layout.
-    protected seriesRect?: BBox;
+    protected seriesRect?: _Scene.BBox;
 }
