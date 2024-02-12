@@ -1,3 +1,4 @@
+import type { AgMiniChartOptions } from './miniChartOptions';
 import type { CssColor, Opacity, PixelSize, Ratio } from './types';
 
 export interface AgNavigatorMaskOptions {
@@ -45,4 +46,6 @@ export interface AgNavigatorOptions {
     minHandle?: AgNavigatorHandleOptions;
     /** Configuration for the navigator's right handle. */
     maxHandle?: AgNavigatorHandleOptions;
+    /** MiniChart options */
+    miniChart?: AgMiniChartOptions;
 }

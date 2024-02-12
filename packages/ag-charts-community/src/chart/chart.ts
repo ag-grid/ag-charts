@@ -1382,7 +1382,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const completeOptions = mergeDefaults(processedOptions, this.processedOptions);
         const modulesChanged = this.applyModules(completeOptions);
 
-        const skip = ['type', 'data', 'series', 'listeners', 'theme', 'legend.listeners', 'miniChart.label'];
+        const skip = ['type', 'data', 'series', 'listeners', 'theme', 'legend.listeners', 'navigator.miniChart'];
         if (isAgCartesianChartOptions(processedOptions) || isAgPolarChartOptions(processedOptions)) {
             // Append axes to defaults.
             skip.push('axes');
@@ -1453,15 +1453,15 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 'axes[].label.rotation',
             ]);
 
-            const labelOptions = processedOptions.miniChart?.label;
+            const labelOptions = processedOptions.navigator?.miniChart?.label;
             for (const axis of miniChartModule.axes) {
                 if (labelOptions != null) {
                     jsonApply(axis.label, labelOptions, {
-                        path: 'miniChart.label',
+                        path: 'navigator.miniChart.label',
                         skip: [
-                            'miniChart.label.autoRotate',
-                            'miniChart.label.autoRotateAngle',
-                            'miniChart.label.rotation',
+                            'navigator.miniChart.label.autoRotate',
+                            'navigator.miniChart.label.autoRotateAngle',
+                            'navigator.miniChart.label.rotation',
                         ],
                     });
                 }
@@ -1472,6 +1472,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
             }
 
             navigatorModule.miniChart = miniChartModule;
+        } else if (navigatorModule != null) {
+            navigatorModule.miniChart = undefined;
         }
 
         const majorChange = forceNodeDataRefresh || modulesChanged;
@@ -1487,9 +1489,12 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 continue;
             }
 
-            const shouldBeEnabled =
-                module.chartTypes.includes((this.constructor as any).type) &&
-                (options as any)[module.optionsKey] != null;
+            const optionsValue =
+                module.type === 'navigator'
+                    ? (options.navigator as any)?.[module.optionsKey]
+                    : (options as any)[module.optionsKey];
+
+            const shouldBeEnabled = module.chartTypes.includes((this.constructor as any).type) && optionsValue != null;
             const isEnabled = this.isModuleEnabled(module);
 
             if (shouldBeEnabled === isEnabled) {
