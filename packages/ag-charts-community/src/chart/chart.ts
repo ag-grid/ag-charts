@@ -35,6 +35,7 @@ import { BOOLEAN, OBJECT, UNION, Validate } from '../util/validation';
 import { Caption } from './caption';
 import type { ChartAnimationPhase } from './chartAnimationPhase';
 import type { ChartAxis } from './chartAxis';
+import { ChartAxisDirection } from './chartAxisDirection';
 import { ChartHighlight } from './chartHighlight';
 import type { ChartMode } from './chartMode';
 import { JSON_APPLY_OPTIONS, JSON_APPLY_PLUGINS } from './chartOptions';
@@ -1377,10 +1378,11 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     applyOptions(processedOptions: Partial<AgChartOptions>, userOptions: AgChartOptions) {
+        const moduleContext = this.getModuleContext();
         const completeOptions = mergeDefaults(processedOptions, this.processedOptions);
         const modulesChanged = this.applyModules(completeOptions);
 
-        const skip = ['type', 'data', 'series', 'listeners', 'theme', 'legend.listeners'];
+        const skip = ['type', 'data', 'series', 'listeners', 'theme', 'legend.listeners', 'navigator.miniChart'];
         if (isAgCartesianChartOptions(processedOptions) || isAgPolarChartOptions(processedOptions)) {
             // Append axes to defaults.
             skip.push('axes');
@@ -1397,7 +1399,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.registerListeners(this, processedOptions.listeners);
         }
 
-        this.applyOptionValues(this, this.getModuleContext(), processedOptions, { skip });
+        this.applyOptionValues(this, moduleContext, processedOptions, { skip });
 
         let forceNodeDataRefresh = false;
         let seriesStatus: SeriesChangeType = 'no-op';
@@ -1440,9 +1442,38 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const miniChartModule = this.modules.get('miniChart') as any;
         if (navigatorModule != null && miniChartModule != null) {
             const seriesStatus = this.applySeries(miniChartModule, processedOptions);
-            this.applyAxes(miniChartModule, processedOptions, seriesStatus);
+            this.applyAxes(miniChartModule, processedOptions, seriesStatus, [
+                'axes[].tick',
+                'axes[].thickness',
+                'axes[].title',
+                'axes[].crosshair',
+                'axes[].gridLine',
+                'axes[].label.autoRotate',
+                'axes[].label.autoRotateAngle',
+                'axes[].label.rotation',
+            ]);
+
+            const labelOptions = processedOptions.navigator?.miniChart?.label;
+            for (const axis of miniChartModule.axes) {
+                if (labelOptions != null) {
+                    jsonApply(axis.label, labelOptions, {
+                        path: 'navigator.miniChart.label',
+                        skip: [
+                            'navigator.miniChart.label.autoRotate',
+                            'navigator.miniChart.label.autoRotateAngle',
+                            'navigator.miniChart.label.rotation',
+                        ],
+                    });
+                }
+
+                axis.label.enabled = axis.direction === ChartAxisDirection.X;
+                axis.tick.enabled = false;
+                axis.interactionEnabled = false;
+            }
 
             navigatorModule.miniChart = miniChartModule;
+        } else if (navigatorModule != null) {
+            navigatorModule.miniChart = undefined;
         }
 
         const majorChange = forceNodeDataRefresh || modulesChanged;
@@ -1458,9 +1489,12 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 continue;
             }
 
-            const shouldBeEnabled =
-                module.chartTypes.includes((this.constructor as any).type) &&
-                (options as any)[module.optionsKey] != null;
+            const optionsValue =
+                module.type === 'navigator'
+                    ? (options.navigator as any)?.[module.optionsKey]
+                    : (options as any)[module.optionsKey];
+
+            const shouldBeEnabled = module.chartTypes.includes((this.constructor as any).type) && optionsValue != null;
             const isEnabled = this.isModuleEnabled(module);
 
             if (shouldBeEnabled === isEnabled) {
@@ -1533,10 +1567,12 @@ export abstract class Chart extends Observable implements AgChartInstance {
         return dataChanged ? 'data-change' : noop ? 'no-op' : 'updated';
     }
 
-    private applyAxes(chart: Chart, options: AgChartOptions, seriesStatus: SeriesChangeType) {
+    private applyAxes(chart: Chart, options: AgChartOptions, seriesStatus: SeriesChangeType, skip: string[] = []) {
         if (!('axes' in options) || !options.axes) {
             return false;
         }
+
+        skip = ['axes[].type', ...skip];
 
         const { axes } = options;
         const forceRecreate = seriesStatus === 'replaced';
@@ -1555,7 +1591,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
                     debug(`AgChartV2.applyAxes() - applying axis diff idx ${i}`, axisDiff);
 
                     const path = `axes[${i}]`;
-                    const skip = ['axes[].type'];
                     this.applyOptionValues(a, moduleContext, axisDiff, { path, skip });
                 });
                 return true;
@@ -1563,7 +1598,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
 
         debug(`AgChartV2.applyAxes() - creating new axes instances; seriesStatus: ${seriesStatus}`);
-        chart.axes = this.createAxis(chart, axes);
+        chart.axes = this.createAxis(chart, axes, skip);
         return true;
     }
 
@@ -1619,10 +1654,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
-    private createAxis(chart: Chart, options: AgBaseAxisOptions[]): ChartAxis[] {
+    private createAxis(chart: Chart, options: AgBaseAxisOptions[], skip: string[]): ChartAxis[] {
         const guesser: AxisPositionGuesser = new AxisPositionGuesser();
         const moduleContext = chart.getModuleContext();
-        const skip = ['axes[].type'];
 
         let index = 0;
         for (const axisOptions of options ?? []) {

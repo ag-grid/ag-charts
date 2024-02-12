@@ -1,7 +1,6 @@
 import { type AgChartInstance, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-const { Validate, BOOLEAN, Layers, ActionOnSet, ChartAxisDirection, CategoryAxis, GroupedCategoryAxis } =
-    _ModuleSupport;
+const { Validate, BOOLEAN, Layers, ActionOnSet, CategoryAxis, GroupedCategoryAxis } = _ModuleSupport;
 const { toRadians, Padding, Logger } = _Util;
 const { Group, BBox } = _Scene;
 
@@ -66,12 +65,6 @@ export class MiniChart
 
             for (const axis of newValue) {
                 if (oldValue?.includes(axis)) continue;
-                if (axis.direction === ChartAxisDirection.X) {
-                    axis.label.autoRotate = false;
-                } else {
-                    axis.label.enabled = false;
-                    axis.tick.enabled = false;
-                }
 
                 axis.attachAxis(this.axisGroup, this.axisGridGroup);
             }
@@ -200,19 +193,24 @@ export class MiniChart
     }
 
     computeAxisPadding() {
-        let bottomAxisHeight = 0;
-        const bottomAxis = this.axes.find((axis) => axis.direction === ChartAxisDirection.X);
-        if (bottomAxis != null) {
-            const { thickness = 0, line, label } = bottomAxis;
+        const padding = new Padding();
+        this.axes.forEach((axis) => {
+            const { position, thickness = 0, line, label } = axis;
+            if (position == null) return;
+
+            let size: number;
             if (thickness > 0) {
-                bottomAxisHeight = thickness;
+                size = thickness;
             } else {
-                bottomAxisHeight =
+                size =
                     (line.enabled ? line.width : 0) +
                     (label.enabled ? (label.fontSize ?? 0) * 1.25 + label.padding : 0);
             }
-        }
-        return new Padding(0, 0, bottomAxisHeight, 0);
+
+            padding[position] = size;
+        });
+
+        return padding;
     }
 
     async layout(width: number, height: number) {

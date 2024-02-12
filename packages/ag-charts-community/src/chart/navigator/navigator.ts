@@ -125,7 +125,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             const paddingBottom = miniChartPadding?.bottom ?? 0;
             const navigatorTotalHeight = this.height + this.margin + (paddingTop + paddingBottom);
             shrinkRect.shrink(navigatorTotalHeight, 'bottom');
-            this.y = shrinkRect.y + paddingTop + shrinkRect.height + this.margin;
+            this.y = shrinkRect.y + shrinkRect.height + this.margin + paddingTop;
         } else {
             this.y = 0;
         }
