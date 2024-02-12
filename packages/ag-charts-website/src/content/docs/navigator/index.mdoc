@@ -77,6 +77,28 @@ navigator: {
 }
 ```
 
+## Styling the Mini Chart
+
+{% chartExampleRunner title="Mini Chart Styling" name="mini-chart-styling" type="generated" /%}
+
+The labels on the Mini Chart axis can be styled using the `label` property, which takes the same properties as the `label` property on axes.
+
+```js
+navigator: {
+    miniChart: {
+        enabled: true,
+        label: {
+            fontSize: 20,
+            fontWeight: 'bold',
+        },
+    }
+}
+```
+
+{% note %}
+Rotation-based properties are not supported on `label`.
+{% /note %}
+
 ## API Reference
 
 {% tabs %}

@@ -2,7 +2,7 @@ import { type AgChartInstance, _ModuleSupport, _Scene, _Util } from 'ag-charts-c
 
 const { Validate, BOOLEAN, POSITIVE_NUMBER, Layers, ActionOnSet, CategoryAxis, GroupedCategoryAxis } = _ModuleSupport;
 const { toRadians, Padding, Logger } = _Util;
-const { Group, BBox } = _Scene;
+const { Text, Group, BBox } = _Scene;
 
 class MiniChartPadding {
     @Validate(POSITIVE_NUMBER)
@@ -210,7 +210,7 @@ export class MiniChart
             } else {
                 size =
                     (line.enabled ? line.width : 0) +
-                    (label.enabled ? (label.fontSize ?? 0) * 1.25 + label.padding : 0);
+                    (label.enabled ? (label.fontSize ?? 0) * Text.defaultLineHeightRatio + label.padding : 0);
             }
 
             padding[position] = size;

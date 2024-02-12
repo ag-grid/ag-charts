@@ -36,7 +36,7 @@ export class Navigator extends _ModuleSupport.Navigator {
         if (this.enabled) {
             const { top, bottom } = this.miniChart.computeAxisPadding();
             shrinkRect.shrink(top + bottom, 'bottom');
-            this.y += top;
+            this.y -= bottom;
         }
 
         return { shrinkRect };
