@@ -37,7 +37,7 @@ import {
 import { ChartUpdateType } from './chartUpdateType';
 import type { Page } from './gridLayout';
 import { gridLayout } from './gridLayout';
-import type { InteractionEvent } from './interaction/interactionManager';
+import { InteractionEvent, InteractionState } from './interaction/interactionManager';
 import { Layers } from './layers';
 import type { CategoryLegendDatum } from './legendDatum';
 import type { Marker } from './marker/marker';
@@ -230,9 +230,10 @@ export class Legend extends BaseProperties {
 
         this.item.marker.parent = this;
 
+        const animationState = InteractionState.Default | InteractionState.Animation;
         this.destroyFns.push(
-            ctx.interactionManager.addListener('click', (e) => this.checkLegendClick(e)),
-            ctx.interactionManager.addListener('dblclick', (e) => this.checkLegendDoubleClick(e)),
+            ctx.interactionManager.addListener('click', (e) => this.checkLegendClick(e), animationState),
+            ctx.interactionManager.addListener('dblclick', (e) => this.checkLegendDoubleClick(e), animationState),
             ctx.interactionManager.addListener('hover', (e) => this.handleLegendMouseMove(e)),
             ctx.layoutService.addListener('start-layout', (e) => this.positionLegend(e.shrinkRect)),
             () => this.detachLegend()
