@@ -1,6 +1,6 @@
 /* eslint-disable sonarjs/no-collapsible-if */
 type EnterpriseModuleStub = {
-    type: 'axis' | 'axis-option' | 'series' | 'series-option' | 'root' | 'legend' | 'navigator';
+    type: 'axis' | 'axis-option' | 'series' | 'series-option' | 'root' | 'legend';
     packageType?: 'enterprise';
     identifier?: string;
     optionsKey: string;
@@ -26,7 +26,7 @@ export const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
         chartTypes: ['cartesian', 'polar', 'hierarchy'],
         identifier: 'gradient',
     },
-    { type: 'navigator', optionsKey: 'miniChart', chartTypes: ['cartesian'], identifier: 'mini-chart' },
+    { type: 'root', optionsKey: 'navigator', chartTypes: ['cartesian'], optionsInnerKey: 'miniChart' },
     { type: 'axis', optionsKey: 'axes[]', chartTypes: ['polar'], identifier: 'angle-category' },
     { type: 'axis', optionsKey: 'axes[]', chartTypes: ['polar'], identifier: 'angle-number' },
     { type: 'axis', optionsKey: 'axes[]', chartTypes: ['polar'], identifier: 'radius-category' },

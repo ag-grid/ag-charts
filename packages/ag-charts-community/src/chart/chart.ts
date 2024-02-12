@@ -1,5 +1,5 @@
 import type { ModuleInstance } from '../module/baseModule';
-import type { LegendModule, NavigatorModule, RootModule } from '../module/coreModules';
+import type { LegendModule, RootModule } from '../module/coreModules';
 import { type Module, REGISTERED_MODULES } from '../module/module';
 import type { ModuleContext } from '../module/moduleContext';
 import type { AxisOptionModule } from '../module/optionsModule';
@@ -391,7 +391,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         );
     }
 
-    addModule<T extends RootModule | LegendModule | NavigatorModule>(module: T) {
+    addModule<T extends RootModule | LegendModule>(module: T) {
         if (this.modules.has(module.optionsKey)) {
             throw new Error(`AG Charts - module already initialised: ${module.optionsKey}`);
         }
@@ -407,7 +407,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.modules.set(module.optionsKey, moduleInstance);
     }
 
-    removeModule(module: RootModule | LegendModule | NavigatorModule) {
+    removeModule(module: RootModule | LegendModule) {
         if (module.type === 'legend') {
             this.legends.delete(module.identifier);
         }
@@ -1382,7 +1382,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const completeOptions = mergeDefaults(processedOptions, this.processedOptions);
         const modulesChanged = this.applyModules(completeOptions);
 
-        const skip = ['type', 'data', 'series', 'listeners', 'theme', 'legend.listeners', 'navigator.miniChart'];
+        const skip = ['type', 'data', 'series', 'listeners', 'theme', 'legend.listeners', 'navigator.miniChart.label'];
+
         if (isAgCartesianChartOptions(processedOptions) || isAgPolarChartOptions(processedOptions)) {
             // Append axes to defaults.
             skip.push('axes');
@@ -1439,10 +1440,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.zoomManager.updateZoom();
         }
 
-        const miniChartModule = this.modules.get('miniChart') as any;
-        if (navigatorModule != null && miniChartModule != null) {
-            const seriesStatus = this.applySeries(miniChartModule, processedOptions);
-            this.applyAxes(miniChartModule, processedOptions, seriesStatus, [
+        const miniChart = navigatorModule?.miniChart;
+        if (miniChart?.enabled === true) {
+            const seriesStatus = this.applySeries(miniChart, processedOptions);
+            this.applyAxes(miniChart, processedOptions, seriesStatus, [
                 'axes[].tick',
                 'axes[].thickness',
                 'axes[].title',
@@ -1454,7 +1455,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             ]);
 
             const labelOptions = processedOptions.navigator?.miniChart?.label;
-            for (const axis of miniChartModule.axes) {
+            for (const axis of miniChart.axes) {
                 if (labelOptions != null) {
                     jsonApply(axis.label, labelOptions, {
                         path: 'navigator.miniChart.label',
@@ -1466,14 +1467,14 @@ export abstract class Chart extends Observable implements AgChartInstance {
                     });
                 }
 
+                axis.gridLine.enabled = false;
                 axis.label.enabled = axis.direction === ChartAxisDirection.X;
                 axis.tick.enabled = false;
                 axis.interactionEnabled = false;
             }
-
-            navigatorModule.miniChart = miniChartModule;
-        } else if (navigatorModule != null) {
-            navigatorModule.miniChart = undefined;
+        } else if (miniChart?.enabled === false) {
+            miniChart.series = [];
+            miniChart.axes = [];
         }
 
         const majorChange = forceNodeDataRefresh || modulesChanged;
@@ -1485,14 +1486,11 @@ export abstract class Chart extends Observable implements AgChartInstance {
     private applyModules(options: AgChartOptions) {
         let modulesChanged = false;
         for (const module of REGISTERED_MODULES) {
-            if (module.type !== 'root' && module.type !== 'legend' && module.type !== 'navigator') {
+            if (module.type !== 'root' && module.type !== 'legend') {
                 continue;
             }
 
-            const optionsValue =
-                module.type === 'navigator'
-                    ? (options.navigator as any)?.[module.optionsKey]
-                    : (options as any)[module.optionsKey];
+            const optionsValue = (options as any)[module.optionsKey];
 
             const shouldBeEnabled = module.chartTypes.includes((this.constructor as any).type) && optionsValue != null;
             const isEnabled = this.isModuleEnabled(module);
