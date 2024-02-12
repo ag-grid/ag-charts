@@ -23,11 +23,9 @@ type Required<T> = Exclude<T, undefined>;
 
 export interface MiniChart {
     readonly root: Group;
-    width: number;
-    height: number;
     updateData: Required<ModuleInstance['updateData']>;
     processData: Required<ModuleInstance['processData']>;
-    performCartesianLayout(): Promise<void>;
+    layout(width: number, height: number): Promise<void>;
     computeAxisPadding(): Padding;
 }
 
@@ -142,12 +140,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             const { y, height } = this;
             this.rs.layout(x, y, width, height);
 
-            if (this.miniChart != null) {
-                this.miniChart.width = width;
-                this.miniChart.height = height;
-
-                await this.miniChart.performCartesianLayout();
-            }
+            await this.miniChart?.layout(width, height);
         }
 
         this.visible = visible;
