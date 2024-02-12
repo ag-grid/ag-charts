@@ -12,7 +12,6 @@ const {
     markerFadeInAnimation,
     resetMarkerFn,
     animationValidation,
-    ADD_PHASE,
 } = _ModuleSupport;
 
 const { BBox, Group, Path, PointerEvents, Selection, Text, getMarker } = _Scene;

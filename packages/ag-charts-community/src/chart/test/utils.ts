@@ -309,7 +309,8 @@ export function spyOnAnimationManager() {
         const animateMock = jest.spyOn(AnimationManager.prototype, 'animate');
         animateMock.mockImplementation((opts: any) => {
             const controller = new Animation(opts);
-            return controller.update(animateParameters[0] * animateParameters[1]);
+            controller.update(animateParameters[0] * animateParameters[1]);
+            return controller;
         });
         const skippingFramesMock = jest.spyOn(AnimationManager.prototype, 'isSkippingFrames');
         skippingFramesMock.mockImplementation(() => false);
