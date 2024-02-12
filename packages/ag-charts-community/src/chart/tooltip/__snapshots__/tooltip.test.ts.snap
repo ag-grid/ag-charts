@@ -1,0 +1,127 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Tooltip Realtime should update tooltip correctly 1`] = `
+HTMLCollection [
+  <div
+    class="ag-chart-tooltip ag-chart-tooltip-no-interaction ag-chart-tooltip-hidden ag-chart-tooltip-arrow ag-chart-tooltip-wrap-hyphenate"
+  />,
+  <div
+    class="ag-chart-tooltip ag-chart-tooltip-no-interaction ag-chart-tooltip-hidden ag-chart-tooltip-arrow ag-chart-tooltip-wrap-hyphenate"
+  />,
+  <div
+    class="ag-chart-tooltip ag-chart-tooltip-no-interaction ag-chart-tooltip-arrow ag-chart-tooltip-wrap-hyphenate"
+    style="transform: translate(365px, 40px);"
+  >
+    <div
+      class="ag-chart-tooltip-content"
+    >
+      4: 1.48
+    </div>
+  </div>,
+]
+`;
+
+exports[`Tooltip Realtime should update tooltip correctly 2`] = `
+HTMLCollection [
+  <div
+    class="ag-chart-tooltip ag-chart-tooltip-no-interaction ag-chart-tooltip-hidden ag-chart-tooltip-arrow ag-chart-tooltip-wrap-hyphenate"
+  />,
+  <div
+    class="ag-chart-tooltip ag-chart-tooltip-no-interaction ag-chart-tooltip-hidden ag-chart-tooltip-arrow ag-chart-tooltip-wrap-hyphenate"
+  />,
+  <div
+    class="ag-chart-tooltip ag-chart-tooltip-no-interaction ag-chart-tooltip-arrow ag-chart-tooltip-wrap-hyphenate"
+    style="transform: translate(365px, 147px);"
+  >
+    <div
+      class="ag-chart-tooltip-content"
+    >
+      5: 1.40
+    </div>
+  </div>,
+]
+`;
+
+exports[`Tooltip Realtime should update tooltip correctly 3`] = `
+HTMLCollection [
+  <div
+    class="ag-chart-tooltip ag-chart-tooltip-no-interaction ag-chart-tooltip-hidden ag-chart-tooltip-arrow ag-chart-tooltip-wrap-hyphenate"
+  />,
+  <div
+    class="ag-chart-tooltip ag-chart-tooltip-no-interaction ag-chart-tooltip-hidden ag-chart-tooltip-arrow ag-chart-tooltip-wrap-hyphenate"
+  />,
+  <div
+    class="ag-chart-tooltip ag-chart-tooltip-no-interaction ag-chart-tooltip-arrow ag-chart-tooltip-wrap-hyphenate"
+    style="transform: translate(365px, 397px);"
+  >
+    <div
+      class="ag-chart-tooltip-content"
+    >
+      6: 1.22
+    </div>
+  </div>,
+]
+`;
+
+exports[`Tooltip Realtime should update tooltip correctly 4`] = `
+HTMLCollection [
+  <div
+    class="ag-chart-tooltip ag-chart-tooltip-no-interaction ag-chart-tooltip-hidden ag-chart-tooltip-arrow ag-chart-tooltip-wrap-hyphenate"
+  />,
+  <div
+    class="ag-chart-tooltip ag-chart-tooltip-no-interaction ag-chart-tooltip-hidden ag-chart-tooltip-arrow ag-chart-tooltip-wrap-hyphenate"
+  />,
+  <div
+    class="ag-chart-tooltip ag-chart-tooltip-no-interaction ag-chart-tooltip-arrow ag-chart-tooltip-wrap-hyphenate"
+    style="transform: translate(365px, 547px);"
+  >
+    <div
+      class="ag-chart-tooltip-content"
+    >
+      7: 1.11
+    </div>
+  </div>,
+]
+`;
+
+exports[`Tooltip Realtime should update tooltip correctly 5`] = `
+HTMLCollection [
+  <div
+    class="ag-chart-tooltip ag-chart-tooltip-no-interaction ag-chart-tooltip-hidden ag-chart-tooltip-arrow ag-chart-tooltip-wrap-hyphenate"
+  />,
+  <div
+    class="ag-chart-tooltip ag-chart-tooltip-no-interaction ag-chart-tooltip-hidden ag-chart-tooltip-arrow ag-chart-tooltip-wrap-hyphenate"
+  />,
+  <div
+    class="ag-chart-tooltip ag-chart-tooltip-no-interaction ag-chart-tooltip-arrow ag-chart-tooltip-wrap-hyphenate"
+    style="transform: translate(365px, 30px);"
+  >
+    <div
+      class="ag-chart-tooltip-content"
+    >
+      8: 1.49
+    </div>
+  </div>,
+]
+`;
+
+exports[`Tooltip Realtime should update tooltip correctly 6`] = `
+HTMLCollection [
+  <div
+    class="ag-chart-tooltip ag-chart-tooltip-no-interaction ag-chart-tooltip-hidden ag-chart-tooltip-arrow ag-chart-tooltip-wrap-hyphenate"
+  />,
+  <div
+    class="ag-chart-tooltip ag-chart-tooltip-no-interaction ag-chart-tooltip-hidden ag-chart-tooltip-arrow ag-chart-tooltip-wrap-hyphenate"
+  />,
+  <div
+    class="ag-chart-tooltip ag-chart-tooltip-no-interaction ag-chart-tooltip-arrow ag-chart-tooltip-wrap-hyphenate"
+    style="transform: translate(365px, 461px);"
+  >
+    <div
+      class="ag-chart-tooltip-content"
+    >
+      9: 1.17
+    </div>
+  </div>,
+]
+`;
