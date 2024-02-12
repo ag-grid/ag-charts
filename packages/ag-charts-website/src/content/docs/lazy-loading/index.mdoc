@@ -4,22 +4,9 @@ title: 'Lazy Loading'
 
 Data can be lazily loaded in from remote APIs and in response to changes in the visible window.
 
-{% chartExampleRunner title="Lazy Loading" name="lazy-loading" type="generated" /%}
+{% chartExampleRunner title="Lazy Loading" name="lazy-loading-server" type="generated" /%}
 
-```ts
-{
-    data: () => {
-        return fetch('https://www.ag-grid.com/example-assets/olympic-winners.json')
-            .then((response) => response.json())
-            .then((json) => {
-                // ... do some manipulation of the data ...
-                return data;
-            });
-    },
-}
-```
-
-In this example, json data is fetched from a remote url, formatted and returned to the chart. When the response is returned the chart displays the new data.
+In this example, the data is requested from a server and it is rendered once it has been returned to the chart.
 
 ## Axis Domains
 
