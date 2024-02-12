@@ -23,9 +23,6 @@ export class MiniChart
 
     public data: any = [];
 
-    width: number = 0;
-    height: number = 0;
-
     private _destroyed: boolean = false;
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
@@ -73,6 +70,7 @@ export class MiniChart
                     axis.label.autoRotate = false;
                 } else {
                     axis.label.enabled = false;
+                    axis.tick.enabled = false;
                 }
 
                 axis.attachAxis(this.axisGroup, this.axisGridGroup);
@@ -217,10 +215,12 @@ export class MiniChart
         return new Padding(0, 0, bottomAxisHeight, 0);
     }
 
-    async performCartesianLayout() {
-        const { width, height } = this;
+    async layout(width: number, height: number) {
+        const animated = this.seriesRect != null;
         const seriesRect = new BBox(0, 0, width, height);
         this.seriesRect = seriesRect;
+
+        this.seriesRoot.setClipRectInGroupCoordinateSpace(this.seriesRoot.inverseTransformBBox(seriesRect));
 
         const axisLeftRightRange = (axis: _ModuleSupport.ChartAxis) => {
             if (axis instanceof CategoryAxis || axis instanceof GroupedCategoryAxis) {
@@ -266,7 +266,7 @@ export class MiniChart
             axis.calculateLayout();
             axis.updatePosition({ rotation: toRadians(axis.rotation), sideFlag: axis.label.getSideFlag() });
 
-            axis.update();
+            axis.update(undefined, animated);
         });
 
         await Promise.all(this.series.map((series) => series.update({ seriesRect })));

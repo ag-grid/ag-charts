@@ -462,7 +462,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     /**
      * Creates/removes/updates the scene graph nodes that constitute the axis.
      */
-    update(): number | undefined {
+    update(_primaryTickCount: number = 0, animated = true): number | undefined {
         if (!this.tickGenerationResult) {
             return;
         }
@@ -480,7 +480,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             range: this.scale.range,
         });
 
-        if (this.animationManager.isSkipped()) {
+        if (!animated || this.animationManager.isSkipped()) {
             this.resetSelectionNodes();
         } else {
             const diff = this.calculateUpdateDiff(previousTicks, tickData);
