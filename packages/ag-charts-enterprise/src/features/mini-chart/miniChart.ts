@@ -1,7 +1,6 @@
 import { type AgChartInstance, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-const { Validate, BOOLEAN, Layers, ActionOnSet, ChartAxisDirection, CategoryAxis, GroupedCategoryAxis } =
-    _ModuleSupport;
+const { Validate, BOOLEAN, Layers, ActionOnSet, CategoryAxis, GroupedCategoryAxis } = _ModuleSupport;
 const { toRadians, Padding, Logger } = _Util;
 const { Group, BBox } = _Scene;
 
@@ -66,10 +65,6 @@ export class MiniChart
 
             for (const axis of newValue) {
                 if (oldValue?.includes(axis)) continue;
-
-                axis.label.enabled = axis.direction === ChartAxisDirection.X;
-                axis.tick.enabled = false;
-                axis.interactionEnabled = false;
 
                 axis.attachAxis(this.axisGroup, this.axisGridGroup);
             }

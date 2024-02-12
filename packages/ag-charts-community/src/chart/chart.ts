@@ -35,6 +35,7 @@ import { BOOLEAN, OBJECT, UNION, Validate } from '../util/validation';
 import { Caption } from './caption';
 import type { ChartAnimationPhase } from './chartAnimationPhase';
 import type { ChartAxis } from './chartAxis';
+import { ChartAxisDirection } from './chartAxisDirection';
 import { ChartHighlight } from './chartHighlight';
 import type { ChartMode } from './chartMode';
 import { JSON_APPLY_OPTIONS, JSON_APPLY_PLUGINS } from './chartOptions';
@@ -1381,7 +1382,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const completeOptions = mergeDefaults(processedOptions, this.processedOptions);
         const modulesChanged = this.applyModules(completeOptions);
 
-        const skip = ['type', 'data', 'series', 'listeners', 'theme', 'legend.listeners'];
+        const skip = ['type', 'data', 'series', 'listeners', 'theme', 'legend.listeners', 'miniChart.label'];
         if (isAgCartesianChartOptions(processedOptions) || isAgPolarChartOptions(processedOptions)) {
             // Append axes to defaults.
             skip.push('axes');
@@ -1453,12 +1454,21 @@ export abstract class Chart extends Observable implements AgChartInstance {
             ]);
 
             const labelOptions = processedOptions.miniChart?.label;
-            if (labelOptions != null) {
-                const params = { path: 'miniChart.label' };
-
-                for (const axis of miniChartModule.axes) {
-                    jsonApply(axis.label, labelOptions, params);
+            for (const axis of miniChartModule.axes) {
+                if (labelOptions != null) {
+                    jsonApply(axis.label, labelOptions, {
+                        path: 'miniChart.label',
+                        skip: [
+                            'miniChart.label.autoRotate',
+                            'miniChart.label.autoRotateAngle',
+                            'miniChart.label.rotation',
+                        ],
+                    });
                 }
+
+                axis.label.enabled = axis.direction === ChartAxisDirection.X;
+                axis.tick.enabled = false;
+                axis.interactionEnabled = false;
             }
 
             navigatorModule.miniChart = miniChartModule;
