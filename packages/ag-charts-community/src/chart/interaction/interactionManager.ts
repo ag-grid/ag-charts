@@ -1,5 +1,5 @@
 import type { Node } from '../../scene/node';
-import { KTree } from '../../scene/util/ktree';
+import { BBoxSet } from '../../scene/util/bboxset';
 import { Debug } from '../../util/debug';
 import { injectStyle } from '../../util/dom';
 import { Listeners } from '../../util/listeners';
@@ -136,7 +136,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     private stateQueue: InteractionState = InteractionState.Default;
 
     private currentRegion?: InteractionRegion;
-    private regions: KTree<InteractionRegion> = new KTree();
+    private regions: BBoxSet<InteractionRegion> = new BBoxSet();
 
     public constructor(element: HTMLElement, document: Document, window: Window) {
         super();
@@ -235,6 +235,11 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         return this.stateQueue & -this.stateQueue;
     }
 
+    private pickRegion(x: number, y: number): InteractionRegion | undefined {
+        const matchingRegions = this.regions.find(x, y);
+        return matchingRegions.length > 0 ? matchingRegions[0] : undefined;
+    }
+
     private processEvent(event: SupportedEvent) {
         const coords = this.calculateCoordinates(event);
         if (coords == null) {
@@ -243,8 +248,8 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
 
         const types: InteractionTypes[] = this.decideInteractionEventTypes(event);
 
-        // New K-Tree based input handling:
-        const region = this.regions.find(coords.offsetX, coords.offsetY);
+        // New region based input handling:
+        const region = this.pickRegion(coords.offsetX, coords.offsetY);
         if (this.currentRegion !== undefined && region?.name !== this.currentRegion.name) {
             const type = 'hover-end';
             const hoverEndEvent = this.buildEvent({ type, event, ...coords });
