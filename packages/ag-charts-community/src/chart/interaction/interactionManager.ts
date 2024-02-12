@@ -241,26 +241,29 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
             return;
         }
 
-        const region = this.regions.find(coords.offsetX, coords.offsetY);
+        const types: InteractionTypes[] = this.decideInteractionEventTypes(event);
+
         // New K-Tree based input handling:
+        const region = this.regions.find(coords.offsetX, coords.offsetY);
         if (this.currentRegion !== undefined && region?.name !== this.currentRegion.name) {
             const type = 'hover-end';
             const hoverEndEvent = this.buildEvent({ type, event, ...coords });
             this.currentRegion?.listeners.dispatch(type, hoverEndEvent);
         } else if (region !== undefined) {
             // Async dispatch to avoid blocking the event-processing thread.
-            this.dispatchRegionEvent(region, coords, event).catch((e) => Logger.errorOnce(e));
+            const dispatcher = async () => {
+                for (const type of types) {
+                    region.listeners.dispatch(type, this.buildEvent({ type, event, ...coords }));
+                }
+            };
+            dispatcher().catch((e) => Logger.errorOnce(e));
         }
         this.currentRegion = region;
 
         // Legacy input handling:
-        if (region === undefined) {
-            const types: InteractionTypes[] = this.decideInteractionEventTypes(event);
-
-            if (types.length > 0) {
-                // Async dispatch to avoid blocking the event-processing thread.
-                this.dispatchEvent(coords, event, types).catch((e) => Logger.errorOnce(e));
-            }
+        if (types.length > 0) {
+            // Async dispatch to avoid blocking the event-processing thread.
+            this.dispatchEvent(coords, event, types).catch((e) => Logger.errorOnce(e));
         }
     }
 
@@ -275,13 +278,6 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
                 },
                 this.buildEvent({ type, event, ...coords })
             );
-        }
-    }
-
-    private async dispatchRegionEvent(region: InteractionRegion, coords: Coords, event: SupportedEvent) {
-        const types: InteractionTypes[] = this.decideInteractionEventTypes(event);
-        for (const type of types) {
-            region.listeners.dispatch(type, this.buildEvent({ type, event, ...coords }));
         }
     }
 
