@@ -339,6 +339,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.legend = this.legends.get('category');
 
         const { All } = InteractionState;
+        const seriesRegion = this.regionManager.addRegion('series', this.seriesRoot);
         SizeMonitor.observe(this.element, (size) => this.rawResize(size));
         this._destroyFns.push(
             this.dataService.addListener('data-load', (event) => {
@@ -347,8 +348,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
             this.interactionManager.addListener('click', (event) => this.onClick(event)),
             this.interactionManager.addListener('dblclick', (event) => this.onDoubleClick(event)),
-            this.interactionManager.addListener('hover', (event) => this.onMouseMove(event)),
-            this.interactionManager.addListener('leave', (event) => this.onLeave(event)),
+            seriesRegion.addListener('hover', (event) => this.onMouseMove(event)),
+            seriesRegion.addListener('leave', (event) => this.onLeave(event)),
             this.interactionManager.addListener('page-left', () => this.destroy()),
 
             this.interactionManager.addListener('wheel', () => this.resetPointer()),
@@ -1092,6 +1093,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         if (!this.tooltip.pointerLeftOntoTooltip(event)) {
             this.resetPointer();
             this.update(ChartUpdateType.SCENE_RENDER);
+            this.cursorManager.updateCursor('chart');
         }
     }
 
