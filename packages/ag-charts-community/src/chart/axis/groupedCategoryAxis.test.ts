@@ -66,6 +66,7 @@ const EXAMPLES: Record<string, TestCase> = {
                 axisTypes: ['grouped-category', 'number'],
                 seriesTypes: ['bar'],
             }),
+            compare: ['grouped-category'],
         },
         INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_EXAMPLE: {
             options: examples.INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_EXAMPLE,
@@ -73,8 +74,17 @@ const EXAMPLES: Record<string, TestCase> = {
                 axisTypes: ['grouped-category', 'number'],
                 seriesTypes: repeat('bar', 3),
             }),
+            compare: ['grouped-category'],
         },
     }),
+    INTEGRATED_CHARTS_OVERLAPPING_GROUPED_CATEGORY_AXIS_EXAMPLE: {
+        options: examples.INTEGRATED_CHARTS_OVERLAPPING_GROUPED_CATEGORY_AXIS_EXAMPLE,
+        assertions: cartesianChartAssertions({
+            axisTypes: ['grouped-category', 'number'],
+            seriesTypes: repeat('bar', 21),
+        }),
+        compare: ['grouped-category'],
+    },
 };
 
 const EXAMPLES_CLIPPING: Record<string, TestCase> = {
@@ -85,6 +95,7 @@ const EXAMPLES_CLIPPING: Record<string, TestCase> = {
                 axisTypes: ['grouped-category', 'number'],
                 seriesTypes: ['bar'],
             }),
+            compare: ['grouped-category'],
         },
     }),
 };
