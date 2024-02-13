@@ -197,7 +197,7 @@ class AgChartsInternal {
         const chartOptions = new ChartOptions(userOptions, { overrideDevicePixelRatio, document, window: userWindow });
 
         let chart = proxy?.chart;
-        if (chart == null || chartType(userOptions) !== chartType(chart.processedOptions)) {
+        if (chart == null || chartType(userOptions) !== chart.chartOptions.chartType) {
             chart = AgChartsInternal.createChartInstance(chartOptions, chart);
         }
 
