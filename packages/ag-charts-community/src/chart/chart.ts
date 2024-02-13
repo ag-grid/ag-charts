@@ -274,7 +274,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     chartAnimationPhase: ChartAnimationPhase = 'initial';
 
+    public readonly highlightManager = new HighlightManager();
+    public readonly layoutService = new LayoutService();
     public readonly syncManager = new SyncManager(this);
+    public readonly tooltipManager: TooltipManager;
     public readonly zoomManager = new ZoomManager();
 
     protected readonly modules: Map<string, ModuleInstance> = new Map();
@@ -282,12 +285,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
     protected readonly animationManager: AnimationManager;
     protected readonly chartEventManager: ChartEventManager;
     protected readonly cursorManager: CursorManager;
-    protected readonly highlightManager: HighlightManager;
     protected readonly interactionManager: InteractionManager;
     protected readonly gestureDetector: GestureDetector;
-    protected readonly tooltipManager: TooltipManager;
     protected readonly dataService: DataService<any>;
-    protected readonly layoutService: LayoutService;
     protected readonly updateService: UpdateService;
     protected readonly axisGridGroup: Group;
     protected readonly axisGroup: Group;

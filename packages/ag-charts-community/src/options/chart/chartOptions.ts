@@ -117,6 +117,11 @@ export interface AgChartSyncOptions {
      */
     axes?: 'x' | 'y' | 'xy';
     /**
+     * Enables synchronization of node interactions across charts.
+     * Default: `false`
+     */
+    nodeInteraction?: boolean;
+    /**
      * Enables synchronization of zoom actions across charts.
      * Default: `true`
      */

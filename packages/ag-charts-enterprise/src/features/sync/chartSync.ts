@@ -7,6 +7,7 @@ const {
     BaseProperties,
     CartesianAxis,
     ChartUpdateType,
+    isDate,
     isFiniteNumber,
     ObserveChanges,
     Validate,
@@ -29,6 +30,10 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
     axes: 'x' | 'y' | 'xy' = 'x';
 
     @Validate(BOOLEAN)
+    @ObserveChanges<ChartSync>((target) => target.onNodeInteractionChange())
+    nodeInteraction: boolean = false;
+
+    @Validate(BOOLEAN)
     @ObserveChanges<ChartSync>((target) => target.onZoomChange())
     zoom: boolean = true;
 
@@ -36,8 +41,8 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         super();
     }
 
-    private updateChart(chart: any) {
-        chart.updateService.update(ChartUpdateType.UPDATE_DATA, { skipSync: true });
+    private updateChart(chart: any, updateType = ChartUpdateType.UPDATE_DATA) {
+        chart.updateService.update(updateType, { skipSync: true });
     }
 
     private updateSiblings(groupId?: string) {
@@ -57,6 +62,50 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
     }
 
     private disableZoomSync?: () => void;
+
+    private enabledNodeInteractionSync() {
+        const { highlightManager, syncManager } = this.moduleContext;
+        this.disableNodeInteractionSync = highlightManager.addListener('highlight-change', (event) => {
+            for (const chart of syncManager.getGroupSiblings(this.groupId)) {
+                if (!event.currentHighlight) {
+                    chart.highlightManager.updateHighlight(chart.id);
+                    continue;
+                }
+
+                for (const axis of chart.axes) {
+                    if (!CartesianAxis.is(axis) || (this.axes !== 'xy' && this.axes !== axis.direction)) continue;
+
+                    for (const series of chart.series) {
+                        const seriesKeys = series.getKeys(axis.direction);
+
+                        if (axis.keys.length && !axis.keys.some((key) => seriesKeys.includes(key))) continue;
+
+                        const [{ nodeData }] = (series as any).contextNodeData;
+
+                        if (!nodeData?.length) continue;
+
+                        const valueKey = nodeData[0][`${axis.direction}Key`];
+                        let eventValue = event.currentHighlight!.datum[valueKey];
+                        const valueIsDate = isDate(eventValue);
+                        if (valueIsDate) {
+                            eventValue = eventValue.getTime();
+                        }
+
+                        const matchingNode = nodeData.find((nodeDatum: any) => {
+                            const nodeValue = nodeDatum.datum[valueKey];
+                            return valueIsDate ? nodeValue.getTime() === eventValue : nodeValue === eventValue;
+                        });
+                        if (matchingNode && matchingNode !== chart.highlightManager.getActiveHighlight()) {
+                            chart.highlightManager.updateHighlight(chart.id, matchingNode);
+                            this.updateChart(chart, ChartUpdateType.SERIES_UPDATE);
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    private disableNodeInteractionSync?: () => void;
 
     syncAxes(stopPropagation = false) {
         const { syncManager } = this.moduleContext;
@@ -86,7 +135,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
 
             axis.boundSeries = syncSeries.filter((series) => {
                 const seriesKeys = series.getKeys(axis.direction);
-                return axis.keys.length ? axis.keys.some((key) => seriesKeys?.includes(key)) : true;
+                return axis.keys.length ? axis.keys.some((key) => seriesKeys.includes(key)) : true;
             });
         });
 
@@ -94,23 +143,6 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
             this.updateSiblings(this.groupId);
         }
     }
-
-    // syncMouseInteractions() {
-    //     // TODO: translate x, y according to each chart dimensions
-    //     const { interactionManager, syncManager } = this.moduleContext;
-    //     interactionManager.addListener('hover', (e) => {
-    //         if ('stopPropagation' in e && e.stopPropagation) return;
-    //         for (const chart of syncManager.getSiblings(this.groupId)) {
-    //             (chart as any).interactionManager.listeners.dispatch('hover', { ...e, stopPropagation: true });
-    //         }
-    //     });
-    //     interactionManager.addListener('leave', (e) => {
-    //         if ('stopPropagation' in e && e.stopPropagation) return;
-    //         for (const chart of syncManager.getSiblings(this.groupId)) {
-    //             (chart as any).interactionManager.listeners.dispatch('leave', { ...e, stopPropagation: true });
-    //         }
-    //     });
-    // }
 
     private onEnabledChange() {
         const { syncManager } = this.moduleContext;
@@ -120,8 +152,10 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
             syncManager.unsubscribe(this.groupId);
         }
         this.updateSiblings(this.groupId);
+        this.onNodeInteractionChange();
         this.onZoomChange();
     }
+
     private onGroupIdChange(newValue?: string, oldValue?: string) {
         if (!this.enabled || newValue === oldValue) return;
         const { syncManager } = this.moduleContext;
@@ -130,11 +164,21 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         this.updateSiblings(oldValue);
         this.updateSiblings(newValue);
     }
+
     private onAxesChange() {
         if (!this.enabled) return;
         const { syncManager } = this.moduleContext;
         this.updateChart(syncManager.getChart());
     }
+
+    private onNodeInteractionChange() {
+        if (this.nodeInteraction) {
+            this.enabledNodeInteractionSync();
+        } else {
+            this.disableNodeInteractionSync?.();
+        }
+    }
+
     private onZoomChange() {
         if (this.enabled && this.zoom) {
             this.enabledZoomSync();
