@@ -2,7 +2,7 @@ import type { ModuleInstance } from '../module/baseModule';
 import type { LegendModule, RootModule } from '../module/coreModules';
 import { type Module, REGISTERED_MODULES } from '../module/module';
 import type { ModuleContext } from '../module/moduleContext';
-import type { AxisOptionModule, ChartOptions } from '../module/optionsModule';
+import type { AxisOptionModule } from '../module/optionsModule';
 import type { AgBaseAxisOptions } from '../options/chart/axisOptions';
 import type { AgChartInstance, AgChartOptions } from '../options/chart/chartBuilderOptions';
 import type { AgChartClickEvent, AgChartDoubleClickEvent } from '../options/chart/eventOptions';
@@ -30,6 +30,7 @@ import { ActionOnSet, type ActionOnSetOptions } from '../util/proxy';
 import { debouncedAnimationFrame, debouncedCallback } from '../util/render';
 import { SizeMonitor } from '../util/sizeMonitor';
 import { isFiniteNumber } from '../util/type-guards';
+import type { PickRequired } from '../util/types';
 import { BOOLEAN, OBJECT, UNION, Validate } from '../util/validation';
 import { Caption } from './caption';
 import type { ChartAnimationPhase } from './chartAnimationPhase';
@@ -69,7 +70,7 @@ import {
     isAgPolarChartOptions,
 } from './mapping/types';
 import { ChartOverlays } from './overlay/chartOverlays';
-import { type Series, SeriesNodePickMode } from './series/series';
+import { type Series, SeriesGroupingChangedEvent, SeriesNodePickMode } from './series/series';
 import { SeriesLayerManager } from './series/seriesLayerManager';
 import { type SeriesGrouping, SeriesStateManager } from './series/seriesStateManager';
 import type { ISeries, SeriesNodeDatum } from './series/seriesTypes';
@@ -101,6 +102,32 @@ type ObservableLike = {
     clearEventListeners(): void;
 };
 
+function initialiseSpecialOverrides(
+    opts: ChartExtendedOptions
+): PickRequired<ChartExtendedOptions, 'document' | 'window'> {
+    let globalWindow;
+    if (opts.window != null) {
+        globalWindow = opts.window;
+    } else if (typeof window !== 'undefined') {
+        globalWindow = window;
+    } else if (typeof global !== 'undefined') {
+        globalWindow = global.window;
+    } else {
+        throw new Error('AG Charts - unable to resolve global window');
+    }
+    let globalDocument;
+    if (opts.document != null) {
+        globalDocument = opts.document;
+    } else if (typeof document !== 'undefined') {
+        globalDocument = document;
+    } else if (typeof global !== 'undefined') {
+        globalDocument = global.document;
+    } else {
+        throw new Error('AG Charts - unable to resolve global document');
+    }
+    return { ...opts, document: globalDocument, window: globalWindow };
+}
+
 export interface ChartSpecialOverrides {
     document?: Document;
     window?: Window;
@@ -131,7 +158,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     processedOptions: AgChartOptions & { type?: SeriesOptionsTypes['type'] } = {};
     userOptions: AgChartOptions = {};
-    chartOptions: ChartOptions;
     queuedUserOptions: AgChartOptions[] = [];
 
     getOptions() {
@@ -271,13 +297,15 @@ export abstract class Chart extends Observable implements AgChartInstance {
     protected readonly legends: Map<ChartLegendType, ChartLegend> = new Map();
     legend: ChartLegend | undefined;
 
+    private readonly specialOverrides: PickRequired<ChartExtendedOptions, 'document' | 'window'>;
+
     private readonly processors: UpdateProcessor[] = [];
 
-    protected constructor(options: ChartOptions, resources?: TransferableResources) {
+    protected constructor(specialOverrides: ChartExtendedOptions, resources?: TransferableResources) {
         super();
 
-        this.chartOptions = options;
-        const { window, document } = this.chartOptions.specialOverrides;
+        this.specialOverrides = initialiseSpecialOverrides(specialOverrides);
+        const { window, document } = this.specialOverrides;
 
         const scene = resources?.scene;
         const element = resources?.element ?? document.createElement('div');
@@ -299,7 +327,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         element.classList.add('ag-chart-wrapper');
         element.style.position = 'relative';
 
-        this.scene = scene ?? new Scene(this.chartOptions.specialOverrides);
+        this.scene = scene ?? new Scene(this.specialOverrides);
         this.scene.root = root;
         this.scene.container = element;
         this.autoSize = true;
@@ -416,11 +444,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
             layoutService,
             updateService,
             seriesStateManager,
-            seriesLayerManager,
             callbackCache,
-            chartOptions: {
-                specialOverrides: { window, document },
-            },
+            specialOverrides: { window, document },
         } = this;
         return {
             window,
@@ -439,7 +464,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
             layoutService,
             updateService,
             seriesStateManager,
-            seriesLayerManager,
             callbackCache,
         };
     }
@@ -784,7 +808,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
         series?.forEach((series) => {
             series.removeEventListener('nodeClick', this.onSeriesNodeClick);
             series.removeEventListener('nodeDoubleClick', this.onSeriesNodeDoubleClick);
+            series.removeEventListener('groupingChanged', this.seriesGroupingChanged);
             series.destroy();
+            this.seriesLayerManager.releaseGroup(series);
 
             series.chart = undefined;
         });
@@ -798,6 +824,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
         if (this.hasEventListener('seriesNodeDoubleClick')) {
             series.addEventListener('nodeDoubleClick', this.onSeriesNodeDoubleClick);
         }
+
+        series.addEventListener('groupingChanged', this.seriesGroupingChanged);
     }
 
     updateAllSeriesListeners(): void {
@@ -1290,6 +1318,25 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.fireEvent(seriesNodeDoubleClick);
     };
 
+    private seriesGroupingChanged = (event: TypedEvent) => {
+        if (!(event instanceof SeriesGroupingChangedEvent)) return;
+        const { series, seriesGrouping, oldGrouping } = event;
+
+        // Short-circuit if series isn't already attached to the scene-graph yet.
+        if (series.rootGroup.parent == null) return;
+
+        this.seriesLayerManager.changeGroup({
+            internalId: series.internalId,
+            type: series.type,
+            rootGroup: series.rootGroup,
+            highlightGroup: series.highlightGroup,
+            annotationGroup: series.annotationGroup,
+            getGroupZIndexSubOrder: (type) => series.getGroupZIndexSubOrder(type),
+            seriesGrouping,
+            oldGrouping,
+        });
+    };
+
     changeHighlightDatum(event: HighlightChangeEvent) {
         const seriesToUpdate: Set<ISeries<any>> = new Set();
         const { series: newSeries = undefined, datum: newDatum } = event.currentHighlight ?? {};
@@ -1351,65 +1398,64 @@ export abstract class Chart extends Observable implements AgChartInstance {
         );
     }
 
-    applyOptions(chartOptions: ChartOptions) {
-        const deltaOptions = chartOptions.diffOptions(this.processedOptions);
-            const moduleContext = this.getModuleContext();
-
-        if (!deltaOptions) return;
-
-        const completeOptions = mergeDefaults(deltaOptions, this.processedOptions);
+    applyOptions(processedOptions: Partial<AgChartOptions>, userOptions: AgChartOptions) {
+        const oldOpts = this.processedOptions;
+        const moduleContext = this.getModuleContext();
+        const completeOptions = mergeDefaults(processedOptions, this.processedOptions);
         const modulesChanged = this.applyModules(completeOptions);
 
         const skip = ['type', 'data', 'series', 'listeners', 'theme', 'legend.listeners', 'navigator.miniChart.label'];
 
-        if (isAgCartesianChartOptions(deltaOptions) || isAgPolarChartOptions(deltaOptions)) {
+        if (isAgCartesianChartOptions(processedOptions) || isAgPolarChartOptions(processedOptions)) {
             // Append axes to defaults.
             skip.push('axes');
-        } else if (isAgHierarchyChartOptions(deltaOptions)) {
+        } else if (isAgHierarchyChartOptions(processedOptions)) {
             // Use defaults.
         } else {
             throw new Error(
-                `AG Charts - couldn't apply configuration, check type of options and chart: ${deltaOptions['type']}`
+                `AG Charts - couldn't apply configuration, check type of options and chart: ${processedOptions['type']}`
             );
         }
 
         // Needs to be done before applying the series to detect if a seriesNode[Double]Click listener has been added
-        if (deltaOptions.listeners) {
-            this.registerListeners(this, deltaOptions.listeners);
+        if (processedOptions.listeners) {
+            this.registerListeners(this, processedOptions.listeners);
         }
 
-        this.applyOptionValues(this, moduleContext, deltaOptions, { skip });
+        this.applyOptionValues(this, moduleContext, processedOptions, { skip });
 
         let forceNodeDataRefresh = false;
         let seriesStatus: SeriesChangeType = 'no-op';
-        if (deltaOptions.series && deltaOptions.series.length > 0) {
-            seriesStatus = this.applySeries(this, deltaOptions);
+        if (processedOptions.series && processedOptions.series.length > 0) {
+            seriesStatus = this.applySeries(this, processedOptions, oldOpts);
             forceNodeDataRefresh = true;
         }
-        if (this.applyAxes(this, completeOptions, seriesStatus)) {
+        if (seriesStatus === 'replaced') {
+            this.resetAnimations();
+        }
+        if (this.applyAxes(this, completeOptions, oldOpts, seriesStatus)) {
             forceNodeDataRefresh = true;
         }
 
-        const seriesDataUpdate = !!deltaOptions.data || seriesStatus === 'data-change' || seriesStatus === 'replaced';
+        const seriesDataUpdate =
+            !!processedOptions.data || seriesStatus === 'data-change' || seriesStatus === 'replaced';
         const legendKeys = getLegendKeys();
         const optionsHaveLegend = Object.values(legendKeys).some(
-            (legendKey) => (deltaOptions as any)[legendKey] != null
+            (legendKey) => (processedOptions as any)[legendKey] != null
         );
-        const otherRefreshUpdate = deltaOptions.title != null && deltaOptions.subtitle != null;
+        const otherRefreshUpdate = processedOptions.title != null && processedOptions.subtitle != null;
         forceNodeDataRefresh = forceNodeDataRefresh || seriesDataUpdate || optionsHaveLegend || otherRefreshUpdate;
-        if (deltaOptions.data) {
-            this.data = deltaOptions.data;
+        if (processedOptions.data) {
+            this.data = processedOptions.data;
         }
-        if (deltaOptions.legend?.listeners) {
-            Object.assign(this.legend!.listeners, deltaOptions.legend.listeners);
+        if (processedOptions.legend?.listeners) {
+            Object.assign(this.legend!.listeners, processedOptions.legend.listeners);
         }
-        if (deltaOptions.listeners) {
+        if (processedOptions.listeners) {
             this.updateAllSeriesListeners();
         }
         this.processedOptions = completeOptions;
-        this.userOptions = mergeDefaults(chartOptions.userOptions, this.userOptions);
-
-        this.chartOptions = chartOptions;
+        this.userOptions = mergeDefaults(userOptions, this.userOptions);
 
         const navigatorModule = this.modules.get('navigator') as any;
         const zoomModule = this.modules.get('zoom') as any;
@@ -1421,8 +1467,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         const miniChart = navigatorModule?.miniChart;
         if (miniChart?.enabled === true) {
-            const seriesStatus = this.applySeries(miniChart, deltaOptions);
-            this.applyAxes(miniChart, deltaOptions, seriesStatus, [
+            const seriesStatus = this.applySeries(miniChart, processedOptions, oldOpts);
+            this.applyAxes(miniChart, processedOptions, oldOpts, seriesStatus, [
                 'axes[].tick',
                 'axes[].thickness',
                 'axes[].title',
@@ -1433,7 +1479,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 'axes[].label.rotation',
             ]);
 
-            const labelOptions = deltaOptions.navigator?.miniChart?.label;
+            const labelOptions = processedOptions.navigator?.miniChart?.label;
             for (const axis of miniChart.axes) {
                 if (labelOptions != null) {
                     jsonApply(axis.label, labelOptions, {
@@ -1492,20 +1538,23 @@ export abstract class Chart extends Observable implements AgChartInstance {
         return modulesChanged;
     }
 
-    private applySeries(chart: Chart, options: AgChartOptions): SeriesChangeType {
+    private applySeries(
+        chart: { series: Series<any>[] },
+        options: AgChartOptions,
+        oldOpts: AgChartOptions
+    ): SeriesChangeType {
         const optSeries = options.series;
         if (!optSeries) {
             return 'no-change';
         }
 
-        const matchResult = matchSeriesOptions(chart.series, chart.processedOptions, optSeries);
+        const matchResult = matchSeriesOptions(chart.series, oldOpts, optSeries);
         if (matchResult.status === 'no-overlap') {
             debug(
                 `AgChartV2.applySeries() - creating new series instances, status: ${matchResult.status}`,
                 matchResult
             );
-            chart.resetAnimations();
-            chart.series = this.createSeries(chart, optSeries);
+            chart.series = this.createSeries(optSeries);
             return 'replaced';
         }
 
@@ -1514,7 +1563,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const seriesInstances = [];
         for (const change of matchResult.changes) {
             if (change.status === 'add') {
-                const newSeries = this.createSeries(chart, [change.opts])[0];
+                const newSeries = this.createSeries([change.opts])[0];
                 seriesInstances.push(newSeries);
                 debug(`AgChartV2.applySeries() - created new series`, newSeries);
                 continue;
@@ -1544,7 +1593,13 @@ export abstract class Chart extends Observable implements AgChartInstance {
         return dataChanged ? 'data-change' : noop ? 'no-op' : 'updated';
     }
 
-    private applyAxes(chart: Chart, options: AgChartOptions, seriesStatus: SeriesChangeType, skip: string[] = []) {
+    private applyAxes(
+        chart: { axes: ChartAxis[] },
+        options: AgChartOptions,
+        oldOpts: AgChartOptions,
+        seriesStatus: SeriesChangeType,
+        skip: string[] = []
+    ) {
         if (!('axes' in options) || !options.axes) {
             return false;
         }
@@ -1558,30 +1613,29 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         // Try to optimise series updates if series count and types didn't change.
         if (matchingTypes) {
-            const oldOpts = chart.processedOptions;
-            const moduleContext = chart.getModuleContext();
+            const moduleContext = this.getModuleContext();
             if (isAgCartesianChartOptions(oldOpts)) {
-                chart.axes.forEach((axis, index) => {
-                    const previousOpts = oldOpts.axes?.[index] ?? {};
-                    const axisDiff = jsonDiff(previousOpts, axes[index]) as any;
+                chart.axes.forEach((a, i) => {
+                    const previousOpts = oldOpts.axes?.[i] ?? {};
+                    const axisDiff = jsonDiff(previousOpts, axes[i]) as any;
 
-                    debug(`AgChartV2.applyAxes() - applying axis diff idx ${index}`, axisDiff);
+                    debug(`AgChartV2.applyAxes() - applying axis diff idx ${i}`, axisDiff);
 
-                    const path = `axes[${index}]`;
-                    this.applyOptionValues(axis, moduleContext, axisDiff, { path, skip });
+                    const path = `axes[${i}]`;
+                    this.applyOptionValues(a, moduleContext, axisDiff, { path, skip });
                 });
                 return true;
             }
         }
 
         debug(`AgChartV2.applyAxes() - creating new axes instances; seriesStatus: ${seriesStatus}`);
-        chart.axes = this.createAxis(chart, axes, skip);
+        chart.axes = this.createAxis(axes, skip);
         return true;
     }
 
-    private createSeries(chart: Chart, options: SeriesOptionsTypes[]): Series<any>[] {
+    private createSeries(options: SeriesOptionsTypes[]): Series<any>[] {
         const series: Series<any>[] = [];
-        const moduleContext = chart.getModuleContext();
+        const moduleContext = this.getModuleContext();
 
         for (const seriesOptions of options ?? []) {
             const type = seriesOptions.type ?? 'unknown';
@@ -1631,9 +1685,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
-    private createAxis(chart: Chart, options: AgBaseAxisOptions[], skip: string[]): ChartAxis[] {
+    private createAxis(options: AgBaseAxisOptions[], skip: string[]): ChartAxis[] {
         const guesser: AxisPositionGuesser = new AxisPositionGuesser();
-        const moduleContext = chart.getModuleContext();
+        const moduleContext = this.getModuleContext();
 
         let index = 0;
         for (const axisOptions of options ?? []) {

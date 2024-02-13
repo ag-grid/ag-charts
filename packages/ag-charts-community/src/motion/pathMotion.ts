@@ -1,7 +1,7 @@
 import type { AnimationManager } from '../chart/interaction/animationManager';
 import type { Path } from '../scene/shape/path';
 import * as easing from './easing';
-import { FROM_TO_MIXINS, type NodeUpdateState } from './fromToMotion';
+import { NODE_UPDATE_STATE_TO_PHASE_MAPPING, type NodeUpdateState } from './fromToMotion';
 
 /**
  * Implements a per-path "to/from" animation.
@@ -46,7 +46,7 @@ export function pathMotion(
                 updateFn(1, path);
                 path.checkPathDirty();
             },
-            phase: FROM_TO_MIXINS[phase],
+            phase: NODE_UPDATE_STATE_TO_PHASE_MAPPING[phase],
         });
     };
 

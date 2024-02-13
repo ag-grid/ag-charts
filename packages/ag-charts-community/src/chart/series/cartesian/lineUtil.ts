@@ -1,4 +1,4 @@
-import { FROM_TO_MIXINS, type NodeUpdateState } from '../../../motion/fromToMotion';
+import { NODE_UPDATE_STATE_TO_PHASE_MAPPING, type NodeUpdateState } from '../../../motion/fromToMotion';
 import type { Path } from '../../../scene/shape/path';
 import { transformIntegratedCategoryValue } from '../../../util/value';
 import type { ProcessedOutputDiff } from '../../data/dataModel';
@@ -302,10 +302,10 @@ function prepareLinePathPropertyAnimation(status: NodeUpdateState, visibleToggle
             } else {
                 mixin = {};
             }
-            return { phase: FROM_TO_MIXINS[phase], ...mixin };
+            return { phase: NODE_UPDATE_STATE_TO_PHASE_MAPPING[phase], ...mixin };
         },
         toFn: (_path: Path) => {
-            return { phase: FROM_TO_MIXINS[phase] };
+            return { phase: NODE_UPDATE_STATE_TO_PHASE_MAPPING[phase] };
         },
     };
 

@@ -95,7 +95,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
                             const nodeValue = nodeDatum.datum[valueKey];
                             return valueIsDate ? nodeValue.getTime() === eventValue : nodeValue === eventValue;
                         });
-                        if (matchingNode && matchingNode !== chart.highlightManager.getActiveHighlight()) {
+                        if (matchingNode !== chart.highlightManager.getActiveHighlight()) {
                             chart.highlightManager.updateHighlight(chart.id, matchingNode);
                             this.updateChart(chart, ChartUpdateType.SERIES_UPDATE);
                         }
