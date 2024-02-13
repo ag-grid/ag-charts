@@ -1,6 +1,7 @@
 import type { AgAnimationOptions } from './animationOptions';
 import type { AgChartBackgroundImage } from './backgroundOptions';
 import type { AgContextMenuOptions } from './contextMenuOptions';
+import type { AgDataSourceOptions } from './dataSourceOptions';
 import type { AgBaseChartListeners } from './eventOptions';
 import type { AgGradientLegendOptions } from './gradientLegendOptions';
 import type { AgChartLegendOptions } from './legendOptions';
@@ -158,6 +159,8 @@ export interface AgBaseThemeableChartOptions<TDatum = any> {
     gradientLegend?: AgGradientLegendOptions;
     /** Configuration for chart animations. */
     animation?: AgAnimationOptions;
+    /** Configuration for lazily loaded data. */
+    dataSource?: AgDataSourceOptions<TDatum>;
     /** Configuration for the context menu. */
     contextMenu?: AgContextMenuOptions;
 

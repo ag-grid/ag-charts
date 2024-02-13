@@ -441,6 +441,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             tooltipManager,
             syncManager,
             zoomManager,
+            dataService,
             layoutService,
             updateService,
             seriesStateManager,
@@ -462,6 +463,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             syncManager,
             zoomManager,
             chartService: this,
+            dataService,
             layoutService,
             updateService,
             seriesStateManager,
@@ -933,8 +935,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     async updateData() {
-        const data = this.dataService.init(this.data);
-        this.series.forEach((s) => s.setChartData(data));
+        this.series.forEach((s) => s.setChartData(this.data));
 
         const modulePromises = Array.from(this.modules.values(), (m) => m.updateData?.({ data: this.data }));
         await Promise.all(modulePromises);
