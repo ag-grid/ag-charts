@@ -63,6 +63,8 @@ export interface AnimationOptions<T extends AnimationValue> {
     duration?: number;
     /** Delay before starting this animation, expressed as a proportion of the total animation time. */
     delay?: number;
+    /** If false, prevents shortening of duration to allow phase collapsing. */
+    collapsable?: boolean;
     ease?: (x: number) => number;
     /** Number of times to repeat the animation before stopping. Set to `0` to disable repetition. */
     repeat?: number;
@@ -162,6 +164,12 @@ export class Animation<T extends AnimationValue> implements IAnimation {
             this.onUpdate?.(opts.from, true, this);
         }
 
+        if (opts.collapsable !== false) {
+            this.duration = this.checkCollapse(opts, this.duration);
+        }
+    }
+
+    private checkCollapse(opts: AnimationOptions<T>, calculatedDuration: number) {
         // Treat this animation as having zero duration if there is no difference between from and to
         // state, allowing us to run the update processing once and then skip any further updates.
         // This additionally allows animation phases to progress if all animations in a phase are
@@ -169,8 +177,9 @@ export class Animation<T extends AnimationValue> implements IAnimation {
         let isNoop = opts.from === opts.to;
         isNoop ||= typeof opts.from === 'object' && jsonDiff(opts.from, opts.to) == null;
         if (isNoop) {
-            this.duration = 0;
+            return 0;
         }
+        return calculatedDuration;
     }
 
     play() {
