@@ -301,6 +301,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
                     fill: highlightedFill,
                     stroke: highlightedStroke,
                     strokeWidth: highlightedDatumStrokeWidth,
+                    strokeOpacity: highlightedDatumStrokeOpacity,
                     fillOpacity: highlightedFillOpacity,
                 },
             },
@@ -320,6 +321,10 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
                     : datum.fill;
             const stroke =
                 isDatumHighlighted && highlightedStroke !== undefined ? highlightedStroke : this.properties.stroke;
+            const strokeOpacity =
+                isDatumHighlighted && highlightedDatumStrokeOpacity !== undefined
+                    ? highlightedDatumStrokeOpacity
+                    : this.properties.strokeOpacity;
             const strokeWidth =
                 isDatumHighlighted && highlightedDatumStrokeWidth !== undefined
                     ? highlightedDatumStrokeWidth
@@ -331,6 +336,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
                     datum: datum.datum,
                     fill,
                     stroke,
+                    strokeOpacity,
                     strokeWidth,
                     highlighted: isDatumHighlighted,
                     xKey,
@@ -347,6 +353,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
             rect.height = Math.ceil(height);
             rect.fill = format?.fill ?? fill;
             rect.stroke = format?.stroke ?? stroke;
+            rect.strokeOpacity = format?.strokeOpacity ?? strokeOpacity ?? 1;
             rect.strokeWidth = format?.strokeWidth ?? strokeWidth;
         });
     }
