@@ -77,7 +77,7 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
             }
 
             // Animate translationY so we don't constantly regenerate the line path data
-            return { y: 0, translationY: y, opacity, ...FROM_TO_MIXINS[status] };
+            return { y: 0, translationY: y, opacity, phase: FROM_TO_MIXINS[status] };
         },
         toFn(_node, datum, status) {
             const y = datum.translationY;
@@ -124,7 +124,7 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
                 rotation = newDatum.rotation;
             }
 
-            return { x, y, rotationCenterX, translationY, rotation, opacity, ...FROM_TO_MIXINS[status] };
+            return { x, y, rotationCenterX, translationY, rotation, opacity, phase: FROM_TO_MIXINS[status] };
         },
         toFn(node, datum, status) {
             const x = datum.x;
@@ -152,7 +152,7 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
         fromFn(node, datum) {
             return {
                 ...(node.previousDatum ?? datum),
-                ...FROM_TO_MIXINS['updated'],
+                phase: FROM_TO_MIXINS['updated'],
             };
         },
         toFn(_node, datum) {
@@ -166,7 +166,7 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
                 rotation,
                 translationX,
                 translationY,
-                ...FROM_TO_MIXINS['updated'],
+                phase: FROM_TO_MIXINS['updated'],
             };
         },
         toFn(_group, datum) {

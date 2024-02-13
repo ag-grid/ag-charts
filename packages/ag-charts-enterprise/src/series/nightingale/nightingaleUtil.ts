@@ -29,8 +29,8 @@ export function prepareNightingaleAnimationFunctions(axisZeroRadius: number) {
             innerRadius = axisZeroRadius;
             outerRadius = axisZeroRadius;
         }
-        const mixin = motion.FROM_TO_MIXINS[status];
-        return { innerRadius, outerRadius, startAngle, endAngle, ...mixin };
+        const phase = motion.FROM_TO_MIXINS[status];
+        return { innerRadius, outerRadius, startAngle, endAngle, phase };
     };
 
     const toFn = (_sect: _Scene.Sector, datum: AnimatableNightingaleDatum, status: _Scene.NodeUpdateState) => {

@@ -100,7 +100,7 @@ export function prepareRadialColumnAnimationFunctions(axisZeroRadius: number) {
             axisOuterRadius = datum.axisOuterRadius;
         }
 
-        const mixin = motion.FROM_TO_MIXINS[status];
+        const phase = motion.FROM_TO_MIXINS[status];
         return {
             innerRadius,
             outerRadius,
@@ -109,7 +109,7 @@ export function prepareRadialColumnAnimationFunctions(axisZeroRadius: number) {
             axisOuterRadius,
             startAngle,
             endAngle,
-            ...mixin,
+            phase,
         };
     };
 

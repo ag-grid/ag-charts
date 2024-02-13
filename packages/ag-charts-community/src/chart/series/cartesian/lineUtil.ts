@@ -302,10 +302,10 @@ function prepareLinePathPropertyAnimation(status: NodeUpdateState, visibleToggle
             } else {
                 mixin = {};
             }
-            return { ...FROM_TO_MIXINS[phase], ...mixin };
+            return { phase: FROM_TO_MIXINS[phase], ...mixin };
         },
         toFn: (_path: Path) => {
-            return { ...FROM_TO_MIXINS[phase] };
+            return { phase: FROM_TO_MIXINS[phase] };
         },
     };
 

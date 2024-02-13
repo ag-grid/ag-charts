@@ -3,6 +3,7 @@ import { Animation } from '../../motion/animation';
 import { Debug } from '../../util/debug';
 import { Logger } from '../../util/logger';
 import type { Mutex } from '../../util/mutex';
+import { AnimationBatch } from './animationBatch';
 import { BaseManager } from './baseManager';
 import { InteractionManager, InteractionState } from './interactionManager';
 
@@ -25,6 +26,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
     private batch = new AnimationBatch();
 
     private readonly debug = Debug.create(...DEBUG_SELECTORS);
+    private readonly rafAvailable = typeof requestAnimationFrame !== 'undefined';
 
     private isPlaying = false;
     private requestId: number | null = null;
@@ -43,21 +45,12 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
      */
     public animate<T extends AnimationValue>({
         disableInteractions = true,
-        immutable = true,
         ...opts
     }: AnimationOptions<T> & AdditionalAnimationOptions) {
-        const { controllers } = this.batch;
+        const batch = this.batch;
 
         try {
-            if (opts.id != null && controllers.has(opts.id)) {
-                if (!immutable) {
-                    return controllers.get(opts.id)!.reset(opts);
-                }
-                controllers.get(opts.id)!.stop();
-
-                this.debug(`Skipping animation batch due to update of existing animation: ${opts.id}`);
-                this.batch.skip();
-            }
+            batch.checkOverlappingId(opts.id);
         } catch (error: unknown) {
             this.failsafeOnError(error);
             return;
@@ -69,22 +62,22 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         if (skip) {
             this.debug('AnimationManager - skipping animation');
         }
-        return new Animation({
+        const animation = new Animation({
             ...opts,
             id,
             skip,
             autoplay: this.isPlaying ? opts.autoplay : false,
-            duration: opts.duration ?? this.defaultDuration,
-            onPlay: (controller) => {
-                controllers.set(id, controller);
-                this.requestAnimation();
-                opts.onPlay?.(controller);
-            },
-            onStop: (controller) => {
-                controllers.delete(id);
-                opts.onStop?.(controller);
-            },
+            phase: opts.phase,
+            defaultDuration: this.defaultDuration,
         });
+
+        if (this.forceTimeJump(animation, this.defaultDuration)) {
+            // For tests, just skip animation forward in time.
+            return;
+        }
+        this.batch.addAnimation(animation);
+
+        return animation;
     }
 
     public play() {
@@ -96,12 +89,10 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
 
         this.debug('AnimationManager.play()');
 
-        for (const controller of this.batch.controllers.values()) {
-            try {
-                controller.play();
-            } catch (error: unknown) {
-                this.failsafeOnError(error);
-            }
+        try {
+            this.batch.play();
+        } catch (error: unknown) {
+            this.failsafeOnError(error);
         }
 
         this.requestAnimation();
@@ -116,12 +107,10 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         this.cancelAnimation();
         this.debug('AnimationManager.pause()');
 
-        for (const controller of this.batch.controllers.values()) {
-            try {
-                controller.pause();
-            } catch (error: unknown) {
-                this.failsafeOnError(error);
-            }
+        try {
+            this.batch.pause();
+        } catch (error: unknown) {
+            this.failsafeOnError(error);
         }
     }
 
@@ -130,31 +119,22 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         this.cancelAnimation();
         this.debug('AnimationManager.stop()');
 
-        for (const controller of this.batch.controllers.values()) {
-            try {
-                controller.stop();
-            } catch (error: unknown) {
-                this.failsafeOnError(error, false);
-            }
-        }
+        this.batch.stop();
     }
 
     public stopByAnimationId(id: string) {
         try {
-            if (id != null && this.batch.controllers.has(id)) {
-                this.batch.controllers.get(id)?.stop();
-            }
+            this.batch.stopByAnimationId(id);
         } catch (error: unknown) {
             this.failsafeOnError(error);
-            return;
         }
     }
 
     public stopByAnimationGroupId(id: string) {
-        for (const controller of this.batch.controllers.values()) {
-            if (controller.groupId === id) {
-                this.stopByAnimationId(controller.id);
-            }
+        try {
+            this.batch.stopByAnimationGroupId(id);
+        } catch (error: unknown) {
+            this.failsafeOnError(error);
         }
     }
 
@@ -172,7 +152,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
     }
 
     public isSkipped() {
-        return this.skipAnimations || this.batch.isSkipped();
+        return !this.rafAvailable || this.skipAnimations || this.batch.isSkipped();
     }
 
     public isActive() {
@@ -196,7 +176,13 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         this.requestId = requestAnimationFrame(cb);
     }
 
+    /** Mocking point for tests to skip animations to a specific point in time. */
+    public forceTimeJump(_animation: IAnimation, _defaultDuration: number): boolean {
+        return false;
+    }
+
     private requestAnimation() {
+        if (!this.rafAvailable) return;
         if (!this.batch.isActive() || this.requestId !== null) return;
 
         let prevTime: number;
@@ -207,17 +193,16 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
                 prevTime = time;
 
                 this.debug('AnimationManager - onAnimationFrame()', {
-                    controllersCount: this.batch.controllers.size,
+                    controllersCount: this.batch.size,
+                    deltaTime,
                 });
 
                 this.interactionManager.pushState(InteractionState.Animation);
 
-                for (const controller of this.batch.controllers.values()) {
-                    try {
-                        controller.update(deltaTime);
-                    } catch (error: unknown) {
-                        this.failsafeOnError(error);
-                    }
+                try {
+                    this.batch.progress(deltaTime);
+                } catch (error: unknown) {
+                    this.failsafeOnError(error);
                 }
 
                 this.listeners.dispatch('animation-frame', {
@@ -237,7 +222,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
             if (this.batch.isActive()) {
                 this.scheduleAnimationFrame(onAnimationFrame);
             } else {
-                this.batch.dispatchStopped();
+                this.batch.stop();
             }
         };
 
@@ -261,7 +246,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
     public startBatch(skipAnimations?: boolean) {
         this.debug(`AnimationManager - startBatch() with skipAnimations=${skipAnimations}.`);
         this.reset();
-        this.batch.dispatchStopped();
+        this.batch.stop();
         this.batch.destroy();
         this.batch = new AnimationBatch();
         if (skipAnimations === true) {
@@ -271,9 +256,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
 
     public endBatch() {
         this.debug(
-            `AnimationManager - endBatch() with ${
-                this.batch.controllers.size
-            } animations; skipped: ${this.batch.isSkipped()}.`
+            `AnimationManager - endBatch() with ${this.batch.size} animations; skipped: ${this.batch.isSkipped()}.`
         );
 
         if (!this.batch.isActive()) {
@@ -283,47 +266,11 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
         if (this.batch.isSkipped() && !this.batch.isActive()) {
             this.batch.skip(false);
         }
-        this.batch.dispatchStopped();
+
+        this.requestAnimation();
     }
 
     public onBatchStop(cb: () => void) {
         this.batch.stoppedCbs.add(cb);
     }
-}
-
-/**
- * A batch of animations that are synchronised together. Can be skipped independently of other batches and the main
- * animation skipping status.
- */
-class AnimationBatch {
-    public readonly controllers: Map<string, IAnimation<any>> = new Map();
-    public readonly stoppedCbs: Set<() => void> = new Set();
-
-    private skipAnimations = false;
-    // private phase?: 'initial-load' | 'remove' | 'update' | 'add';
-
-    isActive() {
-        return this.controllers.size > 0;
-    }
-
-    skip(skip = true) {
-        if (this.skipAnimations === false && skip === true) {
-            for (const controller of this.controllers.values()) {
-                controller.stop();
-            }
-            this.controllers.clear();
-        }
-        this.skipAnimations = skip;
-    }
-
-    dispatchStopped() {
-        this.stoppedCbs.forEach((cb) => cb());
-        this.stoppedCbs.clear();
-    }
-
-    isSkipped() {
-        return this.skipAnimations;
-    }
-
-    destroy() {}
 }

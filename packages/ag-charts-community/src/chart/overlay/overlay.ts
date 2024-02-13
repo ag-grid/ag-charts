@@ -1,4 +1,3 @@
-import { ADD_PHASE, REMOVE_PHASE } from '../../motion/animation';
 import type { BBox } from '../../scene/bbox';
 import { BOOLEAN, FUNCTION, STRING, Validate } from '../../util/validation';
 import type { AnimationManager } from '../interaction/animationManager';
@@ -57,8 +56,7 @@ export class Overlay {
             this.animationManager.animate({
                 from: 0,
                 to: 1,
-                delay: ADD_PHASE.animationDelay * this.animationManager.defaultDuration,
-                duration: ADD_PHASE.animationDuration * this.animationManager.defaultDuration,
+                phase: 'add',
                 id: 'overlay',
                 groupId: 'opacity',
                 onUpdate(value) {
@@ -77,8 +75,7 @@ export class Overlay {
         this.animationManager.animate({
             from: 1,
             to: 0,
-            delay: REMOVE_PHASE.animationDelay * this.animationManager.defaultDuration,
-            duration: REMOVE_PHASE.animationDuration * this.animationManager.defaultDuration,
+            phase: 'remove',
             id: 'overlay',
             groupId: 'opacity',
             onUpdate(value) {
