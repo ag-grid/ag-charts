@@ -433,11 +433,6 @@ describe('Axis Examples', () => {
     }
 
     describe('no series cases', () => {
-        beforeEach(() => {
-            // Increase timeout for legend toggle case.
-            jest.setTimeout(10_000);
-        });
-
         for (const [exampleName, example] of Object.entries(EXAMPLES_NO_SERIES)) {
             it(`for ${exampleName} it should create chart instance as expected`, async () => {
                 chart = await createChart(example.options);
@@ -473,7 +468,7 @@ describe('Axis Examples', () => {
 
                 const afterFinalUpdate = await snapshot();
                 expect(afterFinalUpdate).toMatchImage(reference);
-            });
+            }, 15_000);
         }
     });
 

@@ -225,11 +225,6 @@ describe('PolarSeries', () => {
     });
 
     describe('no series cases', () => {
-        beforeEach(() => {
-            // Increase timeout for legend toggle case.
-            jest.setTimeout(10_000);
-        });
-
         it(`for PIE_SERIES it should render identically after legend toggle`, async () => {
             const snapshot = async () => {
                 await waitForChartStability(chart);
@@ -259,6 +254,6 @@ describe('PolarSeries', () => {
 
             const afterFinalUpdate = await snapshot();
             expect(afterFinalUpdate).toMatchImage(reference);
-        });
+        }, 15_000);
     });
 });
