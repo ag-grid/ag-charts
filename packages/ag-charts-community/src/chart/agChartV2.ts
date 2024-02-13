@@ -214,11 +214,12 @@ class AgChartsInternal {
 
         chart.queuedUserOptions.push(userOptions);
         chart.requestFactoryUpdate((chart) => {
-            const deltaOptions = chartOptions.diffOptions(chart.processedOptions);
-            if (deltaOptions != null) {
-                debug('AgChartV2.updateDelta() - applying delta', deltaOptions);
-                chart.applyOptions(deltaOptions, userOptions);
-            }
+            // const deltaOptions = chartOptions.diffOptions(chart.processedOptions);
+            // if (deltaOptions != null) {
+            //     debug('AgChartV2.updateDelta() - applying delta', deltaOptions);
+            //     chart.applyOptions(deltaOptions, userOptions);
+            // }
+            chart.applyOptions(chartOptions);
             // If there are a lot of update calls, `requestFactoryUpdate()` may skip callbacks,
             // so we need to remove all queue items up to the last successfully applied item.
             chart.queuedUserOptions.splice(0, chart.queuedUserOptions.indexOf(userOptions));
