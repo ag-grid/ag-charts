@@ -1,4 +1,4 @@
-import type { AdditionalAnimationOptions, AnimationOptions, AnimationValue } from '../../motion/animation';
+import type { AdditionalAnimationOptions, AnimationOptions, AnimationValue, IAnimation } from '../../motion/animation';
 import { Animation } from '../../motion/animation';
 import { Debug } from '../../util/debug';
 import { Logger } from '../../util/logger';
@@ -70,6 +70,11 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
             phase: opts.phase,
             defaultDuration: this.defaultDuration,
         });
+
+        if (this.forceTimeJump(animation, this.defaultDuration)) {
+            // For tests, just skip animation forward in time.
+            return;
+        }
         this.batch.addAnimation(animation);
 
         return animation;
@@ -169,6 +174,11 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
     /** Mocking point for tests to capture requestAnimationFrame callbacks. */
     public scheduleAnimationFrame(cb: (time: number) => Promise<void>) {
         this.requestId = requestAnimationFrame(cb);
+    }
+
+    /** Mocking point for tests to skip animations to a specific point in time. */
+    public forceTimeJump(_animation: IAnimation, _defaultDuration: number): boolean {
+        return false;
     }
 
     private requestAnimation() {
