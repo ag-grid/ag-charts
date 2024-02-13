@@ -236,7 +236,8 @@ export class Legend extends BaseProperties {
             region.addListener('click', (e) => this.checkLegendClick(e), animationState),
             region.addListener('dblclick', (e) => this.checkLegendDoubleClick(e), animationState),
             region.addListener('hover', (e) => this.handleLegendMouseMove(e)),
-            region.addListener('hover-end', (e) => this.handleLegendMouseExit(e)),
+            region.addListener('hover-end', (e) => this.handleLegendMouseExit(e), animationState),
+            region.addListener('hover-start', (e) => this.handleLegendMouseEnter(e), animationState),
             ctx.layoutService.addListener('start-layout', (e) => this.positionLegend(e.shrinkRect)),
             () => this.detachLegend()
         );
@@ -897,8 +898,24 @@ export class Legend extends BaseProperties {
 
     private handleLegendMouseExit(_event: InteractionEvent<'hover-end'>) {
         this.ctx.cursorManager.updateCursor(this.id);
-        this.ctx.highlightManager.updateHighlight(this.id);
         this.ctx.tooltipManager.removeTooltip(this.id);
+        // Updating the highlight can interrupt animations, so only clear the highlight if the chart
+        // is in a state when highlighting is possible.
+        if (this.ctx.interactionManager.getState() === InteractionState.Default) {
+            this.ctx.highlightManager.updateHighlight(this.id);
+        }
+    }
+
+    private handleLegendMouseEnter(event: InteractionEvent<'hover-start'>) {
+        const { enabled, item, listeners } = this;
+        const datum = this.getDatumForPoint(event.offsetX, event.offsetY);
+        if (
+            enabled &&
+            datum !== undefined &&
+            (item.toggleSeriesVisible || listeners.legendItemClick != null || listeners.legendItemDoubleClick != null)
+        ) {
+            this.ctx.cursorManager.updateCursor(this.id, 'pointer');
+        }
     }
 
     private positionLegend(shrinkRect: BBox) {

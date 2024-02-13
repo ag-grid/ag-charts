@@ -11,6 +11,7 @@ type InteractionTypes =
     | 'click'
     | 'dblclick'
     | 'contextmenu'
+    | 'hover-start'
     | 'hover'
     | 'hover-end'
     | 'drag-start'
@@ -250,11 +251,17 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
 
         // New region based input handling:
         const region = this.pickRegion(coords.offsetX, coords.offsetY);
+        if (region?.name !== undefined && region?.name !== this.currentRegion?.name) {
+            const type = 'hover-start';
+            const hoverStartEvent = this.buildEvent({ type, event, ...coords });
+            region.listeners.dispatch(type, hoverStartEvent);
+        }
         if (this.currentRegion !== undefined && region?.name !== this.currentRegion.name) {
             const type = 'hover-end';
             const hoverEndEvent = this.buildEvent({ type, event, ...coords });
             this.currentRegion?.listeners.dispatch(type, hoverEndEvent);
-        } else if (region !== undefined) {
+        }
+        if (region !== undefined) {
             // Async dispatch to avoid blocking the event-processing thread.
             const dispatcher = async () => {
                 for (const type of types) {
