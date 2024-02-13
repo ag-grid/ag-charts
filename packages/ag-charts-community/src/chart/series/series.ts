@@ -338,7 +338,7 @@ export abstract class Series<
     }
 
     private onSeriesGroupingChange(prev?: SeriesGrouping, next?: SeriesGrouping) {
-        const { internalId, type, visible, rootGroup, highlightGroup, annotationGroup } = this;
+        const { internalId, type, visible } = this;
 
         if (prev) {
             this.ctx.seriesStateManager.deregisterSeries({ id: internalId, type });
@@ -349,17 +349,6 @@ export abstract class Series<
 
         // Short-circuit if series isn't already attached to the scene-graph yet.
         if (this.rootGroup.parent == null) return;
-
-        this.ctx.seriesLayerManager.changeGroup({
-            internalId,
-            type,
-            rootGroup,
-            highlightGroup,
-            annotationGroup,
-            getGroupZIndexSubOrder: (type) => this.getGroupZIndexSubOrder(type),
-            seriesGrouping: next,
-            oldGrouping: prev,
-        });
     }
 
     getBandScalePadding() {
@@ -478,7 +467,6 @@ export abstract class Series<
         this.destroyFns.forEach((f) => f());
         this.destroyFns = [];
         this.ctx.seriesStateManager.deregisterSeries(this);
-        this.ctx.seriesLayerManager.releaseGroup(this);
     }
 
     abstract resetAnimation(chartAnimationPhase: ChartAnimationPhase): void;

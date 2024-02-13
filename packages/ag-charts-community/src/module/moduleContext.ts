@@ -9,7 +9,6 @@ import type { SyncManager } from '../chart/interaction/syncManager';
 import type { TooltipManager } from '../chart/interaction/tooltipManager';
 import type { ZoomManager } from '../chart/interaction/zoomManager';
 import type { LayoutService } from '../chart/layout/layoutService';
-import type { SeriesLayerManager } from '../chart/series/seriesLayerManager';
 import type { SeriesStateManager } from '../chart/series/seriesStateManager';
 import type { UpdateService } from '../chart/updateService';
 import type { AgCartesianAxisPosition } from '../options/agChartOptions';
@@ -33,7 +32,6 @@ export interface ModuleContext {
     cursorManager: CursorManager;
     highlightManager: HighlightManager;
     interactionManager: InteractionManager;
-    seriesLayerManager: SeriesLayerManager;
     seriesStateManager: SeriesStateManager;
     syncManager: SyncManager;
     tooltipManager: TooltipManager;
