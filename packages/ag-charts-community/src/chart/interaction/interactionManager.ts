@@ -1,11 +1,10 @@
 import type { BBoxProvider } from '../../util/bboxset';
-import { BBoxSet } from '../../util/bboxset';
 import { Debug } from '../../util/debug';
 import { injectStyle } from '../../util/dom';
-import { Listeners } from '../../util/listeners';
 import { Logger } from '../../util/logger';
 import { isFiniteNumber } from '../../util/type-guards';
 import { BaseManager } from './baseManager';
+import { RegionManager, RegionName } from './regionManager';
 
 type InteractionTypes =
     | 'click'
@@ -98,21 +97,6 @@ export enum InteractionState {
 
 const DEBUG_SELECTORS = [true, 'interaction'];
 
-type RegionName = 'legend';
-
-type InteractionRegion = {
-    name: RegionName;
-    listeners: InteractionManager['listeners'];
-};
-
-export interface ObservableRegion {
-    addListener<T extends InteractionTypes>(
-        type: T,
-        handler: InteractionHandler<T>,
-        triggeringStates?: InteractionState
-    ): () => void;
-}
-
 /**
  * Manages user interactions with a specific HTMLElement (or interactions that bubble from it's
  * children)
@@ -134,8 +118,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
 
     private stateQueue: InteractionState = InteractionState.Default;
 
-    private currentRegion?: InteractionRegion;
-    private regions: BBoxSet<InteractionRegion> = new BBoxSet();
+    private regionManager: RegionManager<InteractionTypes> = new RegionManager();
 
     public constructor(element: HTMLElement, document: Document, window: Window) {
         super();
@@ -190,19 +173,11 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         });
     }
 
-    private makeRegion(name: RegionName): InteractionRegion {
-        return {
-            name,
-            listeners: new Listeners<InteractionTypes, (event: InteractionEvent<InteractionTypes>) => void>(),
-        };
-    }
-
-    public addRegion(name: RegionName, node: BBoxProvider): ObservableRegion {
-        const region = this.makeRegion(name);
+    public addRegion(name: RegionName, node: BBoxProvider) {
+        const region = this.regionManager.addRegion(name, node);
         const interactionManager = this;
-        this.regions.add(region, node);
 
-        class ObservableRegionImplementation implements ObservableRegion {
+        class ObservableRegionImplementation {
             addListener<T extends InteractionTypes>(
                 type: T,
                 handler: InteractionHandler<T>,
@@ -234,11 +209,6 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         return this.stateQueue & -this.stateQueue;
     }
 
-    private pickRegion(x: number, y: number): InteractionRegion | undefined {
-        const matchingRegions = this.regions.find(x, y);
-        return matchingRegions.length > 0 ? matchingRegions[0] : undefined;
-    }
-
     private processEvent(event: SupportedEvent) {
         const coords = this.calculateCoordinates(event);
         if (coords == null) {
@@ -248,21 +218,23 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         const types: InteractionTypes[] = this.decideInteractionEventTypes(event);
 
         // New region based input handling:
-        const region = this.pickRegion(coords.offsetX, coords.offsetY);
-        if (this.currentRegion !== undefined && region?.name !== this.currentRegion.name) {
+        const { currentRegion } = this.regionManager;
+        const newRegion = this.regionManager.pickRegion(coords.offsetX, coords.offsetY);
+        if (currentRegion !== undefined && newRegion?.name !== currentRegion.name) {
             const type = 'leave';
             const leaveEvent = this.buildEvent({ type, event, ...coords });
-            this.currentRegion?.listeners.dispatch(type, leaveEvent);
-        } else if (region !== undefined) {
+            currentRegion?.listeners.dispatch(type, leaveEvent);
+        }
+        if (newRegion !== undefined) {
             // Async dispatch to avoid blocking the event-processing thread.
             const dispatcher = async () => {
                 for (const type of types) {
-                    region.listeners.dispatch(type, this.buildEvent({ type, event, ...coords }));
+                    newRegion.listeners.dispatch(type, this.buildEvent({ type, event, ...coords }));
                 }
             };
             dispatcher().catch((e) => Logger.errorOnce(e));
         }
-        this.currentRegion = region;
+        this.regionManager.currentRegion = newRegion;
 
         // Legacy input handling:
         if (types.length > 0) {
