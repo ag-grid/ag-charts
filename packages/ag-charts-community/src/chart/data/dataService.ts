@@ -3,16 +3,13 @@ import { throttle } from '../../util/function';
 import { Listeners } from '../../util/listeners';
 import type { AnimationManager } from '../interaction/animationManager';
 
-type LoadCallback = (params: { axes?: Array<AxisDomain> }) => Promise<unknown>;
-
-export interface AxisDomain {
-    id: string;
-    type: string;
-    min: any;
-    max: any;
+interface DataSourceCallbackParams {
+    windowStart?: Date;
+    windowEnd?: Date;
 }
+type DataSourceCallback = (params: DataSourceCallbackParams) => Promise<unknown>;
 
-type EventType = 'data-source-changed' | 'data-load';
+type EventType = 'data-source-change' | 'data-load';
 type EventHandler<D extends object> = (() => void) | ((event: DataLoadEvent<D>) => void);
 
 export interface DataLoadEvent<D extends object> {
@@ -21,7 +18,7 @@ export interface DataLoadEvent<D extends object> {
 }
 
 export class DataService<D extends object> extends Listeners<EventType, EventHandler<D>> {
-    private loadCb?: LoadCallback;
+    private dataSourceCallback?: DataSourceCallback;
     private isLoadingInitialData = false;
     private requestThrottle = 100;
     private refreshThrottle = 100;
@@ -33,7 +30,7 @@ export class DataService<D extends object> extends Listeners<EventType, EventHan
     private readonly debug = Debug.create(true, 'data-model', 'data-lazy');
     private readonly debugExtra = Debug.create('data-lazy-extra');
 
-    private throttledFetch = throttle((axes?: Array<AxisDomain>) => this.fetch(axes), this.requestThrottle, {
+    private throttledFetch = throttle((params: DataSourceCallbackParams) => this.fetch(params), this.requestThrottle, {
         leading: false,
         trailing: true,
     });
@@ -56,34 +53,37 @@ export class DataService<D extends object> extends Listeners<EventType, EventHan
         super();
     }
 
-    public init(loadOrData: LoadCallback | any): any {
-        if (typeof loadOrData !== 'function') return loadOrData;
-        this.loadCb = loadOrData;
+    public updateCallback(dataSourceCallback: DataSourceCallback) {
+        if (typeof dataSourceCallback !== 'function') return;
+        this.debug('DataService - updated data source callback');
+        this.dataSourceCallback = dataSourceCallback;
+
         this.isLoadingInitialData = true;
 
         // Disable animations when using lazy loading due to conflicts
         this.animationManager.skip();
 
-        this.dispatch('data-source-changed');
-
-        // Return an empty array with the expectation that the load function will be called later
-        return [];
+        this.dispatch('data-source-change');
     }
 
-    public async load(axes: Array<AxisDomain>) {
-        this.throttledFetch(axes);
+    public clearCallback() {
+        this.dataSourceCallback = undefined;
+    }
+
+    public load(params: DataSourceCallbackParams) {
+        this.throttledFetch(params);
     }
 
     public isLazy() {
-        return this.loadCb != null;
+        return this.dataSourceCallback != null;
     }
 
     public isLoading() {
         return this.isLazy() && (this.isLoadingInitialData || this.freshRequests.length > 0);
     }
 
-    private async fetch(axes?: Array<AxisDomain>) {
-        if (!this.loadCb) {
+    private async fetch(params: DataSourceCallbackParams) {
+        if (!this.dataSourceCallback) {
             throw new Error('lazy data loading callback not initialised');
         }
 
@@ -96,7 +96,7 @@ export class DataService<D extends object> extends Listeners<EventType, EventHan
         this.debugExtraValues(id, { id, start });
 
         try {
-            const response = await this.loadCb({ axes });
+            const response = await this.dataSourceCallback(params);
             this.debug(`DataService - response | ${performance.now() - start}ms | ${id}`);
             this.debugExtraValues(id, { end: performance.now() });
 

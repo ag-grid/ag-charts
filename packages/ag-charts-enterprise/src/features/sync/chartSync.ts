@@ -73,7 +73,8 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
                 }
 
                 for (const axis of chart.axes) {
-                    if (!CartesianAxis.is(axis) || (this.axes !== 'xy' && this.axes !== axis.direction)) continue;
+                    const validDirection = this.axes === 'xy' ? 'x' : this.axes;
+                    if (!CartesianAxis.is(axis) || axis.direction !== validDirection) continue;
 
                     for (const series of chart.series) {
                         const seriesKeys = series.getKeys(axis.direction);
