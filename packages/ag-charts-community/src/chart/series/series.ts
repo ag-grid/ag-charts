@@ -182,7 +182,7 @@ export function groupAccumulativeValueProperty<K>(
     ];
 }
 
-export type SeriesNodeEventTypes = 'nodeClick' | 'nodeDoubleClick';
+export type SeriesNodeEventTypes = 'nodeClick' | 'nodeDoubleClick' | 'groupingChanged';
 
 interface INodeClickEvent<TEvent extends string = SeriesNodeEventTypes> extends TypedEvent {
     readonly type: TEvent;
@@ -229,6 +229,15 @@ enum SeriesHighlight {
 }
 
 export type SeriesModuleMap = ModuleMap<SeriesOptionModule, SeriesOptionInstance, SeriesContext>;
+
+export class SeriesGroupingChangedEvent implements TypedEvent {
+    type = 'groupingChanged';
+
+    constructor(
+        public series: Series<any>,
+        public oldGrouping: SeriesGrouping | undefined
+    ) {}
+}
 
 export abstract class Series<
         TDatum extends SeriesNodeDatum,
@@ -347,8 +356,7 @@ export abstract class Series<
             this.ctx.seriesStateManager.registerSeries({ id: internalId, type, visible, seriesGrouping: next });
         }
 
-        // Short-circuit if series isn't already attached to the scene-graph yet.
-        if (this.rootGroup.parent == null) return;
+        this.fireEvent(new SeriesGroupingChangedEvent(this, prev));
     }
 
     getBandScalePadding() {
