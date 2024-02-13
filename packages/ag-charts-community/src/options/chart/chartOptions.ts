@@ -118,7 +118,7 @@ export interface AgChartSyncOptions {
     axes?: 'x' | 'y' | 'xy';
     /**
      * Enables synchronization of node interactions across charts.
-     * Default: `false`
+     * Default: `true`
      */
     nodeInteraction?: boolean;
     /**

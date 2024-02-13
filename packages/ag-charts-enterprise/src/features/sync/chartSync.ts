@@ -31,7 +31,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
 
     @Validate(BOOLEAN)
     @ObserveChanges<ChartSync>((target) => target.onNodeInteractionChange())
-    nodeInteraction: boolean = false;
+    nodeInteraction: boolean = true;
 
     @Validate(BOOLEAN)
     @ObserveChanges<ChartSync>((target) => target.onZoomChange())
