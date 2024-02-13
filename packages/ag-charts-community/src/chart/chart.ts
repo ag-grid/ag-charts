@@ -790,6 +790,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 get mode() {
                     return chart.mode;
                 },
+                get isMiniChart() {
+                    return false;
+                },
                 get seriesRect() {
                     return chart.seriesRect;
                 },
