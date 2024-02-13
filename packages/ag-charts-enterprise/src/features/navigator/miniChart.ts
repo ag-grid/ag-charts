@@ -92,7 +92,9 @@ export class MiniChart
         for (const series of newValue) {
             if (oldValue?.includes(series)) continue;
 
-            this.seriesRoot.appendChild(series.rootGroup);
+            if (series.rootGroup.parent == null) {
+                this.seriesRoot.appendChild(series.rootGroup);
+            }
 
             const chart = this;
             series.chart = {
@@ -108,13 +110,18 @@ export class MiniChart
             };
 
             series.resetAnimation('initial');
-            series.addChartEventListeners();
+            // @todo(AG-10653) Enable when there is an id per series group, irrespective of series instance
+            // series.addChartEventListeners();
         }
     }
 
     protected destroySeries(series: _ModuleSupport.Series<any>[]): void {
         series?.forEach((series) => {
             series.destroy();
+
+            if (series.rootGroup != null) {
+                this.seriesRoot.removeChild(series.rootGroup);
+            }
 
             series.chart = undefined;
         });
