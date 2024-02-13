@@ -34,7 +34,7 @@ export class BBoxSet<V> {
         // This ensure that we prioritise smaller regions are contained inside larger regions.
         return this.nodes
             .filter((node) => nodeContainsPoint(node, x, y))
-            .sort((node) => nodeArea(node))
+            .sort((a, b) => nodeArea(a) - nodeArea(b))
             .map((node) => node.value);
     }
 }
