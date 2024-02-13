@@ -26,14 +26,16 @@ function delay(ms: number) {
 
 function formatData(data: Datum[], windowStart: number, windowEnd: number) {
     const diff = windowEnd - windowStart;
-    let granularity = day;
+    let granularity = week;
     if (diff < day * 4) {
         granularity = hour;
     } else if (diff < week * 2) {
         granularity = hour * 6;
+    } else if (diff < week * 6) {
+        granularity = day;
     }
     return data.filter(({ time }) => {
-        const isCoarse = time % day === 0;
+        const isCoarse = time % week === 0;
         const isFineWithinWindow = time % granularity === 0 && time >= windowStart && time <= windowEnd;
         return isCoarse || isFineWithinWindow;
     });

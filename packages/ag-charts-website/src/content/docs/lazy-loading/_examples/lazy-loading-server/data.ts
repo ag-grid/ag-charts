@@ -12,7 +12,7 @@ export const day = hour * 24;
 export const week = day * 7;
 
 const dataStart = new Date('2024-01-01 00:00:00').getTime();
-const dataEnd = new Date('2024-07-01 00:00:00').getTime();
+const dataEnd = new Date('2024-12-30 23:59:59').getTime();
 
 let seed = 1234;
 function random() {
