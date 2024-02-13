@@ -1,7 +1,11 @@
-import type { BBox } from '../bbox';
+interface BBoxLike {
+    width: number;
+    height: number;
+    containsPoint(x: number, y: number): boolean;
+}
 
 interface BBoxProvider {
-    computeBBox(): BBox | undefined;
+    computeBBox(): BBoxLike | undefined;
 }
 
 interface BBoxNode<V> {

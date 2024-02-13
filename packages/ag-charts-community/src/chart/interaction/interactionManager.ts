@@ -1,5 +1,5 @@
-import type { Node } from '../../scene/node';
-import { BBoxSet } from '../../scene/util/bboxset';
+import type { BBoxProvider } from '../../util/bboxset';
+import { BBoxSet } from '../../util/bboxset';
 import { Debug } from '../../util/debug';
 import { injectStyle } from '../../util/dom';
 import { Listeners } from '../../util/listeners';
