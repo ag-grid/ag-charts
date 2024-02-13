@@ -28,7 +28,7 @@ export const Version = ({ date, version, blogUrl, highlights, buttonURL, majorMi
                         <span className="text-secondary text-sm">{date}</span>
 
                         <div className={styles.flex}>
-                            {version === '31.0.0' && <span className={styles['latest-tag']}>Latest</span>}
+                            {version === '9.1.0' && <span className={styles['latest-tag']}>Latest</span>}
                             {majorMinor && <span className={styles['major-text']}>Major</span>}
                         </div>
                     </div>
