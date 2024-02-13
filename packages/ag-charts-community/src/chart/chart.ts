@@ -1449,22 +1449,36 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 'axes[].title',
                 'axes[].crosshair',
                 'axes[].gridLine',
-                'axes[].label.autoRotate',
-                'axes[].label.autoRotateAngle',
-                'axes[].label.rotation',
+                'axes[].label',
             ]);
 
             const labelOptions = processedOptions.navigator?.miniChart?.label;
-            for (const axis of miniChart.axes) {
-                if (labelOptions != null) {
-                    jsonApply(axis.label, labelOptions, {
-                        path: 'navigator.miniChart.label',
-                        skip: [
-                            'navigator.miniChart.label.autoRotate',
-                            'navigator.miniChart.label.autoRotateAngle',
-                            'navigator.miniChart.label.rotation',
-                        ],
-                    });
+            const intervalOptions = processedOptions.navigator?.miniChart?.label?.interval;
+            for (const axis of miniChart.axes as ChartAxis[]) {
+                jsonApply(axis.label, labelOptions, {
+                    path: 'navigator.miniChart.label',
+                    skip: [
+                        'navigator.miniChart.label.interval',
+                        'navigator.miniChart.label.rotation',
+                        'navigator.miniChart.label.minSpacing',
+                        'navigator.miniChart.label.autoRotate',
+                        'navigator.miniChart.label.autoRotateAngle',
+                    ],
+                });
+                jsonApply(axis.tick, intervalOptions, {
+                    path: 'navigator.miniChart.interval',
+                    skip: [
+                        'navigator.miniChart.interval.enabled',
+                        'navigator.miniChart.interval.width',
+                        'navigator.miniChart.interval.size',
+                        'navigator.miniChart.interval.color',
+                        'navigator.miniChart.interval.interval',
+                    ],
+                });
+
+                const step = intervalOptions?.step;
+                if (step != null) {
+                    axis.tick.interval = step;
                 }
 
                 axis.gridLine.enabled = false;
