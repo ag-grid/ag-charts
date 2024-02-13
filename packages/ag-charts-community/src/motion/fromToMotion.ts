@@ -38,7 +38,7 @@ type IntermediateFn<N extends Node, D> = (
     ctx: FromToMotionPropFnContext<N>
 ) => Partial<N>;
 
-export const FROM_TO_MIXINS: Record<NodeUpdateState, AnimationPhase> = {
+export const NODE_UPDATE_STATE_TO_PHASE_MAPPING: Record<NodeUpdateState, AnimationPhase> = {
     added: 'add',
     updated: 'update',
     removed: 'remove',

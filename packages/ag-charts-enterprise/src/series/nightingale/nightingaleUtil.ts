@@ -29,7 +29,7 @@ export function prepareNightingaleAnimationFunctions(axisZeroRadius: number) {
             innerRadius = axisZeroRadius;
             outerRadius = axisZeroRadius;
         }
-        const phase = motion.FROM_TO_MIXINS[status];
+        const phase = motion.NODE_UPDATE_STATE_TO_PHASE_MAPPING[status];
         return { innerRadius, outerRadius, startAngle, endAngle, phase };
     };
 
