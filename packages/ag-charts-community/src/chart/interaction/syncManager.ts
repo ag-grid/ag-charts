@@ -1,9 +1,7 @@
 import type { ChartAxisDirection } from '../chartAxisDirection';
-import type { LayoutCompleteEvent, LayoutService } from '../layout/layoutService';
 import type { ISeries } from '../series/seriesTypes';
 import { BaseManager } from './baseManager';
 import type { HighlightManager } from './highlightManager';
-import type { TooltipManager } from './tooltipManager';
 import type { ZoomManager } from './zoomManager';
 
 type GroupId = string | symbol;
@@ -25,12 +23,10 @@ type ChartLike = {
     axes: AxisLike[];
     series: ISeries<any>[];
     highlightManager: HighlightManager;
-    layoutService: LayoutService;
-    tooltipManager: TooltipManager;
     zoomManager: ZoomManager;
 };
 
-export class SyncManager extends BaseManager<'layout-complete', LayoutCompleteEvent> {
+export class SyncManager extends BaseManager {
     static chartsGroups = new Map<GroupId, Set<ChartLike>>();
     static DEFAULT_GROUP = Symbol('sync-group-default');
 
