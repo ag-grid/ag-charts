@@ -12,8 +12,8 @@ export interface AxisDomain {
     max: any;
 }
 
-type EventType = 'data-load';
-type EventHandler<D extends object> = (event: DataLoadEvent<D>) => void;
+type EventType = 'data-source-changed' | 'data-load';
+type EventHandler<D extends object> = (() => void) | ((event: DataLoadEvent<D>) => void);
 
 export interface DataLoadEvent<D extends object> {
     type: 'data-load';
@@ -63,6 +63,8 @@ export class DataService<D extends object> extends Listeners<EventType, EventHan
 
         // Disable animations when using lazy loading due to conflicts
         this.animationManager.skip();
+
+        this.dispatch('data-source-changed');
 
         // Return an empty array with the expectation that the load function will be called later
         return [];
