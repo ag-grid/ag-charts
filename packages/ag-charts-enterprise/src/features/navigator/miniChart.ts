@@ -110,7 +110,8 @@ export class MiniChart
             };
 
             series.resetAnimation('initial');
-            series.addChartEventListeners();
+            // @todo(AG-10653) Enable when there is an id per series group, irrespective of series instance
+            // series.addChartEventListeners();
         }
     }
 

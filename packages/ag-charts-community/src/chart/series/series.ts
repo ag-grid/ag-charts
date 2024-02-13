@@ -235,6 +235,7 @@ export class SeriesGroupingChangedEvent implements TypedEvent {
 
     constructor(
         public series: Series<any>,
+        public seriesGrouping: SeriesGrouping | undefined,
         public oldGrouping: SeriesGrouping | undefined
     ) {}
 }
@@ -356,7 +357,7 @@ export abstract class Series<
             this.ctx.seriesStateManager.registerSeries({ id: internalId, type, visible, seriesGrouping: next });
         }
 
-        this.fireEvent(new SeriesGroupingChangedEvent(this, prev));
+        this.fireEvent(new SeriesGroupingChangedEvent(this, next, prev));
     }
 
     getBandScalePadding() {

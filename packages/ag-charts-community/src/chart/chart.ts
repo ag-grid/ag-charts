@@ -1319,23 +1319,22 @@ export abstract class Chart extends Observable implements AgChartInstance {
     };
 
     private seriesGroupingChanged = (event: TypedEvent) => {
-        if (event instanceof SeriesGroupingChangedEvent) {
-            const { series, oldGrouping } = event;
+        if (!(event instanceof SeriesGroupingChangedEvent)) return;
+        const { series, seriesGrouping, oldGrouping } = event;
 
-            // Short-circuit if series isn't already attached to the scene-graph yet.
-            if (series.rootGroup.parent == null) return;
+        // Short-circuit if series isn't already attached to the scene-graph yet.
+        if (series.rootGroup.parent == null) return;
 
-            this.seriesLayerManager.changeGroup({
-                internalId: series.internalId,
-                type: series.type,
-                rootGroup: series.rootGroup,
-                highlightGroup: series.highlightGroup,
-                annotationGroup: series.annotationGroup,
-                getGroupZIndexSubOrder: (type) => series.getGroupZIndexSubOrder(type),
-                seriesGrouping: series.seriesGrouping,
-                oldGrouping,
-            });
-        }
+        this.seriesLayerManager.changeGroup({
+            internalId: series.internalId,
+            type: series.type,
+            rootGroup: series.rootGroup,
+            highlightGroup: series.highlightGroup,
+            annotationGroup: series.annotationGroup,
+            getGroupZIndexSubOrder: (type) => series.getGroupZIndexSubOrder(type),
+            seriesGrouping,
+            oldGrouping,
+        });
     };
 
     changeHighlightDatum(event: HighlightChangeEvent) {
