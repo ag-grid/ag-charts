@@ -236,7 +236,7 @@ export class Legend extends BaseProperties {
             region.addListener('click', (e) => this.checkLegendClick(e), animationState),
             region.addListener('dblclick', (e) => this.checkLegendDoubleClick(e), animationState),
             region.addListener('hover', (e) => this.handleLegendMouseMove(e)),
-            region.addListener('hover-end', (e) => this.handleLegendMouseExit(e)),
+            region.addListener('leave', (e) => this.handleLegendMouseExit(e)),
             ctx.layoutService.addListener('start-layout', (e) => this.positionLegend(e.shrinkRect)),
             () => this.detachLegend()
         );
@@ -895,7 +895,7 @@ export class Legend extends BaseProperties {
         }
     }
 
-    private handleLegendMouseExit(_event: InteractionEvent<'hover-end'>) {
+    private handleLegendMouseExit(_event: InteractionEvent<'leave'>) {
         this.ctx.cursorManager.updateCursor(this.id);
         this.ctx.highlightManager.updateHighlight(this.id);
         this.ctx.tooltipManager.removeTooltip(this.id);
