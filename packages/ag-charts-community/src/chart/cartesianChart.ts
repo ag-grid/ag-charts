@@ -60,7 +60,7 @@ export class CartesianChart extends Chart {
                 [this.seriesRoot],
                 { translationX, translationY },
                 { translationX: Math.floor(x), translationY: Math.floor(y) },
-                { phase: 'updated' }
+                { phase: 'update' }
             );
         }
 

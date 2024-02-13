@@ -40,6 +40,7 @@ export interface AgAxisCaptionOptions {
 export interface AgBaseAxisOptions<LabelType = AgBaseAxisLabelOptions> {
     /** Axis type identifier. */
     type: string;
+    /** An array of keys determining which series are charted on this axis. */
     keys?: string[];
     /** Reverse the axis scale domain if `true`. */
     reverse?: boolean;
