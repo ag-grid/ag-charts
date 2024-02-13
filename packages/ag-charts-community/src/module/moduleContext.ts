@@ -1,4 +1,5 @@
 import type { ChartService } from '../chart/chartService';
+import type { DataService } from '../chart/data/dataService';
 import type { AnimationManager } from '../chart/interaction/animationManager';
 import type { ChartEventManager } from '../chart/interaction/chartEventManager';
 import type { CursorManager } from '../chart/interaction/cursorManager';
@@ -24,6 +25,7 @@ export interface ModuleContext {
     gestureDetector: GestureDetector;
 
     chartService: ChartService;
+    dataService: DataService<any>;
     layoutService: LayoutService;
     updateService: UpdateService;
 
