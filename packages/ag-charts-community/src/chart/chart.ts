@@ -30,6 +30,7 @@ import { ActionOnSet, type ActionOnSetOptions } from '../util/proxy';
 import { debouncedAnimationFrame, debouncedCallback } from '../util/render';
 import { SizeMonitor } from '../util/sizeMonitor';
 import { isFiniteNumber } from '../util/type-guards';
+import type { PickRequired } from '../util/types';
 import { BOOLEAN, OBJECT, UNION, Validate } from '../util/validation';
 import { Caption } from './caption';
 import type { ChartAnimationPhase } from './chartAnimationPhase';
@@ -262,6 +263,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
     protected readonly legends: Map<ChartLegendType, ChartLegend> = new Map();
     legend: ChartLegend | undefined;
 
+    private readonly specialOverrides: PickRequired<ChartExtendedOptions, 'document' | 'window'>;
+
     private readonly processors: UpdateProcessor[] = [];
 
     processedOptions: AgChartOptions & { type?: SeriesOptionsTypes['type'] } = {};
@@ -277,7 +280,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
         super();
 
         this.chartOptions = options;
-        const { window, document } = options.specialOverrides;
+        this.specialOverrides = options.specialOverrides;
+        const { window, document } = this.specialOverrides;
 
         const scene = resources?.scene;
         const element = resources?.element ?? document.createElement('div');
@@ -299,7 +303,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         element.classList.add('ag-chart-wrapper');
         element.style.position = 'relative';
 
-        this.scene = scene ?? new Scene(this.chartOptions.specialOverrides);
+        this.scene = scene ?? new Scene(this.specialOverrides);
         this.scene.root = root;
         this.scene.container = element;
         this.autoSize = true;
@@ -418,9 +422,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             updateService,
             seriesStateManager,
             callbackCache,
-            chartOptions: {
-                specialOverrides: { window, document },
-            },
+            specialOverrides: { window, document },
         } = this;
         return {
             window,
@@ -1373,17 +1375,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
         );
     }
 
-    applyOptions(chartOptions: ChartOptions) {
+    applyOptions(processedOptions: Partial<AgChartOptions>, userOptions: AgChartOptions) {
         const oldOpts = this.processedOptions;
-        const processedOptions = chartOptions.diffOptions(oldOpts);
-        const userOptions = chartOptions.userOptions;
-
-        if (processedOptions == null) return;
-
-        debug('AgChartV2.updateDelta() - applying delta', processedOptions);
-
         const moduleContext = this.getModuleContext();
-        const completeOptions = mergeDefaults(processedOptions, oldOpts);
+        const completeOptions = mergeDefaults(processedOptions, this.processedOptions);
         const modulesChanged = this.applyModules(completeOptions);
 
         const skip = ['type', 'data', 'series', 'listeners', 'theme', 'legend.listeners', 'navigator.miniChart.label'];
@@ -1436,7 +1431,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
         if (processedOptions.listeners) {
             this.updateAllSeriesListeners();
         }
-        this.chartOptions = chartOptions;
         this.processedOptions = completeOptions;
         this.userOptions = mergeDefaults(userOptions, this.userOptions);
 

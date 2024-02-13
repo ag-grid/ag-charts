@@ -75,7 +75,6 @@ enum GroupingType {
 
 export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     activeTheme: ChartTheme;
-    chartType: string;
     processedOptions: T;
     seriesDefaults: T;
     userOptions: Partial<T>;
@@ -88,7 +87,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         this.sanityCheckAndCleanup(options);
 
-        this.chartType = chartType;
         this.userOptions = options;
         this.activeTheme = getChartTheme(options.theme);
         this.seriesDefaults = this.getOptionsDefaults(options);

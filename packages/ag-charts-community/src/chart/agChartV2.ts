@@ -197,7 +197,7 @@ class AgChartsInternal {
         const chartOptions = new ChartOptions(userOptions, { overrideDevicePixelRatio, document, window: userWindow });
 
         let chart = proxy?.chart;
-        if (chart == null || chartType(userOptions) !== chart.chartOptions.chartType) {
+        if (chart == null || chartType(userOptions) !== chartType(chart.processedOptions)) {
             chart = AgChartsInternal.createChartInstance(chartOptions, chart);
         }
 
@@ -212,17 +212,16 @@ class AgChartsInternal {
             (window as any).agChartInstances[chart.id] = chart;
         }
 
-        chart.queuedUserOptions.push(chartOptions.userOptions);
+        chart.queuedUserOptions.push(userOptions);
         chart.requestFactoryUpdate((chart) => {
-            // const deltaOptions = chartOptions.diffOptions(chart.processedOptions);
-            // if (deltaOptions != null) {
-            //     debug('AgChartV2.updateDelta() - applying delta', deltaOptions);
-            //     chart.applyOptions(deltaOptions, userOptions);
-            // }
-            chart.applyOptions(chartOptions);
+            const deltaOptions = chartOptions.diffOptions(chart.processedOptions);
+            if (deltaOptions != null) {
+                debug('AgChartV2.updateDelta() - applying delta', deltaOptions);
+                chart.applyOptions(deltaOptions, userOptions);
+            }
             // If there are a lot of update calls, `requestFactoryUpdate()` may skip callbacks,
             // so we need to remove all queue items up to the last successfully applied item.
-            chart.queuedUserOptions.splice(0, chart.queuedUserOptions.indexOf(chartOptions.userOptions));
+            chart.queuedUserOptions.splice(0, chart.queuedUserOptions.indexOf(userOptions));
         });
 
         return proxy;
