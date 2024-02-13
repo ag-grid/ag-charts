@@ -23,7 +23,6 @@ export function pathMotion(
         removePhaseFn: (ratio: number, path: Path) => void;
     }
 ) {
-    const { defaultDuration } = animationManager;
     const { addPhaseFn, updatePhaseFn, removePhaseFn } = fns;
 
     const animate = (phase: NodeUpdateState, path: Path, updateFn: (ratio: number, path: Path) => void) => {
@@ -47,8 +46,7 @@ export function pathMotion(
                 updateFn(1, path);
                 path.checkPathDirty();
             },
-            duration: FROM_TO_MIXINS[phase].animationDuration * defaultDuration,
-            delay: FROM_TO_MIXINS[phase].animationDelay * defaultDuration,
+            phase: FROM_TO_MIXINS[phase],
         });
     };
 

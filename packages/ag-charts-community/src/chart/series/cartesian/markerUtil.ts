@@ -18,7 +18,7 @@ export function markerFadeInAnimation<T>(
     markerSelections: Selection<NodeWithOpacity, T>[],
     status: NodeUpdateState = 'unknown'
 ) {
-    const params = { ...FROM_TO_MIXINS[status] };
+    const params = { phase: FROM_TO_MIXINS[status] };
     staticFromToMotion(id, 'markers', animationManager, markerSelections, { opacity: 0 }, { opacity: 1 }, params);
     markerSelections.forEach((s) => s.cleanup());
 }
@@ -34,7 +34,8 @@ export function markerScaleInAnimation<T>(
         animationManager,
         markerSelections,
         { scalingX: 0, scalingY: 0 },
-        { scalingX: 1, scalingY: 1 }
+        { scalingX: 1, scalingY: 1 },
+        { phase: 'initial' }
     );
     markerSelections.forEach((s) => s.cleanup());
 }
@@ -53,7 +54,7 @@ export function markerSwipeScaleInAnimation<T extends CartesianSeriesNodeDatum>(
         // Parallel swipe animations use the function x = easeOut(time). But in this case, we
         // know the x value and need to calculate the time delay. So use the inverse function:
         const delay = clamp(0, easing.inverseEaseOut(x / seriesWidth), 1);
-        return { scalingX: 0, scalingY: 0, animationDelay: delay, animationDuration: QUICK_TRANSITION };
+        return { scalingX: 0, scalingY: 0, delay, duration: QUICK_TRANSITION, phase: 'initial' as const };
     };
     const toFn = () => {
         return { scalingX: 1, scalingY: 1 };
@@ -99,7 +100,7 @@ export function prepareMarkerAnimation(pairMap: PathPointMap<any>, parentStatus:
             translationX: point?.from?.x ?? marker.translationX,
             translationY: point?.from?.y ?? marker.translationY,
             opacity: marker.opacity,
-            ...FROM_TO_MIXINS[status],
+            phase: FROM_TO_MIXINS[status],
         };
 
         if (parentStatus === 'added') {
@@ -108,7 +109,7 @@ export function prepareMarkerAnimation(pairMap: PathPointMap<any>, parentStatus:
                 opacity: 0,
                 translationX: point?.to?.x,
                 translationY: point?.to?.y,
-                ...FROM_TO_MIXINS['added'],
+                phase: FROM_TO_MIXINS['added'],
             };
         }
         if (status === 'added') {
@@ -126,7 +127,7 @@ export function prepareMarkerAnimation(pairMap: PathPointMap<any>, parentStatus:
             translationX: datum.point.x,
             translationY: datum.point.y,
             opacity: 1,
-            ...FROM_TO_MIXINS[status],
+            phase: FROM_TO_MIXINS[status],
         };
 
         if (status === 'removed' || parentStatus === 'removed') {
@@ -135,7 +136,7 @@ export function prepareMarkerAnimation(pairMap: PathPointMap<any>, parentStatus:
                 translationX: point?.to?.x,
                 translationY: point?.to?.y,
                 opacity: 0,
-                ...FROM_TO_MIXINS['removed'],
+                phase: FROM_TO_MIXINS['removed'],
             };
         }
 

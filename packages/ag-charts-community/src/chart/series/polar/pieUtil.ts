@@ -1,4 +1,4 @@
-import type { FromToMotionPropFnContext, NodeUpdateState } from '../../../motion/fromToMotion';
+import type { FromToMotionPropFn, FromToMotionPropFnContext, NodeUpdateState } from '../../../motion/fromToMotion';
 import type { Sector } from '../../../scene/shape/sector';
 import { toRadians } from '../../../util/angle';
 import type { Circle } from '../../marker/circle';
@@ -34,9 +34,9 @@ export function preparePieSeriesAnimationFunctions(
         return { innerRadius: oldScale[0], outerRadius: oldScale[0] + (oldScale[1] - oldScale[0]) * radius };
     };
 
-    const fromFn = (
-        sect: Sector,
-        datum: AnimatableSectorDatum,
+    const fromFn: FromToMotionPropFn<Sector, any, AnimatableSectorDatum> = (
+        sect,
+        datum,
         status: NodeUpdateState,
         { prevFromProps }: FromToMotionPropFnContext<Sector>
     ) => {
@@ -68,9 +68,9 @@ export function preparePieSeriesAnimationFunctions(
             stroke = sect.stroke ?? stroke;
         }
 
-        return { startAngle, endAngle, innerRadius, outerRadius, fill, stroke };
+        return { startAngle, endAngle, innerRadius, outerRadius, fill, stroke, phase: 'initial' };
     };
-    const toFn = (
+    const toFn: FromToMotionPropFn<Sector, any, AnimatableSectorDatum> = (
         _sect: Sector,
         datum: AnimatableSectorDatum,
         status: NodeUpdateState,
@@ -97,16 +97,14 @@ export function preparePieSeriesAnimationFunctions(
         return { startAngle, endAngle, outerRadius, innerRadius, stroke, fill };
     };
 
-    const innerCircle = {
-        fromFn: (node: Circle, _datum: { radius: number }) => {
-            return { size: node.previousDatum?.radius ?? node.size ?? 0 };
-        },
-        toFn: (_node: Circle, datum: { radius: number }) => {
-            return { size: datum.radius ?? 0 };
-        },
+    const innerCircleFromFn: FromToMotionPropFn<Circle, any, { radius: number }> = (node, _) => {
+        return { size: node.previousDatum?.radius ?? node.size ?? 0, phase: 'initial' };
+    };
+    const innerCircleToFn: FromToMotionPropFn<Circle, any, { radius: number }> = (_, datum) => {
+        return { size: datum.radius ?? 0 };
     };
 
-    return { nodes: { toFn, fromFn }, innerCircle };
+    return { nodes: { toFn, fromFn }, innerCircle: { fromFn: innerCircleFromFn, toFn: innerCircleToFn } };
 }
 
 export function resetPieSelectionsFn(_node: Sector, datum: AnimatableSectorDatum) {

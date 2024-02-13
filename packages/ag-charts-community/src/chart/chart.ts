@@ -248,6 +248,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     chartAnimationPhase: ChartAnimationPhase = 'initial';
 
+    public readonly highlightManager = new HighlightManager();
     public readonly syncManager = new SyncManager(this);
     public readonly zoomManager = new ZoomManager();
 
@@ -256,7 +257,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
     protected readonly animationManager: AnimationManager;
     protected readonly chartEventManager: ChartEventManager;
     protected readonly cursorManager: CursorManager;
-    protected readonly highlightManager: HighlightManager;
     protected readonly interactionManager: InteractionManager;
     protected readonly gestureDetector: GestureDetector;
     protected readonly tooltipManager: TooltipManager;
