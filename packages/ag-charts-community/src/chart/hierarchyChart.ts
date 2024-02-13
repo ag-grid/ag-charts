@@ -1,13 +1,14 @@
+import type { ChartOptions } from '../module/optionsModule';
 import { BBox } from '../scene/bbox';
-import type { ChartSpecialOverrides, TransferableResources } from './chart';
+import type { TransferableResources } from './chart';
 import { Chart } from './chart';
 
 export class HierarchyChart extends Chart {
     static className = 'HierarchyChart';
     static type = 'hierarchy' as const;
 
-    constructor(specialOverrides: ChartSpecialOverrides, resources?: TransferableResources) {
-        super(specialOverrides, resources);
+    constructor(options: ChartOptions, resources?: TransferableResources) {
+        super(options, resources);
     }
 
     protected _data: any = {};
