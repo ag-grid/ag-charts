@@ -4,7 +4,7 @@ interface BBoxLike {
     containsPoint(x: number, y: number): boolean;
 }
 
-interface BBoxProvider {
+export interface BBoxProvider {
     computeBBox(): BBoxLike | undefined;
 }
 

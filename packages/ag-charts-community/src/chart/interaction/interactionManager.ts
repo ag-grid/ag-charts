@@ -198,7 +198,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         };
     }
 
-    public addRegion(name: RegionName, node: Node): ObservableRegion {
+    public addRegion(name: RegionName, node: BBoxProvider): ObservableRegion {
         const region = this.makeRegion(name);
         const interactionManager = this;
         this.regions.add(region, node);
