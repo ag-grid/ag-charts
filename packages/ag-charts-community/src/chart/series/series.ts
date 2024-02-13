@@ -182,7 +182,7 @@ export function groupAccumulativeValueProperty<K>(
     ];
 }
 
-export type SeriesNodeEventTypes = 'nodeClick' | 'nodeDoubleClick';
+export type SeriesNodeEventTypes = 'nodeClick' | 'nodeDoubleClick' | 'groupingChanged';
 
 interface INodeClickEvent<TEvent extends string = SeriesNodeEventTypes> extends TypedEvent {
     readonly type: TEvent;
@@ -229,6 +229,16 @@ enum SeriesHighlight {
 }
 
 export type SeriesModuleMap = ModuleMap<SeriesOptionModule, SeriesOptionInstance, SeriesContext>;
+
+export class SeriesGroupingChangedEvent implements TypedEvent {
+    type = 'groupingChanged';
+
+    constructor(
+        public series: Series<any>,
+        public seriesGrouping: SeriesGrouping | undefined,
+        public oldGrouping: SeriesGrouping | undefined
+    ) {}
+}
 
 export abstract class Series<
         TDatum extends SeriesNodeDatum,
@@ -338,7 +348,7 @@ export abstract class Series<
     }
 
     private onSeriesGroupingChange(prev?: SeriesGrouping, next?: SeriesGrouping) {
-        const { internalId, type, visible, rootGroup, highlightGroup, annotationGroup } = this;
+        const { internalId, type, visible } = this;
 
         if (prev) {
             this.ctx.seriesStateManager.deregisterSeries({ id: internalId, type });
@@ -347,19 +357,7 @@ export abstract class Series<
             this.ctx.seriesStateManager.registerSeries({ id: internalId, type, visible, seriesGrouping: next });
         }
 
-        // Short-circuit if series isn't already attached to the scene-graph yet.
-        if (this.rootGroup.parent == null) return;
-
-        this.ctx.seriesLayerManager.changeGroup({
-            internalId,
-            type,
-            rootGroup,
-            highlightGroup,
-            annotationGroup,
-            getGroupZIndexSubOrder: (type) => this.getGroupZIndexSubOrder(type),
-            seriesGrouping: next,
-            oldGrouping: prev,
-        });
+        this.fireEvent(new SeriesGroupingChangedEvent(this, next, prev));
     }
 
     getBandScalePadding() {
@@ -478,7 +476,6 @@ export abstract class Series<
         this.destroyFns.forEach((f) => f());
         this.destroyFns = [];
         this.ctx.seriesStateManager.deregisterSeries(this);
-        this.ctx.seriesLayerManager.releaseGroup(this);
     }
 
     abstract resetAnimation(chartAnimationPhase: ChartAnimationPhase): void;
