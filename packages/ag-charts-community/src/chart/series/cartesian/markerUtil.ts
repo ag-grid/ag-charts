@@ -1,6 +1,6 @@
 import { QUICK_TRANSITION } from '../../../motion/animation';
 import type { NodeUpdateState } from '../../../motion/fromToMotion';
-import { FROM_TO_MIXINS, fromToMotion, staticFromToMotion } from '../../../motion/fromToMotion';
+import { NODE_UPDATE_STATE_TO_PHASE_MAPPING, fromToMotion, staticFromToMotion } from '../../../motion/fromToMotion';
 import type { Node } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
 import { clamp } from '../../../util/number';
@@ -18,7 +18,7 @@ export function markerFadeInAnimation<T>(
     markerSelections: Selection<NodeWithOpacity, T>[],
     status: NodeUpdateState = 'unknown'
 ) {
-    const params = { phase: FROM_TO_MIXINS[status] };
+    const params = { phase: NODE_UPDATE_STATE_TO_PHASE_MAPPING[status] };
     staticFromToMotion(id, 'markers', animationManager, markerSelections, { opacity: 0 }, { opacity: 1 }, params);
     markerSelections.forEach((s) => s.cleanup());
 }
@@ -100,7 +100,7 @@ export function prepareMarkerAnimation(pairMap: PathPointMap<any>, parentStatus:
             translationX: point?.from?.x ?? marker.translationX,
             translationY: point?.from?.y ?? marker.translationY,
             opacity: marker.opacity,
-            phase: FROM_TO_MIXINS[status],
+            phase: NODE_UPDATE_STATE_TO_PHASE_MAPPING[status],
         };
 
         if (parentStatus === 'added') {
@@ -109,7 +109,7 @@ export function prepareMarkerAnimation(pairMap: PathPointMap<any>, parentStatus:
                 opacity: 0,
                 translationX: point?.to?.x,
                 translationY: point?.to?.y,
-                phase: FROM_TO_MIXINS['added'],
+                phase: NODE_UPDATE_STATE_TO_PHASE_MAPPING['added'],
             };
         }
         if (status === 'added') {
@@ -127,7 +127,7 @@ export function prepareMarkerAnimation(pairMap: PathPointMap<any>, parentStatus:
             translationX: datum.point.x,
             translationY: datum.point.y,
             opacity: 1,
-            phase: FROM_TO_MIXINS[status],
+            phase: NODE_UPDATE_STATE_TO_PHASE_MAPPING[status],
         };
 
         if (status === 'removed' || parentStatus === 'removed') {
@@ -136,7 +136,7 @@ export function prepareMarkerAnimation(pairMap: PathPointMap<any>, parentStatus:
                 translationX: point?.to?.x,
                 translationY: point?.to?.y,
                 opacity: 0,
-                phase: FROM_TO_MIXINS['removed'],
+                phase: NODE_UPDATE_STATE_TO_PHASE_MAPPING['removed'],
             };
         }
 
