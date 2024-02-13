@@ -1,7 +1,20 @@
 import type { AgAxisLabelFormatterParams } from './axisOptions';
 import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, Opacity, PixelSize, Ratio } from './types';
 
+export interface AgNavigatorMiniChartIntervalOptions {
+    /** Maximum gap in pixels between interval lines. */
+    minSpacing?: PixelSize;
+    /** Maximum gap in pixels between interval lines. */
+    maxSpacing?: PixelSize;
+    /** Array of values in axis units to display as intervals along the axis. The values in this array must be compatible with the axis type. */
+    values?: any[];
+    /** The step value between intervals specified as a number. If the configured interval results in too many intervals given the chart size, it will be ignored. */
+    step?: number;
+}
+
 export interface AgNavigatorMiniChartLabelOptions {
+    /** Configuration for the Mini Chart's interval. */
+    interval?: AgNavigatorMiniChartIntervalOptions;
     /** Set to `false` to hide the axis labels. */
     enabled?: boolean;
     /** The font style to use for the labels. */
@@ -16,13 +29,11 @@ export interface AgNavigatorMiniChartLabelOptions {
     padding?: PixelSize;
     /** The colour to use for the labels. */
     color?: CssColor;
-    /** Avoid axis label collision by automatically reducing the number of ticks displayed. If set to `false`, axis labels may collide. */
+    /** Avoid axis label collision by automatically reducing the number of intervals displayed. If set to `false`, axis labels may collide. */
     avoidCollisions?: boolean;
-    /** Minimum gap in pixels between the axis labels before being removed to avoid collisions. */
-    minSpacing?: PixelSize;
     /** Format string used when rendering labels. */
     format?: string;
-    /** Function used to render axis labels. If `value` is a number, `fractionDigits` will also be provided, which indicates the number of fractional digits used in the step between ticks; for example, a tick step of `0.0005` would have `fractionDigits` set to `4`. */
+    /** Function used to render axis labels. If `value` is a number, `fractionDigits` will also be provided, which indicates the number of fractional digits used in the step between intervals; for example, a tick step of `0.0005` would have `fractionDigits` set to `4`. */
     formatter?: (params: AgAxisLabelFormatterParams) => string | undefined;
 }
 
