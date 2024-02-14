@@ -77,6 +77,9 @@ type TickStrategyParams = {
     textProps: TextSizeProperties;
     labelOverlap: boolean;
     terminate: boolean;
+    minTickCount: number;
+    maxTickCount: number;
+    defaultTickCount: number;
     primaryTickCount?: number;
 };
 
@@ -788,10 +791,12 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const initialRotation = configuredRotation + defaultRotation;
         const labelMatrix = new Matrix();
 
-        const { maxTickCount } = this.estimateTickCount({
+        const estimatedTickCount = this.estimateTickCount({
             minSpacing: tick.minSpacing,
             maxSpacing: tick.maxSpacing ?? NaN,
         });
+        const { maxTickCount, defaultTickCount } = estimatedTickCount;
+        let { minTickCount } = estimatedTickCount;
 
         const continuous = ContinuousScale.is(scale);
         const maxIterations = !continuous || isNaN(maxTickCount) ? 10 : maxTickCount;
@@ -822,6 +827,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             if (terminate) {
                 break;
             }
+            const previousLength = tickData.ticks.length;
             autoRotation = 0;
             textAlign = getTextAlign(parallel, configuredRotation, 0, sideFlag, regularFlipFlag);
 
@@ -834,6 +840,9 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                     textProps,
                     labelOverlap,
                     terminate,
+                    minTickCount,
+                    maxTickCount,
+                    defaultTickCount,
                     primaryTickCount,
                 }));
 
@@ -844,6 +853,10 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                     ...textProps,
                     textAlign,
                 });
+            }
+
+            if (labelOverlap && minTickCount >= 0 && tickData.ticks.length === previousLength) {
+                minTickCount -= 1;
             }
         }
 
@@ -875,14 +888,48 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             tickGenerationType = TickGenerationType.CREATE;
         }
 
-        const tickGenerationStrategy = ({ index, tickData, primaryTickCount, terminate }: TickStrategyParams) =>
-            this.createTickData(tickGenerationType, index, tickData, terminate, primaryTickCount);
+        const tickGenerationStrategy = ({
+            index,
+            tickData,
+            minTickCount,
+            maxTickCount,
+            defaultTickCount,
+            primaryTickCount,
+            terminate,
+        }: TickStrategyParams) =>
+            this.createTickData(
+                tickGenerationType,
+                index,
+                tickData,
+                terminate,
+                minTickCount,
+                maxTickCount,
+                defaultTickCount,
+                primaryTickCount
+            );
 
         strategies.push(tickGenerationStrategy);
 
         if (!continuous && !isNaN(tick.minSpacing)) {
-            const tickFilterStrategy = ({ index, tickData, primaryTickCount, terminate }: TickStrategyParams) =>
-                this.createTickData(TickGenerationType.FILTER, index, tickData, terminate, primaryTickCount);
+            const tickFilterStrategy = ({
+                index,
+                tickData,
+                minTickCount,
+                maxTickCount,
+                defaultTickCount,
+                primaryTickCount,
+                terminate,
+            }: TickStrategyParams) =>
+                this.createTickData(
+                    TickGenerationType.FILTER,
+                    index,
+                    tickData,
+                    terminate,
+                    minTickCount,
+                    maxTickCount,
+                    defaultTickCount,
+                    primaryTickCount
+                );
             strategies.push(tickFilterStrategy);
         }
 
@@ -914,13 +961,12 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         index: number,
         tickData: TickData,
         terminate: boolean,
+        minTickCount: number,
+        maxTickCount: number,
+        defaultTickCount: number,
         primaryTickCount?: number
     ): TickStrategyResult {
         const { scale, tick } = this;
-        const { maxTickCount, minTickCount, defaultTickCount } = this.estimateTickCount({
-            minSpacing: tick.minSpacing,
-            maxSpacing: tick.maxSpacing ?? NaN,
-        });
 
         const continuous = ContinuousScale.is(scale);
         const maxIterations = !continuous || isNaN(maxTickCount) ? 10 : maxTickCount;
