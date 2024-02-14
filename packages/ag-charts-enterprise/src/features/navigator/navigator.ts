@@ -14,13 +14,7 @@ export class Navigator extends _ModuleSupport.Navigator {
             target.rs.background.appendChild(value.root);
         }
     })
-    override miniChart: MiniChart;
-
-    constructor(ctx: _ModuleSupport.ModuleContext) {
-        super(ctx);
-
-        this.miniChart = new MiniChart(ctx);
-    }
+    override miniChart: MiniChart = new MiniChart();
 
     async updateData(opts: { data: any }): Promise<void> {
         await this.miniChart.updateData(opts);
