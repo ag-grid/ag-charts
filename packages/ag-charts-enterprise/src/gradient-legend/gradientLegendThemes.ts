@@ -16,10 +16,6 @@ export const GRADIENT_LEGEND_THEME: AgGradientLegendOptions = {
             fontFamily: _Theme.DEFAULT_FONT_FAMILY,
             formatter: undefined,
         },
-        interval: {
-            minSpacing: 1,
-            maxSpacing: 50,
-        },
     },
     gradient: {
         preferredLength: 100,
