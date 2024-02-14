@@ -1,4 +1,4 @@
-import { ANIMATION_PHASE_TIMINGS } from '../../motion/animation';
+import { PHASE_METADATA } from '../../motion/animation';
 import { injectStyle } from '../../util/dom';
 import type { AnimationManager } from '../interaction/animationManager';
 import { DEFAULT_OVERLAY_CLASS, DEFAULT_OVERLAY_DARK_CLASS, Overlay } from './overlay';
@@ -55,7 +55,7 @@ export class ChartOverlays {
     }
 
     private renderLoadingSpinner(parent: HTMLElement, animationManager: AnimationManager) {
-        const { animationDuration, animationDelay } = ANIMATION_PHASE_TIMINGS['add'];
+        const { animationDuration, animationDelay } = PHASE_METADATA['add'];
         const duration = animationDuration * animationManager.defaultDuration;
         const delay = animationDelay * animationManager.defaultDuration;
 

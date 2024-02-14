@@ -1,4 +1,4 @@
-import { ANIMATION_PHASE_ORDER, ANIMATION_PHASE_TIMINGS, type IAnimation } from '../../motion/animation';
+import { type IAnimation, PHASE_METADATA, PHASE_ORDER } from '../../motion/animation';
 import { Debug } from '../../util/debug';
 import { Logger } from '../../util/logger';
 
@@ -15,7 +15,7 @@ export class AnimationBatch {
     private readonly debug = Debug.create(...DEBUG_SELECTORS);
 
     private currentPhase = 0;
-    private phases = new Map(ANIMATION_PHASE_ORDER.map((p) => [p, [] as IAnimation[]]));
+    private phases = new Map(PHASE_ORDER.map((p) => [p, [] as IAnimation[]]));
     private skipAnimations = false;
     private animationTimeConsumed = 0;
 
@@ -31,7 +31,7 @@ export class AnimationBatch {
     }
 
     getActiveControllers(): IAnimation[] {
-        return this.phases.get(ANIMATION_PHASE_ORDER[this.currentPhase]) ?? [];
+        return this.phases.get(PHASE_ORDER[this.currentPhase]) ?? [];
     }
 
     checkOverlappingId(id: string) {
@@ -46,7 +46,7 @@ export class AnimationBatch {
     addAnimation(animation: IAnimation) {
         if (animation.isComplete) return;
 
-        const animationPhaseIdx = ANIMATION_PHASE_ORDER.indexOf(animation.phase);
+        const animationPhaseIdx = PHASE_ORDER.indexOf(animation.phase);
         if (animationPhaseIdx < this.currentPhase) {
             // Animation is for an earlier phase that the batch is currently in, so skip it.
             this.debug(`Skipping animation due to being for an earlier phase`, animation.id);
@@ -75,17 +75,17 @@ export class AnimationBatch {
         let unusedTime = deltaTime === 0 ? 0.01 : deltaTime;
 
         const refresh = () => {
-            const phase = ANIMATION_PHASE_ORDER[this.currentPhase];
+            const phase = PHASE_ORDER[this.currentPhase];
             return {
                 phaseControllers: [...this.getActiveControllers()],
                 phase,
-                phaseMeta: ANIMATION_PHASE_TIMINGS[phase],
+                phaseMeta: PHASE_METADATA[phase],
             };
         };
 
         let { phase, phaseControllers, phaseMeta } = refresh();
 
-        const arePhasesComplete = () => ANIMATION_PHASE_ORDER[this.currentPhase] == null;
+        const arePhasesComplete = () => PHASE_ORDER[this.currentPhase] == null;
         const progressPhase = () => {
             ({ phase, phaseControllers, phaseMeta } = refresh());
             while (!arePhasesComplete() && phaseControllers.length === 0) {

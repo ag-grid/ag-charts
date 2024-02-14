@@ -12,9 +12,9 @@ export type AnimationMetadata = {
 };
 export const QUICK_TRANSITION = 0.2;
 
-export const ANIMATION_PHASE_ORDER = ['initial', 'remove', 'update', 'add', 'trailing', 'end'] as const;
-export type AnimationPhase = (typeof ANIMATION_PHASE_ORDER)[number];
-export const ANIMATION_PHASE_TIMINGS: Record<AnimationPhase, AnimationMetadata> = {
+export const PHASE_ORDER = ['initial', 'remove', 'update', 'add', 'trailing', 'end'] as const;
+export type AnimationPhase = (typeof PHASE_ORDER)[number];
+export const PHASE_METADATA: Record<AnimationPhase, AnimationMetadata> = {
     initial: {
         animationDuration: 1,
         animationDelay: 0,
@@ -140,7 +140,7 @@ export class Animation<T extends AnimationValue> implements IAnimation {
         this.ease = opts.ease ?? linear;
         this.phase = opts.phase;
 
-        const durationProportion = opts.duration ?? ANIMATION_PHASE_TIMINGS[this.phase].animationDuration;
+        const durationProportion = opts.duration ?? PHASE_METADATA[this.phase].animationDuration;
         this.duration = durationProportion * opts.defaultDuration;
         this.delay = (opts.delay ?? 0) * opts.defaultDuration;
 
