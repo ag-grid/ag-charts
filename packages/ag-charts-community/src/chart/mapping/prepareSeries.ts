@@ -4,8 +4,8 @@ import type { ISeries } from '../series/seriesTypes';
 
 export function matchSeriesOptions<S extends ISeries<any>>(
     series: S[],
-    oldOpts: AgChartOptions,
-    optSeries: NonNullable<AgChartOptions['series']>
+    optSeries: NonNullable<AgChartOptions['series']>,
+    oldOptsSeries?: AgChartOptions['series']
 ) {
     const keysToConsider = ['direction', 'xKey', 'yKey', 'sizeKey', 'angleKey', 'radiusKey', 'normalizedTo'];
 
@@ -59,7 +59,7 @@ export function matchSeriesOptions<S extends ISeries<any>>(
 
             const [series, idx] = seriesArray.shift()!;
 
-            const previousOpts = oldOpts.series?.[idx] ?? {};
+            const previousOpts = oldOptsSeries?.[idx] ?? {};
             const diff = jsonDiff(previousOpts, opts ?? {}) as any;
 
             if (diff) {

@@ -2,7 +2,7 @@ import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { PixelSize } from '../../chart/types';
 import type { AgSeriesMarkerOptions } from '../markerOptions';
-import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
+import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
 
 export type AgBubbleSeriesTooltipRendererParams<TDatum = any> = AgSeriesTooltipRendererParams<TDatum> &
     AgBubbleSeriesOptionsKeys &
@@ -17,7 +17,7 @@ export interface AgBubbleSeriesMarker<TDatum> extends AgSeriesMarkerOptions<AgBu
 
 export type AgBubbleSeriesLabelFormatterParams = AgBubbleSeriesOptionsKeys & AgBubbleSeriesOptionsNames;
 
-export interface AgBubbleSeriesThemeableOptions<TDatum = any> extends AgBaseSeriesThemeableOptions<TDatum> {
+export interface AgBubbleSeriesThemeableOptions<TDatum = any> extends AgBaseCartesianThemeableOptions<TDatum> {
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not.  */
     title?: string;
     /** Configuration for the markers used in the series.  */
