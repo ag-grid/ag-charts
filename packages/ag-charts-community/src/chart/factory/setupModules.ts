@@ -3,8 +3,8 @@ import { Logger } from '../../util/logger';
 import { axisThemes, axisTypes } from './axisTypes';
 import { chartDefaults } from './chartTypes';
 import { getUnusedExpectedModules, verifyIfModuleExpected } from './expectedEnterpriseModules';
-import { legendRegistry } from './legendTypes';
-import { seriesRegistry } from './seriesTypes';
+import { legendRegistry } from './legendRegistry';
+import { seriesRegistry } from './seriesRegistry';
 
 export function setupModules() {
     for (const m of REGISTERED_MODULES) {

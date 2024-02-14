@@ -2,7 +2,7 @@ import { axisTypes } from '../chart/factory/axisTypes';
 import { chartTypes } from '../chart/factory/chartTypes';
 import { isEnterpriseSeriesType } from '../chart/factory/expectedEnterpriseModules';
 import { removeUsedEnterpriseOptions } from '../chart/factory/processEnterpriseOptions';
-import { type SeriesOptions, seriesRegistry } from '../chart/factory/seriesTypes';
+import { type SeriesOptions, seriesRegistry } from '../chart/factory/seriesRegistry';
 import { getChartTheme } from '../chart/mapping/themes';
 import {
     isAgCartesianChartOptions,

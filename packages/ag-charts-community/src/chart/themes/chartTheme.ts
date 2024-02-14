@@ -11,8 +11,8 @@ import { mergeDefaults } from '../../util/object';
 import { isArray, isObject } from '../../util/type-guards';
 import { axisThemes, axisTypes } from '../factory/axisTypes';
 import { type ChartType, chartDefaults, chartTypes } from '../factory/chartTypes';
-import { legendRegistry } from '../factory/legendTypes';
-import { seriesRegistry } from '../factory/seriesTypes';
+import { legendRegistry } from '../factory/legendRegistry';
+import { seriesRegistry } from '../factory/seriesRegistry';
 import { CARTESIAN_AXIS_TYPE, FONT_SIZE, FONT_WEIGHT, POSITION } from './constants';
 import { DEFAULT_FILLS, DEFAULT_STROKES } from './defaultColors';
 import {

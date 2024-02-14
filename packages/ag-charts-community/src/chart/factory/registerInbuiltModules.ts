@@ -16,7 +16,7 @@ import { ScatterSeriesModule } from '../series/cartesian/scatterSeriesModule';
 import { DonutSeriesModule } from '../series/polar/donutSeriesModule';
 import { PieSeriesModule } from '../series/polar/pieSeriesModule';
 import { axisTypes } from './axisTypes';
-import { legendRegistry } from './legendTypes';
+import { legendRegistry } from './legendRegistry';
 
 export function registerInbuiltModules() {
     registerModule(BackgroundModule);
