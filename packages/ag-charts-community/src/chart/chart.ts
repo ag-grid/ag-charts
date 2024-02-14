@@ -1592,19 +1592,17 @@ export abstract class Chart extends Observable implements AgChartInstance {
             !forceRecreate && chart.axes.length === axes.length && chart.axes.every((a, i) => a.type === axes[i].type);
 
         // Try to optimise series updates if series count and types didn't change.
-        if (matchingTypes) {
-            if (isAgCartesianChartOptions(oldOpts)) {
-                chart.axes.forEach((axis, index) => {
-                    const previousOpts = oldOpts.axes?.[index] ?? {};
-                    const axisDiff = jsonDiff(previousOpts, axes[index]) as any;
+        if (matchingTypes && isAgCartesianChartOptions(oldOpts)) {
+            chart.axes.forEach((axis, index) => {
+                const previousOpts = oldOpts.axes?.[index] ?? {};
+                const axisDiff = jsonDiff(previousOpts, axes[index]) as any;
 
-                    debug(`AgChartV2.applyAxes() - applying axis diff idx ${index}`, axisDiff);
+                debug(`AgChartV2.applyAxes() - applying axis diff idx ${index}`, axisDiff);
 
-                    const path = `axes[${index}]`;
-                    this.applyOptionValues(axis, axisDiff, { path, skip });
-                });
-                return true;
-            }
+                const path = `axes[${index}]`;
+                this.applyOptionValues(axis, axisDiff, { path, skip });
+            });
+            return true;
         }
 
         debug(`AgChartV2.applyAxes() - creating new axes instances; seriesStatus: ${seriesStatus}`);
