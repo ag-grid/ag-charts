@@ -753,7 +753,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
             const isDatumHighlighted =
                 highlightedDatum?.series === this && node.datum.itemId === highlightedDatum.itemId;
 
-            updateSectorFn(node, datum, index, isDatumHighlighted);
+            updateSectorFn(node, datum, index, true);
             node.visible = isDatumHighlighted;
         });
 
