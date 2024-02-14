@@ -220,7 +220,7 @@ export class MiniChart
                     (label.enabled ? (label.fontSize ?? 0) * Text.defaultLineHeightRatio + label.padding : 0);
             }
 
-            padding[position] = size;
+            padding[position] = Math.ceil(size);
         });
 
         return padding;
