@@ -1,12 +1,7 @@
 import { describe } from '@jest/globals';
 import 'jest-canvas-mock';
 
-import { registerChartSeriesType } from '../chart/factory/chartTypes';
-import {
-    addGroupableSeriesType,
-    addStackableSeriesType,
-    addStackedByDefaultSeriesType,
-} from '../chart/factory/seriesTypes';
+import { seriesRegistry } from '../chart/factory/seriesTypes';
 import type {
     AgAreaSeriesOptions,
     AgBarSeriesOptions,
@@ -14,7 +9,8 @@ import type {
     AgLineSeriesOptions,
 } from '../options/agChartOptions';
 import { doOnce } from '../util/function';
-import { ChartOptions, SeriesType } from './optionsModule';
+import { ChartOptions } from './optionsModule';
+import type { SeriesType } from './optionsModuleTypes';
 
 function prepareOptions<T extends AgChartOptions>(userOptions: T): T {
     const chartOptions = new ChartOptions(userOptions);
@@ -377,16 +373,15 @@ describe('ChartOptions', () => {
             };
 
             for (const [seriesType, { stackable, groupable, stackedByDefault }] of Object.entries(seriesTypes)) {
-                if (stackable) {
-                    addStackableSeriesType(seriesType as SeriesType);
-                }
-                if (groupable) {
-                    addGroupableSeriesType(seriesType as SeriesType);
-                }
-                if (stackedByDefault) {
-                    addStackedByDefaultSeriesType(seriesType as SeriesType);
-                }
-                registerChartSeriesType(seriesType, 'cartesian');
+                seriesRegistry.register(
+                    seriesType as SeriesType,
+                    {
+                        chartTypes: ['cartesian'],
+                        stackable,
+                        groupable,
+                        stackedByDefault,
+                    } as any
+                );
             }
 
             it.each(Object.keys(seriesTypes))(

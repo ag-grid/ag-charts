@@ -1,10 +1,10 @@
 import { REGISTERED_MODULES, hasRegisteredEnterpriseModules } from '../../module/module';
 import { Logger } from '../../util/logger';
-import { registerAxis, registerAxisThemeTemplate } from './axisTypes';
-import { registerChartDefaults } from './chartTypes';
+import { axisThemes, axisTypes } from './axisTypes';
+import { chartDefaults } from './chartTypes';
 import { getUnusedExpectedModules, verifyIfModuleExpected } from './expectedEnterpriseModules';
-import { registerLegend } from './legendTypes';
-import { registerSeries, registerSeriesThemeTemplate } from './seriesTypes';
+import { legendRegistry } from './legendTypes';
+import { seriesRegistry } from './seriesTypes';
 
 export function setupModules() {
     for (const m of REGISTERED_MODULES) {
@@ -14,7 +14,7 @@ export function setupModules() {
 
         if (m.type === 'root' && m.themeTemplate) {
             for (const chartType of m.chartTypes) {
-                registerChartDefaults(chartType, m.themeTemplate);
+                chartDefaults.set(chartType, m.themeTemplate);
             }
         }
 
@@ -22,12 +22,12 @@ export function setupModules() {
             if (m.chartTypes.length > 1) {
                 throw new Error(`AG Charts - Module definition error: ${m.identifier}`);
             }
-            registerSeries(m);
+            seriesRegistry.register(m.identifier, m);
         }
 
         if (m.type === 'series-option' && m.themeTemplate) {
             for (const seriesType of m.seriesTypes) {
-                registerSeriesThemeTemplate(seriesType, m.themeTemplate);
+                seriesRegistry.setThemeTemplate(seriesType, m.themeTemplate);
             }
         }
 
@@ -39,19 +39,19 @@ export function setupModules() {
                     delete theme[axisType];
                 }
 
-                registerAxisThemeTemplate(axisType, theme);
+                axisThemes.set(axisType, theme);
             }
         }
 
         if (m.type === 'axis') {
-            registerAxis(m.identifier, m.instanceConstructor);
+            axisTypes.set(m.identifier, m.instanceConstructor);
             if (m.themeTemplate) {
-                registerAxisThemeTemplate(m.identifier, m.themeTemplate);
+                axisThemes.set(m.identifier, m.themeTemplate);
             }
         }
 
         if (m.type === 'legend') {
-            registerLegend(m.identifier, m.optionsKey, m.instanceConstructor, m.themeTemplate);
+            legendRegistry.register(m.identifier, m);
         }
     }
 

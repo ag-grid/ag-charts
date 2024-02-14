@@ -12,156 +12,119 @@ import { deepClone } from '../../util/json';
 import { mergeDefaults } from '../../util/object';
 import type { SeriesType } from '../mapping/types';
 import type { ISeries } from '../series/seriesTypes';
-import { registerChartSeriesType } from './chartTypes';
+import { chartTypes } from './chartTypes';
 
 export type SeriesOptions = AgCartesianSeriesOptions | AgPolarSeriesOptions | AgHierarchySeriesOptions;
 
-const SERIES_FACTORIES: Record<string, SeriesConstructor> = {};
-const SERIES_DEFAULTS: Record<string, any> = {};
-const SERIES_THEME_TEMPLATES: Record<string, {}> = {};
-const ENTERPRISE_SERIES_THEME_TEMPLATES: Record<string, {}> = {};
-const SERIES_PALETTE_FACTORIES: Record<string, SeriesPaletteFactory> = {};
-const SOLO_SERIES_TYPES = new Set<SeriesType>();
-const STACKABLE_SERIES_TYPES = new Set<SeriesType>();
-const GROUPABLE_SERIES_TYPES = new Set<SeriesType>();
-const STACKED_BY_DEFAULT_SERIES_TYPES = new Set<SeriesType>();
-const SWAP_DEFAULT_AXES_CONDITIONS: Record<string, (opts: any) => boolean> = {};
+interface SeriesRegistryRecord {
+    instanceConstructor?: SeriesConstructor;
+    seriesDefaults?: object;
+    paletteFactory?: SeriesPaletteFactory;
+    solo?: boolean;
+    groupable?: boolean;
+    stackable?: boolean;
+    stackedByDefault?: boolean;
+    swapDefaultAxesCondition?: (opts: any) => boolean;
+}
 
-export function registerSeries({
-    identifier: seriesType,
-    chartTypes: [chartType],
-    instanceConstructor,
-    seriesDefaults,
-    themeTemplate,
-    enterpriseThemeTemplate,
-    paletteFactory,
-    solo,
-    stackable,
-    groupable,
-    stackedByDefault,
-    swapDefaultAxesCondition,
-}: SeriesModule<any>) {
-    SERIES_FACTORIES[seriesType] = instanceConstructor;
-    SERIES_DEFAULTS[seriesType] = seriesDefaults;
+export class SeriesRegistry {
+    private seriesMap = new Map<SeriesType, SeriesRegistryRecord>();
+    private themeTemplates = new Map<string, { community: object; enterprise: object }>();
 
-    registerSeriesThemeTemplate(seriesType, themeTemplate, enterpriseThemeTemplate);
-
-    if (paletteFactory) {
-        addSeriesPaletteFactory(seriesType, paletteFactory);
-    }
-    if (solo) {
-        addSoloSeriesType(seriesType);
-    }
-    if (stackable) {
-        addStackableSeriesType(seriesType);
-    }
-    if (groupable) {
-        addGroupableSeriesType(seriesType);
-    }
-    if (stackedByDefault) {
-        addStackedByDefaultSeriesType(seriesType);
-    }
-    if (swapDefaultAxesCondition) {
-        addSwapDefaultAxesCondition(seriesType, swapDefaultAxesCondition);
+    register(
+        seriesType: NonNullable<SeriesType>,
+        {
+            chartTypes: [chartType],
+            instanceConstructor,
+            seriesDefaults,
+            themeTemplate,
+            enterpriseThemeTemplate,
+            paletteFactory,
+            solo,
+            stackable,
+            groupable,
+            stackedByDefault,
+            swapDefaultAxesCondition,
+        }: SeriesModule<any>
+    ) {
+        this.setThemeTemplate(seriesType, themeTemplate, enterpriseThemeTemplate);
+        this.seriesMap.set(seriesType, {
+            instanceConstructor,
+            seriesDefaults,
+            paletteFactory,
+            solo,
+            stackable,
+            groupable,
+            stackedByDefault,
+            swapDefaultAxesCondition,
+        });
+        chartTypes.set(seriesType, chartType);
     }
 
-    registerChartSeriesType(seriesType, chartType);
-}
-
-export function registerSeriesThemeTemplate(
-    seriesType: NonNullable<SeriesType>,
-    themeTemplate: {},
-    enterpriseThemeTemplate = {}
-) {
-    const existingTemplate = SERIES_THEME_TEMPLATES[seriesType];
-    SERIES_THEME_TEMPLATES[seriesType] = mergeDefaults(themeTemplate, existingTemplate);
-    ENTERPRISE_SERIES_THEME_TEMPLATES[seriesType] = mergeDefaults(
-        enterpriseThemeTemplate,
-        themeTemplate,
-        existingTemplate
-    );
-}
-
-export function createSeries(seriesType: string, moduleCtx: ModuleContext): ISeries<any> {
-    const seriesConstructor = SERIES_FACTORIES[seriesType];
-    if (seriesConstructor) {
-        return new seriesConstructor(moduleCtx);
-    }
-
-    throw new Error(`AG Charts - unknown series type: ${seriesType}`);
-}
-
-export function getSeriesDefaults<T extends AgChartOptions>(chartType: string): T {
-    return deepClone(SERIES_DEFAULTS[chartType] ?? {});
-}
-
-export function getSeriesThemeTemplate(chartType: string): {} {
-    if (enterpriseModule.isEnterprise) {
-        return ENTERPRISE_SERIES_THEME_TEMPLATES[chartType];
-    }
-    return SERIES_THEME_TEMPLATES[chartType];
-}
-
-export function addSeriesPaletteFactory(seriesType: string, factory: SeriesPaletteFactory) {
-    SERIES_PALETTE_FACTORIES[seriesType] = factory;
-}
-
-export function getSeriesPaletteFactory(seriesType: string) {
-    return SERIES_PALETTE_FACTORIES[seriesType];
-}
-
-export function isSoloSeries(seriesType: SeriesType) {
-    return SOLO_SERIES_TYPES.has(seriesType);
-}
-
-export function isStackableSeries(seriesType: SeriesType) {
-    return STACKABLE_SERIES_TYPES.has(seriesType);
-}
-
-export function isGroupableSeries(seriesType: SeriesType) {
-    return GROUPABLE_SERIES_TYPES.has(seriesType);
-}
-
-export function isSeriesStackedByDefault(seriesType: SeriesType) {
-    return STACKED_BY_DEFAULT_SERIES_TYPES.has(seriesType);
-}
-
-export function addGroupableSeriesType(seriesType: SeriesType) {
-    GROUPABLE_SERIES_TYPES.add(seriesType);
-}
-
-export function addSoloSeriesType(seriesType: SeriesType) {
-    SOLO_SERIES_TYPES.add(seriesType);
-}
-
-export function addStackableSeriesType(seriesType: SeriesType) {
-    STACKABLE_SERIES_TYPES.add(seriesType);
-}
-
-export function addStackedByDefaultSeriesType(seriesType: SeriesType) {
-    STACKED_BY_DEFAULT_SERIES_TYPES.add(seriesType);
-}
-
-export function addSwapDefaultAxesCondition(seriesType: string, predicate: (opts: any) => boolean) {
-    SWAP_DEFAULT_AXES_CONDITIONS[seriesType] = predicate;
-}
-
-export function isDefaultAxisSwapNeeded(opts: AgChartOptions) {
-    let result: boolean | undefined;
-
-    for (const series of opts.series ?? []) {
-        const { type = 'line' } = series;
-        const isDefaultAxisSwapped = SWAP_DEFAULT_AXES_CONDITIONS[type]?.(series);
-
-        if (isDefaultAxisSwapped != null) {
-            if (result != null && result != isDefaultAxisSwapped) {
-                // TODO change to a warning
-                throw new Error('AG Charts - The provided series have incompatible directions');
-            }
-
-            result = isDefaultAxisSwapped;
+    create(seriesType: SeriesType, moduleContext: ModuleContext): ISeries<any> {
+        const SeriesConstructor = this.seriesMap.get(seriesType)?.instanceConstructor;
+        if (SeriesConstructor) {
+            return new SeriesConstructor(moduleContext);
         }
+        throw new Error(`AG Charts - unknown series type: ${seriesType}`);
     }
 
-    return result;
+    cloneDefaults(seriesType: SeriesType) {
+        return deepClone(this.seriesMap.get(seriesType)?.seriesDefaults ?? {});
+    }
+
+    setThemeTemplate(seriesType: NonNullable<SeriesType>, themeTemplate: {}, enterpriseThemeTemplate = {}) {
+        const currentTemplate = this.themeTemplates.get(seriesType);
+        this.themeTemplates.set(seriesType, {
+            community: mergeDefaults(themeTemplate, currentTemplate?.community),
+            enterprise: mergeDefaults(enterpriseThemeTemplate, themeTemplate, currentTemplate?.community),
+        });
+    }
+
+    getThemeTemplate(seriesType: string) {
+        const themeTemplate = this.themeTemplates.get(seriesType);
+        return enterpriseModule.isEnterprise ? themeTemplate?.enterprise : themeTemplate?.community;
+    }
+
+    getPaletteFactory(seriesType: SeriesType) {
+        return this.seriesMap.get(seriesType)?.paletteFactory;
+    }
+
+    isSolo(seriesType: SeriesType) {
+        return this.seriesMap.get(seriesType)?.solo ?? false;
+    }
+
+    isGroupable(seriesType: SeriesType) {
+        return this.seriesMap.get(seriesType)?.groupable ?? false;
+    }
+
+    isStackable(seriesType: SeriesType) {
+        return this.seriesMap.get(seriesType)?.stackable ?? false;
+    }
+
+    isStackedByDefault(seriesType: SeriesType) {
+        return this.seriesMap.get(seriesType)?.stackedByDefault ?? false;
+    }
+
+    isDefaultAxisSwapNeeded(options: AgChartOptions) {
+        let result: boolean | undefined;
+
+        for (const series of options.series ?? []) {
+            const { type = 'line' } = series;
+            const isDefaultAxisSwapped = this.seriesMap.get(type)?.swapDefaultAxesCondition?.(series);
+
+            if (isDefaultAxisSwapped != null) {
+                if (result != null && result != isDefaultAxisSwapped) {
+                    // TODO change to a warning
+                    throw new Error('AG Charts - The provided series have incompatible directions');
+                }
+
+                result = isDefaultAxisSwapped;
+            }
+        }
+
+        return result;
+    }
 }
+
+export const seriesRegistry = new SeriesRegistry();

@@ -41,10 +41,10 @@ import { JSON_APPLY_OPTIONS, JSON_APPLY_PLUGINS } from './chartOptions';
 import { ChartUpdateType } from './chartUpdateType';
 import { DataController } from './data/dataController';
 import { DataService } from './data/dataService';
-import { getAxis } from './factory/axisTypes';
-import { isEnterpriseSeriesType, isEnterpriseSeriesTypeLoaded } from './factory/expectedEnterpriseModules';
-import { getLegendKeys } from './factory/legendTypes';
-import { createSeries } from './factory/seriesTypes';
+import { axisTypes } from './factory/axisTypes';
+import { EXPECTED_ENTERPRISE_MODULES } from './factory/expectedEnterpriseModules';
+import { legendRegistry } from './factory/legendTypes';
+import { seriesRegistry } from './factory/seriesTypes';
 import { AnimationManager } from './interaction/animationManager';
 import { ChartEventManager } from './interaction/chartEventManager';
 import { CursorManager } from './interaction/cursorManager';
@@ -1406,7 +1406,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
 
         const seriesDataUpdate = !!deltaOptions.data || seriesStatus === 'data-change' || seriesStatus === 'replaced';
-        const legendKeys = getLegendKeys();
+        const legendKeys = legendRegistry.getKeys();
         const optionsHaveLegend = Object.values(legendKeys).some(
             (legendKey) => (deltaOptions as any)[legendKey] != null
         );
@@ -1531,54 +1531,59 @@ export abstract class Chart extends Observable implements AgChartInstance {
         options: AgChartOptions,
         oldOpts: AgChartOptions
     ): SeriesChangeType {
-        const optSeries = options.series;
-        if (!optSeries) {
+        if (!options.series) {
             return 'no-change';
         }
 
-        const matchResult = matchSeriesOptions(chart.series, oldOpts, optSeries);
+        const matchResult = matchSeriesOptions(chart.series, oldOpts, options.series);
         if (matchResult.status === 'no-overlap') {
             debug(
                 `AgChartV2.applySeries() - creating new series instances, status: ${matchResult.status}`,
                 matchResult
             );
-            chart.series = this.createSeries(optSeries);
+            chart.series = options.series.map((opts) => this.createSeries(opts));
             return 'replaced';
         }
 
         debug(`AgChartV2.applySeries() - matchResult`, matchResult);
 
         const seriesInstances = [];
-        for (const change of matchResult.changes) {
-            if (change.status === 'add') {
-                const newSeries = this.createSeries([change.opts])[0];
-                seriesInstances.push(newSeries);
-                debug(`AgChartV2.applySeries() - created new series`, newSeries);
-                continue;
-            } else if (change.status === 'remove') {
-                debug(`AgChartV2.applySeries() - removing series at previous idx ${change.idx}`, change.series);
-                continue;
-            } else if (change.status === 'no-op') {
-                seriesInstances.push(change.series);
-                debug(`AgChartV2.applySeries() - no change to series at previous idx ${change.idx}`, change.series);
-                continue;
-            }
+        let dataChanged = false;
+        let isUpdated = false;
 
-            const { series, diff, idx } = change;
-            debug(`AgChartV2.applySeries() - applying series diff previous idx ${idx}`, diff, series);
-            this.applySeriesValues(series, diff);
-            series.markNodeDataDirty();
-            seriesInstances.push(series);
+        for (const change of matchResult.changes) {
+            dataChanged ||= change.diff?.data != null || change.diff?.seriesGrouping != null;
+            isUpdated ||= change.status !== 'no-op';
+
+            switch (change.status) {
+                case 'add':
+                    const newSeries = this.createSeries(change.opts);
+                    seriesInstances.push(newSeries);
+                    debug(`AgChartV2.applySeries() - created new series`, newSeries);
+                    break;
+
+                case 'remove':
+                    debug(`AgChartV2.applySeries() - removing series at previous idx ${change.idx}`, change.series);
+                    break;
+
+                case 'no-op':
+                    seriesInstances.push(change.series);
+                    debug(`AgChartV2.applySeries() - no change to series at previous idx ${change.idx}`, change.series);
+                    break;
+
+                default:
+                    const { series, diff, idx } = change;
+                    debug(`AgChartV2.applySeries() - applying series diff previous idx ${idx}`, diff, series);
+                    this.applySeriesValues(series, diff);
+                    series.markNodeDataDirty();
+                    seriesInstances.push(series);
+            }
         }
 
         debug(`AgChartV2.applySeries() - final series instances`, seriesInstances);
         chart.series = seriesInstances;
 
-        const dataChanged = matchResult.changes.some(({ diff }) => {
-            return diff && (diff.seriesGrouping != null || diff.data != null);
-        });
-        const noop = matchResult.changes.every((c) => c.status === 'no-op');
-        return dataChanged ? 'data-change' : noop ? 'no-op' : 'updated';
+        return dataChanged ? 'data-change' : isUpdated ? 'no-op' : 'updated';
     }
 
     private applyAxes(
@@ -1618,22 +1623,11 @@ export abstract class Chart extends Observable implements AgChartInstance {
         return true;
     }
 
-    private createSeries(options: SeriesOptionsTypes[]): Series<any>[] {
-        const series: Series<any>[] = [];
-        const moduleContext = this.getModuleContext();
-
-        for (const seriesOptions of options ?? []) {
-            const type = seriesOptions.type ?? 'unknown';
-            if (isEnterpriseSeriesType(type) && !isEnterpriseSeriesTypeLoaded(type)) {
-                continue;
-            }
-            const seriesInstance = createSeries(type, moduleContext) as Series<any>;
-            this.applySeriesOptionModules(seriesInstance, seriesOptions);
-            this.applySeriesValues(seriesInstance, seriesOptions);
-            series.push(seriesInstance);
-        }
-
-        return series;
+    private createSeries(seriesOptions: SeriesOptionsTypes): Series<any> {
+        const seriesInstance = seriesRegistry.create(seriesOptions.type!, this.getModuleContext()) as Series<any>;
+        this.applySeriesOptionModules(seriesInstance, seriesOptions);
+        this.applySeriesValues(seriesInstance, seriesOptions);
+        return seriesInstance;
     }
 
     private applySeriesOptionModules(series: Series<any>, options: AgBaseSeriesOptions<any>) {
@@ -1650,20 +1644,26 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     private applySeriesValues(target: Series<any>, options: AgBaseSeriesOptions<any>) {
         const moduleMap = target.getModuleMap();
-        const { type, data, errorBar, listeners, seriesGrouping, ...seriesOptions } = options as any;
+        const { type, data, listeners, seriesGrouping, ...seriesOptions } = options as any;
+
+        for (const moduleDef of EXPECTED_ENTERPRISE_MODULES) {
+            if (moduleDef.type !== 'series-option') continue;
+            if (moduleDef.optionsKey in seriesOptions) {
+                const module = moduleMap.getModule(moduleDef.optionsKey) as any;
+                const moduleOptions = seriesOptions[moduleDef.optionsKey];
+                delete seriesOptions[moduleDef.optionsKey];
+                module.properties.set(moduleOptions);
+            }
+        }
 
         target.properties.set(seriesOptions);
 
         if ('data' in options) {
-            target.data = options.data;
+            target.data = data;
         }
 
-        if ('errorBar' in options && moduleMap.isModuleEnabled('errorBar')) {
-            (moduleMap.getModule('errorBar') as any).properties.set(options.errorBar);
-        }
-
-        if (options?.listeners) {
-            this.registerListeners(target, options.listeners as Record<string, TypedEventListener>);
+        if (listeners) {
+            this.registerListeners(target, listeners as Record<string, TypedEventListener>);
         }
 
         if (seriesGrouping) {
@@ -1675,12 +1675,11 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const guesser: AxisPositionGuesser = new AxisPositionGuesser();
         const moduleContext = this.getModuleContext();
 
-        let index = 0;
-        for (const axisOptions of options ?? []) {
-            const axis = getAxis(axisOptions.type, moduleContext);
-            const path = `axes[${index++}]`;
+        for (let index = 0; index < options.length; index++) {
+            const axisOptions = options[index];
+            const axis = axisTypes.create(axisOptions.type, moduleContext);
             this.applyAxisModules(axis, axisOptions);
-            this.applyOptionValues(axis, axisOptions, { path, skip });
+            this.applyOptionValues(axis, axisOptions, { path: `axes[${index}]`, skip });
 
             guesser.push(axis, axisOptions);
         }
@@ -1689,7 +1688,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     private applyAxisModules(axis: ChartAxis, options: AgBaseAxisOptions) {
-        let modulesChanged = false;
         const rootModules = REGISTERED_MODULES.filter((m): m is AxisOptionModule => m.type === 'axis-option');
         const moduleContext = axis.createModuleContext();
 
@@ -1699,7 +1697,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
             const isEnabled = moduleMap.isModuleEnabled(module);
 
             if (shouldBeEnabled === isEnabled) continue;
-            modulesChanged = true;
 
             if (shouldBeEnabled) {
                 moduleMap.addModule(module, (module) => new module.instanceConstructor(moduleContext));
@@ -1709,8 +1706,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 delete (axis as any)[module.optionsKey]; // TODO remove
             }
         }
-
-        return modulesChanged;
     }
 
     private applyOptionValues<T extends object, S>(

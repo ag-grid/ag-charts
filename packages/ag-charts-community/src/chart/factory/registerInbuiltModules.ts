@@ -15,8 +15,8 @@ import { LineSeriesModule } from '../series/cartesian/lineSeriesModule';
 import { ScatterSeriesModule } from '../series/cartesian/scatterSeriesModule';
 import { DonutSeriesModule } from '../series/polar/donutSeriesModule';
 import { PieSeriesModule } from '../series/polar/pieSeriesModule';
-import { registerAxis } from './axisTypes';
-import { registerLegend } from './legendTypes';
+import { axisTypes } from './axisTypes';
+import { legendRegistry } from './legendTypes';
 
 export function registerInbuiltModules() {
     registerModule(BackgroundModule);
@@ -31,16 +31,11 @@ export function registerInbuiltModules() {
     registerModule(PieSeriesModule);
     registerModule(HistogramSeriesModule);
 
-    const inbuiltAxes = new Map<string, any>([
-        [NumberAxis.type, NumberAxis],
-        [CategoryAxis.type, CategoryAxis],
-        [TimeAxis.type, TimeAxis],
-        [GroupedCategoryAxis.type, GroupedCategoryAxis],
-        [LogAxis.type, LogAxis],
-    ]);
-    inbuiltAxes.forEach((impl, type) => {
-        registerAxis(type, impl);
-    });
+    axisTypes.set(NumberAxis.type, NumberAxis);
+    axisTypes.set(CategoryAxis.type, CategoryAxis);
+    axisTypes.set(TimeAxis.type, TimeAxis);
+    axisTypes.set(GroupedCategoryAxis.type, GroupedCategoryAxis);
+    axisTypes.set(LogAxis.type, LogAxis);
 
-    registerLegend('category', 'legend', Legend, undefined);
+    legendRegistry.register('category', { optionsKey: 'legend', instanceConstructor: Legend });
 }

@@ -1,12 +1,12 @@
 import type { AgChartOptions } from '../../options/agChartOptions';
 import { Logger } from '../../util/logger';
 import { optionsType } from '../mapping/types';
-import { getChartType } from './chartTypes';
+import { chartTypes } from './chartTypes';
 import { EXPECTED_ENTERPRISE_MODULES } from './expectedEnterpriseModules';
 
 export function removeUsedEnterpriseOptions<T extends AgChartOptions>(options: T) {
     const usedOptions: string[] = [];
-    const optionsChartType = getChartType(optionsType(options));
+    const optionsChartType = chartTypes.get(optionsType(options));
     for (const { type, chartTypes, optionsKey, optionsInnerKey, identifier } of EXPECTED_ENTERPRISE_MODULES) {
         if (optionsChartType !== 'unknown' && !chartTypes.includes(optionsChartType)) continue;
 
