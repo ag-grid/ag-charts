@@ -3,20 +3,6 @@ import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { datasetA, datasetB, datasetC, datasetD } from './data';
 
 const options: AgCartesianChartOptions = {
-    // axes: [
-    //     {
-    //         type: 'number',
-    //         position: 'left',
-    //     },
-    //     {
-    //         type: 'number',
-    //         position: 'bottom',
-    //         nice: false,
-    //         label: {
-    //             autoRotate: false,
-    //         },
-    //     },
-    // ],
     tooltip: {
         enabled: false,
     },
