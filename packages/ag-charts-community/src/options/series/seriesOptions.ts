@@ -28,10 +28,13 @@ export interface AgBaseSeriesThemeableOptions<TDatum> {
     nodeClickRange?: InteractionRange;
     /** Whether to include the series in the legend. */
     showInLegend?: boolean;
-    /** Whether to include the series in the Mini Chart. */
-    showInMiniChart?: boolean;
     /** A map of event names to event listeners. */
     listeners?: AgSeriesListeners<TDatum>;
+}
+
+export interface AgBaseCartesianThemeableOptions<TDatum> extends AgBaseSeriesOptions<TDatum> {
+    /** Whether to include the series in the Mini Chart. */
+    showInMiniChart?: boolean;
 }
 
 export interface AgBaseSeriesOptions<TDatum> extends AgBaseSeriesThemeableOptions<TDatum> {

@@ -2,7 +2,7 @@ import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { AgSeriesMarkerOptions } from '../markerOptions';
-import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
+import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
 import type { AgErrorBoundSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 
 export interface AgScatterSeriesTooltipRendererParams<TDatum = any>
@@ -13,7 +13,7 @@ export interface AgScatterSeriesTooltipRendererParams<TDatum = any>
 
 export type AgScatterSeriesLabelFormatterParams = AgScatterSeriesOptionsKeys & AgScatterSeriesOptionsNames;
 
-export interface AgScatterSeriesThemeableOptions<TDatum = any> extends AgBaseSeriesThemeableOptions<TDatum> {
+export interface AgScatterSeriesThemeableOptions<TDatum = any> extends AgBaseCartesianThemeableOptions<TDatum> {
     /** Configuration for the markers used in the series.  */
     marker?: AgSeriesMarkerOptions<AgScatterSeriesOptionsKeys, TDatum>;
     /** Configuration for the labels shown on top of data points.  */

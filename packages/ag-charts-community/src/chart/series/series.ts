@@ -334,8 +334,7 @@ export abstract class Series<
     }
 
     get visible() {
-        const isInMiniChart = this.chart?.isMiniChart === true;
-        return this.properties.visible && (!isInMiniChart || this.properties.showInMiniChart);
+        return this.properties.visible;
     }
 
     protected onDataChange() {

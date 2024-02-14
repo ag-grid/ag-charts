@@ -3,7 +3,7 @@ import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { PixelSize } from '../../chart/types';
 import type { AgSeriesMarkerOptions } from '../markerOptions';
-import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
+import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
@@ -40,7 +40,7 @@ export interface AgRangeAreaSeriesThemeableOptions<TDatum = any>
     extends StrokeOptions,
         FillOptions,
         LineDashOptions,
-        AgBaseSeriesThemeableOptions<TDatum> {
+        AgBaseCartesianThemeableOptions<TDatum> {
     /** Configuration for the markers used in the series.  */
     marker?: AgSeriesMarkerOptions<TDatum, AgRangeAreaSeriesOptionsKeys>;
     /** Configuration for the range series items when they are hovered over. */
