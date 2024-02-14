@@ -3,18 +3,17 @@
  * frontend developer you can safely ignore this part of the example.
  */
 export const Database = {
-    getHourly: () => data,
-    getDaily: () => dailyData,
-    getWeekly: () => weeklyData,
+    get: () => data,
 };
 
 export const minute = 1000 * 60;
 export const hour = minute * 60;
 export const day = hour * 24;
 export const week = day * 7;
+export const month = day * 30;
 
-const dataStart = new Date('2024-01-01 00:00:00').getTime();
-const dataEnd = new Date('2024-12-30 23:59:59').getTime();
+export const dataStart = new Date('2024-01-01 00:00:00').getTime();
+export const dataEnd = new Date('2024-12-30 23:59:59').getTime();
 
 let seed = 1234;
 function random() {
@@ -26,17 +25,12 @@ function random() {
 const data: Array<Datum> = [];
 for (let time = dataStart; time < dataEnd; time += hour) {
     let price;
-    let quantity;
     if (data.length === 0) {
-        price = random() * 100;
+        price = 100 + random() * 100;
     } else {
         price = data[data.length - 1].price + random() * 10 - 5;
     }
-    quantity = random() * 10;
-    data.push({ time, price, quantity });
+    data.push({ time, price });
 }
 
-const dailyData = data.filter(({ time }) => time % day === 0);
-const weeklyData = data.filter(({ time }) => time % week === 0);
-
-export type Datum = { time: number; price: number; quantity: number };
+export type Datum = { time: number; price: number };
