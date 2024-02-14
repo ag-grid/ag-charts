@@ -1368,7 +1368,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
 
         if (series.id === this.id) {
             this.toggleSeriesItem(itemId, enabled);
-        } else if (series.type === 'pie') {
+        } else if (series.type === 'donut') {
             this.toggleOtherSeriesItems(series as DonutSeries, itemId, enabled);
         }
     }

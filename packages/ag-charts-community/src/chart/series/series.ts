@@ -297,6 +297,7 @@ export abstract class Series<
     // Package-level visibility, not meant to be set by the user.
     chart?: {
         mode: ChartMode;
+        isMiniChart: boolean;
         placeLabels(): Map<Series<any>, PlacedLabel[]>;
         seriesRect?: BBox;
     };
@@ -333,7 +334,8 @@ export abstract class Series<
     }
 
     get visible() {
-        return this.properties.visible;
+        const isInMiniChart = this.chart?.isMiniChart === true;
+        return this.properties.visible && (!isInMiniChart || this.properties.showInMiniChart);
     }
 
     protected onDataChange() {

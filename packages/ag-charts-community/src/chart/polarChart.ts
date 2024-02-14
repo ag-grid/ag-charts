@@ -6,6 +6,7 @@ import type { TransferableResources } from './chart';
 import { Chart } from './chart';
 import { ChartAxisDirection } from './chartAxisDirection';
 import { Layers } from './layers';
+import { DonutSeries } from './series/polar/donutSeries';
 import { PieSeries } from './series/polar/pieSeries';
 import { PolarSeries } from './series/polar/polarSeries';
 
@@ -97,7 +98,9 @@ export class PolarChart extends Chart {
                 series.radius = r;
             });
 
-            const pieSeries = polarSeries.filter<PieSeries>((s): s is PieSeries => s instanceof PieSeries);
+            const pieSeries = polarSeries.filter<PieSeries | DonutSeries>((s): s is PieSeries | DonutSeries => {
+                return s instanceof PieSeries || s instanceof DonutSeries;
+            });
             if (pieSeries.length > 1) {
                 const innerRadii = pieSeries
                     .map((series) => {
