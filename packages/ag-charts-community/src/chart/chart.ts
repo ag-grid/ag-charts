@@ -107,6 +107,8 @@ export interface ChartSpecialOverrides {
 
 export type ChartExtendedOptions = AgChartOptions & ChartSpecialOverrides;
 
+type PointerEvent = PointerOffsets & Pick<Partial<InteractionEvent>, 'pointerHistory'>;
+
 class SeriesArea extends BaseProperties {
     @Validate(BOOLEAN, { optional: true })
     clip?: boolean;
@@ -1188,7 +1190,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
-    protected handlePointerNode(event: PointerOffsets) {
+    protected handlePointerNode(event: PointerEvent) {
         const found = this.checkSeriesNodeRange(event, (series, datum) => {
             if (series.hasEventListener('nodeClick') || series.hasEventListener('nodeDoubleClick')) {
                 this.cursorManager.updateCursor('chart', 'pointer');
@@ -1241,7 +1243,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     private checkSeriesNodeRange(
-        event: PointerOffsets,
+        event: PointerEvent,
         callback: (series: ISeries<any>, datum: SeriesNodeDatum) => void
     ): boolean {
         const nearestNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, false);
@@ -1249,7 +1251,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const datum = nearestNode?.datum;
         const nodeClickRange = datum?.series.properties.nodeClickRange;
 
-        let pixelRange;
+        let pixelRange: number | undefined;
         if (isFiniteNumber(nodeClickRange)) {
             pixelRange = nodeClickRange;
         }
@@ -1279,8 +1281,17 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const exactlyMatched = nodeClickRange === 'exact' && pickedNode.distance === 0;
 
         if (isPixelRange || exactlyMatched) {
-            callback(pickedNode.series, pickedNode.datum);
-            return true;
+            const allMatch: boolean =
+                event.pointerHistory === undefined ||
+                event.pointerHistory?.every((pastEvent) => {
+                    const historyPoint = { x: pastEvent.offsetX, y: pastEvent.offsetY };
+                    const historyNode = this.pickSeriesNode(historyPoint, false, pixelRange);
+                    return historyNode?.datum === pickedNode?.datum;
+                });
+            if (allMatch) {
+                callback(pickedNode.series, pickedNode.datum);
+                return true;
+            }
         }
 
         return false;
