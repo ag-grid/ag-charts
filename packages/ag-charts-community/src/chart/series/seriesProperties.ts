@@ -73,6 +73,9 @@ export abstract class SeriesProperties<T extends object> extends BaseProperties<
     @Validate(BOOLEAN)
     showInLegend: boolean = true;
 
+    @Validate(BOOLEAN)
+    showInMiniChart: boolean = true;
+
     @Validate(STRING)
     cursor = 'default';
 
