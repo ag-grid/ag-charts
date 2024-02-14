@@ -9,7 +9,7 @@ import { Logger } from '../util/logger';
 import { mergeDefaults } from '../util/object';
 import type { DeepPartial } from '../util/types';
 import { CartesianChart } from './cartesianChart';
-import { Chart, type ChartExtendedOptions, type ChartSpecialOverrides } from './chart';
+import { Chart, type ChartExtendedOptions } from './chart';
 import { AgChartInstanceProxy } from './chartProxy';
 import { registerInbuiltModules } from './factory/registerInbuiltModules';
 import { setupModules } from './factory/setupModules';
@@ -194,12 +194,11 @@ class AgChartsInternal {
         debug('>>> AgChartV2.createOrUpdate() user options', options);
 
         const { overrideDevicePixelRatio, document, window: userWindow, ...userOptions } = options;
-        const chartOptions = new ChartOptions(userOptions);
+        const chartOptions = new ChartOptions(userOptions, { overrideDevicePixelRatio, document, window: userWindow });
 
         let chart = proxy?.chart;
         if (chart == null || chartType(userOptions) !== chartType(chart.processedOptions)) {
-            const specialOverrides = { overrideDevicePixelRatio, document, window: userWindow };
-            chart = AgChartsInternal.createChartInstance(chartOptions.processedOptions, specialOverrides, chart);
+            chart = AgChartsInternal.createChartInstance(chartOptions, chart);
         }
 
         if (proxy == null) {
@@ -215,11 +214,7 @@ class AgChartsInternal {
 
         chart.queuedUserOptions.push(userOptions);
         chart.requestFactoryUpdate((chart) => {
-            const deltaOptions = chartOptions.diffOptions(chart.processedOptions);
-            if (deltaOptions != null) {
-                debug('AgChartV2.updateDelta() - applying delta', deltaOptions);
-                chart.applyOptions(deltaOptions, userOptions);
-            }
+            chart.applyOptions(chartOptions);
             // If there are a lot of update calls, `requestFactoryUpdate()` may skip callbacks,
             // so we need to remove all queue items up to the last successfully applied item.
             chart.queuedUserOptions.splice(0, chart.queuedUserOptions.indexOf(userOptions));
@@ -293,19 +288,19 @@ class AgChartsInternal {
         return cloneProxy;
     }
 
-    private static createChartInstance(
-        options: AgChartOptions,
-        specialOverrides: ChartSpecialOverrides,
-        oldChart?: Chart
-    ): Chart {
+    private static createChartInstance(options: ChartOptions, oldChart?: Chart): Chart {
         const transferableResource = oldChart?.destroy({ keepTransferableResources: true });
+        const ChartConstructor = AgChartsInternal.getChartByOptions(options.processedOptions);
+        return new ChartConstructor(options, transferableResource);
+    }
 
+    private static getChartByOptions(options: AgChartOptions) {
         if (isAgCartesianChartOptions(options)) {
-            return new CartesianChart(specialOverrides, transferableResource);
+            return CartesianChart;
         } else if (isAgHierarchyChartOptions(options)) {
-            return new HierarchyChart(specialOverrides, transferableResource);
+            return HierarchyChart;
         } else if (isAgPolarChartOptions(options)) {
-            return new PolarChart(specialOverrides, transferableResource);
+            return PolarChart;
         }
 
         throw new Error(

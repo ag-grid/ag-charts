@@ -33,14 +33,12 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     @Validate(OBJECT)
     readonly label: CrosshairLabel;
 
+    private readonly axisCtx: _ModuleSupport.AxisContext;
     private seriesRect: _Scene.BBox = new BBox(0, 0, 0, 0);
     private hoverRect: _Scene.BBox = new BBox(0, 0, 0, 0);
     private bounds: _Scene.BBox = new BBox(0, 0, 0, 0);
     private visible: boolean = false;
-    private axisCtx: _ModuleSupport.AxisContext;
-    private axisLayout?: _ModuleSupport.AxisLayout & {
-        id: string;
-    };
+    private axisLayout?: _ModuleSupport.AxisLayout & { id: string };
     private labelFormatter?: (value: any) => string;
 
     private crosshairGroup: _Scene.Group = new Group({ layer: true, zIndex: Layers.SERIES_CROSSHAIR_ZINDEX });
@@ -161,14 +159,14 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     }
 
     private onMouseMove(event: _ModuleSupport.InteractionEvent<'hover'>) {
-        const { crosshairGroup, snap, seriesRect, hoverRect, axisCtx, visible, activeHighlight } = this;
-        if (snap || !this.enabled) {
+        if (!this.enabled || this.snap) {
             return;
         }
 
+        const { crosshairGroup, seriesRect, hoverRect, axisCtx, activeHighlight } = this;
         const { offsetX, offsetY } = event;
 
-        if (visible && hoverRect.containsPoint(offsetX, offsetY)) {
+        if (this.visible && hoverRect.containsPoint(offsetX, offsetY)) {
             crosshairGroup.visible = true;
 
             const highlight = activeHighlight ? this.getActiveHighlight(activeHighlight) : undefined;
@@ -200,33 +198,25 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     }
 
     private onHighlightChange(event: _ModuleSupport.HighlightChangeEvent) {
-        const { enabled, crosshairGroup, snap, seriesRect, axisCtx, visible } = this;
-
-        if (!enabled) {
+        if (!this.enabled) {
             return;
         }
 
-        const { currentHighlight } = event;
+        const { crosshairGroup, seriesRect, axisCtx } = this;
+        const { datum, series } = event.currentHighlight ?? {};
+        const hasCrosshair = datum && (series?.axes.x?.id === axisCtx.axisId || series?.axes.y?.id === axisCtx.axisId);
 
-        const hasCrosshair =
-            currentHighlight?.datum &&
-            (currentHighlight.series.axes.x?.id === axisCtx.axisId ||
-                currentHighlight.series.axes.y?.id === axisCtx.axisId);
+        this.activeHighlight = hasCrosshair ? event.currentHighlight : undefined;
 
-        if (!hasCrosshair) {
-            this.activeHighlight = undefined;
-        } else {
-            this.activeHighlight = currentHighlight;
-        }
-
-        if (!snap) {
-            return;
-        }
-
-        if (visible && this.activeHighlight) {
-            crosshairGroup.visible = true;
+        if (this.snap) {
+            if (!this.visible || !this.activeHighlight) {
+                this.hideCrosshair();
+                return;
+            }
 
             const { value, position } = this.getActiveHighlight(this.activeHighlight);
+
+            crosshairGroup.visible = true;
 
             let x = 0;
             let y = 0;
@@ -243,8 +233,6 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
             } else {
                 this.hideLabel();
             }
-        } else {
-            this.hideCrosshair();
         }
     }
 
