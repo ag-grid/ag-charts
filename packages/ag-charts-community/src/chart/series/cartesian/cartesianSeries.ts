@@ -12,7 +12,7 @@ import { Path } from '../../../scene/shape/path';
 import { Text } from '../../../scene/shape/text';
 import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { Debug } from '../../../util/debug';
-import { BOOLEAN, STRING, Validate } from '../../../util/validation';
+import { STRING, Validate } from '../../../util/validation';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import { ChartAxisDirection } from '../../chartAxisDirection';
@@ -121,9 +121,6 @@ export interface CartesianAnimationData<
 export abstract class CartesianSeriesProperties<T extends object> extends SeriesProperties<T> {
     @Validate(STRING, { optional: true })
     legendItemName?: string;
-
-    @Validate(BOOLEAN)
-    showInMiniChart: boolean = true;
 }
 
 export interface CartesianSeriesNodeDataContext<
@@ -238,15 +235,6 @@ export abstract class CartesianSeries<
             },
             () => this.checkProcessedDataAnimatable()
         );
-    }
-
-    override set visible(value) {
-        super.visible = value;
-    }
-
-    override get visible() {
-        const isInMiniChart = this.chart?.isMiniChart === true;
-        return super.visible && (!isInMiniChart || this.properties.showInMiniChart);
     }
 
     override resetAnimation(phase: ChartAnimationPhase): void {

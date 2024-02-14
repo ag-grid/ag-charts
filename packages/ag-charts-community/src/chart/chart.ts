@@ -1367,6 +1367,16 @@ export abstract class Chart extends Observable implements AgChartInstance {
         );
     }
 
+    private filterMiniChartSeries(series: AgChartOptions['series'] | undefined): AgChartOptions['series'] | undefined;
+    private filterMiniChartSeries(series: AgChartOptions['series']): AgChartOptions['series'];
+    private filterMiniChartSeries(series: any[] | undefined): any[] | undefined {
+        if (series != null) {
+            return series.filter((s) => s.showInMiniChart !== false);
+        } else {
+            return series;
+        }
+    }
+
     applyOptions(chartOptions: ChartOptions) {
         const oldOpts = this.processedOptions;
         const deltaOptions = chartOptions.diffOptions(oldOpts);
@@ -1395,7 +1405,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         let forceNodeDataRefresh = false;
         let seriesStatus: SeriesChangeType = 'no-op';
         if (deltaOptions.series && deltaOptions.series.length > 0) {
-            seriesStatus = this.applySeries(this, deltaOptions, oldOpts);
+            seriesStatus = this.applySeries(this, deltaOptions.series, oldOpts?.series);
             forceNodeDataRefresh = true;
         }
         if (seriesStatus === 'replaced') {
@@ -1435,8 +1445,12 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
 
         const miniChart = navigatorModule?.miniChart;
-        if (miniChart?.enabled === true) {
-            const seriesStatus = this.applySeries(miniChart, deltaOptions, oldOpts);
+        if (miniChart?.enabled === true && deltaOptions?.series != null) {
+            const seriesStatus = this.applySeries(
+                miniChart,
+                this.filterMiniChartSeries(deltaOptions.series),
+                this.filterMiniChartSeries(oldOpts?.series)
+            );
             this.applyAxes(miniChart, deltaOptions, oldOpts, seriesStatus, [
                 'axes[].tick',
                 'axes[].thickness',
@@ -1528,15 +1542,14 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     private applySeries(
         chart: { series: Series<any>[] },
-        options: AgChartOptions,
-        oldOpts: AgChartOptions
+        optSeries: AgChartOptions['series'],
+        oldOptSeries?: AgChartOptions['series']
     ): SeriesChangeType {
-        const optSeries = options.series;
         if (!optSeries) {
             return 'no-change';
         }
 
-        const matchResult = matchSeriesOptions(chart.series, oldOpts, optSeries);
+        const matchResult = matchSeriesOptions(chart.series, optSeries, oldOptSeries);
         if (matchResult.status === 'no-overlap') {
             debug(
                 `AgChartV2.applySeries() - creating new series instances, status: ${matchResult.status}`,
@@ -1650,7 +1663,15 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     private applySeriesValues(target: Series<any>, options: AgBaseSeriesOptions<any>) {
         const moduleMap = target.getModuleMap();
-        const { type, data, errorBar, listeners, seriesGrouping, ...seriesOptions } = options as any;
+        const {
+            type,
+            data,
+            errorBar,
+            listeners,
+            seriesGrouping,
+            showInMiniChart: _showInMiniChart,
+            ...seriesOptions
+        } = options as any;
 
         target.properties.set(seriesOptions);
 
