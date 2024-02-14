@@ -333,31 +333,33 @@ export class LicenseManager {
         currentLicenseName: string,
         suppliedLicenseName: string
     ) {
-        if (incorrectLicenseType) {
-            // TC4, TC5,TC10
-            this.centerPadAndOutput('');
-            this.centerPadAndOutput(` ${currentLicenseName} License `);
-            this.centerPadAndOutput(' Incompatible License Key ');
-            this.padAndOutput(
-                `* Your license key is for ${suppliedLicenseName} only and does not cover you for ${currentLicenseName}.`,
-                ' ',
-                '*'
-            );
-            this.padAndOutput('* Please contact info@ag-grid.com to obtain a combined license key.', ' ', '*');
-            this.centerPadAndOutput('');
-            this.centerPadAndOutput('');
-        } else {
-            // TC3, TC9
-            this.centerPadAndOutput('');
-            this.centerPadAndOutput(` ${currentLicenseName} License `);
-            this.centerPadAndOutput(' Invalid License Key ');
-            this.padAndOutput(
-                `* Your license key is not valid - please contact info@ag-grid.com to obtain a valid license.`,
-                ' ',
-                '*'
-            );
-            this.centerPadAndOutput('');
-            this.centerPadAndOutput('');
+        if (!this.gridContext) {
+            if (incorrectLicenseType) {
+                // TC4, TC5,TC10
+                this.centerPadAndOutput('');
+                this.centerPadAndOutput(` ${currentLicenseName} License `);
+                this.centerPadAndOutput(' Incompatible License Key ');
+                this.padAndOutput(
+                    `* Your license key is for ${suppliedLicenseName} only and does not cover you for ${currentLicenseName}.`,
+                    ' ',
+                    '*'
+                );
+                this.padAndOutput('* Please contact info@ag-grid.com to obtain a combined license key.', ' ', '*');
+                this.centerPadAndOutput('');
+                this.centerPadAndOutput('');
+            } else {
+                // TC3, TC9
+                this.centerPadAndOutput('');
+                this.centerPadAndOutput(` ${currentLicenseName} License `);
+                this.centerPadAndOutput(' Invalid License Key ');
+                this.padAndOutput(
+                    `* Your license key is not valid - please contact info@ag-grid.com to obtain a valid license.`,
+                    ' ',
+                    '*'
+                );
+                this.centerPadAndOutput('');
+                this.centerPadAndOutput('');
+            }
         }
 
         this.watermarkMessage = 'Invalid License';
@@ -368,53 +370,59 @@ export class LicenseManager {
         currentLicenseName: string,
         suppliedLicenseName: string
     ) {
-        // TC14
-        this.centerPadAndOutput('');
-        this.centerPadAndOutput(` ${currentLicenseName} License `);
-        this.centerPadAndOutput(' Trial Period Expired. ');
-        this.padAndOutput(
-            `* Your trial only license for ${suppliedLicenseName} expired on ${formattedExpiryDate}.`,
-            ' ',
-            '*'
-        );
-        this.padAndOutput('* Please email info@ag-grid.com to purchase a license.', ' ', '*');
-        this.centerPadAndOutput('');
-        this.centerPadAndOutput('');
+        if (!this.gridContext) {
+            // TC14
+            this.centerPadAndOutput('');
+            this.centerPadAndOutput(` ${currentLicenseName} License `);
+            this.centerPadAndOutput(' Trial Period Expired. ');
+            this.padAndOutput(
+                `* Your trial only license for ${suppliedLicenseName} expired on ${formattedExpiryDate}.`,
+                ' ',
+                '*'
+            );
+            this.padAndOutput('* Please email info@ag-grid.com to purchase a license.', ' ', '*');
+            this.centerPadAndOutput('');
+            this.centerPadAndOutput('');
+        }
 
         this.watermarkMessage = 'Trial Period Expired';
     }
 
     private outputMissingLicenseKey(currentLicenseName: string) {
-        // TC6, TC12
-        this.centerPadAndOutput('');
-        this.centerPadAndOutput(` ${currentLicenseName} License `);
-        this.centerPadAndOutput(' License Key Not Found ');
-        this.padAndOutput(`* All ${currentLicenseName} features are unlocked for trial.`, ' ', '*');
-        this.padAndOutput(
-            '* If you want to hide the watermark please email info@ag-grid.com for a trial license key.',
-            ' ',
-            '*'
-        );
-        this.centerPadAndOutput('');
-        this.centerPadAndOutput('');
+        if (!this.gridContext) {
+            // TC6, TC12
+            this.centerPadAndOutput('');
+            this.centerPadAndOutput(` ${currentLicenseName} License `);
+            this.centerPadAndOutput(' License Key Not Found ');
+            this.padAndOutput(`* All ${currentLicenseName} features are unlocked for trial.`, ' ', '*');
+            this.padAndOutput(
+                '* If you want to hide the watermark please email info@ag-grid.com for a trial license key.',
+                ' ',
+                '*'
+            );
+            this.centerPadAndOutput('');
+            this.centerPadAndOutput('');
+        }
 
         this.watermarkMessage = 'For Trial Use Only';
     }
 
     private outputExpiredKey(formattedExpiryDate: string, formattedReleaseDate: string, currentLicenseName: string) {
         // TC2
-        this.centerPadAndOutput('');
-        this.centerPadAndOutput(` ${currentLicenseName} License `);
-        this.centerPadAndOutput(' Incompatible Software Version ');
-        this.padAndOutput(
-            `* Your license key works with versions of ${currentLicenseName} released before ${formattedExpiryDate}.`,
-            ' ',
-            '*'
-        );
-        this.padAndOutput(`* The version you are trying to use was released on ${formattedReleaseDate}.`, ' ', '*');
-        this.padAndOutput('* Please contact info@ag-grid.com to renew your license key.', ' ', '*');
-        this.centerPadAndOutput('');
-        this.centerPadAndOutput('');
+        if (!this.gridContext) {
+            this.centerPadAndOutput('');
+            this.centerPadAndOutput(` ${currentLicenseName} License `);
+            this.centerPadAndOutput(' Incompatible Software Version ');
+            this.padAndOutput(
+                `* Your license key works with versions of ${currentLicenseName} released before ${formattedExpiryDate}.`,
+                ' ',
+                '*'
+            );
+            this.padAndOutput(`* The version you are trying to use was released on ${formattedReleaseDate}.`, ' ', '*');
+            this.padAndOutput('* Please contact info@ag-grid.com to renew your license key.', ' ', '*');
+            this.centerPadAndOutput('');
+            this.centerPadAndOutput('');
+        }
 
         this.watermarkMessage = 'License Expired';
     }
