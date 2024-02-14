@@ -19,17 +19,24 @@ type Region = {
 export class RegionManager {
     public currentRegion?: Region;
 
+    private eventHandler = (event: InteractionEvent<InteractionTypes>) => this.processEvent(event);
     private regions: BBoxSet<Region> = new BBoxSet();
     private readonly destroyFns: (() => void)[] = [];
 
     constructor(private interactionManager: InteractionManager) {
         InteractionTypesArray.forEach((t) =>
-            this.destroyFns.push(interactionManager.addListener(t, this.processEvent))
+            this.destroyFns.push(interactionManager.addListener(t, this.eventHandler))
         );
     }
 
     public destroy() {
         this.destroyFns.forEach((fn) => fn());
+
+        this.currentRegion = undefined;
+        for (const region of this.regions) {
+            region.listeners.destroy();
+        }
+        this.regions.clear();
     }
 
     private pushRegion(name: RegionName, bboxprovider: BBoxProvider): Region {

@@ -37,4 +37,14 @@ export class BBoxSet<V> {
             .sort((a, b) => nodeArea(a) - nodeArea(b))
             .map((node) => node.value);
     }
+
+    *[Symbol.iterator](): IterableIterator<V> {
+        for (const { value } of Object.values(this.nodes)) {
+            yield value;
+        }
+    }
+
+    clear() {
+        this.nodes.length = 0;
+    }
 }

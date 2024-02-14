@@ -463,6 +463,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.removeModule(moduleInstance as ModuleInstance & (RootModule | LegendModule));
         }
 
+        this.regionManager.destroy();
         this.interactionManager.destroy();
         this.animationManager.stop();
         this.animationManager.destroy();
