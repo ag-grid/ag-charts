@@ -144,7 +144,7 @@ export class AnimationBatch {
         if (!skipAll) {
             for (const [, controller] of this.controllers) {
                 if (controller.autoplay) {
-                    controller.play();
+                    controller.play(true);
                 }
             }
         }

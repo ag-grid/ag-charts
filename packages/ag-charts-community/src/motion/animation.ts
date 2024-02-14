@@ -90,7 +90,7 @@ export interface IAnimation {
     readonly delay: number;
     readonly duration: number;
     readonly autoplay: boolean;
-    readonly play: () => void;
+    readonly play: (initialUpdate?: boolean) => void;
     readonly pause: () => void;
     readonly stop: () => void;
     readonly update: (time: number) => number;
@@ -187,13 +187,13 @@ export class Animation<T extends AnimationValue> implements IAnimation {
         this.isPlaying = true;
         this.onPlay?.(this);
 
-        if (!this.autoplay || !this.from) return;
+        if (!this.autoplay) return;
         this.autoplay = false;
 
         if (!initialUpdate) return;
 
         // Initialise the animation immediately without requesting a frame to prevent flashes
-        this.onUpdate?.(this.from, true, this);
+        this.onUpdate?.(this.from!, true, this);
     }
 
     pause() {
