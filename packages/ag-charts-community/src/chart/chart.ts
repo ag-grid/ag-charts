@@ -29,7 +29,7 @@ import { BaseProperties } from '../util/properties';
 import { ActionOnSet, type ActionOnSetOptions } from '../util/proxy';
 import { debouncedAnimationFrame, debouncedCallback } from '../util/render';
 import { SizeMonitor } from '../util/sizeMonitor';
-import { isFiniteNumber } from '../util/type-guards';
+import { isFiniteNumber, isFunction } from '../util/type-guards';
 import { BOOLEAN, OBJECT, UNION, Validate } from '../util/validation';
 import { Caption } from './caption';
 import type { ChartAnimationPhase } from './chartAnimationPhase';
@@ -1384,7 +1384,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         // Needs to be done before applying the series to detect if a seriesNode[Double]Click listener has been added
         if (deltaOptions.listeners) {
-            this.registerListeners(this, deltaOptions.listeners);
+            this.registerListeners(this, deltaOptions.listeners as Record<string, TypedEventListener>);
         }
 
         this.applyOptionValues(this, deltaOptions, { skip });
@@ -1594,14 +1594,14 @@ export abstract class Chart extends Observable implements AgChartInstance {
         // Try to optimise series updates if series count and types didn't change.
         if (matchingTypes) {
             if (isAgCartesianChartOptions(oldOpts)) {
-                chart.axes.forEach((a, i) => {
-                    const previousOpts = oldOpts.axes?.[i] ?? {};
-                    const axisDiff = jsonDiff(previousOpts, axes[i]) as any;
+                chart.axes.forEach((axis, index) => {
+                    const previousOpts = oldOpts.axes?.[index] ?? {};
+                    const axisDiff = jsonDiff(previousOpts, axes[index]) as any;
 
-                    debug(`AgChartV2.applyAxes() - applying axis diff idx ${i}`, axisDiff);
+                    debug(`AgChartV2.applyAxes() - applying axis diff idx ${index}`, axisDiff);
 
-                    const path = `axes[${i}]`;
-                    this.applyOptionValues(a, axisDiff, { path, skip });
+                    const path = `axes[${index}]`;
+                    this.applyOptionValues(axis, axisDiff, { path, skip });
                 });
                 return true;
             }
@@ -1651,12 +1651,13 @@ export abstract class Chart extends Observable implements AgChartInstance {
         if ('data' in options) {
             target.data = options.data;
         }
+
         if ('errorBar' in options && moduleMap.isModuleEnabled('errorBar')) {
             (moduleMap.getModule('errorBar') as any).properties.set(options.errorBar);
         }
 
-        if (options?.listeners != null) {
-            this.registerListeners(target, options.listeners);
+        if (options?.listeners) {
+            this.registerListeners(target, options.listeners as Record<string, TypedEventListener>);
         }
 
         if (seriesGrouping) {
@@ -1736,12 +1737,12 @@ export abstract class Chart extends Observable implements AgChartInstance {
         });
     }
 
-    private registerListeners<T>(source: ObservableLike, listeners?: T) {
+    private registerListeners(source: ObservableLike, listeners: Record<string, TypedEventListener>) {
         source.clearEventListeners();
-        const entries: [string, TypedEventListener][] = Object.entries(listeners ?? {});
-        for (const [property, listener] of entries) {
-            if (typeof listener !== 'function') continue;
-            source.addEventListener(property, listener);
+        for (const [property, listener] of Object.entries(listeners)) {
+            if (isFunction(listener)) {
+                source.addEventListener(property, listener);
+            }
         }
     }
 }
