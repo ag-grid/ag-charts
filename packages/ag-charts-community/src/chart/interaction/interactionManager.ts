@@ -66,8 +66,6 @@ export type InteractionEvent<T extends InteractionTypes = InteractionTypes> = Po
     consumed?: boolean;
 };
 
-type InteractionHandler<T extends InteractionTypes> = (event: InteractionEvent<T> & { type: T }) => void;
-
 interface Coords {
     clientX: number;
     clientY: number;
@@ -161,7 +159,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     // Wrapper to only broadcast events when the InteractionManager is a given state.
     override addListener<T extends InteractionTypes>(
         type: T,
-        handler: InteractionHandler<T>,
+        handler: (event: InteractionEvent<T> & { type: T }) => void,
         triggeringStates: InteractionState = InteractionState.Default
     ) {
         return super.addListener(type, (e) => {
@@ -186,20 +184,21 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     }
 
     private processEvent(event: SupportedEvent) {
-        const coords = this.calculateCoordinates(event);
-        if (coords == null) {
-            return;
-        }
-
         const types: InteractionTypes[] = this.decideInteractionEventTypes(event);
 
         if (types.length > 0) {
             // Async dispatch to avoid blocking the event-processing thread.
-            this.dispatchEvent(coords, event, types).catch((e) => Logger.errorOnce(e));
+            this.dispatchEvent(event, types).catch((e) => Logger.errorOnce(e));
         }
     }
 
-    private async dispatchEvent(coords: Coords, event: SupportedEvent, types: InteractionTypes[]) {
+    private async dispatchEvent(event: SupportedEvent, types: InteractionTypes[]) {
+        const coords = this.calculateCoordinates(event);
+
+        if (coords == null) {
+            return;
+        }
+
         for (const type of types) {
             this.listeners.dispatchWrapHandlers(
                 type,
