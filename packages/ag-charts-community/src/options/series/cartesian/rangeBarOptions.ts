@@ -3,7 +3,7 @@ import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { CssColor, Opacity, PixelSize } from '../../chart/types';
-import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
+import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
@@ -57,7 +57,7 @@ export interface AgRangeBarSeriesLabelOptions<TDatum>
 export type AgRangeBarSeriesLabelPlacement = 'inside' | 'outside';
 
 export interface AgRangeBarSeriesThemeableOptions<TDatum = any>
-    extends AgBaseSeriesThemeableOptions<TDatum>,
+    extends AgBaseCartesianThemeableOptions<TDatum>,
         FillOptions,
         StrokeOptions,
         LineDashOptions {

@@ -12,7 +12,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import { AutoSizedLabel } from '../util/labelFormatter';
 
 const {
-    SeriesProperties,
+    CartesianSeriesProperties,
     SeriesTooltip,
     Validate,
     AND,
@@ -28,7 +28,7 @@ const {
     VERTICAL_ALIGN,
 } = _ModuleSupport;
 
-export class HeatmapSeriesProperties extends SeriesProperties<AgHeatmapSeriesOptions> {
+export class HeatmapSeriesProperties extends CartesianSeriesProperties<AgHeatmapSeriesOptions> {
     @Validate(STRING, { optional: true })
     title?: string;
 

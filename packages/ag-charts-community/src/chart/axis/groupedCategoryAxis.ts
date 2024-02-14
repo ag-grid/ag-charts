@@ -270,6 +270,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
         const rangeEnd = scale.range[1];
         const rangeLength = Math.abs(rangeEnd - rangeStart);
         const bandwidth = rangeLength / scale.domain.length || 0;
+        const keepEvery = Math.ceil(label.fontSize / bandwidth);
         const rotation = toRadians(this.rotation);
         const isHorizontal = Math.abs(Math.cos(rotation)) < 1e-8;
         const sideFlag = label.getSideFlag();
@@ -356,6 +357,8 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
                     translationX: datum.screenY - label.fontSize * 0.25,
                     translationY: datum.screenX,
                 });
+            } else if (index % keepEvery !== 0) {
+                return false;
             } else {
                 const isInRange = datum.screenX >= range[0] && datum.screenX <= range[1];
                 if (!isInRange) {
@@ -377,15 +380,15 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
 
         treeLabels.forEach((datum, index) => {
             const isVisible = setLabelProps(datum, index);
-            if (isVisible) {
-                const bbox = tempText.computeTransformedBBox();
-                if (bbox) {
-                    labelBBoxes.set(index, bbox);
-                    const isLeaf = !datum.children.length;
-                    if (isLeaf && bbox.width > maxLeafLabelWidth) {
-                        maxLeafLabelWidth = bbox.width;
-                    }
-                }
+            if (!isVisible) return;
+
+            const bbox = tempText.computeTransformedBBox();
+            if (!bbox) return;
+
+            labelBBoxes.set(index, bbox);
+            const isLeaf = !datum.children.length;
+            if (isLeaf && bbox.width > maxLeafLabelWidth) {
+                maxLeafLabelWidth = bbox.width;
             }
         });
 
@@ -403,11 +406,6 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
                 tempText.rotation = configuredRotation;
                 tempText.textAlign = 'end';
                 tempText.textBaseline = 'middle';
-                const bbox = labelBBoxes.get(id);
-                if (bbox && bbox.height > bandwidth) {
-                    visible = false;
-                    labelBBoxes.delete(id);
-                }
             } else {
                 tempText.translationX -= maxLeafLabelWidth - lineHeight + this.label.padding;
                 const availableRange = datum.leafCount * bandwidth;
