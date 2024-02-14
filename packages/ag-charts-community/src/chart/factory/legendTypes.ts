@@ -5,14 +5,17 @@ import type { ChartLegendType } from '../legendDatum';
 interface LegendRegistryRecord {
     optionsKey: string;
     instanceConstructor: LegendConstructor;
-    themeTemplate?: object;
 }
+
+type LegendRegistryOptions = LegendRegistryRecord & { themeTemplate?: object };
 
 class LegendRegistry {
     private legendMap = new Map<ChartLegendType, LegendRegistryRecord>();
+    private themeTemplates = new Map<string, object | undefined>();
 
-    register(legendType: ChartLegendType, { optionsKey, instanceConstructor, themeTemplate }: LegendRegistryRecord) {
-        this.legendMap.set(legendType, { optionsKey, instanceConstructor, themeTemplate });
+    register(legendType: ChartLegendType, { optionsKey, instanceConstructor, themeTemplate }: LegendRegistryOptions) {
+        this.legendMap.set(legendType, { optionsKey, instanceConstructor });
+        this.themeTemplates.set(optionsKey, themeTemplate);
     }
 
     create(legendType: ChartLegendType, moduleContext: ModuleContext) {
@@ -24,13 +27,7 @@ class LegendRegistry {
     }
 
     getThemeTemplates() {
-        return Array.from(this.legendMap.entries()).reduce(
-            (result, [legendType, record]) => {
-                result[legendType] = record.themeTemplate;
-                return result;
-            },
-            {} as Record<ChartLegendType, object | undefined>
-        );
+        return Object.fromEntries(this.themeTemplates);
     }
 
     getKeys() {
