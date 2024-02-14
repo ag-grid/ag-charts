@@ -45,7 +45,7 @@ class GradientLegendAxis extends _ModuleSupport.CartesianAxis<_Scale.LinearScale
     colorDomain: number[] = [];
 
     constructor(ctx: _ModuleSupport.ModuleContext) {
-        super(ctx, new _Scale.LinearScale());
+        super(ctx, new _Scale.LinearScale(), { respondsToZoom: false });
         this.nice = false;
         this.line.enabled = false;
     }

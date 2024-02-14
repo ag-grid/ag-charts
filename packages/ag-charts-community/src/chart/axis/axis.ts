@@ -257,7 +257,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     constructor(
         protected readonly moduleCtx: ModuleContext,
-        readonly scale: S
+        readonly scale: S,
+        options?: { respondsToZoom: boolean }
     ) {
         this.refreshScale();
 
@@ -295,11 +296,13 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             })
         );
 
-        this.destroyFns.push(
-            moduleCtx.updateService.addListener('update-complete', (e) => {
-                this.minRect = e.minRect;
-            })
-        );
+        if (options?.respondsToZoom !== false) {
+            this.destroyFns.push(
+                moduleCtx.updateService.addListener('update-complete', (e) => {
+                    this.minRect = e.minRect;
+                })
+            );
+        }
     }
 
     private attachCrossLine(crossLine: CrossLine) {
