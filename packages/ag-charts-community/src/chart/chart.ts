@@ -1481,10 +1481,13 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 'axes[].label',
             ]);
 
-            const labelOptions = processedOptions.navigator?.miniChart?.label;
-            const intervalOptions = processedOptions.navigator?.miniChart?.label?.interval;
-            for (const axis of miniChart.axes as ChartAxis[]) {
-                jsonApply(axis.label, labelOptions, {
+            const axes = miniChart.axes as ChartAxis[];
+            const horizontalAxis = axes.find((axis) => axis.direction === ChartAxisDirection.X);
+            if (horizontalAxis != null) {
+                const labelOptions = processedOptions.navigator?.miniChart?.label;
+                const intervalOptions = processedOptions.navigator?.miniChart?.label?.interval;
+
+                jsonApply(horizontalAxis.label, labelOptions, {
                     path: 'navigator.miniChart.label',
                     skip: [
                         'navigator.miniChart.label.interval',
@@ -1494,7 +1497,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
                         'navigator.miniChart.label.autoRotateAngle',
                     ],
                 });
-                jsonApply(axis.tick, intervalOptions, {
+                jsonApply(horizontalAxis.tick, intervalOptions, {
                     path: 'navigator.miniChart.interval',
                     skip: [
                         'navigator.miniChart.interval.enabled',
@@ -1507,11 +1510,13 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
                 const step = intervalOptions?.step;
                 if (step != null) {
-                    axis.tick.interval = step;
+                    horizontalAxis.tick.interval = step;
                 }
+            }
 
+            for (const axis of axes) {
                 axis.gridLine.enabled = false;
-                axis.label.enabled = axis.direction === ChartAxisDirection.X;
+                axis.label.enabled = axis === horizontalAxis;
                 axis.tick.enabled = false;
                 axis.interactionEnabled = false;
             }
