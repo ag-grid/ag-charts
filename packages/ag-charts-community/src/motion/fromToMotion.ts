@@ -143,7 +143,10 @@ export function fromToMotion<N extends Node, T extends Record<string, string | n
                     }
                 },
                 onStop: () => {
-                    node.setProperties({ ...to, ...finish, ...toFinish } as unknown as T);
+                    for (const props of [to as unknown as T, finish, toFinish]) {
+                        if (props == null) continue;
+                        node.setProperties(props);
+                    }
                 },
             });
 
@@ -199,7 +202,7 @@ export function staticFromToMotion<N extends Node, T extends AnimationValue & Pa
     extraOpts: ExtraOpts<N>
 ) {
     const { nodes, selections } = deconstructSelectionsOrNodes(selectionsOrNodes);
-    const { start = {}, finish, phase } = extraOpts;
+    const { start, finish, phase } = extraOpts;
 
     // Simple static to/from case, we can batch updates.
     const collapsable = finish == null;
@@ -212,6 +215,8 @@ export function staticFromToMotion<N extends Node, T extends AnimationValue & Pa
         ease: easing.easeOut,
         collapsable,
         onPlay: () => {
+            if (!start) return;
+
             for (const node of nodes) {
                 node.setProperties(start);
             }

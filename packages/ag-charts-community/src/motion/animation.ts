@@ -5,43 +5,41 @@ import { jsonDiff } from '../util/json';
 import { clamp } from '../util/number';
 import { linear } from './easing';
 
-export type AnimationTiming = {
+export type AnimationMetadata = {
     animationDuration: number;
     animationDelay: number;
+    skipIfNoEarlierAnimations?: boolean;
 };
 export const QUICK_TRANSITION = 0.2;
-export const INITIAL_LOAD: AnimationTiming = {
-    animationDuration: 1,
-    animationDelay: 0,
-};
-export const REMOVE_PHASE: AnimationTiming = {
-    animationDuration: 0.25,
-    animationDelay: 0,
-};
-export const UPDATE_PHASE: AnimationTiming = {
-    animationDuration: 0.5,
-    animationDelay: 0.25,
-};
-export const ADD_PHASE: AnimationTiming = {
-    animationDuration: 0.25,
-    animationDelay: 0.75,
-};
-export const LABEL_PHASE: AnimationTiming = {
-    animationDuration: QUICK_TRANSITION,
-    animationDelay: 1,
-};
 
 export const ANIMATION_PHASE_ORDER = ['initial', 'remove', 'update', 'add', 'trailing', 'end'] as const;
 export type AnimationPhase = (typeof ANIMATION_PHASE_ORDER)[number];
-export const ANIMATION_PHASE_TIMINGS: Record<AnimationPhase, AnimationTiming> = {
-    initial: INITIAL_LOAD,
-    add: ADD_PHASE,
-    remove: REMOVE_PHASE,
-    update: UPDATE_PHASE,
-    trailing: LABEL_PHASE,
+export const ANIMATION_PHASE_TIMINGS: Record<AnimationPhase, AnimationMetadata> = {
+    initial: {
+        animationDuration: 1,
+        animationDelay: 0,
+    },
+    add: {
+        animationDuration: 0.25,
+        animationDelay: 0.75,
+    },
+    remove: {
+        animationDuration: 0.25,
+        animationDelay: 0,
+    },
+    update: {
+        animationDuration: 0.5,
+        animationDelay: 0.25,
+    },
+    trailing: {
+        animationDuration: QUICK_TRANSITION,
+        animationDelay: 1,
+        skipIfNoEarlierAnimations: true,
+    },
     end: {
         animationDelay: 1 + QUICK_TRANSITION,
         animationDuration: 0,
+        skipIfNoEarlierAnimations: true,
     },
 };
 
@@ -91,6 +89,7 @@ export interface IAnimation {
     readonly isComplete: boolean;
     readonly delay: number;
     readonly duration: number;
+    readonly autoplay: boolean;
     readonly play: () => void;
     readonly pause: () => void;
     readonly stop: () => void;
@@ -116,7 +115,7 @@ export class Animation<T extends AnimationValue> implements IAnimation {
     public isComplete = false;
     public readonly delay;
     public readonly duration;
-    protected autoplay;
+    public autoplay;
     protected ease;
 
     protected elapsed = 0;
@@ -129,6 +128,7 @@ export class Animation<T extends AnimationValue> implements IAnimation {
     private readonly onPlay; // onStart
     private readonly onStop; // onCancel
     private readonly onUpdate;
+    private readonly from?: T;
 
     private interpolate: (delta: number) => T;
 
@@ -152,16 +152,13 @@ export class Animation<T extends AnimationValue> implements IAnimation {
 
         // animation interpolator based on `from` & `to` types
         this.interpolate = this.createInterpolator(opts.from, opts.to) as (delta: number) => T;
+        this.from = opts.from;
 
         if (opts.skip === true) {
             this.onUpdate?.(opts.to, false, this);
             this.onStop?.(this);
             this.onComplete?.(this);
             this.isComplete = true;
-        } else if (this.autoplay) {
-            this.play();
-            // Initialise the animation immediately without requesting a frame to prevent flashes
-            this.onUpdate?.(opts.from, true, this);
         }
 
         if (opts.collapsable !== false) {
@@ -174,19 +171,29 @@ export class Animation<T extends AnimationValue> implements IAnimation {
         // state, allowing us to run the update processing once and then skip any further updates.
         // This additionally allows animation phases to progress if all animations in a phase are
         // no-ops.
-        let isNoop = opts.from === opts.to;
-        isNoop ||= typeof opts.from === 'object' && jsonDiff(opts.from, opts.to) == null;
-        if (isNoop) {
-            return 0;
+        if (opts.from === opts.to) return 0;
+
+        const diff = typeof opts.from === 'object' ? jsonDiff(opts.from, opts.to) : null;
+        if (diff) {
+            return calculatedDuration;
         }
-        return calculatedDuration;
+
+        return 0;
     }
 
-    play() {
-        if (!this.isPlaying && !this.isComplete) {
-            this.isPlaying = true;
-            this.onPlay?.(this);
-        }
+    play(initialUpdate = false) {
+        if (this.isPlaying || this.isComplete) return;
+
+        this.isPlaying = true;
+        this.onPlay?.(this);
+
+        if (!this.autoplay || !this.from) return;
+        this.autoplay = false;
+
+        if (!initialUpdate) return;
+
+        // Initialise the animation immediately without requesting a frame to prevent flashes
+        this.onUpdate?.(this.from, true, this);
     }
 
     pause() {
@@ -198,12 +205,22 @@ export class Animation<T extends AnimationValue> implements IAnimation {
     stop() {
         if (this.isPlaying) {
             this.isPlaying = false;
+        }
+        if (!this.isComplete) {
             this.isComplete = true;
             this.onStop?.(this);
         }
     }
 
     update(time: number) {
+        if (this.isComplete) return time;
+
+        if (!this.isPlaying && this.autoplay) {
+            // Deferred start - skips calling `onPlay()` if `update()` is never called, which could
+            // otherwise redundantly change scene graph state if skipping previous animation phases.
+            this.play(true);
+        }
+
         const previousElapsed = this.elapsed;
         this.elapsed += time;
 
