@@ -52,6 +52,7 @@ export class ChartOverlays {
         container.style.margin = '8px';
         container.style.height = '100%';
         container.style.font = '12px Verdana, sans-serif';
+        container.style.background = 'rgba(255, 255, 255, 0.5)';
         container.style.animation = `ag-charts-loading ${
             ADD_PHASE.animationDuration * animationManager.defaultDuration
         }ms linear ${ADD_PHASE.animationDelay * animationManager.defaultDuration}ms both`;

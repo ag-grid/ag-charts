@@ -160,11 +160,6 @@
                         "isEnterprise": true
                     },
                     {
-                        "title": "Lazy Loading",
-                        "path": "lazy-loading",
-                        "isEnterprise": true
-                    },
-                    {
                         "title": "Synchronization",
                         "path": "sync",
                         "isEnterprise": true

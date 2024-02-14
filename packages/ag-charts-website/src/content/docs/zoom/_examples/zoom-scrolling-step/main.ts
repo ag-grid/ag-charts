@@ -4,12 +4,6 @@ import { getData } from './data';
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
-    title: {
-        text: 'Average expenditure on coffee',
-    },
-    subtitle: {
-        text: 'per person per week in Krakozhia',
-    },
     zoom: {
         enabled: true,
         scrollingStep: 0.4,
