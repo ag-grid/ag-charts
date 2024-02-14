@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, jest } from '@jest/globals';
 import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 
-import { Animation } from '../../motion/animation';
+import { ANIMATION_PHASE_TIMINGS, IAnimation } from '../../motion/animation';
 import type {
     AgCartesianChartOptions,
     AgChartInstance,
@@ -306,10 +306,20 @@ export function spyOnAnimationManager() {
         const skippedMock = jest.spyOn(AnimationManager.prototype, 'isSkipped');
         skippedMock.mockImplementation(() => false);
 
-        const animateMock = jest.spyOn(AnimationManager.prototype, 'animate');
-        animateMock.mockImplementation((opts: any) => {
-            const controller = new Animation(opts);
-            return controller.update(animateParameters[0] * animateParameters[1]);
+        const forceTimeJumpMock = jest.spyOn(AnimationManager.prototype, 'forceTimeJump');
+        forceTimeJumpMock.mockImplementation((controller: IAnimation, defaultDuration: number) => {
+            if (controller.isComplete) return true;
+
+            // Convert test timing info to phase-relative execution timing.
+            const { phase } = controller;
+            const { animationDelay } = ANIMATION_PHASE_TIMINGS[phase];
+
+            // Account for phase notional starting offset.
+            let updateBy = animateParameters[0] * animateParameters[1];
+            updateBy -= animationDelay * defaultDuration;
+
+            controller.update(updateBy);
+            return true;
         });
         const skippingFramesMock = jest.spyOn(AnimationManager.prototype, 'isSkippingFrames');
         skippingFramesMock.mockImplementation(() => false);
@@ -321,7 +331,7 @@ export function spyOnAnimationManager() {
             const rafId = nextRafId++;
             rafCbs.set(rafId, cb);
         });
-        mocks.push(skippedMock, animateMock, skippingFramesMock, safMock);
+        mocks.push(skippedMock, forceTimeJumpMock, skippingFramesMock, safMock);
 
         if (activeAnimateCb) throw new Error('activeAnimateCb already initialized - something is very wrong!');
         activeAnimateCb = animateCb;

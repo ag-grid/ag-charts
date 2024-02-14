@@ -141,7 +141,8 @@
                     },
                     {
                         "title": "Navigator",
-                        "path": "navigator"
+                        "path": "navigator",
+                        "isEnterprise": true
                     },
                     {
                         "title": "Animation",

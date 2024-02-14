@@ -1,88 +1,136 @@
-import { throttleAsyncTrailing } from '../../util/debounceThrottle';
 import { Debug } from '../../util/debug';
+import { throttle } from '../../util/function';
 import { Listeners } from '../../util/listeners';
 import type { AnimationManager } from '../interaction/animationManager';
 
-const DEBUG_SELECTORS = [true, 'data-model', 'data-lazy'];
+interface DataSourceCallbackParams {
+    windowStart?: Date;
+    windowEnd?: Date;
+}
+type DataSourceCallback = (params: DataSourceCallbackParams) => Promise<unknown>;
 
-type UpdateCallback<D extends object> = (data: D[], options: {}) => void;
-type LoadCallback = (params: { axes?: Array<AxisDomain> }) => Promise<unknown>;
+type EventType = 'data-source-change' | 'data-load';
+type EventHandler<D extends object> = (() => void) | ((event: DataLoadEvent<D>) => void);
 
-export interface AxisDomain {
-    id: string;
-    type: string;
-    min: any;
-    max: any;
+export interface DataLoadEvent<D extends object> {
+    type: 'data-load';
+    data: D[];
 }
 
-export class DataService<D extends object> extends Listeners<never, never> {
-    private loadCb?: LoadCallback;
-    private loading = false;
-    private throttleTime = 100;
+export class DataService<D extends object> extends Listeners<EventType, EventHandler<D>> {
+    private dataSourceCallback?: DataSourceCallback;
+    private isLoadingInitialData = false;
+    private requestThrottle = 100;
+    private refreshThrottle = 100;
+    private freshRequests: Array<number> = [];
+    private requestCounter = 0;
 
-    private readonly debug = Debug.create(...DEBUG_SELECTORS);
+    private debugExtraMap: Map<number, any> = new Map(); // TODO: remove before release
 
-    private throttledFetch = throttleAsyncTrailing((axes?: Array<AxisDomain>) => this.fetch(axes), this.throttleTime);
+    private readonly debug = Debug.create(true, 'data-model', 'data-lazy');
+    private readonly debugExtra = Debug.create('data-lazy-extra');
 
-    constructor(
-        private readonly animationManager: AnimationManager,
-        private readonly updateCallback: UpdateCallback<D>
-    ) {
+    private throttledFetch = throttle((params: DataSourceCallbackParams) => this.fetch(params), this.requestThrottle, {
+        leading: false,
+        trailing: true,
+    });
+
+    private throttledDispatchDataLoad = throttle(
+        (id: number, data: D[]) => {
+            this.debug(`DataService - dispatching 'data-load' | ${id}`);
+            this.debugExtraValues(id, { redrawEnd: performance.now() });
+            this.debugExtra(this.getDebugExtraString());
+            this.dispatch('data-load', { type: 'data-load', data });
+        },
+        this.refreshThrottle,
+        {
+            leading: true,
+            trailing: true,
+        }
+    );
+
+    constructor(private readonly animationManager: AnimationManager) {
         super();
     }
 
-    public update(data: D[], options: {} = {}) {
-        if (data == null) return;
-        this.updateCallback(data, options);
-    }
+    public updateCallback(dataSourceCallback: DataSourceCallback) {
+        if (typeof dataSourceCallback !== 'function') return;
+        this.debug('DataService - updated data source callback');
+        this.dataSourceCallback = dataSourceCallback;
 
-    public init(loadOrData: LoadCallback | any): any {
-        if (typeof loadOrData !== 'function') return loadOrData;
-        this.loadCb = loadOrData;
-        this.loading = true;
+        this.isLoadingInitialData = true;
 
         // Disable animations when using lazy loading due to conflicts
         this.animationManager.skip();
 
-        // Return an empty array with the expectation that the load function will be called later
-        return [];
+        this.dispatch('data-source-change');
     }
 
-    public async load(axes: Array<AxisDomain>): Promise<D[]> {
-        return this.throttledFetch(axes);
+    public clearCallback() {
+        this.dataSourceCallback = undefined;
+    }
+
+    public load(params: DataSourceCallbackParams) {
+        this.throttledFetch(params);
     }
 
     public isLazy() {
-        return this.loadCb != null;
+        return this.dataSourceCallback != null;
     }
 
     public isLoading() {
-        return this.isLazy() && this.loading;
+        return this.isLazy() && (this.isLoadingInitialData || this.freshRequests.length > 0);
     }
 
-    private async fetch(axes?: Array<AxisDomain>): Promise<D[]> {
-        this.debug('DataLazyLoader.fetch() - start');
-        const start = performance.now();
-
-        this.loading = true;
-
-        if (!this.loadCb) {
+    private async fetch(params: DataSourceCallbackParams) {
+        if (!this.dataSourceCallback) {
             throw new Error('lazy data loading callback not initialised');
         }
 
+        const start = performance.now();
+
+        const id = this.requestCounter++;
+        this.debug(`DataService - requesting | ${id}`);
+
+        this.freshRequests.push(id);
+        this.debugExtraValues(id, { id, start });
+
         try {
-            const response = await this.loadCb({ axes });
-            this.debug(`DataLazyLoader.fetch() - end: ${performance.now() - start}ms`);
+            const response = await this.dataSourceCallback(params);
+            this.debug(`DataService - response | ${performance.now() - start}ms | ${id}`);
+            this.debugExtraValues(id, { end: performance.now() });
 
-            this.loading = false;
+            this.isLoadingInitialData = false;
 
-            if (Array.isArray(response)) {
-                return response;
+            const requestIndex = this.freshRequests.findIndex((rid) => rid === id);
+            if (requestIndex === -1) {
+                this.debug(`DataService - discarding stale request | ${id}`);
+                this.debugExtra(this.getDebugExtraString());
+                return;
+            } else {
+                this.freshRequests = this.freshRequests.slice(requestIndex + 1);
             }
 
-            throw new Error(`lazy data was bad: ${response}`);
+            if (!Array.isArray(response)) {
+                throw new Error(`lazy data was bad: ${response}`);
+            }
+            this.debugExtraValues(id, { redrawStart: performance.now() });
+            this.throttledDispatchDataLoad(id, response);
         } catch (error) {
             throw new Error(`lazy data errored: ${error}`);
         }
+    }
+
+    private debugExtraValues(id: number, info: any) {
+        if (!this.debugExtra.check()) return;
+        this.debugExtraMap.set(id, {
+            ...(this.debugExtraMap.get(id) ?? {}),
+            ...info,
+        });
+    }
+
+    private getDebugExtraString() {
+        if (!this.debugExtra.check()) return;
+        return JSON.stringify(Array.from(this.debugExtraMap.values()));
     }
 }

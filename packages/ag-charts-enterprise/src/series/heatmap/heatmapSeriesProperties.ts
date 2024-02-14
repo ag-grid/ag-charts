@@ -22,6 +22,7 @@ const {
     FUNCTION,
     OBJECT,
     POSITIVE_NUMBER,
+    RATIO,
     STRING,
     TEXT_ALIGN,
     VERTICAL_ALIGN,
@@ -54,6 +55,9 @@ export class HeatmapSeriesProperties extends SeriesProperties<AgHeatmapSeriesOpt
 
     @Validate(COLOR_STRING, { optional: true })
     stroke: string = 'black';
+
+    @Validate(RATIO, { optional: true })
+    strokeOpacity?: number;
 
     @Validate(POSITIVE_NUMBER, { optional: true })
     strokeWidth: number = 0;

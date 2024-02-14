@@ -1,6 +1,7 @@
 import { Node } from '../scene/node';
 import type { Selection } from '../scene/selection';
 import { interpolateColor, interpolateNumber } from '../util/interpolate';
+import { jsonDiff } from '../util/json';
 import { clamp } from '../util/number';
 import { linear } from './easing';
 
@@ -30,6 +31,20 @@ export const LABEL_PHASE: AnimationTiming = {
     animationDelay: 1,
 };
 
+export const ANIMATION_PHASE_ORDER = ['initial', 'remove', 'update', 'add', 'trailing', 'end'] as const;
+export type AnimationPhase = (typeof ANIMATION_PHASE_ORDER)[number];
+export const ANIMATION_PHASE_TIMINGS: Record<AnimationPhase, AnimationTiming> = {
+    initial: INITIAL_LOAD,
+    add: ADD_PHASE,
+    remove: REMOVE_PHASE,
+    update: UPDATE_PHASE,
+    trailing: LABEL_PHASE,
+    end: {
+        animationDelay: 1 + QUICK_TRANSITION,
+        animationDuration: 0,
+    },
+};
+
 export type AnimationValue = number | string | undefined | Record<string, number | string | undefined>;
 
 export enum RepeatType {
@@ -41,44 +56,45 @@ export interface AnimationOptions<T extends AnimationValue> {
     groupId: string;
     from: T;
     to: T;
+    phase: AnimationPhase;
     skip?: boolean;
     autoplay?: boolean;
-    /** Time in milliseconds to wait before starting the animation. */
-    delay?: number;
+    /** Duration of this animation, expressed as a proportion of the total animation time. */
     duration?: number;
+    /** Delay before starting this animation, expressed as a proportion of the total animation time. */
+    delay?: number;
+    /** If false, prevents shortening of duration to allow phase collapsing. */
+    collapsable?: boolean;
     ease?: (x: number) => number;
     /** Number of times to repeat the animation before stopping. Set to `0` to disable repetition. */
     repeat?: number;
     repeatType?: RepeatType;
     /** Called once when the animation is successfully completed, after all repetitions if any. */
-    onComplete?: (self: IAnimation<T>) => void;
-    onPlay?: (self: IAnimation<T>) => void;
+    onComplete?: (self: IAnimation) => void;
+    onPlay?: (self: IAnimation) => void;
     /** Called once when then animation successfully completes or is prematurely stopped. */
-    onStop?: (self: IAnimation<T>) => void;
-    onRepeat?: (self: IAnimation<T>) => void;
+    onStop?: (self: IAnimation) => void;
+    onRepeat?: (self: IAnimation) => void;
     /** Called once per frame with the tweened value between the `from` and `to` properties. */
-    onUpdate?: (value: T, preInit: boolean, self: IAnimation<T>) => void;
+    onUpdate?: (value: T, preInit: boolean, self: IAnimation) => void;
 }
 
 export interface AdditionalAnimationOptions {
     id?: string;
     disableInteractions?: boolean;
-    immutable?: boolean;
 }
 
-export type ResetAnimationOptions<T extends AnimationValue> = Pick<
-    AnimationOptions<T>,
-    'from' | 'to' | 'delay' | 'duration' | 'ease'
->;
-
-export interface IAnimation<T extends AnimationValue> {
+export interface IAnimation {
     readonly id: string;
     readonly groupId: string;
-    readonly play: () => this;
-    readonly pause: () => this;
-    readonly stop: () => this;
-    readonly reset: (opts: ResetAnimationOptions<T>) => this;
-    readonly update: (time: number) => this;
+    readonly phase: AnimationPhase;
+    readonly isComplete: boolean;
+    readonly delay: number;
+    readonly duration: number;
+    readonly play: () => void;
+    readonly pause: () => void;
+    readonly stop: () => void;
+    readonly update: (time: number) => number;
 }
 
 function isNodeArray<N extends Node>(array: (object | N)[]): array is N[] {
@@ -93,15 +109,15 @@ export function deconstructSelectionsOrNodes<N extends Node, D>(
         : { nodes: [], selections: selectionsOrNodes };
 }
 
-export class Animation<T extends AnimationValue> implements IAnimation<T> {
+export class Animation<T extends AnimationValue> implements IAnimation {
     public readonly id;
     public readonly groupId;
+    public readonly phase: AnimationPhase;
+    public isComplete = false;
+    public readonly delay;
+    public readonly duration;
     protected autoplay;
-    protected delay;
-    protected duration;
     protected ease;
-    protected repeat;
-    protected repeatType;
 
     protected elapsed = 0;
     protected iteration = 0;
@@ -112,27 +128,26 @@ export class Animation<T extends AnimationValue> implements IAnimation<T> {
     private readonly onComplete; // onEnd
     private readonly onPlay; // onStart
     private readonly onStop; // onCancel
-    private readonly onRepeat; // onIteration
     private readonly onUpdate;
 
     private interpolate: (delta: number) => T;
 
-    constructor(opts: AnimationOptions<T>) {
+    constructor(opts: AnimationOptions<T> & { defaultDuration: number }) {
         // animation configuration
         this.id = opts.id;
         this.groupId = opts.groupId;
         this.autoplay = opts.autoplay ?? true;
-        this.delay = opts.delay ?? 0;
-        this.duration = opts.duration ?? 1000;
         this.ease = opts.ease ?? linear;
-        this.repeat = opts.repeat ?? 0;
-        this.repeatType = opts.repeatType ?? RepeatType.Loop;
+        this.phase = opts.phase;
+
+        const durationProportion = opts.duration ?? ANIMATION_PHASE_TIMINGS[this.phase].animationDuration;
+        this.duration = durationProportion * opts.defaultDuration;
+        this.delay = (opts.delay ?? 0) * opts.defaultDuration;
 
         // user defined event listeners
         this.onComplete = opts.onComplete;
         this.onPlay = opts.onPlay;
         this.onStop = opts.onStop;
-        this.onRepeat = opts.onRepeat;
         this.onUpdate = opts.onUpdate;
 
         // animation interpolator based on `from` & `to` types
@@ -142,82 +157,72 @@ export class Animation<T extends AnimationValue> implements IAnimation<T> {
             this.onUpdate?.(opts.to, false, this);
             this.onStop?.(this);
             this.onComplete?.(this);
+            this.isComplete = true;
         } else if (this.autoplay) {
             this.play();
             // Initialise the animation immediately without requesting a frame to prevent flashes
             this.onUpdate?.(opts.from, true, this);
         }
+
+        if (opts.collapsable !== false) {
+            this.duration = this.checkCollapse(opts, this.duration);
+        }
+    }
+
+    private checkCollapse(opts: AnimationOptions<T>, calculatedDuration: number) {
+        // Treat this animation as having zero duration if there is no difference between from and to
+        // state, allowing us to run the update processing once and then skip any further updates.
+        // This additionally allows animation phases to progress if all animations in a phase are
+        // no-ops.
+        let isNoop = opts.from === opts.to;
+        isNoop ||= typeof opts.from === 'object' && jsonDiff(opts.from, opts.to) == null;
+        if (isNoop) {
+            return 0;
+        }
+        return calculatedDuration;
     }
 
     play() {
-        if (!this.isPlaying) {
+        if (!this.isPlaying && !this.isComplete) {
             this.isPlaying = true;
             this.onPlay?.(this);
         }
-        return this;
     }
 
     pause() {
         if (this.isPlaying) {
             this.isPlaying = false;
         }
-        return this;
     }
 
     stop() {
         if (this.isPlaying) {
             this.isPlaying = false;
+            this.isComplete = true;
             this.onStop?.(this);
         }
-        return this;
-    }
-
-    reset(opts: ResetAnimationOptions<T>) {
-        const deltaState = this.interpolate(this.isReverse ? 1 - this.delta : this.delta);
-        this.interpolate = this.createInterpolator(deltaState, opts.to) as (delta: number) => T;
-
-        this.elapsed = 0;
-        this.iteration = 0;
-
-        if (typeof opts.delay === 'number') {
-            this.delay = opts.delay;
-        }
-        if (typeof opts.duration === 'number') {
-            this.duration = opts.duration;
-        }
-        if (typeof opts.ease === 'function') {
-            this.ease = opts.ease;
-        }
-
-        return this;
     }
 
     update(time: number) {
+        const previousElapsed = this.elapsed;
         this.elapsed += time;
 
-        if (this.elapsed <= this.delay) {
-            return this;
-        }
+        if (this.delay > this.elapsed) return 0;
 
         const value = this.interpolate(this.isReverse ? 1 - this.delta : this.delta);
 
         this.onUpdate?.(value, false, this);
 
-        if (this.elapsed - this.delay >= this.duration) {
-            if (this.iteration < this.repeat) {
-                this.iteration++;
-                this.elapsed = ((this.elapsed - this.delay) % this.duration) + this.delay;
-                if (this.repeatType === RepeatType.Reverse) {
-                    this.isReverse = !this.isReverse;
-                }
-                this.onRepeat?.(this);
-            } else {
-                this.stop();
-                this.onComplete?.(this);
-            }
+        const totalDuration = this.delay + this.duration;
+        if (this.elapsed >= totalDuration) {
+            this.stop();
+            this.isComplete = true;
+            this.onComplete?.(this);
+
+            return time - (totalDuration - previousElapsed);
         }
 
-        return this;
+        return 0;
     }
 
     protected get delta() {

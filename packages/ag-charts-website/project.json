@@ -87,6 +87,44 @@
           "fix": true
         }
       }
+    },
+    "generate-examples": {
+      "executor": "nx:noop",
+      "dependsOn": ["^generate-example"],
+      "inputs": [{ "externalDependencies": ["npm:typescript"] }],
+      "outputs": [],
+      "cache": true,
+      "configurations": {
+        "staging": {},
+        "production": {}
+      }
+    },
+    "generate-thumbnails": {
+      "executor": "nx:noop",
+      "dependsOn": ["^generate-thumbnail"],
+      "inputs": [{ "externalDependencies": ["npm:typescript"] }],
+      "outputs": [],
+      "cache": true,
+      "configurations": {
+        "staging": {},
+        "production": {}
+      }
+    },
+    "validate-examples": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["^build:types"],
+      "inputs": [
+        "{projectRoot}/tsconfig.examples.json",
+        "{workspaceRoot}/packages/ag-charts-website/src/**/_examples/**/*.ts",
+        "tsDeclarations",
+        {
+          "externalDependencies": ["npm:typescript"]
+        }
+      ],
+      "cache": true,
+      "options": {
+        "commands": ["npx tsc -p {projectRoot}/tsconfig.examples.json"]
+      }
     }
   },
   "implicitDependencies": [

@@ -362,11 +362,22 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
             pageY = clientY - pageRect.top;
         }
 
+        // AG-10475 On Chrome (Windows), wheel clicks send deltaMode: 0 events with deltaY: -100 or +100.
+        // So we use a logarithmic calculation to give us the desired step, whilst preserving behaviors
+        // on track pads. (These are typically much more rapid, smaller incremental delta events).
+        const deltaFactor = (input: number) => {
+            const scaleOutput = 3;
+            const zeroInput = 0.1;
+            const outputCurveFit = 60;
+            const sign = Math.sign(input);
+            return (Math.log10(Math.abs(input) / outputCurveFit + zeroInput) * scaleOutput + scaleOutput) * sign;
+        };
+
         let [deltaX, deltaY] = [NaN, NaN];
         if (this.isWheelEvent(event)) {
-            const factor = event.deltaMode === 0 ? 0.1 : 1;
-            deltaX = event.deltaX * factor;
-            deltaY = event.deltaY * factor;
+            const factorFn = event.deltaMode === 0 ? deltaFactor : (x: number) => x;
+            deltaX = factorFn(event.deltaX);
+            deltaY = factorFn(event.deltaY);
         }
 
         const builtEvent = {

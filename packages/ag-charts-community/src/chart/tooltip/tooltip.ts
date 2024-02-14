@@ -143,6 +143,7 @@ const defaultTooltipCss = `
 
 export type TooltipMeta = PointerOffsets & {
     showArrow?: boolean;
+    lastPointerEvent: PointerOffsets;
     position?: {
         xOffset?: number;
         yOffset?: number;
