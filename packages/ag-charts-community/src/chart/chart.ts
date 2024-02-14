@@ -1560,7 +1560,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 `AgChartV2.applySeries() - creating new series instances, status: ${matchResult.status}`,
                 matchResult
             );
-            chart.series = options.series.map((opts) => this.createSeries(opts));
+            chart.series = optSeries.map((opts) => this.createSeries(opts));
             return 'replaced';
         }
 
