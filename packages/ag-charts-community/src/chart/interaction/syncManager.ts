@@ -1,3 +1,4 @@
+import type { ModuleInstance } from '../../module/baseModule';
 import type { ChartAxisDirection } from '../chartAxisDirection';
 import type { ISeries } from '../series/seriesTypes';
 import { BaseManager } from './baseManager';
@@ -24,6 +25,7 @@ type ChartLike = {
     series: ISeries<any>[];
     highlightManager: HighlightManager;
     zoomManager: ZoomManager;
+    modules: Map<string, ModuleInstance>;
 };
 
 export class SyncManager extends BaseManager {
