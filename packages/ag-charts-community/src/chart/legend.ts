@@ -231,7 +231,7 @@ export class Legend extends BaseProperties {
         this.item.marker.parent = this;
 
         const animationState = InteractionState.Default | InteractionState.Animation;
-        const region = ctx.interactionManager.addRegion('legend', this.group);
+        const region = ctx.regionManager.addRegion('legend', this.group);
         this.destroyFns.push(
             region.addListener('click', (e) => this.checkLegendClick(e), animationState),
             region.addListener('dblclick', (e) => this.checkLegendDoubleClick(e), animationState),

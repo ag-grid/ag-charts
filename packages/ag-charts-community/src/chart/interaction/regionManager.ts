@@ -1,33 +1,81 @@
 import type { BBoxProvider } from '../../util/bboxset';
 import { BBoxSet } from '../../util/bboxset';
 import { Listeners } from '../../util/listeners';
+import { Logger } from '../../util/logger';
+import type { InteractionEvent, InteractionManager, InteractionTypes } from './interactionManager';
+import { InteractionState, InteractionTypesArray } from './interactionManager';
 
 export type RegionName = 'legend';
 
-type RegionEvent<EventType extends string> = {
-    type: EventType;
-    consumed?: boolean;
-};
+type RegionHandler<Event extends InteractionEvent> = (event: Event) => void;
 
-type RegionHandler<EventType extends string> = (event: RegionEvent<EventType>) => void;
+class RegionListeners extends Listeners<InteractionTypes, RegionHandler<InteractionEvent<InteractionTypes>>> {}
 
-type Region<EventType extends string> = {
+type Region = {
     name: RegionName;
-    listeners: Listeners<EventType, RegionHandler<EventType>>;
+    listeners: RegionListeners;
 };
 
-export class RegionManager<EventType extends string> {
-    public currentRegion?: Region<EventType>;
+export class RegionManager {
+    public currentRegion?: Region;
 
-    private regions: BBoxSet<Region<EventType>> = new BBoxSet();
+    private regions: BBoxSet<Region> = new BBoxSet();
+    private readonly destroyFns: (() => void)[] = [];
 
-    public addRegion(name: RegionName, bboxprovider: BBoxProvider): Region<EventType> {
-        const region = { name, listeners: new Listeners<EventType, RegionHandler<EventType>>() };
+    constructor(private interactionManager: InteractionManager) {
+        InteractionTypesArray.forEach((t) =>
+            this.destroyFns.push(interactionManager.addListener(t, this.processEvent))
+        );
+    }
+
+    public destroy() {
+        this.destroyFns.forEach((fn) => fn());
+    }
+
+    private pushRegion(name: RegionName, bboxprovider: BBoxProvider): Region {
+        const region = { name, listeners: new RegionListeners() };
         this.regions.add(region, bboxprovider);
         return region;
     }
 
-    public pickRegion(x: number, y: number): Region<EventType> | undefined {
+    public addRegion(name: RegionName, bboxprovider: BBoxProvider) {
+        const region = this.pushRegion(name, bboxprovider);
+        const { interactionManager } = this;
+
+        class ObservableRegionImplementation {
+            addListener<T extends InteractionTypes>(
+                type: T,
+                handler: RegionHandler<InteractionEvent<T>>,
+                triggeringStates?: InteractionState
+            ) {
+                return region.listeners.addListener(type, (e) => {
+                    if (!e.consumed) {
+                        const currentState = interactionManager.getState();
+                        if (currentState & (triggeringStates ?? InteractionState.Default)) {
+                            handler(e as InteractionEvent<T>);
+                        }
+                    }
+                });
+            }
+        }
+        return new ObservableRegionImplementation();
+    }
+
+    private processEvent(event: InteractionEvent<InteractionTypes>) {
+        const { currentRegion } = this;
+        const newRegion = this.pickRegion(event.offsetX, event.offsetY);
+        if (currentRegion !== undefined && newRegion?.name !== currentRegion.name) {
+            currentRegion?.listeners.dispatch('leave', { ...event, type: 'leave' });
+        }
+        if (newRegion !== undefined) {
+            // Async dispatch to avoid blocking the event-processing thread.
+            const dispatcher = async () => newRegion.listeners.dispatch(event.type, event);
+            dispatcher().catch((e) => Logger.errorOnce(e));
+        }
+        this.currentRegion = newRegion;
+    }
+
+    private pickRegion(x: number, y: number): Region | undefined {
         const matchingRegions = this.regions.find(x, y);
         return matchingRegions.length > 0 ? matchingRegions[0] : undefined;
     }

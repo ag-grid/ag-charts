@@ -1,22 +1,23 @@
-import type { BBoxProvider } from '../../util/bboxset';
 import { Debug } from '../../util/debug';
 import { injectStyle } from '../../util/dom';
 import { Logger } from '../../util/logger';
 import { isFiniteNumber } from '../../util/type-guards';
 import { BaseManager } from './baseManager';
-import { RegionManager, RegionName } from './regionManager';
 
-type InteractionTypes =
-    | 'click'
-    | 'dblclick'
-    | 'contextmenu'
-    | 'hover'
-    | 'drag-start'
-    | 'drag'
-    | 'drag-end'
-    | 'leave'
-    | 'page-left'
-    | 'wheel';
+export const InteractionTypesArray = [
+    'click',
+    'dblclick',
+    'contextmenu',
+    'hover',
+    'drag-start',
+    'drag',
+    'drag-end',
+    'leave',
+    'page-left',
+    'wheel',
+] as const;
+
+export type InteractionTypes = (typeof InteractionTypesArray)[number];
 
 type SUPPORTED_EVENTS =
     | 'click'
@@ -118,8 +119,6 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
 
     private stateQueue: InteractionState = InteractionState.Default;
 
-    private regionManager: RegionManager<InteractionTypes> = new RegionManager();
-
     public constructor(element: HTMLElement, document: Document, window: Window) {
         super();
 
@@ -173,29 +172,6 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         });
     }
 
-    public addRegion(name: RegionName, node: BBoxProvider) {
-        const region = this.regionManager.addRegion(name, node);
-        const interactionManager = this;
-
-        class ObservableRegionImplementation {
-            addListener<T extends InteractionTypes>(
-                type: T,
-                handler: InteractionHandler<T>,
-                triggeringStates?: InteractionState
-            ) {
-                return region.listeners.addListener(type, (e) => {
-                    if (!e.consumed) {
-                        const currentState = interactionManager.getState();
-                        if (currentState & (triggeringStates ?? InteractionState.Default)) {
-                            handler(e as InteractionEvent<T>);
-                        }
-                    }
-                });
-            }
-        }
-        return new ObservableRegionImplementation();
-    }
-
     public pushState(state: InteractionState) {
         this.stateQueue |= state;
     }
@@ -217,26 +193,6 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
 
         const types: InteractionTypes[] = this.decideInteractionEventTypes(event);
 
-        // New region based input handling:
-        const { currentRegion } = this.regionManager;
-        const newRegion = this.regionManager.pickRegion(coords.offsetX, coords.offsetY);
-        if (currentRegion !== undefined && newRegion?.name !== currentRegion.name) {
-            const type = 'leave';
-            const leaveEvent = this.buildEvent({ type, event, ...coords });
-            currentRegion?.listeners.dispatch(type, leaveEvent);
-        }
-        if (newRegion !== undefined) {
-            // Async dispatch to avoid blocking the event-processing thread.
-            const dispatcher = async () => {
-                for (const type of types) {
-                    newRegion.listeners.dispatch(type, this.buildEvent({ type, event, ...coords }));
-                }
-            };
-            dispatcher().catch((e) => Logger.errorOnce(e));
-        }
-        this.regionManager.currentRegion = newRegion;
-
-        // Legacy input handling:
         if (types.length > 0) {
             // Async dispatch to avoid blocking the event-processing thread.
             this.dispatchEvent(coords, event, types).catch((e) => Logger.errorOnce(e));
