@@ -1,8 +1,26 @@
-import { AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { marketingCampaigns, productLaunches } from './data';
 
+const options: AgCartesianChartOptions = {
+    series: [
+        {
+            type: 'line',
+            xKey: 'quarter',
+            yKey: 'quarterlyRevenue',
+        },
+    ],
+    tooltip: {
+        enabled: false,
+    },
+    sync: {
+        axes: 'y',
+        nodeInteraction: false,
+    },
+};
+
 const chart1 = AgCharts.create({
+    ...options,
     container: document.getElementById('myChart1'),
     title: {
         text: 'Quarterly Revenue vs. Product Launches',
@@ -11,19 +29,10 @@ const chart1 = AgCharts.create({
         text: 'Evaluating Revenue Impact of New Products Over 5 Years',
     },
     data: productLaunches,
-    series: [
-        {
-            type: 'line',
-            xKey: 'quarter',
-            yKey: 'quarterlyRevenue',
-        },
-    ],
-    sync: {
-        axes: 'y',
-    },
 });
 
 const chart2 = AgCharts.create({
+    ...options,
     container: document.getElementById('myChart2'),
     title: {
         text: 'Quarterly Revenue vs. Marketing Campaigns',
@@ -32,14 +41,4 @@ const chart2 = AgCharts.create({
         text: 'Assessing the Effectiveness of Marketing Efforts',
     },
     data: marketingCampaigns,
-    series: [
-        {
-            type: 'line',
-            xKey: 'quarter',
-            yKey: 'quarterlyRevenue',
-        },
-    ],
-    sync: {
-        axes: 'y',
-    },
 });

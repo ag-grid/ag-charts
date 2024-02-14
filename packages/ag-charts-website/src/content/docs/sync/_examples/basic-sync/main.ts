@@ -1,6 +1,6 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-import { getData } from './data';
+import { datasetA, datasetB, datasetC } from './data';
 
 const options: AgCartesianChartOptions = {
     subtitle: {
@@ -43,7 +43,7 @@ const options: AgCartesianChartOptions = {
 
 const chart1 = AgCharts.create({
     ...options,
-    data: getData(),
+    data: datasetA,
     title: {
         text: 'Average expenditure on coffee',
     },
@@ -52,7 +52,7 @@ const chart1 = AgCharts.create({
 
 const chart2 = AgCharts.create({
     ...options,
-    data: getData(),
+    data: datasetB,
     title: {
         text: 'Average expenditure on tea',
     },
@@ -61,7 +61,7 @@ const chart2 = AgCharts.create({
 
 const chart3 = AgCharts.create({
     ...options,
-    data: getData(),
+    data: datasetC,
     title: {
         text: 'Average expenditure on tobacco',
     },

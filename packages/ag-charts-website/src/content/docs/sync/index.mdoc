@@ -35,9 +35,30 @@ sync: {
 
 {% chartExampleRunner title="Axes Synchronization" name="axes-sync" type="generated" /%}
 
+## Interaction Synchronization
+
+By default, when a node is highlighted, all other synced charts will highlight nodes with the same value. The value is determined by the `xKey` or `yKey`, according to the `axes` option. If `axes` is set to `xy`, then nodes will be matched according to their `x` axis values.
+
+This behavior can be disabled by providing the following configuration:
+
+```js
+sync: {
+    nodeInteraction: false,
+},
+```
+
 ## Zoom Synchronization
 
 Zoom synchronization ensures that when one chart in a group zooms in or out, all associated charts adjust accordingly, maintaining consistent comparative scales.
+By default, zoom actions are synchronized across all charts. When you zoom in on one chart, all other synced charts will adjust their view to match the zoom level and window.
+
+This feature can be customized to suit your needs. If you prefer to disable this automatic synchronization, you can do so by providing the following configuration:
+
+```json
+sync: {
+    zoom: false,
+},
+```
 
 {% note %}
 While individual charts can have distinct zoom settings affecting their interactivity, any zoom adjustment on one chart will harmonize zoom levels across all synced charts of the same group.

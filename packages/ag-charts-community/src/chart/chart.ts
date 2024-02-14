@@ -278,7 +278,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     public readonly syncManager = new SyncManager(this);
     public readonly zoomManager = new ZoomManager();
 
-    protected readonly modules: Map<string, ModuleInstance> = new Map();
+    public readonly modules: Map<string, ModuleInstance> = new Map();
 
     protected readonly animationManager: AnimationManager;
     protected readonly chartEventManager: ChartEventManager;
