@@ -451,6 +451,11 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.animationManager?.reset();
     }
 
+    skipAnimations() {
+        this.animationManager.skipCurrentBatch();
+        this._performUpdateSkipAnimations = true;
+    }
+
     destroy(opts?: { keepTransferableResources: boolean }): TransferableResources | undefined {
         if (this.destroyed) {
             return;

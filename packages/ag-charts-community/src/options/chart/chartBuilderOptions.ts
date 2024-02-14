@@ -28,6 +28,8 @@ export interface AgChartInstance {
     getOptions(): AgChartOptions;
     /** Reset animation state; treat the next AgChart.update() as-if the chart is being created from scratch. */
     resetAnimations(): void;
+    /** Skip animations on the next redraw. */
+    skipAnimations(): void;
     /** Destroy the chart instance and any allocated resources to support its rendering. */
     destroy(): void;
 }

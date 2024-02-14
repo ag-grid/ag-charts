@@ -56,6 +56,10 @@ export class AgChartInstanceProxy implements AgChartProxy {
         this.chart.resetAnimations();
     }
 
+    skipAnimations(): void {
+        this.chart.skipAnimations();
+    }
+
     destroy() {
         this.chart.destroy();
     }
