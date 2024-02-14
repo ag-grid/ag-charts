@@ -132,10 +132,7 @@ export class AnimationBatch {
 
         let skipAll = true;
         for (const [, controller] of this.controllers) {
-            if (
-                controller.duration > 0 &&
-                ANIMATION_PHASE_TIMINGS[controller.phase].skipIfNoEarlierAnimations !== true
-            ) {
+            if (controller.duration > 0 && PHASE_METADATA[controller.phase].skipIfNoEarlierAnimations !== true) {
                 skipAll = false;
                 break;
             }

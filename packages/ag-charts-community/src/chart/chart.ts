@@ -644,6 +644,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
             case ChartUpdateType.SCENE_RENDER:
                 if (this.checkUpdateShortcut(ChartUpdateType.SCENE_RENDER)) break;
 
+                // Force any initial animation changes to be applied BEFORE any rendering happens.
+                this.animationManager.endBatch();
+
                 extraDebugStats['updateShortcutCount'] = this.updateShortcutCount;
                 await this.scene.render({ debugSplitTimes: splits, extraDebugStats });
                 this.extraDebugStats = {};
