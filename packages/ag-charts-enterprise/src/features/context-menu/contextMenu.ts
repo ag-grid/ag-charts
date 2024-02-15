@@ -68,7 +68,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     // Global shared state
     private static contextMenuDocuments: Document[] = [];
     private static defaultActions: Array<ContextMenuAction> = [];
-    private static nodeActions: Array<ContextMenuAction> = [];
     private static disabledActions: Set<string> = new Set();
 
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
@@ -157,13 +156,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.defaultActions.push(action);
     }
 
-    public static registerNodeAction(action: ContextMenuAction) {
-        if (action.id && this.defaultActions.find(({ id }) => id === action.id)) {
-            return;
-        }
-        this.nodeActions.push(action);
-    }
-
     public static enableAction(actionId: string) {
         this.disabledActions.delete(actionId);
     }
@@ -192,10 +184,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.groups.default = [...ContextMenu.defaultActions];
 
         this.pickedNode = this.highlightManager.getActivePicked();
-        if (this.pickedNode) {
-            this.groups.node = [...ContextMenu.nodeActions];
-        }
-
         if (this.extraActions.length > 0) {
             this.groups.extra = [...this.extraActions];
         }
