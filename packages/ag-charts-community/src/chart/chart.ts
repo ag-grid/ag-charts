@@ -1467,6 +1467,14 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
             const axes = miniChart.axes as ChartAxis[];
             const horizontalAxis = axes.find((axis) => axis.direction === ChartAxisDirection.X);
+
+            for (const axis of axes) {
+                axis.gridLine.enabled = false;
+                axis.label.enabled = axis === horizontalAxis;
+                axis.tick.enabled = false;
+                axis.interactionEnabled = false;
+            }
+
             if (horizontalAxis != null) {
                 const labelOptions = deltaOptions.navigator?.miniChart?.label;
                 const intervalOptions = deltaOptions.navigator?.miniChart?.label?.interval;
@@ -1489,6 +1497,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
                         'navigator.miniChart.interval.size',
                         'navigator.miniChart.interval.color',
                         'navigator.miniChart.interval.interval',
+                        'navigator.miniChart.interval.step',
                     ],
                 });
 
@@ -1496,13 +1505,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 if (step != null) {
                     horizontalAxis.tick.interval = step;
                 }
-            }
-
-            for (const axis of axes) {
-                axis.gridLine.enabled = false;
-                axis.label.enabled = axis === horizontalAxis;
-                axis.tick.enabled = false;
-                axis.interactionEnabled = false;
             }
         } else if (miniChart?.enabled === false) {
             miniChart.series = [];
