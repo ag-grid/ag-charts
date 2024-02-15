@@ -297,6 +297,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramNodeDatum> {
                 midPoint: nodeMidPoint,
                 fill: fill,
                 stroke: stroke,
+                opacity: 1,
                 strokeWidth: strokeWidth,
                 label: selectionDatumLabel,
             });
@@ -484,7 +485,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramNodeDatum> {
     }
 
     override animateEmptyUpdateReady({ datumSelections, labelSelections }: HistogramAnimationData) {
-        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(true, this.axes));
+        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(true, this.axes, 'normal'));
         fromToMotion(this.id, 'datums', this.ctx.animationManager, datumSelections, fns);
 
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
@@ -492,7 +493,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramNodeDatum> {
 
     override animateWaitingUpdateReady(data: HistogramAnimationData) {
         const diff = this.processedData?.reduced?.diff;
-        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(true, this.axes));
+        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(true, this.axes, 'normal'));
 
         fromToMotion(
             this.id,

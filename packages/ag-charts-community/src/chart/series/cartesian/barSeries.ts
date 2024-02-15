@@ -66,6 +66,7 @@ interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDat
     readonly height: number;
     readonly fill: string | undefined;
     readonly stroke: string | undefined;
+    readonly opacity: number | undefined;
     readonly strokeWidth: number;
     readonly cornerRadius: number;
     readonly topLeftCornerRadius: boolean;
@@ -393,6 +394,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
                     midPoint: { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 },
                     fill,
                     stroke,
+                    opacity: 1,
                     strokeWidth,
                     cornerRadius,
                     topLeftCornerRadius: !(barAlongX === isUpward),
@@ -588,7 +590,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
     }
 
     override animateEmptyUpdateReady({ datumSelections, labelSelections, annotationSelections }: BarAnimationData) {
-        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes));
+        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, 'normal'));
 
         fromToMotion(this.id, 'nodes', this.ctx.animationManager, datumSelections, fns);
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
@@ -601,7 +603,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
         const diff = this.processedData?.reduced?.diff;
-        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes));
+        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, 'fade'));
 
         fromToMotion(
             this.id,

@@ -48,6 +48,7 @@ interface WaterfallNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Re
     readonly fill: string;
     readonly stroke: string;
     readonly strokeWidth: number;
+    readonly opacity: number;
 }
 
 interface WaterfallContext extends _ModuleSupport.CartesianSeriesNodeDataContext<WaterfallNodeDatum> {
@@ -444,6 +445,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 fill,
                 stroke,
                 strokeWidth,
+                opacity: 1,
                 label: {
                     text: labelText,
                     ...adjustLabelPlacement({
@@ -704,7 +706,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     protected override toggleSeriesItem(): void {}
 
     override animateEmptyUpdateReady({ datumSelections, labelSelections, contextData, paths }: WaterfallAnimationData) {
-        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes));
+        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, 'normal'));
         motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, datumSelections, fns);
 
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
