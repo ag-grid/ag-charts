@@ -231,7 +231,6 @@ export function hoverAction(x: number, y: number): (chart: Chart | AgChartProxy)
         checkTargetValid(target);
 
         // Reveal tooltip.
-        target?.dispatchEvent(mouseMoveEvent({ offsetX: x - 1, offsetY: y - 1 }));
         target?.dispatchEvent(mouseMoveEvent({ offsetX: x, offsetY: y }));
 
         return delay(50);
