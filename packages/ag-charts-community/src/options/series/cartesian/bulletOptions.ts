@@ -33,7 +33,7 @@ export interface AgBulletScaleOptions {
 
 export interface AgBulletSeriesThemeableOptions<TDatum = any>
     extends AgBulletSeriesStyle,
-        AgBaseCartesianThemeableOptions<TDatum> {
+        Omit<AgBaseCartesianThemeableOptions<TDatum>, 'showInMiniChart'> {
     /** Width of the bar relative to the width/height of the series area. */
     widthRatio?: Ratio;
     /** Styling options for the target node. */
