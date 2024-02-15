@@ -278,6 +278,9 @@ export class ChartTheme {
                 delay: 0,
             },
             overlays: {
+                loading: {
+                    darkTheme: IS_DARK_THEME,
+                },
                 noData: {
                     darkTheme: IS_DARK_THEME,
                 },
