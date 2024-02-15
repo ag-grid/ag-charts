@@ -598,12 +598,13 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
     }
 
     override animateWaitingUpdateReady(data: BarAnimationData) {
-        const { datumSelections, labelSelections, annotationSelections } = data;
+        const { datumSelections, labelSelections, annotationSelections, previousContextData } = data;
 
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
         const diff = this.processedData?.reduced?.diff;
-        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, 'fade'));
+        const mode = previousContextData?.length === 0 ? 'fade' : 'normal';
+        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, mode));
 
         fromToMotion(
             this.id,
