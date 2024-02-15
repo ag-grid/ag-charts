@@ -1,13 +1,13 @@
 import { ChartUpdateType } from '../chartUpdateType';
 import type { DataService } from '../data/dataService';
-import type { ZoomManager } from '../interaction/zoomManager';
+import type { ZoomManager, ZoomState } from '../interaction/zoomManager';
 import type { UpdateService } from '../updateService';
 import type { AxisLike, ChartLike, UpdateProcessor } from './processor';
 
 export class DataWindowProcessor<D extends object> implements UpdateProcessor {
     private dirtyZoom = false;
     private dirtyDataSource = false;
-    private lastAxisZooms = new Map();
+    private lastAxisZooms = new Map<string, ZoomState>();
 
     private destroyFns: (() => void)[] = [];
 
@@ -50,10 +50,21 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
         if (!this.dataService.isLazy()) return;
 
         const axis = this.getValidAxis();
-        const window = axis ? this.getAxisWindow(axis) : null;
+
+        let window;
+        let shouldRefresh = true;
+
+        if (axis) {
+            const zoom = this.zoomManager.getAxisZoom(axis.id);
+            window = this.getAxisWindow(axis, zoom);
+            shouldRefresh = this.shouldRefresh(axis, zoom);
+        }
 
         this.dirtyZoom = false;
         this.dirtyDataSource = false;
+
+        if (!shouldRefresh) return;
+
         this.dataService.load({ windowStart: window?.min, windowEnd: window?.max });
     }
 
@@ -61,19 +72,24 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
         return this.chart.axes.find((axis) => axis.type === 'time');
     }
 
-    private getAxisWindow(axis: AxisLike) {
-        const zoom = this.zoomManager.getAxisZoom(axis.id);
-        const domain = axis.scale.getDomain?.();
+    private shouldRefresh(axis: AxisLike, zoom: ZoomState) {
+        if (this.dirtyDataSource) return true;
+        if (!this.dirtyZoom) return false;
 
-        if (!zoom || !domain || domain.length === 0 || isNaN(Number(domain[0]))) return;
-
-        if (!this.dirtyDataSource) {
-            // Only run the callback if the zoom has changed on this axis, ignoring invalid axes
-            const lastZoom = this.lastAxisZooms.get(axis.id);
-            if (lastZoom && zoom.min === lastZoom.min && zoom.max === lastZoom.max) return;
+        const lastZoom = this.lastAxisZooms.get(axis.id);
+        if (lastZoom && zoom.min === lastZoom.min && zoom.max === lastZoom.max) {
+            return false;
         }
 
         this.lastAxisZooms.set(axis.id, zoom);
+
+        return true;
+    }
+
+    private getAxisWindow(axis: AxisLike, zoom: ZoomState) {
+        const domain = axis.scale.getDomain?.();
+
+        if (!zoom || !domain || domain.length === 0 || isNaN(Number(domain[0]))) return;
 
         const diff = Number(domain[1]) - Number(domain[0]);
 
