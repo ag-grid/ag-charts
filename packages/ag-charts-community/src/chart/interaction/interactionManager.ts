@@ -4,7 +4,7 @@ import { Logger } from '../../util/logger';
 import { isFiniteNumber } from '../../util/type-guards';
 import { BaseManager } from './baseManager';
 
-export const InteractionTypesArray = [
+export const INTERACTION_TYPES = [
     'click',
     'dblclick',
     'contextmenu',
@@ -17,7 +17,7 @@ export const InteractionTypesArray = [
     'wheel',
 ] as const;
 
-export type InteractionTypes = (typeof InteractionTypesArray)[number];
+export type InteractionTypes = (typeof INTERACTION_TYPES)[number];
 
 type SUPPORTED_EVENTS =
     | 'click'

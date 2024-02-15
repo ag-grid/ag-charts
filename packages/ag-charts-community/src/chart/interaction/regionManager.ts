@@ -3,7 +3,7 @@ import { BBoxSet } from '../../util/bboxset';
 import { Listeners } from '../../util/listeners';
 import { Logger } from '../../util/logger';
 import type { InteractionEvent, InteractionManager, InteractionTypes } from './interactionManager';
-import { InteractionState, InteractionTypesArray } from './interactionManager';
+import { INTERACTION_TYPES, InteractionState } from './interactionManager';
 
 export type RegionName = 'legend';
 
@@ -24,9 +24,7 @@ export class RegionManager {
     private readonly destroyFns: (() => void)[] = [];
 
     constructor(private interactionManager: InteractionManager) {
-        InteractionTypesArray.forEach((t) =>
-            this.destroyFns.push(interactionManager.addListener(t, this.eventHandler))
-        );
+        INTERACTION_TYPES.forEach((t) => this.destroyFns.push(interactionManager.addListener(t, this.eventHandler)));
     }
 
     public destroy() {
