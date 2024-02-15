@@ -10,6 +10,7 @@ import { seedRandom } from './test/random';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     clickAction,
+    computeLegendBBox,
     createChart,
     deproxy,
     doubleClickAction,
@@ -109,7 +110,7 @@ describe('Legend', () => {
 
             await waitForChartStability(chart);
 
-            const { x = 0, y = 0 } = chart.legend?.computeBBox() ?? {};
+            const { x, y } = computeLegendBBox(chart);
             await clickAction(x, y)(chart);
 
             await compare(chart);
@@ -125,7 +126,7 @@ describe('Legend', () => {
             chart = deproxy(AgCharts.create(options));
 
             await waitForChartStability(chart);
-            const { x = 0, y = 0 } = chart.legend?.computeBBox() ?? {};
+            const { x, y } = computeLegendBBox(chart);
 
             await clickAction(x, y)(chart);
             await waitForChartStability(chart);
@@ -146,7 +147,7 @@ describe('Legend', () => {
             chart = deproxy(AgCharts.create(options));
 
             await waitForChartStability(chart);
-            const { x = 0, y = 0 } = chart.legend?.computeBBox() ?? {};
+            const { x, y } = computeLegendBBox(chart);
 
             await doubleClickAction(x, y)(chart);
 
@@ -163,7 +164,7 @@ describe('Legend', () => {
             chart = deproxy(AgCharts.create(options));
 
             await waitForChartStability(chart);
-            const { x = 0, y = 0 } = chart.legend?.computeBBox() ?? {};
+            const { x, y } = computeLegendBBox(chart);
 
             await doubleClickAction(x, y)(chart);
             await waitForChartStability(chart);

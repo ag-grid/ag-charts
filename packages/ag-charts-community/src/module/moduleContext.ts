@@ -6,6 +6,7 @@ import type { CursorManager } from '../chart/interaction/cursorManager';
 import type { GestureDetector } from '../chart/interaction/gestureDetector';
 import type { HighlightManager } from '../chart/interaction/highlightManager';
 import type { InteractionManager } from '../chart/interaction/interactionManager';
+import type { RegionManager } from '../chart/interaction/regionManager';
 import type { SyncManager } from '../chart/interaction/syncManager';
 import type { TooltipManager } from '../chart/interaction/tooltipManager';
 import type { ZoomManager } from '../chart/interaction/zoomManager';
@@ -34,6 +35,7 @@ export interface ModuleContext {
     cursorManager: CursorManager;
     highlightManager: HighlightManager;
     interactionManager: InteractionManager;
+    regionManager: RegionManager;
     seriesStateManager: SeriesStateManager;
     syncManager: SyncManager;
     tooltipManager: TooltipManager;

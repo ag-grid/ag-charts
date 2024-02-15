@@ -11,6 +11,7 @@ import {
     Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
     clickAction,
+    computeLegendBBox,
     extractImageData,
     hoverAction,
     setupMockCanvas,
@@ -682,7 +683,7 @@ describe('ErrorBars', () => {
             ],
         });
 
-        const { x = 0, y = 0, width = 0 } = chart.legend?.computeBBox() ?? {};
+        const { x = 0, y = 0, width = 0 } = computeLegendBBox(chart);
 
         // Hide Canada
         await clickAction(x, y)(chart);

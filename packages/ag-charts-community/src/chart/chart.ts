@@ -53,6 +53,7 @@ import type { HighlightChangeEvent } from './interaction/highlightManager';
 import { HighlightManager } from './interaction/highlightManager';
 import type { InteractionEvent, PointerOffsets } from './interaction/interactionManager';
 import { InteractionManager, InteractionState } from './interaction/interactionManager';
+import { RegionManager } from './interaction/regionManager';
 import { SyncManager } from './interaction/syncManager';
 import { TooltipManager } from './interaction/tooltipManager';
 import { ZoomManager } from './interaction/zoomManager';
@@ -244,6 +245,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     protected readonly chartEventManager: ChartEventManager;
     protected readonly cursorManager: CursorManager;
     protected readonly interactionManager: InteractionManager;
+    protected readonly regionManager: RegionManager;
     protected readonly gestureDetector: GestureDetector;
     protected readonly tooltipManager: TooltipManager;
     protected readonly dataService: DataService<any>;
@@ -303,6 +305,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.cursorManager = new CursorManager(element);
         this.highlightManager = new HighlightManager();
         this.interactionManager = new InteractionManager(element, document, window);
+        this.regionManager = new RegionManager(this.interactionManager);
         this.gestureDetector = new GestureDetector(element);
         this.layoutService = new LayoutService();
         this.updateService = new UpdateService((type = ChartUpdateType.FULL, options) => this.update(type, options));
@@ -397,45 +400,26 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     getModuleContext(): ModuleContext {
-        const {
-            scene,
-            animationManager,
-            chartEventManager,
-            cursorManager,
-            highlightManager,
-            interactionManager,
-            gestureDetector,
-            tooltipManager,
-            syncManager,
-            zoomManager,
-            dataService,
-            layoutService,
-            updateService,
-            seriesStateManager,
-            callbackCache,
-            chartOptions: {
-                specialOverrides: { window, document },
-            },
-        } = this;
         return {
-            window,
-            document,
-            scene,
-            animationManager,
-            chartEventManager,
-            cursorManager,
-            highlightManager,
-            interactionManager,
-            gestureDetector,
-            tooltipManager,
-            syncManager,
-            zoomManager,
+            window: this.chartOptions.specialOverrides.window,
+            document: this.chartOptions.specialOverrides.document,
+            scene: this.scene,
+            animationManager: this.animationManager,
+            chartEventManager: this.chartEventManager,
+            cursorManager: this.cursorManager,
+            highlightManager: this.highlightManager,
+            interactionManager: this.interactionManager,
+            regionManager: this.regionManager,
+            gestureDetector: this.gestureDetector,
+            tooltipManager: this.tooltipManager,
+            syncManager: this.syncManager,
+            zoomManager: this.zoomManager,
             chartService: this,
-            dataService,
-            layoutService,
-            updateService,
-            seriesStateManager,
-            callbackCache,
+            dataService: this.dataService,
+            layoutService: this.layoutService,
+            updateService: this.updateService,
+            seriesStateManager: this.seriesStateManager,
+            callbackCache: this.callbackCache,
         };
     }
 
@@ -479,6 +463,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.removeModule(moduleInstance as ModuleInstance & (RootModule | LegendModule));
         }
 
+        this.regionManager.destroy();
         this.interactionManager.destroy();
         this.animationManager.stop();
         this.animationManager.destroy();
