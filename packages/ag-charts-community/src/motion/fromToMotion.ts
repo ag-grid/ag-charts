@@ -112,11 +112,11 @@ export function fromToMotion<N extends Node, T extends Record<string, string | n
                 status = calculateStatus(node, node.datum, getDatumId, ids);
             }
 
-            const { phase, start = {}, finish = {}, delay, duration, ...from } = fromFn(node, node.datum, status, ctx);
+            const { phase, start, finish, delay, duration, ...from } = fromFn(node, node.datum, status, ctx);
             const {
                 phase: toPhase,
-                start: toStart = {},
-                finish: toFinish = {},
+                start: toStart,
+                finish: toFinish,
                 delay: toDelay,
                 duration: toDuration,
                 ...to
@@ -134,7 +134,7 @@ export function fromToMotion<N extends Node, T extends Record<string, string | n
                 ease: easing.easeOut,
                 collapsable,
                 onPlay: () => {
-                    node.setProperties({ ...start, ...toStart });
+                    node.setProperties({ ...start, ...toStart } as unknown as T);
                 },
                 onUpdate(props) {
                     node.setProperties(props);
@@ -199,7 +199,7 @@ export function staticFromToMotion<N extends Node, T extends AnimationValue & Pa
     extraOpts: ExtraOpts<N>
 ) {
     const { nodes, selections } = deconstructSelectionsOrNodes(selectionsOrNodes);
-    const { start = {}, finish = {}, phase } = extraOpts;
+    const { start = {}, finish, phase } = extraOpts;
 
     // Simple static to/from case, we can batch updates.
     const collapsable = finish == null;
