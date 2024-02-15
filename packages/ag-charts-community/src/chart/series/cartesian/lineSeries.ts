@@ -25,8 +25,8 @@ import type { CartesianAnimationData, CartesianSeriesNodeDataContext } from './c
 import { CartesianSeries } from './cartesianSeries';
 import { LineNodeDatum, LineSeriesProperties } from './lineSeriesProperties';
 import { prepareLinePathAnimation } from './lineUtil';
-import { markerSwipeScaleInAnimation, resetMarkerFn, resetMarkerPositionFn } from './markerUtil';
-import { buildResetPathFn, pathSwipeInAnimation, updateClipPath } from './pathUtil';
+import { markerFadeInAnimation, markerSwipeScaleInAnimation, resetMarkerFn, resetMarkerPositionFn } from './markerUtil';
+import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, updateClipPath } from './pathUtil';
 
 type LineAnimationData = CartesianAnimationData<Group, LineNodeDatum>;
 
@@ -434,23 +434,35 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         const { animationManager } = this.ctx;
         const { markerSelections, labelSelections, annotationSelections, contextData, paths, previousContextData } =
             animationData;
+        const [path] = paths;
 
         super.resetAllAnimation(animationData);
 
-        if (contextData.length === 0 || !previousContextData || previousContextData.length === 0) {
-            animationManager.skipCurrentBatch();
+        const update = () => {
             this.updateLinePaths(paths, contextData);
+        };
+        const skip = () => {
+            animationManager.skipCurrentBatch();
+            update();
+        };
+
+        if (contextData.length === 0 || previousContextData?.length === 0) {
+            // Added series to existing chart case - fade in series.
+            update();
+
+            markerFadeInAnimation(this, animationManager, markerSelections, 'added');
+            pathFadeInAnimation(this, 'path_properties', animationManager, path);
+            seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
+            seriesLabelFadeInAnimation(this, 'annotations', animationManager, annotationSelections);
             return;
         }
 
-        const [path] = paths;
         const [newData] = contextData;
-        const [oldData] = previousContextData;
+        const [oldData] = previousContextData ?? [];
 
         const fns = prepareLinePathAnimation(newData, oldData, this.processedData?.reduced?.diff);
         if (fns === undefined) {
-            animationManager.skipCurrentBatch();
-            this.updateLinePaths(paths, contextData);
+            skip();
             return;
         }
 

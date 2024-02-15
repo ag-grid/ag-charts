@@ -2,6 +2,22 @@ import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+const series: NonNullable<AgChartOptions['series']> = [
+    {
+        type: 'line',
+        xKey: 'date',
+        yKey: 'petrol',
+        marker: {},
+        label: {},
+    },
+    {
+        type: 'line',
+        xKey: 'date',
+        yKey: 'diesel',
+        marker: {},
+        label: {},
+    },
+];
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     animation: {
@@ -9,22 +25,7 @@ const options: AgChartOptions = {
     },
     legend: {},
     data: getData(),
-    series: [
-        {
-            type: 'line',
-            xKey: 'date',
-            yKey: 'petrol',
-            marker: {},
-            label: {},
-        },
-        {
-            type: 'line',
-            xKey: 'date',
-            yKey: 'diesel',
-            marker: {},
-            label: {},
-        },
-    ],
+    series,
     axes: [
         {
             position: 'bottom',
@@ -62,6 +63,16 @@ function times<T>(cb: () => T, count: number) {
 
 function actionReset() {
     options.data = getData();
+    AgCharts.update(chart, options);
+}
+
+function actionAddSeries() {
+    options.series = [...options.series!, series[options.series!.length % series.length]] as any;
+    AgCharts.update(chart, options);
+}
+
+function actionRemoveSeries() {
+    options.series = options.series!.slice(0, options.series!.length - 1);
     AgCharts.update(chart, options);
 }
 
