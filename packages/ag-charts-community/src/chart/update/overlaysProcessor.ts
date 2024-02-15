@@ -14,14 +14,14 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
         private readonly dataService: DataService<D>,
         private readonly layoutService: LayoutService
     ) {
-        this.destroyFns.push(this.layoutService.addListener('start-layout', (ctx) => this.onStartLayout(ctx)));
+        this.destroyFns.push(this.layoutService.addListener('before-series', (ctx) => this.onBeforeSeries(ctx)));
     }
 
     public destroy() {
         this.destroyFns.forEach((cb) => cb());
     }
 
-    private onStartLayout(ctx: LayoutContext) {
+    private onBeforeSeries(ctx: LayoutContext) {
         const isLoading = this.dataService.isLoading();
         const hasData = this.chartLike.series.some((s) => s.data?.length);
         const anySeriesVisible = this.chartLike.series.some((s) => s.visible);
