@@ -906,14 +906,14 @@ export class Legend extends BaseProperties {
         }
     }
 
-    private handleLegendMouseEnter(event: InteractionEvent<'hover-start'>) {
-        const { enabled, item, listeners } = this;
+    private handleLegendMouseEnter(event: InteractionEvent<'enter'>) {
+        const {
+            enabled,
+            item: { toggleSeriesVisible: toggle },
+            listeners: { legendItemClick: clickListener, legendItemDoubleClick: dblclickListener },
+        } = this;
         const datum = this.getDatumForPoint(event.offsetX, event.offsetY);
-        if (
-            enabled &&
-            datum !== undefined &&
-            (item.toggleSeriesVisible || listeners.legendItemClick != null || listeners.legendItemDoubleClick != null)
-        ) {
+        if (enabled && datum !== undefined && (toggle || clickListener != null || dblclickListener != null)) {
             this.ctx.cursorManager.updateCursor(this.id, 'pointer');
         }
     }
