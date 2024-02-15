@@ -4,16 +4,16 @@
         "date": "February 20th 2024",
         "highlights": [
             {
-                "text": "Synchronised charts",
-                "url": ""
+                "text": "Synchronised Charts",
+                "url": "https://charts.ag-grid.com/react/sync/"
             },
             {
                 "text": "Mini Chart in Navigator",
-                "url": ""
+                "url": "https://charts.ag-grid.com/react/navigator/#mini-chart"
             },
             {
-                "text": "Server data source",
-                "url": ""
+                "text": "Asynchronous Data Loading",
+                "url": "https://charts.ag-grid.com/react//zoom/#asynchronous-loading"
             }
         ],
         "majorMinor": false

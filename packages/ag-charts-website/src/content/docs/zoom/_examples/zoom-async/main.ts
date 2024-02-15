@@ -11,6 +11,9 @@ const options: AgCartesianChartOptions = {
             return FakeServer.get({ windowStart, windowEnd });
         },
     },
+    navigator: {
+        enabled: true,
+    },
     zoom: {
         enabled: true,
         minVisibleItemsX: 1,
