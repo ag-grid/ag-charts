@@ -3,9 +3,6 @@ import { _Theme } from 'ag-charts-community';
 
 import { ContextMenu } from './contextMenu';
 
-export { ContextMenu } from './contextMenu';
-export type { ContextMenuActionParams } from './contextMenu';
-
 export const ContextMenuModule: _ModuleSupport.Module = {
     type: 'root',
     packageType: 'enterprise',
