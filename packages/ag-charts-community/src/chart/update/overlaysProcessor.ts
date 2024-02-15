@@ -1,6 +1,6 @@
 import type { BBox } from '../../scene/bbox';
 import type { DataService } from '../data/dataService';
-import type { LayoutContext, LayoutService } from '../layout/layoutService';
+import type { LayoutCompleteEvent, LayoutService } from '../layout/layoutService';
 import type { ChartOverlays } from '../overlay/chartOverlays';
 import type { Overlay } from '../overlay/overlay';
 import type { ChartLike, UpdateProcessor } from './processor';
@@ -14,23 +14,21 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
         private readonly dataService: DataService<D>,
         private readonly layoutService: LayoutService
     ) {
-        this.destroyFns.push(this.layoutService.addListener('before-series', (ctx) => this.onBeforeSeries(ctx)));
+        this.destroyFns.push(this.layoutService.addListener('layout-complete', (ctx) => this.onLayoutComplete(ctx)));
     }
 
     public destroy() {
         this.destroyFns.forEach((cb) => cb());
     }
 
-    private onBeforeSeries(ctx: LayoutContext) {
+    private onLayoutComplete({ series: { rect } }: LayoutCompleteEvent) {
         const isLoading = this.dataService.isLoading();
         const hasData = this.chartLike.series.some((s) => s.data?.length);
         const anySeriesVisible = this.chartLike.series.some((s) => s.visible);
 
-        this.toggleOverlay(this.overlays.loading, ctx.shrinkRect, isLoading);
-        this.toggleOverlay(this.overlays.noData, ctx.shrinkRect, !isLoading && !hasData);
-        this.toggleOverlay(this.overlays.noVisibleSeries, ctx.shrinkRect, hasData && !anySeriesVisible);
-
-        return ctx;
+        this.toggleOverlay(this.overlays.loading, rect, isLoading);
+        this.toggleOverlay(this.overlays.noData, rect, !isLoading && !hasData);
+        this.toggleOverlay(this.overlays.noVisibleSeries, rect, hasData && !anySeriesVisible);
     }
 
     private toggleOverlay(overlay: Overlay, seriesRect: BBox, visible: boolean) {
