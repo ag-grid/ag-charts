@@ -231,13 +231,13 @@ export class Legend extends BaseProperties {
         this.item.marker.parent = this;
 
         const animationState = InteractionState.Default | InteractionState.Animation;
-        const region = ctx.interactionManager.addRegion('legend', this.group);
+        const region = ctx.regionManager.addRegion('legend', this.group);
         this.destroyFns.push(
             region.addListener('click', (e) => this.checkLegendClick(e), animationState),
             region.addListener('dblclick', (e) => this.checkLegendDoubleClick(e), animationState),
             region.addListener('hover', (e) => this.handleLegendMouseMove(e)),
-            region.addListener('hover-end', (e) => this.handleLegendMouseExit(e), animationState),
-            region.addListener('hover-start', (e) => this.handleLegendMouseEnter(e), animationState),
+            region.addListener('leave', (e) => this.handleLegendMouseExit(e), animationState),
+            region.addListener('enter', (e) => this.handleLegendMouseEnter(e), animationState),
             ctx.layoutService.addListener('start-layout', (e) => this.positionLegend(e.shrinkRect)),
             () => this.detachLegend()
         );
@@ -896,7 +896,7 @@ export class Legend extends BaseProperties {
         }
     }
 
-    private handleLegendMouseExit(_event: InteractionEvent<'hover-end'>) {
+    private handleLegendMouseExit(_event: InteractionEvent<'leave'>) {
         this.ctx.cursorManager.updateCursor(this.id);
         this.ctx.tooltipManager.removeTooltip(this.id);
         // Updating the highlight can interrupt animations, so only clear the highlight if the chart

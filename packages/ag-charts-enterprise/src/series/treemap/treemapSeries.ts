@@ -242,7 +242,7 @@ export class TreemapSeries<
             return children[sortedIndex];
         };
 
-        const allLeafNodes = sortedChildrenIndices.every((index) => childAt(index).children.length === 0);
+        const allLeafNodes = sortedChildrenIndices.every((sortedIndex) => children[sortedIndex].children.length === 0);
 
         const targetTileAspectRatio = 1; // The width and height will tend to this ratio
         const padding = datum != null ? this.getNodePadding(node, bbox) : { top: 0, right: 0, bottom: 0, left: 0 };

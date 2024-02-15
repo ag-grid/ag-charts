@@ -1,6 +1,8 @@
+import type { ModuleInstance } from '../../module/baseModule';
 import type { ChartAxisDirection } from '../chartAxisDirection';
 import type { ISeries } from '../series/seriesTypes';
 import { BaseManager } from './baseManager';
+import type { HighlightManager } from './highlightManager';
 import type { ZoomManager } from './zoomManager';
 
 type GroupId = string | symbol;
@@ -18,9 +20,12 @@ type AxisLike = {
 
 /** Breaks circular dependencies which occur when importing Chart. */
 type ChartLike = {
+    id: string;
     axes: AxisLike[];
     series: ISeries<any>[];
+    highlightManager: HighlightManager;
     zoomManager: ZoomManager;
+    modules: Map<string, ModuleInstance>;
 };
 
 export class SyncManager extends BaseManager {
@@ -57,6 +62,10 @@ export class SyncManager extends BaseManager {
 
     getGroupSiblings(groupId: GroupId = SyncManager.DEFAULT_GROUP) {
         return this.getGroup(groupId).filter((chart) => chart !== this.chart);
+    }
+
+    override destroy() {
+        super.destroy();
     }
 
     private get(groupId: GroupId) {

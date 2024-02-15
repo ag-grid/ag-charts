@@ -1,6 +1,6 @@
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { CssColor, Ratio } from '../../chart/types';
-import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
+import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type {
     AgSeriesFormatterParams,
@@ -58,7 +58,7 @@ export interface AgBoxPlotSeriesStyles extends FillOptions, StrokeOptions, LineD
 }
 
 export interface AgBoxPlotSeriesThemeableOptions<TDatum = any>
-    extends AgBaseSeriesThemeableOptions<TDatum>,
+    extends AgBaseCartesianThemeableOptions<TDatum>,
         AgBoxPlotSeriesStyles {
     /**
      * Bar rendering direction.

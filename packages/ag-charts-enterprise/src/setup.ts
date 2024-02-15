@@ -8,6 +8,7 @@ import { AnimationModule } from './features/animation/main';
 import { BackgroundModule } from './features/background/main';
 import { ContextMenuModule } from './features/context-menu/main';
 import { CrosshairModule } from './features/crosshair/main';
+import { DataSourceModule } from './features/data-source/main';
 import { ErrorBarsModule } from './features/error-bar/errorBarModule';
 import { NavigatorModule } from './features/navigator/navigatorModule';
 import { SyncModule } from './features/sync/syncModule';
@@ -38,6 +39,7 @@ export function setupEnterpriseModules() {
     _ModuleSupport.registerModule(BulletModule);
     _ModuleSupport.registerModule(ContextMenuModule);
     _ModuleSupport.registerModule(CrosshairModule);
+    _ModuleSupport.registerModule(DataSourceModule);
     _ModuleSupport.registerModule(ErrorBarsModule);
     _ModuleSupport.registerModule(NavigatorModule);
     _ModuleSupport.registerModule(GradientLegendModule);

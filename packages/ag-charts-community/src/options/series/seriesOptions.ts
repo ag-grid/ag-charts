@@ -32,6 +32,11 @@ export interface AgBaseSeriesThemeableOptions<TDatum> {
     listeners?: AgSeriesListeners<TDatum>;
 }
 
+export interface AgBaseCartesianThemeableOptions<TDatum> extends AgBaseSeriesOptions<TDatum> {
+    /** Whether to include the series in the Mini Chart. */
+    showInMiniChart?: boolean;
+}
+
 export interface AgBaseSeriesOptions<TDatum> extends AgBaseSeriesThemeableOptions<TDatum> {
     /**
      * Primary identifier for the series. This is provided as `seriesId` in user callbacks to differentiate multiple series. Auto-generated ids are subject to future change without warning, if your callbacks need to vary behaviour by series please supply your own unique `id` value.

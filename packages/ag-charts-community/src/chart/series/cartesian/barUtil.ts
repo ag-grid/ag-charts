@@ -1,6 +1,6 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import type { NodeUpdateState } from '../../../motion/fromToMotion';
-import { FROM_TO_MIXINS } from '../../../motion/fromToMotion';
+import { NODE_UPDATE_STATE_TO_PHASE_MAPPING } from '../../../motion/fromToMotion';
 import type { AgBarSeriesFormatterParams, AgBarSeriesStyle } from '../../../options/agChartOptions';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import type { BBox } from '../../../scene/bbox';
@@ -209,7 +209,7 @@ export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(initP
         if (status === 'unknown' || status === 'added') {
             source = initPos.calculate(datum, rect.previousDatum);
         }
-        return { ...source, ...FROM_TO_MIXINS[status] };
+        return { ...source, phase: NODE_UPDATE_STATE_TO_PHASE_MAPPING[status] };
     };
     const toFn = (rect: Rect, datum: T, status: NodeUpdateState) => {
         if (status === 'removed' || isRemoved(datum)) {

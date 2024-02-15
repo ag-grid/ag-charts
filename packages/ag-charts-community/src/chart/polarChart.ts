@@ -1,10 +1,12 @@
+import type { ChartOptions } from '../module/optionsModule';
 import { BBox } from '../scene/bbox';
 import { Padding } from '../util/padding';
 import { PolarAxis } from './axis/polarAxis';
-import type { ChartSpecialOverrides, TransferableResources } from './chart';
+import type { TransferableResources } from './chart';
 import { Chart } from './chart';
 import { ChartAxisDirection } from './chartAxisDirection';
 import { Layers } from './layers';
+import { DonutSeries } from './series/polar/donutSeries';
 import { PieSeries } from './series/polar/pieSeries';
 import { PolarSeries } from './series/polar/polarSeries';
 
@@ -14,8 +16,8 @@ export class PolarChart extends Chart {
 
     override padding = new Padding(40);
 
-    constructor(specialOverrides: ChartSpecialOverrides, resources?: TransferableResources) {
-        super(specialOverrides, resources);
+    constructor(options: ChartOptions, resources?: TransferableResources) {
+        super(options, resources);
         this.axisGroup.zIndex = Layers.AXIS_FOREGROUND_ZINDEX;
     }
 
@@ -96,7 +98,9 @@ export class PolarChart extends Chart {
                 series.radius = r;
             });
 
-            const pieSeries = polarSeries.filter<PieSeries>((s): s is PieSeries => s instanceof PieSeries);
+            const pieSeries = polarSeries.filter<PieSeries | DonutSeries>((s): s is PieSeries | DonutSeries => {
+                return s instanceof PieSeries || s instanceof DonutSeries;
+            });
             if (pieSeries.length > 1) {
                 const innerRadii = pieSeries
                     .map((series) => {

@@ -1,3 +1,4 @@
+import type { ChartOptions } from '../module/optionsModule';
 import { staticFromToMotion } from '../motion/fromToMotion';
 import type { AgCartesianAxisPosition } from '../options/agChartOptions';
 import type { BBox } from '../scene/bbox';
@@ -6,7 +7,7 @@ import { Logger } from '../util/logger';
 import { mapValues } from '../util/object';
 import { CategoryAxis } from './axis/categoryAxis';
 import { GroupedCategoryAxis } from './axis/groupedCategoryAxis';
-import type { ChartSpecialOverrides, TransferableResources } from './chart';
+import type { TransferableResources } from './chart';
 import { Chart } from './chart';
 import type { ChartAxis } from './chartAxis';
 import { ChartAxisDirection } from './chartAxisDirection';
@@ -23,8 +24,8 @@ export class CartesianChart extends Chart {
     /** Integrated Charts feature state - not used in Standalone Charts. */
     public readonly paired: boolean = true;
 
-    constructor(specialOverrides: ChartSpecialOverrides, resources?: TransferableResources) {
-        super(specialOverrides, resources);
+    constructor(options: ChartOptions, resources?: TransferableResources) {
+        super(options, resources);
     }
 
     private firstSeriesTranslation = true;
@@ -60,7 +61,7 @@ export class CartesianChart extends Chart {
                 [this.seriesRoot],
                 { translationX, translationY },
                 { translationX: Math.floor(x), translationY: Math.floor(y) },
-                { phase: 'updated' }
+                { phase: 'update' }
             );
         }
 

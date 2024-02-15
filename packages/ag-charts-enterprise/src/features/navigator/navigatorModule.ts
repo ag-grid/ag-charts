@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport, _Theme } from 'ag-charts-community';
 
 import { Navigator } from './navigator';
 
@@ -15,7 +15,12 @@ export const NavigatorModule: _ModuleSupport.RootModule = {
             miniChart: {
                 enabled: false,
                 label: {
+                    color: _Theme.DEFAULT_LABEL_COLOUR,
+                    fontStyle: undefined,
+                    fontWeight: undefined,
                     fontSize: 10,
+                    fontFamily: _Theme.DEFAULT_FONT_FAMILY,
+                    formatter: undefined,
                     padding: 0,
                 },
                 padding: {

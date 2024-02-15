@@ -48,7 +48,7 @@ In the example below, we enable zoom on the `y` axis. By also providing a `axis[
 
 ```ts
 zoom: {
-    axes: 'y',
+    axes: 'xy',
 }
 ```
 
@@ -100,11 +100,11 @@ zoom: {
 
 The `minVisibleItemsX` and `minVisibleItemsY` options can be used to limit how far a user can zoom in to the chart, helping to prevent them from getting lost in a blank space of the chart. These options set the minimum number of items visible on each axis, for example the number of bars in a bar series or points in a line series. The default for both values is `2`.
 
-The example below demonstrates setting `minVisibleItemsX` to `4`, preventing the user from zooming beyond showing a minimum of 4 points on the line.
+The example below demonstrates setting `minVisibleItemsX` to `10`, preventing the user from zooming beyond showing a minimum of 10 points on the line.
 
 ```ts
 zoom: {
-    minVisibleItemsX: 4,
+    minVisibleItemsX: 10,
 }
 ```
 
@@ -132,12 +132,38 @@ When both the zoom and context menu are enabled, additional zoom actions are add
 
 {% chartExampleRunner title="Zoom Context Menu" name="zoom-context-menu" type="generated" /%}
 
+## Asynchronous Loading
+
+Use the `dataSource` option to asynchronously load in new data as the chart is zoomed.
+
+{% chartExampleRunner title="Asynchronous Loading" name="zoom-async" type="generated" /%}
+
+```ts
+dataSource: {
+    getData: ({ windowStart, windowEnd }) => {
+        return FakeServer.get(windowStart, windowEnd);
+    };
+}
+```
+
+In this example, the `getData` function returns both the coarse data plus additional finer grained data for the visible time window.
+
+The data returned from the `getData` function should always include the coarse data set to ensure the chart knows the full extent of the data.
+
+{% note %}
+The `windowStart` and `windowEnd` parameters will be `undefined` if the chart does not have a time axis. They will also be `undefined` on the first call to `dataSource.getData()` if no `axis[].min` and `axis[].max` are provided on the time axis.
+{% /note %}
+
 ## API Reference
 
 {% tabs %}
 
 {% tabItem id="AgZoomOptions" label="Zoom" %}
 {% apiReference id="AgZoomOptions" /%}
+{% /tabItem %}
+
+{% tabItem id="AgDataSourceOptions" label="Data Source" %}
+{% apiReference id="AgDataSourceOptions" /%}
 {% /tabItem %}
 
 {% /tabs %}

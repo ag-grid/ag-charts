@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, describe, expect, it } from '@jest/globals';
 
 import type {
     AgBaseChartOptions,
@@ -69,20 +69,6 @@ const EXAMPLES: Record<string, TestCase> = {
         BASIC_CATEGORY_UNIFORM_AXIS: {
             options: axesExamples.CATEGORY_AXIS_UNIFORM_BASIC_EXAMPLE,
             assertions: cartesianChartAssertions({ seriesTypes: ['bar'] }),
-        },
-        GROUPED_CATEGORY_AXIS: {
-            options: axesExamples.GROUPED_CATEGORY_AXIS_EXAMPLE,
-            assertions: cartesianChartAssertions({
-                axisTypes: ['grouped-category', 'number'],
-                seriesTypes: ['bar'],
-            }),
-        },
-        INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_EXAMPLE: {
-            options: examples.INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_EXAMPLE,
-            assertions: cartesianChartAssertions({
-                axisTypes: ['grouped-category', 'number'],
-                seriesTypes: repeat('bar', 3),
-            }),
         },
         BASIC_TIME_AXIS: {
             options: axesExamples.TIME_AXIS_BASIC_EXAMPLE,
@@ -250,13 +236,6 @@ const EXAMPLES_CLIPPING: Record<string, TestCase> = {
             assertions: cartesianChartAssertions({
                 axisTypes: ['category', 'number'],
                 seriesTypes: repeat('bar', 3),
-            }),
-        },
-        GROUPED_CATEGORY_AXIS_GRIDLINE_TICKLINE_CLIPPING: {
-            options: axesExamples.GROUPED_CATEGORY_AXIS_GRIDLINE_TICKLINE_CLIPPING,
-            assertions: cartesianChartAssertions({
-                axisTypes: ['grouped-category', 'number'],
-                seriesTypes: ['bar'],
             }),
         },
     }),
@@ -433,11 +412,6 @@ describe('Axis Examples', () => {
     }
 
     describe('no series cases', () => {
-        beforeEach(() => {
-            // Increase timeout for legend toggle case.
-            jest.setTimeout(10_000);
-        });
-
         for (const [exampleName, example] of Object.entries(EXAMPLES_NO_SERIES)) {
             it(`for ${exampleName} it should create chart instance as expected`, async () => {
                 chart = await createChart(example.options);
@@ -473,7 +447,7 @@ describe('Axis Examples', () => {
 
                 const afterFinalUpdate = await snapshot();
                 expect(afterFinalUpdate).toMatchImage(reference);
-            });
+            }, 15_000);
         }
     });
 

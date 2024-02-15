@@ -745,7 +745,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
             const isDatumHighlighted =
                 highlightedDatum?.series === this && node.datum.itemId === highlightedDatum.itemId;
 
-            updateSectorFn(node, datum, index, isDatumHighlighted);
+            updateSectorFn(node, datum, index, true);
             node.visible = isDatumHighlighted;
         });
 

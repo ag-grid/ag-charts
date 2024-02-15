@@ -12,7 +12,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import { AutoSizedLabel } from '../util/labelFormatter';
 
 const {
-    SeriesProperties,
+    CartesianSeriesProperties,
     SeriesTooltip,
     Validate,
     AND,
@@ -22,12 +22,13 @@ const {
     FUNCTION,
     OBJECT,
     POSITIVE_NUMBER,
+    RATIO,
     STRING,
     TEXT_ALIGN,
     VERTICAL_ALIGN,
 } = _ModuleSupport;
 
-export class HeatmapSeriesProperties extends SeriesProperties<AgHeatmapSeriesOptions> {
+export class HeatmapSeriesProperties extends CartesianSeriesProperties<AgHeatmapSeriesOptions> {
     @Validate(STRING, { optional: true })
     title?: string;
 
@@ -54,6 +55,9 @@ export class HeatmapSeriesProperties extends SeriesProperties<AgHeatmapSeriesOpt
 
     @Validate(COLOR_STRING, { optional: true })
     stroke: string = 'black';
+
+    @Validate(RATIO, { optional: true })
+    strokeOpacity?: number;
 
     @Validate(POSITIVE_NUMBER, { optional: true })
     strokeWidth: number = 0;

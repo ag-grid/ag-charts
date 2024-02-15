@@ -1,4 +1,4 @@
-import { FROM_TO_MIXINS } from '../../motion/fromToMotion';
+import { NODE_UPDATE_STATE_TO_PHASE_MAPPING } from '../../motion/fromToMotion';
 import type { FromToFns, NodeUpdateState } from '../../motion/fromToMotion';
 import type { Group } from '../../scene/group';
 import type { Line } from '../../scene/shape/line';
@@ -77,7 +77,7 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
             }
 
             // Animate translationY so we don't constantly regenerate the line path data
-            return { y: 0, translationY: y, opacity, ...FROM_TO_MIXINS[status] };
+            return { y: 0, translationY: y, opacity, phase: NODE_UPDATE_STATE_TO_PHASE_MAPPING[status] };
         },
         toFn(_node, datum, status) {
             const y = datum.translationY;
@@ -124,7 +124,15 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
                 rotation = newDatum.rotation;
             }
 
-            return { x, y, rotationCenterX, translationY, rotation, opacity, ...FROM_TO_MIXINS[status] };
+            return {
+                x,
+                y,
+                rotationCenterX,
+                translationY,
+                rotation,
+                opacity,
+                phase: NODE_UPDATE_STATE_TO_PHASE_MAPPING[status],
+            };
         },
         toFn(node, datum, status) {
             const x = datum.x;
@@ -152,7 +160,7 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
         fromFn(node, datum) {
             return {
                 ...(node.previousDatum ?? datum),
-                ...FROM_TO_MIXINS['updated'],
+                phase: NODE_UPDATE_STATE_TO_PHASE_MAPPING['updated'],
             };
         },
         toFn(_node, datum) {
@@ -166,7 +174,7 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
                 rotation,
                 translationX,
                 translationY,
-                ...FROM_TO_MIXINS['updated'],
+                phase: NODE_UPDATE_STATE_TO_PHASE_MAPPING['updated'],
             };
         },
         toFn(_group, datum) {

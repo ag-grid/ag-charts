@@ -46,6 +46,13 @@ export interface AxisOptionModule<M extends ModuleInstance = ModuleInstance> ext
     themeTemplate: { [K in AxisType]?: object };
 }
 
+interface ChartSpecialOverrides {
+    document: Document;
+    window: Window;
+    overrideDevicePixelRatio?: number;
+    sceneMode?: 'simple';
+}
+
 type GroupingOptions = {
     grouped?: boolean;
     stacked?: boolean;
@@ -71,8 +78,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     processedOptions: T;
     seriesDefaults: T;
     userOptions: Partial<T>;
+    specialOverrides: ChartSpecialOverrides;
 
-    constructor(userOptions: T) {
+    constructor(userOptions: T, specialOverrides?: Partial<ChartSpecialOverrides>) {
         const cloneOptions = { shallow: ['data'] };
         const options = deepClone(userOptions, cloneOptions);
         const chartType = this.optionsType(options);
@@ -82,6 +90,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.userOptions = options;
         this.activeTheme = getChartTheme(options.theme);
         this.seriesDefaults = this.getOptionsDefaults(options);
+        this.specialOverrides = this.specialOverridesDefaults({ ...specialOverrides });
 
         const { axes: axesThemes = {}, series: seriesThemes, ...themeDefaults } = this.getSeriesThemeConfig(chartType);
 
@@ -471,5 +480,27 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             },
             { skip: ['data', 'theme'] }
         );
+    }
+
+    private specialOverridesDefaults(options: Partial<ChartSpecialOverrides>) {
+        if (options.window == null) {
+            if (typeof window !== 'undefined') {
+                options.window = window;
+            } else if (typeof global !== 'undefined') {
+                options.window = global.window;
+            } else {
+                throw new Error('AG Charts - unable to resolve global window');
+            }
+        }
+        if (options.document == null) {
+            if (typeof document !== 'undefined') {
+                options.document = document;
+            } else if (typeof global !== 'undefined') {
+                options.document = global.document;
+            } else {
+                throw new Error('AG Charts - unable to resolve global document');
+            }
+        }
+        return options as ChartSpecialOverrides;
     }
 }

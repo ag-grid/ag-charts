@@ -1,4 +1,4 @@
-import { type AgChartInstance, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 const { Validate, BOOLEAN, POSITIVE_NUMBER, Layers, ActionOnSet, CategoryAxis, GroupedCategoryAxis } = _ModuleSupport;
 const { toRadians, Padding, Logger } = _Util;
@@ -12,31 +12,26 @@ class MiniChartPadding {
     bottom: number = 0;
 }
 
-export class MiniChart
-    extends _ModuleSupport.BaseModuleInstance
-    implements _ModuleSupport.ModuleInstance, AgChartInstance
-{
+export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @Validate(BOOLEAN)
     enabled: boolean = false;
 
     readonly padding = new MiniChartPadding();
 
     readonly root = new Group({ name: 'root' });
-    readonly seriesRoot = new Group({ name: 'Series-root', layer: true, zIndex: Layers.SERIES_LAYER_ZINDEX });
-    readonly axisGridGroup = new Group({ name: 'Axes-Grids', layer: true, zIndex: Layers.AXIS_GRID_ZINDEX });
-    readonly axisGroup = new Group({ name: 'Axes-Grids', layer: true, zIndex: Layers.AXIS_GRID_ZINDEX });
+    readonly seriesRoot = this.root.appendChild(
+        new Group({ name: 'Series-root', layer: true, zIndex: Layers.SERIES_LAYER_ZINDEX })
+    );
+    readonly axisGridGroup = this.root.appendChild(
+        new Group({ name: 'Axes-Grids', layer: true, zIndex: Layers.AXIS_GRID_ZINDEX })
+    );
+    readonly axisGroup = this.root.appendChild(
+        new Group({ name: 'Axes-Grids', layer: true, zIndex: Layers.AXIS_GRID_ZINDEX })
+    );
 
     public data: any = [];
 
     private _destroyed: boolean = false;
-
-    constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
-        super();
-
-        this.root.appendChild(this.seriesRoot);
-        this.root.appendChild(this.axisGridGroup);
-        this.root.appendChild(this.axisGroup);
-    }
 
     override destroy() {
         if (this._destroyed) {
@@ -50,16 +45,6 @@ export class MiniChart
 
         this._destroyed = true;
     }
-
-    getOptions() {
-        return null!;
-    }
-
-    getModuleContext() {
-        return this.ctx;
-    }
-
-    resetAnimations(): void {}
 
     @ActionOnSet<MiniChart>({
         changeValue(newValue: _ModuleSupport.ChartAxis[], oldValue: _ModuleSupport.ChartAxis[] = []) {
@@ -92,12 +77,17 @@ export class MiniChart
         for (const series of newValue) {
             if (oldValue?.includes(series)) continue;
 
-            this.seriesRoot.appendChild(series.rootGroup);
+            if (series.rootGroup.parent == null) {
+                this.seriesRoot.appendChild(series.rootGroup);
+            }
 
             const chart = this;
             series.chart = {
                 get mode() {
                     return 'standalone' as const;
+                },
+                get isMiniChart() {
+                    return true;
                 },
                 get seriesRect() {
                     return chart.seriesRect;
@@ -108,13 +98,18 @@ export class MiniChart
             };
 
             series.resetAnimation('initial');
-            series.addChartEventListeners();
+            // @todo(AG-10653) Enable when there is an id per series group, irrespective of series instance
+            // series.addChartEventListeners();
         }
     }
 
     protected destroySeries(series: _ModuleSupport.Series<any>[]): void {
         series?.forEach((series) => {
             series.destroy();
+
+            if (series.rootGroup != null) {
+                this.seriesRoot.removeChild(series.rootGroup);
+            }
 
             series.chart = undefined;
         });
@@ -213,7 +208,7 @@ export class MiniChart
                     (label.enabled ? (label.fontSize ?? 0) * Text.defaultLineHeightRatio + label.padding : 0);
             }
 
-            padding[position] = size;
+            padding[position] = Math.ceil(size);
         });
 
         return padding;

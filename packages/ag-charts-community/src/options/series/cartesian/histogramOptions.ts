@@ -1,7 +1,7 @@
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
-import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
+import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
@@ -21,7 +21,7 @@ export interface AgHistogramBinDatum<TDatum> {
 }
 
 export interface AgHistogramSeriesThemeableOptions<TDatum = any>
-    extends AgBaseSeriesThemeableOptions<TDatum>,
+    extends AgBaseCartesianThemeableOptions<TDatum>,
         FillOptions,
         StrokeOptions,
         LineDashOptions {

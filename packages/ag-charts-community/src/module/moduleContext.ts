@@ -1,15 +1,16 @@
 import type { ChartService } from '../chart/chartService';
+import type { DataService } from '../chart/data/dataService';
 import type { AnimationManager } from '../chart/interaction/animationManager';
 import type { ChartEventManager } from '../chart/interaction/chartEventManager';
 import type { CursorManager } from '../chart/interaction/cursorManager';
 import type { GestureDetector } from '../chart/interaction/gestureDetector';
 import type { HighlightManager } from '../chart/interaction/highlightManager';
 import type { InteractionManager } from '../chart/interaction/interactionManager';
+import type { RegionManager } from '../chart/interaction/regionManager';
 import type { SyncManager } from '../chart/interaction/syncManager';
 import type { TooltipManager } from '../chart/interaction/tooltipManager';
 import type { ZoomManager } from '../chart/interaction/zoomManager';
 import type { LayoutService } from '../chart/layout/layoutService';
-import type { SeriesLayerManager } from '../chart/series/seriesLayerManager';
 import type { SeriesStateManager } from '../chart/series/seriesStateManager';
 import type { UpdateService } from '../chart/updateService';
 import type { AgCartesianAxisPosition } from '../options/agChartOptions';
@@ -25,6 +26,7 @@ export interface ModuleContext {
     gestureDetector: GestureDetector;
 
     chartService: ChartService;
+    dataService: DataService<any>;
     layoutService: LayoutService;
     updateService: UpdateService;
 
@@ -33,7 +35,7 @@ export interface ModuleContext {
     cursorManager: CursorManager;
     highlightManager: HighlightManager;
     interactionManager: InteractionManager;
-    seriesLayerManager: SeriesLayerManager;
+    regionManager: RegionManager;
     seriesStateManager: SeriesStateManager;
     syncManager: SyncManager;
     tooltipManager: TooltipManager;
