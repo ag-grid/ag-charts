@@ -124,7 +124,7 @@ export class RangeHandle extends Path {
         path.lineTo(axw, ay);
         path.lineTo(axw, ayh);
         path.lineTo(ax, ayh);
-        path.lineTo(ax, ay);
+        path.closePath();
 
         // Grip lines.
         const dx = this.gripLineGap / 2;
