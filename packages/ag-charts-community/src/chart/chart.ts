@@ -459,9 +459,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.overlays.destroy();
         SizeMonitor.unobserve(this.element);
 
-        for (const { instance: moduleInstance } of Object.values(this.modules)) {
-            this.removeModule(moduleInstance as ModuleInstance & (RootModule | LegendModule));
+        for (const moduleInstance of this.modules.values()) {
+            moduleInstance?.destroy();
         }
+        this.modules.clear();
 
         this.regionManager.destroy();
         this.interactionManager.destroy();
@@ -490,6 +491,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
         // Reset animation state.
         this.animationRect = undefined;
         this.animationManager.reset();
+
+        this.syncManager.destroy();
 
         this.destroyed = true;
 
