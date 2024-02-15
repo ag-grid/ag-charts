@@ -106,20 +106,20 @@
                 "title": "Data Elements",
                 "items": [
                     {
-                        "title": "Legend",
-                        "path": "legend"
-                    },
-                    {
-                        "title": "Series Markers",
-                        "path": "markers"
+                        "title": "Cross Lines",
+                        "path": "axes-cross-lines"
                     },
                     {
                         "title": "Formatters",
                         "path": "formatters"
                     },
                     {
-                        "title": "Cross Lines",
-                        "path": "axes-cross-lines"
+                        "title": "Legend",
+                        "path": "legend"
+                    },
+                    {
+                        "title": "Series Markers",
+                        "path": "markers"
                     },
                     {
                         "title": "Error Bars",
@@ -132,17 +132,12 @@
                 "title": "Interactivity",
                 "items": [
                     {
-                        "title": "Tooltips",
-                        "path": "tooltips"
-                    },
-                    {
                         "title": "Series Highlighting",
                         "path": "series-highlighting"
                     },
                     {
-                        "title": "Navigator",
-                        "path": "navigator",
-                        "isEnterprise": true
+                        "title": "Tooltips",
+                        "path": "tooltips"
                     },
                     {
                         "title": "Animation",
@@ -157,6 +152,11 @@
                     {
                         "title": "Crosshairs",
                         "path": "axes-crosshairs",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Navigator",
+                        "path": "navigator",
                         "isEnterprise": true
                     },
                     {
@@ -175,20 +175,20 @@
                 "title": "Layout & Styling",
                 "items": [
                     {
-                        "title": "Layout",
-                        "path": "layout"
+                        "title": "Background",
+                        "path": "background"
                     },
                     {
-                        "title": "Themes",
-                        "path": "themes"
+                        "title": "Layout",
+                        "path": "layout"
                     },
                     {
                         "title": "Overlays",
                         "path": "overlays"
                     },
                     {
-                        "title": "Background",
-                        "path": "background"
+                        "title": "Themes",
+                        "path": "themes"
                     },
                     {
                         "title": "Background Image",
@@ -200,6 +200,10 @@
             {
                 "title": "Migration",
                 "items": [
+                    {
+                        "title": "Upgrade to AG Charts 9.1",
+                        "path": "upgrade-to-ag-charts-9-1"
+                    },
                     {
                         "title": "Upgrade to AG Charts 9",
                         "path": "upgrade-to-ag-charts-9"
