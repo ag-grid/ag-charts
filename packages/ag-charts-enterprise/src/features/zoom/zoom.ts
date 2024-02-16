@@ -415,11 +415,11 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const ratioY = heightRatio * (zoom.y.max - zoom.y.min);
 
         if (this.isScalingX()) {
-            this.minRatioX ||= Math.min(1, round(ratioX));
+            this.minRatioX = Math.min(1, round(ratioX));
         }
 
         if (this.isScalingY()) {
-            this.minRatioY ||= Math.min(1, round(ratioY));
+            this.minRatioY = Math.min(1, round(ratioY));
         }
 
         this.minRatioX ||= this.minRatioY || 0;
