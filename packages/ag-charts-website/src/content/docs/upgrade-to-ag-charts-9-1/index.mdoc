@@ -6,7 +6,7 @@ title: 'Upgrade to AG Charts 9.1'
 
 See the [release post](https://blog.ag-grid.com/whats-new-in-ag-charts-9-1/) for feature highlights of what's new in this major version.
 
-Users of integrated charting on AG Grid, should refer to this migration guide when upgrading to AG Grid 31.1.
+Users of integrated charting on AG Grid should refer to this migration guide when upgrading to AG Grid 31.1.
 
 ## Breaking Changes
 
@@ -16,6 +16,7 @@ This release includes no breaking changes.
 
 This release includes the following behaviour changes:
 
+-   Legend items for Area series now use `series.fill` and `series.fillOpacity` if markers are disabled, instead of the `fill` and `fillOpacity` of the disabled markers.
 -   If both Navigator and Zoom functionality are enabled for a chart, they will both be active, and changes made in one will affect the other.
 
 ## Deprecations
@@ -23,8 +24,9 @@ This release includes the following behaviour changes:
 This release includes the following deprecations:
 
 -   `innerRadiusOffset`, `innerRadiusRatio`, `innerCircle`, `innerLabels` are deprecated in `pie` series. Use the new `donut` series instead.
--   `AgPolarAxesTheme` value types no longer require a `type` field. Use of this field has now been deprecated.
+-   `AgPolarAxesTheme` value types no longer require a `type` field. Use of this field has now been deprecated without replacement.
+-   `AgChartThemePalette` has been marked deprecated, use `AgChartThemeOptionalPalette` instead. In the next major release we will rename `AgChartThemeOptionalPalette` to `AgChartThemePalette`.
 
 ## Changes List
 
-If you would like to see the full list of changes in this release, please see the [Changelog](/changelog/).
+If you would like to see the full list of changes in this release, please see the [Changelog](/changelog/?fixVersion=9.1.0).
