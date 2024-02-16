@@ -21,6 +21,12 @@ describe('DataSource', () => {
     const ctx = setupMockCanvas();
 
     const EXAMPLE_OPTIONS: AgChartOptions = {
+        dataSource: {
+            // Set undocumented options to instantly resolve for tests
+            requestThrottle: 0,
+            updateThrottle: 0,
+            updateDuringInteraction: true,
+        },
         axes: [
             {
                 type: 'number',
@@ -81,7 +87,7 @@ describe('DataSource', () => {
 
     const compare = async () => {
         await waitForChartStability(chart);
-        await delay(100);
+        await delay((EXAMPLE_OPTIONS.dataSource as any).requestThrottle);
         await waitForChartStability(chart);
 
         const imageData = extractImageData(ctx);
