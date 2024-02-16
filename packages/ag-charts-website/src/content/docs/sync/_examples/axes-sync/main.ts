@@ -3,6 +3,19 @@ import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { marketingCampaigns, productLaunches } from './data';
 
 const options: AgCartesianChartOptions = {
+    axes: [
+        {
+            type: 'number',
+            position: 'left',
+        },
+        {
+            type: 'category',
+            position: 'bottom',
+            label: {
+                autoRotate: false,
+            },
+        },
+    ],
     series: [
         {
             type: 'line',

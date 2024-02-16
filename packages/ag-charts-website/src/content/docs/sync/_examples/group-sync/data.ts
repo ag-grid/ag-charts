@@ -8,7 +8,7 @@ export const datasetA = [
     { quarter: 'Q3 2019', sales: 590 },
     { quarter: 'Q4 2019', sales: 600 },
     { quarter: 'Q1 2020', sales: 560 },
-    { quarter: 'Q2 2020', sales: 450 }, // Pandemic effect
+    { quarter: 'Q2 2020', sales: 450 },
     { quarter: 'Q3 2020', sales: 470 },
     { quarter: 'Q4 2020', sales: 650 },
     { quarter: 'Q1 2021', sales: 670 },
@@ -30,8 +30,8 @@ export const datasetB = [
     { quarter: 'Q2 2019', costs: 300 },
     { quarter: 'Q3 2019', costs: 310 },
     { quarter: 'Q4 2019', costs: 320 },
-    { quarter: 'Q1 2020', costs: 305 }, // Cost-saving measures
-    { quarter: 'Q2 2020', costs: 290 }, // Pandemic adjustments
+    { quarter: 'Q1 2020', costs: 305 },
+    { quarter: 'Q2 2020', costs: 290 },
     { quarter: 'Q3 2020', costs: 295 },
     { quarter: 'Q4 2020', costs: 310 },
     { quarter: 'Q1 2021', costs: 320 },
@@ -53,18 +53,18 @@ export const datasetC = [
     { quarter: 'Q2 2019', sales: 540 },
     { quarter: 'Q3 2019', sales: 560 },
     { quarter: 'Q4 2019', sales: 600 },
-    { quarter: 'Q1 2020', sales: 620 }, // Not yet reflecting the downturn
-    { quarter: 'Q2 2020', sales: 600 }, // Forecast slightly adjusts but misses the sharp downturn
-    { quarter: 'Q3 2020', sales: 480 }, // Forecast reacts to downturn, but a quarter late
-    { quarter: 'Q4 2020', sales: 500 }, // Still not catching up to the actual recovery
-    { quarter: 'Q1 2021', sales: 640 }, // Overestimates recovery initially
+    { quarter: 'Q1 2020', sales: 620 },
+    { quarter: 'Q2 2020', sales: 600 },
+    { quarter: 'Q3 2020', sales: 480 },
+    { quarter: 'Q4 2020', sales: 500 },
+    { quarter: 'Q1 2021', sales: 640 },
     { quarter: 'Q2 2021', sales: 660 },
     { quarter: 'Q3 2021', sales: 680 },
     { quarter: 'Q4 2021', sales: 700 },
     { quarter: 'Q1 2022', sales: 720 },
     { quarter: 'Q2 2022', sales: 740 },
     { quarter: 'Q3 2022', sales: 760 },
-    { quarter: 'Q4 2022', sales: 780 }, // Continues to predict growth, lagging behind real adjustments
+    { quarter: 'Q4 2022', sales: 780 },
 ];
 
 export const datasetD = [
@@ -76,8 +76,8 @@ export const datasetD = [
     { quarter: 'Q2 2019', efficiency: 92 },
     { quarter: 'Q3 2019', efficiency: 91 },
     { quarter: 'Q4 2019', efficiency: 93 },
-    { quarter: 'Q1 2020', efficiency: 92 }, // Initial pandemic impact
-    { quarter: 'Q2 2020', efficiency: 90 }, // Adjusting to new normal
+    { quarter: 'Q1 2020', efficiency: 92 },
+    { quarter: 'Q2 2020', efficiency: 90 },
     { quarter: 'Q3 2020', efficiency: 91 },
     { quarter: 'Q4 2020', efficiency: 94 },
     { quarter: 'Q1 2021', efficiency: 95 },
