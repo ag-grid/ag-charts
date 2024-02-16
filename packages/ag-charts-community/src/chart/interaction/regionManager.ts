@@ -58,7 +58,7 @@ export class RegionManager {
                 return region.listeners.addListener(type, (e) => {
                     if (!e.consumed) {
                         const currentState = interactionManager.getState();
-                        if (currentState & (triggeringStates ?? InteractionState.Default)) {
+                        if (currentState & triggeringStates) {
                             handler(e as InteractionEvent<T>);
                         }
                     }
