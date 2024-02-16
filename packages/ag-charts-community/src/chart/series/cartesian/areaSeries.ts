@@ -37,7 +37,7 @@ import {
 } from './areaUtil';
 import type { CartesianAnimationData } from './cartesianSeries';
 import { CartesianSeries } from './cartesianSeries';
-import { markerSwipeScaleInAnimation, resetMarkerFn, resetMarkerPositionFn } from './markerUtil';
+import { markerFadeInAnimation, markerSwipeScaleInAnimation, resetMarkerFn, resetMarkerPositionFn } from './markerUtil';
 import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, updateClipPath } from './pathUtil';
 
 type AreaAnimationData = CartesianAnimationData<
@@ -659,27 +659,40 @@ export class AreaSeries extends CartesianSeries<
     override animateWaitingUpdateReady(animationData: AreaAnimationData) {
         const { animationManager } = this.ctx;
         const { markerSelections, labelSelections, contextData, paths, previousContextData } = animationData;
+        const [[fill, stroke]] = paths;
 
         super.resetAllAnimation(animationData);
 
-        if (contextData.length === 0 || !previousContextData || previousContextData.length === 0) {
-            animationManager.skipCurrentBatch();
+        const update = () => {
             this.updateAreaPaths(paths, contextData);
+            this.updateStrokePath(paths, contextData);
+        };
+        const skip = () => {
+            animationManager.skipCurrentBatch();
+            update();
+        };
+
+        if (contextData.length === 0 || previousContextData?.length === 0) {
+            // Added series to existing chart case - fade in series.
+            update();
+
+            markerFadeInAnimation(this, animationManager, markerSelections, 'added');
+            pathFadeInAnimation(this, 'fill_path_properties', animationManager, [fill]);
+            pathFadeInAnimation(this, 'stroke', animationManager, [stroke]);
+            seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
             return;
         }
 
-        const [[fill, stroke]] = paths;
         const [newData] = contextData;
-        const [oldData] = previousContextData;
-
+        const [oldData] = previousContextData ?? [];
         const fns = prepareAreaPathAnimation(newData, oldData, this.processedData?.reduced?.diff);
         if (fns === undefined) {
-            animationManager.skipCurrentBatch();
-            this.updateAreaPaths(paths, contextData);
+            // Un-animatable diff in data, skip all animations.
+            skip();
             return;
         }
 
-        fromToMotion(this.id, 'marker_update', animationManager, markerSelections as any, fns.marker as any);
+        fromToMotion(this.id, 'markers', animationManager, markerSelections as any, fns.marker as any);
         fromToMotion(this.id, 'fill_path_properties', animationManager, [fill], fns.fill.pathProperties);
         pathMotion(this.id, 'fill_path_update', animationManager, [fill], fns.fill.path);
 

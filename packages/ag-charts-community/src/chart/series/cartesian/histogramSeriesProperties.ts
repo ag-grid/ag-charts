@@ -29,6 +29,7 @@ export interface HistogramNodeDatum extends CartesianSeriesNodeDatum {
     readonly height: number;
     readonly fill?: string;
     readonly stroke?: string;
+    readonly opacity?: number;
     readonly strokeWidth: number;
     readonly aggregatedValue: number;
     readonly frequency: number;
