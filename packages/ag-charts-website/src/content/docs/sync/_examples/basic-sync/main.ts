@@ -1,30 +1,13 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-import { datasetA, datasetB, datasetC } from './data';
+import { AAPL, MSFT } from './data';
 
 const options: AgCartesianChartOptions = {
-    subtitle: {
-        text: 'per person per week in Krakozhia',
-    },
-    axes: [
-        {
-            type: 'number',
-            position: 'left',
-        },
-        {
-            type: 'number',
-            position: 'bottom',
-            nice: false,
-            label: {
-                autoRotate: false,
-            },
-        },
-    ],
     series: [
         {
             type: 'line',
-            xKey: 'year',
-            yKey: 'spending',
+            xKey: 'date',
+            yKey: 'value',
         },
     ],
     tooltip: {
@@ -32,38 +15,57 @@ const options: AgCartesianChartOptions = {
     },
     sync: {
         enabled: true,
+        axes: 'x',
+        nodeInteraction: true,
     },
     zoom: {
         enabled: true,
         enableSelecting: true,
-        enableAxisDragging: false,
-        anchorPointX: 'pointer',
     },
+    axes: [
+        {
+            type: 'time',
+            position: 'bottom',
+            nice: false,
+            tick: {
+                maxSpacing: 180,
+            },
+            crosshair: {
+                label: {
+                    format: '%d %b %Y',
+                },
+            },
+        },
+        {
+            type: 'number',
+            position: 'left',
+            label: {
+                format: '$~s',
+            },
+        },
+    ],
 };
 
 const chart1 = AgCharts.create({
     ...options,
-    data: datasetA,
+    data: AAPL,
     title: {
-        text: 'Average expenditure on coffee',
+        text: 'Apple (AAPL)',
+        textAlign: 'left',
     },
     container: document.getElementById('myChart1'),
 });
 
 const chart2 = AgCharts.create({
     ...options,
-    data: datasetB,
+    data: MSFT,
     title: {
-        text: 'Average expenditure on tea',
+        text: 'Microsoft (MSFT)',
+        textAlign: 'left',
     },
     container: document.getElementById('myChart2'),
-});
-
-const chart3 = AgCharts.create({
-    ...options,
-    data: datasetC,
-    title: {
-        text: 'Average expenditure on tobacco',
+    navigator: {
+        min: 0.8,
+        max: 1,
     },
-    container: document.getElementById('myChart3'),
 });

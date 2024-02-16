@@ -3,9 +3,9 @@ title: 'Chart Synchronization'
 enterprise: true
 ---
 
-Effortlessly synchronize multiple charts, seamlessly aligning data insights and interactive elements for a unified, comprehensive multi-chart analysis experience.
+Synchronize multiple charts to align data insights and interactive elements, offering a unified analysis experience.
 
-To activate the synchronization feature, you must enable the sync.enabled option by setting it to true on at least two charts. By default, this will synchronize the x axis and zoom functionalities across the charts, provided the zoom feature is enabled.
+Enable chart synchronization by configuring the sync options on at least two charts, which automatically synchronizes the x axis, zoom, and user interactions on the axes by default.
 
 ```js
 sync: {
@@ -15,17 +15,15 @@ sync: {
 
 {% chartExampleRunner title="Basic Synchronization" name="basic-sync" type="generated" /%}
 
-To modify synchronization settings after a chart has been initialized, utilize the `updateDelta` method. This allows you to dynamically adjust synchronization options, such as enabling or disabling the feature. For example:
+Adjust synchronization settings dynamically with the `updateDelta` method.
 
 ```js
 AgCharts.updateDelta(myChart, { sync: { enabled: false } });
 ```
 
-This method provides flexibility to adapt the synchronization behavior of your charts in response to user interactions or other events.
-
 ## Axes Synchronization
 
-Determine which axes are synchronized across charts with the `axes` option, allowing you to synchronize the X axis, Y axis, or both, depending on your visualization needs. When axes are synchronized, their domain ranges are merged, ensuring all charts in the group display a unified and seamless comparison.
+Choose which axes to synchronize (`x`, `y`, or both) to unify domain ranges across charts for seamless comparisons.
 
 ```js
 sync: {
@@ -37,9 +35,9 @@ sync: {
 
 ## Interaction Synchronization
 
-By default, when a node is highlighted, all other synced charts will highlight nodes with the same value. The value is determined by the `xKey` or `yKey`, according to the `axes` option. If `axes` is set to `xy`, then nodes will be matched according to their `x` axis values.
+Synchronize node highlighting across charts based on the `sync.axes` setting; `x` for xKey, `y` for yKey, and `xy` defaults to xKey.
 
-This behavior can be disabled by providing the following configuration:
+Disable this feature to halt automatic highlighting synchronization.
 
 ```js
 sync: {
@@ -49,32 +47,25 @@ sync: {
 
 ## Zoom Synchronization
 
-Zoom synchronization ensures that when one chart in a group zooms in or out, all associated charts adjust accordingly, maintaining consistent comparative scales.
-By default, zoom actions are synchronized across all charts. When you zoom in on one chart, all other synced charts will adjust their view to match the zoom level and window.
+Maintain consistent zoom scales on synchronized axes across charts, dependent on the `sync.axes` option.
 
-This feature can be customized to suit your needs. If you prefer to disable this automatic synchronization, you can do so by providing the following configuration:
+Disable automatic zoom synchronization to manage zoom levels independently.
 
-```json
+```js
 sync: {
     zoom: false,
 },
 ```
 
-{% note %}
-While individual charts can have distinct zoom settings affecting their interactivity, any zoom adjustment on one chart will harmonize zoom levels across all synced charts of the same group.
-{% /note %}
-
 ## Grouping Charts
 
-Charts can be grouped using the `groupId` property. Only charts within the same group will be synchronized, allowing for multiple independent groups of synchronized charts on the same page.
+Use `groupId` to synchronize charts within the same group, supporting multiple independent sync groups on a page.
 
 ```js
 sync: {
     groupId: 'mySyncGroup',
 },
 ```
-
-By omitting this option, charts default to the default sync group, ensuring that all charts without a specified `groupId` are synchronized within the same group.
 
 {% chartExampleRunner title="Group Synchronization" name="group-sync" type="generated" /%}
 

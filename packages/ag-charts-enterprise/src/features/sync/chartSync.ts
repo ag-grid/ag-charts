@@ -57,7 +57,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         this.disableZoomSync = zoomManager.addListener('zoom-change', () => {
             for (const chart of syncManager.getGroupSiblings(this.groupId)) {
                 if ((chart.modules.get('sync') as ChartSync)?.zoom) {
-                    chart.zoomManager.updateZoom(zoomManager.getZoom());
+                    chart.zoomManager.updateZoom(this.mergeZoom(chart));
                 }
             }
         });
@@ -149,6 +149,18 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         }
     }
 
+    private mergeZoom(chart: any) {
+        const { zoomManager } = this.moduleContext;
+
+        if (this.axes === 'xy') {
+            return zoomManager.getZoom();
+        }
+
+        const combinedZoom = chart.zoomManager.getZoom() ?? {};
+        combinedZoom[this.axes] = zoomManager.getZoom()?.[this.axes];
+        return combinedZoom;
+    }
+
     private onEnabledChange() {
         const { syncManager } = this.moduleContext;
         if (this.enabled) {
@@ -177,7 +189,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
     }
 
     private onNodeInteractionChange() {
-        if (this.nodeInteraction) {
+        if (this.enabled && this.nodeInteraction) {
             this.enabledNodeInteractionSync();
         } else {
             this.disableNodeInteractionSync?.();
