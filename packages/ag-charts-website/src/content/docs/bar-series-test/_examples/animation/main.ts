@@ -24,6 +24,62 @@ function toIntegratedData(key: string, d: any[]) {
 
 let data = toIntegratedData('quarter', getData());
 
+const series: NonNullable<AgChartOptions['series']> = [
+    {
+        type: 'bar',
+        direction: 'horizontal',
+        xKey: 'quarter',
+        yKey: 'iphone',
+        yName: 'iPhone',
+        stackGroup: 'Devices',
+        label: {
+            color: 'white',
+        },
+    },
+    {
+        type: 'bar',
+        direction: 'horizontal',
+        xKey: 'quarter',
+        yKey: 'mac',
+        yName: 'Mac',
+        stackGroup: 'Devices',
+        label: {
+            color: 'white',
+        },
+    },
+    {
+        type: 'bar',
+        direction: 'horizontal',
+        xKey: 'quarter',
+        yKey: 'ipad',
+        yName: 'iPad',
+        stackGroup: 'Devices',
+        label: {
+            color: 'white',
+        },
+    },
+    {
+        type: 'bar',
+        direction: 'horizontal',
+        xKey: 'quarter',
+        yKey: 'wearables',
+        yName: 'Wearables',
+        label: {
+            color: 'white',
+        },
+    },
+    {
+        type: 'bar',
+        direction: 'horizontal',
+        xKey: 'quarter',
+        yKey: 'services',
+        yName: 'Services',
+        label: {
+            color: 'white',
+        },
+    },
+];
+
 const options: AgChartOptions = {
     theme: 'ag-default',
     container: document.getElementById('myChart'),
@@ -31,61 +87,7 @@ const options: AgChartOptions = {
         enabled: true,
     },
     data,
-    series: [
-        {
-            type: 'bar',
-            direction: 'horizontal',
-            xKey: 'quarter',
-            yKey: 'iphone',
-            yName: 'iPhone',
-            stackGroup: 'Devices',
-            label: {
-                color: 'white',
-            },
-        },
-        {
-            type: 'bar',
-            direction: 'horizontal',
-            xKey: 'quarter',
-            yKey: 'mac',
-            yName: 'Mac',
-            stackGroup: 'Devices',
-            label: {
-                color: 'white',
-            },
-        },
-        {
-            type: 'bar',
-            direction: 'horizontal',
-            xKey: 'quarter',
-            yKey: 'ipad',
-            yName: 'iPad',
-            stackGroup: 'Devices',
-            label: {
-                color: 'white',
-            },
-        },
-        {
-            type: 'bar',
-            direction: 'horizontal',
-            xKey: 'quarter',
-            yKey: 'wearables',
-            yName: 'Wearables',
-            label: {
-                color: 'white',
-            },
-        },
-        {
-            type: 'bar',
-            direction: 'horizontal',
-            xKey: 'quarter',
-            yKey: 'services',
-            yName: 'Services',
-            label: {
-                color: 'white',
-            },
-        },
-    ],
+    series,
     legend: {},
 };
 
@@ -107,13 +109,18 @@ function randomise() {
     AgCharts.update(chart, options as any);
 }
 
-function remove() {
-    options.data = [
-        ...data.filter(
-            (d: any) =>
-                !d.quarter.startsWith("Q1'19") && !d.quarter.startsWith("Q3'19") && !d.quarter.startsWith("Q4'18")
-        ),
-    ];
+function removeData() {
+    options.data = options.data?.slice(0, options.data.length - 1);
+    AgCharts.update(chart, options as any);
+}
+
+function removeSeries() {
+    options.series = series.slice(0, options.series!.length - 1);
+    AgCharts.update(chart, options as any);
+}
+
+function addSeries() {
+    options.series = series.slice(0, options.series!.length + 1);
     AgCharts.update(chart, options as any);
 }
 

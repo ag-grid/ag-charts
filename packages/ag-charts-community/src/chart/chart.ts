@@ -47,6 +47,7 @@ import { getLegendKeys } from './factory/legendTypes';
 import { createSeries } from './factory/seriesTypes';
 import { AnimationManager } from './interaction/animationManager';
 import { ChartEventManager } from './interaction/chartEventManager';
+import { ContextMenuRegistry } from './interaction/contextMenuRegistry';
 import { CursorManager } from './interaction/cursorManager';
 import { GestureDetector } from './interaction/gestureDetector';
 import type { HighlightChangeEvent } from './interaction/highlightManager';
@@ -243,6 +244,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     protected readonly animationManager: AnimationManager;
     protected readonly chartEventManager: ChartEventManager;
+    protected readonly contextMenuRegistry: ContextMenuRegistry;
     protected readonly cursorManager: CursorManager;
     protected readonly interactionManager: InteractionManager;
     protected readonly regionManager: RegionManager;
@@ -302,6 +304,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.autoSize = true;
 
         this.chartEventManager = new ChartEventManager();
+        this.contextMenuRegistry = new ContextMenuRegistry();
         this.cursorManager = new CursorManager(element);
         this.highlightManager = new HighlightManager();
         this.interactionManager = new InteractionManager(element, document, window);
@@ -406,6 +409,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             scene: this.scene,
             animationManager: this.animationManager,
             chartEventManager: this.chartEventManager,
+            contextMenuRegistry: this.contextMenuRegistry,
             cursorManager: this.cursorManager,
             highlightManager: this.highlightManager,
             interactionManager: this.interactionManager,
@@ -428,6 +432,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         for (const series of this.series) {
             series.resetAnimation(this.chartAnimationPhase);
+        }
+        for (const axis of this.axes) {
+            axis.resetAnimation(this.chartAnimationPhase);
         }
 
         // Reset animation state.
@@ -459,9 +466,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.overlays.destroy();
         SizeMonitor.unobserve(this.element);
 
-        for (const { instance: moduleInstance } of Object.values(this.modules)) {
-            this.removeModule(moduleInstance as ModuleInstance & (RootModule | LegendModule));
+        for (const moduleInstance of this.modules.values()) {
+            moduleInstance?.destroy();
         }
+        this.modules.clear();
 
         this.regionManager.destroy();
         this.interactionManager.destroy();
@@ -490,6 +498,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
         // Reset animation state.
         this.animationRect = undefined;
         this.animationManager.reset();
+
+        this.syncManager.destroy();
 
         this.destroyed = true;
 

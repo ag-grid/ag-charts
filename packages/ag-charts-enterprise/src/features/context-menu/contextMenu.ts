@@ -13,18 +13,9 @@ type ContextMenuGroups = {
     extra: Array<ContextMenuItem>;
     extraNode: Array<ContextMenuItem>;
 };
+type ContextMenuAction = _ModuleSupport.ContextMenuAction;
+type ContextMenuActionParams = _ModuleSupport.ContextMenuActionParams;
 type ContextMenuItem = 'download' | ContextMenuAction;
-type ContextMenuAction = {
-    id?: string;
-    label: string;
-    action: (params: ContextMenuActionParams) => void;
-};
-export type ContextMenuActionParams = {
-    datum?: any;
-    itemId?: string;
-    seriesId?: string;
-    event: MouseEvent;
-};
 
 const { BOOLEAN, Validate } = _ModuleSupport;
 
@@ -49,6 +40,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     private scene: _Scene.Scene;
     private highlightManager: _ModuleSupport.HighlightManager;
     private interactionManager: _ModuleSupport.InteractionManager;
+    private registry: _ModuleSupport.ContextMenuRegistry;
 
     // State
     private groups: ContextMenuGroups;
@@ -67,9 +59,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
     // Global shared state
     private static contextMenuDocuments: Document[] = [];
-    private static defaultActions: Array<ContextMenuAction> = [];
-    private static nodeActions: Array<ContextMenuAction> = [];
-    private static disabledActions: Set<string> = new Set();
 
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
         super();
@@ -77,6 +66,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         // Module context
         this.highlightManager = ctx.highlightManager;
         this.interactionManager = ctx.interactionManager;
+        this.registry = ctx.contextMenuRegistry;
         this.scene = ctx.scene;
 
         const { Default, ContextMenu: ContextMenuState, All } = _ModuleSupport.InteractionState;
@@ -136,7 +126,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             ContextMenu.contextMenuDocuments.push(ctx.document);
         }
 
-        ContextMenu.registerDefaultAction({
+        this.registry.registerDefaultAction({
             id: 'download',
             label: 'Download',
             action: () => {
@@ -148,28 +138,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                 this.scene.download(fileName);
             },
         });
-    }
-
-    public static registerDefaultAction(action: ContextMenuAction) {
-        if (action.id && this.defaultActions.find(({ id }) => id === action.id)) {
-            return;
-        }
-        this.defaultActions.push(action);
-    }
-
-    public static registerNodeAction(action: ContextMenuAction) {
-        if (action.id && this.defaultActions.find(({ id }) => id === action.id)) {
-            return;
-        }
-        this.nodeActions.push(action);
-    }
-
-    public static enableAction(actionId: string) {
-        this.disabledActions.delete(actionId);
-    }
-
-    public static disableAction(actionId: string) {
-        this.disabledActions.add(actionId);
     }
 
     private isShown(): boolean {
@@ -189,13 +157,9 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.x = event.pageX;
         this.y = event.pageY;
 
-        this.groups.default = [...ContextMenu.defaultActions];
+        this.groups.default = this.registry.copyDefaultAction();
 
         this.pickedNode = this.highlightManager.getActivePicked();
-        if (this.pickedNode) {
-            this.groups.node = [...ContextMenu.nodeActions];
-        }
-
         if (this.extraActions.length > 0) {
             this.groups.extra = [...this.extraActions];
         }
@@ -279,7 +243,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private createActionElement({ id, label, action }: ContextMenuAction): HTMLElement {
-        if (id && ContextMenu.disabledActions.has(id)) {
+        if (id && this.registry.isDisabled(id)) {
             return this.createDisabledElement(label);
         }
         return this.createButtonElement(label, action);
