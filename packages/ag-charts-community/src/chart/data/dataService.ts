@@ -1,6 +1,7 @@
 import { Debug } from '../../util/debug';
 import { throttle } from '../../util/function';
 import { Listeners } from '../../util/listeners';
+import { Logger } from '../../util/logger';
 import { ActionOnSet } from '../../util/proxy';
 import type { AnimationManager } from '../interaction/animationManager';
 
@@ -87,7 +88,7 @@ export class DataService<D extends object> extends Listeners<EventType, EventHan
 
     private createThrottledDispatch(dispatchThrottle: number) {
         return throttle(
-            (id: number, data: D[]) => {
+            (id: number, data: D[] | any) => {
                 this.debug(`DataService - dispatching 'data-load' | ${id}`);
                 this.dispatch('data-load', { type: 'data-load', data });
             },
@@ -101,7 +102,7 @@ export class DataService<D extends object> extends Listeners<EventType, EventHan
 
     private async fetch(params: DataSourceCallbackParams) {
         if (!this.dataSourceCallback) {
-            throw new Error('lazy data loading callback not initialised');
+            throw new Error('DataService - [dataSource.getData] callback not initialised');
         }
 
         const start = performance.now();
@@ -111,26 +112,25 @@ export class DataService<D extends object> extends Listeners<EventType, EventHan
 
         this.freshRequests.push(id);
 
+        let response;
         try {
-            const response = await this.dataSourceCallback(params);
+            response = await this.dataSourceCallback(params);
             this.debug(`DataService - response | ${performance.now() - start}ms | ${id}`);
-
-            this.isLoadingInitialData = false;
-
-            const requestIndex = this.freshRequests.findIndex((rid) => rid === id);
-            if (requestIndex === -1 || (this.dispatchOnlyLatest && requestIndex !== this.freshRequests.length - 1)) {
-                this.debug(`DataService - discarding stale request | ${id}`);
-                return;
-            }
-
-            this.freshRequests = this.freshRequests.slice(requestIndex + 1);
-
-            if (!Array.isArray(response)) {
-                throw new Error(`lazy data was bad: ${response}`);
-            }
-            this.throttledDispatch(id, response);
         } catch (error) {
-            throw new Error(`lazy data errored: ${error}`);
+            Logger.errorOnce(`DataService - request failed | ${id} - [${error}]`);
+            // Ignore errors in callback and keep chart alive
         }
+
+        this.isLoadingInitialData = false;
+
+        const requestIndex = this.freshRequests.findIndex((rid) => rid === id);
+        if (requestIndex === -1 || (this.dispatchOnlyLatest && requestIndex !== this.freshRequests.length - 1)) {
+            this.debug(`DataService - discarding stale request | ${id}`);
+            return;
+        }
+
+        this.freshRequests = this.freshRequests.slice(requestIndex + 1);
+
+        this.throttledDispatch(id, response);
     }
 }
