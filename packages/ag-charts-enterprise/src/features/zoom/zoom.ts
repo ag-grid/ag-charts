@@ -1,8 +1,6 @@
 import type { AgZoomAnchorPoint, _Scene } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
-import type { ContextMenuActionParams } from '../context-menu/main';
-import { ContextMenu } from '../context-menu/main';
 import { ZoomRect } from './scenes/zoomRect';
 import { ZoomAxisDragger } from './zoomAxisDragger';
 import { ZoomPanner } from './zoomPanner';
@@ -21,6 +19,7 @@ import {
 import type { DefinedZoomState } from './zoomTypes';
 
 type PinchEvent = _ModuleSupport.PinchEvent;
+type ContextMenuActionParams = _ModuleSupport.ContextMenuActionParams;
 
 const {
     BOOLEAN,
@@ -102,6 +101,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private readonly tooltipManager: _ModuleSupport.TooltipManager;
     private readonly updateService: _ModuleSupport.UpdateService;
     private readonly zoomManager: _ModuleSupport.ZoomManager;
+    private readonly contextMenuRegistry: _ModuleSupport.ContextMenuRegistry;
 
     // Zoom methods
     private readonly axisDragger = new ZoomAxisDragger();
@@ -128,6 +128,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.tooltipManager = ctx.tooltipManager;
         this.zoomManager = ctx.zoomManager;
         this.updateService = ctx.updateService;
+        this.contextMenuRegistry = ctx.contextMenuRegistry;
 
         const { Default, ZoomDrag, Animation } = _ModuleSupport.InteractionState;
         const draggableState = Default | Animation | ZoomDrag;
@@ -155,12 +156,12 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     private registerContextMenuActions() {
         // Add context menu zoom actions
-        ContextMenu.registerDefaultAction({
+        this.contextMenuRegistry.registerDefaultAction({
             id: CONTEXT_ZOOM_ACTION_ID,
             label: 'Zoom to here',
             action: (params) => this.onContextMenuZoomToHere(params),
         });
-        ContextMenu.registerDefaultAction({
+        this.contextMenuRegistry.registerDefaultAction({
             id: CONTEXT_PAN_ACTION_ID,
             label: 'Pan to here',
             action: (params) => this.onContextMenuPanToHere(params),
@@ -172,15 +173,15 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     private toggleContextMenuActions(zoom: DefinedZoomState) {
         if (this.isMinZoom(zoom)) {
-            ContextMenu.disableAction(CONTEXT_ZOOM_ACTION_ID);
+            this.contextMenuRegistry.disableAction(CONTEXT_ZOOM_ACTION_ID);
         } else {
-            ContextMenu.enableAction(CONTEXT_ZOOM_ACTION_ID);
+            this.contextMenuRegistry.enableAction(CONTEXT_ZOOM_ACTION_ID);
         }
 
         if (this.isMaxZoom(zoom)) {
-            ContextMenu.disableAction(CONTEXT_PAN_ACTION_ID);
+            this.contextMenuRegistry.disableAction(CONTEXT_PAN_ACTION_ID);
         } else {
-            ContextMenu.enableAction(CONTEXT_PAN_ACTION_ID);
+            this.contextMenuRegistry.enableAction(CONTEXT_PAN_ACTION_ID);
         }
     }
 
@@ -533,8 +534,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         // Discard the zoom update if it would take us below either min ratio
         if (dx < this.minRatioX || dy < this.minRatioY) {
-            ContextMenu.disableAction(CONTEXT_ZOOM_ACTION_ID);
-            ContextMenu.enableAction(CONTEXT_PAN_ACTION_ID);
+            this.contextMenuRegistry.disableAction(CONTEXT_ZOOM_ACTION_ID);
+            this.contextMenuRegistry.enableAction(CONTEXT_PAN_ACTION_ID);
             return;
         }
 

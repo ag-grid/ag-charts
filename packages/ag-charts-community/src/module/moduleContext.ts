@@ -2,6 +2,7 @@ import type { ChartService } from '../chart/chartService';
 import type { DataService } from '../chart/data/dataService';
 import type { AnimationManager } from '../chart/interaction/animationManager';
 import type { ChartEventManager } from '../chart/interaction/chartEventManager';
+import type { ContextMenuRegistry } from '../chart/interaction/contextMenuRegistry';
 import type { CursorManager } from '../chart/interaction/cursorManager';
 import type { GestureDetector } from '../chart/interaction/gestureDetector';
 import type { HighlightManager } from '../chart/interaction/highlightManager';
@@ -32,6 +33,7 @@ export interface ModuleContext {
 
     animationManager: AnimationManager;
     chartEventManager: ChartEventManager;
+    contextMenuRegistry: ContextMenuRegistry;
     cursorManager: CursorManager;
     highlightManager: HighlightManager;
     interactionManager: InteractionManager;
