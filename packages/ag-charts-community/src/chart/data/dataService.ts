@@ -40,10 +40,7 @@ export class DataService<D extends object> extends Listeners<EventType, EventHan
     private freshRequests: Array<number> = [];
     private requestCounter = 0;
 
-    private debugExtraMap: Map<number, any> = new Map(); // TODO: remove before release
-
     private readonly debug = Debug.create(true, 'data-model', 'data-source');
-    private readonly debugExtra = Debug.create('data-lazy-extra');
 
     private throttledFetch = this.createThrottledFetch(this.requestThrottle);
     private throttledDispatch = this.createThrottledDispatch(this.dispatchThrottle);
@@ -92,8 +89,6 @@ export class DataService<D extends object> extends Listeners<EventType, EventHan
         return throttle(
             (id: number, data: D[]) => {
                 this.debug(`DataService - dispatching 'data-load' | ${id}`);
-                this.debugExtraValues(id, { redrawEnd: performance.now() });
-                this.debugExtra(this.getDebugExtraString());
                 this.dispatch('data-load', { type: 'data-load', data });
             },
             dispatchThrottle,
@@ -115,19 +110,16 @@ export class DataService<D extends object> extends Listeners<EventType, EventHan
         this.debug(`DataService - requesting | ${id}`);
 
         this.freshRequests.push(id);
-        this.debugExtraValues(id, { id, start });
 
         try {
             const response = await this.dataSourceCallback(params);
             this.debug(`DataService - response | ${performance.now() - start}ms | ${id}`);
-            this.debugExtraValues(id, { end: performance.now() });
 
             this.isLoadingInitialData = false;
 
             const requestIndex = this.freshRequests.findIndex((rid) => rid === id);
             if (requestIndex === -1 || (this.dispatchOnlyLatest && requestIndex !== this.freshRequests.length - 1)) {
                 this.debug(`DataService - discarding stale request | ${id}`);
-                this.debugExtra(this.getDebugExtraString());
                 return;
             }
 
@@ -136,23 +128,9 @@ export class DataService<D extends object> extends Listeners<EventType, EventHan
             if (!Array.isArray(response)) {
                 throw new Error(`lazy data was bad: ${response}`);
             }
-            this.debugExtraValues(id, { redrawStart: performance.now() });
             this.throttledDispatch(id, response);
         } catch (error) {
             throw new Error(`lazy data errored: ${error}`);
         }
-    }
-
-    private debugExtraValues(id: number, info: any) {
-        if (!this.debugExtra.check()) return;
-        this.debugExtraMap.set(id, {
-            ...(this.debugExtraMap.get(id) ?? {}),
-            ...info,
-        });
-    }
-
-    private getDebugExtraString() {
-        if (!this.debugExtra.check()) return;
-        return JSON.stringify(Array.from(this.debugExtraMap.values()));
     }
 }

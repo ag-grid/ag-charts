@@ -18,9 +18,9 @@ A message is also displayed when all series are hidden:
 
 ## Loading Data Overlay
 
-When using [Lazy Loading](./lazy-loading), a spinner is shown while waiting for a response.
+When using [Async Zoom](./zoom#asynchronous-loading), a loading data animation is shown while waiting for a response.
 
-{% chartExampleRunner title="Lazy Loading" name="lazy-loading" type="generated" /%}
+{% chartExampleRunner title="Loading Data" name="loading" type="generated" /%}
 
 ## Customisation
 
@@ -30,6 +30,9 @@ These messages can be customised through `overlays`:
 
 ```js
 overlays: {
+    loading: {
+        text: 'Some custom loading message',
+    },
     noData: {
         text: 'Some custom noData message',
     },
@@ -49,6 +52,31 @@ If finer grained control is required, a renderer can be provided to allow full c
 overlays: {
     noData: {
         renderer: () => '<em>Custom message for <strong>missing data</strong></em>'
+    },
+},
+```
+
+### Custom Loading Spinner
+
+{% chartExampleRunner title="Custom Overlay for Loading Data" name="loading-custom" type="generated" /%}
+
+```js
+overlays: {
+    loading: {
+        renderer: () => {
+            const container = document.createElement('div');
+            // ... styles
+
+            const spinner = document.createElement('div');
+            // ... styles
+
+            const animation = document.createElement('style');
+            animation.innerText = '@keyframes loading-spinner { to { transform: rotate(0.5turn); } }';
+
+            container.replaceChildren(spinner, animation);
+
+            return container.outerHTML;
+        }
     },
 },
 ```
