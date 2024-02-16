@@ -16,8 +16,6 @@ const options: AgCartesianChartOptions = {
     },
     zoom: {
         enabled: true,
-        minVisibleItemsX: 1,
-        minVisibleItemsY: 1,
     },
     series: [
         {
@@ -32,20 +30,26 @@ const options: AgCartesianChartOptions = {
             type: 'number',
             position: 'left',
             keys: ['price'],
-            max: 1000,
+            min: 400,
+            max: 1600,
         },
         {
             type: 'time',
             position: 'bottom',
             nice: false,
-            min: new Date('2024-01-01 00:00:00'),
+            min: new Date('2019-01-01 00:00:00'),
             max: new Date('2024-12-30 23:59:59'),
             tick: {
-                minSpacing: 50,
-                maxSpacing: 100,
+                minSpacing: 100,
+                maxSpacing: 200,
             },
             label: {
-                formatter: ({ value }) => Intl.DateTimeFormat('en-GB', { month: 'short' }).format(new Date(value)),
+                formatter: ({ value }) =>
+                    Intl.DateTimeFormat('en-GB', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: '2-digit',
+                    }).format(new Date(value)),
             },
         },
     ],

@@ -29,6 +29,7 @@ export { assignJsonApplyConstructedArray } from './chart/chartOptions';
 export * from './chart/axis/axisUtil';
 export * from './chart/data/dataModel';
 export * from './chart/data/dataController';
+export * from './chart/data/dataService';
 export * from './chart/data/processors';
 export * from './chart/data/aggregateFunctions';
 export * from './chart/updateService';
