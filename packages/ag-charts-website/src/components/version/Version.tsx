@@ -12,9 +12,10 @@ type VersionProps = {
     blogUrl?: string;
     highlights?: Array<{ text: string; url: string }>;
     notesUrl?: string;
+    isLatest: boolean;
 };
 
-export const Version = ({ date, version, blogUrl, highlights, notesUrl }: VersionProps) => {
+export const Version = ({ date, version, blogUrl, highlights, notesUrl, isLatest }: VersionProps) => {
     const { major, minor, isMajor } = parseVersion(version);
     const blogHref =
         blogUrl || `https://blog.ag-grid.com/whats-new-in-ag-charts-${minor ? `${major}-${minor}` : major}/`;
@@ -27,7 +28,7 @@ export const Version = ({ date, version, blogUrl, highlights, notesUrl }: Versio
                         <span className="text-secondary text-sm">{date}</span>
 
                         <div className={styles.flex}>
-                            {version === '9.1.0' && <span className={styles.latestTag}>Latest</span>}
+                            {isLatest && <span className={styles.latestTag}>Latest</span>}
                             {isMajor && <span className={styles.majorText}>Major</span>}
                         </div>
                     </div>

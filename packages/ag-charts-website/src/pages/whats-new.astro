@@ -25,14 +25,17 @@ const versionsData: any[] = versionsContent ? versionsContent.data : [];
                 <p>See what's new in recent AG Charts versions.</p>
                 <div class={'versions'}>
                     {
-                        versionsData.map((versionInfo) => (
-                            <Version
-                                version={versionInfo.version}
-                                date={versionInfo.date}
-                                highlights={versionInfo.highlights}
-                                notesUrl={versionInfo.notesUrl}
-                            />
-                        ))
+                        versionsData.map((versionInfo, index) => {
+                            return (
+                                <Version
+                                    isLatest={index === 0}
+                                    version={versionInfo.version}
+                                    date={versionInfo.date}
+                                    highlights={versionInfo.highlights}
+                                    notesUrl={versionInfo.notesUrl}
+                                />
+                            );
+                        })
                     }
                 </div>
             </div>
