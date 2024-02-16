@@ -20,6 +20,7 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
         this.destroyFns.push(
             this.dataService.addListener('data-source-change', () => this.onDataSourceChange()),
             this.dataService.addListener('data-load', () => this.onDataLoad()),
+            this.dataService.addListener('data-error', () => this.onDataError()),
             this.updateService.addListener('update-complete', () => this.onUpdateComplete()),
             this.zoomManager.addListener('zoom-change', () => this.onZoomChange())
         );
@@ -31,6 +32,10 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
 
     private onDataLoad() {
         this.updateService.update(ChartUpdateType.UPDATE_DATA);
+    }
+
+    private onDataError() {
+        this.updateService.update(ChartUpdateType.PERFORM_LAYOUT);
     }
 
     private onDataSourceChange() {

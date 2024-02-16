@@ -11,12 +11,16 @@ interface DataSourceCallbackParams {
 }
 type DataSourceCallback = (params: DataSourceCallbackParams) => Promise<unknown>;
 
-type EventType = 'data-source-change' | 'data-load';
+type EventType = 'data-source-change' | 'data-load' | 'data-error';
 type EventHandler<D extends object> = (() => void) | ((event: DataLoadEvent<D>) => void);
 
 export interface DataLoadEvent<D extends object> {
     type: 'data-load';
     data: D[];
+}
+
+export interface DataErrorEvent {
+    type: 'data-error';
 }
 
 export class DataService<D extends object> extends Listeners<EventType, EventHandler<D>> {
@@ -131,6 +135,11 @@ export class DataService<D extends object> extends Listeners<EventType, EventHan
 
         this.freshRequests = this.freshRequests.slice(requestIndex + 1);
 
-        this.throttledDispatch(id, response);
+        // Dispatch response if no failure.
+        if (response) {
+            this.throttledDispatch(id, response);
+        } else {
+            this.dispatch('data-error');
+        }
     }
 }
