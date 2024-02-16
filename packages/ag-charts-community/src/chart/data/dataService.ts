@@ -18,11 +18,12 @@ export interface DataLoadEvent<D extends object> {
 }
 
 export class DataService<D extends object> extends Listeners<EventType, EventHandler<D>> {
+    public dispatchOnlyLatest = true;
+    public dispatchThrottle = 0;
+    public requestThrottle = 300;
+
     private dataSourceCallback?: DataSourceCallback;
     private isLoadingInitialData = false;
-    private requestThrottle = 100;
-    private dispatchThrottle = 0;
-    private dispatchOnlyLatest = true;
     private freshRequests: Array<number> = [];
     private requestCounter = 0;
 
