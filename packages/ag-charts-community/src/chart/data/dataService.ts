@@ -29,7 +29,7 @@ export class DataService<D extends object> extends Listeners<EventType, EventHan
 
     private debugExtraMap: Map<number, any> = new Map(); // TODO: remove before release
 
-    private readonly debug = Debug.create(true, 'data-model', 'data-lazy');
+    private readonly debug = Debug.create(true, 'data-model', 'data-source');
     private readonly debugExtra = Debug.create('data-lazy-extra');
 
     private throttledFetch = throttle((params: DataSourceCallbackParams) => this.fetch(params), this.requestThrottle, {
