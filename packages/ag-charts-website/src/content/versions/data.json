@@ -15,8 +15,7 @@
                 "text": "Asynchronous Data Loading",
                 "url": "https://charts.ag-grid.com/react//zoom/#asynchronous-loading"
             }
-        ],
-        "majorMinor": false
+        ]
     },
     {
         "version": "9.0.0",
@@ -47,7 +46,6 @@
                 "url": "https://charts.ag-grid.com/react/error-bars/"
             }
         ],
-        "buttonURL": "/javascript/upgrade-to-ag-charts-9/",
-        "majorMinor": true
+        "notesUrl": "/javascript/upgrade-to-ag-charts-9/"
     }
 ]

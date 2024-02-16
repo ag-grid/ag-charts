@@ -3,7 +3,7 @@ import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 
 const parseVersion = (version: string) => {
     const [major, minor, patch] = version.split('.').map(Number);
-    return { major, minor, patch, isMajor: !minor };
+    return { major, minor, patch, isMajor: !minor && !patch };
 };
 
 type VersionProps = {
@@ -11,11 +11,10 @@ type VersionProps = {
     version: string;
     blogUrl?: string;
     highlights?: Array<{ text: string; url: string }>;
-    buttonURL?: string;
-    majorMinor?: boolean;
+    notesUrl?: string;
 };
 
-export const Version = ({ date, version, blogUrl, highlights, buttonURL, majorMinor }: VersionProps) => {
+export const Version = ({ date, version, blogUrl, highlights, notesUrl }: VersionProps) => {
     const { major, minor, isMajor } = parseVersion(version);
     const blogHref =
         blogUrl || `https://blog.ag-grid.com/whats-new-in-ag-charts-${minor ? `${major}-${minor}` : major}/`;
@@ -28,8 +27,8 @@ export const Version = ({ date, version, blogUrl, highlights, buttonURL, majorMi
                         <span className="text-secondary text-sm">{date}</span>
 
                         <div className={styles.flex}>
-                            {version === '9.1.0' && <span className={styles['latest-tag']}>Latest</span>}
-                            {majorMinor && <span className={styles['major-text']}>Major</span>}
+                            {version === '9.1.0' && <span className={styles.latestTag}>Latest</span>}
+                            {isMajor && <span className={styles.majorText}>Major</span>}
                         </div>
                     </div>
                     <div className={styles.flex}>
@@ -50,27 +49,27 @@ export const Version = ({ date, version, blogUrl, highlights, buttonURL, majorMi
                         ))}
                     </ul>
                 )}
-
-                {buttonURL && (
+            </div>
+            <div>
+                {notesUrl && (
                     <a
                         className={`${styles.buttonSecondary} button-secondary`}
-                        href={urlWithBaseUrl(buttonURL)}
+                        href={urlWithBaseUrl(notesUrl)}
                         target="_blank"
                         rel="noopener noreferrer"
                     >
-                        See migration guide
+                        {isMajor ? 'See migration guide' : 'See release notes'}
                     </a>
                 )}
+                <a
+                    className={`${styles.buttonSecondary} button-secondary`}
+                    href={urlWithBaseUrl(`/changelog/?fixVersion=${version}`)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    See all changes
+                </a>
             </div>
-
-            <a
-                className={`${styles.buttonSecondary} button-secondary`}
-                href={urlWithBaseUrl(`/changelog/?fixVersion=${version}`)}
-                target="_blank"
-                rel="noopener noreferrer"
-            >
-                See all changes
-            </a>
         </div>
     );
 };
