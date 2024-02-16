@@ -97,6 +97,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     // Module context
     private readonly cursorManager: _ModuleSupport.CursorManager;
+    private readonly dataService: _ModuleSupport.DataService<any>;
     private readonly highlightManager: _ModuleSupport.HighlightManager;
     private readonly tooltipManager: _ModuleSupport.TooltipManager;
     private readonly updateService: _ModuleSupport.UpdateService;
@@ -127,6 +128,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.highlightManager = ctx.highlightManager;
         this.tooltipManager = ctx.tooltipManager;
         this.zoomManager = ctx.zoomManager;
+        this.dataService = ctx.dataService;
         this.updateService = ctx.updateService;
         this.contextMenuRegistry = ctx.contextMenuRegistry;
 
@@ -400,6 +402,14 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     private onUpdateComplete({ minRect }: _ModuleSupport.UpdateCompleteEvent) {
         if (!this.enabled || !this.paddedRect || !minRect) return;
+
+        // The minRect is the distance between the coarsest data points, so the user will not be able to zoom in further
+        // on newly loaded fine grained data. Instead, ignore this and allow infinite zooming.
+        if (this.dataService.isLazy()) {
+            this.minRatioX = 0;
+            this.minRatioY = 0;
+            return;
+        }
 
         const zoom = definedZoomState(this.zoomManager.getZoom());
 
