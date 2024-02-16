@@ -433,6 +433,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
         for (const series of this.series) {
             series.resetAnimation(this.chartAnimationPhase);
         }
+        for (const axis of this.axes) {
+            axis.resetAnimation(this.chartAnimationPhase);
+        }
 
         // Reset animation state.
         this.animationRect = undefined;
