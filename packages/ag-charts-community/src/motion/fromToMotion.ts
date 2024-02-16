@@ -143,10 +143,7 @@ export function fromToMotion<N extends Node, T extends Record<string, string | n
                     }
                 },
                 onStop: () => {
-                    for (const props of [to as unknown as T, finish, toFinish]) {
-                        if (props == null) continue;
-                        node.setProperties(props);
-                    }
+                    node.setProperties({ ...finish, ...toFinish } as unknown as T);
                 },
             });
 
