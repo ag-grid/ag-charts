@@ -21,7 +21,8 @@ export class DataService<D extends object> extends Listeners<EventType, EventHan
     private dataSourceCallback?: DataSourceCallback;
     private isLoadingInitialData = false;
     private requestThrottle = 100;
-    private refreshThrottle = 100;
+    private dispatchThrottle = 0;
+    private dispatchOnlyLatest = true;
     private freshRequests: Array<number> = [];
     private requestCounter = 0;
 
@@ -42,7 +43,7 @@ export class DataService<D extends object> extends Listeners<EventType, EventHan
             this.debugExtra(this.getDebugExtraString());
             this.dispatch('data-load', { type: 'data-load', data });
         },
-        this.refreshThrottle,
+        this.dispatchThrottle,
         {
             leading: true,
             trailing: true,
@@ -103,13 +104,13 @@ export class DataService<D extends object> extends Listeners<EventType, EventHan
             this.isLoadingInitialData = false;
 
             const requestIndex = this.freshRequests.findIndex((rid) => rid === id);
-            if (requestIndex === -1) {
+            if (requestIndex === -1 || (this.dispatchOnlyLatest && requestIndex !== this.freshRequests.length - 1)) {
                 this.debug(`DataService - discarding stale request | ${id}`);
                 this.debugExtra(this.getDebugExtraString());
                 return;
-            } else {
-                this.freshRequests = this.freshRequests.slice(requestIndex + 1);
             }
+
+            this.freshRequests = this.freshRequests.slice(requestIndex + 1);
 
             if (!Array.isArray(response)) {
                 throw new Error(`lazy data was bad: ${response}`);
