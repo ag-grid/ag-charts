@@ -1,4 +1,4 @@
-import { Database, Datum, dataEnd, dataStart, day, hour, month, week } from './data';
+import { Database, Datum, dataEnd, dataStart, day, hour, week } from './data';
 
 /**
  * This fake server mimics how a real server api chart service may get and format data for charts. If you are a
@@ -31,11 +31,11 @@ function delay(ms: number) {
 function formatData(data: Datum[], windowStart: number, windowEnd: number) {
     const diff = windowEnd - windowStart;
     let granularity = week * 4;
-    if (diff < day * 4) {
+    if (diff < week * 2) {
         granularity = hour;
-    } else if (diff < week * 8) {
+    } else if (diff < week * 13) {
         granularity = day;
-    } else if (diff < week * 26) {
+    } else if (diff < week * 52) {
         granularity = week;
     }
     return data.filter(({ time }) => {
