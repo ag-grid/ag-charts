@@ -678,7 +678,7 @@ export class AreaSeries extends CartesianSeries<
 
             markerFadeInAnimation(this, animationManager, markerSelections, 'added');
             pathFadeInAnimation(this, 'fill_path_properties', animationManager, [fill]);
-            pathFadeInAnimation(this, 'stroke', animationManager, [stroke]);
+            pathFadeInAnimation(this, 'stroke', animationManager, [stroke], 'trailing');
             seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
             return;
         }
@@ -697,7 +697,7 @@ export class AreaSeries extends CartesianSeries<
         pathMotion(this.id, 'fill_path_update', animationManager, [fill], fns.fill.path);
 
         this.updateStrokePath(paths, contextData);
-        pathFadeInAnimation(this, 'stroke', animationManager, [stroke]);
+        pathFadeInAnimation(this, 'stroke', animationManager, [stroke], 'trailing');
         seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
     }
 
