@@ -338,6 +338,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.attachLegend('category', Legend);
         this.legend = this.legends.get('category');
 
+        const { All } = InteractionState;
         SizeMonitor.observe(this.element, (size) => this.rawResize(size));
         this._destroyFns.push(
             this.dataService.addListener('data-load', (event) => {
@@ -352,7 +353,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
             this.interactionManager.addListener('wheel', () => this.resetPointer()),
             this.interactionManager.addListener('drag', () => this.resetPointer()),
-            this.interactionManager.addListener('contextmenu', () => this.resetPointer()),
+            this.interactionManager.addListener('contextmenu', (event) => this.onContextMenu(event), All),
 
             this.animationManager.addListener('animation-frame', () => {
                 this.update(ChartUpdateType.SCENE_RENDER);
@@ -1091,6 +1092,17 @@ export abstract class Chart extends Observable implements AgChartInstance {
         if (!this.tooltip.pointerLeftOntoTooltip(event)) {
             this.resetPointer();
             this.update(ChartUpdateType.SCENE_RENDER);
+        }
+    }
+
+    private onContextMenu(event: InteractionEvent<'contextmenu'>): void {
+        this.tooltipManager.removeTooltip(this.id);
+
+        // If there is already a context menu visible, then re-pick the highlighted node.
+        if (this.interactionManager.getState() & InteractionState.ContextMenu) {
+            this.checkSeriesNodeRange(event, (_series, datum) => {
+                this.highlightManager.updateHighlight(this.id, datum);
+            });
         }
     }
 
