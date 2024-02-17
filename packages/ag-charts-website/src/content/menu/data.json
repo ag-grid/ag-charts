@@ -255,7 +255,8 @@
                     {
                         "title": "Histogram",
                         "icon": "chartsHistogram",
-                        "path": "histogram-series"
+                        "path": "histogram-series",
+                        "isEnterprise": true
                     },
                     {
                         "title": "Combination",
