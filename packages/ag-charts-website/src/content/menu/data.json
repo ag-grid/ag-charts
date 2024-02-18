@@ -253,12 +253,6 @@
                         "path": "donut-series"
                     },
                     {
-                        "title": "Histogram",
-                        "icon": "chartsHistogram",
-                        "path": "histogram-series",
-                        "isEnterprise": true
-                    },
-                    {
                         "title": "Combination",
                         "icon": "chartsCombination",
                         "path": "combination-series"
@@ -279,6 +273,12 @@
                         "title": "Heatmap",
                         "icon": "chartsHeatmap",
                         "path": "heatmap-series",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Histogram",
+                        "icon": "chartsHistogram",
+                        "path": "histogram-series",
                         "isEnterprise": true
                     },
                     {

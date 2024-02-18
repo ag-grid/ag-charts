@@ -1,4 +1,4 @@
-export const datasetA = [
+export const salesProductA = [
     { quarter: 'Q1 2018', sales: 450 },
     { quarter: 'Q2 2018', sales: 470 },
     { quarter: 'Q3 2018', sales: 550 },
@@ -21,7 +21,7 @@ export const datasetA = [
     { quarter: 'Q4 2022', sales: 810 },
 ];
 
-export const datasetB = [
+export const costsProductA = [
     { quarter: 'Q1 2018', costs: 250 },
     { quarter: 'Q2 2018', costs: 260 },
     { quarter: 'Q3 2018', costs: 270 },
@@ -44,7 +44,7 @@ export const datasetB = [
     { quarter: 'Q4 2022', costs: 390 },
 ];
 
-export const datasetC = [
+export const salesProductB = [
     { quarter: 'Q1 2018', sales: 420 },
     { quarter: 'Q2 2018', sales: 440 },
     { quarter: 'Q3 2018', sales: 460 },
@@ -67,7 +67,7 @@ export const datasetC = [
     { quarter: 'Q4 2022', sales: 780 },
 ];
 
-export const datasetD = [
+export const costsProductB = [
     { quarter: 'Q1 2018', efficiency: 85 },
     { quarter: 'Q2 2018', efficiency: 87 },
     { quarter: 'Q3 2018', efficiency: 89 },
