@@ -105,7 +105,7 @@ const chart3 = AgCharts.create({
     ],
 });
 
-const chart4 = agCharts.AgCharts.create({
+const chart4 = AgCharts.create({
     ...options,
     ...bottomChartAxis,
     container: document.getElementById('myChart4'),
