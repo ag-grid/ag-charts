@@ -223,7 +223,7 @@ export class Legend extends BaseProperties {
         this.pagination = new Pagination(
             (type: ChartUpdateType) => ctx.updateService.update(type),
             (page) => this.updatePageNumber(page),
-            ctx.interactionManager,
+            ctx.regionManager,
             ctx.cursorManager
         );
         this.pagination.attachPagination(this.group);
