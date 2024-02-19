@@ -53,6 +53,10 @@
         margin-bottom: 0;
     }
 
+    pre.code code {
+        margin-bottom: -5px;
+    }
+
     // If the only item in a tab is a code snippet ignore padding & remove border
     div[tab-label] pre.code:only-child {
         margin: -$spacing-size-4;

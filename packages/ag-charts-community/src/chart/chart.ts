@@ -637,7 +637,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 const tooltipMeta = this.tooltipManager.getTooltipMeta(this.id);
 
                 if (performUpdateType <= ChartUpdateType.SERIES_UPDATE && tooltipMeta !== undefined) {
-                    this.handlePointer(tooltipMeta.lastPointerEvent);
+                    this.handlePointer(tooltipMeta.lastPointerEvent, true);
                 }
                 splits['↖'] = performance.now();
             // fallthrough
@@ -1112,11 +1112,11 @@ export abstract class Chart extends Observable implements AgChartInstance {
     private lastInteractionEvent?: InteractionEvent<'hover'> = undefined;
     private pointerScheduler = debouncedAnimationFrame(() => {
         if (this.lastInteractionEvent) {
-            this.handlePointer(this.lastInteractionEvent);
+            this.handlePointer(this.lastInteractionEvent, false);
             this.lastInteractionEvent = undefined;
         }
     });
-    protected handlePointer(event: PointerOffsets) {
+    protected handlePointer(event: PointerOffsets, redisplay: boolean) {
         if (this.interactionManager.getState() !== InteractionState.Default) {
             return;
         }
@@ -1129,6 +1129,11 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 this.resetPointer(highlightOnly);
             }
         };
+
+        if (redisplay && this.animationManager.isActive()) {
+            disablePointer();
+            return;
+        }
 
         if (!hoverRect?.containsPoint(offsetX, offsetY)) {
             disablePointer();
