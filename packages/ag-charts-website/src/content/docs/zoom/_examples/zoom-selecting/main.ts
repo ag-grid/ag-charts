@@ -5,7 +5,7 @@ import { getData } from './data';
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     zoom: {
-        enabled: true,
+        enableAxisDragging: false,
         enablePanning: false,
         enableScrolling: false,
         enableSelecting: true,
