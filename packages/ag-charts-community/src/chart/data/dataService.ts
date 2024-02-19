@@ -121,7 +121,8 @@ export class DataService<D extends object> extends Listeners<EventType, EventHan
             response = await this.dataSourceCallback(params);
             this.debug(`DataService - response | ${performance.now() - start}ms | ${id}`);
         } catch (error) {
-            Logger.errorOnce(`DataService - request failed | ${id} - [${error}]`);
+            this.debug(`DataService - request failed | ${id}`);
+            Logger.errorOnce(`DataService - request failed | [${error}]`);
             // Ignore errors in callback and keep chart alive
         }
 
@@ -136,7 +137,7 @@ export class DataService<D extends object> extends Listeners<EventType, EventHan
         this.freshRequests = this.freshRequests.slice(requestIndex + 1);
 
         // Dispatch response if no failure.
-        if (response) {
+        if (Array.isArray(response)) {
             this.throttledDispatch(id, response);
         } else {
             this.dispatch('data-error');
