@@ -12,10 +12,12 @@ Histograms require at least one numeric attribute in the data to be specified us
 The simplest configuration for a Histogram Series is shown below:
 
 ```js
-series: [{
-    type: 'histogram'
-    xKey: 'age'
-}]
+series: [
+    {
+        type: 'histogram',
+        xKey: 'age',
+    },
+],
 ```
 
 {% chartExampleRunner title="Simple Histogram" name="simple" type="generated" /%}
@@ -32,7 +34,7 @@ Given enough data, charts with more bins are able to more precisely illustrate u
 series: [{
     type: 'histogram'
     xKey: 'age',
-    binCount: 20
+    binCount: 20,
 }]
 ```
 
@@ -53,7 +55,7 @@ series: [{
     type: 'histogram'
     xKey: 'age',
     areaPlot: true,
-    bins: [[16, 18], [18, 21], [21, 25], [25, 40]]
+    bins: [[16, 18], [18, 21], [21, 25], [25, 40]],
 }]
 ```
 
@@ -80,7 +82,7 @@ series: [{
     type: 'histogram'
     xKey: 'age',
     yKey: 'winnings',
-    aggregation: 'sum'
+    aggregation: 'sum',
 }]
 ```
 
@@ -100,7 +102,7 @@ series: [{
     xKey: 'age',
     yKey: 'time',
     yName: 'Race time',
-    aggregation: 'mean'
+    aggregation: 'mean',
 }]
 ```
 

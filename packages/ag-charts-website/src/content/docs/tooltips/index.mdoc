@@ -14,7 +14,7 @@ The tooltip content is based on the data values and keys of the series. Addition
 series: [
     { type: 'bar', xKey: 'month', stacked: true, yKey: 'value1', yName: 'Sweaters Made' },
     { type: 'bar', xKey: 'month', stacked: true, yKey: 'hats_made', yName: 'Hats Made' },
-];
+],
 ```
 
 In this example:
@@ -41,8 +41,8 @@ tooltip: {
         type: 'pointer',
         xOffset: 80, // positions tooltip 80px to the right of the mouse cursor
         yOffset: 80, // positions tooltip 80px down from the start of the mouse cursor
-    }
-}
+    },
+},
 ```
 
 In this configuration:
@@ -61,8 +61,8 @@ Use the `tooltip.showArrow` option to change this behaviour.
 
 ```js
 tooltip: {
-    showArrow: false;
-}
+    showArrow: false,
+},
 ```
 
 ## Customisation
@@ -88,8 +88,8 @@ For example, if we wanted to set the tooltip's content `background-color` to `go
 
 ```js
 tooltip: {
-    class: 'my-tooltip'
-}
+    class: 'my-tooltip',
+},
 ```
 
 And then in the CSS:
@@ -117,8 +117,8 @@ tooltip: {
             content: datum[yKey].toFixed(0),
             title: datum[xKey]
         };
-    }
-}
+    },
+},
 ```
 
 The `title` and `content` fields returned can contain plain text or HTML.
@@ -147,7 +147,7 @@ series: [
             },
         },
     },
-];
+],
 ```
 
 Notice that in the above example:

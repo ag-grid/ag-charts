@@ -1099,7 +1099,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.tooltipManager.removeTooltip(this.id);
 
         // If there is already a context menu visible, then re-pick the highlighted node.
-        if (this.interactionManager.getState() & InteractionState.ContextMenu) {
+        // We check InteractionState.Default too just in case we were in ContextMenu and the
+        // mouse hasn't moved since (see AG-10233).
+        const { Default, ContextMenu } = InteractionState;
+        if (this.interactionManager.getState() & (Default | ContextMenu)) {
             this.checkSeriesNodeRange(event, (_series, datum) => {
                 this.highlightManager.updateHighlight(this.id, datum);
             });
@@ -1596,6 +1599,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.applySeriesValues(series, diff);
             series.markNodeDataDirty();
             seriesInstances.push(series);
+        }
+        // Ensure declaration order is set, this is used for correct z-index behavior for combo charts.
+        for (let idx = 0; idx < seriesInstances.length; idx++) {
+            seriesInstances[idx]._declarationOrder = idx;
         }
 
         debug(`AgChartV2.applySeries() - final series instances`, seriesInstances);
