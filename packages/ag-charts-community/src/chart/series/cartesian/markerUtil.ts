@@ -16,9 +16,9 @@ export function markerFadeInAnimation<T>(
     { id }: { id: string },
     animationManager: AnimationManager,
     markerSelections: Selection<NodeWithOpacity, T>[],
-    status: NodeUpdateState = 'unknown'
+    status?: NodeUpdateState
 ) {
-    const params = { phase: NODE_UPDATE_STATE_TO_PHASE_MAPPING[status] };
+    const params = { phase: status ? NODE_UPDATE_STATE_TO_PHASE_MAPPING[status] : 'trailing' };
     staticFromToMotion(id, 'markers', animationManager, markerSelections, { opacity: 0 }, { opacity: 1 }, params);
     markerSelections.forEach((s) => s.cleanup());
 }

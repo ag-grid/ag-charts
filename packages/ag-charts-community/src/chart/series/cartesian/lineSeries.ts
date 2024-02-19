@@ -466,7 +466,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
             return;
         }
 
-        fromToMotion(this.id, 'marker', animationManager, markerSelections, fns.marker as any);
+        markerFadeInAnimation(this, animationManager, markerSelections);
         fromToMotion(this.id, 'path_properties', animationManager, path, fns.pathProperties);
         pathMotion(this.id, 'path_update', animationManager, path, fns.path);
         if (fns.hasMotion) {
