@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 const data = [
     { quarter: 'week 3', week: 3, iphone: 60, android: 50 },
@@ -24,12 +24,11 @@ function toIntegratedKey({ quarter, week, ...datum }: any, idx: number) {
     };
 }
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     animation: {
         enabled: true,
     },
-    mode: 'integrated',
     data: [...data].map(toIntegratedKey),
     series: [
         {
@@ -62,6 +61,7 @@ const options: AgChartOptions = {
         },
     ],
 };
+(options as any).mode = 'integrated';
 
 const chart = AgCharts.create(options);
 
