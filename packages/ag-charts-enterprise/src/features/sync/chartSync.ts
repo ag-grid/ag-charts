@@ -104,11 +104,9 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
                         })
                         .filter(Boolean);
 
-                    if (matchingNodes.length < 2) {
-                        if (matchingNodes[0] !== chart.highlightManager.getActiveHighlight()) {
-                            chart.highlightManager.updateHighlight(chart.id, matchingNodes[0]);
-                            this.updateChart(chart, ChartUpdateType.SERIES_UPDATE);
-                        }
+                    if (matchingNodes.length < 2 && matchingNodes[0] !== chart.highlightManager.getActiveHighlight()) {
+                        chart.highlightManager.updateHighlight(chart.id, matchingNodes[0]);
+                        this.updateChart(chart, ChartUpdateType.SERIES_UPDATE);
                     }
                 }
             }
