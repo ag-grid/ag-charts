@@ -1,3 +1,5 @@
+import prettier from 'prettier';
+
 import { SOURCE_ENTRY_FILE_NAME } from '../constants';
 import { readAsJsFile } from '../transformation-scripts/parser-utils';
 import type { FileContents, TransformTsFileExt } from '../types';
@@ -75,7 +77,14 @@ export const getOtherScriptFiles = async ({
         sourceFileList,
     });
 
-    const contents = Object.assign({}, otherTsGeneratedFileContents, otherJsFileContents) as FileContents;
+    const contents: Record<string, string> = {};
+    for (const [filename, content] of Object.entries(otherTsGeneratedFileContents)) {
+        contents[filename] = await prettier.format(content, { parser: 'typescript' });
+    }
+
+    for (const [filename, content] of Object.entries(otherJsFileContents)) {
+        contents[filename] = await prettier.format(content, { parser: 'typescript' });
+    }
 
     return contents;
 };
