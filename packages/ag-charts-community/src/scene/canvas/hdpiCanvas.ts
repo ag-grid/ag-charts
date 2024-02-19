@@ -227,69 +227,6 @@ export class HdpiCanvas {
         return this._textMeasuringContext;
     }
 
-    // Offscreen SVGTextElement for measuring text. This fallback method
-    // is at least 25 times slower than `CanvasRenderingContext2D.measureText`.
-    // Using a <span> and its `getBoundingClientRect` for text measurement
-    // is also slow and often results in a grossly incorrect measured height.
-    private static _svgText?: SVGTextElement;
-    private static get svgText(): SVGTextElement {
-        if (this._svgText) {
-            return this._svgText;
-        }
-
-        const xmlns = 'http://www.w3.org/2000/svg';
-
-        const svg = document.createElementNS(xmlns, 'svg');
-        svg.setAttribute('width', '100');
-        svg.setAttribute('height', '100');
-        // Add a descriptive class name in case someone sees this SVG element
-        // in devtools and wonders about its purpose:
-        if (svg.classList) {
-            svg.classList.add('text-measuring-svg');
-        } else {
-            svg.setAttribute('class', 'text-measuring-svg');
-        }
-        svg.style.position = 'absolute';
-        svg.style.top = '-1000px';
-        svg.style.visibility = 'hidden';
-
-        const svgText = document.createElementNS(xmlns, 'text');
-        svgText.setAttribute('x', '0');
-        svgText.setAttribute('y', '30');
-        svgText.setAttribute('text', 'black');
-
-        svg.appendChild(svgText);
-        document.body.appendChild(svg);
-
-        this._svgText = svgText;
-
-        return svgText;
-    }
-
-    private static _has?: {
-        textMetrics: boolean;
-        getTransform: boolean;
-    };
-    static get has() {
-        if (this._has) {
-            return this._has;
-        }
-        const isChrome = typeof navigator === 'undefined' || navigator.userAgent.indexOf('Chrome') > -1;
-        const isFirefox = typeof navigator !== 'undefined' && navigator.userAgent.indexOf('Firefox') > -1;
-        const isSafari = !isChrome && typeof navigator !== 'undefined' && navigator.userAgent.indexOf('Safari') > -1;
-        this._has = Object.freeze({
-            textMetrics:
-                this.textMeasuringContext.measureText('test').actualBoundingBoxDescent !== undefined &&
-                // Firefox implemented advanced TextMetrics object in v74:
-                // https://bugzilla.mozilla.org/show_bug.cgi?id=1102584
-                // but it's buggy, so we'll keep using the SVG for text measurement in Firefox for now.
-                !isFirefox &&
-                !isSafari,
-            getTransform: this.textMeasuringContext.getTransform !== undefined,
-        });
-        return this._has;
-    }
-
     static measureText(
         text: string,
         font: string,
@@ -309,56 +246,14 @@ export class HdpiCanvas {
      * @param font The font shorthand string.
      */
     static getTextSize(text: string, font: string): Size {
-        if (this.has.textMetrics) {
-            const ctx = this.textMeasuringContext;
-            ctx.font = font;
-            const metrics = ctx.measureText(text);
+        const ctx = this.textMeasuringContext;
+        ctx.font = font;
+        const metrics = ctx.measureText(text);
 
-            return {
-                width: metrics.width,
-                height: metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent,
-            };
-        } else {
-            return this.measureSvgText(text, font);
-        }
-    }
-
-    private static textSizeCache: { [font: string]: { [text: string]: Size } } = {};
-
-    private static measureSvgText(text: string, font: string): Size {
-        const cache = this.textSizeCache;
-        const fontCache = cache[font];
-
-        // Note: consider not caching the size of numeric strings.
-        // For example: if (isNaN(+text)) { // skip
-
-        if (fontCache) {
-            const size = fontCache[text];
-            if (size) {
-                return size;
-            }
-        } else {
-            cache[font] = {};
-        }
-
-        const svgText = this.svgText;
-
-        svgText.style.font = font;
-        svgText.textContent = text;
-
-        // `getBBox` returns an instance of `SVGRect` with the same `width` and `height`
-        // measurements as `DOMRect` instance returned by the `getBoundingClientRect`.
-        // But the `SVGRect` instance has half the properties of the `DOMRect`,
-        // so we use the `getBBox` method.
-        const bbox = svgText.getBBox();
-        const size: Size = {
-            width: bbox.width,
-            height: bbox.height,
+        return {
+            width: metrics.width,
+            height: metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent,
         };
-
-        cache[font][text] = size;
-
-        return size;
     }
 
     static overrideScale(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, scale: number) {
