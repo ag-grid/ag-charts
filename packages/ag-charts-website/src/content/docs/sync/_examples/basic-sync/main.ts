@@ -1,8 +1,8 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { AAPL, MSFT } from './data';
 
-const options: AgCartesianChartOptions = {
+const commonOptions: AgChartOptions = {
     series: [
         {
             type: 'line',
@@ -46,26 +46,30 @@ const options: AgCartesianChartOptions = {
     ],
 };
 
-const chart1 = AgCharts.create({
-    ...options,
+const chartOptions1: AgChartOptions = {
+    ...commonOptions,
+    container: document.getElementById('myChart1'),
     data: AAPL,
     title: {
         text: 'Apple (AAPL)',
         textAlign: 'left',
     },
-    container: document.getElementById('myChart1'),
-});
+};
 
-const chart2 = AgCharts.create({
-    ...options,
+AgCharts.create(chartOptions1);
+
+const chartOptions2: AgChartOptions = {
+    ...commonOptions,
+    container: document.getElementById('myChart2'),
     data: MSFT,
     title: {
         text: 'Microsoft (MSFT)',
         textAlign: 'left',
     },
-    container: document.getElementById('myChart2'),
     navigator: {
         min: 0.8,
         max: 1,
     },
-});
+};
+
+AgCharts.create(chartOptions2);

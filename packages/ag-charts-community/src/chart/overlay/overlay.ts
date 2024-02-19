@@ -62,6 +62,9 @@ export class Overlay {
                 onUpdate(value) {
                     element.style.opacity = String(value);
                 },
+                onStop() {
+                    element.style.opacity = '1';
+                },
             });
         }
 

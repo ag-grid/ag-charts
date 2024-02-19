@@ -17,6 +17,7 @@ import {
     isAgCartesianChartOptions,
     isAgHierarchyChartOptions,
     isAgPolarChartOptions,
+    isAgPolarChartOptionsWithSeriesBasedLegend,
     isAxisOptionType,
     isSeriesOptionType,
 } from '../chart/mapping/types';
@@ -102,8 +103,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.processAxesOptions(this.processedOptions, axesThemes);
         this.processSeriesOptions(this.processedOptions);
 
-        // Disable legend by default for single series cartesian charts
-        if (isAgCartesianChartOptions(this.processedOptions) && this.processedOptions.legend?.enabled == null) {
+        // Disable legend by default for single series cartesian charts and polar charts which display legend items per series rather than data items
+        if (
+            (isAgCartesianChartOptions(this.processedOptions) ||
+                isAgPolarChartOptionsWithSeriesBasedLegend(this.processedOptions)) &&
+            this.processedOptions.legend?.enabled == null
+        ) {
             this.processedOptions.legend ??= {};
             this.processedOptions.legend.enabled = this.processedOptions.series!.length > 1;
         }
