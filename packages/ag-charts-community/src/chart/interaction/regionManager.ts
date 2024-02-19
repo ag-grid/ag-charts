@@ -5,7 +5,7 @@ import { Logger } from '../../util/logger';
 import type { InteractionEvent, InteractionManager, InteractionTypes } from './interactionManager';
 import { INTERACTION_TYPES, InteractionState } from './interactionManager';
 
-export type RegionName = 'legend';
+export type RegionName = 'legend' | 'pagination';
 
 type RegionHandler<Event extends InteractionEvent> = (event: Event) => void;
 
