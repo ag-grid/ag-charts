@@ -1,8 +1,8 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { costsProductA, costsProductB, salesProductA, salesProductB } from './data';
 
-const options: AgCartesianChartOptions = {
+const commonOptions: AgCartesianChartOptions = {
     tooltip: {
         enabled: false,
     },
@@ -45,8 +45,8 @@ const bottomChartAxis: AgCartesianChartOptions = {
     ],
 };
 
-const chart1 = AgCharts.create({
-    ...options,
+const chartOptions1: AgChartOptions = {
+    ...commonOptions,
     ...topChartAxis,
     container: document.getElementById('myChart1'),
     sync: {
@@ -64,10 +64,12 @@ const chart1 = AgCharts.create({
             yKey: 'sales',
         },
     ],
-});
+};
 
-const chart2 = AgCharts.create({
-    ...options,
+AgCharts.create(chartOptions1);
+
+const chartOptions2: AgChartOptions = {
+    ...commonOptions,
     ...topChartAxis,
     container: document.getElementById('myChart2'),
     sync: {
@@ -84,10 +86,12 @@ const chart2 = AgCharts.create({
             yKey: 'costs',
         },
     ],
-});
+};
 
-const chart3 = AgCharts.create({
-    ...options,
+AgCharts.create(chartOptions2);
+
+const chartOptions3: AgChartOptions = {
+    ...commonOptions,
     ...bottomChartAxis,
     container: document.getElementById('myChart3'),
     sync: {
@@ -103,10 +107,12 @@ const chart3 = AgCharts.create({
             yKey: 'sales',
         },
     ],
-});
+};
 
-const chart4 = AgCharts.create({
-    ...options,
+AgCharts.create(chartOptions3);
+
+const chartOptions4: AgChartOptions = {
+    ...commonOptions,
     ...bottomChartAxis,
     container: document.getElementById('myChart4'),
     sync: { enabled: true, groupId: 'costs' },
@@ -119,4 +125,6 @@ const chart4 = AgCharts.create({
             yKey: 'efficiency',
         },
     ],
-});
+};
+
+AgCharts.create(chartOptions4);

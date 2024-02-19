@@ -2,7 +2,7 @@ import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { currentData, historicalData } from './data';
 
-const options: AgCartesianChartOptions = {
+const commonOptions: AgCartesianChartOptions = {
     sync: {
         axes: 'y',
         nodeInteraction: false,
@@ -47,20 +47,24 @@ const options: AgCartesianChartOptions = {
     ],
 };
 
-const chart1 = AgCharts.create({
-    ...options,
+const chartOptions1 = {
+    ...commonOptions,
     container: document.getElementById('myChart1'),
     subtitle: {
         text: 'Historical Data',
     },
     data: historicalData,
-});
+};
 
-const chart2 = AgCharts.create({
-    ...options,
+AgCharts.create(chartOptions1);
+
+const chartOptions2 = {
+    ...commonOptions,
     container: document.getElementById('myChart2'),
     subtitle: {
         text: 'Current Data',
     },
     data: currentData,
-});
+};
+
+AgCharts.create(chartOptions2);
