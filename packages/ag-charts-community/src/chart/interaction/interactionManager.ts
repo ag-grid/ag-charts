@@ -4,17 +4,20 @@ import { Logger } from '../../util/logger';
 import { isFiniteNumber } from '../../util/type-guards';
 import { BaseManager } from './baseManager';
 
-type InteractionTypes =
-    | 'click'
-    | 'dblclick'
-    | 'contextmenu'
-    | 'hover'
-    | 'drag-start'
-    | 'drag'
-    | 'drag-end'
-    | 'leave'
-    | 'page-left'
-    | 'wheel';
+export const INTERACTION_TYPES = [
+    'click',
+    'dblclick',
+    'contextmenu',
+    'hover',
+    'drag-start',
+    'drag',
+    'drag-end',
+    'leave',
+    'page-left',
+    'wheel',
+] as const;
+
+export type InteractionTypes = (typeof INTERACTION_TYPES)[number];
 
 type SUPPORTED_EVENTS =
     | 'click'

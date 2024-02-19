@@ -3,9 +3,7 @@ title: 'Navigator'
 enterprise: true
 ---
 
-The Navigator allows to zoom in on a portion of chart's data and then pan around the chart. This is useful in charts with lots of data and real-time charts where one wants to show a slice of time.
-
-## Enabling the Navigator
+The Navigator provides controls for users to zoom and pan around a chart. It can also include a Mini Chart to show the entire dataset.
 
 {% chartExampleRunner title="Enabling the Navigator" name="navigator" type="generated" /%}
 
@@ -17,49 +15,20 @@ navigator: {
 }
 ```
 
-## Setting the Visible Range
+## Setting an Initial Range
 
-By default the Navigator shows the whole range of chart's data in the horizontal direction. The two properties that control the range of data to show are `min` and `max`, which default to `0` and `1`, respectively.
+By default the Navigator shows the entire range of chart's data. The two properties that control the range of data to show are `min` and `max`, which default to `0` and `1`, respectively.
 
 The visible range is normalized to the `[0, 1]` interval. For example, to show the last quarter of the chart's data by default we can use the following config:
 
 ```js
 navigator: {
     min: 0.75,
-    max: 1
+    max: 1,
 }
 ```
 
 Regardless of the initial visible range, the user will be able to adjust the range as they see fit by dragging the range handles inside the Navigator.
-
-## Styling the Navigator
-
-The Navigator's `height` is configurable and affects chart's layout by leaving more or less vertical space for the series:
-
-```js
-navigator: {
-    height: 50,
-}
-```
-
-The Navigator component has three subcomponents that can be styled independently:
-
--   `mask` - the range mask
--   `minHandle` - the min drag handle
--   `maxHandle` - the max drag handle
-
-The range mask shows the portion of the range selected, and the drag handles are used to adjust it.
-
-All subcomponent configs are optional too and have default values that make the Navigator look good in charts with both light and dark backgrounds.
-
-The example below uses various Navigator configs (in a deliberately exaggerated way) to change the following visual attributes of the Navigator:
-
--   range mask's fill, fill opacity and stroke width
--   fill and stroke colours of handles
--   width, height and stroke width of the left handle
--   the length of the left handle's grip lines and the distance between them
-
-{% chartExampleRunner title="Navigator Styling" name="navigator-styling" type="generated" /%}
 
 ## Mini Chart
 
@@ -73,15 +42,48 @@ The Mini Chart is disabled by default, and can be enabled in the `miniChart` opt
 navigator: {
     miniChart: {
         enabled: true,
-    }
+    },
 }
 ```
 
-## Styling the Mini Chart
+All series in the main chart will be shown in the Mini Chart. Use the `showInMiniChart` property on each series for finer control.
+
+## Customisation
+
+### Styling the Navigator
+
+The Navigator's `height` is configurable and affects the chart's layout by leaving more or less vertical space for the series.
+
+```js
+navigator: {
+    height: 50,
+}
+```
+
+The Navigator component has three subcomponents that can be styled independently:
+
+-   `mask` - the range mask.
+-   `minHandle` - the min drag handle.
+-   `maxHandle` - the max drag handle.
+
+The range mask shows the portion of the range selected, and the drag handles are used to adjust it.
+
+All subcomponent configs are optional, and have default values that make the Navigator look good in charts with both light and dark backgrounds.
+
+The example below uses various Navigator configs (in a deliberately exaggerated way) to change the following visual attributes of the Navigator:
+
+-   range mask's fill, fill opacity and stroke width
+-   fill and stroke colours of handles
+-   width, height and stroke width of the left handle
+-   the length of the left handle's grip lines and the distance between them
+
+{% chartExampleRunner title="Navigator Styling" name="navigator-styling" type="generated" /%}
+
+### Styling the Mini Chart
 
 {% chartExampleRunner title="Mini Chart Styling" name="mini-chart-styling" type="generated" /%}
 
-The labels on the Mini Chart axis can be styled using the `label` property, which takes the same properties as the `label` property on axes.
+The labels on the Mini Chart axis can be styled using the `label` property. See the [API Reference](#reference-AgChartOptions-navigator-miniChart-label) for a list of all available options.
 
 ```js
 navigator: {
@@ -91,13 +93,9 @@ navigator: {
             fontSize: 20,
             fontWeight: 'bold',
         },
-    }
+    },
 }
 ```
-
-{% note %}
-Rotation-based properties are not supported on `label`.
-{% /note %}
 
 ## API Reference
 

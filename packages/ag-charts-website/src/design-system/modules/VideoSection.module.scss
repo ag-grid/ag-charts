@@ -12,8 +12,8 @@
     }
 }
 
-.header {
-    font-size: var(--text-fs-lg);
+.videoSection .header > * {
+    font-size: var(--text-fs-xl) !important;
 }
 
 .ytIframe {

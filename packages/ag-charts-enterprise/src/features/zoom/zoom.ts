@@ -1,8 +1,6 @@
 import type { AgZoomAnchorPoint, _Scene } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
-import type { ContextMenuActionParams } from '../context-menu/main';
-import { ContextMenu } from '../context-menu/main';
 import { ZoomRect } from './scenes/zoomRect';
 import { ZoomAxisDragger } from './zoomAxisDragger';
 import { ZoomPanner } from './zoomPanner';
@@ -21,6 +19,7 @@ import {
 import type { DefinedZoomState } from './zoomTypes';
 
 type PinchEvent = _ModuleSupport.PinchEvent;
+type ContextMenuActionParams = _ModuleSupport.ContextMenuActionParams;
 
 const {
     BOOLEAN,
@@ -98,10 +97,12 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     // Module context
     private readonly cursorManager: _ModuleSupport.CursorManager;
+    private readonly dataService: _ModuleSupport.DataService<any>;
     private readonly highlightManager: _ModuleSupport.HighlightManager;
     private readonly tooltipManager: _ModuleSupport.TooltipManager;
     private readonly updateService: _ModuleSupport.UpdateService;
     private readonly zoomManager: _ModuleSupport.ZoomManager;
+    private readonly contextMenuRegistry: _ModuleSupport.ContextMenuRegistry;
 
     // Zoom methods
     private readonly axisDragger = new ZoomAxisDragger();
@@ -127,7 +128,9 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.highlightManager = ctx.highlightManager;
         this.tooltipManager = ctx.tooltipManager;
         this.zoomManager = ctx.zoomManager;
+        this.dataService = ctx.dataService;
         this.updateService = ctx.updateService;
+        this.contextMenuRegistry = ctx.contextMenuRegistry;
 
         const { Default, ZoomDrag, Animation } = _ModuleSupport.InteractionState;
         const draggableState = Default | Animation | ZoomDrag;
@@ -155,12 +158,12 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     private registerContextMenuActions() {
         // Add context menu zoom actions
-        ContextMenu.registerDefaultAction({
+        this.contextMenuRegistry.registerDefaultAction({
             id: CONTEXT_ZOOM_ACTION_ID,
             label: 'Zoom to here',
             action: (params) => this.onContextMenuZoomToHere(params),
         });
-        ContextMenu.registerDefaultAction({
+        this.contextMenuRegistry.registerDefaultAction({
             id: CONTEXT_PAN_ACTION_ID,
             label: 'Pan to here',
             action: (params) => this.onContextMenuPanToHere(params),
@@ -172,15 +175,15 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     private toggleContextMenuActions(zoom: DefinedZoomState) {
         if (this.isMinZoom(zoom)) {
-            ContextMenu.disableAction(CONTEXT_ZOOM_ACTION_ID);
+            this.contextMenuRegistry.disableAction(CONTEXT_ZOOM_ACTION_ID);
         } else {
-            ContextMenu.enableAction(CONTEXT_ZOOM_ACTION_ID);
+            this.contextMenuRegistry.enableAction(CONTEXT_ZOOM_ACTION_ID);
         }
 
         if (this.isMaxZoom(zoom)) {
-            ContextMenu.disableAction(CONTEXT_PAN_ACTION_ID);
+            this.contextMenuRegistry.disableAction(CONTEXT_PAN_ACTION_ID);
         } else {
-            ContextMenu.enableAction(CONTEXT_PAN_ACTION_ID);
+            this.contextMenuRegistry.enableAction(CONTEXT_PAN_ACTION_ID);
         }
     }
 
@@ -269,10 +272,10 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private onDragEnd() {
+        this.ctx.interactionManager.popState(_ModuleSupport.InteractionState.ZoomDrag);
+
         // Stop single clicks from triggering drag end and resetting the zoom
         if (!this.enabled || !this.isDragging) return;
-
-        this.ctx.interactionManager.popState(_ModuleSupport.InteractionState.ZoomDrag);
 
         const zoom = definedZoomState(this.zoomManager.getZoom());
 
@@ -400,6 +403,14 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private onUpdateComplete({ minRect }: _ModuleSupport.UpdateCompleteEvent) {
         if (!this.enabled || !this.paddedRect || !minRect) return;
 
+        // The minRect is the distance between the coarsest data points, so the user will not be able to zoom in further
+        // on newly loaded fine grained data. Instead, ignore this and allow infinite zooming.
+        if (this.dataService.isLazy()) {
+            this.minRatioX = 0;
+            this.minRatioY = 0;
+            return;
+        }
+
         const zoom = definedZoomState(this.zoomManager.getZoom());
 
         const minVisibleItemsWidth = this.shouldFlipXY ? this.minVisibleItemsY : this.minVisibleItemsX;
@@ -414,11 +425,11 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const ratioY = heightRatio * (zoom.y.max - zoom.y.min);
 
         if (this.isScalingX()) {
-            this.minRatioX ||= Math.min(1, round(ratioX));
+            this.minRatioX = Math.min(1, round(ratioX));
         }
 
         if (this.isScalingY()) {
-            this.minRatioY ||= Math.min(1, round(ratioY));
+            this.minRatioY = Math.min(1, round(ratioY));
         }
 
         this.minRatioX ||= this.minRatioY || 0;
@@ -533,8 +544,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         // Discard the zoom update if it would take us below either min ratio
         if (dx < this.minRatioX || dy < this.minRatioY) {
-            ContextMenu.disableAction(CONTEXT_ZOOM_ACTION_ID);
-            ContextMenu.enableAction(CONTEXT_PAN_ACTION_ID);
+            this.contextMenuRegistry.disableAction(CONTEXT_ZOOM_ACTION_ID);
+            this.contextMenuRegistry.enableAction(CONTEXT_PAN_ACTION_ID);
             return;
         }
 

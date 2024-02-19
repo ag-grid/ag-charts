@@ -64,10 +64,6 @@ export class SyncManager extends BaseManager {
         return this.getGroup(groupId).filter((chart) => chart !== this.chart);
     }
 
-    override destroy() {
-        super.destroy();
-    }
-
     private get(groupId: GroupId) {
         return SyncManager.chartsGroups.get(groupId);
     }

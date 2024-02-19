@@ -3,20 +3,19 @@
  * frontend developer you can safely ignore this part of the example.
  */
 export const Database = {
-    getHourly: () => data,
-    getDaily: () => dailyData,
-    getWeekly: () => weeklyData,
+    get: () => data,
 };
 
 export const minute = 1000 * 60;
 export const hour = minute * 60;
 export const day = hour * 24;
 export const week = day * 7;
+export const month = day * 30;
 
-const dataStart = new Date('2024-01-01 00:00:00').getTime();
-const dataEnd = new Date('2024-12-30 23:59:59').getTime();
+export const dataStart = new Date('2019-01-01 00:00:00').getTime();
+export const dataEnd = new Date('2024-12-30 23:59:59').getTime();
 
-let seed = 1234;
+let seed = 1;
 function random() {
     seed = (seed * 16807) % 2147483647;
     return (seed - 1) / 2147483646;
@@ -26,17 +25,16 @@ function random() {
 const data: Array<Datum> = [];
 for (let time = dataStart; time < dataEnd; time += hour) {
     let price;
-    let quantity;
     if (data.length === 0) {
-        price = random() * 100;
+        price = 1000 + random() * 100;
+    } else if (data.length < 5) {
+        price = data[data.length - 1].price + random() * 20 - 10;
     } else {
-        price = data[data.length - 1].price + random() * 10 - 5;
+        // Take the average to ensure the coarser data doesn't fluctuate too much
+        const avg = data.slice(data.length - 5).reduce((a, v) => a + v.price, 0) / 5;
+        price = avg + (random() * 50 - 25);
     }
-    quantity = random() * 10;
-    data.push({ time, price, quantity });
+    data.push({ time, price });
 }
 
-const dailyData = data.filter(({ time }) => time % day === 0);
-const weeklyData = data.filter(({ time }) => time % week === 0);
-
-export type Datum = { time: number; price: number; quantity: number };
+export type Datum = { time: number; price: number };

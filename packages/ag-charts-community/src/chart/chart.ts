@@ -47,12 +47,14 @@ import { legendRegistry } from './factory/legendRegistry';
 import { seriesRegistry } from './factory/seriesRegistry';
 import { AnimationManager } from './interaction/animationManager';
 import { ChartEventManager } from './interaction/chartEventManager';
+import { ContextMenuRegistry } from './interaction/contextMenuRegistry';
 import { CursorManager } from './interaction/cursorManager';
 import { GestureDetector } from './interaction/gestureDetector';
 import type { HighlightChangeEvent } from './interaction/highlightManager';
 import { HighlightManager } from './interaction/highlightManager';
 import type { InteractionEvent, PointerOffsets } from './interaction/interactionManager';
 import { InteractionManager, InteractionState } from './interaction/interactionManager';
+import { RegionManager } from './interaction/regionManager';
 import { SyncManager } from './interaction/syncManager';
 import { TooltipManager } from './interaction/tooltipManager';
 import { ZoomManager } from './interaction/zoomManager';
@@ -242,8 +244,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     protected readonly animationManager: AnimationManager;
     protected readonly chartEventManager: ChartEventManager;
+    protected readonly contextMenuRegistry: ContextMenuRegistry;
     protected readonly cursorManager: CursorManager;
     protected readonly interactionManager: InteractionManager;
+    protected readonly regionManager: RegionManager;
     protected readonly gestureDetector: GestureDetector;
     protected readonly tooltipManager: TooltipManager;
     protected readonly dataService: DataService<any>;
@@ -300,9 +304,11 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.autoSize = true;
 
         this.chartEventManager = new ChartEventManager();
+        this.contextMenuRegistry = new ContextMenuRegistry();
         this.cursorManager = new CursorManager(element);
         this.highlightManager = new HighlightManager();
         this.interactionManager = new InteractionManager(element, document, window);
+        this.regionManager = new RegionManager(this.interactionManager);
         this.gestureDetector = new GestureDetector(element);
         this.layoutService = new LayoutService();
         this.updateService = new UpdateService((type = ChartUpdateType.FULL, options) => this.update(type, options));
@@ -332,6 +338,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.attachLegend('category', Legend);
         this.legend = this.legends.get('category');
 
+        const { All } = InteractionState;
         SizeMonitor.observe(this.element, (size) => this.rawResize(size));
         this._destroyFns.push(
             this.dataService.addListener('data-load', (event) => {
@@ -346,7 +353,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
             this.interactionManager.addListener('wheel', () => this.resetPointer()),
             this.interactionManager.addListener('drag', () => this.resetPointer()),
-            this.interactionManager.addListener('contextmenu', () => this.resetPointer()),
+            this.interactionManager.addListener('contextmenu', (event) => this.onContextMenu(event), All),
 
             this.animationManager.addListener('animation-frame', () => {
                 this.update(ChartUpdateType.SCENE_RENDER);
@@ -397,45 +404,27 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     getModuleContext(): ModuleContext {
-        const {
-            scene,
-            animationManager,
-            chartEventManager,
-            cursorManager,
-            highlightManager,
-            interactionManager,
-            gestureDetector,
-            tooltipManager,
-            syncManager,
-            zoomManager,
-            dataService,
-            layoutService,
-            updateService,
-            seriesStateManager,
-            callbackCache,
-            chartOptions: {
-                specialOverrides: { window, document },
-            },
-        } = this;
         return {
-            window,
-            document,
-            scene,
-            animationManager,
-            chartEventManager,
-            cursorManager,
-            highlightManager,
-            interactionManager,
-            gestureDetector,
-            tooltipManager,
-            syncManager,
-            zoomManager,
+            window: this.chartOptions.specialOverrides.window,
+            document: this.chartOptions.specialOverrides.document,
+            scene: this.scene,
+            animationManager: this.animationManager,
+            chartEventManager: this.chartEventManager,
+            contextMenuRegistry: this.contextMenuRegistry,
+            cursorManager: this.cursorManager,
+            highlightManager: this.highlightManager,
+            interactionManager: this.interactionManager,
+            regionManager: this.regionManager,
+            gestureDetector: this.gestureDetector,
+            tooltipManager: this.tooltipManager,
+            syncManager: this.syncManager,
+            zoomManager: this.zoomManager,
             chartService: this,
-            dataService,
-            layoutService,
-            updateService,
-            seriesStateManager,
-            callbackCache,
+            dataService: this.dataService,
+            layoutService: this.layoutService,
+            updateService: this.updateService,
+            seriesStateManager: this.seriesStateManager,
+            callbackCache: this.callbackCache,
         };
     }
 
@@ -444,6 +433,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         for (const series of this.series) {
             series.resetAnimation(this.chartAnimationPhase);
+        }
+        for (const axis of this.axes) {
+            axis.resetAnimation(this.chartAnimationPhase);
         }
 
         // Reset animation state.
@@ -475,10 +467,12 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.overlays.destroy();
         SizeMonitor.unobserve(this.element);
 
-        for (const { instance: moduleInstance } of Object.values(this.modules)) {
-            this.removeModule(moduleInstance as ModuleInstance & (RootModule | LegendModule));
+        for (const moduleInstance of this.modules.values()) {
+            moduleInstance?.destroy();
         }
+        this.modules.clear();
 
+        this.regionManager.destroy();
         this.interactionManager.destroy();
         this.animationManager.stop();
         this.animationManager.destroy();
@@ -505,6 +499,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
         // Reset animation state.
         this.animationRect = undefined;
         this.animationManager.reset();
+
+        this.syncManager.destroy();
 
         this.destroyed = true;
 
@@ -1099,6 +1095,20 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
+    private onContextMenu(event: InteractionEvent<'contextmenu'>): void {
+        this.tooltipManager.removeTooltip(this.id);
+
+        // If there is already a context menu visible, then re-pick the highlighted node.
+        // We check InteractionState.Default too just in case we were in ContextMenu and the
+        // mouse hasn't moved since (see AG-10233).
+        const { Default, ContextMenu } = InteractionState;
+        if (this.interactionManager.getState() & (Default | ContextMenu)) {
+            this.checkSeriesNodeRange(event, (_series, datum) => {
+                this.highlightManager.updateHighlight(this.id, datum);
+            });
+        }
+    }
+
     private lastInteractionEvent?: InteractionEvent<'hover'> = undefined;
     private pointerScheduler = debouncedAnimationFrame(() => {
         if (this.lastInteractionEvent) {
@@ -1467,6 +1477,14 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
             const axes = miniChart.axes as ChartAxis[];
             const horizontalAxis = axes.find((axis) => axis.direction === ChartAxisDirection.X);
+
+            for (const axis of axes) {
+                axis.gridLine.enabled = false;
+                axis.label.enabled = axis === horizontalAxis;
+                axis.tick.enabled = false;
+                axis.interactionEnabled = false;
+            }
+
             if (horizontalAxis != null) {
                 const labelOptions = deltaOptions.navigator?.miniChart?.label;
                 const intervalOptions = deltaOptions.navigator?.miniChart?.label?.interval;
@@ -1489,6 +1507,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
                         'navigator.miniChart.interval.size',
                         'navigator.miniChart.interval.color',
                         'navigator.miniChart.interval.interval',
+                        'navigator.miniChart.interval.step',
                     ],
                 });
 
@@ -1496,13 +1515,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 if (step != null) {
                     horizontalAxis.tick.interval = step;
                 }
-            }
-
-            for (const axis of axes) {
-                axis.gridLine.enabled = false;
-                axis.label.enabled = axis === horizontalAxis;
-                axis.tick.enabled = false;
-                axis.interactionEnabled = false;
             }
         } else if (miniChart?.enabled === false) {
             miniChart.series = [];

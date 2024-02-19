@@ -7,6 +7,7 @@ import type { Node } from '../scene/node';
 import type { AxisGridLine } from './axis/axisGridLine';
 import type { AxisLine } from './axis/axisLine';
 import type { AxisTick } from './axis/axisTick';
+import type { ChartAnimationPhase } from './chartAnimationPhase';
 import type { ChartAxisDirection } from './chartAxisDirection';
 import type { AxisLayout } from './layout/layoutService';
 import type { ISeries } from './series/seriesTypes';
@@ -56,6 +57,7 @@ export interface ChartAxis {
     updatePosition(position: { rotation: number; sideFlag: ChartAxisLabelFlipFlag }): void;
     visibleRange: number[];
     createModuleContext: () => ModuleContextWithParent<AxisContext>;
+    resetAnimation(chartAnimationPhase: ChartAnimationPhase): unknown;
 }
 
 export interface ChartAxisLabel extends FontOptions {

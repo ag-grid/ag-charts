@@ -17,7 +17,7 @@ export interface AgZoomOptions {
     anchorPointY?: AgZoomAnchorPoint;
     /** The axes on which to zoom, one of `xy`, `x`, or `y`. */
     axes?: AgZoomAxes;
-    /** Set to `true` to enable the zoom module, defaults to false. */
+    /** Set to `true` to enable the zoom module, defaults to `false`. */
     enabled?: boolean;
     /**
      * Set to `true` to enable dragging an axis to zoom series attached to that axis.

@@ -2,18 +2,18 @@ import type { AgAxisLabelFormatterParams } from './axisOptions';
 import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, Opacity, PixelSize, Ratio } from './types';
 
 export interface AgNavigatorMiniChartIntervalOptions {
-    /** Maximum gap in pixels between interval lines. */
+    /** Maximum gap in pixels between labels. */
     minSpacing?: PixelSize;
-    /** Maximum gap in pixels between interval lines. */
+    /** Maximum gap in pixels between labels. */
     maxSpacing?: PixelSize;
-    /** Array of values in axis units to display as intervals along the axis. The values in this array must be compatible with the axis type. */
+    /** Array of values in axis units to display as labels along the axis. The values in this array must be compatible with the axis type. */
     values?: any[];
-    /** The step value between intervals specified as a number. If the configured interval results in too many intervals given the chart size, it will be ignored. */
+    /** The step value between labels, specified as a number or time interval. If the configured interval results in too many labels given the chart size, it will be ignored. */
     step?: number;
 }
 
 export interface AgNavigatorMiniChartLabelOptions {
-    /** Configuration for the Mini Chart's interval. */
+    /** Configuration for interval between the Mini Chart's axis labels. */
     interval?: AgNavigatorMiniChartIntervalOptions;
     /** Set to `false` to hide the axis labels. */
     enabled?: boolean;
@@ -25,11 +25,11 @@ export interface AgNavigatorMiniChartLabelOptions {
     fontSize?: FontSize;
     /** The font family to use for the labels. */
     fontFamily?: FontFamily;
-    /** Padding in pixels between the axis label and the tick. */
+    /** Padding in pixels between the axis labels and the Mini Chart. */
     padding?: PixelSize;
     /** The colour to use for the labels. */
     color?: CssColor;
-    /** Avoid axis label collision by automatically reducing the number of intervals displayed. If set to `false`, axis labels may collide. */
+    /** Avoid axis label collision by automatically reducing the number of labels displayed. If set to `false`, axis labels may collide. */
     avoidCollisions?: boolean;
     /** Format string used when rendering labels. */
     format?: string;
@@ -38,18 +38,18 @@ export interface AgNavigatorMiniChartLabelOptions {
 }
 
 export interface AgNavigatorMiniChartPadding {
-    /** Padding between the top edge and the series. */
+    /** Padding between the top edge of the Navigator and the Mini Chart series. */
     top?: number;
-    /** Padding between the bottom edge and the series. */
+    /** Padding between the bottom edge of the Navigator and the Mini Chart series. */
     bottom?: number;
 }
 
 export interface AgNavigatorMiniChartOptions {
-    /** Whether to show a Mini Chart in the navigator. */
+    /** Whether to show a Mini Chart in the Navigator. */
     enabled?: boolean;
     /** Configuration for the Mini Chart's axis labels. */
     label?: AgNavigatorMiniChartLabelOptions;
-    /** Configuration for the padding in the Mini Chart. */
+    /** Configuration for the padding inside the Mini Chart. */
     padding?: AgNavigatorMiniChartPadding;
 }
 
@@ -82,22 +82,22 @@ export interface AgNavigatorHandleOptions {
 }
 
 export interface AgNavigatorOptions {
-    /** Whether to show the navigator. */
+    /** Whether to show the Navigator. */
     enabled?: boolean;
-    /** The height of the navigator. */
+    /** The height of the Navigator. */
     height?: PixelSize;
-    /** The distance between the navigator and the bottom axis. */
+    /** The distance between the Navigator and the bottom axis of the chart. */
     margin?: PixelSize;
     /** The start of the visible range in the `[0, 1]` interval. */
     min?: Ratio;
     /** The end of the visible range in the `[0, 1]` interval. */
     max?: Ratio;
-    /** Configuration for the navigator's visible range mask. */
+    /** Configuration for the Navigator's visible range mask. */
     mask?: AgNavigatorMaskOptions;
-    /** Configuration for the navigator's left handle. */
+    /** Configuration for the Navigator's left handle. */
     minHandle?: AgNavigatorHandleOptions;
-    /** Configuration for the navigator's right handle. */
+    /** Configuration for the Navigator's right handle. */
     maxHandle?: AgNavigatorHandleOptions;
-    /** MiniChart options. */
+    /** Mini Chart options. */
     miniChart?: AgNavigatorMiniChartOptions;
 }

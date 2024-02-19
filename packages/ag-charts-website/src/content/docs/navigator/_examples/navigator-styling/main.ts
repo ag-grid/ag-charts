@@ -1,4 +1,9 @@
-import { AgCartesianSeriesTooltipRendererParams, AgChartOptions, AgCharts, AgSeriesTooltip } from 'ag-charts-community';
+import {
+    AgCartesianSeriesTooltipRendererParams,
+    AgChartOptions,
+    AgCharts,
+    AgSeriesTooltip,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -57,6 +62,9 @@ const options: AgChartOptions = {
             type: 'time',
             position: 'bottom',
             nice: false,
+            tick: {
+                maxSpacing: 200,
+            },
         },
         {
             type: 'number',

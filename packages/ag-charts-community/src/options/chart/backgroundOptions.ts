@@ -1,7 +1,7 @@
 import type { Opacity, PixelSize } from '../chart/types';
 
 export interface AgChartBackgroundImage {
-    /** URL of the image */
+    /** URL of the image. */
     url: string;
 
     /** Distance from the left border of the chart to the left border of the image. If neither left nor right specified, the image is centred horizontally. */

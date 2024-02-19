@@ -2,7 +2,27 @@
 title: 'Create a Basic Chart'
 ---
 
-An introduction to the key concepts of AG Charts
+{% if isFramework("javascript") %}
+{% videoSection id="EmidxrqxG0w" title="Get Started" header=true %}
+Learn the key concepts of AG Charts by building a basic combination chart and applying styling & formatting
+{% /videoSection %}
+{% /if %}
+
+{% if isFramework("react") %}
+{% videoSection id="_sspfzQEVec" title="Get Started" header=true %}
+Learn the key concepts of AG Charts by building a basic combination chart and applying styling & formatting
+{% /videoSection %}
+{% /if %}
+
+{% if isFramework("angular") %}
+{% videoSection id="uPN1f2ItXr8" title="Get Started" header=true %}
+Learn the key concepts of AG Charts by building a basic combination chart and applying styling & formatting
+{% /videoSection %}
+{% /if %}
+
+{% if isFramework("vue") %}
+Learn the key concepts of AG Charts by building a basic combination chart and applying styling & formatting
+{% /if %}
 
 ## Overview
 
@@ -76,7 +96,7 @@ const [chartOptions, setChartOptions] = useState({
         { type: 'line', xKey: 'month', yKey: 'avgTemp' }, // Additional 'Line' Series, using 'avgTemp' data-points
     ],
     // ...
-};
+});
 ```
 
 {% /if %}
@@ -104,7 +124,7 @@ const options = ref({
         { type: 'line', xKey: 'month', yKey: 'avgTemp' }, // Additional 'Line' Series, using 'avgTemp' data-points
     ],
     // ...
-};
+});
 ```
 
 {% /if %}
@@ -142,7 +162,7 @@ const [chartOptions, setChartOptions] = useState({
         { type: 'number', position: 'right', keys: ['avgTemp'] },
     ],
     // ...
-};
+});
 ```
 
 {% /if %}
@@ -172,7 +192,7 @@ const options = ref({
         { type: 'number', position: 'right', keys: ['avgTemp'] },
     ],
     // ...
-};
+});
 ```
 
 {% /if %}
@@ -214,7 +234,7 @@ const [chartOptions, setChartOptions] = useState({
     title: { text: 'Ice Cream Sales' },
     subtitle: { text: 'Data from 2022' },
     // ...
-};
+});
 ```
 
 {% /if %}
@@ -238,7 +258,7 @@ const options = ref({
     title: { text: 'Ice Cream Sales' },
     subtitle: { text: 'Data from 2022' },
     // ...
-};
+});
 ```
 
 {% /if %}
@@ -272,7 +292,7 @@ const [chartOptions, setChartOptions] = useState({
         position: 'right',
     },
     // ...
-};
+});
 ```
 
 {% /if %}
@@ -298,7 +318,7 @@ const options = ref({
         position: 'right',
     },
     // ...
-};
+});
 ```
 
 {% /if %}
@@ -336,7 +356,7 @@ const [chartOptions, setChartOptions] = useState({
         // ...
     ],
     // ...
-};
+});
 ```
 
 {% /if %}
@@ -364,7 +384,7 @@ const options = ref({
         // ...
     ],
     // ...
-};
+});
 ```
 
 {% /if %}
@@ -422,7 +442,7 @@ const [chartOptions, setChartOptions] = useState({
         },
     ],
     // ...
-};
+});
 ```
 
 {% /if %}

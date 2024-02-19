@@ -11,9 +11,9 @@ Fired when this series' node is clicked. Depending on the type of series, a node
 
 Every `nodeClick` event contains:
 
--   the `series` the node belongs to
--   the piece of chart data or `datum`
--   the specific keys in that `datum` that were used to fetch the values represented by the clicked node
+-   The `series` the node belongs to.
+-   The piece of chart data or `datum`.
+-   The specific keys in that `datum` that were used to fetch the values represented by the clicked node.
 
 ### Example: nodeClick Event
 
@@ -39,9 +39,9 @@ Fired when this series' node is double clicked.
 
 Every `nodeDoubleClick` event contains:
 
--   the `series` the node belongs to
--   the piece of chart data or `datum`
--   the specific keys in that `datum` that were used to fetch the values represented by the clicked node
+-   The `series` the node belongs to.
+-   The piece of chart data or `datum`.
+-   The specific keys in that `datum` that were used to fetch the values represented by the clicked node.
 
 ### Example: nodeDoubleClick Event
 
@@ -55,9 +55,9 @@ The `legendItemClick` event can be used to listen to legend item clicks. A liste
 
 The event object passed to the listener includes:
 
--   the `seriesId` of the series associated with the legend item
--   the `itemId`, usually the `yKey` value for cartesian series
--   `enabled`, whether the legend item is currently enabled or not
+-   The `seriesId` of the series associated with the legend item.
+-   The `itemId`, usually the `yKey` value for cartesian series.
+-   `enabled`, whether the legend item is currently enabled or not.
 
 For example, to show an alert message with the `legendItemClick` event contents when a legend item is clicked, the following listener can be configured:
 
@@ -66,8 +66,8 @@ legend: {
     listeners: {
         legendItemClick: ({ seriesId, itemId, enabled }: AgChartLegendClickEvent) => {
             window.alert(`seriesId: ${seriesId}, itemId: ${itemId}, enabled: ${enabled}`);
-        };
-    }
+        },
+    },
 }
 ```
 
@@ -75,8 +75,8 @@ legend: {
 
 This example demonstrates:
 
--   when a legend item is clicked, a message is logged to the console with the `legendItemClick` event contents.
--   when a legend item is double clicked, a message is logged to the console with the `legendItemDoubleClick` event contents.
+-   When a legend item is clicked, a message is logged to the console with the `legendItemClick` event contents.
+-   When a legend item is double clicked, a message is logged to the console with the `legendItemDoubleClick` event contents.
 
 {% chartExampleRunner title="Legend Item Click Event" name="legend-item-click-event" type="generated" /%}
 
@@ -90,8 +90,8 @@ These events may be prevented by other clickable parts of the chart, such as ser
 
 This example demonstrates:
 
--   when a blank area on a chart is clicked, a message is logged to the console
--   when a blank area on a chart is double clicked, a different message is logged to the console
+-   When a blank area on a chart is clicked, a message is logged to the console.
+-   When a blank area on a chart is double clicked, a different message is logged to the console.
 
 {% chartExampleRunner title="Chart Single & Double Click Events" name="chart-click-event" type="generated" /%}
 
@@ -118,9 +118,9 @@ By default, the `nodeClick` event is only triggered when the user clicks exactly
 
 This example shows the three different types of interaction range that are possible.
 
--   `'exact'` (default) will trigger the event if the user clicks exactly on a node
--   `'nearest'` will trigger the event for whichever node is nearest on the whole chart
--   given a number it will trigger the event when the click is made within that many pixels of a node
+-   `'exact'` (default) will trigger the event if the user clicks exactly on a node.
+-   `'nearest'` will trigger the event for whichever node is nearest on the whole chart.
+-   Given a number it will trigger the event when the click is made within that many pixels of a node.
 
 {% chartExampleRunner title="Interaction Ranges" name="interaction-ranges" type="generated" /%}
 

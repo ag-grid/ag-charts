@@ -170,9 +170,9 @@ export interface AgTimeAxisThemeOptions
 export interface AgCartesianCrossLineOptions extends AgBaseCrossLineOptions<AgCartesianCrossLineLabelOptions> {}
 
 export interface AgCartesianCrossLineLabelOptions extends AgBaseCrossLineLabelOptions {
-    /** The position of the cross-line label. */
+    /** The position of the Cross Line label. */
     position?: AgCrossLineLabelPosition;
-    /** The rotation of the cross-line label in degrees. */
+    /** The rotation of the Cross Line label in degrees. */
     rotation?: Degree;
 }
 

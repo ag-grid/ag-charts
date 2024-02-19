@@ -37,6 +37,7 @@ import { clamp, findMinMax, findRangeExtent, round } from '../../util/number';
 import { ObserveChanges } from '../../util/proxy';
 import { BOOLEAN, STRING_ARRAY, Validate, predicateWithMessage } from '../../util/validation';
 import { Caption } from '../caption';
+import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import type { ChartAxis, ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
@@ -141,7 +142,7 @@ interface TickGenerationResult {
 }
 
 type AxisAnimationState = 'empty' | 'ready';
-type AxisAnimationEvent = 'update' | 'resize';
+type AxisAnimationEvent = 'update' | 'resize' | 'reset';
 
 export type AxisModuleMap = ModuleMap<AxisOptionModule, ModuleInstance, ModuleContextWithParent<AxisContext>>;
 
@@ -275,10 +276,12 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                     target: 'ready',
                     action: () => this.resetSelectionNodes(),
                 },
+                reset: 'empty',
             },
             ready: {
                 update: (data: FromToDiff) => this.animateReadyUpdate(data),
                 resize: () => this.resetSelectionNodes(),
+                reset: 'empty',
             },
         });
 
@@ -302,6 +305,12 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                     this.minRect = e.minRect;
                 })
             );
+        }
+    }
+
+    resetAnimation(phase: ChartAnimationPhase) {
+        if (phase === 'initial') {
+            this.animationState.transition('reset');
         }
     }
 

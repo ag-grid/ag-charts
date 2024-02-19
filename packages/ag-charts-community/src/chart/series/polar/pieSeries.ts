@@ -745,7 +745,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
             const isDatumHighlighted =
                 highlightedDatum?.series === this && node.datum.itemId === highlightedDatum.itemId;
 
-            updateSectorFn(node, datum, index, isDatumHighlighted);
+            updateSectorFn(node, datum, index, true);
             node.visible = isDatumHighlighted;
         });
 
@@ -1305,8 +1305,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
             !legendItemKey &&
             (!calloutLabelKey || calloutLabelKey === angleKey) &&
             (!sectorLabelKey || sectorLabelKey === angleKey)
-        )
+        ) {
             return [];
+        }
 
         const { calloutLabelIdx, sectorLabelIdx, legendItemIdx } = this.getProcessedDataIndexes(dataModel);
 
@@ -1358,6 +1359,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
                     strokeOpacity: this.properties.strokeOpacity,
                     strokeWidth: this.properties.strokeWidth,
                 },
+                legendItemName: legendItemKey != null ? datum[legendItemKey] : undefined,
             });
         }
 
@@ -1365,12 +1367,12 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
     }
 
     onLegendItemClick(event: LegendItemClickChartEvent) {
-        const { enabled, itemId, series } = event;
+        const { enabled, itemId, series, legendItemName } = event;
 
         if (series.id === this.id) {
             this.toggleSeriesItem(itemId, enabled);
-        } else if (series.type === 'pie') {
-            this.toggleOtherSeriesItems(series as PieSeries, itemId, enabled);
+        } else if (legendItemName != null) {
+            this.toggleOtherSeriesItems(legendItemName, enabled);
         }
     }
 
@@ -1379,22 +1381,14 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         this.nodeDataRefresh = true;
     }
 
-    toggleOtherSeriesItems(series: PieSeries, itemId: number, enabled: boolean): void {
+    toggleOtherSeriesItems(legendItemName: string, enabled: boolean): void {
         if (!this.properties.legendItemKey || !this.dataModel) {
-            return;
-        }
-
-        const datumToggledLegendItemValue =
-            series.properties.legendItemKey &&
-            series.data?.find((_, index) => index === itemId)[series.properties.legendItemKey];
-
-        if (!datumToggledLegendItemValue) {
             return;
         }
 
         const legendItemIdx = this.dataModel.resolveProcessedDataIndexById(this, `legendItemValue`).index;
         this.processedData?.data.forEach(({ values }, datumItemId) => {
-            if (values[legendItemIdx] === datumToggledLegendItemValue) {
+            if (values[legendItemIdx] === legendItemName) {
                 this.toggleSeriesItem(datumItemId, enabled);
             }
         });

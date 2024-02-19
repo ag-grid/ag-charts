@@ -24,6 +24,7 @@ interface BulletNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
     readonly width: number;
     readonly height: number;
     readonly cumulativeValue: number;
+    readonly opacity: number;
     readonly target?: {
         readonly value: number;
         readonly x1: number;
@@ -231,6 +232,7 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
                 target,
                 ...rect,
                 midPoint: { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 },
+                opacity: 1,
             };
             context.nodeData.push(nodeData);
         }
@@ -374,7 +376,7 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
     override animateEmptyUpdateReady(data: BulletAnimationData) {
         const { datumSelections, labelSelections, annotationSelections } = data;
 
-        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes));
+        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, 'normal'));
 
         fromToMotion(this.id, 'nodes', this.ctx.animationManager, datumSelections, fns);
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
@@ -387,7 +389,7 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
         const diff = this.processedData?.reduced?.diff;
-        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes));
+        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, 'normal'));
 
         fromToMotion(
             this.id,

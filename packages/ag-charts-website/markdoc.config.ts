@@ -109,5 +109,13 @@ export default defineMarkdocConfig({
                 label: { type: String },
             },
         },
+        videoSection: {
+            render: component('./src/components/video-section/VideoSection'),
+            attributes: {
+                id: { type: String, required: true },
+                title: { type: String },
+                header: { type: Boolean },
+            },
+        },
     },
 });

@@ -3,7 +3,7 @@ import {
     AgCartesianSeriesTooltipRendererParams,
     AgCharts,
     AgSeriesTooltip,
-} from 'ag-charts-community';
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -67,6 +67,9 @@ const options: AgCartesianChartOptions = {
             nice: false,
             min: new Date(2004, 0, 1),
             max: new Date(2020, 0, 1),
+            tick: {
+                maxSpacing: 200,
+            },
         },
         {
             type: 'number',

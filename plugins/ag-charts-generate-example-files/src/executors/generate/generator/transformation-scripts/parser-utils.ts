@@ -15,7 +15,7 @@ export interface BindingImport {
 export function readAsJsFile(srcFile, options: { includeImports: boolean } = undefined) {
     const tsFile = srcFile
         // Remove imports that are not required in javascript
-        .replace(options?.includeImports ? '' : /import ((.|\n)*?)from.*\n/g, '')
+        .replace(options?.includeImports ? '' : /import ((.|\r?\n)*?)from.*\r?\n/g, '')
         // Remove export statement
         .replace(/export /g, '');
 

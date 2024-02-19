@@ -223,7 +223,7 @@ export class Legend extends BaseProperties {
         this.pagination = new Pagination(
             (type: ChartUpdateType) => ctx.updateService.update(type),
             (page) => this.updatePageNumber(page),
-            ctx.interactionManager,
+            ctx.regionManager,
             ctx.cursorManager
         );
         this.pagination.attachPagination(this.group);
@@ -231,10 +231,12 @@ export class Legend extends BaseProperties {
         this.item.marker.parent = this;
 
         const animationState = InteractionState.Default | InteractionState.Animation;
+        const region = ctx.regionManager.addRegion('legend', this.group);
         this.destroyFns.push(
-            ctx.interactionManager.addListener('click', (e) => this.checkLegendClick(e), animationState),
-            ctx.interactionManager.addListener('dblclick', (e) => this.checkLegendDoubleClick(e), animationState),
-            ctx.interactionManager.addListener('hover', (e) => this.handleLegendMouseMove(e)),
+            region.addListener('click', (e) => this.checkLegendClick(e), animationState),
+            region.addListener('dblclick', (e) => this.checkLegendDoubleClick(e), animationState),
+            region.addListener('hover', (e) => this.handleLegendMouseMove(e)),
+            region.addListener('leave', (e) => this.handleLegendMouseExit(e)),
             ctx.layoutService.addListener('start-layout', (e) => this.positionLegend(e.shrinkRect)),
             () => this.detachLegend()
         );
@@ -735,10 +737,6 @@ export class Legend extends BaseProperties {
         return closestLeftTop.datum;
     }
 
-    computeBBox(): BBox {
-        return this.group.computeBBox();
-    }
-
     private computePagedBBox(): BBox {
         const actualBBox = this.group.computeBBox();
         if (this.pages.length <= 1) {
@@ -759,13 +757,9 @@ export class Legend extends BaseProperties {
             item: { toggleSeriesVisible },
             preventHidingAll,
         } = this;
-        const { offsetX, offsetY } = event;
+        const datum = this.getDatumForPoint(event.offsetX, event.offsetY);
 
-        const legendBBox = this.computeBBox();
-        const pointerInsideLegend = this.group.visible && legendBBox.containsPoint(offsetX, offsetY);
-        const datum = this.getDatumForPoint(offsetX, offsetY);
-
-        if (!pointerInsideLegend || !datum) {
+        if (!datum) {
             return;
         }
 
@@ -814,19 +808,15 @@ export class Legend extends BaseProperties {
             ctx: { chartService },
             item: { toggleSeriesVisible },
         } = this;
-        const { offsetX, offsetY } = event;
-
         // Integrated charts do not handle double click behaviour correctly due to multiple instances of the
         // chart being created. See https://ag-grid.atlassian.net/browse/RTI-1381
         if (chartService.mode === 'integrated') {
             return;
         }
 
-        const legendBBox = this.computeBBox();
-        const pointerInsideLegend = this.group.visible && legendBBox.containsPoint(offsetX, offsetY);
-        const datum = this.getDatumForPoint(offsetX, offsetY);
+        const datum = this.getDatumForPoint(event.offsetX, event.offsetY);
 
-        if (!pointerInsideLegend || !datum) {
+        if (!datum) {
             return;
         }
 
@@ -867,24 +857,13 @@ export class Legend extends BaseProperties {
             return;
         }
 
-        const legendBBox = this.computeBBox();
         const { offsetX, offsetY } = event;
-        const pointerInsideLegend = this.group.visible && legendBBox.containsPoint(offsetX, offsetY);
-
-        if (!pointerInsideLegend) {
-            this.ctx.cursorManager.updateCursor(this.id);
-            this.ctx.highlightManager.updateHighlight(this.id);
-            this.ctx.tooltipManager.removeTooltip(this.id);
-            return;
-        }
-
         // Prevent other handlers from consuming this event if it's generated inside the legend
         // boundaries.
         event.consume();
 
         const datum = this.getDatumForPoint(offsetX, offsetY);
-        const pointerOverLegendDatum = pointerInsideLegend && datum !== undefined;
-        if (!pointerOverLegendDatum) {
+        if (datum === undefined) {
             this.ctx.cursorManager.updateCursor(this.id);
             this.ctx.highlightManager.updateHighlight(this.id);
             return;
@@ -914,6 +893,12 @@ export class Legend extends BaseProperties {
         } else {
             this.ctx.highlightManager.updateHighlight(this.id);
         }
+    }
+
+    private handleLegendMouseExit(_event: InteractionEvent<'leave'>) {
+        this.ctx.cursorManager.updateCursor(this.id);
+        this.ctx.highlightManager.updateHighlight(this.id);
+        this.ctx.tooltipManager.removeTooltip(this.id);
     }
 
     private positionLegend(shrinkRect: BBox) {

@@ -215,8 +215,8 @@ describe('SunburstSeries', () => {
                 expect(tooltip?.textContent).toEqual(format(...values));
             });
 
-            // Check the tooltip is hidden
-            await hoverAction(0, 0)(chart);
+            // Check the tooltip is hidden (hover over top-left corner)
+            await hoverAction(8, 8)(chart);
             await waitForChartStability(chart);
             const tooltip = document.querySelector('.ag-chart-tooltip');
             expect(tooltip?.classList.contains('ag-chart-tooltip-hidden')).toBe(true);

@@ -8,7 +8,9 @@ import {
 import { data } from './data';
 
 const dateFormatter = new Intl.DateTimeFormat('en-US', {
-    dateStyle: 'short',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
 });
 
 const numberFormatter = new Intl.NumberFormat('en-US', {
@@ -67,6 +69,13 @@ const options: AgCartesianChartOptions = {
             nice: false,
             tick: {
                 maxSpacing: 200,
+            },
+            crosshair: {
+                label: {
+                    renderer: ({ value }) => {
+                        return { text: dateFormatter.format(value) };
+                    },
+                },
             },
         },
         {

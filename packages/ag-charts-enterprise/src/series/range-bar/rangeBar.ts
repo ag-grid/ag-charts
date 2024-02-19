@@ -67,6 +67,7 @@ interface RangeBarNodeDatum
     readonly fill: string;
     readonly stroke: string;
     readonly strokeWidth: number;
+    readonly opacity: number;
 }
 
 type RangeBarContext = _ModuleSupport.CartesianSeriesNodeDataContext<RangeBarNodeDatum, RangeBarNodeLabelDatum>;
@@ -153,16 +154,16 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             extraProps.push(animationValidation(this));
         }
 
+        const visibleProps = !this.visible ? { forceValue: 0 } : {};
         const { processedData } = await this.requestDataModel<any, any, true>(dataController, this.data ?? [], {
             props: [
                 keyProperty(this, xKey, isContinuousX, { id: 'xValue' }),
-                valueProperty(this, yLowKey, isContinuousY, { id: `yLowValue` }),
-                valueProperty(this, yHighKey, isContinuousY, { id: `yHighValue` }),
+                valueProperty(this, yLowKey, isContinuousY, { id: `yLowValue`, ...visibleProps }),
+                valueProperty(this, yHighKey, isContinuousY, { id: `yHighValue`, ...visibleProps }),
                 ...(isContinuousX ? [SMALLEST_KEY_INTERVAL] : []),
                 ...extraProps,
             ],
             groupByKeys: true,
-            dataVisible: this.visible,
         });
 
         this.smallestDataInterval = {
@@ -345,6 +346,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                     fill,
                     stroke,
                     strokeWidth,
+                    opacity: 1,
                     labels: labelData,
                 };
 
@@ -607,7 +609,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     override animateEmptyUpdateReady({ datumSelections, labelSelections }: RangeBarAnimationData) {
-        const fns = prepareBarAnimationFunctions(midpointStartingBarPosition(this.isVertical()));
+        const fns = prepareBarAnimationFunctions(midpointStartingBarPosition(this.isVertical(), 'normal'));
         motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, datumSelections, fns);
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
     }
@@ -619,7 +621,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
-        const fns = prepareBarAnimationFunctions(midpointStartingBarPosition(this.isVertical()));
+        const fns = prepareBarAnimationFunctions(midpointStartingBarPosition(this.isVertical(), 'fade'));
         motion.fromToMotion(
             this.id,
             'datums',
