@@ -83,6 +83,14 @@ export class RangeSelector extends Group {
         minHandle.centerX = x + width * min;
         maxHandle.centerX = x + width * max;
         minHandle.centerY = maxHandle.centerY = y + height / 2;
+
+        if (min + (max - min) / 2 < 0.5) {
+            minHandle.zIndex = 3;
+            maxHandle.zIndex = 4;
+        } else {
+            minHandle.zIndex = 4;
+            maxHandle.zIndex = 3;
+        }
     }
 
     override computeBBox() {
