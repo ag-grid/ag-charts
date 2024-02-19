@@ -82,12 +82,14 @@ The default tooltip uses `ag-chart-tooltip`, `ag-chart-tooltip-title` and `ag-ch
 
 Adding custom CSS to these will change the styling of all the tooltips in your app.
 
-Users wishing to modify the tooltip style on a more granular basis, should provide their own tooltip class name via the `chart.tooltip.class` option. This class name will be added to tooltip element for that particular chart instance.
+Users wishing to modify the tooltip style on a more granular basis, should provide their own tooltip class name via the `tooltip.class` option. This class name will be added to tooltip element for that particular chart instance.
 
 For example, if we wanted to set the tooltip's content `background-color` to `gold`, we'd add a custom class name to our chart in the code:
 
 ```js
-chart.tooltip.class = 'my-tooltip';
+tooltip: {
+    class: 'my-tooltip'
+}
 ```
 
 And then in the CSS:
