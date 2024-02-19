@@ -1,3 +1,4 @@
+import { downloadUrl } from '../draw/draw-utils';
 import { toArray } from '../util/array';
 import { ascendingStringNumberUndefined, compoundAscending } from '../util/compare';
 import { Debug } from '../util/debug';
@@ -77,7 +78,7 @@ export class Scene {
     }
 
     download(fileName?: string, fileFormat?: string) {
-        this.canvas.download(fileName, fileFormat);
+        downloadUrl(this.canvas.getDataURL(fileFormat), fileName?.trim() || 'image');
     }
 
     /** NOTE: Integrated Charts undocumented image download method. */
@@ -353,7 +354,7 @@ export class Scene {
         if (mode !== domCompositeIdentifier && layers.length > 0 && canvasCleared) {
             this.sortLayers();
             ctx.save();
-            ctx.setTransform(1 / canvas.pixelRatio, 0, 0, 1 / canvas.pixelRatio, 0, 0);
+            ctx.resetTransform();
             layers.forEach(({ canvas: { imageSource, enabled }, getComputedOpacity, getVisibility }) => {
                 if (!enabled || !getVisibility()) {
                     return;

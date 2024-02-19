@@ -1,3 +1,5 @@
+import { createElement, getWindow } from '../../draw/draw-utils';
+import { Debug } from '../../util/debug';
 import { hasConstrainedCanvasMemory } from '../../util/userAgent';
 
 export type Size = { width: number; height: number };
@@ -10,11 +12,9 @@ type OffscreenCanvasRenderingContext2D = any;
  * provide resolution independent rendering based on `window.devicePixelRatio`.
  */
 export class HdpiCanvas {
-    static document: Document = globalThis.document;
     readonly document: Document;
     readonly window: Window;
     readonly element: HTMLCanvasElement;
-    readonly realContext: CanvasRenderingContext2D;
     readonly context: CanvasRenderingContext2D & { verifyDepthZero?: () => void };
     readonly imageSource: HTMLCanvasElement;
 
@@ -42,16 +42,15 @@ export class HdpiCanvas {
         } = opts;
         this.document = document;
         this.window = window;
-        HdpiCanvas.document = document;
 
         // Create canvas and immediately apply width + height to avoid out-of-memory
         // errors on iOS/iPadOS Safari.
-        this.element = document.createElement('canvas');
+        this.element = createElement('canvas');
         this.element.width = width;
         this.element.height = height;
 
-        this.realContext = this.element.getContext('2d')!;
-        this.imageSource = this.realContext.canvas;
+        this.context = this.element.getContext('2d')!;
+        this.imageSource = this.context.canvas;
 
         const { style } = this.element;
 
@@ -70,7 +69,8 @@ export class HdpiCanvas {
             }
         }
 
-        this.context = this.setPixelRatio(overrideDevicePixelRatio);
+        this._pixelRatio = hasConstrainedCanvasMemory() ? 1 : overrideDevicePixelRatio ?? getWindow('devicePixelRatio');
+        HdpiCanvas.debugContext(this.context);
         this.resize(width, height);
     }
 
@@ -93,7 +93,7 @@ export class HdpiCanvas {
     private _enabled: boolean = true;
     set enabled(value: boolean) {
         this.element.style.display = value ? 'block' : 'none';
-        this._enabled = !!value;
+        this._enabled = Boolean(value);
     }
     get enabled() {
         return this._enabled;
@@ -125,38 +125,13 @@ export class HdpiCanvas {
 
     clear() {
         this.context.save();
-        this.context.resetTransform();
+        this.context.setTransform(this._pixelRatio, 0, 0, this._pixelRatio, 0, 0);
         this.context.clearRect(0, 0, this.width, this.height);
         this.context.restore();
     }
 
-    toImage(): HTMLImageElement {
-        const img = this.document.createElement('img');
-        img.src = this.getDataURL();
-        return img;
-    }
-
     getDataURL(type?: string): string {
         return this.element.toDataURL(type);
-    }
-
-    /**
-     * @param fileName The name of the downloaded file.
-     * @param fileFormat The file format, the default is `image/png`
-     */
-    download(fileName?: string, fileFormat = 'image/png') {
-        fileName = (fileName ?? '').trim() || 'image';
-
-        const dataUrl = this.getDataURL(fileFormat);
-        const document = this.document;
-
-        const a = document.createElement('a');
-        a.href = dataUrl;
-        a.download = fileName;
-        a.style.display = 'none';
-        document.body.appendChild(a); // required for the `click` to work in Firefox
-        a.click();
-        document.body.removeChild(a);
     }
 
     // `NaN` is deliberate here, so that overrides are always applied
@@ -164,31 +139,6 @@ export class HdpiCanvas {
     _pixelRatio: number = NaN;
     get pixelRatio(): number {
         return this._pixelRatio;
-    }
-
-    /**
-     * Changes the pixel ratio of the Canvas element to the given value,
-     * or uses the window.devicePixelRatio (default), then resizes the Canvas
-     * element accordingly (default).
-     */
-    private setPixelRatio(ratio?: number) {
-        let pixelRatio = ratio ?? this.window.devicePixelRatio;
-        if (hasConstrainedCanvasMemory()) {
-            // Mobile browsers have stricter memory limits, we reduce rendering resolution to
-            // improve stability on mobile browsers. iOS Safari 12->16 are pain-points since they
-            // have memory allocation quirks - see https://bugs.webkit.org/show_bug.cgi?id=195325.
-            pixelRatio = 1;
-        }
-        this._pixelRatio = pixelRatio;
-
-        return HdpiCanvas.overrideScale(this.realContext, pixelRatio);
-    }
-
-    set pixelated(value: boolean) {
-        this.element.style.imageRendering = value ? 'pixelated' : 'auto';
-    }
-    get pixelated(): boolean {
-        return this.element.style.imageRendering === 'pixelated';
     }
 
     private _width: number = 0;
@@ -210,7 +160,7 @@ export class HdpiCanvas {
         element.height = Math.round(height * pixelRatio);
         element.style.width = width + 'px';
         element.style.height = height + 'px';
-        context.resetTransform();
+        context.setTransform(this._pixelRatio, 0, 0, this._pixelRatio, 0, 0);
 
         this._width = width;
         this._height = height;
@@ -222,7 +172,7 @@ export class HdpiCanvas {
         if (this._textMeasuringContext) {
             return this._textMeasuringContext;
         }
-        const canvas = this.document.createElement('canvas');
+        const canvas = createElement('canvas');
         this._textMeasuringContext = canvas.getContext('2d')!;
         return this._textMeasuringContext;
     }
@@ -256,53 +206,29 @@ export class HdpiCanvas {
         };
     }
 
-    static overrideScale(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, scale: number) {
-        let depth = 0;
-        const overrides = {
-            save() {
-                this.$save();
-                depth++;
-            },
-            restore() {
-                if (depth > 0) {
-                    this.$restore();
+    static debugContext(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D) {
+        if (Debug.check('canvas')) {
+            const save = ctx.save.bind(ctx);
+            const restore = ctx.restore.bind(ctx);
+            let depth = 0;
+            Object.assign(ctx, {
+                save() {
+                    save();
+                    depth++;
+                },
+                restore() {
+                    if (depth === 0) {
+                        throw new Error('AG Charts - Unable to restore() past depth 0');
+                    }
+                    restore();
                     depth--;
-                } else {
-                    throw new Error('AG Charts - Unable to restore() past depth 0');
-                }
-            },
-            setTransform(a: number, b: number, c: number, d: number, e: number, f: number) {
-                if (typeof a === 'object') {
-                    this.$setTransform(a);
-                } else {
-                    this.$setTransform(a * scale, b * scale, c * scale, d * scale, e * scale, f * scale);
-                }
-            },
-            resetTransform() {
-                // As of Jan 8, 2019, `resetTransform` is still an "experimental technology",
-                // and doesn't work in IE11 and Edge 44.
-                this.$setTransform(scale, 0, 0, scale, 0, 0);
-            },
-            verifyDepthZero() {
-                if (depth !== 0) {
-                    throw new Error('AG Charts - Save/restore depth is non-zero: ' + depth);
-                }
-            },
-        } as any;
-
-        for (const name in overrides) {
-            if (Object.hasOwn(overrides, name)) {
-                // Save native methods under prefixed names,
-                // if this hasn't been done by the previous overrides already.
-                if (!ctx['$' + name]) {
-                    ctx['$' + name] = ctx[name];
-                }
-                // Replace native methods with overrides,
-                // or previous overrides with the new ones.
-                ctx[name] = overrides[name];
-            }
+                },
+                verifyDepthZero() {
+                    if (depth !== 0) {
+                        throw new Error(`AG Charts - Save/restore depth is non-zero: ${depth}`);
+                    }
+                },
+            });
         }
-
-        return ctx;
     }
 }
