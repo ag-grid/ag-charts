@@ -253,12 +253,9 @@ class AgChartsInternal {
      */
     static download(proxy: AgChartInstanceProxy, opts?: DownloadOptions) {
         AgChartsInternal.prepareResizedChart(proxy, opts)
-            .then((maybeClone) => {
-                maybeClone.chart.scene.download(opts?.fileName, opts?.fileFormat);
-
-                if (maybeClone !== proxy) {
-                    maybeClone.destroy();
-                }
+            .then((clone) => {
+                clone.chart.scene.download(opts?.fileName, opts?.fileFormat);
+                clone.destroy();
             })
             .catch(Logger.errorOnce);
     }
@@ -279,9 +276,6 @@ class AgChartsInternal {
     private static async prepareResizedChart(chartProxy: AgChartInstanceProxy, opts: DownloadOptions = {}) {
         const { chart } = chartProxy;
         const { width = chart.width, height = chart.height } = opts;
-        if (chart.scene.canvas.pixelRatio === 1 && chart.width === width && chart.height === height) {
-            return chartProxy;
-        }
 
         const options: ChartExtendedOptions = mergeDefaults(
             {
