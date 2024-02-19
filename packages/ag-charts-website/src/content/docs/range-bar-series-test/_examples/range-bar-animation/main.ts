@@ -32,7 +32,7 @@ function startUpdates() {
 
     updating = true;
     update();
-    refreshIntervalId = setInterval(update, 1000);
+    refreshIntervalId = setInterval(update, 1500);
 }
 
 function stopUpdates() {
