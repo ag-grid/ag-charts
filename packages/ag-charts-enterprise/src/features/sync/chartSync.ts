@@ -80,30 +80,33 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
                     const validDirection = this.axes === 'xy' ? 'x' : this.axes;
                     if (!CartesianAxis.is(axis) || axis.direction !== validDirection) continue;
 
-                    for (const series of chart.series) {
-                        const seriesKeys = series.getKeys(axis.direction);
+                    const matchingNodes = chart.series
+                        .map((series) => {
+                            const seriesKeys = series.getKeys(axis.direction);
 
-                        if (axis.keys.length && !axis.keys.some((key) => seriesKeys.includes(key))) continue;
+                            if (axis.keys.length && !axis.keys.some((key) => seriesKeys.includes(key))) return;
 
-                        const [{ nodeData }] = (series as any).contextNodeData;
+                            const [{ nodeData }] = (series as any).contextNodeData;
 
-                        if (!nodeData?.length) continue;
+                            if (!nodeData?.length) return;
 
-                        const valueKey = nodeData[0][`${axis.direction}Key`];
-                        let eventValue = event.currentHighlight!.datum[valueKey];
-                        const valueIsDate = isDate(eventValue);
-                        if (valueIsDate) {
-                            eventValue = eventValue.getTime();
-                        }
+                            const valueKey = nodeData[0][`${axis.direction}Key`];
+                            let eventValue = event.currentHighlight!.datum[valueKey];
+                            const valueIsDate = isDate(eventValue);
+                            if (valueIsDate) {
+                                eventValue = eventValue.getTime();
+                            }
 
-                        const matchingNode = nodeData.find((nodeDatum: any) => {
-                            const nodeValue = nodeDatum.datum[valueKey];
-                            return valueIsDate ? nodeValue.getTime() === eventValue : nodeValue === eventValue;
-                        });
-                        if (matchingNode !== chart.highlightManager.getActiveHighlight()) {
-                            chart.highlightManager.updateHighlight(chart.id, matchingNode);
-                            this.updateChart(chart, ChartUpdateType.SERIES_UPDATE);
-                        }
+                            return nodeData.find((nodeDatum: any) => {
+                                const nodeValue = nodeDatum.datum[valueKey];
+                                return valueIsDate ? nodeValue.getTime() === eventValue : nodeValue === eventValue;
+                            });
+                        })
+                        .filter(Boolean);
+
+                    if (matchingNodes.length < 2 && matchingNodes[0] !== chart.highlightManager.getActiveHighlight()) {
+                        chart.highlightManager.updateHighlight(chart.id, matchingNodes[0]);
+                        this.updateChart(chart, ChartUpdateType.SERIES_UPDATE);
                     }
                 }
             }
