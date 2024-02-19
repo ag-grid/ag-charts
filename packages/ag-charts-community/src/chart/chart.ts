@@ -1600,6 +1600,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
             series.markNodeDataDirty();
             seriesInstances.push(series);
         }
+        // Ensure declaration order is set, this is used for correct z-index behavior for combo charts.
+        for (let idx = 0; idx < seriesInstances.length; idx++) {
+            seriesInstances[idx]._declarationOrder = idx;
+        }
 
         debug(`AgChartV2.applySeries() - final series instances`, seriesInstances);
         chart.series = seriesInstances;

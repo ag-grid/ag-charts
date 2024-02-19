@@ -272,10 +272,7 @@ class AgChartsInternal {
         return result;
     }
 
-    private static async prepareResizedChart(
-        chartProxy: AgChartInstanceProxy,
-        opts: DownloadOptions | ImageDataUrlOptions = {}
-    ) {
+    private static async prepareResizedChart(chartProxy: AgChartInstanceProxy, opts: DownloadOptions = {}) {
         const { chart } = chartProxy;
         const { width = chart.width, height = chart.height } = opts;
         if (chart.scene.canvas.pixelRatio === 1 && chart.width === width && chart.height === height) {
@@ -296,6 +293,10 @@ class AgChartsInternal {
         );
 
         const cloneProxy = AgChartsInternal.createOrUpdate(options);
+        cloneProxy.chart.zoomManager.updateZoom(chartProxy.chart.zoomManager.getZoom()); // sync zoom
+        chartProxy.chart.series.forEach((series, index) => {
+            cloneProxy.chart.series[index].visible = series.visible; // sync series visibility
+        });
         await cloneProxy.chart.waitForUpdate();
         return cloneProxy;
     }
