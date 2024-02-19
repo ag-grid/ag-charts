@@ -9,7 +9,7 @@ import type {
 import { deepClone, jsonWalk } from '../../util/json';
 import { mergeDefaults } from '../../util/object';
 import { isArray, isObject } from '../../util/type-guards';
-import { axisThemes, axisTypes } from '../factory/axisTypes';
+import { axisRegistry } from '../factory/axisRegistry';
 import { type ChartType, chartDefaults, chartTypes } from '../factory/chartTypes';
 import { legendRegistry } from '../factory/legendRegistry';
 import { seriesRegistry } from '../factory/seriesRegistry';
@@ -398,10 +398,10 @@ export class ChartTheme {
 
                 const { axes } = result[seriesType] as { axes: Record<string, {}> };
 
-                for (const axisType of axisTypes.keys()) {
+                for (const axisType of axisRegistry.keys()) {
                     axes[axisType] = mergeDefaults(
                         axes[axisType],
-                        axisThemes.get(axisType),
+                        axisRegistry.getThemeTemplate(axisType),
                         chartType === 'cartesian' && (ChartTheme.cartesianAxisDefault as any)[axisType]
                     );
                 }

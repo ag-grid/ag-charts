@@ -41,7 +41,7 @@ import { JSON_APPLY_OPTIONS, JSON_APPLY_PLUGINS } from './chartOptions';
 import { ChartUpdateType } from './chartUpdateType';
 import { DataController } from './data/dataController';
 import { DataService } from './data/dataService';
-import { axisTypes } from './factory/axisTypes';
+import { axisRegistry } from './factory/axisRegistry';
 import { EXPECTED_ENTERPRISE_MODULES } from './factory/expectedEnterpriseModules';
 import { legendRegistry } from './factory/legendRegistry';
 import { seriesRegistry } from './factory/seriesRegistry';
@@ -1715,7 +1715,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         for (let index = 0; index < options.length; index++) {
             const axisOptions = options[index];
-            const axis = axisTypes.create(axisOptions.type, moduleContext);
+            const axis = axisRegistry.create(axisOptions.type, moduleContext);
             this.applyAxisModules(axis, axisOptions);
             this.applyOptionValues(axis, axisOptions, { path: `axes[${index}]`, skip });
 

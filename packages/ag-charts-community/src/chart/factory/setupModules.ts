@@ -1,6 +1,6 @@
 import { REGISTERED_MODULES, hasRegisteredEnterpriseModules } from '../../module/module';
 import { Logger } from '../../util/logger';
-import { axisThemes, axisTypes } from './axisTypes';
+import { axisRegistry } from './axisRegistry';
 import { chartDefaults } from './chartTypes';
 import { getUnusedExpectedModules, verifyIfModuleExpected } from './expectedEnterpriseModules';
 import { legendRegistry } from './legendRegistry';
@@ -38,16 +38,12 @@ export function setupModules() {
                 for (const axisType of m.axisTypes) {
                     delete theme[axisType];
                 }
-
-                axisThemes.set(axisType, theme);
+                axisRegistry.setThemeTemplate(axisType, theme);
             }
         }
 
         if (m.type === 'axis') {
-            axisTypes.set(m.identifier, m.instanceConstructor);
-            if (m.themeTemplate) {
-                axisThemes.set(m.identifier, m.themeTemplate);
-            }
+            axisRegistry.register(m.identifier, m);
         }
 
         if (m.type === 'legend') {

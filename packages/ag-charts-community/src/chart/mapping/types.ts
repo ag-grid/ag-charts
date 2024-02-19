@@ -5,7 +5,7 @@ import type {
     AgPolarChartOptions,
 } from '../../options/agChartOptions';
 import { Logger } from '../../util/logger';
-import { axisTypes } from '../factory/axisTypes';
+import { axisRegistry } from '../factory/axisRegistry';
 import { chartTypes } from '../factory/chartTypes';
 import { isEnterpriseCartesian, isEnterpriseHierarchy, isEnterprisePolar } from '../factory/expectedEnterpriseModules';
 
@@ -75,5 +75,5 @@ export function isAxisOptionType(input?: string): input is NonNullable<AxesOptio
     if (input == null) {
         return false;
     }
-    return axisTypes.has(input);
+    return axisRegistry.has(input);
 }
