@@ -272,10 +272,10 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private onDragEnd() {
+        this.ctx.interactionManager.popState(_ModuleSupport.InteractionState.ZoomDrag);
+
         // Stop single clicks from triggering drag end and resetting the zoom
         if (!this.enabled || !this.isDragging) return;
-
-        this.ctx.interactionManager.popState(_ModuleSupport.InteractionState.ZoomDrag);
 
         const zoom = definedZoomState(this.zoomManager.getZoom());
 
