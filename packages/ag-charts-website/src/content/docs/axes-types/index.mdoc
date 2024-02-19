@@ -22,7 +22,7 @@ axes: [
         type: 'category',
         position: 'bottom',
     },
-];
+],
 ```
 
 The category axis will attempt to render an [Axis Tick](./axes-ticks/), [Axis Label](./axes-labels/) and
@@ -50,7 +50,7 @@ axes: [
         type: 'number',
         position: 'left',
     },
-];
+],
 ```
 
 For a full list of configuration options see [Number Axis Options](#reference-AgNumberAxisOptions).
@@ -70,7 +70,7 @@ simplest time axis config looks like this:
 ```js
 {
     type: 'time',
-    position: 'bottom'
+    position: 'bottom',
 }
 ```
 
@@ -102,8 +102,8 @@ necessary to reduce the number of ticks.
     type: 'log',
     position: 'left',
     tick: {
-      minSpacing: 200,
-    }
+        minSpacing: 200,
+    },
 }
 ```
 
@@ -114,7 +114,7 @@ you to change the base to any number you like, for example `Math.E` for natural 
 {
     type: 'log',
     position: 'left',
-    base: 2
+    base: 2,
 }
 ```
 
