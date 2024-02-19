@@ -1,10 +1,10 @@
-import { downloadUrl } from '../draw/draw-utils';
+import { downloadUrl, getWindow } from '../draw/draw-utils';
 import { toArray } from '../util/array';
 import { ascendingStringNumberUndefined, compoundAscending } from '../util/compare';
 import { Debug } from '../util/debug';
 import { createId } from '../util/id';
 import { Logger } from '../util/logger';
-import { windowValue } from '../util/window';
+import { isString } from '../util/type-guards';
 import type { Size } from './canvas/hdpiCanvas';
 import { HdpiCanvas } from './canvas/hdpiCanvas';
 import { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
@@ -58,7 +58,7 @@ export class Scene {
         const {
             document,
             window,
-            mode = (windowValue('agChartsSceneRenderModel') as SceneOptions['mode']) ?? advancedCompositeIdentifier,
+            mode = (getWindow('agChartsSceneRenderModel') as SceneOptions['mode']) ?? advancedCompositeIdentifier,
             width,
             height,
             overrideDevicePixelRatio = undefined,
@@ -67,7 +67,7 @@ export class Scene {
         this.overrideDevicePixelRatio = overrideDevicePixelRatio;
 
         this.opts = { document, window, mode };
-        this.canvas = new HdpiCanvas({ document, window, width, height, overrideDevicePixelRatio });
+        this.canvas = new HdpiCanvas({ width, height, overrideDevicePixelRatio });
     }
 
     set container(value: HTMLElement | undefined) {
@@ -137,8 +137,6 @@ export class Scene {
         const canvas =
             !advLayer || !HdpiOffscreenCanvas.isSupported()
                 ? new HdpiCanvas({
-                      document: this.opts.document,
-                      window: this.opts.window,
                       width,
                       height,
                       domLayer,
@@ -460,13 +458,13 @@ export class Scene {
             return n instanceof Group && n.name != null && match === n.name;
         };
 
-        const sceneNodeHighlight = toArray(windowValue('agChartsSceneDebug')).flatMap((name) =>
-            name === 'layout' ? ['seriesRoot', 'legend', 'root', /.*Axis-\d+-axis.*/] : name
+        const sceneNodeHighlight = toArray(getWindow('agChartsSceneDebug') as Array<string | RegExp>).flatMap((name) =>
+            isString(name) && name === 'layout' ? ['seriesRoot', 'legend', 'root', /.*Axis-\d+-axis.*/] : name
         );
         for (const next of sceneNodeHighlight) {
             if (typeof next === 'string' && debugNodes[next] != null) continue;
 
-            const predicate = typeof next === 'string' ? stringPredicate(next) : regexpPredicate(next);
+            const predicate = isString(next) ? stringPredicate(next) : regexpPredicate(next);
             const nodes = this.root?.findNodes(predicate);
             if (!nodes || nodes.length === 0) {
                 Logger.log(`Scene.render() - no debugging node with id [${next}] in scene graph.`);

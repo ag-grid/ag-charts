@@ -12,17 +12,11 @@ type OffscreenCanvasRenderingContext2D = any;
  * provide resolution independent rendering based on `window.devicePixelRatio`.
  */
 export class HdpiCanvas {
-    readonly document: Document;
-    readonly window: Window;
     readonly element: HTMLCanvasElement;
     readonly context: CanvasRenderingContext2D & { verifyDepthZero?: () => void };
     readonly imageSource: HTMLCanvasElement;
 
-    // The width/height attributes of the Canvas element default to
-    // 300/150 according to w3.org.
     constructor(opts: {
-        document: Document;
-        window: Window;
         width?: number;
         height?: number;
         domLayer?: boolean;
@@ -30,18 +24,7 @@ export class HdpiCanvas {
         name?: string;
         overrideDevicePixelRatio?: number;
     }) {
-        const {
-            document,
-            window,
-            width = 600,
-            height = 300,
-            domLayer = false,
-            zIndex = 0,
-            name = undefined as undefined | string,
-            overrideDevicePixelRatio = undefined as undefined | number,
-        } = opts;
-        this.document = document;
-        this.window = window;
+        const { width = 600, height = 300, zIndex = 0, domLayer, name, overrideDevicePixelRatio } = opts;
 
         // Create canvas and immediately apply width + height to avoid out-of-memory
         // errors on iOS/iPadOS Safari.

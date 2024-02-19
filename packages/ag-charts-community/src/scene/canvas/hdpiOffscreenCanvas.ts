@@ -27,8 +27,6 @@ export class HdpiOffscreenCanvas {
         return typeof OffscreenCanvas !== 'undefined' && OffscreenCanvas.prototype.transferToImageBitmap != null;
     }
 
-    // The width/height attributes of the Canvas element default to
-    // 300/150 according to w3.org.
     constructor({ width = 600, height = 300, overrideDevicePixelRatio }: OffscreenCanvasOptions) {
         this.canvas = new OffscreenCanvas(width, height);
         this.context = this.canvas.getContext('2d')!;

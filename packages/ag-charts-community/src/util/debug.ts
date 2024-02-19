@@ -1,6 +1,6 @@
+import { getWindow } from '../draw/draw-utils';
 import { toArray } from './array';
 import { Logger } from './logger';
-import { windowValue } from './window';
 
 type DebugLogger = ((...logContent: any[]) => void) & { check(): boolean };
 
@@ -34,7 +34,7 @@ export const Debug = {
         if (debugSelectors.length === 0) {
             debugSelectors.push(true);
         }
-        const chartDebug: Array<boolean | string> = toArray(windowValue('agChartsDebug'));
+        const chartDebug = toArray(getWindow('agChartsDebug')) as Array<boolean | string>;
         return chartDebug.some((selector) => debugSelectors.includes(selector));
     },
 };
