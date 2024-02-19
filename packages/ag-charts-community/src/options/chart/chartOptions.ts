@@ -60,7 +60,7 @@ export interface AgChartCaptionOptions {
     enabled?: boolean;
     /** The text to display. */
     text?: string;
-    /** Horizontal position of the text */
+    /** Horizontal position of the text. */
     textAlign?: TextAlign;
     /** The font style to use for the text. */
     fontStyle?: FontStyle;
@@ -154,7 +154,7 @@ export interface AgBaseThemeableChartOptions<TDatum = any> {
     footnote?: AgChartFooterOptions;
     /** Configuration for the chart highlighting. */
     highlight?: AgChartHighlightOptions;
-    /** HTML overlays */
+    /** HTML overlays. */
     overlays?: AgChartOverlaysOptions;
     /** Global configuration that applies to all tooltips in the chart. */
     tooltip?: AgChartTooltipOptions;
