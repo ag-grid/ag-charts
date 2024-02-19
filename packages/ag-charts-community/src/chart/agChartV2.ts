@@ -5,6 +5,7 @@ import { ChartOptions } from '../module/optionsModule';
 import type { AgChartInstance, AgChartOptions, DownloadOptions, ImageDataUrlOptions } from '../options/agChartOptions';
 import { Debug } from '../util/debug';
 import { createDeprecationWarning } from '../util/deprecation';
+import { deepClone, jsonWalk } from '../util/json';
 import { Logger } from '../util/logger';
 import { mergeDefaults } from '../util/object';
 import type { DeepPartial } from '../util/types';
@@ -224,6 +225,21 @@ class AgChartsInternal {
     }
 
     static updateUserDelta(proxy: AgChartInstanceProxy, deltaOptions: DeepPartial<AgChartOptions>) {
+        deltaOptions = deepClone(deltaOptions, { shallow: ['data'] });
+
+        jsonWalk(
+            deltaOptions,
+            (node) => {
+                if (typeof node !== 'object') return;
+                for (const [key, value] of Object.entries(node)) {
+                    if (typeof value === 'undefined') {
+                        Object.assign(node, { [key]: Symbol('UNSET') });
+                    }
+                }
+            },
+            { skip: ['data'] }
+        );
+
         const { chart } = proxy;
         const lastUpdateOptions = chart.getOptions();
         const userOptions = mergeDefaults(deltaOptions, lastUpdateOptions);
