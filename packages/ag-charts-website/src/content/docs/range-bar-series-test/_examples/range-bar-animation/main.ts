@@ -69,8 +69,11 @@ function getUpdatedData() {
         ...datum,
         date: `Nov ${Math.floor(Math.random() * 100)}`,
     };
-    const addIndex = Math.floor(Math.random() * updatedData.length);
-    updatedData.splice(addIndex, 0, newDatum);
+    const usedDates = new Set(updatedData.map(({ date }) => date));
+    if (!usedDates.has(newDatum.date)) {
+        const addIndex = Math.floor(Math.random() * updatedData.length);
+        updatedData.splice(addIndex, 0, newDatum);
+    }
 
     // Remove
     const removeIndex = Math.floor(updatedData.length * Math.random());
