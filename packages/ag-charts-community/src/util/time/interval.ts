@@ -1,3 +1,5 @@
+import { Logger } from '../logger';
+
 /**
  * Converts the specified Date into a count of years,
  * days, hours etc. passed since some base date.
@@ -91,6 +93,12 @@ export class CountableTimeInterval extends TimeInterval {
     every(step: number, options?: CountableTimeIntervalOptions): TimeInterval {
         let offset = 0;
         let rangeCallback: RangeFn | undefined;
+
+        const unsafeStep = step;
+        step = Math.max(1, Math.round(step));
+        if (unsafeStep !== step) {
+            Logger.warnOnce(`interval step of [${unsafeStep}] rounded to [${step}].`);
+        }
 
         const { snapTo = 'start' } = options ?? {};
         if (typeof snapTo === 'string') {
