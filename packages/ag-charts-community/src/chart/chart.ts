@@ -1099,7 +1099,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.tooltipManager.removeTooltip(this.id);
 
         // If there is already a context menu visible, then re-pick the highlighted node.
-        if (this.interactionManager.getState() & InteractionState.ContextMenu) {
+        // We check InteractionState.Default too just in case we were in ContextMenu and the
+        // mouse hasn't moved since (see AG-10233).
+        const { Default, ContextMenu } = InteractionState;
+        if (this.interactionManager.getState() & (Default | ContextMenu)) {
             this.checkSeriesNodeRange(event, (_series, datum) => {
                 this.highlightManager.updateHighlight(this.id, datum);
             });
