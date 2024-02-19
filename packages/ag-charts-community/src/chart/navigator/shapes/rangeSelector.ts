@@ -39,7 +39,7 @@ export class RangeSelector extends Group {
         minHandle.centerX = x;
         maxHandle.centerX = x + width;
         minHandle.centerY = maxHandle.centerY = y + height / 2;
-        minHandle.zIndex = 3;
+        minHandle.zIndex = 4;
         maxHandle.zIndex = 3;
 
         this.append([mask, minHandle, maxHandle]);
