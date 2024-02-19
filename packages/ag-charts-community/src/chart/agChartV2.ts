@@ -79,11 +79,7 @@ export abstract class AgCharts {
         const chart = AgChartsInternal.createOrUpdate(options);
 
         if (this.licenseManager?.isDisplayWatermark()) {
-            enterpriseModule.injectWatermark?.(
-                (options as ChartExtendedOptions).document ?? document,
-                chart.chart.element,
-                this.licenseManager.getWatermarkMessage()
-            );
+            enterpriseModule.injectWatermark?.(chart.chart.element, this.licenseManager.getWatermarkMessage());
         }
         return chart;
     }

@@ -39,7 +39,7 @@ export class ChartOverlays {
         this.noVisibleSeries.text = 'No visible series';
 
         if (ChartOverlays.overlayDocuments.indexOf(parent.ownerDocument) < 0) {
-            injectStyle(parent.ownerDocument, defaultOverlayCss);
+            injectStyle(defaultOverlayCss);
             ChartOverlays.overlayDocuments.push(parent.ownerDocument);
         }
     }
