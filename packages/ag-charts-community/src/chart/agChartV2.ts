@@ -291,7 +291,7 @@ class AgChartsInternal {
                 cloneProxy.chart.series[index].visible = series.visible; // sync series visibility
             }
         });
-        chartProxy.chart.update(ChartUpdateType.FULL, { forceNodeDataRefresh: true });
+        cloneProxy.chart.update(ChartUpdateType.FULL, { forceNodeDataRefresh: true });
         await cloneProxy.chart.waitForUpdate();
         return cloneProxy;
     }
