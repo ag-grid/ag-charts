@@ -260,9 +260,8 @@ class AgChartsInternal {
 
     static async getImageDataURL(proxy: AgChartInstanceProxy, opts?: ImageDataUrlOptions): Promise<string> {
         const clone = await AgChartsInternal.prepareResizedChart(proxy, opts);
+        const result = clone.chart.scene.toDataURL(opts?.fileFormat);
 
-        const { canvas } = clone.chart.scene;
-        const result = canvas.getDataURL(opts?.fileFormat);
         clone.destroy();
 
         return result;
@@ -287,11 +286,11 @@ class AgChartsInternal {
         const cloneProxy = AgChartsInternal.createOrUpdate(options);
         cloneProxy.chart.zoomManager.updateZoom(chart.zoomManager.getZoom()); // sync zoom
         chart.series.forEach((series, index) => {
-            if (series.visible !== true) {
-                cloneProxy.chart.series[index].visible = series.visible; // sync series visibility
+            if (!series.visible) {
+                cloneProxy.chart.series[index].visible = false; // sync series visibility
             }
         });
-        cloneProxy.chart.update(ChartUpdateType.FULL, { forceNodeDataRefresh: true });
+        chart.update(ChartUpdateType.FULL, { forceNodeDataRefresh: true });
         await cloneProxy.chart.waitForUpdate();
         return cloneProxy;
     }

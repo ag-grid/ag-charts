@@ -1,10 +1,9 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import { ColorScale } from '../../../scale/colorScale';
-import { HdpiCanvas } from '../../../scene/canvas/hdpiCanvas';
 import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
-import type { Text } from '../../../scene/shape/text';
+import { Text } from '../../../scene/shape/text';
 import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { extent } from '../../../util/array';
 import { mergeDefaults } from '../../../util/object';
@@ -135,7 +134,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
                 labelName,
             });
 
-            const size = HdpiCanvas.getTextSize(labelText, font);
+            const size = Text.getTextSize(labelText, font);
             const fill = colorKey ? colorScale.convert(values[colorDataIdx]) : undefined;
 
             nodeData.push({

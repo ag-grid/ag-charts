@@ -10,12 +10,11 @@ import type {
     FontWeight,
 } from '../options/agChartOptions';
 import { BBox } from '../scene/bbox';
-import { HdpiCanvas } from '../scene/canvas/hdpiCanvas';
 import { Group } from '../scene/group';
 import type { Node } from '../scene/node';
 import { RedrawType } from '../scene/node';
 import { Selection } from '../scene/selection';
-import { getFont } from '../scene/shape/text';
+import { Text, getFont } from '../scene/shape/text';
 import { createId } from '../util/id';
 import { Logger } from '../util/logger';
 import { clamp } from '../util/number';
@@ -276,7 +275,7 @@ export class Legend extends BaseProperties {
         }
 
         const cw: { [key: string]: number } = {
-            '...': HdpiCanvas.getTextSize('...', font).width,
+            '...': Text.getTextSize('...', font).width,
         };
         characterWidths.set(font, cw);
         return cw;
@@ -447,7 +446,7 @@ export class Legend extends BaseProperties {
             addEllipsis = true;
         }
 
-        const labelWidth = Math.floor(paddedMarkerWidth + HdpiCanvas.getTextSize(text, font).width);
+        const labelWidth = Math.floor(paddedMarkerWidth + Text.getTextSize(text, font).width);
         if (labelWidth > maxItemWidth) {
             let truncatedText = '';
             const characterWidths = this.getCharacterWidths(font);
@@ -455,7 +454,7 @@ export class Legend extends BaseProperties {
 
             for (const char of textChars) {
                 if (!characterWidths[char]) {
-                    characterWidths[char] = HdpiCanvas.getTextSize(char, font).width;
+                    characterWidths[char] = Text.getTextSize(char, font).width;
                 }
 
                 cumulativeWidth += characterWidths[char];

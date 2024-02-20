@@ -61,7 +61,6 @@ export async function generateExample({ example, theme, outputPath, dpi }: Param
             width: DEFAULT_THUMBNAIL_WIDTH * dpi,
             height: DEFAULT_THUMBNAIL_HEIGHT * dpi,
             document,
-            window: window as any,
             mockText: false,
         });
 

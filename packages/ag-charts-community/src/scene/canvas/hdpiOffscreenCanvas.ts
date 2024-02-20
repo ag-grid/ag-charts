@@ -7,9 +7,9 @@ type OffscreenCanvasRenderingContext2D = any;
 type OffscreenCanvas = any;
 
 interface OffscreenCanvasOptions {
-    width: number;
-    height: number;
-    overrideDevicePixelRatio?: number;
+    width?: number;
+    height?: number;
+    pixelRatio?: number;
 }
 
 /**
@@ -19,61 +19,35 @@ interface OffscreenCanvasOptions {
 export class HdpiOffscreenCanvas {
     readonly context: OffscreenCanvasRenderingContext2D & { verifyDepthZero?: () => void };
     readonly canvas: OffscreenCanvas;
-    imageSource: ImageBitmap;
+
+    protected imageSource: ImageBitmap;
 
     enabled: boolean = true;
 
+    width: number = 0;
+    height: number = 0;
+    pixelRatio: number;
+
     static isSupported() {
-        return typeof OffscreenCanvas !== 'undefined' && OffscreenCanvas.prototype.transferToImageBitmap != null;
+        return (
+            typeof OffscreenCanvas !== 'undefined' &&
+            Object.getPrototypeOf(OffscreenCanvas).transferToImageBitmap != null
+        );
     }
 
-    constructor({ width = 600, height = 300, overrideDevicePixelRatio }: OffscreenCanvasOptions) {
+    constructor({ width = 600, height = 300, pixelRatio }: OffscreenCanvasOptions) {
         this.canvas = new OffscreenCanvas(width, height);
         this.context = this.canvas.getContext('2d')!;
         this.imageSource = this.canvas.transferToImageBitmap();
+        this.pixelRatio = hasConstrainedCanvasMemory() ? 1 : pixelRatio ?? getWindow('devicePixelRatio');
 
-        this._pixelRatio = hasConstrainedCanvasMemory() ? 1 : overrideDevicePixelRatio ?? getWindow('devicePixelRatio');
-        HdpiCanvas.debugContext(this.context);
         this.resize(width, height);
+
+        HdpiCanvas.debugContext(this.context);
     }
 
-    snapshot() {
-        this.imageSource.close();
-        this.imageSource = this.canvas.transferToImageBitmap();
-    }
-
-    destroy() {
-        this.imageSource.close();
-
-        // Workaround memory allocation quirks in iOS Safari by resizing to 0x0 and clearing.
-        // See https://bugs.webkit.org/show_bug.cgi?id=195325.
-        this.canvas.width = 0;
-        this.canvas.height = 0;
-        this.context.clearRect(0, 0, 0, 0);
-    }
-
-    clear() {
-        this.context.save();
-        this.context.setTransform(this._pixelRatio, 0, 0, this._pixelRatio, 0, 0);
-        this.context.clearRect(0, 0, this.width, this.height);
-        this.context.restore();
-    }
-
-    // `NaN` is deliberate here, so that overrides are always applied
-    // and the `resetTransform` inside the `resize` method works in IE11.
-    _pixelRatio: number = NaN;
-    get pixelRatio(): number {
-        return this._pixelRatio;
-    }
-
-    private _width: number = 0;
-    get width(): number {
-        return this._width;
-    }
-
-    private _height: number = 0;
-    get height(): number {
-        return this._height;
+    drawImage(context: CanvasRenderingContext2D, dx = 0, dy = 0) {
+        return context.drawImage(this.imageSource, dx, dy);
     }
 
     resize(width: number, height: number) {
@@ -85,7 +59,29 @@ export class HdpiOffscreenCanvas {
         canvas.height = Math.round(height * pixelRatio);
         context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
 
-        this._width = width;
-        this._height = height;
+        this.width = width;
+        this.height = height;
+    }
+
+    snapshot() {
+        this.imageSource.close();
+        this.imageSource = this.canvas.transferToImageBitmap();
+    }
+
+    clear() {
+        this.context.save();
+        this.context.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
+        this.context.clearRect(0, 0, this.width, this.height);
+        this.context.restore();
+    }
+
+    destroy() {
+        this.imageSource.close();
+
+        // Workaround memory allocation quirks in iOS Safari by resizing to 0x0 and clearing.
+        // See https://bugs.webkit.org/show_bug.cgi?id=195325.
+        this.canvas.width = 0;
+        this.canvas.height = 0;
+        this.context.clearRect(0, 0, 0, 0);
     }
 }
