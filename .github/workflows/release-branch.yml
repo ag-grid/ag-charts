@@ -1,4 +1,4 @@
-name: Create Release Branch
+name: Create/Update Release Branch
 
 on:
     workflow_dispatch:
@@ -14,6 +14,13 @@ on:
                 options:
                     - 'create'
                     - 'update'
+            update_tag:
+                type: 'choice'
+                required: true
+                default: 'true'
+                options:
+                    - 'true'
+                    - 'false'
 
 env:
     NX_REJECT_UNKNOWN_LOCAL_CACHE: 0
@@ -79,7 +86,7 @@ jobs:
 
             - name: Tag Latest Successful Commit For Publish
               uses: EndBug/latest-tag@latest
-              if: success()
+              if: success() && ${{ github.event.inputs.update_tag == 'true' }}
               with:
                   ref: latest-beta-version
                   description: Latest commit to pass GitHub Actions workflow on latest branch.
