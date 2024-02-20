@@ -1,6 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-const { injectStyle } = _ModuleSupport;
+const { createElement, injectStyle } = _ModuleSupport;
 
 const watermarkStyles = `
 .ag-watermark {
@@ -35,10 +35,10 @@ const watermarkStyles = `
 }
 `;
 
-export function injectWatermark(document: Document, parentElement: HTMLElement, text: string) {
-    injectStyle(document, watermarkStyles);
-    const element = document.createElement('div');
-    const textElement = document.createElement('span');
+export function injectWatermark(parentElement: HTMLElement, text: string) {
+    injectStyle(watermarkStyles);
+    const element = createElement('div');
+    const textElement = createElement('span');
     textElement.innerText = text;
     element.addEventListener('animationend', () => parentElement.removeChild(element));
     element.classList.add('ag-watermark');

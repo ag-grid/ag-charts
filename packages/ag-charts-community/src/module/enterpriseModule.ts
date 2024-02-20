@@ -11,7 +11,7 @@ export interface LicenseManager {
 interface EnterpriseModuleOptions {
     isEnterprise: boolean;
     licenseManager?: (options: AgChartOptions) => LicenseManager;
-    injectWatermark?: (document: Document, parentElement: HTMLElement, text: string) => void;
+    injectWatermark?: (parentElement: HTMLElement, text: string) => void;
 }
 
 export const enterpriseModule: EnterpriseModuleOptions = {

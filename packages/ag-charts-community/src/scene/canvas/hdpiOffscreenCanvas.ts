@@ -1,3 +1,4 @@
+import { getWindow } from '../../util/dom';
 import { hasConstrainedCanvasMemory } from '../../util/userAgent';
 import { HdpiCanvas } from './hdpiCanvas';
 
@@ -16,7 +17,6 @@ interface OffscreenCanvasOptions {
  * provide resolution independent rendering based on `window.devicePixelRatio`.
  */
 export class HdpiOffscreenCanvas {
-    readonly realContext: OffscreenCanvasRenderingContext2D;
     readonly context: OffscreenCanvasRenderingContext2D & { verifyDepthZero?: () => void };
     readonly canvas: OffscreenCanvas;
     imageSource: ImageBitmap;
@@ -27,14 +27,13 @@ export class HdpiOffscreenCanvas {
         return typeof OffscreenCanvas !== 'undefined' && OffscreenCanvas.prototype.transferToImageBitmap != null;
     }
 
-    // The width/height attributes of the Canvas element default to
-    // 300/150 according to w3.org.
     constructor({ width = 600, height = 300, overrideDevicePixelRatio }: OffscreenCanvasOptions) {
         this.canvas = new OffscreenCanvas(width, height);
-        this.realContext = this.canvas.getContext('2d')!;
+        this.context = this.canvas.getContext('2d')!;
         this.imageSource = this.canvas.transferToImageBitmap();
 
-        this.context = this.setPixelRatio(overrideDevicePixelRatio);
+        this._pixelRatio = hasConstrainedCanvasMemory() ? 1 : overrideDevicePixelRatio ?? getWindow('devicePixelRatio');
+        HdpiCanvas.debugContext(this.context);
         this.resize(width, height);
     }
 
@@ -55,7 +54,7 @@ export class HdpiOffscreenCanvas {
 
     clear() {
         this.context.save();
-        this.context.resetTransform();
+        this.context.setTransform(this._pixelRatio, 0, 0, this._pixelRatio, 0, 0);
         this.context.clearRect(0, 0, this.width, this.height);
         this.context.restore();
     }
@@ -65,24 +64,6 @@ export class HdpiOffscreenCanvas {
     _pixelRatio: number = NaN;
     get pixelRatio(): number {
         return this._pixelRatio;
-    }
-
-    /**
-     * Changes the pixel ratio of the Canvas element to the given value,
-     * or uses the window.devicePixelRatio (default), then resizes the Canvas
-     * element accordingly (default).
-     */
-    private setPixelRatio(ratio?: number) {
-        let pixelRatio = ratio ?? window.devicePixelRatio;
-        if (hasConstrainedCanvasMemory()) {
-            // Mobile browsers have stricter memory limits, we reduce rendering resolution to
-            // improve stability on mobile browsers. iOS Safari 12->16 are pain-points since they
-            // have memory allocation quirks - see https://bugs.webkit.org/show_bug.cgi?id=195325.
-            pixelRatio = 1;
-        }
-
-        this._pixelRatio = pixelRatio;
-        return HdpiCanvas.overrideScale(this.realContext, pixelRatio);
     }
 
     private _width: number = 0;
@@ -102,7 +83,7 @@ export class HdpiOffscreenCanvas {
         const { canvas, context, pixelRatio } = this;
         canvas.width = Math.round(width * pixelRatio);
         canvas.height = Math.round(height * pixelRatio);
-        context.resetTransform();
+        context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
 
         this._width = width;
         this._height = height;

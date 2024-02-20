@@ -150,7 +150,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         }
 
         if (!InteractionManager.interactionDocuments.includes(document)) {
-            injectStyle(document, CSS);
+            injectStyle(CSS);
             InteractionManager.interactionDocuments.push(document);
         }
     }

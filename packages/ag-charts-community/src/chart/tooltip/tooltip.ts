@@ -254,7 +254,7 @@ export class Tooltip {
         }
 
         if (Tooltip.tooltipDocuments.indexOf(document) < 0) {
-            injectStyle(document, defaultTooltipCss);
+            injectStyle(defaultTooltipCss);
             Tooltip.tooltipDocuments.push(document);
         }
     }
