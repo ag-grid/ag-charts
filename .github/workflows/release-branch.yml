@@ -45,6 +45,10 @@ jobs:
                   node-version: '20'
                   cache: 'yarn'
 
+            - name: Install Dependencies
+              run: |
+                  yarn global add prettier@3.2.5 @trivago/prettier-plugin-sort-imports@^4.2.0 prettier-plugin-astro@^0.12.1
+
             - name: Create Branch
               id: create_branch
               if: ${{ github.event.inputs.type == 'create' }}
