@@ -64,13 +64,13 @@ jobs:
               id: reset_version
               if: ${{ github.event.inputs.type == 'create' }}
               run: |
-                  node ./tools/bump-versions.sh ${{ github.event.inputs.version }}
+                  ./tools/bump-versions.sh ${{ github.event.inputs.version }}
 
             - name: Update Package Version
               id: update_version
               run: |
                   NEW_VERSION=$(node ./tools/calculate-next-version.js)
-                  node ./tools/bump-versions.sh ${NEW_VERSION}
+                  ./tools/bump-versions.sh ${NEW_VERSION}
                   echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_ENV
                   echo "version=${NEW_VERSION}" >> $GITHUB_OUTPUT
                   echo "tag=b${NEW_VERSION}" >> $GITHUB_OUTPUT
