@@ -32,6 +32,7 @@ export function pathMotion(
             from: 0,
             to: 1,
             ease: easing.easeOut,
+            collapsable: false,
             onUpdate(ratio, preInit) {
                 if (preInit && phase !== 'removed') return;
 

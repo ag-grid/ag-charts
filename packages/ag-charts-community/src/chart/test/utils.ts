@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, jest } from '@jest/globals';
 import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 
-import { ANIMATION_PHASE_TIMINGS, IAnimation } from '../../motion/animation';
+import { IAnimation, PHASE_METADATA } from '../../motion/animation';
 import type {
     AgCartesianChartOptions,
     AgChartInstance,
@@ -332,7 +332,7 @@ export function spyOnAnimationManager() {
 
             // Convert test timing info to phase-relative execution timing.
             const { phase } = controller;
-            const { animationDelay } = ANIMATION_PHASE_TIMINGS[phase];
+            const { animationDelay } = PHASE_METADATA[phase];
 
             // Account for phase notional starting offset.
             let updateBy = animateParameters[0] * animateParameters[1];

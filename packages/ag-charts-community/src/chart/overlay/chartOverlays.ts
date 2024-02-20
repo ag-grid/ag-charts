@@ -1,4 +1,4 @@
-import { ADD_PHASE } from '../../motion/animation';
+import { PHASE_METADATA } from '../../motion/animation';
 import { injectStyle } from '../../util/dom';
 import type { AnimationManager } from '../interaction/animationManager';
 import { DEFAULT_OVERLAY_CLASS, DEFAULT_OVERLAY_DARK_CLASS, Overlay } from './overlay';
@@ -55,6 +55,9 @@ export class ChartOverlays {
     }
 
     private renderLoadingSpinner(parent: HTMLElement, animationManager: AnimationManager) {
+        const { animationDuration } = PHASE_METADATA['add'];
+        const duration = animationDuration * animationManager.defaultDuration;
+
         const container = this.createElement(parent, 'div');
         container.className = `${DEFAULT_OVERLAY_CLASS}--loading`;
         container.style.display = 'flex';
@@ -65,9 +68,7 @@ export class ChartOverlays {
         container.style.boxSizing = 'border-box';
         container.style.font = '13px Verdana, sans-serif'; // FONT_SIZE.MEDIUM
         container.style.userSelect = 'none';
-        container.style.animation = `ag-charts-loading ${
-            ADD_PHASE.animationDuration * animationManager.defaultDuration
-        }ms linear 50ms both`;
+        container.style.animation = `ag-charts-loading ${duration}ms linear 50ms both`;
 
         const matrix = this.createElement(container, 'span');
         matrix.style.width = '45px';
