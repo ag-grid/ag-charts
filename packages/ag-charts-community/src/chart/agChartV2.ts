@@ -12,6 +12,7 @@ import type { DeepPartial } from '../util/types';
 import { CartesianChart } from './cartesianChart';
 import { Chart, type ChartExtendedOptions } from './chart';
 import { AgChartInstanceProxy } from './chartProxy';
+import { ChartUpdateType } from './chartUpdateType';
 import { registerInbuiltModules } from './factory/registerInbuiltModules';
 import { setupModules } from './factory/setupModules';
 import { HierarchyChart } from './hierarchyChart';
@@ -251,24 +252,22 @@ class AgChartsInternal {
     /**
      * Returns the content of the current canvas as an image.
      */
-    static download(proxy: AgChartInstanceProxy, opts?: DownloadOptions) {
-        AgChartsInternal.prepareResizedChart(proxy, opts)
-            .then((clone) => {
-                clone.chart.scene.download(opts?.fileName, opts?.fileFormat);
-                clone.destroy();
-            })
-            .catch(Logger.errorOnce);
+    static async download(proxy: AgChartInstanceProxy, opts?: DownloadOptions) {
+        try {
+            const clone = await AgChartsInternal.prepareResizedChart(proxy, opts);
+            clone.chart.scene.download(opts?.fileName, opts?.fileFormat);
+            clone.destroy();
+        } catch (error) {
+            Logger.errorOnce(error);
+        }
     }
 
     static async getImageDataURL(proxy: AgChartInstanceProxy, opts?: ImageDataUrlOptions): Promise<string> {
-        const maybeClone = await AgChartsInternal.prepareResizedChart(proxy, opts);
+        const clone = await AgChartsInternal.prepareResizedChart(proxy, opts);
 
-        const { canvas } = maybeClone.chart.scene;
+        const { canvas } = clone.chart.scene;
         const result = canvas.getDataURL(opts?.fileFormat);
-
-        if (maybeClone !== proxy) {
-            maybeClone.destroy();
-        }
+        clone.destroy();
 
         return result;
     }
@@ -293,8 +292,11 @@ class AgChartsInternal {
         const cloneProxy = AgChartsInternal.createOrUpdate(options);
         cloneProxy.chart.zoomManager.updateZoom(chartProxy.chart.zoomManager.getZoom()); // sync zoom
         chartProxy.chart.series.forEach((series, index) => {
-            cloneProxy.chart.series[index].visible = series.visible; // sync series visibility
+            if (series.visible !== true) {
+                cloneProxy.chart.series[index].visible = series.visible; // sync series visibility
+            }
         });
+        chartProxy.chart.update(ChartUpdateType.FULL, { forceNodeDataRefresh: true });
         await cloneProxy.chart.waitForUpdate();
         return cloneProxy;
     }
