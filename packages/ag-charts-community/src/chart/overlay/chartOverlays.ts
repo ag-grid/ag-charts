@@ -55,9 +55,8 @@ export class ChartOverlays {
     }
 
     private renderLoadingSpinner(parent: HTMLElement, animationManager: AnimationManager) {
-        const { animationDuration, animationDelay } = PHASE_METADATA['add'];
+        const { animationDuration } = PHASE_METADATA['add'];
         const duration = animationDuration * animationManager.defaultDuration;
-        const delay = animationDelay * animationManager.defaultDuration;
 
         const container = this.createElement(parent, 'div');
         container.className = `${DEFAULT_OVERLAY_CLASS}--loading`;
