@@ -49,6 +49,8 @@ jobs:
               id: create_branch
               if: ${{ github.event.inputs.type == 'create' }}
               uses: peterjgrainger/action-create-branch@v2.3.0
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with:
                   branch: b${{ github.event.inputs.version }}
 
