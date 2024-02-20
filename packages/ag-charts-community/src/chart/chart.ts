@@ -1534,19 +1534,15 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     private applyModules(options: AgChartOptions) {
         let modulesChanged = false;
+
+        const { type: chartType } = this.constructor as any;
         for (const module of REGISTERED_MODULES) {
-            if (module.type !== 'root' && module.type !== 'legend') {
-                continue;
-            }
+            if (module.type !== 'root' && module.type !== 'legend') continue;
 
-            const optionsValue = (options as any)[module.optionsKey];
+            const isConfigured = options[module.optionsKey as keyof AgChartOptions] != null;
+            const shouldBeEnabled = isConfigured && module.chartTypes.includes(chartType);
 
-            const shouldBeEnabled = module.chartTypes.includes((this.constructor as any).type) && optionsValue != null;
-            const isEnabled = this.isModuleEnabled(module);
-
-            if (shouldBeEnabled === isEnabled) {
-                continue;
-            }
+            if (shouldBeEnabled === this.isModuleEnabled(module)) continue;
 
             if (shouldBeEnabled) {
                 this.addModule(module);

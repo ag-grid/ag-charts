@@ -195,7 +195,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             this.updateAxisZoom(id, direction, { ...UNIT });
         } else if (
             this.paddedRect?.containsPoint(event.offsetX, event.offsetY) &&
-            this.highlightManager.getActivePicked() === undefined
+            this.highlightManager.getActivePicked() == null
         ) {
             this.updateZoom(unitZoomState());
         }
@@ -563,25 +563,17 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         if (!this.enableSecondaryAxis) {
             const fullZoom = definedZoomState(this.zoomManager.getZoom());
-            if (direction === ChartAxisDirection.X) {
-                fullZoom.x = partialZoom;
-            } else {
-                fullZoom.y = partialZoom;
-            }
+            fullZoom[direction] = partialZoom;
             this.updateZoom(fullZoom);
             return;
         }
 
         const d = round(partialZoom.max - partialZoom.min);
+        const minRatio = direction === ChartAxisDirection.X ? this.minRatioX : this.minRatioY;
 
-        // Discard the zoom update if it would take us below either min ratio
-        if (
-            (direction === ChartAxisDirection.X && d < this.minRatioX) ||
-            (direction === ChartAxisDirection.Y && d < this.minRatioY)
-        ) {
-            return;
+        // Discard the zoom update if it would take us below the min ratio
+        if (d >= minRatio) {
+            this.zoomManager.updateAxisZoom(axisId, partialZoom);
         }
-
-        this.zoomManager.updateAxisZoom(axisId, partialZoom);
     }
 }

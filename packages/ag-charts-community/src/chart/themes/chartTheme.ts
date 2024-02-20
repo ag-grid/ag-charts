@@ -340,7 +340,7 @@ export class ChartTheme {
                     defaults[seriesType] = mergeDefaults(overrideOpts, defaults[seriesType]);
                 }
             };
-            for (const [, { seriesTypes, commonOptions }] of Object.entries(CHART_TYPE_CONFIG)) {
+            for (const { seriesTypes, commonOptions } of Object.values(CHART_TYPE_CONFIG)) {
                 const cleanedCommon = { ...common };
                 for (const commonKey of CHART_TYPE_SPECIFIC_COMMON_OPTIONS) {
                     if (!commonOptions.includes(commonKey)) {
