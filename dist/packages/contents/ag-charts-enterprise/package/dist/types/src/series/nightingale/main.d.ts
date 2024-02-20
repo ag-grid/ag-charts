@@ -1,1 +1,0 @@
-export { NightingaleModule } from './nightingaleModule';
