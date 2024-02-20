@@ -13,6 +13,7 @@ export const INTERACTION_TYPES = [
     'drag',
     'drag-end',
     'leave',
+    'enter',
     'page-left',
     'wheel',
 ] as const;
