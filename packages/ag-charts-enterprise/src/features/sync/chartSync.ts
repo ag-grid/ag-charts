@@ -57,7 +57,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         this.disableZoomSync = zoomManager.addListener('zoom-change', () => {
             for (const chart of syncManager.getGroupSiblings(this.groupId)) {
                 if ((chart.modules.get('sync') as ChartSync)?.zoom) {
-                    chart.zoomManager.updateZoom(zoomManager.getZoom());
+                    chart.zoomManager.updateZoom(this.mergeZoom(chart));
                 }
             }
         });
@@ -71,7 +71,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
             for (const chart of syncManager.getGroupSiblings(this.groupId)) {
                 if (!(chart.modules.get('sync') as ChartSync)?.nodeInteraction) continue;
 
-                if (!event.currentHighlight) {
+                if (!event.currentHighlight?.datum) {
                     chart.highlightManager.updateHighlight(chart.id);
                     continue;
                 }
@@ -80,30 +80,33 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
                     const validDirection = this.axes === 'xy' ? 'x' : this.axes;
                     if (!CartesianAxis.is(axis) || axis.direction !== validDirection) continue;
 
-                    for (const series of chart.series) {
-                        const seriesKeys = series.getKeys(axis.direction);
+                    const matchingNodes = chart.series
+                        .map((series) => {
+                            const seriesKeys = series.getKeys(axis.direction);
 
-                        if (axis.keys.length && !axis.keys.some((key) => seriesKeys.includes(key))) continue;
+                            if (axis.keys.length && !axis.keys.some((key) => seriesKeys.includes(key))) return;
 
-                        const [{ nodeData }] = (series as any).contextNodeData;
+                            const [{ nodeData }] = (series as any).contextNodeData;
 
-                        if (!nodeData?.length) continue;
+                            if (!nodeData?.length) return;
 
-                        const valueKey = nodeData[0][`${axis.direction}Key`];
-                        let eventValue = event.currentHighlight!.datum[valueKey];
-                        const valueIsDate = isDate(eventValue);
-                        if (valueIsDate) {
-                            eventValue = eventValue.getTime();
-                        }
+                            const valueKey = nodeData[0][`${axis.direction}Key`];
+                            let eventValue = event.currentHighlight!.datum[valueKey];
+                            const valueIsDate = isDate(eventValue);
+                            if (valueIsDate) {
+                                eventValue = eventValue.getTime();
+                            }
 
-                        const matchingNode = nodeData.find((nodeDatum: any) => {
-                            const nodeValue = nodeDatum.datum[valueKey];
-                            return valueIsDate ? nodeValue.getTime() === eventValue : nodeValue === eventValue;
-                        });
-                        if (matchingNode !== chart.highlightManager.getActiveHighlight()) {
-                            chart.highlightManager.updateHighlight(chart.id, matchingNode);
-                            this.updateChart(chart, ChartUpdateType.SERIES_UPDATE);
-                        }
+                            return nodeData.find((nodeDatum: any) => {
+                                const nodeValue = nodeDatum.datum[valueKey];
+                                return valueIsDate ? nodeValue.getTime() === eventValue : nodeValue === eventValue;
+                            });
+                        })
+                        .filter(Boolean);
+
+                    if (matchingNodes.length < 2 && matchingNodes[0] !== chart.highlightManager.getActiveHighlight()) {
+                        chart.highlightManager.updateHighlight(chart.id, matchingNodes[0]);
+                        this.updateChart(chart, ChartUpdateType.SERIES_UPDATE);
                     }
                 }
             }
@@ -149,6 +152,18 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         }
     }
 
+    private mergeZoom(chart: any) {
+        const { zoomManager } = this.moduleContext;
+
+        if (this.axes === 'xy') {
+            return zoomManager.getZoom();
+        }
+
+        const combinedZoom = chart.zoomManager.getZoom() ?? {};
+        combinedZoom[this.axes] = zoomManager.getZoom()?.[this.axes];
+        return combinedZoom;
+    }
+
     private onEnabledChange() {
         const { syncManager } = this.moduleContext;
         if (this.enabled) {
@@ -177,7 +192,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
     }
 
     private onNodeInteractionChange() {
-        if (this.nodeInteraction) {
+        if (this.enabled && this.nodeInteraction) {
             this.enabledNodeInteractionSync();
         } else {
             this.disableNodeInteractionSync?.();

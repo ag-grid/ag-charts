@@ -21,7 +21,7 @@ axes: [
             enabled: true,
         },
     },
-];
+],
 ```
 
 {% chartExampleRunner title="Enabling Crosshairs" name="enabling-crosshairs" type="generated" /%}
@@ -41,7 +41,7 @@ axes: [
             snap: false,
         },
     },
-];
+],
 ```
 
 {% chartExampleRunner title="Crosshair Snap False" name="crosshair-snap" type="generated" /%}
@@ -52,9 +52,9 @@ Crosshair styles such as `stroke`, `strokeWidth` and `lineDash` are customisable
 
 ```js
 crosshair: {
-  stroke: '#7290C4',
-  strokeWidth: 2,
-  lineDash: [5, 10],
+    stroke: '#7290C4',
+    strokeWidth: 2,
+    lineDash: [5, 10],
 },
 ```
 
@@ -66,9 +66,9 @@ The crosshair label will be displayed along the axis by default. The label can b
 
 ```js
 crosshair: {
-  label: {
-    enabled: false // removes crosshair label
-  }
+    label: {
+        enabled: false, // removes crosshair label
+    },
 },
 ```
 
@@ -78,11 +78,11 @@ The label position relative to the crosshair can be modified using the `xOffset`
 
 ```js
 crosshair: {
-  label: {
-    xOffset: 20, // positions label 20px to the right of the start of the crosshair line
-    yOffset: 20, // positions label 20px down from the start of the crosshair line
-  }
-}
+    label: {
+        xOffset: 20, // positions label 20px to the right of the start of the crosshair line
+        yOffset: 20, // positions label 20px down from the start of the crosshair line
+    },
+},
 ```
 
 {% chartExampleRunner title="Crosshair Label Offset" name="crosshair-label-offset" type="generated" /%}
@@ -107,9 +107,9 @@ The default crosshair label is customisable using the crosshair label `renderer`
 
 ```js
 crosshair: {
-  label: {
-    renderer: labelRenderer // Add label renderer callback function to customise label styles and content
-  }
+    label: {
+        renderer: labelRenderer, // Add label renderer callback function to customise label styles and content
+    },
 },
 ```
 
@@ -135,9 +135,9 @@ For example, to set the label element's `border-radius` to `15px`, add a custom 
 
 ```js
 crosshair: {
-  label: {
-    className: 'custom-crosshair-label'
-  }
+    label: {
+        className: 'custom-crosshair-label',
+    },
 },
 ```
 

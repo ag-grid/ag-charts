@@ -275,6 +275,7 @@
                 "title": "Histogram",
                 "seriesName": "histogram",
                 "icon": "chartsHistogram",
+                "enterprise": true,
                 "examples": [
                     {
                         "title": "Simple Histogram",

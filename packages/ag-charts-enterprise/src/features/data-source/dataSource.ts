@@ -24,6 +24,27 @@ export class DataSource extends _ModuleSupport.BaseModuleInstance implements _Mo
     @Validate(FUNCTION)
     public getData: (params: DataSourceGetDataCallbackParams) => Promise<unknown> = () => Promise.resolve();
 
+    @ActionOnSet<DataSource>({
+        newValue(requestThrottle) {
+            this.dataService.requestThrottle = requestThrottle;
+        },
+    })
+    public requestThrottle?: number;
+
+    @ActionOnSet<DataSource>({
+        newValue(updateThrottle) {
+            this.dataService.dispatchThrottle = updateThrottle;
+        },
+    })
+    public updateThrottle?: number;
+
+    @ActionOnSet<DataSource>({
+        newValue(updateDuringInteraction) {
+            this.dataService.dispatchOnlyLatest = !updateDuringInteraction;
+        },
+    })
+    public updateDuringInteraction?: boolean;
+
     private readonly dataService: _ModuleSupport.ModuleContext['dataService'];
 
     constructor(ctx: _ModuleSupport.ModuleContext) {

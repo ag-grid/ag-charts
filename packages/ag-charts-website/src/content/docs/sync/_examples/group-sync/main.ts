@@ -1,28 +1,62 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-import { datasetA, datasetB, datasetC, datasetD } from './data';
+import { costsProductA, costsProductB, salesProductA, salesProductB } from './data';
 
-const options: AgCartesianChartOptions = {
+const commonOptions: AgCartesianChartOptions = {
     tooltip: {
         enabled: false,
     },
-    sync: {
-        enabled: true,
-    },
     zoom: {
         enabled: true,
-        enableSelecting: true,
-        enableAxisDragging: false,
-        anchorPointX: 'pointer',
     },
 };
 
-const chart1 = AgCharts.create({
-    ...options,
-    data: datasetA,
-    title: { text: 'Historical Sales by Quarter' },
-    subtitle: { text: 'Analysis of past quarter sales performance' },
+const topChartAxis: AgCartesianChartOptions = {
+    axes: [
+        {
+            type: 'number',
+            position: 'left',
+        },
+        {
+            type: 'category',
+            position: 'bottom',
+            label: { enabled: false },
+            line: { enabled: false },
+            crosshair: {
+                enabled: true,
+                label: { enabled: false },
+            },
+        },
+    ],
+};
+
+const bottomChartAxis: AgCartesianChartOptions = {
+    axes: [
+        {
+            type: 'number',
+            position: 'left',
+        },
+        {
+            type: 'category',
+            position: 'bottom',
+            label: { autoRotate: false },
+            crosshair: { enabled: true },
+        },
+    ],
+};
+
+const chartOptions1: AgChartOptions = {
+    ...commonOptions,
+    ...topChartAxis,
     container: document.getElementById('myChart1'),
+    sync: {
+        enabled: true,
+        groupId: 'sales',
+    },
+    title: { text: 'Sales' },
+    subtitle: { text: 'Product A', textAlign: 'left' },
+    data: salesProductA,
+    padding: { bottom: 5 },
     series: [
         {
             type: 'line',
@@ -30,15 +64,21 @@ const chart1 = AgCharts.create({
             yKey: 'sales',
         },
     ],
-    sync: { groupId: 'altGroup' },
-});
+};
 
-const chart2 = AgCharts.create({
-    ...options,
-    data: datasetB,
-    title: { text: 'Operational Costs by Quarter' },
-    subtitle: { text: 'Analysis of operational costs over past quarters' },
+AgCharts.create(chartOptions1);
+
+const chartOptions2: AgChartOptions = {
+    ...commonOptions,
+    ...topChartAxis,
     container: document.getElementById('myChart2'),
+    sync: {
+        enabled: true,
+        groupId: 'costs',
+    },
+    title: { text: 'Costs' },
+    subtitle: { text: 'Product A', textAlign: 'left' },
+    data: costsProductA,
     series: [
         {
             type: 'line',
@@ -46,15 +86,20 @@ const chart2 = AgCharts.create({
             yKey: 'costs',
         },
     ],
-});
+};
 
-const chart3 = AgCharts.create({
-    ...options,
-    data: datasetC,
-    title: { text: 'Projected Sales by Quarter' },
-    subtitle: { text: 'Forecasted sales for the upcoming quarters' },
+AgCharts.create(chartOptions2);
+
+const chartOptions3: AgChartOptions = {
+    ...commonOptions,
+    ...bottomChartAxis,
     container: document.getElementById('myChart3'),
-    sync: { groupId: 'altGroup' },
+    sync: {
+        enabled: true,
+        groupId: 'sales',
+    },
+    subtitle: { text: 'Product B', textAlign: 'left' },
+    data: salesProductB,
     series: [
         {
             type: 'line',
@@ -62,14 +107,17 @@ const chart3 = AgCharts.create({
             yKey: 'sales',
         },
     ],
-});
+};
 
-const chart4 = AgCharts.create({
-    ...options,
-    data: datasetD,
-    title: { text: 'Operational Efficiency by Quarter' },
-    subtitle: { text: 'Key efficiency metrics over past quarters' },
+AgCharts.create(chartOptions3);
+
+const chartOptions4: AgChartOptions = {
+    ...commonOptions,
+    ...bottomChartAxis,
     container: document.getElementById('myChart4'),
+    sync: { enabled: true, groupId: 'costs' },
+    subtitle: { text: 'Product B', textAlign: 'left' },
+    data: costsProductB,
     series: [
         {
             type: 'line',
@@ -77,4 +125,6 @@ const chart4 = AgCharts.create({
             yKey: 'efficiency',
         },
     ],
-});
+};
+
+AgCharts.create(chartOptions4);

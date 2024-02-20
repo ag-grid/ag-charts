@@ -67,7 +67,7 @@ export class ChartOverlays {
         container.style.userSelect = 'none';
         container.style.animation = `ag-charts-loading ${
             ADD_PHASE.animationDuration * animationManager.defaultDuration
-        }ms linear ${ADD_PHASE.animationDelay * animationManager.defaultDuration}ms both`;
+        }ms linear 50ms both`;
 
         const matrix = this.createElement(container, 'span');
         matrix.style.width = '45px';

@@ -18,7 +18,7 @@ The default position of a Legend is below the chart. However, this can be change
 
 ```js
 legend: {
-    position: 'bottom'; // 'top', 'right', 'left',
+    position: 'bottom', // 'top', 'right', 'left',
 }
 ```
 
@@ -46,9 +46,9 @@ legend: {
     item: {
         maxWidth: 130,
         paddingX: 32,
-        paddingY: 8;
+        paddingY: 8,
         marker: {
-            padding: 8;
+            padding: 8,
         }
     }
 }
@@ -64,7 +64,7 @@ It is possible to display a line in the Legend item, representing the stroke sty
 legend: {
     item: {
         showSeriesStroke: true,
-    }
+    },
 }
 ```
 
@@ -101,9 +101,9 @@ legend: {
             fontWeight: 'bold',
             fontFamily: 'Papyrus',
             color: 'red',
-            maxLength: 25
-        }
-    }
+            maxLength: 25,
+        },
+    },
 }
 ```
 
@@ -130,8 +130,8 @@ legend: {
         line: {
             strokeWidth: 4,
             length: 10,
-        }
-    }
+        },
+    },
 }
 ```
 
@@ -147,8 +147,8 @@ legend: {
         line: {
             strokeWidth: 4,
             length: 15,
-        }
-    }
+        },
+    },
 }
 ```
 
@@ -161,7 +161,7 @@ By default, when a Legend item is clicked, the visibility of the series associat
 Additionally, when a Legend item is double clicked, the chart will show that series only. Double clicking again will show all of the series.
 
 {% note %}
-NOTE: Pie series sectors do not toggle when a legend item is double clicked.
+NOTE: Pie series sectors do not toggle when a Legend item is double clicked.
 {% /note %}
 
 To disable series toggling on Legend item click or double click, set the `legend.item.toggleSeriesVisible` property to `false`.
@@ -182,7 +182,7 @@ legend: {
 }
 ```
 
-The `legendItemClick` and `legendItemDoubleClick` events can be used to listen to legend item clicks and double clicks, respectively. For more information see [Legend Events](./events/#legend-events---legenditemclick-and-legenditemdoubleclick).
+The `legendItemClick` and `legendItemDoubleClick` events can be used to listen to Legend item clicks and double clicks, respectively. For more information see [Legend Events](./events/#legend-events---legenditemclick-and-legenditemdoubleclick).
 
 In this scenario, both the listener and the item toggle behaviour will occur. In the above example, clicking or double clicking a Legend item will toggle the series visibility as well as logging a message to the browser console via a `legendItemClick` event.
 

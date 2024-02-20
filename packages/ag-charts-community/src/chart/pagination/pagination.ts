@@ -18,7 +18,8 @@ import {
 } from '../../util/validation';
 import { ChartUpdateType } from '../chartUpdateType';
 import type { CursorManager } from '../interaction/cursorManager';
-import type { InteractionEvent, InteractionManager } from '../interaction/interactionManager';
+import type { InteractionEvent } from '../interaction/interactionManager';
+import type { RegionManager } from '../interaction/regionManager';
 import type { Marker } from '../marker/marker';
 import { Triangle } from '../marker/triangle';
 import { type MarkerShape, getMarker } from '../marker/util';
@@ -112,7 +113,7 @@ export class Pagination extends BaseProperties {
     constructor(
         private readonly chartUpdateCallback: (type: ChartUpdateType) => void,
         private readonly pageUpdateCallback: (newPage: number) => void,
-        private readonly interactionManager: InteractionManager,
+        private readonly regionManager: RegionManager,
         private readonly cursorManager: CursorManager
     ) {
         super();
@@ -127,9 +128,10 @@ export class Pagination extends BaseProperties {
 
         this.group.append([this.nextButton, this.previousButton, this.labelNode]);
 
+        const region = this.regionManager.addRegion('pagination', this.group);
         this.destroyFns.push(
-            this.interactionManager.addListener('click', (event) => this.onPaginationClick(event)),
-            this.interactionManager.addListener('hover', (event) => this.onPaginationMouseMove(event))
+            region.addListener('click', (event) => this.onPaginationClick(event)),
+            region.addListener('hover', (event) => this.onPaginationMouseMove(event))
         );
 
         this.update();

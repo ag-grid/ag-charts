@@ -338,6 +338,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.attachLegend('category', Legend);
         this.legend = this.legends.get('category');
 
+        const { All } = InteractionState;
         SizeMonitor.observe(this.element, (size) => this.rawResize(size));
         this._destroyFns.push(
             this.dataService.addListener('data-load', (event) => {
@@ -352,7 +353,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
             this.interactionManager.addListener('wheel', () => this.resetPointer()),
             this.interactionManager.addListener('drag', () => this.resetPointer()),
-            this.interactionManager.addListener('contextmenu', () => this.resetPointer()),
+            this.interactionManager.addListener('contextmenu', (event) => this.onContextMenu(event), All),
 
             this.animationManager.addListener('animation-frame', () => {
                 this.update(ChartUpdateType.SCENE_RENDER);
@@ -636,7 +637,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 const tooltipMeta = this.tooltipManager.getTooltipMeta(this.id);
 
                 if (performUpdateType <= ChartUpdateType.SERIES_UPDATE && tooltipMeta !== undefined) {
-                    this.handlePointer(tooltipMeta.lastPointerEvent);
+                    this.handlePointer(tooltipMeta.lastPointerEvent, true);
                 }
                 splits['↖'] = performance.now();
             // fallthrough
@@ -1094,14 +1095,28 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
+    private onContextMenu(event: InteractionEvent<'contextmenu'>): void {
+        this.tooltipManager.removeTooltip(this.id);
+
+        // If there is already a context menu visible, then re-pick the highlighted node.
+        // We check InteractionState.Default too just in case we were in ContextMenu and the
+        // mouse hasn't moved since (see AG-10233).
+        const { Default, ContextMenu } = InteractionState;
+        if (this.interactionManager.getState() & (Default | ContextMenu)) {
+            this.checkSeriesNodeRange(event, (_series, datum) => {
+                this.highlightManager.updateHighlight(this.id, datum);
+            });
+        }
+    }
+
     private lastInteractionEvent?: InteractionEvent<'hover'> = undefined;
     private pointerScheduler = debouncedAnimationFrame(() => {
         if (this.lastInteractionEvent) {
-            this.handlePointer(this.lastInteractionEvent);
+            this.handlePointer(this.lastInteractionEvent, false);
             this.lastInteractionEvent = undefined;
         }
     });
-    protected handlePointer(event: PointerOffsets) {
+    protected handlePointer(event: PointerOffsets, redisplay: boolean) {
         if (this.interactionManager.getState() !== InteractionState.Default) {
             return;
         }
@@ -1114,6 +1129,11 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 this.resetPointer(highlightOnly);
             }
         };
+
+        if (redisplay && this.animationManager.isActive()) {
+            disablePointer();
+            return;
+        }
 
         if (!hoverRect?.containsPoint(offsetX, offsetY)) {
             disablePointer();
@@ -1584,6 +1604,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.applySeriesValues(series, diff);
             series.markNodeDataDirty();
             seriesInstances.push(series);
+        }
+        // Ensure declaration order is set, this is used for correct z-index behavior for combo charts.
+        for (let idx = 0; idx < seriesInstances.length; idx++) {
+            seriesInstances[idx]._declarationOrder = idx;
         }
 
         debug(`AgChartV2.applySeries() - final series instances`, seriesInstances);

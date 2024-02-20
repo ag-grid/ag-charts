@@ -59,6 +59,11 @@ export function isAgPolarChartOptions(input: AgChartOptions): input is AgPolarCh
     return CHART_TYPES.isPolar(specifiedType) || isEnterprisePolar(specifiedType);
 }
 
+export function isAgPolarChartOptionsWithSeriesBasedLegend(input: AgChartOptions): input is AgPolarChartOptions {
+    const specifiedType = optionsType(input);
+    return isAgPolarChartOptions(input) && specifiedType !== 'pie' && specifiedType !== 'donut';
+}
+
 export function isSeriesOptionType(input?: string): input is NonNullable<SeriesType> {
     if (input == null) {
         return false;

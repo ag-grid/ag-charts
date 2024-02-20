@@ -1357,6 +1357,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
                     strokeOpacity: this.properties.strokeOpacity,
                     strokeWidth: this.properties.strokeWidth,
                 },
+                legendItemName: legendItemKey != null ? datum[legendItemKey] : undefined,
             });
         }
 
@@ -1364,12 +1365,12 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
     }
 
     onLegendItemClick(event: LegendItemClickChartEvent) {
-        const { enabled, itemId, series } = event;
+        const { enabled, itemId, series, legendItemName } = event;
 
         if (series.id === this.id) {
             this.toggleSeriesItem(itemId, enabled);
-        } else if (series.type === 'donut') {
-            this.toggleOtherSeriesItems(series as DonutSeries, itemId, enabled);
+        } else if (legendItemName != null) {
+            this.toggleOtherSeriesItems(legendItemName, enabled);
         }
     }
 
@@ -1378,22 +1379,14 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
         this.nodeDataRefresh = true;
     }
 
-    toggleOtherSeriesItems(series: DonutSeries, itemId: number, enabled: boolean): void {
+    toggleOtherSeriesItems(legendItemName: string, enabled: boolean): void {
         if (!this.properties.legendItemKey || !this.dataModel) {
-            return;
-        }
-
-        const datumToggledLegendItemValue =
-            series.properties.legendItemKey &&
-            series.data?.find((_, index) => index === itemId)[series.properties.legendItemKey];
-
-        if (!datumToggledLegendItemValue) {
             return;
         }
 
         const legendItemIdx = this.dataModel.resolveProcessedDataIndexById(this, `legendItemValue`).index;
         this.processedData?.data.forEach(({ values }, datumItemId) => {
-            if (values[legendItemIdx] === datumToggledLegendItemValue) {
+            if (values[legendItemIdx] === legendItemName) {
                 this.toggleSeriesItem(datumItemId, enabled);
             }
         });

@@ -167,9 +167,10 @@ export function pathFadeInAnimation<T>(
     { id }: { id: string },
     subId: string,
     animationManager: AnimationManager,
-    selection: Selection<Path, T>[] | Path[]
+    selection: Selection<Path, T>[] | Path[],
+    phase: 'add' | 'trailing' = 'add'
 ) {
-    staticFromToMotion(id, subId, animationManager, selection, { opacity: 0 }, { opacity: 1 }, { phase: 'add' });
+    staticFromToMotion(id, subId, animationManager, selection, { opacity: 0 }, { opacity: 1 }, { phase });
 }
 
 export function pathFadeOutAnimation<T>(

@@ -97,7 +97,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
-            hasHighlightedLabels: true,
             hasMarkers: true,
             pathsPerSeries: 2,
             directionKeys: DEFAULT_DIRECTION_KEYS,
