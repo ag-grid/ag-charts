@@ -444,7 +444,7 @@ export class CartesianChart extends Chart {
         axisThickness = Math.ceil(axisThickness);
         newAxisWidths[position] = (newAxisWidths[position] ?? 0) + axisThickness;
 
-        axis.gridPadding = (axisWidths[position] ?? 0) - (newAxisWidths[position] ?? 0);
+        axis.gridPadding = (axisWidths[position] ?? 0) - newAxisWidths[position];
 
         return { clipSeries, axisThickness, axisOffset, primaryTickCount };
     }

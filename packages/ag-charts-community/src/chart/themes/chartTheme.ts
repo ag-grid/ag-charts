@@ -9,10 +9,10 @@ import type {
 import { deepClone, jsonWalk } from '../../util/json';
 import { mergeDefaults } from '../../util/object';
 import { isArray, isObject } from '../../util/type-guards';
-import { AXIS_TYPES, getAxisThemeTemplate } from '../factory/axisTypes';
-import { CHART_TYPES, type ChartType, getChartDefaults } from '../factory/chartTypes';
-import { getLegendThemeTemplates } from '../factory/legendTypes';
-import { getSeriesThemeTemplate } from '../factory/seriesTypes';
+import { axisRegistry } from '../factory/axisRegistry';
+import { type ChartType, chartDefaults, chartTypes } from '../factory/chartTypes';
+import { legendRegistry } from '../factory/legendRegistry';
+import { seriesRegistry } from '../factory/seriesRegistry';
 import { CARTESIAN_AXIS_TYPE, FONT_SIZE, FONT_WEIGHT, POSITION } from './constants';
 import { DEFAULT_FILLS, DEFAULT_STROKES } from './defaultColors';
 import {
@@ -63,13 +63,13 @@ type ChartTypeConfig = {
 };
 const CHART_TYPE_CONFIG: { [k in ChartType]: ChartTypeConfig } = {
     get cartesian(): ChartTypeConfig {
-        return { seriesTypes: CHART_TYPES.cartesianTypes, commonOptions: ['zoom', 'navigator'] };
+        return { seriesTypes: chartTypes.cartesianTypes, commonOptions: ['zoom', 'navigator'] };
     },
     get polar(): ChartTypeConfig {
-        return { seriesTypes: CHART_TYPES.polarTypes, commonOptions: [] };
+        return { seriesTypes: chartTypes.polarTypes, commonOptions: [] };
     },
     get hierarchy(): ChartTypeConfig {
-        return { seriesTypes: CHART_TYPES.hierarchyTypes, commonOptions: [] };
+        return { seriesTypes: chartTypes.hierarchyTypes, commonOptions: [] };
     },
 };
 const CHART_TYPE_SPECIFIC_COMMON_OPTIONS = Object.values(CHART_TYPE_CONFIG).reduce<
@@ -350,7 +350,7 @@ export class ChartTheme {
                 applyOverrides(seriesTypes, cleanedCommon);
             }
 
-            CHART_TYPES.seriesTypes.forEach((s) => {
+            chartTypes.seriesTypes.forEach((s) => {
                 const seriesType = s as keyof AgChartThemeOverrides;
                 if (overrides[seriesType]) {
                     defaults[seriesType] = mergeDefaults(overrides[seriesType], defaults[seriesType]);
@@ -366,7 +366,7 @@ export class ChartTheme {
 
     private createChartConfigPerChartType(config: AgChartThemeOverrides) {
         Object.entries(CHART_TYPE_CONFIG).forEach(([nextType, { seriesTypes }]) => {
-            const typeDefaults = getChartDefaults(nextType as ChartType) as any;
+            const typeDefaults = chartDefaults.get(nextType as ChartType) as any;
 
             seriesTypes.forEach((seriesType) => {
                 const alias = seriesType as keyof AgChartThemeOverrides;
@@ -381,9 +381,9 @@ export class ChartTheme {
         const getChartTypeDefaults = (chartType: ChartType) => {
             return {
                 axes: {},
-                ...getLegendThemeTemplates(),
+                ...legendRegistry.getThemeTemplates(),
                 ...ChartTheme.getChartDefaults(),
-                ...getChartDefaults(chartType),
+                ...chartDefaults.get(chartType),
             };
         };
 
@@ -392,16 +392,16 @@ export class ChartTheme {
             const result: Record<string, { series?: {}; axes?: {} }> = {};
             for (const seriesType of seriesTypes) {
                 result[seriesType] = mergeDefaults(
-                    getSeriesThemeTemplate(seriesType),
+                    seriesRegistry.getThemeTemplate(seriesType),
                     result[seriesType] ?? deepClone(chartDefaults)
                 );
 
                 const { axes } = result[seriesType] as { axes: Record<string, {}> };
 
-                for (const axisType of AXIS_TYPES.axesTypes) {
+                for (const axisType of axisRegistry.keys()) {
                     axes[axisType] = mergeDefaults(
                         axes[axisType],
-                        getAxisThemeTemplate(axisType),
+                        axisRegistry.getThemeTemplate(axisType),
                         chartType === 'cartesian' && (ChartTheme.cartesianAxisDefault as any)[axisType]
                     );
                 }
@@ -411,9 +411,9 @@ export class ChartTheme {
         };
 
         return mergeDefaults(
-            getOverridesByType('cartesian', CHART_TYPES.cartesianTypes),
-            getOverridesByType('polar', CHART_TYPES.polarTypes),
-            getOverridesByType('hierarchy', CHART_TYPES.hierarchyTypes)
+            getOverridesByType('cartesian', chartTypes.cartesianTypes),
+            getOverridesByType('polar', chartTypes.polarTypes),
+            getOverridesByType('hierarchy', chartTypes.hierarchyTypes)
         );
     }
 
