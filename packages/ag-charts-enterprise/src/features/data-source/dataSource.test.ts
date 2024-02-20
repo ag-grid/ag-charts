@@ -1,8 +1,7 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import { type AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgCartesianChartOptions, type AgChartOptions, AgCharts } from 'ag-charts-community';
 import {
-    IMAGE_SNAPSHOT_DEFAULTS,
     clickAction,
     delay,
     extractImageData,
@@ -20,7 +19,7 @@ describe('DataSource', () => {
     let chart: any;
     const ctx = setupMockCanvas();
 
-    const EXAMPLE_OPTIONS: AgChartOptions = {
+    const EXAMPLE_OPTIONS: AgCartesianChartOptions = {
         dataSource: {
             // Set undocumented options to instantly resolve for tests
             requestThrottle: 0,
@@ -91,7 +90,7 @@ describe('DataSource', () => {
         await waitForChartStability(chart);
 
         const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        expect(imageData).toMatchImageSnapshot();
     };
 
     it('should load data asynchronously', async () => {
@@ -107,6 +106,37 @@ describe('DataSource', () => {
         await prepareChart({
             getData: () => response,
         });
+        await response;
+        await compare();
+    });
+
+    it('should clip asynchronous data outside domain', async () => {
+        const response = delay(1).then(() => [
+            { time: new Date('2024-01-01 00:00:00'), price: 0 },
+            { time: new Date('2024-01-02 00:00:00'), price: 50 },
+            { time: new Date('2024-01-03 00:00:00'), price: 25 },
+            { time: new Date('2024-01-04 00:00:00'), price: 75 },
+            { time: new Date('2024-01-05 00:00:00'), price: 50 },
+            { time: new Date('2024-01-06 00:00:00'), price: 25 },
+            { time: new Date('2024-01-07 00:00:00'), price: 50 },
+        ]);
+        await prepareChart(
+            {
+                getData: () => response,
+            },
+            {
+                ...EXAMPLE_OPTIONS,
+                axes: [
+                    {
+                        ...EXAMPLE_OPTIONS.axes![0],
+                        type: 'number',
+                        min: 40,
+                        max: 100,
+                    },
+                    EXAMPLE_OPTIONS.axes![1],
+                ],
+            }
+        );
         await response;
         await compare();
     });
