@@ -47,7 +47,7 @@ jobs:
 
             - name: Install Dependencies
               run: |
-                  yarn global add prettier@3.2.5 @trivago/prettier-plugin-sort-imports@^4.2.0 prettier-plugin-astro@^0.12.1
+                  yarn install --ignore-scripts
 
             - name: Create Branch
               id: create_branch
