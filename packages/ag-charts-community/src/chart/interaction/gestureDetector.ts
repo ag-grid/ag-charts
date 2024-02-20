@@ -87,7 +87,6 @@ export class GestureDetector extends BaseManager<GestureEventTypes, GestureEvent
                 return [touches[1], touches[0]];
             }
         }
-        return undefined;
     }
 
     private copyTouchData(event: TouchEvent) {

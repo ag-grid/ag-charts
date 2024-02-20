@@ -268,8 +268,7 @@ class AgChartsInternal {
         return result;
     }
 
-    private static async prepareResizedChart(chartProxy: AgChartInstanceProxy, opts: DownloadOptions = {}) {
-        const { chart } = chartProxy;
+    private static async prepareResizedChart({ chart }: AgChartInstanceProxy, opts: DownloadOptions = {}) {
         const { width = chart.width, height = chart.height } = opts;
 
         const options: ChartExtendedOptions = mergeDefaults(
@@ -286,8 +285,8 @@ class AgChartsInternal {
         );
 
         const cloneProxy = AgChartsInternal.createOrUpdate(options);
-        cloneProxy.chart.zoomManager.updateZoom(chartProxy.chart.zoomManager.getZoom()); // sync zoom
-        chartProxy.chart.series.forEach((series, index) => {
+        cloneProxy.chart.zoomManager.updateZoom(chart.zoomManager.getZoom()); // sync zoom
+        chart.series.forEach((series, index) => {
             if (series.visible !== true) {
                 cloneProxy.chart.series[index].visible = series.visible; // sync series visibility
             }

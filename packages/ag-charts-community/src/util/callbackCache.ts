@@ -16,7 +16,7 @@ export class CallbackCache {
                 return result;
             } catch (e) {
                 Logger.warnOnce(`User callback errored, ignoring`, e);
-                return undefined;
+                return;
             }
         };
 

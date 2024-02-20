@@ -11,11 +11,11 @@ export enum RedrawType {
     MAJOR, // Significant change in rendering.
 }
 
-type SceneChangeDetectionOptions = {
+type SceneChangeDetectionOptions<T = any> = {
     redraw?: RedrawType;
     type?: 'normal' | 'transform' | 'path' | 'font';
     convertor?: (o: any) => any;
-    changeCb?: (o: any) => any;
+    changeCb?: (o: T) => any;
     checkDirtyOnAssignment?: boolean;
 };
 
@@ -31,14 +31,14 @@ function functionConstructorAvailable() {
 
 const STRING_FUNCTION_USEABLE = functionConstructorAvailable();
 
-export function SceneChangeDetection(opts?: SceneChangeDetectionOptions) {
+export function SceneChangeDetection<T = any>(opts?: SceneChangeDetectionOptions<T>) {
     const { changeCb, convertor } = opts ?? {};
 
-    return function (target: any, key: string) {
+    return function (target: T, key: string) {
         // `target` is either a constructor (static member) or prototype (instance member)
         const privateKey = `__${key}`;
 
-        if (target[key]) {
+        if (target[key as keyof T]) {
             return;
         }
 
@@ -118,7 +118,7 @@ function prepareSlowGetSet(target: any, key: string, privateKey: string, opts?: 
                 this._dirtyFont = true;
                 this.markDirty(this, redraw);
             }
-            if (changeCb) changeCb(this);
+            changeCb?.(this);
         }
         if (checkDirtyOnAssignment && value != null && value._dirty > RedrawType.NONE)
             this.markDirty(value, value._dirty);

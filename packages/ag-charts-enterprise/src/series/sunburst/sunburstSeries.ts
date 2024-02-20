@@ -268,7 +268,9 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_Scene.Group,
             const { depth } = node;
             const labelDatum = labelData[index];
             const angleData = this.angleData[index];
-            if (depth == null || angleData == null) return undefined;
+            if (depth == null || angleData == null) {
+                return;
+            }
 
             const innerRadius = depth * radiusScale + baseInset;
             const outerRadius = (depth + 1) * radiusScale - baseInset;
@@ -326,7 +328,9 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_Scene.Group,
                 sizeFittingHeight
             );
 
-            if (formatting == null) return undefined;
+            if (formatting == null) {
+                return;
+            }
 
             const { width, height, meta: labelPlacement, label, secondaryLabel } = formatting;
 

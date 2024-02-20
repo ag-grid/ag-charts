@@ -269,7 +269,7 @@ export class Animation<T extends AnimationValue> implements IAnimation {
 
     private interpolateValue(a: any, b: any) {
         if (a === undefined || b === undefined) {
-            return undefined;
+            return;
         }
 
         try {

@@ -82,7 +82,7 @@ export function maximumValueSatisfying<T>(
     // Binary search of layouts returning the largest value
 
     if (from > to) {
-        return undefined;
+        return;
     }
     let min = from;
     let max = to;
@@ -155,7 +155,7 @@ export function formatStackedLabels<Meta, FormatterParams>(
         (labelProps.minimumFontSize ?? labelProps.fontSize) +
         (secondaryLabelProps.minimumFontSize ?? secondaryLabelProps.fontSize);
     if (minimumHeight > sizeFittingHeight(minimumHeight + heightAdjust).height - heightAdjust) {
-        return undefined;
+        return;
     }
 
     const fontSizeCandidates = generateLabelSecondaryLabelFontSizeCandidates(labelProps, secondaryLabelProps);
@@ -194,7 +194,7 @@ export function formatStackedLabels<Meta, FormatterParams>(
         const availableHeight = sizeFitting.height - heightAdjust;
 
         if (labelLineHeight + secondaryLabelLineHeight > availableHeight) {
-            return undefined;
+            return;
         }
 
         if (label == null || label.fontSize !== labelFontSize) {
@@ -230,7 +230,7 @@ export function formatStackedLabels<Meta, FormatterParams>(
         }
 
         if (label == null || label.width > availableWidth || label.height > availableHeight) {
-            return undefined;
+            return;
         }
 
         if (secondaryLabel == null || secondaryLabel.fontSize !== secondaryLabelFontSize) {
@@ -266,13 +266,13 @@ export function formatStackedLabels<Meta, FormatterParams>(
         }
 
         if (secondaryLabel == null) {
-            return undefined;
+            return;
         }
 
         const totalLabelHeight = label.height + secondaryLabel.height;
 
         if (secondaryLabel.width > availableWidth || totalLabelHeight > availableHeight) {
-            return undefined;
+            return;
         }
 
         return {
@@ -311,7 +311,7 @@ export function formatSingleLabel<Meta, FormatterParams>(
         const availableHeight = sizeFitting.height - sizeAdjust;
 
         if (lineHeight > availableHeight) {
-            return undefined;
+            return;
         }
 
         const allowTruncation = fontSize === minimumFontSize;
@@ -327,7 +327,7 @@ export function formatSingleLabel<Meta, FormatterParams>(
         );
 
         if (lines == null) {
-            return undefined;
+            return;
         }
 
         const text = lines.join('\n');
@@ -339,7 +339,7 @@ export function formatSingleLabel<Meta, FormatterParams>(
         const height = lineHeight * lines.length;
 
         if (size.width > availableWidth || height > availableHeight) {
-            return undefined;
+            return;
         }
 
         return [{ text, fontSize, lineHeight, width, height }, sizeFitting.meta];

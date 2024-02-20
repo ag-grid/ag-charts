@@ -166,8 +166,6 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
         this.updateCategoryGridLines();
 
         this.resetSelectionNodes();
-
-        return undefined;
     }
 
     private computedLayout: ComputedGroupAxisLayout | undefined;

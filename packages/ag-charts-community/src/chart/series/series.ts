@@ -755,7 +755,7 @@ export abstract class Series<
     }
 
     getMinRect(): BBox | undefined {
-        return undefined;
+        return;
     }
 
     protected _nodeDataDependencies?: NodeDataDependencies;

@@ -250,17 +250,17 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
     private static getDatumKey(datum: ErrorBarNodeDatum, key: string | undefined, offset: number): number | undefined {
         // Check if the user input datum has the error value for `key`:
         if (key === undefined) {
-            return undefined;
+            return;
         }
         const value: unknown = datum.datum[key];
         if (value === undefined) {
-            return undefined;
+            return;
         }
 
         // The datum has an error value for `key`. Validate this user input value:
         if (typeof value !== 'number') {
             _Util.Logger.warnOnce(`Found [${key}] error value of type ${typeof value}. Expected number type`);
-            return undefined;
+            return;
         }
 
         return value + offset;

@@ -155,6 +155,6 @@ export abstract class PolarCrossLine implements _ModuleSupport.CrossLine {
     }
 
     calculateLayout(_visible: boolean): _Scene.BBox | undefined {
-        return undefined;
+        return;
     }
 }
