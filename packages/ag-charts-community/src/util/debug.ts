@@ -1,5 +1,5 @@
 import { toArray } from './array';
-import { getWindow } from './draw-utils';
+import { getWindow } from './dom';
 import { Logger } from './logger';
 
 type DebugLogger = ((...logContent: any[]) => void) & { check(): boolean };

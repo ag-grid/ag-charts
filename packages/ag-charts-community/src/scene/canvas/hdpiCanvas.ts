@@ -1,5 +1,5 @@
 import { Debug } from '../../util/debug';
-import { createElement, getWindow } from '../../util/draw-utils';
+import { createElement, getWindow } from '../../util/dom';
 import { hasConstrainedCanvasMemory } from '../../util/userAgent';
 
 export type Size = { width: number; height: number };

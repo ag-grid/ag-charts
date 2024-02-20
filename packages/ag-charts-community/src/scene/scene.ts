@@ -1,7 +1,7 @@
 import { toArray } from '../util/array';
 import { ascendingStringNumberUndefined, compoundAscending } from '../util/compare';
 import { Debug } from '../util/debug';
-import { downloadUrl, getWindow } from '../util/draw-utils';
+import { downloadUrl, getWindow } from '../util/dom';
 import { createId } from '../util/id';
 import { Logger } from '../util/logger';
 import { isString } from '../util/type-guards';

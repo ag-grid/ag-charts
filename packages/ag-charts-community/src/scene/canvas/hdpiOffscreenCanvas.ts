@@ -1,4 +1,4 @@
-import { getWindow } from '../../util/draw-utils';
+import { getWindow } from '../../util/dom';
 import { hasConstrainedCanvasMemory } from '../../util/userAgent';
 import { HdpiCanvas } from './hdpiCanvas';
 
