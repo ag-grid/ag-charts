@@ -1,0 +1,24 @@
+{
+    "$schema": "http://json-schema.org/schema",
+    "version": 2,
+    "title": "GenerateChartThumbnail executor",
+    "description": "Generate variants of thumbnails for a generated example.",
+    "cli": "nx",
+    "outputCapture": "pipe",
+    "type": "object",
+    "properties": {
+        "generatedExamplePath": {
+            "type": "string",
+            "description": "The source generated example to generate from.",
+            "x-completion-type": "directory",
+            "x-priority": "important"
+        },
+        "outputPath": {
+            "type": "string",
+            "description": "Where to write generated images.",
+            "x-completion-type": "directory",
+            "x-priority": "important"
+        }
+    },
+    "required": ["generatedExamplePath", "outputPath"]
+}
