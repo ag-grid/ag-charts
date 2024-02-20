@@ -1,3 +1,5 @@
+import { Debug } from '../../util/debug';
+import { createElement, getWindow } from '../../util/dom';
 import { hasConstrainedCanvasMemory } from '../../util/userAgent';
 
 export type Size = { width: number; height: number };
@@ -10,19 +12,11 @@ type OffscreenCanvasRenderingContext2D = any;
  * provide resolution independent rendering based on `window.devicePixelRatio`.
  */
 export class HdpiCanvas {
-    static document: Document = globalThis.document;
-    readonly document: Document;
-    readonly window: Window;
     readonly element: HTMLCanvasElement;
-    readonly realContext: CanvasRenderingContext2D;
     readonly context: CanvasRenderingContext2D & { verifyDepthZero?: () => void };
     readonly imageSource: HTMLCanvasElement;
 
-    // The width/height attributes of the Canvas element default to
-    // 300/150 according to w3.org.
     constructor(opts: {
-        document: Document;
-        window: Window;
         width?: number;
         height?: number;
         domLayer?: boolean;
@@ -30,28 +24,16 @@ export class HdpiCanvas {
         name?: string;
         overrideDevicePixelRatio?: number;
     }) {
-        const {
-            document,
-            window,
-            width = 600,
-            height = 300,
-            domLayer = false,
-            zIndex = 0,
-            name = undefined as undefined | string,
-            overrideDevicePixelRatio = undefined as undefined | number,
-        } = opts;
-        this.document = document;
-        this.window = window;
-        HdpiCanvas.document = document;
+        const { width = 600, height = 300, zIndex = 0, domLayer, name, overrideDevicePixelRatio } = opts;
 
         // Create canvas and immediately apply width + height to avoid out-of-memory
         // errors on iOS/iPadOS Safari.
-        this.element = document.createElement('canvas');
+        this.element = createElement('canvas');
         this.element.width = width;
         this.element.height = height;
 
-        this.realContext = this.element.getContext('2d')!;
-        this.imageSource = this.realContext.canvas;
+        this.context = this.element.getContext('2d')!;
+        this.imageSource = this.context.canvas;
 
         const { style } = this.element;
 
@@ -70,7 +52,8 @@ export class HdpiCanvas {
             }
         }
 
-        this.context = this.setPixelRatio(overrideDevicePixelRatio);
+        this._pixelRatio = hasConstrainedCanvasMemory() ? 1 : overrideDevicePixelRatio ?? getWindow('devicePixelRatio');
+        HdpiCanvas.debugContext(this.context);
         this.resize(width, height);
     }
 
@@ -93,7 +76,7 @@ export class HdpiCanvas {
     private _enabled: boolean = true;
     set enabled(value: boolean) {
         this.element.style.display = value ? 'block' : 'none';
-        this._enabled = !!value;
+        this._enabled = Boolean(value);
     }
     get enabled() {
         return this._enabled;
@@ -125,38 +108,13 @@ export class HdpiCanvas {
 
     clear() {
         this.context.save();
-        this.context.resetTransform();
+        this.context.setTransform(this._pixelRatio, 0, 0, this._pixelRatio, 0, 0);
         this.context.clearRect(0, 0, this.width, this.height);
         this.context.restore();
     }
 
-    toImage(): HTMLImageElement {
-        const img = this.document.createElement('img');
-        img.src = this.getDataURL();
-        return img;
-    }
-
     getDataURL(type?: string): string {
         return this.element.toDataURL(type);
-    }
-
-    /**
-     * @param fileName The name of the downloaded file.
-     * @param fileFormat The file format, the default is `image/png`
-     */
-    download(fileName?: string, fileFormat = 'image/png') {
-        fileName = (fileName ?? '').trim() || 'image';
-
-        const dataUrl = this.getDataURL(fileFormat);
-        const document = this.document;
-
-        const a = document.createElement('a');
-        a.href = dataUrl;
-        a.download = fileName;
-        a.style.display = 'none';
-        document.body.appendChild(a); // required for the `click` to work in Firefox
-        a.click();
-        document.body.removeChild(a);
     }
 
     // `NaN` is deliberate here, so that overrides are always applied
@@ -164,31 +122,6 @@ export class HdpiCanvas {
     _pixelRatio: number = NaN;
     get pixelRatio(): number {
         return this._pixelRatio;
-    }
-
-    /**
-     * Changes the pixel ratio of the Canvas element to the given value,
-     * or uses the window.devicePixelRatio (default), then resizes the Canvas
-     * element accordingly (default).
-     */
-    private setPixelRatio(ratio?: number) {
-        let pixelRatio = ratio ?? this.window.devicePixelRatio;
-        if (hasConstrainedCanvasMemory()) {
-            // Mobile browsers have stricter memory limits, we reduce rendering resolution to
-            // improve stability on mobile browsers. iOS Safari 12->16 are pain-points since they
-            // have memory allocation quirks - see https://bugs.webkit.org/show_bug.cgi?id=195325.
-            pixelRatio = 1;
-        }
-        this._pixelRatio = pixelRatio;
-
-        return HdpiCanvas.overrideScale(this.realContext, pixelRatio);
-    }
-
-    set pixelated(value: boolean) {
-        this.element.style.imageRendering = value ? 'pixelated' : 'auto';
-    }
-    get pixelated(): boolean {
-        return this.element.style.imageRendering === 'pixelated';
     }
 
     private _width: number = 0;
@@ -210,7 +143,7 @@ export class HdpiCanvas {
         element.height = Math.round(height * pixelRatio);
         element.style.width = width + 'px';
         element.style.height = height + 'px';
-        context.resetTransform();
+        context.setTransform(this._pixelRatio, 0, 0, this._pixelRatio, 0, 0);
 
         this._width = width;
         this._height = height;
@@ -222,72 +155,9 @@ export class HdpiCanvas {
         if (this._textMeasuringContext) {
             return this._textMeasuringContext;
         }
-        const canvas = this.document.createElement('canvas');
+        const canvas = createElement('canvas');
         this._textMeasuringContext = canvas.getContext('2d')!;
         return this._textMeasuringContext;
-    }
-
-    // Offscreen SVGTextElement for measuring text. This fallback method
-    // is at least 25 times slower than `CanvasRenderingContext2D.measureText`.
-    // Using a <span> and its `getBoundingClientRect` for text measurement
-    // is also slow and often results in a grossly incorrect measured height.
-    private static _svgText?: SVGTextElement;
-    private static get svgText(): SVGTextElement {
-        if (this._svgText) {
-            return this._svgText;
-        }
-
-        const xmlns = 'http://www.w3.org/2000/svg';
-
-        const svg = document.createElementNS(xmlns, 'svg');
-        svg.setAttribute('width', '100');
-        svg.setAttribute('height', '100');
-        // Add a descriptive class name in case someone sees this SVG element
-        // in devtools and wonders about its purpose:
-        if (svg.classList) {
-            svg.classList.add('text-measuring-svg');
-        } else {
-            svg.setAttribute('class', 'text-measuring-svg');
-        }
-        svg.style.position = 'absolute';
-        svg.style.top = '-1000px';
-        svg.style.visibility = 'hidden';
-
-        const svgText = document.createElementNS(xmlns, 'text');
-        svgText.setAttribute('x', '0');
-        svgText.setAttribute('y', '30');
-        svgText.setAttribute('text', 'black');
-
-        svg.appendChild(svgText);
-        document.body.appendChild(svg);
-
-        this._svgText = svgText;
-
-        return svgText;
-    }
-
-    private static _has?: {
-        textMetrics: boolean;
-        getTransform: boolean;
-    };
-    static get has() {
-        if (this._has) {
-            return this._has;
-        }
-        const isChrome = typeof navigator === 'undefined' || navigator.userAgent.indexOf('Chrome') > -1;
-        const isFirefox = typeof navigator !== 'undefined' && navigator.userAgent.indexOf('Firefox') > -1;
-        const isSafari = !isChrome && typeof navigator !== 'undefined' && navigator.userAgent.indexOf('Safari') > -1;
-        this._has = Object.freeze({
-            textMetrics:
-                this.textMeasuringContext.measureText('test').actualBoundingBoxDescent !== undefined &&
-                // Firefox implemented advanced TextMetrics object in v74:
-                // https://bugzilla.mozilla.org/show_bug.cgi?id=1102584
-                // but it's buggy, so we'll keep using the SVG for text measurement in Firefox for now.
-                !isFirefox &&
-                !isSafari,
-            getTransform: this.textMeasuringContext.getTransform !== undefined,
-        });
-        return this._has;
     }
 
     static measureText(
@@ -309,105 +179,39 @@ export class HdpiCanvas {
      * @param font The font shorthand string.
      */
     static getTextSize(text: string, font: string): Size {
-        if (this.has.textMetrics) {
-            const ctx = this.textMeasuringContext;
-            ctx.font = font;
-            const metrics = ctx.measureText(text);
+        const ctx = this.textMeasuringContext;
+        ctx.font = font;
+        const metrics = ctx.measureText(text);
 
-            return {
-                width: metrics.width,
-                height: metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent,
-            };
-        } else {
-            return this.measureSvgText(text, font);
-        }
-    }
-
-    private static textSizeCache: { [font: string]: { [text: string]: Size } } = {};
-
-    private static measureSvgText(text: string, font: string): Size {
-        const cache = this.textSizeCache;
-        const fontCache = cache[font];
-
-        // Note: consider not caching the size of numeric strings.
-        // For example: if (isNaN(+text)) { // skip
-
-        if (fontCache) {
-            const size = fontCache[text];
-            if (size) {
-                return size;
-            }
-        } else {
-            cache[font] = {};
-        }
-
-        const svgText = this.svgText;
-
-        svgText.style.font = font;
-        svgText.textContent = text;
-
-        // `getBBox` returns an instance of `SVGRect` with the same `width` and `height`
-        // measurements as `DOMRect` instance returned by the `getBoundingClientRect`.
-        // But the `SVGRect` instance has half the properties of the `DOMRect`,
-        // so we use the `getBBox` method.
-        const bbox = svgText.getBBox();
-        const size: Size = {
-            width: bbox.width,
-            height: bbox.height,
+        return {
+            width: metrics.width,
+            height: metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent,
         };
-
-        cache[font][text] = size;
-
-        return size;
     }
 
-    static overrideScale(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, scale: number) {
-        let depth = 0;
-        const overrides = {
-            save() {
-                this.$save();
-                depth++;
-            },
-            restore() {
-                if (depth > 0) {
-                    this.$restore();
+    static debugContext(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D) {
+        if (Debug.check('canvas')) {
+            const save = ctx.save.bind(ctx);
+            const restore = ctx.restore.bind(ctx);
+            let depth = 0;
+            Object.assign(ctx, {
+                save() {
+                    save();
+                    depth++;
+                },
+                restore() {
+                    if (depth === 0) {
+                        throw new Error('AG Charts - Unable to restore() past depth 0');
+                    }
+                    restore();
                     depth--;
-                } else {
-                    throw new Error('AG Charts - Unable to restore() past depth 0');
-                }
-            },
-            setTransform(a: number, b: number, c: number, d: number, e: number, f: number) {
-                if (typeof a === 'object') {
-                    this.$setTransform(a);
-                } else {
-                    this.$setTransform(a * scale, b * scale, c * scale, d * scale, e * scale, f * scale);
-                }
-            },
-            resetTransform() {
-                // As of Jan 8, 2019, `resetTransform` is still an "experimental technology",
-                // and doesn't work in IE11 and Edge 44.
-                this.$setTransform(scale, 0, 0, scale, 0, 0);
-            },
-            verifyDepthZero() {
-                if (depth !== 0) {
-                    throw new Error('AG Charts - Save/restore depth is non-zero: ' + depth);
-                }
-            },
-        } as any;
-
-        for (const name in overrides) {
-            if (Object.hasOwn(overrides, name)) {
-                // Save native methods under prefixed names,
-                // if this hasn't been done by the previous overrides already.
-                if (!ctx['$' + name]) {
-                    ctx['$' + name] = ctx[name];
-                }
-                // Replace native methods with overrides,
-                // or previous overrides with the new ones.
-                ctx[name] = overrides[name];
-            }
+                },
+                verifyDepthZero() {
+                    if (depth !== 0) {
+                        throw new Error(`AG Charts - Save/restore depth is non-zero: ${depth}`);
+                    }
+                },
+            });
         }
-
-        return ctx;
     }
 }

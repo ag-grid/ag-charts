@@ -5,8 +5,8 @@ import type {
     AgPolarChartOptions,
 } from '../../options/agChartOptions';
 import { Logger } from '../../util/logger';
-import { AXIS_TYPES } from '../factory/axisTypes';
-import { CHART_TYPES } from '../factory/chartTypes';
+import { axisRegistry } from '../factory/axisRegistry';
+import { chartTypes } from '../factory/chartTypes';
 import { isEnterpriseCartesian, isEnterpriseHierarchy, isEnterprisePolar } from '../factory/expectedEnterpriseModules';
 
 export type AxesOptionsTypes = NonNullable<AgCartesianChartOptions['axes']>[number];
@@ -28,7 +28,7 @@ export function isAgCartesianChartOptions(input: AgChartOptions): input is AgCar
         return true;
     }
 
-    return CHART_TYPES.isCartesian(specifiedType) || isEnterpriseCartesian(specifiedType);
+    return chartTypes.isCartesian(specifiedType) || isEnterpriseCartesian(specifiedType);
 }
 
 export function isAgHierarchyChartOptions(input: AgChartOptions): input is AgHierarchyChartOptions {
@@ -42,7 +42,7 @@ export function isAgHierarchyChartOptions(input: AgChartOptions): input is AgHie
         return true;
     }
 
-    return CHART_TYPES.isHierarchy(specifiedType) || isEnterpriseHierarchy(specifiedType);
+    return chartTypes.isHierarchy(specifiedType) || isEnterpriseHierarchy(specifiedType);
 }
 
 export function isAgPolarChartOptions(input: AgChartOptions): input is AgPolarChartOptions {
@@ -56,7 +56,7 @@ export function isAgPolarChartOptions(input: AgChartOptions): input is AgPolarCh
         return true;
     }
 
-    return CHART_TYPES.isPolar(specifiedType) || isEnterprisePolar(specifiedType);
+    return chartTypes.isPolar(specifiedType) || isEnterprisePolar(specifiedType);
 }
 
 export function isAgPolarChartOptionsWithSeriesBasedLegend(input: AgChartOptions): input is AgPolarChartOptions {
@@ -68,12 +68,12 @@ export function isSeriesOptionType(input?: string): input is NonNullable<SeriesT
     if (input == null) {
         return false;
     }
-    return CHART_TYPES.has(input);
+    return chartTypes.has(input);
 }
 
 export function isAxisOptionType(input?: string): input is NonNullable<AxesOptionsTypes>['type'] {
     if (input == null) {
         return false;
     }
-    return AXIS_TYPES.has(input);
+    return axisRegistry.has(input);
 }

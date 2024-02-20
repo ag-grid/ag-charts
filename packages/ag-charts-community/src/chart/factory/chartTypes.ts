@@ -2,51 +2,38 @@ import { mergeDefaults } from '../../util/object';
 
 export type ChartType = 'cartesian' | 'polar' | 'hierarchy';
 
-const TYPES: Record<string, ChartType> = {};
-
-const DEFAULTS: Record<string, {}> = {};
-
-export const CHART_TYPES = {
-    has(seriesType: string) {
-        return Object.hasOwn(TYPES, seriesType);
-    },
-
+class ChartTypes extends Map<string, ChartType | 'unknown'> {
+    override get(seriesType: string) {
+        return super.get(seriesType) ?? 'unknown';
+    }
     isCartesian(seriesType: string) {
-        return TYPES[seriesType] === 'cartesian';
-    },
+        return this.get(seriesType) === 'cartesian';
+    }
     isPolar(seriesType: string) {
-        return TYPES[seriesType] === 'polar';
-    },
+        return this.get(seriesType) === 'polar';
+    }
     isHierarchy(seriesType: string) {
-        return TYPES[seriesType] === 'hierarchy';
-    },
-
+        return this.get(seriesType) === 'hierarchy';
+    }
     get seriesTypes() {
-        return Object.keys(TYPES);
-    },
+        return Array.from(this.keys());
+    }
     get cartesianTypes() {
         return this.seriesTypes.filter((t) => this.isCartesian(t));
-    },
+    }
     get polarTypes() {
         return this.seriesTypes.filter((t) => this.isPolar(t));
-    },
+    }
     get hierarchyTypes() {
         return this.seriesTypes.filter((t) => this.isHierarchy(t));
-    },
-};
-
-export function registerChartSeriesType(seriesType: string, chartType: ChartType) {
-    TYPES[seriesType] = chartType;
+    }
 }
 
-export function registerChartDefaults(chartType: ChartType, defaults: {}) {
-    DEFAULTS[chartType] = mergeDefaults(defaults, DEFAULTS[chartType]);
+class ChartDefaults extends Map<ChartType, object> {
+    override set(chartType: ChartType, defaults: object) {
+        return super.set(chartType, mergeDefaults(defaults, this.get(chartType)));
+    }
 }
 
-export function getChartDefaults(chartType: ChartType) {
-    return DEFAULTS[chartType] ?? {};
-}
-
-export function getChartType(seriesType: string): ChartType | 'unknown' {
-    return TYPES[seriesType] ?? 'unknown';
-}
+export const chartTypes = new ChartTypes();
+export const chartDefaults = new ChartDefaults();

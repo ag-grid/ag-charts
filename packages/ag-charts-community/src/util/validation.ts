@@ -94,9 +94,10 @@ export const OR = (...predicates: ValidatePredicate[]) =>
 export const OBJECT = attachObjectRestrictions(
     predicateWithMessage(
         (value, ctx) => isProperties(value) || (isObject(value) && isProperties(ctx.target[ctx.property])),
-        'an object'
+        'a properties object'
     )
 );
+export const PLAIN_OBJECT = attachObjectRestrictions(predicateWithMessage((value) => isObject(value), 'an object'));
 export const BOOLEAN = predicateWithMessage(isBoolean, 'a boolean');
 export const FUNCTION = predicateWithMessage(isFunction, 'a function');
 export const STRING = predicateWithMessage(isString, 'a string');

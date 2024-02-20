@@ -5,7 +5,7 @@ import { Logger } from '../../util/logger';
 import type { InteractionEvent, InteractionManager, InteractionTypes } from './interactionManager';
 import { INTERACTION_TYPES, InteractionState } from './interactionManager';
 
-export type RegionName = 'legend' | 'pagination';
+export type RegionName = 'legend' | 'pagination' | 'series';
 
 type RegionHandler<Event extends InteractionEvent> = (event: Event) => void;
 
@@ -73,6 +73,9 @@ export class RegionManager {
         const newRegion = this.pickRegion(event.offsetX, event.offsetY);
         if (currentRegion !== undefined && newRegion?.name !== currentRegion.name) {
             currentRegion?.listeners.dispatch('leave', { ...event, type: 'leave' });
+        }
+        if (currentRegion !== undefined && newRegion?.name !== currentRegion.name) {
+            currentRegion?.listeners.dispatch('enter', { ...event, type: 'enter' });
         }
         if (newRegion !== undefined) {
             // Async dispatch to avoid blocking the event-processing thread.
