@@ -357,10 +357,10 @@ export class Tooltip {
      * Shows tooltip at the given event's coordinates.
      * If the `html` parameter is missing, moves the existing tooltip to the new position.
      */
-    show(meta: TooltipMeta, html?: string, instantly = false) {
+    show(meta: TooltipMeta, html?: string | null, instantly = false) {
         const { element, canvasElement } = this;
 
-        if (html !== undefined) {
+        if (html != null) {
             element.innerHTML = html;
         } else if (!element.innerHTML) {
             this.toggle(false);
