@@ -1,6 +1,7 @@
 import { Node } from '../scene/node';
 import type { Selection } from '../scene/selection';
 import { interpolateColor, interpolateNumber } from '../util/interpolate';
+import { Interpolating, interpolate } from '../util/interpolating';
 import { jsonDiff } from '../util/json';
 import { clamp } from '../util/number';
 import { linear } from './easing';
@@ -45,7 +46,12 @@ export const ANIMATION_PHASE_TIMINGS: Record<AnimationPhase, AnimationTiming> = 
     },
 };
 
-export type AnimationValue = number | string | undefined | Record<string, number | string | undefined>;
+export type AnimationValue =
+    | number
+    | string
+    | Interpolating
+    | undefined
+    | Record<string, number | string | Interpolating | undefined>;
 
 export enum RepeatType {
     Loop = 'loop',
@@ -233,16 +239,16 @@ export class Animation<T extends AnimationValue> implements IAnimation {
         if (typeof to !== 'object') {
             return this.interpolateValue(from, to);
         }
-        type InterpolatorTuple = [string, (d: number) => number | string];
+        type InterpolatorTuple = [string, (d: number) => number | string | Interpolating];
         const interpolatorEntries: InterpolatorTuple[] = [];
         for (const key in to) {
-            const interpolator = this.interpolateValue((from as typeof to)[key], to[key]);
+            const interpolator = this.interpolateValue((from as any)[key], (to as any)[key]);
             if (interpolator != null) {
                 interpolatorEntries.push([key, interpolator]);
             }
         }
         return (d: number) => {
-            const result: Record<string, number | string> = {};
+            const result: Record<string, number | string | Interpolating> = {};
             for (const [key, interpolator] of interpolatorEntries) {
                 result[key] = interpolator(d);
             }
@@ -253,6 +259,9 @@ export class Animation<T extends AnimationValue> implements IAnimation {
     private interpolateValue(a: any, b: any) {
         if (a === undefined || b === undefined) {
             return undefined;
+        } else if (a[interpolate] != null) {
+            const aInterpolating = a as Interpolating;
+            return (d: number) => aInterpolating[interpolate](b, d);
         }
 
         try {

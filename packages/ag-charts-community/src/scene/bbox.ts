@@ -1,4 +1,5 @@
 // For small data structs like a bounding box, objects are superior to arrays
+import { Interpolating, interpolate } from '../util/interpolating';
 import { clamp } from '../util/number';
 // in terms of performance (by 3-4% in Chrome 71, Safari 12 and by 20% in Firefox 64).
 // They are also self descriptive and harder to abuse.
@@ -20,7 +21,7 @@ type Padding = {
 
 type ShrinkOrGrowPosition = 'top' | 'left' | 'bottom' | 'right' | 'vertical' | 'horizontal';
 
-export class BBox implements DistantObject {
+export class BBox implements DistantObject, Interpolating<BBox> {
     x: number;
     y: number;
     width: number;
@@ -164,5 +165,14 @@ export class BBox implements DistantObject {
             }
         });
         return new BBox(left, top, right - left, bottom - top);
+    }
+
+    [interpolate](other: BBox, d: number) {
+        return new BBox(
+            this.x * (1 - d) + other.x * d,
+            this.y * (1 - d) + other.y * d,
+            this.width * (1 - d) + other.width * d,
+            this.height * (1 - d) + other.height * d
+        );
     }
 }

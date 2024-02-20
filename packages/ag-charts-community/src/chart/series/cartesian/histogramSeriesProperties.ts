@@ -5,6 +5,7 @@ import type {
     FontStyle,
     FontWeight,
 } from '../../../options/agChartOptions';
+import type { BBox } from '../../../scene/bbox';
 import { DropShadow } from '../../../scene/dropShadow';
 import {
     ARRAY,
@@ -30,6 +31,7 @@ export interface HistogramNodeDatum extends CartesianSeriesNodeDatum {
     readonly fill?: string;
     readonly stroke?: string;
     readonly opacity?: number;
+    readonly cornerRadiusBbox?: BBox;
     readonly strokeWidth: number;
     readonly aggregatedValue: number;
     readonly frequency: number;

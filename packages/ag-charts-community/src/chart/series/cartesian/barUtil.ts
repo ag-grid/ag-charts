@@ -3,7 +3,7 @@ import type { FromToMotionPropFn, NodeUpdateState } from '../../../motion/fromTo
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING } from '../../../motion/fromToMotion';
 import type { AgBarSeriesFormatterParams, AgBarSeriesStyle } from '../../../options/agChartOptions';
 import { ContinuousScale } from '../../../scale/continuousScale';
-import type { BBox } from '../../../scene/bbox';
+import { BBox } from '../../../scene/bbox';
 import type { DropShadow } from '../../../scene/dropShadow';
 import type { Rect } from '../../../scene/shape/rect';
 import { isNegative } from '../../../util/number';
@@ -166,7 +166,7 @@ export function collapsedStartingBarPosition(
         let y = isVertical ? startingY : datum.y;
         let width = isVertical ? datum.width : 0;
         let height = isVertical ? 0 : datum.height;
-        const opacity = datum.opacity;
+        const { cornerRadiusBbox, opacity } = datum;
 
         if (prevDatum && (isNaN(x) || isNaN(y))) {
             // Fallback
@@ -179,7 +179,7 @@ export function collapsedStartingBarPosition(
                 x += prevDatum.width;
             }
         }
-        return { x, y, width, height, opacity };
+        return { x, y, width, height, cornerRadiusBbox, opacity };
     };
 
     return { isVertical, calculate, mode };
@@ -197,6 +197,7 @@ export function midpointStartingBarPosition(
                 y: isVertical ? datum.y + datum.height / 2 : datum.y,
                 width: isVertical ? datum.width : 0,
                 height: isVertical ? 0 : datum.height,
+                cornerRadiusBbox: datum.cornerRadiusBbox,
                 opacity: datum.opacity,
             };
         },
@@ -204,7 +205,14 @@ export function midpointStartingBarPosition(
     };
 }
 
-type AnimatableBarDatum = { x: number; y: number; height: number; width: number; opacity?: number };
+type AnimatableBarDatum = {
+    x: number;
+    y: number;
+    height: number;
+    width: number;
+    cornerRadiusBbox?: BBox;
+    opacity?: number;
+};
 export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(initPos: InitialPosition<T>) {
     const isRemoved = (datum?: T) => datum == null || isNaN(datum.x) || isNaN(datum.y);
 
@@ -221,6 +229,7 @@ export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(initP
             y: rect.y,
             width: rect.width,
             height: rect.height,
+            cornerRadiusBbox: rect.cornerRadiusBbox,
             opacity: rect.opacity,
         };
         if (status === 'added' && rect.previousDatum == null && initPos.mode === 'fade') {
@@ -228,6 +237,15 @@ export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(initP
             source = { ...resetBarSelectionsFn(rect, datum), opacity: 0 };
         } else if (status === 'unknown' || status === 'added') {
             source = initPos.calculate(datum, rect.previousDatum);
+        }
+
+        const previousCornerRadiusBbox = rect.previousDatum?.cornerRadiusBbox;
+        if (previousCornerRadiusBbox != null) {
+            source.cornerRadiusBbox = previousCornerRadiusBbox;
+        } else {
+            source.cornerRadiusBbox = initPos.isVertical
+                ? new BBox(source.x, source.y, source.width, 0)
+                : new BBox(source.x, source.y, 0, source.height);
         }
 
         const phase = NODE_UPDATE_STATE_TO_PHASE_MAPPING[status];
@@ -240,7 +258,15 @@ export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(initP
         } else if (status === 'removed' || isRemoved(datum)) {
             return initPos.calculate(datum, rect.previousDatum);
         }
-        return { x: datum.x, y: datum.y, width: datum.width, height: datum.height, opacity: datum.opacity };
+
+        return {
+            x: datum.x,
+            y: datum.y,
+            width: datum.width,
+            height: datum.height,
+            cornerRadiusBbox: datum.cornerRadiusBbox,
+            opacity: datum.opacity,
+        };
     };
 
     return { toFn, fromFn };
@@ -265,6 +291,9 @@ function getStartingValues(isVertical: boolean, axes: Record<ChartAxisDirection,
     return { startingX, startingY };
 }
 
-export function resetBarSelectionsFn(_node: Rect, { x, y, width, height, opacity }: AnimatableBarDatum) {
-    return { x, y, width, height, opacity };
+export function resetBarSelectionsFn(
+    _node: Rect,
+    { x, y, width, height, cornerRadiusBbox, opacity }: AnimatableBarDatum
+) {
+    return { x, y, width, height, cornerRadiusBbox, opacity };
 }
