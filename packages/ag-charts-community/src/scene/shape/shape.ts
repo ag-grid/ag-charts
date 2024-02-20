@@ -63,7 +63,6 @@ export abstract class Shape extends Node {
             const colorRegex = /(#[0-9a-f]+)|(rgba?\(.+?\))|([a-z]+)/gi;
             let c: RegExpExecArray | null;
             while ((c = colorRegex.exec(colorsPart))) {
-                console.log(c);
                 colors.push(c[0]);
             }
             this.gradient = new LinearGradient(
