@@ -328,7 +328,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         this.processors = [
             new BaseLayoutProcessor(this, this.layoutService),
-            new DataWindowProcessor(this, this.dataService, this.updateService, this.zoomManager),
+            new DataWindowProcessor(this, this.dataService, this.updateService, this.layoutService, this.zoomManager),
             new OverlaysProcessor(this, this.overlays, this.dataService, this.layoutService),
         ];
 

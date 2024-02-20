@@ -1,13 +1,21 @@
 import { ChartUpdateType } from '../chartUpdateType';
 import type { DataService } from '../data/dataService';
 import type { ZoomManager, ZoomState } from '../interaction/zoomManager';
+import type { LayoutCompleteEvent, LayoutService } from '../layout/layoutService';
 import type { UpdateService } from '../updateService';
 import type { AxisLike, ChartLike, UpdateProcessor } from './processor';
+
+type Window = {
+    min: Date;
+    max: Date;
+};
 
 export class DataWindowProcessor<D extends object> implements UpdateProcessor {
     private dirtyZoom = false;
     private dirtyDataSource = false;
-    private lastAxisZooms = new Map<string, ZoomState>();
+    private dirtyLayout = false;
+    private lastChartSize: { width: number; height: number } | undefined = undefined;
+    private lastAxisWindows = new Map<string, Window>();
 
     private destroyFns: (() => void)[] = [];
 
@@ -15,6 +23,7 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
         private readonly chart: ChartLike,
         private readonly dataService: DataService<D>,
         private readonly updateService: UpdateService,
+        private readonly layoutService: LayoutService,
         private readonly zoomManager: ZoomManager
     ) {
         this.destroyFns.push(
@@ -22,6 +31,7 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
             this.dataService.addListener('data-load', () => this.onDataLoad()),
             this.dataService.addListener('data-error', () => this.onDataError()),
             this.updateService.addListener('update-complete', () => this.onUpdateComplete()),
+            this.layoutService.addListener('layout-complete', (e) => this.onLayoutChange(e)),
             this.zoomManager.addListener('zoom-change', () => this.onZoomChange())
         );
     }
@@ -43,12 +53,23 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
     }
 
     private onUpdateComplete() {
-        if (!this.dirtyZoom && !this.dirtyDataSource) return;
+        if (!this.dirtyZoom && !this.dirtyDataSource && !this.dirtyLayout) return;
         this.updateWindow();
     }
 
     private onZoomChange() {
         this.dirtyZoom = true;
+    }
+
+    private onLayoutChange(e: LayoutCompleteEvent) {
+        if (
+            this.lastChartSize == null ||
+            this.lastChartSize.width !== e.chart.width ||
+            this.lastChartSize.width !== e.chart.width
+        ) {
+            this.dirtyLayout = true;
+        }
+        this.lastChartSize = e.chart;
     }
 
     private async updateWindow() {
@@ -62,11 +83,12 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
         if (axis) {
             const zoom = this.zoomManager.getAxisZoom(axis.id);
             window = this.getAxisWindow(axis, zoom);
-            shouldRefresh = this.shouldRefresh(axis, zoom);
+            shouldRefresh = window != null ? this.shouldRefresh(axis, window) : true;
         }
 
         this.dirtyZoom = false;
         this.dirtyDataSource = false;
+        this.dirtyLayout = false;
 
         if (!shouldRefresh) return;
 
@@ -77,21 +99,21 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
         return this.chart.axes.find((axis) => axis.type === 'time');
     }
 
-    private shouldRefresh(axis: AxisLike, zoom: ZoomState) {
+    private shouldRefresh(axis: AxisLike, window: Window) {
         if (this.dirtyDataSource) return true;
-        if (!this.dirtyZoom) return false;
+        if (!this.dirtyZoom && !this.dirtyLayout) return false;
 
-        const lastZoom = this.lastAxisZooms.get(axis.id);
-        if (lastZoom && zoom.min === lastZoom.min && zoom.max === lastZoom.max) {
+        const lastWindow = this.lastAxisWindows.get(axis.id);
+        if (lastWindow != null && window.min === lastWindow.min && window.max === lastWindow.max) {
             return false;
         }
 
-        this.lastAxisZooms.set(axis.id, zoom);
+        this.lastAxisWindows.set(axis.id, window);
 
         return true;
     }
 
-    private getAxisWindow(axis: AxisLike, zoom: ZoomState) {
+    private getAxisWindow(axis: AxisLike, zoom: ZoomState): Window | undefined {
         const domain = axis.scale.getDomain?.();
 
         if (!zoom || !domain || domain.length === 0 || isNaN(Number(domain[0]))) return;
