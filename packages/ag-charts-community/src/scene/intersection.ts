@@ -160,7 +160,7 @@ export function arcIntersections(
 
         const adjacent = x - cx;
         const opposite = y - cy;
-        const angle = normalizeAngle360(Math.atan2(opposite, adjacent));
+        const angle = Math.atan2(opposite, adjacent);
         if (isBetweenAngles(angle, startAngle, endAngle)) {
             intersections.push({ x, y });
         }
