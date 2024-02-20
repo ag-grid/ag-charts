@@ -1,0 +1,85 @@
+name: Create Release Branch
+
+on:
+    workflow_dispatch:
+        inputs:
+            version:
+                type: string
+                required: true
+                default: '9.2.0'
+            type:
+                type: 'choice'
+                required: true
+                default: 'create'
+                options:
+                    - 'create'
+                    - 'update'
+
+env:
+    NX_REJECT_UNKNOWN_LOCAL_CACHE: 0
+    NX_NO_CLOUD: true
+    NX_CLOUD_ACCESS_TOKEN: x
+    NX_BRANCH: ${{ github.ref }}
+
+jobs:
+    create_branch_and_prepare:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              id: checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Setup Node.js
+              id: setup_node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '20'
+                  cache: 'yarn'
+
+            - name: yarn install
+              id: yarn_install
+              run: yarn install --ci --prefer-offline
+
+            - name: Create Branch
+              id: create_branch
+              if: ${{ github.event.inputs.type == 'create' }}
+              uses: peterjgrainger/action-create-branch@v2.3.0
+              with:
+                  branch: b${{ github.event.inputs.version }}
+
+            - name: Merge Latest
+              id: merge_branch
+              if: ${{ github.event.inputs.type == 'update' }}
+              run: |
+                  git merge origin/latest
+
+            - name: Reset Package Version
+              id: reset_version
+              if: ${{ github.event.inputs.type == 'create' }}
+              run: |
+                  node ./tools/bump-versions.sh ${{ github.event.inputs.version }}
+
+            - name: Update Package Version
+              id: update_version
+              run: |
+                  NEW_VERSION=$(node ./tools/calculate-next-version.js)
+                  node ./tools/bump-versions.sh ${NEW_VERSION}
+                  echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_ENV
+                  echo "version=${NEW_VERSION}" >> $GITHUB_OUTPUT
+                  echo "tag=b${NEW_VERSION}" >> $GITHUB_OUTPUT
+
+            - name: Commit Changes
+              uses: EndBug/add-and-commit@v9
+              if: success()
+              with:
+                  default_author: github_actions
+                  message: Automated package version bump to ${{ steps.update_version.outputs.version }}.
+
+            - name: Tag Latest Successful Commit For Publish
+              uses: EndBug/latest-tag@latest
+              if: success()
+              with:
+                  ref: latest-beta-version
+                  description: Latest commit to pass GitHub Actions workflow on latest branch.
