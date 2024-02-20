@@ -1,4 +1,4 @@
-import { normalizeAngle360 } from '../util/angle';
+import { isBetweenAngles, normalizeAngle360 } from '../util/angle';
 import { cubicRoots } from './polyRoots';
 
 /**
@@ -128,6 +128,10 @@ export function arcIntersections(
     x2: number,
     y2: number
 ): Array<{ x: number; y: number }> {
+    if (counterClockwise) {
+        [endAngle, startAngle] = [startAngle, endAngle];
+    }
+
     // Solving the quadratic equation:
     // 1. y = k * x + y0
     // 2. (x - cx)^2 + (y - cy)^2 = r^2
@@ -154,18 +158,10 @@ export function arcIntersections(
 
         const y = k * x + y0;
 
-        const a1 = normalizeAngle360(startAngle);
-        let a2 = normalizeAngle360(endAngle);
-        let a = normalizeAngle360(Math.atan2(y, x));
-
-        // Order angles clockwise after the start angle
-        if (a2 <= a1) {
-            a2 += 2 * Math.PI;
-        }
-        if (a < a1) {
-            a += 2 * Math.PI;
-        }
-        if (counterClockwise !== (a >= a1 && a <= a2)) {
+        const adjacent = x - cx;
+        const opposite = y - cy;
+        const angle = normalizeAngle360(Math.atan2(opposite, adjacent));
+        if (isBetweenAngles(angle, startAngle, endAngle)) {
             intersections.push({ x, y });
         }
     });
