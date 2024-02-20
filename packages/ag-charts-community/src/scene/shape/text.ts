@@ -6,8 +6,8 @@ import type {
     OverflowStrategy,
     TextWrap,
 } from '../../options/chart/types';
+import { createElement } from '../../util/dom';
 import { BBox } from '../bbox';
-import { HdpiCanvas } from '../canvas/hdpiCanvas';
 import type { RenderContext } from '../node';
 import { RedrawType, SceneChangeDetection } from '../node';
 import { Shape } from './shape';
@@ -103,7 +103,7 @@ export class Text extends Shape {
             return this.lineHeight;
         }
 
-        const metrics: any = HdpiCanvas.measureText(line, this.font, this.textBaseline, this.textAlign);
+        const metrics: any = Text.measureText(line, this.font, this.textBaseline, this.textAlign);
 
         return (
             (metrics.fontBoundingBoxAscent ?? metrics.emHeightAscent) +
@@ -569,6 +569,41 @@ export class Text extends Shape {
         this.textAlign = props.textAlign;
         this.textBaseline = props.textBaseline;
     }
+
+    // 2D canvas context used for measuring text.
+    private static _textContext?: CanvasRenderingContext2D;
+    private static get textContext() {
+        return (this._textContext ??= createElement('canvas').getContext('2d')!);
+    }
+
+    static measureText(
+        text: string,
+        font: string,
+        textBaseline: CanvasTextBaseline,
+        textAlign: CanvasTextAlign
+    ): TextMetrics {
+        const ctx = this.textContext;
+        ctx.font = font;
+        ctx.textBaseline = textBaseline;
+        ctx.textAlign = textAlign;
+        return ctx.measureText(text);
+    }
+
+    /**
+     * Returns the width and height of the measured text.
+     * @param text The single-line text to measure.
+     * @param font The font shorthand string.
+     */
+    static getTextSize(text: string, font: string) {
+        const ctx = this.textContext;
+        ctx.font = font;
+        const metrics = ctx.measureText(text);
+
+        return {
+            width: metrics.width,
+            height: metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent,
+        };
+    }
 }
 
 interface TextMeasurer {
@@ -578,7 +613,7 @@ interface TextMeasurer {
 
 export function createTextMeasurer(font: string): TextMeasurer {
     const cache = new Map<string, number>();
-    const getTextSize = (text: string) => HdpiCanvas.getTextSize(text, font);
+    const getTextSize = (text: string) => Text.getTextSize(text, font);
     const getLineWidth = (text: string) => {
         if (cache.has(text)) {
             return cache.get(text)!;
@@ -615,7 +650,7 @@ function getPreciseBBox(lines: string[], x: number, y: number, textProps: TextSi
         textAlign = Text.defaultStyles.textAlign,
     } = textProps;
     for (let i = 0; i < lines.length; i++) {
-        const metrics: any = HdpiCanvas.measureText(lines[i], font, textBaseline, textAlign);
+        const metrics: any = Text.measureText(lines[i], font, textBaseline, textAlign);
 
         left = Math.max(left, metrics.actualBoundingBoxLeft);
         width = Math.max(width, metrics.width);

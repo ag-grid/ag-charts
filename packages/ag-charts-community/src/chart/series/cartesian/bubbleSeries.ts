@@ -1,10 +1,9 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import { ColorScale } from '../../../scale/colorScale';
 import { LinearScale } from '../../../scale/linearScale';
-import { HdpiCanvas } from '../../../scene/canvas/hdpiCanvas';
 import { Group } from '../../../scene/group';
 import type { Selection } from '../../../scene/selection';
-import type { Text } from '../../../scene/shape/text';
+import { Text } from '../../../scene/shape/text';
 import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { extent } from '../../../util/array';
 import { mergeDefaults } from '../../../util/object';
@@ -162,7 +161,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
                 labelName,
             });
 
-            const size = HdpiCanvas.getTextSize(String(labelText), font);
+            const size = Text.getTextSize(String(labelText), font);
             const markerSize = sizeKey ? sizeScale.convert(values[sizeDataIdx]) : marker.size;
             const fill = colorKey ? colorScale.convert(values[colorDataIdx]) : undefined;
 

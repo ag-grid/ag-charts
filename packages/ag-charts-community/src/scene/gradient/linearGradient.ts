@@ -1,9 +1,14 @@
 import { normalizeAngle360, toRadians } from '../../util/angle';
 import type { BBox } from '../bbox';
-import { Gradient } from './gradient';
+import { Gradient, type GradientColorStop } from './gradient';
 
 export class LinearGradient extends Gradient {
-    angle = 0;
+    constructor(
+        stops: GradientColorStop[],
+        public angle = 0
+    ) {
+        super(stops);
+    }
 
     createGradient(ctx: CanvasRenderingContext2D, bbox: BBox): CanvasGradient | string {
         // Gradient 0° angle starts at top according to CSS spec

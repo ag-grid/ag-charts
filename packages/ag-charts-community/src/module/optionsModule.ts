@@ -20,6 +20,7 @@ import type { AgCartesianAxisOptions } from '../options/series/cartesian/cartesi
 import type { AgPolarAxisOptions } from '../options/series/polar/polarOptions';
 import { circularSliceArray, groupBy, unique } from '../util/array';
 import { Debug } from '../util/debug';
+import { setDocument, setWindow } from '../util/dom';
 import { deepClone, jsonDiff, jsonWalk } from '../util/json';
 import { Logger } from '../util/logger';
 import { mergeArrayDefaults, mergeDefaults } from '../util/object';
@@ -494,7 +495,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private specialOverridesDefaults(options: Partial<ChartSpecialOverrides>) {
-        if (options.window == null) {
+        if (options.window != null) {
+            setWindow(options.window);
+        } else {
             if (typeof window !== 'undefined') {
                 options.window = window;
             } else if (typeof global !== 'undefined') {
@@ -503,7 +506,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 throw new Error('AG Charts - unable to resolve global window');
             }
         }
-        if (options.document == null) {
+
+        if (options.document != null) {
+            setDocument(options.document);
+        } else {
             if (typeof document !== 'undefined') {
                 options.document = document;
             } else if (typeof global !== 'undefined') {

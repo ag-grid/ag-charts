@@ -23,7 +23,7 @@ export function getWindow(): Window;
 export function getWindow<K extends keyof Window>(propertyName: K): Window[K];
 export function getWindow<K extends string>(propertyName: K): unknown;
 export function getWindow<K extends keyof Window>(propertyName?: K) {
-    return propertyName ? verifiedGlobals.window[propertyName] : verifiedGlobals.window;
+    return propertyName ? verifiedGlobals.window?.[propertyName] : verifiedGlobals.window;
 }
 
 export function createElement<K extends keyof HTMLElementTagNameMap>(tagName: K, options?: ElementCreationOptions) {
@@ -47,4 +47,12 @@ export function injectStyle(cssStyle: string) {
     styleElement.innerHTML = cssStyle;
     // Make sure these styles are injected before other styles, so it can be overridden.
     document.head.insertBefore(styleElement, document.head.querySelector('style'));
+}
+
+export function setDocument(document: Document) {
+    verifiedGlobals.document = document;
+}
+
+export function setWindow(window: Window) {
+    verifiedGlobals.window = window;
 }
