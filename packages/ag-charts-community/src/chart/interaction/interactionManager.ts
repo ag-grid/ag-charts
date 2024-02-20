@@ -1,6 +1,7 @@
 import { Debug } from '../../util/debug';
 import { injectStyle } from '../../util/dom';
 import { Logger } from '../../util/logger';
+import { partialAssign } from '../../util/object';
 import { isFiniteNumber } from '../../util/type-guards';
 import { BaseManager } from './baseManager';
 
@@ -55,12 +56,15 @@ export type PointerOffsets = {
     offsetY: number;
 };
 
+export type PointerHistoryEvent = PointerOffsets & { type: string };
+
 export type InteractionEvent<T extends InteractionTypes = InteractionTypes> = PointerOffsets & {
     type: T;
     pageX: number;
     pageY: number;
     deltaX: number;
     deltaY: number;
+    pointerHistory: PointerHistoryEvent[];
     sourceEvent: Event;
     /** Consume the event, don't notify other listeners! */
     consume(): void;
@@ -115,6 +119,12 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     private mouseDown = false;
     private touchDown = false;
     private dragStartElement?: HTMLElement;
+    private clickHistory: [PointerHistoryEvent] = [{ offsetX: NaN, offsetY: NaN, type: 'mousedown' }];
+    private dblclickHistory: [PointerHistoryEvent, PointerHistoryEvent, PointerHistoryEvent] = [
+        { offsetX: NaN, offsetY: NaN, type: 'mousedown' },
+        { offsetX: NaN, offsetY: NaN, type: 'mouseup' },
+        { offsetX: NaN, offsetY: NaN, type: 'mousedown' },
+    ];
 
     private stateQueue: InteractionState = InteractionState.Default;
 
@@ -213,6 +223,21 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         }
     }
 
+    private recordDown(event: SupportedEvent) {
+        if (event instanceof MouseEvent) {
+            partialAssign(['offsetX', 'offsetY'], this.clickHistory[0], event);
+            partialAssign(['offsetX', 'offsetY'], this.dblclickHistory[2], this.dblclickHistory[0]);
+            partialAssign(['offsetX', 'offsetY'], this.dblclickHistory[0], event);
+        }
+        this.dragStartElement = event.target as HTMLElement;
+    }
+
+    private recordUp(event: SupportedEvent) {
+        if (event instanceof MouseEvent) {
+            partialAssign(['offsetX', 'offsetY'], this.dblclickHistory[1], event);
+        }
+        this.dragStartElement = undefined;
+    }
     private decideInteractionEventTypes(event: SupportedEvent): InteractionTypes[] {
         const dragStart = 'drag-start';
 
@@ -225,11 +250,11 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
 
             case 'mousedown':
                 this.mouseDown = true;
-                this.dragStartElement = event.target as HTMLElement;
+                this.recordDown(event);
                 return [dragStart];
             case 'touchstart':
                 this.touchDown = true;
-                this.dragStartElement = event.target as HTMLElement;
+                this.recordDown(event);
                 return [dragStart];
 
             case 'touchmove':
@@ -248,7 +273,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
                     return [];
                 }
                 this.mouseDown = false;
-                this.dragStartElement = undefined;
+                this.recordUp(event);
                 return ['drag-end'];
             case 'touchend':
                 if (!this.touchDown && !this.isEventOverElement(event)) {
@@ -257,7 +282,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
                     return [];
                 }
                 this.touchDown = false;
-                this.dragStartElement = undefined;
+                this.recordUp(event);
                 return ['drag-end'];
 
             case 'mouseout':
@@ -384,6 +409,16 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
             deltaY = factorFn(event.deltaY);
         }
 
+        // AG-8880 Because we are using listeners globally on the canaves, click events are always fired
+        // whenever the mouse button is lifted. The pointerHistory allows listeners to check that click events
+        // are only fired when both the mousedown & mouseup events are in the revelant bounding area.
+        let pointerHistory: PointerHistoryEvent[] = [];
+        if (event.type === 'click') {
+            pointerHistory = this.clickHistory;
+        } else if (event.type === 'dblclick') {
+            pointerHistory = this.dblclickHistory;
+        }
+
         const builtEvent = {
             type,
             offsetX,
@@ -392,6 +427,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
             pageY,
             deltaX,
             deltaY,
+            pointerHistory,
             sourceEvent: event,
             consumed: false,
             consume() {
