@@ -40,4 +40,4 @@ for envFile in ./packages/ag-charts-website/.env* ./.env ; do
 done
 
 # Ensure consistent package.json formatting.
-yarn prettier -w $(git status -s | grep package.json | awk '{ print $2 }')
+npx prettier -w $(git status -s | grep package.json | awk '{ print $2 }')
