@@ -2,6 +2,7 @@ import type { AgTooltipRendererResult, InteractionRange, TextWrap } from '../../
 import { BBox } from '../../scene/bbox';
 import { injectStyle } from '../../util/dom';
 import { clamp } from '../../util/number';
+import { Bounds, calculatePosition } from '../../util/position';
 import { BaseProperties } from '../../util/properties';
 import {
     BOOLEAN,
@@ -141,11 +142,23 @@ const defaultTooltipCss = `
 }
 `;
 
+type TooltipPositionType =
+    | 'pointer'
+    | 'node'
+    | 'top'
+    | 'right'
+    | 'bottom'
+    | 'left'
+    | 'topLeft'
+    | 'topRight'
+    | 'bottomRight'
+    | 'bottomLeft';
+
 export type TooltipMeta = PointerOffsets & {
     showArrow?: boolean;
     lastPointerEvent: PointerOffsets;
     position?: {
-        type?: 'node' | 'pointer';
+        type?: TooltipPositionType;
         xOffset?: number;
         yOffset?: number;
     };
@@ -174,11 +187,13 @@ export function toTooltipHtml(input: string | AgTooltipRendererResult, defaults?
 
     return `${titleHtml}${contentHtml}`;
 }
-
-type TooltipPositionType = 'pointer' | 'node';
-
 export class TooltipPosition extends BaseProperties {
-    @Validate(UNION(['pointer', 'node'], 'a position type'))
+    @Validate(
+        UNION(
+            ['pointer', 'node', 'top', 'right', 'bottom', 'left', 'topLeft', 'topRight', 'bottomRight', 'bottomLeft'],
+            'a position type'
+        )
+    )
     /** The type of positioning for the tooltip. By default, the tooltip follows the pointer. */
     type: TooltipPositionType = 'pointer';
 
@@ -368,26 +383,35 @@ export class Tooltip {
             return;
         }
 
+        const positionType = meta.position?.type ?? this.position.type;
         const xOffset = meta.position?.xOffset ?? 0;
         const yOffset = meta.position?.yOffset ?? 0;
-        const positionType = meta.position?.type ?? this.position.type;
         const canvasRect = canvasElement.getBoundingClientRect();
-        const naiveLeft =
-            canvasRect.left + meta.offsetX - (positionType === 'node' ? element.clientWidth / 2 : 0) + xOffset;
-        const naiveTop =
-            canvasRect.top + meta.offsetY - (positionType === 'node' ? element.clientHeight : 0) - 8 + yOffset;
 
+        const tooltipBounds = this.getTooltipBounds({ positionType, meta, yOffset, xOffset, canvasRect });
         const windowBounds = this.getWindowBoundingBox();
         const maxLeft = windowBounds.x + windowBounds.width - element.clientWidth - 1;
         const maxTop = windowBounds.y + windowBounds.height - element.clientHeight;
 
-        const left = clamp(windowBounds.x, naiveLeft, maxLeft);
-        const top = clamp(windowBounds.y, naiveTop, maxTop);
+        const position = calculatePosition(
+            element.clientWidth,
+            element.clientHeight,
+            canvasRect.width,
+            canvasRect.height,
+            tooltipBounds
+        );
 
-        const constrained = left !== naiveLeft || top !== naiveTop;
-        const defaultShowArrow = !constrained && !xOffset && !yOffset;
+        position.x += canvasRect.x;
+        position.y += canvasRect.y;
+
+        const left = clamp(windowBounds.x, position.x, maxLeft);
+        const top = clamp(windowBounds.y, position.y, maxTop);
+
+        const constrained = left !== position.x || top !== position.y;
+        const defaultShowArrow = positionType === 'node' && !constrained && !xOffset && !yOffset;
         const showArrow = meta.showArrow ?? this.showArrow ?? defaultShowArrow;
         this.updateShowArrow(showArrow);
+
         element.style.transform = `translate(${Math.round(left)}px, ${Math.round(top)}px)`;
 
         this.enableInteraction = meta.enableInteraction ?? false;
@@ -426,5 +450,80 @@ export class Tooltip {
 
     private updateShowArrow(show: boolean) {
         this._showArrow = show;
+    }
+
+    private getTooltipBounds({
+        positionType,
+        meta,
+        yOffset,
+        xOffset,
+        canvasRect,
+    }: {
+        positionType: TooltipPositionType;
+        meta: TooltipMeta;
+        yOffset: number;
+        xOffset: number;
+        canvasRect: DOMRect;
+    }): Bounds {
+        const tooltipWidth = this.element.clientWidth;
+        const tooltipHeight = this.element.clientHeight;
+
+        const bounds: Bounds = {
+            width: tooltipWidth,
+            height: tooltipHeight,
+        };
+
+        switch (positionType) {
+            case 'node': {
+                bounds.top = meta.offsetY + yOffset - tooltipHeight - 8;
+                bounds.left = meta.offsetX + xOffset - tooltipWidth / 2;
+                return bounds;
+            }
+            case 'pointer': {
+                bounds.top = meta.offsetY + yOffset - 8;
+                bounds.left = meta.offsetX + xOffset;
+                return bounds;
+            }
+            case 'top': {
+                bounds.top = yOffset;
+                bounds.left = canvasRect.width / 2 - tooltipWidth / 2 + xOffset;
+                return bounds;
+            }
+            case 'right': {
+                bounds.top = canvasRect.height / 2 - tooltipHeight / 2 + yOffset;
+                bounds.right = xOffset;
+                return bounds;
+            }
+            case 'left': {
+                bounds.top = canvasRect.height / 2 - tooltipHeight / 2 + yOffset;
+                bounds.left = xOffset;
+                return bounds;
+            }
+            case 'bottom': {
+                bounds.bottom = yOffset;
+                bounds.left = canvasRect.width / 2 - tooltipWidth / 2 + xOffset;
+                return bounds;
+            }
+            case 'topLeft': {
+                bounds.top = yOffset;
+                bounds.left = xOffset;
+                return bounds;
+            }
+            case 'topRight': {
+                bounds.top = yOffset;
+                bounds.right = xOffset;
+                return bounds;
+            }
+            case 'bottomRight': {
+                bounds.bottom = yOffset;
+                bounds.right = xOffset;
+                return bounds;
+            }
+            case 'bottomLeft': {
+                bounds.bottom = yOffset;
+                bounds.left = xOffset;
+                return bounds;
+            }
+        }
     }
 }

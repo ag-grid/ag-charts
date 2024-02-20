@@ -109,6 +109,8 @@ export class TooltipManager {
             position,
         };
 
+        meta.enableInteraction = tooltip.interaction?.enabled ?? false;
+
         // On `line` and `scatter` series, the tooltip covers the top of error-bars when using datum.midPoint.
         // Using datum.yBar.upperPoint renders the tooltip higher up.
         const refPoint = datum.yBar?.upperPoint ?? datum.midPoint;
@@ -122,7 +124,6 @@ export class TooltipManager {
                 offsetY: Math.round(point.y),
             };
         }
-        meta.enableInteraction = tooltip.interaction?.enabled ?? false;
 
         return meta;
     }
