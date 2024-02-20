@@ -145,6 +145,7 @@ export type TooltipMeta = PointerOffsets & {
     showArrow?: boolean;
     lastPointerEvent: PointerOffsets;
     position?: {
+        type?: 'node' | 'pointer';
         xOffset?: number;
         yOffset?: number;
     };
@@ -369,9 +370,12 @@ export class Tooltip {
 
         const xOffset = meta.position?.xOffset ?? 0;
         const yOffset = meta.position?.yOffset ?? 0;
+        const positionType = meta.position?.type ?? this.position.type;
         const canvasRect = canvasElement.getBoundingClientRect();
-        const naiveLeft = canvasRect.left + meta.offsetX - element.clientWidth / 2 + xOffset;
-        const naiveTop = canvasRect.top + meta.offsetY - element.clientHeight - 8 + yOffset;
+        const naiveLeft =
+            canvasRect.left + meta.offsetX - (positionType === 'node' ? element.clientWidth / 2 : 0) + xOffset;
+        const naiveTop =
+            canvasRect.top + meta.offsetY - (positionType === 'node' ? element.clientHeight - 8 : 0) + yOffset;
 
         const windowBounds = this.getWindowBoundingBox();
         const maxLeft = windowBounds.x + windowBounds.width - element.clientWidth - 1;

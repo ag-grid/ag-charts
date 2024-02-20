@@ -120,6 +120,7 @@ export class TooltipManager {
         const { offsetX, offsetY } = event;
         const { tooltip } = datum.series.properties;
         const position = {
+            type: tooltip.position.type,
             xOffset: tooltip.position.xOffset,
             yOffset: tooltip.position.yOffset,
         };
