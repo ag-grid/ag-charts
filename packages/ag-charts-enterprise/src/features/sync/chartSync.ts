@@ -71,7 +71,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
             for (const chart of syncManager.getGroupSiblings(this.groupId)) {
                 if (!(chart.modules.get('sync') as ChartSync)?.nodeInteraction) continue;
 
-                if (!event.currentHighlight) {
+                if (!event.currentHighlight?.datum) {
                     chart.highlightManager.updateHighlight(chart.id);
                     continue;
                 }

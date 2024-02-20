@@ -1,14 +1,10 @@
 import { Logger } from './logger';
+import { mapValues } from './object';
 import { isProperties } from './properties';
 import { isArray, isDate, isFunction, isHtmlElement, isObject, isPlainObject, isRegExp } from './type-guards';
 import type { DeepPartial } from './types';
 
 const CLASS_INSTANCE_TYPE = 'class-instance';
-
-export interface JsonMergeOptions {
-    /** Contains a list of properties where deep clones should be avoided */
-    avoidDeepClone: string[];
-}
 
 /**
  * Performs a recursive JSON-diff between a source and target JSON structure.
@@ -75,10 +71,9 @@ export function deepClone<T>(source: T, options?: { shallow?: string[] }): T {
         return source.map((item) => deepClone(item, options)) as T;
     }
     if (isPlainObject(source)) {
-        return Object.entries(source).reduce<{ [key: string]: unknown }>((result, [key, value]) => {
-            result[key] = options?.shallow?.includes(key) ? shallowClone(value) : deepClone(value, options);
-            return result;
-        }, {}) as T;
+        return mapValues(source, (value, key) =>
+            options?.shallow?.includes(key as string) ? shallowClone(value) : deepClone(value, options)
+        );
     }
     return shallowClone(source);
 }
@@ -198,9 +193,7 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
     const targetType = classify(target);
     for (const property in source) {
         const propertyMatcherPath = `${matcherPath ? matcherPath + '.' : ''}${property}`;
-        if (skip.indexOf(propertyMatcherPath) >= 0) {
-            continue;
-        }
+        if (skip.includes(propertyMatcherPath)) continue;
 
         const newValue = source[property];
         const propertyPath = `${path ? path + '.' : ''}${property}`;
@@ -287,8 +280,8 @@ function keyMapper<T>(data: T[], key: string | number) {
     return data.map((dataObject: T | undefined) => dataObject?.[key as keyof T] as T);
 }
 
-type Classification = RestrictedClassification | 'function' | 'class-instance';
 type RestrictedClassification = 'array' | 'object' | 'primitive';
+type Classification = RestrictedClassification | 'function' | 'class-instance';
 /**
  * Classify the type of value to assist with handling for merge purposes.
  */

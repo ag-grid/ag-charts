@@ -1,11 +1,11 @@
 import type { BBox } from '../../scene/bbox';
-import type { Point } from '../../scene/point';
+import { StateTracker } from '../../util/state-tracker';
 import type { ErrorBoundSeriesNodeDatum, SeriesNodeDatum } from '../series/seriesTypes';
 import type { Tooltip, TooltipMeta } from '../tooltip/tooltip';
 import type { InteractionEvent, InteractionManager, PointerOffsets } from './interactionManager';
 
 interface TooltipState {
-    content: string;
+    content?: string;
     meta?: TooltipMeta;
 }
 
@@ -14,10 +14,10 @@ interface TooltipState {
  * handles conflicting tooltip requests.
  */
 export class TooltipManager {
-    private readonly states: Record<string, TooltipState> = {};
+    private readonly stateTracker = new StateTracker<TooltipState>();
+    private readonly exclusiveAreas = new Map<string, BBox>();
     private readonly tooltip: Tooltip;
-    private appliedState?: TooltipState;
-    private exclusiveAreas: Record<string, BBox> = {};
+    private appliedState: TooltipState | null = null;
     private appliedExclusiveArea?: string;
     private destroyFns: (() => void)[] = [];
 
@@ -32,31 +32,26 @@ export class TooltipManager {
     }
 
     public updateTooltip(callerId: string, meta?: TooltipMeta, content?: string) {
-        if (content == null) {
-            content = this.states[callerId]?.content;
-        }
-
-        this.states[callerId] = { content, meta };
-
+        content ??= this.stateTracker.get(callerId)?.content;
+        this.stateTracker.set(callerId, { content, meta });
         this.applyStates();
     }
 
     public updateExclusiveRect(callerId: string, area?: BBox) {
         if (area) {
-            this.exclusiveAreas[callerId] = area;
+            this.exclusiveAreas.set(callerId, area);
         } else {
-            delete this.exclusiveAreas[callerId];
+            this.exclusiveAreas.delete(callerId);
         }
     }
 
     public removeTooltip(callerId: string) {
-        delete this.states[callerId];
-
+        this.stateTracker.delete(callerId);
         this.applyStates();
     }
 
     public getTooltipMeta(callerId: string): TooltipMeta | undefined {
-        return this.states[callerId]?.meta;
+        return this.stateTracker.get(callerId)?.meta;
     }
 
     public destroy() {
@@ -66,51 +61,33 @@ export class TooltipManager {
     }
 
     private checkExclusiveRects(e: InteractionEvent<'hover'>): void {
-        let newAppliedExclusiveArea;
-        for (const [entryId, area] of Object.entries(this.exclusiveAreas)) {
-            if (!area.containsPoint(e.offsetX, e.offsetY)) {
-                continue;
-            }
+        const [newAppliedExclusiveArea] =
+            Array.from(this.exclusiveAreas).find(([_, area]) => area.containsPoint(e.offsetX, e.offsetY)) ?? [];
 
-            newAppliedExclusiveArea = entryId;
-            break;
+        if (this.appliedExclusiveArea !== newAppliedExclusiveArea) {
+            this.appliedExclusiveArea = newAppliedExclusiveArea;
+            this.applyStates();
         }
-
-        if (newAppliedExclusiveArea === this.appliedExclusiveArea) {
-            return;
-        }
-
-        this.appliedExclusiveArea = newAppliedExclusiveArea;
-        this.applyStates();
     }
 
     private applyStates() {
-        const ids = this.appliedExclusiveArea ? [this.appliedExclusiveArea] : Object.keys(this.states);
-        let contentToApply: string | undefined;
-        let metaToApply: TooltipMeta | undefined;
+        const id = this.appliedExclusiveArea ?? this.stateTracker.stateId();
+        const state = id ? this.stateTracker.get(id) : null;
 
-        // Last added entry wins.
-        ids.reverse();
-        ids.slice(0, 1).forEach((id) => {
-            const { content, meta } = this.states[id] ?? {};
-            contentToApply = content;
-            metaToApply = meta;
-        });
-
-        if (metaToApply === undefined || contentToApply === undefined) {
-            this.appliedState = undefined;
+        if (state?.meta == null || state?.content == null) {
+            this.appliedState = null;
             this.tooltip.toggle(false);
             return;
         }
 
-        if (this.appliedState?.content === contentToApply) {
+        if (this.appliedState?.content === state?.content) {
             const renderInstantly = this.tooltip.isVisible();
-            this.tooltip.show(metaToApply, undefined, renderInstantly);
+            this.tooltip.show(state?.meta, null, renderInstantly);
         } else {
-            this.tooltip.show(metaToApply, contentToApply);
+            this.tooltip.show(state?.meta, state?.content);
         }
 
-        this.appliedState = { content: contentToApply, meta: metaToApply };
+        this.appliedState = state;
     }
 
     public static makeTooltipMeta(
@@ -120,6 +97,7 @@ export class TooltipManager {
         const { offsetX, offsetY } = event;
         const { tooltip } = datum.series.properties;
         const position = {
+            type: tooltip.position.type,
             xOffset: tooltip.position.xOffset,
             yOffset: tooltip.position.yOffset,
         };
@@ -131,9 +109,9 @@ export class TooltipManager {
             position,
         };
 
-        // On line and scatter series, the tooltip covers the top of errorbars when using
-        // datum.midPoint. Using datum.yBar.upperPoint renders the tooltip higher up.
-        const refPoint: Point | undefined = datum.yBar?.upperPoint ?? datum.midPoint;
+        // On `line` and `scatter` series, the tooltip covers the top of error-bars when using datum.midPoint.
+        // Using datum.yBar.upperPoint renders the tooltip higher up.
+        const refPoint = datum.yBar?.upperPoint ?? datum.midPoint;
 
         if (tooltip.position.type === 'node' && refPoint) {
             const { x, y } = refPoint;
