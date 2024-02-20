@@ -12,10 +12,10 @@ export const day = hour * 24;
 export const week = day * 7;
 export const month = day * 30;
 
-export const dataStart = new Date('2024-01-01 00:00:00').getTime();
+export const dataStart = new Date('2019-01-01 00:00:00').getTime();
 export const dataEnd = new Date('2024-12-30 23:59:59').getTime();
 
-let seed = 1234;
+let seed = 1;
 function random() {
     seed = (seed * 16807) % 2147483647;
     return (seed - 1) / 2147483646;
@@ -26,9 +26,13 @@ const data: Array<Datum> = [];
 for (let time = dataStart; time < dataEnd; time += hour) {
     let price;
     if (data.length === 0) {
-        price = 100 + random() * 100;
+        price = 1000 + random() * 100;
+    } else if (data.length < 5) {
+        price = data[data.length - 1].price + random() * 20 - 10;
     } else {
-        price = data[data.length - 1].price + random() * 10 - 5;
+        // Take the average to ensure the coarser data doesn't fluctuate too much
+        const avg = data.slice(data.length - 5).reduce((a, v) => a + v.price, 0) / 5;
+        price = avg + (random() * 50 - 25);
     }
     data.push({ time, price });
 }

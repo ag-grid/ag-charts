@@ -1,5 +1,33 @@
 [
     {
+        "key": "AG-10518",
+        "issueType": "Task",
+        "componentsByName": ["Charts"],
+        "summary": "[Charts] Split `pie` and `donut` series",
+        "versions": ["Next"],
+        "status": "Done",
+        "resolution": "Done",
+        "features": ["Series"],
+        "moreInformation": null,
+        "deprecationNotes": null,
+        "breakingChangesNotes": "The following properties are deprecated in `pie` series. \n- `innerRadiusOffset`\n- `innerRadiusRatio`\n- `innerCircle`\n- `innerLabels`\nUse `donut` series instead.",
+        "documentationUrl": null
+    },
+    {
+        "key": "AG-10411",
+        "issueType": "Bug",
+        "componentsByName": ["Charts"],
+        "summary": "[Charts] Property values of AgPolarAxesTheme require a type field, which is redundant.",
+        "versions": ["Next"],
+        "status": "Done",
+        "resolution": "Done",
+        "features": ["API", "Standalone"],
+        "moreInformation": null,
+        "deprecationNotes": "`AgPolarAxesTheme` value types no longer require a `type` field, since it's implicit in the key of `AgPolarAxesTheme`.",
+        "breakingChangesNotes": "`AgPolarAxesTheme` value types no longer require a `type` field, since it's implicit in the key of `AgPolarAxesTheme`. Use of this field has now been deprecated.",
+        "documentationUrl": null
+    },
+    {
         "key": "AG-9765",
         "issueType": "Task",
         "summary": "[Cell Editing] Add a custom numeric editor so numeric input can be enforced for all browsers",
@@ -21,6 +49,21 @@
         "resolution": null,
         "features": null,
         "moreInformation": null,
+        "deprecationNotes": null,
+        "breakingChangesNotes": null,
+        "documentationUrl": null
+    },
+
+    {
+        "key": "AG-8251",
+        "issueType": "Task",
+        "componentsByName": ["Charts"],
+        "summary": "[Charts] Allow users to provide a data->colour map",
+        "versions": [],
+        "status": "Backlog",
+        "resolution": null,
+        "features": ["Standalone"],
+        "moreInformation": "For all charts it is currently possible to provide a colour via conditions in the formatter",
         "deprecationNotes": null,
         "breakingChangesNotes": null,
         "documentationUrl": null

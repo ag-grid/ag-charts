@@ -29,7 +29,7 @@ export class RangeMask extends Path {
     @Validate(POSITIVE_NUMBER)
     height = 30;
 
-    readonly minRange = 0.05;
+    readonly minRange = 0.001;
 
     @Validate(NUMBER)
     protected _min: number = 0;

@@ -19,7 +19,7 @@ series: [
         yLowKey: 'flatsAndMaisonettes',
         yHighKey: 'detachedHouses',
     },
-];
+],
 ```
 
 The `yLowKey` and `yHighKey` are used to retrieve the range of values for the Y axis.
@@ -52,7 +52,7 @@ series: [
         yLowName: 'Semi-detached',
         yHighName: 'Detached',
     },
-];
+],
 ```
 
 In this configuration:
@@ -88,9 +88,9 @@ series: [
             formatter: ({ itemId, value }) => {
                 return `${itemId === 'low' ? 'L' : 'H'}: ${value.toFixed(0)}`;
             }
-        };
+        },
     },
-];
+],
 ```
 
 In this configuration:

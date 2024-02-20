@@ -1,7 +1,5 @@
 ---
 import { getCollection, getEntry } from 'astro:content';
-import { $internalFramework } from '@stores/frameworkStore';
-import { getFrameworkFromInternalFramework } from '@utils/framework';
 import Layout from '../layouts/Layout.astro';
 import { PagesNavigationFromLocalStorage } from '@components/pages-navigation/PagesNavigationFromLocalStorage';
 import { getDocsPages } from '@features/docs/utils/pageData';
@@ -27,15 +25,17 @@ const versionsData: any[] = versionsContent ? versionsContent.data : [];
                 <p>See what's new in recent AG Charts versions.</p>
                 <div class={'versions'}>
                     {
-                        versionsData.map((versionInfo) => (
-                            <Version
-                                version={versionInfo.version}
-                                date={versionInfo.date}
-                                highlights={versionInfo.highlights}
-                                buttonURL={versionInfo.buttonURL}
-                                majorMinor={versionInfo.majorMinor}
-                            />
-                        ))
+                        versionsData.map((versionInfo, index) => {
+                            return (
+                                <Version
+                                    isLatest={index === 0}
+                                    version={versionInfo.version}
+                                    date={versionInfo.date}
+                                    highlights={versionInfo.highlights}
+                                    notesUrl={versionInfo.notesUrl}
+                                />
+                            );
+                        })
                     }
                 </div>
             </div>

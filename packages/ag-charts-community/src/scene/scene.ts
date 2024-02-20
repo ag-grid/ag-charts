@@ -80,6 +80,11 @@ export class Scene {
         this.canvas.download(fileName, fileFormat);
     }
 
+    /** NOTE: Integrated Charts undocumented image download method. */
+    getDataURL(type?: string): string {
+        return this.canvas.getDataURL(type);
+    }
+
     overrideDevicePixelRatio?: number;
 
     get width(): number {

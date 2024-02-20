@@ -1,11 +1,13 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
-    data: (() =>
-        new Promise(() => {
-            // Never resolve so the loading spinner remains
-        })) as any,
+    dataSource: {
+        getData: () =>
+            new Promise(() => {
+                // Never resolve so the loading spinner remains
+            }),
+    },
     series: [
         {
             xKey: 'year',

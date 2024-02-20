@@ -18,10 +18,10 @@ Three rotation approaches are available:
 
 Label skipping is performed automatically when there is a high likelihood of collisions. To disable this, set `label.avoidCollisions` to false:
 
-```json
+```js
 {
-    "label": {
-        "avoidCollisions": false
+    label: {
+        avoidCollisions: false,
     }
 }
 ```
@@ -31,10 +31,10 @@ Category axes have `autoRotate` enabled by default with the default `autoRotateA
 
 When `label.avoidCollisions` is `true`, the axis labels are dropped if they do not have a minimum of `10`px between them. This minimum gap between the axis labels can be configured using the `label.minSpacing` property:
 
-```json
+```js
 {
-    "label": {
-        "minSpacing": 20
+    label: {
+        minSpacing: 20,
     }
 }
 ```

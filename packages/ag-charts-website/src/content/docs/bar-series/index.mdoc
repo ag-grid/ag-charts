@@ -20,7 +20,7 @@ series: [
     { type: 'bar', xKey: 'quarter', yKey: 'ipad', yName: 'iPad' },
     { type: 'bar', xKey: 'quarter', yKey: 'wearables', yName: 'Wearables' },
     { type: 'bar', xKey: 'quarter', yKey: 'services', yName: 'Services' },
-];
+],
 ```
 
 In this configuration:
@@ -57,7 +57,7 @@ To stack bars enable the `stacked` series option.
 series: [
     { type: 'bar', xKey: 'quarter', yKey: 'iphone', stacked: true },
     // ...
-];
+],
 ```
 
 ## Normalised Bar
@@ -87,7 +87,7 @@ series: [
     { type: 'bar', xKey: 'quarter', yKey: 'ipad', stackGroup: 'Devices' },
     { type: 'bar', xKey: 'quarter', yKey: 'wearables', stackGroup: 'Other' },
     { type: 'bar', xKey: 'quarter', yKey: 'services', stackGroup: 'Other' },
-];
+],
 ```
 
 A matching `legendItemName` provided enables the creation of multiple bar series with synchronised legend items. When a
@@ -109,7 +109,7 @@ series: [
     { type: 'bar', xKey: 'quarter', yKey: 'iphone', stacked: true, cornerRadius: 10 },
     { type: 'bar', xKey: 'quarter', yKey: 'mac', stacked: true, cornerRadius: 10 },
     // ...
-];
+],
 ```
 
 Corner radii that don't fit within the width and height of a bar are reduced to fit.

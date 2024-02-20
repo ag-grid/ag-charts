@@ -15,7 +15,7 @@ import styles from '@design-system/modules/pipelineChangelog.module.scss';
 import { useDarkmode } from '@utils/hooks/useDarkmode';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import classnames from 'classnames';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 const COLUMN_DEFS = [
     {
@@ -23,11 +23,7 @@ const COLUMN_DEFS = [
         headerName: 'Issue',
         width: 140,
         cellRendererSelector: (params: any) => {
-            if (
-                params.node.data.moreInformation ||
-                params.node.data.deprecationNotes ||
-                params.node.data.breakingChangesNotes
-            ) {
+            if (isRowMaster(params.node.data)) {
                 return {
                     component: 'chevronButtonRenderer',
                 };
@@ -95,13 +91,20 @@ const defaultColDef = {
 
 const IS_SSR = typeof window === 'undefined';
 
-const isRowMaster = (row: any) => row.moreInformation;
+const isRowMaster = (row: any) => row.moreInformation || row.deprecationNotes || row.breakingChangesNotes;
 
 const newLinesToBreaks = (message: string) =>
     message.replaceAll('\n\r', '<br>').replaceAll('\n', '<br>').replaceAll('\r', '<br>');
 
 const detailCellRendererParams = (params: any) => {
-    let message = newLinesToBreaks(params.data.moreInformation);
+    const combinedMessages = [
+        params.data.moreInformation,
+        params.data.deprecationNotes,
+        params.data.breakingChangesNotes,
+    ]
+        .filter(Boolean)
+        .join('\n\n');
+    let message = newLinesToBreaks(combinedMessages);
 
     function makeLinksFunctional(message: any) {
         let msgArr = message.split(' ');

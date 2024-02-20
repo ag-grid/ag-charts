@@ -1,44 +1,70 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-import { marketingCampaigns, productLaunches } from './data';
+import { currentData, historicalData } from './data';
 
-const options: AgCartesianChartOptions = {
-    series: [
-        {
-            type: 'line',
-            xKey: 'quarter',
-            yKey: 'quarterlyRevenue',
-        },
-    ],
-    tooltip: {
-        enabled: false,
-    },
+const commonOptions: AgCartesianChartOptions = {
     sync: {
         axes: 'y',
         nodeInteraction: false,
     },
+    title: {
+        text: 'Renewable Fuel Sources',
+    },
+    axes: [
+        {
+            type: 'number',
+            position: 'left',
+            crosshair: { enabled: false },
+        },
+        {
+            position: 'bottom',
+            type: 'category',
+            crosshair: { enabled: false },
+            label: {
+                autoRotate: false,
+            },
+        },
+    ],
+    series: [
+        {
+            type: 'bar',
+            xKey: 'year',
+            yKey: 'Offshore wind',
+            yName: 'Offshore Wind',
+        },
+        {
+            type: 'bar',
+            xKey: 'year',
+            yKey: 'Landfill gas',
+            yName: 'Landfill Gas',
+        },
+        {
+            type: 'bar',
+            xKey: 'year',
+            yKey: 'Plant biomass',
+            yName: 'Plant Biomass',
+        },
+    ],
 };
 
-const chart1 = AgCharts.create({
-    ...options,
+const chartOptions1 = {
+    ...commonOptions,
     container: document.getElementById('myChart1'),
-    title: {
-        text: 'Quarterly Revenue vs. Product Launches',
-    },
     subtitle: {
-        text: 'Evaluating Revenue Impact of New Products Over 5 Years',
+        text: 'Historical Data',
     },
-    data: productLaunches,
-});
+    data: historicalData,
+};
 
-const chart2 = AgCharts.create({
-    ...options,
+AgCharts.create(chartOptions1);
+
+const chartOptions2 = {
+    ...commonOptions,
     container: document.getElementById('myChart2'),
-    title: {
-        text: 'Quarterly Revenue vs. Marketing Campaigns',
-    },
     subtitle: {
-        text: 'Assessing the Effectiveness of Marketing Efforts',
+        text: 'Current Data',
     },
-    data: marketingCampaigns,
-});
+    data: currentData,
+};
+
+AgCharts.create(chartOptions2);

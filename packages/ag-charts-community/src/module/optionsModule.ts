@@ -17,6 +17,7 @@ import {
     isAgCartesianChartOptions,
     isAgHierarchyChartOptions,
     isAgPolarChartOptions,
+    isAgPolarChartOptionsWithSeriesBasedLegend,
     isAxisOptionType,
     isSeriesOptionType,
 } from '../chart/mapping/types';
@@ -31,7 +32,7 @@ import { Debug } from '../util/debug';
 import { deepClone, jsonDiff, jsonWalk } from '../util/json';
 import { Logger } from '../util/logger';
 import { mergeArrayDefaults, mergeDefaults } from '../util/object';
-import { isEnumValue, isFiniteNumber, isObject, isPlainObject, isString } from '../util/type-guards';
+import { isEnumValue, isFiniteNumber, isObject, isPlainObject, isString, isSymbol } from '../util/type-guards';
 import type { BaseModule, ModuleInstance } from './baseModule';
 import { enterpriseModule } from './enterpriseModule';
 import type { AxisContext, ModuleContextWithParent } from './moduleContext';
@@ -102,8 +103,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.processAxesOptions(this.processedOptions, axesThemes);
         this.processSeriesOptions(this.processedOptions);
 
-        // Disable legend by default for single series cartesian charts
-        if (isAgCartesianChartOptions(this.processedOptions) && this.processedOptions.legend?.enabled == null) {
+        // Disable legend by default for single series cartesian charts and polar charts which display legend items per series rather than data items
+        if (
+            (isAgCartesianChartOptions(this.processedOptions) ||
+                isAgPolarChartOptionsWithSeriesBasedLegend(this.processedOptions)) &&
+            this.processedOptions.legend?.enabled == null
+        ) {
             this.processedOptions.legend ??= {};
             this.processedOptions.legend.enabled = this.processedOptions.series!.length > 1;
         }
@@ -149,6 +154,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.seriesTypeIntegrity(options);
         this.soloSeriesIntegrity(options);
         this.removeDisabledOptions(options);
+        this.removeLeftoverSymbols(options);
 
         if (
             options.series?.some((s) => s.type === 'bullet') &&
@@ -479,6 +485,21 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 }
             },
             { skip: ['data', 'theme'] }
+        );
+    }
+
+    private removeLeftoverSymbols(options: Partial<T>) {
+        jsonWalk(
+            options,
+            (optionsNode) => {
+                if (!optionsNode || !isObject(optionsNode)) return;
+                for (const [key, value] of Object.entries(optionsNode)) {
+                    if (isSymbol(value)) {
+                        delete optionsNode[key as keyof T];
+                    }
+                }
+            },
+            { skip: ['data'] }
         );
     }
 

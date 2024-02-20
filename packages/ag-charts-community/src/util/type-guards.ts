@@ -63,3 +63,7 @@ export function isEnumKey<T extends object>(enumObject: T, enumKey: keyof T): en
 export function isEnumValue<T extends object>(enumObject: T, enumValue: unknown): enumValue is T[keyof T] {
     return Object.values(enumObject).includes(enumValue);
 }
+
+export function isSymbol(value: unknown): value is symbol {
+    return typeof value === 'symbol';
+}

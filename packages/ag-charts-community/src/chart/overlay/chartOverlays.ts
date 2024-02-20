@@ -69,7 +69,7 @@ export class ChartOverlays {
         container.style.boxSizing = 'border-box';
         container.style.font = '13px Verdana, sans-serif'; // FONT_SIZE.MEDIUM
         container.style.userSelect = 'none';
-        container.style.animation = `ag-charts-loading ${duration}ms linear ${delay}ms both`;
+        container.style.animation = `ag-charts-loading ${duration}ms linear 50ms both`;
 
         const matrix = this.createElement(container, 'span');
         matrix.style.width = '45px';

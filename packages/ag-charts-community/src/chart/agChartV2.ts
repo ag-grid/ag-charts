@@ -5,6 +5,7 @@ import { ChartOptions } from '../module/optionsModule';
 import type { AgChartInstance, AgChartOptions, DownloadOptions, ImageDataUrlOptions } from '../options/agChartOptions';
 import { Debug } from '../util/debug';
 import { createDeprecationWarning } from '../util/deprecation';
+import { deepClone, jsonWalk } from '../util/json';
 import { Logger } from '../util/logger';
 import { mergeDefaults } from '../util/object';
 import type { DeepPartial } from '../util/types';
@@ -224,6 +225,21 @@ class AgChartsInternal {
     }
 
     static updateUserDelta(proxy: AgChartInstanceProxy, deltaOptions: DeepPartial<AgChartOptions>) {
+        deltaOptions = deepClone(deltaOptions, { shallow: ['data'] });
+
+        jsonWalk(
+            deltaOptions,
+            (node) => {
+                if (typeof node !== 'object') return;
+                for (const [key, value] of Object.entries(node)) {
+                    if (typeof value === 'undefined') {
+                        Object.assign(node, { [key]: Symbol('UNSET') });
+                    }
+                }
+            },
+            { skip: ['data'] }
+        );
+
         const { chart } = proxy;
         const lastUpdateOptions = chart.getOptions();
         const userOptions = mergeDefaults(deltaOptions, lastUpdateOptions);
@@ -237,12 +253,9 @@ class AgChartsInternal {
      */
     static download(proxy: AgChartInstanceProxy, opts?: DownloadOptions) {
         AgChartsInternal.prepareResizedChart(proxy, opts)
-            .then((maybeClone) => {
-                maybeClone.chart.scene.download(opts?.fileName, opts?.fileFormat);
-
-                if (maybeClone !== proxy) {
-                    maybeClone.destroy();
-                }
+            .then((clone) => {
+                clone.chart.scene.download(opts?.fileName, opts?.fileFormat);
+                clone.destroy();
             })
             .catch(Logger.errorOnce);
     }
@@ -260,15 +273,9 @@ class AgChartsInternal {
         return result;
     }
 
-    private static async prepareResizedChart(
-        chartProxy: AgChartInstanceProxy,
-        opts: DownloadOptions | ImageDataUrlOptions = {}
-    ) {
+    private static async prepareResizedChart(chartProxy: AgChartInstanceProxy, opts: DownloadOptions = {}) {
         const { chart } = chartProxy;
         const { width = chart.width, height = chart.height } = opts;
-        if (chart.scene.canvas.pixelRatio === 1 && chart.width === width && chart.height === height) {
-            return chartProxy;
-        }
 
         const options: ChartExtendedOptions = mergeDefaults(
             {
@@ -284,6 +291,10 @@ class AgChartsInternal {
         );
 
         const cloneProxy = AgChartsInternal.createOrUpdate(options);
+        cloneProxy.chart.zoomManager.updateZoom(chartProxy.chart.zoomManager.getZoom()); // sync zoom
+        chartProxy.chart.series.forEach((series, index) => {
+            cloneProxy.chart.series[index].visible = series.visible; // sync series visibility
+        });
         await cloneProxy.chart.waitForUpdate();
         return cloneProxy;
     }

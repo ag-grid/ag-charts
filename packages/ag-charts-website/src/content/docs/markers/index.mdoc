@@ -8,13 +8,13 @@ Marker attributes such as `shape`, `size`, `fill` and `stroke` are configurable 
 
 ```js
 series: [
-    //...
+    // ...
     marker: {
         shape: 'square', // defaults to 'circle'
         size: 20,
         fill: 'red',
-        stroke: 'maroon'
-    }
+        stroke: 'maroon',
+    },
 ]
 ```
 
@@ -31,7 +31,7 @@ Notice how the shape and colour of the legend markers match the shape and colour
 It's possible to define custom marker shapes with relative ease. All you have to do is extend the `Marker` class and define a single method called `updatePath`, for example to draw a heart:
 
 ```js
-import { Marker } from './marker';
+import { Marker } from 'ag-charts-community';
 
 export class Heart extends Marker {
     toRadians(degrees) {
@@ -61,7 +61,7 @@ Inside the marker config of a series we then use the marker's constructor functi
 ```js
 marker: {
     shape: Heart,
-    size: 16
+    size: 16,
 }
 ```
 

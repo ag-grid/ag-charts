@@ -142,14 +142,22 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         const { x, width } = this;
         const visibleRange = rs.computeVisibleRangeBBox();
 
-        if (!(this.minHandleDragging || this.maxHandleDragging)) {
-            if (minHandle.containsPoint(offsetX, offsetY)) {
-                this.minHandleDragging = true;
-            } else if (maxHandle.containsPoint(offsetX, offsetY)) {
+        if (this.minHandleDragging || this.maxHandleDragging) return;
+
+        if (minHandle.zIndex < maxHandle.zIndex) {
+            if (maxHandle.containsPoint(offsetX, offsetY)) {
                 this.maxHandleDragging = true;
-            } else if (visibleRange.containsPoint(offsetX, offsetY)) {
-                this.panHandleOffset = (offsetX - x) / width - min;
+            } else if (minHandle.containsPoint(offsetX, offsetY)) {
+                this.minHandleDragging = true;
             }
+        } else if (minHandle.containsPoint(offsetX, offsetY)) {
+            this.minHandleDragging = true;
+        } else if (maxHandle.containsPoint(offsetX, offsetY)) {
+            this.maxHandleDragging = true;
+        }
+
+        if (!this.minHandleDragging && !this.maxHandleDragging && visibleRange.containsPoint(offsetX, offsetY)) {
+            this.panHandleOffset = (offsetX - x) / width - min;
         }
     }
 

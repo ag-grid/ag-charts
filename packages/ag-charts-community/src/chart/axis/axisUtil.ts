@@ -1,5 +1,5 @@
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING } from '../../motion/fromToMotion';
-import type { FromToFns, NodeUpdateState } from '../../motion/fromToMotion';
+import type { FromToFns } from '../../motion/fromToMotion';
 import type { Group } from '../../scene/group';
 import type { Line } from '../../scene/shape/line';
 import type { Text } from '../../scene/shape/text';
@@ -57,14 +57,6 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
         const [min = ctx.min, max = ctx.max] = findMinMax(range ?? []);
         return y < min || y > max;
     };
-    const calculateStatus = (node: Text, datum: AxisLabelDatum, status: NodeUpdateState): NodeUpdateState => {
-        if (status !== 'removed' && outOfBounds(node.translationY, node.datum.range)) {
-            return 'removed';
-        } else if (status !== 'added' && outOfBounds(datum.translationY, datum.range)) {
-            return 'added';
-        }
-        return status;
-    };
     const tick: FromToFns<Line, any, AxisNodeDatum> = {
         fromFn(node, datum, status) {
             // Default to starting at the same position that the node is currently in.
@@ -106,7 +98,6 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
     const label: FromToFns<Text, Partial<Omit<AxisLabelDatum, 'range'>>, AxisLabelDatum> = {
         fromFn(node, newDatum, status) {
             const datum: AxisLabelDatum = node.previousDatum ?? newDatum;
-            status = calculateStatus(node, newDatum, status);
 
             // Default to starting at the same position that the node is currently in.
             const x = datum.x;
@@ -141,7 +132,6 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
             const translationY = Math.round(datum.translationY);
             let rotation = 0;
             let opacity = 1;
-            status = calculateStatus(node, datum, status);
 
             if (status === 'added') {
                 opacity = 1;
