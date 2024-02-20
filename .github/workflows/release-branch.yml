@@ -45,10 +45,6 @@ jobs:
                   node-version: '20'
                   cache: 'yarn'
 
-            - name: yarn install
-              id: yarn_install
-              run: yarn install --ci --prefer-offline
-
             - name: Create Branch
               id: create_branch
               if: ${{ github.event.inputs.type == 'create' }}
