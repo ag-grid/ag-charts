@@ -730,7 +730,7 @@ export class Legend extends BaseProperties {
         const pageBBox = BBox.merge(visibleChildBBoxes);
         if (!pageBBox.containsPoint(x, y)) {
             // We're not in-between legend items.
-            return undefined;
+            return;
         }
 
         // Fallback to returning closest match to the left/up.

@@ -126,7 +126,7 @@ export class Scene {
         const { mode } = this.opts;
         const layeredModes = ['composite', domCompositeIdentifier, advancedCompositeIdentifier];
         if (!layeredModes.includes(mode)) {
-            return undefined;
+            return;
         }
 
         const { zIndex = this._nextZIndex++, name, zIndexSubOrder, getComputedOpacity, getVisibility } = opts;

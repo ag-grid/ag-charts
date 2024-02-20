@@ -29,7 +29,7 @@ import { BaseProperties } from '../util/properties';
 import { ActionOnSet, type ActionOnSetOptions } from '../util/proxy';
 import { debouncedAnimationFrame, debouncedCallback } from '../util/render';
 import { SizeMonitor } from '../util/sizeMonitor';
-import { isFiniteNumber, isFunction } from '../util/type-guards';
+import { isDefined, isFiniteNumber, isFunction } from '../util/type-guards';
 import { BOOLEAN, OBJECT, UNION, Validate } from '../util/validation';
 import { Caption } from './caption';
 import type { ChartAnimationPhase } from './chartAnimationPhase';
@@ -1377,24 +1377,21 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     protected getMinRect() {
-        const minRects = this.series.map((series) => series.getMinRect()).filter((rect) => rect !== undefined);
-        if (!minRects.length) return undefined;
-        return new BBox(
-            0,
-            0,
-            minRects.reduce((max, rect) => Math.max(max, rect!.width), 0),
-            minRects.reduce((max, rect) => Math.max(max, rect!.height), 0)
-        );
+        const minRects = this.series.map((series) => series.getMinRect()).filter(isDefined);
+        if (minRects.length) {
+            return new BBox(
+                0,
+                0,
+                minRects.reduce((max, rect) => Math.max(max, rect.width), 0),
+                minRects.reduce((max, rect) => Math.max(max, rect.height), 0)
+            );
+        }
     }
 
     private filterMiniChartSeries(series: AgChartOptions['series'] | undefined): AgChartOptions['series'] | undefined;
     private filterMiniChartSeries(series: AgChartOptions['series']): AgChartOptions['series'];
     private filterMiniChartSeries(series: any[] | undefined): any[] | undefined {
-        if (series != null) {
-            return series.filter((s) => s.showInMiniChart !== false);
-        } else {
-            return series;
-        }
+        return series?.filter((s) => s.showInMiniChart !== false);
     }
 
     applyOptions(chartOptions: ChartOptions) {

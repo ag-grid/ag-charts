@@ -97,7 +97,6 @@ function validateChartTheme(value: unknown): string | ChartTheme | AgChartTheme 
     }
 
     Logger.warn(`invalid theme value type ${typeof value}, expected object or string.`);
-    return undefined;
 }
 
 export function getChartTheme(unvalidatedValue: unknown): ChartTheme {
@@ -112,7 +111,7 @@ export function getChartTheme(unvalidatedValue: unknown): ChartTheme {
         return value;
     }
 
-    if (value === undefined || typeof value === 'string') {
+    if (value == null || typeof value === 'string') {
         const stockTheme = themes[value as AgChartThemeName];
         if (stockTheme) {
             return stockTheme();

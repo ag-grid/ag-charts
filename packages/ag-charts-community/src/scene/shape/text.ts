@@ -308,7 +308,7 @@ export class Text extends Shape {
         );
 
         if (wrapResult == null) {
-            return undefined;
+            return;
         }
 
         cumulativeHeight = wrapResult.cumulativeHeight;
@@ -428,13 +428,13 @@ export class Text extends Shape {
 
         const truncateLastLine = () => {
             if (!canOverflow) {
-                return undefined;
+                return;
             }
 
             const lastLine = currentLine.join(' ');
             const { text } = Text.truncateLine(lastLine, maxWidth, measurer, 'force');
             if (text == null) {
-                return undefined;
+                return;
             }
 
             currentLine.splice(0, currentLine.length, text);
@@ -504,7 +504,7 @@ export class Text extends Shape {
                 }
                 const { text } = Text.truncateLine(word, maxWidth, measurer, 'force');
                 if (text == null) {
-                    return undefined;
+                    return;
                 }
                 currentLine.push(text);
                 if (i < words.length - 1) {
@@ -512,7 +512,7 @@ export class Text extends Shape {
                 }
                 break;
             } else {
-                return undefined;
+                return;
             }
         }
 

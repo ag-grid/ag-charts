@@ -495,7 +495,7 @@ export class DataModel<
         const start = performance.now();
 
         if (groupByKeys && this.keys.length === 0) {
-            return undefined;
+            return;
         }
 
         let processedData: ProcessedData<D> = this.extractData(data, sources);

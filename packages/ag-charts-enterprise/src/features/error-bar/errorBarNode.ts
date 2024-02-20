@@ -94,7 +94,7 @@ export class ErrorBarNode extends _Scene.Group {
     private getFormatterParams(formatters: Formatters, highlighted: boolean): AgErrorBarFormatterParams | undefined {
         const { datum } = this;
         if (datum === undefined || (formatters.formatter === undefined && formatters.cap.formatter === undefined)) {
-            return undefined;
+            return;
         }
         const { xLowerKey, xLowerName, xUpperKey, xUpperName, yLowerKey, yLowerName, yUpperKey, yUpperName } =
             formatters;
