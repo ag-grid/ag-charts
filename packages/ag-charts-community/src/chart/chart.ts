@@ -29,7 +29,7 @@ import { BaseProperties } from '../util/properties';
 import { ActionOnSet, type ActionOnSetOptions } from '../util/proxy';
 import { debouncedAnimationFrame, debouncedCallback } from '../util/render';
 import { SizeMonitor } from '../util/sizeMonitor';
-import { isDefined, isFiniteNumber, isFunction } from '../util/type-guards';
+import { isDefined, isFiniteNumber, isFunction, isNumber } from '../util/type-guards';
 import { BOOLEAN, OBJECT, UNION, Validate } from '../util/validation';
 import { Caption } from './caption';
 import type { ChartAnimationPhase } from './chartAnimationPhase';
@@ -948,7 +948,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         await this.updateLegend();
 
         this.dataProcessListeners.forEach((resolve) => resolve());
-        this.dataProcessListeners = [];
+        this.dataProcessListeners.clear();
     }
 
     placeLabels(): Map<Series<any>, PlacedLabel[]> {
@@ -1405,10 +1405,18 @@ export abstract class Chart extends Observable implements AgChartInstance {
         await this.updateMutex.waitForClearAcquireQueue();
     }
 
-    private dataProcessListeners: ((...args: any[]) => void)[] = [];
-    waitForDataProcess(): Promise<void> {
+    private dataProcessListeners = new Set<(...args: any[]) => void>();
+    waitForDataProcess(timeout?: number): Promise<void> {
         return new Promise((resolve) => {
-            this.dataProcessListeners.push(resolve);
+            this.dataProcessListeners.add(resolve);
+            if (isNumber(timeout)) {
+                setTimeout(() => {
+                    if (this.dataProcessListeners.has(resolve)) {
+                        this.dataProcessListeners.delete(resolve);
+                        resolve();
+                    }
+                }, timeout);
+            }
         });
     }
 

@@ -48,7 +48,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
     private async updateSiblings(groupId?: string) {
         const { syncManager } = this.moduleContext;
         for (const chart of syncManager.getGroupSiblings(groupId)) {
-            await chart.waitForDataProcess();
+            await chart.waitForDataProcess(1000);
             this.updateChart(chart);
         }
     }
