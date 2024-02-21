@@ -38,7 +38,6 @@ export function setup(opts: {
     width?: number;
     height?: number;
     document?: Document;
-    window?: Window;
     mockCtx?: MockContext;
     mockText?: boolean;
 }) {

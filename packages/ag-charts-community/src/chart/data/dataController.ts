@@ -104,7 +104,7 @@ export class DataController {
                         const id = ids[requestIdx];
                         let requestProcessedData = processedData;
                         if (needsValueExtraction) {
-                            requestProcessedData = this.extractScopedData(id, processedData);
+                            requestProcessedData = this.extractScopedData(id, processedData, ids);
                         }
                         cb({ dataModel, processedData: requestProcessedData });
                     });
@@ -121,12 +121,16 @@ export class DataController {
         invalid.forEach(({ error, reject }) => reject(error));
     }
 
-    private extractScopedData(id: string, processedData: UngroupedData<any>) {
+    private extractScopedData(id: string, processedData: UngroupedData<any>, ids: string[]) {
         const extractDatum = (datum: any): any => {
             if (Array.isArray(datum)) {
                 return datum.map(extractDatum);
             }
-            return { ...datum, ...datum[id] };
+            const extracted = { ...datum, ...datum[id] };
+            for (const otherId of ids) {
+                delete extracted[otherId];
+            }
+            return extracted;
         };
 
         const extractValues = (values: any): any => {

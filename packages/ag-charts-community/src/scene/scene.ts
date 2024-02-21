@@ -1,15 +1,18 @@
 import { toArray } from '../util/array';
 import { ascendingStringNumberUndefined, compoundAscending } from '../util/compare';
 import { Debug } from '../util/debug';
+import { downloadUrl, getWindow } from '../util/dom';
 import { createId } from '../util/id';
 import { Logger } from '../util/logger';
-import { windowValue } from '../util/window';
-import type { Size } from './canvas/hdpiCanvas';
+import { isString } from '../util/type-guards';
 import { HdpiCanvas } from './canvas/hdpiCanvas';
 import { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
 import { Group } from './group';
 import type { Node, RenderContext, ZIndexSubOrder } from './node';
 import { RedrawType } from './node';
+import { Text } from './shape/text';
+
+type Size = { width: number; height: number };
 
 enum DebugSelectors {
     SCENE = 'scene',
@@ -57,7 +60,7 @@ export class Scene {
         const {
             document,
             window,
-            mode = (windowValue('agChartsSceneRenderModel') as SceneOptions['mode']) ?? advancedCompositeIdentifier,
+            mode = (getWindow('agChartsSceneRenderModel') as SceneOptions['mode']) ?? advancedCompositeIdentifier,
             width,
             height,
             overrideDevicePixelRatio = undefined,
@@ -66,7 +69,7 @@ export class Scene {
         this.overrideDevicePixelRatio = overrideDevicePixelRatio;
 
         this.opts = { document, window, mode };
-        this.canvas = new HdpiCanvas({ document, window, width, height, overrideDevicePixelRatio });
+        this.canvas = new HdpiCanvas({ width, height, pixelRatio: overrideDevicePixelRatio });
     }
 
     set container(value: HTMLElement | undefined) {
@@ -77,12 +80,12 @@ export class Scene {
     }
 
     download(fileName?: string, fileFormat?: string) {
-        this.canvas.download(fileName, fileFormat);
+        downloadUrl(this.canvas.toDataURL(fileFormat), fileName?.trim() || 'image');
     }
 
     /** NOTE: Integrated Charts undocumented image download method. */
-    getDataURL(type?: string): string {
-        return this.canvas.getDataURL(type);
+    toDataURL(fileFormat?: string) {
+        return this.canvas.toDataURL(fileFormat);
     }
 
     overrideDevicePixelRatio?: number;
@@ -126,30 +129,42 @@ export class Scene {
         const { mode } = this.opts;
         const layeredModes = ['composite', domCompositeIdentifier, advancedCompositeIdentifier];
         if (!layeredModes.includes(mode)) {
-            return undefined;
+            return;
         }
 
         const { zIndex = this._nextZIndex++, name, zIndexSubOrder, getComputedOpacity, getVisibility } = opts;
-        const { width, height, overrideDevicePixelRatio } = this;
+        const { width, height, overrideDevicePixelRatio: pixelRatio } = this;
         const domLayer = mode === domCompositeIdentifier;
-        const advLayer = mode === advancedCompositeIdentifier;
-        const canvas =
-            !advLayer || !HdpiOffscreenCanvas.isSupported()
-                ? new HdpiCanvas({
-                      document: this.opts.document,
-                      window: this.opts.window,
-                      width,
-                      height,
-                      domLayer,
-                      zIndex,
-                      name,
-                      overrideDevicePixelRatio,
-                  })
-                : new HdpiOffscreenCanvas({
-                      width,
-                      height,
-                      overrideDevicePixelRatio,
-                  });
+        const CanvasConstructor =
+            mode === advancedCompositeIdentifier && HdpiOffscreenCanvas.isSupported()
+                ? HdpiOffscreenCanvas
+                : HdpiCanvas;
+
+        const canvas = new CanvasConstructor({
+            width,
+            height,
+            pixelRatio,
+        });
+
+        if (canvas instanceof HdpiCanvas) {
+            canvas.style(
+                domLayer
+                    ? {
+                          position: 'absolute',
+                          zIndex: String(zIndex),
+                          top: '0',
+                          left: '0',
+                          opacity: `1`,
+                          pointerEvents: 'none',
+                          userSelect: 'none',
+                      }
+                    : { display: 'block', userSelect: 'none' }
+            );
+            if (domLayer && name) {
+                canvas.element.id = name;
+            }
+        }
+
         const newLayer: SceneLayer = {
             id: this._nextLayerId++,
             name,
@@ -353,14 +368,12 @@ export class Scene {
         if (mode !== domCompositeIdentifier && layers.length > 0 && canvasCleared) {
             this.sortLayers();
             ctx.save();
-            ctx.setTransform(1 / canvas.pixelRatio, 0, 0, 1 / canvas.pixelRatio, 0, 0);
-            layers.forEach(({ canvas: { imageSource, enabled }, getComputedOpacity, getVisibility }) => {
-                if (!enabled || !getVisibility()) {
-                    return;
+            ctx.resetTransform();
+            layers.forEach(({ canvas, getComputedOpacity, getVisibility }) => {
+                if (canvas.enabled && getVisibility()) {
+                    ctx.globalAlpha = getComputedOpacity();
+                    canvas.drawImage(ctx);
                 }
-
-                ctx.globalAlpha = getComputedOpacity();
-                ctx.drawImage(imageSource, 0, 0);
             });
             ctx.restore();
 
@@ -378,8 +391,8 @@ export class Scene {
         if (root) {
             this.debug('Scene.render() - after', {
                 redrawType: RedrawType[root.dirty],
-                canvasCleared,
                 tree: this.buildTree(root),
+                canvasCleared,
             });
         }
     }
@@ -425,7 +438,7 @@ export class Scene {
                 `Layers: ${detailedStats ? pct(layersRendered, layersSkipped) : this.layers.length}`,
                 detailedStats ? `Nodes: ${pct(nodesRendered, nodesSkipped)}` : null,
             ].filter((v): v is string => v != null);
-            const statsSize: [string, Size][] = stats.map((t) => [t, HdpiCanvas.getTextSize(t, ctx.font)]);
+            const statsSize: [string, Size][] = stats.map((t) => [t, Text.getTextSize(t, ctx.font)]);
             const width = Math.max(...statsSize.map(([, { width }]) => width));
             const height = statsSize.reduce((total, [, { height }]) => total + height, 0);
 
@@ -459,13 +472,13 @@ export class Scene {
             return n instanceof Group && n.name != null && match === n.name;
         };
 
-        const sceneNodeHighlight = toArray(windowValue('agChartsSceneDebug')).flatMap((name) =>
-            name === 'layout' ? ['seriesRoot', 'legend', 'root', /.*Axis-\d+-axis.*/] : name
+        const sceneNodeHighlight = toArray(getWindow('agChartsSceneDebug') as Array<string | RegExp>).flatMap((name) =>
+            isString(name) && name === 'layout' ? ['seriesRoot', 'legend', 'root', /.*Axis-\d+-axis.*/] : name
         );
         for (const next of sceneNodeHighlight) {
             if (typeof next === 'string' && debugNodes[next] != null) continue;
 
-            const predicate = typeof next === 'string' ? stringPredicate(next) : regexpPredicate(next);
+            const predicate = isString(next) ? stringPredicate(next) : regexpPredicate(next);
             const nodes = this.root?.findNodes(predicate);
             if (!nodes || nodes.length === 0) {
                 Logger.log(`Scene.render() - no debugging node with id [${next}] in scene graph.`);

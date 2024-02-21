@@ -23,36 +23,24 @@ export abstract class Shape extends Node {
      * has been applied (using the `restoreOwnStyles` method).
      * These static defaults are meant to be inherited by subclasses.
      */
-    protected static defaultStyles = Object.assign(
-        {},
-        {
-            fill: 'black',
-            stroke: undefined,
-            strokeWidth: 0,
-            lineDash: undefined,
-            lineDashOffset: 0,
-            lineCap: undefined,
-            lineJoin: undefined,
-            opacity: 1,
-            fillShadow: undefined,
-        }
-    );
+    protected static defaultStyles = {
+        fill: 'black',
+        stroke: undefined,
+        strokeWidth: 0,
+        lineDash: undefined,
+        lineDashOffset: 0,
+        lineCap: undefined,
+        lineJoin: undefined,
+        opacity: 1,
+        fillShadow: undefined,
+    };
 
     /**
      * Restores the default styles introduced by this subclass.
      */
     protected restoreOwnStyles() {
-        const styles = (this.constructor as any).defaultStyles;
-        const keys = Object.getOwnPropertyNames(styles);
-
-        // getOwnPropertyNames is about 2.5 times faster than
-        // for..in with the hasOwnProperty check and in this
-        // case, where most properties are inherited, can be
-        // more than an order of magnitude faster.
-        for (let i = 0, n = keys.length; i < n; i++) {
-            const key = keys[i];
-            (this as any)[key] = styles[key];
-        }
+        const { defaultStyles } = this.constructor as typeof Shape;
+        Object.assign(this, defaultStyles);
     }
 
     @SceneChangeDetection({ redraw: RedrawType.MINOR })
@@ -61,10 +49,10 @@ export abstract class Shape extends Node {
     @SceneChangeDetection({ redraw: RedrawType.MINOR })
     strokeOpacity: number = 1;
 
-    @SceneChangeDetection({ redraw: RedrawType.MINOR, changeCb: (s: Shape) => s.updateGradient() })
-    fill: string | undefined = Shape.defaultStyles.fill;
+    @SceneChangeDetection({ redraw: RedrawType.MINOR, changeCb: (s: Shape) => s.onFillChange() })
+    fill?: string = Shape.defaultStyles.fill;
 
-    protected updateGradient() {
+    protected onFillChange() {
         const { fill } = this;
 
         let linearGradientMatch: RegExpMatchArray | null;
@@ -77,12 +65,10 @@ export abstract class Shape extends Node {
             while ((c = colorRegex.exec(colorsPart))) {
                 colors.push(c[0]);
             }
-            this.gradient = new LinearGradient();
-            this.gradient.angle = angle;
-            this.gradient.stops = colors.map((color, index) => {
-                const offset = index / (colors.length - 1);
-                return { offset, color };
-            });
+            this.gradient = new LinearGradient(
+                colors.map((color, index) => ({ color, offset: index / (colors.length - 1) })),
+                angle
+            );
         } else {
             this.gradient = undefined;
         }
@@ -101,7 +87,7 @@ export abstract class Shape extends Node {
      * unless specific looks that is achieved by having an invisible stroke is desired.
      */
     @SceneChangeDetection({ redraw: RedrawType.MINOR })
-    stroke: string | undefined = Shape.defaultStyles.stroke;
+    stroke?: string = Shape.defaultStyles.stroke;
 
     @SceneChangeDetection({ redraw: RedrawType.MINOR })
     strokeWidth: number = Shape.defaultStyles.strokeWidth;
@@ -114,28 +100,23 @@ export abstract class Shape extends Node {
      */
     align(start: number, length?: number) {
         const pixelRatio = this.layerManager?.canvas?.pixelRatio ?? 1;
-
         const alignedStart = Math.round(start * pixelRatio) / pixelRatio;
-        if (length == undefined) {
+
+        if (length == null) {
             return alignedStart;
-        }
-
-        if (length === 0) {
+        } else if (length === 0) {
             return 0;
-        }
-
-        if (length < 1) {
+        } else if (length < 1) {
             // Avoid hiding crisp shapes
             return Math.ceil(length * pixelRatio) / pixelRatio;
         }
 
-        // Account for the rounding of alignedStart by increasing length to compensate before
-        // alignment.
+        // Account for the rounding of alignedStart by increasing length to compensate before alignment.
         return Math.round((length + start) * pixelRatio) / pixelRatio - alignedStart;
     }
 
     @SceneChangeDetection({ redraw: RedrawType.MINOR })
-    lineDash: number[] | undefined = Shape.defaultStyles.lineDash;
+    lineDash?: number[] = Shape.defaultStyles.lineDash;
 
     @SceneChangeDetection({ redraw: RedrawType.MINOR })
     lineDashOffset: number = Shape.defaultStyles.lineDashOffset;

@@ -6,8 +6,6 @@ import type { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
 import type { LayerManager, RenderContext, ZIndexSubOrder } from './node';
 import { Node, RedrawType, SceneChangeDetection } from './node';
 
-type OffscreenCanvasRenderingContext2D = any;
-
 export class Group extends Node {
     static className = 'Group';
 
@@ -21,7 +19,8 @@ export class Group extends Node {
     })
     opacity: number = 1;
 
-    protected override zIndexChanged() {
+    protected override onZIndexChange() {
+        super.onZIndexChange();
         if (this.layer) {
             this._layerManager?.moveLayer(this.layer, this.zIndex, this.zIndexSubOrder);
         }
@@ -68,42 +67,36 @@ export class Group extends Node {
 
         if (scene && this.opts?.layer) {
             const { zIndex, zIndexSubOrder, name } = this.opts ?? {};
-            const getComputedOpacity = () => this.getComputedOpacity();
-            const getVisibility = () => this.getVisibility();
             this.layer = scene.addLayer({
+                name,
                 zIndex,
                 zIndexSubOrder,
-                name,
-                getComputedOpacity,
-                getVisibility,
+                getComputedOpacity: () => this.getComputedOpacity(),
+                getVisibility: () => this.getVisibility(),
             });
         }
     }
 
     protected getComputedOpacity() {
         let opacity = 1;
-        let node: Node | undefined = this;
-        do {
+        for (const node of this.traverseUp()) {
             if (node instanceof Group) {
                 opacity *= node.opacity;
             }
-        } while ((node = node.parent));
+        }
         return opacity;
     }
 
     protected getVisibility() {
-        let node: Node | undefined = this;
-        let visible = this.visible;
-        while ((node = node.parent)) {
-            if (node.visible) {
-                continue;
+        for (const node of this.traverseUp()) {
+            if (!node.visible) {
+                return false;
             }
-            visible = node.visible;
         }
-        return visible;
+        return true;
     }
 
-    protected override visibilityChanged() {
+    protected override onVisibleChange() {
         if (this.layer) {
             this.layer.enabled = this.visible;
         }
@@ -143,7 +136,7 @@ export class Group extends Node {
     private lastBBox?: BBox = undefined;
 
     override render(renderCtx: RenderContext) {
-        const { opts: { name = undefined } = {}, _debug: debug = () => {} } = this;
+        const { opts: { name = undefined } = {}, _debug: debug } = this;
         const { dirty, dirtyZIndex, layer, children, clipRect, dirtyTransform } = this;
         let { ctx, forceRender, clipBBox } = renderCtx;
         const { resized, stats } = renderCtx;
@@ -162,7 +155,7 @@ export class Group extends Node {
         }
 
         if (name) {
-            debug({ name, group: this, isDirty, isChildDirty, dirtyTransform, renderCtx, forceRender });
+            debug?.({ name, group: this, isDirty, isChildDirty, dirtyTransform, renderCtx, forceRender });
         }
 
         if (dirtyTransform) {
@@ -178,7 +171,7 @@ export class Group extends Node {
 
         if (!isDirty && !isChildDirty && !isChildLayerDirty && !forceRender) {
             if (name && stats) {
-                debug({ name, result: 'skipping', renderCtx, counts: this.nodeCount, group: this });
+                debug?.({ name, result: 'skipping', renderCtx, counts: this.nodeCount, group: this });
             }
 
             if (layer && stats) {
@@ -208,7 +201,7 @@ export class Group extends Node {
                 // clipBBox is in the canvas coordinate space, when we hit a layer we apply the new clipping at which point there are no transforms in play
                 const { width, height, x, y } = clipBBox;
 
-                debug(() => ({
+                debug?.(() => ({
                     name,
                     clipBBox,
                     ctxTransform: ctx.getTransform(),
@@ -216,7 +209,8 @@ export class Group extends Node {
                     group: this,
                 }));
 
-                this.clipCtx(ctx, x, y, width, height);
+                ctx.rect(x, y, width, height);
+                ctx.clip();
             }
 
             ctx.setTransform(canvasCtxTransform);
@@ -237,9 +231,10 @@ export class Group extends Node {
             const { x, y, width, height } = clipRect;
             ctx.save();
 
-            debug(() => ({ name, clipRect, ctxTransform: ctx.getTransform(), renderCtx, group: this }));
+            debug?.(() => ({ name, clipRect, ctxTransform: ctx.getTransform(), renderCtx, group: this }));
 
-            this.clipCtx(ctx, x, y, width, height);
+            ctx.rect(x, y, width, height);
+            ctx.clip();
 
             // clipBBox is in the canvas coordinate space, when we hit a layer we apply the new clipping at which point there are no transforms in play
             clipBBox = this.matrix.transformBBox(clipRect);
@@ -307,35 +302,19 @@ export class Group extends Node {
         }
 
         if (name && stats) {
-            debug({ name, result: 'rendered', skipped, renderCtx, counts: this.nodeCount, group: this });
+            debug?.({ name, result: 'rendered', skipped, renderCtx, counts: this.nodeCount, group: this });
         }
     }
 
     private sortChildren(children: Node[]) {
         this.dirtyZIndex = false;
-        children.sort((a, b) => {
-            return compoundAscending(
+        children.sort((a, b) =>
+            compoundAscending(
                 [a.zIndex, ...(a.zIndexSubOrder ?? [undefined, undefined]), a.serialNumber],
                 [b.zIndex, ...(b.zIndexSubOrder ?? [undefined, undefined]), b.serialNumber],
                 ascendingStringNumberUndefined
-            );
-        });
-    }
-
-    private clipCtx(
-        ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
-        x: number,
-        y: number,
-        width: number,
-        height: number
-    ) {
-        ctx.beginPath();
-        ctx.moveTo(x, y);
-        ctx.lineTo(x + width, y);
-        ctx.lineTo(x + width, y + height);
-        ctx.lineTo(x, y + height);
-        ctx.closePath();
-        ctx.clip();
+            )
+        );
     }
 
     static computeBBox(nodes: Node[]) {
@@ -344,17 +323,14 @@ export class Group extends Node {
         let top = Infinity;
         let bottom = -Infinity;
 
-        nodes.forEach((n) => {
-            if (!n.visible) {
-                return;
-            }
-            const bbox = n.computeTransformedBBox();
-            if (!bbox) {
-                return;
-            }
+        for (const n of nodes) {
+            if (!n.visible) continue;
 
-            const x = bbox.x;
-            const y = bbox.y;
+            const bbox = n.computeTransformedBBox();
+
+            if (!bbox) continue;
+
+            const { x, y, width, height } = bbox;
 
             if (x < left) {
                 left = x;
@@ -362,13 +338,13 @@ export class Group extends Node {
             if (y < top) {
                 top = y;
             }
-            if (x + bbox.width > right) {
-                right = x + bbox.width;
+            if (x + width > right) {
+                right = x + width;
             }
-            if (y + bbox.height > bottom) {
-                bottom = y + bbox.height;
+            if (y + height > bottom) {
+                bottom = y + height;
             }
-        });
+        }
 
         return new BBox(left, top, right - left, bottom - top);
     }

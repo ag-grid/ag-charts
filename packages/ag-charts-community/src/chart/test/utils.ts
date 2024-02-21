@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, jest } from '@jest/globals';
 import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 
-import { ANIMATION_PHASE_TIMINGS, IAnimation } from '../../motion/animation';
+import { IAnimation, PHASE_METADATA } from '../../motion/animation';
 import type {
     AgCartesianChartOptions,
     AgChartInstance,
@@ -22,6 +22,7 @@ import { AgCharts } from '../agChartV2';
 import type { Chart } from '../chart';
 import type { AgChartProxy } from '../chartProxy';
 import { AnimationManager } from '../interaction/animationManager';
+import type { PointerOffsets } from '../interaction/interactionManager';
 
 export type { Chart } from '../chart';
 export type { AgChartProxy } from '../chartProxy';
@@ -150,22 +151,33 @@ export async function waitForChartStability(chartOrProxy: Chart | AgChartProxy, 
     }
 }
 
-export function mouseMoveEvent({ offsetX, offsetY }: { offsetX: number; offsetY: number }): MouseEvent {
-    const event = new MouseEvent('mousemove', { bubbles: true });
+function makeMouseEvent<T extends 'mousedown' | 'mouseup' | 'mousemove' | 'click' | 'dblclick'>(
+    type: T,
+    { offsetX, offsetY }: PointerOffsets
+): MouseEvent {
+    const event = new MouseEvent(type, { bubbles: true });
     Object.assign(event, { offsetX, offsetY, pageX: offsetX, pageY: offsetY });
     return event;
 }
 
-export function clickEvent({ offsetX, offsetY }: { offsetX: number; offsetY: number }): MouseEvent {
-    const event = new MouseEvent('click', { bubbles: true });
-    Object.assign(event, { offsetX, offsetY, pageX: offsetX, pageY: offsetY });
-    return event;
+function mouseDownEvent(offsets: PointerOffsets): MouseEvent {
+    return makeMouseEvent('mousedown', offsets);
 }
 
-export function doubleClickEvent({ offsetX, offsetY }: { offsetX: number; offsetY: number }): MouseEvent {
-    const event = new MouseEvent('dblclick', { bubbles: true });
-    Object.assign(event, { offsetX, offsetY, pageX: offsetX, pageY: offsetY });
-    return event;
+function mouseUpEvent(offsets: PointerOffsets): MouseEvent {
+    return makeMouseEvent('mouseup', offsets);
+}
+
+function mouseMoveEvent(offsets: PointerOffsets): MouseEvent {
+    return makeMouseEvent('mousemove', offsets);
+}
+
+function clickEvent(offsets: PointerOffsets): MouseEvent {
+    return makeMouseEvent('click', offsets);
+}
+
+function doubleClickEvent(offsets: PointerOffsets): MouseEvent {
+    return makeMouseEvent('dblclick', offsets);
 }
 
 export enum WheelDeltaMode {
@@ -243,7 +255,10 @@ export function clickAction(x: number, y: number): (chart: Chart | AgChartProxy)
         const target = chart.scene.canvas.element;
         checkTargetValid(target);
 
-        target?.dispatchEvent(clickEvent({ offsetX: x, offsetY: y }));
+        const offsets = { offsetX: x, offsetY: y };
+        target?.dispatchEvent(mouseDownEvent(offsets));
+        target?.dispatchEvent(mouseUpEvent(offsets));
+        target?.dispatchEvent(clickEvent(offsets));
         return delay(50);
     };
 }
@@ -252,12 +267,17 @@ export function doubleClickAction(x: number, y: number): (chart: Chart | AgChart
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
         const target = chart.scene.canvas.element;
+        const offsets = { offsetX: x, offsetY: y };
         // A double click is always preceded by two single clicks, simulate here to ensure correct handling
-        target?.dispatchEvent(clickEvent({ offsetX: x, offsetY: y }));
-        target?.dispatchEvent(clickEvent({ offsetX: x, offsetY: y }));
+        target?.dispatchEvent(mouseDownEvent(offsets));
+        target?.dispatchEvent(mouseUpEvent(offsets));
+        target?.dispatchEvent(clickEvent(offsets));
+        target?.dispatchEvent(mouseDownEvent(offsets));
+        target?.dispatchEvent(mouseUpEvent(offsets));
+        target?.dispatchEvent(clickEvent(offsets));
         await delay(50);
         await waitForChartStability(chart);
-        target?.dispatchEvent(doubleClickEvent({ offsetX: x, offsetY: y }));
+        target?.dispatchEvent(doubleClickEvent(offsets));
         return delay(50);
     };
 }
@@ -312,7 +332,7 @@ export function spyOnAnimationManager() {
 
             // Convert test timing info to phase-relative execution timing.
             const { phase } = controller;
-            const { animationDelay } = ANIMATION_PHASE_TIMINGS[phase];
+            const { animationDelay } = PHASE_METADATA[phase];
 
             // Account for phase notional starting offset.
             let updateBy = animateParameters[0] * animateParameters[1];

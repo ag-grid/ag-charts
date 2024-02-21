@@ -96,12 +96,12 @@ export class TreemapSeries<
         const heightRatioThreshold = 3;
 
         if (label == null) {
-            return undefined;
+            return;
         } else if (
             font.fontSize > bbox.width / heightRatioThreshold ||
             font.fontSize > bbox.height / heightRatioThreshold
         ) {
-            return undefined;
+            return;
         } else {
             const { height: fontHeight } = getTextSize(label, font);
             return Math.max(fontHeight, font.fontSize);
@@ -507,7 +507,9 @@ export class TreemapSeries<
             const bbox = bboxes[index];
             const labelDatum = this.labelData?.[index];
 
-            if (bbox == null || labelDatum == null) return undefined;
+            if (bbox == null || labelDatum == null) {
+                return;
+            }
 
             if (children.length === 0) {
                 const layout = {
@@ -523,7 +525,9 @@ export class TreemapSeries<
                     { padding: tile.padding },
                     () => layout
                 );
-                if (formatting == null) return undefined;
+                if (formatting == null) {
+                    return;
+                }
 
                 const { height, label, secondaryLabel } = formatting;
                 const { textAlign, verticalAlign, padding } = tile;
@@ -565,7 +569,9 @@ export class TreemapSeries<
                 const { padding, textAlign } = group;
 
                 const groupTitleHeight = this.groupTitleHeight(node, bbox);
-                if (groupTitleHeight == null) return undefined;
+                if (groupTitleHeight == null) {
+                    return;
+                }
 
                 const innerWidth = bbox.width - 2 * padding;
                 const { text } = Text.wrap(labelDatum.label, bbox.width - 2 * padding, Infinity, group.label, 'never');
@@ -585,7 +591,7 @@ export class TreemapSeries<
                     textAlign,
                 };
             } else {
-                return undefined;
+                return;
             }
         });
 

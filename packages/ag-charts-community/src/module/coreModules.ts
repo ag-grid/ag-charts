@@ -25,7 +25,7 @@ export interface AxisModule extends BaseModule {
     identifier: string;
     instanceConstructor: AxisConstructor;
 
-    themeTemplate: {};
+    themeTemplate?: {};
 }
 
 export interface LegendModule extends BaseModule {

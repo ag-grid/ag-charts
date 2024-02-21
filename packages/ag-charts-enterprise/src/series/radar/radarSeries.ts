@@ -611,6 +611,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
             from: 0,
             to: 1,
             phase: 'initial',
+            collapsable: false,
             onUpdate: (ratio) => this.animatePaths(ratio),
             onStop: () => this.animatePaths(1),
         });

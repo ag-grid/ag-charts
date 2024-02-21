@@ -59,7 +59,7 @@ export class SeriesStateManager {
 
         const visibleGroupsSet = new Set<number>();
         const visibleSameStackSet = new Set<number>();
-        for (const [_, entry] of Object.entries(this.groups[type] ?? {})) {
+        for (const entry of Object.values(this.groups[type] ?? {})) {
             if (!entry.visible) continue;
 
             visibleGroupsSet.add(entry.grouping.groupIndex);
@@ -68,7 +68,7 @@ export class SeriesStateManager {
                 visibleSameStackSet.add(entry.grouping.stackIndex);
             }
         }
-        const visibleGroups = [...visibleGroupsSet.values()];
+        const visibleGroups = Array.from(visibleGroupsSet);
 
         visibleGroups.sort((a, b) => a - b);
 

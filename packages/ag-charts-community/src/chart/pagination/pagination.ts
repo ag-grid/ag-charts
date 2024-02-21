@@ -1,5 +1,4 @@
 import type { AgChartLegendOrientation, FontStyle, FontWeight } from '../../options/agChartOptions';
-import { HdpiCanvas } from '../../scene/canvas/hdpiCanvas';
 import { Group } from '../../scene/group';
 import type { Node } from '../../scene/node';
 import { Text } from '../../scene/shape/text';
@@ -123,7 +122,7 @@ export class Pagination extends BaseProperties {
             fontSize: 12,
             fontFamily: 'Verdana, sans-serif',
             fill: 'black',
-            y: HdpiCanvas.has.textMetrics ? 1 : 0,
+            y: 1,
         });
 
         this.group.append([this.nextButton, this.previousButton, this.labelNode]);

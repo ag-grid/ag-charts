@@ -54,20 +54,16 @@ export const AGG_VALUES_EXTENT: ProcessorOutputPropertyDefinition<'aggValuesExte
 export const SORT_DOMAIN_GROUPS: ProcessorOutputPropertyDefinition<'sortedGroupDomain'> = {
     type: 'processor',
     property: 'sortedGroupDomain',
-    calculate: ({ domain: { groups } }) => {
-        if (groups == null) return undefined;
-
-        return [...groups].sort((a, b) => {
+    calculate: ({ domain: { groups } }) =>
+        groups?.slice().sort((a, b) => {
             for (let i = 0; i < a.length; i++) {
                 const result = a[i] - b[i];
                 if (result !== 0) {
                     return result;
                 }
             }
-
             return 0;
-        });
-    },
+        }),
 };
 
 function normaliseFnBuilder({ normaliseTo, mode }: { normaliseTo: number; mode: 'sum' | 'range' }) {

@@ -77,7 +77,7 @@ function processBBoxes(
 
     if (startingGuess < minGuess) {
         if (!forceResult) {
-            return undefined;
+            return;
         }
         // Legend constraints too small! Display at least one row/column if forceResult is true
         startingGuess = minGuess;
@@ -88,7 +88,7 @@ function processBBoxes(
 
         if (pageIndices == null && guess <= minGuess) {
             // Can't layout!
-            return undefined;
+            return;
         }
 
         if (pageIndices == null) {
@@ -100,7 +100,7 @@ function processBBoxes(
             // calculatePage() suggested a better guess, use that if it's more than minGuess.
             if (pageIndices <= minGuess) {
                 // Can't layout!
-                return undefined;
+                return;
             }
 
             guess = pageIndices < guess && pageIndices > minGuess ? pageIndices : guess;
@@ -157,7 +157,7 @@ function calculatePage(
                 // Feedback as guess for next iteration if we're on the first round still.
                 return maxPrimaryValues.length;
             }
-            return undefined;
+            return;
         }
 
         currentPrimaryIndices.push(bboxIndex + indexOffset);

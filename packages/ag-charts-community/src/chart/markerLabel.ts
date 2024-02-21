@@ -1,5 +1,4 @@
 import type { FontStyle, FontWeight } from '../options/agChartOptions';
-import { HdpiCanvas } from '../scene/canvas/hdpiCanvas';
 import { Group } from '../scene/group';
 import type { RenderContext } from '../scene/node';
 import { Line } from '../scene/shape/line';
@@ -23,7 +22,7 @@ export class MarkerLabel extends Group {
         label.fontFamily = 'Verdana, sans-serif';
         label.fill = 'black';
         // For better looking vertical alignment of labels to markers.
-        label.y = HdpiCanvas.has.textMetrics ? 1 : 0;
+        label.y = 1;
 
         this.append([line, marker, label]);
         this.update();

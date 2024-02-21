@@ -434,7 +434,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
     private computeLabelBBox(): BBox | undefined {
         const { label } = this;
         if (!label.enabled) {
-            return undefined;
+            return;
         }
         const tempText = new Text();
         tempText.fontFamily = label.fontFamily;
@@ -452,7 +452,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
         } = this;
 
         if (x === undefined || y === undefined) {
-            return undefined;
+            return;
         }
 
         const { configuredRotation } = calculateLabelRotation({
@@ -470,7 +470,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
         const bbox = tempText.computeTransformedBBox();
 
         if (!bbox) {
-            return undefined;
+            return;
         }
 
         const yDirection = direction === ChartAxisDirection.Y;

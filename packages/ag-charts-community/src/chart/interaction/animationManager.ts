@@ -255,19 +255,16 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
     }
 
     public endBatch() {
-        this.debug(
-            `AnimationManager - endBatch() with ${this.batch.size} animations; skipped: ${this.batch.isSkipped()}.`
-        );
-
-        if (!this.batch.isActive()) {
+        if (this.batch.isActive()) {
+            this.batch.ready();
+            this.requestAnimation();
+        } else {
             this.interactionManager.popState(InteractionState.Animation);
-        }
 
-        if (this.batch.isSkipped() && !this.batch.isActive()) {
-            this.batch.skip(false);
+            if (this.batch.isSkipped()) {
+                this.batch.skip(false);
+            }
         }
-
-        this.requestAnimation();
     }
 
     public onBatchStop(cb: () => void) {

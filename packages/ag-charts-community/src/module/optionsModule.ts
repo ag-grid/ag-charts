@@ -1,17 +1,8 @@
-import { AXIS_TYPES } from '../chart/factory/axisTypes';
-import { CHART_TYPES } from '../chart/factory/chartTypes';
+import { axisRegistry } from '../chart/factory/axisRegistry';
+import { chartTypes } from '../chart/factory/chartTypes';
 import { isEnterpriseSeriesType } from '../chart/factory/expectedEnterpriseModules';
 import { removeUsedEnterpriseOptions } from '../chart/factory/processEnterpriseOptions';
-import {
-    type SeriesOptions,
-    getSeriesDefaults,
-    getSeriesPaletteFactory,
-    isDefaultAxisSwapNeeded,
-    isGroupableSeries,
-    isSeriesStackedByDefault,
-    isSoloSeries,
-    isStackableSeries,
-} from '../chart/factory/seriesTypes';
+import { type SeriesOptions, seriesRegistry } from '../chart/factory/seriesRegistry';
 import { getChartTheme } from '../chart/mapping/themes';
 import {
     isAgCartesianChartOptions,
@@ -29,6 +20,7 @@ import type { AgCartesianAxisOptions } from '../options/series/cartesian/cartesi
 import type { AgPolarAxisOptions } from '../options/series/polar/polarOptions';
 import { circularSliceArray, groupBy, unique } from '../util/array';
 import { Debug } from '../util/debug';
+import { setDocument, setWindow } from '../util/dom';
 import { deepClone, jsonDiff, jsonWalk } from '../util/json';
 import { Logger } from '../util/logger';
 import { mergeArrayDefaults, mergeDefaults } from '../util/object';
@@ -134,9 +126,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     protected getOptionsDefaults(options: T) {
         const optionsType = this.optionsType(options);
-        const seriesDefaults = getSeriesDefaults<T>(optionsType);
+        const seriesDefaults = seriesRegistry.cloneDefaults(optionsType) as T;
 
-        if (isDefaultAxisSwapNeeded(options)) {
+        if (seriesRegistry.isDefaultAxisSwapNeeded(options)) {
             this.swapAxesPosition(seriesDefaults);
         }
 
@@ -232,8 +224,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         options.series = this.setSeriesGroupingOptions(series);
     }
 
-    protected getSeriesPalette(seriesType: string, options: { colourIndex: number; userPalette: boolean }) {
-        const paletteFactory = getSeriesPaletteFactory(seriesType);
+    protected getSeriesPalette(seriesType: SeriesType, options: { colourIndex: number; userPalette: boolean }) {
+        const paletteFactory = seriesRegistry.getPaletteFactory(seriesType);
         const { colourIndex: colourOffset, userPalette } = options;
         const { fills = [], strokes = [] } = this.activeTheme.palette;
 
@@ -252,9 +244,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     protected getSeriesGroupingOptions(series: SeriesOptions & GroupingOptions) {
-        const groupable = isGroupableSeries(series.type);
-        const stackable = isStackableSeries(series.type);
-        const stackedByDefault = isSeriesStackedByDefault(series.type);
+        const groupable = seriesRegistry.isGroupable(series.type);
+        const stackable = seriesRegistry.isStackable(series.type);
+        const stackedByDefault = seriesRegistry.isStackedByDefault(series.type);
 
         if (series.grouped && !groupable) {
             Logger.warnOnce(`unsupported grouping of series type "${series.type}".`);
@@ -405,9 +397,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 // If any of the axes type is invalid remove all user provided options in favour of our defaults.
                 if (!isAxisOptionType(type)) {
                     delete options.axes;
-                    Logger.warnOnce(
-                        `unknown axis type: ${type}; expected one of: ${AXIS_TYPES.axesTypes.join(', ')}, ignoring.`
-                    );
+                    const expectedTypes = Array.from(axisRegistry.keys()).join(', ');
+                    Logger.warnOnce(`unknown axis type: ${type}; expected one of: ${expectedTypes}, ignoring.`);
                 }
             }
         }
@@ -419,21 +410,21 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             if (type == null || isSeriesOptionType(type) || isEnterpriseSeriesType(type)) {
                 return true;
             }
-            Logger.warnOnce(`unknown series type: ${type}; expected one of: ${CHART_TYPES.seriesTypes.join(', ')}`);
+            Logger.warnOnce(`unknown series type: ${type}; expected one of: ${chartTypes.seriesTypes.join(', ')}`);
         }) as T['series'];
     }
 
     private soloSeriesIntegrity(options: Partial<T>) {
         const series: SeriesOptions[] | undefined = options.series;
-        if (series && series.length > 1 && series.some((series) => isSoloSeries(series.type))) {
+        if (series && series.length > 1 && series.some((series) => seriesRegistry.isSolo(series.type))) {
             const mainSeriesType = this.optionsType(options);
-            if (isSoloSeries(mainSeriesType)) {
+            if (seriesRegistry.isSolo(mainSeriesType)) {
                 Logger.warn(
                     `series[0] of type '${mainSeriesType}' is incompatible with other series types. Only processing series[0]`
                 );
                 options.series = series.slice(0, 1) as T['series'];
             } else {
-                const { solo, nonSolo } = groupBy(series, (s) => (isSoloSeries(s.type) ? 'solo' : 'nonSolo'));
+                const { solo, nonSolo } = groupBy(series, (s) => (seriesRegistry.isSolo(s.type) ? 'solo' : 'nonSolo'));
                 const rejects = unique(solo!.map((s) => s.type)).join(', ');
                 Logger.warn(`Unable to mix these series types with the lead series type: ${rejects}`);
                 options.series = nonSolo as T['series'];
@@ -504,7 +495,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private specialOverridesDefaults(options: Partial<ChartSpecialOverrides>) {
-        if (options.window == null) {
+        if (options.window != null) {
+            setWindow(options.window);
+        } else {
             if (typeof window !== 'undefined') {
                 options.window = window;
             } else if (typeof global !== 'undefined') {
@@ -513,7 +506,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 throw new Error('AG Charts - unable to resolve global window');
             }
         }
-        if (options.document == null) {
+
+        if (options.document != null) {
+            setDocument(options.document);
+        } else {
             if (typeof document !== 'undefined') {
                 options.document = document;
             } else if (typeof global !== 'undefined') {

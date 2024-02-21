@@ -10,12 +10,11 @@ import type {
     FontWeight,
 } from '../options/agChartOptions';
 import { BBox } from '../scene/bbox';
-import { HdpiCanvas } from '../scene/canvas/hdpiCanvas';
 import { Group } from '../scene/group';
 import type { Node } from '../scene/node';
 import { RedrawType } from '../scene/node';
 import { Selection } from '../scene/selection';
-import { getFont } from '../scene/shape/text';
+import { Text, getFont } from '../scene/shape/text';
 import { createId } from '../util/id';
 import { Logger } from '../util/logger';
 import { clamp } from '../util/number';
@@ -236,7 +235,8 @@ export class Legend extends BaseProperties {
             region.addListener('click', (e) => this.checkLegendClick(e), animationState),
             region.addListener('dblclick', (e) => this.checkLegendDoubleClick(e), animationState),
             region.addListener('hover', (e) => this.handleLegendMouseMove(e)),
-            region.addListener('leave', (e) => this.handleLegendMouseExit(e)),
+            region.addListener('leave', (e) => this.handleLegendMouseExit(e), animationState),
+            region.addListener('enter', (e) => this.handleLegendMouseEnter(e), animationState),
             ctx.layoutService.addListener('start-layout', (e) => this.positionLegend(e.shrinkRect)),
             () => this.detachLegend()
         );
@@ -275,7 +275,7 @@ export class Legend extends BaseProperties {
         }
 
         const cw: { [key: string]: number } = {
-            '...': HdpiCanvas.getTextSize('...', font).width,
+            '...': Text.getTextSize('...', font).width,
         };
         characterWidths.set(font, cw);
         return cw;
@@ -446,7 +446,7 @@ export class Legend extends BaseProperties {
             addEllipsis = true;
         }
 
-        const labelWidth = Math.floor(paddedMarkerWidth + HdpiCanvas.getTextSize(text, font).width);
+        const labelWidth = Math.floor(paddedMarkerWidth + Text.getTextSize(text, font).width);
         if (labelWidth > maxItemWidth) {
             let truncatedText = '';
             const characterWidths = this.getCharacterWidths(font);
@@ -454,7 +454,7 @@ export class Legend extends BaseProperties {
 
             for (const char of textChars) {
                 if (!characterWidths[char]) {
-                    characterWidths[char] = HdpiCanvas.getTextSize(char, font).width;
+                    characterWidths[char] = Text.getTextSize(char, font).width;
                 }
 
                 cumulativeWidth += characterWidths[char];
@@ -730,7 +730,7 @@ export class Legend extends BaseProperties {
         const pageBBox = BBox.merge(visibleChildBBoxes);
         if (!pageBBox.containsPoint(x, y)) {
             // We're not in-between legend items.
-            return undefined;
+            return;
         }
 
         // Fallback to returning closest match to the left/up.
@@ -897,8 +897,24 @@ export class Legend extends BaseProperties {
 
     private handleLegendMouseExit(_event: InteractionEvent<'leave'>) {
         this.ctx.cursorManager.updateCursor(this.id);
-        this.ctx.highlightManager.updateHighlight(this.id);
         this.ctx.tooltipManager.removeTooltip(this.id);
+        // Updating the highlight can interrupt animations, so only clear the highlight if the chart
+        // is in a state when highlighting is possible.
+        if (this.ctx.interactionManager.getState() === InteractionState.Default) {
+            this.ctx.highlightManager.updateHighlight(this.id);
+        }
+    }
+
+    private handleLegendMouseEnter(event: InteractionEvent<'enter'>) {
+        const {
+            enabled,
+            item: { toggleSeriesVisible: toggle },
+            listeners: { legendItemClick: clickListener, legendItemDoubleClick: dblclickListener },
+        } = this;
+        const datum = this.getDatumForPoint(event.offsetX, event.offsetY);
+        if (enabled && datum !== undefined && (toggle || clickListener != null || dblclickListener != null)) {
+            this.ctx.cursorManager.updateCursor(this.id, 'pointer');
+        }
     }
 
     private positionLegend(shrinkRect: BBox) {

@@ -7,7 +7,6 @@
     padding: $spacing-size-4 $spacing-size-4 $spacing-size-2 $spacing-size-4;
     border-radius: 8px;
     border: 1px solid var(--color-border-primary);
-    gap: $spacing-size-4;
 
     #{$selector-darkmode} & {
         background: var(--color-bg-tertiary);
@@ -53,10 +52,9 @@
     flex-direction: row;
     justify-content: space-between;
     text-decoration: none;
-    gap: $spacing-size-2;
 }
 
-span.majorText {
+span.major-text {
     border: 1px solid var(--color-logo-orange);
     border-radius: var(--radius-4xl);
     color: var(--color-logo-orange);
@@ -74,10 +72,11 @@ span.majorText {
     }
 }
 
-.latestTag {
+.latest-tag {
     border: 1px solid var(--color-text-primary);
     border-radius: var(--radius-4xl);
     padding: 2px 8px;
+    margin-right: 8px;
 
     #{$selector-darkmode} & {
         border: 1px solid var(--color-border-primary);

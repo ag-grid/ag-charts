@@ -36,13 +36,6 @@ export interface NodeOptions {
     tag?: number;
 }
 
-const zIndexChangedCallback = (o: any) => {
-    if (o.parent) {
-        o.parent.dirtyZIndex = true;
-    }
-    o.zIndexChanged();
-};
-
 type Layer = HdpiCanvas | HdpiOffscreenCanvas;
 export type ZIndexSubOrder = [LiteralOrFn<string | number>, LiteralOrFn<number>];
 
@@ -91,7 +84,9 @@ export abstract class Node extends ChangeDetectable {
         return this._previousDatum;
     }
     set datum(datum: any) {
-        if (this._datum !== datum) this._previousDatum = this._datum;
+        if (this._datum !== datum) {
+            this._previousDatum = this._datum;
+        }
         this._datum = datum;
     }
 
@@ -135,6 +130,18 @@ export abstract class Node extends ChangeDetectable {
         return this._layerManager;
     }
 
+    *ancestors() {
+        let node: Node | undefined = this;
+        while ((node = node.parent)) {
+            yield node;
+        }
+    }
+
+    *traverseUp() {
+        yield this;
+        yield* this.ancestors();
+    }
+
     private _parent?: Node;
     get parent(): Node | undefined {
         return this._parent;
@@ -143,13 +150,9 @@ export abstract class Node extends ChangeDetectable {
     private _virtualChildren: Node[] = [];
     private _children: Node[] = [];
     get children(): Node[] {
-        if (this._virtualChildren.length === 0) return this._children;
-
-        const result = [...this._children];
-        for (const next of this._virtualChildren) {
-            result.push(...next.children);
-        }
-        return result;
+        return this._virtualChildren.length
+            ? this._children.concat(this._virtualChildren.flatMap((next) => next.children))
+            : this._children;
     }
 
     protected get virtualChildren(): Node[] {
@@ -351,7 +354,7 @@ export abstract class Node extends ChangeDetectable {
             return;
         }
 
-        const children = this.children;
+        const { children } = this;
 
         if (children.length > 1_000) {
             // Try to optimise which children to interrogate; BBox calculation is an approximation
@@ -382,16 +385,7 @@ export abstract class Node extends ChangeDetectable {
     }
 
     findNodes(predicate: (node: Node) => boolean): Node[] {
-        const result: Node[] = predicate(this) ? [this] : [];
-
-        for (const child of this.children) {
-            const childResult = child.findNodes(predicate);
-            if (childResult) {
-                result.push(...childResult);
-            }
-        }
-
-        return result;
+        return this.children.flatMap((child) => child.findNodes(predicate));
     }
 
     computeBBox(): BBox | undefined {
@@ -402,16 +396,14 @@ export abstract class Node extends ChangeDetectable {
         const bbox = this.computeBBox();
 
         if (!bbox) {
-            return undefined;
+            return;
         }
 
         this.computeTransformMatrix();
         const matrix = Matrix.flyweight(this.matrix);
-        let parent = this.parent;
-        while (parent) {
+        for (const parent of this.ancestors()) {
             parent.computeTransformMatrix();
             matrix.preMultiplySelf(parent.matrix);
-            parent = parent.parent;
         }
         matrix.transformBBox(bbox, bbox);
 
@@ -453,7 +445,9 @@ export abstract class Node extends ChangeDetectable {
 
         this._dirty = RedrawType.NONE;
 
-        if (stats) stats.nodesRendered++;
+        if (stats) {
+            stats.nodesRendered++;
+        }
     }
 
     clearBBox(ctx: CanvasRenderingContext2D) {
@@ -469,11 +463,7 @@ export abstract class Node extends ChangeDetectable {
     }
 
     override markDirty(_source: Node, type = RedrawType.TRIVIAL, parentType = type) {
-        if (this._dirty > type) {
-            return;
-        }
-
-        if (this._dirty === type && type === parentType) {
+        if (this._dirty > type || (this._dirty === type && type === parentType)) {
             return;
         }
 
@@ -509,23 +499,27 @@ export abstract class Node extends ChangeDetectable {
         }
     }
 
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR, changeCb: (o) => o.visibilityChanged() })
+    @SceneChangeDetection<Node>({
+        redraw: RedrawType.MAJOR,
+        changeCb: (target) => target.onVisibleChange(),
+    })
     visible: boolean = true;
-    protected visibilityChanged() {
-        // Override point for sub-classes to react to visibility changes.
+
+    protected onVisibleChange() {
+        // Override point for subclasses to react to visibility changes.
     }
 
     protected dirtyZIndex: boolean = false;
 
-    @SceneChangeDetection({
+    @SceneChangeDetection<Node>({
         redraw: RedrawType.TRIVIAL,
-        changeCb: zIndexChangedCallback,
+        changeCb: (target) => target.onZIndexChange(),
     })
     zIndex: number = 0;
 
-    @SceneChangeDetection({
+    @SceneChangeDetection<Node>({
         redraw: RedrawType.TRIVIAL,
-        changeCb: zIndexChangedCallback,
+        changeCb: (target) => target.onZIndexChange(),
     })
     /** Discriminators for render order within a zIndex. */
     zIndexSubOrder?: ZIndexSubOrder = undefined;
@@ -554,7 +548,9 @@ export abstract class Node extends ChangeDetectable {
         return { count, visibleCount, dirtyCount };
     }
 
-    protected zIndexChanged() {
-        // Override point for sub-classes.
+    protected onZIndexChange() {
+        if (this.parent) {
+            this.parent.dirtyZIndex = true;
+        }
     }
 }
