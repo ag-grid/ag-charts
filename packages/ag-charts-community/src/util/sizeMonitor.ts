@@ -9,14 +9,15 @@ type Entry = {
 };
 
 export class SizeMonitor {
-    private static elements = new Map<HTMLElement, Entry>();
-    private static resizeObserver: any;
-    private static ready = false;
-    private static documentReady = false;
-    private static ownerDocument?: Document;
-    private static queuedObserveRequests: [HTMLElement, OnSizeChange][] = [];
+    private elements = new Map<HTMLElement, Entry>();
+    private resizeObserver: any;
+    private documentReady = false;
+    private queuedObserveRequests: [HTMLElement, OnSizeChange][] = [];
 
-    static init(document: Document) {
+    constructor(
+        private window: Window,
+        private document: Document
+    ) {
         if (typeof ResizeObserver === 'undefined') {
             for (const [element, entry] of this.elements) {
                 this.checkClientSize(element, entry);
@@ -31,23 +32,20 @@ export class SizeMonitor {
             }
         });
 
-        this.ownerDocument = document;
-        this.ready = true;
-
-        this.documentReady = document.readyState !== 'loading';
+        this.documentReady = document.readyState === 'complete';
         if (!this.documentReady) {
-            // Add DOMContentLoaded listener, so we can check if the main document is ready again, and
-            // if it is then attach any queued requests for resize monitoring.
+            // Add load listener, so we can check if the main document is ready and all styles are loaded,
+            // and if it is then attach any queued requests for resize monitoring.
             //
-            // If we attach before ent.readyState !== 'loading', then additional incorrect resize events
+            // If we attach before document.readyState === 'complete', then additional incorrect resize events
             // are fired, leading to multiple re-renderings on chart initial load. Waiting for the
             // document to be loaded irons out this browser quirk.
-            document.addEventListener('DOMContentLoaded', this.onContentLoaded);
+            window.addEventListener('load', this.onContentLoaded);
         }
     }
 
-    static onContentLoaded: EventListener = () => {
-        const newState = this.ownerDocument?.readyState !== 'loading';
+    onContentLoaded: EventListener = () => {
+        const newState = this.document?.readyState === 'complete';
         const oldState = this.documentReady;
         this.documentReady = newState;
         if (newState && newState !== oldState) {
@@ -56,15 +54,15 @@ export class SizeMonitor {
         }
     };
 
-    private static destroy() {
-        this.ownerDocument?.removeEventListener('DOMContentLoaded', this.onContentLoaded);
+    private destroy() {
+        this.window?.removeEventListener('load', this.onContentLoaded);
         this.resizeObserver?.disconnect();
-        delete this.resizeObserver;
-        delete this.ownerDocument;
-        this.ready = false;
+        this.resizeObserver = null!;
+        this.window = null!;
+        this.document = null!;
     }
 
-    private static checkSize(entry: Entry | undefined, element: HTMLElement, width: number, height: number) {
+    private checkSize(entry: Entry | undefined, element: HTMLElement, width: number, height: number) {
         if (!entry) return;
 
         if (width !== entry.size?.width || height !== entry.size?.height) {
@@ -74,10 +72,7 @@ export class SizeMonitor {
     }
 
     // Only a single callback is supported.
-    static observe(element: HTMLElement, cb: OnSizeChange) {
-        if (!this.ready) {
-            this.init(element.ownerDocument);
-        }
+    observe(element: HTMLElement, cb: OnSizeChange) {
         if (!this.documentReady) {
             this.queuedObserveRequests.push([element, cb]);
             return;
@@ -91,7 +86,7 @@ export class SizeMonitor {
         this.elements.set(element, { cb });
     }
 
-    static unobserve(element: HTMLElement) {
+    unobserve(element: HTMLElement) {
         this.resizeObserver?.unobserve(element);
         this.elements.delete(element);
         this.removeFromQueue(element);
@@ -101,11 +96,11 @@ export class SizeMonitor {
         }
     }
 
-    static removeFromQueue(element: HTMLElement) {
+    removeFromQueue(element: HTMLElement) {
         this.queuedObserveRequests = this.queuedObserveRequests.filter(([el]) => el !== element);
     }
 
-    static checkClientSize(element: HTMLElement, entry: Entry) {
+    checkClientSize(element: HTMLElement, entry: Entry) {
         const width = element.clientWidth ?? 0;
         const height = element.clientHeight ?? 0;
         this.checkSize(entry, element, width, height);
