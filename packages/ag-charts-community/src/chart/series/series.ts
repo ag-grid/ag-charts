@@ -182,25 +182,25 @@ export function groupAccumulativeValueProperty<K>(
     ];
 }
 
-export type SeriesNodeEventTypes = 'nodeClick' | 'nodeDoubleClick' | 'groupingChanged';
+export type SeriesNodeEventTypes = 'nodeClick' | 'nodeDoubleClick' | 'nodeContextMenuAction' | 'groupingChanged';
 
-interface INodeClickEvent<TEvent extends string = SeriesNodeEventTypes> extends TypedEvent {
+interface INodeEvent<TEvent extends string = SeriesNodeEventTypes> extends TypedEvent {
     readonly type: TEvent;
     readonly event: MouseEvent;
     readonly datum: unknown;
     readonly seriesId: string;
 }
 
-export interface INodeClickEventConstructor<
+export interface INodeEventConstructor<
     TDatum extends SeriesNodeDatum,
     TSeries extends Series<TDatum, any>,
     TEvent extends string = SeriesNodeEventTypes,
 > {
-    new (type: TEvent, event: MouseEvent, { datum }: TDatum, series: TSeries): INodeClickEvent<TEvent>;
+    new (type: TEvent, event: MouseEvent, { datum }: TDatum, series: TSeries): INodeEvent<TEvent>;
 }
 
-export class SeriesNodeClickEvent<TDatum extends SeriesNodeDatum, TEvent extends string = SeriesNodeEventTypes>
-    implements INodeClickEvent<TEvent>
+export class SeriesNodeEvent<TDatum extends SeriesNodeDatum, TEvent extends string = SeriesNodeEventTypes>
+    implements INodeEvent<TEvent>
 {
     readonly datum: unknown;
     readonly seriesId: string;
@@ -209,7 +209,7 @@ export class SeriesNodeClickEvent<TDatum extends SeriesNodeDatum, TEvent extends
         readonly type: TEvent,
         readonly event: MouseEvent,
         { datum }: TDatum,
-        series: Series<TDatum, any>
+        series: ISeries<TDatum>
     ) {
         this.datum = datum;
         this.seriesId = series.id;
@@ -262,7 +262,7 @@ export abstract class Series<
 
     protected static readonly highlightedZIndex = 1000000000000;
 
-    protected readonly NodeClickEvent: INodeClickEventConstructor<TDatum, any> = SeriesNodeClickEvent;
+    protected readonly NodeEvent: INodeEventConstructor<TDatum, any> = SeriesNodeEvent;
 
     readonly internalId = createId(this);
 
@@ -668,11 +668,15 @@ export abstract class Series<
     abstract getLabelData(): PointLabelDatum[];
 
     fireNodeClickEvent(event: MouseEvent, datum: TDatum): void {
-        this.fireEvent(new this.NodeClickEvent('nodeClick', event, datum, this));
+        this.fireEvent(new this.NodeEvent('nodeClick', event, datum, this));
     }
 
     fireNodeDoubleClickEvent(event: MouseEvent, datum: TDatum): void {
-        this.fireEvent(new this.NodeClickEvent('nodeDoubleClick', event, datum, this));
+        this.fireEvent(new this.NodeEvent('nodeDoubleClick', event, datum, this));
+    }
+
+    createNodeContextMenuActionEvent(event: MouseEvent, datum: TDatum): INodeEvent {
+        return new this.NodeEvent('nodeContextMenuAction', event, datum, this);
     }
 
     abstract getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];

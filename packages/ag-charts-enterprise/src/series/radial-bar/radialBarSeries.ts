@@ -25,9 +25,9 @@ const { BandScale } = _Scale;
 const { Sector, motion } = _Scene;
 const { angleBetween, isNumber, sanitizeHtml } = _Util;
 
-class RadialBarSeriesNodeClickEvent<
+class RadialBarSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
-> extends _ModuleSupport.SeriesNodeClickEvent<RadialBarNodeDatum, TEvent> {
+> extends _ModuleSupport.SeriesNodeEvent<RadialBarNodeDatum, TEvent> {
     readonly angleKey?: string;
     readonly radiusKey?: string;
     constructor(type: TEvent, nativeEvent: MouseEvent, datum: RadialBarNodeDatum, series: RadialBarSeries) {
@@ -62,7 +62,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDat
 
     override properties = new RadialBarSeriesProperties();
 
-    protected override readonly NodeClickEvent = RadialBarSeriesNodeClickEvent;
+    protected override readonly NodeEvent = RadialBarSeriesNodeEvent;
 
     protected nodeData: RadialBarNodeDatum[] = [];
 

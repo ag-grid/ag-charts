@@ -21,11 +21,11 @@ import { Layers } from '../../layers';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
 import { DataModelSeries } from '../dataModelSeries';
-import type { Series, SeriesNodeDataContext, SeriesNodeEventTypes, SeriesNodePickMatch } from '../series';
-import { SeriesNodeClickEvent } from '../series';
+import type { SeriesNodeDataContext, SeriesNodeEventTypes, SeriesNodePickMatch } from '../series';
+import { SeriesNodeEvent } from '../series';
 import type { SeriesGroupZIndexSubOrderType } from '../seriesLayerManager';
 import { SeriesProperties } from '../seriesProperties';
-import type { SeriesNodeDatum } from '../seriesTypes';
+import type { ISeries, SeriesNodeDatum } from '../seriesTypes';
 import type { Scaling } from './scaling';
 
 export interface CartesianSeriesNodeDatum extends SeriesNodeDatum {
@@ -72,7 +72,7 @@ const DEFAULT_DIRECTION_NAMES: { [key in ChartAxisDirection]?: string[] } = {
     [ChartAxisDirection.Y]: ['yName'],
 };
 
-export class CartesianSeriesNodeClickEvent<TEvent extends string = SeriesNodeEventTypes> extends SeriesNodeClickEvent<
+export class CartesianSeriesNodeEvent<TEvent extends string = SeriesNodeEventTypes> extends SeriesNodeEvent<
     SeriesNodeDatum,
     TEvent
 > {
@@ -82,7 +82,7 @@ export class CartesianSeriesNodeClickEvent<TEvent extends string = SeriesNodeEve
         type: TEvent,
         nativeEvent: MouseEvent,
         datum: SeriesNodeDatum,
-        series: Series<any, any> & { properties: { xKey?: string; yKey?: string } }
+        series: ISeries<SeriesNodeDatum> & { properties: { xKey?: string; yKey?: string } }
     ) {
         super(type, nativeEvent, datum, series);
         this.xKey = series.properties.xKey;
@@ -145,7 +145,7 @@ export abstract class CartesianSeries<
         return this._contextNodeData.slice();
     }
 
-    protected override readonly NodeClickEvent = CartesianSeriesNodeClickEvent;
+    protected override readonly NodeEvent = CartesianSeriesNodeEvent;
 
     private highlightSelection = Selection.select(this.highlightNode, () =>
         this.opts.hasMarkers ? this.markerFactory() : this.nodeFactory()

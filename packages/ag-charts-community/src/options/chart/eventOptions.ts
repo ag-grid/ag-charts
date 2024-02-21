@@ -3,7 +3,7 @@ interface AgChartEvent<T extends string> {
     event: Event;
 }
 
-export interface AgNodeBaseClickEvent<TEvent extends string, TDatum> extends AgChartEvent<TEvent> {
+export interface AgNodeBaseEvent<TEvent extends string, TDatum> extends AgChartEvent<TEvent> {
     /** Event type. */
     type: TEvent;
     /** Series ID, as specified in series.id (or generated if not specified) */
@@ -30,19 +30,19 @@ export interface AgNodeBaseClickEvent<TEvent extends string, TDatum> extends AgC
     radiusKey?: string;
 }
 
-export interface AgSeriesNodeClickEvent<TDatum> extends AgNodeBaseClickEvent<'seriesNodeClick', TDatum> {
+export interface AgSeriesNodeClickEvent<TDatum> extends AgNodeBaseEvent<'seriesNodeClick', TDatum> {
     /** Event type. */ type: 'seriesNodeClick';
 }
 
-export interface AgSeriesNodeDoubleClickEvent<TDatum> extends AgNodeBaseClickEvent<'seriesNodeDoubleClick', TDatum> {
+export interface AgSeriesNodeDoubleClickEvent<TDatum> extends AgNodeBaseEvent<'seriesNodeDoubleClick', TDatum> {
     /** Event type. */ type: 'seriesNodeDoubleClick';
 }
 
-export interface AgNodeClickEvent<TDatum> extends AgNodeBaseClickEvent<'nodeClick', TDatum> {
+export interface AgNodeClickEvent<TDatum> extends AgNodeBaseEvent<'nodeClick', TDatum> {
     /** Event type. */ type: 'nodeClick';
 }
 
-export interface AgNodeDoubleClickEvent<TDatum> extends AgNodeBaseClickEvent<'nodeDoubleClick', TDatum> {
+export interface AgNodeDoubleClickEvent<TDatum> extends AgNodeBaseEvent<'nodeDoubleClick', TDatum> {
     /** Event type. */ type: 'nodeDoubleClick';
 }
 
@@ -52,6 +52,13 @@ export interface AgChartClickEvent extends AgChartEvent<'click'> {
 
 export interface AgChartDoubleClickEvent extends AgChartEvent<'doubleClick'> {
     /** Event type. */ type: 'doubleClick';
+}
+
+export interface AgNodeContextMenuActionEvent<TDatum> extends AgNodeBaseEvent<'contextMenuAction', TDatum> {
+    /** Event type. */ type: 'contextMenuAction';
+
+    /** @deprecated v9.2 use `xKey`, `yKey`, `angleKey` etc instead. */
+    itemId?: string;
 }
 
 export interface AgBaseChartListeners<TDatum> {

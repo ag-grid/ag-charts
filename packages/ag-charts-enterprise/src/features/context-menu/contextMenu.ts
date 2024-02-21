@@ -255,13 +255,16 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         el.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
         el.innerHTML = label;
         el.onclick = () => {
-            const params: ContextMenuActionParams = {
-                event: this.showEvent!,
-                datum: this.pickedNode?.datum,
-                itemId: this.pickedNode?.itemId,
-                seriesId: this.pickedNode?.series.id,
-            };
-            callback(params);
+            const event = this.pickedNode?.series.createNodeContextMenuActionEvent(this.showEvent!, this.pickedNode);
+            if (event) {
+                callback({
+                    ...event,
+                    itemId: this.pickedNode!.itemId, // @deprecated v9.2
+                });
+            } else {
+                callback({ event: this.showEvent! });
+            }
+
             this.hide();
         };
         return el;

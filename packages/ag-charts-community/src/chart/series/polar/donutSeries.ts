@@ -27,13 +27,7 @@ import { Layers } from '../../layers';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import { Circle } from '../../marker/circle';
 import type { SeriesNodeEventTypes } from '../series';
-import {
-    SeriesNodeClickEvent,
-    accumulativeValueProperty,
-    keyProperty,
-    rangedValueProperty,
-    valueProperty,
-} from '../series';
+import { SeriesNodeEvent, accumulativeValueProperty, keyProperty, rangedValueProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import type { DonutInnerLabel, DonutTitle } from './donutSeriesProperties';
@@ -41,7 +35,7 @@ import { DonutSeriesProperties } from './donutSeriesProperties';
 import { preparePieSeriesAnimationFunctions, resetPieSelectionsFn } from './pieUtil';
 import { type PolarAnimationData, PolarSeries } from './polarSeries';
 
-class DonutSeriesNodeClickEvent<TEvent extends string = SeriesNodeEventTypes> extends SeriesNodeClickEvent<
+class DonutSeriesNodeEvent<TEvent extends string = SeriesNodeEventTypes> extends SeriesNodeEvent<
     DonutNodeDatum,
     TEvent
 > {
@@ -1238,7 +1232,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
         this.zerosumInnerRing.size = this.getInnerRadius() * 2;
     }
 
-    protected override readonly NodeClickEvent = DonutSeriesNodeClickEvent;
+    protected override readonly NodeEvent = DonutSeriesNodeEvent;
 
     private getDatumLegendName(nodeDatum: DonutNodeDatum) {
         const { angleKey, calloutLabelKey, sectorLabelKey, legendItemKey } = this.properties;

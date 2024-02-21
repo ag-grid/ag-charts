@@ -27,13 +27,7 @@ import { Layers } from '../../layers';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import { Circle } from '../../marker/circle';
 import type { SeriesNodeEventTypes } from '../series';
-import {
-    SeriesNodeClickEvent,
-    accumulativeValueProperty,
-    keyProperty,
-    rangedValueProperty,
-    valueProperty,
-} from '../series';
+import { SeriesNodeEvent, accumulativeValueProperty, keyProperty, rangedValueProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import type { DonutInnerLabel, PieTitle } from './pieSeriesProperties';
@@ -41,10 +35,7 @@ import { PieSeriesProperties } from './pieSeriesProperties';
 import { preparePieSeriesAnimationFunctions, resetPieSelectionsFn } from './pieUtil';
 import { type PolarAnimationData, PolarSeries } from './polarSeries';
 
-class PieSeriesNodeClickEvent<TEvent extends string = SeriesNodeEventTypes> extends SeriesNodeClickEvent<
-    PieNodeDatum,
-    TEvent
-> {
+class PieSeriesNodeEvent<TEvent extends string = SeriesNodeEventTypes> extends SeriesNodeEvent<PieNodeDatum, TEvent> {
     readonly angleKey: string;
     readonly radiusKey?: string;
     readonly calloutLabelKey?: string;
@@ -1239,7 +1230,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         this.zerosumInnerRing.size = this.getInnerRadius() * 2;
     }
 
-    protected override readonly NodeClickEvent = PieSeriesNodeClickEvent;
+    protected override readonly NodeEvent = PieSeriesNodeEvent;
 
     private getDatumLegendName(nodeDatum: PieNodeDatum) {
         const { angleKey, calloutLabelKey, sectorLabelKey, legendItemKey } = this.properties;

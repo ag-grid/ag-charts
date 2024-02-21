@@ -78,9 +78,9 @@ type RangeBarAnimationData = _ModuleSupport.CartesianAnimationData<
     RangeBarNodeLabelDatum
 >;
 
-class RangeBarSeriesNodeClickEvent<
+class RangeBarSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
-> extends _ModuleSupport.SeriesNodeClickEvent<RangeBarNodeDatum, TEvent> {
+> extends _ModuleSupport.SeriesNodeEvent<RangeBarNodeDatum, TEvent> {
     readonly xKey?: string;
     readonly yLowKey?: string;
     readonly yHighKey?: string;
@@ -103,7 +103,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
     override properties = new RangeBarProperties();
 
-    protected override readonly NodeClickEvent = RangeBarSeriesNodeClickEvent;
+    protected override readonly NodeEvent = RangeBarSeriesNodeEvent;
 
     /**
      * Used to get the position of bars within each group.

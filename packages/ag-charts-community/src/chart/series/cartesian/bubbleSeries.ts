@@ -20,14 +20,12 @@ import { SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { BubbleNodeDatum, BubbleSeriesProperties } from './bubbleSeriesProperties';
 import type { CartesianAnimationData } from './cartesianSeries';
-import { CartesianSeries, CartesianSeriesNodeClickEvent } from './cartesianSeries';
+import { CartesianSeries, CartesianSeriesNodeEvent } from './cartesianSeries';
 import { markerScaleInAnimation, resetMarkerFn } from './markerUtil';
 
 type BubbleAnimationData = CartesianAnimationData<Group, BubbleNodeDatum>;
 
-class BubbleSeriesNodeClickEvent<
-    TEvent extends string = SeriesNodeEventTypes,
-> extends CartesianSeriesNodeClickEvent<TEvent> {
+class BubbleSeriesNodeEvent<TEvent extends string = SeriesNodeEventTypes> extends CartesianSeriesNodeEvent<TEvent> {
     readonly sizeKey?: string;
 
     constructor(type: TEvent, nativeEvent: MouseEvent, datum: BubbleNodeDatum, series: BubbleSeries) {
@@ -40,7 +38,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
     static className = 'BubbleSeries';
     static type = 'bubble' as const;
 
-    protected override readonly NodeClickEvent = BubbleSeriesNodeClickEvent;
+    protected override readonly NodeEvent = BubbleSeriesNodeEvent;
 
     override properties = new BubbleSeriesProperties();
 
