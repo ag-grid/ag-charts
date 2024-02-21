@@ -74,8 +74,8 @@ export class RegionManager {
         if (currentRegion !== undefined && newRegion?.name !== currentRegion.name) {
             currentRegion?.listeners.dispatch('leave', { ...event, type: 'leave' });
         }
-        if (currentRegion !== undefined && newRegion?.name !== currentRegion.name) {
-            currentRegion?.listeners.dispatch('enter', { ...event, type: 'enter' });
+        if (newRegion !== undefined && newRegion.name !== currentRegion?.name) {
+            newRegion?.listeners.dispatch('enter', { ...event, type: 'enter' });
         }
         if (newRegion !== undefined) {
             // Async dispatch to avoid blocking the event-processing thread.
