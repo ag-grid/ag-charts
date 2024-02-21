@@ -108,7 +108,7 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
             let opacity = node.opacity;
 
             if (status === 'removed' || outOfBounds(datum.y, datum.range)) {
-                // rotation = newDatum.rotation;
+                rotation = newDatum.rotation;
             } else if (status === 'added' || outOfBounds(node.datum.y, node.datum.range)) {
                 translationY = Math.round(datum.translationY);
                 opacity = 0;
