@@ -24,8 +24,10 @@ export class RegionManager {
     private readonly destroyFns: (() => void)[] = [];
 
     constructor(private interactionManager: InteractionManager) {
-        INTERACTION_TYPES.forEach((t) =>
-            this.destroyFns.push(interactionManager.addListener(t, this.eventHandler, InteractionState.All))
+        this.destroyFns.push(
+            ...INTERACTION_TYPES.map((eventName) =>
+                interactionManager.addListener(eventName, this.eventHandler, InteractionState.All)
+            )
         );
     }
 

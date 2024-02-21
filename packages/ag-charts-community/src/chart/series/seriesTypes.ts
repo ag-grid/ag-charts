@@ -21,6 +21,7 @@ export interface ISeries<TDatum> {
     fireNodeDoubleClickEvent(event: Event, datum: TDatum): void;
     getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];
     getLegendData(legendType: ChartLegendType): ChartLegendDatum<ChartLegendType>[];
+    getTooltipHtml(seriesDatum: any): string;
     // BoundSeries
     getBandScalePadding?(): { inner: number; outer: number };
     getDomain(direction: ChartAxisDirection): any[];

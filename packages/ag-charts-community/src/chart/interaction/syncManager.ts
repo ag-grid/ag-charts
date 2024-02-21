@@ -3,6 +3,7 @@ import type { ChartAxisDirection } from '../chartAxisDirection';
 import type { ISeries } from '../series/seriesTypes';
 import { BaseManager } from './baseManager';
 import type { HighlightManager } from './highlightManager';
+import type { TooltipManager } from './tooltipManager';
 import type { ZoomManager } from './zoomManager';
 
 type GroupId = string | symbol;
@@ -24,6 +25,7 @@ type ChartLike = {
     axes: AxisLike[];
     series: ISeries<any>[];
     highlightManager: HighlightManager;
+    tooltipManager: TooltipManager;
     zoomManager: ZoomManager;
     modules: Map<string, ModuleInstance>;
 };

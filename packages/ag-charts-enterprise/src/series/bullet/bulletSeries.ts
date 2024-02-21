@@ -356,10 +356,10 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
 
     protected override async updateNodes(
         highlightedItems: BulletNodeDatum[] | undefined,
-        seriesHighlighted: boolean | undefined,
+        seriesHighlighted: boolean,
         anySeriesItemEnabled: boolean
     ) {
-        super.updateNodes(highlightedItems, seriesHighlighted, anySeriesItemEnabled);
+        await super.updateNodes(highlightedItems, seriesHighlighted, anySeriesItemEnabled);
         await this.updateColorRanges();
     }
 

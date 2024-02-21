@@ -240,6 +240,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     public readonly highlightManager = new HighlightManager();
     public readonly syncManager = new SyncManager(this);
+    public readonly tooltipManager: TooltipManager;
     public readonly zoomManager = new ZoomManager();
 
     public readonly modules: Map<string, ModuleInstance> = new Map();
@@ -251,7 +252,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
     protected readonly interactionManager: InteractionManager;
     protected readonly regionManager: RegionManager;
     protected readonly gestureDetector: GestureDetector;
-    protected readonly tooltipManager: TooltipManager;
     protected readonly dataService: DataService<any>;
     protected readonly layoutService: LayoutService;
     protected readonly updateService: UpdateService;
@@ -647,7 +647,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
                 const tooltipMeta = this.tooltipManager.getTooltipMeta(this.id);
 
-                if (performUpdateType <= ChartUpdateType.SERIES_UPDATE && tooltipMeta !== undefined) {
+                if (performUpdateType <= ChartUpdateType.SERIES_UPDATE && tooltipMeta?.lastPointerEvent != null) {
                     this.handlePointer(tooltipMeta.lastPointerEvent, true);
                 }
                 splits['↖'] = performance.now();
@@ -1147,12 +1147,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             }
         };
 
-        if (redisplay && this.animationManager.isActive()) {
-            disablePointer();
-            return;
-        }
-
-        if (!hoverRect?.containsPoint(offsetX, offsetY)) {
+        if (redisplay ? this.animationManager.isActive() : !hoverRect?.containsPoint(offsetX, offsetY)) {
             disablePointer();
             return;
         }
@@ -1177,7 +1172,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         if (!pick) {
             this.tooltipManager.removeTooltip(this.id);
-            if (this.highlight.range === 'tooltip') disablePointer(true);
+            if (this.highlight.range === 'tooltip') {
+                disablePointer(true);
+            }
             return;
         }
 

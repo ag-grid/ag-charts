@@ -264,7 +264,7 @@ export abstract class CartesianSeries<
     async update({ seriesRect }: { seriesRect?: BBox }) {
         const { visible, _contextNodeData: previousContextData } = this;
         const { series } = this.ctx.highlightManager?.getActiveHighlight() ?? {};
-        const seriesHighlighted = series ? series === this : undefined;
+        const seriesHighlighted = series === this;
 
         const resize = this.checkResize(seriesRect);
         const highlightItems = await this.updateHighlightSelection(seriesHighlighted);
@@ -432,7 +432,7 @@ export abstract class CartesianSeries<
 
     protected async updateNodes(
         highlightedItems: TDatum[] | undefined,
-        seriesHighlighted: boolean | undefined,
+        seriesHighlighted: boolean,
         anySeriesItemEnabled: boolean
     ) {
         const {
@@ -445,7 +445,7 @@ export abstract class CartesianSeries<
         const visible = this.visible && this._contextNodeData?.length > 0 && anySeriesItemEnabled;
         this.rootGroup.visible = animationEnabled || visible;
         this.contentGroup.visible = animationEnabled || visible;
-        this.highlightGroup.visible = (animationEnabled || visible) && !!seriesHighlighted;
+        this.highlightGroup.visible = (animationEnabled || visible) && seriesHighlighted;
 
         const subGroupOpacity = this.getOpacity();
         if (hasMarkers) {
@@ -534,7 +534,7 @@ export abstract class CartesianSeries<
         return highlightedItem ? [highlightedItem] : undefined;
     }
 
-    protected async updateHighlightSelection(seriesHighlighted?: boolean) {
+    protected async updateHighlightSelection(seriesHighlighted: boolean) {
         const { highlightSelection, highlightLabelSelection, _contextNodeData: contextNodeData } = this;
 
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();

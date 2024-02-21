@@ -156,7 +156,7 @@ type TooltipPositionType =
 
 export type TooltipMeta = PointerOffsets & {
     showArrow?: boolean;
-    lastPointerEvent: PointerOffsets;
+    lastPointerEvent?: PointerOffsets;
     position?: {
         type?: TooltipPositionType;
         xOffset?: number;
