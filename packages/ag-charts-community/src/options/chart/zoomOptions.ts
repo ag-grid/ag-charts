@@ -55,6 +55,26 @@ export interface AgZoomOptions {
      */
     minVisibleItemsY?: number;
     /**
+     * The initial minimum x-axis position of the zoom, as a ratio of the full chart.
+     * Default: '0'
+     */
+    minX?: number;
+    /**
+     * The initial maximum x-axis position of the zoom, as a ratio of the full chart.
+     * Default: '1'
+     */
+    maxX?: number;
+    /**
+     * The initial minimum y-axis position of the zoom, as a ratio of the full chart.
+     * Default: '0'
+     */
+    minY?: number;
+    /**
+     * The initial maximum y-axis position of the zoom, as a ratio of the full chart.
+     * Default: '1'
+     */
+    maxY?: number;
+    /**
      * The key that should be pressed to allow dragging to pan around while zoomed, one of `alt`, `ctrl`, `meta` or `shift`.
      * Default: `alt`
      */

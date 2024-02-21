@@ -1,4 +1,5 @@
 import { deepClone } from '../../util/json';
+import { StateTracker } from '../../util/stateTracker';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { BaseManager } from './baseManager';
 
@@ -29,7 +30,7 @@ type ChartAxisLike = {
  */
 export class ZoomManager extends BaseManager<'zoom-change', ZoomChangeEvent> {
     private axisZoomManagers = new Map<string, AxisZoomManager>();
-    private initialZoom?: AxisZoomState;
+    private state = new StateTracker<AxisZoomState>(undefined, 'initial');
 
     public updateAxes(axes: Array<ChartAxisLike>) {
         const zoomManagers = new Map(axes.map((axis) => [axis.id, this.axisZoomManagers.get(axis.id)]));
@@ -40,27 +41,32 @@ export class ZoomManager extends BaseManager<'zoom-change', ZoomChangeEvent> {
             this.axisZoomManagers.set(axis.id, zoomManagers.get(axis.id) ?? new AxisZoomManager(axis));
         }
 
-        if (this.initialZoom) {
-            this.updateZoom(this.initialZoom);
-            this.initialZoom = undefined;
+        if (this.state.size > 0) {
+            this.updateZoom(this.state.stateId()!, this.state.stateValue());
         }
     }
 
-    public updateZoom(newZoom?: AxisZoomState) {
+    public updateZoom(callerId: string, newZoom?: AxisZoomState, canChangeInitial = true) {
         if (this.axisZoomManagers.size === 0) {
-            this.initialZoom = newZoom;
+            // Only update the initial zoom state if no other modules have tried or permitted. This allows us to give
+            // priority to the 'zoom' module over 'navigator' if they both attempt to set the initial zoom state.
+            if (this.state.size === 0 || canChangeInitial) {
+                this.state.set(callerId, newZoom);
+            }
             return;
         }
 
+        this.state.set(callerId, newZoom);
+
         this.axisZoomManagers.forEach((axis) => {
-            axis.updateZoom(newZoom?.[axis.getDirection()]);
+            axis.updateZoom(callerId, newZoom?.[axis.getDirection()]);
         });
 
         this.applyChanges();
     }
 
-    public updateAxisZoom(axisId: string, newZoom?: ZoomState) {
-        this.axisZoomManagers.get(axisId)?.updateZoom(newZoom);
+    public updateAxisZoom(callerId: string, axisId: string, newZoom?: ZoomState) {
+        this.axisZoomManagers.get(axisId)?.updateZoom(callerId, newZoom);
         this.applyChanges();
     }
 
@@ -118,22 +124,22 @@ export class ZoomManager extends BaseManager<'zoom-change', ZoomChangeEvent> {
 class AxisZoomManager {
     private axis: ChartAxisLike;
     private currentZoom: ZoomState;
-    private pendingZoom: ZoomState | null = null;
-    private readonly initialZoom: ZoomState;
+    private state: StateTracker<ZoomState>;
 
     constructor(axis: ChartAxisLike) {
         this.axis = axis;
 
         const [min = 0, max = 1] = axis.visibleRange;
-        this.initialZoom = this.currentZoom = { min, max };
+        this.state = new StateTracker({ min, max });
+        this.currentZoom = this.state.stateValue()!;
     }
 
     getDirection(): ChartAxisDirection {
         return this.axis.direction;
     }
 
-    public updateZoom(newZoom?: ZoomState) {
-        this.pendingZoom = newZoom ? { ...newZoom } : null;
+    public updateZoom(callerId: string, newZoom?: ZoomState) {
+        this.state.set(callerId, newZoom);
     }
 
     public getZoom() {
@@ -142,7 +148,7 @@ class AxisZoomManager {
 
     public applyChanges(): boolean {
         const prevZoom = this.currentZoom;
-        this.currentZoom = this.pendingZoom ?? this.initialZoom;
+        this.currentZoom = this.state.stateValue()!;
         return prevZoom.min !== this.currentZoom.min || prevZoom.max !== this.currentZoom.max;
     }
 }

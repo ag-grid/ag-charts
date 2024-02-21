@@ -284,7 +284,7 @@ class AgChartsInternal {
         );
 
         const cloneProxy = AgChartsInternal.createOrUpdate(options);
-        cloneProxy.chart.zoomManager.updateZoom(chart.zoomManager.getZoom()); // sync zoom
+        cloneProxy.chart.zoomManager.updateZoom('agChartV2', chart.zoomManager.getZoom()); // sync zoom
         chart.series.forEach((series, index) => {
             if (!series.visible) {
                 cloneProxy.chart.series[index].visible = false; // sync series visibility
