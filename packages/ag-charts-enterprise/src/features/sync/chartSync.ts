@@ -118,6 +118,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
     syncAxes(stopPropagation = false) {
         const { syncManager } = this.moduleContext;
         const chart = syncManager.getChart();
+        console.log(chart.id, stopPropagation);
 
         const syncSeries = syncManager.getGroup(this.groupId).flatMap((chart) => chart.series);
         const syncAxes = syncManager.getGroupSiblings(this.groupId).flatMap((chart) => chart.axes);
@@ -148,7 +149,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         });
 
         if (!stopPropagation) {
-            this.updateSiblings(this.groupId);
+            setTimeout(() => this.updateSiblings(this.groupId));
         }
     }
 
