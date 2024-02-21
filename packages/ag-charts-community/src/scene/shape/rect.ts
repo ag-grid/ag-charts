@@ -319,6 +319,8 @@ export class Rect extends Path {
 
     private effectiveStrokeWidth: number = Shape.defaultStyles.strokeWidth;
 
+    private hittester = super.isPointInPath;
+
     /**
      * When the rectangle's width or height is less than a pixel
      * and crisp mode is on, the rectangle will still fit into the pixel,
@@ -331,10 +333,10 @@ export class Rect extends Path {
             path,
             borderPath,
             crisp,
-            topLeftCornerRadius,
-            topRightCornerRadius,
-            bottomRightCornerRadius,
-            bottomLeftCornerRadius,
+            topLeftCornerRadius: topLeft,
+            topRightCornerRadius: topRight,
+            bottomRightCornerRadius: bottomRight,
+            bottomLeftCornerRadius: bottomLeft,
         } = this;
         let { x, y, width: w, height: h, strokeWidth, cornerRadiusBbox } = this;
         const pixelRatio = this.layerManager?.canvas.pixelRatio ?? 1;
@@ -392,10 +394,10 @@ export class Rect extends Path {
                 const adjustedCornerRadiusBbox = cornerRadiusBbox?.clone().shrink(halfStrokeWidth);
 
                 const cornerRadii: CornerRadii = {
-                    topLeft: topLeftCornerRadius > 0 ? topLeftCornerRadius - strokeWidth : 0,
-                    topRight: topRightCornerRadius > 0 ? topRightCornerRadius - strokeWidth : 0,
-                    bottomRight: bottomRightCornerRadius > 0 ? bottomRightCornerRadius - strokeWidth : 0,
-                    bottomLeft: bottomLeftCornerRadius > 0 ? bottomLeftCornerRadius - strokeWidth : 0,
+                    topLeft: topLeft > 0 ? topLeft - strokeWidth : 0,
+                    topRight: topRight > 0 ? topRight - strokeWidth : 0,
+                    bottomRight: bottomRight > 0 ? bottomRight - strokeWidth : 0,
+                    bottomLeft: bottomLeft > 0 ? bottomLeft - strokeWidth : 0,
                 };
 
                 // Clipping not needed in this case; fill to center of stroke.
@@ -410,16 +412,22 @@ export class Rect extends Path {
                 borderPath.rect(x, y, w, h);
             }
         } else {
-            const cornerRadii: CornerRadii = {
-                topLeft: topLeftCornerRadius,
-                topRight: topRightCornerRadius,
-                bottomRight: bottomRightCornerRadius,
-                bottomLeft: bottomLeftCornerRadius,
-            };
+            const cornerRadii: CornerRadii = { topLeft, topRight, bottomRight, bottomLeft };
             // No borderPath needed, and thus no clipPath needed either. Fill to full extent of
             // Rect.
             this.borderClipPath = undefined;
             insetCornerRadiusRect(path, x, y, w, h, cornerRadii, cornerRadiusBbox);
+        }
+
+        // Path.isPointInPath is expensive, so just use a BBox if the corners aren't rounded.
+        if ([topLeft, topRight, bottomRight, bottomLeft].every((r) => r === 0)) {
+            this.hittester = (x: number, y: number) => {
+                const point = this.transformPoint(x, y);
+                const bbox = this.computeBBox();
+                return bbox.containsPoint(point.x, point.y);
+            };
+        } else {
+            this.hittester = super.isPointInPath;
         }
 
         this.effectiveStrokeWidth = strokeWidth;
@@ -433,10 +441,7 @@ export class Rect extends Path {
     }
 
     override isPointInPath(x: number, y: number): boolean {
-        const point = this.transformPoint(x, y);
-        const bbox = this.computeBBox();
-
-        return bbox.containsPoint(point.x, point.y);
+        return this.hittester(x, y);
     }
 
     protected override applyFillAlpha(ctx: CanvasRenderingContext2D) {
