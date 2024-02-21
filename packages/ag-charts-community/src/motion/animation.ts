@@ -1,7 +1,7 @@
 import { Node } from '../scene/node';
 import type { Selection } from '../scene/selection';
 import { interpolateColor, interpolateNumber } from '../util/interpolate';
-import { Interpolating, interpolate } from '../util/interpolating';
+import { Interpolating, interpolate, isInterpolating } from '../util/interpolating';
 import { jsonDiff } from '../util/json';
 import { clamp } from '../util/number';
 import { linear } from './easing';
@@ -253,13 +253,14 @@ export class Animation<T extends AnimationValue> implements IAnimation {
     }
 
     private createInterpolator(from: AnimationValue, to: AnimationValue) {
-        if (typeof to !== 'object') {
+        if (typeof to !== 'object' || isInterpolating(to)) {
             return this.interpolateValue(from, to);
         }
+
         type InterpolatorTuple = [string, (d: number) => number | string | Interpolating];
         const interpolatorEntries: InterpolatorTuple[] = [];
         for (const key in to) {
-            const interpolator = this.interpolateValue((from as any)[key], (to as any)[key]);
+            const interpolator = this.interpolateValue((from as typeof to)[key], to[key]);
             if (interpolator != null) {
                 interpolatorEntries.push([key, interpolator]);
             }
@@ -276,9 +277,8 @@ export class Animation<T extends AnimationValue> implements IAnimation {
     private interpolateValue(a: any, b: any) {
         if (a === undefined || b === undefined) {
             return;
-        } else if (a[interpolate] != null) {
-            const aInterpolating = a as Interpolating;
-            return (d: number) => aInterpolating[interpolate](b, d);
+        } else if (isInterpolating(a)) {
+            return (d: number) => a[interpolate](b, d);
         }
 
         try {
