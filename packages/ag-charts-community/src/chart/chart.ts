@@ -240,6 +240,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     public readonly highlightManager = new HighlightManager();
     public readonly syncManager = new SyncManager(this);
+    public readonly tooltipManager: TooltipManager;
     public readonly zoomManager = new ZoomManager();
 
     public readonly modules: Map<string, ModuleInstance> = new Map();
@@ -251,7 +252,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
     protected readonly interactionManager: InteractionManager;
     protected readonly regionManager: RegionManager;
     protected readonly gestureDetector: GestureDetector;
-    protected readonly tooltipManager: TooltipManager;
     protected readonly dataService: DataService<any>;
     protected readonly layoutService: LayoutService;
     protected readonly updateService: UpdateService;
@@ -625,15 +625,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 splits['⌖'] = performance.now();
             // fallthrough
 
-            case ChartUpdateType.SERIES_UPDATE:
-                if (this.checkUpdateShortcut(ChartUpdateType.SERIES_UPDATE)) break;
-
-                const { seriesRect } = this;
-                await Promise.all(seriesToUpdate.map((series) => series.update({ seriesRect })));
-
-                splits['🤔'] = performance.now();
-            // fallthrough
-
             case ChartUpdateType.TOOLTIP_RECALCULATION:
                 if (this.checkUpdateShortcut(ChartUpdateType.TOOLTIP_RECALCULATION)) break;
 
@@ -643,6 +634,15 @@ export abstract class Chart extends Observable implements AgChartInstance {
                     this.handlePointer(tooltipMeta.lastPointerEvent, true);
                 }
                 splits['↖'] = performance.now();
+            // fallthrough
+
+            case ChartUpdateType.SERIES_UPDATE:
+                if (this.checkUpdateShortcut(ChartUpdateType.SERIES_UPDATE)) break;
+
+                const { seriesRect } = this;
+                await Promise.all(seriesToUpdate.map((series) => series.update({ seriesRect })));
+
+                splits['🤔'] = performance.now();
             // fallthrough
 
             case ChartUpdateType.SCENE_RENDER:
@@ -1137,12 +1137,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             }
         };
 
-        if (redisplay && this.animationManager.isActive()) {
-            disablePointer();
-            return;
-        }
-
-        if (!hoverRect?.containsPoint(offsetX, offsetY)) {
+        if ((redisplay && this.animationManager.isActive()) || !hoverRect?.containsPoint(offsetX, offsetY)) {
             disablePointer();
             return;
         }

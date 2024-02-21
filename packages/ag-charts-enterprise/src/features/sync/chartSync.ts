@@ -8,8 +8,10 @@ const {
     CartesianAxis,
     ChartUpdateType,
     isDate,
+    isDefined,
     isFiniteNumber,
     ObserveChanges,
+    TooltipManager,
     Validate,
 } = _ModuleSupport;
 const { Logger } = _Util;
@@ -32,6 +34,9 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
     @Validate(BOOLEAN)
     @ObserveChanges<ChartSync>((target) => target.onNodeInteractionChange())
     nodeInteraction: boolean = true;
+
+    @Validate(BOOLEAN)
+    tooltip: boolean = true;
 
     @Validate(BOOLEAN)
     @ObserveChanges<ChartSync>((target) => target.onZoomChange())
@@ -73,6 +78,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
 
                 if (!event.currentHighlight?.datum) {
                     chart.highlightManager.updateHighlight(chart.id);
+                    chart.tooltipManager.removeTooltip(chart.id);
                     continue;
                 }
 
@@ -93,19 +99,39 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
                             const valueKey = nodeData[0][`${axis.direction}Key`];
                             let eventValue = event.currentHighlight!.datum[valueKey];
                             const valueIsDate = isDate(eventValue);
+
                             if (valueIsDate) {
                                 eventValue = eventValue.getTime();
                             }
 
-                            return nodeData.find((nodeDatum: any) => {
+                            const nodeDatum = nodeData.find((nodeDatum: any) => {
                                 const nodeValue = nodeDatum.datum[valueKey];
                                 return valueIsDate ? nodeValue.getTime() === eventValue : nodeValue === eventValue;
                             });
-                        })
-                        .filter(Boolean);
 
-                    if (matchingNodes.length < 2 && matchingNodes[0] !== chart.highlightManager.getActiveHighlight()) {
-                        chart.highlightManager.updateHighlight(chart.id, matchingNodes[0]);
+                            return nodeDatum ? { series, nodeDatum } : null;
+                        })
+                        .filter(isDefined);
+
+                    if (
+                        matchingNodes.length < 2 &&
+                        matchingNodes[0]?.nodeDatum !== chart.highlightManager.getActiveHighlight()
+                    ) {
+                        const { series, nodeDatum } = matchingNodes[0] ?? {};
+                        chart.highlightManager.updateHighlight(chart.id, nodeDatum);
+
+                        if (this.tooltip) {
+                            if (nodeDatum) {
+                                chart.tooltipManager.updateTooltip(
+                                    chart.id,
+                                    TooltipManager.makeTooltipMeta({ offsetX: 0, offsetY: 0 }, nodeDatum),
+                                    series.getTooltipHtml(nodeDatum)
+                                );
+                            } else {
+                                chart.tooltipManager.removeTooltip(chart.id);
+                            }
+                        }
+
                         this.updateChart(chart, ChartUpdateType.SERIES_UPDATE);
                     }
                 }
