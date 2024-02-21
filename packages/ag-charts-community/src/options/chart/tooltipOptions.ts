@@ -28,6 +28,14 @@ export interface AgChartTooltipOptions {
 export enum AgTooltipPositionType {
     POINTER = 'pointer',
     NODE = 'node',
+    TOP = 'top',
+    RIGHT = 'right',
+    BOTTOM = 'bottom',
+    LEFT = 'left',
+    TOP_LEFT = 'topLeft',
+    TOP_RIGHT = 'topRight',
+    BOTTOM_RIGHT = 'bottomRight',
+    BOTTOM_LEFT = 'bottomLeft',
 }
 
 export interface AgTooltipPositionOptions {

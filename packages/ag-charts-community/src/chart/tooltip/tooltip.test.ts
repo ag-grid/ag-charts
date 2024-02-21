@@ -4,7 +4,6 @@ import { toMatchImageSnapshot } from 'jest-image-snapshot';
 import type { AgChartOptions } from '../../options/agChartOptions';
 import { AgCharts } from '../agChartV2';
 import type { Chart } from '../chart';
-import { optionsType } from '../mapping/types';
 import { expectWarning, setupMockConsole } from '../test/mockConsole';
 import { AgChartProxy, createChart, hoverAction, prepareTestOptions, waitForChartStability } from '../test/utils';
 
@@ -46,7 +45,7 @@ describe('Tooltip', () => {
             });
 
             expectWarning(
-                `AG Charts - Property [type] of [TooltipPosition] cannot be set to ["ponter"]; expecting a position type keyword such as 'pointer' or 'node', ignoring.`
+                `AG Charts - Property [type] of [TooltipPosition] cannot be set to ["ponter"]; expecting a position type keyword such as 'pointer', 'node', 'top', 'right', 'bottom', 'left', 'topLeft', 'topRight', 'bottomRight' or 'bottomLeft', ignoring.`
             );
         });
     });

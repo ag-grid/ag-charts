@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
 import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -39,7 +40,13 @@ describe('BackgroundImage', () => {
 
             image.performLayout(containerWidth, containerHeight);
 
-            return image.calculatePosition(naturalWidth, naturalHeight);
+            return _ModuleSupport.calculatePosition(
+                naturalWidth,
+                naturalHeight,
+                containerWidth,
+                containerHeight,
+                params
+            );
         };
 
         it(`By default image has natural size and positioned at the center`, () => {

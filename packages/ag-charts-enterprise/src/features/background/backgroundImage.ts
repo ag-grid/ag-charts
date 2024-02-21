@@ -1,7 +1,8 @@
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 const { Image } = _Scene;
-const { BaseProperties, ObserveChanges, ProxyProperty, Validate, NUMBER, POSITIVE_NUMBER, RATIO } = _ModuleSupport;
+const { BaseProperties, ObserveChanges, ProxyProperty, Validate, NUMBER, POSITIVE_NUMBER, RATIO, calculatePosition } =
+    _ModuleSupport;
 
 export class BackgroundImage extends BaseProperties {
     private readonly imageElement: HTMLImageElement;
@@ -58,62 +59,16 @@ export class BackgroundImage extends BaseProperties {
                 ? {
                       visible: true,
                       opacity: this.opacity,
-                      ...this.calculatePosition(this.imageElement.width, this.imageElement.height),
+                      ...calculatePosition(
+                          this.imageElement.width,
+                          this.imageElement.height,
+                          this.containerWidth,
+                          this.containerHeight,
+                          this
+                      ),
                   }
                 : { visible: false }
         );
-    }
-
-    calculatePosition(naturalWidth: number, naturalHeight: number) {
-        let { top, right, bottom, left, width, height } = this;
-
-        if (left != null) {
-            if (width != null) {
-                right = this.containerWidth - left + width;
-            } else if (right != null) {
-                width = this.containerWidth - left - right;
-            }
-        } else if (right != null && width != null) {
-            left = this.containerWidth - right - width;
-        }
-        if (top != null) {
-            if (height != null) {
-                bottom = this.containerHeight - top - height;
-            } else if (bottom != null) {
-                height = this.containerHeight - bottom - top;
-            }
-        } else if (bottom != null && height != null) {
-            top = this.containerHeight - bottom - height;
-        }
-
-        // If width and height still undetermined, derive them from natural size.
-        if (width == null) {
-            if (height == null) {
-                width = naturalWidth;
-                height = naturalHeight;
-            } else {
-                width = Math.ceil((naturalWidth * height) / naturalHeight);
-            }
-        } else if (height == null) {
-            height = Math.ceil((naturalHeight * width) / naturalWidth);
-        }
-
-        if (left == null) {
-            if (right == null) {
-                left = Math.floor((this.containerWidth - width) / 2);
-            } else {
-                left = this.containerWidth - right - width;
-            }
-        }
-        if (top == null) {
-            if (bottom == null) {
-                top = Math.floor((this.containerHeight - height) / 2);
-            } else {
-                top = this.containerHeight - height - bottom;
-            }
-        }
-
-        return { x: left, y: top, width, height };
     }
 
     private onImageLoad = () => {
