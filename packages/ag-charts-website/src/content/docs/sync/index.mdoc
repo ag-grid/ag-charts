@@ -65,19 +65,6 @@ sync: {
 Synchronization of node interaction requires that only a single series is shown in each chart, with unique values along the synchronised axis.
 {% /note %}
 
-### Tooltip
-
-Synchronized tooltips are enabled by default, displaying tooltips for corresponding nodes across charts simultaneously.
-Turn this feature off by setting the `tooltip` option within `nodeInteraction` to false.
-
-```js
-sync: {
-    nodeInteraction: {
-        tooltip: false,
-    },
-},
-```
-
 ### Zoom
 
 Maintains shared zoom level and position on the synchronized axes across charts. This is applied to the axes specified in the `sync.axes` option.

@@ -36,9 +36,6 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
     nodeInteraction: boolean = true;
 
     @Validate(BOOLEAN)
-    tooltip: boolean = true;
-
-    @Validate(BOOLEAN)
     @ObserveChanges<ChartSync>((target) => target.onZoomChange())
     zoom: boolean = true;
 
@@ -121,14 +118,11 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
                         chart.highlightManager.updateHighlight(chart.id, nodeDatum);
 
                         if (nodeDatum) {
-                            const tooltipMeta = TooltipManager.makeTooltipMeta(
-                                {
-                                    offsetX: nodeDatum.midPoint?.x ?? nodeDatum.point?.x ?? 0,
-                                    offsetY: nodeDatum.midPoint?.y ?? nodeDatum.point?.y ?? 0,
-                                },
-                                nodeDatum
-                            );
-                            delete tooltipMeta.lastPointerEvent;
+                            const offsetX = nodeDatum.midPoint?.x ?? nodeDatum.point?.x ?? 0;
+                            const offsetY = nodeDatum.midPoint?.y ?? nodeDatum.point?.y ?? 0;
+                            const tooltipMeta = TooltipManager.makeTooltipMeta({ offsetX, offsetY }, nodeDatum);
+                            delete tooltipMeta.lastPointerEvent; // remove to prevent triggering TOOLTIP_RECALCULATION
+
                             chart.tooltipManager.updateTooltip(chart.id, tooltipMeta, series.getTooltipHtml(nodeDatum));
                         } else {
                             chart.tooltipManager.removeTooltip(chart.id);

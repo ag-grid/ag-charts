@@ -1153,17 +1153,13 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
 
         // Handle node highlighting and tooltip toggling when pointer within `tooltip.range`
-        this.handlePointerTooltip(event, disablePointer, redisplay);
+        this.handlePointerTooltip(event, disablePointer);
 
         // Handle node highlighting and mouse cursor when pointer withing `series[].nodeClickRange`
         this.handlePointerNode(event);
     }
 
-    protected handlePointerTooltip(
-        event: PointerOffsets,
-        disablePointer: (highlightOnly?: boolean) => void,
-        _redisplay: boolean
-    ) {
+    protected handlePointerTooltip(event: PointerOffsets, disablePointer: (highlightOnly?: boolean) => void) {
         const { lastPick, tooltip } = this;
         const { range } = tooltip;
         const { offsetX, offsetY } = event;
@@ -1185,15 +1181,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const isNewDatum = this.highlight.range === 'node' || !lastPick || lastPick !== pick.datum;
         let html;
 
-        // if (redisplay) {
-        //     console.log(this.id, { pick, isNewDatum }, this.highlight.range);
-        //     return;
-        // }
-
         if (isNewDatum) {
             html = pick.series.getTooltipHtml(pick.datum);
 
-            if (this.highlight.range === 'tooltip' && pick.datum !== this.highlightManager.getActiveHighlight()) {
+            if (this.highlight.range === 'tooltip') {
                 this.highlightManager.updateHighlight(this.id, pick.datum);
             }
         }
