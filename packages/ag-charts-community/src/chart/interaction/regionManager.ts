@@ -68,6 +68,16 @@ export class RegionManager {
         return new ObservableRegionImplementation();
     }
 
+    private checkPointerHistory(targetRegion: Region, event: InteractionEvent<InteractionTypes>): boolean {
+        for (const historyEvent of event.pointerHistory) {
+            const historyRegion = this.pickRegion(historyEvent.offsetX, historyEvent.offsetY);
+            if (targetRegion.name !== historyRegion?.name) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private processEvent(event: InteractionEvent<InteractionTypes>) {
         const { currentRegion } = this;
         const newRegion = this.pickRegion(event.offsetX, event.offsetY);
@@ -77,7 +87,7 @@ export class RegionManager {
         if (currentRegion !== undefined && newRegion?.name !== currentRegion.name) {
             currentRegion?.listeners.dispatch('enter', { ...event, type: 'enter' });
         }
-        if (newRegion !== undefined) {
+        if (newRegion !== undefined && this.checkPointerHistory(newRegion, event)) {
             // Async dispatch to avoid blocking the event-processing thread.
             const dispatcher = async () => newRegion.listeners.dispatch(event.type, event);
             dispatcher().catch((e) => Logger.errorOnce(e));
