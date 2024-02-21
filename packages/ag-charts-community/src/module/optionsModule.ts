@@ -202,7 +202,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             userPalette: Boolean(isObject(options.theme) && options.theme.palette),
         };
 
-        const series = options.series!.map((series) => {
+        let series: T['series'] = options.series!.map((series) => {
             series.type ??= defaultSeriesType;
             const { innerLabels: innerLabelsTheme, ...seriesTheme } =
                 this.getSeriesThemeConfig(series.type).series ?? {};
@@ -221,7 +221,15 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             return this.activeTheme.templateTheme(seriesOptions);
         });
 
-        options.series = this.setSeriesGroupingOptions(series);
+        const seriesGroups = this.getSeriesGrouping(series);
+
+        seriesGroups.forEach(({ series }) => {
+            this.inferGroupStyles(series);
+        });
+
+        series = this.setSeriesGroupingOptions(seriesGroups);
+
+        options.series = series;
     }
 
     protected getSeriesPalette(seriesType: SeriesType, options: { colourIndex: number; userPalette: boolean }) {
@@ -266,9 +274,25 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         };
     }
 
-    protected setSeriesGroupingOptions(series: GroupingSeriesOptions[]) {
-        const seriesGroups = this.getSeriesGrouping(series);
+    protected inferGroupStyles(series: GroupingSeriesOptions[]) {
+        let cornerRadius: number | undefined;
 
+        series.forEach((series: any) => {
+            if (series.type !== 'bar') return;
+            if (series.cornerRadius == null) return;
+
+            cornerRadius = Math.max(cornerRadius ?? 0, series.cornerRadius);
+        });
+
+        if (cornerRadius == null) return;
+
+        series.forEach((series: any) => {
+            if (series.type !== 'bar') return;
+            series.cornerRadius = cornerRadius;
+        });
+    }
+
+    protected setSeriesGroupingOptions(seriesGroups: SeriesGroup[]) {
         Debug.create(true, 'opts')('setSeriesGroupingOptions() - series grouping: ', seriesGroups);
 
         const groupIdx: Record<string, number> = {};
@@ -283,39 +307,35 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }, {});
 
         // sort series by grouping and enrich with seriesGrouping metadata
-        return seriesGroups
-            .flatMap((seriesGroup) => {
-                groupIdx[seriesGroup.seriesType] ??= 0;
-                switch (seriesGroup.groupType) {
-                    case GroupingType.STACK:
-                        const groupIndex = groupIdx[seriesGroup.seriesType]++;
-                        return seriesGroup.series.map((series, stackIndex) =>
-                            Object.assign(series, {
-                                seriesGrouping: {
-                                    groupIndex,
-                                    groupCount: groupCount[seriesGroup.seriesType],
-                                    stackIndex,
-                                    stackCount: seriesGroup.series.length,
-                                },
-                            })
-                        );
+        return seriesGroups.flatMap((seriesGroup) => {
+            groupIdx[seriesGroup.seriesType] ??= 0;
+            switch (seriesGroup.groupType) {
+                case GroupingType.STACK:
+                    const groupIndex = groupIdx[seriesGroup.seriesType]++;
+                    return seriesGroup.series.map(({ stacked, grouped, ...series }, stackIndex) => {
+                        series.seriesGrouping = {
+                            groupIndex,
+                            groupCount: groupCount[seriesGroup.seriesType],
+                            stackIndex,
+                            stackCount: seriesGroup.series.length,
+                        };
+                        return series;
+                    });
 
-                    case GroupingType.GROUP:
-                        return seriesGroup.series.map((series) =>
-                            Object.assign(series, {
-                                seriesGrouping: {
-                                    groupIndex: groupIdx[seriesGroup.seriesType]++,
-                                    groupCount: groupCount[seriesGroup.seriesType],
-                                    stackIndex: 0,
-                                    stackCount: 0,
-                                },
-                            })
-                        );
-                }
+                case GroupingType.GROUP:
+                    return seriesGroup.series.map(({ stacked, grouped, ...series }) => {
+                        series.seriesGrouping = {
+                            groupIndex: groupIdx[seriesGroup.seriesType]++,
+                            groupCount: groupCount[seriesGroup.seriesType],
+                            stackIndex: 0,
+                            stackCount: 0,
+                        };
+                        return series;
+                    });
+            }
 
-                return seriesGroup.series;
-            })
-            .map(({ stacked, grouped, ...seriesOptions }) => seriesOptions) as T['series'];
+            return seriesGroup.series.map(({ stacked, grouped, ...series }) => series);
+        }) as T['series'];
     }
 
     protected getSeriesGroupId(series: GroupingSeriesOptions) {
