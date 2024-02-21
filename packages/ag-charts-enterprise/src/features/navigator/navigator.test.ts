@@ -54,6 +54,36 @@ const NAVIGATOR_MINICHART_EXAMPLES: Record<string, CartesianTestCase> = {
         },
         assertions: cartesianChartAssertions({ axisTypes: ['number', 'category'], seriesTypes: ['line', 'area'] }),
     },
+    MINI_CHART_SERIES_OVERRIDE: {
+        options: {
+            series: [
+                {
+                    type: 'line',
+                    xKey: 'x',
+                    yKey: 'y',
+                    data: xyData([5, 7, 8, 3, 0, 2, 6, 8, 10, 9, 6]),
+                    strokeWidth: 3,
+                },
+            ],
+            navigator: {
+                miniChart: {
+                    series: [
+                        {
+                            type: 'line',
+                            xKey: 'x',
+                            yKey: 'y',
+                            data: xyData([5, 7, 8, 3, 0, 2, 6, 8, 10, 9, 6]),
+                            strokeWidth: 1,
+                            marker: {
+                                enabled: false,
+                            },
+                        },
+                    ],
+                },
+            },
+        },
+        assertions: cartesianChartAssertions({ axisTypes: ['number', 'category'], seriesTypes: ['line'] }),
+    },
 };
 
 describe('Navigator', () => {
