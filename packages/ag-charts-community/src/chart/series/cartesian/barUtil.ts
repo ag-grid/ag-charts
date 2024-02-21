@@ -48,7 +48,6 @@ export function updateRect({ rect, config }: { rect: Rect; config: RectConfig })
         topRightCornerRadius,
         bottomRightCornerRadius,
         bottomLeftCornerRadius,
-        cornerRadiusBbox,
         visible = true,
     } = config;
     rect.crisp = crisp;
@@ -64,7 +63,6 @@ export function updateRect({ rect, config }: { rect: Rect; config: RectConfig })
     rect.topRightCornerRadius = topRightCornerRadius ? cornerRadius : 0;
     rect.bottomRightCornerRadius = bottomRightCornerRadius ? cornerRadius : 0;
     rect.bottomLeftCornerRadius = bottomLeftCornerRadius ? cornerRadius : 0;
-    rect.cornerRadiusBbox = cornerRadiusBbox;
     rect.visible = visible;
 }
 
@@ -102,7 +100,6 @@ export function getRectConfig<
         topRightCornerRadius = true,
         bottomRightCornerRadius = true,
         bottomLeftCornerRadius = true,
-        cornerRadiusBbox,
     } = style;
 
     let format: AgBarSeriesStyle | undefined;
@@ -135,7 +132,6 @@ export function getRectConfig<
         topRightCornerRadius,
         bottomRightCornerRadius,
         bottomLeftCornerRadius,
-        cornerRadiusBbox,
     };
 }
 
@@ -166,7 +162,7 @@ export function collapsedStartingBarPosition(
         let y = isVertical ? startingY : datum.y;
         let width = isVertical ? datum.width : 0;
         let height = isVertical ? 0 : datum.height;
-        const { cornerRadiusBbox, opacity } = datum;
+        const { opacity } = datum;
 
         if (prevDatum && (isNaN(x) || isNaN(y))) {
             // Fallback
@@ -179,6 +175,9 @@ export function collapsedStartingBarPosition(
                 x += prevDatum.width;
             }
         }
+
+        const cornerRadiusBbox = new BBox(x, y, width, height);
+
         return { x, y, width, height, cornerRadiusBbox, opacity };
     };
 
@@ -224,49 +223,45 @@ export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(initP
         }
 
         // Continue from current rendering location.
-        let source: AnimatableBarDatum = {
-            x: rect.x,
-            y: rect.y,
-            width: rect.width,
-            height: rect.height,
-            cornerRadiusBbox: rect.cornerRadiusBbox,
-            opacity: rect.opacity,
-        };
+        let source: AnimatableBarDatum;
         if (status === 'added' && rect.previousDatum == null && initPos.mode === 'fade') {
             // Handle series add case, after initial load. This is distinct from legend toggle on.
             source = { ...resetBarSelectionsFn(rect, datum), opacity: 0 };
         } else if (status === 'unknown' || status === 'added') {
             source = initPos.calculate(datum, rect.previousDatum);
-        }
-
-        const previousCornerRadiusBbox = rect.previousDatum?.cornerRadiusBbox;
-        if (previousCornerRadiusBbox != null) {
-            source.cornerRadiusBbox = previousCornerRadiusBbox;
         } else {
-            source.cornerRadiusBbox = initPos.isVertical
-                ? new BBox(source.x, source.y, source.width, 0)
-                : new BBox(source.x, source.y, 0, source.height);
+            source = {
+                x: rect.x,
+                y: rect.y,
+                width: rect.width,
+                height: rect.height,
+                cornerRadiusBbox: rect.cornerRadiusBbox,
+                opacity: rect.opacity,
+            };
         }
 
         const phase = NODE_UPDATE_STATE_TO_PHASE_MAPPING[status];
         return { ...source, phase };
     };
     const toFn: FromToMotionPropFn<Rect, AnimatableBarDatum, T> = (rect: Rect, datum: T, status: NodeUpdateState) => {
+        let source: AnimatableBarDatum;
         if (status === 'removed' && rect.datum == null && initPos.mode === 'fade') {
             // Handle series remove case, after initial load. This is distinct from legend toggle off.
-            return { ...resetBarSelectionsFn(rect, datum), opacity: 0 };
+            source = { ...resetBarSelectionsFn(rect, datum), opacity: 0 };
         } else if (status === 'removed' || isRemoved(datum)) {
-            return initPos.calculate(datum, rect.previousDatum);
+            source = initPos.calculate(datum, rect.previousDatum);
+        } else {
+            source = {
+                x: datum.x,
+                y: datum.y,
+                width: datum.width,
+                height: datum.height,
+                cornerRadiusBbox: datum.cornerRadiusBbox,
+                opacity: datum.opacity,
+            };
         }
 
-        return {
-            x: datum.x,
-            y: datum.y,
-            width: datum.width,
-            height: datum.height,
-            cornerRadiusBbox: datum.cornerRadiusBbox,
-            opacity: datum.opacity,
-        };
+        return source;
     };
 
     return { toFn, fromFn };

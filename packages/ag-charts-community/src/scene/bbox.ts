@@ -58,12 +58,12 @@ export class BBox implements DistantObject, Interpolating<BBox> {
         );
     }
 
-    isInfinite() {
+    isFinite() {
         return (
-            Math.abs(this.x) === Infinity ||
-            Math.abs(this.y) === Infinity ||
-            Math.abs(this.width) === Infinity ||
-            Math.abs(this.height) === Infinity
+            Number.isFinite(this.x) &&
+            Number.isFinite(this.y) &&
+            Number.isFinite(this.width) &&
+            Number.isFinite(this.height)
         );
     }
 

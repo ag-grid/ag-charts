@@ -13,6 +13,7 @@ const watermarkStyles = `
     opacity: 0.7;
     animation: 1s ease-out 3s ag-watermark-fadeout;
     color: #9B9B9B;
+    pointer-events: none;
 
     &::before {
         content: '';
