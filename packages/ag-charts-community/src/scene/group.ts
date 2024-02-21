@@ -209,6 +209,7 @@ export class Group extends Node {
                     group: this,
                 }));
 
+                ctx.beginPath();
                 ctx.rect(x, y, width, height);
                 ctx.clip();
             }
@@ -233,6 +234,7 @@ export class Group extends Node {
 
             debug?.(() => ({ name, clipRect, ctxTransform: ctx.getTransform(), renderCtx, group: this }));
 
+            ctx.beginPath();
             ctx.rect(x, y, width, height);
             ctx.clip();
 

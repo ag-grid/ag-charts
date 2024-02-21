@@ -260,7 +260,7 @@ class AgChartsInternal {
 
     static async getImageDataURL(proxy: AgChartInstanceProxy, opts?: ImageDataUrlOptions): Promise<string> {
         const clone = await AgChartsInternal.prepareResizedChart(proxy, opts);
-        const result = clone.chart.scene.toDataURL(opts?.fileFormat);
+        const result = clone.chart.scene.getDataURL(opts?.fileFormat);
 
         clone.destroy();
 
