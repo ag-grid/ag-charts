@@ -263,6 +263,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
     protected readonly legends: Map<ChartLegendType, ChartLegend> = new Map();
     legend: ChartLegend | undefined;
 
+    private readonly sizeMonitor: SizeMonitor;
+
     private readonly processors: UpdateProcessor[] = [];
 
     processedOptions: AgChartOptions & { type?: SeriesOptionsTypes['type'] } = {};
@@ -342,7 +344,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         const { All } = InteractionState;
         const seriesRegion = this.regionManager.addRegion('series', this.seriesRoot);
-        SizeMonitor.observe(this.element, (size) => this.rawResize(size));
+        const sizeMonitor = new SizeMonitor(window, document);
+        this.sizeMonitor = sizeMonitor;
+        sizeMonitor.observe(this.element, (size) => this.rawResize(size));
         this._destroyFns.push(
             this.dataService.addListener('data-load', (event) => {
                 this.data = event.data;
@@ -468,7 +472,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.legends.forEach((legend) => legend.destroy());
         this.legends.clear();
         this.overlays.destroy();
-        SizeMonitor.unobserve(this.element);
+        this.sizeMonitor.unobserve(this.element);
 
         for (const moduleInstance of this.modules.values()) {
             moduleInstance?.destroy();
@@ -604,6 +608,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.debug('Chart.performUpdate() - start', ChartUpdateType[performUpdateType]);
         const splits: Record<string, number> = { start: performance.now() };
 
+        let updateDeferred = false;
         switch (performUpdateType) {
             case ChartUpdateType.FULL:
             case ChartUpdateType.UPDATE_DATA:
@@ -619,7 +624,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
             case ChartUpdateType.PERFORM_LAYOUT:
                 if (this.checkUpdateShortcut(ChartUpdateType.PERFORM_LAYOUT)) break;
-                if (!this.checkFirstAutoSize(seriesToUpdate)) break;
+                if (!this.checkFirstAutoSize(seriesToUpdate)) {
+                    updateDeferred = true;
+                    break;
+                }
 
                 await this.processLayout();
                 splits['⌖'] = performance.now();
@@ -664,7 +672,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 this.animationManager.endBatch();
         }
 
-        this.updateService.dispatchUpdateComplete(this.getMinRect());
+        if (!updateDeferred) {
+            this.updateService.dispatchUpdateComplete(this.getMinRect());
+        }
 
         const end = performance.now();
         this.debug('Chart.performUpdate() - end', {

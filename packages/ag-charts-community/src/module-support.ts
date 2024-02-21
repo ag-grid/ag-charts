@@ -1,4 +1,5 @@
 export * from './util/array';
+export * from './util/position';
 export * from './util/validation';
 export * from './util/default';
 export { extractDecoratedProperties, isDecoratedObject, listDecoratedProperties } from './util/decorator';

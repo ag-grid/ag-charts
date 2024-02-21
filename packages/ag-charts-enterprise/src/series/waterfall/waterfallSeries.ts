@@ -49,6 +49,7 @@ interface WaterfallNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Re
     readonly stroke: string;
     readonly strokeWidth: number;
     readonly opacity: number;
+    readonly cornerRadiusBbox?: _Scene.BBox;
 }
 
 interface WaterfallContext extends _ModuleSupport.CartesianSeriesNodeDataContext<WaterfallNodeDatum> {
@@ -584,7 +585,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 fillShadow,
                 strokeWidth: this.getStrokeWidth(strokeWidth),
                 cornerRadius,
-                cornerRadiusBbox: undefined,
             };
             const visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
 

@@ -1,6 +1,7 @@
 import { Node } from '../scene/node';
 import type { Selection } from '../scene/selection';
 import { interpolateColor, interpolateNumber } from '../util/interpolate';
+import { Interpolating, interpolate, isInterpolating } from '../util/interpolating';
 import { jsonDiff } from '../util/json';
 import { clamp } from '../util/number';
 import { linear } from './easing';
@@ -43,7 +44,12 @@ export const PHASE_METADATA: Record<AnimationPhase, AnimationMetadata> = {
     },
 };
 
-export type AnimationValue = number | string | undefined | Record<string, number | string | undefined>;
+export type AnimationValue =
+    | number
+    | string
+    | Interpolating
+    | undefined
+    | Record<string, number | string | Interpolating | undefined>;
 
 export enum RepeatType {
     Loop = 'loop',
@@ -247,10 +253,11 @@ export class Animation<T extends AnimationValue> implements IAnimation {
     }
 
     private createInterpolator(from: AnimationValue, to: AnimationValue) {
-        if (typeof to !== 'object') {
+        if (typeof to !== 'object' || isInterpolating(to)) {
             return this.interpolateValue(from, to);
         }
-        type InterpolatorTuple = [string, (d: number) => number | string];
+
+        type InterpolatorTuple = [string, (d: number) => number | string | Interpolating];
         const interpolatorEntries: InterpolatorTuple[] = [];
         for (const key in to) {
             const interpolator = this.interpolateValue((from as typeof to)[key], to[key]);
@@ -259,7 +266,7 @@ export class Animation<T extends AnimationValue> implements IAnimation {
             }
         }
         return (d: number) => {
-            const result: Record<string, number | string> = {};
+            const result: Record<string, number | string | Interpolating> = {};
             for (const [key, interpolator] of interpolatorEntries) {
                 result[key] = interpolator(d);
             }
@@ -270,6 +277,8 @@ export class Animation<T extends AnimationValue> implements IAnimation {
     private interpolateValue(a: any, b: any) {
         if (a === undefined || b === undefined) {
             return;
+        } else if (isInterpolating(a)) {
+            return (d: number) => a[interpolate](b, d);
         }
 
         try {
