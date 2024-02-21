@@ -1498,7 +1498,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         const miniChart = navigatorModule?.miniChart;
         const miniChartSeries = deltaOptions?.navigator?.miniChart?.series ?? deltaOptions?.series;
-        console.log(deltaOptions);
         if (miniChart?.enabled === true && miniChartSeries != null) {
             const oldSeries = oldOpts?.navigator?.miniChart?.series ?? oldOpts?.series;
             const seriesStatus = this.applySeries(
