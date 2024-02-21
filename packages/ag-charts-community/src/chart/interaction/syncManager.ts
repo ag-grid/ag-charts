@@ -28,6 +28,7 @@ type ChartLike = {
     tooltipManager: TooltipManager;
     zoomManager: ZoomManager;
     modules: Map<string, ModuleInstance>;
+    waitForDataProcess(timeout?: number): Promise<void>;
 };
 
 export class SyncManager extends BaseManager {

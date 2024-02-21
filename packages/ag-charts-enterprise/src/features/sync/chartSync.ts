@@ -47,9 +47,10 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         chart.updateService.update(updateType, { skipSync: true });
     }
 
-    private updateSiblings(groupId?: string) {
+    private async updateSiblings(groupId?: string) {
         const { syncManager } = this.moduleContext;
         for (const chart of syncManager.getGroupSiblings(groupId)) {
+            await chart.waitForDataProcess(1000);
             this.updateChart(chart);
         }
     }
@@ -170,7 +171,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         });
 
         if (!stopPropagation) {
-            setTimeout(() => this.updateSiblings(this.groupId));
+            this.updateSiblings(this.groupId);
         }
     }
 
