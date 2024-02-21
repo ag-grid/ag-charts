@@ -164,7 +164,7 @@ export interface AgBaseThemeableChartOptions<TDatum = any> {
     gradientLegend?: AgGradientLegendOptions;
     /** Configuration for chart animations. */
     animation?: AgAnimationOptions;
-    /** Configuration for lazily loaded data. */
+    /** Configuration for asynchronously loaded data. */
     dataSource?: AgDataSourceOptions<TDatum>;
     /** Configuration for the context menu. */
     contextMenu?: AgContextMenuOptions;
