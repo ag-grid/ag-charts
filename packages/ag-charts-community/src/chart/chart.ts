@@ -1432,7 +1432,16 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const completeOptions = mergeDefaults(deltaOptions, oldOpts);
         const modulesChanged = this.applyModules(completeOptions);
 
-        const skip = ['type', 'data', 'series', 'listeners', 'theme', 'legend.listeners', 'navigator.miniChart.label'];
+        const skip = [
+            'type',
+            'data',
+            'series',
+            'listeners',
+            'theme',
+            'legend.listeners',
+            'navigator.miniChart.series',
+            'navigator.miniChart.label',
+        ];
         if (isAgCartesianChartOptions(deltaOptions) || isAgPolarChartOptions(deltaOptions)) {
             // Append axes to defaults.
             skip.push('axes');
@@ -1488,11 +1497,14 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
 
         const miniChart = navigatorModule?.miniChart;
-        if (miniChart?.enabled === true && deltaOptions?.series != null) {
+        const miniChartSeries = deltaOptions?.navigator?.miniChart?.series ?? deltaOptions?.series;
+        console.log(deltaOptions);
+        if (miniChart?.enabled === true && miniChartSeries != null) {
+            const oldSeries = oldOpts?.navigator?.miniChart?.series ?? oldOpts?.series;
             const seriesStatus = this.applySeries(
                 miniChart,
-                this.filterMiniChartSeries(deltaOptions.series),
-                this.filterMiniChartSeries(oldOpts?.series)
+                this.filterMiniChartSeries(miniChartSeries),
+                this.filterMiniChartSeries(oldSeries)
             );
             this.applyAxes(miniChart, deltaOptions, oldOpts, seriesStatus, [
                 'axes[].tick',

@@ -94,6 +94,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         this.processAxesOptions(this.processedOptions, axesThemes);
         this.processSeriesOptions(this.processedOptions);
+        this.processMiniChartSeriesOptions(this.processedOptions);
 
         // Disable legend by default for single series cartesian charts and polar charts which display legend items per series rather than data items
         if (
@@ -222,6 +223,31 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         });
 
         options.series = this.setSeriesGroupingOptions(series);
+    }
+
+    protected processMiniChartSeriesOptions(options: T) {
+        let miniChartSeries = options.navigator?.miniChart?.series;
+        if (miniChartSeries == null) return;
+
+        const paletteOptions = {
+            colourIndex: 0,
+            userPalette: Boolean(isObject(options.theme) && options.theme.palette),
+        };
+
+        miniChartSeries = miniChartSeries.map((series) => {
+            series.type ??= 'line';
+            const { innerLabels: innerLabelsTheme, ...seriesTheme } =
+                this.getSeriesThemeConfig(series.type).series ?? {};
+            const seriesOptions = mergeDefaults(
+                this.getSeriesGroupingOptions(series),
+                series,
+                undefined,
+                seriesTheme,
+                this.getSeriesPalette(series.type, paletteOptions)
+            );
+            return this.activeTheme.templateTheme(seriesOptions);
+        });
+        options.navigator!.miniChart!.series = this.setSeriesGroupingOptions(miniChartSeries) as any;
     }
 
     protected getSeriesPalette(seriesType: SeriesType, options: { colourIndex: number; userPalette: boolean }) {

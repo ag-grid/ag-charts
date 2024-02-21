@@ -1,3 +1,4 @@
+import type { AgCartesianSeriesOptions } from '../series/cartesian/cartesianSeriesTypes';
 import type { AgAxisLabelFormatterParams } from './axisOptions';
 import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, Opacity, PixelSize, Ratio } from './types';
 
@@ -47,6 +48,8 @@ export interface AgNavigatorMiniChartPadding {
 export interface AgNavigatorMiniChartOptions {
     /** Whether to show a Mini Chart in the Navigator. */
     enabled?: boolean;
+    /** Override series used in Mini Chart. */
+    series?: AgCartesianSeriesOptions[];
     /** Configuration for the Mini Chart's axis labels. */
     label?: AgNavigatorMiniChartLabelOptions;
     /** Configuration for the padding inside the Mini Chart. */
