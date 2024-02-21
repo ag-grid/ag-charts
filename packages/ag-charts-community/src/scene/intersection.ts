@@ -1,4 +1,4 @@
-import { isBetweenAngles, normalizeAngle360 } from '../util/angle';
+import { isBetweenAngles } from '../util/angle';
 import { cubicRoots } from './polyRoots';
 
 /**
