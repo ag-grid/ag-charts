@@ -946,6 +946,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
         await Promise.all([...seriesPromises, ...modulePromises]);
 
         await this.updateLegend();
+
+        this.dataProcessListeners.forEach((resolve) => resolve());
+        this.dataProcessListeners = [];
     }
 
     placeLabels(): Map<Series<any>, PlacedLabel[]> {
@@ -1400,6 +1403,13 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         // wait until any remaining updates are flushed through.
         await this.updateMutex.waitForClearAcquireQueue();
+    }
+
+    private dataProcessListeners: ((...args: any[]) => void)[] = [];
+    waitForDataProcess(): Promise<void> {
+        return new Promise((resolve) => {
+            this.dataProcessListeners.push(resolve);
+        });
     }
 
     protected getMinRect() {
