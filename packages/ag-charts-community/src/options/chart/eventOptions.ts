@@ -3,7 +3,7 @@ interface AgChartEvent<T extends string> {
     event: Event;
 }
 
-export interface AgNodeBaseEvent<TEvent extends string, TDatum> extends AgChartEvent<TEvent> {
+export interface AgNodeBaseClickEvent<TEvent extends string, TDatum> extends AgChartEvent<TEvent> {
     /** Event type. */
     type: TEvent;
     /** Series ID, as specified in series.id (or generated if not specified) */
@@ -30,19 +30,19 @@ export interface AgNodeBaseEvent<TEvent extends string, TDatum> extends AgChartE
     radiusKey?: string;
 }
 
-export interface AgSeriesNodeClickEvent<TDatum> extends AgNodeBaseEvent<'seriesNodeClick', TDatum> {
+export interface AgSeriesNodeClickEvent<TDatum> extends AgNodeBaseClickEvent<'seriesNodeClick', TDatum> {
     /** Event type. */ type: 'seriesNodeClick';
 }
 
-export interface AgSeriesNodeDoubleClickEvent<TDatum> extends AgNodeBaseEvent<'seriesNodeDoubleClick', TDatum> {
+export interface AgSeriesNodeDoubleClickEvent<TDatum> extends AgNodeBaseClickEvent<'seriesNodeDoubleClick', TDatum> {
     /** Event type. */ type: 'seriesNodeDoubleClick';
 }
 
-export interface AgNodeClickEvent<TDatum> extends AgNodeBaseEvent<'nodeClick', TDatum> {
+export interface AgNodeClickEvent<TDatum> extends AgNodeBaseClickEvent<'nodeClick', TDatum> {
     /** Event type. */ type: 'nodeClick';
 }
 
-export interface AgNodeDoubleClickEvent<TDatum> extends AgNodeBaseEvent<'nodeDoubleClick', TDatum> {
+export interface AgNodeDoubleClickEvent<TDatum> extends AgNodeBaseClickEvent<'nodeDoubleClick', TDatum> {
     /** Event type. */ type: 'nodeDoubleClick';
 }
 
@@ -54,7 +54,7 @@ export interface AgChartDoubleClickEvent extends AgChartEvent<'doubleClick'> {
     /** Event type. */ type: 'doubleClick';
 }
 
-export interface AgNodeContextMenuActionEvent<TDatum> extends AgNodeBaseEvent<'contextMenuAction', TDatum> {
+export interface AgNodeContextMenuActionEvent<TDatum = any> extends AgNodeBaseClickEvent<'contextMenuAction', TDatum> {
     /** Event type. */ type: 'contextMenuAction';
 
     /** @deprecated v9.2 use `xKey`, `yKey`, `angleKey` etc instead. */

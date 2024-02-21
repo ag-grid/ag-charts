@@ -1,5 +1,5 @@
 import type { _Scene } from 'ag-charts-community';
-import { _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport, _Util } from 'ag-charts-community';
 
 import {
     DEFAULT_CONTEXT_MENU_CLASS,
@@ -264,10 +264,16 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         el.onclick = () => {
             const event = this.pickedNode?.series.createNodeContextMenuActionEvent(this.showEvent!, this.pickedNode);
             if (event) {
-                callback({
-                    ...event,
-                    itemId: this.pickedNode!.itemId, // @deprecated v9.2
+                Object.defineProperty(event, 'itemId', {
+                    enumerable: false,
+                    get: () => {
+                        _Util.Logger.warnOnce(
+                            `Property [AgNodeContextMenuActionEvent.itemId] is deprecated. Use [yKey], [angleKey] and others instead.`
+                        );
+                        return this.pickedNode?.itemId;
+                    },
                 });
+                callback(event);
             } else {
                 callback({ event: this.showEvent! });
             }
