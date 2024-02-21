@@ -120,16 +120,18 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
                         const { series, nodeDatum } = matchingNodes[0] ?? {};
                         chart.highlightManager.updateHighlight(chart.id, nodeDatum);
 
-                        if (this.tooltip) {
-                            if (nodeDatum) {
-                                chart.tooltipManager.updateTooltip(
-                                    chart.id,
-                                    TooltipManager.makeTooltipMeta({ offsetX: 0, offsetY: 0 }, nodeDatum),
-                                    series.getTooltipHtml(nodeDatum)
-                                );
-                            } else {
-                                chart.tooltipManager.removeTooltip(chart.id);
-                            }
+                        if (nodeDatum) {
+                            const tooltipMeta = TooltipManager.makeTooltipMeta(
+                                {
+                                    offsetX: nodeDatum.midPoint?.x ?? nodeDatum.point?.x ?? 0,
+                                    offsetY: nodeDatum.midPoint?.y ?? nodeDatum.point?.y ?? 0,
+                                },
+                                nodeDatum
+                            );
+                            delete tooltipMeta.lastPointerEvent;
+                            chart.tooltipManager.updateTooltip(chart.id, tooltipMeta, series.getTooltipHtml(nodeDatum));
+                        } else {
+                            chart.tooltipManager.removeTooltip(chart.id);
                         }
 
                         this.updateChart(chart, ChartUpdateType.SERIES_UPDATE);

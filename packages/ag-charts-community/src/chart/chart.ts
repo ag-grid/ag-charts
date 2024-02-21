@@ -633,17 +633,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 splits['⌖'] = performance.now();
             // fallthrough
 
-            case ChartUpdateType.TOOLTIP_RECALCULATION:
-                if (this.checkUpdateShortcut(ChartUpdateType.TOOLTIP_RECALCULATION)) break;
-
-                const tooltipMeta = this.tooltipManager.getTooltipMeta(this.id);
-
-                if (performUpdateType <= ChartUpdateType.SERIES_UPDATE && tooltipMeta !== undefined) {
-                    this.handlePointer(tooltipMeta.lastPointerEvent, true);
-                }
-                splits['↖'] = performance.now();
-            // fallthrough
-
             case ChartUpdateType.SERIES_UPDATE:
                 if (this.checkUpdateShortcut(ChartUpdateType.SERIES_UPDATE)) break;
 
@@ -651,6 +640,17 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 await Promise.all(seriesToUpdate.map((series) => series.update({ seriesRect })));
 
                 splits['🤔'] = performance.now();
+            // fallthrough
+
+            case ChartUpdateType.TOOLTIP_RECALCULATION:
+                if (this.checkUpdateShortcut(ChartUpdateType.TOOLTIP_RECALCULATION)) break;
+
+                const tooltipMeta = this.tooltipManager.getTooltipMeta(this.id);
+
+                if (performUpdateType <= ChartUpdateType.SERIES_UPDATE && tooltipMeta?.lastPointerEvent != null) {
+                    this.handlePointer(tooltipMeta.lastPointerEvent, true);
+                }
+                splits['↖'] = performance.now();
             // fallthrough
 
             case ChartUpdateType.SCENE_RENDER:
@@ -1147,19 +1147,23 @@ export abstract class Chart extends Observable implements AgChartInstance {
             }
         };
 
-        if ((redisplay && this.animationManager.isActive()) || !hoverRect?.containsPoint(offsetX, offsetY)) {
+        if (redisplay ? this.animationManager.isActive() : !hoverRect?.containsPoint(offsetX, offsetY)) {
             disablePointer();
             return;
         }
 
         // Handle node highlighting and tooltip toggling when pointer within `tooltip.range`
-        this.handlePointerTooltip(event, disablePointer);
+        this.handlePointerTooltip(event, disablePointer, redisplay);
 
         // Handle node highlighting and mouse cursor when pointer withing `series[].nodeClickRange`
         this.handlePointerNode(event);
     }
 
-    protected handlePointerTooltip(event: PointerOffsets, disablePointer: (highlightOnly?: boolean) => void) {
+    protected handlePointerTooltip(
+        event: PointerOffsets,
+        disablePointer: (highlightOnly?: boolean) => void,
+        _redisplay: boolean
+    ) {
         const { lastPick, tooltip } = this;
         const { range } = tooltip;
         const { offsetX, offsetY } = event;
@@ -1172,17 +1176,24 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         if (!pick) {
             this.tooltipManager.removeTooltip(this.id);
-            if (this.highlight.range === 'tooltip') disablePointer(true);
+            if (this.highlight.range === 'tooltip') {
+                disablePointer(true);
+            }
             return;
         }
 
         const isNewDatum = this.highlight.range === 'node' || !lastPick || lastPick !== pick.datum;
         let html;
 
+        // if (redisplay) {
+        //     console.log(this.id, { pick, isNewDatum }, this.highlight.range);
+        //     return;
+        // }
+
         if (isNewDatum) {
             html = pick.series.getTooltipHtml(pick.datum);
 
-            if (this.highlight.range === 'tooltip') {
+            if (this.highlight.range === 'tooltip' && pick.datum !== this.highlightManager.getActiveHighlight()) {
                 this.highlightManager.updateHighlight(this.id, pick.datum);
             }
         }

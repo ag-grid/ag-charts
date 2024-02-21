@@ -16,18 +16,19 @@ interface TooltipState {
 export class TooltipManager {
     private readonly stateTracker = new StateTracker<TooltipState>();
     private readonly exclusiveAreas = new Map<string, BBox>();
-    private readonly tooltip: Tooltip;
     private appliedState: TooltipState | null = null;
     private appliedExclusiveArea?: string;
     private destroyFns: (() => void)[] = [];
 
-    public constructor(tooltip: Tooltip, interactionManager: InteractionManager) {
-        this.tooltip = tooltip;
-
+    public constructor(
+        private readonly tooltip: Tooltip,
+        interactionManager: InteractionManager
+    ) {
         this.destroyFns.push(interactionManager.addListener('hover', (e) => this.checkExclusiveRects(e)));
     }
 
     public updateTooltip(callerId: string, meta?: TooltipMeta, content?: string) {
+        if (!this.tooltip.enabled) return;
         content ??= this.stateTracker.get(callerId)?.content;
         this.stateTracker.set(callerId, { content, meta });
         this.applyStates();
@@ -42,6 +43,7 @@ export class TooltipManager {
     }
 
     public removeTooltip(callerId: string) {
+        if (!this.tooltip.enabled) return;
         this.stateTracker.delete(callerId);
         this.applyStates();
     }
