@@ -120,7 +120,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramNodeDatum> {
 
         const props: PropertyDefinition<any>[] = [keyProperty(this, xKey, true), SORT_DOMAIN_GROUPS];
         if (yKey) {
-            let aggProp: AggregatePropertyDefinition<any, any, any> = groupCount(this, 'groupCount');
+            let aggProp: AggregatePropertyDefinition<any, any, any> = groupCount(this, 'groupAgg');
 
             if (aggregation === 'count') {
                 // Nothing to do.
