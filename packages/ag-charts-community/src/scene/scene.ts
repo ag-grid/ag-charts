@@ -84,7 +84,7 @@ export class Scene {
     }
 
     /** NOTE: Integrated Charts undocumented image download method. */
-    toDataURL(fileFormat?: string) {
+    getDataURL(fileFormat?: string) {
         return this.canvas.toDataURL(fileFormat);
     }
 
