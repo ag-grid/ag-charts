@@ -1,5 +1,5 @@
 import type { BBox } from '../../scene/bbox';
-import { StateTracker } from '../../util/state-tracker';
+import { StateTracker } from '../../util/stateTracker';
 import type { ErrorBoundSeriesNodeDatum, SeriesNodeDatum } from '../series/seriesTypes';
 import type { Tooltip, TooltipMeta } from '../tooltip/tooltip';
 import type { InteractionEvent, InteractionManager, PointerOffsets } from './interactionManager';

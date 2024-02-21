@@ -1,4 +1,4 @@
-import { StateTracker } from '../../util/state-tracker';
+import { StateTracker } from '../../util/stateTracker';
 
 /**
  * Manages the cursor styling for an element. Tracks the requested styling from distinct

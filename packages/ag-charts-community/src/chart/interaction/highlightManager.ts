@@ -1,4 +1,4 @@
-import { StateTracker } from '../../util/state-tracker';
+import { StateTracker } from '../../util/stateTracker';
 import type { SeriesNodeDatum } from '../series/seriesTypes';
 import { BaseManager } from './baseManager';
 
