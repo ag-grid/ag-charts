@@ -264,10 +264,9 @@ export class Path2D {
                         y
                     );
                     intersectionCount += arcIntersects.length;
-                    if (arcIntersects.length === 0 && !isNaN(sx)) {
+                    if (!isNaN(sx)) {
                         // AG-10199 the arc() command draws a connector line between previous position and the starting
-                        // position of the arc. So if there's no intersection if the arc itself, then check if there's
-                        // an intersection with this connector line.
+                        // position of the arc. So we need to check if there's an intersection with this connector line.
                         const startX = cx + Math.cos(startAngle) * r;
                         const startY = cy + Math.sin(startAngle) * r;
                         if (segmentIntersection(px, py, startX, startY, ox, oy, x, y)) {
