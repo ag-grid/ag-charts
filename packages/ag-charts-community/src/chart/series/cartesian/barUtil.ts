@@ -44,10 +44,10 @@ export function updateRect({ rect, config }: { rect: Rect; config: RectConfig })
         lineDashOffset,
         fillShadow,
         cornerRadius = 0,
-        topLeftCornerRadius,
-        topRightCornerRadius,
-        bottomRightCornerRadius,
-        bottomLeftCornerRadius,
+        topLeftCornerRadius = true,
+        topRightCornerRadius = true,
+        bottomRightCornerRadius = true,
+        bottomLeftCornerRadius = true,
         visible = true,
     } = config;
     rect.crisp = crisp;
@@ -176,7 +176,7 @@ export function collapsedStartingBarPosition(
             }
         }
 
-        const cornerRadiusBbox = new BBox(x, y, width, height);
+        const cornerRadiusBbox = datum.cornerRadiusBbox != null ? new BBox(x, y, width, height) : undefined;
 
         return { x, y, width, height, cornerRadiusBbox, opacity };
     };
