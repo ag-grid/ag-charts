@@ -57,7 +57,7 @@ function lineCollidesSector(line: LineCoordinates, sector: SectorBoundaries) {
             outerStart.y,
             innerStart.x,
             innerStart.y
-        ) != null ||
+        ) ||
         segmentIntersection(
             line.start.x,
             line.start.y,
@@ -67,7 +67,7 @@ function lineCollidesSector(line: LineCoordinates, sector: SectorBoundaries) {
             outerEnd.y,
             innerEnd.x,
             innerEnd.y
-        ) != null ||
+        ) ||
         arcIntersections(
             0,
             0,
@@ -79,7 +79,7 @@ function lineCollidesSector(line: LineCoordinates, sector: SectorBoundaries) {
             line.start.y,
             line.end.x,
             line.end.y
-        ).length > 0
+        )
     );
 }
 
