@@ -2,6 +2,7 @@ import type { ProcessedOutputDiff } from '../chart/data/dataModel';
 import type { AnimationManager } from '../chart/interaction/animationManager';
 import type { Node } from '../scene/node';
 import type { Selection } from '../scene/selection';
+import type { Interpolating } from '../util/interpolating';
 import { zipObject } from '../util/zip';
 import { deconstructSelectionsOrNodes } from './animation';
 import type { AnimationPhase, AnimationValue } from './animation';
@@ -28,7 +29,7 @@ export type ExtraOpts<T> = {
 };
 export type FromToMotionPropFn<
     N extends Node,
-    T extends Record<string, string | number | undefined> & Partial<N>,
+    T extends Record<string, string | number | Interpolating | undefined> & Partial<N>,
     D,
 > = (node: N, datum: D, state: NodeUpdateState, ctx: FromToMotionPropFnContext<N>) => T & Partial<ExtraOpts<N>>;
 type IntermediateFn<N extends Node, D> = (
@@ -47,7 +48,11 @@ export const NODE_UPDATE_STATE_TO_PHASE_MAPPING: Record<NodeUpdateState, Animati
 
 export type FromToDiff = Pick<ProcessedOutputDiff, 'added' | 'removed'>;
 
-export interface FromToFns<N extends Node, T extends Record<string, string | number | undefined> & Partial<N>, D> {
+export interface FromToFns<
+    N extends Node,
+    T extends Record<string, string | number | Interpolating | undefined> & Partial<N>,
+    D,
+> {
     fromFn: FromToMotionPropFn<N, T, D>;
     toFn: FromToMotionPropFn<N, T, D>;
     intermediateFn?: IntermediateFn<N, D>;
@@ -67,7 +72,11 @@ export interface FromToFns<N extends Node, T extends Record<string, string | num
  *                   specified iff diff is specified
  * @param diff optional diff from a DataModel to use to detect added/moved/removed cases
  */
-export function fromToMotion<N extends Node, T extends Record<string, string | number | undefined> & Partial<N>, D>(
+export function fromToMotion<
+    N extends Node,
+    T extends Record<string, string | number | Interpolating | undefined> & Partial<N>,
+    D,
+>(
     groupId: string,
     subId: string,
     animationManager: AnimationManager,
