@@ -17,6 +17,10 @@ interface CanvasOptions {
  * provide resolution independent rendering based on `window.devicePixelRatio`.
  */
 export class HdpiCanvas {
+    static is(value: unknown): value is HdpiCanvas {
+        return value instanceof HdpiCanvas;
+    }
+
     readonly element: HTMLCanvasElement;
     readonly context: CanvasRenderingContext2D & { verifyDepthZero?: () => void };
 

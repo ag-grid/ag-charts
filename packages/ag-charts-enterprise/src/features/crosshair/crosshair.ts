@@ -48,18 +48,16 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     constructor(private readonly ctx: _ModuleSupport.ModuleContextWithParent<_ModuleSupport.AxisContext>) {
         super();
 
-        ctx.scene.root?.appendChild(this.crosshairGroup);
-
         this.axisCtx = ctx.parent;
         this.crosshairGroup.visible = false;
         this.label = new CrosshairLabel(ctx.document, ctx.scene.canvas.container ?? ctx.document.body);
 
         this.destroyFns.push(
+            ctx.scene.attachNode(this.crosshairGroup),
             ctx.interactionManager.addListener('hover', (event) => this.onMouseMove(event)),
             ctx.interactionManager.addListener('leave', () => this.onMouseOut()),
             ctx.highlightManager.addListener('highlight-change', (event) => this.onHighlightChange(event)),
             ctx.layoutService.addListener('layout-complete', (event) => this.layout(event)),
-            () => ctx.scene.root?.removeChild(this.crosshairGroup),
             () => this.label.destroy()
         );
     }

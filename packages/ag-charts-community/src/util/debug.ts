@@ -2,7 +2,7 @@ import { toArray } from './array';
 import { getWindow } from './dom';
 import { Logger } from './logger';
 
-type DebugLogger = ((...logContent: any[]) => void) & { check(): boolean };
+export type DebugLogger = ((...logContent: any[]) => void) & { check(): boolean };
 
 const LONG_TIME_PERIOD_THRESHOLD = 2000;
 

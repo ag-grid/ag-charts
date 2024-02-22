@@ -9,7 +9,7 @@ import type {
 } from '../../options/series/markerOptions';
 import type { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
-import type { ZIndexSubOrder } from '../../scene/node';
+import type { ZIndexSubOrder } from '../../scene/layersManager';
 import type { Point } from '../../scene/point';
 import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlacement';
 import { createId } from '../../util/id';

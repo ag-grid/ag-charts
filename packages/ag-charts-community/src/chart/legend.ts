@@ -11,8 +11,8 @@ import type {
 } from '../options/agChartOptions';
 import { BBox } from '../scene/bbox';
 import { Group } from '../scene/group';
-import type { Node } from '../scene/node';
 import { RedrawType } from '../scene/node';
+import type { Scene } from '../scene/scene';
 import { Selection } from '../scene/selection';
 import { Text, getFont } from '../scene/shape/text';
 import { createId } from '../util/id';
@@ -296,8 +296,8 @@ export class Legend extends BaseProperties {
         this.group.visible = this.enabled && this.visible && this.data.length > 0;
     }
 
-    attachLegend(node: Node) {
-        node.append(this.group);
+    attachLegend(scene: Scene) {
+        scene.appendChild(this.group);
     }
 
     detachLegend() {
