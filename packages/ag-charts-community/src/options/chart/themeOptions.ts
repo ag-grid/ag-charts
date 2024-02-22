@@ -208,4 +208,5 @@ type VerifyAgBaseChartThemeOverrides<T = AgBaseChartOptions> = {
 // Verification checks for completeness/correctness.
 const __THEME_OVERRIDES = {} as Required<AgChartThemeOverrides>;
 // @ts-ignore
-const __VERIFY_THEME_OVERRIDES: Required<VerifyAgBaseChartThemeOverrides> = __THEME_OVERRIDES;
+let __VERIFY_THEME_OVERRIDES: Required<VerifyAgBaseChartThemeOverrides> = undefined as any;
+__VERIFY_THEME_OVERRIDES = __THEME_OVERRIDES;
