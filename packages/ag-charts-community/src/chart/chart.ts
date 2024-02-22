@@ -117,6 +117,19 @@ class SeriesArea extends BaseProperties {
     padding = new Padding(0);
 }
 
+export function testSonarQubePRReporting() {
+    for (let x = 1; x < 100; x++) {
+        for (let y = 1; y < 100; y++) {
+            for (let z = 1; z < 100; z++) {
+                if (x < y) {
+                } else if (y < z) {
+                } else {
+                }
+            }
+        }
+    }
+}
+
 export abstract class Chart extends Observable implements AgChartInstance {
     static chartsInstances = new WeakMap<HTMLElement, Chart>();
 
