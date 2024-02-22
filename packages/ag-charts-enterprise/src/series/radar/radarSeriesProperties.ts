@@ -8,7 +8,17 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import type { RadarNodeDatum } from './radarSeries';
+export interface RadarNodeDatum extends _ModuleSupport.SeriesNodeDatum {
+    readonly label?: {
+        text: string;
+        x: number;
+        y: number;
+        textAlign: CanvasTextAlign;
+        textBaseline: CanvasTextBaseline;
+    };
+    readonly angleValue: any;
+    readonly radiusValue: any;
+}
 
 const { Label } = _Scene;
 const {

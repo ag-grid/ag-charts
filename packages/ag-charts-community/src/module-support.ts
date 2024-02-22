@@ -14,6 +14,7 @@ export * from './scene/util/shapes';
 export * from './util/types';
 export * from './util/type-guards';
 export * from './module/theme';
+export * from './module/axisModule';
 export * from './module/baseModule';
 export * from './module/coreModules';
 export * from './module/optionsModule';

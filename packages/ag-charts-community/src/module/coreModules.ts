@@ -1,4 +1,3 @@
-import type { ChartAxis } from '../chart/chartAxis';
 import type { ChartLegend, ChartLegendType } from '../chart/legendDatum';
 import type { Series } from '../chart/series/series';
 import type { AgChartOptions, AgChartThemeOverrides } from '../options/agChartOptions';
@@ -6,8 +5,7 @@ import type { BaseModule, ModuleInstance } from './baseModule';
 import type { SeriesPaletteFactory } from './coreModulesTypes';
 import type { ModuleContext } from './moduleContext';
 
-export type ModuleInstanceConstructor<M> = new (moduleContext: ModuleContext) => M;
-export type AxisConstructor = ModuleInstanceConstructor<ChartAxis>;
+type ModuleInstanceConstructor<M> = new (moduleContext: ModuleContext) => M;
 export type SeriesConstructor = ModuleInstanceConstructor<Series<any>>;
 export type LegendConstructor = ModuleInstanceConstructor<ChartLegend>;
 
@@ -15,15 +13,6 @@ export interface RootModule<M extends ModuleInstance = ModuleInstance> extends B
     type: 'root';
 
     instanceConstructor: ModuleInstanceConstructor<M>;
-
-    themeTemplate?: {};
-}
-
-export interface AxisModule extends BaseModule {
-    type: 'axis';
-
-    identifier: string;
-    instanceConstructor: AxisConstructor;
 
     themeTemplate?: {};
 }

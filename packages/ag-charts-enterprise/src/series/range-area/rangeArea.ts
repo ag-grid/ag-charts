@@ -1,6 +1,6 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-import { RangeAreaProperties } from './rangeAreaProperties';
+import { RangeAreaMarkerDatum, RangeAreaProperties } from './rangeAreaProperties';
 
 const {
     valueProperty,
@@ -43,15 +43,6 @@ type RangeAreaLabelDatum = Readonly<_Scene.Point> & {
     itemId?: string;
     series: _ModuleSupport.CartesianSeriesNodeDatum['series'];
 };
-
-export interface RangeAreaMarkerDatum
-    extends Required<Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'yKey' | 'yValue'>> {
-    readonly index: number;
-    readonly yLowKey: string;
-    readonly yHighKey: string;
-    readonly yLowValue: number;
-    readonly yHighValue: number;
-}
 
 interface RangeAreaContext
     extends _ModuleSupport.CartesianSeriesNodeDataContext<RangeAreaMarkerDatum, RangeAreaLabelDatum> {
