@@ -13,6 +13,7 @@ import {
     clickAction,
     computeLegendBBox,
     extractImageData,
+    getCursor,
     hoverAction,
     setupMockCanvas,
     setupMockConsole,
@@ -804,9 +805,6 @@ describe('ErrorBars', () => {
     });
 
     it('should use correct cursor', async () => {
-        const getCursor = () => {
-            return chart.getModuleContext().cursorManager.getCursor();
-        };
         chart = await createEnterpriseChart({
             tooltip: { range: 2 },
             series: [{ ...SERIES_BOYLESLAW, cursor: 'grab' }],
@@ -817,11 +815,11 @@ describe('ErrorBars', () => {
         // Hover over an error bar
         await hoverAction(x, y - 20)(chart);
         await waitForChartStability(chart);
-        expect(getCursor()).toBe('grab');
+        expect(getCursor(chart)).toBe('grab');
 
         // Hover over nothing
         await hoverAction(x, y - 100)(chart);
         await waitForChartStability(chart);
-        expect(getCursor()).toBe('default');
+        expect(getCursor(chart)).toBe('default');
     });
 });

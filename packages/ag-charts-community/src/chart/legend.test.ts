@@ -15,6 +15,8 @@ import {
     deproxy,
     doubleClickAction,
     extractImageData,
+    getCursor,
+    hoverAction,
     prepareTestOptions,
     setupMockCanvas,
     waitForChartStability,
@@ -176,6 +178,29 @@ describe('Legend', () => {
             await doubleClickAction(x, y)(chart);
 
             await compare(chart);
+        });
+    });
+
+    describe('Hover over legend', () => {
+        it('should change the cursor when entering and leaving the legend rect', async () => {
+            const options = {
+                ...examples.GROUPED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS,
+            };
+
+            prepareTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+
+            await waitForChartStability(chart);
+            const { x, y } = computeLegendBBox(chart);
+
+            await hoverAction(x, y)(chart);
+            await waitForChartStability(chart);
+            expect(getCursor(chart)).toBe('pointer');
+
+            await hoverAction(x, y - 1)(chart);
+            await waitForChartStability(chart);
+            expect(getCursor(chart)).toBe('default');
         });
     });
 
