@@ -11194,6 +11194,11 @@ eslint-plugin-cypress@2.15.1:
   dependencies:
     globals "^13.20.0"
 
+eslint-plugin-diff@^2.0.3:
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-diff/-/eslint-plugin-diff-2.0.3.tgz#9de96ec722726e90ce813eb8251c0a2bd186bf6c"
+  integrity sha512-pkSwOTjPxqtplq+Ea+9i75QMdmJrItu6oxIG6EWY8bJ5veBNMUrp6Oti+5L6SW20FfjX+CmlZz+fyiWGG1POaQ==
+
 eslint-plugin-sonarjs@0.24.0:
   version "0.24.0"
   resolved "https://registry.yarnpkg.com/eslint-plugin-sonarjs/-/eslint-plugin-sonarjs-0.24.0.tgz#b594ccb9b1d6123edd3c3fe3a45b4392e14932d7"
