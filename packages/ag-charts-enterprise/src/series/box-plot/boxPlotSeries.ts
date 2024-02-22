@@ -366,6 +366,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup
     }) {
         const isVertical = this.isVertical();
         const isReversedValueAxis = this.getValueAxis()?.isReversed();
+        const { cornerRadius } = this.properties;
         datumSelection.each((boxPlotGroup, nodeDatum) => {
             let activeStyles = this.getFormattedStyles(nodeDatum, highlighted);
 
@@ -387,7 +388,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup
                 nodeDatum,
                 activeStyles as _ModuleSupport.DeepRequired<AgBoxPlotSeriesStyles>,
                 isVertical,
-                isReversedValueAxis
+                isReversedValueAxis,
+                cornerRadius
             );
         });
     }

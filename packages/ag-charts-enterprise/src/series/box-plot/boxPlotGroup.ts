@@ -32,9 +32,9 @@ export class BoxPlotGroup extends Group {
         datum: BoxPlotNodeDatum,
         activeStyles: _ModuleSupport.DeepRequired<AgBoxPlotSeriesStyles>,
         isVertical: boolean,
-        isReversedValueAxis?: boolean
+        isReversedValueAxis: boolean | undefined,
+        cornerRadius: number
     ) {
-        const cornerRadius = 100;
         const {
             bandwidth,
             scaledValues: { xValue: axisValue, medianValue },
