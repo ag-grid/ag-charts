@@ -11,22 +11,20 @@ interface SceneOptions {
     width?: number;
     height?: number;
     pixelRatio?: number;
-    simpleMode?: boolean;
 }
 
 export class Scene {
     static readonly className = 'Scene';
 
-    readonly id = createId(this);
+    private readonly debug = Debug.create(true, DebugSelectors.SCENE);
 
+    readonly id = createId(this);
     readonly canvas: HdpiCanvas;
+    readonly layersManager: LayersManager;
 
     private root: Node | null = null;
     private isDirty: boolean = false;
     private pendingSize?: [number, number];
-    private readonly debug = Debug.create(true, DebugSelectors.SCENE);
-
-    layersManager: LayersManager;
 
     constructor({ width, height, pixelRatio }: SceneOptions) {
         this.canvas = new HdpiCanvas({ width, height, pixelRatio });
@@ -53,14 +51,14 @@ export class Scene {
             return this;
         }
 
+        this.isDirty = true;
+        this.root?._setLayerManager();
+        this.root = node;
+
         if (node) {
             node.visible = true;
             node._setLayerManager(this.layersManager);
         }
-
-        this.isDirty = true;
-        this.root?._setLayerManager();
-        this.root = node;
 
         return this;
     }
@@ -206,7 +204,7 @@ export class Scene {
     strip() {
         this.layersManager.clear();
 
-        this.root = null;
+        this.setRoot(null);
         this.isDirty = false;
         this.canvas.context.resetTransform();
     }
@@ -217,6 +215,6 @@ export class Scene {
         this.strip();
 
         this.canvas.destroy();
-        Object.assign(this, { canvas: undefined, ctx: undefined });
+        Object.assign(this, { canvas: undefined });
     }
 }
