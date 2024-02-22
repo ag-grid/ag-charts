@@ -249,14 +249,18 @@ export function hoverAction(x: number, y: number): (chart: Chart | AgChartProxy)
     };
 }
 
-export function clickAction(x: number, y: number): (chart: Chart | AgChartProxy) => Promise<void> {
+export function clickAction(
+    x: number,
+    y: number,
+    opts?: { mousedown?: { offsetX: number; offsetY: number } }
+): (chart: Chart | AgChartProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
         const target = chart.scene.canvas.element;
         checkTargetValid(target);
 
         const offsets = { offsetX: x, offsetY: y };
-        target?.dispatchEvent(mouseDownEvent(offsets));
+        target?.dispatchEvent(mouseDownEvent(opts?.mousedown ?? offsets));
         target?.dispatchEvent(mouseUpEvent(offsets));
         target?.dispatchEvent(clickEvent(offsets));
         return delay(50);

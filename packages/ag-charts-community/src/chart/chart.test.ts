@@ -76,6 +76,7 @@ describe('Chart', () => {
         chartOptions?: any;
         getNodeData: (series: any) => any[];
         getNodePoint: (nodeItem: any) => [number, number];
+        getNodeExitPoint: (nodeItem: any) => [number, number];
         getDatumValues: (datum: any, series: any) => any[];
         getTooltipRenderedValues: (tooltipRendererParams: any) => any[];
         getHighlightNode: (chart: any, series: any) => any;
@@ -153,6 +154,22 @@ describe('Chart', () => {
             expect(onNodeClick).toBeCalledTimes(nodeCount);
         };
 
+        const checkMouseUpOnlyClick = async (
+            chart: Chart,
+            onNodeClick: () => void,
+            nodeExit: (item: any) => [number, number]
+        ) => {
+            await hoverChartNodes(chart, async ({ item, x, y }) => {
+                // Perform click
+                const [downX, downY] = nodeExit(item);
+                await clickAction(x, y, { mousedown: { offsetX: downX, offsetY: downY } })(chart);
+                await waitForChartStability(chart);
+            });
+
+            // Check click handler
+            expect(onNodeClick).toBeCalledTimes(0);
+        };
+
         it(`should render tooltip correctly`, async () => {
             chart = await createChartPreset({ hasTooltip: true });
             await hoverChartNodes(chart, async ({ series, item, x, y }) => {
@@ -214,6 +231,12 @@ describe('Chart', () => {
             chart = await createChartPreset({ hasTooltip: true, onNodeClick, nodeClickRange: 6 });
             await checkNodeClick(chart, onNodeClick, { x: 0, y: 5 });
         });
+
+        it(`should trigger nodeClick event only on mousedown and mouseup`, async () => {
+            const onNodeClick = jest.fn();
+            chart = await createChartPreset({ hasTooltip: true });
+            await checkMouseUpOnlyClick(chart, onNodeClick, testParams.getNodeExitPoint);
+        });
     };
 
     const cartesianTestParams = {
@@ -233,6 +256,7 @@ describe('Chart', () => {
                 yKey: datasets.economy.valueKey,
             },
             getNodePoint: (item) => [item.point.x, item.point.y],
+            getNodeExitPoint: (item) => [item.point.x, item.point.y + 8],
             getDatumValues: (item, series) => {
                 const xValue = item.datum[series.properties['xKey']];
                 const yValue = item.datum[series.properties['yKey']];
@@ -254,6 +278,7 @@ describe('Chart', () => {
                 },
             },
             getNodePoint: (item) => [item.point.x, item.point.y],
+            getNodeExitPoint: (item) => [item.point.x, item.point.y + 8],
             getDatumValues: (item, series) => {
                 const xValue = item.datum[series.properties.xKey];
                 const yValue = item.datum[series.properties.yKey];
@@ -278,6 +303,7 @@ describe('Chart', () => {
                 ],
             },
             getNodePoint: (item) => [item.point.x, item.point.y],
+            getNodeExitPoint: (item) => [item.point.x, item.point.y + 8],
             getDatumValues: (item, series) => {
                 const xValue = item.datum[series.properties['xKey']];
                 const yValue = item.datum[series.properties['yKey']];
@@ -296,6 +322,7 @@ describe('Chart', () => {
                 yKey: datasets.economy.valueKey,
             },
             getNodePoint: (item) => [item.x + item.width / 2, item.y + item.height / 2],
+            getNodeExitPoint: (item) => [item.x + item.width / 2, item.y + item.height + 8],
             getDatumValues: (item, series) => {
                 const xValue = item.datum[series.properties.xKey];
                 const yValue = item.datum[series.properties.yKey];
@@ -314,6 +341,7 @@ describe('Chart', () => {
             },
             getNodeData: (series) => series.sectorLabelSelection.nodes(),
             getNodePoint: (item) => [item.x, item.y],
+            getNodeExitPoint: (_item) => [20, 20],
             getDatumValues: (item, series) => {
                 const category = item.datum.datum[series.properties.sectorLabelKey];
                 const value = item.datum.datum[series.properties.angleKey];
