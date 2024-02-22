@@ -20,8 +20,11 @@ type _DeepRequiredObject<T> = {
     [K in keyof T]-?: DeepRequired<Defined<T[K]>>;
 };
 
-export type DeepPartial<T> =
-    T extends Array<unknown> ? T : T extends object ? { [K in keyof T]?: DeepPartial<T[K]> } : T;
+export type DeepPartial<T> = T extends Array<unknown>
+    ? T
+    : T extends object
+      ? { [K in keyof T]?: DeepPartial<T[K]> }
+      : T;
 
 export type PickRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
 
