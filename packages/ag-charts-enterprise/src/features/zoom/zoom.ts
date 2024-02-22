@@ -14,7 +14,6 @@ import {
     scaleZoomAxisWithPoint,
     scaleZoomCenter,
     translateZoom,
-    unitZoomState,
 } from './zoomTransformers';
 import type { DefinedZoomState } from './zoomTypes';
 
@@ -22,7 +21,9 @@ type PinchEvent = _ModuleSupport.PinchEvent;
 type ContextMenuActionParams = _ModuleSupport.ContextMenuActionParams;
 
 const {
+    AND,
     BOOLEAN,
+    GREATER_THAN,
     NUMBER,
     RATIO,
     UNION,
@@ -44,6 +45,14 @@ const DECIMALS = 3;
 const round = (value: number) => sharedRound(value, DECIMALS);
 
 export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
+    private static UpdateZoomOnSet(prop: 'minX' | 'maxX' | 'minY' | 'maxY') {
+        return ActionOnSet<Zoom>({
+            newValue(value) {
+                this.updateZoomFromProperties({ [prop]: value });
+            },
+        });
+    }
+
     @ActionOnSet<Zoom>({
         newValue(newValue) {
             if (newValue) {
@@ -77,6 +86,22 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     @Validate(RATIO)
     public scrollingStep = (UNIT.max - UNIT.min) / 10;
+
+    @Zoom.UpdateZoomOnSet('minX')
+    @Validate(RATIO)
+    public minX?: number;
+
+    @Zoom.UpdateZoomOnSet('maxX')
+    @Validate(AND(RATIO, GREATER_THAN('minX')))
+    public maxX?: number;
+
+    @Zoom.UpdateZoomOnSet('minY')
+    @Validate(RATIO)
+    public minY?: number;
+
+    @Zoom.UpdateZoomOnSet('maxY')
+    @Validate(AND(RATIO, GREATER_THAN('minY')))
+    public maxY?: number;
 
     @Validate(NUMBER.restrict({ min: 1 }))
     public minVisibleItemsX = 2;
@@ -156,6 +181,22 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.destroyFns.push(() => this.scene.root?.removeChild(selectionRect));
     }
 
+    private updateZoomFromProperties(props: { minX?: number; maxX?: number; minY?: number; maxY?: number }) {
+        const {
+            minX = this.minX ?? UNIT.min,
+            maxX = this.maxX ?? UNIT.max,
+            minY = this.minY ?? UNIT.min,
+            maxY = this.maxY ?? UNIT.max,
+        } = props;
+
+        const newZoom = {
+            x: { min: minX, max: maxX },
+            y: { min: minY, max: maxY },
+        };
+
+        this.zoomManager.updateZoom('zoom', newZoom);
+    }
+
     private registerContextMenuActions() {
         // Add context menu zoom actions
         this.contextMenuRegistry.registerDefaultAction({
@@ -190,14 +231,20 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private onDoubleClick(event: _ModuleSupport.InteractionEvent<'dblclick'>) {
         if (!this.enabled || !this.enableDoubleClickToReset) return;
 
+        const { minX = UNIT.min, maxX = UNIT.max, minY = UNIT.min, maxY = UNIT.max } = this;
+
         if (this.hoveredAxis) {
             const { id, direction } = this.hoveredAxis;
-            this.updateAxisZoom(id, direction, { ...UNIT });
+            const axisZoom = direction === ChartAxisDirection.X ? { min: minX, max: maxX } : { min: minY, max: maxY };
+            this.updateAxisZoom(id, direction, axisZoom);
         } else if (
             this.paddedRect?.containsPoint(event.offsetX, event.offsetY) &&
             this.highlightManager.getActivePicked() == null
         ) {
-            this.updateZoom(unitZoomState());
+            this.updateZoom({
+                x: { min: minX, max: maxX },
+                y: { min: minY, max: maxY },
+            });
         }
     }
 
@@ -551,7 +598,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         this.toggleContextMenuActions(zoom);
 
-        this.zoomManager.updateZoom(zoom);
+        this.zoomManager.updateZoom('zoom', zoom);
     }
 
     private updateAxisZoom(
@@ -573,7 +620,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         // Discard the zoom update if it would take us below the min ratio
         if (d >= minRatio) {
-            this.zoomManager.updateAxisZoom(axisId, partialZoom);
+            this.zoomManager.updateAxisZoom('zoom', axisId, partialZoom);
         }
     }
 }

@@ -1508,7 +1508,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         if (!navigatorModule?.enabled && !zoomModule?.enabled) {
             // reset zoom to initial state
-            this.zoomManager.updateZoom();
+            this.zoomManager.updateZoom('chart');
         }
 
         const miniChart = navigatorModule?.miniChart;

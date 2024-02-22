@@ -191,4 +191,11 @@ describe('Zoom', () => {
             await compare();
         });
     });
+
+    describe('initial', () => {
+        it('should start at the given zoom', async () => {
+            await prepareChart({ minX: 0.2, maxX: 0.8, minY: 0.1, maxY: 0.9 });
+            await compare();
+        });
+    });
 });

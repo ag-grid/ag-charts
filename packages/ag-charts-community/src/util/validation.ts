@@ -122,12 +122,12 @@ const isComparable = (value: unknown): value is number | Date => isFiniteNumber(
 export const LESS_THAN = (otherField: string) =>
     predicateWithMessage(
         (v, ctx) => !isComparable(v) || !isComparable(ctx.target[otherField]) || v < ctx.target[otherField],
-        `expected to be less than ${otherField}`
+        `to be less than ${otherField}`
     );
 export const GREATER_THAN = (otherField: string) =>
     predicateWithMessage(
         (v, ctx) => !isComparable(v) || !isComparable(ctx.target[otherField]) || v > ctx.target[otherField],
-        `expected to be greater than ${otherField}`
+        `to be greater than ${otherField}`
     );
 
 export const DATE = predicateWithMessage(isValidDate, 'Date object');
