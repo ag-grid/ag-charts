@@ -4,8 +4,8 @@ import { getWindow } from '../util/dom';
 import { Logger } from '../util/logger';
 import { isString } from '../util/type-guards';
 import { Group } from './group';
+import type { LayersManager } from './layersManager';
 import { type Node, RedrawType, type RenderContext } from './node';
-import type { Scene } from './scene';
 import { Text } from './shape/text';
 
 export enum DebugSelectors {
@@ -18,7 +18,7 @@ export enum DebugSelectors {
 type BuildTree = { name?: string; node?: any; dirty?: string; virtualParent?: Node };
 
 export function debugStats(
-    scene: Scene,
+    layersManager: LayersManager,
     debugSplitTimes: Record<string, number>,
     ctx: CanvasRenderingContext2D,
     renderCtxStats: RenderContext['stats'],
@@ -50,7 +50,7 @@ export function debugStats(
     const stats = [
         `${time('⏱️', start, end)} (${splits})`,
         `${extras}`,
-        `Layers: ${detailedStats ? pct(layersRendered, layersSkipped) : scene.layersManager.size}`,
+        `Layers: ${detailedStats ? pct(layersRendered, layersSkipped) : layersManager.size}`,
         detailedStats ? `Nodes: ${pct(nodesRendered, nodesSkipped)}` : null,
     ].filter(isString);
     const statsSize = new Map(stats.map((t) => [t, Text.getTextSize(t, ctx.font)]));

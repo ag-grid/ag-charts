@@ -1,9 +1,8 @@
 import { ascendingStringNumberUndefined, compoundAscending } from '../util/compare';
-import { Debug } from '../util/debug';
+import type { DebugLogger } from '../util/debug';
 import { HdpiCanvas } from './canvas/hdpiCanvas';
 import { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
 import type { ZIndexSubOrder } from './node';
-import { DebugSelectors } from './sceneDebug';
 
 type Canvas = HdpiCanvas | HdpiOffscreenCanvas;
 
@@ -26,7 +25,6 @@ export class LayersManager {
         );
     }
 
-    readonly debug = Debug.create(true, DebugSelectors.SCENE);
     private readonly layersMap = new Map<Canvas, SceneLayer>();
 
     private nextZIndex = 0;
@@ -34,7 +32,8 @@ export class LayersManager {
 
     constructor(
         public readonly canvas: Canvas,
-        public readonly markDirty: () => void
+        public readonly markDirty: () => void,
+        public readonly debug: DebugLogger
     ) {}
 
     get size() {

@@ -30,9 +30,13 @@ export class Scene {
 
     constructor({ width, height, pixelRatio }: SceneOptions) {
         this.canvas = new HdpiCanvas({ width, height, pixelRatio });
-        this.layersManager = new LayersManager(this.canvas, () => {
-            this.isDirty = true;
-        });
+        this.layersManager = new LayersManager(
+            this.canvas,
+            () => {
+                this.isDirty = true;
+            },
+            this.debug
+        );
     }
 
     get width(): number {
@@ -127,7 +131,7 @@ export class Scene {
                 });
             }
 
-            debugStats(this, debugSplitTimes, ctx, undefined, extraDebugStats);
+            debugStats(this.layersManager, debugSplitTimes, ctx, undefined, extraDebugStats);
             return;
         }
 
@@ -190,7 +194,7 @@ export class Scene {
 
         this.isDirty = false;
 
-        debugStats(this, debugSplitTimes, ctx, renderCtx.stats, extraDebugStats);
+        debugStats(this.layersManager, debugSplitTimes, ctx, renderCtx.stats, extraDebugStats);
         debugSceneNodeHighlight(this.root, ctx, renderCtx.debugNodes);
 
         if (root && this.debug.check()) {
