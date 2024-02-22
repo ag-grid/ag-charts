@@ -27,7 +27,6 @@ export type RectConfig = {
     topRightCornerRadius?: boolean;
     bottomRightCornerRadius?: boolean;
     bottomLeftCornerRadius?: boolean;
-    cornerRadiusBbox?: BBox;
     crisp?: boolean;
     visible?: boolean;
 };
@@ -176,7 +175,16 @@ export function collapsedStartingBarPosition(
             }
         }
 
-        const cornerRadiusBbox = datum.cornerRadiusBbox != null ? new BBox(x, y, width, height) : undefined;
+        let cornerRadiusBbox: BBox | undefined;
+        if (datum.cornerRadiusBbox == null) {
+            cornerRadiusBbox = undefined;
+        } else if (isDatumNegative(datum)) {
+            cornerRadiusBbox = isVertical
+                ? new BBox(x, y - height, width, height)
+                : new BBox(x - width, y, width, height);
+        } else {
+            cornerRadiusBbox = new BBox(x, y, width, height);
+        }
 
         return { x, y, width, height, cornerRadiusBbox, opacity };
     };
