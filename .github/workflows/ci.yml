@@ -355,6 +355,10 @@ jobs:
                   fetch-depth: 0
             - name: SonarQube Scan
               uses: sonarsource/sonarqube-scan-action@master
+              with:
+                  args: >
+                      -Dsonar.qualitygate.wait=true
+                      -Dsonar.verbose=true
               env:
                   SONAR_TOKEN: ${{ secrets.SONAR_LOGIN }}
                   SONAR_HOST_URL: https://sonarcloud.io
