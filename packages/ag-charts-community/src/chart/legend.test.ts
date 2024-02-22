@@ -1,13 +1,13 @@
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, describe, expect, it } from '@jest/globals';
 
 import type { AgCartesianChartOptions, AgChartOptions } from '../options/agChartOptions';
 import { AgCharts } from './agChartV2';
-import type { CartesianChart } from './cartesianChart';
 import type { Chart } from './chart';
 import * as examples from './test/examples';
 import { setupMockConsole } from './test/mockConsole';
 import { seedRandom } from './test/random';
 import {
+    AgChartProxy,
     IMAGE_SNAPSHOT_DEFAULTS,
     clickAction,
     computeLegendBBox,
@@ -15,6 +15,8 @@ import {
     deproxy,
     doubleClickAction,
     extractImageData,
+    getCursor,
+    hoverAction,
     prepareTestOptions,
     setupMockCanvas,
     waitForChartStability,
@@ -76,7 +78,7 @@ describe('Legend', () => {
             prepareTestOptions(options);
             options.width = width ?? options.width;
 
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(AgCharts.create(options) as AgChartProxy);
             await compare(chart);
         });
     });
@@ -91,9 +93,7 @@ describe('Legend', () => {
                     position,
                 },
             };
-            prepareTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = await createChart(options);
             await compare(chart);
         });
     });
@@ -103,12 +103,7 @@ describe('Legend', () => {
             const options = {
                 ...examples.GROUPED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS,
             };
-
-            prepareTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options)) as CartesianChart;
-
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             const { x, y } = computeLegendBBox(chart);
             await clickAction(x, y)(chart);
@@ -120,12 +115,8 @@ describe('Legend', () => {
             const options = {
                 ...examples.GROUPED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS,
             };
+            chart = await createChart(options);
 
-            prepareTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
-
-            await waitForChartStability(chart);
             const { x, y } = computeLegendBBox(chart);
 
             await clickAction(x, y)(chart);
@@ -141,14 +132,9 @@ describe('Legend', () => {
             const options = {
                 ...examples.GROUPED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS,
             };
+            chart = await createChart(options);
 
-            prepareTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
-
-            await waitForChartStability(chart);
             const { x, y } = computeLegendBBox(chart);
-
             await doubleClickAction(x, y)(chart);
 
             await compare(chart);
@@ -158,12 +144,8 @@ describe('Legend', () => {
             const options = {
                 ...examples.GROUPED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS,
             };
+            chart = await createChart(options);
 
-            prepareTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
-
-            await waitForChartStability(chart);
             const { x, y } = computeLegendBBox(chart);
 
             await doubleClickAction(x, y)(chart);
@@ -176,6 +158,29 @@ describe('Legend', () => {
             await doubleClickAction(x, y)(chart);
 
             await compare(chart);
+        });
+    });
+
+    describe('Hover over legend', () => {
+        it('should change the cursor when entering and leaving the legend rect', async () => {
+            const options = {
+                ...examples.GROUPED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS,
+            };
+
+            prepareTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+
+            await waitForChartStability(chart);
+            const { x, y } = computeLegendBBox(chart);
+
+            await hoverAction(x, y)(chart);
+            await waitForChartStability(chart);
+            expect(getCursor(chart)).toBe('pointer');
+
+            await hoverAction(x, y - 1)(chart);
+            await waitForChartStability(chart);
+            expect(getCursor(chart)).toBe('default');
         });
     });
 

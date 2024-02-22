@@ -249,14 +249,18 @@ export function hoverAction(x: number, y: number): (chart: Chart | AgChartProxy)
     };
 }
 
-export function clickAction(x: number, y: number): (chart: Chart | AgChartProxy) => Promise<void> {
+export function clickAction(
+    x: number,
+    y: number,
+    opts?: { mousedown?: { offsetX: number; offsetY: number } }
+): (chart: Chart | AgChartProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
         const target = chart.scene.canvas.element;
         checkTargetValid(target);
 
         const offsets = { offsetX: x, offsetY: y };
-        target?.dispatchEvent(mouseDownEvent(offsets));
+        target?.dispatchEvent(mouseDownEvent(opts?.mousedown ?? offsets));
         target?.dispatchEvent(mouseUpEvent(offsets));
         target?.dispatchEvent(clickEvent(offsets));
         return delay(50);
@@ -395,4 +399,9 @@ export function mixinReversedAxesCases(
 export function computeLegendBBox(chart: Chart): BBox {
     const { x = 0, y = 0, width = 0, height = 0 } = (chart.legend as any)?.group.computeBBox() ?? {};
     return new BBox(x, y, width, height);
+}
+
+export function getCursor(chart: Chart | AgChartProxy): string {
+    const ctx = deproxy(chart).getModuleContext();
+    return ctx.cursorManager.getCursor();
 }

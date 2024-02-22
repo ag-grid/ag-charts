@@ -57,7 +57,7 @@ export class LinearGradientFill extends Shape {
         mask.path.draw(ctx);
         ctx.clip();
 
-        ctx.resetTransform();
+        ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
 
         const x0 = Math.floor(maskBbox.x);
         const x1 = Math.ceil(maskBbox.x + maskBbox.width);

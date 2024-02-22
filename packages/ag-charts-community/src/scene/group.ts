@@ -194,7 +194,7 @@ export class Group extends Node {
             // Switch context to the canvas layer we use for this group.
             ctx = layer.context;
             ctx.save();
-            ctx.resetTransform();
+            ctx.setTransform(layer.pixelRatio, 0, 0, layer.pixelRatio, 0, 0);
 
             if (forceRender !== 'dirtyTransform') {
                 forceRender = isChildDirty || dirtyZIndex;

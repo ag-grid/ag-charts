@@ -466,7 +466,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 fillShadow,
                 strokeWidth: this.getStrokeWidth(strokeWidth),
                 cornerRadius: this.properties.cornerRadius,
-                cornerRadiusBbox: undefined,
             };
             const visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
 

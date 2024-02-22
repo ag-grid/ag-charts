@@ -1,4 +1,4 @@
-import type { AxisModule } from '../../module/coreModules';
+import type { AxisModule } from '../../module/axisModule';
 import type { ModuleContext } from '../../module/moduleContext';
 import type { ChartAxis } from '../chartAxis';
 

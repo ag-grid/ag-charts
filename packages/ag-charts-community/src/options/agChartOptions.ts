@@ -9,6 +9,7 @@ export * from './chart/eventOptions';
 export * from './chart/gradientLegendOptions';
 export * from './chart/labelOptions';
 export * from './chart/legendOptions';
+export * from './chart/navigatorOptions';
 export * from './chart/polarAxisOptions';
 export * from './chart/tooltipOptions';
 export * from './chart/themeOptions';
