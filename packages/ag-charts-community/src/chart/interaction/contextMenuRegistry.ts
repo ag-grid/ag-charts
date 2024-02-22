@@ -15,7 +15,7 @@ export class ContextMenuRegistry {
     private defaultActions: Array<ContextMenuAction> = [];
     private disabledActions: Set<string> = new Set();
 
-    public copyDefaultAction(): ContextMenuAction[] {
+    public copyDefaultActions(): ContextMenuAction[] {
         return [...this.defaultActions];
     }
 

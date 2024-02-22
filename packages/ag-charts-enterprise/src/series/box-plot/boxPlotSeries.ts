@@ -20,9 +20,9 @@ const {
 } = _ModuleSupport;
 const { motion } = _Scene;
 
-class BoxPlotSeriesNodeClickEvent<
+class BoxPlotSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
-> extends _ModuleSupport.SeriesNodeClickEvent<BoxPlotNodeDatum, TEvent> {
+> extends _ModuleSupport.SeriesNodeEvent<BoxPlotNodeDatum, TEvent> {
     readonly xKey?: string;
     readonly minKey?: string;
     readonly q1Key?: string;
@@ -46,7 +46,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup
 
     override properties = new BoxPlotSeriesProperties();
 
-    protected override readonly NodeClickEvent = BoxPlotSeriesNodeClickEvent;
+    protected override readonly NodeEvent = BoxPlotSeriesNodeEvent;
 
     /**
      * Used to get the position of items within each group.

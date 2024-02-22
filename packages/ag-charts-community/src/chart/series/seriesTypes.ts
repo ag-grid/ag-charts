@@ -19,6 +19,7 @@ export interface ISeries<TDatum> {
     update(opts: { seriesRect?: BBox }): Promise<void>;
     fireNodeClickEvent(event: Event, datum: TDatum): void;
     fireNodeDoubleClickEvent(event: Event, datum: TDatum): void;
+    createNodeContextMenuActionEvent(event: Event, datum: TDatum): any;
     getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];
     getLegendData(legendType: ChartLegendType): ChartLegendDatum<ChartLegendType>[];
     getTooltipHtml(seriesDatum: any): string;

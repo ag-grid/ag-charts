@@ -31,9 +31,9 @@ interface HeatmapLabelDatum extends _Scene.Point {
     verticalAlign: VerticalAlign;
 }
 
-class HeatmapSeriesNodeClickEvent<
+class HeatmapSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
-> extends _ModuleSupport.CartesianSeriesNodeClickEvent<TEvent> {
+> extends _ModuleSupport.CartesianSeriesNodeEvent<TEvent> {
     readonly colorKey?: string;
 
     constructor(type: TEvent, nativeEvent: MouseEvent, datum: HeatmapNodeDatum, series: HeatmapSeries) {
@@ -60,7 +60,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
 
     override properties = new HeatmapSeriesProperties();
 
-    protected override readonly NodeClickEvent = HeatmapSeriesNodeClickEvent;
+    protected override readonly NodeEvent = HeatmapSeriesNodeEvent;
 
     readonly colorScale = new ColorScale();
 

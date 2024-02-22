@@ -54,6 +54,13 @@ export interface AgChartDoubleClickEvent extends AgChartEvent<'doubleClick'> {
     /** Event type. */ type: 'doubleClick';
 }
 
+export interface AgNodeContextMenuActionEvent<TDatum = any> extends AgNodeBaseClickEvent<'contextMenuAction', TDatum> {
+    /** Event type. */ type: 'contextMenuAction';
+
+    /** @deprecated v9.2 use `xKey`, `yKey`, `angleKey` etc instead. */
+    itemId?: string;
+}
+
 export interface AgBaseChartListeners<TDatum> {
     /** The listener to call when a node (marker, column, bar, tile or a pie sector) in any series is clicked.
      *  Useful for a chart containing multiple series.

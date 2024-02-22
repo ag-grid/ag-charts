@@ -27,9 +27,9 @@ export interface RadarPathPoint {
     arc?: boolean;
 }
 
-class RadarSeriesNodeClickEvent<
+class RadarSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
-> extends _ModuleSupport.SeriesNodeClickEvent<RadarNodeDatum, TEvent> {
+> extends _ModuleSupport.SeriesNodeEvent<RadarNodeDatum, TEvent> {
     readonly angleKey?: string;
     readonly radiusKey?: string;
     constructor(type: TEvent, nativeEvent: MouseEvent, datum: RadarNodeDatum, series: RadarSeries) {
@@ -56,7 +56,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
 
     override properties = new RadarSeriesProperties();
 
-    protected override readonly NodeClickEvent = RadarSeriesNodeClickEvent;
+    protected override readonly NodeEvent = RadarSeriesNodeEvent;
 
     protected lineSelection: _Scene.Selection<_Scene.Path, boolean>;
 

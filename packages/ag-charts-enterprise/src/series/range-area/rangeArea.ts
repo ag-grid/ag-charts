@@ -59,9 +59,9 @@ interface RangeAreaContext
     strokeData: RadarAreaPathDatum;
 }
 
-class RangeAreaSeriesNodeClickEvent<
+class RangeAreaSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
-> extends _ModuleSupport.SeriesNodeClickEvent<RangeAreaMarkerDatum, TEvent> {
+> extends _ModuleSupport.SeriesNodeEvent<RangeAreaMarkerDatum, TEvent> {
     readonly xKey?: string;
     readonly yLowKey?: string;
     readonly yHighKey?: string;
@@ -92,7 +92,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
     override properties = new RangeAreaProperties();
 
-    protected override readonly NodeClickEvent = RangeAreaSeriesNodeClickEvent;
+    protected override readonly NodeEvent = RangeAreaSeriesNodeEvent;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({

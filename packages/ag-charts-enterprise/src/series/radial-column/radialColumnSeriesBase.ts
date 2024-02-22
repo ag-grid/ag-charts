@@ -24,9 +24,9 @@ const { BandScale } = _Scale;
 const { motion } = _Scene;
 const { isNumber, normalizeAngle360, sanitizeHtml } = _Util;
 
-class RadialColumnSeriesNodeClickEvent<
+class RadialColumnSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
-> extends _ModuleSupport.SeriesNodeClickEvent<RadialColumnNodeDatum, TEvent> {
+> extends _ModuleSupport.SeriesNodeEvent<RadialColumnNodeDatum, TEvent> {
     readonly angleKey?: string;
     readonly radiusKey?: string;
     constructor(
@@ -66,7 +66,7 @@ export interface RadialColumnNodeDatum extends _ModuleSupport.SeriesNodeDatum {
 export abstract class RadialColumnSeriesBase<
     ItemPathType extends _Scene.Sector | _Scene.RadialColumnShape,
 > extends _ModuleSupport.PolarSeries<RadialColumnNodeDatum, ItemPathType> {
-    protected override readonly NodeClickEvent = RadialColumnSeriesNodeClickEvent;
+    protected override readonly NodeEvent = RadialColumnSeriesNodeEvent;
 
     abstract override properties: RadialColumnSeriesBaseProperties<any>;
 

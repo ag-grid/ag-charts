@@ -1,5 +1,5 @@
 import type { _Scene } from 'ag-charts-community';
-import { _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport, _Util } from 'ag-charts-community';
 
 import {
     DEFAULT_CONTEXT_MENU_CLASS,
@@ -157,7 +157,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.x = event.pageX;
         this.y = event.pageY;
 
-        this.groups.default = this.registry.copyDefaultAction();
+        this.groups.default = this.registry.copyDefaultActions();
 
         this.pickedNode = this.highlightManager.getActivePicked();
         if (this.extraActions.length > 0) {
@@ -212,21 +212,28 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         menuElement.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__menu`);
         menuElement.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
 
-        this.groups.default.forEach((i) => {
+        this.appendMenuGroup(menuElement, this.groups.default, false);
+
+        if (this.pickedNode) {
+            this.appendMenuGroup(menuElement, this.groups.node);
+        }
+
+        this.appendMenuGroup(menuElement, this.groups.extra);
+
+        if (this.pickedNode) {
+            this.appendMenuGroup(menuElement, this.groups.extraNode);
+        }
+
+        return menuElement;
+    }
+
+    public appendMenuGroup(menuElement: HTMLElement, group: ContextMenuItem[], divider = true) {
+        if (group.length === 0) return;
+        if (divider) menuElement.appendChild(this.createDividerElement());
+        group.forEach((i) => {
             const item = this.renderItem(i);
             if (item) menuElement.appendChild(item);
         });
-
-        (['node', 'extra', 'extraNode'] as Array<keyof ContextMenuGroups>).forEach((group) => {
-            if (this.groups[group].length === 0 || (['node', 'extraNode'].includes(group) && !this.pickedNode)) return;
-            menuElement.appendChild(this.createDividerElement());
-            this.groups[group].forEach((i) => {
-                const item = this.renderItem(i);
-                if (item) menuElement.appendChild(item);
-            });
-        });
-
-        return menuElement;
     }
 
     public renderItem(item: ContextMenuItem): HTMLElement | void {
@@ -255,13 +262,22 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         el.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
         el.innerHTML = label;
         el.onclick = () => {
-            const params: ContextMenuActionParams = {
-                event: this.showEvent!,
-                datum: this.pickedNode?.datum,
-                itemId: this.pickedNode?.itemId,
-                seriesId: this.pickedNode?.series.id,
-            };
-            callback(params);
+            const event = this.pickedNode?.series.createNodeContextMenuActionEvent(this.showEvent!, this.pickedNode);
+            if (event) {
+                Object.defineProperty(event, 'itemId', {
+                    enumerable: false,
+                    get: () => {
+                        _Util.Logger.warnOnce(
+                            `Property [AgNodeContextMenuActionEvent.itemId] is deprecated. Use [yKey], [angleKey] and others instead.`
+                        );
+                        return this.pickedNode?.itemId;
+                    },
+                });
+                callback(event);
+            } else {
+                callback({ event: this.showEvent! });
+            }
+
             this.hide();
         };
         return el;
