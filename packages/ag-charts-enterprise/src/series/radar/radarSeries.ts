@@ -1,6 +1,6 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-import { RadarSeriesProperties } from './radarSeriesProperties';
+import { RadarNodeDatum, RadarSeriesProperties } from './radarSeriesProperties';
 
 const {
     ChartAxisDirection,
@@ -37,18 +37,6 @@ class RadarSeriesNodeEvent<
         this.angleKey = series.properties.angleKey;
         this.radiusKey = series.properties.radiusKey;
     }
-}
-
-export interface RadarNodeDatum extends _ModuleSupport.SeriesNodeDatum {
-    readonly label?: {
-        text: string;
-        x: number;
-        y: number;
-        textAlign: CanvasTextAlign;
-        textBaseline: CanvasTextBaseline;
-    };
-    readonly angleValue: any;
-    readonly radiusValue: any;
 }
 
 export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDatum, _Scene.Marker> {

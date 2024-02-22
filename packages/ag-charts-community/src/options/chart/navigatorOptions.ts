@@ -1,17 +1,15 @@
-import type {
-    AgAreaSeriesOptions,
-    AgBarSeriesOptions,
-    AgBoxPlotSeriesOptions,
-    AgBubbleSeriesOptions,
-    AgHeatmapSeriesOptions,
-    AgHistogramSeriesOptions,
-    AgLineSeriesOptions,
-    AgRangeAreaSeriesOptions,
-    AgRangeBarSeriesOptions,
-    AgScatterSeriesOptions,
-    AgWaterfallSeriesOptions,
-} from '../agChartOptions';
+import type { AgAreaSeriesOptions } from '../series/cartesian/areaOptions';
+import type { AgBarSeriesOptions } from '../series/cartesian/barOptions';
+import type { AgBoxPlotSeriesOptions } from '../series/cartesian/boxPlotOptions';
+import type { AgBubbleSeriesOptions } from '../series/cartesian/bubbleOptions';
 import type { AgCartesianSeriesOptions } from '../series/cartesian/cartesianSeriesTypes';
+import type { AgHeatmapSeriesOptions } from '../series/cartesian/heatmapOptions';
+import type { AgHistogramSeriesOptions } from '../series/cartesian/histogramOptions';
+import type { AgLineSeriesOptions } from '../series/cartesian/lineOptions';
+import type { AgRangeAreaSeriesOptions } from '../series/cartesian/rangeAreaOptions';
+import type { AgRangeBarSeriesOptions } from '../series/cartesian/rangeBarOptions';
+import type { AgScatterSeriesOptions } from '../series/cartesian/scatterOptions';
+import type { AgWaterfallSeriesOptions } from '../series/cartesian/waterfallOptions';
 import type { AgAxisLabelFormatterParams } from './axisOptions';
 import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, Opacity, PixelSize, Ratio } from './types';
 
