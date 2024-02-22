@@ -193,6 +193,7 @@ export abstract class Node extends ChangeDetectable {
         }
 
         this.dirtyZIndex = true;
+        this.dirtyBBox = true;
         this.markDirty(this, RedrawType.MAJOR);
     }
 
@@ -224,6 +225,7 @@ export abstract class Node extends ChangeDetectable {
         node._setLayerManager();
 
         this.dirtyZIndex = true;
+        this.dirtyBBox = true;
         this.markDirty(node, RedrawType.MAJOR);
 
         return node;
@@ -271,6 +273,7 @@ export abstract class Node extends ChangeDetectable {
     protected dirtyTransform = false;
     markDirtyTransform() {
         this.dirtyTransform = true;
+        this.dirtyBBox = true;
         this.markDirty(this, RedrawType.MAJOR);
     }
 
@@ -367,11 +370,17 @@ export abstract class Node extends ChangeDetectable {
         return this.children.flatMap((child) => child.findNodes(predicate));
     }
 
+    protected dirtyBBox = true;
+    protected bbox?: BBox;
     computeBBox(): BBox | undefined {
         return;
     }
 
     computeTransformedBBox(): BBox | undefined {
+        if (!this.dirtyBBox) {
+            return this.bbox;
+        }
+
         const bbox = this.computeBBox();
 
         if (!bbox) {
@@ -386,6 +395,8 @@ export abstract class Node extends ChangeDetectable {
         }
         matrix.transformBBox(bbox, bbox);
 
+        this.bbox = bbox;
+        this.dirtyBBox = false;
         return bbox;
     }
 
