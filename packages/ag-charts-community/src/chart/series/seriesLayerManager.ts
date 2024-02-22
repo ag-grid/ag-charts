@@ -1,5 +1,6 @@
 import { Group } from '../../scene/group';
 import type { ZIndexSubOrder } from '../../scene/node';
+import { clamp } from '../../util/number';
 import { Layers } from '../layers';
 import type { SeriesGrouping } from './seriesStateManager';
 
@@ -191,12 +192,13 @@ export class SeriesLayerManager {
 
         if (typeof groupIndex === 'string') {
             groupIndex = Number(groupIndex.split('-').slice(-1)[0]);
-            if (!groupIndex) return 0;
+            if (!groupIndex) {
+                return 0;
+            }
         }
 
         return Math.floor(
-            Math.max(Math.min(groupIndex / this.expectedSeriesCount, 1), 0) *
-                SERIES_THRESHOLD_FOR_AGGRESSIVE_LAYER_REDUCTION
+            clamp(0, groupIndex / this.expectedSeriesCount, 1) * SERIES_THRESHOLD_FOR_AGGRESSIVE_LAYER_REDUCTION
         );
     }
 
