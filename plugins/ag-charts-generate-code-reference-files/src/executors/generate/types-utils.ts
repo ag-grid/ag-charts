@@ -159,13 +159,23 @@ export class TypeMapper {
         if (node.type === 'NonNullable') {
             return this.resolveType(node.typeArguments[0]);
         } else if (node.type === 'Omit' || node.type === 'Pick') {
-            const [typeRef, typeKeys] = node.typeArguments;
+            let typeRef = node.typeArguments[0];
+            if (typeof typeRef !== 'string') {
+                typeRef = typeRef.type;
+            }
+
+            let typeKeys = node.typeArguments[1];
+            if (typeof typeKeys === 'string' && !typeKeys.match(/^'.*'$/)) {
+                typeKeys = this.resolveType(typeKeys).type;
+            }
+
+            const expectedFilter = node.type === 'Pick';
             const matchType =
                 typeKeys.kind === 'union'
-                    ? (m: any) => typeKeys.type.includes(`'${m.name}'`)
-                    : (m: any) => (typeKeys.type ?? typeKeys) === `'${m.name}'`;
-            const n = this.resolveType(typeof typeRef === 'string' ? typeRef : typeRef.type);
-            return { ...n, members: n.members.filter(node.type === 'Pick' ? matchType : (m: any) => !matchType(m)) };
+                    ? (m: any) => typeKeys.type.includes(`'${m.name}'`) === expectedFilter
+                    : (m: any) => ((typeKeys.type ?? typeKeys) === `'${m.name}'`) === expectedFilter;
+            const n = this.resolveType(typeRef);
+            return { ...n, members: n.members.filter(matchType) };
         } else {
             return this.resolveType(node.type, node.type.typeArguments);
         }

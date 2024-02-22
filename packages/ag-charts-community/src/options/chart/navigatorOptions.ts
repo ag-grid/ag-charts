@@ -1,3 +1,16 @@
+import type {
+    AgAreaSeriesOptions,
+    AgBarSeriesOptions,
+    AgBoxPlotSeriesOptions,
+    AgBubbleSeriesOptions,
+    AgHeatmapSeriesOptions,
+    AgHistogramSeriesOptions,
+    AgLineSeriesOptions,
+    AgRangeAreaSeriesOptions,
+    AgRangeBarSeriesOptions,
+    AgScatterSeriesOptions,
+    AgWaterfallSeriesOptions,
+} from '../agChartOptions';
 import type { AgCartesianSeriesOptions } from '../series/cartesian/cartesianSeriesTypes';
 import type { AgAxisLabelFormatterParams } from './axisOptions';
 import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, Opacity, PixelSize, Ratio } from './types';
@@ -45,11 +58,57 @@ export interface AgNavigatorMiniChartPadding {
     bottom?: number;
 }
 
+type CommonIgnoredProperties =
+    | 'cursor'
+    | 'highlightStyle'
+    | 'nodeClickRange'
+    | 'listeners'
+    | 'showInLegend'
+    | 'showInMiniChart'
+    | 'tooltip';
+
+export interface AgLineMiniChartSeriesOptions extends Omit<AgLineSeriesOptions, CommonIgnoredProperties> {}
+export interface AgScatterMiniChartSeriesOptions extends Omit<AgScatterSeriesOptions, CommonIgnoredProperties> {}
+export interface AgBubbleMiniChartSeriesOptions extends Omit<AgBubbleSeriesOptions, CommonIgnoredProperties> {}
+export interface AgAreaMiniChartSeriesOptions extends Omit<AgAreaSeriesOptions, CommonIgnoredProperties> {}
+export interface AgBarMiniChartSeriesOptions extends Omit<AgBarSeriesOptions, CommonIgnoredProperties> {}
+export interface AgBoxPlotMiniChartSeriesOptions extends Omit<AgBoxPlotSeriesOptions, CommonIgnoredProperties> {}
+export interface AgHistogramMiniChartSeriesOptions extends Omit<AgHistogramSeriesOptions, CommonIgnoredProperties> {}
+export interface AgHeatmapMiniChartSeriesOptions extends Omit<AgHeatmapSeriesOptions, CommonIgnoredProperties> {}
+export interface AgWaterfallMiniChartSeriesOptions extends Omit<AgWaterfallSeriesOptions, CommonIgnoredProperties> {}
+export interface AgRangeBarMiniChartSeriesOptions extends Omit<AgRangeBarSeriesOptions, CommonIgnoredProperties> {}
+export interface AgRangeAreaMiniChartSeriesOptions extends Omit<AgRangeAreaSeriesOptions, CommonIgnoredProperties> {}
+
+export type AgMiniChartSeriesOptions =
+    | AgLineMiniChartSeriesOptions
+    | AgScatterMiniChartSeriesOptions
+    | AgBubbleMiniChartSeriesOptions
+    | AgAreaMiniChartSeriesOptions
+    | AgBarMiniChartSeriesOptions
+    | AgBoxPlotMiniChartSeriesOptions
+    | AgHistogramMiniChartSeriesOptions
+    | AgHeatmapMiniChartSeriesOptions
+    | AgWaterfallMiniChartSeriesOptions
+    | AgRangeBarMiniChartSeriesOptions
+    | AgRangeAreaMiniChartSeriesOptions;
+
+type IgnoredMiniChartSeries = 'bullet';
+type VerifyAgMiniChartSeriesOptions = Record<NonNullable<AgCartesianSeriesOptions['type']>, string>;
+
+// Verification checks for completeness/correctness.
+const __MINI_CHART_SERIES_OPTIONS = {} as Record<
+    NonNullable<AgMiniChartSeriesOptions['type']> | IgnoredMiniChartSeries,
+    string
+>;
+// @ts-ignore
+let __VERIFY_MINI_CHART_SERIES_OPTIONS: VerifyAgMiniChartSeriesOptions = undefined as any;
+__VERIFY_MINI_CHART_SERIES_OPTIONS = __MINI_CHART_SERIES_OPTIONS;
+
 export interface AgNavigatorMiniChartOptions {
     /** Whether to show a Mini Chart in the Navigator. */
     enabled?: boolean;
     /** Override series used in Mini Chart. */
-    series?: AgCartesianSeriesOptions[];
+    series?: AgMiniChartSeriesOptions[];
     /** Configuration for the Mini Chart's axis labels. */
     label?: AgNavigatorMiniChartLabelOptions;
     /** Configuration for the padding inside the Mini Chart. */
