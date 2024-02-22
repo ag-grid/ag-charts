@@ -69,16 +69,14 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
 
         this.rs.onRangeChange = debounce(() => this.onRangeChange());
 
-        ctx.scene.root?.appendChild(this.rs);
-
         const dragStates = InteractionState.Default | InteractionState.Animation | InteractionState.ZoomDrag;
         this.destroyFns.push(
+            ctx.scene.attachNode(this.rs),
             ctx.interactionManager.addListener('drag-start', (event) => this.onDragStart(event), dragStates),
             ctx.interactionManager.addListener('drag', (event) => this.onDrag(event), dragStates),
             ctx.interactionManager.addListener('hover', (event) => this.onDrag(event), dragStates),
             ctx.interactionManager.addListener('drag-end', () => this.onDragStop(), dragStates),
             ctx.zoomManager.addListener('zoom-change', () => this.onZoomChange()),
-            () => ctx.scene.root?.removeChild(this.rs),
             () => delete this.rs.onRangeChange
         );
 

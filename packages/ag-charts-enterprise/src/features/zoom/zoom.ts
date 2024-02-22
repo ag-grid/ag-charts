@@ -157,10 +157,15 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.updateService = ctx.updateService;
         this.contextMenuRegistry = ctx.contextMenuRegistry;
 
+        // Add selection zoom method and attach selection rect to root scene
+        const selectionRect = new ZoomRect();
+        this.selector = new ZoomSelector(selectionRect);
+
         const { Default, ZoomDrag, Animation } = _ModuleSupport.InteractionState;
         const draggableState = Default | Animation | ZoomDrag;
         const clickableState = Default | Animation;
         this.destroyFns.push(
+            this.scene.attachNode(selectionRect),
             ctx.interactionManager.addListener('dblclick', (event) => this.onDoubleClick(event), clickableState),
             ctx.interactionManager.addListener('drag', (event) => this.onDrag(event), draggableState),
             ctx.interactionManager.addListener('drag-start', (event) => this.onDragStart(event), draggableState),
@@ -172,13 +177,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx.layoutService.addListener('layout-complete', (event) => this.onLayoutComplete(event)),
             ctx.updateService.addListener('update-complete', (event) => this.onUpdateComplete(event))
         );
-
-        // Add selection zoom method and attach selection rect to root scene
-        const selectionRect = new ZoomRect();
-        this.selector = new ZoomSelector(selectionRect);
-
-        this.scene.root?.appendChild(selectionRect);
-        this.destroyFns.push(() => this.scene.root?.removeChild(selectionRect));
     }
 
     private updateZoomFromProperties(props: { minX?: number; maxX?: number; minY?: number; maxY?: number }) {

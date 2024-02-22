@@ -218,7 +218,6 @@ export abstract class Node extends ChangeDetectable {
 
     appendChild<T extends Node>(node: T): T {
         this.append(node);
-
         return node;
     }
 

@@ -9,6 +9,10 @@ import { Node, RedrawType, SceneChangeDetection } from './node';
 export class Group extends Node {
     static className = 'Group';
 
+    static is(value: unknown): value is Group {
+        return value instanceof Group;
+    }
+
     private clipRect?: BBox;
     protected layer?: HdpiCanvas | HdpiOffscreenCanvas;
     readonly name?: string;

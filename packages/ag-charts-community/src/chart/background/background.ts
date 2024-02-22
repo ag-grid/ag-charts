@@ -28,10 +28,9 @@ export class Background<TImage = never> extends BaseModuleInstance implements Mo
         super();
 
         this.node.appendChild(this.rectNode);
-        ctx.scene.root?.appendChild(this.node);
 
         this.destroyFns.push(
-            () => ctx.scene.root?.removeChild(this.node),
+            ctx.scene.attachNode(this.node),
             ctx.layoutService.addListener('layout-complete', (e) => this.onLayoutComplete(e))
         );
     }

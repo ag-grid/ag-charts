@@ -224,10 +224,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     static NodeValueChangeOptions: ActionOnSetOptions<Chart> = {
         newValue(value) {
-            this.scene.root?.appendChild(value.node);
+            this.scene.appendChild(value.node);
         },
         oldValue(oldValue) {
-            this.scene.root?.removeChild(oldValue.node);
+            this.scene.removeChild(oldValue.node);
         },
     };
 
@@ -280,7 +280,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         super();
 
         this.chartOptions = options;
-        const { window, document } = options.specialOverrides;
+        const { window, document, overrideDevicePixelRatio } = options.specialOverrides;
 
         const scene = resources?.scene;
         const element = resources?.element ?? document.createElement('div');
@@ -302,9 +302,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
         element.classList.add('ag-chart-wrapper');
         element.style.position = 'relative';
 
-        this.scene = scene ?? new Scene(this.chartOptions.specialOverrides);
-        this.scene.root = root;
-        this.scene.container = element;
+        this.scene = scene ?? new Scene({ pixelRatio: overrideDevicePixelRatio });
+        this.scene.setRoot(root).setContainer(element);
         this.autoSize = true;
 
         this.chartEventManager = new ChartEventManager();
@@ -382,7 +381,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         if (module.type === 'legend') {
             const legend = moduleInstance as ChartLegend;
             this.legends.set(module.identifier, legend);
-            legend.attachLegend(this.scene.root);
+            legend.attachLegend(this.scene);
         }
 
         this.modules.set(module.optionsKey, moduleInstance);
@@ -403,7 +402,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     ) {
         const legend = new legendConstructor(this.getModuleContext());
         this.legends.set(legendType, legend);
-        legend.attachLegend(this.scene.root);
+        legend.attachLegend(this.scene);
     }
 
     isModuleEnabled(module: Module) {
@@ -1035,10 +1034,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     protected async performLayout() {
-        if (this.scene.root) {
-            this.scene.root.visible = true;
-        }
-
         const { width, height } = this.scene;
         let ctx = { shrinkRect: new BBox(0, 0, width, height) };
         ctx = this.layoutService.dispatchPerformLayout('start-layout', ctx);
@@ -1046,7 +1041,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         const modulePromises = Array.from(this.modules.values(), async (m) => {
             if (m.performLayout != null) {
-                ctx = await m.performLayout?.(ctx);
+                ctx = await m.performLayout(ctx);
             }
         });
         await Promise.all(modulePromises);
