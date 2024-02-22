@@ -1,5 +1,6 @@
+import type { AxisModule } from './axisModule';
 import type { ModuleInstance } from './baseModule';
-import type { AxisModule, LegendModule, RootModule, SeriesModule } from './coreModules';
+import type { LegendModule, RootModule, SeriesModule } from './coreModules';
 import type { AxisOptionModule } from './optionsModule';
 import type { SeriesOptionModule } from './optionsModuleTypes';
 

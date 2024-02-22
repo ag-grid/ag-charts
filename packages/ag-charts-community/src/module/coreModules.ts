@@ -1,4 +1,3 @@
-import type { ChartAxis } from '../chart/chartAxis';
 import type { ChartLegend, ChartLegendType } from '../chart/legendDatum';
 import type { Series } from '../chart/series/series';
 import type { AgChartOptions, AgChartThemeOverrides } from '../options/agChartOptions';

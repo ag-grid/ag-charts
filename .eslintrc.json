@@ -19,6 +19,7 @@
     {
       "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
       "rules": {
+        "no-case-declarations": 1,
         "@nx/enforce-module-boundaries": [
           "error",
           {
