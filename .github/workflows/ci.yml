@@ -358,7 +358,6 @@ jobs:
               with:
                   args: >
                       -Dsonar.qualitygate.wait=true
-                      -Dsonar.verbose=true
               env:
                   SONAR_TOKEN: ${{ secrets.SONAR_LOGIN }}
                   SONAR_HOST_URL: https://sonarcloud.io
