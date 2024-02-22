@@ -303,7 +303,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
                 const currY = +value[yEndIndex];
                 const prevY = +value[yStartIndex];
                 const yRawValue = value[yRawIndex];
-                const isPositive = yRawValue >= 0;
+                const isPositive = yRawValue >= 0 && !Object.is(yRawValue, -0);
                 const isUpward = isPositive !== yReversed;
                 const yRange = aggValues?.[yRangeIndex][isPositive ? 1 : 0] ?? 0;
                 const barX = x + groupScale.convert(String(groupIndex));
@@ -471,7 +471,6 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
                 topRightCornerRadius: datum.topRightCornerRadius,
                 bottomRightCornerRadius: datum.bottomRightCornerRadius,
                 bottomLeftCornerRadius: datum.bottomLeftCornerRadius,
-                cornerRadiusBbox: datum.cornerRadiusBbox,
             };
             const visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
 
