@@ -345,3 +345,19 @@ jobs:
                       *Changes:*
 
                       ${{ env.GIT_LOG }}
+
+    sonarqube:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
+              with:
+                  # Disabling shallow clones is recommended for improving the relevancy of reporting
+                  fetch-depth: 0
+            - uses: actions/setup-java@v4
+              with:
+                  distribution: 'oracle'
+                  java-version: '17'
+            - name: SonarQube Scan
+              uses: sonarsource/sonarqube-scan-action@master
+              env:
+                  SONAR_TOKEN: ${{ secrets.SONAR_LOGIN }}
