@@ -1,8 +1,8 @@
 diff --git a/node_modules/prettier/index.mjs b/node_modules/prettier/index.mjs
-index c2c725e..375d43b 100644
+index 38036fa..670a288 100644
 --- a/node_modules/prettier/index.mjs
 +++ b/node_modules/prettier/index.mjs
-@@ -24017,7 +24017,8 @@ var languages_evaluate_default7 = [
+@@ -23663,7 +23663,8 @@ var languages_evaluate_default7 = [
        ".mkdown",
        ".ronn",
        ".scd",

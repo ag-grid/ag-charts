@@ -5057,7 +5057,7 @@
   dependencies:
     "@types/node" "*"
 
-"@types/ws@^8.5.1", "@types/ws@^8.5.5":
+"@types/ws@^8.5.1", "@types/ws@^8.5.10", "@types/ws@^8.5.5":
   version "8.5.10"
   resolved "https://registry.yarnpkg.com/@types/ws/-/ws-8.5.10.tgz#4acfb517970853fa6574a3a6886791d04a396787"
   integrity sha512-vmQSUcfalpIq0R9q7uTo2lXs6eGIpt9wtnLdMv9LVpIjCA/+ufZRozlVoVelIYixx1ugCBKDhn89vnsEGOCx9A==
@@ -11108,10 +11108,10 @@ eslint-plugin-cypress@2.14.0:
   dependencies:
     globals "^13.20.0"
 
-eslint-plugin-sonarjs@^0.19.0:
-  version "0.19.0"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-sonarjs/-/eslint-plugin-sonarjs-0.19.0.tgz#6654bc1c6d24c2183891b8bfe1175004dbba1e3c"
-  integrity sha512-6+s5oNk5TFtVlbRxqZN7FIGmjdPCYQKaTzFPmqieCmsU1kBYDzndTeQav0xtQNwZJWu5awWfTGe8Srq9xFOGnw==
+eslint-plugin-sonarjs@0.24.0:
+  version "0.24.0"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-sonarjs/-/eslint-plugin-sonarjs-0.24.0.tgz#b594ccb9b1d6123edd3c3fe3a45b4392e14932d7"
+  integrity sha512-87zp50mbbNrSTuoEOebdRQBPa0mdejA5UEjyuScyIw8hEpEjfWP89Qhkq5xVZfVyVSRQKZc9alVm7yRKQvvUmg==
 
 eslint-scope@5.1.1, eslint-scope@^5.0.0, eslint-scope@^5.1.0, eslint-scope@^5.1.1:
   version "5.1.1"
@@ -20149,10 +20149,15 @@ prettier-plugin-astro@^0.12.1:
   resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.8.8.tgz#e8c5d7e98a4305ffe3de2e1fc4aca1a71c28b1da"
   integrity sha512-tdN8qQGvNjw4CHbY+XXk0JgCXn9QiF21a55rBe5LJAU+kDyC4WQn4+awm2Xfk2lQMk5fKup9XgzTZtGkjBdP9Q==
 
-prettier@^3.0.0, prettier@^3.0.3, prettier@^3.1.1:
+prettier@^3.0.0:
   version "3.1.1"
   resolved "https://registry.yarnpkg.com/prettier/-/prettier-3.1.1.tgz#6ba9f23165d690b6cbdaa88cb0807278f7019848"
   integrity sha512-22UbSzg8luF4UuZtzgiUOfcGM8s4tjBv6dJRT7j275NXsy2jb4aJa4NNveul5x4eqlF1wuhuR2RElK71RvmVaw==
+
+prettier@^3.2.5:
+  version "3.2.5"
+  resolved "https://registry.yarnpkg.com/prettier/-/prettier-3.2.5.tgz#e52bc3090586e824964a8813b09aba6233b28368"
+  integrity sha512-3/GWa9aOC0YeD7LUfvOG2NiDyhOWRvt1k+rcKhOuYnMY24iiCphgneUfJDyFXd6rZCAnuLBv6UeAULtrhT/F4A==
 
 pretty-bytes@^5.3.0, pretty-bytes@^5.6.0:
   version "5.6.0"
