@@ -396,3 +396,8 @@ export function computeLegendBBox(chart: Chart): BBox {
     const { x = 0, y = 0, width = 0, height = 0 } = (chart.legend as any)?.group.computeBBox() ?? {};
     return new BBox(x, y, width, height);
 }
+
+export function getCursor(chart: Chart | AgChartProxy): string {
+    const ctx = deproxy(chart).getModuleContext();
+    return ctx.cursorManager.getCursor();
+}
