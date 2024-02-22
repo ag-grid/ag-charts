@@ -30,13 +30,9 @@ export class Scene {
 
     constructor({ width, height, pixelRatio }: SceneOptions) {
         this.canvas = new HdpiCanvas({ width, height, pixelRatio });
-        this.layersManager = new LayersManager(
-            this.canvas,
-            () => {
-                this.isDirty = true;
-            },
-            this.debug
-        );
+        this.layersManager = new LayersManager(this.canvas, () => {
+            this.isDirty = true;
+        });
     }
 
     get width(): number {
@@ -96,7 +92,7 @@ export class Scene {
     resize(width: number, height: number): boolean {
         width = Math.round(width);
         height = Math.round(height);
-        if (width > 0 && height > 0 && !(width === this.width && height === this.height)) {
+        if (width > 0 && height > 0 && (width !== this.width || height !== this.height)) {
             this.pendingSize = [width, height];
             this.isDirty = true;
             return true;

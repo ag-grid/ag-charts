@@ -3,7 +3,8 @@ import { clamp } from '../util/number';
 import { BBox } from './bbox';
 import type { HdpiCanvas } from './canvas/hdpiCanvas';
 import type { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
-import type { LayerManager, RenderContext, ZIndexSubOrder } from './node';
+import type { LayersManager, ZIndexSubOrder } from './layersManager';
+import type { RenderContext } from './node';
 import { Node, RedrawType, SceneChangeDetection } from './node';
 
 export class Group extends Node {
@@ -57,7 +58,7 @@ export class Group extends Node {
         this.name = this.opts?.name;
     }
 
-    override _setLayerManager(scene?: LayerManager) {
+    override _setLayerManager(layersManager?: LayersManager) {
         if (this._layerManager && this.layer) {
             this._layerManager.removeLayer(this.layer);
             this.layer = undefined;
@@ -67,11 +68,11 @@ export class Group extends Node {
             throw new Error('AG Charts - unable to deregister scene rendering layer!');
         }
 
-        super._setLayerManager(scene);
+        super._setLayerManager(layersManager);
 
-        if (scene && this.opts?.layer) {
+        if (layersManager && this.opts?.layer) {
             const { zIndex, zIndexSubOrder, name } = this.opts ?? {};
-            this.layer = scene.addLayer({
+            this.layer = layersManager.addLayer({
                 name,
                 zIndex,
                 zIndexSubOrder,

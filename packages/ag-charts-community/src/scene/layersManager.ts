@@ -1,10 +1,11 @@
-import { ascendingStringNumberUndefined, compoundAscending } from '../util/compare';
-import type { DebugLogger } from '../util/debug';
+import { type LiteralOrFn, ascendingStringNumberUndefined, compoundAscending } from '../util/compare';
+import { Debug } from '../util/debug';
 import { HdpiCanvas } from './canvas/hdpiCanvas';
 import { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
-import type { ZIndexSubOrder } from './node';
 
 type Canvas = HdpiCanvas | HdpiOffscreenCanvas;
+
+export type ZIndexSubOrder = [LiteralOrFn<string | number>, LiteralOrFn<number>];
 
 interface SceneLayer {
     id: number;
@@ -25,6 +26,8 @@ export class LayersManager {
         );
     }
 
+    readonly debug = Debug.create(true, 'scene');
+
     private readonly layersMap = new Map<Canvas, SceneLayer>();
 
     private nextZIndex = 0;
@@ -32,8 +35,7 @@ export class LayersManager {
 
     constructor(
         public readonly canvas: Canvas,
-        public readonly markDirty: () => void,
-        public readonly debug: DebugLogger
+        public readonly markDirty: () => void
     ) {}
 
     get size() {
@@ -43,8 +45,6 @@ export class LayersManager {
     forEach(callback: (layer: SceneLayer, index: number, array: SceneLayer[]) => void) {
         Array.from(this.layersMap.values()).sort(LayersManager.sortLayers).forEach(callback);
     }
-
-    eachSorted() {}
 
     resize(width: number, height: number) {
         this.canvas.resize(width, height);
@@ -61,19 +61,14 @@ export class LayersManager {
         const { width, height, pixelRatio } = this.canvas;
         const { zIndex = this.nextZIndex++, name, zIndexSubOrder, getComputedOpacity, getVisibility } = opts;
         const CanvasConstructor = HdpiOffscreenCanvas.isSupported() ? HdpiOffscreenCanvas : HdpiCanvas;
-
         const canvas = new CanvasConstructor({ width, height, pixelRatio });
-
-        if (HdpiCanvas.is(canvas)) {
-            canvas.style({ display: 'block', userSelect: 'none' });
-        }
 
         const newLayer: SceneLayer = {
             id: this.nextLayerId++,
             name,
+            canvas,
             zIndex,
             zIndexSubOrder,
-            canvas,
             getComputedOpacity,
             getVisibility,
         };

@@ -14,8 +14,6 @@ interface AnimationEvent {
     deltaMs: number;
 }
 
-const DEBUG_SELECTORS = [true, 'animation'];
-
 /**
  * Manage animations across a chart, running all animations through only one `requestAnimationFrame` callback,
  * preventing duplicate animations and handling their lifecycle.
@@ -25,7 +23,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
 
     private batch = new AnimationBatch();
 
-    private readonly debug = Debug.create(...DEBUG_SELECTORS);
+    private readonly debug = Debug.create(true, 'animation');
     private readonly rafAvailable = typeof requestAnimationFrame !== 'undefined';
 
     private isPlaying = false;

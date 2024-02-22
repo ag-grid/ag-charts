@@ -1,5 +1,5 @@
 import { Group } from '../../scene/group';
-import type { ZIndexSubOrder } from '../../scene/node';
+import type { ZIndexSubOrder } from '../../scene/layersManager';
 import { clamp } from '../../util/number';
 import { Layers } from '../layers';
 import type { SeriesGrouping } from './seriesStateManager';
