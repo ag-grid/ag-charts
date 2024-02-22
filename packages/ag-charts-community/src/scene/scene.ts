@@ -1,10 +1,9 @@
-import { ascendingStringNumberUndefined, compoundAscending } from '../util/compare';
 import { Debug } from '../util/debug';
 import { downloadUrl } from '../util/dom';
 import { createId } from '../util/id';
 import { HdpiCanvas } from './canvas/hdpiCanvas';
-import { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
-import type { Node, RenderContext, ZIndexSubOrder } from './node';
+import { LayersManager } from './layersManager';
+import type { Node, RenderContext } from './node';
 import { RedrawType } from './node';
 import { DebugSelectors, buildDirtyTree, buildTree, debugSceneNodeHighlight, debugStats } from './sceneDebug';
 
@@ -15,36 +14,25 @@ interface SceneOptions {
     simpleMode?: boolean;
 }
 
-interface SceneLayer {
-    id: number;
-    name?: string;
-    zIndex: number;
-    zIndexSubOrder?: ZIndexSubOrder;
-    canvas: HdpiOffscreenCanvas | HdpiCanvas;
-    getComputedOpacity: () => number;
-    getVisibility: () => boolean;
-}
-
 export class Scene {
     static readonly className = 'Scene';
 
     readonly id = createId(this);
 
     readonly canvas: HdpiCanvas;
-    readonly layers: SceneLayer[] = [];
 
     private root: Node | null = null;
     private isDirty: boolean = false;
     private pendingSize?: [number, number];
-    private readonly simpleMode: boolean;
     private readonly debug = Debug.create(true, DebugSelectors.SCENE);
 
-    pixelRatio?: number;
+    layersManager: LayersManager;
 
-    constructor({ width, height, pixelRatio, simpleMode = false }: SceneOptions) {
+    constructor({ width, height, pixelRatio }: SceneOptions) {
         this.canvas = new HdpiCanvas({ width, height, pixelRatio });
-        this.pixelRatio = pixelRatio;
-        this.simpleMode = simpleMode;
+        this.layersManager = new LayersManager(this.canvas, () => {
+            this.isDirty = true;
+        });
     }
 
     get width(): number {
@@ -67,16 +55,7 @@ export class Scene {
 
         if (node) {
             node.visible = true;
-            node._setLayerManager({
-                addLayer: (opts) => this.addLayer(opts),
-                moveLayer: (...opts) => this.moveLayer(...opts),
-                removeLayer: (...opts) => this.removeLayer(...opts),
-                markDirty: () => {
-                    this.isDirty = true;
-                },
-                canvas: this.canvas,
-                debug: this.debug,
-            });
+            node._setLayerManager(this.layersManager);
         }
 
         this.isDirty = true;
@@ -121,99 +100,17 @@ export class Scene {
         return false;
     }
 
-    private _nextZIndex = 0;
-    private _nextLayerId = 0;
-    addLayer(opts: {
-        zIndex?: number;
-        zIndexSubOrder?: ZIndexSubOrder;
-        name?: string;
-        getComputedOpacity: () => number;
-        getVisibility: () => boolean;
-    }): HdpiCanvas | HdpiOffscreenCanvas | undefined {
-        if (this.simpleMode) {
-            return;
-        }
-
-        const { zIndex = this._nextZIndex++, name, zIndexSubOrder, getComputedOpacity, getVisibility } = opts;
-        const { width, height, pixelRatio: pixelRatio } = this;
-        const CanvasConstructor = HdpiOffscreenCanvas.isSupported() ? HdpiOffscreenCanvas : HdpiCanvas;
-
-        const canvas = new CanvasConstructor({ width, height, pixelRatio });
-
-        if (HdpiCanvas.is(canvas)) {
-            canvas.style({ display: 'block', userSelect: 'none' });
-        }
-
-        const newLayer: SceneLayer = {
-            id: this._nextLayerId++,
-            name,
-            zIndex,
-            zIndexSubOrder,
-            canvas,
-            getComputedOpacity,
-            getVisibility,
-        };
-
-        if (zIndex >= this._nextZIndex) {
-            this._nextZIndex = zIndex + 1;
-        }
-
-        this.layers.push(newLayer);
-        this.sortLayers();
-
-        this.debug('Scene.addLayer() - layers', this.layers);
-
-        return newLayer.canvas;
-    }
-
-    removeLayer(canvas: HdpiCanvas | HdpiOffscreenCanvas) {
-        const index = this.layers.findIndex((l) => l.canvas === canvas);
-
-        if (index >= 0) {
-            this.layers.splice(index, 1);
-            canvas.destroy();
-            this.isDirty = true;
-
-            this.debug('Scene.removeLayer() -  layers', this.layers);
-        }
-    }
-
-    moveLayer(canvas: HdpiCanvas | HdpiOffscreenCanvas, newZIndex: number, newZIndexSubOrder?: ZIndexSubOrder) {
-        const layer = this.layers.find((l) => l.canvas === canvas);
-
-        if (layer) {
-            layer.zIndex = newZIndex;
-            layer.zIndexSubOrder = newZIndexSubOrder;
-            this.sortLayers();
-            this.isDirty = true;
-
-            this.debug('Scene.moveLayer() -  layers', this.layers);
-        }
-    }
-
-    private sortLayers() {
-        this.layers.sort((a, b) => {
-            return compoundAscending(
-                [a.zIndex, ...(a.zIndexSubOrder ?? [undefined, undefined]), a.id],
-                [b.zIndex, ...(b.zIndexSubOrder ?? [undefined, undefined]), b.id],
-                ascendingStringNumberUndefined
-            );
-        });
-    }
-
     async render(opts?: { debugSplitTimes: Record<string, number>; extraDebugStats: Record<string, number> }) {
         const { debugSplitTimes = { start: performance.now() }, extraDebugStats } = opts ?? {};
         const {
             canvas,
             canvas: { context: ctx },
             root,
-            layers,
             pendingSize,
         } = this;
 
         if (pendingSize) {
-            this.canvas.resize(...pendingSize);
-            this.layers.forEach((layer) => layer.canvas.resize(...pendingSize));
+            this.layersManager.resize(...pendingSize);
             this.pendingSize = undefined;
         }
 
@@ -238,7 +135,7 @@ export class Scene {
             ctx,
             devicePixelRatio: this.canvas.pixelRatio ?? 1,
             forceRender: true,
-            resized: !!pendingSize,
+            resized: Boolean(pendingSize),
             debugNodes: {},
         };
 
@@ -274,14 +171,13 @@ export class Scene {
 
         debugSplitTimes['✍️'] = performance.now();
 
-        if (layers.length && canvasCleared) {
-            this.sortLayers();
+        if (this.layersManager.size && canvasCleared) {
             ctx.save();
             ctx.resetTransform();
-            layers.forEach(({ canvas, getComputedOpacity, getVisibility }) => {
-                if (canvas.enabled && getVisibility()) {
-                    ctx.globalAlpha = getComputedOpacity();
-                    canvas.drawImage(ctx);
+            this.layersManager.forEach((layer) => {
+                if (layer.canvas.enabled && layer.getVisibility()) {
+                    ctx.globalAlpha = layer.getComputedOpacity();
+                    layer.canvas.drawImage(ctx);
                 }
             });
             ctx.restore();
@@ -308,12 +204,7 @@ export class Scene {
 
     /** Alternative to destroy() that preserves re-usable resources. */
     strip() {
-        const { layers } = this;
-        for (const layer of layers) {
-            layer.canvas.destroy();
-            delete (layer as any).canvas;
-        }
-        layers.splice(0, layers.length);
+        this.layersManager.clear();
 
         this.root = null;
         this.isDirty = false;

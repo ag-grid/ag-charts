@@ -50,7 +50,7 @@ export function debugStats(
     const stats = [
         `${time('⏱️', start, end)} (${splits})`,
         `${extras}`,
-        `Layers: ${detailedStats ? pct(layersRendered, layersSkipped) : scene.layers.length}`,
+        `Layers: ${detailedStats ? pct(layersRendered, layersSkipped) : scene.layersManager.size}`,
         detailedStats ? `Nodes: ${pct(nodesRendered, nodesSkipped)}` : null,
     ].filter(isString);
     const statsSize = new Map(stats.map((t) => [t, Text.getTextSize(t, ctx.font)]));
