@@ -8,43 +8,43 @@ export interface BBoxProvider {
     computeBBox(): BBoxLike | undefined;
 }
 
-interface BBoxNode<V> {
+interface BBoxElem<V> {
     value: V;
-    bbox: BBoxProvider;
+    getter: BBoxProvider;
 }
 
-function nodeContainsPoint<V>(node: BBoxNode<V>, x: number, y: number): boolean {
-    return node.bbox.computeBBox()?.containsPoint(x, y) ?? false;
+function nodeContainsPoint<V>(elem: BBoxElem<V>, x: number, y: number): boolean {
+    return elem.getter.computeBBox()?.containsPoint(x, y) ?? false;
 }
 
-function nodeArea<V>(node: BBoxNode<V>): number {
-    const { width = 0, height = 0 } = node.bbox.computeBBox() ?? {};
+function nodeArea<V>(elem: BBoxElem<V>): number {
+    const { width = 0, height = 0 } = elem.getter.computeBBox() ?? {};
     return width * height;
 }
 
 export class BBoxSet<V> {
-    private nodes: BBoxNode<V>[] = [];
+    private elems: BBoxElem<V>[] = [];
 
-    add(value: V, bbox: BBoxProvider): void {
-        this.nodes.push({ value, bbox });
+    add(value: V, getter: BBoxProvider): void {
+        this.elems.push({ value, getter });
     }
 
     find(x: number, y: number): V[] {
         // Sort matches by area.
         // This ensure that we prioritise smaller regions are contained inside larger regions.
-        return this.nodes
-            .filter((node) => nodeContainsPoint(node, x, y))
+        return this.elems
+            .filter((elem) => nodeContainsPoint(elem, x, y))
             .sort((a, b) => nodeArea(a) - nodeArea(b))
             .map((node) => node.value);
     }
 
     *[Symbol.iterator](): IterableIterator<V> {
-        for (const { value } of Object.values(this.nodes)) {
+        for (const { value } of Object.values(this.elems)) {
             yield value;
         }
     }
 
     clear() {
-        this.nodes.length = 0;
+        this.elems.length = 0;
     }
 }
