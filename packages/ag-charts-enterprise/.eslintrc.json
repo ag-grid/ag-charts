@@ -9,13 +9,6 @@
     {
       "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
       "rules": {
-        // "check-file/filename-naming-convention": [
-        //   "error",
-        //   {
-        //     "**/*.{jsx,tsx}": "CAMEL_CASE",
-        //     "**/*.{js,ts}": "CAMEL_CASE"
-        //   }
-        // ],
         "check-file/folder-naming-convention": [
           "error",
           {
@@ -28,17 +21,6 @@
       "files": ["*.test.ts", "*.test.tsx", "**/test/*.ts"],
       "rules": {
         "sonarjs/no-duplicate-string": 0
-      }
-    },
-    {
-      "files": ["*.js", "*.jsx"],
-      "rules": {}
-    },
-    {
-      "files": ["packages/ag-charts-community/tools/*.ts"],
-      "rules": {
-        "@typescript-eslint/consistent-type-imports": 0,
-        "no-console": 0
       }
     }
   ]
