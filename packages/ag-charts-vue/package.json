@@ -24,7 +24,6 @@
   ],
   "scripts": {
     "clean": "rimraf dist lib",
-    "build": "tsc -p tsconfig-lib.json && NODE_OPTIONS=--openssl-legacy-provider vue-cli-service build --target lib src/AgChartsVue.ts",
     "lint": "# npx vue-cli-service lint"
   },
   "devDependencies": {
