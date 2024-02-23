@@ -63,7 +63,7 @@
         "outputPath": "packages/ag-charts-react/dist/package",
         "main": "packages/ag-charts-react/src/index.ts",
         "tsConfig": "packages/ag-charts-react/tsconfig.lib.json",
-        "external": ["react", "react-dom", "react/jsx-runtime"],
+        "external": ["ag-charts-community", "react", "react-dom", "react/jsx-runtime"],
         "esbuildConfig": "esbuild.config.cjs",
         "platform": "browser",
         "target": "es6",
