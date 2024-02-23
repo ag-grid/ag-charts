@@ -109,7 +109,7 @@
     "lint:eslint": {
       "executor": "@nx/eslint:lint",
       "options": {
-        "eslintConfig": "packages/ag-charts-community/.eslintrc.json"
+        "eslintConfig": "packages/ag-charts-enterprise/.eslintrc.json"
       },
       "configurations": {
         "fix": {

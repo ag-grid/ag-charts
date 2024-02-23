@@ -2,7 +2,7 @@
   "root": true,
   "extends": ["plugin:diff/ci"],
   "ignorePatterns": ["**/*"],
-  "plugins": ["@nx", "sonarjs", "check-file"],
+  "plugins": ["@nx", "sonarjs", "check-file", "@typescript-eslint"],
   "env": {
     "browser": true,
     "es6": true
