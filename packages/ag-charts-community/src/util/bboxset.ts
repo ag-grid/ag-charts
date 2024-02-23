@@ -5,7 +5,7 @@ interface BBoxLike {
 }
 
 export interface BBoxProvider {
-    computeBBox(): BBoxLike | undefined;
+    getCachedBBox(): BBoxLike;
 }
 
 interface BBoxElem<V> {
@@ -14,11 +14,11 @@ interface BBoxElem<V> {
 }
 
 function nodeContainsPoint<V>(elem: BBoxElem<V>, x: number, y: number): boolean {
-    return elem.getter.computeBBox()?.containsPoint(x, y) ?? false;
+    return elem.getter.getCachedBBox().containsPoint(x, y);
 }
 
 function nodeArea<V>(elem: BBoxElem<V>): number {
-    const { width = 0, height = 0 } = elem.getter.computeBBox() ?? {};
+    const { width, height } = elem.getter.getCachedBBox();
     return width * height;
 }
 

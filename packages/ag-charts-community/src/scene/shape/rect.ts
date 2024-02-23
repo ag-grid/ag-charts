@@ -423,8 +423,7 @@ export class Rect extends Path {
         if ([topLeft, topRight, bottomRight, bottomLeft].every((r) => r === 0)) {
             this.hittester = (x: number, y: number) => {
                 const point = this.transformPoint(x, y);
-                const bbox = this.computeBBox();
-                return bbox.containsPoint(point.x, point.y);
+                return this.getCachedBBox().containsPoint(point.x, point.y);
             };
         } else {
             this.hittester = super.isPointInPath;
