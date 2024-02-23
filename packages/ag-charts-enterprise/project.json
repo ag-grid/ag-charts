@@ -7,12 +7,8 @@
     "build": {
       "executor": "nx:noop",
       "dependsOn": ["build:types", "build:package", "build:umd"],
-      "cache": false,
-      "inputs": [
-        {
-          "externalDependencies": ["npm:typescript"]
-        }
-      ],
+      "inputs": [],
+      "outputs": [],
       "configurations": {
         "watch": {},
         "production": {}
@@ -21,7 +17,17 @@
     "build:types": {
       "executor": "@nx/js:tsc",
       "dependsOn": ["^build:types"],
-      "inputs": ["tsDefaults"],
+      "inputs": [
+        "{projectRoot}/package.json",
+        "{projectRoot}/src/**/*",
+        "{projectRoot}/tsconfig.*.json",
+        "tsDeclarations",
+        "sharedGlobals",
+        "defaultExcludes",
+        {
+          "externalDependencies": ["npm:typescript", "npm:esbuild"]
+        }
+      ],
       "outputs": ["{options.outputPath}"],
       "options": {
         "outputPath": "packages/ag-charts-enterprise/dist/types",
@@ -39,7 +45,17 @@
     "build:package": {
       "executor": "@nx/esbuild:esbuild",
       "dependsOn": ["^build:types"],
-      "inputs": ["tsDefaults"],
+      "inputs": [
+        "{projectRoot}/package.json",
+        "{projectRoot}/src/**/*",
+        "{projectRoot}/tsconfig.*.json",
+        "tsDeclarations",
+        "sharedGlobals",
+        "defaultExcludes",
+        {
+          "externalDependencies": ["npm:typescript", "npm:esbuild"]
+        }
+      ],
       "outputs": ["{options.outputPath}"],
       "options": {
         "outputPath": "packages/ag-charts-enterprise/dist/package",
@@ -90,11 +106,10 @@
         }
       }
     },
-    "lint-eslint": {
+    "lint:eslint": {
       "executor": "@nx/eslint:lint",
-      "outputs": ["{options.outputFile}"],
       "options": {
-        "eslintConfig": "packages/ag-charts-enterprise/.eslintrc.json"
+        "eslintConfig": "packages/ag-charts-community/.eslintrc.json"
       },
       "configurations": {
         "fix": {
@@ -102,31 +117,33 @@
         }
       }
     },
-    "lint-depcruise": {
-      "executor": "nx:run-commands",
-      "options": {
-        "cwd": "packages/ag-charts-enterprise",
-        "commands": ["npx depcruise src"]
-      }
-    },
-    "lint-circular": {
+    "lint:circular": {
       "executor": "nx:run-script",
+      "inputs": ["{projectRoot}/src/**"],
+      "outputs": [],
       "options": {
         "script": "lint:circular"
       }
     },
+    "lint:depcruise": {
+      "executor": "nx:run-commands",
+      "inputs": ["{projectRoot}/src/**"],
+      "outputs": [],
+      "options": {
+        "cwd": "packages/ag-charts-community",
+        "commands": ["npx depcruise src"]
+      }
+    },
+
     "lint": {
       "executor": "nx:noop",
-      "dependsOn": ["lint-eslint", "lint-circular", "lint-depcruise"],
-      "cache": false,
-      "inputs": [
-        {
-          "externalDependencies": ["npm:typescript"]
-        }
-      ],
+      "dependsOn": ["lint:eslint", "lint:circular", "lint:depcruise"],
       "configurations": {
         "fix": {}
       }
+    },
+    "format:check": {
+      "command": "nx format:check ."
     },
     "test": {
       "executor": "@nx/jest:jest",

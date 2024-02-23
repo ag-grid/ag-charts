@@ -33,6 +33,8 @@
     },
     "dev": {
       "dependsOn": ["^build", "^docs-resolved-interfaces"],
+      "inputs": [],
+      "outputs": [],
       "command": "astro dev --port=${PORT} --host",
       "options": {
         "cwd": "packages/ag-charts-website"
@@ -78,7 +80,6 @@
     },
     "lint": {
       "executor": "@nx/eslint:lint",
-      "outputs": ["{options.outputFile}"],
       "options": {
         "eslintConfig": "packages/ag-charts-website/.eslintrc.json"
       },
@@ -87,6 +88,9 @@
           "fix": true
         }
       }
+    },
+    "format:check": {
+      "command": "nx format:check ."
     },
     "generate-examples": {
       "executor": "nx:noop",

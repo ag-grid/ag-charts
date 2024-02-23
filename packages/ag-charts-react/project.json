@@ -3,20 +3,19 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "packages/ag-charts-react/src",
   "projectType": "library",
-  "tags": [],
+  "tags": ["fw"],
   "targets": {
     "lint": {
       "executor": "nx:noop"
     },
+    "format:check": {
+      "command": "nx format:check ."
+    },
     "build": {
       "executor": "nx:noop",
       "dependsOn": ["build:package", "build:umd"],
-      "inputs": [
-        {
-          "externalDependencies": ["npm:typescript"]
-        }
-      ],
-      "cache": false,
+      "inputs": [],
+      "outputs": [],
       "configurations": {
         "watch": {},
         "production": {}
@@ -24,7 +23,8 @@
     },
     "build:package": {
       "executor": "@nx/rollup:rollup",
-      "inputs": ["tsDefaults", "{projectRoot}/package.json", { "externalDependencies": ["react"] }],
+      "dependsOn": ["ag-charts-community:build:types"],
+      "inputs": ["{projectRoot}/src/**", "{projectRoot}/package.json", { "externalDependencies": ["npm:react"] }],
       "outputs": ["{options.outputPath}"],
       "options": {
         "outputPath": "packages/ag-charts-react/dist",
