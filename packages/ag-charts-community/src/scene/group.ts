@@ -129,7 +129,7 @@ export class Group extends Node {
     }
 
     override computeBBox(): BBox {
-        if (this.bbox === undefined) {
+        if (this.dirtyBBox() || this.bbox === undefined) {
             this.computeTransformMatrix();
             this.bbox = Group.computeBBox(this.children);
         }

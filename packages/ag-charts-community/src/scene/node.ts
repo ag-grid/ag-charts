@@ -367,13 +367,17 @@ export abstract class Node extends ChangeDetectable {
         return this.children.flatMap((child) => child.findNodes(predicate));
     }
 
+    dirtyBBox(): boolean {
+        return this.dirty > RedrawType.NONE || this.dirtyTransform;
+    }
+
     protected bbox?: BBox;
     computeBBox(): BBox | undefined {
         return;
     }
 
     computeTransformedBBox(): BBox | undefined {
-        if (this.bbox) {
+        if (!this.dirtyBBox()) {
             return this.bbox;
         }
 
@@ -452,9 +456,6 @@ export abstract class Node extends ChangeDetectable {
         }
 
         this._dirty = type;
-        if (type >= RedrawType.MAJOR) {
-            this.bbox = undefined;
-        }
         if (this.parent) {
             this.parent.markDirty(this, parentType);
         } else if (this.layerManager) {
