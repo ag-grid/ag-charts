@@ -104,6 +104,9 @@ export class BoxPlotSeriesProperties extends AbstractBarSeriesProperties<AgBoxPl
     @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
+    @Validate(POSITIVE_NUMBER)
+    cornerRadius: number = 0;
+
     @Validate(FUNCTION, { optional: true })
     formatter?: (params: AgBoxPlotSeriesFormatterParams<unknown>) => AgBoxPlotSeriesStyles;
 

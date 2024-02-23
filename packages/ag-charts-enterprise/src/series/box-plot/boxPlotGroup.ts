@@ -3,6 +3,8 @@ import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import type { BoxPlotNodeDatum } from './boxPlotTypes';
 
+const { Group, Rect, Line, BBox, Selection } = _Scene;
+
 enum GroupTags {
     Box,
     Median,
@@ -11,18 +13,18 @@ enum GroupTags {
     Cap,
 }
 
-export class BoxPlotGroup extends _Scene.Group {
+export class BoxPlotGroup extends Group {
     constructor() {
         super();
         this.append([
-            new _Scene.Rect({ tag: GroupTags.Box }),
-            new _Scene.Rect({ tag: GroupTags.Box }),
-            new _Scene.Rect({ tag: GroupTags.Outline }),
-            new _Scene.Rect({ tag: GroupTags.Median }),
-            new _Scene.Line({ tag: GroupTags.Whisker }),
-            new _Scene.Line({ tag: GroupTags.Whisker }),
-            new _Scene.Line({ tag: GroupTags.Cap }),
-            new _Scene.Line({ tag: GroupTags.Cap }),
+            new Rect({ tag: GroupTags.Box }),
+            new Rect({ tag: GroupTags.Box }),
+            new Rect({ tag: GroupTags.Outline }),
+            new Rect({ tag: GroupTags.Median }),
+            new Line({ tag: GroupTags.Whisker }),
+            new Line({ tag: GroupTags.Whisker }),
+            new Line({ tag: GroupTags.Cap }),
+            new Line({ tag: GroupTags.Cap }),
         ]);
     }
 
@@ -30,7 +32,8 @@ export class BoxPlotGroup extends _Scene.Group {
         datum: BoxPlotNodeDatum,
         activeStyles: _ModuleSupport.DeepRequired<AgBoxPlotSeriesStyles>,
         isVertical: boolean,
-        isReversedValueAxis?: boolean
+        isReversedValueAxis: boolean | undefined,
+        cornerRadius: number
     ) {
         const {
             bandwidth,
@@ -54,7 +57,7 @@ export class BoxPlotGroup extends _Scene.Group {
             whisker: whiskerStyles,
         } = activeStyles;
 
-        const selection = _Scene.Selection.select(this, _Scene.Rect);
+        const selection = Selection.select(this, Rect);
         const boxes = selection.selectByTag<_Scene.Rect>(GroupTags.Box);
         const [outline] = selection.selectByTag<_Scene.Rect>(GroupTags.Outline);
         const [median] = selection.selectByTag<_Scene.Rect>(GroupTags.Median);
@@ -67,11 +70,17 @@ export class BoxPlotGroup extends _Scene.Group {
 
         outline.setProperties({ x: q1Value, y: axisValue, width: q3Value - q1Value, height: bandwidth });
 
+        const cornerRadiusBbox = isVertical
+            ? new BBox(axisValue, q1Value, bandwidth, q3Value - q1Value)
+            : new BBox(q1Value, axisValue, q3Value - q1Value, bandwidth);
+
         boxes[0].setProperties({
             x: q1Value,
             y: axisValue,
             width: Math.round(medianValue - q1Value + strokeWidth / 2),
             height: bandwidth,
+            cornerRadius,
+            cornerRadiusBbox,
         });
 
         boxes[1].setProperties({
@@ -79,6 +88,8 @@ export class BoxPlotGroup extends _Scene.Group {
             y: axisValue,
             width: Math.floor(q3Value - medianValue + strokeWidth / 2),
             height: bandwidth,
+            cornerRadius,
+            cornerRadiusBbox,
         });
 
         const medianStart = Math.max(Math.round(medianValue - strokeWidth / 2), q1Value + strokeWidth);
@@ -90,6 +101,8 @@ export class BoxPlotGroup extends _Scene.Group {
             y: axisValue + strokeWidth,
             width: medianEnd - medianStart,
             height: Math.max(0, bandwidth - strokeWidth * 2),
+            cornerRadius,
+            cornerRadiusBbox,
         });
 
         const capStart = Math.floor(axisValue + (bandwidth * (1 - cap.lengthRatio)) / 2);
@@ -126,6 +139,14 @@ export class BoxPlotGroup extends _Scene.Group {
             element.setProperties(whiskerStyles);
         }
 
-        outline.setProperties({ stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, fillOpacity: 0 });
+        outline.setProperties({
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            cornerRadius,
+            fillOpacity: 0,
+        });
     }
 }
