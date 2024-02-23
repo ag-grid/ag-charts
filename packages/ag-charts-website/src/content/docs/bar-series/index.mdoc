@@ -95,14 +95,17 @@ legend item is clicked, all items possessing a matching `legendItemName` will be
 
 {% chartExampleRunner title="Grouped Stacks with a Shared Legend" name="grouped-stack-shared-legend" type="generated" /%}
 
-<!-- Add me back when corner radius support is re-enabled
 ## Customisation
 
 ### Corner Radius
 
 {% chartExampleRunner title="Customising Corner Radius" name="customising-corner-radius" type="generated" /%}
 
-The corner radius for bars can be customised using the `cornerRadius` parameter to each bar series within a stack. The corner radius will only be applied at the end of a stack, but may affect more than one series if the bar heights are small enough.
+The corner radius for bars can be customised using the `cornerRadius` parameter to each bar series within a stack.
+
+{% note %}
+You must specify `cornerRadus` for all series within a stack. The corner radius will only be applied at the end of a stack, but may affect more than one series if the bar heights are small enough.
+{% /note %}
 
 ```js
 series: [
@@ -113,7 +116,6 @@ series: [
 ```
 
 Corner radii that don't fit within the width and height of a bar are reduced to fit.
--->
 
 ## API Reference
 
