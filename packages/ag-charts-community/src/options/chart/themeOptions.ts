@@ -3,6 +3,7 @@ import type { AgBarSeriesThemeableOptions } from '../series/cartesian/barOptions
 import type { AgBoxPlotSeriesThemeableOptions } from '../series/cartesian/boxPlotOptions';
 import type { AgBubbleSeriesThemeableOptions } from '../series/cartesian/bubbleOptions';
 import type { AgBulletSeriesThemeableOptions } from '../series/cartesian/bulletOptions';
+import type { AgCandlestickSeriesThemeableOptions } from '../series/cartesian/candlestickOptions';
 import type { AgBaseCartesianThemeOptions, AgCartesianAxesTheme } from '../series/cartesian/cartesianOptions';
 import type { AgCartesianSeriesOptions } from '../series/cartesian/cartesianSeriesTypes';
 import type { AgHeatmapSeriesThemeableOptions } from '../series/cartesian/heatmapOptions';
@@ -92,6 +93,9 @@ export interface AgBarSeriesThemeOverrides extends AgBaseCartesianThemeOptions {
 export interface AgBoxPlotSeriesThemeOverrides extends AgBaseCartesianThemeOptions {
     series?: AgBoxPlotSeriesThemeableOptions;
 }
+export interface AgCandlestickSeriesThemeOverrides extends AgBaseCartesianThemeOptions {
+    series?: AgCandlestickSeriesThemeableOptions;
+}
 export interface AgHistogramSeriesThemeOverrides extends AgBaseCartesianThemeOptions {
     series?: AgHistogramSeriesThemeableOptions;
 }
@@ -160,6 +164,8 @@ export interface AgChartThemeOverrides {
     bar?: AgBarSeriesThemeOverrides;
     /** Box-plot series theme overrides. */
     'box-plot'?: AgBoxPlotSeriesThemeOverrides;
+    /** Candlestick series theme overrides. */
+    candlestick?: AgCandlestickSeriesThemeOverrides;
     /** Histogram series theme overrides. */
     histogram?: AgHistogramSeriesThemeOverrides;
     /** Heatmap series theme overrides. */
