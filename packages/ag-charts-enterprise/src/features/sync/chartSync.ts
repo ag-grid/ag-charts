@@ -59,7 +59,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         const { syncManager, zoomManager } = this.moduleContext;
         this.disableZoomSync = zoomManager.addListener('zoom-change', () => {
             for (const chart of syncManager.getGroupSiblings(this.groupId)) {
-                if ((chart.modules.get('sync') as ChartSync)?.zoom) {
+                if (chart.modulesManager.getModule<ChartSync>('sync')?.zoom) {
                     chart.zoomManager.updateZoom('sync', this.mergeZoom(chart));
                 }
             }
@@ -72,7 +72,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         const { highlightManager, syncManager } = this.moduleContext;
         this.disableNodeInteractionSync = highlightManager.addListener('highlight-change', (event) => {
             for (const chart of syncManager.getGroupSiblings(this.groupId)) {
-                if (!(chart.modules.get('sync') as ChartSync)?.nodeInteraction) continue;
+                if (!chart.modulesManager.getModule<ChartSync>('sync')?.nodeInteraction) continue;
 
                 if (!event.currentHighlight?.datum) {
                     chart.highlightManager.updateHighlight(chart.id);
