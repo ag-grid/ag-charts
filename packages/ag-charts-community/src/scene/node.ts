@@ -368,7 +368,14 @@ export abstract class Node extends ChangeDetectable {
     }
 
     dirtyBBox(): boolean {
-        return this.dirty > RedrawType.NONE || this.dirtyTransform;
+        let node: Node | undefined = this;
+        while (node !== undefined) {
+            if (node.isDirty() || node.dirtyTransform) {
+                return true;
+            }
+            node = node.parent;
+        }
+        return false;
     }
 
     protected bbox?: BBox;
@@ -377,7 +384,7 @@ export abstract class Node extends ChangeDetectable {
     }
 
     computeTransformedBBox(): BBox | undefined {
-        if (!this.dirtyBBox()) {
+        if (!this.dirtyBBox() && this.bbox !== undefined) {
             return this.bbox;
         }
 
