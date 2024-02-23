@@ -5,6 +5,7 @@ interface BBoxLike {
 }
 
 export interface BBoxProvider {
+    visible: boolean;
     computeBBox(): BBoxLike | undefined;
 }
 
@@ -14,7 +15,7 @@ interface BBoxNode<V> {
 }
 
 function nodeContainsPoint<V>(node: BBoxNode<V>, x: number, y: number): boolean {
-    return node.bbox.computeBBox()?.containsPoint(x, y) ?? false;
+    return node.bbox.visible && (node.bbox.computeBBox()?.containsPoint(x, y) ?? false);
 }
 
 function nodeArea<V>(node: BBoxNode<V>): number {
