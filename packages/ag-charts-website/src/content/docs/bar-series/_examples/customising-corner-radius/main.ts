@@ -18,7 +18,7 @@ const options: AgChartOptions = {
             yKey: 'iphone',
             yName: 'iPhone',
             stacked: true,
-            // cornerRadius: 10,
+            cornerRadius: 10,
         },
         {
             type: 'bar',
@@ -26,7 +26,7 @@ const options: AgChartOptions = {
             yKey: 'mac',
             yName: 'Mac',
             stacked: true,
-            // cornerRadius: 10,
+            cornerRadius: 10,
         },
         {
             type: 'bar',
@@ -34,7 +34,7 @@ const options: AgChartOptions = {
             yKey: 'ipad',
             yName: 'iPad',
             stacked: true,
-            // cornerRadius: 10,
+            cornerRadius: 10,
         },
         {
             type: 'bar',
@@ -42,7 +42,7 @@ const options: AgChartOptions = {
             yKey: 'wearables',
             yName: 'Wearables',
             stacked: true,
-            // cornerRadius: 10,
+            cornerRadius: 10,
         },
         {
             type: 'bar',
@@ -50,7 +50,7 @@ const options: AgChartOptions = {
             yKey: 'services',
             yName: 'Services',
             stacked: true,
-            // cornerRadius: 10,
+            cornerRadius: 10,
         },
     ],
 };

@@ -125,7 +125,6 @@ export function getRectConfig<
         lineDash,
         lineDashOffset,
         fillShadow,
-        // @ts-expect-error Remove once corner radius is officially added
         cornerRadius: format?.cornerRadius ?? cornerRadius,
         topLeftCornerRadius,
         topRightCornerRadius,
