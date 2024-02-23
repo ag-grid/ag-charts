@@ -24,7 +24,7 @@
     "build:package": {
       "executor": "@nx/rollup:rollup",
       "dependsOn": ["ag-charts-community:build:types"],
-      "inputs": ["{projectRoot}/src/**", "{projectRoot}/package.json", { "externalDependencies": ["npm:react"] }],
+      "inputs": ["{projectRoot}/src/**", "{projectRoot}/package.json", "tsDeclarations"],
       "outputs": ["{options.outputPath}"],
       "options": {
         "outputPath": "packages/ag-charts-react/dist",

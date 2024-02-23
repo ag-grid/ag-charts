@@ -51,10 +51,7 @@
         "{projectRoot}/tsconfig.*.json",
         "tsDeclarations",
         "sharedGlobals",
-        "defaultExcludes",
-        {
-          "externalDependencies": ["npm:typescript", "npm:esbuild"]
-        }
+        "defaultExcludes"
       ],
       "outputs": ["{options.outputPath}"],
       "options": {

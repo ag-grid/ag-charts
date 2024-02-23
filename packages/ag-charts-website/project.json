@@ -25,12 +25,6 @@
         "production": {}
       }
     },
-    "build-tsc": {
-      "executor": "nx:run-commands",
-      "options": {
-        "command": "tsc --project packages/ag-charts-website/tsconfig.json"
-      }
-    },
     "dev": {
       "dependsOn": ["^build", "^docs-resolved-interfaces"],
       "inputs": [],
@@ -44,11 +38,7 @@
       }
     },
     "preview": {
-      "dependsOn": [
-        {
-          "target": "build"
-        }
-      ],
+      "dependsOn": ["build"],
       "command": "astro preview --port=${PORT}",
       "options": {
         "cwd": "packages/ag-charts-website"
@@ -95,7 +85,7 @@
     "generate-examples": {
       "executor": "nx:noop",
       "dependsOn": ["^generate-example"],
-      "inputs": [{ "externalDependencies": ["npm:typescript"] }],
+      "inputs": [],
       "outputs": [],
       "cache": true,
       "configurations": {
@@ -106,7 +96,7 @@
     "generate-thumbnails": {
       "executor": "nx:noop",
       "dependsOn": ["^generate-thumbnail"],
-      "inputs": [{ "externalDependencies": ["npm:typescript"] }],
+      "inputs": [],
       "outputs": [],
       "cache": true,
       "configurations": {
@@ -120,11 +110,9 @@
       "inputs": [
         "{projectRoot}/tsconfig.examples.json",
         "{workspaceRoot}/packages/ag-charts-website/src/**/_examples/**/*.ts",
-        "tsDeclarations",
-        {
-          "externalDependencies": ["npm:typescript"]
-        }
+        "tsDeclarations"
       ],
+      "outputs": [],
       "cache": true,
       "options": {
         "commands": ["npx tsc -p {projectRoot}/tsconfig.examples.json"]
