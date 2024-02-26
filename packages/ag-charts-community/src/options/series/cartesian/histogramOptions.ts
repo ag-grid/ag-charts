@@ -1,3 +1,4 @@
+import type { PixelSize } from '../../agChartOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
@@ -29,6 +30,8 @@ export interface AgHistogramSeriesThemeableOptions<TDatum = any>
     shadow?: AgDropShadowOptions;
     /** Configuration for the labels shown on bars. */
     label?: AgChartLabelOptions<TDatum, AgHistogramSeriesLabelFormatterParams>;
+    /** Apply round corners to each bar. */
+    cornerRadius?: PixelSize;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgHistogramSeriesTooltipRendererParams<TDatum>>;
 }
