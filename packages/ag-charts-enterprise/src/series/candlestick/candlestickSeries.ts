@@ -281,6 +281,8 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<Candlest
 
         if (!xAxis || !yAxis || !this.properties.isValid()) return '';
 
+        const capitalise = (text: string) => text.charAt(0).toUpperCase() + text.substring(1);
+
         const title = _Util.sanitizeHtml(yName);
         const contentData: [string, string | undefined, _ModuleSupport.ChartAxis][] = [
             [xKey, xName, xAxis],
@@ -290,8 +292,10 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<Candlest
             [lowKey, lowName, yAxis],
         ];
         const content = contentData
-            .map(([key, name, axis]) => _Util.sanitizeHtml(`${name ?? key}: ${axis.formatDatum(datum[key])}`))
-            .join(title ? '<br/>' : ', ');
+            .map(([key, name, axis]) =>
+                _Util.sanitizeHtml(`${name ?? capitalise(key)}: ${axis.formatDatum(datum[key])}`)
+            )
+            .join('<br/>');
 
         const { fill } = this.getFormattedStyles(nodeDatum);
 
