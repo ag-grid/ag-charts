@@ -5,7 +5,7 @@ import { Logger } from '../../util/logger';
 import type { InteractionEvent, InteractionManager, InteractionTypes } from './interactionManager';
 import { INTERACTION_TYPES, InteractionState } from './interactionManager';
 
-export type RegionName = 'legend' | 'pagination' | 'series';
+export type RegionName = 'legend' | 'navigator' | 'pagination' | 'series';
 
 type RegionHandler<Event extends InteractionEvent> = (event: Event) => void;
 
@@ -17,7 +17,7 @@ type Region = {
 };
 
 export class RegionManager {
-    public currentRegion?: Region;
+    private currentRegion?: Region;
 
     private eventHandler = (event: InteractionEvent<InteractionTypes>) => this.processEvent(event);
     private regions: BBoxSet<Region> = new BBoxSet();
