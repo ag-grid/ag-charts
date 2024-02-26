@@ -11,7 +11,8 @@ jest.*
 CONTRIBUTING.md
 
 !dist
-!dist/src
+!dist/package
+!dist/types/src
 !dist/umd
 
 dist/**/package.json

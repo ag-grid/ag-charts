@@ -703,7 +703,9 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         return legendData;
     }
 
-    protected override toggleSeriesItem(): void {}
+    protected override toggleSeriesItem(): void {
+        // Legend item toggling is unsupported.
+    }
 
     override animateEmptyUpdateReady({ datumSelections, labelSelections, contextData, paths }: WaterfallAnimationData) {
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, 'normal'));

@@ -1,7 +1,8 @@
 {
   "root": true,
+  "extends": ["plugin:diff/ci"],
   "ignorePatterns": ["**/*"],
-  "plugins": ["@nx", "sonarjs", "check-file"],
+  "plugins": ["@nx", "sonarjs", "check-file", "@typescript-eslint"],
   "env": {
     "browser": true,
     "es6": true
@@ -9,7 +10,8 @@
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "sourceType": "module",
-    "allowImportExportEverywhere": true
+    "allowImportExportEverywhere": true,
+    "project": "tsconfig.base.json"
   },
   "globals": {
     "Atomics": "readonly",
@@ -19,7 +21,10 @@
     {
       "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
       "rules": {
-        "no-case-declarations": 1,
+        "no-lonely-if": 1,
+        "no-negated-condition": 1,
+        "no-nested-ternary": 1,
+        "no-unneeded-ternary": 1,
         "@nx/enforce-module-boundaries": [
           "error",
           {
@@ -39,11 +44,21 @@
       "files": ["*.ts", "*.tsx"],
       "extends": ["eslint:recommended", "plugin:@typescript-eslint/eslint-recommended"],
       "rules": {
+        "no-eval": 2,
         "no-console": 2,
         "no-unused-vars": 0, // Handled by TS strict flag.
         "no-case-declarations": 0,
         "@typescript-eslint/no-explicit-any": 0,
-        "@typescript-eslint/consistent-type-imports": 0
+        "@typescript-eslint/consistent-type-imports": 0,
+        "@typescript-eslint/no-redundant-type-constituents": 1,
+        "@typescript-eslint/no-floating-promises": 1,
+        "@typescript-eslint/no-implied-eval": 1,
+        "@typescript-eslint/no-shadow": 1,
+        "@typescript-eslint/prefer-as-const": 1,
+        "@typescript-eslint/prefer-nullish-coalescing": 1,
+        "@typescript-eslint/prefer-optional-chain": 1,
+        "@typescript-eslint/prefer-readonly": 1,
+        "@typescript-eslint/prefer-ts-expect-error": 1
       }
     },
     {

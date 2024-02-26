@@ -1,8 +1,8 @@
 {
   "extends": ["../../.eslintrc.json", "plugin:sonarjs/recommended"],
-  "ignorePatterns": ["!**/*"],
+  "ignorePatterns": ["!**/*", ".dependency-cruiser.js"],
   "rules": {
-    "sonarjs/cognitive-complexity": 0,
+    "sonarjs/cognitive-complexity": 1,
     "@nx/dependency-checks": 1
   },
   "overrides": [

@@ -13,7 +13,7 @@
     },
     "build": {
       "executor": "nx:noop",
-      "dependsOn": ["build:package", "build:umd"],
+      "dependsOn": ["build:package", "build:umd", "build:types"],
       "inputs": [],
       "outputs": [],
       "configurations": {
@@ -21,33 +21,62 @@
         "production": {}
       }
     },
-    "build:package": {
-      "executor": "@nx/rollup:rollup",
-      "dependsOn": ["ag-charts-community:build:types"],
-      "inputs": ["{projectRoot}/src/**", "{projectRoot}/package.json", "tsDeclarations"],
+    "build:types": {
+      "executor": "@nx/js:tsc",
+      "dependsOn": ["^build:types"],
+      "inputs": [
+        "{projectRoot}/package.json",
+        "{projectRoot}/src/**/*",
+        "{projectRoot}/tsconfig.*.json",
+        "tsDeclarations",
+        "sharedGlobals",
+        "defaultExcludes",
+        {
+          "externalDependencies": ["npm:typescript", "npm:esbuild"]
+        }
+      ],
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "packages/ag-charts-react/dist",
-        "generateExportsField": false,
+        "outputPath": "packages/ag-charts-react/dist/types",
+        "main": "packages/ag-charts-react/src/index.ts",
+        "tsConfig": "packages/ag-charts-react/tsconfig.types.json",
+        "compiler": "tsc"
+      },
+      "configurations": {
+        "watch": {},
+        "production": {}
+      }
+    },
+    "build:package": {
+      "executor": "@nx/esbuild:esbuild",
+      "dependsOn": ["^build"],
+      "inputs": [
+        "{projectRoot}/package.json",
+        "{projectRoot}/src/**/*",
+        "{projectRoot}/tsconfig.*.json",
+        "tsDeclarations",
+        "sharedGlobals",
+        "defaultExcludes"
+      ],
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "packages/ag-charts-react/dist/package",
+        "main": "packages/ag-charts-react/src/index.ts",
         "tsConfig": "packages/ag-charts-react/tsconfig.lib.json",
-        "project": "packages/ag-charts-react/package.json",
-        "entryFile": "packages/ag-charts-react/src/index.ts",
-        "external": ["react", "react-dom", "react/jsx-runtime"],
-        "rollupConfig": "packages/ag-charts-react/rollup.config.cjs",
-        "compiler": "babel",
-        "assets": [
-          {
-            "glob": "packages/ag-charts-react/README.md",
-            "input": ".",
-            "output": "."
-          },
-          {
-            "glob": "packages/ag-charts-react/LICENSE.txt",
-            "input": ".",
-            "output": "."
-          }
-        ],
-        "format": ["cjs", "esm"]
+        "external": ["ag-charts-community", "react", "react-dom", "react/jsx-runtime"],
+        "esbuildConfig": "esbuild.config.cjs",
+        "platform": "browser",
+        "target": "es6",
+        "format": ["cjs", "esm"],
+        "sourcemap": true
+      },
+      "configurations": {
+        "watch": {
+          "tsConfig": "packages/ag-charts-react/tsconfig.watch.json"
+        },
+        "production": {
+          "sourcemap": false
+        }
       }
     },
     "build:umd": {
@@ -57,7 +86,7 @@
       "options": {
         "outputPath": "packages/ag-charts-react/dist/umd",
         "outputFileName": "ag-charts-react",
-        "main": "packages/ag-charts-react/dist/index.cjs",
+        "main": "packages/ag-charts-react/dist/package/index.esm.mjs",
         "tsConfig": "packages/ag-charts-react/tsconfig.lib.json",
         "esbuildConfig": "esbuild.config.cjs",
         "platform": "browser",
@@ -85,6 +114,7 @@
     "pack": {
       "executor": "nx:run-commands",
       "dependsOn": ["build"],
+      "inputs": ["production", "{projectRoot}/dist"],
       "outputs": ["{workspaceRoot}/dist/{projectRoot}.tgz"],
       "options": {
         "cwd": "packages/ag-charts-react",
