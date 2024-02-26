@@ -1,0 +1,135 @@
+import { describe, expect, it } from '@jest/globals';
+
+import { type AgChartOptions, AgCharts } from 'ag-charts-community';
+import {
+    IMAGE_SNAPSHOT_DEFAULTS,
+    extractImageData,
+    setupMockCanvas,
+    setupMockConsole,
+    spyOnAnimationManager,
+    waitForChartStability,
+} from 'ag-charts-community-test';
+
+import { prepareEnterpriseTestOptions } from '../../test/utils';
+
+const CANDLESTICK_OPTIONS: AgChartOptions = {
+    data: [
+        { year: '2020', low: 3.07, open: 4.78, close: 6.3, high: 7.27 },
+        { year: '2021', low: 4.87, close: 5.8, open: 6.66, high: 7.09 },
+        { year: '2022', low: 4.4, close: 4.41, open: 4.96, high: 5.2 },
+        { year: '2023', low: 7.31, open: 7.32, close: 7.33, high: 7.33 },
+    ],
+    series: [
+        {
+            type: 'candlestick',
+            xKey: 'year',
+            lowKey: 'low',
+            openKey: 'open',
+            closeKey: 'close',
+            highKey: 'high',
+        },
+    ],
+};
+
+const CONTINUOUS_DATA = [
+    { year: new Date(2020, 0, 1), low: 3.07, close: 4.78, open: 6.3, high: 7.27 },
+    { year: new Date(2021, 0, 1), low: 4.87, open: 5.8, close: 6.66, high: 7.09 },
+    { year: new Date(2022, 0, 1), low: 4.4, close: 4.41, open: 4.96, high: 5.2 },
+    { year: new Date(2023, 0, 1), low: 7.31, open: 7.32, close: 7.33, high: 7.33 },
+];
+
+describe('CandlestickSeries', () => {
+    setupMockConsole();
+    const ctx = setupMockCanvas();
+
+    const compareSnapshot = async (chart: any) => {
+        await waitForChartStability(chart);
+
+        const imageData = extractImageData(ctx);
+        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+
+        chart.destroy();
+    };
+
+    it(`should render a candlestick chart as expected`, async () => {
+        const options = CANDLESTICK_OPTIONS;
+        prepareEnterpriseTestOptions(options as any);
+        await compareSnapshot(AgCharts.create(options));
+    });
+
+    it(`should render a candlestick chart with a time x-axis`, async () => {
+        const options: AgChartOptions = {
+            ...CANDLESTICK_OPTIONS,
+            data: CONTINUOUS_DATA,
+            axes: [
+                {
+                    position: 'left',
+                    type: 'number',
+                },
+                {
+                    position: 'bottom',
+                    type: 'time',
+                    nice: false,
+                },
+            ],
+        };
+        prepareEnterpriseTestOptions(options as any);
+        await compareSnapshot(AgCharts.create(options));
+    });
+
+    it(`should render a candlestick chart as expected with reversed axes`, async () => {
+        const options: AgChartOptions = {
+            ...CANDLESTICK_OPTIONS,
+            axes: [
+                {
+                    type: 'category',
+                    position: 'bottom',
+                    reverse: true,
+                },
+                {
+                    type: 'number',
+                    position: 'left',
+                    reverse: true,
+                },
+            ],
+        };
+        prepareEnterpriseTestOptions(options as any);
+        await compareSnapshot(AgCharts.create(options));
+    });
+
+    it(`should render a candlestick chart with a reversed time x-axis`, async () => {
+        const options: AgChartOptions = {
+            ...CANDLESTICK_OPTIONS,
+            data: CONTINUOUS_DATA,
+            axes: [
+                {
+                    position: 'left',
+                    type: 'number',
+                },
+                {
+                    position: 'bottom',
+                    type: 'time',
+                    nice: false,
+                    reverse: true,
+                },
+            ],
+        };
+        prepareEnterpriseTestOptions(options as any);
+        await compareSnapshot(AgCharts.create(options));
+    });
+
+    describe('initial animation', () => {
+        const animate = spyOnAnimationManager();
+
+        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
+            it(`for CANDLESTICK_OPTIONS should animate at ${ratio * 100}%`, async () => {
+                animate(1200, ratio);
+
+                const options: AgChartOptions = { ...CANDLESTICK_OPTIONS };
+                prepareEnterpriseTestOptions(options);
+
+                await compareSnapshot(AgCharts.create(options));
+            });
+        }
+    });
+});
