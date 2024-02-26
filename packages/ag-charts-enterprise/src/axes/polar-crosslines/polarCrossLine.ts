@@ -116,8 +116,6 @@ export abstract class PolarCrossLine implements _ModuleSupport.CrossLine {
 
     abstract update(visible: boolean): void;
 
-    calculatePadding() {}
-
     protected setSectorNodeProps(node: _Scene.Path | _Scene.Sector) {
         node.fill = this.fill;
         node.fillOpacity = this.fillOpacity ?? 1;

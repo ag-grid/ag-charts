@@ -57,7 +57,7 @@ export const validateCrossLineValues = (
             message.push(`range start ${stringify(start)}`);
         }
         if (!validEnd) {
-            message.push(`${!validStart ? 'and ' : ''}range end ${stringify(end)}`);
+            message.push(`${validStart ? '' : 'and '}range end ${stringify(end)}`);
         }
     } else {
         message.push(`value ${stringify(start)}`);
@@ -72,7 +72,7 @@ export const validateCrossLineValues = (
 
 export interface CrossLine<LabelType = AgBaseCrossLineLabelOptions> {
     calculateLayout(visible: boolean, reversedAxis?: boolean): BBox | undefined;
-    calculatePadding(padding: Partial<Record<AgCrossLineLabelPosition, number>>): void;
+    calculatePadding?: (padding: Partial<Record<AgCrossLineLabelPosition, number>>) => void;
     clippedRange: [number, number];
     direction: ChartAxisDirection;
     enabled?: boolean;
