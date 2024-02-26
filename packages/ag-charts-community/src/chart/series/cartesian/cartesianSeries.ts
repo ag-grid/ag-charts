@@ -13,6 +13,7 @@ import { Path } from '../../../scene/shape/path';
 import { Text } from '../../../scene/shape/text';
 import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { Debug } from '../../../util/debug';
+import { Quadtree } from '../../../util/quadtree';
 import { isFunction } from '../../../util/type-guards';
 import { STRING, Validate } from '../../../util/validation';
 import { CategoryAxis } from '../../axis/categoryAxis';
@@ -281,6 +282,8 @@ export abstract class CartesianSeries<
         this.animationState.transition('update', animationData);
     }
 
+    protected pickTree: Quadtree<TDatum> = new Quadtree(1000, new BBox(0, 0, 10000, 10000));
+
     protected async updateSelections(anySeriesItemEnabled: boolean) {
         const animationSkipUpdate = !this.opts.animationAlwaysUpdateSelections && this.ctx.animationManager.isSkipped();
         if (!anySeriesItemEnabled && animationSkipUpdate) {
@@ -295,6 +298,7 @@ export abstract class CartesianSeries<
             this.debug(`CartesianSeries.updateSelections() - calling createNodeData() for`, this.id);
 
             this._contextNodeData = await this.createNodeData();
+
             const animationValid = this.isProcessedDataAnimatable();
             this._contextNodeData.forEach((nodeData) => {
                 nodeData.animationValid ??= animationValid;
@@ -566,6 +570,12 @@ export abstract class CartesianSeries<
     }
 
     protected override pickNodeExactShape(point: Point): SeriesNodePickMatch | undefined {
+        const kdmatches = this.pickTree.pickValues(point.x, point.y);
+        for (const kdmatch of kdmatches) {
+            return { datum: kdmatch.value, distance: 0 };
+        }
+        return undefined;
+
         const result = super.pickNodeExactShape(point);
 
         if (result) {

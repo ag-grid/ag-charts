@@ -271,8 +271,13 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         });
 
         const applyTranslation = this.ctx.animationManager.isSkipped();
+        this.pickTree.clear();
         markerSelection.each((node, datum) => {
             this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yKey }, baseStyle, { applyTranslation });
+            const bbox = node.computeTransformedBBox();
+            if (bbox !== undefined) {
+                this.pickTree.addValue(bbox, datum);
+            }
         });
 
         if (!highlighted) {

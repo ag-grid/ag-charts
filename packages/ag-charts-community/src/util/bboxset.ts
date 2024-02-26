@@ -1,4 +1,6 @@
-interface BBoxLike {
+export interface BBoxLike {
+    x: number;
+    y: number;
     width: number;
     height: number;
     containsPoint(x: number, y: number): boolean;
