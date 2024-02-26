@@ -17,6 +17,7 @@ const {
     diff,
     animationValidation,
     ChartAxisDirection,
+    convertValuesToScaleByDefs,
 } = _ModuleSupport;
 const { motion } = _Scene;
 
@@ -204,13 +205,18 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup
                 return;
             }
 
-            const scaledValues = this.convertValuesToScaleByDefs(defs, {
-                xValue,
-                minValue,
-                q1Value,
-                medianValue,
-                q3Value,
-                maxValue,
+            const scaledValues = convertValuesToScaleByDefs({
+                defs,
+                values: {
+                    xValue,
+                    minValue,
+                    q1Value,
+                    medianValue,
+                    q3Value,
+                    maxValue,
+                },
+                xAxis,
+                yAxis,
             });
 
             scaledValues.xValue += Math.round(groupScale.convert(String(groupIndex)));
@@ -452,24 +458,5 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup
             }
         }
         return activeStyles;
-    }
-
-    convertValuesToScaleByDefs<T extends string>(
-        defs: [string, _ModuleSupport.ProcessedDataDef[]][],
-        values: Record<T, unknown>
-    ): Record<T, number> {
-        const xAxis = this.getCategoryAxis();
-        const yAxis = this.getValueAxis();
-        if (!(xAxis && yAxis)) {
-            throw new Error('Axes must be defined');
-        }
-        const result: Record<string, number> = {};
-        for (const [searchId, [{ def }]] of defs) {
-            if (Object.hasOwn(values, searchId)) {
-                const { scale } = def.type === 'key' ? xAxis : yAxis;
-                result[searchId] = Math.round(scale.convert((values as any)[searchId]));
-            }
-        }
-        return result;
     }
 }

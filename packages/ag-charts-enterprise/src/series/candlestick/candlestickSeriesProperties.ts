@@ -120,30 +120,6 @@ export class CandlestickSeriesProperties extends AbstractBarSeriesProperties<AgC
     @Validate(STRING, { optional: true })
     lowName?: string;
 
-    @Validate(COLOR_STRING, { optional: true })
-    fill: string = '#c16068';
-
-    @Validate(RATIO)
-    fillOpacity = 1;
-
-    @Validate(COLOR_STRING)
-    stroke: string = '#333';
-
-    @Validate(POSITIVE_NUMBER)
-    strokeWidth: number = 1;
-
-    @Validate(RATIO)
-    strokeOpacity = 1;
-
-    @Validate(LINE_DASH)
-    lineDash: number[] = [0];
-
-    @Validate(POSITIVE_NUMBER)
-    lineDashOffset: number = 0;
-
-    @Validate(POSITIVE_NUMBER)
-    cornerRadius: number = 0;
-
     @Validate(FUNCTION, { optional: true })
     formatter?: (params: AgCandlestickSeriesFormatterParams<unknown>) => AgCandlestickSeriesStyles;
 
@@ -152,34 +128,4 @@ export class CandlestickSeriesProperties extends AbstractBarSeriesProperties<AgC
 
     @Validate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgCandlestickSeriesTooltipRendererParams>();
-
-    override toJson() {
-        const { stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, fill, fillOpacity, cornerRadius } = this;
-        const properties = super.toJson();
-
-        const merge = (prop: CandlestickSeriesItem) => {
-            return mergeDefaults(prop, {
-                wick: {
-                    stroke,
-                    strokeWidth,
-                    strokeOpacity,
-                    lineDash,
-                    lineDashOffset,
-                },
-                stroke,
-                strokeWidth,
-                strokeOpacity,
-                lineDash,
-                lineDashOffset,
-                fill,
-                fillOpacity,
-                cornerRadius,
-            });
-        };
-
-        properties.item.up = merge(properties.item.up);
-        properties.item.down = merge(properties.item.down);
-
-        return properties;
-    }
 }

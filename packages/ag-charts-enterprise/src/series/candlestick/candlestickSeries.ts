@@ -17,6 +17,7 @@ const {
     diff,
     animationValidation,
     ChartAxisDirection,
+    convertValuesToScaleByDefs,
 } = _ModuleSupport;
 const { motion } = _Scene;
 
@@ -199,12 +200,17 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<Candlest
                 { keys, values }
             );
 
-            const scaledValues = this.convertValuesToScaleByDefs(defs, {
-                xValue,
-                openValue,
-                closeValue,
-                highValue,
-                lowValue,
+            const scaledValues = convertValuesToScaleByDefs({
+                defs,
+                values: {
+                    xValue,
+                    openValue,
+                    closeValue,
+                    highValue,
+                    lowValue,
+                },
+                xAxis,
+                yAxis,
             });
 
             scaledValues.xValue += Math.round(groupScale.convert(String(groupIndex)));
@@ -456,24 +462,5 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<Candlest
             }
         }
         return activeStyles;
-    }
-
-    convertValuesToScaleByDefs<T extends string>(
-        defs: [string, _ModuleSupport.ProcessedDataDef[]][],
-        values: Record<T, unknown>
-    ): Record<T, number> {
-        const xAxis = this.getCategoryAxis();
-        const yAxis = this.getValueAxis();
-        if (!(xAxis && yAxis)) {
-            throw new Error('Axes must be defined');
-        }
-        const result: Record<string, number> = {};
-        for (const [searchId, [{ def }]] of defs) {
-            if (Object.hasOwn(values, searchId)) {
-                const { scale } = def.type === 'key' ? xAxis : yAxis;
-                result[searchId] = Math.round(scale.convert((values as any)[searchId]));
-            }
-        }
-        return result;
     }
 }
