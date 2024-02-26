@@ -10,9 +10,6 @@ const commonOptions: AgChartOptions = {
             yKey: 'value',
         },
     ],
-    tooltip: {
-        enabled: false,
-    },
     sync: {
         enabled: true,
         axes: 'x',
