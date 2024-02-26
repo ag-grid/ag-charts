@@ -202,11 +202,13 @@ export class Scene {
 
     /** Alternative to destroy() that preserves re-usable resources. */
     strip() {
+        const { context, pixelRatio } = this.canvas;
+        context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+
         this.layersManager.clear();
 
         this.setRoot(null);
         this.isDirty = false;
-        this.canvas.context.resetTransform();
     }
 
     destroy() {
