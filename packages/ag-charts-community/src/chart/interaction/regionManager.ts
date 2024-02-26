@@ -48,23 +48,42 @@ export class RegionManager {
     }
 
     public addRegion(name: RegionName, bboxprovider: BBoxProvider) {
-        const region = this.pushRegion(name, bboxprovider);
-        const { interactionManager } = this;
+        return this.makeObserver(this.pushRegion(name, bboxprovider));
+    }
 
+    public getRegion(name: RegionName) {
+        return this.makeObserver(this.findByName(name));
+    }
+
+    private findByName(name: RegionName): Region | undefined {
+        for (const region of this.regions) {
+            if (region.name === name) {
+                return region;
+            }
+        }
+        Logger.errorOnce(`unable '${name}' region found`);
+    }
+
+    // This method return a wrapper object that matches the interface of InteractionManager.addListener.
+    // The intent is to allow the InteractionManager and RegionManager to be used almost interchangeably.
+    private makeObserver(region: Region | undefined) {
+        const { interactionManager } = this;
         class ObservableRegionImplementation {
             addListener<T extends InteractionTypes>(
                 type: T,
                 handler: RegionHandler<InteractionEvent<T>>,
                 triggeringStates: InteractionState = InteractionState.Default
-            ) {
-                return region.listeners.addListener(type, (e) => {
-                    if (!e.consumed) {
-                        const currentState = interactionManager.getState();
-                        if (currentState & triggeringStates) {
-                            handler(e as InteractionEvent<T>);
+            ): () => void {
+                return (
+                    region?.listeners.addListener(type, (e) => {
+                        if (!e.consumed) {
+                            const currentState = interactionManager.getState();
+                            if (currentState & triggeringStates) {
+                                handler(e as InteractionEvent<T>);
+                            }
                         }
-                    }
-                });
+                    }) ?? (() => undefined)
+                );
             }
         }
         return new ObservableRegionImplementation();
