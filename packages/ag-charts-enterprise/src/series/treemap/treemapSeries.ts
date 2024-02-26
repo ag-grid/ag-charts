@@ -259,7 +259,8 @@ export class TreemapSeries<
         const innerBox = new BBox(bbox.x + padding.left, bbox.y + padding.top, width, height);
         const partition = innerBox.clone();
 
-        for (let i = 0; i < numChildren; i++) {
+        let i = 0;
+        while (i < numChildren) {
             const value = nodeSize(childAt(i));
             const firstValue = nodeSize(childAt(startIndex));
             const isVertical = partition.width < partition.height;
@@ -274,6 +275,7 @@ export class TreemapSeries<
             const diff = Math.abs(targetTileAspectRatio - ratio);
             if (diff < minRatioDiff) {
                 minRatioDiff = diff;
+                i++;
                 continue;
             }
 
@@ -309,7 +311,7 @@ export class TreemapSeries<
             startIndex = i;
             stackSum = 0;
             minRatioDiff = Infinity;
-            i--;
+            // Deliberately don't increment i on this control flow.
         }
 
         // Process remaining space
