@@ -145,27 +145,27 @@ export class AgChart {
     }
 
     public static create(options: AgChartOptions): AgChartInstance {
-        AgChart.warnDeprecated('create');
+        this.warnDeprecated('create');
         return AgCharts.create(options);
     }
 
     public static update(chart: AgChartInstance, options: AgChartOptions) {
-        AgChart.warnDeprecated('update');
+        this.warnDeprecated('update');
         return AgCharts.update(chart, options);
     }
 
     public static updateDelta(chart: AgChartInstance, deltaOptions: DeepPartial<AgChartOptions>) {
-        AgChart.warnDeprecated('updateDelta');
+        this.warnDeprecated('updateDelta');
         return AgCharts.updateDelta(chart, deltaOptions);
     }
 
     public static download(chart: AgChartInstance, options?: DownloadOptions) {
-        AgChart.warnDeprecated('download');
+        this.warnDeprecated('download');
         return AgCharts.download(chart, options);
     }
 
     public static getImageDataURL(chart: AgChartInstance, options?: ImageDataUrlOptions): Promise<string> {
-        AgChart.warnDeprecated('getImageDataURL');
+        this.warnDeprecated('getImageDataURL');
         return AgCharts.getImageDataURL(chart, options);
     }
 }
@@ -173,7 +173,7 @@ export class AgChart {
 class AgChartsInternal {
     static getInstance(element: HTMLElement): AgChartInstanceProxy | undefined {
         const chart = Chart.getInstance(element);
-        return chart != null ? AgChartInstanceProxy.chartInstances.get(chart) : undefined;
+        return chart ? AgChartInstanceProxy.chartInstances.get(chart) : undefined;
     }
 
     static initialised = false;

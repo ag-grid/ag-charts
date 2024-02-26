@@ -134,15 +134,21 @@ jobs:
 
             - name: nx lint
               id: lint
-              if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
+              if: github.ref == 'refs/heads/latest' && (steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped')
               run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t lint --parallel=3 --exclude all
+            - name: nx lint (diff)
+              id: lint_diff
+              if: github.ref != 'refs/heads/latest' && (steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped')
+              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t lint --parallel=3 --exclude all
+              env:
+                  ESLINT_PLUGIN_DIFF_COMMIT: ${{ github.event.pull_request.base.ref }}
             - name: Update Status (lint)
               uses: LouisBrunner/checks-action@v1.6.1
               if: always()
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   check_id: ${{ steps.init_lint.outputs.check_id }}
-                  conclusion: ${{ steps.lint.outcome }}
+                  conclusion: ${{ github.ref == 'refs/heads/latest' && steps.lint.outcome || steps.lint_diff.outcome }}
 
             # - name: nx batched build
             #   id: batched_build
@@ -345,3 +351,19 @@ jobs:
                       *Changes:*
 
                       ${{ env.GIT_LOG }}
+
+    sonarqube:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
+              with:
+                  # Disabling shallow clones is recommended for improving the relevancy of reporting
+                  fetch-depth: 0
+            - name: SonarQube Scan
+              uses: sonarsource/sonarqube-scan-action@master
+              with:
+                  args: >
+                      -Dsonar.qualitygate.wait=true
+              env:
+                  SONAR_TOKEN: ${{ secrets.SONAR_LOGIN }}
+                  SONAR_HOST_URL: https://sonarcloud.io
