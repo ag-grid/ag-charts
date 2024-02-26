@@ -930,11 +930,12 @@ export abstract class Chart extends Observable implements AgChartInstance {
     async processData() {
         if (this.series.some((s) => s.canHaveAxes)) {
             this.assignAxesToSeries();
-            this.assignSeriesToAxes();
 
             const syncModule = this.modules.get('sync') as SyncModule | undefined;
             if (syncModule?.enabled) {
                 syncModule.syncAxes(this._skipSync);
+            } else {
+                this.assignSeriesToAxes();
             }
         }
 
