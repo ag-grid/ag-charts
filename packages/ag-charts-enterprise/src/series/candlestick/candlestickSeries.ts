@@ -20,9 +20,9 @@ const {
 } = _ModuleSupport;
 const { motion } = _Scene;
 
-class CandlestickSeriesNodeClickEvent<
+class CandlestickSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
-> extends _ModuleSupport.SeriesNodeClickEvent<CandlestickNodeDatum, TEvent> {
+> extends _ModuleSupport.SeriesNodeEvent<CandlestickNodeDatum, TEvent> {
     readonly xKey?: string;
     readonly openKey?: string;
     readonly closeKey?: string;
@@ -44,7 +44,7 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<Candlest
 
     override properties = new CandlestickSeriesProperties();
 
-    protected override readonly NodeClickEvent = CandlestickSeriesNodeClickEvent;
+    protected override readonly NodeEvent = CandlestickSeriesNodeEvent;
 
     /**
      * Used to get the position of items within each group.
@@ -347,7 +347,7 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<Candlest
         datumSelection: _Scene.Selection<CandlestickGroup, CandlestickNodeDatum>;
         isHighlight: boolean;
     }) {
-        datumSelection.each((CandlestickGroup, nodeDatum) => {
+        datumSelection.each((candlestickGroup, nodeDatum) => {
             let activeStyles = this.getFormattedStyles(nodeDatum, highlighted);
 
             if (highlighted) {
@@ -364,7 +364,7 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<Candlest
                 lineDashOffset,
             });
 
-            CandlestickGroup.updateDatumStyles(
+            candlestickGroup.updateDatumStyles(
                 nodeDatum,
                 activeStyles as _ModuleSupport.DeepRequired<ActiveCandlestickGroupStyles>
             );
@@ -394,7 +394,7 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<Candlest
             id: seriesId,
             ctx: { callbackCache },
         } = this;
-        const { xKey, openKey, closeKey, highKey, lowKey, formatter } = this.properties;
+        const { xKey, openKey, closeKey, highKey, lowKey, formatter, cornerRadius } = this.properties;
         const { datum, fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, wick, itemId } =
             nodeDatum;
         const activeStyles = {
@@ -406,6 +406,7 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<Candlest
             lineDash,
             lineDashOffset,
             wick: extractDecoratedProperties(wick),
+            cornerRadius,
         };
 
         if (formatter) {
