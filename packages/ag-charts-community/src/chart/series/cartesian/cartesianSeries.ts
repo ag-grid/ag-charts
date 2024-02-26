@@ -299,6 +299,7 @@ export abstract class CartesianSeries<
             this._contextNodeData.forEach((nodeData) => {
                 nodeData.animationValid ??= animationValid;
             });
+            this.minRect = this.computeMinRect();
 
             await this.updateSeriesGroups();
 
@@ -775,6 +776,11 @@ export abstract class CartesianSeries<
      * between any two adjacent nodes.
      */
     override getMinRect() {
+        return this.minRect;
+    }
+
+    private minRect?: BBox;
+    private computeMinRect() {
         const [context] = this._contextNodeData;
 
         if (!context?.nodeData.length) {
