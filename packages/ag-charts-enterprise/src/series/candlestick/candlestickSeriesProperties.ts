@@ -20,7 +20,6 @@ const {
     POSITIVE_NUMBER,
     RATIO,
     STRING,
-    mergeDefaults,
 } = _ModuleSupport;
 
 class CandlestickSeriesWick extends BaseProperties {
