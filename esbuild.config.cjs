@@ -52,6 +52,7 @@ const postBuildMinificationPlugin = {
         };
 
         build.onEnd(async (result) => {
+            if (result.errors?.length !== 0) return;
             await Promise.all(Object.keys(result.metafile.outputs).map(minifyFile));
         });
     },

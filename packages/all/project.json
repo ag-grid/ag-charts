@@ -30,7 +30,8 @@
     },
     "pack": {
       "executor": "nx:noop",
-      "inputs": [{ "externalDependencies": ["npm:typescript"] }],
+      "inputs": [],
+      "outputs": [],
       "dependsOn": ["^pack"],
       "configurations": {
         "production": {}
@@ -38,7 +39,8 @@
     },
     "pack:extract": {
       "executor": "nx:noop",
-      "inputs": [{ "externalDependencies": ["npm:typescript"] }],
+      "inputs": [],
+      "outputs": [],
       "dependsOn": ["^pack:extract"],
       "configurations": {
         "production": {}
@@ -46,7 +48,8 @@
     },
     "pack:verify": {
       "executor": "nx:noop",
-      "inputs": [{ "externalDependencies": ["npm:typescript"] }],
+      "inputs": [],
+      "outputs": [],
       "dependsOn": ["^pack:verify"],
       "configurations": {
         "production": {}
@@ -54,12 +57,14 @@
     },
     "dev:setup": {
       "executor": "nx:run-commands",
+      "dependsOn": ["^build:types"],
+      "inputs": [],
+      "outputs": [],
       "options": {
         "parallel": false,
         "commands": [
-          "nx run-many -t build:types",
-          "if (test \"${BUILD_BATCH}\" != \"0\") ; then nx build ag-charts-website:generate-examples --batch ; fi",
-          "if (test \"${BUILD_BATCH}\" != \"0\") ; then nx build ag-charts-website:generate-thumbnails --batch ; fi"
+          "if (test \"${BUILD_BATCH}\" != \"0\") ; then nx run ag-charts-website:generate-examples --batch ; fi",
+          "if (test \"${BUILD_BATCH}\" != \"0\") ; then nx run ag-charts-website:generate-thumbnails --batch ; fi"
         ]
       }
     },
@@ -67,6 +72,7 @@
       "executor": "nx:run-commands",
       "dependsOn": ["dev:setup"],
       "inputs": [],
+      "outputs": [],
       "options": {
         "parallel": true,
         "commands": [

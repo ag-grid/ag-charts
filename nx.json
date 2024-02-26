@@ -120,7 +120,13 @@
     },
     "@nx/eslint:lint": {
       "cache": true,
-      "inputs": ["default", "buildOutputExcludes", "{workspaceRoot}/.eslintrc.json", "{projectRoot}/.eslintrc.json"],
+      "inputs": [
+        "default",
+        "buildOutputExcludes",
+        "{workspaceRoot}/.eslintrc.json",
+        "{projectRoot}/.eslintrc.json",
+        "{workspaceRoot}/tools/eslint-rules/**/*"
+      ],
       "outputs": []
     },
     "@nx/vite:test": {

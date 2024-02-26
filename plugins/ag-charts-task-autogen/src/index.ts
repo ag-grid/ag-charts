@@ -31,7 +31,6 @@ export const createNodes: CreateNodes = [
             .slice(2)
             .filter((p) => !NON_UNIQUE_PATH_ELEMENTS.has[p])
             .join('_');
-        const parentPath = `packages/${parentProject}`;
         const examplePath = dirname(configFilePath).replace(`packages/${parentProject}/`, '{projectRoot}/');
         const projectRelativeInputPath = examplePath.split('/').slice(2).join('/');
         const srcRelativeInputPath = projectRelativeInputPath.split('/').slice(1).join('/');
@@ -68,7 +67,8 @@ function createGenerateTarget(thumbnails: boolean): { [targetName: string]: Targ
         generate: {
             executor: 'nx:noop',
             dependsOn,
-            inputs: [{ externalDependencies: ['npm:typescript'] }],
+            inputs: [],
+            outputs: [],
             cache: true,
         },
     };

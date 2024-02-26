@@ -51,10 +51,7 @@
         "{projectRoot}/tsconfig.*.json",
         "tsDeclarations",
         "sharedGlobals",
-        "defaultExcludes",
-        {
-          "externalDependencies": ["npm:typescript", "npm:esbuild"]
-        }
+        "defaultExcludes"
       ],
       "outputs": ["{options.outputPath}"],
       "options": {
@@ -131,9 +128,6 @@
     },
     "lint:eslint": {
       "executor": "@nx/eslint:lint",
-      "options": {
-        "eslintConfig": "packages/ag-charts-community/.eslintrc.json"
-      },
       "configurations": {
         "fix": {
           "fix": true
