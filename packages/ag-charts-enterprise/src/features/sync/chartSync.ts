@@ -7,6 +7,7 @@ const {
     BaseProperties,
     CartesianAxis,
     ChartUpdateType,
+    arraysEqual,
     isDate,
     isDefined,
     isFiniteNumber,
@@ -145,8 +146,13 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         const syncSeries = syncManager.getGroup(this.groupId).flatMap((chart) => chart.series);
         const syncAxes = syncManager.getGroupSiblings(this.groupId).flatMap((chart) => chart.axes);
 
+        let hasUpdated = false;
+
         chart.axes.forEach((axis) => {
-            if (!CartesianAxis.is(axis) || (this.axes !== 'xy' && this.axes !== axis.direction)) return;
+            if (!CartesianAxis.is(axis) || (this.axes !== 'xy' && this.axes !== axis.direction)) {
+                axis.boundSeries = chart.series.filter((s) => s.axes[axis.direction] === (axis as any));
+                return;
+            }
 
             const { direction, min, max, nice, reverse } = axis as (typeof syncAxes)[number];
 
@@ -160,17 +166,24 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
                     (max !== siblingAxis.max && (isFiniteNumber(max) || isFiniteNumber(siblingAxis.max)))
                 ) {
                     Logger.warnOnce('For axes sync, ensure matching `min`, `max`, `nice`, and `reverse` properties.');
+                    axis.boundSeries = chart.series.filter((s) => s.axes[axis.direction] === (axis as any));
+                    this.enabled = false;
                     return;
                 }
             }
 
-            axis.boundSeries = syncSeries.filter((series) => {
+            const boundSeries = syncSeries.filter((series) => {
                 const seriesKeys = series.getKeys(axis.direction);
                 return axis.keys.length ? axis.keys.some((key) => seriesKeys.includes(key)) : true;
             });
+
+            if (!arraysEqual(axis.boundSeries, boundSeries)) {
+                axis.boundSeries = boundSeries;
+                hasUpdated = true;
+            }
         });
 
-        if (!stopPropagation) {
+        if (hasUpdated && !stopPropagation) {
             this.updateSiblings(this.groupId);
         }
     }
