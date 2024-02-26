@@ -299,7 +299,6 @@ export abstract class CartesianSeries<
             this._contextNodeData.forEach((nodeData) => {
                 nodeData.animationValid ??= animationValid;
             });
-            this.minRect = this.computeMinRect();
 
             await this.updateSeriesGroups();
 
@@ -775,29 +774,53 @@ export abstract class CartesianSeries<
      * may not represent the same two points for both directions. The dimensions represent the greatest distance
      * between any two adjacent nodes.
      */
-    override getMinRect() {
-        return this.minRect;
-    }
-
-    private minRect?: BBox;
-    private computeMinRect() {
+    override getMinRects(width: number, height: number) {
         const [context] = this._contextNodeData;
 
         if (!context?.nodeData.length) {
             return;
         }
 
-        const width = context.nodeData
-            .map(({ midPoint }) => midPoint?.x ?? 0)
-            .sort((a, b) => a - b)
-            .reduce((max, x, i, array) => (i > 0 ? Math.max(max, x - array[i - 1]) : max), 0);
+        // Get the sorted midpoints for both directions
+        const minRectXs = Array(context.nodeData.length);
+        const minRectYs = Array(context.nodeData.length);
 
-        const height = context.nodeData
-            .map(({ midPoint }) => midPoint?.y ?? 0)
-            .sort((a, b) => a - b)
-            .reduce((max, y, i, array) => (i > 0 ? Math.max(max, y - array[i - 1]) : max), 0);
+        for (const [i, { midPoint }] of context.nodeData.entries()) {
+            minRectXs[i] = midPoint?.x ?? 0;
+            minRectYs[i] = midPoint?.y ?? 0;
+        }
 
-        return new BBox(0, 0, width, height);
+        minRectXs.sort((a, b) => a - b);
+        minRectYs.sort((a, b) => a - b);
+
+        // Take the visible slice from the sorted data as the points >= 0 and <= width/height
+        let zeroX, widthX, zeroY, heightY;
+
+        for (let i = 1; i < context.nodeData.length; i++) {
+            if (minRectXs[i] >= 0) zeroX ??= i;
+            if (minRectXs[i] > width) widthX ??= i - 1;
+            if (minRectYs[i] >= 0) zeroY ??= i;
+            if (minRectYs[i] > height) heightY ??= i - 1;
+
+            if (minRectXs[i] > width && minRectYs[i] > height) break;
+        }
+
+        const minVisibleRectXs = zeroX != null && widthX != null ? minRectXs.slice(zeroX, widthX + 1) : [];
+        const minVisibleRectYs = zeroY != null && heightY != null ? minRectYs.slice(zeroY, heightY + 1) : [];
+
+        // Find the max distance between adjacent points in both directions
+        const reducer = (max: number, value: number, i: number, array: number[]) =>
+            i > 0 ? Math.max(max, value - array[i - 1]) : max;
+
+        const maxWidth = minRectXs.reduce(reducer, 0);
+        const maxHeight = minRectYs.reduce(reducer, 0);
+        const maxVisibleWidth = minVisibleRectXs.reduce(reducer, 0);
+        const maxVisibleHeight = minVisibleRectYs.reduce(reducer, 0);
+
+        const minRect = new BBox(0, 0, maxWidth, maxHeight);
+        const minVisibleRect = new BBox(0, 0, maxVisibleWidth, maxVisibleHeight);
+
+        return { minRect, minVisibleRect };
     }
 
     protected async updateHighlightSelectionItem(opts: {

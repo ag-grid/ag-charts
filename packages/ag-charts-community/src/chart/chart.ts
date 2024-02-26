@@ -672,7 +672,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
 
         if (!updateDeferred) {
-            this.updateService.dispatchUpdateComplete(this.getMinRect());
+            this.updateService.dispatchUpdateComplete(this.getMinRects());
         }
 
         const end = performance.now();
@@ -1412,16 +1412,21 @@ export abstract class Chart extends Observable implements AgChartInstance {
         });
     }
 
-    protected getMinRect() {
-        const minRects = this.series.map((series) => series.getMinRect()).filter(isDefined);
-        if (minRects.length) {
-            return new BBox(
-                0,
-                0,
-                minRects.reduce((max, rect) => Math.max(max, rect.width), 0),
-                minRects.reduce((max, rect) => Math.max(max, rect.height), 0)
-            );
-        }
+    protected getMinRects() {
+        const { width, height } = this.scene;
+        const minRects = this.series.map((series) => series.getMinRects(width, height)).filter(isDefined);
+
+        if (minRects.length === 0) return;
+
+        const maxWidth = minRects.reduce((max, { minRect }) => Math.max(max, minRect.width), 0);
+        const maxHeight = minRects.reduce((max, { minRect }) => Math.max(max, minRect.height), 0);
+        const maxVisibleWidth = minRects.reduce((max, { minVisibleRect }) => Math.max(max, minVisibleRect.width), 0);
+        const maxVisibleHeight = minRects.reduce((max, { minVisibleRect }) => Math.max(max, minVisibleRect.height), 0);
+
+        const minRect = new BBox(0, 0, maxWidth, maxHeight);
+        const minVisibleRect = new BBox(0, 0, maxVisibleWidth, maxVisibleHeight);
+
+        return { minRect, minVisibleRect };
     }
 
     private filterMiniChartSeries(series: AgChartOptions['series'] | undefined): AgChartOptions['series'] | undefined;
