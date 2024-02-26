@@ -1,7 +1,6 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import type { AgBarSeriesStyle, FontStyle, FontWeight } from '../../../options/agChartOptions';
-import { BandScale } from '../../../scale/bandScale';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import { BBox } from '../../../scene/bbox';
 import { PointerEvents } from '../../../scene/node';
@@ -12,8 +11,6 @@ import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
 import { sanitizeHtml } from '../../../util/sanitize';
 import { isFiniteNumber } from '../../../util/type-guards';
-import { CategoryAxis } from '../../axis/categoryAxis';
-import { GroupedCategoryAxis } from '../../axis/groupedCategoryAxis';
 import { LogAxis } from '../../axis/logAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
@@ -105,11 +102,6 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
         });
     }
 
-    /**
-     * Used to get the position of bars within each group.
-     */
-    private groupScale = new BandScale<string>();
-
     protected override resolveKeyDirection(direction: ChartAxisDirection) {
         if (this.getBarDirection() === ChartAxisDirection.X) {
             if (direction === ChartAxisDirection.X) {
@@ -119,8 +111,6 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
         }
         return direction;
     }
-
-    protected smallestDataInterval?: { x: number; y: number } = undefined;
 
     override async processData(dataController: DataController) {
         if (!this.properties.isValid() || !this.data) {
@@ -237,47 +227,12 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
-
-        const {
-            groupScale,
-            processedData,
-            smallestDataInterval,
-            ctx: { seriesStateManager },
-        } = this;
         const { xKey, yKey, xName, yName, fill, stroke, strokeWidth, cornerRadius, legendItemName, label } =
             this.properties;
 
         const yReversed = yAxis.isReversed();
-        const xBandWidth = ContinuousScale.is(xScale)
-            ? xScale.calcBandwidth(smallestDataInterval?.x)
-            : xScale.bandwidth;
 
-        const domain = [];
-        const { index: groupIndex, visibleGroupCount } = seriesStateManager.getVisiblePeerGroupIndex(this);
-        for (let groupIdx = 0; groupIdx < visibleGroupCount; groupIdx++) {
-            domain.push(String(groupIdx));
-        }
-        groupScale.domain = domain;
-        groupScale.range = [0, xBandWidth ?? 0];
-
-        if (xAxis instanceof CategoryAxis) {
-            groupScale.paddingInner = xAxis.groupPaddingInner;
-        } else if (xAxis instanceof GroupedCategoryAxis) {
-            groupScale.padding = 0.1;
-        } else {
-            // Number or Time axis
-            groupScale.padding = 0;
-        }
-
-        // To get exactly `0` padding we need to turn off rounding
-        groupScale.round = groupScale.padding !== 0;
-
-        const barWidth =
-            groupScale.bandwidth >= 1
-                ? // Pixel-rounded value for low-volume bar charts.
-                  groupScale.bandwidth
-                : // Handle high-volume bar charts gracefully.
-                  groupScale.rawBandwidth;
+        const { barWidth, groupIndex } = this.updateGroupScale(xAxis);
 
         const xIndex = dataModel.resolveProcessedDataIndexById(this, `xValue`).index;
         const yRawIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-raw`).index;
@@ -287,6 +242,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
         const animationEnabled = !this.ctx.animationManager.isSkipped();
         const contexts: Array<CartesianSeriesNodeDataContext<BarNodeDatum>> = [];
 
+        const { groupScale, processedData } = this;
         processedData?.data.forEach(({ keys, datum: seriesDatum, values, aggValues }) => {
             values.forEach((value, contextIndex) => {
                 contexts[contextIndex] ??= {

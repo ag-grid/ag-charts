@@ -12,7 +12,6 @@ const {
     updateRect,
     checkCrisp,
     updateLabelNode,
-    CategoryAxis,
     SMALLEST_KEY_INTERVAL,
     diff,
     prepareBarAnimationFunctions,
@@ -24,7 +23,7 @@ const {
     animationValidation,
     createDatumId,
 } = _ModuleSupport;
-const { ContinuousScale, BandScale, Rect, PointerEvents, motion } = _Scene;
+const { ContinuousScale, Rect, PointerEvents, motion } = _Scene;
 const { sanitizeHtml, isNumber, extent } = _Util;
 
 const DEFAULT_DIRECTION_KEYS = {
@@ -105,13 +104,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     override properties = new RangeBarProperties();
 
     protected override readonly NodeEvent = RangeBarSeriesNodeEvent;
-
-    /**
-     * Used to get the position of bars within each group.
-     */
-    private groupScale = new BandScale<string>();
-
-    protected smallestDataInterval?: { x: number; y: number } = undefined;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
@@ -227,8 +219,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             dataModel,
             groupScale,
             processedData,
-            smallestDataInterval,
-            ctx: { seriesStateManager },
             properties: { visible },
         } = this;
         const xAxis = this.getCategoryAxis();
@@ -248,40 +238,11 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         const contexts: RangeBarContext[] = [];
 
-        const domain = [];
-        const { index: groupIndex, visibleGroupCount } = seriesStateManager.getVisiblePeerGroupIndex(this);
-        for (let groupIdx = 0; groupIdx < visibleGroupCount; groupIdx++) {
-            domain.push(String(groupIdx));
-        }
-
-        const xBandWidth = ContinuousScale.is(xScale)
-            ? xScale.calcBandwidth(smallestDataInterval?.x)
-            : xScale.bandwidth;
-
-        groupScale.domain = domain;
-        groupScale.range = [0, xBandWidth ?? 0];
-
-        if (xAxis instanceof CategoryAxis) {
-            groupScale.paddingInner = xAxis.groupPaddingInner;
-        } else {
-            // Number or Time axis
-            groupScale.padding = 0;
-        }
-
-        // To get exactly `0` padding we need to turn off rounding
-        groupScale.round = groupScale.padding !== 0;
-
-        const barWidth =
-            groupScale.bandwidth >= 1
-                ? // Pixel-rounded value for low-volume range charts.
-                  groupScale.bandwidth
-                : // Handle high-volume range charts gracefully.
-                  groupScale.rawBandwidth;
-
         const yLowIndex = dataModel.resolveProcessedDataIndexById(this, `yLowValue`).index;
         const yHighIndex = dataModel.resolveProcessedDataIndexById(this, `yHighValue`).index;
         const xIndex = dataModel.resolveProcessedDataIndexById(this, `xValue`).index;
 
+        const { barWidth, groupIndex } = this.updateGroupScale(xAxis);
         processedData?.data.forEach(({ keys, datum, values }, dataIndex) => {
             values.forEach((value, contextIndex) => {
                 contexts[contextIndex] ??= {

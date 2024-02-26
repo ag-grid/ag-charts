@@ -100,8 +100,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
     private seriesItemTypes: Set<AgWaterfallSeriesItemType> = new Set(['positive', 'negative', 'total']);
 
-    protected smallestDataInterval?: { x: number; y: number } = undefined;
-
     override async processData(dataController: _ModuleSupport.DataController) {
         const { xKey, yKey, totals } = this.properties;
         const { data = [] } = this;

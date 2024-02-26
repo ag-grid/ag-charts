@@ -49,13 +49,6 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup
 
     protected override readonly NodeEvent = BoxPlotSeriesNodeEvent;
 
-    /**
-     * Used to get the position of items within each group.
-     */
-    private groupScale = new _Scale.BandScale<string>();
-
-    protected smallestDataInterval?: { x: number; y: number } = undefined;
-
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
@@ -150,35 +143,6 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup
 
         const { xKey, fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cap, whisker } =
             this.properties;
-        const {
-            groupScale,
-            smallestDataInterval,
-            ctx: { seriesStateManager },
-        } = this;
-
-        const xBandWidth =
-            xAxis.scale instanceof _Scale.ContinuousScale
-                ? xAxis.scale.calcBandwidth(smallestDataInterval?.x)
-                : xAxis.scale.bandwidth;
-
-        const domain = [];
-        const { index: groupIndex, visibleGroupCount } = seriesStateManager.getVisiblePeerGroupIndex(this);
-        for (let groupIdx = 0; groupIdx < visibleGroupCount; groupIdx++) {
-            domain.push(String(groupIdx));
-        }
-        groupScale.domain = domain;
-        groupScale.range = [0, xBandWidth ?? 0];
-
-        if (xAxis instanceof _ModuleSupport.CategoryAxis) {
-            groupScale.paddingInner = xAxis.groupPaddingInner;
-        }
-
-        const barWidth =
-            groupScale.bandwidth >= 1
-                ? // Pixel-rounded value for low-volume bar charts.
-                  groupScale.bandwidth
-                : // Handle high-volume bar charts gracefully.
-                  groupScale.rawBandwidth;
 
         const nodeData: BoxPlotNodeDatum[] = [];
 
@@ -191,7 +155,10 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup
             `maxValue`,
         ]);
 
-        this.processedData?.data.forEach(({ datum, keys, values }) => {
+        const { barWidth, groupIndex } = this.updateGroupScale(xAxis);
+        const { groupScale, processedData } = this;
+
+        processedData?.data.forEach(({ datum, keys, values }) => {
             const { xValue, minValue, q1Value, medianValue, q3Value, maxValue } =
                 dataModel.resolveProcessedDataDefsValues(defs, { keys, values });
 

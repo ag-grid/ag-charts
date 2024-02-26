@@ -47,13 +47,6 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<Candlest
 
     protected override readonly NodeEvent = CandlestickSeriesNodeEvent;
 
-    /**
-     * Used to get the position of items within each group.
-     */
-    private groupScale = new _Scale.BandScale<string>();
-
-    protected smallestDataInterval?: { x: number; y: number } = undefined;
-
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
@@ -154,35 +147,6 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<Candlest
         }
 
         const { xKey, openKey, closeKey, highKey, lowKey } = this.properties;
-        const {
-            groupScale,
-            smallestDataInterval,
-            ctx: { seriesStateManager },
-        } = this;
-
-        const xBandWidth =
-            xAxis.scale instanceof _Scale.ContinuousScale
-                ? xAxis.scale.calcBandwidth(smallestDataInterval?.x)
-                : xAxis.scale.bandwidth;
-
-        const domain = [];
-        const { index: groupIndex, visibleGroupCount } = seriesStateManager.getVisiblePeerGroupIndex(this);
-        for (let groupIdx = 0; groupIdx < visibleGroupCount; groupIdx++) {
-            domain.push(String(groupIdx));
-        }
-        groupScale.domain = domain;
-        groupScale.range = [0, xBandWidth ?? 0];
-
-        if (xAxis instanceof _ModuleSupport.CategoryAxis) {
-            groupScale.paddingInner = xAxis.groupPaddingInner;
-        }
-
-        const barWidth =
-            groupScale.bandwidth >= 1
-                ? // Pixel-rounded value for low-volume bar charts.
-                  groupScale.bandwidth
-                : // Handle high-volume bar charts gracefully.
-                  groupScale.rawBandwidth;
 
         const nodeData: CandlestickNodeDatum[] = [];
 
@@ -194,7 +158,10 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<Candlest
             'lowValue',
         ]);
 
-        this.processedData?.data.forEach(({ datum, keys, values }) => {
+        const { barWidth, groupIndex } = this.updateGroupScale(xAxis);
+        const { groupScale, processedData } = this;
+
+        processedData?.data.forEach(({ datum, keys, values }) => {
             const { xValue, openValue, closeValue, highValue, lowValue } = dataModel.resolveProcessedDataDefsValues(
                 defs,
                 { keys, values }
@@ -398,7 +365,9 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<Candlest
     protected async updateLabelNodes(_opts: {
         labelSelection: _Scene.Selection<_Scene.Text, CandlestickNodeDatum>;
         seriesIdx: number;
-    }) {}
+    }) {
+        // Labels unsupported
+    }
 
     protected async updateLabelSelection(opts: {
         labelData: CandlestickNodeDatum[];
