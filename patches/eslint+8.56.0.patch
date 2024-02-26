@@ -1,0 +1,27 @@
+diff --git a/node_modules/eslint/lib/rules/no-negated-condition.js b/node_modules/eslint/lib/rules/no-negated-condition.js
+index 3cb7590..aebaed6 100644
+--- a/node_modules/eslint/lib/rules/no-negated-condition.js
++++ b/node_modules/eslint/lib/rules/no-negated-condition.js
+@@ -83,7 +83,7 @@ module.exports = {
+                 }
+             },
+             ConditionalExpression(node) {
+-                if (isNegatedIf(node)) {
++                if (isNegatedIf(node) && !allowedCase(node)) {
+                     context.report({
+                         node,
+                         messageId: "unexpectedNegated"
+@@ -93,3 +93,12 @@ module.exports = {
+         };
+     }
+ };
++
++function allowedCase(node) {
++    if (node.consequent?.type == 'TSNonNullExpression') return true;
++
++    const { test: { operator, right: { type, value } = {} } = {} } = node;
++    if (operator === '!=' && type === 'Literal' && value == null) return true;
++        
++    return false;
++}
+\ No newline at end of file

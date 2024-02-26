@@ -305,7 +305,7 @@ export class CartesianChart extends Chart {
         this.axes.forEach((axis) => {
             if (axis.crossLines) {
                 axis.crossLines.forEach((crossLine) => {
-                    crossLine.calculatePadding(crossLinePadding);
+                    crossLine.calculatePadding?.(crossLinePadding);
                 });
             }
         });

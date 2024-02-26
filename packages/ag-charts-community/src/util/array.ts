@@ -6,18 +6,19 @@ export function extent(values: Array<number | Date>): [number, number] | undefin
     let min = Infinity;
     let max = -Infinity;
 
-    for (let v of values) {
-        if (v instanceof Date) {
-            v = v.getTime();
+    for (const v of values) {
+        let n = v;
+        if (n instanceof Date) {
+            n = n.getTime();
         }
-        if (typeof v !== 'number') {
+        if (typeof n !== 'number') {
             continue;
         }
-        if (v < min) {
-            min = v;
+        if (n < min) {
+            min = n;
         }
-        if (v > max) {
-            max = v;
+        if (n > max) {
+            max = n;
         }
     }
     const extent = [min, max];

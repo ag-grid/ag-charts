@@ -397,7 +397,9 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup
     protected async updateLabelNodes(_opts: {
         labelSelection: _Scene.Selection<_Scene.Text, BoxPlotNodeDatum>;
         seriesIdx: number;
-    }) {}
+    }) {
+        // Labels are unsupported.
+    }
 
     protected async updateLabelSelection(opts: {
         labelData: BoxPlotNodeDatum[];
