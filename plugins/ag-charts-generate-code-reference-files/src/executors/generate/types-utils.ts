@@ -62,6 +62,7 @@ export class TypeMapper {
         );
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
     protected resolveType(nameOrNode: NodeType | string, typeArguments?: NodeType[]) {
         if (typeof nameOrNode === 'string') {
             const mapItem = this.nodeMap.get(nameOrNode);
@@ -196,8 +197,16 @@ export class TypeMapper {
             .filter(({ docs }) => {
                 return docs?.some((d) => d.includes('@deprecated')) !== true;
             })
-            .sort((a, b) => (a.optional && !b.optional ? 1 : !a.optional && b.optional ? -1 : 0))
-            .sort((a, b) => (prioritisedMembers.includes(a.name) ? -1 : prioritisedMembers.includes(b.name) ? 1 : 0));
+            .sort((a, b) => {
+                if (a.optional && !b.optional) return 1;
+                if (!a.optional && b.optional) return -1;
+                return 0;
+            })
+            .sort((a, b) => {
+                if (prioritisedMembers.includes(a.name)) return -1;
+                if (prioritisedMembers.includes(b.name)) return 1;
+                return 0;
+            });
     }
 }
 
@@ -240,7 +249,7 @@ export function formatNode(node: ts.Node) {
             name: printNode(node.name),
             type: {
                 kind: 'union',
-                type: node.members.map((node) => formatNode(node.initializer)),
+                type: node.members.map((n) => formatNode(n.initializer)),
             },
         };
     }
@@ -263,12 +272,12 @@ export function formatNode(node: ts.Node) {
     if (ts.isTypeLiteralNode(node)) {
         return {
             kind: 'typeLiteral',
-            members: node.members.map((node) => ({
+            members: node.members.map((n) => ({
                 kind: 'member',
-                docs: getJsDoc(node),
-                name: printNode(node.name),
-                type: formatNode(node),
-                optional: !!node.questionToken,
+                docs: getJsDoc(n),
+                name: printNode(n.name),
+                type: formatNode(n),
+                optional: !!n.questionToken,
             })),
         };
     }
@@ -278,8 +287,8 @@ export function formatNode(node: ts.Node) {
             kind: 'interface',
             docs: getJsDoc(node),
             name: formatNode(node.name),
-            members: node.members.map((node) => {
-                const memberDocs = getJsDoc(node);
+            members: node.members.map((n) => {
+                const memberDocs = getJsDoc(n);
                 const matchDefault = memberDocs?.[memberDocs.length - 1].match(/^\s*Default:\s*`([^`]+)`\s*$/);
                 let defaultValue: string | undefined;
                 if (matchDefault) {
@@ -289,9 +298,9 @@ export function formatNode(node: ts.Node) {
                 return {
                     kind: 'member',
                     docs: trimArray(memberDocs),
-                    name: formatNode(node.name),
-                    type: formatNode(node),
-                    optional: !!node.questionToken,
+                    name: formatNode(n.name),
+                    type: formatNode(n),
+                    optional: !!n.questionToken,
                     defaultValue,
                 };
             }),

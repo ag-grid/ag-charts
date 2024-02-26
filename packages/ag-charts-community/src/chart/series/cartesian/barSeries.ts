@@ -150,7 +150,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
             extraProps.push(animationValidation(this));
         }
 
-        const visibleProps = !this.visible ? { forceValue: 0 } : {};
+        const visibleProps = this.visible ? {} : { forceValue: 0 };
         const { processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 keyProperty(this, xKey, isContinuousX, { id: 'xValue' }),
@@ -354,7 +354,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
                         yName,
                         legendItemName,
                     },
-                    (value) => (isFiniteNumber(value) ? value.toFixed(2) : '')
+                    (v) => (isFiniteNumber(v) ? v.toFixed(2) : '')
                 );
                 const labelDatum = labelText
                     ? {

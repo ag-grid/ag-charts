@@ -125,8 +125,8 @@ describe('SunburstSeries', () => {
         }): Promise<any> => {
             const tooltip = params.hasTooltip
                 ? {
-                      renderer(params: any) {
-                          const values = testParams.getTooltipRenderedValues(params);
+                      renderer(rParams: any) {
+                          const values = testParams.getTooltipRenderedValues(rParams);
                           return format(...values);
                       },
                   }
@@ -151,46 +151,53 @@ describe('SunburstSeries', () => {
                 ...(testParams.chartOptions ?? {}),
             };
             prepareEnterpriseTestOptions(options);
-            const chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
-            return chart;
+            const newChart = deproxy(AgCharts.create(options));
+            await waitForChartStability(newChart);
+            return newChart;
         };
 
         const hoverChartNodes = async (
-            chart: any,
+            chartInstance: any,
             iterator: (params: { series: any; item: any; x: number; y: number }) => Promise<void>
         ) => {
-            for (const series of chart.series) {
+            for (const series of chartInstance.series) {
                 const nodeData = testParams.getNodeData(series);
                 expect(nodeData.length).toBeGreaterThan(0);
                 for (const item of nodeData) {
                     const itemPoint = testParams.getNodePoint(item);
                     const { x, y } = series.contentGroup.inverseTransformPoint(itemPoint[0], itemPoint[1]);
-                    await hoverAction(x, y)(chart);
-                    await waitForChartStability(chart);
+                    await hoverAction(x, y)(chartInstance);
+                    await waitForChartStability(chartInstance);
                     await iterator({ series, item, x, y });
                 }
             }
         };
 
-        const checkHighlight = async (chart: any) => {
-            await hoverChartNodes(chart, async ({ series }) => {
+        const checkHighlight = async (chartInstance: any) => {
+            await hoverChartNodes(chartInstance, async ({ series }) => {
                 // Check the highlighted marker
-                const highlightNode = testParams.getHighlightNode(chart, series);
+                const highlightNode = testParams.getHighlightNode(chartInstance, series);
                 expect(highlightNode).toBeDefined();
                 expect(highlightNode.fill).toEqual('lime');
             });
         };
 
-        const checkNodeClick = async (chart: any, onNodeClick: () => void, offset?: { x: number; y: number }) => {
-            await hoverChartNodes(chart, async ({ x, y }) => {
+        const checkNodeClick = async (
+            chartInstance: any,
+            onNodeClick: () => void,
+            offset?: { x: number; y: number }
+        ) => {
+            await hoverChartNodes(chartInstance, async ({ x, y }) => {
                 // Perform click
-                await clickAction(x + (offset?.x ?? 0), y + (offset?.y ?? 0))(chart);
-                await waitForChartStability(chart);
+                await clickAction(x + (offset?.x ?? 0), y + (offset?.y ?? 0))(chartInstance);
+                await waitForChartStability(chartInstance);
             });
 
             // Check click handler
-            const nodeCount = chart.series.reduce((sum, series) => sum + testParams.getNodeData(series).length, 0);
+            const nodeCount = chartInstance.series.reduce(
+                (sum, series) => sum + testParams.getNodeData(series).length,
+                0
+            );
             expect(onNodeClick).toBeCalledTimes(nodeCount);
         };
 
@@ -313,8 +320,8 @@ describe('SunburstSeries', () => {
                 const { datum } = params;
                 return [datum[params.labelKey], datum[params.sizeKey]];
             },
-            getHighlightNode: (chart, series) => {
-                const highlightedDatum = chart.highlightManager.getActiveHighlight();
+            getHighlightNode: (chartInstance, series) => {
+                const highlightedDatum = chartInstance.highlightManager.getActiveHighlight();
                 return series.highlightGroup.children.find((child: any) => child?.datum === highlightedDatum)
                     .children[0];
             },

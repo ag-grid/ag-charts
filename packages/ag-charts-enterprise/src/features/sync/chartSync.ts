@@ -48,12 +48,18 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         chart.updateService.update(updateType, { skipSync: true });
     }
 
-    private async updateSiblings(groupId?: string) {
+    private updateSiblings(groupId?: string) {
         const { syncManager } = this.moduleContext;
-        for (const chart of syncManager.getGroupSiblings(groupId)) {
-            await chart.waitForDataProcess(120);
-            this.updateChart(chart);
-        }
+
+        const updateFn = async () => {
+            for (const chart of syncManager.getGroupSiblings(groupId)) {
+                await chart.waitForDataProcess(120);
+                this.updateChart(chart);
+            }
+        };
+        updateFn().catch((e) => {
+            Logger.warnOnce('Error updating sibling chart', e);
+        });
     }
 
     private enabledZoomSync() {
@@ -103,8 +109,8 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
                                 eventValue = eventValue.getTime();
                             }
 
-                            const nodeDatum = nodeData.find((nodeDatum: any) => {
-                                const nodeValue = nodeDatum.datum[valueKey];
+                            const nodeDatum = nodeData.find((datum: any) => {
+                                const nodeValue = datum.datum[valueKey];
                                 return valueIsDate ? nodeValue.getTime() === eventValue : nodeValue === eventValue;
                             });
 
@@ -143,8 +149,8 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         const { syncManager } = this.moduleContext;
         const chart = syncManager.getChart();
 
-        const syncSeries = syncManager.getGroup(this.groupId).flatMap((chart) => chart.series);
-        const syncAxes = syncManager.getGroupSiblings(this.groupId).flatMap((chart) => chart.axes);
+        const syncSeries = syncManager.getGroup(this.groupId).flatMap((c) => c.series);
+        const syncAxes = syncManager.getGroupSiblings(this.groupId).flatMap((c) => c.axes);
 
         let hasUpdated = false;
 

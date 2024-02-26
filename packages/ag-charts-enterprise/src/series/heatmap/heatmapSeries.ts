@@ -235,8 +235,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
             if (labels?.label != null) {
                 const { text, fontSize, lineHeight, height: labelHeight } = labels.label;
                 const { fontStyle, fontFamily, fontWeight, color } = this.properties.label;
-                const x = point.x + textAlignFactor * (width - 2 * itemPadding);
-                const y =
+                const lx = point.x + textAlignFactor * (width - 2 * itemPadding);
+                const ly =
                     point.y + verticalAlignFactor * (height - 2 * itemPadding) - (labels.height - labelHeight) * 0.5;
 
                 labelData.push({
@@ -252,8 +252,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
                     color,
                     textAlign,
                     verticalAlign,
-                    x,
-                    y,
+                    x: lx,
+                    y: ly,
                 });
             }
         }
@@ -431,11 +431,11 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
         const yString = sanitizeHtml(yAxis.formatDatum(yValue));
 
         let content =
-            `<b>${sanitizeHtml(xName || xKey)}</b>: ${xString}<br>` +
-            `<b>${sanitizeHtml(yName || yKey)}</b>: ${yString}`;
+            `<b>${sanitizeHtml(xName ?? xKey)}</b>: ${xString}<br>` +
+            `<b>${sanitizeHtml(yName ?? yKey)}</b>: ${yString}`;
 
         if (colorKey) {
-            content = `<b>${sanitizeHtml(colorName || colorKey)}</b>: ${sanitizeHtml(colorValue)}<br>` + content;
+            content = `<b>${sanitizeHtml(colorName ?? colorKey)}</b>: ${sanitizeHtml(colorValue)}<br>` + content;
         }
 
         return tooltip.toTooltipHtml(

@@ -132,7 +132,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             action: () => {
                 const title = ctx.chartService.title;
                 let fileName = 'image';
-                if (title !== undefined && title.enabled && title.text !== undefined) {
+                if (title?.enabled && title?.text !== undefined) {
                     fileName = title.text;
                 }
                 this.scene.download(fileName);

@@ -62,7 +62,7 @@ export function setupEnterpriseModules() {
     _ModuleSupport.enterpriseModule.isEnterprise = true;
     _ModuleSupport.enterpriseModule.licenseManager = (options: AgChartOptions) =>
         new LicenseManager(
-            options.container?.ownerDocument ?? (typeof document !== 'undefined' ? document : undefined)
+            options.container?.ownerDocument ?? (typeof document === 'undefined' ? undefined : document)
         );
     _ModuleSupport.enterpriseModule.injectWatermark = injectWatermark;
 }

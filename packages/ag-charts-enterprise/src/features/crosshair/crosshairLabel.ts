@@ -1,7 +1,5 @@
+import type { AgCrosshairLabelRendererParams, AgCrosshairLabelRendererResult } from 'ag-charts-community';
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
-
-type AgCrosshairLabelRendererParams = any;
-type AgCrosshairLabelRendererResult = any;
 
 const { ActionOnSet, BaseProperties, BOOLEAN, FUNCTION, NUMBER, STRING, Validate } = _ModuleSupport;
 const { BBox } = _Scene;

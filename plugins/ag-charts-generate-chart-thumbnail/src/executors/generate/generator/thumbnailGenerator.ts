@@ -91,15 +91,15 @@ export async function generateExample({ example, theme, outputPath, dpi }: Param
             aspectRatio = Math.min(Math.max(aspectRatio, MIN_ASPECT_RATIO), MAX_ASPECT_RATIO);
             width = Math.min(containerHeight * aspectRatio, containerWidth);
             height = containerHeight;
-        } else if (options.height != null) {
+        } else if (options.height == null) {
+            width = containerWidth;
+            height = containerHeight;
+        } else {
             const detailContainerWidth = DETAIL_FULL_WIDTH / columns;
             let aspectRatio = detailContainerWidth / options.height;
             aspectRatio = Math.min(Math.max(aspectRatio, MIN_ASPECT_RATIO), MAX_ASPECT_RATIO);
             width = containerWidth;
             height = Math.min(containerWidth / aspectRatio, containerHeight);
-        } else {
-            width = containerWidth;
-            height = containerHeight;
         }
 
         const x0 = (containerWidth * column + (containerWidth - width) / 2) | 0;
@@ -139,7 +139,7 @@ export async function generateExample({ example, theme, outputPath, dpi }: Param
 
     const s = sharp(buffer);
 
-    const dpiExt = dpi !== 1 ? `@${dpi}x` : '';
+    const dpiExt = dpi === 1 ? '' : `@${dpi}x`;
 
     await Promise.all([
         s

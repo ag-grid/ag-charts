@@ -238,7 +238,7 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
             context.nodeData.push(nodeData);
         }
 
-        const sortedRanges = [...this.getColorRanges()].sort((a, b) => (a.stop || maxValue) - (b.stop || maxValue));
+        const sortedRanges = [...this.getColorRanges()].sort((a, b) => (a.stop ?? maxValue) - (b.stop ?? maxValue));
         let start = 0;
         this.normalizedColorRanges = sortedRanges.map((item) => {
             const stop = Math.min(maxValue, item.stop ?? Infinity);
@@ -318,12 +318,12 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
         }
 
         for (const { node, datum } of this.targetLinesSelection) {
-            if (datum.target !== undefined) {
+            if (datum.target === undefined) {
+                node.visible = false;
+            } else {
                 const style: AgBarSeriesStyle = this.properties.target;
                 partialAssign(['x1', 'x2', 'y1', 'y2'], node, datum.target);
                 partialAssign(STYLING_KEYS, node, style);
-            } else {
-                node.visible = false;
             }
         }
     }
@@ -390,7 +390,7 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
 
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
-        const diff = this.processedData?.reduced?.diff;
+        const dataDiff = this.processedData?.reduced?.diff;
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, 'normal'));
 
         fromToMotion(
@@ -400,10 +400,10 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
             datumSelections,
             fns,
             (_, datum) => createDatumId(datum.xValue),
-            diff
+            dataDiff
         );
 
-        const hasMotion = diff?.changed ?? true;
+        const hasMotion = dataDiff?.changed ?? true;
         if (hasMotion) {
             seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, annotationSelections);
         }

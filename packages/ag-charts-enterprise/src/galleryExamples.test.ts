@@ -85,7 +85,6 @@ describe('Gallery Examples', () => {
 
         for (const [exampleName, example] of Object.entries(ENTERPRISE_GALLERY_EXAMPLES)) {
             describe(`for ${exampleName}`, () => {
-                let chart: Chart;
                 let options: AgChartOptions;
 
                 beforeEach(async () => {
@@ -94,12 +93,6 @@ describe('Gallery Examples', () => {
 
                     chart = AgCharts.create(options);
                     await waitForChartStability(chart);
-                });
-
-                afterEach(() => {
-                    chart.destroy();
-                    chart = null!;
-                    options = null!;
                 });
 
                 it(`it should update chart instance as expected`, async () => {

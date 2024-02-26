@@ -231,14 +231,14 @@ export class TreemapSeries<
             return;
         }
 
-        outputBoxes[index] = index !== 0 ? bbox : undefined;
+        outputBoxes[index] = index === 0 ? undefined : bbox;
 
-        const sortedChildrenIndices = Array.from(children, (_, index) => index)
-            .filter((index) => nodeSize(children[index]) > 0)
+        const sortedChildrenIndices = Array.from(children, (_, i) => i)
+            .filter((i) => nodeSize(children[i]) > 0)
             .sort((aIndex, bIndex) => nodeSize(children[bIndex]) - nodeSize(children[aIndex]));
 
-        const childAt = (index: number) => {
-            const sortedIndex = sortedChildrenIndices[index];
+        const childAt = (i: number) => {
+            const sortedIndex = sortedChildrenIndices[i];
             return children[sortedIndex];
         };
 
@@ -290,10 +290,10 @@ export class TreemapSeries<
                 const x = isVertical ? start : partition.x;
                 const y = isVertical ? partition.y : start;
                 const length = (partLength * childSize) / stackSum;
-                const width = isVertical ? length : stackThickness;
-                const height = isVertical ? stackThickness : length;
+                const stackWidth = isVertical ? length : stackThickness;
+                const stackHeight = isVertical ? stackThickness : length;
 
-                const childBbox = new BBox(x, y, width, height);
+                const childBbox = new BBox(x, y, stackWidth, stackHeight);
                 this.applyGap(innerBox, childBbox, allLeafNodes);
                 this.squarify(child, childBbox, outputBoxes);
 
@@ -317,17 +317,17 @@ export class TreemapSeries<
         // Process remaining space
         const isVertical = partition.width < partition.height;
         let start = isVertical ? partition.x : partition.y;
-        for (let i = startIndex; i < numChildren; i++) {
-            const child = childAt(i);
+        for (let childIdx = startIndex; childIdx < numChildren; childIdx++) {
+            const child = childAt(childIdx);
             const x = isVertical ? start : partition.x;
             const y = isVertical ? partition.y : start;
             const part = nodeSize(child) / partitionSum;
-            const width = partition.width * (isVertical ? part : 1);
-            const height = partition.height * (isVertical ? 1 : part);
-            const childBox = new BBox(x, y, width, height);
+            const childWidth = partition.width * (isVertical ? part : 1);
+            const childHeight = partition.height * (isVertical ? 1 : part);
+            const childBox = new BBox(x, y, childWidth, childHeight);
             this.applyGap(innerBox, childBox, allLeafNodes);
             this.squarify(child, childBox, outputBoxes);
-            start += isVertical ? width : height;
+            start += isVertical ? childWidth : childHeight;
         }
     }
 
@@ -460,12 +460,12 @@ export class TreemapSeries<
             let highlightedStrokeWidth: number | undefined;
             let highlightedStrokeOpacity: number | undefined;
             if (highlighted) {
-                const { tile, group } = highlightStyle;
-                highlightedFill = isLeaf ? tile.fill : group.fill;
-                highlightedFillOpacity = isLeaf ? tile.fillOpacity : group.fillOpacity;
-                highlightedStroke = isLeaf ? tile.stroke : group.stroke;
-                highlightedStrokeWidth = isLeaf ? tile.strokeWidth : group.strokeWidth;
-                highlightedStrokeOpacity = isLeaf ? tile.strokeOpacity : group.strokeOpacity;
+                const { tile: hTitle, group: hGroup } = highlightStyle;
+                highlightedFill = isLeaf ? hTitle.fill : hGroup.fill;
+                highlightedFillOpacity = isLeaf ? hTitle.fillOpacity : hGroup.fillOpacity;
+                highlightedStroke = isLeaf ? hTitle.stroke : hGroup.stroke;
+                highlightedStrokeWidth = isLeaf ? hTitle.strokeWidth : hGroup.strokeWidth;
+                highlightedStrokeOpacity = isLeaf ? hTitle.strokeOpacity : hGroup.strokeOpacity;
             }
 
             const format = this.getTileFormat(node, highlighted);
@@ -531,7 +531,7 @@ export class TreemapSeries<
                     return;
                 }
 
-                const { height, label, secondaryLabel } = formatting;
+                const { height: labelHeight, label, secondaryLabel } = formatting;
                 const { textAlign, verticalAlign, padding } = tile;
 
                 const textAlignFactor = textAlignFactors[textAlign] ?? 0.5;
@@ -539,7 +539,10 @@ export class TreemapSeries<
 
                 const verticalAlignFactor = verticalAlignFactors[verticalAlign] ?? 0.5;
                 const labelYStart =
-                    bbox.y + padding + height * 0.5 + (bbox.height - 2 * padding - height) * verticalAlignFactor;
+                    bbox.y +
+                    padding +
+                    labelHeight * 0.5 +
+                    (bbox.height - 2 * padding - labelHeight) * verticalAlignFactor;
 
                 return {
                     label:
@@ -550,7 +553,7 @@ export class TreemapSeries<
                                   lineHeight: label.lineHeight,
                                   style: this.properties.tile.label,
                                   x: labelX,
-                                  y: labelYStart - (height - label.height) * 0.5,
+                                  y: labelYStart - (labelHeight - label.height) * 0.5,
                               }
                             : undefined,
                     secondaryLabel:
@@ -561,13 +564,15 @@ export class TreemapSeries<
                                   lineHeight: secondaryLabel.fontSize,
                                   style: this.properties.tile.secondaryLabel,
                                   x: labelX,
-                                  y: labelYStart + (height - secondaryLabel.height) * 0.5,
+                                  y: labelYStart + (labelHeight - secondaryLabel.height) * 0.5,
                               }
                             : undefined,
                     verticalAlign: 'middle' as const,
                     textAlign,
                 };
-            } else if (labelDatum?.label != null) {
+            } else if (labelDatum?.label == null) {
+                return;
+            } else {
                 const { padding, textAlign } = group;
 
                 const groupTitleHeight = this.groupTitleHeight(node, bbox);
@@ -592,8 +597,6 @@ export class TreemapSeries<
                     verticalAlign: 'middle' as const,
                     textAlign,
                 };
-            } else {
-                return;
             }
         });
 
@@ -613,12 +616,14 @@ export class TreemapSeries<
 
             let highlightedColor: string | undefined;
             if (highlighted) {
-                const { tile, group } = highlightStyle;
-                highlightedColor = !isLeaf
-                    ? group.label.color
-                    : tag === TextNodeTag.Primary
-                      ? tile.label.color
-                      : tile.secondaryLabel.color;
+                const { tile: hTitle, group: hGroup } = highlightStyle;
+
+                highlightedColor = hTitle.secondaryLabel.color;
+                if (!isLeaf) {
+                    highlightedColor = hGroup.label.color;
+                } else if (tag === TextNodeTag.Primary) {
+                    highlightedColor = hTitle.label.color;
+                }
             }
 
             text.text = label.text;

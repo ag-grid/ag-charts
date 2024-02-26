@@ -36,11 +36,11 @@ export class ZoomAxisDragger {
     }
 
     private updateCoords(x: number, y: number): void {
-        if (!this.coords) {
-            this.coords = { x1: x, y1: y, x2: x, y2: y };
-        } else {
+        if (this.coords) {
             this.coords.x2 = x;
             this.coords.y2 = y;
+        } else {
+            this.coords = { x1: x, y1: y, x2: x, y2: y };
         }
     }
 

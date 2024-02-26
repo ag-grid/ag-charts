@@ -155,7 +155,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             extraProps.push(animationValidation(this));
         }
 
-        const visibleProps = !this.visible ? { forceValue: 0 } : {};
+        const visibleProps = this.visible ? {} : { forceValue: 0 };
         const { processedData } = await this.requestDataModel<any, any, true>(dataController, this.data ?? [], {
             props: [
                 keyProperty(this, xKey, isContinuousX, { id: 'xValue' }),
@@ -617,7 +617,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     override animateWaitingUpdateReady(data: RangeBarAnimationData) {
         const { datumSelections, labelSelections } = data;
         const { processedData } = this;
-        const diff = processedData?.reduced?.diff;
+        const dataDiff = processedData?.reduced?.diff;
 
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
@@ -629,7 +629,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             datumSelections,
             fns,
             (_, datum) => createDatumId(datum.xValue),
-            diff
+            dataDiff
         );
 
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);

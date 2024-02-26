@@ -175,7 +175,7 @@ export abstract class AngleAxis<
                 });
             }
         } else if (shape === 'polygon') {
-            const angles = (scale.ticks?.() || []).map((value) => scale.convert(value));
+            const angles = (scale.ticks?.() ?? []).map((value) => scale.convert(value));
             if (angles.length > 2) {
                 angles.forEach((angle, i) => {
                     const x = radius * Math.cos(angle);
@@ -418,8 +418,19 @@ export abstract class AngleAxis<
             textAlign = isSinMinus1 || isCosPositive ? 'left' : 'right';
             textBaseline = 'middle';
         } else {
-            textAlign = isCos0 ? 'center' : isCosPositive ? 'left' : 'right';
-            textBaseline = isSin0 ? 'middle' : isSinPositive ? 'top' : 'bottom';
+            textAlign = 'right';
+            if (isCos0) {
+                textAlign = 'center';
+            } else if (isCosPositive) {
+                textAlign = 'left';
+            }
+
+            textBaseline = 'bottom';
+            if (isSin0) {
+                textBaseline = 'middle';
+            } else if (isSinPositive) {
+                textBaseline = 'top';
+            }
         }
 
         return { textAlign, textBaseline };

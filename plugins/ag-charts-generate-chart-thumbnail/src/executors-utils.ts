@@ -114,7 +114,7 @@ export function batchWorkerExecutor<ExecutorOptions>(workerModule: string) {
         });
         process.on('exit', () => {
             pool.cancelPendingTasks();
-            pool.destroy();
+            pool.destroy().catch((e) => console.error(e));
         });
 
         const tasks = Object.keys(inputs);

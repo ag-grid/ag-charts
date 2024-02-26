@@ -30,9 +30,9 @@ export class LinearAngleScale extends LinearScale {
     }
 
     private hasNiceRange() {
-        const range = this.range.slice().sort((a, b) => a - b);
+        const sortedRange = this.range.slice().sort((a, b) => a - b);
         const niceRanges = [Math.PI, 2 * Math.PI];
-        return niceRanges.some((r) => isNumberEqual(r, range[1] - range[0]));
+        return niceRanges.some((r) => isNumberEqual(r, sortedRange[1] - sortedRange[0]));
     }
 
     private getNiceStepAndTickCount() {

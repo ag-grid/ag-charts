@@ -188,7 +188,7 @@ export abstract class HierarchySeries<
         const colors: (number | undefined)[] = new Array((this.data?.length ?? 0) + 1).fill(undefined);
 
         const createNode = (datum: any, parent: HierarchyNode<TDatum>): HierarchyNode<TDatum> => {
-            const index = getIndex();
+            const nodeIndex = getIndex();
             const depth = parent.depth != null ? parent.depth + 1 : 0;
             const children = childrenKey != null ? datum[childrenKey] : undefined;
             const isLeaf = children == null || children.length === 0;
@@ -205,7 +205,7 @@ export abstract class HierarchySeries<
 
             const color = colorKey != null ? datum[colorKey] : undefined;
             if (typeof color === 'number') {
-                colors[index] = color;
+                colors[nodeIndex] = color;
                 minColor = Math.min(minColor, color);
                 maxColor = Math.max(maxColor, color);
             }
@@ -213,7 +213,7 @@ export abstract class HierarchySeries<
             return appendChildren(
                 new HierarchyNode<TDatum>(
                     this,
-                    index,
+                    nodeIndex,
                     datum,
                     size,
                     color,
@@ -267,7 +267,7 @@ export abstract class HierarchySeries<
             colorScale.update();
         }
 
-        rootNode.children.forEach((child, index) => {
+        rootNode.children.forEach((child, childIndex) => {
             child.walk((node: Mutable<HierarchyNode<TDatum>>) => {
                 let fill: string | undefined;
 
@@ -276,11 +276,11 @@ export abstract class HierarchySeries<
                     fill = colorScale?.convert(color);
                 }
 
-                fill ??= fills?.[index % fills.length];
+                fill ??= fills?.[childIndex % fills.length];
 
                 node.fill = fill;
                 // FIXME: If there's a color scale, the strokes won't make sense. For now, just hard-code this default
-                node.stroke = colorScale == null ? strokes?.[index % strokes.length] : 'rgba(0, 0, 0, 0.2)';
+                node.stroke = colorScale == null ? strokes?.[childIndex % strokes.length] : 'rgba(0, 0, 0, 0.2)';
             });
         });
 

@@ -129,14 +129,14 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
         const dataWithTotals: any[] = [];
 
-        const totalsMap = totals.reduce<Map<number, WaterfallSeriesTotal[]>>((totalsMap, total) => {
-            const totalsAtIndex = totalsMap.get(total.index);
+        const totalsMap = totals.reduce<Map<number, WaterfallSeriesTotal[]>>((result, total) => {
+            const totalsAtIndex = result.get(total.index);
             if (totalsAtIndex) {
                 totalsAtIndex.push(total);
             } else {
-                totalsMap.set(total.index, [total]);
+                result.set(total.index, [total]);
             }
-            return totalsMap;
+            return result;
         }, new Map());
 
         data.forEach((datum, i) => {
@@ -425,7 +425,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                     xName,
                     yName,
                 },
-                (value) => (isNumber(value) ? value.toFixed(2) : String(value))
+                (v) => (isNumber(v) ? v.toFixed(2) : String(v))
             );
 
             const nodeDatum: WaterfallNodeDatum = {
@@ -665,7 +665,14 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
         const isTotal = this.isTotal(itemId);
         const isSubtotal = this.isSubtotal(itemId);
-        const ySubheading = isTotal ? 'Total' : isSubtotal ? 'Subtotal' : name ?? yName ?? yKey;
+        let ySubheading;
+        if (isTotal) {
+            ySubheading = 'Total';
+        } else if (isSubtotal) {
+            ySubheading = 'Subtotal';
+        } else {
+            ySubheading = name ?? yName ?? yKey;
+        }
 
         const title = sanitizeHtml(yName);
         const content =

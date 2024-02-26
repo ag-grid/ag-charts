@@ -20,13 +20,13 @@ export class ZoomPanner {
         this.isPanning = true;
 
         const { offsetX: x, offsetY: y } = event;
-        if (!this.dragCoords) {
-            this.dragCoords = { x1: x, y1: y, x2: x, y2: y };
-        } else {
+        if (this.dragCoords) {
             this.dragCoords.x1 = this.dragCoords.x2;
             this.dragCoords.y1 = this.dragCoords.y2;
             this.dragCoords.x2 = x;
             this.dragCoords.y2 = y;
+        } else {
+            this.dragCoords = { x1: x, y1: y, x2: x, y2: y };
         }
         return this.translateZooms(bbox, zooms, this.dragCoords);
     }
