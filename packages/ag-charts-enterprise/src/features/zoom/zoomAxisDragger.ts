@@ -1,8 +1,8 @@
 import type { AgZoomAnchorPoint, _Scene } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
-import { constrainZoom, definedZoomState, pointToRatio, scaleZoomAxisWithAnchor } from './zoomTransformers';
 import type { DefinedZoomState, ZoomCoords } from './zoomTypes';
+import { constrainZoom, definedZoomState, pointToRatio, scaleZoomAxisWithAnchor } from './zoomUtils';
 
 export class ZoomAxisDragger {
     public isAxisDragging: boolean = false;

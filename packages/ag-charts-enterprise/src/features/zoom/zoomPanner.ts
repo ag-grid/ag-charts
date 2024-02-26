@@ -1,8 +1,8 @@
 import type { _Scene } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
-import { constrainZoom, definedZoomState, pointToRatio, translateZoom } from './zoomTransformers';
 import type { ZoomCoords } from './zoomTypes';
+import { constrainZoom, definedZoomState, pointToRatio, translateZoom } from './zoomUtils';
 
 export type Zooms = ReturnType<_ModuleSupport.ZoomManager['getAxisZooms']>;
 

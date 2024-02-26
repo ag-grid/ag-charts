@@ -6,6 +6,7 @@ import { ZoomAxisDragger } from './zoomAxisDragger';
 import { ZoomPanner } from './zoomPanner';
 import { ZoomScroller } from './zoomScroller';
 import { ZoomSelector } from './zoomSelector';
+import type { DefinedZoomState } from './zoomTypes';
 import {
     UNIT,
     constrainZoom,
@@ -14,8 +15,7 @@ import {
     scaleZoomAxisWithPoint,
     scaleZoomCenter,
     translateZoom,
-} from './zoomTransformers';
-import type { DefinedZoomState } from './zoomTypes';
+} from './zoomUtils';
 
 type PinchEvent = _ModuleSupport.PinchEvent;
 type ContextMenuActionParams = _ModuleSupport.ContextMenuActionParams;
@@ -137,6 +137,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     // State
     private isDragging = false;
+    private canDragSelection?: boolean;
     private hoveredAxis?: { id: string; direction: _ModuleSupport.ChartAxisDirection };
     private shouldFlipXY?: boolean;
     private minRatioX = 0;
@@ -246,8 +247,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
     }
 
-    private canDragSelection?: boolean;
-
     private onDragStart(event: _ModuleSupport.InteractionEvent<'drag-start'>) {
         this.canDragSelection = this.paddedRect?.containsPoint(event.offsetX, event.offsetY);
     }
@@ -293,13 +292,9 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         // If the user stops pressing the panKey but continues dragging, we shouldn't go to selection until they stop
         // dragging and click to start a new drag.
-        if (
-            !this.enableSelecting ||
-            !this.canDragSelection ||
-            this.isPanningKeyPressed(sourceEvent) ||
-            this.panner.isPanning ||
-            this.isMinZoom(zoom)
-        ) {
+        const canSelect = this.enableSelecting && this.canDragSelection !== false;
+        const isPanning = this.panner.isPanning || this.isPanningKeyPressed(sourceEvent);
+        if (!canSelect || isPanning || this.isMinZoom(zoom)) {
             return;
         }
 
