@@ -46,6 +46,7 @@ export class CandlestickGroup extends _Scene.Group {
             lineDash,
             lineDashOffset,
             wick: wickStyles,
+            cornerRadius,
         } = activeStyles;
 
         const selection = _Scene.Selection.select(this, _Scene.Rect);
@@ -66,7 +67,16 @@ export class CandlestickGroup extends _Scene.Group {
             height: yBottom - y,
         });
 
-        rect.setProperties({ fill, fillOpacity, strokeWidth, strokeOpacity, stroke, lineDash, lineDashOffset });
+        rect.setProperties({
+            fill,
+            fillOpacity,
+            strokeWidth,
+            strokeOpacity,
+            stroke,
+            lineDash,
+            lineDashOffset,
+            cornerRadius,
+        });
 
         // scaled values
         const validLowValue = lowValue >= openValue && lowValue >= closeValue;

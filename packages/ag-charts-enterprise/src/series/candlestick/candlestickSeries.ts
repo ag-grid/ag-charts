@@ -211,8 +211,17 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<Candlest
 
             const isRising = closeValue > openValue;
             const itemId = this.getSeriesItemType(isRising);
-            const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, wick } =
-                this.getItemConfig(itemId);
+            const {
+                fill,
+                fillOpacity,
+                stroke,
+                strokeWidth,
+                strokeOpacity,
+                lineDash,
+                lineDashOffset,
+                wick,
+                cornerRadius,
+            } = this.getItemConfig(itemId);
 
             nodeData.push({
                 series: this,
@@ -234,6 +243,7 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<Candlest
                 strokeOpacity,
                 lineDash,
                 lineDashOffset,
+                cornerRadius,
             });
         });
 
@@ -398,9 +408,20 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<Candlest
             id: seriesId,
             ctx: { callbackCache },
         } = this;
-        const { xKey, openKey, closeKey, highKey, lowKey, formatter, cornerRadius } = this.properties;
-        const { datum, fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, wick, itemId } =
-            nodeDatum;
+        const { xKey, openKey, closeKey, highKey, lowKey, formatter } = this.properties;
+        const {
+            datum,
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            wick,
+            itemId,
+            cornerRadius,
+        } = nodeDatum;
         const activeStyles = {
             fill,
             fillOpacity,

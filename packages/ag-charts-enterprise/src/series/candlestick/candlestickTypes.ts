@@ -1,7 +1,7 @@
-import type { FillOptions, LineDashOptions, StrokeOptions, _ModuleSupport } from 'ag-charts-community';
+import type { AgBarSeriesStyle, LineDashOptions, StrokeOptions, _ModuleSupport } from 'ag-charts-community';
 
 export interface CandlestickNodeDatum
-    extends Readonly<Required<FillOptions & StrokeOptions & LineDashOptions>>,
+    extends Readonly<Required<AgBarSeriesStyle>>,
         Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'yKey' | 'yValue'> {
     readonly bandwidth: number;
     readonly openKey?: string;

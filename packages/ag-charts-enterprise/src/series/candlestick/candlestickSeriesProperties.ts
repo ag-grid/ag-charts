@@ -154,7 +154,7 @@ export class CandlestickSeriesProperties extends AbstractBarSeriesProperties<AgC
     readonly tooltip = new SeriesTooltip<AgCandlestickSeriesTooltipRendererParams>();
 
     override toJson() {
-        const { stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, fill, fillOpacity } = this;
+        const { stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, fill, fillOpacity, cornerRadius } = this;
         const properties = super.toJson();
 
         const merge = (prop: CandlestickSeriesItem) => {
@@ -173,6 +173,7 @@ export class CandlestickSeriesProperties extends AbstractBarSeriesProperties<AgC
                 lineDashOffset,
                 fill,
                 fillOpacity,
+                cornerRadius,
             });
         };
 
