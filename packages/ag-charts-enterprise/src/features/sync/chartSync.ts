@@ -51,7 +51,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
     private async updateSiblings(groupId?: string) {
         const { syncManager } = this.moduleContext;
         for (const chart of syncManager.getGroupSiblings(groupId)) {
-            await chart.waitForDataProcess(1000);
+            await chart.waitForDataProcess(120);
             this.updateChart(chart);
         }
     }
@@ -173,8 +173,10 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
             }
 
             const boundSeries = syncSeries.filter((series) => {
-                const seriesKeys = series.getKeys(axis.direction);
-                return axis.keys.length ? axis.keys.some((key) => seriesKeys.includes(key)) : true;
+                if (series.visible) {
+                    const seriesKeys = series.getKeys(axis.direction);
+                    return axis.keys.length ? axis.keys.some((key) => seriesKeys.includes(key)) : true;
+                }
             });
 
             if (!arraysEqual(axis.boundSeries, boundSeries)) {
