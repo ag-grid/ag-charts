@@ -78,9 +78,11 @@ export class CandlestickGroup extends _Scene.Group {
             cornerRadius,
         });
 
-        // scaled values
-        const validLowValue = lowValue >= openValue && lowValue >= closeValue;
-        const validHighValue = highValue <= openValue && highValue <= closeValue;
+        // compare unscaled values
+        const validLowValue =
+            datum.lowValue !== undefined && datum.lowValue <= datum.openValue && datum.lowValue <= datum.closeValue;
+        const validHighValue =
+            datum.highValue !== undefined && datum.highValue >= datum.openValue && datum.highValue >= datum.closeValue;
 
         if (validLowValue) {
             wicks[0].setProperties({
