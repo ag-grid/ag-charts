@@ -8,7 +8,7 @@ export * from './util/value';
 export * from './util/zip';
 
 export { isValidDate as isDate, isFiniteNumber as isNumber, isString } from './util/type-guards';
-export { extent, normalisedExtent, normalisedExtentWithMetadata } from './util/array';
+export { bifurcate, extent, normalisedExtent, normalisedExtentWithMetadata } from './util/array';
 export { toFixed, isEqual as isNumberEqual } from './util/number';
 export { tickFormat } from './util/numberFormat';
 

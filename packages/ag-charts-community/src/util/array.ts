@@ -102,3 +102,10 @@ export function circularSliceArray<T>(data: T[], size: number, offset = 0): T[] 
     }
     return result;
 }
+
+export function bifurcate<T>(isLeft: (array: T) => boolean, array: T[]): [T[], T[]] {
+    return array.reduce(
+        ([left, right], value) => (isLeft(value) ? [[...left, value], right] : [left, [...right, value]]),
+        [[] as T[], [] as T[]]
+    );
+}

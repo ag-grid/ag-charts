@@ -126,12 +126,6 @@ zoom: {
 
 {% chartExampleRunner title="Zoom Pan Key" name="zoom-pan-key" type="generated" /%}
 
-## Context Menu
-
-When both the zoom and context menu are enabled, additional zoom actions are added into the context menu for zooming and panning to the clicked location.
-
-{% chartExampleRunner title="Zoom Context Menu" name="zoom-context-menu" type="generated" /%}
-
 ## Asynchronous Loading
 
 Use the `dataSource` option to asynchronously load in new data as the chart is zoomed.
@@ -142,7 +136,7 @@ Use the `dataSource` option to asynchronously load in new data as the chart is z
 dataSource: {
     getData: ({ windowStart, windowEnd }) => {
         return FakeServer.get(windowStart, windowEnd);
-    };
+    },
 }
 ```
 
@@ -153,6 +147,36 @@ The data returned from the `getData` function should always include the coarse d
 {% note %}
 The `windowStart` and `windowEnd` parameters will be `undefined` if the chart does not have a time axis. They will also be `undefined` on the first call to `dataSource.getData()` if no `axis[].min` and `axis[].max` are provided on the time axis.
 {% /note %}
+
+## Range
+
+Use the `rangeX` and `rangeY` options to set the zoom range. The `start` and `end` values should be of the same type as the matching axis, for example a `Date` object with a time axis.
+
+```ts
+zoom: {
+    rangeX: {
+        start: new Date('2024-08-01 00:00:00'),
+        end: new Date('2024-08-30 23:59:59'),
+    },
+}
+```
+
+{% chartExampleRunner title="Zoom Range" name="zoom-range" type="generated" /%}
+
+Instead of specifying the range, you can use the `minX`, `maxX`, `minY` and `maxY` options as a ratio of the full chart from `0` to `1`.
+
+```ts
+zoom: {
+    minX: 0.8,
+    maxX: 1,
+}
+```
+
+## Context Menu
+
+When both the zoom and context menu are enabled, additional zoom actions are added into the context menu for zooming and panning to the clicked location.
+
+{% chartExampleRunner title="Zoom Context Menu" name="zoom-context-menu" type="generated" /%}
 
 ## API Reference
 

@@ -1,9 +1,10 @@
 import type { AgZoomAnchorPoint, _Scene } from 'ag-charts-community';
-import { _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport, _Util } from 'ag-charts-community';
 
 import { ZoomRect } from './scenes/zoomRect';
 import { ZoomAxisDragger } from './zoomAxisDragger';
 import { ZoomPanner } from './zoomPanner';
+import { ZoomRange } from './zoomRange';
 import { ZoomScroller } from './zoomScroller';
 import { ZoomSelector } from './zoomSelector';
 import type { DefinedZoomState } from './zoomTypes';
@@ -115,6 +116,9 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     @Validate(ANCHOR_CORD)
     public anchorPointY: AgZoomAnchorPoint = 'middle';
 
+    public rangeX = new ZoomRange(this.onRangeChange.bind(this, ChartAxisDirection.X));
+    public rangeY = new ZoomRange(this.onRangeChange.bind(this, ChartAxisDirection.Y));
+
     // Scenes
     private readonly scene: _Scene.Scene;
     private seriesRect?: _Scene.BBox;
@@ -225,6 +229,14 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         } else {
             this.contextMenuRegistry.enableAction(CONTEXT_PAN_ACTION_ID);
         }
+    }
+
+    private onRangeChange(direction: _ModuleSupport.ChartAxisDirection, rangeZoom?: DefinedZoomState['x' | 'y']) {
+        if (!rangeZoom) return;
+
+        const zoom = definedZoomState(this.zoomManager.getZoom());
+        zoom[direction] = rangeZoom;
+        this.updateZoom(constrainZoom(zoom));
     }
 
     private onDoubleClick(event: _ModuleSupport.InteractionEvent<'dblclick'>) {
@@ -433,11 +445,26 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         const {
             series: { rect, paddedRect, shouldFlipXY },
+            axes,
         } = event;
 
         this.seriesRect = rect;
         this.paddedRect = paddedRect;
         this.shouldFlipXY = shouldFlipXY;
+
+        if (!axes) return;
+
+        const [axesX, axesY] = _Util.bifurcate((axis) => axis.direction === ChartAxisDirection.X, axes);
+        this.rangeX.updateAxis(axesX);
+        this.rangeY.updateAxis(axesY);
+
+        const newZoom: _ModuleSupport.AxisZoomState = {};
+        newZoom.x = this.rangeX.getRange();
+        newZoom.y = this.rangeY.getRange();
+
+        if (newZoom.x == null && newZoom.y == null) return;
+
+        this.updateZoom(constrainZoom(definedZoomState(newZoom)));
     }
 
     private onUpdateComplete({ minRect }: _ModuleSupport.UpdateCompleteEvent) {
