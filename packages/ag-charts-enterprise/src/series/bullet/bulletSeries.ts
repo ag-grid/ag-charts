@@ -372,20 +372,21 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
 
     protected override async updateLabelNodes(_opts: {
         labelSelection: _Scene.Selection<_Scene.Text, BulletNodeDatum>;
-    }) {}
+    }) {
+        // Labels are unsupported.
+    }
 
     override animateEmptyUpdateReady(data: BulletAnimationData) {
-        const { datumSelections, labelSelections, annotationSelections } = data;
+        const { datumSelections, annotationSelections } = data;
 
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, 'normal'));
 
         fromToMotion(this.id, 'nodes', this.ctx.animationManager, datumSelections, fns);
-        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
         seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, annotationSelections);
     }
 
     override animateWaitingUpdateReady(data: BulletAnimationData) {
-        const { datumSelections, labelSelections, annotationSelections } = data;
+        const { datumSelections, annotationSelections } = data;
 
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
@@ -404,7 +405,6 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
 
         const hasMotion = diff?.changed ?? true;
         if (hasMotion) {
-            seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
             seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, annotationSelections);
         }
     }

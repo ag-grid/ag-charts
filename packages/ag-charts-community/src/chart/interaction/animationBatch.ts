@@ -205,5 +205,8 @@ export class AnimationBatch {
         return this.skipAnimations;
     }
 
-    destroy() {}
+    destroy() {
+        this.stop();
+        this.controllers.clear();
+    }
 }
