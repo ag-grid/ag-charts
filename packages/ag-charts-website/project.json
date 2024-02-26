@@ -11,8 +11,12 @@
         "^production",
         "production",
         "!{projectRoot}/vitest.config.mjs",
-        { "externalDependencies": ["npm:astro"] },
-        { "env": "PUBLIC_PACKAGE_VERSION" }
+        {
+          "externalDependencies": ["npm:astro"]
+        },
+        {
+          "env": "PUBLIC_PACKAGE_VERSION"
+        }
       ],
       "cache": true,
       "command": "astro build",
@@ -70,9 +74,6 @@
     },
     "lint": {
       "executor": "@nx/eslint:lint",
-      "options": {
-        "eslintConfig": "packages/ag-charts-website/.eslintrc.json"
-      },
       "configurations": {
         "fix": {
           "fix": true

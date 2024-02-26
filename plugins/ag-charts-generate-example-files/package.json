@@ -8,7 +8,7 @@
     "cheerio": "^1.0.0-rc.12",
     "sucrase": "^3.32.0",
     "json5": "2.2.3",
-    "@nx/devkit": "17.2.6",
+    "@nx/devkit": "^18.0.4",
     "@swc/helpers": "0.5.3",
     "prettier": "^3.2.5"
   },

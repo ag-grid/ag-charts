@@ -39,8 +39,8 @@
                 defaultExtension: 'jsx',
             },
             'ag-charts-react': {
-                main: './dist/index.cjs',
-                defaultExtension: 'cjs',
+                main: './dist/package/index.cjs.js',
+                defaultExtension: 'js',
             },
             'ag-charts-community': {
                 main: './dist/package/main.cjs.js',
