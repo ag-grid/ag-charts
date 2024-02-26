@@ -35,7 +35,7 @@ export class CandlestickGroup extends _Scene.Group {
             xKey,
             datum: rawDatum,
         } = datum;
-        let { openValue, closeValue, highValue, lowValue } = datum.scaledValues;
+        const { openValue, closeValue, highValue, lowValue } = datum.scaledValues;
 
         const {
             fill,
