@@ -7,12 +7,8 @@
     "build": {
       "executor": "nx:noop",
       "dependsOn": ["build:types", "build:package", "build:umd"],
-      "inputs": [
-        {
-          "externalDependencies": ["npm:typescript"]
-        }
-      ],
-      "cache": false,
+      "inputs": [],
+      "outputs": [],
       "configurations": {
         "watch": {},
         "production": {}
@@ -21,7 +17,17 @@
     "build:types": {
       "executor": "@nx/js:tsc",
       "dependsOn": ["^build:types"],
-      "inputs": ["tsDefaults"],
+      "inputs": [
+        "{projectRoot}/package.json",
+        "{projectRoot}/src/**/*",
+        "{projectRoot}/tsconfig.*.json",
+        "tsDeclarations",
+        "sharedGlobals",
+        "defaultExcludes",
+        {
+          "externalDependencies": ["npm:typescript", "npm:esbuild"]
+        }
+      ],
       "outputs": ["{options.outputPath}"],
       "options": {
         "outputPath": "packages/ag-charts-community/dist/types",
@@ -39,7 +45,14 @@
     "build:package": {
       "executor": "@nx/esbuild:esbuild",
       "dependsOn": ["^build"],
-      "inputs": ["tsDefaults"],
+      "inputs": [
+        "{projectRoot}/package.json",
+        "{projectRoot}/src/**/*",
+        "{projectRoot}/tsconfig.*.json",
+        "tsDeclarations",
+        "sharedGlobals",
+        "defaultExcludes"
+      ],
       "outputs": ["{options.outputPath}"],
       "options": {
         "outputPath": "packages/ag-charts-community/dist/package",
@@ -92,13 +105,7 @@
     "docs-debug-interfaces": {
       "executor": "ag-charts-generate-code-reference-files:generate",
       "dependsOn": ["ag-charts-generate-code-reference-files:build"],
-      "inputs": [
-        "{projectRoot}/src/options/**/*.ts",
-        { "dependentTasksOutputFiles": "**/*", "transitive": false },
-        {
-          "externalDependencies": ["npm:typescript"]
-        }
-      ],
+      "inputs": ["{projectRoot}/src/options/**/*.ts", { "dependentTasksOutputFiles": "**/*", "transitive": false }],
       "outputs": ["{options.output}"],
       "cache": true,
       "options": {
@@ -110,13 +117,7 @@
     "docs-resolved-interfaces": {
       "executor": "ag-charts-generate-code-reference-files:generate",
       "dependsOn": ["ag-charts-generate-code-reference-files:build"],
-      "inputs": [
-        "{projectRoot}/src/options/**/*.ts",
-        { "dependentTasksOutputFiles": "**/*", "transitive": false },
-        {
-          "externalDependencies": ["npm:typescript"]
-        }
-      ],
+      "inputs": ["{projectRoot}/src/options/**/*.ts", { "dependentTasksOutputFiles": "**/*", "transitive": false }],
       "outputs": ["{options.output}"],
       "cache": true,
       "options": {
@@ -125,26 +126,26 @@
         "output": "dist/packages/ag-charts-community/resolved-interfaces.AUTO.json"
       }
     },
-    "lint-eslint": {
+    "lint:eslint": {
       "executor": "@nx/eslint:lint",
-      "outputs": ["{options.outputFile}"],
-      "options": {
-        "eslintConfig": "packages/ag-charts-community/.eslintrc.json"
-      },
       "configurations": {
         "fix": {
           "fix": true
         }
       }
     },
-    "lint-circular": {
+    "lint:circular": {
       "executor": "nx:run-script",
+      "inputs": ["{projectRoot}/src/**"],
+      "outputs": [],
       "options": {
         "script": "lint:circular"
       }
     },
-    "lint-depcruise": {
+    "lint:depcruise": {
       "executor": "nx:run-commands",
+      "inputs": ["{projectRoot}/src/**"],
+      "outputs": [],
       "options": {
         "cwd": "packages/ag-charts-community",
         "commands": ["npx depcruise src"]
@@ -152,16 +153,13 @@
     },
     "lint": {
       "executor": "nx:noop",
-      "dependsOn": ["lint-eslint", "lint-circular", "lint-depcruise"],
-      "cache": false,
-      "inputs": [
-        {
-          "externalDependencies": ["npm:typescript"]
-        }
-      ],
+      "dependsOn": ["lint:eslint", "lint:circular", "lint:depcruise"],
       "configurations": {
         "fix": {}
       }
+    },
+    "format:check": {
+      "command": "nx format:check ."
     },
     "test": {
       "executor": "@nx/jest:jest",

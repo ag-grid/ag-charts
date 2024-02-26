@@ -13,6 +13,9 @@ for filename in ${CHANGED_FILES} ; do
   if [[ ${filename} =~ "/dist/" ]] ; then
     IGNORED_FILE_COUNT=$((IGNORED_FILE_COUNT+1))
     IGNORED_FILES="${IGNORED_FILES} $filename"
+  elif [[ ${filename} =~ "/node_modules/" ]] ; then
+    IGNORED_FILE_COUNT=$((IGNORED_FILE_COUNT+1))
+    IGNORED_FILES="${IGNORED_FILES} $filename"
   else
     VALID_FILE_COUNT=$((VALID_FILE_COUNT+1))
     VALID_FILES="${VALID_FILES} $filename"

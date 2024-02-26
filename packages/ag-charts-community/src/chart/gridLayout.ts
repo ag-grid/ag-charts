@@ -83,7 +83,8 @@ function processBBoxes(
         startingGuess = minGuess;
     }
 
-    for (let guess = startingGuess; guess >= minGuess; guess--) {
+    let guess = startingGuess;
+    while (guess >= minGuess) {
         const pageIndices = calculatePage(bboxes, indexOffset, guess, primary, secondary, forceResult);
 
         if (pageIndices == null && guess <= minGuess) {
@@ -93,6 +94,7 @@ function processBBoxes(
 
         if (pageIndices == null) {
             // Guess again!
+            guess--;
             continue;
         }
 
@@ -104,6 +106,7 @@ function processBBoxes(
             }
 
             guess = pageIndices < guess && pageIndices > minGuess ? pageIndices : guess;
+            guess--;
             continue;
         }
 

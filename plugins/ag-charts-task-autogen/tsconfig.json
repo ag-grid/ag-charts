@@ -4,7 +4,8 @@
     "module": "commonjs",
     "baseUrl": ".",
     "moduleResolution": "node",
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "strictNullChecks": false
   },
   "files": [],
   "include": [],

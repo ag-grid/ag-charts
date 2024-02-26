@@ -366,6 +366,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup
     }) {
         const isVertical = this.isVertical();
         const isReversedValueAxis = this.getValueAxis()?.isReversed();
+        const { cornerRadius } = this.properties;
         datumSelection.each((boxPlotGroup, nodeDatum) => {
             let activeStyles = this.getFormattedStyles(nodeDatum, highlighted);
 
@@ -387,7 +388,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup
                 nodeDatum,
                 activeStyles as _ModuleSupport.DeepRequired<AgBoxPlotSeriesStyles>,
                 isVertical,
-                isReversedValueAxis
+                isReversedValueAxis,
+                cornerRadius
             );
         });
     }
@@ -395,7 +397,9 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup
     protected async updateLabelNodes(_opts: {
         labelSelection: _Scene.Selection<_Scene.Text, BoxPlotNodeDatum>;
         seriesIdx: number;
-    }) {}
+    }) {
+        // Labels are unsupported.
+    }
 
     protected async updateLabelSelection(opts: {
         labelData: BoxPlotNodeDatum[];

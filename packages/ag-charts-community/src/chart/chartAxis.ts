@@ -9,6 +9,7 @@ import type { AxisLine } from './axis/axisLine';
 import type { AxisTick } from './axis/axisTick';
 import type { ChartAnimationPhase } from './chartAnimationPhase';
 import type { ChartAxisDirection } from './chartAxisDirection';
+import type { CrossLine } from './crossline/crossLine';
 import type { AxisLayout } from './layout/layoutService';
 import type { ISeries } from './series/seriesTypes';
 
@@ -23,7 +24,7 @@ export interface ChartAxis {
     clipTickLines(x: number, y: number, width: number, height: number): void;
     computeBBox(): BBox;
     isReversed(): boolean;
-    crossLines?: any[];
+    crossLines?: CrossLine[];
     dataDomain: { domain: any[]; clipped: boolean };
     destroy(): void;
     detachAxis(axisGroup: Node, gridGroup: Node): void;

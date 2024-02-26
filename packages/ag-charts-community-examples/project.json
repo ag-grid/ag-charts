@@ -6,7 +6,8 @@
   "targets": {
     "build": {
       "executor": "@nx/js:tsc",
-      "inputs": ["tsDefaults"],
+      "dependsOn": ["ag-charts-community:build"],
+      "inputs": ["{projectRoot}/src/**", "defaultExcludes", "^tsDeclarations"],
       "outputs": ["{options.outputPath}"],
       "options": {
         "outputPath": "dist/packages/ag-charts-community-examples",
@@ -17,15 +18,14 @@
     },
     "lint": {
       "executor": "@nx/eslint:lint",
-      "outputs": ["{options.outputFile}"],
-      "options": {
-        "eslintConfig": "packages/ag-charts-community-examples/.eslintrc.json"
-      },
       "configurations": {
         "fix": {
           "fix": true
         }
       }
+    },
+    "format:check": {
+      "command": "nx format:check ."
     },
     "test": {
       "executor": "@nx/jest:jest",

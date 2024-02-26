@@ -7,6 +7,7 @@
   "namedInputs": {
     "default": ["{projectRoot}/**/*", "sharedGlobals"],
     "defaultExcludes": [
+      "buildOutputExcludes",
       "!{projectRoot}/.eslintrc.json",
       "!{projectRoot}/**/?(*.)+(spec|test).[jt]s?(x)?(.snap)",
       "!{projectRoot}/**/test/**",
@@ -14,15 +15,18 @@
       "!{projectRoot}/tsconfig.spec.json",
       "!{projectRoot}/jest.config.[jt]s"
     ],
+    "buildOutputExcludes": ["!{projectRoot}/dist/**"],
     "production": ["default", "defaultExcludes"],
     "tsDeclarations": [
       {
-        "dependentTasksOutputFiles": "**/*.d.ts"
+        "dependentTasksOutputFiles": "**/*.d.ts",
+        "transitive": false
       }
     ],
     "jsOutputs": [
       {
-        "dependentTasksOutputFiles": "**/*.js"
+        "dependentTasksOutputFiles": "**/*.js",
+        "transitive": false
       }
     ],
     "tsDefaults": [
@@ -33,7 +37,7 @@
       "sharedGlobals",
       "defaultExcludes",
       {
-        "externalDependencies": ["typescript", "esbuild"]
+        "externalDependencies": ["npm:typescript", "npm:esbuild"]
       }
     ],
     "sharedGlobals": ["{workspaceRoot}/esbuild.config*.cjs", "{workspaceRoot}/tsconfig.*.json"]
@@ -60,15 +64,35 @@
       "cache": true
     },
     "lint": {
-      "inputs": ["default", "{workspaceRoot}/.eslintrc.json", "{workspaceRoot}/.eslintignore"],
+      "inputs": ["default", "buildOutputExcludes", "{workspaceRoot}/.eslintrc.json", "{workspaceRoot}/.eslintignore"],
+      "outputs": [],
       "cache": true
     },
+    "lint:depcruise": {
+      "inputs": ["default", "buildOutputExcludes", "{projectRoot}/.dependency-cruise.js"],
+      "outputs": [],
+      "cache": true
+    },
+    "lint:circular": {
+      "inputs": ["default", "buildOutputExcludes"],
+      "outputs": [],
+      "cache": true
+    },
+    "format:check": {
+      "inputs": ["{projectRoot}/**", "buildOutputExcludes"],
+      "cache": true,
+      "options": {
+        "cwd": "{projectRoot}"
+      }
+    },
     "test": {
-      "inputs": ["default", "^production", "{workspaceRoot}/jest.preset.js"],
+      "inputs": ["default", "buildOutputExcludes", "^production", "{workspaceRoot}/jest.preset.js"],
+      "outputs": [],
       "cache": true
     },
     "e2e": {
-      "inputs": ["default", "^production"],
+      "inputs": ["default", "buildOutputExcludes", "^production"],
+      "outputs": [],
       "cache": true
     },
     "pack": {
@@ -82,7 +106,7 @@
       "cache": true
     },
     "@nx/jest:jest": {
-      "inputs": ["default", "^production", "{workspaceRoot}/jest.preset.js"],
+      "inputs": ["default", "buildOutputExcludes", "^production", "{workspaceRoot}/jest.preset.js"],
       "cache": true,
       "options": {
         "passWithNoTests": true
@@ -94,9 +118,35 @@
         }
       }
     },
+    "@nx/eslint:lint": {
+      "cache": true,
+      "inputs": [
+        "default",
+        "buildOutputExcludes",
+        "{workspaceRoot}/.eslintrc.json",
+        "{projectRoot}/.eslintrc.json",
+        "{workspaceRoot}/tools/eslint-rules/**/*"
+      ],
+      "outputs": []
+    },
     "@nx/vite:test": {
       "cache": true,
-      "inputs": ["default", "^production"]
+      "inputs": ["default", "buildOutputExcludes", "^production"]
+    },
+    "nx:noop": {
+      "cache": true,
+      "inputs": [],
+      "outputs": []
+    },
+    "nx:run-script": {
+      "cache": true,
+      "inputs": ["production"],
+      "outputs": []
+    },
+    "nx:run-commands": {
+      "cache": true,
+      "inputs": ["production"],
+      "outputs": []
     }
   },
   "workspaceLayout": {

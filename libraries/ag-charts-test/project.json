@@ -6,6 +6,7 @@
   "targets": {
     "build": {
       "executor": "@nx/js:tsc",
+      "inputs": ["{projectRoot}/src/**", "defaultExcludes"],
       "outputs": ["{options.outputPath}"],
       "options": {
         "outputPath": "libraries/ag-charts-test/dist/",
@@ -16,9 +17,12 @@
       }
     },
     "lint": {
-      "executor": "@nx/eslint:lint",
-      "outputs": ["{options.outputFile}"]
+      "executor": "@nx/eslint:lint"
     },
+    "format:check": {
+      "command": "nx format:check ."
+    },
+
     "test": {
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],

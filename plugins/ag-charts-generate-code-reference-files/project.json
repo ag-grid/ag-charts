@@ -6,39 +6,19 @@
   "targets": {
     "build": {
       "executor": "@nx/js:swc",
+      "inputs": ["{projectRoot}/src/**"],
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "plugins/ag-charts-generate-code-reference-files/dist",
-        "main": "plugins/ag-charts-generate-code-reference-files/src/index.ts",
-        "tsConfig": "plugins/ag-charts-generate-code-reference-files/tsconfig.lib.json",
-        "assets": [
-          "plugins/ag-charts-generate-code-reference-files/*.md",
-          {
-            "input": "./plugins/ag-charts-generate-code-reference-files/src",
-            "glob": "**/!(*.ts|*.snap)",
-            "output": "./src"
-          },
-          {
-            "input": "./plugins/ag-charts-generate-code-reference-files/src",
-            "glob": "**/*.d.ts",
-            "output": "./src"
-          },
-          {
-            "input": "./plugins/ag-charts-generate-code-reference-files",
-            "glob": "generators.json",
-            "output": "."
-          },
-          {
-            "input": "./plugins/ag-charts-generate-code-reference-files",
-            "glob": "executors.json",
-            "output": "."
-          }
-        ]
+        "outputPath": "{projectRoot}/dist",
+        "main": "{projectRoot}/src/index.ts",
+        "tsConfig": "{projectRoot}/tsconfig.lib.json"
       }
     },
     "lint": {
-      "executor": "@nx/eslint:lint",
-      "outputs": ["{options.outputFile}"]
+      "executor": "@nx/eslint:lint"
+    },
+    "format:check": {
+      "command": "nx format:check ."
     },
     "test": {
       "executor": "@nx/jest:jest",

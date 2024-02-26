@@ -31,6 +31,11 @@ export interface HistogramNodeDatum extends CartesianSeriesNodeDatum {
     readonly fill?: string;
     readonly stroke?: string;
     readonly opacity?: number;
+    readonly cornerRadius: number;
+    readonly topLeftCornerRadius: boolean;
+    readonly topRightCornerRadius: boolean;
+    readonly bottomRightCornerRadius: boolean;
+    readonly bottomLeftCornerRadius: boolean;
     readonly cornerRadiusBbox?: BBox;
     readonly strokeWidth: number;
     readonly aggregatedValue: number;
@@ -81,6 +86,9 @@ export class HistogramSeriesProperties extends CartesianSeriesProperties<AgHisto
 
     @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
+
+    @Validate(POSITIVE_NUMBER)
+    cornerRadius: number = 0;
 
     @Validate(BOOLEAN)
     areaPlot: boolean = false;

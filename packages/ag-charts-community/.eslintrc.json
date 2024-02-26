@@ -1,21 +1,14 @@
 {
   "extends": ["../../.eslintrc.json", "plugin:sonarjs/recommended"],
-  "ignorePatterns": ["!**/*"],
+  "ignorePatterns": ["!**/*", ".dependency-cruiser.js"],
   "rules": {
-    "sonarjs/cognitive-complexity": 0,
+    "sonarjs/cognitive-complexity": 1,
     "@nx/dependency-checks": 1
   },
   "overrides": [
     {
       "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
       "rules": {
-        // "check-file/filename-naming-convention": [
-        //   "error",
-        //   {
-        //     "**/*.{jsx,tsx}": "CAMEL_CASE",
-        //     "**/*.{js,ts}": "CAMEL_CASE"
-        //   }
-        // ],
         "check-file/folder-naming-convention": [
           "error",
           {
@@ -29,10 +22,6 @@
       "rules": {
         "sonarjs/no-duplicate-string": 0
       }
-    },
-    {
-      "files": ["*.js", "*.jsx"],
-      "rules": {}
     },
     {
       "files": ["packages/ag-charts-community/tools/*.ts"],

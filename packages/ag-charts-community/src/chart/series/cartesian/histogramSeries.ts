@@ -217,7 +217,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramNodeDatum> {
 
         const { scale: xScale } = xAxis;
         const { scale: yScale } = yAxis;
-        const { xKey, yKey, xName, yName, fill, stroke, strokeWidth } = this.properties;
+        const { xKey, yKey, xName, yName, fill, stroke, strokeWidth, cornerRadius } = this.properties;
         const {
             formatter: labelFormatter = (params) => String(params.value),
             fontStyle: labelFontStyle,
@@ -297,6 +297,11 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramNodeDatum> {
                 midPoint: nodeMidPoint,
                 fill: fill,
                 stroke: stroke,
+                cornerRadius,
+                topLeftCornerRadius: true,
+                topRightCornerRadius: true,
+                bottomRightCornerRadius: false,
+                bottomLeftCornerRadius: false,
                 opacity: 1,
                 strokeWidth: strokeWidth,
                 label: selectionDatumLabel,
@@ -357,6 +362,13 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramNodeDatum> {
         } = this.properties;
 
         opts.datumSelection.each((rect, datum, index) => {
+            const {
+                cornerRadius,
+                topLeftCornerRadius,
+                topRightCornerRadius,
+                bottomRightCornerRadius,
+                bottomLeftCornerRadius,
+            } = datum;
             const strokeWidth =
                 isDatumHighlighted && highlightedDatumStrokeWidth !== undefined
                     ? highlightedDatumStrokeWidth
@@ -370,6 +382,10 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramNodeDatum> {
             rect.strokeWidth = strokeWidth;
             rect.lineDash = lineDash;
             rect.lineDashOffset = lineDashOffset;
+            rect.topLeftCornerRadius = topLeftCornerRadius ? cornerRadius : 0;
+            rect.topRightCornerRadius = topRightCornerRadius ? cornerRadius : 0;
+            rect.bottomRightCornerRadius = bottomRightCornerRadius ? cornerRadius : 0;
+            rect.bottomLeftCornerRadius = bottomLeftCornerRadius ? cornerRadius : 0;
             rect.fillShadow = shadow;
             rect.zIndex = isDatumHighlighted ? Series.highlightedZIndex : index;
             rect.visible = datum.height > 0; // prevent stroke from rendering for zero height columns

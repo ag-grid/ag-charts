@@ -80,13 +80,13 @@ export class AgChartsAngular implements AfterViewInit, OnChanges, OnDestroy {
             listenerConfig: undefined | AgChartLegendListeners | AgSeriesListeners<any> | AgBaseChartListeners<any>
         ) => {
             const config = listenerConfig ?? ({} as any);
-            Object.entries(config).forEach(([listenerName, listener]) => {
-                if (listener && typeof listener === 'function') {
-                    config[listenerName] = (...args: any) => {
-                        this.runInsideAngular(() => listener(...args));
-                    };
-                }
-            });
+            for (const [listenerName, listener] of Object.entries(config)) {
+                if (!listener || typeof listener !== 'function') continue;
+
+                config[listenerName] = (...args: any) => {
+                    this.runInsideAngular(() => listener(...args));
+                };
+            }
         };
 
         patchListeners(propsOptions?.legend?.listeners);
