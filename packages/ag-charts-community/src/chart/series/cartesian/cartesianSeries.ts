@@ -588,7 +588,7 @@ export abstract class CartesianSeries<
 
         let match: Node | undefined;
         for (const { dataNodeGroup, markerGroup } of this.subGroups) {
-            let match = dataNodeGroup.pickNode(x, y);
+            match = dataNodeGroup.pickNode(x, y);
 
             if (!match && hasMarkers) {
                 match = markerGroup?.pickNode(x, y);

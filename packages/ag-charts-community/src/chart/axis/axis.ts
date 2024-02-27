@@ -64,14 +64,6 @@ import {
     resetAxisSelectionFn,
 } from './axisUtil';
 
-export enum Tags {
-    TickLine,
-    TickLabel,
-    GridLine,
-    GridArc,
-    AxisLine,
-}
-
 type TickStrategyParams = {
     index: number;
     tickData: TickData;
@@ -1388,7 +1380,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         if (title.enabled && params.anyTickVisible) {
             const tickBBox = Group.computeBBox([tickLineGroup, tickLabelGroup, lineNode]);
             const tickWidth = rotation === 0 ? tickBBox.width : tickBBox.height;
-            spacing += tickWidth + (!this.tickLabelGroup.visible ? this.seriesAreaPadding : 0);
+            spacing += tickWidth + (this.tickLabelGroup.visible ? 0 : this.seriesAreaPadding);
         }
         this.setTitleProps(_titleCaption, { spacing });
     }

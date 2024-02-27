@@ -426,8 +426,11 @@ export class CartesianChart extends Chart {
         const isVertical = direction === ChartAxisDirection.Y;
         const paddedBoundsCoefficient = 0.3;
 
-        axis.maxThickness =
-            axis.thickness || (isVertical ? paddedBounds.width : paddedBounds.height) * paddedBoundsCoefficient;
+        if (axis.thickness) {
+            axis.maxThickness = axis.thickness;
+        } else {
+            axis.maxThickness = (isVertical ? paddedBounds.width : paddedBounds.height) * paddedBoundsCoefficient;
+        }
 
         const layout = axis.calculateLayout(primaryTickCount);
         primaryTickCount = layout.primaryTickCount;
