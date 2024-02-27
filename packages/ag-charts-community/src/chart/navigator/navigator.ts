@@ -128,8 +128,8 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         if (!this.enabled) return;
         const currentZoom = this.ctx.zoomManager.getZoom();
         if (currentZoom?.x) {
-            this.min = currentZoom.x.min;
-            this.max = currentZoom.x.max;
+            this.rs.mask.setMin(currentZoom.x.min);
+            this.rs.mask.setMax(currentZoom.x.max);
         }
     }
 

@@ -44,9 +44,9 @@ export class RangeSelector extends Group {
 
         this.append([mask, minHandle, maxHandle]);
 
-        mask.onRangeChange = () => {
+        mask.onRangeChange = (callRangeChangeCallback) => {
             this.updateHandles();
-            this.onRangeChange?.();
+            if (callRangeChangeCallback) this.onRangeChange?.();
         };
 
         return mask;
