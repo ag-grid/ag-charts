@@ -274,9 +274,9 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<Candlest
         const contentData: [string, string | undefined, _ModuleSupport.ChartAxis][] = [
             [xKey, xName, xAxis],
             [openKey, openName, yAxis],
-            [closeKey, closeName, yAxis],
             [highKey, highName, yAxis],
             [lowKey, lowName, yAxis],
+            [closeKey, closeName, yAxis],
         ];
         const content = contentData
             .map(([key, name, axis]) =>
