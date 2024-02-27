@@ -12,6 +12,8 @@ import {
     UNIT,
     constrainZoom,
     definedZoomState,
+    dx,
+    dy,
     pointToRatio,
     scaleZoomAxisWithPoint,
     scaleZoomCenter,
@@ -21,19 +23,8 @@ import {
 type PinchEvent = _ModuleSupport.PinchEvent;
 type ContextMenuActionParams = _ModuleSupport.ContextMenuActionParams;
 
-const {
-    AND,
-    BOOLEAN,
-    GREATER_THAN,
-    NUMBER,
-    RATIO,
-    UNION,
-    ActionOnSet,
-    ChartAxisDirection,
-    ChartUpdateType,
-    Validate,
-    round: sharedRound,
-} = _ModuleSupport;
+const { AND, BOOLEAN, GREATER_THAN, NUMBER, RATIO, UNION, ActionOnSet, ChartAxisDirection, ChartUpdateType, Validate } =
+    _ModuleSupport;
 
 const ANCHOR_CORD = UNION(['pointer', 'start', 'middle', 'end'], 'an anchor cord');
 
@@ -41,9 +32,6 @@ const CONTEXT_ZOOM_ACTION_ID = 'zoom-action';
 const CONTEXT_PAN_ACTION_ID = 'pan-action';
 const CURSOR_ID = 'zoom-cursor';
 const TOOLTIP_ID = 'zoom-tooltip';
-const DECIMALS = 3;
-
-const round = (value: number) => sharedRound(value, DECIMALS);
 
 export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     private static UpdateZoomOnSet(prop: 'minX' | 'maxX' | 'minY' | 'maxY') {
@@ -126,7 +114,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     // Module context
     private readonly cursorManager: _ModuleSupport.CursorManager;
-    private readonly dataService: _ModuleSupport.DataService<any>;
     private readonly highlightManager: _ModuleSupport.HighlightManager;
     private readonly tooltipManager: _ModuleSupport.TooltipManager;
     private readonly updateService: _ModuleSupport.UpdateService;
@@ -158,7 +145,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.highlightManager = ctx.highlightManager;
         this.tooltipManager = ctx.tooltipManager;
         this.zoomManager = ctx.zoomManager;
-        this.dataService = ctx.dataService;
         this.updateService = ctx.updateService;
         this.contextMenuRegistry = ctx.contextMenuRegistry;
 
@@ -429,7 +415,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const origin = pointToRatio(this.seriesRect, event.origin.x, event.origin.y);
 
         if (this.isScalingX()) {
-            newZoom.x.max += delta * (oldZoom.x.max - oldZoom.x.min);
+            newZoom.x.max += delta * dx(oldZoom);
             newZoom.x = scaleZoomAxisWithPoint(newZoom.x, oldZoom.x, origin.x);
         }
         if (this.isScalingY()) {
@@ -467,36 +453,28 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.updateZoom(constrainZoom(definedZoomState(newZoom)));
     }
 
-    private onUpdateComplete({ minRect }: _ModuleSupport.UpdateCompleteEvent) {
-        if (!this.enabled || !this.paddedRect || !minRect) return;
-
-        // The minRect is the distance between the coarsest data points, so the user will not be able to zoom in further
-        // on newly loaded fine grained data. Instead, ignore this and allow infinite zooming.
-        if (this.dataService.isLazy()) {
-            this.minRatioX = 0;
-            this.minRatioY = 0;
-            return;
-        }
+    private onUpdateComplete({ minRect, minVisibleRect }: _ModuleSupport.UpdateCompleteEvent) {
+        if (!this.enabled || !this.paddedRect || !minRect || !minVisibleRect) return;
 
         const zoom = definedZoomState(this.zoomManager.getZoom());
 
         const minVisibleItemsWidth = this.shouldFlipXY ? this.minVisibleItemsY : this.minVisibleItemsX;
         const minVisibleItemsHeight = this.shouldFlipXY ? this.minVisibleItemsX : this.minVisibleItemsY;
 
-        const widthRatio = (minRect.width * minVisibleItemsWidth) / this.paddedRect.width;
-        const heightRatio = (minRect.height * minVisibleItemsHeight) / this.paddedRect.height;
+        const widthRatio = (minVisibleRect.width * minVisibleItemsWidth) / this.paddedRect.width;
+        const heightRatio = (minVisibleRect.height * minVisibleItemsHeight) / this.paddedRect.height;
 
         // We don't need to check flipping here again, as it is already built into the width & height ratios and the
         // zoom.x/y values themselves do not flip and are bound to width/height respectively.
-        const ratioX = widthRatio * (zoom.x.max - zoom.x.min);
-        const ratioY = heightRatio * (zoom.y.max - zoom.y.min);
+        const ratioX = widthRatio * dx(zoom);
+        const ratioY = heightRatio * dy(zoom);
 
         if (this.isScalingX()) {
-            this.minRatioX = Math.min(1, round(ratioX));
+            this.minRatioX = Math.min(1, ratioX);
         }
 
         if (this.isScalingY()) {
-            this.minRatioY = Math.min(1, round(ratioY));
+            this.minRatioY = Math.min(1, ratioY);
         }
 
         this.minRatioX ||= this.minRatioY || 0;
@@ -509,8 +487,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const zoom = definedZoomState(this.zoomManager.getZoom());
         const origin = pointToRatio(this.paddedRect, event.clientX, event.clientY);
 
-        const scaledOriginX = origin.x * (zoom.x.max - zoom.x.min);
-        const scaledOriginY = origin.y * (zoom.y.max - zoom.y.min);
+        const scaledOriginX = origin.x * dx(zoom);
+        const scaledOriginY = origin.y * dy(zoom);
 
         const size = UNIT.max - UNIT.min;
         const halfSize = size / 2;
@@ -536,8 +514,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const zoom = definedZoomState(this.zoomManager.getZoom());
         const origin = pointToRatio(this.paddedRect, event.clientX, event.clientY);
 
-        const scaleX = zoom.x.max - zoom.x.min;
-        const scaleY = zoom.y.max - zoom.y.min;
+        const scaleX = dx(zoom);
+        const scaleY = dy(zoom);
 
         const scaledOriginX = origin.x * scaleX;
         const scaledOriginY = origin.y * scaleY;
@@ -587,13 +565,13 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private isMinZoom(zoom: DefinedZoomState): boolean {
-        const minXCheckValue = this.enableScrolling
-            ? (zoom.x.max - zoom.x.min) * (1 - this.scrollingStep)
-            : round(zoom.x.max - zoom.x.min);
+        let minXCheckValue = dx(zoom);
+        let minYCheckValue = dy(zoom);
 
-        const minYCheckValue = this.enableScrolling
-            ? (zoom.y.max - zoom.y.min) * (1 - this.scrollingStep)
-            : round(zoom.y.max - zoom.y.min);
+        if (this.enableScrolling) {
+            minXCheckValue *= 1 - this.scrollingStep;
+            minYCheckValue *= 1 - this.scrollingStep;
+        }
 
         const isMinXZoom = !this.isScalingX() || minXCheckValue <= this.minRatioX;
         const isMinYZoom = !this.isScalingY() || minYCheckValue <= this.minRatioX;
@@ -606,11 +584,15 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private updateZoom(zoom: DefinedZoomState) {
-        const dx = round(zoom.x.max - zoom.x.min);
-        const dy = round(zoom.y.max - zoom.y.min);
+        const dx_ = dx(zoom);
+        const dy_ = dy(zoom);
 
-        // Discard the zoom update if it would take us below either min ratio
-        if (dx < this.minRatioX || dy < this.minRatioY) {
+        const oldZoom = definedZoomState(this.zoomManager.getZoom());
+
+        const zoomedInTooFarX = dx_ < dx(oldZoom) && dx_ < this.minRatioX;
+        const zoomedInTooFarY = dy_ < dy(oldZoom) && dy_ < this.minRatioY;
+
+        if (zoomedInTooFarX || zoomedInTooFarY) {
             this.contextMenuRegistry.disableAction(CONTEXT_ZOOM_ACTION_ID);
             this.contextMenuRegistry.enableAction(CONTEXT_PAN_ACTION_ID);
             return;
@@ -635,12 +617,12 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             return;
         }
 
-        const d = round(partialZoom.max - partialZoom.min);
+        const d = partialZoom.max - partialZoom.min;
         const minRatio = direction === ChartAxisDirection.X ? this.minRatioX : this.minRatioY;
 
         // Discard the zoom update if it would take us below the min ratio
-        if (d >= minRatio) {
-            this.zoomManager.updateAxisZoom('zoom', axisId, partialZoom);
-        }
+        if (d < minRatio) return;
+
+        this.zoomManager.updateAxisZoom('zoom', axisId, partialZoom);
     }
 }

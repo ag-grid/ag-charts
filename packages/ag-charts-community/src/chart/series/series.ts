@@ -758,7 +758,7 @@ export abstract class Series<
         }
     }
 
-    getMinRect(): BBox | undefined {
+    getMinRects(_width: number, _height: number): { minRect: BBox; minVisibleRect: BBox } | undefined {
         return;
     }
 
