@@ -59,7 +59,6 @@ import { TooltipManager } from './interaction/tooltipManager';
 import { ZoomManager } from './interaction/zoomManager';
 import { Layers } from './layers';
 import { LayoutService } from './layout/layoutService';
-import { Legend } from './legend';
 import type { CategoryLegendDatum, ChartLegend, ChartLegendType, GradientLegendDatum } from './legendDatum';
 import { AxisPositionGuesser } from './mapping/prepareAxis';
 import { matchSeriesOptions } from './mapping/prepareSeries';
@@ -244,9 +243,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
     public readonly tooltipManager: TooltipManager;
     public readonly zoomManager = new ZoomManager();
 
-    protected readonly legends: Map<ChartLegendType, ChartLegend> = new Map();
-    legend: ChartLegend | undefined;
-
     protected readonly animationManager: AnimationManager;
     protected readonly chartEventManager: ChartEventManager;
     protected readonly contextMenuRegistry: ContextMenuRegistry;
@@ -337,10 +333,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.tooltipManager = new TooltipManager(this.tooltip, this.interactionManager);
         this.highlight = new ChartHighlight();
         this.container = container;
-
-        this.legend = new Legend(this.getModuleContext());
-        this.legends.set('category', this.legend);
-        this.legend.attachLegend(this.scene);
 
         const { All } = InteractionState;
         const seriesRegion = this.regionManager.addRegion('series', this.seriesRoot);
@@ -435,7 +427,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.sizeMonitor.unobserve(this.element);
 
         this.modulesManager.destroy();
-        this.legends.clear();
 
         this.regionManager.destroy();
         this.interactionManager.destroy();
@@ -902,7 +893,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         dataController.execute();
         await Promise.all([...seriesPromises, ...modulePromises]);
 
-        for (const [legendType, legend] of this.legends) {
+        for (const { legendType, legend } of this.modulesManager.legends()) {
             legend.data = this.getLegendData(legendType, this.mode !== 'integrated');
         }
 
@@ -1436,8 +1427,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
         if (deltaOptions.data) {
             this.data = deltaOptions.data;
         }
-        if (deltaOptions.legend?.listeners) {
-            Object.assign(this.legend!.listeners, deltaOptions.legend.listeners);
+        if (deltaOptions.legend?.listeners && this.modulesManager.isEnabled('legend')) {
+            Object.assign((this as any).legend.listeners, deltaOptions.legend.listeners);
         }
         if (deltaOptions.listeners) {
             this.updateAllSeriesListeners();
@@ -1544,18 +1535,12 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 );
 
                 if (module.type === 'legend') {
-                    const legend = this.modulesManager.getModule<ChartLegend>(module)!;
-                    this.legends.set(module.identifier, legend);
-                    legend.attachLegend(this.scene);
+                    this.modulesManager.getModule<ChartLegend>(module)?.attachLegend(this.scene);
                 }
 
-                (this as any)[module.optionsKey] = this.modulesManager.getModule(module); // TODO remove
+                (this as any)[module.optionsKey] ||= this.modulesManager.getModule(module); // TODO remove
             } else {
                 this.modulesManager.removeModule(module);
-
-                if (module.type === 'legend') {
-                    this.legends.delete(module.identifier);
-                }
                 delete (this as any)[module.optionsKey]; // TODO remove
             }
 

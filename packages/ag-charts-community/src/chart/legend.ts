@@ -331,7 +331,7 @@ export class Legend extends BaseProperties {
      * @param width
      * @param height
      */
-    private performLayout(width: number, height: number) {
+    private calcLayout(width: number, height: number) {
         const {
             paddingX,
             paddingY,
@@ -928,7 +928,7 @@ export class Legend extends BaseProperties {
 
         this.group.translationX = 0;
         this.group.translationY = 0;
-        this.performLayout(legendWidth, legendHeight);
+        this.calcLayout(legendWidth, legendHeight);
         const legendBBox = this.computePagedBBox();
 
         const calculateTranslationPerpendicularDimension = () => {
