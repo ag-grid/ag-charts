@@ -14,6 +14,8 @@ import maximizeIcon from '@images/inline-svgs/maximize.svg?react';
 import minimizeIcon from '@images/inline-svgs/minimize.svg?react';
 import NewTabIcon from '@images/inline-svgs/new-tab.svg?react';
 import PlunkerIcon from '@images/inline-svgs/plunker.svg?react';
+import RadarArea from '@images/inline-svgs/radar-area.svg?react';
+import RadialColumn from '@images/inline-svgs/radial-column.svg?react';
 import ReplayDemoIcon from '@images/inline-svgs/replay-demo-icon.svg?react';
 import RowsIcon from '@images/inline-svgs/rows.svg?react';
 import StackBlitzIcon from '@images/inline-svgs/stack-blitz.svg?react';
@@ -21,8 +23,6 @@ import TakeControlIcon from '@images/inline-svgs/take-control-icon.svg?react';
 import TickIcon from '@images/inline-svgs/tick.svg?react';
 import XLogoIcon from '@images/inline-svgs/x-logo.svg?react';
 import classNames from 'classnames';
-import RadarArea from '@images/inline-svgs/radar-area.svg?react';
-import RadialColumn from '@images/inline-svgs/radial-column.svg?react';
 
 // Uses IBM Carbon Design System icons as a base
 // Full list of Carbon icons => https://carbondesignsystem.com/guidelines/icons/library
