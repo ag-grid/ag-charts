@@ -608,11 +608,15 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private updateZoom(zoom: DefinedZoomState) {
-        const dx = round(zoom.x.max - zoom.x.min);
-        const dy = round(zoom.y.max - zoom.y.min);
+        const dx_ = dx(zoom);
+        const dy_ = dy(zoom);
 
-        // Discard the zoom update if it would take us below either min ratio
-        if (dx < this.minRatioX || dy < this.minRatioY) {
+        const oldZoom = definedZoomState(this.zoomManager.getZoom());
+
+        const zoomedInTooFarX = dx_ < dx(oldZoom) && dx_ < this.minRatioX;
+        const zoomedInTooFarY = dy_ < dy(oldZoom) && dy_ < this.minRatioY;
+
+        if (zoomedInTooFarX || zoomedInTooFarY) {
             this.contextMenuRegistry.disableAction(CONTEXT_ZOOM_ACTION_ID);
             this.contextMenuRegistry.enableAction(CONTEXT_PAN_ACTION_ID);
             return;
