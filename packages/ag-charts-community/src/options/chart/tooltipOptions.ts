@@ -32,10 +32,10 @@ export enum AgTooltipPositionType {
     RIGHT = 'right',
     BOTTOM = 'bottom',
     LEFT = 'left',
-    TOP_LEFT = 'topLeft',
-    TOP_RIGHT = 'topRight',
-    BOTTOM_RIGHT = 'bottomRight',
-    BOTTOM_LEFT = 'bottomLeft',
+    TOP_LEFT = 'top-left',
+    TOP_RIGHT = 'top-right',
+    BOTTOM_RIGHT = 'bottom-right',
+    BOTTOM_LEFT = 'bottom-left',
 }
 
 export interface AgTooltipPositionOptions {
