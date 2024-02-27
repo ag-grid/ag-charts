@@ -1,9 +1,9 @@
-import { type AgBoxPlotSeriesStyles, _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import { AgCandlestickSeriesItemType, _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
-import { prepareBoxPlotFromTo, resetBoxPlotSelectionsScalingCenterFn } from './blotPlotUtil';
-import { BoxPlotGroup } from './boxPlotGroup';
-import { BoxPlotSeriesProperties } from './boxPlotSeriesProperties';
-import type { BoxPlotNodeDatum } from './boxPlotTypes';
+import { ActiveCandlestickGroupStyles, CandlestickGroup } from './candlestickGroup';
+import { CandlestickSeriesItem, CandlestickSeriesProperties } from './candlestickSeriesProperties';
+import type { CandlestickNodeDatum } from './candlestickTypes';
+import { prepareCandlestickFromTo, resetCandlestickSelectionsScalingStartFn } from './candlestickUtil';
 
 const {
     extent,
@@ -21,33 +21,31 @@ const {
 } = _ModuleSupport;
 const { motion } = _Scene;
 
-class BoxPlotSeriesNodeEvent<
+class CandlestickSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
-> extends _ModuleSupport.SeriesNodeEvent<BoxPlotNodeDatum, TEvent> {
+> extends _ModuleSupport.SeriesNodeEvent<CandlestickNodeDatum, TEvent> {
     readonly xKey?: string;
-    readonly minKey?: string;
-    readonly q1Key?: string;
-    readonly medianKey?: string;
-    readonly q3Key?: string;
-    readonly maxKey?: string;
+    readonly openKey?: string;
+    readonly closeKey?: string;
+    readonly highKey?: string;
+    readonly lowKey?: string;
 
-    constructor(type: TEvent, nativeEvent: MouseEvent, datum: BoxPlotNodeDatum, series: BoxPlotSeries) {
+    constructor(type: TEvent, nativeEvent: MouseEvent, datum: CandlestickNodeDatum, series: CandlestickSeries) {
         super(type, nativeEvent, datum, series);
         this.xKey = series.properties.xKey;
-        this.minKey = series.properties.minKey;
-        this.q1Key = series.properties.q1Key;
-        this.medianKey = series.properties.medianKey;
-        this.q3Key = series.properties.q3Key;
-        this.maxKey = series.properties.maxKey;
+        this.openKey = series.properties.openKey;
+        this.closeKey = series.properties.closeKey;
+        this.highKey = series.properties.highKey;
+        this.lowKey = series.properties.lowKey;
     }
 }
 
-export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup, BoxPlotNodeDatum> {
-    static type = 'box-plot' as const;
+export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<CandlestickGroup, CandlestickNodeDatum> {
+    static type = 'candlestick' as const;
 
-    override properties = new BoxPlotSeriesProperties();
+    override properties = new CandlestickSeriesProperties();
 
-    protected override readonly NodeEvent = BoxPlotSeriesNodeEvent;
+    protected override readonly NodeEvent = CandlestickSeriesNodeEvent;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
@@ -63,7 +61,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup
             return;
         }
 
-        const { xKey, minKey, q1Key, medianKey, q3Key, maxKey } = this.properties;
+        const { xKey, openKey, closeKey, highKey, lowKey } = this.properties;
 
         const animationEnabled = !this.ctx.animationManager.isSkipped();
         const isContinuousX = this.getCategoryAxis()?.scale instanceof _Scale.ContinuousScale;
@@ -78,11 +76,10 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup
         const { processedData } = await this.requestDataModel(dataController, this.data ?? [], {
             props: [
                 keyProperty(this, xKey, isContinuousX, { id: `xValue` }),
-                valueProperty(this, minKey, true, { id: `minValue` }),
-                valueProperty(this, q1Key, true, { id: `q1Value` }),
-                valueProperty(this, medianKey, true, { id: `medianValue` }),
-                valueProperty(this, q3Key, true, { id: `q3Value` }),
-                valueProperty(this, maxKey, true, { id: `maxValue` }),
+                valueProperty(this, openKey, true, { id: `openValue` }),
+                valueProperty(this, closeKey, true, { id: `closeValue` }),
+                valueProperty(this, highKey, true, { id: `highValue` }),
+                valueProperty(this, lowKey, true, { id: `lowValue` }),
                 ...(isContinuousX ? [SMALLEST_KEY_INTERVAL] : []),
                 ...extraProps,
             ],
@@ -102,10 +99,18 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup
         if (!(processedData && dataModel)) return [];
 
         if (direction === this.getBarDirection()) {
-            const minValues = dataModel.getDomain(this, `minValue`, 'value', processedData);
-            const maxValues = dataModel.getDomain(this, `maxValue`, 'value', processedData);
+            const lowValues = dataModel.getDomain(this, `lowValue`, 'value', processedData);
+            const highValues = dataModel.getDomain(this, `highValue`, 'value', processedData);
+            const openValues = dataModel.getDomain(this, `openValue`, 'value', processedData);
+            const closeValues = dataModel.getDomain(this, `closeValue`, 'value', processedData);
 
-            return fixNumericExtent([Math.min(...minValues), Math.max(...maxValues)], this.getValueAxis());
+            return fixNumericExtent(
+                [
+                    Math.min(...lowValues, ...highValues, ...openValues, ...closeValues),
+                    Math.max(...highValues, ...lowValues, ...openValues, ...closeValues),
+                ],
+                this.getValueAxis()
+            );
         }
 
         const { index, def } = dataModel.resolveProcessedDataIndexById(this, `xValue`);
@@ -141,46 +146,35 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup
             return [];
         }
 
-        const { xKey, fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cap, whisker } =
-            this.properties;
+        const { xKey, openKey, closeKey, highKey, lowKey } = this.properties;
 
-        const nodeData: BoxPlotNodeDatum[] = [];
+        const nodeData: CandlestickNodeDatum[] = [];
 
         const defs = dataModel.resolveProcessedDataDefsByIds(this, [
             'xValue',
-            'minValue',
-            'q1Value',
-            `medianValue`,
-            `q3Value`,
-            `maxValue`,
+            'openValue',
+            'closeValue',
+            'highValue',
+            'lowValue',
         ]);
 
         const { barWidth, groupIndex } = this.updateGroupScale(xAxis);
         const { groupScale, processedData } = this;
 
         processedData?.data.forEach(({ datum, keys, values }) => {
-            const { xValue, minValue, q1Value, medianValue, q3Value, maxValue } =
-                dataModel.resolveProcessedDataDefsValues(defs, { keys, values });
-
-            if (
-                [minValue, q1Value, medianValue, q3Value, maxValue].some((value) => typeof value !== 'number') ||
-                minValue > q1Value ||
-                q1Value > medianValue ||
-                medianValue > q3Value ||
-                q3Value > maxValue
-            ) {
-                return;
-            }
+            const { xValue, openValue, closeValue, highValue, lowValue } = dataModel.resolveProcessedDataDefsValues(
+                defs,
+                { keys, values }
+            );
 
             const scaledValues = convertValuesToScaleByDefs({
                 defs,
                 values: {
                     xValue,
-                    minValue,
-                    q1Value,
-                    medianValue,
-                    q3Value,
-                    maxValue,
+                    openValue,
+                    closeValue,
+                    highValue,
+                    lowValue,
                 },
                 xAxis,
                 yAxis,
@@ -188,15 +182,9 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup
 
             scaledValues.xValue += Math.round(groupScale.convert(String(groupIndex)));
 
-            nodeData.push({
-                series: this,
-                itemId: xValue,
-                datum,
-                xKey,
-                bandwidth: Math.round(barWidth),
-                scaledValues,
-                cap,
-                whisker,
+            const isRising = closeValue > openValue;
+            const itemId = this.getSeriesItemType(isRising);
+            const {
                 fill,
                 fillOpacity,
                 stroke,
@@ -204,62 +192,73 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup
                 strokeOpacity,
                 lineDash,
                 lineDashOffset,
+                wick,
+                cornerRadius,
+            } = this.getItemConfig(itemId);
+
+            nodeData.push({
+                series: this,
+                itemId,
+                datum,
+                xKey,
+                xValue,
+                openKey,
+                closeKey,
+                highKey,
+                lowKey,
+                openValue,
+                closeValue,
+                highValue,
+                lowValue,
+                bandwidth: Math.round(barWidth),
+                scaledValues,
+                wick,
+                fill,
+                fillOpacity,
+                stroke,
+                strokeWidth,
+                strokeOpacity,
+                lineDash,
+                lineDashOffset,
+                cornerRadius,
             });
         });
 
         return [{ itemId: xKey, nodeData, labelData: [], scales: super.calculateScaling(), visible: this.visible }];
     }
 
-    getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
-        const { id, data } = this;
-        const {
-            xKey,
-            yName,
-            fill,
-            fillOpacity,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-            showInLegend,
-            legendItemName,
-            visible,
-        } = this.properties;
-
-        if (!showInLegend || !data?.length || !xKey || legendType !== 'category') {
-            return [];
-        }
-
-        return [
-            {
-                legendType: 'category',
-                id,
-                itemId: id,
-                seriesId: id,
-                enabled: visible,
-                label: {
-                    text: legendItemName ?? yName ?? id,
-                },
-                marker: { fill, fillOpacity, stroke, strokeOpacity, strokeWidth },
-                legendItemName,
-            },
-        ];
+    private getSeriesItemType(isRising: boolean): AgCandlestickSeriesItemType {
+        return isRising ? 'up' : 'down';
     }
 
-    getTooltipHtml(nodeDatum: BoxPlotNodeDatum): string {
+    private getItemConfig(seriesItemType: AgCandlestickSeriesItemType): CandlestickSeriesItem {
+        switch (seriesItemType) {
+            case 'up': {
+                return this.properties.item.up;
+            }
+            case 'down': {
+                return this.properties.item.down;
+            }
+        }
+    }
+
+    getLegendData(_legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
+        return [];
+    }
+
+    getTooltipHtml(nodeDatum: CandlestickNodeDatum): string {
         const {
             xKey,
-            minKey,
-            q1Key,
-            medianKey,
-            q3Key,
-            maxKey,
+            openKey,
+            closeKey,
+            highKey,
+            lowKey,
             xName,
             yName,
-            minName,
-            q1Name,
-            medianName,
-            q3Name,
-            maxName,
+            openName,
+            closeName,
+            highName,
+            lowName,
             tooltip,
         } = this.properties;
         const { datum } = nodeDatum as { datum: any };
@@ -269,18 +268,21 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup
 
         if (!xAxis || !yAxis || !this.properties.isValid()) return '';
 
+        const capitalise = (text: string) => text.charAt(0).toUpperCase() + text.substring(1);
+
         const title = _Util.sanitizeHtml(yName);
         const contentData: [string, string | undefined, _ModuleSupport.ChartAxis][] = [
             [xKey, xName, xAxis],
-            [minKey, minName, yAxis],
-            [q1Key, q1Name, yAxis],
-            [medianKey, medianName, yAxis],
-            [q3Key, q3Name, yAxis],
-            [maxKey, maxName, yAxis],
+            [openKey, openName, yAxis],
+            [closeKey, closeName, yAxis],
+            [highKey, highName, yAxis],
+            [lowKey, lowName, yAxis],
         ];
         const content = contentData
-            .map(([key, name, axis]) => _Util.sanitizeHtml(`${name ?? key}: ${axis.formatDatum(datum[key])}`))
-            .join(title ? '<br/>' : ', ');
+            .map(([key, name, axis]) =>
+                _Util.sanitizeHtml(`${name ?? capitalise(key)}: ${axis.formatDatum(datum[key])}`)
+            )
+            .join('<br/>');
 
         const { fill } = this.getFormattedStyles(nodeDatum);
 
@@ -291,27 +293,26 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup
                 datum,
                 fill,
                 xKey,
-                minKey,
-                q1Key,
-                medianKey,
-                q3Key,
-                maxKey,
+                openKey,
+                closeKey,
+                highKey,
+                lowKey,
                 xName,
-                minName,
-                q1Name,
-                medianName,
-                q3Name,
-                maxName,
+                yName,
+                openName,
+                closeName,
+                highName,
+                lowName,
             }
         );
     }
 
     protected override animateEmptyUpdateReady({
         datumSelections,
-    }: _ModuleSupport.CartesianAnimationData<BoxPlotGroup, BoxPlotNodeDatum>) {
+    }: _ModuleSupport.CartesianAnimationData<CandlestickGroup, CandlestickNodeDatum>) {
         const isVertical = this.isVertical();
-        const { from, to } = prepareBoxPlotFromTo(isVertical);
-        motion.resetMotion(datumSelections, resetBoxPlotSelectionsScalingCenterFn(isVertical));
+        const { from, to } = prepareCandlestickFromTo(isVertical);
+        motion.resetMotion(datumSelections, resetCandlestickSelectionsScalingStartFn(isVertical));
         motion.staticFromToMotion(this.id, 'datums', this.ctx.animationManager, datumSelections, from, to, {
             phase: 'initial',
         });
@@ -322,8 +323,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup
     }
 
     protected override async updateDatumSelection(opts: {
-        nodeData: BoxPlotNodeDatum[];
-        datumSelection: _Scene.Selection<BoxPlotGroup, BoxPlotNodeDatum>;
+        nodeData: CandlestickNodeDatum[];
+        datumSelection: _Scene.Selection<CandlestickGroup, CandlestickNodeDatum>;
         seriesIdx: number;
     }) {
         const data = opts.nodeData ?? [];
@@ -334,13 +335,10 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup
         datumSelection,
         isHighlight: highlighted,
     }: {
-        datumSelection: _Scene.Selection<BoxPlotGroup, BoxPlotNodeDatum>;
+        datumSelection: _Scene.Selection<CandlestickGroup, CandlestickNodeDatum>;
         isHighlight: boolean;
     }) {
-        const isVertical = this.isVertical();
-        const isReversedValueAxis = this.getValueAxis()?.isReversed();
-        const { cornerRadius } = this.properties;
-        datumSelection.each((boxPlotGroup, nodeDatum) => {
+        datumSelection.each((candlestickGroup, nodeDatum) => {
             let activeStyles = this.getFormattedStyles(nodeDatum, highlighted);
 
             if (highlighted) {
@@ -349,7 +347,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup
 
             const { stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = activeStyles;
 
-            activeStyles.whisker = mergeDefaults(activeStyles.whisker, {
+            activeStyles.wick = mergeDefaults(activeStyles.wick, {
                 stroke,
                 strokeWidth,
                 strokeOpacity,
@@ -357,26 +355,23 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup
                 lineDashOffset,
             });
 
-            boxPlotGroup.updateDatumStyles(
+            candlestickGroup.updateDatumStyles(
                 nodeDatum,
-                activeStyles as _ModuleSupport.DeepRequired<AgBoxPlotSeriesStyles>,
-                isVertical,
-                isReversedValueAxis,
-                cornerRadius
+                activeStyles as _ModuleSupport.DeepRequired<ActiveCandlestickGroupStyles>
             );
         });
     }
 
     protected async updateLabelNodes(_opts: {
-        labelSelection: _Scene.Selection<_Scene.Text, BoxPlotNodeDatum>;
+        labelSelection: _Scene.Selection<_Scene.Text, CandlestickNodeDatum>;
         seriesIdx: number;
     }) {
-        // Labels are unsupported.
+        // Labels unsupported
     }
 
     protected async updateLabelSelection(opts: {
-        labelData: BoxPlotNodeDatum[];
-        labelSelection: _Scene.Selection<_Scene.Text, BoxPlotNodeDatum>;
+        labelData: CandlestickNodeDatum[];
+        labelSelection: _Scene.Selection<_Scene.Text, CandlestickNodeDatum>;
         seriesIdx: number;
     }) {
         const { labelData, labelSelection } = opts;
@@ -384,18 +379,17 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup
     }
 
     protected override nodeFactory() {
-        return new BoxPlotGroup();
+        return new CandlestickGroup();
     }
 
-    getFormattedStyles(nodeDatum: BoxPlotNodeDatum, highlighted = false): AgBoxPlotSeriesStyles {
+    getFormattedStyles(nodeDatum: CandlestickNodeDatum, highlighted = false): ActiveCandlestickGroupStyles {
         const {
             id: seriesId,
             ctx: { callbackCache },
         } = this;
-        const { xKey, minKey, q1Key, medianKey, q3Key, maxKey, formatter } = this.properties;
-        const { datum, fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cap, whisker } =
-            nodeDatum;
-        const activeStyles: AgBoxPlotSeriesStyles = {
+        const { xKey, openKey, closeKey, highKey, lowKey, formatter } = this.properties;
+        const {
+            datum,
             fill,
             fillOpacity,
             stroke,
@@ -403,22 +397,34 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup
             strokeOpacity,
             lineDash,
             lineDashOffset,
-            cap: extractDecoratedProperties(cap),
-            whisker: extractDecoratedProperties(whisker),
+            wick,
+            itemId,
+            cornerRadius,
+        } = nodeDatum;
+        const activeStyles = {
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            wick: extractDecoratedProperties(wick),
+            cornerRadius,
         };
 
         if (formatter) {
             const formatStyles = callbackCache.call(formatter, {
                 datum,
                 seriesId,
+                itemId,
                 highlighted,
                 ...activeStyles,
                 xKey,
-                minKey,
-                q1Key,
-                medianKey,
-                q3Key,
-                maxKey,
+                openKey,
+                closeKey,
+                highKey,
+                lowKey,
             });
             if (formatStyles) {
                 return mergeDefaults(formatStyles, activeStyles);

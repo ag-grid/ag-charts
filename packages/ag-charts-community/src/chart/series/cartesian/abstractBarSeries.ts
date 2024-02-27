@@ -1,6 +1,10 @@
 import type { Direction } from '../../../options/chart/types';
+import { BandScale } from '../../../scale/bandScale';
+import { ContinuousScale } from '../../../scale/continuousScale';
 import type { Node } from '../../../scene/node';
 import { DIRECTION, Validate } from '../../../util/validation';
+import { CategoryAxis } from '../../axis/categoryAxis';
+import { GroupedCategoryAxis } from '../../axis/groupedCategoryAxis';
 import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { SeriesNodeDatum } from '../seriesTypes';
@@ -19,6 +23,13 @@ export abstract class AbstractBarSeries<
     TContext extends CartesianSeriesNodeDataContext<TDatum, TLabel> = CartesianSeriesNodeDataContext<TDatum, TLabel>,
 > extends CartesianSeries<TNode, TDatum, TLabel, TContext> {
     abstract override properties: AbstractBarSeriesProperties<any>;
+
+    /**
+     * Used to get the position of bars within each group.
+     */
+    protected groupScale = new BandScale<string>();
+
+    protected smallestDataInterval?: { x: number; y: number } = undefined;
 
     override getBandScalePadding() {
         return { inner: 0.2, outer: 0.1 };
@@ -48,5 +59,48 @@ export abstract class AbstractBarSeries<
     protected getCategoryAxis(): ChartAxis | undefined {
         const direction = this.getCategoryDirection();
         return this.axes[direction];
+    }
+
+    protected updateGroupScale(xAxis: ChartAxis) {
+        const {
+            groupScale,
+            smallestDataInterval,
+            ctx: { seriesStateManager },
+        } = this;
+
+        const xScale = xAxis.scale;
+
+        const xBandWidth = ContinuousScale.is(xScale)
+            ? xScale.calcBandwidth(smallestDataInterval?.x)
+            : xScale.bandwidth;
+
+        const domain = [];
+        const { index: groupIndex, visibleGroupCount } = seriesStateManager.getVisiblePeerGroupIndex(this);
+        for (let groupIdx = 0; groupIdx < visibleGroupCount; groupIdx++) {
+            domain.push(String(groupIdx));
+        }
+        groupScale.domain = domain;
+        groupScale.range = [0, xBandWidth ?? 0];
+
+        if (xAxis instanceof CategoryAxis) {
+            groupScale.paddingInner = xAxis.groupPaddingInner;
+        } else if (xAxis instanceof GroupedCategoryAxis) {
+            groupScale.padding = 0.1;
+        } else {
+            // Number or Time axis
+            groupScale.padding = 0;
+        }
+
+        // To get exactly `0` padding we need to turn off rounding
+        groupScale.round = groupScale.padding !== 0;
+
+        const barWidth =
+            groupScale.bandwidth >= 1
+                ? // Pixel-rounded value for low-volume bar charts.
+                  groupScale.bandwidth
+                : // Handle high-volume bar charts gracefully.
+                  groupScale.rawBandwidth;
+
+        return { barWidth, groupIndex };
     }
 }
