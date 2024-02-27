@@ -159,6 +159,15 @@ export abstract class CartesianSeries<
     private subGroups: SubGroup<any, TDatum, TLabel>[] = [];
     private subGroupId: number = 0;
 
+    private minRectsCache: {
+        dirtyNodeData: boolean;
+        sizeCache?: string;
+        minRect?: BBox;
+        minVisibleRect?: BBox;
+    } = {
+        dirtyNodeData: true,
+    };
+
     private readonly opts: SeriesOpts<TNode, TDatum, TLabel>;
     private readonly debug = Debug.create();
 
@@ -299,6 +308,7 @@ export abstract class CartesianSeries<
             this._contextNodeData.forEach((nodeData) => {
                 nodeData.animationValid ??= animationValid;
             });
+            this.minRectsCache.dirtyNodeData = true;
 
             await this.updateSeriesGroups();
 
@@ -775,17 +785,41 @@ export abstract class CartesianSeries<
      * between any two adjacent nodes.
      */
     override getMinRects(width: number, height: number) {
+        const { dirtyNodeData, sizeCache, minRect, minVisibleRect } = this.minRectsCache;
+
+        const newSizeCache = JSON.stringify({ width, height });
+        const dirtySize = newSizeCache !== sizeCache;
+
+        if (!dirtySize && !dirtyNodeData && minRect && minVisibleRect) {
+            return { minRect, minVisibleRect };
+        }
+
+        const rects = this.computeMinRects(width, height);
+
+        this.minRectsCache = {
+            dirtyNodeData: false,
+            sizeCache: newSizeCache,
+            minRect: rects?.minRect,
+            minVisibleRect: rects?.minVisibleRect,
+        };
+
+        return rects;
+    }
+
+    private computeMinRects(width: number, height: number) {
         const [context] = this._contextNodeData;
 
         if (!context?.nodeData.length) {
             return;
         }
 
-        // Get the sorted midpoints for both directions
-        const minRectXs = Array(context.nodeData.length);
-        const minRectYs = Array(context.nodeData.length);
+        const { nodeData } = context;
 
-        for (const [i, { midPoint }] of context.nodeData.entries()) {
+        // Get the sorted midpoints for both directions
+        const minRectXs = Array(nodeData.length);
+        const minRectYs = Array(nodeData.length);
+
+        for (const [i, { midPoint }] of nodeData.entries()) {
             minRectXs[i] = midPoint?.x ?? 0;
             minRectYs[i] = midPoint?.y ?? 0;
         }
@@ -798,7 +832,7 @@ export abstract class CartesianSeries<
         let maxWidth = 0;
         let maxHeight = 0;
 
-        for (let i = 1; i < context.nodeData.length; i++) {
+        for (let i = 1; i < nodeData.length; i++) {
             if (minRectXs[i] >= 0) zeroX ??= i;
             if (minRectXs[i] > width) widthX ??= i;
             if (minRectYs[i] >= 0) zeroY ??= i;
@@ -809,8 +843,8 @@ export abstract class CartesianSeries<
             maxHeight = Math.max(maxHeight, minRectYs[i] - minRectYs[i - 1]);
         }
 
-        widthX ??= context.nodeData.length;
-        heightY ??= context.nodeData.length;
+        widthX ??= nodeData.length;
+        heightY ??= nodeData.length;
 
         const minVisibleRectXs = zeroX != null && widthX != null ? minRectXs.slice(zeroX, widthX) : [];
         const minVisibleRectYs = zeroY != null && heightY != null ? minRectYs.slice(zeroY, heightY) : [];
