@@ -325,7 +325,7 @@ export class TreeLayout {
         this.nodes.forEach((node) => {
             node.screenX = node.x * scalingX;
             node.screenY = node.y * scalingY;
-            screenDimensions.update(node, (node) => ({ x: node.screenX, y: node.screenY }));
+            screenDimensions.update(node, (n) => ({ x: n.screenX, y: n.screenY }));
         });
         // Normalize so that root top and leftmost leaf left start at zero.
         const offsetX = -screenDimensions.left;

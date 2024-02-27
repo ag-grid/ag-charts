@@ -123,7 +123,7 @@ export abstract class AgCharts {
         if (!(chart instanceof AgChartInstanceProxy)) {
             throw new Error(AgCharts.INVALID_CHART_REF_MESSAGE);
         }
-        AgChartsInternal.download(chart, options);
+        AgChartsInternal.download(chart, options).catch((e) => Logger.errorOnce(e));
     }
 
     /**
@@ -211,11 +211,11 @@ class AgChartsInternal {
         }
 
         chart.queuedUserOptions.push(userOptions);
-        chart.requestFactoryUpdate((chart) => {
-            chart.applyOptions(chartOptions);
+        chart.requestFactoryUpdate((chartRef) => {
+            chartRef.applyOptions(chartOptions);
             // If there are a lot of update calls, `requestFactoryUpdate()` may skip callbacks,
             // so we need to remove all queue items up to the last successfully applied item.
-            chart.queuedUserOptions.splice(0, chart.queuedUserOptions.indexOf(userOptions));
+            chartRef.queuedUserOptions.splice(0, chartRef.queuedUserOptions.indexOf(userOptions));
         });
 
         return proxy;

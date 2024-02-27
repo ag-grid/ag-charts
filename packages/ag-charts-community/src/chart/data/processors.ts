@@ -297,7 +297,7 @@ export function diff(
         type: 'processor',
         property: 'diff',
         calculate: (processedData) => {
-            const diff = {
+            const result = {
                 changed: false,
                 moved: [] as any[],
                 added: [] as any[],
@@ -362,17 +362,17 @@ export function diff(
                 }
             }
 
-            diff.added = Array.from(added.keys());
-            diff.updated = Array.from(updated.keys());
-            diff.removed = Array.from(removed.keys());
-            diff.moved = Array.from(moved.keys());
-            diff.addedIndices = Array.from(addedIndices.values());
-            diff.updatedIndices = Array.from(updatedIndices.values());
-            diff.removedIndices = Array.from(removedIndices.values());
+            result.added = Array.from(added.keys());
+            result.updated = Array.from(updated.keys());
+            result.removed = Array.from(removed.keys());
+            result.moved = Array.from(moved.keys());
+            result.addedIndices = Array.from(addedIndices.values());
+            result.updatedIndices = Array.from(updatedIndices.values());
+            result.removedIndices = Array.from(removedIndices.values());
 
-            diff.changed = diff.added.length > 0 || diff.updated.length > 0 || diff.removed.length > 0;
+            result.changed = result.added.length > 0 || result.updated.length > 0 || result.removed.length > 0;
 
-            return diff;
+            return result;
         },
     };
 }

@@ -7,8 +7,14 @@ import { EXPECTED_ENTERPRISE_MODULES } from './expectedEnterpriseModules';
 export function removeUsedEnterpriseOptions<T extends AgChartOptions>(options: T) {
     const usedOptions: string[] = [];
     const optionsChartType = chartTypes.get(optionsType(options));
-    for (const { type, chartTypes, optionsKey, optionsInnerKey, identifier } of EXPECTED_ENTERPRISE_MODULES) {
-        if (optionsChartType !== 'unknown' && !chartTypes.includes(optionsChartType)) continue;
+    for (const {
+        type,
+        chartTypes: moduleChartTypes,
+        optionsKey,
+        optionsInnerKey,
+        identifier,
+    } of EXPECTED_ENTERPRISE_MODULES) {
+        if (optionsChartType !== 'unknown' && !moduleChartTypes.includes(optionsChartType)) continue;
 
         if (type === 'root' || type === 'legend') {
             const optionValue = options[optionsKey as keyof T] as any;

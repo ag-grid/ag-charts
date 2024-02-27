@@ -4,8 +4,8 @@ import { BaseManager } from './baseManager';
 type ChartEventType = 'legend-item-click' | 'legend-item-double-click' | 'axis-hover';
 type ChartEvents = LegendItemClickChartEvent | LegendItemDoubleClickChartEvent | AxisHoverChartEvent;
 
-interface ChartEvent<ChartEventType> {
-    type: ChartEventType;
+interface ChartEvent<T> {
+    type: T;
 }
 
 export interface LegendItemClickChartEvent extends ChartEvent<'legend-item-click'> {

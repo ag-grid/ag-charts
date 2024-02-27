@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import { fail } from 'assert';
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
@@ -90,8 +90,8 @@ describe('Chart', () => {
         }): Promise<Chart> => {
             const tooltip = params.hasTooltip
                 ? {
-                      renderer(params: any) {
-                          const values = testParams.getTooltipRenderedValues(params);
+                      renderer(rParams: any) {
+                          const values = testParams.getTooltipRenderedValues(rParams);
                           return format(...values);
                       },
                   }
@@ -117,53 +117,60 @@ describe('Chart', () => {
         };
 
         const hoverChartNodes = async (
-            chart: Chart,
+            chartInstance: Chart,
             iterator: (params: { series: any; item: any; x: number; y: number }) => Promise<void>
         ) => {
-            for (const series of chart.series) {
+            for (const series of chartInstance.series) {
                 const nodeData = testParams.getNodeData(series);
                 expect(nodeData.length).toBeGreaterThan(0);
                 for (const item of nodeData) {
                     const itemPoint = testParams.getNodePoint(item);
                     const { x, y } = series.contentGroup.inverseTransformPoint(itemPoint[0], itemPoint[1]);
-                    await hoverAction(x, y)(chart);
-                    await waitForChartStability(chart);
+                    await hoverAction(x, y)(chartInstance);
+                    await waitForChartStability(chartInstance);
                     await iterator({ series, item, x, y });
                 }
             }
         };
 
-        const checkHighlight = async (chart: Chart) => {
-            await hoverChartNodes(chart, async ({ series }) => {
+        const checkHighlight = async (chartInstance: Chart) => {
+            await hoverChartNodes(chartInstance, async ({ series }) => {
                 // Check the highlighted marker
-                const highlightNode = testParams.getHighlightNode(chart, series);
+                const highlightNode = testParams.getHighlightNode(chartInstance, series);
                 expect(highlightNode).toBeDefined();
                 expect(highlightNode.fill).toEqual('lime');
             });
         };
 
-        const checkNodeClick = async (chart: Chart, onNodeClick: () => void, offset?: { x: number; y: number }) => {
-            await hoverChartNodes(chart, async ({ x, y }) => {
+        const checkNodeClick = async (
+            chartInstance: Chart,
+            onNodeClick: () => void,
+            offset?: { x: number; y: number }
+        ) => {
+            await hoverChartNodes(chartInstance, async ({ x, y }) => {
                 // Perform click
-                await clickAction(x + (offset?.x ?? 0), y + (offset?.y ?? 0))(chart);
-                await waitForChartStability(chart);
+                await clickAction(x + (offset?.x ?? 0), y + (offset?.y ?? 0))(chartInstance);
+                await waitForChartStability(chartInstance);
             });
 
             // Check click handler
-            const nodeCount = chart.series.reduce((sum, series) => sum + testParams.getNodeData(series).length, 0);
+            const nodeCount = chartInstance.series.reduce(
+                (sum, series) => sum + testParams.getNodeData(series).length,
+                0
+            );
             expect(onNodeClick).toBeCalledTimes(nodeCount);
         };
 
         const checkMouseUpOnlyClick = async (
-            chart: Chart,
+            chartInstance: Chart,
             onNodeClick: () => void,
             nodeExit: (item: any) => [number, number]
         ) => {
-            await hoverChartNodes(chart, async ({ item, x, y }) => {
+            await hoverChartNodes(chartInstance, async ({ item, x, y }) => {
                 // Perform click
                 const [downX, downY] = nodeExit(item);
-                await clickAction(x, y, { mousedown: { offsetX: downX, offsetY: downY } })(chart);
-                await waitForChartStability(chart);
+                await clickAction(x, y, { mousedown: { offsetX: downX, offsetY: downY } })(chartInstance);
+                await waitForChartStability(chartInstance);
             });
 
             // Check click handler
@@ -348,9 +355,9 @@ describe('Chart', () => {
                 return [category, value];
             },
             getTooltipRenderedValues: (params) => [params.datum[params.sectorLabelKey], params.datum[params.angleKey]],
-            getHighlightNode: (chart, series) => {
+            getHighlightNode: (chartInstance, series) => {
                 // Returns a highlighted sector
-                const highlightedDatum = chart.highlightManager.getActiveHighlight();
+                const highlightedDatum = chartInstance.highlightManager.getActiveHighlight();
                 return series.highlightGroup.children.find(
                     (child: any) => child?.datum?.itemId === highlightedDatum.itemId
                 );
@@ -395,7 +402,7 @@ describe('Chart', () => {
                     xKey: datasets.economy.categoryKey,
                     yKey: datasets.economy.valueKey,
                 },
-                getNodes: (chart) => Selection.selectByClass(chart.series[0].rootGroup, Circle),
+                getNodes: (chartInstance) => Selection.selectByClass(chartInstance.series[0].rootGroup, Circle),
             });
         });
 
@@ -406,7 +413,7 @@ describe('Chart', () => {
                     xKey: datasets.economy.categoryKey,
                     yKey: datasets.economy.valueKey,
                 },
-                getNodes: (chart) => Selection.selectByClass(chart.series[0].rootGroup, Rect),
+                getNodes: (chartInstance) => Selection.selectByClass(chartInstance.series[0].rootGroup, Rect),
             });
         });
 
@@ -420,7 +427,7 @@ describe('Chart', () => {
                         enabled: true,
                     },
                 },
-                getNodes: (chart) => Selection.selectByClass(chart.series[0].rootGroup, Circle),
+                getNodes: (chartInstance) => Selection.selectByClass(chartInstance.series[0].rootGroup, Circle),
             });
         });
 
@@ -431,7 +438,7 @@ describe('Chart', () => {
                     xKey: datasets.economy.valueKey,
                     yKey: datasets.economy.valueKey,
                 },
-                getNodes: (chart) => Selection.selectByClass(chart.series[0].rootGroup, Circle),
+                getNodes: (chartInstance) => Selection.selectByClass(chartInstance.series[0].rootGroup, Circle),
             });
         });
 
@@ -442,31 +449,30 @@ describe('Chart', () => {
                     calloutLabelKey: datasets.economy.categoryKey,
                     angleKey: datasets.economy.valueKey,
                 },
-                getNodes: (chart) => Selection.selectByClass(chart.series[0].contentGroup, Sector),
+                getNodes: (chartInstance) => Selection.selectByClass(chartInstance.series[0].contentGroup, Sector),
             });
         });
     });
 
     describe('Chart data inherited by Series', () => {
-        async function createChart(options: object) {
+        async function createSeriesTestChart(options: object) {
             const chartOptions = prepareTestOptions(options);
             const chartProxy = AgCharts.create(chartOptions) as AgChartProxy;
-            const chart = deproxy(chartProxy);
-            await waitForChartStability(chart);
-            return { chart, chartProxy, chartOptions };
+            const chartInstance = deproxy(chartProxy);
+            await waitForChartStability(chartInstance);
+            return { chartInstance, chartProxy, chartOptions };
         }
 
         async function updateChart(chartProxy: AgChartProxy, options: object) {
             const chartOptions = prepareTestOptions(options);
             AgCharts.update(chartProxy, chartOptions);
-            const chart = deproxy(chartProxy);
-            await waitForChartStability(chart);
+            await waitForChartStability(deproxy(chartProxy));
         }
 
         it('Chart data inherited only when Series data is not defined ', async () => {
             const moreData = datasets.economy.data;
             const lessData = datasets.economy.data.slice(0, 2);
-            const { chart, chartProxy } = await createChart({
+            const { chartInstance, chartProxy } = await createSeriesTestChart({
                 data: moreData,
                 series: [
                     {
@@ -482,9 +488,9 @@ describe('Chart', () => {
                     },
                 ],
             });
-            expect(chart.data).toEqual(moreData);
-            expect(chart.series[0].data).toEqual(moreData);
-            expect(chart.series[1].data).toEqual(lessData);
+            expect(chartInstance.data).toEqual(moreData);
+            expect(chartInstance.series[0].data).toEqual(moreData);
+            expect(chartInstance.series[1].data).toEqual(lessData);
 
             await updateChart(chartProxy, {
                 data: moreData,
@@ -503,9 +509,9 @@ describe('Chart', () => {
                 ],
             });
 
-            expect(chart.data).toEqual(moreData);
-            expect(chart.series[0].data).toEqual(lessData);
-            expect(chart.series[1].data).toEqual(moreData);
+            expect(chartInstance.data).toEqual(moreData);
+            expect(chartInstance.series[0].data).toEqual(lessData);
+            expect(chartInstance.series[1].data).toEqual(moreData);
 
             await updateChart(chartProxy, {
                 data: moreData,
@@ -523,8 +529,8 @@ describe('Chart', () => {
                 ],
             });
 
-            expect(chart.series[0].data).toEqual(chart.data);
-            expect(chart.series[1].data).toEqual(chart.data);
+            expect(chartInstance.series[0].data).toEqual(chartInstance.data);
+            expect(chartInstance.series[1].data).toEqual(chartInstance.data);
         });
     });
 });

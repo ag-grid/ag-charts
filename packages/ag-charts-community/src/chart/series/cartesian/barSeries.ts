@@ -557,7 +557,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
 
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
-        const diff = this.processedData?.reduced?.diff;
+        const dataDiff = this.processedData?.reduced?.diff;
         const mode = previousContextData?.length === 0 ? 'fade' : 'normal';
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, mode));
 
@@ -568,10 +568,10 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
             datumSelections,
             fns,
             (_, datum) => createDatumId(datum.xValue),
-            diff
+            dataDiff
         );
 
-        const hasMotion = diff?.changed ?? true;
+        const hasMotion = dataDiff?.changed ?? true;
         if (hasMotion) {
             seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
             seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, annotationSelections);

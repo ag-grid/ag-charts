@@ -199,8 +199,8 @@ describe('CartesianChart', () => {
 
     const ctx = setupMockCanvas();
 
-    const compare = async (chart: Chart) => {
-        await waitForChartStability(chart);
+    const compare = async (chartInstance: Chart) => {
+        await waitForChartStability(chartInstance);
 
         const imageData = extractImageData(ctx);
         expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
@@ -240,24 +240,24 @@ describe('CartesianChart', () => {
         };
 
         it.each(YKEYS)(`should render series with yKey [%s] appropriately`, async (yKey) => {
-            const { chart, highlightManager, nodeData } = await buildChart({ ...tcOptions }, yKey);
-            highlightManager.updateHighlight(chart.id, nodeData?.nodeData[3]);
-            await compare(chart);
+            const { chart: testee, highlightManager, nodeData } = await buildChart({ ...tcOptions }, yKey);
+            highlightManager.updateHighlight(testee.id, nodeData?.nodeData[3]);
+            await compare(testee);
         });
 
         it('should correctly change highlighting state and reset', async () => {
-            const { chart, highlightManager, nodeData } = await buildChart({ ...tcOptions }, YKEYS[0]);
+            const { chart: testee, highlightManager, nodeData } = await buildChart({ ...tcOptions }, YKEYS[0]);
 
             const nodesToTest = nodeData?.nodeData?.slice(2, 4) ?? [];
             expect(nodesToTest).toHaveLength(2);
 
             for (const nodeDataItem of nodesToTest) {
-                highlightManager.updateHighlight(chart.id, nodeDataItem);
-                await compare(chart);
+                highlightManager.updateHighlight(testee.id, nodeDataItem);
+                await compare(testee);
             }
 
-            highlightManager.updateHighlight(chart.id);
-            await compare(chart);
+            highlightManager.updateHighlight(testee.id);
+            await compare(testee);
         });
     });
 
