@@ -284,7 +284,11 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<Candlest
             )
             .join('<br/>');
 
-        const { fill } = this.getFormattedStyles(nodeDatum);
+        let { fill } = this.getFormattedStyles(nodeDatum);
+
+        if (fill === 'transparent') {
+            fill = this.properties.item.down.fill;
+        }
 
         return tooltip.toTooltipHtml(
             { title, content, backgroundColor: fill },
