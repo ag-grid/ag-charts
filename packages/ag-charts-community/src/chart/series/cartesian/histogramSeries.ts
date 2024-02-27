@@ -279,6 +279,8 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramNodeDatum> {
                 y: y + h / 2,
             };
 
+            const yAxisReversed = yAxis.isReversed();
+
             nodeData.push({
                 series: this,
                 datum, // required by SeriesNodeDatum, but might not make sense here
@@ -298,10 +300,10 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramNodeDatum> {
                 fill: fill,
                 stroke: stroke,
                 cornerRadius,
-                topLeftCornerRadius: true,
-                topRightCornerRadius: true,
-                bottomRightCornerRadius: false,
-                bottomLeftCornerRadius: false,
+                topLeftCornerRadius: !yAxisReversed,
+                topRightCornerRadius: !yAxisReversed,
+                bottomRightCornerRadius: yAxisReversed,
+                bottomLeftCornerRadius: yAxisReversed,
                 opacity: 1,
                 strokeWidth: strokeWidth,
                 label: selectionDatumLabel,

@@ -68,7 +68,7 @@ export interface AgRangeBarSeriesThemeableOptions<TDatum = any>
      */
     direction?: 'horizontal' | 'vertical';
     /** Apply round corners to each bar. */
-    cornerRadius?: number;
+    cornerRadius?: PixelSize;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgRangeBarSeriesTooltipRendererParams>;
     /** Configuration for the range series items when they are hovered over. */
