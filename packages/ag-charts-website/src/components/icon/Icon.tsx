@@ -21,6 +21,8 @@ import TakeControlIcon from '@images/inline-svgs/take-control-icon.svg?react';
 import TickIcon from '@images/inline-svgs/tick.svg?react';
 import XLogoIcon from '@images/inline-svgs/x-logo.svg?react';
 import classNames from 'classnames';
+import RadarArea from '@images/inline-svgs/radar-area.svg?react';
+import RadialColumn from '@images/inline-svgs/radial-column.svg?react';
 
 // Uses IBM Carbon Design System icons as a base
 // Full list of Carbon icons => https://carbondesignsystem.com/guidelines/icons/library
@@ -92,8 +94,9 @@ const CHARTS_ICON_MAP = {
     chartsErrorBar: CarbonIcon.ChartErrorBar,
     chartsWaterfall: CarbonIcon.ChartWaterfall,
     chartsRadar: CarbonIcon.ChartRadar,
+    chartsRadarArea: RadarArea,
     chartsNightingale: CarbonIcon.ChartRose,
-    chartsRadialColumn: CarbonIcon.ChartSpiral,
+    chartsRadialColumn: RadialColumn,
     chartsRadialBar: CarbonIcon.ChartRadial,
     chartsTreemap: CarbonIcon.ChartTreemap,
     chartsSunburst: CarbonIcon.ChartSunburst,

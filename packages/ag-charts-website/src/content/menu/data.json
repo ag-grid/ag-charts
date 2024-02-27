@@ -289,7 +289,7 @@
                     },
                     {
                         "title": "Radar Area",
-                        "icon": "chartsRadar",
+                        "icon": "chartsRadarArea",
                         "path": "radar-area-series",
                         "isEnterprise": true
                     },

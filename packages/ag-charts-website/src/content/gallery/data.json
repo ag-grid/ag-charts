@@ -457,7 +457,7 @@
             {
                 "title": "Radar Area",
                 "seriesName": "radar-area",
-                "icon": "chartsRadar",
+                "icon": "chartsRadarArea",
                 "enterprise": true,
                 "examples": [
                     {
