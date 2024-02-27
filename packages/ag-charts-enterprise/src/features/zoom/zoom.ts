@@ -443,14 +443,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const [axesX, axesY] = _Util.bifurcate((axis) => axis.direction === ChartAxisDirection.X, axes);
         this.rangeX.updateAxis(axesX);
         this.rangeY.updateAxis(axesY);
-
-        const newZoom: _ModuleSupport.AxisZoomState = {};
-        newZoom.x = this.rangeX.getRange();
-        newZoom.y = this.rangeY.getRange();
-
-        if (newZoom.x == null && newZoom.y == null) return;
-
-        this.updateZoom(constrainZoom(definedZoomState(newZoom)));
     }
 
     private onUpdateComplete({ minRect, minVisibleRect }: _ModuleSupport.UpdateCompleteEvent) {
