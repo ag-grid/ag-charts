@@ -171,7 +171,9 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
                     (min !== siblingAxis.min && (isFiniteNumber(min) || isFiniteNumber(siblingAxis.min))) ||
                     (max !== siblingAxis.max && (isFiniteNumber(max) || isFiniteNumber(siblingAxis.max)))
                 ) {
-                    Logger.warnOnce('For axes sync, ensure matching `min`, `max`, `nice`, and `reverse` properties.');
+                    Logger.warnOnce(
+                        'To allow synchronization, ensure all charts have matching `min`, `max`, `nice`, and `reverse` properties on the synchronized axes.'
+                    );
                     axis.boundSeries = chart.series.filter((s) => s.axes[axis.direction] === (axis as any));
                     this.enabled = false;
                     return;
