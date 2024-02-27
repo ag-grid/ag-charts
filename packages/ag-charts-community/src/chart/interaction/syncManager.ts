@@ -1,5 +1,4 @@
 import type { ChartAxisDirection } from '../chartAxisDirection';
-import type { ModulesManager } from '../modulesManager';
 import type { ISeries } from '../series/seriesTypes';
 import { BaseManager } from './baseManager';
 import type { HighlightManager } from './highlightManager';
@@ -25,7 +24,7 @@ type ChartLike = {
     axes: AxisLike[];
     series: ISeries<any>[];
     highlightManager: HighlightManager;
-    modulesManager: ModulesManager;
+    modulesManager: { getModule<R>(module: string): R | undefined };
     tooltipManager: TooltipManager;
     zoomManager: ZoomManager;
     waitForDataProcess(timeout?: number): Promise<void>;
