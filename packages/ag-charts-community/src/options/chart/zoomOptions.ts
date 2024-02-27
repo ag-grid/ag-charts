@@ -4,6 +4,13 @@ export type AgZoomAnchorPoint = 'pointer' | 'start' | 'middle' | 'end';
 export type AgZoomAxes = 'x' | 'y' | 'xy';
 export type AgZoomPanKey = 'alt' | 'ctrl' | 'meta' | 'shift';
 
+export interface AgZoomRange {
+    /** The start of the axis zoom range. */
+    start?: Date | number;
+    /** The end of the axis zoom range. */
+    end?: Date | number;
+}
+
 export interface AgZoomOptions {
     /**
      * The anchor point for the x-axis about which to zoom into when scrolling.
@@ -79,6 +86,10 @@ export interface AgZoomOptions {
      * Default: `alt`
      */
     panKey?: AgZoomPanKey;
+    /** The initial x-axis range of the zoom, as values of the axis type. */
+    rangeX?: AgZoomRange;
+    /** The initial x-axis range of the zoom, as values of the axis type. */
+    rangeY?: AgZoomRange;
     /**
      * The amount to zoom when scrolling with the mouse wheel, as a ratio of the full chart.
      * Default: `0.1`

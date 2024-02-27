@@ -1,11 +1,13 @@
 import type { AgZoomAnchorPoint, _Scene } from 'ag-charts-community';
-import { _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport, _Util } from 'ag-charts-community';
 
 import { ZoomRect } from './scenes/zoomRect';
 import { ZoomAxisDragger } from './zoomAxisDragger';
 import { ZoomPanner } from './zoomPanner';
+import { ZoomRange } from './zoomRange';
 import { ZoomScroller } from './zoomScroller';
 import { ZoomSelector } from './zoomSelector';
+import type { DefinedZoomState } from './zoomTypes';
 import {
     UNIT,
     constrainZoom,
@@ -14,8 +16,7 @@ import {
     scaleZoomAxisWithPoint,
     scaleZoomCenter,
     translateZoom,
-} from './zoomTransformers';
-import type { DefinedZoomState } from './zoomTypes';
+} from './zoomUtils';
 
 type PinchEvent = _ModuleSupport.PinchEvent;
 type ContextMenuActionParams = _ModuleSupport.ContextMenuActionParams;
@@ -115,6 +116,9 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     @Validate(ANCHOR_CORD)
     public anchorPointY: AgZoomAnchorPoint = 'middle';
 
+    public rangeX = new ZoomRange(this.onRangeChange.bind(this, ChartAxisDirection.X));
+    public rangeY = new ZoomRange(this.onRangeChange.bind(this, ChartAxisDirection.Y));
+
     // Scenes
     private readonly scene: _Scene.Scene;
     private seriesRect?: _Scene.BBox;
@@ -137,6 +141,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     // State
     private isDragging = false;
+    private canDragSelection?: boolean;
     private hoveredAxis?: { id: string; direction: _ModuleSupport.ChartAxisDirection };
     private shouldFlipXY?: boolean;
     private minRatioX = 0;
@@ -226,6 +231,14 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
     }
 
+    private onRangeChange(direction: _ModuleSupport.ChartAxisDirection, rangeZoom?: DefinedZoomState['x' | 'y']) {
+        if (!rangeZoom) return;
+
+        const zoom = definedZoomState(this.zoomManager.getZoom());
+        zoom[direction] = rangeZoom;
+        this.updateZoom(constrainZoom(zoom));
+    }
+
     private onDoubleClick(event: _ModuleSupport.InteractionEvent<'dblclick'>) {
         if (!this.enabled || !this.enableDoubleClickToReset) return;
 
@@ -245,8 +258,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             });
         }
     }
-
-    private canDragSelection?: boolean;
 
     private onDragStart(event: _ModuleSupport.InteractionEvent<'drag-start'>) {
         this.canDragSelection = this.paddedRect?.containsPoint(event.offsetX, event.offsetY);
@@ -293,13 +304,9 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         // If the user stops pressing the panKey but continues dragging, we shouldn't go to selection until they stop
         // dragging and click to start a new drag.
-        if (
-            !this.enableSelecting ||
-            !this.canDragSelection ||
-            this.isPanningKeyPressed(sourceEvent) ||
-            this.panner.isPanning ||
-            this.isMinZoom(zoom)
-        ) {
+        const canSelect = this.enableSelecting && this.canDragSelection !== false;
+        const isPanning = this.panner.isPanning || this.isPanningKeyPressed(sourceEvent);
+        if (!canSelect || isPanning || this.isMinZoom(zoom)) {
             return;
         }
 
@@ -438,11 +445,26 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         const {
             series: { rect, paddedRect, shouldFlipXY },
+            axes,
         } = event;
 
         this.seriesRect = rect;
         this.paddedRect = paddedRect;
         this.shouldFlipXY = shouldFlipXY;
+
+        if (!axes) return;
+
+        const [axesX, axesY] = _Util.bifurcate((axis) => axis.direction === ChartAxisDirection.X, axes);
+        this.rangeX.updateAxis(axesX);
+        this.rangeY.updateAxis(axesY);
+
+        const newZoom: _ModuleSupport.AxisZoomState = {};
+        newZoom.x = this.rangeX.getRange();
+        newZoom.y = this.rangeY.getRange();
+
+        if (newZoom.x == null && newZoom.y == null) return;
+
+        this.updateZoom(constrainZoom(definedZoomState(newZoom)));
     }
 
     private onUpdateComplete({ minRect }: _ModuleSupport.UpdateCompleteEvent) {
