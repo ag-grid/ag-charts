@@ -3,8 +3,8 @@ import { BBox } from '../scene/bbox';
 export class Quadtree<V> {
     private readonly root: QuadtreeNode<V>;
 
-    constructor(capacity: number, maxdepth: number) {
-        this.root = new QuadtreeNode<V>(capacity, maxdepth);
+    constructor(capacity: number, maxdepth: number, boundary?: BBox) {
+        this.root = new QuadtreeNode<V>(capacity, maxdepth, boundary);
     }
 
     clear(boundary: BBox) {
@@ -106,6 +106,7 @@ class QuadtreeNode<V> {
             this.subdivisions.addElem(e);
         }
         this.subdivisions.addElem(newElem);
+        this.elems.length = 0;
     }
 
     private makeSubdivisions(): QuadtreeSubdivisions<V> {
