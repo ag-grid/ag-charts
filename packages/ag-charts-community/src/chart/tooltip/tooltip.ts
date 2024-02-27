@@ -149,10 +149,10 @@ type TooltipPositionType =
     | 'right'
     | 'bottom'
     | 'left'
-    | 'topLeft'
-    | 'topRight'
-    | 'bottomRight'
-    | 'bottomLeft';
+    | 'top-left'
+    | 'top-right'
+    | 'bottom-right'
+    | 'bottom-left';
 
 export type TooltipMeta = PointerOffsets & {
     showArrow?: boolean;
@@ -190,7 +190,18 @@ export function toTooltipHtml(input: string | AgTooltipRendererResult, defaults?
 export class TooltipPosition extends BaseProperties {
     @Validate(
         UNION(
-            ['pointer', 'node', 'top', 'right', 'bottom', 'left', 'topLeft', 'topRight', 'bottomRight', 'bottomLeft'],
+            [
+                'pointer',
+                'node',
+                'top',
+                'right',
+                'bottom',
+                'left',
+                'top-left',
+                'top-right',
+                'bottom-right',
+                'bottom-left',
+            ],
             'a position type'
         )
     )
@@ -488,7 +499,7 @@ export class Tooltip {
             }
             case 'right': {
                 bounds.top = canvasRect.height / 2 - tooltipHeight / 2 + yOffset;
-                bounds.right = xOffset;
+                bounds.left = canvasRect.width - tooltipWidth / 2 + xOffset;
                 return bounds;
             }
             case 'left': {
@@ -497,27 +508,27 @@ export class Tooltip {
                 return bounds;
             }
             case 'bottom': {
-                bounds.bottom = yOffset;
+                bounds.top = canvasRect.height - tooltipHeight + yOffset;
                 bounds.left = canvasRect.width / 2 - tooltipWidth / 2 + xOffset;
                 return bounds;
             }
-            case 'topLeft': {
+            case 'top-left': {
                 bounds.top = yOffset;
                 bounds.left = xOffset;
                 return bounds;
             }
-            case 'topRight': {
+            case 'top-right': {
                 bounds.top = yOffset;
-                bounds.right = xOffset;
+                bounds.left = canvasRect.width - tooltipWidth + xOffset;
                 return bounds;
             }
-            case 'bottomRight': {
-                bounds.bottom = yOffset;
-                bounds.right = xOffset;
+            case 'bottom-right': {
+                bounds.top = canvasRect.height - tooltipHeight + yOffset;
+                bounds.left = canvasRect.width - tooltipWidth + xOffset;
                 return bounds;
             }
-            case 'bottomLeft': {
-                bounds.bottom = yOffset;
+            case 'bottom-left': {
+                bounds.top = canvasRect.height - tooltipHeight + yOffset;
                 bounds.left = xOffset;
                 return bounds;
             }
