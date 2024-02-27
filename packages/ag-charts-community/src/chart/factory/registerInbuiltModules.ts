@@ -5,7 +5,7 @@ import { LogAxis } from '../axis/logAxis';
 import { NumberAxis } from '../axis/numberAxis';
 import { TimeAxis } from '../axis/timeAxis';
 import { BackgroundModule } from '../background/backgroundModule';
-import { CategoryLegendModule } from '../legendModule';
+import { CommunityLegendModule } from '../legendModule';
 import { NavigatorModule } from '../navigator/navigatorModule';
 import { AreaSeriesModule } from '../series/cartesian/areaSeriesModule';
 import { BarSeriesModule } from '../series/cartesian/barSeriesModule';
@@ -19,8 +19,8 @@ import { axisRegistry } from './axisRegistry';
 
 export function registerInbuiltModules() {
     registerModule(BackgroundModule);
+    registerModule(CommunityLegendModule);
     registerModule(NavigatorModule);
-    registerModule(CategoryLegendModule);
 
     registerModule(AreaSeriesModule);
     registerModule(BarSeriesModule);

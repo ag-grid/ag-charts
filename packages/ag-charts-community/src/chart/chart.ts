@@ -1502,9 +1502,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     private applyModules(options: AgChartOptions) {
-        let modulesChanged = false;
-
         const { type: chartType } = this.constructor as any;
+
+        let modulesChanged = false;
         for (const module of REGISTERED_MODULES) {
             if (module.type !== 'root' && module.type !== 'legend') continue;
 
@@ -1523,7 +1523,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
                     this.modulesManager.getModule<ChartLegend>(module)?.attachLegend(this.scene);
                 }
 
-                (this as any)[module.optionsKey] ||= this.modulesManager.getModule(module); // TODO remove
+                (this as any)[module.optionsKey] = this.modulesManager.getModule(module); // TODO remove
             } else {
                 this.modulesManager.removeModule(module);
                 delete (this as any)[module.optionsKey]; // TODO remove
@@ -1669,7 +1669,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         for (const moduleDef of EXPECTED_ENTERPRISE_MODULES) {
             if (moduleDef.type !== 'series-option') continue;
             if (moduleDef.optionsKey in seriesOptions) {
-                const module = moduleMap.getModule(moduleDef.optionsKey) as any;
+                const module = moduleMap.getModule<any>(moduleDef.optionsKey);
                 const moduleOptions = seriesOptions[moduleDef.optionsKey];
                 delete seriesOptions[moduleDef.optionsKey];
                 module.properties.set(moduleOptions);
