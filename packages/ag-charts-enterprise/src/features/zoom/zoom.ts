@@ -155,14 +155,15 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const { Default, ZoomDrag, Animation } = _ModuleSupport.InteractionState;
         const draggableState = Default | Animation | ZoomDrag;
         const clickableState = Default | Animation;
+        const region = ctx.regionManager.getRegion('series');
         this.destroyFns.push(
             this.scene.attachNode(selectionRect),
-            ctx.interactionManager.addListener('dblclick', (event) => this.onDoubleClick(event), clickableState),
-            ctx.interactionManager.addListener('drag', (event) => this.onDrag(event), draggableState),
-            ctx.interactionManager.addListener('drag-start', (event) => this.onDragStart(event), draggableState),
-            ctx.interactionManager.addListener('drag-end', () => this.onDragEnd(), draggableState),
-            ctx.interactionManager.addListener('wheel', (event) => this.onWheel(event), clickableState),
-            ctx.interactionManager.addListener('hover', () => this.onHover(), clickableState),
+            region.addListener('dblclick', (event) => this.onDoubleClick(event), clickableState),
+            region.addListener('drag', (event) => this.onDrag(event), draggableState),
+            region.addListener('drag-start', (event) => this.onDragStart(event), draggableState),
+            region.addListener('drag-end', () => this.onDragEnd(), draggableState),
+            region.addListener('wheel', (event) => this.onWheel(event), clickableState),
+            region.addListener('hover', () => this.onHover(), clickableState),
             ctx.chartEventManager.addListener('axis-hover', (event) => this.onAxisHover(event)),
             ctx.gestureDetector.addListener('pinch-move', (event) => this.onPinchMove(event as PinchEvent)),
             ctx.layoutService.addListener('layout-complete', (event) => this.onLayoutComplete(event)),

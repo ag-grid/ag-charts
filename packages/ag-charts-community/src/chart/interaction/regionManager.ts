@@ -5,7 +5,7 @@ import { Logger } from '../../util/logger';
 import type { InteractionEvent, InteractionManager, InteractionTypes } from './interactionManager';
 import { INTERACTION_TYPES, InteractionState } from './interactionManager';
 
-export type RegionName = 'legend' | 'pagination' | 'series';
+export type RegionName = 'legend' | 'navigator' | 'pagination' | 'series';
 
 type RegionHandler<Event extends InteractionEvent> = (event: Event) => void;
 
@@ -17,7 +17,7 @@ type Region = {
 };
 
 export class RegionManager {
-    public currentRegion?: Region;
+    private currentRegion?: Region;
 
     private eventHandler = (event: InteractionEvent<InteractionTypes>) => this.processEvent(event);
     private regions: BBoxSet<Region> = new BBoxSet();
@@ -48,23 +48,42 @@ export class RegionManager {
     }
 
     public addRegion(name: RegionName, bboxprovider: BBoxProvider) {
-        const region = this.pushRegion(name, bboxprovider);
-        const { interactionManager } = this;
+        return this.makeObserver(this.pushRegion(name, bboxprovider));
+    }
 
+    public getRegion(name: RegionName) {
+        return this.makeObserver(this.findByName(name));
+    }
+
+    private findByName(name: RegionName): Region | undefined {
+        for (const region of this.regions) {
+            if (region.name === name) {
+                return region;
+            }
+        }
+        Logger.errorOnce(`unable '${name}' region found`);
+    }
+
+    // This method return a wrapper object that matches the interface of InteractionManager.addListener.
+    // The intent is to allow the InteractionManager and RegionManager to be used almost interchangeably.
+    private makeObserver(region: Region | undefined) {
+        const { interactionManager } = this;
         class ObservableRegionImplementation {
             addListener<T extends InteractionTypes>(
                 type: T,
                 handler: RegionHandler<InteractionEvent<T>>,
                 triggeringStates: InteractionState = InteractionState.Default
-            ) {
-                return region.listeners.addListener(type, (e) => {
-                    if (!e.consumed) {
-                        const currentState = interactionManager.getState();
-                        if (currentState & triggeringStates) {
-                            handler(e as InteractionEvent<T>);
+            ): () => void {
+                return (
+                    region?.listeners.addListener(type, (e) => {
+                        if (!e.consumed) {
+                            const currentState = interactionManager.getState();
+                            if (currentState & triggeringStates) {
+                                handler(e as InteractionEvent<T>);
+                            }
                         }
-                    }
-                });
+                    }) ?? (() => undefined)
+                );
             }
         }
         return new ObservableRegionImplementation();
