@@ -1416,7 +1416,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     // For formatting arbitrary values between the ticks.
     formatDatum(datum: any): string {
-        return String(datum);
+        return this.formatTick(datum, 0);
     }
 
     maxThickness: number = Infinity;
