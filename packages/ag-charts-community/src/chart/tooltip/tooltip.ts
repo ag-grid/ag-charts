@@ -408,7 +408,8 @@ export class Tooltip {
         const top = clamp(windowBounds.y, position.y, maxTop);
 
         const constrained = left !== position.x || top !== position.y;
-        const defaultShowArrow = positionType === 'node' && !constrained && !xOffset && !yOffset;
+        const defaultShowArrow =
+            (positionType === 'node' || positionType === 'pointer') && !constrained && !xOffset && !yOffset;
         const showArrow = meta.showArrow ?? this.showArrow ?? defaultShowArrow;
         this.updateShowArrow(showArrow);
 
@@ -474,14 +475,10 @@ export class Tooltip {
         };
 
         switch (positionType) {
-            case 'node': {
+            case 'node':
+            case 'pointer': {
                 bounds.top = meta.offsetY + yOffset - tooltipHeight - 8;
                 bounds.left = meta.offsetX + xOffset - tooltipWidth / 2;
-                return bounds;
-            }
-            case 'pointer': {
-                bounds.top = meta.offsetY + yOffset - 8;
-                bounds.left = meta.offsetX + xOffset;
                 return bounds;
             }
             case 'top': {
