@@ -17,10 +17,10 @@ const options: AgChartOptions = {
     series: [
         {
             type: 'range-bar',
-            xKey: 'Date',
+            xKey: 'date',
             xName: 'Date',
-            yLowKey: 'Low',
-            yHighKey: 'High',
+            yLowKey: 'low',
+            yHighKey: 'high',
             strokeWidth: 1,
         },
     ],
