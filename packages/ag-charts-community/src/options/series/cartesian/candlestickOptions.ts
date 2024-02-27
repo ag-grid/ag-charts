@@ -15,7 +15,6 @@ import type {
 export type AgCandlestickSeriesItemType = 'up' | 'down';
 
 interface CandlestickUniqueOptions {
-    // required
     /** The key to use to retrieve open values from the data. */
     openKey: string;
     /** The key to use to retrieve close values from the data. */
@@ -24,7 +23,6 @@ interface CandlestickUniqueOptions {
     highKey: string;
     /** The key to use to retrieve low values from the data. */
     lowKey: string;
-    // optional
     /** A human-readable description of open values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     openName?: string;
     /** A human-readable description of close values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
