@@ -535,7 +535,7 @@ export abstract class CartesianSeries<
         const labelItems = labelData.filter(
             (ld) => ld.datum === highlightedItem.datum && ld.itemId === highlightedItem.itemId
         );
-        return labelItems.length !== 0 ? labelItems : undefined;
+        return labelItems.length === 0 ? undefined : labelItems;
     }
 
     protected getHighlightData(_nodeData: TDatum[], highlightedItem: TDatum): TDatum[] | undefined {
@@ -699,12 +699,12 @@ export abstract class CartesianSeries<
                     continue;
                 }
 
-                const point = primaryDirection === ChartAxisDirection.X ? [datumX, datumY] : [datumY, datumX];
+                const datumPoint = primaryDirection === ChartAxisDirection.X ? [datumX, datumY] : [datumY, datumX];
 
                 // Compare distances from most significant dimension to least.
                 let newMinDistance = true;
-                for (let i = 0; i < point.length; i++) {
-                    const dist = Math.abs(point[i] - hitPointCoords[i]);
+                for (let i = 0; i < datumPoint.length; i++) {
+                    const dist = Math.abs(datumPoint[i] - hitPointCoords[i]);
                     if (dist > minDistance[i]) {
                         newMinDistance = false;
                         break;
@@ -1073,7 +1073,7 @@ export abstract class CartesianSeries<
 
                 result[direction] = {
                     type: 'log',
-                    convert: (domain) => axis.scale.convert(domain),
+                    convert: (d) => axis.scale.convert(d),
                     domain: [domain[0], domain[1]],
                     range: [range[0], range[1]],
                 };

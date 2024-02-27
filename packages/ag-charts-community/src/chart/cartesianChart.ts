@@ -322,7 +322,7 @@ export class CartesianChart extends Chart {
         const reversedAxes = this.axes.slice().reverse();
         directions.forEach((dir) => {
             const padding = this.seriesArea.padding[dir];
-            const axis = reversedAxes.find((axis) => axis.position === dir);
+            const axis = reversedAxes.find((a) => a.position === dir);
             if (axis) {
                 axis.seriesAreaPadding = padding;
             } else {
@@ -398,8 +398,8 @@ export class CartesianChart extends Chart {
         let { clipSeries } = opts;
         const { position = 'left', direction } = axis;
 
-        const axisLeftRightRange = (axis: ChartAxis) => {
-            if (axis instanceof CategoryAxis || axis instanceof GroupedCategoryAxis) {
+        const axisLeftRightRange = (targetAxis: ChartAxis) => {
+            if (targetAxis instanceof CategoryAxis || targetAxis instanceof GroupedCategoryAxis) {
                 return [0, seriesRect.height];
             }
             return [seriesRect.height, 0];
