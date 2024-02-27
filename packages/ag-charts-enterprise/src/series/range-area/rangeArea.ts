@@ -244,12 +244,12 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             const points = invalidRange ? [] : createCoordinates(xValue, yHighValue, yLowValue);
 
             const inverted = yLowValue > yHighValue;
-            points.forEach(({ point: { x, y }, size, itemId = '', yValue }) => {
+            points.forEach(({ point: { x, y }, size, itemId: datumItemId = '', yValue }) => {
                 // marker data
                 markerData.push({
                     index: datumIdx,
                     series: this,
-                    itemId,
+                    itemId: datumItemId,
                     datum,
                     midPoint: { x, y },
                     yHighValue,
@@ -267,7 +267,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                     value: yValue,
                     yLowValue,
                     yHighValue,
-                    itemId,
+                    itemId: datumItemId,
                     inverted,
                     datum,
                     series: this,
@@ -351,7 +351,10 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const { xKey, yLowKey, yHighKey, xName, yName, yLowName, yHighName, label } = this.properties;
         const { placement, padding = 10 } = label;
 
-        const actualItemId = inverted ? (itemId === 'low' ? 'high' : 'low') : itemId;
+        let actualItemId = itemId;
+        if (inverted) {
+            actualItemId = itemId === 'low' ? 'high' : 'low';
+        }
         const direction =
             (placement === 'outside' && actualItemId === 'high') || (placement === 'inside' && actualItemId === 'low')
                 ? -1
@@ -366,7 +369,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             text: this.getLabelText(
                 label,
                 { value, datum, itemId, xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName },
-                (value) => (isNumber(value) ? value.toFixed(2) : String(value))
+                (v) => (isNumber(v) ? v.toFixed(2) : String(v))
             ),
             textAlign: 'center',
             textBaseline: direction === -1 ? 'bottom' : 'top',

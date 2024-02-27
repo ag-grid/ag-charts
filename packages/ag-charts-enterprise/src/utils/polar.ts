@@ -8,11 +8,11 @@
  * @returns `true` if the `iterator` returned `true`, or `false` if it never happened.
  */
 export function loopSymmetrically<T>(items: T[], step: number, iterator: (prev: T, next: T) => any) {
-    const loop = (start: number, end: number, step: number, iterator: (prev: T, next: T) => any) => {
+    const loop = (start: number, end: number, loopStep: number, loopIterator: (prev: T, next: T) => any) => {
         let prev = items[0];
-        for (let i = start; step > 0 ? i <= end : i > end; i += step) {
+        for (let i = start; loopStep > 0 ? i <= end : i > end; i += loopStep) {
             const curr = items[i];
-            if (iterator(prev, curr)) return true;
+            if (loopIterator(prev, curr)) return true;
             prev = curr;
         }
         return false;

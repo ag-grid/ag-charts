@@ -879,11 +879,12 @@ export abstract class Chart extends Observable implements AgChartInstance {
     async processData() {
         if (this.series.some((s) => s.canHaveAxes)) {
             this.assignAxesToSeries();
-            this.assignSeriesToAxes();
 
             const syncModule = this.modulesManager.getModule<SyncModule>('sync');
             if (syncModule?.enabled) {
                 syncModule.syncAxes(this._skipSync);
+            } else {
+                this.assignSeriesToAxes();
             }
         }
 
@@ -1058,8 +1059,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
         // mouse hasn't moved since (see AG-10233).
         const { Default, ContextMenu } = InteractionState;
         if (this.interactionManager.getState() & (Default | ContextMenu)) {
-            this.checkSeriesNodeRange(event, (_series, datum) => {
-                this.highlightManager.updateHighlight(this.id, datum);
+            this.checkSeriesNodeRange(event, (_series, _datum) => {
+                this.highlightManager.updateHighlight(this.id);
             });
         }
     }

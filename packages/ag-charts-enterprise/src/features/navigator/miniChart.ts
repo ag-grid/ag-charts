@@ -103,8 +103,8 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
         }
     }
 
-    protected destroySeries(series: _ModuleSupport.Series<any>[]): void {
-        series?.forEach((series) => {
+    protected destroySeries(allSeries: _ModuleSupport.Series<any>[]): void {
+        allSeries?.forEach((series) => {
             series.destroy();
 
             if (series.rootGroup != null) {

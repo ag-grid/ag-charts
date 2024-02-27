@@ -101,7 +101,7 @@ export function average(scope: ScopeProvider, id: string, matchGroupId: string) 
 }
 
 export function groupAverage(scope: ScopeProvider, id: string, matchGroupId?: string) {
-    const result: AggregatePropertyDefinition<any, any, [number, number], [number, number, number]> = {
+    const def: AggregatePropertyDefinition<any, any, [number, number], [number, number, number]> = {
         id,
         scopes: [scope.id],
         matchGroupIds: matchGroupId ? [matchGroupId] : undefined,
@@ -122,7 +122,7 @@ export function groupAverage(scope: ScopeProvider, id: string, matchGroupId?: st
         },
     };
 
-    return result;
+    return def;
 }
 
 export function area(

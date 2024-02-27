@@ -1,6 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it } from '@jest/globals';
 
-import type { AgCartesianChartOptions, AgChartInstance, AgChartOptions } from '../options/agChartOptions';
+import type {
+    AgCartesianAxisOptions,
+    AgCartesianChartOptions,
+    AgChartInstance,
+    AgChartOptions,
+} from '../options/agChartOptions';
 import { AgCharts } from './agChartV2';
 import type { Chart } from './chart';
 import * as examples from './test/examples';
@@ -133,15 +138,21 @@ describe('AgChartV2', () => {
         });
 
         it('should allow switching positions of axes', async () => {
+            const adjustPosition = (a: AgCartesianAxisOptions, idx: number): AgCartesianAxisOptions => {
+                let position: AgCartesianAxisOptions['position'] = 'top';
+                if (a.type === 'category') {
+                    position = idx === 0 ? 'left' : 'right';
+                } else if (idx === 0) {
+                    position = 'bottom';
+                }
+                return { ...a, position };
+            };
             const exampleCycle: AgCartesianChartOptions[] = [
                 { ...examples.GROUPED_BAR_CHART_EXAMPLE },
                 { ...examples.GROUPED_BAR_CHART_EXAMPLE },
             ].map(({ axes, ...opts }, idx) => ({
                 ...opts,
-                axes: axes?.map((a) => ({
-                    ...a,
-                    position: a.type === 'category' ? (idx === 0 ? 'left' : 'right') : idx === 0 ? 'bottom' : 'top',
-                })),
+                axes: axes?.map((a) => adjustPosition(a, idx)),
             }));
             exampleCycle.forEach((opts) => prepareTestOptions(opts));
 

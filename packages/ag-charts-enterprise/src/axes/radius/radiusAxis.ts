@@ -124,22 +124,22 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
             }
 
             const radius = this.getTickRadius(value);
-            angles.forEach((angle, i) => {
+            angles.forEach((angle, idx) => {
                 const x = radius * Math.cos(angle);
                 const y = radius * Math.sin(angle);
-                if (i === 0) {
+                if (idx === 0) {
                     path.moveTo(x, y);
                 } else {
                     path.lineTo(x, y);
                 }
 
-                angles.forEach((angle, i) => {
-                    const x = radius * Math.cos(angle);
-                    const y = radius * Math.sin(angle);
-                    if (i === 0) {
-                        path.moveTo(x, y);
+                angles.forEach((innerAngle, innerIdx) => {
+                    const x2 = radius * Math.cos(innerAngle);
+                    const y2 = radius * Math.sin(innerAngle);
+                    if (innerIdx === 0) {
+                        path.moveTo(x2, y2);
                     } else {
-                        path.lineTo(x, y);
+                        path.lineTo(x2, y2);
                     }
                 });
                 path.closePath();

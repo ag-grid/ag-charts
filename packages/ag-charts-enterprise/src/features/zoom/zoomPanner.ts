@@ -1,8 +1,8 @@
 import type { _Scene } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
-import { constrainZoom, definedZoomState, pointToRatio, translateZoom } from './zoomTransformers';
 import type { ZoomCoords } from './zoomTypes';
+import { constrainZoom, definedZoomState, pointToRatio, translateZoom } from './zoomUtils';
 
 export type Zooms = ReturnType<_ModuleSupport.ZoomManager['getAxisZooms']>;
 
@@ -20,13 +20,13 @@ export class ZoomPanner {
         this.isPanning = true;
 
         const { offsetX: x, offsetY: y } = event;
-        if (!this.dragCoords) {
-            this.dragCoords = { x1: x, y1: y, x2: x, y2: y };
-        } else {
+        if (this.dragCoords) {
             this.dragCoords.x1 = this.dragCoords.x2;
             this.dragCoords.y1 = this.dragCoords.y2;
             this.dragCoords.x2 = x;
             this.dragCoords.y2 = y;
+        } else {
+            this.dragCoords = { x1: x, y1: y, x2: x, y2: y };
         }
         return this.translateZooms(bbox, zooms, this.dragCoords);
     }

@@ -30,6 +30,7 @@ export function isMarkerShape(shape: unknown): shape is MarkerSupportedShapes {
 // This function is in its own file because putting it into SeriesMarker makes the Legend
 // suddenly aware of the series (it's an agnostic component), and putting it into Marker
 // introduces circular dependencies.
+// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 export function getMarker(shape: MarkerShape | string = Square): MarkerConstructor {
     if (isMarkerShape(shape)) {
         return MARKER_SHAPES[shape];

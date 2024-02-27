@@ -23,7 +23,7 @@ export class RegionManager {
     private regions: BBoxSet<Region> = new BBoxSet();
     private readonly destroyFns: (() => void)[] = [];
 
-    constructor(private interactionManager: InteractionManager) {
+    constructor(private readonly interactionManager: InteractionManager) {
         this.destroyFns.push(
             ...INTERACTION_TYPES.map((eventName) =>
                 interactionManager.addListener(eventName, this.eventHandler, InteractionState.All)

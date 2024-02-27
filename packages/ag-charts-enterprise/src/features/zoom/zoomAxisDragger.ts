@@ -1,8 +1,8 @@
 import type { AgZoomAnchorPoint, _Scene } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
-import { constrainZoom, definedZoomState, pointToRatio, scaleZoomAxisWithAnchor } from './zoomTransformers';
 import type { DefinedZoomState, ZoomCoords } from './zoomTypes';
+import { constrainZoom, definedZoomState, pointToRatio, scaleZoomAxisWithAnchor } from './zoomUtils';
 
 export class ZoomAxisDragger {
     public isAxisDragging: boolean = false;
@@ -36,11 +36,11 @@ export class ZoomAxisDragger {
     }
 
     private updateCoords(x: number, y: number): void {
-        if (!this.coords) {
-            this.coords = { x1: x, y1: y, x2: x, y2: y };
-        } else {
+        if (this.coords) {
             this.coords.x2 = x;
             this.coords.y2 = y;
+        } else {
+            this.coords = { x1: x, y1: y, x2: x, y2: y };
         }
     }
 

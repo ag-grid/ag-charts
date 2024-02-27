@@ -1,13 +1,13 @@
 import type { AgZoomAnchorPoint, _ModuleSupport, _Scene } from 'ag-charts-community';
 
+import type { DefinedZoomState } from './zoomTypes';
 import {
     constrainZoom,
     definedZoomState,
     pointToRatio,
     scaleZoomAxisWithAnchor,
     scaleZoomAxisWithPoint,
-} from './zoomTransformers';
-import type { DefinedZoomState } from './zoomTypes';
+} from './zoomUtils';
 
 export class ZoomScroller {
     update(

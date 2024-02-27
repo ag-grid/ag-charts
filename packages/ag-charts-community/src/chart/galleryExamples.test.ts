@@ -70,7 +70,6 @@ describe('Gallery Examples', () => {
         const ctx = setupMockCanvas();
 
         describe.each(Object.entries(EXAMPLES))('for %s', (_exampleName, example) => {
-            let chart: Chart;
             let options: AgChartOptions;
 
             beforeEach(async () => {
@@ -82,8 +81,6 @@ describe('Gallery Examples', () => {
             });
 
             afterEach(() => {
-                chart.destroy();
-                chart = null!;
                 options = null!;
             });
 

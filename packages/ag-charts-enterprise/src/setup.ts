@@ -18,6 +18,7 @@ import { LicenseManager } from './license/licenseManager';
 import { injectWatermark } from './license/watermark';
 import { BoxPlotModule } from './series/box-plot/boxPlotModule';
 import { BulletModule } from './series/bullet/bulletModule';
+import { CandlestickModule } from './series/candlestick/candlestickModule';
 import { HeatmapModule } from './series/heatmap/main';
 import { NightingaleModule } from './series/nightingale/main';
 import { RadarAreaModule } from './series/radar-area/main';
@@ -36,6 +37,7 @@ export function setupEnterpriseModules() {
     _ModuleSupport.registerModule(AnimationModule);
     _ModuleSupport.registerModule(BackgroundModule);
     _ModuleSupport.registerModule(BoxPlotModule);
+    _ModuleSupport.registerModule(CandlestickModule);
     _ModuleSupport.registerModule(BulletModule);
     _ModuleSupport.registerModule(ContextMenuModule);
     _ModuleSupport.registerModule(CrosshairModule);
@@ -62,7 +64,7 @@ export function setupEnterpriseModules() {
     _ModuleSupport.enterpriseModule.isEnterprise = true;
     _ModuleSupport.enterpriseModule.licenseManager = (options: AgChartOptions) =>
         new LicenseManager(
-            options.container?.ownerDocument ?? (typeof document !== 'undefined' ? document : undefined)
+            options.container?.ownerDocument ?? (typeof document === 'undefined' ? undefined : document)
         );
     _ModuleSupport.enterpriseModule.injectWatermark = injectWatermark;
 }

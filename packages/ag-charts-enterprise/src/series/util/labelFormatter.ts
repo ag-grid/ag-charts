@@ -91,11 +91,11 @@ export function maximumValueSatisfying<T>(
     while (max >= min) {
         const index = ((max + min) / 2) | 0;
         const value = iteratee(index);
-        if (value != null) {
+        if (value == null) {
+            max = index - 1;
+        } else {
             found = value;
             min = index + 1;
-        } else {
-            max = index - 1;
         }
     }
 
@@ -208,7 +208,9 @@ export function formatStackedLabels<Meta, FormatterParams>(
                 allowTruncation ? labelProps.overflowStrategy : 'hide'
             );
 
-            if (labelLines != null) {
+            if (labelLines == null) {
+                label = undefined;
+            } else {
                 const labelText = labelLines.join('\n');
 
                 labelTextNode.text = labelText;
@@ -224,8 +226,6 @@ export function formatStackedLabels<Meta, FormatterParams>(
                     width: labelWidth,
                     height: labelHeight,
                 };
-            } else {
-                label = undefined;
             }
         }
 
@@ -244,7 +244,9 @@ export function formatStackedLabels<Meta, FormatterParams>(
                 allowTruncation ? secondaryLabelProps.overflowStrategy : 'hide'
             );
 
-            if (secondaryLabelLines != null) {
+            if (secondaryLabelLines == null) {
+                secondaryLabel = undefined;
+            } else {
                 const secondaryLabelText = secondaryLabelLines.join('\n');
 
                 secondaryLabelTextNode.text = secondaryLabelText;
@@ -260,8 +262,6 @@ export function formatStackedLabels<Meta, FormatterParams>(
                     width: secondaryLabelWidth,
                     height: secondaryLabelHeight,
                 };
-            } else {
-                secondaryLabel = undefined;
             }
         }
 
@@ -346,8 +346,8 @@ export function formatSingleLabel<Meta, FormatterParams>(
     });
 }
 
-function hasInvalidFontSize<FormatterParams>(label: BaseAutoSizedLabel<FormatterParams> | undefined) {
-    return label != null && label.minimumFontSize != null && label.fontSize && label.minimumFontSize > label.fontSize;
+function hasInvalidFontSize<FormatterParams>(label?: BaseAutoSizedLabel<FormatterParams>) {
+    return label?.minimumFontSize != null && label?.fontSize && label?.minimumFontSize > label?.fontSize;
 }
 
 export function formatLabels<Meta = never, FormatterParams = any>(

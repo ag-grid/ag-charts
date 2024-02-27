@@ -122,7 +122,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
             invalidValue: null,
             missingValue: 0,
             separateNegative: true,
-            ...(!cartesianSeries.visible ? { forceValue: 0 } : {}),
+            ...(cartesianSeries.visible ? {} : { forceValue: 0 }),
         };
         const makeErrorProperty = (key: string, continuous: boolean, id: string, type: 'lower' | 'upper') => {
             return groupAccumulativeValueProperty(cartesianSeries, key, continuous, 'normal', 'current', {

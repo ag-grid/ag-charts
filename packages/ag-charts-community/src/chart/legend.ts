@@ -776,8 +776,8 @@ export class Legend extends BaseProperties {
 
             if (preventHidingAll && !newEnabled) {
                 const numVisibleItems = chartService.series
-                    .flatMap((series) => series.getLegendData('category'))
-                    .filter((datum) => datum.enabled).length;
+                    .flatMap((s) => s.getLegendData('category'))
+                    .filter((d) => d.enabled).length;
 
                 if (numVisibleItems < 2) {
                     newEnabled = true;
@@ -828,8 +828,8 @@ export class Legend extends BaseProperties {
         event.consume();
 
         if (toggleSeriesVisible) {
-            const legendData = chartService.series.flatMap((series) => series.getLegendData('category'));
-            const numVisibleItems = legendData.filter((datum) => datum.enabled).length;
+            const legendData = chartService.series.flatMap((s) => s.getLegendData('category'));
+            const numVisibleItems = legendData.filter((d) => d.enabled).length;
 
             const clickedItem = legendData.find((d) => d.itemId === itemId && d.seriesId === seriesId);
 
@@ -869,7 +869,7 @@ export class Legend extends BaseProperties {
             return;
         }
 
-        const series = datum ? this.ctx.chartService.series.find((series) => series.id === datum?.id) : undefined;
+        const series = datum ? this.ctx.chartService.series.find((s) => s.id === datum?.id) : undefined;
         if (datum && this.truncatedItems.has(datum.itemId ?? datum.id)) {
             this.ctx.tooltipManager.updateTooltip(
                 this.id,

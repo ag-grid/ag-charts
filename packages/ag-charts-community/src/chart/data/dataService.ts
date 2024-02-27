@@ -92,7 +92,7 @@ export class DataService<D extends object> extends Listeners<EventType, EventHan
 
     private createThrottledDispatch(dispatchThrottle: number) {
         return throttle(
-            (id: number, data: D[] | any) => {
+            (id: number, data: D[]) => {
                 this.debug(`DataService - dispatching 'data-load' | ${id}`);
                 this.dispatch('data-load', { type: 'data-load', data });
             },

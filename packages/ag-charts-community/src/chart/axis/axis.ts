@@ -1473,6 +1473,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             gridPadding: this.gridPadding,
             seriesAreaPadding: this.seriesAreaPadding,
             tickSize: this.getTickSize(),
+            direction: this.direction,
+            domain: this.dataDomain.domain,
             ...this.layout,
         };
     }

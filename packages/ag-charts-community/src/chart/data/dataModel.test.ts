@@ -377,18 +377,18 @@ describe('DataModel', () => {
             });
 
             it('should only sum per data-item', () => {
-                const dataModel = new DataModel<any, any, true>({
+                const dataModel2 = new DataModel<any, any, true>({
                     props: [categoryKey('kp'), value('vp1', 'all'), value('vp2', 'all'), sum('all')],
                     groupByKeys: true,
                 });
-                const data = [
+                const data2 = [
                     { kp: 'Q1', vp1: 5, vp2: 7 },
                     { kp: 'Q1', vp1: 1, vp2: 2 },
                     { kp: 'Q2', vp1: 6, vp2: 9 },
                     { kp: 'Q2', vp1: 6, vp2: 9 },
                 ];
 
-                const result = dataModel.processData(data);
+                const result = dataModel2.processData(data2);
 
                 expect(result?.domain.aggValues).toEqual([[0, 15]]);
                 expect(result?.data[0].aggValues).toEqual([[0, 12]]);
@@ -505,18 +505,18 @@ describe('DataModel', () => {
             });
 
             it('should only sum per data-item', () => {
-                const dataModel = new DataModel<any, any, true>({
+                const dataModel2 = new DataModel<any, any, true>({
                     props: [categoryKey('kp'), value('vp1', 'all'), value('vp2', 'all'), sum('all')],
                     groupByKeys: true,
                 });
-                const data = [
+                const data2 = [
                     { kp: 'Q1', vp1: 5, vp2: 7 },
                     { kp: 'Q1', vp1: 1, vp2: 2 },
                     { kp: 'Q2', vp1: 6, vp2: 9 },
                     { kp: 'Q2', vp1: 6, vp2: 9 },
                 ];
 
-                const result = dataModel.processData(data);
+                const result = dataModel2.processData(data2);
 
                 expect(result?.domain.aggValues).toEqual([[0, 15]]);
                 expect(result?.data[0].aggValues).toEqual([[0, 12]]);

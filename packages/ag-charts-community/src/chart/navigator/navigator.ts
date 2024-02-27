@@ -114,6 +114,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     }
 
     private onRangeChange() {
+        if (!this.enabled) return;
         const { min, max } = this.rs;
         const zoom = this.ctx.zoomManager.getZoom();
         if (zoom?.x?.min !== min || zoom?.x?.max !== max) {
@@ -122,8 +123,9 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     }
 
     private onZoomChange() {
+        if (!this.enabled) return;
         const currentZoom = this.ctx.zoomManager.getZoom();
-        if (currentZoom && currentZoom.x) {
+        if (currentZoom?.x) {
             this.min = currentZoom.x.min;
             this.max = currentZoom.x.max;
         }

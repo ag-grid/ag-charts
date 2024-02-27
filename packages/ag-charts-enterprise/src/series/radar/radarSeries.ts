@@ -190,12 +190,26 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDa
                 );
 
                 if (labelText) {
+                    let textAlign: CanvasTextAlign = 'right';
+                    if (isNumberEqual(cos, 0)) {
+                        textAlign = 'center';
+                    } else if (cos > 0) {
+                        textAlign = 'left';
+                    }
+
+                    let textBaseline: CanvasTextBaseline = 'bottom';
+                    if (isNumberEqual(sin, 0)) {
+                        textBaseline = 'middle';
+                    } else if (sin > 0) {
+                        textBaseline = 'top';
+                    }
+
                     labelNodeDatum = {
                         x: x + cos * marker.size,
                         y: y + sin * marker.size,
                         text: labelText,
-                        textAlign: isNumberEqual(cos, 0) ? 'center' : cos > 0 ? 'left' : 'right',
-                        textBaseline: isNumberEqual(sin, 0) ? 'middle' : sin > 0 ? 'top' : 'bottom',
+                        textAlign,
+                        textBaseline,
                     };
                 }
             }

@@ -170,8 +170,8 @@ describe('BackgroundImage', () => {
 
         const ctx = setupMockCanvas();
 
-        const compare = async (chart: AgChartInstance) => {
-            await waitForChartStability(chart);
+        const compare = async (chartInstance: AgChartInstance) => {
+            await waitForChartStability(chartInstance);
 
             const imageData = extractImageData(ctx);
             expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);

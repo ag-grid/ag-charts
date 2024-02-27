@@ -77,7 +77,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_Scene.Group,
     override async processData() {
         const { childrenKey, colorKey, colorName, labelKey, secondaryLabelKey, sizeKey, sizeName } = this.properties;
 
-        super.processData();
+        await super.processData();
 
         this.angleData = getAngleData(this.rootNode);
 
@@ -283,14 +283,14 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_Scene.Group,
             const outerEndAngle = angleData.end + outerAngleOffset;
             const deltaOuterAngle = outerEndAngle - outerStartAngle;
 
-            const sizeFittingHeight = (height: number) => {
+            const sizeFittingHeight = (labelHeight: number) => {
                 const isCenterCircle = depth === 0 && node.parent?.sumSize === node.sumSize;
                 if (isCenterCircle) {
-                    const width = 2 * Math.sqrt(outerRadius ** 2 - (height * 0.5) ** 2);
-                    return { width, height, meta: LabelPlacement.CenterCircle };
+                    const labelWidth = 2 * Math.sqrt(outerRadius ** 2 - (labelHeight * 0.5) ** 2);
+                    return { width: labelWidth, height: labelHeight, meta: LabelPlacement.CenterCircle };
                 }
 
-                const parallelHeight = height;
+                const parallelHeight = labelHeight;
                 const availableWidthUntilItHitsTheOuterRadius =
                     2 * Math.sqrt(outerRadius ** 2 - (innerRadius + parallelHeight) ** 2);
                 const availableWidthUntilItHitsTheStraightEdges =
@@ -304,10 +304,10 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_Scene.Group,
                 let perpendicularWidth: number;
                 if (depth === 0) {
                     // Wedge from center - maximize the width of a box with fixed height
-                    perpendicularHeight = height;
+                    perpendicularHeight = labelHeight;
                     perpendicularWidth =
                         Math.sqrt(outerRadius ** 2 - (perpendicularHeight / 2) ** 2) -
-                        height / (2 * Math.tan(deltaOuterAngle * 0.5));
+                        labelHeight / (2 * Math.tan(deltaOuterAngle * 0.5));
                 } else {
                     // Outer wedge - fit the height to the sector, then fit the width
                     perpendicularHeight = 2 * innerRadius * Math.tan(deltaInnerAngle * 0.5);
@@ -332,7 +332,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_Scene.Group,
                 return;
             }
 
-            const { width, height, meta: labelPlacement, label, secondaryLabel } = formatting;
+            const { width: labelWidth, height: labelHeight, meta: labelPlacement, label, secondaryLabel } = formatting;
 
             const theta = angleOffset + (angleData.start + angleData.end) / 2;
             const top = Math.sin(theta) >= 0;
@@ -340,30 +340,39 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_Scene.Group,
             const circleQuarter =
                 (top ? CircleQuarter.Top : CircleQuarter.Bottom) & (right ? CircleQuarter.Right : CircleQuarter.Left);
 
-            let radius: number;
+            let labelRadius: number;
             switch (labelPlacement) {
                 case LabelPlacement.CenterCircle:
-                    radius = 0;
+                    labelRadius = 0;
                     break;
                 case LabelPlacement.Parallel: {
                     const opticalCentering = 0.58; // Between 0 and 1 - there's no maths behind this, just what visually looks good
-                    const idealRadius = outerRadius - (radiusScale - height) * opticalCentering;
-                    const maximumRadius = Math.sqrt((outerRadius - padding) ** 2 - (width / 2) ** 2);
-                    radius = Math.min(idealRadius, maximumRadius);
+                    const idealRadius = outerRadius - (radiusScale - labelHeight) * opticalCentering;
+                    const maximumRadius = Math.sqrt((outerRadius - padding) ** 2 - (labelWidth / 2) ** 2);
+                    labelRadius = Math.min(idealRadius, maximumRadius);
                     break;
                 }
                 case LabelPlacement.Perpendicular:
                     if (depth === 0) {
-                        const minimumRadius = height / (2 * Math.tan(deltaInnerAngle * 0.5)) + width * 0.5;
-                        const maximumRadius = Math.sqrt(outerRadius ** 2 - (height * 0.5) ** 2) - width * 0.5;
-                        radius = (minimumRadius + maximumRadius) * 0.5;
+                        const minimumRadius = labelHeight / (2 * Math.tan(deltaInnerAngle * 0.5)) + labelWidth * 0.5;
+                        const maximumRadius = Math.sqrt(outerRadius ** 2 - (labelHeight * 0.5) ** 2) - labelWidth * 0.5;
+                        labelRadius = (minimumRadius + maximumRadius) * 0.5;
                     } else {
-                        radius = (innerRadius + outerRadius) * 0.5;
+                        labelRadius = (innerRadius + outerRadius) * 0.5;
                     }
                     break;
             }
 
-            return { width, height, labelPlacement, circleQuarter, radius, theta, label, secondaryLabel };
+            return {
+                width: labelWidth,
+                height: labelHeight,
+                labelPlacement,
+                circleQuarter,
+                radius: labelRadius,
+                theta,
+                label,
+                secondaryLabel,
+            };
         });
 
         const updateText = (
@@ -381,7 +390,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_Scene.Group,
                 return;
             }
 
-            const { height, labelPlacement, circleQuarter, radius, theta } = meta;
+            const { height: textHeight, labelPlacement, circleQuarter, radius: textRadius, theta } = meta;
 
             let highlightedColor: string | undefined;
             if (highlighted) {
@@ -406,13 +415,16 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_Scene.Group,
                     text.textAlign = 'center';
                     text.textBaseline = 'top';
                     text.translationX = 0;
-                    text.translationY = (tag === TextNodeTag.Primary ? 0 : height - label.height) - height * 0.5;
+                    text.translationY =
+                        (tag === TextNodeTag.Primary ? 0 : textHeight - label.height) - textHeight * 0.5;
                     text.rotation = 0;
                     break;
                 case LabelPlacement.Parallel: {
                     const topHalf = (circleQuarter & CircleQuarter.Top) !== 0;
                     const translationRadius =
-                        (tag === TextNodeTag.Primary) === !topHalf ? radius : radius - (height - label.height);
+                        (tag === TextNodeTag.Primary) === !topHalf
+                            ? textRadius
+                            : textRadius - (textHeight - label.height);
                     text.textAlign = 'center';
                     text.textBaseline = topHalf ? 'bottom' : 'top';
                     text.translationX = Math.cos(theta) * translationRadius;
@@ -424,12 +436,12 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<_Scene.Group,
                     const rightHalf = (circleQuarter & CircleQuarter.Right) !== 0;
                     const translation =
                         (tag === TextNodeTag.Primary) === !rightHalf
-                            ? (height - label.height) * 0.5
-                            : (label.height - height) * 0.5;
+                            ? (textHeight - label.height) * 0.5
+                            : (label.height - textHeight) * 0.5;
                     text.textAlign = 'center';
                     text.textBaseline = 'middle';
-                    text.translationX = Math.cos(theta) * radius + Math.cos(theta + Math.PI / 2) * translation;
-                    text.translationY = Math.sin(theta) * radius + Math.sin(theta + Math.PI / 2) * translation;
+                    text.translationX = Math.cos(theta) * textRadius + Math.cos(theta + Math.PI / 2) * translation;
+                    text.translationY = Math.sin(theta) * textRadius + Math.sin(theta + Math.PI / 2) * translation;
                     text.rotation = rightHalf ? theta : theta + Math.PI;
                     break;
                 }

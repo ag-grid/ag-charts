@@ -7,6 +7,7 @@ const {
     BaseProperties,
     CartesianAxis,
     ChartUpdateType,
+    arraysEqual,
     isDate,
     isDefined,
     isFiniteNumber,
@@ -47,12 +48,18 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         chart.updateService.update(updateType, { skipSync: true });
     }
 
-    private async updateSiblings(groupId?: string) {
+    private updateSiblings(groupId?: string) {
         const { syncManager } = this.moduleContext;
-        for (const chart of syncManager.getGroupSiblings(groupId)) {
-            await chart.waitForDataProcess(1000);
-            this.updateChart(chart);
-        }
+
+        const updateFn = async () => {
+            for (const chart of syncManager.getGroupSiblings(groupId)) {
+                await chart.waitForDataProcess(120);
+                this.updateChart(chart);
+            }
+        };
+        updateFn().catch((e) => {
+            Logger.warnOnce('Error updating sibling chart', e);
+        });
     }
 
     private enabledZoomSync() {
@@ -102,8 +109,8 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
                                 eventValue = eventValue.getTime();
                             }
 
-                            const nodeDatum = nodeData.find((nodeDatum: any) => {
-                                const nodeValue = nodeDatum.datum[valueKey];
+                            const nodeDatum = nodeData.find((datum: any) => {
+                                const nodeValue = datum.datum[valueKey];
                                 return valueIsDate ? nodeValue.getTime() === eventValue : nodeValue === eventValue;
                             });
 
@@ -142,11 +149,16 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         const { syncManager } = this.moduleContext;
         const chart = syncManager.getChart();
 
-        const syncSeries = syncManager.getGroup(this.groupId).flatMap((chart) => chart.series);
-        const syncAxes = syncManager.getGroupSiblings(this.groupId).flatMap((chart) => chart.axes);
+        const syncSeries = syncManager.getGroup(this.groupId).flatMap((c) => c.series);
+        const syncAxes = syncManager.getGroupSiblings(this.groupId).flatMap((c) => c.axes);
+
+        let hasUpdated = false;
 
         chart.axes.forEach((axis) => {
-            if (!CartesianAxis.is(axis) || (this.axes !== 'xy' && this.axes !== axis.direction)) return;
+            if (!CartesianAxis.is(axis) || (this.axes !== 'xy' && this.axes !== axis.direction)) {
+                axis.boundSeries = chart.series.filter((s) => s.axes[axis.direction] === (axis as any));
+                return;
+            }
 
             const { direction, min, max, nice, reverse } = axis as (typeof syncAxes)[number];
 
@@ -160,17 +172,26 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
                     (max !== siblingAxis.max && (isFiniteNumber(max) || isFiniteNumber(siblingAxis.max)))
                 ) {
                     Logger.warnOnce('For axes sync, ensure matching `min`, `max`, `nice`, and `reverse` properties.');
+                    axis.boundSeries = chart.series.filter((s) => s.axes[axis.direction] === (axis as any));
+                    this.enabled = false;
                     return;
                 }
             }
 
-            axis.boundSeries = syncSeries.filter((series) => {
-                const seriesKeys = series.getKeys(axis.direction);
-                return axis.keys.length ? axis.keys.some((key) => seriesKeys.includes(key)) : true;
+            const boundSeries = syncSeries.filter((series) => {
+                if (series.visible) {
+                    const seriesKeys = series.getKeys(axis.direction);
+                    return axis.keys.length ? axis.keys.some((key) => seriesKeys.includes(key)) : true;
+                }
             });
+
+            if (!arraysEqual(axis.boundSeries, boundSeries)) {
+                axis.boundSeries = boundSeries;
+                hasUpdated = true;
+            }
         });
 
-        if (!stopPropagation) {
+        if (hasUpdated && !stopPropagation) {
             this.updateSiblings(this.groupId);
         }
     }

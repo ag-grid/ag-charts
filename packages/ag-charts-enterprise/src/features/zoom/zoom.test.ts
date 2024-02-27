@@ -192,9 +192,26 @@ describe('Zoom', () => {
         });
     });
 
-    describe('initial', () => {
+    describe('min/max', () => {
         it('should start at the given zoom', async () => {
             await prepareChart({ minX: 0.2, maxX: 0.8, minY: 0.1, maxY: 0.9 });
+            await compare();
+        });
+    });
+
+    describe('range', () => {
+        it('should start with the given range', async () => {
+            await prepareChart({ rangeX: { start: 3, end: 6 }, rangeY: { start: 30, end: 70 } });
+            await compare();
+        });
+
+        it('should extend the range to the start', async () => {
+            await prepareChart({ rangeX: { start: undefined, end: 6 } });
+            await compare();
+        });
+
+        it('should extend the range to the end', async () => {
+            await prepareChart({ rangeX: { start: 3, end: undefined } });
             await compare();
         });
     });

@@ -113,7 +113,7 @@ export interface AgWaterfallSeriesItemOptions<TDatum> extends FillOptions, Strok
     /** Configuration for the shadow used behind the series items. */
     shadow?: AgDropShadowOptions;
     /** Apply round corners to each bar. */
-    cornerRadius?: number;
+    cornerRadius?: PixelSize;
     /** Function used to return formatting for individual Waterfall series item cells, based on the given parameters. If the current cell is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     formatter?: (params: AgWaterfallSeriesFormatterParams<TDatum>) => AgWaterfallSeriesFormat;
     /** Series item specific tooltip configuration. */
