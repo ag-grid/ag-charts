@@ -310,7 +310,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.regionManager = new RegionManager(this.interactionManager);
         this.gestureDetector = new GestureDetector(element);
         this.layoutService = new LayoutService();
-        this.updateService = new UpdateService((type = ChartUpdateType.FULL, options) => this.update(type, options));
+        this.updateService = new UpdateService((type = ChartUpdateType.FULL, opts) => this.update(type, opts));
         this.seriesStateManager = new SeriesStateManager();
         this.seriesLayerManager = new SeriesLayerManager(this.seriesRoot);
         this.callbackCache = new CallbackCache();
@@ -476,12 +476,14 @@ export abstract class Chart extends Observable implements AgChartInstance {
     requestFactoryUpdate(cb: (chart: Chart) => Promise<void> | void) {
         if (this.destroyed) return;
         this._pendingFactoryUpdatesCount++;
-        this.updateMutex.acquire(async () => {
-            if (this.destroyed) return;
-            await cb(this);
-            if (this.destroyed) return;
-            this._pendingFactoryUpdatesCount--;
-        });
+        this.updateMutex
+            .acquire(async () => {
+                if (this.destroyed) return;
+                await cb(this);
+                if (this.destroyed) return;
+                this._pendingFactoryUpdatesCount--;
+            })
+            .catch((e) => Logger.errorOnce(e));
     }
 
     private _pendingFactoryUpdatesCount = 0;
@@ -495,13 +497,15 @@ export abstract class Chart extends Observable implements AgChartInstance {
     private updateRequestors: Record<string, ChartUpdateType> = {};
     private performUpdateTrigger = debouncedCallback(async ({ count }) => {
         if (this.destroyed) return;
-        this.updateMutex.acquire(async () => {
-            try {
-                await this.performUpdate(count);
-            } catch (error) {
-                Logger.error('update error', error);
-            }
-        });
+        this.updateMutex
+            .acquire(async () => {
+                try {
+                    await this.performUpdate(count);
+                } catch (error) {
+                    Logger.error('update error', error);
+                }
+            })
+            .catch((e) => Logger.errorOnce(e));
     });
     public update(type = ChartUpdateType.FULL, opts?: UpdateOpts) {
         const {
@@ -740,8 +744,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
-    protected destroySeries(series: Series<any>[]): void {
-        series?.forEach((series) => {
+    protected destroySeries(allSeries: Series<any>[]): void {
+        allSeries?.forEach((series) => {
             series.removeEventListener('nodeClick', this.onSeriesNodeClick);
             series.removeEventListener('nodeDoubleClick', this.onSeriesNodeDoubleClick);
             series.removeEventListener('groupingChanged', this.seriesGroupingChanged);
@@ -1450,12 +1454,12 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const miniChartSeries = deltaOptions?.navigator?.miniChart?.series ?? deltaOptions?.series;
         if (miniChart?.enabled === true && miniChartSeries != null) {
             const oldSeries = oldOpts?.navigator?.miniChart?.series ?? oldOpts?.series;
-            const seriesStatus = this.applySeries(
+            const miniChartSeriesStatus = this.applySeries(
                 miniChart,
                 this.filterMiniChartSeries(miniChartSeries),
                 this.filterMiniChartSeries(oldSeries)
             );
-            this.applyAxes(miniChart, deltaOptions, oldOpts, seriesStatus, [
+            this.applyAxes(miniChart, deltaOptions, oldOpts, miniChartSeriesStatus, [
                 'axes[].tick',
                 'axes[].thickness',
                 'axes[].title',
@@ -1611,7 +1615,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
         debug(`AgChartV2.applySeries() - final series instances`, seriesInstances);
         chart.series = seriesInstances;
 
-        return dataChanged ? 'data-change' : isUpdated ? 'no-op' : 'updated';
+        if (dataChanged) {
+            return 'data-change';
+        }
+        return isUpdated ? 'updated' : 'no-op';
     }
 
     private applyAxes(
@@ -1665,7 +1672,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         for (const module of REGISTERED_MODULES) {
             if (module.type !== 'series-option') continue;
             if (module.optionsKey in options && module.seriesTypes.includes(series.type)) {
-                moduleMap.addModule(module, (module) => new module.instanceConstructor(moduleContext));
+                moduleMap.addModule(module, (m) => new m.instanceConstructor(moduleContext));
             }
         }
     }
@@ -1734,7 +1741,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             if (shouldBeEnabled === isEnabled) continue;
 
             if (shouldBeEnabled) {
-                moduleMap.addModule(module, (module) => new module.instanceConstructor(moduleContext));
+                moduleMap.addModule(module, (m) => new m.instanceConstructor(moduleContext));
                 (axis as any)[module.optionsKey] = moduleMap.getModule(module); // TODO remove
             } else {
                 moduleMap.removeModule(module);

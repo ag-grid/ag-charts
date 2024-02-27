@@ -355,9 +355,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
                     translationX: datum.screenY - label.fontSize * 0.25,
                     translationY: datum.screenX,
                 });
-            } else if (index % keepEvery !== 0) {
-                return false;
-            } else {
+            } else if (index % keepEvery === 0) {
                 const isInRange = datum.screenX >= range[0] && datum.screenX <= range[1];
                 if (!isInRange) {
                     return false;
@@ -371,6 +369,8 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
                 } else {
                     tempText.text = String(datum.label);
                 }
+            } else {
+                return false;
             }
 
             return true;

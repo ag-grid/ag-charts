@@ -287,12 +287,12 @@ export class TreeLayout {
     depth = 0;
 
     update(node: TreeNode) {
-        this.dimensions.update(node, (node) => ({ x: node.x, y: node.y }));
-        if (!node.children.length) {
+        this.dimensions.update(node, (n) => ({ x: n.x, y: n.y }));
+        if (node.children.length) {
+            this.nonLeafNodes.push(node);
+        } else {
             this.leafCount++;
             this.leafNodes.push(node);
-        } else {
-            this.nonLeafNodes.push(node);
         }
         if (node.depth > this.depth) {
             this.depth = node.depth;

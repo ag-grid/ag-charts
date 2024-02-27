@@ -35,8 +35,8 @@ export function setupModules() {
             for (const axisType of m.axisTypes) {
                 const axisTypeTheme = m.themeTemplate[axisType];
                 const theme = { ...m.themeTemplate, ...axisTypeTheme };
-                for (const axisType of m.axisTypes) {
-                    delete theme[axisType];
+                for (const innerAxisType of m.axisTypes) {
+                    delete theme[innerAxisType];
                 }
                 axisRegistry.setThemeTemplate(axisType, theme);
             }
