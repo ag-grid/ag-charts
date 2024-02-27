@@ -12,6 +12,14 @@ export function unitZoomState(): DefinedZoomState {
     return { x: { ...UNIT }, y: { ...UNIT } };
 }
 
+export function dx(zoom: DefinedZoomState) {
+    return zoom.x.max - zoom.x.min;
+}
+
+export function dy(zoom: DefinedZoomState) {
+    return zoom.y.max - zoom.y.min;
+}
+
 export function definedZoomState(zoom?: _ModuleSupport.AxisZoomState): DefinedZoomState {
     return {
         x: { min: zoom?.x?.min ?? UNIT.min, max: zoom?.x?.max ?? UNIT.max },
@@ -50,12 +58,9 @@ export function translateZoom(zoom: DefinedZoomState, x: number, y: number): Def
  * Scale a zoom bounding box from the top left corner.
  */
 export function scaleZoom(zoom: DefinedZoomState, sx: number, sy: number): DefinedZoomState {
-    const dx = zoom.x.max - zoom.x.min;
-    const dy = zoom.y.max - zoom.y.min;
-
     return {
-        x: { min: zoom.x.min, max: zoom.x.min + dx * sx },
-        y: { min: zoom.y.min, max: zoom.y.min + dy * sy },
+        x: { min: zoom.x.min, max: zoom.x.min + dx(zoom) * sx },
+        y: { min: zoom.y.min, max: zoom.y.min + dy(zoom) * sy },
     };
 }
 
@@ -63,15 +68,15 @@ export function scaleZoom(zoom: DefinedZoomState, sx: number, sy: number): Defin
  * Scale a zoom bounding box from the center.
  */
 export function scaleZoomCenter(zoom: DefinedZoomState, sx: number, sy: number): DefinedZoomState {
-    const dx = zoom.x.max - zoom.x.min;
-    const dy = zoom.y.max - zoom.y.min;
+    const dx_ = dx(zoom);
+    const dy_ = dy(zoom);
 
-    const cx = zoom.x.min + dx / 2;
-    const cy = zoom.y.min + dy / 2;
+    const cx = zoom.x.min + dx_ / 2;
+    const cy = zoom.y.min + dy_ / 2;
 
     return {
-        x: { min: cx - (dx * sx) / 2, max: cx + (dx * sx) / 2 },
-        y: { min: cy - (dy * sy) / 2, max: cy + (dy * sy) / 2 },
+        x: { min: cx - (dx_ * sx) / 2, max: cx + (dx_ * sx) / 2 },
+        y: { min: cy - (dy_ * sy) / 2, max: cy + (dy_ * sy) / 2 },
     };
 }
 

@@ -2,7 +2,7 @@ import type { AgZoomAnchorPoint, _Scene } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
 import type { DefinedZoomState, ZoomCoords } from './zoomTypes';
-import { constrainZoom, definedZoomState, pointToRatio, scaleZoomAxisWithAnchor } from './zoomUtils';
+import { constrainZoom, definedZoomState, dx, dy, pointToRatio, scaleZoomAxisWithAnchor } from './zoomUtils';
 
 export class ZoomAxisDragger {
     public isAxisDragging: boolean = false;
@@ -63,7 +63,7 @@ export class ZoomAxisDragger {
         const target = pointToRatio(bbox, coords.x2, coords.y2);
 
         if (direction === _ModuleSupport.ChartAxisDirection.X) {
-            const scaleX = (target.x - origin.x) * (oldZoom.x.max - oldZoom.x.min);
+            const scaleX = (target.x - origin.x) * dx(oldZoom);
 
             newZoom.x.max += scaleX;
             newZoom.x = scaleZoomAxisWithAnchor(newZoom.x, oldZoom.x, anchor, origin.x);
@@ -72,7 +72,7 @@ export class ZoomAxisDragger {
             return newZoom.x;
         }
 
-        const scaleY = (target.y - origin.y) * (oldZoom.y.max - oldZoom.y.min);
+        const scaleY = (target.y - origin.y) * dy(oldZoom);
 
         newZoom.y.max -= scaleY;
         newZoom.y = scaleZoomAxisWithAnchor(newZoom.y, oldZoom.y, anchor, origin.y);

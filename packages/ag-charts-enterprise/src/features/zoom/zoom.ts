@@ -12,6 +12,8 @@ import {
     UNIT,
     constrainZoom,
     definedZoomState,
+    dx,
+    dy,
     pointToRatio,
     scaleZoomAxisWithPoint,
     scaleZoomCenter,
@@ -429,7 +431,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const origin = pointToRatio(this.seriesRect, event.origin.x, event.origin.y);
 
         if (this.isScalingX()) {
-            newZoom.x.max += delta * (oldZoom.x.max - oldZoom.x.min);
+            newZoom.x.max += delta * dx(oldZoom);
             newZoom.x = scaleZoomAxisWithPoint(newZoom.x, oldZoom.x, origin.x);
         }
         if (this.isScalingY()) {
@@ -509,8 +511,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const zoom = definedZoomState(this.zoomManager.getZoom());
         const origin = pointToRatio(this.paddedRect, event.clientX, event.clientY);
 
-        const scaledOriginX = origin.x * (zoom.x.max - zoom.x.min);
-        const scaledOriginY = origin.y * (zoom.y.max - zoom.y.min);
+        const scaledOriginX = origin.x * dx(zoom);
+        const scaledOriginY = origin.y * dy(zoom);
 
         const size = UNIT.max - UNIT.min;
         const halfSize = size / 2;
@@ -536,8 +538,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const zoom = definedZoomState(this.zoomManager.getZoom());
         const origin = pointToRatio(this.paddedRect, event.clientX, event.clientY);
 
-        const scaleX = zoom.x.max - zoom.x.min;
-        const scaleY = zoom.y.max - zoom.y.min;
+        const scaleX = dx(zoom);
+        const scaleY = dy(zoom);
 
         const scaledOriginX = origin.x * scaleX;
         const scaledOriginY = origin.y * scaleY;
@@ -587,13 +589,13 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private isMinZoom(zoom: DefinedZoomState): boolean {
-        const minXCheckValue = this.enableScrolling
-            ? (zoom.x.max - zoom.x.min) * (1 - this.scrollingStep)
-            : round(zoom.x.max - zoom.x.min);
+        let minXCheckValue = dx(zoom);
+        let minYCheckValue = dy(zoom);
 
-        const minYCheckValue = this.enableScrolling
-            ? (zoom.y.max - zoom.y.min) * (1 - this.scrollingStep)
-            : round(zoom.y.max - zoom.y.min);
+        if (this.enableScrolling) {
+            minXCheckValue *= 1 - this.scrollingStep;
+            minYCheckValue *= 1 - this.scrollingStep;
+        }
 
         const isMinXZoom = !this.isScalingX() || minXCheckValue <= this.minRatioX;
         const isMinYZoom = !this.isScalingY() || minYCheckValue <= this.minRatioX;
