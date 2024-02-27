@@ -21,7 +21,7 @@ export abstract class DataModelSeries<
     }
 
     private getModulePropertyDefinitions() {
-        return this.moduleMap.mapValues((mod) => mod.getPropertyDefinitions(this.isContinuous())).flat();
+        return this.moduleMap.mapModules((mod) => mod.getPropertyDefinitions(this.isContinuous())).flat();
     }
 
     // Request data, but with message dispatching to series-options (modules).

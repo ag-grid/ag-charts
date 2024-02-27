@@ -83,7 +83,7 @@ export class CartesianChart extends Chart {
             axes: this.axes.map((axis) => ({ id: axis.id, ...axis.getLayoutState() })),
         });
 
-        const modulePromises = Array.from(this.modules.values(), (m) => m.performCartesianLayout?.({ seriesRect }));
+        const modulePromises = this.modulesManager.mapModules((m) => m.performCartesianLayout?.({ seriesRect }));
         await Promise.all(modulePromises);
 
         return shrinkRect;
