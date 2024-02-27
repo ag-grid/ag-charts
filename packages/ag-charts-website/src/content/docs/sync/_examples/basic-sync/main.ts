@@ -8,6 +8,17 @@ const commonOptions: AgChartOptions = {
             type: 'line',
             xKey: 'date',
             yKey: 'value',
+            tooltip: {
+                renderer: ({ datum, xKey, yKey }) => {
+                    const { [xKey]: xValue, [yKey]: yValue } = datum;
+                    const dateFormatted = xValue.toLocaleDateString('en-GB', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric',
+                    });
+                    return { content: `${dateFormatted}: \$${yValue}` };
+                },
+            },
         },
     ],
     sync: {
