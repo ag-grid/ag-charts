@@ -489,7 +489,9 @@ export abstract class Series<
         const keys = properties?.[resolvedDirection];
         const values: string[] = [];
 
-        if (!keys) return values;
+        if (!keys) {
+            return values;
+        }
 
         const addValues = (...items: any[]) => {
             for (const value of items) {
