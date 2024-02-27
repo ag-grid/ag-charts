@@ -52,7 +52,6 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<Candlest
             moduleCtx,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
             pathsPerSeries: 1,
-            hasHighlightedLabels: true,
         });
     }
 
@@ -221,6 +220,11 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<Candlest
                 lineDash,
                 lineDashOffset,
                 cornerRadius,
+                midPoint: {
+                    x: scaledValues.xValue + Math.round(barWidth) / 2,
+                    y: Math.abs(scaledValues.openValue - scaledValues.closeValue) / 2,
+                },
+                aggregatedValue: closeValue,
             });
         });
 
