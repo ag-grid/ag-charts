@@ -60,7 +60,7 @@ export class RangeSelector extends Group {
     max!: number;
 
     constructor() {
-        super({ name: 'rangeSelectorGroup', layer: true, zIndex: Layers.LEGEND_ZINDEX });
+        super({ name: 'rangeSelectorGroup', layer: true, zIndex: Layers.NAVIGATOR_ZINDEX });
 
         this.isContainerNode = true;
     }
