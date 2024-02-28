@@ -14,7 +14,7 @@ const content = fs
     .map((line) => {
         if (line.trim().startsWith(prefix)) {
             const [start, end] = line.split(' = ');
-            return `${start} = '${newValue}'`;
+            return `${start} = '${newValue}';`;
         }
 
         return line;
