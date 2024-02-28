@@ -63,7 +63,7 @@ jobs:
               if: ${{ github.event.inputs.type == 'create' }}
               run: |
                   git fetch origin
-                  git switch origin/b${{ github.event.inputs.version }}
+                  git switch b${{ github.event.inputs.version }}
 
             - name: Merge Latest
               id: merge_branch
