@@ -1,4 +1,4 @@
-name: Create/Update Release Branch
+name: Prepare Release Branch
 
 on:
     workflow_dispatch:
@@ -76,6 +76,12 @@ jobs:
               if: ${{ github.event.inputs.type == 'create' }}
               run: |
                   ./tools/bump-versions.sh ${{ github.event.inputs.version }}
+
+            - name: Update Release Information
+              id: release_info
+              if: ${{ github.event.inputs.type == 'create' }}
+              run: |
+                  node ./tools/update-release-info.js
 
             - name: Update Package Version
               id: update_version
