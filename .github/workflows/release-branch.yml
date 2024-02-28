@@ -29,7 +29,7 @@ env:
     NX_BRANCH: ${{ github.ref }}
 
 jobs:
-    create_branch_and_prepare:
+    prepare:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
