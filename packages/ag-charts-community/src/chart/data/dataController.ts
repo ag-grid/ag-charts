@@ -96,12 +96,14 @@ export class DataController {
                 }
 
                 if (processedData && processedData.partialValidDataCount === 0) {
-                    resultCbs.forEach((cb, requestIdx) => {
-                        if (needsValueExtraction) {
-                            this.extractScopedData(ids[requestIdx], processedData, ids);
-                        }
-                        cb({ dataModel, processedData });
-                    });
+                    resultCbs.forEach((callback, requestIdx) =>
+                        callback({
+                            dataModel,
+                            processedData: needsValueExtraction
+                                ? this.extractScopedData(ids[requestIdx], processedData, ids)
+                                : processedData,
+                        })
+                    );
                 } else if (processedData) {
                     this.splitResult(dataModel, processedData, ids, resultCbs);
                 } else {
@@ -142,10 +144,14 @@ export class DataController {
             return values?.[id] ?? values;
         };
 
-        for (const nodeDatum of processedData.data) {
-            nodeDatum.datum = extractDatum(nodeDatum.datum);
-            nodeDatum.values = nodeDatum.values.map(extractValues);
-        }
+        return {
+            ...processedData,
+            data: processedData.data.map((datum) => ({
+                ...datum,
+                datum: extractDatum(datum.datum),
+                values: datum.values.map(extractValues),
+            })),
+        };
     }
 
     private validateRequests(requested: RequestedProcessing<any, any, any>[]): {

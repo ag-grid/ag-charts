@@ -1,7 +1,7 @@
 import { Debug } from '../../util/debug';
 import { Logger } from '../../util/logger';
 import { isNegative } from '../../util/number';
-import { isFiniteNumber, isObject } from '../../util/type-guards';
+import { isFiniteNumber, isObject, isString } from '../../util/type-guards';
 import type { ChartMode } from '../chartMode';
 import { DataDomain } from './dataDomain';
 import type { ContinuousDomain } from './utilFunctions';
@@ -405,15 +405,13 @@ export class DataModel<
     resolveProcessedDataDefsById(searchScope: ScopeProvider, searchId: RegExp | string): ProcessedDataDef[] | never {
         const { keys, values, aggregates, groupProcessors, reducers } = this;
 
-        const match = (prop: PropertyDefinition<any> & InternalDefinition) => {
-            const { ids, scopes } = prop;
-
-            if (ids == null) return false;
-            if (searchScope != null && !scopes?.some((scope) => scope === searchScope.id)) return false;
+        const match = ({ ids, scopes }: PropertyDefinition<any> & InternalDefinition) => {
+            if (ids == null || (searchScope != null && !scopes?.includes(searchScope.id))) {
+                return false;
+            }
 
             return ids.some(
-                ([scope, id]) =>
-                    scope === searchScope.id && (typeof searchId === 'string' ? id === searchId : searchId.test(id))
+                ([scope, id]) => scope === searchScope.id && (isString(searchId) ? id === searchId : searchId.test(id))
             );
         };
 

@@ -234,7 +234,6 @@ export abstract class Node extends ChangeDetectable implements BBoxProvider {
     // These matrices may need to have package level visibility
     // for performance optimization purposes.
     matrix = new Matrix();
-    protected inverseMatrix = new Matrix();
 
     private calculateCumulativeMatrix() {
         this.computeTransformMatrix();
@@ -421,8 +420,6 @@ export abstract class Node extends ChangeDetectable implements BBoxProvider {
             rotationCenterX,
             rotationCenterY,
         });
-
-        matrix.inverseTo(this.inverseMatrix);
 
         this.dirtyTransform = false;
     }
