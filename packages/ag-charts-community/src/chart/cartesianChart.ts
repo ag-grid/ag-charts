@@ -83,7 +83,7 @@ export class CartesianChart extends Chart {
             axes: this.axes.map((axis) => ({ id: axis.id, ...axis.getLayoutState() })),
         });
 
-        const modulePromises = Array.from(this.modules.values(), (m) => m.performCartesianLayout?.({ seriesRect }));
+        const modulePromises = this.modulesManager.mapModules((m) => m.performCartesianLayout?.({ seriesRect }));
         await Promise.all(modulePromises);
 
         return shrinkRect;
@@ -322,7 +322,7 @@ export class CartesianChart extends Chart {
         const reversedAxes = this.axes.slice().reverse();
         directions.forEach((dir) => {
             const padding = this.seriesArea.padding[dir];
-            const axis = reversedAxes.find((axis) => axis.position === dir);
+            const axis = reversedAxes.find((a) => a.position === dir);
             if (axis) {
                 axis.seriesAreaPadding = padding;
             } else {
@@ -398,8 +398,8 @@ export class CartesianChart extends Chart {
         let { clipSeries } = opts;
         const { position = 'left', direction } = axis;
 
-        const axisLeftRightRange = (axis: ChartAxis) => {
-            if (axis instanceof CategoryAxis || axis instanceof GroupedCategoryAxis) {
+        const axisLeftRightRange = (targetAxis: ChartAxis) => {
+            if (targetAxis instanceof CategoryAxis || targetAxis instanceof GroupedCategoryAxis) {
                 return [0, seriesRect.height];
             }
             return [seriesRect.height, 0];
@@ -426,8 +426,11 @@ export class CartesianChart extends Chart {
         const isVertical = direction === ChartAxisDirection.Y;
         const paddedBoundsCoefficient = 0.3;
 
-        axis.maxThickness =
-            axis.thickness || (isVertical ? paddedBounds.width : paddedBounds.height) * paddedBoundsCoefficient;
+        if (axis.thickness) {
+            axis.maxThickness = axis.thickness;
+        } else {
+            axis.maxThickness = (isVertical ? paddedBounds.width : paddedBounds.height) * paddedBoundsCoefficient;
+        }
 
         const layout = axis.calculateLayout(primaryTickCount);
         primaryTickCount = layout.primaryTickCount;

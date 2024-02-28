@@ -184,15 +184,13 @@ export class Color implements IColor {
                 // percentage r, g, or b value
                 value = clamp(0, value, 100);
                 value /= 100;
+            } else if (i === 3) {
+                // alpha component
+                value = clamp(0, value, 1);
             } else {
-                if (i === 3) {
-                    // alpha component
-                    value = clamp(0, value, 1);
-                } else {
-                    // absolute r, g, or b value
-                    value = clamp(0, value, 255);
-                    value /= 255;
-                }
+                // absolute r, g, or b value
+                value = clamp(0, value, 255);
+                value /= 255;
             }
             rgba.push(value);
         }
@@ -388,7 +386,7 @@ export class Color implements IColor {
         const min = Math.min(r, g, b);
         const max = Math.max(r, g, b);
 
-        const S = max !== 0 ? (max - min) / max : 0;
+        const S = max === 0 ? 0 : (max - min) / max;
         let H = NaN;
 
         // min == max, means all components are the same

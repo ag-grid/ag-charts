@@ -1019,7 +1019,7 @@ export class DataModel<
                 if (!processorFns.has(def)) {
                     processorFns.set(def, def.processor());
                 }
-                value = processorFns.get(def)?.(value, previousDatum !== INVALID_VALUE ? previousDatum : undefined);
+                value = processorFns.get(def)?.(value, previousDatum === INVALID_VALUE ? undefined : previousDatum);
             }
 
             dataDomain.get(def)?.extend(value);
@@ -1043,6 +1043,7 @@ export class DataModel<
             } else {
                 fnBody = `return datum.${def.property};`;
             }
+            // eslint-disable-next-line @typescript-eslint/no-implied-eval
             result[def.property] = new Function('datum', fnBody) as (d: any) => any;
         }
         return result;

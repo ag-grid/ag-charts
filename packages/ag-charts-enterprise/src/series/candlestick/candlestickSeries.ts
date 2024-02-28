@@ -52,7 +52,6 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<Candlest
             moduleCtx,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
             pathsPerSeries: 1,
-            hasHighlightedLabels: true,
         });
     }
 
@@ -221,6 +220,11 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<Candlest
                 lineDash,
                 lineDashOffset,
                 cornerRadius,
+                midPoint: {
+                    x: scaledValues.xValue + Math.round(barWidth) / 2,
+                    y: Math.abs(scaledValues.openValue - scaledValues.closeValue) / 2,
+                },
+                aggregatedValue: closeValue,
             });
         });
 
@@ -274,9 +278,9 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<Candlest
         const contentData: [string, string | undefined, _ModuleSupport.ChartAxis][] = [
             [xKey, xName, xAxis],
             [openKey, openName, yAxis],
-            [closeKey, closeName, yAxis],
             [highKey, highName, yAxis],
             [lowKey, lowName, yAxis],
+            [closeKey, closeName, yAxis],
         ];
         const content = contentData
             .map(([key, name, axis]) =>
@@ -284,7 +288,11 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<Candlest
             )
             .join('<br/>');
 
-        const { fill } = this.getFormattedStyles(nodeDatum);
+        let { fill } = this.getFormattedStyles(nodeDatum);
+
+        if (fill === 'transparent') {
+            fill = this.properties.item.down.fill;
+        }
 
         return tooltip.toTooltipHtml(
             { title, content, backgroundColor: fill },

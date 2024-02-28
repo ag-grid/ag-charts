@@ -8,6 +8,7 @@ type UpdateCallback = (type: ChartUpdateType, opts?: UpdateOpts) => void;
 export interface UpdateCompleteEvent {
     type: 'update-complete';
     minRect?: BBox;
+    minVisibleRect?: BBox;
 }
 
 export type UpdateOpts = {
@@ -28,7 +29,11 @@ export class UpdateService extends Listeners<'update-complete', (event: UpdateCo
         this.updateCallback(type, options);
     }
 
-    public dispatchUpdateComplete(minRect?: BBox) {
-        this.dispatch('update-complete', { type: 'update-complete', minRect });
+    public dispatchUpdateComplete(rects?: { minRect: BBox; minVisibleRect: BBox }) {
+        this.dispatch('update-complete', {
+            type: 'update-complete',
+            minRect: rects?.minRect,
+            minVisibleRect: rects?.minVisibleRect,
+        });
     }
 }

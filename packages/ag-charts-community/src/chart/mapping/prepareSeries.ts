@@ -57,15 +57,15 @@ export function matchSeriesOptions<S extends ISeries<any>>(
                 continue;
             }
 
-            const [series, idx] = seriesArray.shift()!;
+            const [outputSeries, outputIdx] = seriesArray.shift()!;
 
-            const previousOpts = oldOptsSeries?.[idx] ?? {};
+            const previousOpts = oldOptsSeries?.[outputIdx] ?? {};
             const diff = jsonDiff(previousOpts, opts ?? {}) as any;
 
             if (diff) {
-                changes.push({ opts, series, diff, idx, status: 'update' as const });
+                changes.push({ opts, series: outputSeries, diff, idx: outputIdx, status: 'update' as const });
             } else {
-                changes.push({ opts, series, idx, status: 'no-op' as const });
+                changes.push({ opts, series: outputSeries, idx: outputIdx, status: 'no-op' as const });
             }
 
             if (seriesArray.length === 0) {
@@ -74,8 +74,8 @@ export function matchSeriesOptions<S extends ISeries<any>>(
         }
     }
     for (const seriesArray of seriesMap.values()) {
-        for (const [series, idx] of seriesArray) {
-            changes.push({ series, idx, status: 'remove' as const });
+        for (const [outputSeries, outputIdx] of seriesArray) {
+            changes.push({ series: outputSeries, idx: outputIdx, status: 'remove' as const });
         }
     }
 

@@ -8,6 +8,7 @@ import mkcert from 'vite-plugin-mkcert';
 import svgr from 'vite-plugin-svgr';
 
 import agHotModuleReload from './plugins/agHotModuleReload';
+import agHtaccessGen from './plugins/agHtaccessGen';
 import { getDevFileList } from './src/utils/pages';
 import { getSitemapConfig } from './src/utils/sitemap';
 
@@ -23,6 +24,7 @@ const {
     PUBLIC_BASE_URL = DEFAULT_BASE_URL,
     PUBLIC_HTTPS_SERVER = '1',
     PUBLIC_GALLERY_IMAGE_DPR_ENHANCEMENT,
+    HTACCESS = 'false',
 } = dotenvExpand.expand(dotenv).parsed;
 
 const OUTPUT_DIR = '../../dist/packages/ag-charts-website';
@@ -30,7 +32,15 @@ const OUTPUT_DIR = '../../dist/packages/ag-charts-website';
 console.log(
     'Astro configuration',
     JSON.stringify(
-        { NODE_ENV, PORT, PUBLIC_SITE_URL, PUBLIC_BASE_URL, OUTPUT_DIR, PUBLIC_GALLERY_IMAGE_DPR_ENHANCEMENT },
+        {
+            NODE_ENV,
+            PORT,
+            PUBLIC_SITE_URL,
+            PUBLIC_BASE_URL,
+            OUTPUT_DIR,
+            PUBLIC_GALLERY_IMAGE_DPR_ENHANCEMENT,
+            HTACCESS,
+        },
         null,
         2
     )
@@ -63,5 +73,5 @@ export default defineConfig({
             },
         },
     },
-    integrations: [react(), markdoc(), sitemap(getSitemapConfig())],
+    integrations: [react(), markdoc(), sitemap(getSitemapConfig()), agHtaccessGen({ include: HTACCESS === 'true' })],
 });

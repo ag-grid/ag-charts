@@ -71,7 +71,7 @@ export function singleTickDomain(a: number, b: number): number[] {
             const domain = [start, end];
             return { error, domain };
         })
-        .sort((a, b) => a.error - b.error)[0].domain;
+        .sort((a2, b2) => a2.error - b2.error)[0].domain;
 }
 
 export function range(start: number, stop: number, step: number): NumericTicks {

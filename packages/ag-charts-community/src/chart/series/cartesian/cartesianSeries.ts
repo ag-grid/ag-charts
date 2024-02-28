@@ -159,6 +159,15 @@ export abstract class CartesianSeries<
     private subGroups: SubGroup<any, TDatum, TLabel>[] = [];
     private subGroupId: number = 0;
 
+    private minRectsCache: {
+        dirtyNodeData: boolean;
+        sizeCache?: string;
+        minRect?: BBox;
+        minVisibleRect?: BBox;
+    } = {
+        dirtyNodeData: true,
+    };
+
     private readonly opts: SeriesOpts<TNode, TDatum, TLabel>;
     private readonly debug = Debug.create();
 
@@ -299,7 +308,7 @@ export abstract class CartesianSeries<
             this._contextNodeData.forEach((nodeData) => {
                 nodeData.animationValid ??= animationValid;
             });
-            this.minRect = this.computeMinRect();
+            this.minRectsCache.dirtyNodeData = true;
 
             await this.updateSeriesGroups();
 
@@ -526,7 +535,7 @@ export abstract class CartesianSeries<
         const labelItems = labelData.filter(
             (ld) => ld.datum === highlightedItem.datum && ld.itemId === highlightedItem.itemId
         );
-        return labelItems.length !== 0 ? labelItems : undefined;
+        return labelItems.length === 0 ? undefined : labelItems;
     }
 
     protected getHighlightData(_nodeData: TDatum[], highlightedItem: TDatum): TDatum[] | undefined {
@@ -579,7 +588,7 @@ export abstract class CartesianSeries<
 
         let match: Node | undefined;
         for (const { dataNodeGroup, markerGroup } of this.subGroups) {
-            let match = dataNodeGroup.pickNode(x, y);
+            match = dataNodeGroup.pickNode(x, y);
 
             if (!match && hasMarkers) {
                 match = markerGroup?.pickNode(x, y);
@@ -690,12 +699,12 @@ export abstract class CartesianSeries<
                     continue;
                 }
 
-                const point = primaryDirection === ChartAxisDirection.X ? [datumX, datumY] : [datumY, datumX];
+                const datumPoint = primaryDirection === ChartAxisDirection.X ? [datumX, datumY] : [datumY, datumX];
 
                 // Compare distances from most significant dimension to least.
                 let newMinDistance = true;
-                for (let i = 0; i < point.length; i++) {
-                    const dist = Math.abs(point[i] - hitPointCoords[i]);
+                for (let i = 0; i < datumPoint.length; i++) {
+                    const dist = Math.abs(datumPoint[i] - hitPointCoords[i]);
                     if (dist > minDistance[i]) {
                         newMinDistance = false;
                         break;
@@ -775,29 +784,94 @@ export abstract class CartesianSeries<
      * may not represent the same two points for both directions. The dimensions represent the greatest distance
      * between any two adjacent nodes.
      */
-    override getMinRect() {
-        return this.minRect;
+    override getMinRects(width: number, height: number) {
+        const { dirtyNodeData, sizeCache, minRect, minVisibleRect } = this.minRectsCache;
+
+        const newSizeCache = JSON.stringify({ width, height });
+        const dirtySize = newSizeCache !== sizeCache;
+
+        if (!dirtySize && !dirtyNodeData && minRect && minVisibleRect) {
+            return { minRect, minVisibleRect };
+        }
+
+        const rects = this.computeMinRects(width, height);
+
+        this.minRectsCache = {
+            dirtyNodeData: false,
+            sizeCache: newSizeCache,
+            minRect: rects?.minRect,
+            minVisibleRect: rects?.minVisibleRect,
+        };
+
+        return rects;
     }
 
-    private minRect?: BBox;
-    private computeMinRect() {
+    private computeMinRects(width: number, height: number) {
         const [context] = this._contextNodeData;
 
         if (!context?.nodeData.length) {
             return;
         }
 
-        const width = context.nodeData
-            .map(({ midPoint }) => midPoint?.x ?? 0)
-            .sort((a, b) => a - b)
-            .reduce((max, x, i, array) => (i > 0 ? Math.max(max, x - array[i - 1]) : max), 0);
+        const { nodeData } = context;
 
-        const height = context.nodeData
-            .map(({ midPoint }) => midPoint?.y ?? 0)
-            .sort((a, b) => a - b)
-            .reduce((max, y, i, array) => (i > 0 ? Math.max(max, y - array[i - 1]) : max), 0);
+        // Get the sorted midpoints for both directions
+        const minRectXs = Array(nodeData.length);
+        const minRectYs = Array(nodeData.length);
 
-        return new BBox(0, 0, width, height);
+        for (const [i, { midPoint }] of nodeData.entries()) {
+            minRectXs[i] = midPoint?.x ?? 0;
+            minRectYs[i] = midPoint?.y ?? 0;
+        }
+
+        minRectXs.sort((a, b) => a - b);
+        minRectYs.sort((a, b) => a - b);
+
+        // Take the visible slice from the sorted data as the points >= 0 and <= width/height
+        let zeroX, widthX, zeroY, heightY;
+        let maxWidth = 0;
+        let maxHeight = 0;
+
+        for (let i = 1; i < nodeData.length; i++) {
+            if (minRectXs[i] >= 0) zeroX ??= i;
+            if (minRectXs[i] > width) widthX ??= i;
+            if (minRectYs[i] >= 0) zeroY ??= i;
+            if (minRectYs[i] > height) heightY ??= i;
+
+            // Find the max distance between adjacent points in both directions
+            maxWidth = Math.max(maxWidth, minRectXs[i] - minRectXs[i - 1]);
+            maxHeight = Math.max(maxHeight, minRectYs[i] - minRectYs[i - 1]);
+        }
+
+        widthX ??= nodeData.length;
+        heightY ??= nodeData.length;
+
+        const minVisibleRectXs = zeroX != null && widthX != null ? minRectXs.slice(zeroX, widthX) : [];
+        const minVisibleRectYs = zeroY != null && heightY != null ? minRectYs.slice(zeroY, heightY) : [];
+
+        // Find the max visible distance between adjacent points in both directions
+        let maxVisibleWidth = 0;
+        let maxVisibleHeight = 0;
+
+        for (let i = 1; i < Math.max(minVisibleRectXs.length, minVisibleRectYs.length); i++) {
+            const x1 = minVisibleRectXs[i];
+            const x2 = minVisibleRectXs[i - 1];
+            const y1 = minVisibleRectYs[i];
+            const y2 = minVisibleRectYs[i - 1];
+
+            if (x1 != null && x2 != null) {
+                maxVisibleWidth = Math.max(maxVisibleWidth, x1 - x2);
+            }
+
+            if (y1 != null && y2 != null) {
+                maxVisibleHeight = Math.max(maxVisibleHeight, y1 - y2);
+            }
+        }
+
+        const minRect = new BBox(0, 0, maxWidth, maxHeight);
+        const minVisibleRect = new BBox(0, 0, maxVisibleWidth, maxVisibleHeight);
+
+        return { minRect, minVisibleRect };
     }
 
     protected async updateHighlightSelectionItem(opts: {
@@ -999,7 +1073,7 @@ export abstract class CartesianSeries<
 
                 result[direction] = {
                     type: 'log',
-                    convert: (domain) => axis.scale.convert(domain),
+                    convert: (d) => axis.scale.convert(d),
                     domain: [domain[0], domain[1]],
                     range: [range[0], range[1]],
                 };

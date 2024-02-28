@@ -218,8 +218,13 @@ export class Text extends Shape {
             return { lines: undefined, truncated: false };
         }
         if (wrapping === 'never') {
-            const { text, truncated } = Text.truncateLine(lines[0], maxWidth, measurer, canOverflow ? 'auto' : 'never');
-            return { lines: text != null ? [text] : undefined, truncated };
+            const { text: truncText, truncated } = Text.truncateLine(
+                lines[0],
+                maxWidth,
+                measurer,
+                canOverflow ? 'auto' : 'never'
+            );
+            return { lines: truncText != null ? [truncText] : undefined, truncated };
         }
 
         const wrappedLines: string[] = [];

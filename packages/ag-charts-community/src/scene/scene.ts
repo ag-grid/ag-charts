@@ -79,7 +79,7 @@ export class Scene {
     }
 
     download(fileName?: string, fileFormat?: string) {
-        downloadUrl(this.canvas.toDataURL(fileFormat), fileName?.trim() || 'image');
+        downloadUrl(this.canvas.toDataURL(fileFormat), fileName?.trim() ?? 'image');
     }
 
     /** NOTE: Integrated Charts undocumented image download method. */

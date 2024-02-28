@@ -69,13 +69,15 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
 
         this.rs.onRangeChange = debounce(() => this.onRangeChange());
 
+        const region = ctx.regionManager.addRegion('navigator', this.rs);
         const dragStates = InteractionState.Default | InteractionState.Animation | InteractionState.ZoomDrag;
         this.destroyFns.push(
             ctx.scene.attachNode(this.rs),
-            ctx.interactionManager.addListener('drag-start', (event) => this.onDragStart(event), dragStates),
-            ctx.interactionManager.addListener('drag', (event) => this.onDrag(event), dragStates),
-            ctx.interactionManager.addListener('hover', (event) => this.onDrag(event), dragStates),
-            ctx.interactionManager.addListener('drag-end', () => this.onDragStop(), dragStates),
+            region.addListener('drag-start', (event) => this.onDragStart(event), dragStates),
+            region.addListener('drag', (event) => this.onDrag(event), dragStates),
+            region.addListener('hover', (event) => this.onDrag(event), dragStates),
+            region.addListener('leave', (event) => this.onDrag(event), dragStates),
+            region.addListener('drag-end', () => this.onDragStop(), dragStates),
             ctx.zoomManager.addListener('zoom-change', () => this.onZoomChange()),
             () => delete this.rs.onRangeChange
         );
@@ -126,8 +128,8 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         if (!this.enabled) return;
         const currentZoom = this.ctx.zoomManager.getZoom();
         if (currentZoom?.x) {
-            this.min = currentZoom.x.min;
-            this.max = currentZoom.x.max;
+            this.rs.mask.setMin(currentZoom.x.min);
+            this.rs.mask.setMax(currentZoom.x.max);
         }
     }
 

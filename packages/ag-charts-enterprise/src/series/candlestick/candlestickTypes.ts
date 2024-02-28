@@ -12,6 +12,7 @@ export interface CandlestickNodeDatum
     readonly closeValue: number;
     readonly highValue?: number;
     readonly lowValue?: number;
+    readonly aggregatedValue: number;
 
     readonly scaledValues: {
         readonly xValue: number;

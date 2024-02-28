@@ -397,7 +397,8 @@ export function mixinReversedAxesCases(
 }
 
 export function computeLegendBBox(chart: Chart): BBox {
-    const { x = 0, y = 0, width = 0, height = 0 } = (chart.legend as any)?.group.computeBBox() ?? {};
+    const legendModule = chart.modulesManager.getModule<any>('legend');
+    const { x = 0, y = 0, width = 0, height = 0 } = legendModule?.group.computeBBox() ?? {};
     return new BBox(x, y, width, height);
 }
 

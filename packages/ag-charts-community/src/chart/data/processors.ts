@@ -377,7 +377,8 @@ export function diff(
     };
 }
 
-export function createDatumId(keys: any | any[]) {
+type KeyType = string | number | object;
+export function createDatumId(keys: KeyType | KeyType[]) {
     if (isArray(keys)) {
         return keys.map((key) => transformIntegratedCategoryValue(key)).join('___');
     }

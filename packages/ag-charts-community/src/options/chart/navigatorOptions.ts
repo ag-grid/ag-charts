@@ -102,7 +102,7 @@ const __MINI_CHART_SERIES_OPTIONS = {} as Record<
     NonNullable<AgMiniChartSeriesOptions['type']> | IgnoredMiniChartSeries,
     string
 >;
-// @ts-ignore
+// @ts-expect-error
 let __VERIFY_MINI_CHART_SERIES_OPTIONS: VerifyAgMiniChartSeriesOptions = undefined as any;
 __VERIFY_MINI_CHART_SERIES_OPTIONS = __MINI_CHART_SERIES_OPTIONS;
 

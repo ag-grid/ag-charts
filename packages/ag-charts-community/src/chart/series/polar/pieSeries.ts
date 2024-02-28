@@ -49,6 +49,16 @@ class PieSeriesNodeEvent<TEvent extends string = SeriesNodeEventTypes> extends S
     }
 }
 
+interface PieCalloutLabelDatum {
+    readonly text: string;
+    readonly textAlign: CanvasTextAlign;
+    readonly textBaseline: CanvasTextBaseline;
+    hidden: boolean;
+    collisionTextAlign?: CanvasTextAlign;
+    collisionOffsetY: number;
+    box?: BBox;
+}
+
 interface PieNodeDatum extends SeriesNodeDatum {
     readonly index: number;
     readonly radius: number; // in the [0, 1] range
@@ -62,15 +72,7 @@ interface PieNodeDatum extends SeriesNodeDatum {
     readonly midCos: number;
     readonly midSin: number;
 
-    readonly calloutLabel?: {
-        readonly text: string;
-        readonly textAlign: CanvasTextAlign;
-        readonly textBaseline: CanvasTextBaseline;
-        hidden: boolean;
-        collisionTextAlign?: CanvasTextAlign;
-        collisionOffsetY: number;
-        box?: BBox;
-    };
+    readonly calloutLabel?: PieCalloutLabelDatum;
 
     readonly sectorLabel?: {
         readonly text: string;
@@ -82,7 +84,6 @@ interface PieNodeDatum extends SeriesNodeDatum {
 }
 
 enum PieNodeTag {
-    Sector,
     Callout,
     Label,
 }
@@ -397,7 +398,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         };
 
         const result: {
-            calloutLabel?: { text: string } & any;
+            calloutLabel?: PieCalloutLabelDatum;
             sectorLabel?: { text: string };
             legendItem?: { key: string; text: string };
         } = {};
@@ -460,20 +461,17 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         const isDatumHighlighted =
             highlight && highlightedDatum?.series === this && formatIndex === highlightedDatum.itemId;
 
+        let defaultStroke: string | undefined = strokes[formatIndex % strokes.length];
+        if (sectorSpacing != null) {
+            // @todo(AG-10275) Remove sectorSpacing null case
+            defaultStroke ??= __BACKGROUND_COLOR_DO_NOT_USE;
+        }
         const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity } = mergeDefaults(
             isDatumHighlighted && this.properties.highlightStyle.item,
             {
                 fill: fills.length > 0 ? fills[formatIndex % fills.length] : undefined,
                 fillOpacity: this.properties.fillOpacity,
-                // @todo(AG-10275) Remove sectorSpacing null case
-                stroke:
-                    sectorSpacing != null
-                        ? strokes.length > 0
-                            ? strokes[formatIndex % strokes.length]
-                            : undefined
-                        : strokes.length > 0
-                          ? strokes[formatIndex % strokes.length]
-                          : __BACKGROUND_COLOR_DO_NOT_USE,
+                stroke: defaultStroke,
                 strokeWidth: this.getStrokeWidth(this.properties.strokeWidth),
                 strokeOpacity: this.getOpacity(),
             }
@@ -1407,12 +1405,13 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
     override animateWaitingUpdateReady() {
         const { itemSelection, highlightSelection, processedData, radiusScale, previousRadiusScale } = this;
         const { animationManager } = this.ctx;
-        const diff = processedData?.reduced?.diff;
+        const dataDiff = processedData?.reduced?.diff;
 
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
         const supportedDiff =
-            (diff?.moved.length ?? 0) === 0 && diff?.addedIndices.every((i) => !diff.removedIndices.includes(i));
+            (dataDiff?.moved.length ?? 0) === 0 &&
+            dataDiff?.addedIndices.every((i) => !dataDiff.removedIndices.includes(i));
         const hasKeys = (processedData?.defs.keys.length ?? 0) > 0;
         const hasUniqueKeys = processedData?.reduced?.animationValidation?.uniqueKeys ?? true;
         if (!supportedDiff || !hasKeys || !hasUniqueKeys) {
@@ -1432,7 +1431,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
             [itemSelection, highlightSelection],
             fns.nodes,
             (_, datum) => this.getDatumId(datum),
-            diff
+            dataDiff
         );
         fromToMotion(this.id, `innerCircle`, animationManager, [this.innerCircleSelection], fns.innerCircle);
 

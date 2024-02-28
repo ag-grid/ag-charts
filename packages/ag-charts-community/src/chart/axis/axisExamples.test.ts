@@ -50,7 +50,7 @@ function applyAxesFlip<T extends AgCartesianChartOptions>(opts: T): T {
 
     return {
         ...opts,
-        axes: opts.axes?.map((axis) => ({ ...axis, position: positionFlip(axis.position) })) || undefined,
+        axes: opts.axes?.map((axis) => ({ ...axis, position: positionFlip(axis.position) })) ?? undefined,
     };
 }
 

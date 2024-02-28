@@ -34,32 +34,38 @@ export class RangeMask extends Path {
     @Validate(NUMBER)
     protected _min: number = 0;
     set min(value: number) {
-        value = clamp(0, value, this.max - this.minRange);
-        if (this._min !== value && !isNaN(value)) {
-            this._min = value;
-            this.dirtyPath = true;
-            this.onRangeChange?.();
-        }
+        this.setMin(value, true);
     }
     get min(): number {
         return this._min;
+    }
+    public setMin(value: number, callRangeChangeCallback = false) {
+        value = clamp(0, value, this.max - this.minRange);
+        if (this._min === value || isNaN(value)) return;
+
+        this._min = value;
+        this.dirtyPath = true;
+        this.onRangeChange?.(callRangeChangeCallback);
     }
 
     @Validate(NUMBER)
     protected _max: number = 1;
     set max(value: number) {
-        value = clamp(this.min + this.minRange, value, 1);
-        if (this._max !== value && !isNaN(value)) {
-            this._max = value;
-            this.dirtyPath = true;
-            this.onRangeChange?.();
-        }
+        this.setMax(value, true);
     }
     get max(): number {
         return this._max;
     }
+    public setMax(value: number, callRangeChangeCallback = false) {
+        value = clamp(this.min + this.minRange, value, 1);
+        if (this._max === value || isNaN(value)) return;
 
-    onRangeChange?: () => any;
+        this._max = value;
+        this.dirtyPath = true;
+        this.onRangeChange?.(callRangeChangeCallback);
+    }
+
+    onRangeChange?: (callRangeChangeCallback: boolean) => any;
 
     override computeBBox() {
         const { x, y, width, height } = this;

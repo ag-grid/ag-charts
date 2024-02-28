@@ -331,7 +331,7 @@ export class Legend extends BaseProperties {
      * @param width
      * @param height
      */
-    private performLayout(width: number, height: number) {
+    private calcLayout(width: number, height: number) {
         const {
             paddingX,
             paddingY,
@@ -545,9 +545,8 @@ export class Legend extends BaseProperties {
         let maxPageHeight = 0;
         let count = 0;
 
-        const stableOutput = (lastPassPaginationBBox: BBox) => {
-            const { width, height } = lastPassPaginationBBox;
-            return width === paginationBBox.width && height === paginationBBox.height;
+        const stableOutput = (bbox: BBox) => {
+            return bbox.width === paginationBBox.width && bbox.height === paginationBBox.height;
         };
 
         const forceResult = this.maxWidth !== undefined || this.maxHeight !== undefined;
@@ -787,14 +786,14 @@ export class Legend extends BaseProperties {
             this.ctx.chartEventManager.legendItemClick(series, itemId, newEnabled, datum.legendItemName);
         }
 
-        if (!newEnabled) {
-            highlightManager.updateHighlight(this.id);
-        } else {
+        if (newEnabled) {
             highlightManager.updateHighlight(this.id, {
                 series,
                 itemId,
                 datum: undefined,
             });
+        } else {
+            highlightManager.updateHighlight(this.id);
         }
 
         this.ctx.updateService.update(ChartUpdateType.PROCESS_DATA, { forceNodeDataRefresh: true });
@@ -928,7 +927,7 @@ export class Legend extends BaseProperties {
 
         this.group.translationX = 0;
         this.group.translationY = 0;
-        this.performLayout(legendWidth, legendHeight);
+        this.calcLayout(legendWidth, legendHeight);
         const legendBBox = this.computePagedBBox();
 
         const calculateTranslationPerpendicularDimension = () => {

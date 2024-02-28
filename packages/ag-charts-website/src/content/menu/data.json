@@ -209,6 +209,15 @@
                         "path": "upgrade-to-ag-charts-9"
                     }
                 ]
+            },
+            {
+                "title": "Financial Charts",
+                "items": [
+                    {
+                        "title": "Candlestick",
+                        "path": "financial-charts"
+                    }
+                ]
             }
         ]
     },
