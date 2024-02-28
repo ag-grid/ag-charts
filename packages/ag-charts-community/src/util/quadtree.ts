@@ -1,5 +1,7 @@
 import { BBox } from '../scene/bbox';
 
+type QuadtreeElem<V> = { bbox: BBox; value: V };
+
 export class Quadtree<V> {
     private readonly root: QuadtreeNode<V>;
 
@@ -15,8 +17,8 @@ export class Quadtree<V> {
         this.root.addElem({ bbox, value });
     }
 
-    pickValues(x: number, y: number): Iterable<{ bbox: BBox; value: V }> {
-        const foundValues: { bbox: BBox; value: V }[] = [];
+    pickValues(x: number, y: number): Iterable<QuadtreeElem<V>> {
+        const foundValues: QuadtreeElem<V>[] = [];
         this.root.query(x, y, foundValues);
         return foundValues;
     }
@@ -30,14 +32,14 @@ class QuadtreeSubdivisions<V> {
         private se: QuadtreeNode<V>
     ) {}
 
-    addElem(elem: { bbox: BBox; value: V }) {
+    addElem(elem: QuadtreeElem<V>) {
         this.nw.addElem(elem);
         this.ne.addElem(elem);
         this.sw.addElem(elem);
         this.se.addElem(elem);
     }
 
-    query(x: number, y: number, foundElems: { bbox: BBox; value: V }[]): void {
+    query(x: number, y: number, foundElems: QuadtreeElem<V>[]): void {
         this.nw.query(x, y, foundElems);
         this.ne.query(x, y, foundElems);
         this.sw.query(x, y, foundElems);
@@ -47,7 +49,7 @@ class QuadtreeSubdivisions<V> {
 
 class QuadtreeNode<V> {
     private boundary: BBox;
-    private readonly elems: Array<{ bbox: BBox; value: V }>;
+    private readonly elems: Array<QuadtreeElem<V>>;
 
     private subdivisions?: QuadtreeSubdivisions<V>;
 
@@ -67,7 +69,7 @@ class QuadtreeNode<V> {
         this.subdivisions = undefined;
     }
 
-    addElem(e: { bbox: BBox; value: V }) {
+    addElem(e: QuadtreeElem<V>) {
         if (!this.boundary.collidesBBox(e.bbox)) {
             return;
         }
@@ -83,7 +85,7 @@ class QuadtreeNode<V> {
         }
     }
 
-    query(x: number, y: number, foundElems: { bbox: BBox; value: V }[]): void {
+    query(x: number, y: number, foundElems: QuadtreeElem<V>[]): void {
         if (!this.boundary.containsPoint(x, y)) {
             return;
         }
@@ -99,7 +101,7 @@ class QuadtreeNode<V> {
         }
     }
 
-    private subdivide(newElem: { bbox: BBox; value: V }): void {
+    private subdivide(newElem: QuadtreeElem<V>): void {
         this.subdivisions = this.makeSubdivisions();
 
         for (const e of this.elems) {
