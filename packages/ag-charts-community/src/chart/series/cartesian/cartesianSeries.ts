@@ -274,7 +274,7 @@ export abstract class CartesianSeries<
 
     async update({ seriesRect }: { seriesRect?: BBox }) {
         const { visible, _contextNodeData: previousContextData } = this;
-        const { series } = this.ctx.highlightManager?.getActiveHighlight() ?? {};
+        const series = this.ctx.highlightManager?.getActiveHighlight()?.series;
         const seriesHighlighted = series === this;
 
         const resize = this.checkResize(seriesRect);

@@ -4,6 +4,7 @@ import type { ModuleContext } from '../module/moduleContext';
 import type { AxisOptionModule, ChartOptions } from '../module/optionsModule';
 import type { AgBaseAxisOptions } from '../options/chart/axisOptions';
 import type { AgChartInstance, AgChartOptions } from '../options/chart/chartBuilderOptions';
+import type { AgChartOptionsNext } from '../options/chart/chartBuilderOptionsNext';
 import type { AgChartClickEvent, AgChartDoubleClickEvent } from '../options/chart/eventOptions';
 import type { AgBaseSeriesOptions } from '../options/series/seriesOptions';
 import { BBox } from '../scene/bbox';
@@ -1368,8 +1369,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
         return { minRect, minVisibleRect };
     }
 
-    private filterMiniChartSeries(series: AgChartOptions['series'] | undefined): AgChartOptions['series'] | undefined;
-    private filterMiniChartSeries(series: AgChartOptions['series']): AgChartOptions['series'];
+    private filterMiniChartSeries(
+        series: AgChartOptionsNext['series'] | undefined
+    ): AgChartOptionsNext['series'] | undefined;
+    private filterMiniChartSeries(series: AgChartOptionsNext['series']): AgChartOptionsNext['series'];
     private filterMiniChartSeries(series: any[] | undefined): any[] | undefined {
         return series?.filter((s) => s.showInMiniChart !== false);
     }
@@ -1553,8 +1556,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     private applySeries(
         chart: { series: Series<any>[] },
-        optSeries: AgChartOptions['series'],
-        oldOptSeries?: AgChartOptions['series']
+        optSeries: AgChartOptionsNext['series'],
+        oldOptSeries?: AgChartOptionsNext['series']
     ): SeriesChangeType {
         if (!optSeries) {
             return 'no-change';
@@ -1620,8 +1623,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     private applyAxes(
         chart: { axes: ChartAxis[] },
-        options: AgChartOptions,
-        oldOpts: AgChartOptions,
+        options: AgChartOptionsNext,
+        oldOpts: AgChartOptionsNext,
         seriesStatus: SeriesChangeType,
         skip: string[] = []
     ) {

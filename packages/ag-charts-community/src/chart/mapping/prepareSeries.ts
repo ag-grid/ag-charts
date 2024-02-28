@@ -1,11 +1,11 @@
-import type { AgChartOptions } from '../../options/agChartOptions';
+import type { AgChartOptionsNext } from '../../options/chart/chartBuilderOptionsNext';
 import { jsonDiff } from '../../util/json';
 import type { ISeries } from '../series/seriesTypes';
 
 export function matchSeriesOptions<S extends ISeries<any>>(
     series: S[],
-    optSeries: NonNullable<AgChartOptions['series']>,
-    oldOptsSeries?: AgChartOptions['series']
+    optSeries: NonNullable<AgChartOptionsNext['series']>,
+    oldOptsSeries?: AgChartOptionsNext['series']
 ) {
     const keysToConsider = ['direction', 'xKey', 'yKey', 'sizeKey', 'angleKey', 'radiusKey', 'normalizedTo'];
 
@@ -27,7 +27,7 @@ export function matchSeriesOptions<S extends ISeries<any>>(
         seriesMap.get(key)?.push([s, idx++]);
     }
 
-    const optsMap = new Map<string, NonNullable<AgChartOptions['series']>[number][]>();
+    const optsMap = new Map<string, NonNullable<AgChartOptionsNext['series']>[number][]>();
     for (const o of optSeries) {
         const key = generateKey(o.type, o);
         if (!optsMap.has(key)) {

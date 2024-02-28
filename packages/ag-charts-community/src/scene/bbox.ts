@@ -145,6 +145,14 @@ export class BBox implements DistantObject, Interpolating<BBox> {
         return this;
     }
 
+    combine(other: BBox) {
+        const { x, y, width, height } = this;
+        this.x = Math.min(x, other.x);
+        this.y = Math.min(y, other.y);
+        this.width = Math.max(x + width, other.x + other.width) - this.x;
+        this.height = Math.max(y + height, other.y + other.height) - this.y;
+    }
+
     static merge(boxes: BBox[]) {
         let left = Infinity;
         let top = Infinity;

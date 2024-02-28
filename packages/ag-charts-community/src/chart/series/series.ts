@@ -587,7 +587,7 @@ export abstract class Series<
     }
 
     protected isItemIdHighlighted(): SeriesHighlight {
-        const { series } = this.ctx.highlightManager?.getActiveHighlight() ?? {};
+        const series = this.ctx.highlightManager?.getActiveHighlight()?.series;
 
         // Highlighting not active.
         if (series == null) {

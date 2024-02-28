@@ -1,23 +1,23 @@
 import type {
     AgCartesianChartOptions,
-    AgChartOptions,
     AgHierarchyChartOptions,
     AgPolarChartOptions,
 } from '../../options/agChartOptions';
+import type { AgChartOptionsNext, AgTopologyChartOptions } from '../../options/chart/chartBuilderOptionsNext';
 import { Logger } from '../../util/logger';
 import { axisRegistry } from '../factory/axisRegistry';
 import { chartTypes } from '../factory/chartTypes';
 import { isEnterpriseCartesian, isEnterpriseHierarchy, isEnterprisePolar } from '../factory/expectedEnterpriseModules';
 
 export type AxesOptionsTypes = NonNullable<AgCartesianChartOptions['axes']>[number];
-export type SeriesOptionsTypes = NonNullable<AgChartOptions['series']>[number];
+export type SeriesOptionsTypes = NonNullable<AgChartOptionsNext['series']>[number];
 export type SeriesType = SeriesOptionsTypes['type'];
 
 export function optionsType(input: { series?: { type?: SeriesType }[] }): NonNullable<SeriesType> {
     return input.series?.[0]?.type ?? 'line';
 }
 
-export function isAgCartesianChartOptions(input: AgChartOptions): input is AgCartesianChartOptions {
+export function isAgCartesianChartOptions(input: AgChartOptionsNext): input is AgCartesianChartOptions {
     const specifiedType = optionsType(input);
     if (specifiedType == null) {
         return true;
@@ -31,21 +31,7 @@ export function isAgCartesianChartOptions(input: AgChartOptions): input is AgCar
     return chartTypes.isCartesian(specifiedType) || isEnterpriseCartesian(specifiedType);
 }
 
-export function isAgHierarchyChartOptions(input: AgChartOptions): input is AgHierarchyChartOptions {
-    const specifiedType = optionsType(input);
-    if (specifiedType == null) {
-        return false;
-    }
-
-    if ((specifiedType as string) === 'hierarchy') {
-        Logger.warnOnce(`type '${specifiedType}' is deprecated, use a series type instead`);
-        return true;
-    }
-
-    return chartTypes.isHierarchy(specifiedType) || isEnterpriseHierarchy(specifiedType);
-}
-
-export function isAgPolarChartOptions(input: AgChartOptions): input is AgPolarChartOptions {
+export function isAgPolarChartOptions(input: AgChartOptionsNext): input is AgPolarChartOptions {
     const specifiedType = optionsType(input);
     if (specifiedType == null) {
         return false;
@@ -59,7 +45,35 @@ export function isAgPolarChartOptions(input: AgChartOptions): input is AgPolarCh
     return chartTypes.isPolar(specifiedType) || isEnterprisePolar(specifiedType);
 }
 
-export function isAgPolarChartOptionsWithSeriesBasedLegend(input: AgChartOptions): input is AgPolarChartOptions {
+export function isAgHierarchyChartOptions(input: AgChartOptionsNext): input is AgHierarchyChartOptions {
+    const specifiedType = optionsType(input);
+    if (specifiedType == null) {
+        return false;
+    }
+
+    if ((specifiedType as string) === 'hierarchy') {
+        Logger.warnOnce(`type '${specifiedType}' is deprecated, use a series type instead`);
+        return true;
+    }
+
+    return chartTypes.isHierarchy(specifiedType) || isEnterpriseHierarchy(specifiedType);
+}
+
+export function isAgTopologyChartOptions(input: AgChartOptionsNext): input is AgTopologyChartOptions {
+    const specifiedType = optionsType(input);
+    if (specifiedType == null) {
+        return false;
+    }
+
+    if ((specifiedType as string) === 'topology') {
+        Logger.warnOnce(`type '${specifiedType}' is deprecated, use a series type instead`);
+        return true;
+    }
+
+    return chartTypes.isTopology(specifiedType) || isEnterpriseHierarchy(specifiedType);
+}
+
+export function isAgPolarChartOptionsWithSeriesBasedLegend(input: AgChartOptionsNext): input is AgPolarChartOptions {
     const specifiedType = optionsType(input);
     return isAgPolarChartOptions(input) && specifiedType !== 'pie' && specifiedType !== 'donut';
 }

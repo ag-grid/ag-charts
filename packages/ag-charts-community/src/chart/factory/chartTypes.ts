@@ -1,6 +1,6 @@
 import { mergeDefaults } from '../../util/object';
 
-export type ChartType = 'cartesian' | 'polar' | 'hierarchy';
+export type ChartType = 'cartesian' | 'polar' | 'hierarchy' | 'topology';
 
 class ChartTypes extends Map<string, ChartType | 'unknown'> {
     override get(seriesType: string) {
@@ -15,6 +15,9 @@ class ChartTypes extends Map<string, ChartType | 'unknown'> {
     isHierarchy(seriesType: string) {
         return this.get(seriesType) === 'hierarchy';
     }
+    isTopology(seriesType: string) {
+        return this.get(seriesType) === 'topology';
+    }
     get seriesTypes() {
         return Array.from(this.keys());
     }
@@ -26,6 +29,9 @@ class ChartTypes extends Map<string, ChartType | 'unknown'> {
     }
     get hierarchyTypes() {
         return this.seriesTypes.filter((t) => this.isHierarchy(t));
+    }
+    get topologyTypes() {
+        return this.seriesTypes.filter((t) => this.isTopology(t));
     }
 }
 
