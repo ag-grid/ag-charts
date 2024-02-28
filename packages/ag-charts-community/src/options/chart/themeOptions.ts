@@ -213,6 +213,7 @@ type VerifyAgBaseChartThemeOverrides<T = AgBaseChartOptions> = {
 
 // Verification checks for completeness/correctness.
 const __THEME_OVERRIDES = {} as Required<AgChartThemeOverrides>;
-// @ts-expect-error
+// eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+// @ts-ignore
 let __VERIFY_THEME_OVERRIDES: Required<VerifyAgBaseChartThemeOverrides> = undefined as any;
 __VERIFY_THEME_OVERRIDES = __THEME_OVERRIDES;

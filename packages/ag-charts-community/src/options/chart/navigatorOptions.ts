@@ -102,7 +102,8 @@ const __MINI_CHART_SERIES_OPTIONS = {} as Record<
     NonNullable<AgMiniChartSeriesOptions['type']> | IgnoredMiniChartSeries,
     string
 >;
-// @ts-expect-error
+// eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+// @ts-ignore
 let __VERIFY_MINI_CHART_SERIES_OPTIONS: VerifyAgMiniChartSeriesOptions = undefined as any;
 __VERIFY_MINI_CHART_SERIES_OPTIONS = __MINI_CHART_SERIES_OPTIONS;
 
