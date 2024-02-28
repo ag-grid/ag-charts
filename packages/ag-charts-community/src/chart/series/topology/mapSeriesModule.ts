@@ -15,6 +15,11 @@ export const MapSeriesModule: SeriesModule<'map'> = {
     themeTemplate: {
         series: {
             __extends__: EXTENDS_SERIES_DEFAULTS,
+            tooltip: {
+                position: {
+                    type: 'node',
+                },
+            },
             fillOpacity: 1,
             strokeWidth: 0,
             lineDash: [0],

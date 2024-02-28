@@ -1,6 +1,7 @@
 import type { FeatureCollection } from 'geojson';
 
 import type {
+    AgBarSeriesLabelFormatterParams,
     AgMapSeriesFormatterParams,
     AgMapSeriesOptions,
     AgMapSeriesStyle,
@@ -12,12 +13,14 @@ import {
     COLOR_STRING,
     COLOR_STRING_ARRAY,
     FUNCTION,
+    OBJECT,
     PLAIN_OBJECT,
     POSITIVE_NUMBER,
     RATIO,
     STRING,
     Validate,
 } from '../../../util/validation';
+import { Label } from '../../label';
 import { SeriesProperties } from '../seriesProperties';
 import { SeriesTooltip } from '../seriesTooltip';
 
@@ -28,8 +31,11 @@ export class MapSeriesProperties extends SeriesProperties<AgMapSeriesOptions> {
     @Validate(STRING)
     idKey: string = '';
 
-    @Validate(STRING)
-    idName: string = '';
+    @Validate(STRING, { optional: true })
+    idName: string | undefined = undefined;
+
+    @Validate(STRING, { optional: true })
+    labelKey: string | undefined = undefined;
 
     @Validate(STRING, { optional: true })
     colorKey?: string;
@@ -61,5 +67,9 @@ export class MapSeriesProperties extends SeriesProperties<AgMapSeriesOptions> {
     @Validate(FUNCTION, { optional: true })
     formatter?: (params: AgMapSeriesFormatterParams<any>) => AgMapSeriesStyle;
 
+    @Validate(OBJECT)
+    readonly label = new Label<AgBarSeriesLabelFormatterParams>();
+
+    @Validate(OBJECT)
     override tooltip = new SeriesTooltip<AgMapSeriesTooltipRendererParams<any>>();
 }

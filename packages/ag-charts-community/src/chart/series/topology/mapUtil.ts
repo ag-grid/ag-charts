@@ -2,12 +2,6 @@ import type { Geometry, Position } from 'geojson';
 
 import { LatLongBBox } from './LatLongBBox';
 
-const radsInDeg = Math.PI / 180;
-
-export const lonX = (lng: number) => lng * radsInDeg;
-
-export const latY = (lat: number) => -Math.log(Math.tan(Math.PI * 0.25 + lat * radsInDeg * 0.5));
-
 function extendBbox(
     into: LatLongBBox | undefined,
     lat0: number,
@@ -76,4 +70,56 @@ export function geometryBox(geometry: Geometry, into: LatLongBBox | undefined): 
     }
 
     return into;
+}
+
+function polygonCentroid(polygon: Position[]): Position | undefined {
+    if (polygon.length === 0) return undefined;
+
+    let x = 0;
+    let y = 0;
+    let a: Position;
+    let b = polygon[polygon.length - 1];
+    let k = 0;
+
+    for (let i = 0; i < polygon.length; i += 1) {
+        a = b;
+        b = polygon[i];
+        const c = a[0] * b[1] - b[0] * a[1];
+        k += c;
+        x += (a[0] + b[0]) * c;
+        y += (a[1] + b[1]) * c;
+    }
+
+    k *= 3;
+
+    return [x / k, y / k];
+}
+
+export function geometryCentroid(geometry: Geometry): Position | undefined {
+    switch (geometry.type) {
+        case 'Polygon':
+            return polygonCentroid(geometry.coordinates[0]);
+        case 'MultiPolygon': {
+            let largestSize: number | undefined = undefined;
+            let largestPolygon: Position[] | undefined;
+            geometry.coordinates.map((coordinates) => {
+                const polygon = coordinates[0];
+                const bbox = polygonBox(polygon, undefined);
+                if (bbox == null) return;
+
+                const size = Math.abs(bbox.lat1 - bbox.lat0) * Math.abs(bbox.lon1 - bbox.lon0);
+                if (largestSize == null || size > largestSize) {
+                    largestSize = size;
+                    largestPolygon = polygon;
+                }
+            });
+            return largestPolygon != null ? polygonCentroid(largestPolygon) : undefined;
+        }
+        case 'GeometryCollection':
+        case 'MultiLineString':
+        case 'LineString':
+        case 'MultiPoint':
+        case 'Point':
+            return undefined;
+    }
 }

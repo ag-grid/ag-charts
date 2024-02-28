@@ -6,11 +6,12 @@ import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlig
 
 export interface AgMapSeriesTooltipRendererParams<TDatum>
     extends AgChartCallbackParams<TDatum>,
-        AgMapSeriesOptionsKeys {
+        AgMapSeriesOptionsKeys,
+        AgMapSeriesOptionsNames {
     /** The title of the Feature. */
-    title?: string;
+    title: string;
     /** The computed fill colour of the Feature. */
-    color?: CssColor;
+    color: CssColor | undefined;
 }
 
 export interface AgMapSeriesHighlightStyle<_TDatum> extends AgSeriesHighlightStyle, FillOptions, StrokeOptions {}
@@ -25,7 +26,7 @@ export interface AgMapSeriesThemeableOptions<TDatum = any>
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgMapSeriesTooltipRendererParams<TDatum>>;
     /** A callback function for adjusting the styles of a particular Map sector based on the input parameters. */
-    formatter?: (params: AgMapSeriesFormatterParams<TDatum>) => AgMapSeriesStyle;
+    formatter?: (params: AgMapSeriesFormatterParams) => AgMapSeriesStyle;
     /** Style overrides when a node is hovered. */
     highlightStyle?: AgMapSeriesHighlightStyle<TDatum>;
 }
@@ -33,6 +34,7 @@ export interface AgMapSeriesThemeableOptions<TDatum = any>
 export interface AgMapSeriesOptions<TDatum = any>
     extends Omit<AgBaseSeriesOptions<TDatum>, 'highlightStyle'>,
         AgMapSeriesOptionsKeys,
+        AgMapSeriesOptionsNames,
         AgMapSeriesThemeableOptions<TDatum> {
     /** Configuration for the Map Series. */
     type: 'map';
@@ -45,14 +47,20 @@ export interface AgMapSeriesOptionsKeys {
     idKey?: string;
     /** The name of the node key containing the colour value. This value (along with `colorRange` config) will be used to determine the segment colour. */
     colorKey?: string;
+}
+
+export interface AgMapSeriesOptionsNames {
     /** A human-readable description of the colour values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     colorName?: string;
 }
+
+export type AgBarSeriesLabelFormatterParams = AgMapSeriesOptionsKeys & AgMapSeriesOptionsNames;
 
 /** The parameters of the Map series formatter function */
 export interface AgMapSeriesFormatterParams<TDatum = any>
     extends AgChartCallbackParams<TDatum>,
         AgMapSeriesOptionsKeys,
+        AgMapSeriesOptionsNames,
         AgMapSeriesStyle {
     /** `true` if the sector is highlighted by hovering. */
     readonly highlighted: boolean;
