@@ -1,4 +1,3 @@
-import { unique } from '../../util/array';
 import { Debug } from '../../util/debug';
 import { jsonDiff } from '../../util/json';
 import type { ChartMode } from '../chartMode';
@@ -55,19 +54,21 @@ export class DataController {
         K extends keyof D & string = keyof D & string,
         G extends boolean | undefined = undefined,
     >(id: string, data: D[], opts: DataModelOptions<K, any>) {
-        if (this.status !== 'setup') {
-            throw new Error(`AG Charts - data request after data setup phase.`);
-        }
+        if (this.status !== 'setup') throw new Error(`AG Charts - data request after data setup phase.`);
 
         return new Promise<Result<D, K, G>>((resolve, reject) => {
-            this.requested.push({ id, opts, data, resultCb: resolve, reject });
+            this.requested.push({
+                id,
+                opts,
+                data,
+                resultCb: resolve,
+                reject,
+            });
         });
     }
 
     public execute() {
-        if (this.status !== 'setup') {
-            throw new Error(`AG Charts - data request after data setup phase.`);
-        }
+        if (this.status !== 'setup') throw new Error(`AG Charts - data request after data setup phase.`);
 
         this.status = 'executed';
 
@@ -81,12 +82,14 @@ export class DataController {
             (window as any).processedData = [];
         }
 
-        // const multipleSources = valid.some((v) => v.data != null);
-        const multipleSources = this.hasMultipleDataSources(valid);
+        const multipleSources = valid.some((v) => v.data != null);
         for (const { opts, data, resultCbs, rejects, ids } of merged) {
             const needsValueExtraction =
                 multipleSources ||
-                opts.props.some((p) => (p.type === 'key' || p.type === 'value') && p.useScopedValues);
+                opts.props.some((p) => {
+                    if (p.type !== 'value' && p.type !== 'key') return false;
+                    return p.useScopedValues ?? false;
+                });
 
             try {
                 const dataModel = new DataModel<any>({ ...opts, mode: this.mode });
@@ -98,10 +101,12 @@ export class DataController {
 
                 if (processedData && processedData.partialValidDataCount === 0) {
                     resultCbs.forEach((cb, requestIdx) => {
+                        const id = ids[requestIdx];
+                        let requestProcessedData = processedData;
                         if (needsValueExtraction) {
-                            this.extractScopedData(ids[requestIdx], processedData, ids);
+                            requestProcessedData = this.extractScopedData(id, processedData, ids);
                         }
-                        cb({ dataModel, processedData });
+                        cb({ dataModel, processedData: requestProcessedData });
                     });
                 } else if (processedData) {
                     this.splitResult(dataModel, processedData, ids, resultCbs);
@@ -114,18 +119,6 @@ export class DataController {
         }
 
         invalid.forEach(({ error, reject }) => reject(error));
-    }
-
-    private hasMultipleDataSources(validRequests: RequestedProcessing<any, any, any>[]) {
-        if (validRequests.length) {
-            const [{ data }, ...restRequests] = validRequests;
-            for (const v of restRequests) {
-                if (data !== v.data) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     private extractScopedData(id: string, processedData: UngroupedData<any>, ids: string[]) {
@@ -147,10 +140,14 @@ export class DataController {
             return values?.[id] ?? values;
         };
 
-        for (const nodeDatum of processedData.data) {
-            nodeDatum.datum = extractDatum(nodeDatum.datum);
-            nodeDatum.values = nodeDatum.values.map(extractValues);
-        }
+        return {
+            ...processedData,
+            data: processedData.data.map((datum) => ({
+                ...datum,
+                datum: extractDatum(datum.datum),
+                values: datum.values.map(extractValues),
+            })),
+        };
     }
 
     private validateRequests(requested: RequestedProcessing<any, any, any>[]): {
@@ -176,34 +173,44 @@ export class DataController {
 
     private mergeRequested(requested: RequestedProcessing<any, any, any>[]): MergedRequests<any, any, any>[] {
         const grouped: RequestedProcessing<any, any, any>[][] = [];
-        const keys = (props: PropertyDefinition<any>[]) =>
-            props
+        const keys = (props: PropertyDefinition<any>[]) => {
+            return props
                 .filter((p): p is DatumPropertyDefinition<any> => p.type === 'key')
                 .map((p) => p.property)
                 .join(';');
+        };
 
         const groupMatch =
             ({ opts, data }: RequestedProcessing<any, any, any>) =>
-            ([group]: RequestedProcessing<any, any, any>[]) =>
-                (opts.groupByData === false || group.data === data) &&
-                group.opts.groupByKeys === opts.groupByKeys &&
-                group.opts.dataVisible === opts.dataVisible &&
-                group.opts.groupByFn === opts.groupByFn &&
-                keys(group.opts.props) === keys(opts.props);
+            (gr: RequestedProcessing<any, any, any>[]) => {
+                return (
+                    (opts.groupByData === false || gr[0].data === data) &&
+                    gr[0].opts.groupByKeys === opts.groupByKeys &&
+                    gr[0].opts.dataVisible === opts.dataVisible &&
+                    gr[0].opts.groupByFn === opts.groupByFn &&
+                    keys(gr[0].opts.props) === keys(opts.props)
+                );
+            };
 
         const propMatch = (prop: PropertyDefinition<any>) => (existing: PropertyDefinition<any>) => {
-            if (existing.type !== prop.type) {
-                return false;
+            if (existing.type !== prop.type) return false;
+
+            const diff = jsonDiff(existing, prop) ?? {};
+            delete diff['scopes'];
+            delete diff['id'];
+            delete diff['ids'];
+            if ('useScopedValues' in diff) {
+                delete diff['useScopedValues'];
             }
 
-            const { id, ids, scopes, useScopedValues, ...diff } = jsonDiff<any>(existing, prop) ?? {};
             return Object.keys(diff).length === 0;
         };
 
         const updateKeyValueOpts = (prop: PropertyDefinition<any>) => {
-            if (prop.type === 'key' || prop.type === 'value') {
-                prop.useScopedValues = unique(prop.scopes ?? []).length > 1;
-            }
+            if (prop.type !== 'key' && prop.type !== 'value') return;
+
+            const uniqueScopes = new Set(prop.scopes ?? []);
+            prop.useScopedValues = uniqueScopes.size > 1;
         };
 
         const mergeOpts = (opts: DataModelOptions<any, any>[]): DataModelOptions<any, any> => {
@@ -239,13 +246,15 @@ export class DataController {
             };
         };
 
-        const merge = (props: RequestedProcessing<any, any, any>[]): MergedRequests<any, any, any> => ({
-            ids: props.map(({ id }) => id),
-            resultCbs: props.map(({ resultCb }) => resultCb),
-            rejects: props.map(({ reject }) => reject),
-            data: props[0].data,
-            opts: mergeOpts(props.map(({ opts }) => opts)),
-        });
+        const merge = (props: RequestedProcessing<any, any, any>[]): MergedRequests<any, any, any> => {
+            return {
+                ids: props.map(({ id }) => id),
+                resultCbs: props.map(({ resultCb }) => resultCb),
+                rejects: props.map(({ reject }) => reject),
+                data: props[0].data,
+                opts: mergeOpts(props.map(({ opts }) => opts)),
+            };
+        };
 
         for (const request of requested) {
             const match = grouped.find(groupMatch(request));
@@ -266,15 +275,19 @@ export class DataController {
         scopes: string[],
         resultCbs: ((result: Result<any, any, any>) => void)[]
     ) {
-        for (let i = 0; i < scopes.length; i++) {
-            const scope = scopes[i];
-            const resultCb = resultCbs[i];
+        for (let index = 0; index < scopes.length; index++) {
+            const scope = scopes[index];
+            const resultCb = resultCbs[index];
 
-            processedData.data = processedData.data.filter(
-                ({ validScopes }) => validScopes?.some((s) => s === scope) ?? true
-            );
-
-            resultCb({ dataModel, processedData });
+            resultCb({
+                dataModel,
+                processedData: {
+                    ...processedData,
+                    data: processedData.data.filter(({ validScopes }) => {
+                        return validScopes == null || validScopes.some((s) => s === scope);
+                    }),
+                },
+            });
         }
     }
 }
