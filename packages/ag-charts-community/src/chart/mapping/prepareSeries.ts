@@ -2,16 +2,16 @@ import type { AgChartOptionsNext } from '../../options/chart/chartBuilderOptions
 import { jsonDiff } from '../../util/json';
 import type { ISeries } from '../series/seriesTypes';
 
+const MATCHING_KEYS = ['direction', 'xKey', 'yKey', 'sizeKey', 'angleKey', 'radiusKey', 'normalizedTo'];
+
 export function matchSeriesOptions<S extends ISeries<any>>(
     series: S[],
     optSeries: NonNullable<AgChartOptionsNext['series']>,
     oldOptsSeries?: AgChartOptionsNext['series']
 ) {
-    const keysToConsider = ['direction', 'xKey', 'yKey', 'sizeKey', 'angleKey', 'radiusKey', 'normalizedTo'];
-
     const generateKey = (type: string | undefined, i: any) => {
         const result = [type];
-        for (const key of keysToConsider) {
+        for (const key of MATCHING_KEYS) {
             if (key in i && i[key] != null) result.push(`${key}=${i[key]}`);
         }
         return result.join(';');
