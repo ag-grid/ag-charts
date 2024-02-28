@@ -6,18 +6,10 @@ if (typeof window !== 'undefined') {
     verifiedGlobals.window = global.window;
 }
 
-if (verifiedGlobals.window == null) {
-    throw new Error('AG Charts - unable to resolve global window.');
-}
-
 if (typeof document !== 'undefined') {
     verifiedGlobals.document = document;
 } else if (typeof global !== 'undefined') {
     verifiedGlobals.document = global.document;
-}
-
-if (verifiedGlobals.document == null) {
-    throw new Error('AG Charts - unable to resolve global document.');
 }
 
 export function getDocument() {
