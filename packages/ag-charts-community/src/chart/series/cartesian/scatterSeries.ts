@@ -1,12 +1,16 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import { ColorScale } from '../../../scale/colorScale';
+import { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
+import type { Node } from '../../../scene/node';
 import { PointerEvents } from '../../../scene/node';
+import type { Point } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import { Text } from '../../../scene/shape/text';
 import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { extent } from '../../../util/array';
 import { mergeDefaults } from '../../../util/object';
+import { Quadtree } from '../../../util/quadtree';
 import { sanitizeHtml } from '../../../util/sanitize';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
@@ -14,6 +18,7 @@ import { fixNumericExtent } from '../../data/dataModel';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
+import type { SeriesNodePickMatch } from '../series';
 import { SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { CartesianAnimationData } from './cartesianSeries';
@@ -94,9 +99,13 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
         return fixNumericExtent(extent(domain), axis);
     }
 
+    private quadtree?: Quadtree<Node> = undefined;
+
     async createNodeData() {
         const { axes, dataModel, processedData, colorScale } = this;
         const { xKey, yKey, labelKey, colorKey, xName, yName, labelName, marker, label, visible } = this.properties;
+
+        this.quadtree = undefined;
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
@@ -336,5 +345,40 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
 
     protected nodeFactory() {
         return new Group();
+    }
+
+    private getQuadTree() {
+        if (this.quadtree === undefined) {
+            this.quadtree = new Quadtree(100, 10, this.contentGroup.computeTransformedBBox());
+            for (const children of this.contentGroup.children) {
+                for (const node of children.children) {
+                    this.quadtree.addValue(node.computeTransformedBBox() ?? BBox.NaN, node);
+                }
+            }
+        }
+        return this.quadtree;
+    }
+
+    protected override pickNodeExactShape(point: Point): SeriesNodePickMatch | undefined {
+        //*
+        for (const { value } of this.getQuadTree().pickValues(point.x, point.y)) {
+            if (value.containsPoint(point.x, point.y)) {
+                return { datum: value.datum, distance: 0 };
+            }
+        }
+        //*/
+
+        return super.pickNodeExactShape(point);
+    }
+
+    protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {
+        //*
+        const { nearest, distanceSquared } = this.getQuadTree().findNearest(point.x, point.y);
+        if (nearest !== undefined) {
+            return { datum: nearest.value.datum, distance: Math.sqrt(distanceSquared) };
+        }
+        //*/
+
+        return undefined;
     }
 }

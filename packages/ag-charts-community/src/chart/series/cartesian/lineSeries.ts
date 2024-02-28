@@ -2,16 +2,13 @@ import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import { pathMotion } from '../../../motion/pathMotion';
 import { resetMotion } from '../../../motion/resetMotion';
-import { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
-import { Node, PointerEvents } from '../../../scene/node';
-import type { Point } from '../../../scene/point';
+import {  PointerEvents } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
 import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
 import { mergeDefaults } from '../../../util/object';
-import { Quadtree } from '../../../util/quadtree';
 import { sanitizeHtml } from '../../../util/sanitize';
 import { isFiniteNumber } from '../../../util/type-guards';
 import { ChartAxisDirection } from '../../chartAxisDirection';
@@ -22,7 +19,7 @@ import { animationValidation, createDatumId, diff } from '../../data/processors'
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
-import { SeriesNodePickMatch, SeriesNodePickMode, keyProperty, valueProperty } from '../series';
+import {  SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { CartesianAnimationData, CartesianSeriesNodeDataContext } from './cartesianSeries';
 import { CartesianSeries } from './cartesianSeries';
@@ -113,12 +110,8 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         }
     }
 
-    private quadtree?: Quadtree<Node> = undefined;
-
     async createNodeData() {
         const { processedData, dataModel, axes } = this;
-
-        this.quadtree = undefined;
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
@@ -493,41 +486,5 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
 
     protected nodeFactory() {
         return new Group();
-    }
-
-    private getQuadTree() {
-        if (this.quadtree === undefined) {
-            this.quadtree = new Quadtree(100, 10, this.contentGroup.computeTransformedBBox());
-            for (const children of this.contentGroup.children) {
-                for (const node of children.children) {
-                    this.quadtree.addValue(node.computeTransformedBBox() ?? BBox.NaN, node);
-                }
-            }
-        }
-        return this.quadtree;
-    }
-
-    protected override pickNodeExactShape(point: Point): SeriesNodePickMatch | undefined {
-        //*
-        for (const { value } of this.getQuadTree().pickValues(point.x, point.y)) {
-            if (value.containsPoint(point.x, point.y)) {
-                return { datum: value.datum, distance: 0 };
-            }
-        }
-        //*/
-
-        return super.pickNodeExactShape(point);
-    }
-
-    protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {
-        point;
-        /*
-        const { nearest, distanceSquared } = this.getQuadTree().findNearest(point.x, point.y);
-        if (nearest !== undefined) {
-            return { datum: nearest.value.datum, distance: Math.sqrt(distanceSquared) };
-        }
-        //*/
-
-        return undefined;
     }
 }
