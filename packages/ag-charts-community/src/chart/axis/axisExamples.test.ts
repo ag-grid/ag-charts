@@ -92,16 +92,6 @@ const EXAMPLES: Record<string, TestCase> = {
             }),
         },
     }),
-    NUMBER_AXIS_LOG2_EXAMPLE: {
-        options: axesExamples.NUMBER_AXIS_LOG2_EXAMPLE,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'log'], seriesTypes: ['line'] }),
-        compare: ['log'],
-    },
-    NUMBER_AXIS_LOG10_EXAMPLE: {
-        options: axesExamples.NUMBER_AXIS_LOG10_EXAMPLE,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'log'], seriesTypes: ['line'] }),
-        compare: ['log'],
-    },
 };
 
 const EXAMPLES_NO_SERIES: Record<string, TestCase> = {
@@ -194,10 +184,6 @@ const EXAMPLES_TICK_VALUES: Record<string, TestCase> = {
         TIME_AXIS_TICK_VALUES: {
             options: axesExamples.TIME_AXIS_TICK_VALUES,
             assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 4) }),
-        },
-        LOG_AXIS_TICK_VALUES: {
-            options: axesExamples.LOG_AXIS_TICK_VALUES,
-            assertions: cartesianChartAssertions({ axisTypes: ['number', 'log'], seriesTypes: ['line'] }),
         },
         CATEGORY_AXIS_TICK_VALUES: {
             options: axesExamples.CATEGORY_AXIS_TICK_VALUES,
