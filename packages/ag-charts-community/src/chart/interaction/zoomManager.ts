@@ -41,7 +41,7 @@ export class ZoomManager extends BaseManager<'zoom-change', ZoomChangeEvent> {
             this.axisZoomManagers.set(axis.id, zoomManagers.get(axis.id) ?? new AxisZoomManager(axis));
         }
 
-        if (this.state.size > 0) {
+        if (this.state.size > 0 && axes.length > 0) {
             this.updateZoom(this.state.stateId()!, this.state.stateValue());
         }
     }
@@ -50,7 +50,8 @@ export class ZoomManager extends BaseManager<'zoom-change', ZoomChangeEvent> {
         if (this.axisZoomManagers.size === 0) {
             // Only update the initial zoom state if no other modules have tried or permitted. This allows us to give
             // priority to the 'zoom' module over 'navigator' if they both attempt to set the initial zoom state.
-            if (this.state.size === 0 || canChangeInitial) {
+            const stateId = this.state.stateId();
+            if (stateId === 'initial' || stateId === callerId || canChangeInitial) {
                 this.state.set(callerId, newZoom);
             }
             return;
@@ -143,7 +144,7 @@ class AxisZoomManager {
     }
 
     public getZoom() {
-        return deepClone(this.currentZoom);
+        return deepClone(this.state.stateValue()!);
     }
 
     public applyChanges(): boolean {

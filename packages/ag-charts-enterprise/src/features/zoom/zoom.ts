@@ -5,6 +5,7 @@ import { ZoomRect } from './scenes/zoomRect';
 import { ZoomAxisDragger } from './zoomAxisDragger';
 import { ZoomPanner } from './zoomPanner';
 import { ZoomRange } from './zoomRange';
+import { ZoomScrollPanner } from './zoomScrollPanner';
 import { ZoomScroller } from './zoomScroller';
 import { ZoomSelector } from './zoomSelector';
 import type { DefinedZoomState } from './zoomTypes';
@@ -125,6 +126,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private readonly panner = new ZoomPanner();
     private readonly selector: ZoomSelector;
     private readonly scroller = new ZoomScroller();
+    private readonly scrollPanner = new ZoomScrollPanner();
 
     // State
     private isDragging = false;
@@ -246,7 +248,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private onDragStart(event: _ModuleSupport.InteractionEvent<'drag-start'>) {
-        this.canDragSelection = this.paddedRect?.containsPoint(event.offsetX, event.offsetY);
+        if (!this.enabled || !this.paddedRect) return;
+        this.canDragSelection = this.paddedRect.containsPoint(event.offsetX, event.offsetY);
     }
 
     private onDrag(event: _ModuleSupport.InteractionEvent<'drag'>) {
@@ -280,7 +283,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         // Allow panning if either selection is disabled or the panning key is pressed.
         if (this.enablePanning && (!this.enableSelecting || this.isPanningKeyPressed(sourceEvent))) {
-            const newZooms = this.panner.updateDrag(event, this.seriesRect, this.zoomManager.getAxisZooms());
+            const newZooms = this.panner.update(event, this.seriesRect, this.zoomManager.getAxisZooms());
             for (const [axisId, { direction, zoom: newZoom }] of Object.entries(newZooms)) {
                 this.updateAxisZoom(axisId, direction, newZoom);
             }
@@ -310,10 +313,10 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private onDragEnd() {
-        this.ctx.interactionManager.popState(_ModuleSupport.InteractionState.ZoomDrag);
-
         // Stop single clicks from triggering drag end and resetting the zoom
         if (!this.enabled || !this.isDragging) return;
+
+        this.ctx.interactionManager.popState(_ModuleSupport.InteractionState.ZoomDrag);
 
         const zoom = definedZoomState(this.zoomManager.getZoom());
 
@@ -348,37 +351,43 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             isScalingY = !isScalingX;
         }
 
-        // Allow panning if either selection is disabled or the panning key is pressed.
-        const sourceEvent: Partial<WheelEvent> = event.sourceEvent;
+        const sourceEvent = event.sourceEvent as WheelEvent;
         const { deltaX, deltaY } = sourceEvent;
-        if (this.enablePanning && deltaX !== undefined && deltaY !== undefined && Math.abs(deltaX) > Math.abs(deltaY)) {
+        const isHorizontalScrolling = deltaX != null && deltaY != null && Math.abs(deltaX) > Math.abs(deltaY);
+
+        if (this.enablePanning && isHorizontalScrolling) {
             event.consume();
             event.sourceEvent.preventDefault();
 
-            const newZooms = this.panner.updateHScroll(event.deltaX, this.seriesRect, this.zoomManager.getAxisZooms());
+            const newZooms = this.scrollPanner.update(
+                event,
+                this.scrollingStep,
+                this.seriesRect,
+                this.zoomManager.getAxisZooms()
+            );
             for (const [axisId, { direction, zoom: newZoom }] of Object.entries(newZooms)) {
                 this.updateAxisZoom(axisId, direction, newZoom);
             }
             return;
         }
 
-        if (isSeriesScrolling || isAxisScrolling) {
-            event.consume();
-            event.sourceEvent.preventDefault();
+        if (!isSeriesScrolling && !isAxisScrolling) return;
 
-            const newZoom = this.scroller.update(
-                event,
-                this.scrollingStep,
-                this.getAnchorPointX(),
-                this.getAnchorPointY(),
-                isScalingX,
-                isScalingY,
-                this.seriesRect,
-                currentZoom
-            );
+        event.consume();
+        event.sourceEvent.preventDefault();
 
-            this.updateZoom(newZoom);
-        }
+        const newZoom = this.scroller.update(
+            event,
+            this.scrollingStep,
+            this.getAnchorPointX(),
+            this.getAnchorPointY(),
+            isScalingX,
+            isScalingY,
+            this.seriesRect,
+            currentZoom
+        );
+
+        this.updateZoom(newZoom);
     }
 
     private onHover() {
@@ -441,8 +450,18 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         if (!axes) return;
 
         const [axesX, axesY] = _Util.bifurcate((axis) => axis.direction === ChartAxisDirection.X, axes);
-        this.rangeX.updateAxis(axesX);
-        this.rangeY.updateAxis(axesY);
+        const rangeXAxisChanged = this.rangeX.updateAxis(axesX);
+        const rangeYAxisChanged = this.rangeY.updateAxis(axesY);
+
+        if (!rangeXAxisChanged && !rangeYAxisChanged) return;
+
+        const newZoom: _ModuleSupport.AxisZoomState = {};
+        newZoom.x = this.rangeX.getRange();
+        newZoom.y = this.rangeY.getRange();
+
+        if (newZoom.x != null || newZoom.y != null) {
+            this.updateZoom(constrainZoom(definedZoomState(newZoom)));
+        }
     }
 
     private onUpdateComplete({ minRect, minVisibleRect }: _ModuleSupport.UpdateCompleteEvent) {
@@ -525,7 +544,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.updateZoom(constrainZoom(newZoom));
     }
 
-    private isPanningKeyPressed(event: MouseEvent) {
+    private isPanningKeyPressed(event: MouseEvent | WheelEvent) {
         switch (this.panKey) {
             case 'alt':
                 return event.altKey;

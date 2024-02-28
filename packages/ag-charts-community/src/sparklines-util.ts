@@ -1,4 +1,5 @@
 export * from './util/angle';
+export * from './util/equal';
 export * from './util/id';
 export * from './util/json';
 export * from './util/number';

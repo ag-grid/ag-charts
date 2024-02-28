@@ -253,9 +253,7 @@ export function hoverAction(x: number, y: number): (chart: Chart | AgChartProxy)
         const target = chart.scene.canvas.element;
         checkTargetValid(target);
 
-        // Reveal tooltip.
         target?.dispatchEvent(mouseMoveEvent({ offsetX: x, offsetY: y }));
-
         return delay(50);
     };
 }
@@ -293,6 +291,25 @@ export function doubleClickAction(x: number, y: number): (chart: Chart | AgChart
         await delay(50);
         await waitForChartStability(chart);
         target?.dispatchEvent(doubleClickEvent(offsets));
+        return delay(50);
+    };
+}
+
+export function dragAction(
+    from: { x: number; y: number },
+    to: { x: number; y: number }
+): (chart: Chart | AgChartProxy) => Promise<void> {
+    return async (chartOrProxy) => {
+        const chart = deproxy(chartOrProxy);
+        const target = chart.scene.canvas.element;
+        checkTargetValid(target);
+
+        target?.dispatchEvent(mouseDownEvent({ offsetX: from.x, offsetY: from.y }));
+        target?.dispatchEvent(mouseMoveEvent({ offsetX: from.x, offsetY: from.y }));
+        target?.dispatchEvent(mouseMoveEvent({ offsetX: from.x + (to.x - from.x), offsetY: to.y }));
+        target?.dispatchEvent(mouseMoveEvent({ offsetX: to.x, offsetY: to.y }));
+        target?.dispatchEvent(mouseUpEvent({ offsetX: to.x, offsetY: to.y }));
+
         return delay(50);
     };
 }

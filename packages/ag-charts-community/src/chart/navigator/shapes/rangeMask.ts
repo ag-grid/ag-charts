@@ -1,71 +1,31 @@
 import { BBox } from '../../../scene/bbox';
 import { Path } from '../../../scene/shape/path';
-import { clamp } from '../../../util/number';
-import { ActionOnSet } from '../../../util/proxy';
-import { NUMBER, POSITIVE_NUMBER, Validate } from '../../../util/validation';
-
-function markDirtyOnChange(this: RangeMask, newValue: unknown, oldValue: unknown) {
-    if (newValue !== oldValue) {
-        this.dirtyPath = true;
-    }
-}
 
 export class RangeMask extends Path {
     static override readonly className = 'RangeMask';
 
-    @ActionOnSet<RangeMask>({ changeValue: markDirtyOnChange })
-    @Validate(POSITIVE_NUMBER)
-    x = 0;
+    override zIndex = 2;
 
-    @ActionOnSet<RangeMask>({ changeValue: markDirtyOnChange })
-    @Validate(POSITIVE_NUMBER)
-    y = 0;
+    private x = 0;
+    private y = 0;
+    private width = 200;
+    private height = 30;
+    private min = 0;
+    private max = 1;
 
-    @ActionOnSet<RangeMask>({ changeValue: markDirtyOnChange })
-    @Validate(POSITIVE_NUMBER)
-    width = 200;
-
-    @ActionOnSet<RangeMask>({ changeValue: markDirtyOnChange })
-    @Validate(POSITIVE_NUMBER)
-    height = 30;
-
-    readonly minRange = 0.001;
-
-    @Validate(NUMBER)
-    protected _min: number = 0;
-    set min(value: number) {
-        this.setMin(value, true);
-    }
-    get min(): number {
-        return this._min;
-    }
-    public setMin(value: number, callRangeChangeCallback = false) {
-        value = clamp(0, value, this.max - this.minRange);
-        if (this._min === value || isNaN(value)) return;
-
-        this._min = value;
+    layout(x: number, y: number, width: number, height: number) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
         this.dirtyPath = true;
-        this.onRangeChange?.(callRangeChangeCallback);
     }
 
-    @Validate(NUMBER)
-    protected _max: number = 1;
-    set max(value: number) {
-        this.setMax(value, true);
-    }
-    get max(): number {
-        return this._max;
-    }
-    public setMax(value: number, callRangeChangeCallback = false) {
-        value = clamp(this.min + this.minRange, value, 1);
-        if (this._max === value || isNaN(value)) return;
-
-        this._max = value;
+    update(min: number, max: number) {
+        this.min = isNaN(min) ? this.min : min;
+        this.max = isNaN(max) ? this.max : max;
         this.dirtyPath = true;
-        this.onRangeChange?.(callRangeChangeCallback);
     }
-
-    onRangeChange?: (callRangeChangeCallback: boolean) => any;
 
     override computeBBox() {
         const { x, y, width, height } = this;
