@@ -1,5 +1,6 @@
 import { Group } from '../../../scene/group';
 import { ProxyProperty } from '../../../util/proxy';
+import { Layers } from '../../layers';
 import { RangeHandle } from './rangeHandle';
 import { RangeMask } from './rangeMask';
 
@@ -59,7 +60,7 @@ export class RangeSelector extends Group {
     max!: number;
 
     constructor() {
-        super({ name: 'rangeSelectorGroup', layer: true });
+        super({ name: 'rangeSelectorGroup', layer: true, zIndex: Layers.LEGEND_ZINDEX });
 
         this.isContainerNode = true;
     }
