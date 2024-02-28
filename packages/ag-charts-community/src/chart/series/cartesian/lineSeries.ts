@@ -2,6 +2,7 @@ import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import { pathMotion } from '../../../motion/pathMotion';
 import { resetMotion } from '../../../motion/resetMotion';
+import { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
 import { Node, PointerEvents } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
@@ -13,7 +14,6 @@ import { mergeDefaults } from '../../../util/object';
 import { Quadtree } from '../../../util/quadtree';
 import { sanitizeHtml } from '../../../util/sanitize';
 import { isFiniteNumber } from '../../../util/type-guards';
-import { BBox } from '../../../scene/bbox';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import type { DataModelOptions, UngroupedDataItem } from '../../data/dataModel';
@@ -495,10 +495,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         return new Group();
     }
 
-    protected override pickNodeExactShape(point: Point): SeriesNodePickMatch | undefined {
-        this.quadtree;
-
-        //*
+    private getQuadTree() {
         if (this.quadtree === undefined) {
             this.quadtree = new Quadtree(100, 10, this.contentGroup.computeTransformedBBox());
             for (const children of this.contentGroup.children) {
@@ -507,8 +504,12 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
                 }
             }
         }
+        return this.quadtree;
+    }
 
-        for (const { value } of this.quadtree.pickValues(point.x, point.y)) {
+    protected override pickNodeExactShape(point: Point): SeriesNodePickMatch | undefined {
+        //*
+        for (const { value } of this.getQuadTree().pickValues(point.x, point.y)) {
             if (value.containsPoint(point.x, point.y)) {
                 return { datum: value.datum, distance: 0 };
             }
@@ -516,5 +517,17 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         //*/
 
         return super.pickNodeExactShape(point);
+    }
+
+    protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {
+        point;
+        /*
+        const { nearest, distanceSquared } = this.getQuadTree().findNearest(point.x, point.y);
+        if (nearest !== undefined) {
+            return { datum: nearest.value.datum, distance: Math.sqrt(distanceSquared) };
+        }
+        //*/
+
+        return undefined;
     }
 }

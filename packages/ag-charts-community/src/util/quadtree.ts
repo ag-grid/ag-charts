@@ -1,6 +1,23 @@
 import { BBox } from '../scene/bbox';
+import { NearestResult, nearestSquared } from '../scene/nearest';
+import type { Point } from '../scene/point';
 
-type QuadtreeElem<V> = { bbox: BBox; value: V };
+type QuadtreeNearest<V> = NearestResult<QuadtreeElem<V>>;
+
+class QuadtreeElem<V> {
+    constructor(
+        public bbox: BBox,
+        public value: V
+    ) {}
+
+    distanceSquared(point: Point) {
+        return this.bbox.distanceSquared(point);
+    }
+}
+
+function pickNearest<V>(a: QuadtreeNearest<V>, b: QuadtreeNearest<V>): QuadtreeNearest<V> {
+    return a.distanceSquared < b.distanceSquared ? a : b;
+}
 
 export class Quadtree<V> {
     private readonly root: QuadtreeNode<V>;
@@ -14,13 +31,18 @@ export class Quadtree<V> {
     }
 
     addValue(bbox: BBox, value: V): void {
-        this.root.addElem({ bbox, value });
+        this.root.addElem(new QuadtreeElem(bbox, value));
     }
 
     pickValues(x: number, y: number): Iterable<QuadtreeElem<V>> {
         const foundValues: QuadtreeElem<V>[] = [];
         this.root.query(x, y, foundValues);
         return foundValues;
+    }
+
+    findNearest(x: number, y: number): QuadtreeNearest<V> {
+        const best = { nearest: undefined, distanceSquared: Infinity };
+        return this.root.findNearest({ x, y }, best);
     }
 }
 
@@ -44,6 +66,14 @@ class QuadtreeSubdivisions<V> {
         this.ne.query(x, y, foundElems);
         this.sw.query(x, y, foundElems);
         this.se.query(x, y, foundElems);
+    }
+
+    findNearest(target: Point, best: QuadtreeNearest<V>): QuadtreeNearest<V> {
+        best = pickNearest(best, this.nw.findNearest(target, best));
+        best = pickNearest(best, this.ne.findNearest(target, best));
+        best = pickNearest(best, this.sw.findNearest(target, best));
+        best = pickNearest(best, this.se.findNearest(target, best));
+        return best;
     }
 }
 
@@ -93,11 +123,23 @@ class QuadtreeNode<V> {
         if (this.subdivisions !== undefined) {
             this.subdivisions.query(x, y, foundElems);
         } else {
-            for (const { bbox, value } of this.elems) {
-                if (bbox.containsPoint(x, y)) {
-                    foundElems.push({ bbox, value });
+            for (const elem of this.elems) {
+                if (elem.bbox.containsPoint(x, y)) {
+                    foundElems.push(elem);
                 }
             }
+        }
+    }
+
+    findNearest(target: Point, best: QuadtreeNearest<V>): QuadtreeNearest<V> {
+        if (best.distanceSquared === 0 || this.boundary.distanceSquared(target) > best.distanceSquared) {
+            return best;
+        }
+
+        if (this.subdivisions !== undefined) {
+            return this.subdivisions.findNearest(target, best);
+        } else {
+            return pickNearest(best, nearestSquared(target, this.elems, best.distanceSquared));
         }
     }
 

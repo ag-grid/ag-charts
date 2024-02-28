@@ -17,7 +17,7 @@ type DistantContainer<TNearest> = {
 
 export function nearestSquared<TObject extends DistantObject>(
     point: Point,
-    objects: TObject[],
+    objects: Iterable<TObject>,
     maxDistanceSquared = Infinity
 ): NearestResult<TObject> {
     const result: NearestResult<TObject> = { nearest: undefined, distanceSquared: maxDistanceSquared };
