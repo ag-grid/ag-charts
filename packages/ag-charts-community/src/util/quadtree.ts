@@ -15,8 +15,12 @@ class QuadtreeElem<V> {
     }
 }
 
-function pickNearest<V>(a: QuadtreeNearest<V>, b: QuadtreeNearest<V>): QuadtreeNearest<V> {
-    return a.distanceSquared < b.distanceSquared ? a : b;
+function pickNearest<V>(best: QuadtreeNearest<V>, other: QuadtreeNearest<V>): QuadtreeNearest<V> {
+    if (other.nearest === undefined || best.distanceSquared < other.distanceSquared) {
+        return best;
+    } else {
+        return other;
+    }
 }
 
 export class Quadtree<V> {
