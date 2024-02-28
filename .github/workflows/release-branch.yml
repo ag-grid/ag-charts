@@ -97,7 +97,7 @@ jobs:
               if: success()
               with:
                   default_author: github_actions
-                  message: Automated package version bump to ${{ steps.update_version.outputs.version }}.
+                  message: Release prep for ${{ steps.update_version.outputs.version }}.
 
             - name: Tag Latest Successful Commit For Publish
               uses: EndBug/latest-tag@latest
