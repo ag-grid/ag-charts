@@ -149,8 +149,9 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         const { syncManager } = this.moduleContext;
         const chart = syncManager.getChart();
 
-        const syncSeries = syncManager.getGroup(this.groupId).flatMap((c) => c.series);
-        const syncAxes = syncManager.getGroupSiblings(this.groupId).flatMap((c) => c.axes);
+        const syncGroup = syncManager.getGroup(this.groupId);
+        const syncSeries = syncGroup.flatMap((c) => c.series);
+        const syncAxes = syncGroup[0].axes;
 
         let hasUpdated = false;
 
@@ -162,14 +163,14 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
 
             const { direction, min, max, nice, reverse } = axis as (typeof syncAxes)[number];
 
-            for (const siblingAxis of syncAxes) {
-                if (direction !== siblingAxis.direction) continue;
+            for (const mainAxis of syncAxes) {
+                if (direction !== mainAxis.direction) continue;
 
                 if (
-                    nice !== siblingAxis.nice ||
-                    reverse !== siblingAxis.reverse ||
-                    (min !== siblingAxis.min && (isFiniteNumber(min) || isFiniteNumber(siblingAxis.min))) ||
-                    (max !== siblingAxis.max && (isFiniteNumber(max) || isFiniteNumber(siblingAxis.max)))
+                    nice !== mainAxis.nice ||
+                    reverse !== mainAxis.reverse ||
+                    (min !== mainAxis.min && (isFiniteNumber(min) || isFiniteNumber(mainAxis.min))) ||
+                    (max !== mainAxis.max && (isFiniteNumber(max) || isFiniteNumber(mainAxis.max)))
                 ) {
                     Logger.warnOnce('For axes sync, ensure matching `min`, `max`, `nice`, and `reverse` properties.');
                     axis.boundSeries = chart.series.filter((s) => s.axes[axis.direction] === (axis as any));
