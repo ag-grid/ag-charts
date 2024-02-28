@@ -119,7 +119,11 @@ export class DataController {
     private hasMultipleDataSources(validRequests: RequestedProcessing<any, any, any>[]) {
         if (validRequests.length) {
             const [{ data }, ...restRequests] = validRequests;
-            return restRequests.some((v) => data !== v.data);
+            for (const v of restRequests) {
+                if (data !== v.data) {
+                    return true;
+                }
+            }
         }
         return false;
     }
