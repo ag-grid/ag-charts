@@ -30,15 +30,23 @@ const categoryKey = (property: string) => ({
     type: 'key' as const,
     valueType: 'category' as const,
 });
-const scopedValue = (scope: string[] | string | undefined, property: string, groupId?: string, id?: string) => ({
-    scopes: Array.isArray(scope) ? scope : scope ? [scope] : undefined,
-    property,
-    type: 'value' as const,
-    valueType: 'range' as const,
-    groupId,
-    id,
-    useScopedValues: Array.isArray(scope) ? scope.length > 1 : false,
-});
+const scopedValue = (scope: string[] | string | undefined, property: string, groupId?: string, id?: string) => {
+    let scopes: string[] | undefined = undefined;
+    if (Array.isArray(scope)) {
+        scopes = scope;
+    } else if (scope) {
+        scopes = [scope];
+    }
+    return {
+        scopes,
+        property,
+        type: 'value' as const,
+        valueType: 'range' as const,
+        groupId,
+        id,
+        useScopedValues: Array.isArray(scope) ? scope.length > 1 : false,
+    };
+};
 const value = (property: string, groupId?: string, id?: string) => scopedValue('test', property, groupId, id);
 const categoryValue = (property: string) => ({
     scopes: ['test'],

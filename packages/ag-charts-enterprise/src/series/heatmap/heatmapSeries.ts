@@ -188,12 +188,13 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
             const x = xScale.convert(xDatum) + xOffset;
             const y = yScale.convert(yDatum) + yOffset;
 
-            const colorValue = colorDataIdx != null ? values[colorDataIdx] : undefined;
+            const colorValue = values[colorDataIdx ?? -1];
             const fill = colorScaleValid && colorValue != null ? this.colorScale.convert(colorValue) : colorRange[0];
 
             const labelText =
-                colorValue != null
-                    ? this.getLabelText(label, {
+                colorValue == null
+                    ? undefined
+                    : this.getLabelText(label, {
                           value: colorValue,
                           datum,
                           colorKey,
@@ -202,8 +203,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
                           yKey,
                           xName,
                           yName,
-                      })
-                    : undefined;
+                      });
 
             const labels = formatLabels(
                 labelText,

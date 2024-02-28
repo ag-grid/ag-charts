@@ -52,7 +52,7 @@ import {
 // If this changes, update plugins/ag-charts-generate-chart-thumbnail/src/executors/generate/generator/constants.ts
 const DEFAULT_BACKGROUND_FILL = 'white';
 
-const palette: AgChartThemePalette = {
+const DEFAULT_PALETTE: AgChartThemePalette = {
     fills: Object.values(DEFAULT_FILLS),
     strokes: Object.values(DEFAULT_STROKES),
 };
@@ -91,7 +91,7 @@ export class ChartTheme {
     readonly palette: AgChartThemePalette;
 
     protected getPalette(): AgChartThemePalette {
-        return palette;
+        return DEFAULT_PALETTE;
     }
 
     readonly config: any;
@@ -388,12 +388,12 @@ export class ChartTheme {
         };
 
         const getOverridesByType = (chartType: ChartType, seriesTypes: string[]) => {
-            const chartDefaults = getChartTypeDefaults(chartType) as any;
+            const chartTypeDefaults = getChartTypeDefaults(chartType) as any;
             const result: Record<string, { series?: {}; axes?: {} }> = {};
             for (const seriesType of seriesTypes) {
                 result[seriesType] = mergeDefaults(
                     seriesRegistry.getThemeTemplate(seriesType),
-                    result[seriesType] ?? deepClone(chartDefaults)
+                    result[seriesType] ?? deepClone(chartTypeDefaults)
                 );
 
                 const { axes } = result[seriesType] as { axes: Record<string, {}> };
@@ -423,10 +423,10 @@ export class ChartTheme {
 
         jsonWalk(themeInstance, (node: any) => {
             if (node['__extends__']) {
-                const key = node['__extends__'];
-                const source = extensions.get(key);
+                const extendsValue = node['__extends__'];
+                const source = extensions.get(extendsValue);
                 if (source == null) {
-                    throw new Error(`AG Charts - no template variable provided for: ${key}`);
+                    throw new Error(`AG Charts - no template variable provided for: ${extendsValue}`);
                 }
                 Object.keys(source).forEach((key) => {
                     if (!(key in node)) {

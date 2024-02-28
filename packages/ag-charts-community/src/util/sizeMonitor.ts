@@ -15,8 +15,8 @@ export class SizeMonitor {
     private queuedObserveRequests: [HTMLElement, OnSizeChange][] = [];
 
     constructor(
-        private window: Window,
-        private document: Document
+        private readonly window: Window,
+        private readonly document: Document
     ) {
         if (typeof ResizeObserver === 'undefined') {
             for (const [element, entry] of this.elements) {
@@ -58,8 +58,8 @@ export class SizeMonitor {
         this.window?.removeEventListener('load', this.onContentLoaded);
         this.resizeObserver?.disconnect();
         this.resizeObserver = null!;
-        this.window = null!;
-        this.document = null!;
+        (this as any).window = null!;
+        (this as any).document = null!;
     }
 
     private checkSize(entry: Entry | undefined, element: HTMLElement, width: number, height: number) {

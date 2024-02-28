@@ -21,9 +21,9 @@ export function extent(values: Array<number | Date>): [number, number] | undefin
             max = n;
         }
     }
-    const extent = [min, max];
-    if (extent.every(isFinite)) {
-        return extent as [number, number];
+    const result = [min, max];
+    if (result.every(isFinite)) {
+        return result as [number, number];
     }
 }
 

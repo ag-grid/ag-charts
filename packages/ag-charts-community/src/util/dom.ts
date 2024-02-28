@@ -4,14 +4,19 @@ if (typeof window !== 'undefined') {
     verifiedGlobals.window = window;
 } else if (typeof global !== 'undefined') {
     verifiedGlobals.window = global.window;
-} else {
+}
+
+if (verifiedGlobals.window == null) {
     throw new Error('AG Charts - unable to resolve global window.');
 }
+
 if (typeof document !== 'undefined') {
     verifiedGlobals.document = document;
 } else if (typeof global !== 'undefined') {
     verifiedGlobals.document = global.document;
-} else {
+}
+
+if (verifiedGlobals.document == null) {
     throw new Error('AG Charts - unable to resolve global document.');
 }
 

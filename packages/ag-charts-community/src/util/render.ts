@@ -6,11 +6,11 @@ type Callback = (params: { count: number }) => Promise<void> | void;
  * animation callback executes.
  */
 export function debouncedAnimationFrame(cb: Callback): { schedule(delayMs?: number): void; await(): Promise<void> } {
-    return buildScheduler((cb, _delayMs) => requestAnimationFrame(cb), cb);
+    return buildScheduler((innerCb, _delayMs) => requestAnimationFrame(innerCb), cb);
 }
 
 export function debouncedCallback(cb: Callback): { schedule(delayMs?: number): void; await(): Promise<void> } {
-    return buildScheduler((cb, delayMs = 0) => setTimeout(cb, delayMs), cb);
+    return buildScheduler((innerCb, delayMs = 0) => setTimeout(innerCb, delayMs), cb);
 }
 
 function buildScheduler(scheduleFn: (cb: () => void, delayMs?: number) => void, cb: Callback) {

@@ -784,10 +784,10 @@ describe('ChartTheme', () => {
             expect(axis1.label.fontFamily).toBe(defaultTheme.config.area.axes.category.label.fontFamily);
             expect(axis1.label.fontWeight).toBe('bold');
             expect(axis1.label.rotation).toBe(45);
-            expect(axis1.title && axis1.title.text).toBe('Test');
+            expect(axis1.title?.text).toBe('Test');
             // Since config is provided, the `enabled` should be auto-set to `true`,
             // even though theme's default is `false`.
-            expect(axis1.title && axis1.title.enabled).toBe(true);
+            expect(axis1.title?.enabled).toBe(true);
         });
     });
 

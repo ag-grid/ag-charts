@@ -406,7 +406,7 @@ describe('json module', () => {
     });
 
     describe('#jsonApply', () => {
-        const json = {
+        let json: any = {
             str: 'test-string',
             num: 123,
             date: FIXED_DATE,
@@ -471,7 +471,7 @@ describe('json module', () => {
 
         it('should allow application of property type overrides', () => {
             const target = new TestApply({ recurse: new TestApply({ str: 'string' }) });
-            const json = { recurse: { str: () => 'test' } };
+            json = { recurse: { str: () => 'test' } };
             const opts = {
                 path: 'series[0]',
                 allowedTypes: { 'series[].recurse.str': ['function' as const] },
@@ -485,7 +485,7 @@ describe('json module', () => {
         it('should instantiate complex types by path', () => {
             const testString = 'hello!';
             const target = new TestApply({});
-            const json = { recurse: { str: () => 'test', recurse: { recurse: { str: testString } } } };
+            json = { recurse: { str: () => 'test', recurse: { recurse: { str: testString } } } };
             const opts = {
                 path: 'series[0]',
                 allowedTypes: { 'series[].recurse.str': ['function' as const] },
@@ -507,7 +507,7 @@ describe('json module', () => {
             const testString1 = 'hello!';
             const testString2 = 'world!';
             const target = new TestApply({});
-            const json = {
+            json = {
                 recurseArray: [{ recurse: { str: testString1 } }, { recurse: { str: testString2 } }],
             };
 
@@ -533,7 +533,7 @@ describe('json module', () => {
             const testString1 = 'hello!';
             const testString2 = 'world!';
             const target = new TestApply({});
-            const json = {
+            json = {
                 recurseArray: [{ recurse: { str: testString1 } }, { recurse: { str: testString2 } }],
             };
 

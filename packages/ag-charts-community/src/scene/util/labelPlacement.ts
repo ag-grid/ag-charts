@@ -88,14 +88,14 @@ export function placeLabels(
                 continue;
             }
 
-            const overlapPoints = data.some((datum) =>
-                datum.some((d) => circleRectOverlap(d.point, x, y, width, height))
+            const overlapPoints = data.some((dataDatums) =>
+                dataDatums.some((dataDatum) => circleRectOverlap(dataDatum.point, x, y, width, height))
             );
             if (overlapPoints) {
                 continue;
             }
 
-            const overlapLabels = result.some((labels) => labels.some((l) => rectRectOverlap(l, x, y, width, height)));
+            const overlapLabels = result.some((l2) => l2.some((l3) => rectRectOverlap(l3, x, y, width, height)));
             if (overlapLabels) {
                 continue;
             }

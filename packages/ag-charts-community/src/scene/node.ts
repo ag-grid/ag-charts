@@ -16,6 +16,7 @@ export enum PointerEvents {
 }
 
 export type RenderContext = {
+    // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
     ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
     devicePixelRatio: number;
     forceRender: boolean | 'dirtyTransform';
@@ -61,7 +62,7 @@ export abstract class Node extends ChangeDetectable implements BBoxProvider {
     get datum() {
         return this._datum ?? this._parent?.datum;
     }
-    get previousDatum(): any | undefined {
+    get previousDatum(): any {
         return this._previousDatum;
     }
     set datum(datum: any) {

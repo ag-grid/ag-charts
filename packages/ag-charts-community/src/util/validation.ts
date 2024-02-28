@@ -206,16 +206,18 @@ function getPredicateMessageMapper(ctx: ValidationContext) {
 function attachArrayRestrictions(predicate: ValidatePredicate): ValidateArrayPredicate {
     return Object.assign(predicate, {
         restrict({ length, minLength }: { length?: number; minLength?: number } = {}) {
+            let message = 'an array';
+            if (isNumber(minLength) && minLength > 0) {
+                message = 'a non-empty array';
+            } else if (isNumber(length)) {
+                message = `an array of length ${length}`;
+            }
             return predicateWithMessage(
                 (value) =>
                     isArray(value) &&
                     (isNumber(length) ? value.length === length : true) &&
                     (isNumber(minLength) ? value.length >= minLength : true),
-                isNumber(minLength) && minLength > 0
-                    ? 'a non-empty array'
-                    : isNumber(length)
-                      ? `an array of length ${length}`
-                      : 'an array'
+                message
             );
         },
     });

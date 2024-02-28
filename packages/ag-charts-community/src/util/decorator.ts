@@ -7,6 +7,7 @@ type TransformFn = (
     key: string | symbol,
     value: any,
     oldValue?: any
+    // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 ) => any | typeof BREAK_TRANSFORM_CHAIN;
 
 type ObserveFn = (target: any, value: any, oldValue?: any) => void;

@@ -251,28 +251,28 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramNodeDatum> {
             const x = Math.min(xMinPx, xMaxPx);
             const y = Math.min(yZeroPx, yMaxPx);
 
-            const selectionDatumLabel =
-                total !== 0
-                    ? {
-                          text:
-                              callbackCache.call(labelFormatter, {
-                                  value: total,
-                                  datum,
-                                  seriesId,
-                                  xKey,
-                                  yKey,
-                                  xName,
-                                  yName,
-                              }) ?? String(total),
-                          fontStyle: labelFontStyle,
-                          fontWeight: labelFontWeight,
-                          fontSize: labelFontSize,
-                          fontFamily: labelFontFamily,
-                          fill: labelColor,
-                          x: x + w / 2,
-                          y: y + h / 2,
-                      }
-                    : undefined;
+            let selectionDatumLabel = undefined;
+            if (total !== 0) {
+                selectionDatumLabel = {
+                    text:
+                        callbackCache.call(labelFormatter, {
+                            value: total,
+                            datum,
+                            seriesId,
+                            xKey,
+                            yKey,
+                            xName,
+                            yName,
+                        }) ?? String(total),
+                    fontStyle: labelFontStyle,
+                    fontWeight: labelFontWeight,
+                    fontSize: labelFontSize,
+                    fontFamily: labelFontFamily,
+                    fill: labelColor,
+                    x: x + w / 2,
+                    y: y + h / 2,
+                };
+            }
 
             const nodeMidPoint = {
                 x: x + w / 2,
@@ -510,7 +510,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramNodeDatum> {
     }
 
     override animateWaitingUpdateReady(data: HistogramAnimationData) {
-        const diff = this.processedData?.reduced?.diff;
+        const dataDiff = this.processedData?.reduced?.diff;
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(true, this.axes, 'normal'));
 
         fromToMotion(
@@ -520,7 +520,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramNodeDatum> {
             data.datumSelections,
             fns,
             (_, datum) => createDatumId(datum.domain),
-            diff
+            dataDiff
         );
 
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, data.labelSelections);

@@ -1533,10 +1533,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             if (shouldBeEnabled === this.modulesManager.isEnabled(module)) continue;
 
             if (shouldBeEnabled) {
-                this.modulesManager.addModule(
-                    module,
-                    (module) => new module.instanceConstructor(this.getModuleContext())
-                );
+                this.modulesManager.addModule(module, (m) => new m.instanceConstructor(this.getModuleContext()));
 
                 if (module.type === 'legend') {
                     this.modulesManager.getModule<ChartLegend>(module)?.attachLegend(this.scene);

@@ -133,9 +133,9 @@ export function trailingValue(): DatumPropertyDefinition<any>['processor'] {
         let value = 0;
 
         return (datum: any) => {
-            const trailingValue = value;
+            const oldValue = value;
             value = datum;
-            return trailingValue;
+            return oldValue;
         };
     };
 }
