@@ -4,17 +4,22 @@ import { enterpriseModule } from '../../module/enterpriseModule';
 import type { ModuleContext } from '../../module/moduleContext';
 import type {
     AgCartesianSeriesOptions,
-    AgChartOptions,
     AgHierarchySeriesOptions,
     AgPolarSeriesOptions,
 } from '../../options/agChartOptions';
+import type { AgChartOptionsNext } from '../../options/chart/chartBuilderOptionsNext';
+import type { AgTopologySeriesOptions } from '../../options/series/topology/topologyOptions';
 import { deepClone } from '../../util/json';
 import { mergeDefaults } from '../../util/object';
 import type { SeriesType } from '../mapping/types';
 import type { ISeries } from '../series/seriesTypes';
 import { chartTypes } from './chartTypes';
 
-export type SeriesOptions = AgCartesianSeriesOptions | AgPolarSeriesOptions | AgHierarchySeriesOptions;
+export type SeriesOptions =
+    | AgCartesianSeriesOptions
+    | AgPolarSeriesOptions
+    | AgHierarchySeriesOptions
+    | AgTopologySeriesOptions;
 
 interface SeriesRegistryRecord {
     instanceConstructor?: SeriesConstructor;
@@ -106,7 +111,7 @@ export class SeriesRegistry {
         return this.seriesMap.get(seriesType)?.stackedByDefault ?? false;
     }
 
-    isDefaultAxisSwapNeeded(options: AgChartOptions) {
+    isDefaultAxisSwapNeeded(options: AgChartOptionsNext) {
         let result: boolean | undefined;
 
         for (const series of options.series ?? []) {

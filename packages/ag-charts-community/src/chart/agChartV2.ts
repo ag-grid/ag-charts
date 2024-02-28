@@ -3,6 +3,7 @@ import { enterpriseModule } from '../module/enterpriseModule';
 import { hasRegisteredEnterpriseModules } from '../module/module';
 import { ChartOptions } from '../module/optionsModule';
 import type { AgChartInstance, AgChartOptions, DownloadOptions, ImageDataUrlOptions } from '../options/agChartOptions';
+import type { AgChartOptionsNext } from '../options/chart/chartBuilderOptionsNext';
 import { Debug } from '../util/debug';
 import { createDeprecationWarning } from '../util/deprecation';
 import { deepClone, jsonWalk } from '../util/json';
@@ -16,18 +17,26 @@ import { ChartUpdateType } from './chartUpdateType';
 import { registerInbuiltModules } from './factory/registerInbuiltModules';
 import { setupModules } from './factory/setupModules';
 import { HierarchyChart } from './hierarchyChart';
-import { isAgCartesianChartOptions, isAgHierarchyChartOptions, isAgPolarChartOptions } from './mapping/types';
+import {
+    isAgCartesianChartOptions,
+    isAgHierarchyChartOptions,
+    isAgPolarChartOptions,
+    isAgTopologyChartOptions,
+} from './mapping/types';
 import { PolarChart } from './polarChart';
+import { TopologyChart } from './topologyChart';
 
 const debug = Debug.create(true, 'opts');
 
-function chartType(options: any): 'cartesian' | 'polar' | 'hierarchy' {
+function chartType(options: any): 'cartesian' | 'polar' | 'hierarchy' | 'topology' {
     if (isAgCartesianChartOptions(options)) {
         return 'cartesian';
     } else if (isAgPolarChartOptions(options)) {
         return 'polar';
     } else if (isAgHierarchyChartOptions(options)) {
         return 'hierarchy';
+    } else if (isAgTopologyChartOptions(options)) {
+        return 'topology';
     }
 
     throw new Error(`AG Chart - unknown type of chart for options with type: ${options.type}`);
@@ -301,13 +310,15 @@ class AgChartsInternal {
         return new ChartConstructor(options, transferableResource);
     }
 
-    private static getChartByOptions(options: AgChartOptions) {
+    private static getChartByOptions(options: AgChartOptionsNext) {
         if (isAgCartesianChartOptions(options)) {
             return CartesianChart;
         } else if (isAgHierarchyChartOptions(options)) {
             return HierarchyChart;
         } else if (isAgPolarChartOptions(options)) {
             return PolarChart;
+        } else if (isAgTopologyChartOptions(options)) {
+            return TopologyChart;
         }
 
         throw new Error(

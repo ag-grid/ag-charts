@@ -4,27 +4,27 @@ type EnterpriseModuleStub = {
     packageType?: 'enterprise';
     identifier?: string;
     optionsKey: string;
-    chartTypes: ('cartesian' | 'polar' | 'hierarchy')[];
+    chartTypes: ('cartesian' | 'polar' | 'hierarchy' | 'topology')[];
     useCount?: number;
     optionsInnerKey?: string;
 };
 
 export const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
-    { type: 'root', optionsKey: 'animation', chartTypes: ['cartesian', 'polar', 'hierarchy'] },
+    { type: 'root', optionsKey: 'animation', chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology'] },
     {
         type: 'root',
         optionsKey: 'background',
-        chartTypes: ['cartesian', 'polar', 'hierarchy'],
+        chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology'],
         optionsInnerKey: 'image',
     },
-    { type: 'root', optionsKey: 'contextMenu', chartTypes: ['cartesian', 'polar', 'hierarchy'] },
-    { type: 'root', optionsKey: 'dataSource', chartTypes: ['cartesian', 'polar', 'hierarchy'] },
+    { type: 'root', optionsKey: 'contextMenu', chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology'] },
+    { type: 'root', optionsKey: 'dataSource', chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology'] },
     { type: 'root', optionsKey: 'sync', chartTypes: ['cartesian'] },
     { type: 'root', optionsKey: 'zoom', chartTypes: ['cartesian'] },
     {
         type: 'legend',
         optionsKey: 'gradientLegend',
-        chartTypes: ['cartesian', 'polar', 'hierarchy'],
+        chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology'],
         identifier: 'gradient',
     },
     { type: 'root', optionsKey: 'navigator', chartTypes: ['cartesian'], optionsInnerKey: 'miniChart' },

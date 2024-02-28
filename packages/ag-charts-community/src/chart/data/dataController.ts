@@ -149,7 +149,7 @@ export class DataController {
             data: processedData.data.map((datum) => ({
                 ...datum,
                 datum: extractDatum(datum.datum),
-                values: datum.values.map(extractValues),
+                values: datum.values?.map(extractValues),
             })),
         };
     }

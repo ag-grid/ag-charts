@@ -71,6 +71,9 @@ const CHART_TYPE_CONFIG: { [k in ChartType]: ChartTypeConfig } = {
     get hierarchy(): ChartTypeConfig {
         return { seriesTypes: chartTypes.hierarchyTypes, commonOptions: [] };
     },
+    get topology(): ChartTypeConfig {
+        return { seriesTypes: chartTypes.topologyTypes, commonOptions: [] };
+    },
 };
 const CHART_TYPE_SPECIFIC_COMMON_OPTIONS = Object.values(CHART_TYPE_CONFIG).reduce<
     (keyof AgCommonThemeableChartOptions)[]
