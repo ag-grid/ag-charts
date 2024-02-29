@@ -35,10 +35,9 @@ export class HdpiCanvas {
     pixelRatio: number;
 
     constructor(options: CanvasOptions) {
-        const { width = 0, height = 0, pixelRatio } = options;
+        const { width = 600, height = 300, pixelRatio } = options;
 
-        // Create canvas and immediately apply width + height to avoid out-of-memory
-        // errors on iOS/iPadOS Safari.
+        // Create canvas and immediately apply width + height to avoid out-of-memory errors on iOS/iPadOS Safari.
         this.element = createElement('canvas');
         this.element.width = width;
         this.element.height = height;
@@ -64,6 +63,7 @@ export class HdpiCanvas {
         if (!(width > 0 && height > 0)) {
             return;
         }
+        debugger;
         const { element, context, pixelRatio } = this;
         element.width = Math.round(width * pixelRatio);
         element.height = Math.round(height * pixelRatio);
