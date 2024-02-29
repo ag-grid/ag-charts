@@ -1,5 +1,6 @@
 import { unique } from '../../util/array';
 import { Debug } from '../../util/debug';
+import { getWindow } from '../../util/dom';
 import { jsonDiff } from '../../util/json';
 import type { ChartMode } from '../chartMode';
 import type {
@@ -72,13 +73,13 @@ export class DataController {
         this.status = 'executed';
 
         this.debug('DataController.execute() - requested', this.requested);
-        const { valid, invalid } = this.validateRequests(this.requested);
+        const valid = this.validateRequests(this.requested);
         this.debug('DataController.execute() - validated', valid);
         const merged = this.mergeRequested(valid);
         this.debug('DataController.execute() - merged', merged);
 
         if (this.debug.check()) {
-            (window as any).processedData = [];
+            getWindow<{ processedData: any[] }>().processedData = [];
         }
 
         const multipleSources = this.hasMultipleDataSources(valid);
@@ -92,10 +93,10 @@ export class DataController {
                 const processedData = dataModel.processData(data, valid);
 
                 if (this.debug.check()) {
-                    (window as any).processedData.push(processedData);
+                    getWindow<any[]>('processedData').push(processedData);
                 }
 
-                if (processedData && processedData.partialValidDataCount === 0) {
+                if (processedData?.partialValidDataCount === 0) {
                     resultCbs.forEach((callback, requestIdx) =>
                         callback({
                             dataModel,
@@ -113,8 +114,6 @@ export class DataController {
                 rejects.forEach((cb) => cb(error));
             }
         }
-
-        invalid.forEach(({ error, reject }) => reject(error));
     }
 
     private hasMultipleDataSources(validRequests: RequestedProcessing<any, any, any>[]) {
@@ -154,102 +153,27 @@ export class DataController {
         };
     }
 
-    private validateRequests(requested: RequestedProcessing<any, any, any>[]): {
-        valid: RequestedProcessing<any, any, any>[];
-        invalid: (RequestedProcessing<any, any, any> & { error: Error })[];
-    } {
+    private validateRequests(requested: RequestedProcessing<any, any, any>[]): RequestedProcessing<any, any, any>[] {
         const valid: RequestedProcessing<any, any, any>[] = [];
-        const invalid: (RequestedProcessing<any, any, any> & { error: Error })[] = [];
 
         for (const [index, request] of requested.entries()) {
             if (index > 0 && request.data.length !== requested[0].data.length && request.opts.groupByData === false) {
-                invalid.push({
-                    ...request,
-                    error: new Error('all series[].data arrays must be of the same length and have matching keys.'),
-                });
+                request.reject(
+                    new Error('all series[].data arrays must be of the same length and have matching keys.')
+                );
             } else {
                 valid.push(request);
             }
         }
 
-        return { valid, invalid };
+        return valid;
     }
 
     private mergeRequested(requested: RequestedProcessing<any, any, any>[]): MergedRequests<any, any, any>[] {
         const grouped: RequestedProcessing<any, any, any>[][] = [];
-        const keys = (props: PropertyDefinition<any>[]) =>
-            props
-                .filter((p): p is DatumPropertyDefinition<any> => p.type === 'key')
-                .map((p) => p.property)
-                .join(';');
-
-        const groupMatch =
-            ({ opts, data }: RequestedProcessing<any, any, any>) =>
-            ([group]: RequestedProcessing<any, any, any>[]) =>
-                (opts.groupByData === false || group.data === data) &&
-                group.opts.groupByKeys === opts.groupByKeys &&
-                group.opts.dataVisible === opts.dataVisible &&
-                group.opts.groupByFn === opts.groupByFn &&
-                keys(group.opts.props) === keys(opts.props);
-
-        const propMatch = (prop: PropertyDefinition<any>) => (existing: PropertyDefinition<any>) => {
-            if (existing.type !== prop.type) {
-                return false;
-            }
-
-            const { id: _, ids: _1, scopes: _2, useScopedValues: _3, ...diff } = jsonDiff<any>(existing, prop) ?? {};
-            return Object.keys(diff).length === 0;
-        };
-
-        const updateKeyValueOpts = (prop: PropertyDefinition<any>) => {
-            if (prop.type === 'key' || prop.type === 'value') {
-                prop.useScopedValues = unique(prop.scopes ?? []).length > 1;
-            }
-        };
-
-        const mergeOpts = (opts: DataModelOptions<any, any>[]): DataModelOptions<any, any> => {
-            return {
-                ...opts[0],
-                props: opts.reduce<PropertyDefinition<any>[]>((result, next) => {
-                    for (const prop of next.props) {
-                        if (prop.id != null) {
-                            prop.ids ??= [];
-                            for (const scope of prop.scopes ?? []) {
-                                prop.ids.push([scope, prop.id]);
-                            }
-                        }
-
-                        const match = result.find(propMatch(prop));
-                        if (!match) {
-                            updateKeyValueOpts(prop);
-                            result.push(prop);
-                            continue;
-                        }
-
-                        match.scopes ??= [];
-                        match.scopes.push(...(prop.scopes ?? []));
-                        updateKeyValueOpts(prop);
-
-                        if ((match.type === 'key' || match.type === 'value') && prop.ids?.length) {
-                            match.ids?.push(...prop.ids);
-                        }
-                    }
-
-                    return result;
-                }, []),
-            };
-        };
-
-        const merge = (props: RequestedProcessing<any, any, any>[]): MergedRequests<any, any, any> => ({
-            ids: props.map(({ id }) => id),
-            resultCbs: props.map(({ resultCb }) => resultCb),
-            rejects: props.map(({ reject }) => reject),
-            data: props[0].data,
-            opts: mergeOpts(props.map(({ opts }) => opts)),
-        });
 
         for (const request of requested) {
-            const match = grouped.find(groupMatch(request));
+            const match = grouped.find(DataController.groupMatch(request));
 
             if (match) {
                 match.push(request);
@@ -258,7 +182,7 @@ export class DataController {
             }
         }
 
-        return grouped.map(merge);
+        return grouped.map(DataController.mergeRequests);
     }
 
     private splitResult(
@@ -277,5 +201,71 @@ export class DataController {
 
             resultCb({ dataModel, processedData });
         }
+    }
+
+    private static groupMatch({ opts, data }: RequestedProcessing<any, any, any>) {
+        function keys(props: PropertyDefinition<any>[]) {
+            return props
+                .filter((p): p is DatumPropertyDefinition<any> => p.type === 'key')
+                .map((p) => p.property)
+                .join(';');
+        }
+
+        return ([group]: RequestedProcessing<any, any, any>[]) =>
+            (opts.groupByData === false || group.data === data) &&
+            group.opts.groupByKeys === opts.groupByKeys &&
+            group.opts.dataVisible === opts.dataVisible &&
+            group.opts.groupByFn === opts.groupByFn &&
+            keys(group.opts.props) === keys(opts.props);
+    }
+
+    private static mergeRequests(requests: RequestedProcessing<any, any, any>[]): MergedRequests<any, any, any> {
+        function updateKeyValueOpts(prop: PropertyDefinition<any>) {
+            if (prop.type === 'key' || prop.type === 'value') {
+                prop.useScopedValues = unique(prop.scopes ?? []).length > 1;
+            }
+        }
+
+        return requests.reduce(
+            (result, { id, data, resultCb, reject, opts: { props, ...opts } }) => {
+                result.ids.push(id);
+                result.rejects.push(reject);
+                result.resultCbs.push(resultCb);
+                result.data ??= data;
+                result.opts ??= { ...opts, props: [] };
+
+                for (const prop of props) {
+                    if (prop.id != null) {
+                        prop.ids ??= [];
+                        for (const scope of prop.scopes ?? []) {
+                            prop.ids.push([scope, prop.id]);
+                        }
+                    }
+
+                    const match = result.opts.props.find(
+                        (existing: any) =>
+                            existing.type === prop.type && // early dismiss
+                            jsonDiff(existing, prop, ['id', 'ids', 'scopes', 'useScopedValues']) == null
+                    );
+
+                    if (!match) {
+                        updateKeyValueOpts(prop);
+                        result.opts.props.push(prop);
+                        continue;
+                    }
+
+                    match.scopes ??= [];
+                    match.scopes.push(...(prop.scopes ?? []));
+                    updateKeyValueOpts(prop);
+
+                    if ((match.type === 'key' || match.type === 'value') && prop.ids?.length) {
+                        match.ids?.push(...prop.ids);
+                    }
+                }
+
+                return result;
+            },
+            { ids: [], rejects: [], resultCbs: [], data: null, opts: null } as any
+        );
     }
 }

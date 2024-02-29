@@ -1,7 +1,8 @@
 import { Debug } from '../../util/debug';
+import { iterate } from '../../util/function';
 import { Logger } from '../../util/logger';
 import { isNegative } from '../../util/number';
-import { isFiniteNumber, isObject, isString } from '../../util/type-guards';
+import { isFiniteNumber, isObject } from '../../util/type-guards';
 import type { ChartMode } from '../chartMode';
 import { DataDomain } from './dataDomain';
 import type { ContinuousDomain } from './utilFunctions';
@@ -277,6 +278,7 @@ export class DataModel<
     Grouped extends boolean | undefined = undefined,
 > {
     private readonly debug = Debug.create(true, 'data-model');
+    private readonly scopeCache: Map<string, Map<PropertyDefinition<any>, Set<string>>> = new Map();
 
     private readonly opts: DataModelOptions<K, Grouped>;
     private readonly keys: InternalDatumPropertyDefinition<K>[];
@@ -337,9 +339,9 @@ export class DataModel<
             }
         }
 
-        const verifyMatchGroupId = ({ matchGroupIds }: { matchGroupIds?: string[] }) => {
-            for (const matchGroupId of matchGroupIds ?? []) {
-                if (!this.values.some((def) => def.groupId === matchGroupId)) {
+        const verifyMatchGroupId = ({ matchGroupIds = [] }: { matchGroupIds?: string[] }) => {
+            for (const matchGroupId of matchGroupIds) {
+                if (this.values.every((def) => def.groupId !== matchGroupId)) {
                     throw new Error(
                         `AG Charts - internal config error: matchGroupIds properties must match defined groups (${matchGroupId}).`
                     );
@@ -360,34 +362,26 @@ export class DataModel<
             }
         };
 
-        for (const def of [...this.groupProcessors, ...this.aggregates]) {
+        for (const def of iterate(this.groupProcessors, this.aggregates)) {
             verifyMatchIds(def);
             verifyMatchGroupId(def);
         }
     }
 
     resolveProcessedDataIndexById(scope: ScopeProvider, searchId: string): ProcessedDataDef | never {
-        const { index, def } = this.resolveProcessedDataDefById(scope, searchId) ?? {};
-        return { index, def };
+        return this.resolveProcessedDataDefById(scope, searchId) ?? {};
     }
 
-    resolveProcessedDataIndicesById(scope: ScopeProvider, searchId: string | RegExp): ProcessedDataDef[] | never {
-        return this.resolveProcessedDataDefsById(scope, searchId).map(({ index, def }) => ({ index, def }));
+    resolveProcessedDataIndicesById(scope: ScopeProvider, searchId: string): ProcessedDataDef[] | never {
+        return this.resolveProcessedDataDefsById(scope, searchId);
     }
 
     resolveProcessedDataDefById(scope: ScopeProvider, searchId: string): ProcessedDataDef | never {
         return this.resolveProcessedDataDefsById(scope, searchId)[0];
     }
 
-    resolveProcessedDataDefsByIds<T extends string>(
-        scope: ScopeProvider,
-        searchIds: T[]
-    ): [T, ProcessedDataDef[]][] | never {
-        const defs: [T, ProcessedDataDef[]][] = [];
-        for (const searchId of searchIds) {
-            defs.push([searchId, this.resolveProcessedDataDefsById(scope, searchId)]);
-        }
-        return defs;
+    resolveProcessedDataDefsByIds<T extends string>(scope: ScopeProvider, searchIds: T[]): [T, ProcessedDataDef[]][] {
+        return searchIds.map((searchId) => [searchId, this.resolveProcessedDataDefsById(scope, searchId)]);
     }
 
     resolveProcessedDataDefsValues<T extends string>(
@@ -402,51 +396,34 @@ export class DataModel<
         return result;
     }
 
-    resolveProcessedDataDefsById(searchScope: ScopeProvider, searchId: RegExp | string): ProcessedDataDef[] | never {
+    resolveProcessedDataDefsById(searchScope: ScopeProvider, searchId: string): ProcessedDataDef[] | never {
         const { keys, values, aggregates, groupProcessors, reducers } = this;
-
-        const match = ({ ids, scopes }: PropertyDefinition<any> & InternalDefinition) => {
-            if (ids == null || (searchScope != null && !scopes?.includes(searchScope.id))) {
-                return false;
-            }
-
-            return ids.some(
-                ([scope, id]) => scope === searchScope.id && (isString(searchId) ? id === searchId : searchId.test(id))
-            );
-        };
-
-        const allDefs: (PropertyDefinition<any> & InternalDefinition)[][] = [
-            keys,
-            values,
-            aggregates,
-            groupProcessors,
-            reducers,
-        ];
         const result: ProcessedDataDef[] = [];
-        for (const defs of allDefs) {
-            result.push(...defs.filter(match).map((def) => ({ index: def.index, def })));
+
+        for (const def of iterate(keys, values, aggregates, groupProcessors, reducers)) {
+            if (
+                def.ids != null &&
+                def.scopes?.includes(searchScope.id) &&
+                this.scopeCache.get(searchScope.id)?.get(def)?.has(searchId)
+            ) {
+                result.push({ index: def.index, def });
+            }
         }
 
-        if (result.length > 0) {
-            return result;
+        if (!result.length) {
+            throw new Error(`AG Charts - didn't find property definition for [${searchId}, ${searchScope.id}]`);
         }
 
-        throw new Error(`AG Charts - didn't find property definition for [${searchId}, ${searchScope.id}]`);
+        return result;
     }
 
     getDomain(
         scope: ScopeProvider,
-        searchId: string | RegExp,
+        searchId: string,
         type: PropertyDefinition<any>['type'] = 'value',
         processedData: ProcessedData<K>
     ): any[] | ContinuousDomain<number> | [] {
-        let matches;
-        try {
-            matches = this.resolveProcessedDataIndicesById(scope, searchId);
-        } catch (e: any) {
-            if (typeof searchId !== 'string' && /didn't find property definition/.test(e.message)) return [];
-            throw e;
-        }
+        const matches = this.resolveProcessedDataIndicesById(scope, searchId);
 
         let domainProp: keyof ProcessedData<any>['domain'];
         switch (type) {
@@ -518,11 +495,11 @@ export class DataModel<
             this.postProcessData(processedData);
         }
 
-        for (const def of [...this.keys, ...this.values]) {
-            if (data.length > 0) {
+        if (data.length > 0) {
+            for (const def of iterate(this.keys, this.values)) {
                 for (const [scope, missCount] of def.missing) {
                     if (missCount >= data.length) {
-                        const scopeHint = scope === undefined ? '' : ` for ${scope}`;
+                        const scopeHint = scope == null ? '' : ` for ${scope}`;
                         Logger.warnOnce(`the key '${def.property}' was not found in any data element${scopeHint}.`);
                     }
                 }
@@ -534,6 +511,19 @@ export class DataModel<
 
         if (this.debug.check()) {
             logProcessedData(processedData);
+        }
+
+        this.scopeCache.clear();
+        for (const def of iterate(this.keys, this.values, this.aggregates, this.groupProcessors, this.reducers)) {
+            for (const [scope, id] of def.ids ?? []) {
+                if (!this.scopeCache.has(scope)) {
+                    this.scopeCache.set(scope, new Map([[def, new Set([id])]]));
+                } else if (!this.scopeCache.get(scope)!.has(def)) {
+                    this.scopeCache.get(scope)!.set(def, new Set([id]));
+                } else {
+                    this.scopeCache.get(scope)!.get(def)!.add(id);
+                }
+            }
         }
 
         return processedData as Grouped extends true ? GroupedData<D> : UngroupedData<D>;
@@ -693,8 +683,8 @@ export class DataModel<
             input: { count: data.length },
             data: resultData,
             domain: {
-                keys: keyDefs.map((def) => propertyDomain(def)),
-                values: valueDefs.map((def) => propertyDomain(def)),
+                keys: keyDefs.map(propertyDomain),
+                values: valueDefs.map(propertyDomain),
             },
             defs: {
                 allScopesHaveSameDefs,

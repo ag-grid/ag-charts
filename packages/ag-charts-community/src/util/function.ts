@@ -27,6 +27,14 @@ export function identity<T>(x: T): T {
     return x;
 }
 
+export function* iterate<T extends Iterable<any>[]>(
+    ...iterators: T
+): Generator<T[number] extends Iterable<infer U> ? U : never, void, undefined> {
+    for (const iterator of iterators) {
+        yield* iterator;
+    }
+}
+
 export function debounce<T extends (...args: Parameters<T>) => void>(
     callback: T,
     waitMs = 0,
