@@ -92,13 +92,13 @@ export class GeoGeometry extends Path {
         const { scale } = this;
         if (scale == null) return false;
 
-        let [x0, y0] = scale.convert(polygon[polygon.length - 1] as [number, number]);
+        let [x0, y0] = scale.convert(polygon[polygon.length - 1]);
         let x1 = 0;
         let y1 = 0;
         let inside = false;
 
         for (let i = 0; i < polygon.length; i += 1) {
-            [x1, y1] = scale.convert(polygon[i] as [number, number]);
+            [x1, y1] = scale.convert(polygon[i]);
 
             if (y1 > y !== y0 > y && x < ((x0 - x1) * (y - y1)) / (y0 - y1) + x1) {
                 inside = !inside;
@@ -170,7 +170,7 @@ export class GeoGeometry extends Path {
         const end = isClosed ? coordinates.length - 1 : coordinates.length;
 
         for (let i = 0; i < end; i += 1) {
-            const lonLat = coordinates[i] as [number, number];
+            const lonLat = coordinates[i];
             const [x, y] = scale.convert(lonLat);
 
             if (i === 0) {

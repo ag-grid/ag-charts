@@ -4,6 +4,7 @@ import { data } from './data';
 import { topology } from './topology';
 
 const numberFormatter = new Intl.NumberFormat('en-US', {
+    currency: 'USD',
     useGrouping: true,
 });
 
@@ -21,16 +22,17 @@ const options: AgChartOptions = {
             data,
             idKey: 'name',
             labelKey: 'code',
-            colorKey: 'population',
+            colorKey: 'gdp',
             stroke: 'white',
             strokeWidth: 1,
             label: {
                 enabled: true,
+                fontWeight: 'bold',
             },
             tooltip: {
                 renderer: ({ datum, title }) => ({
                     title,
-                    content: `Population: ${numberFormatter.format(datum?.population)}`,
+                    content: `GDP: ${numberFormatter.format(datum?.gdp)}`,
                 }),
             },
         },
@@ -41,11 +43,11 @@ const options: AgChartOptions = {
             interval: {
                 minSpacing: 1,
                 // @ts-ignore
-                values: [0, 10e6, 20e6, 30e6, 40e6],
+                values: [0, 1e6, 2e6, 3e6, 4e6],
             },
             label: {
                 fontSize: 9,
-                formatter: ({ value }) => `${Math.floor(+value / 1e6)}M`,
+                formatter: ({ value }) => `$${Math.floor(+value / 1e6)}M`,
             },
         },
     },

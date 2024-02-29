@@ -26,6 +26,7 @@ export const MapSeriesModule: SeriesModule<'map'> = {
             lineDashOffset: 0,
         },
     },
+    // @ts-expect-error When the types are properly exposed, this error should disappear
     paletteFactory: (opts) => {
         const { takeColors, colorsCount, userPalette, themeTemplateParameters } = opts;
         const { fill, stroke } = singleSeriesPaletteFactory(opts);
