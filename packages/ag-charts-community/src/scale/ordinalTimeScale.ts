@@ -1,18 +1,9 @@
 import { buildFormatter } from '../util/timeFormat';
-import {
-    DefaultTimeFormats,
-    TIME_FORMAT_STRINGS,
-    dateToNumber,
-    defaultTimeTickFormat,
-} from '../util/timeFormatDefaults';
+import { DefaultTimeFormats, TIME_FORMAT_STRINGS, defaultTimeTickFormat } from '../util/timeFormatDefaults';
 import { BandScale } from './bandScale';
 
 export class OrdinalTimeScale extends BandScale<Date> {
     override readonly type = 'ordinal-time';
-
-    public constructor() {
-        super();
-    }
 
     toDomain(d: number): Date {
         return new Date(d);
@@ -43,25 +34,25 @@ export class OrdinalTimeScale extends BandScale<Date> {
 
         switch (defaultTimeFormat) {
             case DefaultTimeFormats.SECOND:
-                if (Math.abs(firstTick.getSeconds() - secondTick.getSeconds()) > 1) {
+                if (Math.abs(firstTick.getSeconds() - secondTick.getSeconds()) > 0) {
                     formatStringArray.push(TIME_FORMAT_STRINGS[DefaultTimeFormats.MINUTE]);
                 }
             // fall through deliberately
             case DefaultTimeFormats.MINUTE:
-                if (Math.abs(firstTick.getMinutes() - secondTick.getMinutes()) > 1) {
+                if (Math.abs(firstTick.getMinutes() - secondTick.getMinutes()) > 0) {
                     formatStringArray.push(TIME_FORMAT_STRINGS[DefaultTimeFormats.HOUR]);
                 }
             // fall through deliberately
             case DefaultTimeFormats.HOUR:
-                if (Math.abs(firstTick.getHours() - secondTick.getHours()) > 1) {
+                if (Math.abs(firstTick.getHours() - secondTick.getHours()) > 0) {
                     formatStringArray.push(TIME_FORMAT_STRINGS[DefaultTimeFormats.WEEK_DAY]);
                 }
             // fall through deliberately
             case DefaultTimeFormats.WEEK_DAY:
                 timeEndIndex = formatStringArray.length;
-                if (Math.abs(firstTick.getMonth() - secondTick.getMonth()) > 1 || yearChange) {
+                if (Math.abs(firstTick.getMonth() - secondTick.getMonth()) > 0 || yearChange) {
                     formatStringArray.push(TIME_FORMAT_STRINGS[DefaultTimeFormats.SHORT_MONTH]);
-                } else if (Math.abs(firstTick.getDay() - secondTick.getDay()) > 1) {
+                } else if (Math.abs(firstTick.getDay() - secondTick.getDay()) > 0) {
                     formatStringArray.push(TIME_FORMAT_STRINGS[DefaultTimeFormats.WEEK_DAY]);
                 }
             // fall through deliberately
@@ -72,10 +63,11 @@ export class OrdinalTimeScale extends BandScale<Date> {
                 if (monthIndex < 0) {
                     formatStringArray.push(TIME_FORMAT_STRINGS[DefaultTimeFormats.SHORT_MONTH]);
                 }
-                if (Math.abs(firstTick.getFullYear() - secondTick.getFullYear()) > 1 || yearChange) {
+            // fall through deliberately
+            case DefaultTimeFormats.YEAR:
+                if (Math.abs(firstTick.getFullYear() - secondTick.getFullYear()) > 0 || yearChange) {
                     formatStringArray.push(TIME_FORMAT_STRINGS[DefaultTimeFormats.YEAR]);
                 }
-            // fall through deliberately
             default:
                 break;
         }
@@ -105,21 +97,5 @@ export class OrdinalTimeScale extends BandScale<Date> {
 
     override invert(y: number): Date {
         return new Date(super.invert(y));
-    }
-
-    override update() {
-        const { domain } = this;
-        if (!domain || domain.length < 2) {
-            return;
-        }
-
-        const count = domain.length;
-        if (count === 0) {
-            return;
-        }
-
-        this.domain.sort((a, b) => dateToNumber(a) - dateToNumber(b));
-
-        super.update();
     }
 }
