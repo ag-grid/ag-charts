@@ -33,6 +33,7 @@ export class BaseProperties<T extends object = object> {
     isValid<TContext = Omit<T, 'type'>>(this: TContext) {
         return listDecoratedProperties(this).every((propertyKey) => {
             const { optional } = extractDecoratedPropertyMetadata(this, propertyKey)!;
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             return optional || typeof this[propertyKey as keyof TContext] !== 'undefined';
         });
     }

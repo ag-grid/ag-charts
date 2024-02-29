@@ -37,6 +37,14 @@ function fillText(context: CanvasRenderingContext2D, text: string, x: number, y:
     }
 }
 
+const alignMultiplier: Record<CanvasTextAlign, number> = {
+    center: 0.5,
+    end: 1,
+    right: 1,
+    left: 0,
+    start: 0,
+};
+
 function measureText(context: CanvasRenderingContext2D, text: string): TextMetrics {
     text = singleLineText(text);
 
@@ -61,10 +69,8 @@ function measureText(context: CanvasRenderingContext2D, text: string): TextMetri
         width += charWidth;
     }
 
-    const alignRight = textAlign === 'right' || textAlign === 'end';
-    const alignCenter = textAlign === 'center';
-    const actualBoundingBoxLeft = width * (alignRight ? 1 : alignCenter ? 0.5 : 0);
-    const actualBoundingBoxRight = width * (alignRight ? 0 : alignCenter ? 0.5 : 1);
+    const actualBoundingBoxLeft = width * alignMultiplier[textAlign];
+    const actualBoundingBoxRight = width * (1 - alignMultiplier[textAlign]);
 
     const fontBoundingBoxAscent = MOCK_ASCENTS_BY_BASELINE[textBaseline] * pixelSize;
     const fontBoundingBoxDescent = MOCK_DESCENTS_BY_BASELINE[textBaseline] * pixelSize;
