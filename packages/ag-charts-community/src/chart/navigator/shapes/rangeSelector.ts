@@ -1,3 +1,5 @@
+import { BBox } from 'packages/ag-charts-community/src/scene/bbox';
+
 import { Group } from '../../../scene/group';
 import { ProxyProperty } from '../../../util/proxy';
 import { Layers } from '../../layers';
@@ -95,7 +97,10 @@ export class RangeSelector extends Group {
     }
 
     override computeBBox() {
-        return this.mask.computeBBox();
+        const { x, y, width, height } = this.mask;
+        const minOff = this.minHandle.width / 2;
+        const maxOff = this.maxHandle.width / 2;
+        return new BBox(x - minOff, y, width + (minOff + maxOff), height);
     }
 
     computeVisibleRangeBBox() {
