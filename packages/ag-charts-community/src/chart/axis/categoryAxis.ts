@@ -1,16 +1,19 @@
 import type { ModuleContext } from '../../module/moduleContext';
 import { BandScale } from '../../scale/bandScale';
+import type { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import { RATIO, Validate } from '../../util/validation';
 import { CartesianAxis } from './cartesianAxis';
 
-export class CategoryAxis extends CartesianAxis<BandScale<string | object>> {
+export class CategoryAxis<
+    S extends BandScale<string | object> | OrdinalTimeScale = BandScale<string | object>,
+> extends CartesianAxis<S> {
     static readonly className = 'CategoryAxis';
-    static readonly type = 'category' as const;
+    static readonly type: 'category' | 'ordinal-time' = 'category' as const;
 
     private _paddingOverrideEnabled = false;
 
-    constructor(moduleCtx: ModuleContext) {
-        super(moduleCtx, new BandScale<string>());
+    constructor(moduleCtx: ModuleContext, scale = new BandScale<string | object>() as S) {
+        super(moduleCtx, scale);
 
         this.includeInvisibleDomains = true;
     }

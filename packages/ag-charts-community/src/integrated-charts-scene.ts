@@ -22,6 +22,7 @@ export { Text, getFont } from './scene/shape/text';
 export type { Scale } from './scale/scale';
 export { ContinuousScale } from './scale/continuousScale';
 export { BandScale } from './scale/bandScale';
+export { OrdinalTimeScale } from './scale/ordinalTimeScale';
 export { LinearScale } from './scale/linearScale';
 export { toRadians } from './util/angle';
 export { Label } from './chart/label';
