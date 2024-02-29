@@ -3,8 +3,8 @@ import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 const { OrdinalTimeScale } = _Scene;
 
 export class OrdinalTimeAxis extends _ModuleSupport.CategoryAxis<_Scene.OrdinalTimeScale> {
-    static override className = 'OrdinalTimeAxis';
-    static override type = 'ordinal-time' as const;
+    static override readonly className = 'OrdinalTimeAxis' as const;
+    static override readonly type = 'ordinal-time' as const;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super(moduleCtx, new OrdinalTimeScale());

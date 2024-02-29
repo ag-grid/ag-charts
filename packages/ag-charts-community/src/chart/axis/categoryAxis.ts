@@ -7,7 +7,7 @@ import { CartesianAxis } from './cartesianAxis';
 export class CategoryAxis<
     S extends BandScale<string | object> | OrdinalTimeScale = BandScale<string | object>,
 > extends CartesianAxis<S> {
-    static readonly className = 'CategoryAxis';
+    static readonly className: 'CategoryAxis' | 'OrdinalTimeAxis' = 'CategoryAxis';
     static readonly type: 'category' | 'ordinal-time' = 'category' as const;
 
     private _paddingOverrideEnabled = false;
