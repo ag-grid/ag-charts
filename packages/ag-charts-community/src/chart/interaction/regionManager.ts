@@ -99,19 +99,32 @@ export class RegionManager {
         return true;
     }
 
+    private dispatch(region: Region | undefined, event: InteractionEvent<InteractionTypes>) {
+        // Async dispatch to avoid blocking the event-processing thread.
+        if (region !== undefined) {
+            const dispatcher = async () => region.listeners.dispatch(event.type, event);
+            dispatcher().catch((e) => Logger.errorOnce(e));
+        }
+    }
+
     private processEvent(event: InteractionEvent<InteractionTypes>) {
         const { currentRegion } = this;
+
+        // AG-10875 only dispatch followup drag event to the region that received the 'drag-start'
+        if (event.type === 'drag' || event.type === 'drag-end') {
+            this.dispatch(currentRegion, event);
+            return;
+        }
+
         const newRegion = this.pickRegion(event.offsetX, event.offsetY);
         if (currentRegion !== undefined && newRegion?.name !== currentRegion.name) {
-            currentRegion?.listeners.dispatch('leave', { ...event, type: 'leave' });
+            this.dispatch(currentRegion, { ...event, type: 'leave' });
         }
         if (newRegion !== undefined && newRegion.name !== currentRegion?.name) {
-            newRegion?.listeners.dispatch('enter', { ...event, type: 'enter' });
+            this.dispatch(newRegion, { ...event, type: 'enter' });
         }
         if (newRegion !== undefined && this.checkPointerHistory(newRegion, event)) {
-            // Async dispatch to avoid blocking the event-processing thread.
-            const dispatcher = async () => newRegion.listeners.dispatch(event.type, event);
-            dispatcher().catch((e) => Logger.errorOnce(e));
+            this.dispatch(newRegion, event);
         }
         this.currentRegion = newRegion;
     }
