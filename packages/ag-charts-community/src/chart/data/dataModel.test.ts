@@ -56,7 +56,7 @@ const categoryValue = (property: string) => ({
 });
 const accumulatedGroupValue = (property: string, groupId: string = property, id?: string) => ({
     ...value(property, groupId, id),
-    processor: () => (next, total) => next + (total ?? 0),
+    processor: () => (next: number, total?: number) => next + (total ?? 0),
 });
 const accumulatedPropertyValue = (property: string, groupId: string = property, id?: string) => ({
     ...value(property, groupId, id),
@@ -993,7 +993,7 @@ describe('DataModel', () => {
 
         describe('property tests', () => {
             const defaults = { missingValue: null, invalidValue: NaN };
-            const validated = { ...defaults, validation: (v) => typeof v === 'number' };
+            const validated = { ...defaults, validation: (v: unknown) => typeof v === 'number' };
             const dataModel = new DataModel<any, any, true>({
                 props: [
                     categoryKey('kp'),
@@ -1059,7 +1059,7 @@ describe('DataModel', () => {
         });
 
         describe('property tests', () => {
-            const validated = { validation: (v) => typeof v === 'number' };
+            const validated = { validation: (v: unknown) => typeof v === 'number' };
             const dataModel = new DataModel<any, any, true>({
                 props: [
                     categoryKey('kp'),

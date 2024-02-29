@@ -2,7 +2,7 @@ import { Debug } from '../../util/debug';
 import { iterate } from '../../util/function';
 import { Logger } from '../../util/logger';
 import { isNegative } from '../../util/number';
-import { isFiniteNumber, isObject, isString } from '../../util/type-guards';
+import { isFiniteNumber, isObject } from '../../util/type-guards';
 import type { ChartMode } from '../chartMode';
 import { DataDomain } from './dataDomain';
 import type { ContinuousDomain } from './utilFunctions';
@@ -278,6 +278,7 @@ export class DataModel<
     Grouped extends boolean | undefined = undefined,
 > {
     private readonly debug = Debug.create(true, 'data-model');
+    private readonly scopeCache: Map<string, Map<PropertyDefinition<any>, Set<string>>> = new Map();
 
     private readonly opts: DataModelOptions<K, Grouped>;
     private readonly keys: InternalDatumPropertyDefinition<K>[];
@@ -368,12 +369,11 @@ export class DataModel<
     }
 
     resolveProcessedDataIndexById(scope: ScopeProvider, searchId: string): ProcessedDataDef | never {
-        const { index, def } = this.resolveProcessedDataDefById(scope, searchId) ?? {};
-        return { index, def };
+        return this.resolveProcessedDataDefById(scope, searchId) ?? {};
     }
 
-    resolveProcessedDataIndicesById(scope: ScopeProvider, searchId: string | RegExp): ProcessedDataDef[] | never {
-        return this.resolveProcessedDataDefsById(scope, searchId).map(({ index, def }) => ({ index, def }));
+    resolveProcessedDataIndicesById(scope: ScopeProvider, searchId: string): ProcessedDataDef[] | never {
+        return this.resolveProcessedDataDefsById(scope, searchId);
     }
 
     resolveProcessedDataDefById(scope: ScopeProvider, searchId: string): ProcessedDataDef | never {
@@ -396,45 +396,34 @@ export class DataModel<
         return result;
     }
 
-    resolveProcessedDataDefsById(searchScope: ScopeProvider, searchId: RegExp | string): ProcessedDataDef[] | never {
+    resolveProcessedDataDefsById(searchScope: ScopeProvider, searchId: string): ProcessedDataDef[] | never {
         const { keys, values, aggregates, groupProcessors, reducers } = this;
-
-        const match = ({ ids, scopes }: PropertyDefinition<any> & InternalDefinition) => {
-            if (ids == null || (searchScope != null && !scopes?.includes(searchScope.id))) {
-                return false;
-            }
-
-            return ids.some(
-                ([scope, id]) => scope === searchScope.id && (isString(searchId) ? id === searchId : searchId.test(id))
-            );
-        };
-
         const result: ProcessedDataDef[] = [];
+
         for (const def of iterate(keys, values, aggregates, groupProcessors, reducers)) {
-            if (!match(def)) continue;
-            result.push({ index: def.index, def });
+            if (
+                def.ids != null &&
+                def.scopes?.includes(searchScope.id) &&
+                this.scopeCache.get(searchScope.id)?.get(def)?.has(searchId)
+            ) {
+                result.push({ index: def.index, def });
+            }
         }
 
-        if (result.length > 0) {
-            return result;
+        if (!result.length) {
+            throw new Error(`AG Charts - didn't find property definition for [${searchId}, ${searchScope.id}]`);
         }
 
-        throw new Error(`AG Charts - didn't find property definition for [${searchId}, ${searchScope.id}]`);
+        return result;
     }
 
     getDomain(
         scope: ScopeProvider,
-        searchId: string | RegExp,
+        searchId: string,
         type: PropertyDefinition<any>['type'] = 'value',
         processedData: ProcessedData<K>
     ): any[] | ContinuousDomain<number> | [] {
-        let matches;
-        try {
-            matches = this.resolveProcessedDataIndicesById(scope, searchId);
-        } catch (e: any) {
-            if (typeof searchId !== 'string' && /didn't find property definition/.test(e.message)) return [];
-            throw e;
-        }
+        const matches = this.resolveProcessedDataIndicesById(scope, searchId);
 
         let domainProp: keyof ProcessedData<any>['domain'];
         switch (type) {
@@ -510,7 +499,7 @@ export class DataModel<
             for (const def of iterate(this.keys, this.values)) {
                 for (const [scope, missCount] of def.missing) {
                     if (missCount >= data.length) {
-                        const scopeHint = scope === undefined ? '' : ` for ${scope}`;
+                        const scopeHint = scope == null ? '' : ` for ${scope}`;
                         Logger.warnOnce(`the key '${def.property}' was not found in any data element${scopeHint}.`);
                     }
                 }
@@ -522,6 +511,19 @@ export class DataModel<
 
         if (this.debug.check()) {
             logProcessedData(processedData);
+        }
+
+        this.scopeCache.clear();
+        for (const def of iterate(this.keys, this.values, this.aggregates, this.groupProcessors, this.reducers)) {
+            for (const [scope, id] of def.ids ?? []) {
+                if (!this.scopeCache.has(scope)) {
+                    this.scopeCache.set(scope, new Map([[def, new Set([id])]]));
+                } else if (!this.scopeCache.get(scope)!.has(def)) {
+                    this.scopeCache.get(scope)!.set(def, new Set([id]));
+                } else {
+                    this.scopeCache.get(scope)!.get(def)!.add(id);
+                }
+            }
         }
 
         return processedData as Grouped extends true ? GroupedData<D> : UngroupedData<D>;
