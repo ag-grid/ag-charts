@@ -211,18 +211,14 @@ export class Path2D {
         for (let ci = 0, pi = 0; ci < cn; ci++) {
             switch (commands[ci]) {
                 case Command.Move:
-                    if (!isNaN(sx) && segmentIntersection(sx, sy, px, py, ox, oy, x, y)) {
-                        intersectionCount++;
-                    }
+                    intersectionCount += segmentIntersection(sx, sy, px, py, ox, oy, x, y);
                     px = params[pi++];
                     sx = px;
                     py = params[pi++];
                     sy = py;
                     break;
                 case Command.Line:
-                    if (segmentIntersection(px, py, params[pi++], params[pi++], ox, oy, x, y)) {
-                        intersectionCount++;
-                    }
+                    intersectionCount += segmentIntersection(px, py, params[pi++], params[pi++], ox, oy, x, y);
                     px = params[pi - 2];
                     py = params[pi - 1];
                     break;
@@ -240,7 +236,7 @@ export class Path2D {
                         oy,
                         x,
                         y
-                    ).length;
+                    );
                     px = params[pi - 2];
                     py = params[pi - 1];
                     break;
@@ -251,7 +247,7 @@ export class Path2D {
                     const startAngle = params[pi++];
                     const endAngle = params[pi++];
                     const counterClockwise = Boolean(params[pi++]);
-                    const arcIntersects = arcIntersections(
+                    intersectionCount += arcIntersections(
                         cx,
                         cy,
                         r,
@@ -263,23 +259,18 @@ export class Path2D {
                         x,
                         y
                     );
-                    intersectionCount += arcIntersects.length;
                     if (!isNaN(sx)) {
                         // AG-10199 the arc() command draws a connector line between previous position and the starting
                         // position of the arc. So we need to check if there's an intersection with this connector line.
                         const startX = cx + Math.cos(startAngle) * r;
                         const startY = cy + Math.sin(startAngle) * r;
-                        if (segmentIntersection(px, py, startX, startY, ox, oy, x, y)) {
-                            intersectionCount++;
-                        }
+                        intersectionCount += segmentIntersection(px, py, startX, startY, ox, oy, x, y);
                     }
                     px = cx + Math.cos(endAngle) * r;
                     py = cy + Math.sin(endAngle) * r;
                     break;
                 case Command.ClosePath:
-                    if (!isNaN(sx) && segmentIntersection(sx, sy, px, py, ox, oy, x, y)) {
-                        intersectionCount++;
-                    }
+                    intersectionCount += segmentIntersection(sx, sy, px, py, ox, oy, x, y);
                     break;
             }
         }
