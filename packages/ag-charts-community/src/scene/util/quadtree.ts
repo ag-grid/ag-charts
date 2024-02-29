@@ -52,10 +52,10 @@ export class Quadtree<V> {
 
 class QuadtreeSubdivisions<V> {
     constructor(
-        private nw: QuadtreeNode<V>,
-        private ne: QuadtreeNode<V>,
-        private sw: QuadtreeNode<V>,
-        private se: QuadtreeNode<V>
+        private readonly nw: QuadtreeNode<V>,
+        private readonly ne: QuadtreeNode<V>,
+        private readonly sw: QuadtreeNode<V>,
+        private readonly se: QuadtreeNode<V>
     ) {}
 
     addElem(elem: QuadtreeElem<V>) {
@@ -108,14 +108,14 @@ class QuadtreeNode<V> {
             return;
         }
 
-        if (this.subdivisions !== undefined) {
-            this.subdivisions.addElem(e);
-        } else {
+        if (this.subdivisions === undefined) {
             if (this.maxdepth === 0 || this.elems.length < this.capacity) {
                 this.elems.push(e);
             } else {
                 this.subdivide(e);
             }
+        } else {
+            this.subdivisions.addElem(e);
         }
     }
 
@@ -124,14 +124,14 @@ class QuadtreeNode<V> {
             return;
         }
 
-        if (this.subdivisions !== undefined) {
-            this.subdivisions.findExact(x, y, foundElems);
-        } else {
+        if (this.subdivisions === undefined) {
             for (const elem of this.elems) {
                 if (elem.bbox.containsPoint(x, y)) {
                     foundElems.push(elem);
                 }
             }
+        } else {
+            this.subdivisions.findExact(x, y, foundElems);
         }
     }
 
@@ -140,10 +140,10 @@ class QuadtreeNode<V> {
             return best;
         }
 
-        if (this.subdivisions !== undefined) {
-            return this.subdivisions.findNearest(target, best);
-        } else {
+        if (this.subdivisions === undefined) {
             return pickNearest(best, nearestSquared(target, this.elems, best.distanceSquared));
+        } else {
+            return this.subdivisions.findNearest(target, best);
         }
     }
 
