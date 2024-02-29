@@ -30,7 +30,7 @@ export interface AgHistogramSeriesThemeableOptions<TDatum = any>
     shadow?: AgDropShadowOptions;
     /** Configuration for the labels shown on bars. */
     label?: AgChartLabelOptions<TDatum, AgHistogramSeriesLabelFormatterParams>;
-    /** Apply round corners to each bar. */
+    /** Apply rounded corners to each bar. */
     cornerRadius?: PixelSize;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgHistogramSeriesTooltipRendererParams<TDatum>>;
