@@ -1462,12 +1462,15 @@ export abstract class Chart extends Observable implements AgChartInstance {
             miniChart.axes = [];
         }
 
-        const majorChange =
-            forceNodeDataRefresh || modulesChanged || this.shouldForceNodeDataRefresh(deltaOptions, seriesStatus);
+        forceNodeDataRefresh ||= this.shouldForceNodeDataRefresh(deltaOptions, seriesStatus);
+        const majorChange = forceNodeDataRefresh || modulesChanged;
         const updateType = majorChange ? ChartUpdateType.UPDATE_DATA : ChartUpdateType.PERFORM_LAYOUT;
         this.maybeResetAnimations(seriesStatus);
 
-        debug('AgChartV2.applyChartOptions() - update type', ChartUpdateType[updateType]);
+        debug('AgChartV2.applyChartOptions() - update type', ChartUpdateType[updateType], {
+            seriesStatus,
+            forceNodeDataRefresh,
+        });
         this.update(updateType, { forceNodeDataRefresh, newAnimationBatch: true });
     }
 
