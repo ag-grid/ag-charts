@@ -27,7 +27,8 @@ export class BBox implements DistantObject, Interpolating<BBox> {
     width: number;
     height: number;
 
-    static zero = new BBox(0, 0, 0, 0);
+    static readonly zero: Readonly<BBox> = new BBox(0, 0, 0, 0);
+    static readonly NaN: Readonly<BBox> = new BBox(NaN, NaN, NaN, NaN);
 
     constructor(x: number, y: number, width: number, height: number) {
         this.x = x;
