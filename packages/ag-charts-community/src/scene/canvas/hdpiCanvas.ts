@@ -105,7 +105,9 @@ export class HdpiCanvas {
     }
 
     private onEnabledChange() {
-        this.element.style.display = this.enabled ? 'block' : 'none';
+        if (this.element) {
+            this.element.style.display = this.enabled ? 'block' : 'none';
+        }
     }
 
     // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
