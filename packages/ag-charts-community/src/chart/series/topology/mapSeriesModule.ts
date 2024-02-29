@@ -15,12 +15,18 @@ export const MapSeriesModule: SeriesModule<'map'> = {
     themeTemplate: {
         series: {
             __extends__: EXTENDS_SERIES_DEFAULTS,
+            tooltip: {
+                position: {
+                    type: 'node',
+                },
+            },
             fillOpacity: 1,
             strokeWidth: 0,
             lineDash: [0],
             lineDashOffset: 0,
         },
     },
+    // @ts-expect-error When the types are properly exposed, this error should disappear
     paletteFactory: (opts) => {
         const { takeColors, colorsCount, userPalette, themeTemplateParameters } = opts;
         const { fill, stroke } = singleSeriesPaletteFactory(opts);

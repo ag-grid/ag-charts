@@ -1,19 +1,20 @@
+import type { Position } from 'geojson';
+
 import type { Scale } from '../../../scale/scale';
 
-type LonLat = [lon: number, lat: number];
 type XY = [x: number, y: number];
 
 const radsInDeg = Math.PI / 180;
 const lonX = (lon: number) => lon * radsInDeg;
 const latY = (lat: number) => -Math.log(Math.tan(Math.PI * 0.25 + lat * radsInDeg * 0.5));
 
-export class MercatorScale implements Scale<LonLat, XY> {
+export class MercatorScale implements Scale<Position, XY> {
     private scale: number;
     private originX: number;
     private originY: number;
 
     constructor(
-        public readonly domain: LonLat[],
+        public readonly domain: Position[],
         public readonly range: XY[]
     ) {
         const [[lon0, lat0], [lon1, lat1]] = domain;
@@ -37,7 +38,7 @@ export class MercatorScale implements Scale<LonLat, XY> {
         this.originY = -(y + viewBoxOriginY + (height - viewBoxHeight) / 2);
     }
 
-    convert([lon, lat]: LonLat): XY {
+    convert([lon, lat]: Position): XY {
         const { scale, originX, originY } = this;
         return [lonX(lon) * scale - originX, latY(lat) * scale - originY];
     }

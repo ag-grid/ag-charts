@@ -43,7 +43,7 @@ export const eet = [
     { name: 'Greece' },
     { name: 'Latvia' },
     { name: 'Lithuania' },
-    { name: 'Moldova' },
+    { name: 'Republic of Moldova' },
     { name: 'Romania' },
     { name: 'Ukraine' },
 ];
