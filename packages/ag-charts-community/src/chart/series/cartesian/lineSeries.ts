@@ -31,8 +31,8 @@ import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, updateClip
 type LineAnimationData = CartesianAnimationData<Group, LineNodeDatum>;
 
 export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
-    static className = 'LineSeries';
-    static type = 'line' as const;
+    static readonly className = 'LineSeries';
+    static readonly type = 'line' as const;
 
     override properties = new LineSeriesProperties();
 

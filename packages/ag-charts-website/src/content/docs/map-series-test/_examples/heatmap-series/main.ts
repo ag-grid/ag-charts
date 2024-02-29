@@ -3,10 +3,15 @@ import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { data } from './data';
 import { topology } from './topology';
 
+const numberFormatter = new Intl.NumberFormat('en-US', {
+    currency: 'USD',
+    useGrouping: true,
+});
+
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
-        text: 'Population of Ireland',
+        text: 'Population of America',
     },
     data,
     series: [
@@ -16,8 +21,21 @@ const options: AgChartOptions = {
             topology,
             data,
             idKey: 'name',
-            colorKey: 'population',
-            colorRange: ['#badc58', '#6ab04c'],
+            labelKey: 'code',
+            colorKey: 'gdp',
+            stroke: 'white',
+            strokeWidth: 1,
+            label: {
+                enabled: true,
+                fontWeight: 'bold',
+            },
+            tooltip: {
+                // @ts-ignore
+                renderer: ({ datum, title }) => ({
+                    title,
+                    content: `GDP: ${numberFormatter.format(datum?.gdp)}`,
+                }),
+            },
         },
     ],
     gradientLegend: {
@@ -26,19 +44,11 @@ const options: AgChartOptions = {
             interval: {
                 minSpacing: 1,
                 // @ts-ignore
-                values: [0, 0.5e6, 1e6],
+                values: [0, 1e6, 2e6, 3e6, 4e6],
             },
             label: {
-                formatter: ({ value }) => {
-                    value = +value;
-                    if (value === 0) {
-                        return '0';
-                    } else if (value < 1e6) {
-                        return `${Math.floor(+value / 1e3)}K`;
-                    } else {
-                        return `${Math.floor(+value / 1e6)}M`;
-                    }
-                },
+                fontSize: 9,
+                formatter: ({ value }) => `$${Math.floor(+value / 1e6)}M`,
             },
         },
     },

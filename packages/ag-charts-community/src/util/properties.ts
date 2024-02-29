@@ -33,13 +33,14 @@ export class BaseProperties<T extends object = object> {
     isValid<TContext = Omit<T, 'type'>>(this: TContext) {
         return listDecoratedProperties(this).every((propertyKey) => {
             const { optional } = extractDecoratedPropertyMetadata(this, propertyKey)!;
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             return optional || typeof this[propertyKey as keyof TContext] !== 'undefined';
         });
     }
 
-    toJson<T>(this: T) {
+    toJson<J>(this: J) {
         return listDecoratedProperties(this).reduce<Record<string, any>>((object, propertyKey) => {
-            const propertyValue = this[propertyKey as keyof T];
+            const propertyValue = this[propertyKey as keyof J];
             object[propertyKey] = isProperties(propertyValue) ? propertyValue.toJson() : propertyValue;
             return object;
         }, {});

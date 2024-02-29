@@ -15,6 +15,8 @@ const options: AgChartOptions = {
             topology,
             data: gmt,
             idKey: 'name',
+            stroke: 'white',
+            strokeWidth: 1,
             legendItemName: 'Greenwich Mean Time',
         },
         {
@@ -23,6 +25,8 @@ const options: AgChartOptions = {
             topology,
             data: cet,
             idKey: 'name',
+            stroke: 'white',
+            strokeWidth: 1,
             legendItemName: 'Central European Time',
         },
         {
@@ -31,6 +35,8 @@ const options: AgChartOptions = {
             topology,
             data: eet,
             idKey: 'name',
+            stroke: 'white',
+            strokeWidth: 1,
             legendItemName: 'Eastern European Time',
         },
         {
@@ -39,6 +45,8 @@ const options: AgChartOptions = {
             topology,
             data: msk,
             idKey: 'name',
+            stroke: 'white',
+            strokeWidth: 1,
             legendItemName: 'Moscow Standard Time',
         },
     ],

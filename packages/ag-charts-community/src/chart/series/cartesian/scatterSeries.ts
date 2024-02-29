@@ -24,8 +24,8 @@ import { ScatterNodeDatum, ScatterSeriesProperties } from './scatterSeriesProper
 type ScatterAnimationData = CartesianAnimationData<Group, ScatterNodeDatum>;
 
 export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
-    static className = 'ScatterSeries';
-    static type = 'scatter' as const;
+    static readonly className = 'ScatterSeries';
+    static readonly type = 'scatter' as const;
 
     override properties = new ScatterSeriesProperties();
 

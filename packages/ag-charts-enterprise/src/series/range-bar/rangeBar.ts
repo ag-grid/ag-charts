@@ -98,8 +98,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     RangeBarNodeDatum,
     RangeBarNodeLabelDatum
 > {
-    static className = 'RangeBarSeries';
-    static type = 'range-bar' as const;
+    static readonly className = 'RangeBarSeries';
+    static readonly type = 'range-bar' as const;
 
     override properties = new RangeBarProperties();
 

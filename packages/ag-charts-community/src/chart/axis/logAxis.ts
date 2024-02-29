@@ -11,8 +11,8 @@ import { NumberAxis } from './numberAxis';
 const NON_ZERO_NUMBER = predicateWithMessage((value) => isNumber(value) && value !== 0, 'a non-zero number');
 
 export class LogAxis extends NumberAxis {
-    static override className = 'LogAxis';
-    static override type = 'log' as const;
+    static override readonly className = 'LogAxis';
+    static override readonly type = 'log' as const;
 
     override normaliseDataDomain(d: number[]) {
         const { min, max } = this;

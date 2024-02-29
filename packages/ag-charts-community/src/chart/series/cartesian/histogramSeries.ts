@@ -30,8 +30,8 @@ const defaultBinCount = 10;
 type HistogramAnimationData = CartesianAnimationData<Rect, HistogramNodeDatum>;
 
 export class HistogramSeries extends CartesianSeries<Rect, HistogramNodeDatum> {
-    static className = 'HistogramSeries';
-    static type = 'histogram' as const;
+    static readonly className = 'HistogramSeries';
+    static readonly type = 'histogram' as const;
 
     override properties = new HistogramSeriesProperties();
 

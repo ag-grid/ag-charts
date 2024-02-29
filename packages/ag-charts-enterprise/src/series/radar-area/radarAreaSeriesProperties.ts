@@ -1,4 +1,4 @@
-import { AgRadarAreaSeriesOptions, _ModuleSupport, _Scene } from 'ag-charts-community';
+import { AgRadarAreaSeriesOptions, _ModuleSupport } from 'ag-charts-community';
 
 import { RadarSeriesProperties } from '../radar/radarSeriesProperties';
 

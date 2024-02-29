@@ -18,6 +18,7 @@ export type FontWeight =
 export type FontFamily = string;
 export type FontSize = number;
 
+// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 export type MarkerShape = 'circle' | 'cross' | 'diamond' | 'heart' | 'plus' | 'triangle' | 'square' | any;
 
 /** Alias to denote that a value should be a CSS-compliant color string, such as `#FFFFFF` or `rgb(255, 255, 255)` or `white`. */

@@ -78,8 +78,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     RangeAreaLabelDatum,
     RangeAreaContext
 > {
-    static className = 'RangeAreaSeries';
-    static type = 'range-area' as const;
+    static readonly className = 'RangeAreaSeries';
+    static readonly type = 'range-area' as const;
 
     override properties = new RangeAreaProperties();
 

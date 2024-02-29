@@ -14,8 +14,8 @@ type TickDatum = {
 };
 
 export class RadiusNumberAxis extends RadiusAxis {
-    static className = 'RadiusNumberAxis';
-    static type = 'radius-number' as const;
+    static readonly className = 'RadiusNumberAxis';
+    static readonly type = 'radius-number' as const;
 
     override shape: 'polygon' | 'circle' = 'polygon';
 

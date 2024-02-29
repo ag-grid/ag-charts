@@ -7,8 +7,8 @@ import { MapSeries } from './series/topology/mapSeries';
 import { MercatorScale } from './series/topology/mercatorScale';
 
 export class TopologyChart extends Chart {
-    static className = 'TopologyChart';
-    static type = 'topology' as const;
+    static readonly className = 'TopologyChart';
+    static readonly type = 'topology' as const;
 
     constructor(options: ChartOptions, resources?: TransferableResources) {
         super(options, resources);

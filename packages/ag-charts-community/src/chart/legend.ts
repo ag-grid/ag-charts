@@ -146,7 +146,7 @@ class LegendListeners extends BaseProperties implements AgChartLegendListeners {
 }
 
 export class Legend extends BaseProperties {
-    static className = 'Legend';
+    static readonly className = 'Legend';
 
     readonly id = createId(this);
 

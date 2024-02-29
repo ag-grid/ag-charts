@@ -6,9 +6,11 @@ import { resetMotion } from '../../../motion/resetMotion';
 import { StateMachine } from '../../../motion/states';
 import type { AgMapSeriesStyle } from '../../../options/series/topology/mapOptions';
 import { ColorScale } from '../../../scale/colorScale';
+import { LinearScale } from '../../../scale/linearScale';
 import type { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
 import { Selection } from '../../../scene/selection';
+import { Text } from '../../../scene/shape/text';
 import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { sanitizeHtml } from '../../../util/sanitize';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
@@ -17,24 +19,19 @@ import { getMissCount } from '../../data/dataModel';
 import { createDatumId } from '../../data/processors';
 import type { LegendItemClickChartEvent, LegendItemDoubleClickChartEvent } from '../../interaction/chartEventManager';
 import type { CategoryLegendDatum, ChartLegendType, GradientLegendDatum } from '../../legendDatum';
+import type { Marker } from '../../marker/marker';
+import { getMarker } from '../../marker/util';
 import { DataModelSeries } from '../dataModelSeries';
 import type { SeriesNodeDataContext } from '../series';
 import { SeriesNodePickMode, valueProperty } from '../series';
-import type { SeriesNodeDatum } from '../seriesTypes';
 import type { LatLongBBox } from './LatLongBBox';
 import { GeoGeometry } from './geoGeometry';
-import { MapSeriesProperties } from './mapSeriesProperties';
-import { geometryBox } from './mapUtil';
+import { MapNodeDatum, MapNodeLabelDatum, MapNodeMarkerDatum, MapSeriesProperties } from './mapSeriesProperties';
+import { geometryBox, geometryCenter, markerCenters } from './mapUtil';
 import type { MercatorScale } from './mercatorScale';
 
-interface MapNodeDatum extends SeriesNodeDatum {
-    readonly fill: string;
-    readonly feature: Feature | undefined;
-}
-
-type MapNodeLabel = never;
-
-export interface MapNodeDataContext extends SeriesNodeDataContext<MapNodeDatum, MapNodeLabel> {
+export interface MapNodeDataContext extends SeriesNodeDataContext<MapNodeDatum, MapNodeLabelDatum> {
+    markerData: MapNodeMarkerDatum[];
     bbox: LatLongBBox | undefined;
     animationValid?: boolean;
     visible: boolean;
@@ -51,21 +48,28 @@ export interface MapAnimationData {
 type MapAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
 type MapAnimationEvent = 'update' | 'updateData' | 'highlight' | 'resize' | 'clear' | 'reset' | 'skip';
 
-export class MapSeries extends DataModelSeries<MapNodeDatum, MapNodeLabel, MapNodeDataContext> {
+export class MapSeries extends DataModelSeries<MapNodeDatum, MapNodeLabelDatum, MapNodeDataContext> {
     scale: MercatorScale | undefined;
 
     override properties = new MapSeriesProperties();
 
-    readonly colorScale = new ColorScale();
+    private readonly colorScale = new ColorScale();
+    private readonly sizeScale = new LinearScale();
 
     private itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
+    private markerGroup = this.contentGroup.appendChild(new Group({ name: 'markerGroup' }));
 
     private itemSelection: Selection<GeoGeometry, MapNodeDatum> = Selection.select(
         this.itemGroup,
         () => this.nodeFactory(),
         false
     );
-    // private labelSelection: Selection<Text, MapNodeLabel> = Selection.select(this.labelGroup, Text, false);
+    private labelSelection: Selection<Text, MapNodeLabelDatum> = Selection.select(this.labelGroup, Text, false);
+    private markerSelection: Selection<Marker, MapNodeMarkerDatum> = Selection.select(
+        this.markerGroup,
+        () => this.markerFactory(),
+        false
+    );
     private highlightSelection: Selection<GeoGeometry, MapNodeDatum> = Selection.select(this.highlightNode, () =>
         this.nodeFactory()
     );
@@ -84,6 +88,8 @@ export class MapSeries extends DataModelSeries<MapNodeDatum, MapNodeLabel, MapNo
         super({
             moduleCtx,
             contentGroupVirtual: false,
+            useSeriesGroupLayer: true,
+            useLabelLayer: true,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
         });
 
@@ -138,8 +144,18 @@ export class MapSeries extends DataModelSeries<MapNodeDatum, MapNodeLabel, MapNo
         );
     }
 
+    private isLabelEnabled() {
+        return this.properties.labelKey != null && this.properties.label.enabled;
+    }
+
     private nodeFactory(): GeoGeometry {
         return new GeoGeometry();
+    }
+
+    private markerFactory(): Marker {
+        const { shape } = this.properties.marker;
+        const MarkerShape = getMarker(shape);
+        return new MarkerShape();
     }
 
     override async processData(dataController: DataController): Promise<void> {
@@ -148,7 +164,7 @@ export class MapSeries extends DataModelSeries<MapNodeDatum, MapNodeLabel, MapNo
         }
 
         const { data } = this;
-        const { idKey, colorKey, colorRange, topology } = this.properties;
+        const { idKey, sizeKey, colorKey, labelKey, colorRange, marker, topology } = this.properties;
 
         const featureById = new Map<string, Feature>();
         topology.features.forEach((feature) => {
@@ -159,14 +175,22 @@ export class MapSeries extends DataModelSeries<MapNodeDatum, MapNodeLabel, MapNo
 
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
-                valueProperty(this, idKey, false, { id: 'idKey' }),
+                valueProperty(this, idKey, false, { id: 'idValue' }),
                 valueProperty(this, idKey, false, {
-                    id: 'featureKey',
+                    id: 'featureValue',
                     processor: () => (datum) => featureById.get(datum),
                 }),
+                ...(labelKey ? [valueProperty(this, labelKey, false, { id: 'labelValue' })] : []),
+                ...(sizeKey ? [valueProperty(this, sizeKey, true, { id: 'sizeValue' })] : []),
                 ...(colorKey ? [valueProperty(this, colorKey, true, { id: 'colorValue' })] : []),
             ],
         });
+
+        if (sizeKey != null) {
+            const sizeIdx = dataModel.resolveProcessedDataIndexById(this, `sizeValue`).index;
+            const processedSize = processedData.domain.values[sizeIdx] ?? [];
+            this.sizeScale.domain = marker.domain ?? processedSize;
+        }
 
         if (colorRange != null && this.isColorScaleValid()) {
             const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue').index;
@@ -187,56 +211,76 @@ export class MapSeries extends DataModelSeries<MapNodeDatum, MapNodeLabel, MapNo
             return false;
         }
 
-        const colorDataIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue').index;
+        const colorIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue').index;
         const dataCount = processedData.data.length;
-        const missCount = getMissCount(this, processedData.defs.values[colorDataIdx].missing);
+        const missCount = getMissCount(this, processedData.defs.values[colorIdx].missing);
         const colorDataMissing = dataCount === 0 || dataCount === missCount;
         return !colorDataMissing;
     }
 
     override async createNodeData(): Promise<MapNodeDataContext[]> {
-        const { id: seriesId, dataModel, processedData } = this;
-        const { fill: fillProperty, colorKey } = this.properties;
+        const { id: seriesId, dataModel, processedData, colorScale, sizeScale } = this;
+        const { fill: fillProperty, sizeKey, colorKey, labelKey, marker } = this.properties;
 
         if (dataModel == null || processedData == null) return [];
 
         const colorScaleValid = this.isColorScaleValid();
 
-        const idKeyIdx = dataModel.resolveProcessedDataIndexById(this, `idKey`).index;
-        const featureKeyIdx = dataModel.resolveProcessedDataIndexById(this, `featureKey`).index;
-        const colorDataIdx = colorKey ? dataModel.resolveProcessedDataIndexById(this, `colorValue`).index : undefined;
+        const idIdx = dataModel.resolveProcessedDataIndexById(this, `idValue`).index;
+        const featureIdx = dataModel.resolveProcessedDataIndexById(this, `featureValue`).index;
+        const labelIdx = labelKey ? dataModel.resolveProcessedDataIndexById(this, `labelValue`).index : undefined;
+        const sizeIdx = sizeKey ? dataModel.resolveProcessedDataIndexById(this, `sizeValue`).index : undefined;
+        const colorIdx = colorKey ? dataModel.resolveProcessedDataIndexById(this, `colorValue`).index : undefined;
+
+        sizeScale.range = [marker.size, marker.maxSize ?? marker.size];
 
         let bbox: LatLongBBox | undefined;
-        const nodeData = processedData.data.flatMap(({ values }) => {
-            return values
-                .filter((value) => value != null)
-                .map((value): MapNodeDatum => {
-                    const { datum } = value;
+        const nodeData: MapNodeDatum[] = [];
+        const labelData: MapNodeLabelDatum[] = [];
+        const markerData: MapNodeMarkerDatum[] = [];
+        processedData.data.forEach(({ datum, values }) => {
+            const colorValue: number | undefined = colorIdx != null ? values[colorIdx] : undefined;
+            const sizeValue: number | undefined = sizeIdx != null ? values[sizeIdx] : undefined;
+            const color: string | undefined =
+                colorScaleValid && colorValue != null ? colorScale.convert(colorValue) : undefined;
 
-                    const colorValue = colorDataIdx != null ? values[colorDataIdx] : undefined;
-                    const fill =
-                        colorScaleValid && colorValue != null ? this.colorScale.convert(colorValue) : fillProperty;
+            const feature: Feature | undefined = values[featureIdx];
+            if (feature != null) {
+                bbox = geometryBox(feature.geometry, bbox);
+            }
 
-                    const feature: Feature | undefined = values[featureKeyIdx];
-                    if (feature != null) {
-                        bbox = geometryBox(feature.geometry, bbox);
-                    }
+            const nodeDatum = {
+                series: this,
+                itemId: values[idIdx],
+                datum,
+                fill: color ?? fillProperty,
+                sizeValue,
+                colorValue,
+                feature,
+            };
 
-                    return {
-                        series: this,
-                        itemId: values[idKeyIdx],
-                        datum,
-                        fill,
-                        feature,
-                    };
-                });
+            nodeData.push(nodeDatum);
+
+            const labelValue = labelIdx != null ? values[labelIdx] : undefined;
+            const labelCenter = feature != null && labelValue != null ? geometryCenter(feature.geometry) : undefined;
+            if (labelCenter != null) {
+                const text = labelValue!;
+                labelData.push({ position: labelCenter, text });
+            }
+
+            const markers = feature?.geometry?.type === 'Point' ? markerCenters(feature.geometry) : undefined;
+            markers?.forEach((position, index) => {
+                const size = sizeValue != null ? sizeScale.convert(sizeValue) : undefined;
+                markerData.push({ ...nodeDatum, fill: color ?? marker.fill ?? fillProperty, index, size, position });
+            });
         });
 
         return [
             {
                 itemId: seriesId,
                 nodeData,
-                labelData: [],
+                labelData,
+                markerData,
                 bbox,
                 animationValid: true,
                 visible: true,
@@ -261,7 +305,7 @@ export class MapSeries extends DataModelSeries<MapNodeDatum, MapNodeLabel, MapNo
     }
 
     override async update(): Promise<void> {
-        const { itemSelection, highlightSelection } = this;
+        const { itemSelection, labelSelection, markerSelection, highlightSelection } = this;
 
         await this.updateSelections();
 
@@ -271,7 +315,7 @@ export class MapSeries extends DataModelSeries<MapNodeDatum, MapNodeLabel, MapNo
         const seriesHighlighted = highligtedDatum != null && highligtedDatum.series === this;
 
         await Promise.all(
-            this.contextNodeData.map(async ({ nodeData }) => {
+            this.contextNodeData.map(async ({ nodeData, labelData, markerData }) => {
                 await this.updateDatumSelection({
                     nodeData,
                     datumSelection: itemSelection,
@@ -281,13 +325,26 @@ export class MapSeries extends DataModelSeries<MapNodeDatum, MapNodeLabel, MapNo
                     datumSelection: itemSelection,
                     isHighlight: false,
                 });
+
+                await this.updateLabelSelection({ labelData, labelSelection });
+
+                await this.updateLabelNodes({
+                    labelSelection,
+                    // isHighlight: false,
+                });
+
+                await this.updateMarkerSelection({ markerData, markerSelection });
+
+                await this.updateMarkerNodes({
+                    markerSelection,
+                    // isHighlight: false,
+                });
             })
         );
 
         await this.updateDatumSelection({
             nodeData: seriesHighlighted ? [highligtedDatum as any] : [],
             datumSelection: highlightSelection,
-            // seriesIdx: -1,
         });
 
         await this.updateDatumNodes({
@@ -320,6 +377,61 @@ export class MapSeries extends DataModelSeries<MapNodeDatum, MapNodeLabel, MapNo
             geoGeometry.stroke = highlightStyle?.stroke ?? stroke;
             geoGeometry.strokeWidth = highlightStyle?.strokeWidth ?? strokeWidth;
             geoGeometry.strokeOpacity = highlightStyle?.strokeOpacity ?? strokeOpacity ?? 1;
+        });
+    }
+
+    private async updateLabelSelection(opts: {
+        labelData: MapNodeLabelDatum[];
+        labelSelection: Selection<Text, MapNodeLabelDatum>;
+    }) {
+        const data = this.isLabelEnabled() ? opts.labelData : [];
+        return opts.labelSelection.update(data, undefined);
+    }
+
+    private async updateLabelNodes(opts: { labelSelection: Selection<Text, MapNodeLabelDatum> }) {
+        const { labelSelection } = opts;
+        const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = this.properties.label;
+        labelSelection.each((label, { position, text }) => {
+            const [x, y] = this.scale!.convert(position);
+
+            label.visible = true;
+            label.x = x;
+            label.y = y;
+            label.text = text;
+            label.fill = fill;
+            label.fontStyle = fontStyle;
+            label.fontWeight = fontWeight;
+            label.fontSize = fontSize;
+            label.fontFamily = fontFamily;
+            label.textAlign = 'center';
+            label.textBaseline = 'middle';
+        });
+    }
+
+    private async updateMarkerSelection(opts: {
+        markerData: MapNodeMarkerDatum[];
+        markerSelection: Selection<Marker, MapNodeMarkerDatum>;
+    }) {
+        // const data = this.isLabelEnabled() ? opts.labelData : [];
+        const data = opts.markerData;
+        return opts.markerSelection.update(data, undefined, (datum) => `${createDatumId(datum.itemId)}:${datum.index}`);
+    }
+
+    private async updateMarkerNodes(opts: { markerSelection: Selection<Marker, MapNodeMarkerDatum> }) {
+        const { markerSelection } = opts;
+        const { fillOpacity, stroke, strokeWidth, strokeOpacity, size } = this.properties.marker;
+
+        markerSelection.each((marker, markerDatum) => {
+            const [x, y] = this.scale!.convert(markerDatum.position);
+
+            marker.size = markerDatum.size ?? size;
+            marker.fill = markerDatum.fill;
+            marker.fillOpacity = fillOpacity;
+            marker.stroke = stroke;
+            marker.strokeWidth = strokeWidth;
+            marker.strokeOpacity = strokeOpacity;
+            marker.translationX = x;
+            marker.translationY = y;
         });
     }
 
@@ -479,11 +591,19 @@ export class MapSeries extends DataModelSeries<MapNodeDatum, MapNodeLabel, MapNo
             return '';
         }
 
-        const { idKey, colorKey, colorName, stroke, strokeWidth, formatter, tooltip } = this.properties;
-        const { datum, fill } = nodeDatum;
+        const { idKey, sizeKey, sizeName, colorKey, colorName, stroke, strokeWidth, formatter, tooltip } =
+            this.properties;
+        const { itemId, datum, fill, sizeValue, colorValue } = nodeDatum;
 
-        const title = sanitizeHtml(nodeDatum.itemId);
-        const content = colorKey != null ? sanitizeHtml(colorKey + ': ' + colorName) : '';
+        const title = sanitizeHtml(itemId);
+        const contentLines: string[] = [];
+        if (sizeValue != null) {
+            contentLines.push(sanitizeHtml((sizeName ?? sizeKey) + ': ' + sizeValue));
+        }
+        if (colorValue != null) {
+            contentLines.push(sanitizeHtml((colorName ?? colorKey) + ': ' + colorValue));
+        }
+        const content = contentLines.join('<br>');
 
         let format: AgMapSeriesStyle | undefined;
 

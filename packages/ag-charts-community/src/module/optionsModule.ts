@@ -87,7 +87,7 @@ export class ChartOptions<T extends AgChartOptionsNext = AgChartOptionsNext> {
         this.seriesDefaults = this.getOptionsDefaults(options);
         this.specialOverrides = this.specialOverridesDefaults({ ...specialOverrides });
 
-        const { axes: axesThemes = {}, series: seriesThemes, ...themeDefaults } = this.getSeriesThemeConfig(chartType);
+        const { axes: axesThemes = {}, series: _, ...themeDefaults } = this.getSeriesThemeConfig(chartType);
 
         this.processedOptions = deepClone(
             mergeDefaults(this.userOptions, themeDefaults, this.seriesDefaults),
@@ -192,7 +192,7 @@ export class ChartOptions<T extends AgChartOptionsNext = AgChartOptionsNext> {
                         : style
                 );
             }
-            const { top, right, bottom, left, ...axisOptions } = mergeDefaults(axis, axisTheme);
+            const { top: _1, right: _2, bottom: _3, left: _4, ...axisOptions } = mergeDefaults(axis, axisTheme);
             return axisOptions;
         }) as AgCartesianAxisOptions[] | AgPolarAxisOptions[];
     }
@@ -238,8 +238,7 @@ export class ChartOptions<T extends AgChartOptionsNext = AgChartOptionsNext> {
 
         miniChartSeries = miniChartSeries.map((series) => {
             series.type ??= 'line';
-            const { innerLabels: innerLabelsTheme, ...seriesTheme } =
-                this.getSeriesThemeConfig(series.type).series ?? {};
+            const { innerLabels: _, ...seriesTheme } = this.getSeriesThemeConfig(series.type).series ?? {};
             const seriesOptions = mergeDefaults(
                 this.getSeriesGroupingOptions(series),
                 series,
@@ -343,7 +342,7 @@ export class ChartOptions<T extends AgChartOptionsNext = AgChartOptionsNext> {
 
                 return seriesGroup.series;
             })
-            .map(({ stacked, grouped, ...seriesOptions }) => seriesOptions) as T['series'];
+            .map(({ stacked: _, grouped: __, ...seriesOptions }) => seriesOptions) as T['series'];
     }
 
     protected getSeriesGroupId(series: GroupingSeriesOptions) {

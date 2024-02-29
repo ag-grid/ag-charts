@@ -15,25 +15,22 @@ export function segmentIntersection(
     by1: number,
     bx2: number,
     by2: number
-): { x: number; y: number } | null {
+): number {
     const d = (ax2 - ax1) * (by2 - by1) - (ay2 - ay1) * (bx2 - bx1);
 
     if (d === 0) {
         // The lines are parallel.
-        return null;
+        return 0;
     }
 
     const ua = ((bx2 - bx1) * (ay1 - by1) - (ax1 - bx1) * (by2 - by1)) / d;
     const ub = ((ax2 - ax1) * (ay1 - by1) - (ay2 - ay1) * (ax1 - bx1)) / d;
 
     if (ua >= 0 && ua <= 1 && ub >= 0 && ub <= 1) {
-        return {
-            x: ax1 + ua * (ax2 - ax1),
-            y: ay1 + ua * (ay2 - ay1),
-        };
+        return 1;
     }
 
-    return null; // The intersection point is outside either or both segments.
+    return 0; // The intersection point is outside either or both segments.
 }
 
 /**
@@ -54,8 +51,8 @@ export function cubicSegmentIntersections(
     y1: number,
     x2: number,
     y2: number
-): { x: number; y: number }[] {
-    const intersections: { x: number; y: number }[] = [];
+): number {
+    let intersections = 0;
 
     // Find line equation coefficients.
     const A = y1 - y2;
@@ -86,14 +83,14 @@ export function cubicSegmentIntersections(
         // with an infinite line, and so the x/y coordinates above are as well.
         // Make sure the x/y is also within the bounds of the given segment.
         let s: number;
-        if (x1 !== x2) {
-            s = (x - x1) / (x2 - x1);
-        } else {
+        if (x1 === x2) {
             // the line is vertical
             s = (y - y1) / (y2 - y1);
+        } else {
+            s = (x - x1) / (x2 - x1);
         }
         if (s >= 0 && s <= 1) {
-            intersections.push({ x, y });
+            intersections++;
         }
     }
     return intersections;
@@ -127,7 +124,10 @@ export function arcIntersections(
     y1: number,
     x2: number,
     y2: number
-): Array<{ x: number; y: number }> {
+): number {
+    if (isNaN(cx) || isNaN(cy)) {
+        return 0;
+    }
     if (counterClockwise) {
         [endAngle, startAngle] = [startAngle, endAngle];
     }
@@ -143,13 +143,13 @@ export function arcIntersections(
     const c = Math.pow(cx, 2) + Math.pow(y0 - cy, 2) - Math.pow(r, 2);
     const d = Math.pow(b, 2) - 4 * a * c;
     if (d < 0) {
-        return [];
+        return 0;
     }
 
     const i1x = (-b + Math.sqrt(d)) / 2 / a;
     const i2x = (-b - Math.sqrt(d)) / 2 / a;
 
-    const intersections: { x: number; y: number }[] = [];
+    let intersections = 0;
     [i1x, i2x].forEach((x) => {
         const isXInsideLine = x >= Math.min(x1, x2) && x <= Math.max(x1, x2);
         if (!isXInsideLine) {
@@ -162,7 +162,7 @@ export function arcIntersections(
         const opposite = y - cy;
         const angle = Math.atan2(opposite, adjacent);
         if (isBetweenAngles(angle, startAngle, endAngle)) {
-            intersections.push({ x, y });
+            intersections++;
         }
     });
 

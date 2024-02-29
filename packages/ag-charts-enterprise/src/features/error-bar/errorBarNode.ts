@@ -1,5 +1,5 @@
 import type { AgErrorBarFormatterParams, AgErrorBarOptions, AgErrorBarThemeableOptions } from 'ag-charts-community';
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 const { partialAssign, mergeDefaults } = _ModuleSupport;
 const { BBox } = _Scene;

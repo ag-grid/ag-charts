@@ -135,7 +135,7 @@ class GradientLegendScale implements AgGradientLegendScaleOptions {
 }
 
 export class GradientLegend {
-    static className = 'GradientLegend';
+    static readonly className = 'GradientLegend';
 
     readonly id = createId(this);
 

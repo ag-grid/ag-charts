@@ -4,8 +4,8 @@ import { RATIO, Validate } from '../../util/validation';
 import { CartesianAxis } from './cartesianAxis';
 
 export class CategoryAxis extends CartesianAxis<BandScale<string | object>> {
-    static className = 'CategoryAxis';
-    static type = 'category' as const;
+    static readonly className = 'CategoryAxis';
+    static readonly type = 'category' as const;
 
     private _paddingOverrideEnabled = false;
 

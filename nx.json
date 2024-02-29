@@ -8,7 +8,7 @@
     "default": ["{projectRoot}/**/*", "sharedGlobals"],
     "defaultExcludes": [
       "buildOutputExcludes",
-      "!{projectRoot}/.eslintrc.json",
+      "!{projectRoot}/.eslintrc.*",
       "!{projectRoot}/**/?(*.)+(spec|test).[jt]s?(x)?(.snap)",
       "!{projectRoot}/**/test/**",
       "!{projectRoot}/**/__image_snapshots__/**",
@@ -64,7 +64,7 @@
       "cache": true
     },
     "lint": {
-      "inputs": ["default", "buildOutputExcludes", "{workspaceRoot}/.eslintrc.json", "{workspaceRoot}/.eslintignore"],
+      "inputs": ["default", "buildOutputExcludes", "{workspaceRoot}/.eslintrc.*", "{workspaceRoot}/.eslintignore"],
       "outputs": [],
       "cache": true
     },
@@ -123,8 +123,8 @@
       "inputs": [
         "default",
         "buildOutputExcludes",
-        "{workspaceRoot}/.eslintrc.json",
-        "{projectRoot}/.eslintrc.json",
+        "{workspaceRoot}/.eslintrc.*",
+        "{projectRoot}/.eslintrc.*",
         "{workspaceRoot}/tools/eslint-rules/**/*"
       ],
       "outputs": []

@@ -89,8 +89,8 @@ enum PieNodeTag {
 }
 
 export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
-    static className = 'PieSeries';
-    static type = 'pie' as const;
+    static readonly className = 'PieSeries';
+    static readonly type = 'pie' as const;
 
     override properties = new PieSeriesProperties();
 
@@ -769,7 +769,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
                 let x2 = datum.midCos * (outerRadius + calloutLength);
                 let y2 = datum.midSin * (outerRadius + calloutLength);
 
-                const isMoved = label.collisionTextAlign || label.collisionOffsetY !== 0;
+                const isMoved = label.collisionTextAlign ?? label.collisionOffsetY !== 0;
                 if (isMoved && label.box != null) {
                     // Get the closest point to the text bounding box
                     const box = label.box;

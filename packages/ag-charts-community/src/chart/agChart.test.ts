@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, jest, test } from '@jest/globals';
+import { afterEach, describe, expect, test } from '@jest/globals';
 import 'jest-canvas-mock';
 
 import type { AgChartInstance } from '../options/agChartOptions';

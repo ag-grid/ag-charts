@@ -118,7 +118,7 @@ class SeriesArea extends BaseProperties {
 }
 
 export abstract class Chart extends Observable implements AgChartInstance {
-    static chartsInstances = new WeakMap<HTMLElement, Chart>();
+    private static readonly chartsInstances = new WeakMap<HTMLElement, Chart>();
 
     static getInstance(element: HTMLElement): Chart | undefined {
         return Chart.chartsInstances.get(element);
@@ -222,7 +222,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     @Validate(UNION(['standalone', 'integrated'], 'a chart mode'))
     mode: ChartMode = 'standalone';
 
-    static NodeValueChangeOptions: ActionOnSetOptions<Chart> = {
+    private static NodeValueChangeOptions: ActionOnSetOptions<Chart> = {
         newValue(value) {
             this.scene.appendChild(value.node);
         },
@@ -1679,14 +1679,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     private applySeriesValues(target: Series<any>, options: AgBaseSeriesOptions<any>) {
         const moduleMap = target.getModuleMap();
-        const {
-            type,
-            data,
-            listeners,
-            seriesGrouping,
-            showInMiniChart: _showInMiniChart,
-            ...seriesOptions
-        } = options as any;
+        const { type: _, data, listeners, seriesGrouping, showInMiniChart: __, ...seriesOptions } = options as any;
 
         for (const moduleDef of EXPECTED_ENTERPRISE_MODULES) {
             if (moduleDef.type !== 'series-option') continue;

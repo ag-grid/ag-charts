@@ -14,7 +14,7 @@ export function ScenePathChangeDetection(opts?: {
 }
 
 export class Path extends Shape {
-    static className = 'Path';
+    static readonly className: string = 'Path';
 
     /**
      * Declare a path to retain for later rendering and hit testing

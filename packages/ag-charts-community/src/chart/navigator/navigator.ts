@@ -163,7 +163,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         }
     }
 
-    private onDrag(offset: Offset) {
+    private onDrag(offset: Offset & { type: 'drag' | 'leave' | 'hover' }) {
         if (!this.enabled) {
             return;
         }
@@ -178,12 +178,14 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
 
         const getRatio = () => clamp(0, (offsetX - x) / width, 1);
 
-        if (minHandle.containsPoint(offsetX, offsetY) || maxHandle.containsPoint(offsetX, offsetY)) {
-            this.ctx.cursorManager.updateCursor('navigator', 'ew-resize');
-        } else if (visibleRange.containsPoint(offsetX, offsetY)) {
-            this.ctx.cursorManager.updateCursor('navigator', 'grab');
-        } else {
-            this.ctx.cursorManager.updateCursor('navigator');
+        if (offset.type !== 'drag') {
+            if (minHandle.containsPoint(offsetX, offsetY) || maxHandle.containsPoint(offsetX, offsetY)) {
+                this.ctx.cursorManager.updateCursor('navigator', 'ew-resize');
+            } else if (visibleRange.containsPoint(offsetX, offsetY)) {
+                this.ctx.cursorManager.updateCursor('navigator', 'grab');
+            } else {
+                this.ctx.cursorManager.updateCursor('navigator');
+            }
         }
 
         if (this.minHandleDragging) {

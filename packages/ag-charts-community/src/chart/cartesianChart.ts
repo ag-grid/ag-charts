@@ -18,8 +18,8 @@ type VisibilityMap = { crossLines: boolean; series: boolean };
 const directions: AgCartesianAxisPosition[] = ['top', 'right', 'bottom', 'left'];
 
 export class CartesianChart extends Chart {
-    static className = 'CartesianChart';
-    static type = 'cartesian';
+    static readonly className = 'CartesianChart';
+    static readonly type = 'cartesian';
 
     /** Integrated Charts feature state - not used in Standalone Charts. */
     public readonly paired: boolean = true;

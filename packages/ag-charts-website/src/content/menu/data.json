@@ -214,7 +214,7 @@
                 "title": "Financial Charts",
                 "items": [
                     {
-                        "title": "Candlestick",
+                        "title": "Examples",
                         "path": "financial-charts"
                     }
                 ]

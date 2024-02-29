@@ -109,7 +109,7 @@ export class BaseLayoutProcessor implements UpdateProcessor {
             }
         }
 
-        if (subtitle && subtitle.node.visible) {
+        if (subtitle?.node.visible) {
             positionTopAndShrinkBBox(subtitle, subtitle.spacing ?? 0);
         }
 

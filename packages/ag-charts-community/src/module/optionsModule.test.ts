@@ -387,20 +387,15 @@ describe('ChartOptions', () => {
             it.each(Object.keys(seriesTypes))(
                 "handle stacked property 'true' for series type [%s] appropriately",
                 (seriesType) => {
-                    const seriesOptions = getSeriesOptions(seriesType, (s) => ({ ...s, stacked: true }));
-                    const options = prepareOptions({ series: seriesOptions });
+                    const testOptions = getSeriesOptions(seriesType, (s) => ({ ...s, stacked: true }));
+                    const options = prepareOptions({ series: testOptions });
                     const { stackable } = seriesTypes[seriesType as SeriesType]!;
 
                     options.series.forEach((series) => {
                         expect(series.stacked).toBe(undefined);
                         expect(series.grouped).toBe(undefined);
 
-                        if (!stackable) {
-                            expect(console.warn).toHaveBeenCalledWith(
-                                `AG Charts - unsupported stacking of series type "${seriesType}".`
-                            );
-                            expect(series.seriesGrouping).toBe(undefined);
-                        } else {
+                        if (stackable) {
                             expect(console.warn).not.toHaveBeenCalled();
                             expect(series.seriesGrouping).toMatchSnapshot({
                                 groupIndex: expect.any(Number),
@@ -408,6 +403,11 @@ describe('ChartOptions', () => {
                                 stackIndex: expect.any(Number),
                                 stackCount: expect.any(Number),
                             });
+                        } else {
+                            expect(console.warn).toHaveBeenCalledWith(
+                                `AG Charts - unsupported stacking of series type "${seriesType}".`
+                            );
+                            expect(series.seriesGrouping).toBe(undefined);
                         }
                     });
                 }
@@ -416,8 +416,8 @@ describe('ChartOptions', () => {
             it.each(Object.keys(seriesTypes))(
                 "handle stacked property 'false' for series type [%s] appropriately",
                 (seriesType) => {
-                    const seriesOptions = getSeriesOptions(seriesType, (s) => ({ ...s, stacked: false }));
-                    const options = prepareOptions({ series: seriesOptions });
+                    const testOptions = getSeriesOptions(seriesType, (s) => ({ ...s, stacked: false }));
+                    const options = prepareOptions({ series: testOptions });
                     const { groupable } = seriesTypes[seriesType as SeriesType]!;
 
                     options.series.forEach((series) => {
@@ -442,8 +442,8 @@ describe('ChartOptions', () => {
             it.each(Object.keys(seriesTypes))(
                 'handle omitted stacked property for series type [%s] appropriately',
                 (seriesType) => {
-                    const seriesOptions = getSeriesOptions(seriesType, (s) => ({ ...s, stacked: undefined }));
-                    const options = prepareOptions({ series: seriesOptions });
+                    const testOptions = getSeriesOptions(seriesType, (s) => ({ ...s, stacked: undefined }));
+                    const options = prepareOptions({ series: testOptions });
                     const { stackable, stackedByDefault, groupable } = seriesTypes[seriesType as SeriesType]!;
 
                     options.series.forEach((series) => {
@@ -475,20 +475,15 @@ describe('ChartOptions', () => {
             it.each(Object.keys(seriesTypes))(
                 "handle grouped property 'true' for series type [%s] appropriately",
                 (seriesType) => {
-                    const seriesOptions = getSeriesOptions(seriesType, (s) => ({ ...s, grouped: true }));
-                    const options = prepareOptions({ series: seriesOptions });
+                    const testOptions = getSeriesOptions(seriesType, (s) => ({ ...s, grouped: true }));
+                    const options = prepareOptions({ series: testOptions });
                     const { groupable } = seriesTypes[seriesType as SeriesType]!;
 
                     options.series.forEach((series) => {
                         expect(series.stacked).toBe(undefined);
                         expect(series.grouped).toBe(undefined);
 
-                        if (!groupable) {
-                            expect(console.warn).toHaveBeenCalledWith(
-                                `AG Charts - unsupported grouping of series type "${seriesType}".`
-                            );
-                            expect(series.seriesGrouping).toBe(undefined);
-                        } else {
+                        if (groupable) {
                             expect(console.warn).not.toHaveBeenCalled();
                             expect(series.seriesGrouping).toMatchSnapshot({
                                 groupIndex: expect.any(Number),
@@ -496,6 +491,11 @@ describe('ChartOptions', () => {
                                 stackIndex: 0,
                                 stackCount: 0,
                             });
+                        } else {
+                            expect(console.warn).toHaveBeenCalledWith(
+                                `AG Charts - unsupported grouping of series type "${seriesType}".`
+                            );
+                            expect(series.seriesGrouping).toBe(undefined);
                         }
                     });
                 }
@@ -504,8 +504,8 @@ describe('ChartOptions', () => {
             it.each(Object.keys(seriesTypes))(
                 "handle grouped property 'false' for series type [%s] appropriately",
                 (seriesType) => {
-                    const seriesOptions = getSeriesOptions(seriesType, (s) => ({ ...s, grouped: false }));
-                    const options = prepareOptions({ series: seriesOptions });
+                    const testOptions = getSeriesOptions(seriesType, (s) => ({ ...s, grouped: false }));
+                    const options = prepareOptions({ series: testOptions });
                     const { stackable, stackedByDefault } = seriesTypes[seriesType as SeriesType]!;
 
                     options.series.forEach((series) => {
@@ -530,8 +530,8 @@ describe('ChartOptions', () => {
             it.each(Object.keys(seriesTypes))(
                 'handle omitted grouped property for series type [%s] appropriately',
                 (seriesType) => {
-                    const seriesOptions = getSeriesOptions(seriesType, (s) => ({ ...s, grouped: undefined }));
-                    const options = prepareOptions({ series: seriesOptions });
+                    const testOptions = getSeriesOptions(seriesType, (s) => ({ ...s, grouped: undefined }));
+                    const options = prepareOptions({ series: testOptions });
                     const { stackable, stackedByDefault, groupable } = seriesTypes[seriesType as SeriesType]!;
 
                     options.series.forEach((series) => {
@@ -556,8 +556,8 @@ describe('ChartOptions', () => {
             it.each(Object.keys(seriesTypes))(
                 "handle grouped property 'true', stacked property 'true' for series type [%s] appropriately",
                 (seriesType) => {
-                    const seriesOptions = getSeriesOptions(seriesType, (s) => ({ ...s, stacked: true, grouped: true }));
-                    const options = prepareOptions({ series: seriesOptions });
+                    const testOptions = getSeriesOptions(seriesType, (s) => ({ ...s, stacked: true, grouped: true }));
+                    const options = prepareOptions({ series: testOptions });
                     const { stackable, groupable } = seriesTypes[seriesType as SeriesType]!;
 
                     options.series.forEach((series) => {
@@ -602,12 +602,12 @@ describe('ChartOptions', () => {
             it.each(Object.keys(seriesTypes))(
                 "handle grouped property 'false', stacked property 'false' for series type [%s] appropriately",
                 (seriesType) => {
-                    const seriesOptions = getSeriesOptions(seriesType, (s) => ({
+                    const testOptions = getSeriesOptions(seriesType, (s) => ({
                         ...s,
                         stacked: false,
                         grouped: false,
                     }));
-                    const options = prepareOptions({ series: seriesOptions });
+                    const options = prepareOptions({ series: testOptions });
 
                     options.series.forEach((series) => {
                         expect(series.stacked).toBe(undefined);
@@ -621,24 +621,24 @@ describe('ChartOptions', () => {
             it.each(Object.keys(seriesTypes))(
                 "handle grouped property 'true', stacked property 'false' for series type [%s] appropriately",
                 (seriesType) => {
-                    const seriesOptions = getSeriesOptions(seriesType, (s) => ({
+                    const testOptions = getSeriesOptions(seriesType, (s) => ({
                         ...s,
                         stacked: false,
                         grouped: true,
                     }));
-                    const options = prepareOptions({ series: seriesOptions });
+                    const options = prepareOptions({ series: testOptions });
                     const { groupable } = seriesTypes[seriesType as SeriesType]!;
 
                     options.series.forEach((series) => {
                         expect(series.stacked).toBe(undefined);
                         expect(series.grouped).toBe(undefined);
 
-                        if (!groupable) {
+                        if (groupable) {
+                            expect(console.warn).not.toHaveBeenCalled();
+                        } else {
                             expect(console.warn).toHaveBeenCalledWith(
                                 `AG Charts - unsupported grouping of series type "${seriesType}".`
                             );
-                        } else {
-                            expect(console.warn).not.toHaveBeenCalled();
                         }
 
                         if (groupable) {
@@ -658,24 +658,19 @@ describe('ChartOptions', () => {
             it.each(Object.keys(seriesTypes))(
                 "handle grouped property 'false', stacked property 'true' for series type [%s] appropriately",
                 (seriesType) => {
-                    const seriesOptions = getSeriesOptions(seriesType, (s) => ({
+                    const testOptions = getSeriesOptions(seriesType, (s) => ({
                         ...s,
                         stacked: true,
                         grouped: false,
                     }));
-                    const options = prepareOptions({ series: seriesOptions });
+                    const options = prepareOptions({ series: testOptions });
                     const { stackable } = seriesTypes[seriesType as SeriesType]!;
 
                     options.series.forEach((series) => {
                         expect(series.stacked).toBe(undefined);
                         expect(series.grouped).toBe(undefined);
 
-                        if (!stackable) {
-                            expect(console.warn).toHaveBeenCalledWith(
-                                `AG Charts - unsupported stacking of series type "${seriesType}".`
-                            );
-                            expect(series.seriesGrouping).toBe(undefined);
-                        } else {
+                        if (stackable) {
                             expect(console.warn).not.toHaveBeenCalled();
                             expect(series.seriesGrouping).toMatchSnapshot({
                                 groupIndex: expect.any(Number),
@@ -683,6 +678,11 @@ describe('ChartOptions', () => {
                                 stackIndex: expect.any(Number),
                                 stackCount: expect.any(Number),
                             });
+                        } else {
+                            expect(console.warn).toHaveBeenCalledWith(
+                                `AG Charts - unsupported stacking of series type "${seriesType}".`
+                            );
+                            expect(series.seriesGrouping).toBe(undefined);
                         }
                     });
                 }
@@ -691,12 +691,12 @@ describe('ChartOptions', () => {
             it.each(Object.keys(seriesTypes))(
                 'handle omitted grouped and stacked properties for series type [%s] appropriately',
                 (seriesType) => {
-                    const seriesOptions = getSeriesOptions(seriesType, (s) => ({
+                    const testOptions = getSeriesOptions(seriesType, (s) => ({
                         ...s,
                         stacked: undefined,
                         grouped: undefined,
                     }));
-                    const options = prepareOptions({ series: seriesOptions });
+                    const options = prepareOptions({ series: testOptions });
                     const { stackable, stackedByDefault, groupable } = seriesTypes[seriesType as SeriesType]!;
 
                     options.series.forEach((series) => {

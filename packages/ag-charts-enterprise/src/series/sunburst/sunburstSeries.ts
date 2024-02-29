@@ -59,8 +59,8 @@ enum TextNodeTag {
 }
 
 export class SunburstSeries extends _ModuleSupport.HierarchySeries<_Scene.Group, _ModuleSupport.SeriesNodeDatum> {
-    static className = 'SunburstSeries';
-    static type = 'sunburst' as const;
+    static readonly className = 'SunburstSeries';
+    static readonly type = 'sunburst' as const;
 
     override properties = new SunburstSeriesProperties();
 
