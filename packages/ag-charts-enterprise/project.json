@@ -108,6 +108,9 @@
     },
     "lint:eslint": {
       "executor": "@nx/eslint:lint",
+      "options": {
+        "eslintConfig": "{projectRoot}/.eslintrc.js"
+      },
       "configurations": {
         "fix": {
           "fix": true
