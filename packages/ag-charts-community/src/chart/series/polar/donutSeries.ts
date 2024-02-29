@@ -168,17 +168,10 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
         );
     }
 
-    override visibleChanged() {
-        this.processSeriesItemEnabled();
-    }
-
     override get visible() {
-        return this.seriesItemEnabled.length ? this.seriesItemEnabled.some((visible) => visible) : super.visible;
-    }
-
-    private processSeriesItemEnabled() {
-        const { data, visible } = this;
-        this.seriesItemEnabled = data?.map(() => visible) ?? [];
+        return (
+            super.visible && (this.seriesItemEnabled.length === 0 || this.seriesItemEnabled.some((visible) => visible))
+        );
     }
 
     protected override nodeFactory(): Sector {
@@ -1284,7 +1277,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
     }
 
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
-        const { processedData, dataModel } = this;
+        const { visible, processedData, dataModel } = this;
 
         if (!dataModel || !processedData?.data.length || !this.properties.isValid() || legendType !== 'category') {
             return [];
@@ -1338,7 +1331,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
                 id: this.id,
                 itemId: index,
                 seriesId: this.id,
-                enabled: this.seriesItemEnabled[index],
+                enabled: visible && this.seriesItemEnabled[index],
                 label: {
                     text: labelParts.join(' - '),
                 },
@@ -1486,6 +1479,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
     }
 
     protected override onDataChange() {
-        this.processSeriesItemEnabled();
+        const { data, seriesItemEnabled } = this;
+        this.seriesItemEnabled = data?.map((_, index) => seriesItemEnabled[index] ?? true) ?? [];
     }
 }
