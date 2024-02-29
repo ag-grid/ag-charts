@@ -165,17 +165,10 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         );
     }
 
-    override visibleChanged() {
-        this.processSeriesItemEnabled();
-    }
-
     override get visible() {
-        return this.seriesItemEnabled.length ? this.seriesItemEnabled.some((visible) => visible) : super.visible;
-    }
-
-    private processSeriesItemEnabled() {
-        const { data, visible } = this;
-        this.seriesItemEnabled = data?.map(() => visible) ?? [];
+        return (
+            super.visible && (this.seriesItemEnabled.length === 0 || this.seriesItemEnabled.some((visible) => visible))
+        );
     }
 
     protected override nodeFactory(): Sector {
@@ -196,7 +189,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         }
 
         let { data } = this;
-        const { seriesItemEnabled } = this;
+        const { visible, seriesItemEnabled } = this;
         const { angleKey, radiusKey, calloutLabelKey, sectorLabelKey, legendItemKey } = this.properties;
 
         const animationEnabled = !this.ctx.animationManager.isSkipped();
@@ -244,7 +237,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
         }
         extraProps.push(animationValidation(this));
 
-        data = data.map((d, idx) => (seriesItemEnabled[idx] ? d : { ...d, [angleKey]: 0 }));
+        data = data.map((d, idx) => (visible && seriesItemEnabled[idx] ? d : { ...d, [angleKey]: 0 }));
 
         await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
@@ -677,7 +670,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
 
     private async updateNodes(seriesRect: BBox) {
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
-        const isVisible = this.seriesItemEnabled.indexOf(true) >= 0;
+        const isVisible = this.visible && this.seriesItemEnabled.indexOf(true) >= 0;
         this.rootGroup.visible = isVisible;
         this.backgroundGroup.visible = isVisible;
         this.contentGroup.visible = isVisible;
@@ -1282,7 +1275,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
     }
 
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
-        const { processedData, dataModel } = this;
+        const { visible, processedData, dataModel } = this;
 
         if (!dataModel || !processedData?.data.length || legendType !== 'category') {
             return [];
@@ -1337,7 +1330,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
                 id: this.id,
                 itemId: index,
                 seriesId: this.id,
-                enabled: this.seriesItemEnabled[index],
+                enabled: visible && this.seriesItemEnabled[index],
                 label: {
                     text: labelParts.join(' - '),
                 },
@@ -1485,6 +1478,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
     }
 
     protected override onDataChange() {
-        this.processSeriesItemEnabled();
+        const { data, seriesItemEnabled } = this;
+        this.seriesItemEnabled = data?.map((_, index) => seriesItemEnabled[index] ?? true) ?? [];
     }
 }
