@@ -84,7 +84,9 @@ export interface AgCategoryAxisOptions extends AgBaseCartesianAxisOptions {
     tick?: AgAxisCategoryTickOptions;
 }
 
-export interface AgOrdinalTimeAxisOptions extends AgCategoryAxisOptions {}
+export interface AgOrdinalTimeAxisOptions extends Omit<AgCategoryAxisOptions, 'type'> {
+    type: 'ordinal-time';
+}
 
 export interface AgGroupedCategoryAxisOptions extends AgBaseCartesianAxisOptions {
     type: 'grouped-category';
