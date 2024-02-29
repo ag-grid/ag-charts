@@ -1,4 +1,3 @@
-import { findRangeExtent } from '../util/number';
 import { tickStep } from '../util/ticks';
 import timeDay from '../util/time/day';
 import {
@@ -83,12 +82,13 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
         return new Date(d);
     }
 
-    buildFormatString(defaultTimeFormat: DefaultTimeFormats, yearChange: boolean): string {
+    buildFormatString(defaultTimeFormat: DefaultTimeFormats, yearChange: boolean, ticks: any[]): string {
         let formatStringArray: string[] = [TIME_FORMAT_STRINGS[defaultTimeFormat]];
         let timeEndIndex = 0;
 
-        const domain = this.getDomain();
-        const extent = findRangeExtent(domain.map(dateToNumber));
+        const firstTick = dateToNumber(ticks[0]);
+        const lastTick = dateToNumber(ticks.at(-1)!);
+        const extent = Math.abs(lastTick - firstTick);
 
         switch (defaultTimeFormat) {
             case DefaultTimeFormats.SECOND:
