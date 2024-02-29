@@ -201,12 +201,4 @@ export abstract class PolarSeries<TDatum extends SeriesNodeDatum, TNode extends 
         this.ctx.animationManager.skipCurrentBatch();
         this.resetAllAnimation();
     }
-
-    protected animationTransitionClear() {
-        this.animationState.transition('clear', this.getAnimationData());
-    }
-
-    private getAnimationData(seriesRect?: BBox) {
-        return { seriesRect };
-    }
 }

@@ -4,6 +4,7 @@ import { data } from './data';
 import { topology } from './topology';
 
 const numberFormatter = new Intl.NumberFormat('en-US', {
+    style: 'currency',
     currency: 'USD',
     useGrouping: true,
 });
@@ -19,7 +20,6 @@ const options: AgChartOptions = {
             // @ts-ignore
             type: 'map',
             topology,
-            data,
             idKey: 'name',
             labelKey: 'code',
             colorKey: 'gdp',

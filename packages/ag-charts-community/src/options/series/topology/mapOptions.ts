@@ -27,11 +27,20 @@ export interface AgMapSeriesMarker<TDatum> extends AgSeriesMarkerOptions<AgMapSe
     domain?: [number, number];
 }
 
+export interface AgMapSeriesBackground extends FillOptions, StrokeOptions {
+    /** Topology to use for the background. */
+    topology?: any;
+    /** ID of the feature to use from the topology. */
+    id?: string;
+}
+
 export interface AgMapSeriesThemeableOptions<TDatum = any>
     extends AgMapSeriesStyle,
         Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle'> {
     /** The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into. */
     colorRange?: CssColor[];
+    /** Configuration for an optional background */
+    background?: AgMapSeriesBackground;
     /** Configuration for the markers used in the series. */
     marker?: AgMapSeriesMarker<TDatum>;
     /** Configuration for the labels shown on top of data points. */

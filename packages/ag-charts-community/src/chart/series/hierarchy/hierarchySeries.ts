@@ -341,10 +341,6 @@ export abstract class HierarchySeries<
         this.resetAllAnimation(data);
     }
 
-    protected animationTransitionClear() {
-        this.animationState.transition('clear', this.getAnimationData());
-    }
-
     private getAnimationData() {
         const animationData: HierarchyAnimationData<TNode, TDatum> = {
             datumSelections: [this.groupSelection],

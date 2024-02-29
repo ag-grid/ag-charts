@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { cet, eet, gmt, msk } from './data';
 import { topology } from './topology';

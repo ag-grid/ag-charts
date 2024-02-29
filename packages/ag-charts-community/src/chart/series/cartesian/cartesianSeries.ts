@@ -1027,10 +1027,6 @@ export abstract class CartesianSeries<
         this.resetAllAnimation(data);
     }
 
-    protected animationTransitionClear() {
-        this.animationState.transition('clear', this.getAnimationData());
-    }
-
     private getAnimationData(seriesRect?: BBox, previousContextData?: TContext[]) {
         const animationData: CartesianAnimationData<TNode, TDatum, TLabel, TContext> = {
             datumSelections: this.subGroups.map(({ datumSelection }) => datumSelection),
