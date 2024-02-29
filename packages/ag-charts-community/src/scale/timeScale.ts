@@ -20,35 +20,13 @@ import timeSecond from '../util/time/second';
 import timeWeek from '../util/time/week';
 import timeYear from '../util/time/year';
 import { buildFormatter } from '../util/timeFormat';
+import {
+    DefaultTimeFormats,
+    TIME_FORMAT_STRINGS,
+    dateToNumber,
+    defaultTimeTickFormat,
+} from '../util/timeFormatDefaults';
 import { ContinuousScale } from './continuousScale';
-
-enum DefaultTimeFormats {
-    MILLISECOND,
-    SECOND,
-    MINUTE,
-    HOUR,
-    WEEK_DAY,
-    SHORT_MONTH,
-    MONTH,
-    SHORT_YEAR,
-    YEAR,
-}
-
-const formatStrings: Record<DefaultTimeFormats, string> = {
-    [DefaultTimeFormats.MILLISECOND]: '.%L',
-    [DefaultTimeFormats.SECOND]: ':%S',
-    [DefaultTimeFormats.MINUTE]: '%I:%M',
-    [DefaultTimeFormats.HOUR]: '%I %p',
-    [DefaultTimeFormats.WEEK_DAY]: '%a',
-    [DefaultTimeFormats.SHORT_MONTH]: '%b %d',
-    [DefaultTimeFormats.MONTH]: '%B',
-    [DefaultTimeFormats.SHORT_YEAR]: '%y',
-    [DefaultTimeFormats.YEAR]: '%Y',
-};
-
-function toNumber(x: any) {
-    return x instanceof Date ? x.getTime() : x;
-}
 
 export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
     readonly type = 'time';
@@ -105,67 +83,44 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
         return new Date(d);
     }
 
-    calculateDefaultTickFormat(ticks: any[] | undefined = []) {
-        let defaultTimeFormat = DefaultTimeFormats.YEAR as DefaultTimeFormats;
-
-        const updateFormat = (format: DefaultTimeFormats) => {
-            if (format < defaultTimeFormat) {
-                defaultTimeFormat = format;
-            }
-        };
-
-        for (const value of ticks) {
-            const format = this.getLowestGranularityFormat(value);
-            updateFormat(format);
-        }
-
-        const firstTick = toNumber(ticks[0]);
-        const lastTick = toNumber(ticks.at(-1)!);
-        const startYear = new Date(firstTick).getFullYear();
-        const stopYear = new Date(lastTick).getFullYear();
-        const yearChange = stopYear - startYear > 0;
-
-        return this.buildFormatString(defaultTimeFormat, yearChange);
-    }
-
     buildFormatString(defaultTimeFormat: DefaultTimeFormats, yearChange: boolean): string {
-        let formatStringArray: string[] = [formatStrings[defaultTimeFormat]];
+        let formatStringArray: string[] = [TIME_FORMAT_STRINGS[defaultTimeFormat]];
         let timeEndIndex = 0;
 
         const domain = this.getDomain();
-        const extent = findRangeExtent(domain.map(toNumber));
+        const extent = findRangeExtent(domain.map(dateToNumber));
 
         switch (defaultTimeFormat) {
             case DefaultTimeFormats.SECOND:
                 if (extent / durationMinute > 1) {
-                    formatStringArray.push(formatStrings[DefaultTimeFormats.MINUTE]);
+                    formatStringArray.push(TIME_FORMAT_STRINGS[DefaultTimeFormats.MINUTE]);
                 }
             // fall through deliberately
             case DefaultTimeFormats.MINUTE:
                 if (extent / durationHour > 1) {
-                    formatStringArray.push(formatStrings[DefaultTimeFormats.HOUR]);
+                    formatStringArray.push(TIME_FORMAT_STRINGS[DefaultTimeFormats.HOUR]);
                 }
             // fall through deliberately
             case DefaultTimeFormats.HOUR:
                 timeEndIndex = formatStringArray.length;
                 if (extent / durationDay > 1) {
-                    formatStringArray.push(formatStrings[DefaultTimeFormats.WEEK_DAY]);
+                    formatStringArray.push(TIME_FORMAT_STRINGS[DefaultTimeFormats.WEEK_DAY]);
                 }
             // fall through deliberately
             case DefaultTimeFormats.WEEK_DAY:
                 if (extent / durationWeek > 1 || yearChange) {
                     // if it's more than a week or there is a year change, don't show week day
-                    const weekDayIndex = formatStringArray.indexOf(formatStrings[DefaultTimeFormats.WEEK_DAY]);
+                    const weekDayIndex = formatStringArray.indexOf(TIME_FORMAT_STRINGS[DefaultTimeFormats.WEEK_DAY]);
 
                     if (weekDayIndex > -1) {
-                        formatStringArray.splice(weekDayIndex, 1, formatStrings[DefaultTimeFormats.SHORT_MONTH]);
+                        formatStringArray.splice(weekDayIndex, 1, TIME_FORMAT_STRINGS[DefaultTimeFormats.SHORT_MONTH]);
                     }
                 }
             // fall through deliberately
             case DefaultTimeFormats.SHORT_MONTH:
             case DefaultTimeFormats.MONTH:
                 if (extent / durationYear > 1 || yearChange) {
-                    formatStringArray.push(formatStrings[DefaultTimeFormats.YEAR]);
+                    formatStringArray.push(TIME_FORMAT_STRINGS[DefaultTimeFormats.YEAR]);
                 }
             // fall through deliberately
             default:
@@ -193,32 +148,6 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
         }
 
         return formatStringArray.join('');
-    }
-
-    getLowestGranularityFormat(value: Date | number): DefaultTimeFormats {
-        if (this.second.floor(value) < value) {
-            return DefaultTimeFormats.MILLISECOND;
-        } else if (this.minute.floor(value) < value) {
-            return DefaultTimeFormats.SECOND;
-        } else if (this.hour.floor(value) < value) {
-            return DefaultTimeFormats.MINUTE;
-        } else if (this.day.floor(value) < value) {
-            return DefaultTimeFormats.HOUR;
-        } else if (this.month.floor(value) < value) {
-            if (this.week.floor(value) < value) {
-                return DefaultTimeFormats.WEEK_DAY;
-            }
-            return DefaultTimeFormats.SHORT_MONTH;
-        } else if (this.year.floor(value) < value) {
-            return DefaultTimeFormats.MONTH;
-        }
-
-        return DefaultTimeFormats.YEAR;
-    }
-
-    defaultTickFormat(ticks?: any[]) {
-        const formatString = this.calculateDefaultTickFormat(ticks);
-        return (date: Date) => buildFormatter(formatString)(date);
     }
 
     /**
@@ -283,7 +212,7 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
         }
         this.refresh();
 
-        const [t0, t1] = this.getDomain().map(toNumber);
+        const [t0, t1] = this.getDomain().map(dateToNumber);
 
         const start = Math.min(t0, t1);
         const stop = Math.max(t0, t1);
@@ -367,7 +296,9 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
      * If no specifier is provided, this method returns the default time format function.
      */
     tickFormat({ ticks, specifier }: { ticks?: any[]; specifier?: string }): (date: Date) => string {
-        return specifier == undefined ? this.defaultTickFormat(ticks) : buildFormatter(specifier);
+        return specifier == undefined
+            ? defaultTimeTickFormat(this.buildFormatString, ticks)
+            : buildFormatter(specifier);
     }
 
     update() {
@@ -389,7 +320,7 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
         for (let i = 0; i < maxAttempts; i++) {
             this.updateNiceDomainIteration(d0, d1);
             const [n0, n1] = this.niceDomain;
-            if (toNumber(d0) === toNumber(n0) && toNumber(d1) === toNumber(n1)) {
+            if (dateToNumber(d0) === dateToNumber(n0) && dateToNumber(d1) === dateToNumber(n1)) {
                 break;
             }
             d0 = n0;
@@ -398,8 +329,8 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
     }
 
     protected updateNiceDomainIteration(d0: Date, d1: Date) {
-        const start = Math.min(toNumber(d0), toNumber(d1));
-        const stop = Math.max(toNumber(d0), toNumber(d1));
+        const start = Math.min(dateToNumber(d0), dateToNumber(d1));
+        const stop = Math.max(dateToNumber(d0), dateToNumber(d1));
 
         const isReversed = d0 > d1;
 
