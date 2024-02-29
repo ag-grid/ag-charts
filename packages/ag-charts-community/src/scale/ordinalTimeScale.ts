@@ -65,10 +65,10 @@ export class OrdinalTimeScale extends BandScale<Date> {
                 }
             // fall through deliberately
             case DefaultTimeFormats.YEAR:
+            default:
                 if (Math.abs(firstTick.getFullYear() - secondTick.getFullYear()) > 0 || yearChange) {
                     formatStringArray.push(TIME_FORMAT_STRINGS[DefaultTimeFormats.YEAR]);
                 }
-            default:
                 break;
         }
 
