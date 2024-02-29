@@ -46,6 +46,7 @@ export class HdpiCanvas {
         this.context = this.element.getContext('2d')!;
         this.pixelRatio = hasConstrainedCanvasMemory() ? 1 : pixelRatio ?? getWindow('devicePixelRatio');
 
+        this.onEnabledChange(); // Force `display: block` style
         this.resize(width, height);
 
         HdpiCanvas.debugContext(this.context);
@@ -53,10 +54,6 @@ export class HdpiCanvas {
 
     drawImage(context: CanvasRenderingContext2D, dx = 0, dy = 0) {
         return context.drawImage(this.context.canvas, dx, dy);
-    }
-
-    style(style: Partial<CSSStyleDeclaration>) {
-        Object.assign(this.element.style, style);
     }
 
     toDataURL(type?: string): string {
