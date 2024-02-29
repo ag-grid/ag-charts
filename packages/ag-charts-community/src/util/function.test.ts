@@ -38,7 +38,7 @@ describe('function utils', () => {
 
             const iterator = iterate(array1, array2, array3);
 
-            for (let value of combined) {
+            for (const value of combined) {
                 expect(iterator.next().value).toBe(value);
             }
         });

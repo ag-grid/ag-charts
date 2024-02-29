@@ -219,14 +219,14 @@ export class DataController {
             keys(group.opts.props) === keys(opts.props);
     }
 
-    private static mergeRequests(props: RequestedProcessing<any, any, any>[]): MergedRequests<any, any, any> {
+    private static mergeRequests(requests: RequestedProcessing<any, any, any>[]): MergedRequests<any, any, any> {
         function updateKeyValueOpts(prop: PropertyDefinition<any>) {
             if (prop.type === 'key' || prop.type === 'value') {
                 prop.useScopedValues = unique(prop.scopes ?? []).length > 1;
             }
         }
 
-        return props.reduce(
+        return requests.reduce(
             (result, { id, data, resultCb, reject, opts: { props, ...opts } }) => {
                 result.ids.push(id);
                 result.rejects.push(reject);

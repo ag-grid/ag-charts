@@ -339,9 +339,9 @@ export class DataModel<
             }
         }
 
-        const verifyMatchGroupId = ({ matchGroupIds }: { matchGroupIds?: string[] }) => {
-            for (const matchGroupId of matchGroupIds ?? []) {
-                if (!this.values.some((def) => def.groupId === matchGroupId)) {
+        const verifyMatchGroupId = ({ matchGroupIds = [] }: { matchGroupIds?: string[] }) => {
+            for (const matchGroupId of matchGroupIds) {
+                if (this.values.every((def) => def.groupId !== matchGroupId)) {
                     throw new Error(
                         `AG Charts - internal config error: matchGroupIds properties must match defined groups (${matchGroupId}).`
                     );
