@@ -225,13 +225,14 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
         markerSelection: Selection<Marker, BubbleNodeDatum>;
         isHighlight: boolean;
     }) {
-        const { markerSelection, isHighlight: highlighted } = opts;
+        if (!opts.markerSelection.size) return;
+        const { isHighlight: highlighted } = opts;
         const { xKey, yKey, sizeKey, labelKey, marker } = this.properties;
         const baseStyle = mergeDefaults(highlighted && this.properties.highlightStyle.item, marker.getStyle());
 
         this.sizeScale.range = [marker.size, marker.maxSize];
 
-        markerSelection.each((node, datum) => {
+        opts.markerSelection.each((node, datum) => {
             this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yKey, sizeKey, labelKey }, baseStyle);
         });
 

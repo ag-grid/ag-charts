@@ -482,7 +482,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         markerSelection: _Scene.Selection<_Scene.Marker, RangeAreaMarkerDatum>;
         isHighlight: boolean;
     }) {
-        const { markerSelection, isHighlight: highlighted } = opts;
+        if (!opts.markerSelection.size) return;
+        const { isHighlight: highlighted } = opts;
         const { xKey, yLowKey, yHighKey, marker, fill, stroke, strokeWidth, fillOpacity, strokeOpacity } =
             this.properties;
 
@@ -494,7 +495,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             strokeOpacity,
         });
 
-        markerSelection.each((node, datum) => {
+        opts.markerSelection.each((node, datum) => {
             this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yHighKey, yLowKey }, baseStyle);
         });
 

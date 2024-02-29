@@ -262,7 +262,8 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         markerSelection: Selection<Marker, LineNodeDatum>;
         isHighlight: boolean;
     }) {
-        const { markerSelection, isHighlight: highlighted } = opts;
+        if (!opts.markerSelection.size) return;
+        const { isHighlight: highlighted } = opts;
         const { xKey, yKey, stroke, strokeWidth, strokeOpacity, marker, highlightStyle } = this.properties;
         const baseStyle = mergeDefaults(highlighted && highlightStyle.item, marker.getStyle(), {
             stroke,
@@ -271,7 +272,7 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         });
 
         const applyTranslation = this.ctx.animationManager.isSkipped();
-        markerSelection.each((node, datum) => {
+        opts.markerSelection.each((node, datum) => {
             this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yKey }, baseStyle, { applyTranslation });
         });
 
