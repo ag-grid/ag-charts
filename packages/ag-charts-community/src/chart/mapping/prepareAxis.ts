@@ -7,7 +7,14 @@ import type {
 import type { ChartAxis } from '../chartAxis';
 
 const CARTESIAN_AXIS_POSITIONS: AgCartesianAxisPosition[] = ['top', 'right', 'bottom', 'left'];
-const CARTESIAN_AXIS_TYPES: AgCartesianAxisType[] = ['category', 'grouped-category', 'number', 'log', 'time'];
+const CARTESIAN_AXIS_TYPES: AgCartesianAxisType[] = [
+    'category',
+    'grouped-category',
+    'ordinal-time',
+    'number',
+    'log',
+    'time',
+];
 
 function hasCartesianAxisPosition(axis: ChartAxis): axis is ChartAxis & { position: AgCartesianAxisPosition } {
     const allowedTypes: string[] = CARTESIAN_AXIS_TYPES;

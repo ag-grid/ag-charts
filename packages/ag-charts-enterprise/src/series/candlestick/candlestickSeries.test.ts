@@ -14,10 +14,10 @@ import { prepareEnterpriseTestOptions } from '../../test/utils';
 
 const CANDLESTICK_OPTIONS: AgChartOptions = {
     data: [
-        { year: '2020', low: 3.07, open: 4.78, close: 6.3, high: 7.27 },
-        { year: '2021', low: 4.87, close: 5.8, open: 6.66, high: 7.09 },
-        { year: '2022', low: 4.4, close: 4.41, open: 4.96, high: 5.2 },
-        { year: '2023', low: 7.31, open: 7.32, close: 7.33, high: 7.33 },
+        { year: new Date(2020, 0, 1), low: 3.07, close: 4.78, open: 6.3, high: 7.27 },
+        { year: new Date(2021, 0, 1), low: 4.87, open: 5.8, close: 6.66, high: 7.09 },
+        { year: new Date(2022, 0, 1), low: 4.4, close: 4.41, open: 4.96, high: 5.2 },
+        { year: new Date(2023, 0, 1), low: 7.31, open: 7.32, close: 7.33, high: 7.33 },
     ],
     series: [
         {
@@ -30,13 +30,6 @@ const CANDLESTICK_OPTIONS: AgChartOptions = {
         },
     ],
 };
-
-const CONTINUOUS_DATA = [
-    { year: new Date(2020, 0, 1), low: 3.07, close: 4.78, open: 6.3, high: 7.27 },
-    { year: new Date(2021, 0, 1), low: 4.87, open: 5.8, close: 6.66, high: 7.09 },
-    { year: new Date(2022, 0, 1), low: 4.4, close: 4.41, open: 4.96, high: 5.2 },
-    { year: new Date(2023, 0, 1), low: 7.31, open: 7.32, close: 7.33, high: 7.33 },
-];
 
 describe('CandlestickSeries', () => {
     setupMockConsole();
@@ -51,7 +44,7 @@ describe('CandlestickSeries', () => {
         chart.destroy();
     };
 
-    it(`should render a candlestick chart as expected`, async () => {
+    it(`should render a candlestick chart as expected with default ordinal time x-axis`, async () => {
         const options = CANDLESTICK_OPTIONS;
         prepareEnterpriseTestOptions(options as any);
         await compareSnapshot(AgCharts.create(options));
@@ -60,7 +53,6 @@ describe('CandlestickSeries', () => {
     it(`should render a candlestick chart with a time x-axis`, async () => {
         const options: AgChartOptions = {
             ...CANDLESTICK_OPTIONS,
-            data: CONTINUOUS_DATA,
             axes: [
                 {
                     position: 'left',
@@ -82,13 +74,13 @@ describe('CandlestickSeries', () => {
             ...CANDLESTICK_OPTIONS,
             axes: [
                 {
-                    type: 'category',
-                    position: 'bottom',
+                    type: 'number',
+                    position: 'left',
                     reverse: true,
                 },
                 {
-                    type: 'number',
-                    position: 'left',
+                    type: 'ordinal-time',
+                    position: 'bottom',
                     reverse: true,
                 },
             ],
@@ -100,7 +92,6 @@ describe('CandlestickSeries', () => {
     it(`should render a candlestick chart with a reversed time x-axis`, async () => {
         const options: AgChartOptions = {
             ...CANDLESTICK_OPTIONS,
-            data: CONTINUOUS_DATA,
             axes: [
                 {
                     position: 'left',

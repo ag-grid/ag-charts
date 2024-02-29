@@ -7,7 +7,7 @@ import type { Scale } from './scale';
  * Maps a discrete domain to a continuous numeric range.
  */
 export class BandScale<D> implements Scale<D, number, number> {
-    readonly type = 'band';
+    readonly type: string = 'band';
 
     private invalid = true;
 

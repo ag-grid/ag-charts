@@ -59,6 +59,8 @@ export class CandlestickGroup extends _Scene.Group {
 
         const y = Math.min(openValue, closeValue);
         const yBottom = Math.max(openValue, closeValue);
+        const yHigh = Math.min(highValue, lowValue);
+        const yLow = Math.max(highValue, lowValue);
 
         rect.setProperties({
             x: axisValue,
@@ -86,7 +88,7 @@ export class CandlestickGroup extends _Scene.Group {
 
         if (validLowValue) {
             wicks[0].setProperties({
-                y1: Math.round(lowValue + wickStyles.strokeWidth / 2),
+                y1: Math.round(yLow + wickStyles.strokeWidth / 2),
                 y2: yBottom,
                 x: Math.floor(axisValue + bandwidth / 2),
             });
@@ -99,7 +101,7 @@ export class CandlestickGroup extends _Scene.Group {
 
         if (validHighValue) {
             wicks[1].setProperties({
-                y1: Math.round(highValue - wickStyles.strokeWidth / 2),
+                y1: Math.round(yHigh - wickStyles.strokeWidth / 2),
                 y2: y,
                 x: Math.floor(axisValue + bandwidth / 2),
             });

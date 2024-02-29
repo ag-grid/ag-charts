@@ -2,6 +2,7 @@ import { type AgChartOptions, _ModuleSupport } from 'ag-charts-community';
 
 import { AngleCategoryAxisModule } from './axes/angle-category/main';
 import { AngleNumberAxisModule } from './axes/angle-number/main';
+import { OrdinalTimeAxisModule } from './axes/ordinal/ordinalTimeAxisModule';
 import { RadiusCategoryAxisModule } from './axes/radius-category/main';
 import { RadiusNumberAxisModule } from './axes/radius-number/main';
 import { AnimationModule } from './features/animation/main';
@@ -47,6 +48,7 @@ export function setupEnterpriseModules() {
     _ModuleSupport.registerModule(GradientLegendModule);
     _ModuleSupport.registerModule(HeatmapModule);
     _ModuleSupport.registerModule(NightingaleModule);
+    _ModuleSupport.registerModule(OrdinalTimeAxisModule);
     _ModuleSupport.registerModule(RadarAreaModule);
     _ModuleSupport.registerModule(RadarLineModule);
     _ModuleSupport.registerModule(RadialBarModule);

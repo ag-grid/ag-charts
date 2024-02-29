@@ -20,6 +20,7 @@ export enum POSITION {
 
 export enum CARTESIAN_AXIS_TYPE {
     CATEGORY = 'category',
+    ORDINAL_TIME = 'ordinal-time',
     NUMBER = 'number',
     TIME = 'time',
     LOG = 'log',
