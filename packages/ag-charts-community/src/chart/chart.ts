@@ -91,7 +91,14 @@ type PickedNode = {
     distance: number;
 };
 
-type SeriesChangeType = 'no-op' | 'no-change' | 'replaced' | 'data-change' | 'series-count-changed' | 'updated';
+type SeriesChangeType =
+    | 'no-op'
+    | 'no-change'
+    | 'replaced'
+    | 'data-change'
+    | 'series-grouping-change'
+    | 'series-count-changed'
+    | 'updated';
 
 type ObservableLike = {
     addEventListener(key: string, cb: TypedEventListener): void;
@@ -1458,9 +1465,24 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const majorChange =
             forceNodeDataRefresh || modulesChanged || this.shouldForceNodeDataRefresh(deltaOptions, seriesStatus);
         const updateType = majorChange ? ChartUpdateType.UPDATE_DATA : ChartUpdateType.PERFORM_LAYOUT;
+        this.maybeResetAnimations(seriesStatus);
 
         debug('AgChartV2.applyChartOptions() - update type', ChartUpdateType[updateType]);
         this.update(updateType, { forceNodeDataRefresh, newAnimationBatch: true });
+    }
+
+    private maybeResetAnimations(seriesStatus: SeriesChangeType) {
+        if (this.mode !== 'standalone') return;
+
+        switch (seriesStatus) {
+            case 'series-grouping-change':
+            case 'replaced':
+                this.resetAnimations();
+                break;
+
+            default:
+            // Don't reset to initial load in other cases.
+        }
     }
 
     private shouldForceNodeDataRefresh(deltaOptions: AgChartOptionsNext, seriesStatus: SeriesChangeType) {
@@ -1591,10 +1613,12 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         const seriesInstances = [];
         let dataChanged = false;
+        let groupingChanged = false;
         let isUpdated = false;
 
         for (const change of matchResult.changes) {
-            dataChanged ||= change.diff?.data != null || change.diff?.seriesGrouping != null;
+            groupingChanged ||= change.status === 'series-grouping';
+            dataChanged ||= change.diff?.data != null;
             isUpdated ||= change.status !== 'no-op';
 
             switch (change.status) {
@@ -1613,6 +1637,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
                     debug(`AgChartV2.applySeries() - no change to series at previous idx ${change.idx}`, change.series);
                     break;
 
+                case 'series-grouping':
+                case 'update':
                 default:
                     const { series, diff, idx } = change;
                     debug(`AgChartV2.applySeries() - applying series diff previous idx ${idx}`, diff, series);
@@ -1629,6 +1655,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
         debug(`AgChartV2.applySeries() - final series instances`, seriesInstances);
         chart.series = seriesInstances;
 
+        if (groupingChanged) {
+            return 'series-grouping-change';
+        }
         if (dataChanged) {
             return 'data-change';
         }

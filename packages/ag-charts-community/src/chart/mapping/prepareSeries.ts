@@ -2,7 +2,18 @@ import type { AgChartOptionsNext } from '../../options/chart/chartBuilderOptions
 import { jsonDiff } from '../../util/json';
 import type { ISeries } from '../series/seriesTypes';
 
-const MATCHING_KEYS = ['direction', 'xKey', 'yKey', 'sizeKey', 'angleKey', 'radiusKey', 'normalizedTo'];
+const MATCHING_KEYS = [
+    'direction',
+    'xKey',
+    'yKey',
+    'sizeKey',
+    'angleKey',
+    'radiusKey',
+    'normalizedTo',
+    'stacked',
+    'grouped',
+    'stackGroup',
+];
 
 export function matchSeriesOptions<S extends ISeries<any>>(
     series: S[],
@@ -62,7 +73,10 @@ export function matchSeriesOptions<S extends ISeries<any>>(
             const previousOpts = oldOptsSeries?.[outputIdx] ?? {};
             const diff = jsonDiff(previousOpts, opts ?? {}) as any;
 
-            if (diff) {
+            const { groupIndex, stackIndex } = diff?.seriesGrouping ?? {};
+            if (groupIndex != null || stackIndex != null) {
+                changes.push({ opts, series: outputSeries, diff, idx: outputIdx, status: 'series-grouping' as const });
+            } else if (diff) {
                 changes.push({ opts, series: outputSeries, diff, idx: outputIdx, status: 'update' as const });
             } else {
                 changes.push({ opts, series: outputSeries, idx: outputIdx, status: 'no-op' as const });
