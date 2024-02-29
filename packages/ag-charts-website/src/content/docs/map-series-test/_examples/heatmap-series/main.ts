@@ -30,6 +30,7 @@ const options: AgChartOptions = {
                 fontWeight: 'bold',
             },
             tooltip: {
+                // @ts-ignore
                 renderer: ({ datum, title }) => ({
                     title,
                     content: `GDP: ${numberFormatter.format(datum?.gdp)}`,

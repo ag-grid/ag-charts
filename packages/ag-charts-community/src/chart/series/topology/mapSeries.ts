@@ -27,7 +27,7 @@ import { SeriesNodePickMode, valueProperty } from '../series';
 import type { LatLongBBox } from './LatLongBBox';
 import { GeoGeometry } from './geoGeometry';
 import { MapNodeDatum, MapNodeLabelDatum, MapNodeMarkerDatum, MapSeriesProperties } from './mapSeriesProperties';
-import { geometryBox, geometryCenter, points } from './mapUtil';
+import { geometryBox, geometryCenter, markerCenters } from './mapUtil';
 import type { MercatorScale } from './mercatorScale';
 
 export interface MapNodeDataContext extends SeriesNodeDataContext<MapNodeDatum, MapNodeLabelDatum> {
@@ -268,7 +268,7 @@ export class MapSeries extends DataModelSeries<MapNodeDatum, MapNodeLabelDatum, 
                 labelData.push({ position: labelCenter, text });
             }
 
-            const markers = feature?.geometry?.type === 'Point' ? points(feature.geometry) : undefined;
+            const markers = feature?.geometry?.type === 'Point' ? markerCenters(feature.geometry) : undefined;
             markers?.forEach((position, index) => {
                 const size = sizeValue != null ? sizeScale.convert(sizeValue) : undefined;
                 markerData.push({ ...nodeDatum, fill: color ?? marker.fill ?? fillProperty, index, size, position });

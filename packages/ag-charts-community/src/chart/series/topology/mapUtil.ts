@@ -193,10 +193,10 @@ export function geometryCenter(geometry: Geometry): Position | undefined {
     }
 }
 
-export function points(geometry: Geometry): Position[] {
+export function markerCenters(geometry: Geometry): Position[] {
     switch (geometry.type) {
         case 'GeometryCollection':
-            return geometry.geometries.flatMap(points);
+            return geometry.geometries.flatMap(markerCenters);
         case 'MultiPolygon':
         case 'Polygon':
         case 'MultiLineString':
