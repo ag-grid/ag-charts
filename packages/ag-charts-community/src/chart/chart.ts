@@ -91,7 +91,14 @@ type PickedNode = {
     distance: number;
 };
 
-type SeriesChangeType = 'no-op' | 'no-change' | 'replaced' | 'data-change' | 'series-count-changed' | 'updated';
+type SeriesChangeType =
+    | 'no-op'
+    | 'no-change'
+    | 'replaced'
+    | 'data-change'
+    | 'series-grouping-change'
+    | 'series-count-changed'
+    | 'updated';
 
 type ObservableLike = {
     addEventListener(key: string, cb: TypedEventListener): void;
@@ -1424,13 +1431,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
             forceNodeDataRefresh = true;
         }
 
-        const seriesDataUpdate = !!deltaOptions.data || seriesStatus === 'data-change' || seriesStatus === 'replaced';
-        const legendKeys = legendRegistry.getKeys();
-        const optionsHaveLegend = Object.values(legendKeys).some(
-            (legendKey) => (deltaOptions as any)[legendKey] != null
-        );
-        const otherRefreshUpdate = deltaOptions.title != null && deltaOptions.subtitle != null;
-        forceNodeDataRefresh = forceNodeDataRefresh || seriesDataUpdate || optionsHaveLegend || otherRefreshUpdate;
         if (deltaOptions.data) {
             this.data = deltaOptions.data;
         }
@@ -1456,71 +1456,110 @@ export abstract class Chart extends Observable implements AgChartInstance {
         const miniChart = navigatorModule?.miniChart;
         const miniChartSeries = deltaOptions?.navigator?.miniChart?.series ?? deltaOptions?.series;
         if (miniChart?.enabled === true && miniChartSeries != null) {
-            const oldSeries = oldOpts?.navigator?.miniChart?.series ?? oldOpts?.series;
-            const miniChartSeriesStatus = this.applySeries(
-                miniChart,
-                this.filterMiniChartSeries(miniChartSeries),
-                this.filterMiniChartSeries(oldSeries)
-            );
-            this.applyAxes(miniChart, deltaOptions, oldOpts, miniChartSeriesStatus, [
-                'axes[].tick',
-                'axes[].thickness',
-                'axes[].title',
-                'axes[].crosshair',
-                'axes[].gridLine',
-                'axes[].label',
-            ]);
-
-            const axes = miniChart.axes as ChartAxis[];
-            const horizontalAxis = axes.find((axis) => axis.direction === ChartAxisDirection.X);
-
-            for (const axis of axes) {
-                axis.gridLine.enabled = false;
-                axis.label.enabled = axis === horizontalAxis;
-                axis.tick.enabled = false;
-                axis.interactionEnabled = false;
-            }
-
-            if (horizontalAxis != null) {
-                const labelOptions = deltaOptions.navigator?.miniChart?.label;
-                const intervalOptions = deltaOptions.navigator?.miniChart?.label?.interval;
-
-                jsonApply(horizontalAxis.label, labelOptions, {
-                    path: 'navigator.miniChart.label',
-                    skip: [
-                        'navigator.miniChart.label.interval',
-                        'navigator.miniChart.label.rotation',
-                        'navigator.miniChart.label.minSpacing',
-                        'navigator.miniChart.label.autoRotate',
-                        'navigator.miniChart.label.autoRotateAngle',
-                    ],
-                });
-                jsonApply(horizontalAxis.tick, intervalOptions, {
-                    path: 'navigator.miniChart.interval',
-                    skip: [
-                        'navigator.miniChart.interval.enabled',
-                        'navigator.miniChart.interval.width',
-                        'navigator.miniChart.interval.size',
-                        'navigator.miniChart.interval.color',
-                        'navigator.miniChart.interval.interval',
-                        'navigator.miniChart.interval.step',
-                    ],
-                });
-
-                const step = intervalOptions?.step;
-                if (step != null) {
-                    horizontalAxis.tick.interval = step;
-                }
-            }
+            this.applyMiniChartOptions(oldOpts, miniChart, miniChartSeries, deltaOptions);
         } else if (miniChart?.enabled === false) {
             miniChart.series = [];
             miniChart.axes = [];
         }
 
+        forceNodeDataRefresh ||= this.shouldForceNodeDataRefresh(deltaOptions, seriesStatus);
         const majorChange = forceNodeDataRefresh || modulesChanged;
         const updateType = majorChange ? ChartUpdateType.UPDATE_DATA : ChartUpdateType.PERFORM_LAYOUT;
-        debug('AgChartV2.applyChartOptions() - update type', ChartUpdateType[updateType]);
+        this.maybeResetAnimations(seriesStatus);
+
+        debug('AgChartV2.applyChartOptions() - update type', ChartUpdateType[updateType], {
+            seriesStatus,
+            forceNodeDataRefresh,
+        });
         this.update(updateType, { forceNodeDataRefresh, newAnimationBatch: true });
+    }
+
+    private maybeResetAnimations(seriesStatus: SeriesChangeType) {
+        if (this.mode !== 'standalone') return;
+
+        switch (seriesStatus) {
+            case 'series-grouping-change':
+            case 'replaced':
+                this.resetAnimations();
+                break;
+
+            default:
+            // Don't reset to initial load in other cases.
+        }
+    }
+
+    private shouldForceNodeDataRefresh(deltaOptions: AgChartOptionsNext, seriesStatus: SeriesChangeType) {
+        const seriesDataUpdate = !!deltaOptions.data || seriesStatus === 'data-change' || seriesStatus === 'replaced';
+        const legendKeys = legendRegistry.getKeys();
+        const optionsHaveLegend = Object.values(legendKeys).some(
+            (legendKey) => (deltaOptions as any)[legendKey] != null
+        );
+        const otherRefreshUpdate = deltaOptions.title != null && deltaOptions.subtitle != null;
+        return seriesDataUpdate || optionsHaveLegend || otherRefreshUpdate;
+    }
+
+    private applyMiniChartOptions(
+        oldOpts: AgChartOptions & { type?: SeriesOptionsTypes['type'] },
+        miniChart: any,
+        miniChartSeries: NonNullable<AgChartOptionsNext['series']>,
+        deltaOptions: AgChartOptionsNext
+    ) {
+        const oldSeries = oldOpts?.navigator?.miniChart?.series ?? oldOpts?.series;
+        const miniChartSeriesStatus = this.applySeries(
+            miniChart,
+            this.filterMiniChartSeries(miniChartSeries),
+            this.filterMiniChartSeries(oldSeries)
+        );
+        this.applyAxes(miniChart, deltaOptions, oldOpts, miniChartSeriesStatus, [
+            'axes[].tick',
+            'axes[].thickness',
+            'axes[].title',
+            'axes[].crosshair',
+            'axes[].gridLine',
+            'axes[].label',
+        ]);
+
+        const axes = miniChart.axes as ChartAxis[];
+        const horizontalAxis = axes.find((axis) => axis.direction === ChartAxisDirection.X);
+
+        for (const axis of axes) {
+            axis.gridLine.enabled = false;
+            axis.label.enabled = axis === horizontalAxis;
+            axis.tick.enabled = false;
+            axis.interactionEnabled = false;
+        }
+
+        if (horizontalAxis != null) {
+            const labelOptions = deltaOptions.navigator?.miniChart?.label;
+            const intervalOptions = deltaOptions.navigator?.miniChart?.label?.interval;
+
+            jsonApply(horizontalAxis.label, labelOptions, {
+                path: 'navigator.miniChart.label',
+                skip: [
+                    'navigator.miniChart.label.interval',
+                    'navigator.miniChart.label.rotation',
+                    'navigator.miniChart.label.minSpacing',
+                    'navigator.miniChart.label.autoRotate',
+                    'navigator.miniChart.label.autoRotateAngle',
+                ],
+            });
+            jsonApply(horizontalAxis.tick, intervalOptions, {
+                path: 'navigator.miniChart.interval',
+                skip: [
+                    'navigator.miniChart.interval.enabled',
+                    'navigator.miniChart.interval.width',
+                    'navigator.miniChart.interval.size',
+                    'navigator.miniChart.interval.color',
+                    'navigator.miniChart.interval.interval',
+                    'navigator.miniChart.interval.step',
+                ],
+            });
+
+            const step = intervalOptions?.step;
+            if (step != null) {
+                horizontalAxis.tick.interval = step;
+            }
+        }
     }
 
     private applyModules(options: AgChartOptions) {
@@ -1577,10 +1616,12 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         const seriesInstances = [];
         let dataChanged = false;
+        let groupingChanged = false;
         let isUpdated = false;
 
         for (const change of matchResult.changes) {
-            dataChanged ||= change.diff?.data != null || change.diff?.seriesGrouping != null;
+            groupingChanged ||= change.status === 'series-grouping';
+            dataChanged ||= change.diff?.data != null;
             isUpdated ||= change.status !== 'no-op';
 
             switch (change.status) {
@@ -1599,6 +1640,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
                     debug(`AgChartV2.applySeries() - no change to series at previous idx ${change.idx}`, change.series);
                     break;
 
+                case 'series-grouping':
+                case 'update':
                 default:
                     const { series, diff, idx } = change;
                     debug(`AgChartV2.applySeries() - applying series diff previous idx ${idx}`, diff, series);
@@ -1615,6 +1658,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
         debug(`AgChartV2.applySeries() - final series instances`, seriesInstances);
         chart.series = seriesInstances;
 
+        if (groupingChanged) {
+            return 'series-grouping-change';
+        }
         if (dataChanged) {
             return 'data-change';
         }
