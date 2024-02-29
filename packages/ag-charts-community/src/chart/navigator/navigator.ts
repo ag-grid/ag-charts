@@ -53,7 +53,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     protected y = 0;
     protected width = 0;
 
-    private rangeSelector = new RangeSelector([this.mask, this.minHandle, this.maxHandle]);
+    private rangeSelector = new RangeSelector(this.mask, this.minHandle, this.maxHandle);
 
     private dragging?: 'min' | 'max' | 'pan';
     private panStart?: number;
