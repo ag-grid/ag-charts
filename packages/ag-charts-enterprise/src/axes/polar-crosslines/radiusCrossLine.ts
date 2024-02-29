@@ -12,7 +12,7 @@ class RadiusCrossLineLabel extends PolarCrossLineLabel {
 }
 
 export class RadiusCrossLine extends PolarCrossLine {
-    static className = 'RadiusCrossLine';
+    static readonly className = 'RadiusCrossLine';
 
     override direction: _ModuleSupport.ChartAxisDirection = ChartAxisDirection.Y;
     gridAngles?: number[];

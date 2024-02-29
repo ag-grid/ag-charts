@@ -8,7 +8,7 @@ import type { Marker } from './marker/marker';
 import { Square } from './marker/square';
 
 export class MarkerLabel extends Group {
-    static override className = 'MarkerLabel';
+    static override readonly className = 'MarkerLabel';
 
     private label = new Text();
     private line = new Line();

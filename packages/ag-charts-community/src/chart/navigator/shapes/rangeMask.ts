@@ -11,7 +11,7 @@ function markDirtyOnChange(this: RangeMask, newValue: unknown, oldValue: unknown
 }
 
 export class RangeMask extends Path {
-    static override className = 'RangeMask';
+    static override readonly className = 'RangeMask';
 
     @ActionOnSet<RangeMask>({ changeValue: markDirtyOnChange })
     @Validate(POSITIVE_NUMBER)

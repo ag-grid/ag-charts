@@ -185,7 +185,7 @@ class AgChartsInternal {
         return chart ? AgChartInstanceProxy.chartInstances.get(chart) : undefined;
     }
 
-    static initialised = false;
+    private static initialised = false;
     static initialiseModules() {
         if (AgChartsInternal.initialised) return;
 

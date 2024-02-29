@@ -4,7 +4,7 @@ import type { ShapeLineCap } from '../../../scene/shape/shape';
 import { COLOR_STRING, LINE_CAP, POSITIVE_NUMBER, Validate } from '../../../util/validation';
 
 export class RangeHandle extends Path {
-    static override className = 'RangeHandle';
+    static override readonly className = 'RangeHandle';
 
     @Validate(COLOR_STRING)
     protected _fill = '#f2f2f2';

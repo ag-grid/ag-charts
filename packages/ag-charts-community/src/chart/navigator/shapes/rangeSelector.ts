@@ -5,7 +5,7 @@ import { RangeHandle } from './rangeHandle';
 import { RangeMask } from './rangeMask';
 
 export class RangeSelector extends Group {
-    static override className = 'Range';
+    static override readonly className = 'Range';
 
     private static defaults = {
         x: 0,

@@ -7,8 +7,8 @@ const { Group, Path, PointerEvents, Selection } = _Scene;
 const { ChartAxisDirection } = _ModuleSupport;
 
 export class RadarAreaSeries extends RadarSeries {
-    static override className = 'RadarAreaSeries';
-    static type = 'radar-area' as const;
+    static override readonly className = 'RadarAreaSeries';
+    static readonly type = 'radar-area' as const;
 
     override properties = new RadarAreaSeriesProperties();
 

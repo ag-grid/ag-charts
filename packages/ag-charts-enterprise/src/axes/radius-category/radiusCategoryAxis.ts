@@ -6,8 +6,8 @@ const { RATIO, ProxyPropertyOnWrite, Validate } = _ModuleSupport;
 const { BandScale } = _Scale;
 
 export class RadiusCategoryAxis extends RadiusAxis {
-    static className = 'RadiusCategoryAxis';
-    static type = 'radius-category' as const;
+    static readonly className = 'RadiusCategoryAxis';
+    static readonly type = 'radius-category' as const;
 
     override shape = 'circle' as const;
 

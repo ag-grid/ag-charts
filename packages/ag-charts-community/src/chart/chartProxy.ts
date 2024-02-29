@@ -12,7 +12,7 @@ export interface AgChartProxy extends AgChartInstance {
  * to switch concrete class (e.g. when switching between CartesianChart vs. PolarChart).
  */
 export class AgChartInstanceProxy implements AgChartProxy {
-    static chartInstances = new WeakMap<Chart, AgChartInstanceProxy>();
+    static readonly chartInstances = new WeakMap<Chart, AgChartInstanceProxy>();
 
     static isInstance(x: any): x is AgChartInstanceProxy {
         if (x instanceof AgChartInstanceProxy) {

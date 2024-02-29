@@ -11,8 +11,8 @@ import { PieSeries } from './series/polar/pieSeries';
 import { PolarSeries } from './series/polar/polarSeries';
 
 export class PolarChart extends Chart {
-    static className = 'PolarChart';
-    static type = 'polar' as const;
+    static readonly className = 'PolarChart';
+    static readonly type = 'polar' as const;
 
     override padding = new Padding(40);
 

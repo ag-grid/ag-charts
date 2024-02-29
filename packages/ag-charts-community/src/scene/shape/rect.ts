@@ -259,7 +259,7 @@ const insetCornerRadiusRect = (
 };
 
 export class Rect extends Path {
-    static override className = 'Rect';
+    static override readonly className: string = 'Rect';
 
     readonly borderPath = new Path2D();
 

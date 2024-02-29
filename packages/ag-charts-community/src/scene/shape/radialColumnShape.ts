@@ -14,7 +14,7 @@ function rotatePoint(x: number, y: number, rotation: number) {
 }
 
 export class RadialColumnShape extends Path {
-    static override className = 'RadialColumnShape';
+    static override readonly className = 'RadialColumnShape';
 
     readonly borderPath = new Path2D();
 

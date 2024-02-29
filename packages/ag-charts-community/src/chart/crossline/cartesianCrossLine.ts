@@ -114,7 +114,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
     protected static readonly RANGE_LAYER_ZINDEX = Layers.SERIES_CROSSLINE_RANGE_ZINDEX;
     protected static readonly LABEL_LAYER_ZINDEX = Layers.SERIES_LABEL_ZINDEX;
 
-    static className = 'CrossLine';
+    static readonly className = 'CrossLine';
     readonly id = createId(this);
 
     @Validate(BOOLEAN, { optional: true })

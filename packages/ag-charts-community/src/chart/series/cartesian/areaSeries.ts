@@ -53,8 +53,8 @@ export class AreaSeries extends CartesianSeries<
     LabelSelectionDatum,
     AreaSeriesNodeDataContext
 > {
-    static className = 'AreaSeries';
-    static type = 'area' as const;
+    static readonly className = 'AreaSeries';
+    static readonly type = 'area' as const;
 
     override properties = new AreaSeriesProperties();
 

@@ -30,8 +30,8 @@ interface ComputedGroupAxisLayout {
 }
 
 export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number>> {
-    static className = 'GroupedCategoryAxis';
-    static type = 'grouped-category' as const;
+    static readonly className = 'GroupedCategoryAxis';
+    static readonly type = 'grouped-category' as const;
 
     // Label scale (labels are positioned between ticks, tick count = label count + 1).
     // We don't call is `labelScale` for consistency with other axes.

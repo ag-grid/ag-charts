@@ -35,8 +35,8 @@ class BubbleSeriesNodeEvent<TEvent extends string = SeriesNodeEventTypes> extend
 }
 
 export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
-    static className = 'BubbleSeries';
-    static type = 'bubble' as const;
+    static readonly className = 'BubbleSeries';
+    static readonly type = 'bubble' as const;
 
     protected override readonly NodeEvent = BubbleSeriesNodeEvent;
 

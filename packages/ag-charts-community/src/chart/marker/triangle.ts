@@ -2,7 +2,7 @@ import type { MarkerPathMove } from './marker';
 import { Marker } from './marker';
 
 export class Triangle extends Marker {
-    static override className = 'Triangle';
+    static override readonly className = 'Triangle';
 
     static moves: MarkerPathMove[] = [
         { x: 0, y: -0.48, t: 'move' },

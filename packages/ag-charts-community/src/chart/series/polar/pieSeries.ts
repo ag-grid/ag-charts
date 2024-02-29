@@ -89,8 +89,8 @@ enum PieNodeTag {
 }
 
 export class PieSeries extends PolarSeries<PieNodeDatum, Sector> {
-    static className = 'PieSeries';
-    static type = 'pie' as const;
+    static readonly className = 'PieSeries';
+    static readonly type = 'pie' as const;
 
     override properties = new PieSeriesProperties();
 

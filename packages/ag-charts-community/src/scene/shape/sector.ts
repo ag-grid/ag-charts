@@ -3,7 +3,7 @@ import { isPointInSector } from '../util/sector';
 import { Path, ScenePathChangeDetection } from './path';
 
 export class Sector extends Path {
-    static override className = 'Sector';
+    static override readonly className = 'Sector';
 
     @ScenePathChangeDetection()
     centerX: number = 0;

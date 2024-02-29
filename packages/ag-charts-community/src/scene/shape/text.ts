@@ -31,7 +31,7 @@ function SceneFontChangeDetection(opts?: { redraw?: RedrawType; changeCb?: (t: a
 }
 
 export class Text extends Shape {
-    static className = 'Text';
+    static readonly className = 'Text';
 
     // The default line spacing for document editors is usually 1.15
     static defaultLineHeightRatio = 1.15;

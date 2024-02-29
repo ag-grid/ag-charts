@@ -9,8 +9,8 @@ const { ChartAxisDirection, PolarAxis } = _ModuleSupport;
 const { RadialColumnShape, getRadialColumnWidth } = _Scene;
 
 export class RadialColumnSeries extends RadialColumnSeriesBase<_Scene.RadialColumnShape> {
-    static className = 'RadialColumnSeries';
-    static type = 'radial-column' as const;
+    static readonly className = 'RadialColumnSeries';
+    static readonly type = 'radial-column' as const;
 
     override properties = new RadialColumnSeriesProperties();
 

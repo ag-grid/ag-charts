@@ -82,8 +82,8 @@ enum BarSeriesNodeTag {
 }
 
 export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
-    static className = 'BarSeries';
-    static type = 'bar' as const;
+    static readonly className = 'BarSeries';
+    static readonly type = 'bar' as const;
 
     override properties = new BarSeriesProperties();
 

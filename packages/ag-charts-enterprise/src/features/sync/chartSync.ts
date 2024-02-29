@@ -18,7 +18,7 @@ const {
 const { Logger } = _Util;
 
 export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleInstance, AgChartSyncOptions {
-    static className = 'Sync';
+    static readonly className = 'Sync';
 
     @Validate(BOOLEAN)
     @ObserveChanges<ChartSync>((target) => target.onEnabledChange())

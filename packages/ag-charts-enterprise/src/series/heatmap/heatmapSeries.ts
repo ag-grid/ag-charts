@@ -55,8 +55,8 @@ const verticalAlignFactors: Record<VerticalAlign, number> = {
 };
 
 export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, HeatmapNodeDatum, HeatmapLabelDatum> {
-    static className = 'HeatmapSeries';
-    static type = 'heatmap' as const;
+    static readonly className = 'HeatmapSeries';
+    static readonly type = 'heatmap' as const;
 
     override properties = new HeatmapSeriesProperties();
 
