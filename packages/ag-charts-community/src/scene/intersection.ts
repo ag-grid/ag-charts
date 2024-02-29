@@ -86,11 +86,11 @@ export function cubicSegmentIntersections(
         // with an infinite line, and so the x/y coordinates above are as well.
         // Make sure the x/y is also within the bounds of the given segment.
         let s: number;
-        if (x1 !== x2) {
-            s = (x - x1) / (x2 - x1);
-        } else {
+        if (x1 === x2) {
             // the line is vertical
             s = (y - y1) / (y2 - y1);
+        } else {
+            s = (x - x1) / (x2 - x1);
         }
         if (s >= 0 && s <= 1) {
             intersections.push({ x, y });

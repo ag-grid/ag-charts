@@ -51,7 +51,7 @@ describe('Tooltip', () => {
     });
 
     describe('Realtime', () => {
-        let chart: Chart;
+        let chart: AgChartProxy;
         afterEach(() => {
             chart?.destroy();
         });
@@ -73,7 +73,7 @@ describe('Tooltip', () => {
             ];
             opts.series = [{ type: 'line', xKey: 'time', yKey: 'voltage' }];
 
-            const chart = AgCharts.create(opts) as AgChartProxy;
+            chart = AgCharts.create(opts) as AgChartProxy;
             await waitForChartStability(chart);
 
             const nextValue = async (time: number, voltage: number) => {

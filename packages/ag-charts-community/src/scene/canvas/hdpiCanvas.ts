@@ -114,6 +114,7 @@ export class HdpiCanvas {
         }
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
     static debugContext(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D) {
         if (Debug.check('canvas')) {
             const save = ctx.save.bind(ctx);

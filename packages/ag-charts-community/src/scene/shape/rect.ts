@@ -421,8 +421,8 @@ export class Rect extends Path {
 
         // Path.isPointInPath is expensive, so just use a BBox if the corners aren't rounded.
         if ([topLeft, topRight, bottomRight, bottomLeft].every((r) => r === 0)) {
-            this.hittester = (x: number, y: number) => {
-                const point = this.transformPoint(x, y);
+            this.hittester = (hitX: number, hitY: number) => {
+                const point = this.transformPoint(hitX, hitY);
                 return this.getCachedBBox().containsPoint(point.x, point.y);
             };
         } else {

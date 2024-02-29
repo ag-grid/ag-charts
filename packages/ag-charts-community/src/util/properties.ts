@@ -37,9 +37,9 @@ export class BaseProperties<T extends object = object> {
         });
     }
 
-    toJson<T>(this: T) {
+    toJson<J>(this: J) {
         return listDecoratedProperties(this).reduce<Record<string, any>>((object, propertyKey) => {
-            const propertyValue = this[propertyKey as keyof T];
+            const propertyValue = this[propertyKey as keyof J];
             object[propertyKey] = isProperties(propertyValue) ? propertyValue.toJson() : propertyValue;
             return object;
         }, {});

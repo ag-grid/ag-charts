@@ -71,7 +71,7 @@ export class ColorScale implements Scale<number, string, number> {
             const b = domain[i];
             if (a >= b) {
                 Logger.warnOnce('`colorDomain` values should be supplied in ascending order.');
-                domain.sort((a, b) => a - b);
+                domain.sort((a2, b2) => a2 - b2);
                 break;
             }
         }

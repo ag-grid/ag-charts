@@ -27,11 +27,11 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
     }
 
     static selectByClass<TChild extends Node = Node>(node: Node, Class: new () => TChild): TChild[] {
-        return Selection.selectAll(node, (node: Node): node is TChild => node instanceof Class);
+        return Selection.selectAll(node, (n: Node): n is TChild => n instanceof Class);
     }
 
     static selectByTag<TChild extends Node = Node>(node: Node, tag: number): TChild[] {
-        return Selection.selectAll(node, (node: Node): node is TChild => node.tag === tag);
+        return Selection.selectAll(node, (n: Node): n is TChild => n.tag === tag);
     }
 
     private readonly nodeFactory: NodeFactory<TChild, TDatum>;
@@ -57,10 +57,10 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
         const node = this.nodeFactory(datum);
         node.datum = datum;
         initializer?.(node);
-        if (idx != null) {
-            this._nodes.splice(idx, 0, node);
-        } else {
+        if (idx == null) {
             this._nodes.push(node);
+        } else {
+            this._nodes.splice(idx, 0, node);
         }
         this.parentNode.appendChild(node);
         return node;
@@ -160,15 +160,15 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
         }
     }
 
-    select<TChild extends Node = Node>(predicate: (node: Node) => node is TChild): TChild[] {
+    select<TChild2 extends Node = Node>(predicate: (node: Node) => node is TChild2): TChild2[] {
         return Selection.selectAll(this.parentNode, predicate);
     }
 
-    selectByClass<TChild extends Node = Node>(Class: new () => TChild): TChild[] {
+    selectByClass<TChild2 extends Node = Node>(Class: new () => TChild2): TChild2[] {
         return Selection.selectByClass(this.parentNode, Class);
     }
 
-    selectByTag<TChild extends Node = Node>(tag: number): TChild[] {
+    selectByTag<TChild2 extends Node = Node>(tag: number): TChild2[] {
         return Selection.selectByTag(this.parentNode, tag);
     }
 

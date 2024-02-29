@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-implied-eval */
 export enum RedrawType {
     NONE, // No change in rendering.
 

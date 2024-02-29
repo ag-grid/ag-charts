@@ -98,13 +98,13 @@ describe('TimeScale', () => {
             ];
 
             it.each(MILLISECONDS_INTERVALS)(`for $name case`, ({ interval, domain }) => {
-                const scale = new TimeScale();
+                const scale2 = new TimeScale();
 
-                scale.range = [0, 600];
-                scale.domain = domain;
-                scale.interval = interval;
+                scale2.range = [0, 600];
+                scale2.domain = domain;
+                scale2.interval = interval;
 
-                expect(scale.ticks()).toMatchSnapshot();
+                expect(scale2.ticks()).toMatchSnapshot();
             });
         });
 
@@ -156,13 +156,13 @@ describe('TimeScale', () => {
             ];
 
             it.each(TIME_INTERVALS)(`for $name case`, ({ interval, domain }) => {
-                const scale = new TimeScale();
+                const scale2 = new TimeScale();
 
-                scale.range = [0, 600];
-                scale.domain = domain;
-                scale.interval = interval;
+                scale2.range = [0, 600];
+                scale2.domain = domain;
+                scale2.interval = interval;
 
-                expect(scale.ticks()).toMatchSnapshot();
+                expect(scale2.ticks()).toMatchSnapshot();
             });
         });
     });

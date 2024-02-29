@@ -206,8 +206,8 @@ export class RadialColumnShape extends Path {
                 true
             );
         } else {
-            const bottomLeftPt = rotate(left, bottom);
-            path.lineTo(bottomLeftPt.x, bottomLeftPt.y);
+            const rotatedBottomLeftPt = rotate(left, bottom);
+            path.lineTo(rotatedBottomLeftPt.x, rotatedBottomLeftPt.y);
         }
 
         path.closePath();

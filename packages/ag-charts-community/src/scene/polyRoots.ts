@@ -80,9 +80,9 @@ export function cubicRoots(a: number, b: number, c: number, d: number): number[]
         }
 
         if (Im === 0) {
-            const t = -third * A - (S + T) / 2; // The real part of a complex root.
-            if (t >= 0 && t <= 1) {
-                roots.push(t);
+            const t2 = -third * A - (S + T) / 2; // The real part of a complex root.
+            if (t2 >= 0 && t2 <= 1) {
+                roots.push(t2);
             }
         }
     } else {
