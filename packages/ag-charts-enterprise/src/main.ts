@@ -1,4 +1,3 @@
-import { _ModuleSupport } from 'ag-charts-community';
 import { AgCharts, time } from 'ag-charts-community';
 
 import { setupEnterpriseModules } from './setup';

@@ -3,7 +3,6 @@ import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type { AgChartOptions } from '../../options/agChartOptions';
 import { AgCharts } from '../agChartV2';
-import type { Chart } from '../chart';
 import { expectWarning, setupMockConsole } from '../test/mockConsole';
 import { AgChartProxy, createChart, hoverAction, prepareTestOptions, waitForChartStability } from '../test/utils';
 

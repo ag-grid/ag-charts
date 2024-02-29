@@ -46,7 +46,7 @@
       "rules": {
         "no-eval": 2,
         "no-console": 2,
-        "no-unused-vars": 0, // Handled by TS strict flag.
+        "no-unused-vars": 0,
         "no-case-declarations": 0,
         "@typescript-eslint/no-explicit-any": 0,
         "@typescript-eslint/consistent-type-imports": 0,
@@ -58,7 +58,8 @@
         "@typescript-eslint/prefer-nullish-coalescing": 1,
         "@typescript-eslint/prefer-optional-chain": 1,
         "@typescript-eslint/prefer-readonly": 1,
-        "@typescript-eslint/prefer-ts-expect-error": 1
+        "@typescript-eslint/prefer-ts-expect-error": 1,
+        "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }]
       }
     },
     {

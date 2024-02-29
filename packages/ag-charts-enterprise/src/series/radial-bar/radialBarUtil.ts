@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _Scene } from 'ag-charts-community';
 
 const { motion } = _Scene;
 

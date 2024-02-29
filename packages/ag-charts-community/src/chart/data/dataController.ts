@@ -197,7 +197,7 @@ export class DataController {
                 return false;
             }
 
-            const { id, ids, scopes, useScopedValues, ...diff } = jsonDiff<any>(existing, prop) ?? {};
+            const { id: _, ids: _1, scopes: _2, useScopedValues: _3, ...diff } = jsonDiff<any>(existing, prop) ?? {};
             return Object.keys(diff).length === 0;
         };
 

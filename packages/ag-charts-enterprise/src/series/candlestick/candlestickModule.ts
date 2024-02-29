@@ -1,4 +1,4 @@
-import { type _ModuleSupport, _Theme, _Util } from 'ag-charts-community';
+import { type _ModuleSupport, _Theme } from 'ag-charts-community';
 
 import { CandlestickSeries } from './candlestickSeries';
 import { CANDLESTICK_SERIES_THEME } from './candlestickThemes';

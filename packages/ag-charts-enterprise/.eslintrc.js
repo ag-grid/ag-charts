@@ -33,6 +33,7 @@ module.exports = {
         '@typescript-eslint/prefer-nullish-coalescing': 2,
         '@typescript-eslint/prefer-optional-chain': 2,
         '@typescript-eslint/prefer-readonly': 2,
+        '@typescript-eslint/no-unused-vars': 2,
       },
     },
     {

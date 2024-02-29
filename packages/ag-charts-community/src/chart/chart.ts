@@ -1679,14 +1679,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     private applySeriesValues(target: Series<any>, options: AgBaseSeriesOptions<any>) {
         const moduleMap = target.getModuleMap();
-        const {
-            type,
-            data,
-            listeners,
-            seriesGrouping,
-            showInMiniChart: _showInMiniChart,
-            ...seriesOptions
-        } = options as any;
+        const { type: _, data, listeners, seriesGrouping, showInMiniChart: __, ...seriesOptions } = options as any;
 
         for (const moduleDef of EXPECTED_ENTERPRISE_MODULES) {
             if (moduleDef.type !== 'series-option') continue;
