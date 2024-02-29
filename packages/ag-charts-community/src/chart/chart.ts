@@ -17,6 +17,7 @@ import { groupBy } from '../util/array';
 import { sleep } from '../util/async';
 import { CallbackCache } from '../util/callbackCache';
 import { Debug } from '../util/debug';
+import { createElement } from '../util/dom';
 import { createId } from '../util/id';
 import { jsonApply, jsonDiff } from '../util/json';
 import { Logger } from '../util/logger';
@@ -79,9 +80,7 @@ import { UpdateOpts, UpdateService } from './updateService';
 
 const debug = Debug.create(true, 'opts');
 
-type OptionalHTMLElement = HTMLElement | undefined | null;
-
-export type TransferableResources = { container?: OptionalHTMLElement; scene: Scene; element: HTMLElement };
+export type TransferableResources = { container?: HTMLElement; scene: Scene; element: HTMLElement };
 
 type SyncModule = ModuleInstance & { enabled?: boolean; syncAxes: (skipSync: boolean) => void };
 
@@ -153,7 +152,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             Chart.chartsInstances.delete(value);
         },
     })
-    container: OptionalHTMLElement;
+    container?: HTMLElement;
 
     public data: any = [];
 
@@ -277,10 +276,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
         super();
 
         this.chartOptions = options;
-        const { window, document, overrideDevicePixelRatio } = options.specialOverrides;
 
         const scene = resources?.scene;
-        const element = resources?.element ?? document.createElement('div');
+        const element = resources?.element ?? createElement('div');
         const container = resources?.container;
 
         const root = new Group({ name: 'root' });
@@ -299,6 +297,11 @@ export abstract class Chart extends Observable implements AgChartInstance {
         element.classList.add('ag-chart-wrapper');
         element.style.position = 'relative';
 
+        const sizeMonitor = new SizeMonitor();
+        this.sizeMonitor = sizeMonitor;
+        sizeMonitor.observe(this.element, (size) => this.rawResize(size));
+
+        const { overrideDevicePixelRatio } = options.specialOverrides;
         this.scene = scene ?? new Scene({ pixelRatio: overrideDevicePixelRatio });
         this.scene.setRoot(root).setContainer(element);
         this.autoSize = true;
@@ -307,7 +310,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.contextMenuRegistry = new ContextMenuRegistry();
         this.cursorManager = new CursorManager(element);
         this.highlightManager = new HighlightManager();
-        this.interactionManager = new InteractionManager(element, document, window);
+        this.interactionManager = new InteractionManager(element);
         this.regionManager = new RegionManager(this.interactionManager);
         this.gestureDetector = new GestureDetector(element);
         this.layoutService = new LayoutService();
@@ -330,16 +333,14 @@ export abstract class Chart extends Observable implements AgChartInstance {
             new OverlaysProcessor(this, this.overlays, this.dataService, this.layoutService),
         ];
 
-        this.tooltip = new Tooltip(this.scene.canvas.element, document, window, document.body);
+        this.tooltip = new Tooltip(this.scene.canvas.element);
         this.tooltipManager = new TooltipManager(this.tooltip, this.interactionManager);
         this.highlight = new ChartHighlight();
         this.container = container;
 
         const { All } = InteractionState;
         const seriesRegion = this.regionManager.addRegion('series', this.seriesRoot);
-        const sizeMonitor = new SizeMonitor(window, document);
-        this.sizeMonitor = sizeMonitor;
-        sizeMonitor.observe(this.element, (size) => this.rawResize(size));
+
         this._destroyFns.push(
             this.dataService.addListener('data-load', (event) => {
                 this.data = event.data;

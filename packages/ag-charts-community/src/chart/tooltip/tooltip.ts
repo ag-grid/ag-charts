@@ -1,6 +1,6 @@
 import type { AgTooltipRendererResult, InteractionRange, TextWrap } from '../../options/agChartOptions';
 import { BBox } from '../../scene/bbox';
-import { injectStyle } from '../../util/dom';
+import { createElement, getDocument, getWindow, injectStyle } from '../../util/dom';
 import { clamp } from '../../util/number';
 import { Bounds, calculatePosition } from '../../util/position';
 import { BaseProperties } from '../../util/properties';
@@ -253,12 +253,10 @@ export class Tooltip {
     private lastVisibilityChange: number = Date.now();
 
     readonly position: TooltipPosition = new TooltipPosition();
-    private readonly window: Window;
 
-    constructor(canvasElement: HTMLCanvasElement, document: Document, window: Window, container: HTMLElement) {
-        this.tooltipRoot = container;
-        this.window = window;
-        const element = document.createElement('div');
+    constructor(canvasElement: HTMLCanvasElement) {
+        this.tooltipRoot = getDocument().body;
+        const element = createElement('div');
         this.element = this.tooltipRoot.appendChild(element);
         this.element.classList.add(DEFAULT_TOOLTIP_CLASS);
         this.canvasElement = canvasElement;
@@ -378,7 +376,7 @@ export class Tooltip {
         });
     }
 
-    private showTimeout: number = 0;
+    private showTimeout: NodeJS.Timeout | number = 0;
     private _showArrow = true;
     /**
      * Shows tooltip at the given event's coordinates.
@@ -430,7 +428,7 @@ export class Tooltip {
 
         if (this.delay > 0 && !instantly) {
             this.toggle(false);
-            this.showTimeout = this.window.setTimeout(() => {
+            this.showTimeout = setTimeout(() => {
                 this.toggle(true, meta.addCustomClass);
             }, this.delay);
             return;
@@ -440,12 +438,13 @@ export class Tooltip {
     }
 
     private getWindowBoundingBox(): BBox {
-        return new BBox(0, 0, this.window.innerWidth, this.window.innerHeight);
+        const { innerWidth, innerHeight } = getWindow();
+        return new BBox(0, 0, innerWidth, innerHeight);
     }
 
     toggle(visible?: boolean, addCustomClass?: boolean) {
         if (!visible) {
-            this.window.clearTimeout(this.showTimeout);
+            clearTimeout(this.showTimeout);
         }
         this.updateClass(visible, this._showArrow, addCustomClass);
     }

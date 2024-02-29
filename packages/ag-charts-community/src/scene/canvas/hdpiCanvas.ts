@@ -30,23 +30,23 @@ export class HdpiCanvas {
     @ObserveChanges<HdpiCanvas>((target, newValue, oldValue) => target.onContainerChange(newValue, oldValue))
     container?: HTMLElement;
 
-    width: number = 0;
-    height: number = 0;
+    width: number = 600;
+    height: number = 300;
     pixelRatio: number;
 
     constructor(options: CanvasOptions) {
-        const { width = 600, height = 300, pixelRatio } = options;
+        const { width, height, pixelRatio } = options;
 
         // Create canvas and immediately apply width + height to avoid out-of-memory errors on iOS/iPadOS Safari.
         this.element = createElement('canvas');
-        this.element.width = width;
-        this.element.height = height;
+        this.element.width = width ?? this.width;
+        this.element.height = height ?? this.height;
 
         this.context = this.element.getContext('2d')!;
         this.pixelRatio = hasConstrainedCanvasMemory() ? 1 : pixelRatio ?? getWindow('devicePixelRatio');
 
         this.onEnabledChange(); // Force `display: block` style
-        this.resize(width, height);
+        this.resize(width ?? 0, height ?? 0);
 
         HdpiCanvas.debugContext(this.context);
     }
@@ -60,10 +60,8 @@ export class HdpiCanvas {
     }
 
     resize(width: number, height: number) {
-        if (!(width > 0 && height > 0)) {
-            return;
-        }
-        debugger;
+        if (!(width > 0 && height > 0)) return;
+
         const { element, context, pixelRatio } = this;
         element.width = Math.round(width * pixelRatio);
         element.height = Math.round(height * pixelRatio);
