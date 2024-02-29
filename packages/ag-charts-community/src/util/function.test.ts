@@ -1,4 +1,4 @@
-import { debounce, doOnce, identity, throttle } from './function';
+import { debounce, doOnce, identity, iterate, throttle } from './function';
 
 describe('function utils', () => {
     describe('doOnce', () => {
@@ -26,6 +26,61 @@ describe('function utils', () => {
         it('should return the same value passed in', () => {
             expect(identity(5)).toBe(5);
             expect(identity('test')).toBe('test');
+        });
+    });
+
+    describe('iterate generator function', () => {
+        it('should iterate over multiple arrays', () => {
+            const array1 = [1, 2];
+            const array2 = ['a', 'b'];
+            const array3 = [true, false];
+            const combined = [1, 2, 'a', 'b', true, false];
+
+            const iterator = iterate(array1, array2, array3);
+
+            for (let value of combined) {
+                expect(iterator.next().value).toBe(value);
+            }
+        });
+
+        it('should complete iteration when all arrays are exhausted', () => {
+            const array1 = [1];
+            const array2 = ['a'];
+
+            const iterator = iterate(array1, array2);
+            iterator.next(); // 1
+            iterator.next(); // 'a'
+
+            expect(iterator.next().done).toBeTruthy();
+        });
+
+        it('should handle empty arrays correctly', () => {
+            const array1: number[] = [];
+            const array2 = [1, 2];
+            const array3: number[] = [];
+
+            const iterator = iterate(array1, array2, array3);
+
+            expect(iterator.next().value).toBe(1);
+            expect(iterator.next().value).toBe(2);
+            expect(iterator.next().done).toBeTruthy();
+        });
+
+        it('should handle a single array', () => {
+            const array1 = [1, 2, 3];
+
+            const iterator = iterate(array1);
+
+            expect(iterator.next().value).toBe(1);
+            expect(iterator.next().value).toBe(2);
+            expect(iterator.next().value).toBe(3);
+            expect(iterator.next().done).toBeTruthy();
+        });
+
+        it('should handle no arrays', () => {
+            const iterator = iterate();
+
+            expect(iterator.next().done).toBeTruthy();
         });
     });
 

@@ -1,4 +1,5 @@
 import { Debug } from '../../util/debug';
+import { iterate } from '../../util/function';
 import { Logger } from '../../util/logger';
 import { isNegative } from '../../util/number';
 import { isFiniteNumber, isObject, isString } from '../../util/type-guards';
@@ -360,7 +361,7 @@ export class DataModel<
             }
         };
 
-        for (const def of [...this.groupProcessors, ...this.aggregates]) {
+        for (const def of iterate(this.groupProcessors, this.aggregates)) {
             verifyMatchIds(def);
             verifyMatchGroupId(def);
         }
@@ -379,15 +380,8 @@ export class DataModel<
         return this.resolveProcessedDataDefsById(scope, searchId)[0];
     }
 
-    resolveProcessedDataDefsByIds<T extends string>(
-        scope: ScopeProvider,
-        searchIds: T[]
-    ): [T, ProcessedDataDef[]][] | never {
-        const defs: [T, ProcessedDataDef[]][] = [];
-        for (const searchId of searchIds) {
-            defs.push([searchId, this.resolveProcessedDataDefsById(scope, searchId)]);
-        }
-        return defs;
+    resolveProcessedDataDefsByIds<T extends string>(scope: ScopeProvider, searchIds: T[]): [T, ProcessedDataDef[]][] {
+        return searchIds.map((searchId) => [searchId, this.resolveProcessedDataDefsById(scope, searchId)]);
     }
 
     resolveProcessedDataDefsValues<T extends string>(
@@ -415,16 +409,10 @@ export class DataModel<
             );
         };
 
-        const allDefs: (PropertyDefinition<any> & InternalDefinition)[][] = [
-            keys,
-            values,
-            aggregates,
-            groupProcessors,
-            reducers,
-        ];
         const result: ProcessedDataDef[] = [];
-        for (const defs of allDefs) {
-            result.push(...defs.filter(match).map((def) => ({ index: def.index, def })));
+        for (const def of iterate(keys, values, aggregates, groupProcessors, reducers)) {
+            if (!match(def)) continue;
+            result.push({ index: def.index, def });
         }
 
         if (result.length > 0) {
@@ -518,8 +506,8 @@ export class DataModel<
             this.postProcessData(processedData);
         }
 
-        for (const def of [...this.keys, ...this.values]) {
-            if (data.length > 0) {
+        if (data.length > 0) {
+            for (const def of iterate(this.keys, this.values)) {
                 for (const [scope, missCount] of def.missing) {
                     if (missCount >= data.length) {
                         const scopeHint = scope === undefined ? '' : ` for ${scope}`;
@@ -693,8 +681,8 @@ export class DataModel<
             input: { count: data.length },
             data: resultData,
             domain: {
-                keys: keyDefs.map((def) => propertyDomain(def)),
-                values: valueDefs.map((def) => propertyDomain(def)),
+                keys: keyDefs.map(propertyDomain),
+                values: valueDefs.map(propertyDomain),
             },
             defs: {
                 allScopesHaveSameDefs,
