@@ -27,7 +27,7 @@ function toIntegratedData(key: string, d: any[]) {
 
 let data = toIntegratedData('quarter', getData());
 
-const series: NonNullable<AgChartOptions['series']> = [
+const series: NonNullable<AgCartesianChartOptions['series']> = [
     {
         type: 'bar',
         direction: 'horizontal',
