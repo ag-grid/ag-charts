@@ -68,6 +68,8 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
+            directionKeys: { y: ['targetKey', 'valueKey'] },
+            directionNames: { y: ['targetName', 'valueName'] },
             pickModes: [_ModuleSupport.SeriesNodePickMode.EXACT_SHAPE_MATCH],
             hasHighlightedLabels: true,
             animationResetFns: {

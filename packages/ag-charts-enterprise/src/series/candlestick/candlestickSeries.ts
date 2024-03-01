@@ -55,6 +55,14 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<
         super({
             moduleCtx,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            directionKeys: {
+                x: ['xKey'],
+                y: ['lowKey', 'highKey', 'openKey', 'closeKey'],
+            },
+            directionNames: {
+                x: ['xName'],
+                y: ['lowName', 'highName', 'openName', 'closeName'],
+            },
             pathsPerSeries: 1,
         });
     }

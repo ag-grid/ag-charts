@@ -43,6 +43,8 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,
+            directionKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
+            directionNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
             datumSelectionGarbageCollection: false,
             animationResetFns: {
