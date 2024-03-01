@@ -184,13 +184,10 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
 
     private onDragEnd() {
         this.dragging = undefined;
-        this.ctx.cursorManager.updateCursor('navigator');
     }
 
     private onLeave(_event: InteractionEvent<'leave'>) {
-        if (this.dragging == null) {
-            this.ctx.cursorManager.updateCursor('navigator');
-        }
+        this.ctx.cursorManager.updateCursor('navigator');
     }
 
     private onZoomChange(event: ZoomChangeEvent) {
