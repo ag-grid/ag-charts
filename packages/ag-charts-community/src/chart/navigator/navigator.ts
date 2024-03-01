@@ -129,6 +129,8 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             this.ctx.cursorManager.updateCursor('navigator', 'ew-resize');
         } else if (mask.computeVisibleRangeBBox().containsPoint(offsetX, offsetY)) {
             this.ctx.cursorManager.updateCursor('navigator', 'grab');
+        } else {
+            this.ctx.cursorManager.updateCursor('navigator');
         }
     }
 
