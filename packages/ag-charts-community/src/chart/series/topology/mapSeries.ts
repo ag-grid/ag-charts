@@ -25,7 +25,7 @@ import type { SeriesNodeDataContext } from '../series';
 import { SeriesNodePickMode, valueProperty } from '../series';
 import type { LatLongBBox } from './LatLongBBox';
 import { GeoGeometry } from './geoGeometry';
-import { geometryBox, geometryCenter, markerCenters } from './geometryUtil';
+import { geometryBbox, geometryCenter, markerCenters } from './geometryUtil';
 import {
     MapNodeDatum,
     MapNodeDatumType,
@@ -258,7 +258,7 @@ export class MapSeries extends DataModelSeries<MapNodeDatum, MapNodeLabelDatum, 
 
             const feature: Feature | undefined = values[featureIdx];
             if (feature != null) {
-                bbox = geometryBox(feature.geometry, bbox);
+                bbox = geometryBbox(feature.geometry, bbox);
             }
 
             const labelValue = labelIdx != null ? values[labelIdx] : undefined;
@@ -304,7 +304,7 @@ export class MapSeries extends DataModelSeries<MapNodeDatum, MapNodeLabelDatum, 
             id != null ? topology.features.find((feature) => feature.properties?.name === id)?.geometry : undefined;
 
         if (backgroundGeometry != null) {
-            bbox = geometryBox(backgroundGeometry, bbox);
+            bbox = geometryBbox(backgroundGeometry, bbox);
         }
 
         return [
