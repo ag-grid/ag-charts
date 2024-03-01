@@ -36,6 +36,10 @@ export function polygonCentroid(polygon: Position[]): Position | undefined {
     return [x / k, y / k];
 }
 
+function cellValue(distanceToPolygon: number, distanceToCentroid: number) {
+    return distanceToPolygon - 0.5 * distanceToCentroid;
+}
+
 export function inaccessibilityPole(polygons: Position[][], precision = 0.01): Position | undefined {
     const bbox = polygonBbox(polygons[0], undefined);
     if (bbox == null) return;
@@ -52,8 +56,9 @@ export function inaccessibilityPole(polygons: Position[][], precision = 0.01): P
         return [(bbox.lon0 + bbox.lon1) / 2, (bbox.lat0 + bbox.lat1) / 2];
     }
 
-    let [bestX, bestY] = polygonCentroid(polygons[0])!;
-    let bestDistance = polygonDistance(polygons, bestX, bestY);
+    const centroid = polygonCentroid(polygons[0])!;
+    let [bestX, bestY] = centroid;
+    let bestValue = cellValue(polygonDistance(polygons, bestX, bestY), 0);
 
     const excessWidth = ((width / cellSize) % 1) * cellSize;
     const excessHeight = ((height / cellSize) % 1) * cellSize;
@@ -62,7 +67,7 @@ export function inaccessibilityPole(polygons: Position[][], precision = 0.01): P
     for (let x = x0 + excessWidth / 2; x < x1; x += cellSize) {
         for (let y = y0 + excessHeight / 2; y < y1; y += cellSize) {
             const h = cellSize / 2;
-            cells.push(new Cell(polygons, x + h, y + h, h));
+            cells.push(new Cell(polygons, centroid, x + h, y + h, h));
         }
     }
 
@@ -71,21 +76,21 @@ export function inaccessibilityPole(polygons: Position[][], precision = 0.01): P
     while (cells.length > 0) {
         const cell = cells.pop()!;
 
-        if (cell.d < bestDistance) {
-            bestDistance = cell.d;
+        if (cell.value > bestValue) {
+            bestValue = cell.value;
             bestX = cell.x;
             bestY = cell.y;
         }
 
-        if (bestDistance - cell.max <= precision) {
+        if (cell.maxValue - bestValue <= precision) {
             continue;
         }
 
         const h = cell.h / 2;
-        cells.push(new Cell(polygons, cell.x - h, cell.y - h, h));
-        cells.push(new Cell(polygons, cell.x + h, cell.y - h, h));
-        cells.push(new Cell(polygons, cell.x - h, cell.y + h, h));
-        cells.push(new Cell(polygons, cell.x + h, cell.y + h, h));
+        cells.push(new Cell(polygons, centroid, cell.x - h, cell.y - h, h));
+        cells.push(new Cell(polygons, centroid, cell.x + h, cell.y - h, h));
+        cells.push(new Cell(polygons, centroid, cell.x - h, cell.y + h, h));
+        cells.push(new Cell(polygons, centroid, cell.x + h, cell.y + h, h));
 
         cells.sort(cellCmp);
     }
@@ -93,20 +98,23 @@ export function inaccessibilityPole(polygons: Position[][], precision = 0.01): P
     return [bestX, bestY];
 }
 
-const cellCmp = (a: Cell, b: Cell) => b.max - a.max;
+const cellCmp = (a: Cell, b: Cell) => b.maxValue - a.maxValue;
 
 class Cell {
-    d: number;
-    max: number;
+    value: number;
+    maxValue: number;
 
     constructor(
         polygons: Position[][],
+        centroid: Position,
         public x: number,
         public y: number,
         public h: number
     ) {
-        this.d = polygonDistance(polygons, x, y);
-        this.max = this.d - h * Math.SQRT2;
+        const distanceToPolygon = -polygonDistance(polygons, x, y);
+        const distanceToCentroid = Math.hypot(centroid[0] - x, centroid[1] - y);
+        this.value = cellValue(distanceToPolygon, distanceToCentroid);
+        this.maxValue = cellValue(distanceToPolygon + h * Math.SQRT2, distanceToCentroid);
     }
 }
 
