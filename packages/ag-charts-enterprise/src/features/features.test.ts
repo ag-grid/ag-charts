@@ -4,6 +4,7 @@ import { type AgChartOptions, AgCharts } from 'ag-charts-community';
 import {
     clickAction,
     dragAction,
+    expectWarning,
     extractImageData,
     hoverAction,
     scrollAction,
@@ -130,6 +131,9 @@ describe('Feature Combinations', () => {
 
         it('should prioritise zoom min/max over navigator min/max', async () => {
             await prepareChart({ min: 0.1, max: 0.3 }, { minX: 0.7, maxX: 0.9 });
+            expectWarning(
+                'AG Charts - Could not apply [navigator.min] or [navigator.max] as [zoom] has modified the initial zoom state.'
+            );
             await compare();
         });
 
