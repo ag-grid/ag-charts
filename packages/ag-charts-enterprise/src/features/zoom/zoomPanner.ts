@@ -5,17 +5,14 @@ import type { AxisZoomStates, ZoomCoords } from './zoomTypes';
 import { constrainZoom, definedZoomState, dx, dy, pointToRatio, translateZoom } from './zoomUtils';
 
 export class ZoomPanner {
-    public isPanning: boolean = false;
     private coords?: ZoomCoords;
 
     update(event: _ModuleSupport.InteractionEvent<'drag'>, bbox: _Scene.BBox, zooms: AxisZoomStates): AxisZoomStates {
-        this.isPanning = true;
         this.updateCoords(event.offsetX, event.offsetY);
         return this.translateZooms(bbox, zooms);
     }
 
     stop() {
-        this.isPanning = false;
         this.coords = undefined;
     }
 
