@@ -291,14 +291,14 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         switch (this.dragState) {
             case DragState.Axis:
-                if (this.hoveredAxis) {
-                    const { id: axisId, direction } = this.hoveredAxis;
-                    const anchor =
-                        direction === _ModuleSupport.ChartAxisDirection.X ? this.anchorPointX : this.anchorPointY;
-                    const axisZoom = this.zoomManager.getAxisZoom(axisId);
-                    const newZoom = this.axisDragger.update(event, direction, anchor, this.seriesRect, zoom, axisZoom);
-                    this.updateAxisZoom(axisId, direction, newZoom);
-                }
+                if (!this.hoveredAxis) break;
+
+                const { id: axisId, direction } = this.hoveredAxis;
+                const anchor =
+                    direction === _ModuleSupport.ChartAxisDirection.X ? this.anchorPointX : this.anchorPointY;
+                const axisZoom = this.zoomManager.getAxisZoom(axisId);
+                const newZoom = this.axisDragger.update(event, direction, anchor, this.seriesRect, zoom, axisZoom);
+                this.updateAxisZoom(axisId, direction, newZoom);
                 break;
 
             case DragState.Pan:
