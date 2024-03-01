@@ -2,33 +2,15 @@
 
 exports[`transformPlainEntryFile Adjust padding 1`] = `
 {
-  "legend": {
-    "enabled": false,
-  },
   "padding": {
-    "bottom": 10,
-    "left": 20,
+    "bottom": 30,
+    "left": 40,
     "right": 20,
     "top": 10,
   },
   "seriesArea": {
     "padding": {
       "left": 40,
-    },
-  },
-  "theme": {
-    "baseTheme": "ag-default",
-    "overrides": {
-      "common": {
-        "axes": {
-          "category": {
-            "label": {
-              "autoRotate": false,
-              "minSpacing": 20,
-            },
-          },
-        },
-      },
     },
   },
 }
@@ -40,157 +22,46 @@ exports[`transformPlainEntryFile Remove axes titles 1`] = `
     {
       "position": "bottom",
       "title": {
-        "enabled": false,
+        "text": "CATEGORY AXIS TITLE",
       },
       "type": "category",
     },
     {
       "position": "left",
       "title": {
-        "enabled": false,
+        "text": "NUMBER AXIS TITLE",
       },
       "type": "number",
     },
   ],
-  "legend": {
-    "enabled": false,
-  },
-  "padding": {
-    "bottom": 10,
-    "left": 20,
-    "right": 20,
-    "top": 10,
-  },
-  "theme": {
-    "baseTheme": "ag-default",
-    "overrides": {
-      "common": {
-        "axes": {
-          "category": {
-            "label": {
-              "autoRotate": false,
-              "minSpacing": 20,
-            },
-          },
-        },
-      },
-    },
-  },
 }
 `;
 
-exports[`transformPlainEntryFile default entry file 1`] = `
-{
-  "legend": {
-    "enabled": false,
-  },
-  "padding": {
-    "bottom": 10,
-    "left": 20,
-    "right": 20,
-    "top": 10,
-  },
-  "theme": {
-    "baseTheme": "ag-default",
-    "overrides": {
-      "common": {
-        "axes": {
-          "category": {
-            "label": {
-              "autoRotate": false,
-              "minSpacing": 20,
-            },
-          },
-        },
-      },
-    },
-  },
-}
-`;
+exports[`transformPlainEntryFile default entry file 1`] = `{}`;
 
 exports[`transformPlainEntryFile disable legend 1`] = `
 {
   "legend": {
-    "enabled": false,
-  },
-  "padding": {
-    "bottom": 10,
-    "left": 20,
-    "right": 20,
-    "top": 10,
-  },
-  "theme": {
-    "baseTheme": "ag-default",
-    "overrides": {
-      "common": {
-        "axes": {
-          "category": {
-            "label": {
-              "autoRotate": false,
-              "minSpacing": 20,
-            },
-          },
-        },
-      },
-    },
+    "enabled": true,
+    "text": "Test legend",
   },
 }
 `;
 
 exports[`transformPlainEntryFile remove footnote 1`] = `
 {
-  "legend": {
-    "enabled": false,
-  },
-  "padding": {
-    "bottom": 10,
-    "left": 20,
-    "right": 20,
-    "top": 10,
-  },
-  "theme": {
-    "baseTheme": "ag-default",
-    "overrides": {
-      "common": {
-        "axes": {
-          "category": {
-            "label": {
-              "autoRotate": false,
-              "minSpacing": 20,
-            },
-          },
-        },
-      },
-    },
+  "footnote": {
+    "enabled": true,
+    "text": "Test footnote",
   },
 }
 `;
 
 exports[`transformPlainEntryFile remove subtitle 1`] = `
 {
-  "legend": {
-    "enabled": false,
-  },
-  "padding": {
-    "bottom": 10,
-    "left": 20,
-    "right": 20,
-    "top": 10,
-  },
-  "theme": {
-    "baseTheme": "ag-default",
-    "overrides": {
-      "common": {
-        "axes": {
-          "category": {
-            "label": {
-              "autoRotate": false,
-              "minSpacing": 20,
-            },
-          },
-        },
-      },
-    },
+  "subtitle": {
+    "enabled": true,
+    "text": "Test Subtitle",
   },
 }
 `;

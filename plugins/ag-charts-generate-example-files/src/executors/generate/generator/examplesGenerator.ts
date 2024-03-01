@@ -62,6 +62,7 @@ type GeneratedContentParams = {
     folderPath: string;
     ignoreDarkMode?: boolean;
     isDev?: boolean;
+    extractOptions?: boolean;
 };
 
 /**
@@ -69,6 +70,7 @@ type GeneratedContentParams = {
  */
 export const getGeneratedContents = async (params: GeneratedContentParams): Promise<GeneratedContents | undefined> => {
     const { internalFramework, folderPath, ignoreDarkMode, isDev = false } = params;
+    let { extractOptions = false } = params;
     const sourceFileList = await fs.readdir(folderPath);
 
     if (!sourceFileList.includes(SOURCE_ENTRY_FILE_NAME)) {
@@ -77,6 +79,7 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
 
     const entryFile = await readFile(path.join(folderPath, SOURCE_ENTRY_FILE_NAME));
     const indexHtml = await readFile(path.join(folderPath, 'index.html'));
+    extractOptions ||= entryFile.includes('@ag-options-extract');
 
     const otherScriptFiles = await getOtherScriptFiles({
         folderPath,
@@ -135,7 +138,7 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
         isDev,
     });
 
-    if (internalFramework === 'vanilla' && ignoreDarkMode === true && entryFile.includes('@ag-options-extract')) {
+    if (internalFramework === 'vanilla' && ignoreDarkMode === true && extractOptions) {
         const { optionsById } = transformPlainEntryFile(files[entryFileName], files['data.js']);
 
         const jsonOptions = {};

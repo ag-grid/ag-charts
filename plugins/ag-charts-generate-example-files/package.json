@@ -11,7 +11,9 @@
     "@nx/devkit": "^18.0.4",
     "@swc/helpers": "0.5.3",
     "jscodeshift": "^0.15.0",
-    "prettier": "^3.2.5"
+    "prettier": "^3.2.5",
+    "ag-charts-community": "9.1.0-beta.20240225",
+    "ag-charts-test": "9.1.0-beta.20240225"
   },
   "type": "commonjs",
   "main": "./dist/src/index.js",
