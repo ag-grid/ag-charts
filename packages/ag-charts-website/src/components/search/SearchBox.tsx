@@ -1,14 +1,13 @@
-import React, { useRef, useEffect } from 'react';
 import styles from '@design-system/modules/SearchBox.module.scss';
+import React, { useEffect, useRef } from 'react';
 import { useSearchBox } from 'react-instantsearch';
+
 import { Icon } from '../icon/Icon';
 
 let timeout;
 
 export default () => {
-    const {
-        refine,
-    } = useSearchBox();
+    const { refine } = useSearchBox();
 
     const inputRef = useRef();
 
@@ -31,9 +30,15 @@ export default () => {
 
     return (
         <div className={styles.searchBox} onClick={onContainerClick}>
-            <Icon name="search" svgClasses={styles.searchIcon}/>
-            
-            <input ref={inputRef} type="search" placeholder='Search documentation...'  className={styles.searchInput} onChange={onInputChanged} /> 
+            <Icon name="search" svgClasses={styles.searchIcon} />
+
+            <input
+                ref={inputRef}
+                type="search"
+                placeholder="Search documentation..."
+                className={styles.searchInput}
+                onChange={onInputChanged}
+            />
         </div>
     );
-}
+};
