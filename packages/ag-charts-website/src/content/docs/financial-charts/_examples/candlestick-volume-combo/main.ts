@@ -1,3 +1,4 @@
+import type { TooltipPosition } from 'ag-charts-community/src/chart/tooltip/tooltip';
 import {
     AgCandlestickSeriesTooltipRendererParams,
     AgCartesianChartOptions,
@@ -8,7 +9,6 @@ import {
 } from 'ag-charts-enterprise';
 
 import { getData } from './data';
-import type { TooltipPosition } from 'ag-charts-community/src/chart/tooltip/tooltip';
 
 function dateFormat(dateString: string, format: string) {
     const dateObject = new Date(dateString);
@@ -20,13 +20,13 @@ function dateFormat(dateString: string, format: string) {
     return formattedDate;
 }
 
-const tooltipOptions : AgSeriesTooltip<any> = {
+const tooltipOptions: AgSeriesTooltip<any> = {
     position: {
         type: 'top-left',
         xOffset: 70,
         yOffset: 20,
     },
-    renderer: ({ datum }: AgCartesianSeriesTooltipRendererParams)  => {
+    renderer: ({ datum }: AgCartesianSeriesTooltipRendererParams) => {
         var fill = datum.open < datum.close ? '#089981' : '#F23645';
         return `
            <div>
