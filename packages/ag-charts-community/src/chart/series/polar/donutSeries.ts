@@ -91,7 +91,7 @@ enum PieNodeTag {
     Label,
 }
 
-export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
+export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperties, Sector> {
     static readonly className = 'DonutSeries';
     static readonly type = 'donut' as const;
 

@@ -74,7 +74,7 @@ const verticalAlignFactors: Record<VerticalAlign, number | undefined> = {
 
 export class TreemapSeries<
     TDatum extends _ModuleSupport.SeriesNodeDatum = _ModuleSupport.SeriesNodeDatum,
-> extends _ModuleSupport.HierarchySeries<_Scene.Group, TDatum> {
+> extends _ModuleSupport.HierarchySeries<_Scene.Group, TreemapSeriesProperties, TDatum> {
     static readonly className = 'TreemapSeries';
     static readonly type = 'treemap' as const;
 

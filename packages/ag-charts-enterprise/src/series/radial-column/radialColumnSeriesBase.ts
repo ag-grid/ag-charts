@@ -65,10 +65,8 @@ export interface RadialColumnNodeDatum extends _ModuleSupport.SeriesNodeDatum {
 
 export abstract class RadialColumnSeriesBase<
     ItemPathType extends _Scene.Sector | _Scene.RadialColumnShape,
-> extends _ModuleSupport.PolarSeries<RadialColumnNodeDatum, ItemPathType> {
+> extends _ModuleSupport.PolarSeries<RadialColumnNodeDatum, RadialColumnSeriesBaseProperties<any>, ItemPathType> {
     protected override readonly NodeEvent = RadialColumnSeriesNodeEvent;
-
-    abstract override properties: RadialColumnSeriesBaseProperties<any>;
 
     protected nodeData: RadialColumnNodeDatum[] = [];
 

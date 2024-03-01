@@ -40,7 +40,11 @@ class CandlestickSeriesNodeEvent<
     }
 }
 
-export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<CandlestickGroup, CandlestickNodeDatum> {
+export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<
+    CandlestickGroup,
+    CandlestickSeriesProperties,
+    CandlestickNodeDatum
+> {
     static readonly type = 'candlestick' as const;
 
     override properties = new CandlestickSeriesProperties();
@@ -51,6 +55,14 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<Candlest
         super({
             moduleCtx,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            directionKeys: {
+                x: ['xKey'],
+                y: ['lowKey', 'highKey', 'openKey', 'closeKey'],
+            },
+            directionNames: {
+                x: ['xName'],
+                y: ['lowName', 'highName', 'openName', 'closeName'],
+            },
             pathsPerSeries: 1,
         });
     }

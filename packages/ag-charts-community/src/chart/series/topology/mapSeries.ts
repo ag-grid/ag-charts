@@ -48,7 +48,12 @@ export interface MapAnimationData {
 type MapAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
 type MapAnimationEvent = 'update' | 'updateData' | 'highlight' | 'resize' | 'clear' | 'reset' | 'skip';
 
-export class MapSeries extends DataModelSeries<MapNodeDatum, MapNodeLabelDatum, MapNodeDataContext> {
+export class MapSeries extends DataModelSeries<
+    MapNodeDatum,
+    MapSeriesProperties,
+    MapNodeLabelDatum,
+    MapNodeDataContext
+> {
     scale: MercatorScale | undefined;
 
     override properties = new MapSeriesProperties();

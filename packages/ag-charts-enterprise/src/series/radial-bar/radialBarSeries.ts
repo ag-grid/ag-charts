@@ -56,7 +56,11 @@ export interface RadialBarNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     readonly index: number;
 }
 
-export class RadialBarSeries extends _ModuleSupport.PolarSeries<RadialBarNodeDatum, _Scene.Sector> {
+export class RadialBarSeries extends _ModuleSupport.PolarSeries<
+    RadialBarNodeDatum,
+    RadialBarSeriesProperties<any>,
+    _Scene.Sector
+> {
     static readonly className = 'RadialBarSeries';
     static readonly type = 'radial-bar' as const;
 

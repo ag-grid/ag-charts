@@ -17,7 +17,12 @@ import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import { Series, SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { collapsedStartingBarPosition, prepareBarAnimationFunctions, resetBarSelectionsFn } from './barUtil';
-import { type CartesianAnimationData, CartesianSeries } from './cartesianSeries';
+import {
+    type CartesianAnimationData,
+    CartesianSeries,
+    DEFAULT_CARTESIAN_DIRECTION_KEYS,
+    DEFAULT_CARTESIAN_DIRECTION_NAMES,
+} from './cartesianSeries';
 import { HistogramNodeDatum, HistogramSeriesProperties } from './histogramSeriesProperties';
 
 enum HistogramSeriesNodeTag {
@@ -29,7 +34,7 @@ const defaultBinCount = 10;
 
 type HistogramAnimationData = CartesianAnimationData<Rect, HistogramNodeDatum>;
 
-export class HistogramSeries extends CartesianSeries<Rect, HistogramNodeDatum> {
+export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProperties, HistogramNodeDatum> {
     static readonly className = 'HistogramSeries';
     static readonly type = 'histogram' as const;
 
@@ -38,6 +43,8 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramNodeDatum> {
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,
+            directionKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
+            directionNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
             datumSelectionGarbageCollection: false,
             animationResetFns: {

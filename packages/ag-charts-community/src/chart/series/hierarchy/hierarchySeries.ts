@@ -38,7 +38,7 @@ export class HierarchyNode<TDatum = Record<string, any>>
     readonly midPoint: Point;
 
     constructor(
-        public readonly series: ISeries<any>,
+        public readonly series: ISeries<any, any>,
         public readonly index: number,
         public readonly datum: TDatum | undefined,
         public readonly size: number,
@@ -90,10 +90,9 @@ export class HierarchyNode<TDatum = Record<string, any>>
 
 export abstract class HierarchySeries<
     TNode extends Node = Group,
+    TProps extends HierarchySeriesProperties<any> = HierarchySeriesProperties<any>,
     TDatum extends SeriesNodeDatum = SeriesNodeDatum,
-> extends Series<TDatum> {
-    abstract override properties: HierarchySeriesProperties<any>;
-
+> extends Series<TDatum, TProps> {
     rootNode = new HierarchyNode<TDatum>(
         this,
         0,

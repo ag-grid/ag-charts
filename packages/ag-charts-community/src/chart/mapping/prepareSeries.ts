@@ -15,7 +15,7 @@ const MATCHING_KEYS = [
     'stackGroup',
 ];
 
-export function matchSeriesOptions<S extends ISeries<any>>(
+export function matchSeriesOptions<S extends ISeries<any, any>>(
     series: S[],
     optSeries: NonNullable<AgChartOptionsNext['series']>,
     oldOptsSeries?: AgChartOptionsNext['series']

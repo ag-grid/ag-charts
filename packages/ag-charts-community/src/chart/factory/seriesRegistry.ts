@@ -66,7 +66,7 @@ export class SeriesRegistry {
         chartTypes.set(seriesType, chartType);
     }
 
-    create(seriesType: SeriesType, moduleContext: ModuleContext): ISeries<any> {
+    create(seriesType: SeriesType, moduleContext: ModuleContext): ISeries<any, any> {
         const SeriesConstructor = this.seriesMap.get(seriesType)?.instanceConstructor;
         if (SeriesConstructor) {
             return new SeriesConstructor(moduleContext);
