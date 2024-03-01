@@ -119,7 +119,6 @@
     color: var(--color-text-primary);
     font-size: var(--text-fs-base);
 
-
     #{$selector-darkmode} & {
         color: var(--color-white);
     }
