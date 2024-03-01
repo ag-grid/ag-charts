@@ -40,7 +40,11 @@ class CandlestickSeriesNodeEvent<
     }
 }
 
-export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<CandlestickGroup, CandlestickNodeDatum> {
+export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<
+    CandlestickGroup,
+    CandlestickSeriesProperties,
+    CandlestickNodeDatum
+> {
     static readonly type = 'candlestick' as const;
 
     override properties = new CandlestickSeriesProperties();

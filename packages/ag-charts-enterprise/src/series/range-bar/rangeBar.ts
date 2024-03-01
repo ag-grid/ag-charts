@@ -95,6 +95,7 @@ class RangeBarSeriesNodeEvent<
 
 export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     _Scene.Rect,
+    RangeBarProperties,
     RangeBarNodeDatum,
     RangeBarNodeLabelDatum
 > {

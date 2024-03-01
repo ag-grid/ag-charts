@@ -37,10 +37,12 @@ import {
     resetBarSelectionsFn,
     updateRect,
 } from './barUtil';
-import type {
-    CartesianAnimationData,
-    CartesianSeriesNodeDataContext,
-    CartesianSeriesNodeDatum,
+import {
+    type CartesianAnimationData,
+    type CartesianSeriesNodeDataContext,
+    type CartesianSeriesNodeDatum,
+    DEFAULT_CARTESIAN_DIRECTION_KEYS,
+    DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
 import { adjustLabelPlacement, updateLabelNode } from './labelUtil';
 
@@ -81,7 +83,7 @@ enum BarSeriesNodeTag {
     Label,
 }
 
-export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
+export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarNodeDatum> {
     static readonly className = 'BarSeries';
     static readonly type = 'bar' as const;
 

@@ -36,7 +36,11 @@ import {
     prepareAreaPathAnimation,
 } from './areaUtil';
 import type { CartesianAnimationData } from './cartesianSeries';
-import { CartesianSeries } from './cartesianSeries';
+import {
+    CartesianSeries,
+    DEFAULT_CARTESIAN_DIRECTION_KEYS,
+    DEFAULT_CARTESIAN_DIRECTION_NAMES,
+} from './cartesianSeries';
 import { markerFadeInAnimation, markerSwipeScaleInAnimation, resetMarkerFn, resetMarkerPositionFn } from './markerUtil';
 import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, updateClipPath } from './pathUtil';
 
@@ -49,6 +53,7 @@ type AreaAnimationData = CartesianAnimationData<
 
 export class AreaSeries extends CartesianSeries<
     Group,
+    AreaSeriesProperties,
     MarkerSelectionDatum,
     LabelSelectionDatum,
     AreaSeriesNodeDataContext

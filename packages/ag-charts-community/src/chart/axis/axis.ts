@@ -172,7 +172,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     abstract get direction(): ChartAxisDirection;
 
-    boundSeries: ISeries<unknown>[] = [];
+    boundSeries: ISeries<unknown, unknown>[] = [];
     includeInvisibleDomains: boolean = false;
 
     interactionEnabled = true;

@@ -42,7 +42,11 @@ class BoxPlotSeriesNodeEvent<
     }
 }
 
-export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup, BoxPlotNodeDatum> {
+export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
+    BoxPlotGroup,
+    BoxPlotSeriesProperties,
+    BoxPlotNodeDatum
+> {
     static readonly type = 'box-plot' as const;
 
     override properties = new BoxPlotSeriesProperties();

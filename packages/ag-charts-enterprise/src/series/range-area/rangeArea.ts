@@ -74,6 +74,7 @@ type RadarAreaPathDatum = {
 
 export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     _Scene.Group,
+    RangeAreaProperties,
     RangeAreaMarkerDatum,
     RangeAreaLabelDatum,
     RangeAreaContext

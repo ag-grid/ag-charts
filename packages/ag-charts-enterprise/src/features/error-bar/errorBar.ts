@@ -15,7 +15,7 @@ const {
 } = _ModuleSupport;
 
 type ErrorBoundCartesianSeries = Omit<
-    _ModuleSupport.CartesianSeries<_Scene.Node, ErrorBarNodeDatum>,
+    _ModuleSupport.CartesianSeries<_Scene.Node, _ModuleSupport.CartesianSeriesProperties<any>, ErrorBarNodeDatum>,
     'highlightSelection'
 >;
 

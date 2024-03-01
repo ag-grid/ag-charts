@@ -17,13 +17,17 @@ import { getMarker } from '../../marker/util';
 import { SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { CartesianAnimationData } from './cartesianSeries';
-import { CartesianSeries } from './cartesianSeries';
+import {
+    CartesianSeries,
+    DEFAULT_CARTESIAN_DIRECTION_KEYS,
+    DEFAULT_CARTESIAN_DIRECTION_NAMES,
+} from './cartesianSeries';
 import { markerScaleInAnimation, resetMarkerFn } from './markerUtil';
 import { ScatterNodeDatum, ScatterSeriesProperties } from './scatterSeriesProperties';
 
 type ScatterAnimationData = CartesianAnimationData<Group, ScatterNodeDatum>;
 
-export class ScatterSeries extends CartesianSeries<Group, ScatterNodeDatum> {
+export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesProperties, ScatterNodeDatum> {
     static readonly className = 'ScatterSeries';
     static readonly type = 'scatter' as const;
 

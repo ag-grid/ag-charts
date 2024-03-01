@@ -4,7 +4,14 @@ import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 import { formatLabels } from '../util/labelFormatter';
 import { HeatmapSeriesProperties } from './heatmapSeriesProperties';
 
-const { SeriesNodePickMode, getMissCount, valueProperty, ChartAxisDirection } = _ModuleSupport;
+const {
+    SeriesNodePickMode,
+    getMissCount,
+    valueProperty,
+    ChartAxisDirection,
+    DEFAULT_CARTESIAN_DIRECTION_KEYS,
+    DEFAULT_CARTESIAN_DIRECTION_NAMES,
+} = _ModuleSupport;
 const { Rect, PointerEvents } = _Scene;
 const { ColorScale } = _Scale;
 const { sanitizeHtml, Color, Logger } = _Util;
@@ -54,7 +61,12 @@ const verticalAlignFactors: Record<VerticalAlign, number> = {
     bottom: -0.5,
 };
 
-export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, HeatmapNodeDatum, HeatmapLabelDatum> {
+export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
+    _Scene.Rect,
+    HeatmapSeriesProperties,
+    HeatmapNodeDatum,
+    HeatmapLabelDatum
+> {
     static readonly className = 'HeatmapSeries';
     static readonly type = 'heatmap' as const;
 

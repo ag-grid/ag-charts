@@ -86,7 +86,7 @@ export type TransferableResources = { container?: OptionalHTMLElement; scene: Sc
 type SyncModule = ModuleInstance & { enabled?: boolean; syncAxes: (skipSync: boolean) => void };
 
 type PickedNode = {
-    series: Series<any>;
+    series: Series<any, any>;
     datum: SeriesNodeDatum;
     distance: number;
 };
@@ -500,7 +500,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     private performUpdateType: ChartUpdateType = ChartUpdateType.NONE;
 
     private updateShortcutCount = 0;
-    private seriesToUpdate: Set<ISeries<any>> = new Set();
+    private seriesToUpdate: Set<ISeries<any, any>> = new Set();
     private updateMutex = new Mutex();
     private updateRequestors: Record<string, ChartUpdateType> = {};
     private performUpdateTrigger = debouncedCallback(async ({ count }) => {
@@ -668,7 +668,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         return false;
     }
 
-    private checkFirstAutoSize(seriesToUpdate: ISeries<any>[]) {
+    private checkFirstAutoSize(seriesToUpdate: ISeries<any, any>[]) {
         if (this.autoSize && !this._lastAutoSize) {
             const count = this._performUpdateNoRenderCount++;
             const backOffMs = (count + 1) ** 2 * 40;
@@ -716,9 +716,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.onSeriesChange(newValue, oldValue);
         },
     })
-    series: Series<any>[] = [];
+    series: Series<any, any>[] = [];
 
-    private onSeriesChange(newValue: Series<any>[], oldValue?: Series<any>[]) {
+    private onSeriesChange(newValue: Series<any, any>[], oldValue?: Series<any, any>[]) {
         const seriesToDestroy = oldValue?.filter((series) => !newValue.includes(series)) ?? [];
         this.destroySeries(seriesToDestroy);
         this.seriesLayerManager?.setSeriesCount(newValue.length);
@@ -752,7 +752,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
-    protected destroySeries(allSeries: Series<any>[]): void {
+    protected destroySeries(allSeries: Series<any, any>[]): void {
         allSeries?.forEach((series) => {
             series.removeEventListener('nodeClick', this.onSeriesNodeClick);
             series.removeEventListener('nodeDoubleClick', this.onSeriesNodeDoubleClick);
@@ -764,7 +764,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         });
     }
 
-    private addSeriesListeners(series: Series<any>) {
+    private addSeriesListeners(series: Series<any, any>) {
         if (this.hasEventListener('seriesNodeClick')) {
             series.addEventListener('nodeClick', this.onSeriesNodeClick);
         }
@@ -898,8 +898,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.dataProcessListeners.clear();
     }
 
-    placeLabels(): Map<Series<any>, PlacedLabel[]> {
-        const visibleSeries: Series<any>[] = [];
+    placeLabels(): Map<Series<any, any>, PlacedLabel[]> {
+        const visibleSeries: Series<any, any>[] = [];
         const data: (readonly PointLabelDatum[])[] = [];
         for (const series of this.series) {
             if (!series.visible) continue;
@@ -1004,7 +1004,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         // declared series.
         const reverseSeries = [...this.series].reverse();
 
-        let result: { series: Series<any>; datum: SeriesNodeDatum; distance: number } | undefined;
+        let result: { series: Series<any, any>; datum: SeriesNodeDatum; distance: number } | undefined;
         for (const series of reverseSeries) {
             if (!series.visible || !series.rootGroup.visible) {
                 continue;
@@ -1191,7 +1191,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     private checkSeriesNodeRange(
         event: PointerEvent,
-        callback: (series: ISeries<any>, datum: SeriesNodeDatum) => void
+        callback: (series: ISeries<any, any>, datum: SeriesNodeDatum) => void
     ): boolean {
         const nearestNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, false);
 
@@ -1285,7 +1285,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     };
 
     changeHighlightDatum(event: HighlightChangeEvent) {
-        const seriesToUpdate: Set<ISeries<any>> = new Set();
+        const seriesToUpdate: Set<ISeries<any, any>> = new Set();
         const { series: newSeries = undefined, datum: newDatum } = event.currentHighlight ?? {};
         const { series: lastSeries = undefined, datum: lastDatum } = event.previousHighlight ?? {};
 
@@ -1594,7 +1594,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     private applySeries(
-        chart: { series: Series<any>[] },
+        chart: { series: Series<any, any>[] },
         optSeries: AgChartOptionsNext['series'],
         oldOptSeries?: AgChartOptionsNext['series']
     ): SeriesChangeType {
@@ -1704,14 +1704,14 @@ export abstract class Chart extends Observable implements AgChartInstance {
         return true;
     }
 
-    private createSeries(seriesOptions: SeriesOptionsTypes): Series<any> {
-        const seriesInstance = seriesRegistry.create(seriesOptions.type!, this.getModuleContext()) as Series<any>;
+    private createSeries(seriesOptions: SeriesOptionsTypes): Series<any, any> {
+        const seriesInstance = seriesRegistry.create(seriesOptions.type!, this.getModuleContext()) as Series<any, any>;
         this.applySeriesOptionModules(seriesInstance, seriesOptions);
         this.applySeriesValues(seriesInstance, seriesOptions);
         return seriesInstance;
     }
 
-    private applySeriesOptionModules(series: Series<any>, options: AgBaseSeriesOptions<any>) {
+    private applySeriesOptionModules(series: Series<any, any>, options: AgBaseSeriesOptions<any>) {
         const moduleContext = series.createModuleContext();
         const moduleMap = series.getModuleMap();
 
@@ -1723,7 +1723,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
-    private applySeriesValues(target: Series<any>, options: AgBaseSeriesOptions<any>) {
+    private applySeriesValues(target: Series<any, any>, options: AgBaseSeriesOptions<any>) {
         const moduleMap = target.getModuleMap();
         const { type: _, data, listeners, seriesGrouping, showInMiniChart: __, ...seriesOptions } = options as any;
 

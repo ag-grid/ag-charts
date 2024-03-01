@@ -30,7 +30,7 @@ export class CartesianChart extends Chart {
 
     private firstSeriesTranslation = true;
 
-    override destroySeries(series: Series<any>[]) {
+    override destroySeries(series: Series<any, any>[]) {
         super.destroySeries(series);
 
         this.firstSeriesTranslation = true;
