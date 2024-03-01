@@ -195,6 +195,15 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<Candlest
                 cornerRadius,
             } = this.getItemConfig(itemId);
 
+            const y = Math.min(scaledValues.openValue, scaledValues.closeValue);
+            const yBottom = Math.max(scaledValues.openValue, scaledValues.closeValue);
+            const height = yBottom - y;
+
+            const midPoint = {
+                x: scaledValues.xValue + Math.round(barWidth) / 2,
+                y: y + height / 2,
+            };
+
             nodeData.push({
                 series: this,
                 itemId,
@@ -220,10 +229,7 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<Candlest
                 lineDash,
                 lineDashOffset,
                 cornerRadius,
-                midPoint: {
-                    x: scaledValues.xValue + Math.round(barWidth) / 2,
-                    y: Math.abs(scaledValues.openValue - scaledValues.closeValue) / 2,
-                },
+                midPoint,
                 aggregatedValue: closeValue,
             });
         });
