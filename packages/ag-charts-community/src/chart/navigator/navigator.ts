@@ -48,10 +48,6 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     })
     public max: number = 1;
 
-    @Validate(BOOLEAN)
-    @ObserveChanges<Navigator>((target) => target.updateGroupVisibility())
-    public visible: boolean = true; // what is this?
-
     protected x = 0;
     protected y = 0;
     protected width = 0;
@@ -88,11 +84,12 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     }
 
     private updateGroupVisibility() {
-        const visible = Boolean(this.enabled && this.visible);
-        if (visible === this.rangeSelector?.visible || this.rangeSelector == null) return;
-        this.rangeSelector.visible = visible;
+        const { enabled } = this;
 
-        if (visible) {
+        if (this.rangeSelector == null || enabled === this.rangeSelector.visible) return;
+        this.rangeSelector.visible = enabled;
+
+        if (enabled) {
             this.updateZoom(this._min, this._max);
         }
     }
@@ -117,7 +114,6 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             this.layoutNodes(x, y, width, height);
         }
 
-        this.visible = true;
         this.x = x;
         this.width = width;
     }
