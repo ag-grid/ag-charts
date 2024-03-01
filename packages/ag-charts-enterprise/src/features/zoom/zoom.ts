@@ -303,8 +303,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
             case DragState.Pan:
                 const newZooms = this.panner.update(event, this.seriesRect, this.zoomManager.getAxisZooms());
-                for (const [axisId, { direction, zoom: newZoom }] of Object.entries(newZooms)) {
-                    this.updateAxisZoom(axisId, direction, newZoom);
+                for (const [panAxisId, { direction: panDirection, zoom: panZoom }] of Object.entries(newZooms)) {
+                    this.updateAxisZoom(panAxisId, panDirection, panZoom);
                 }
                 break;
 
