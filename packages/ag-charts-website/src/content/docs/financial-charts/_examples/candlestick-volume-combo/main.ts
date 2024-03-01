@@ -1,11 +1,8 @@
-import type { TooltipPosition } from 'ag-charts-community/src/chart/tooltip/tooltip';
 import {
-    AgCandlestickSeriesTooltipRendererParams,
     AgCartesianChartOptions,
     AgCartesianSeriesTooltipRendererParams,
     AgCharts,
     AgSeriesTooltip,
-    AgTooltipRendererResult,
 } from 'ag-charts-enterprise';
 
 import { getData } from './data';
