@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport, _Util } from 'ag-charts-community';
 
 const { DATE, NUMBER, OR, ActionOnSet, isFiniteNumber, isValidDate, Validate } = _ModuleSupport;
 
@@ -35,9 +35,11 @@ export class ZoomRange {
             return isNumberAxis || isDateAxis;
         });
 
-        if (!validAxis) return;
+        if (!validAxis) return this.domain != null;
 
+        const changed = this.domain == null || !_Util.areArrayItemsStrictlyEqual(this.domain, validAxis.domain);
         this.domain = validAxis.domain;
+        return changed;
     }
 
     private getRangeWithValues(start?: Date | number, end?: Date | number) {

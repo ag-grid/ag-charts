@@ -11,3 +11,8 @@ export type ZoomCoords = {
     x2: number;
     y2: number;
 };
+
+export type AxisZoomStates = Record<
+    string,
+    { direction: _ModuleSupport.ChartAxisDirection; zoom: _ModuleSupport.ZoomState | undefined }
+>;

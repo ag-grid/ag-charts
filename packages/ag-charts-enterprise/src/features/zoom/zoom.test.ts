@@ -2,11 +2,12 @@ import { afterEach, describe, expect, it } from '@jest/globals';
 
 import { type AgChartOptions, AgCharts } from 'ag-charts-community';
 import {
-    IMAGE_SNAPSHOT_DEFAULTS,
     WheelDeltaMode,
     clickAction,
     doubleClickAction,
+    dragAction,
     extractImageData,
+    hoverAction,
     scrollAction,
     setupMockCanvas,
     setupMockConsole,
@@ -80,7 +81,10 @@ describe('Zoom', () => {
         await waitForChartStability(chart);
 
         const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        expect(imageData).toMatchImageSnapshot({
+            failureThreshold: 0,
+            failureThresholdType: 'percent',
+        });
     };
 
     describe('scrolling', () => {
@@ -114,10 +118,10 @@ describe('Zoom', () => {
             await prepareChart();
             await scrollAction(cx, cy, -1)(chart);
             // Pan left
-            await scrollAction(cx, cy, 0, WheelDeltaMode.Pixels, -300)(chart);
+            await scrollAction(cx, cy, 0, WheelDeltaMode.Pixels, -100)(chart);
             await compare();
             // Pan right
-            await scrollAction(cx, cy, 0, WheelDeltaMode.Pixels, 200)(chart);
+            await scrollAction(cx, cy, 0, WheelDeltaMode.Pixels, 50)(chart);
             await compare();
         });
     });
@@ -169,6 +173,41 @@ describe('Zoom', () => {
         });
     });
 
+    describe('panning', () => {
+        it('should pan both axes', async () => {
+            await prepareChart();
+            await scrollAction(cx, cy, -1)(chart);
+            await dragAction({ x: cx / 2, y: cy / 2 }, { x: cx + cx / 2, y: cy + cy / 2 })(chart);
+            await compare();
+        });
+    });
+
+    describe('axis dragging', () => {
+        it('should zoom the x-axis from the end', async () => {
+            await prepareChart();
+
+            const from = { x: cx, y: cy * 2 - 30 };
+            const to = { x: from.x - cx / 2, y: from.y };
+
+            await hoverAction(from.x, from.y)(chart);
+            await dragAction(from, to)(chart);
+
+            await compare();
+        });
+
+        it('should zoom the y-axis from the middle', async () => {
+            await prepareChart();
+
+            const from = { x: 30, y: cy };
+            const to = { x: from.x, y: from.y - cy / 2 };
+
+            await hoverAction(from.x, from.y)(chart);
+            await dragAction(from, to)(chart);
+
+            await compare();
+        });
+    });
+
     describe('flipped axes', () => {
         it('should zoom on the flipped axis', async () => {
             await prepareHorizontalBarChart({ axes: 'x' });
@@ -199,10 +238,7 @@ describe('Zoom', () => {
         });
     });
 
-    // These tests fail as they require the range to update the zoom in the `onLayoutComplete()` function which
-    // conflicts with the navigator.
-    // @see https://ag-grid.atlassian.net/browse/AG-10775?focusedCommentId=60157
-    describe.skip('range', () => {
+    describe('range', () => {
         it('should start with the given range', async () => {
             await prepareChart({ rangeX: { start: 3, end: 6 }, rangeY: { start: 30, end: 70 } });
             await compare();
