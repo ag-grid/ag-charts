@@ -189,7 +189,6 @@ export abstract class CartesianSeries<
         super({
             directionKeys,
             directionNames,
-            useSeriesGroupLayer: true,
             canHaveAxes: true,
             ...otherOpts,
         });

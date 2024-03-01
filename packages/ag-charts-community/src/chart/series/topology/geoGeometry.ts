@@ -26,7 +26,7 @@ export class GeoGeometry extends Path {
             this.dirtyPath = false;
         }
 
-        return this.bbox;
+        return this.bbox?.clone();
     }
 
     override updatePath(): void {
@@ -62,9 +62,9 @@ export class GeoGeometry extends Path {
             case 'GeometryCollection':
                 return geometry.geometries.some((g) => this.geometryContainsPoint(g, x, y));
             case 'Polygon':
-                return polygonDistance(geometry.coordinates, x, y) < 0;
+                return polygonDistance(geometry.coordinates, x, y) <= 0;
             case 'MultiPolygon':
-                return geometry.coordinates.some((coordinates) => polygonDistance(coordinates, x, y) < 0);
+                return geometry.coordinates.some((coordinates) => polygonDistance(coordinates, x, y) <= 0);
             case 'LineString':
                 return lineStringDistance(geometry.coordinates, x, y) < strokeWidth;
             case 'MultiLineString':
@@ -125,9 +125,7 @@ export class GeoGeometry extends Path {
         bbox: BBox | undefined,
         isClosed: boolean
     ): BBox | undefined {
-        const { scale } = this;
-
-        if (scale == null || coordinates.length < 2) return bbox;
+        if (coordinates.length < 2) return bbox;
 
         // For polygons (i.e. closed), the start and end coordinates are the same
         // Use closePath instead so the path draws its miters correctly
@@ -157,7 +155,7 @@ export class GeoGeometry extends Path {
         }
 
         if (isClosed) {
-            this.path.closePath();
+            path.closePath();
         }
 
         return bbox;

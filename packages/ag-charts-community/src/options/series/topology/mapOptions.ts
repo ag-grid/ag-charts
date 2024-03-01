@@ -74,6 +74,8 @@ export interface AgMapSeriesOptionsKeys {
 }
 
 export interface AgMapSeriesOptionsNames {
+    /** The key to use to retrieve size values from the data, used to control the size of the markers.  */
+    sizeName?: string;
     /** A human-readable description of the colour values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     colorName?: string;
 }

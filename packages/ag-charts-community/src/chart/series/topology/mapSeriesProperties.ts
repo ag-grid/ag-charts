@@ -9,6 +9,7 @@ import type {
     AgMapSeriesTooltipRendererParams,
 } from '../../../options/series/topology/mapOptions';
 import { SceneChangeDetection } from '../../../scene/node';
+import type { MeasuredLabel } from '../../../scene/util/labelPlacement';
 import { BaseProperties } from '../../../util/properties';
 import {
     AND,
@@ -33,7 +34,7 @@ import type { SeriesNodeDatum } from '../seriesTypes';
 
 export interface MapNodeLabelDatum {
     readonly position: Position;
-    readonly text: string;
+    readonly label: MeasuredLabel;
 }
 
 interface BaseMapNodeDatum extends SeriesNodeDatum {
