@@ -3,6 +3,7 @@ import path from 'path';
 
 import { readFile } from '../../../executors-utils';
 import { ANGULAR_GENERATED_MAIN_FILE_NAME, SOURCE_ENTRY_FILE_NAME } from './constants';
+import { transformPlainEntryFile } from './transformPlainEntryFile';
 import chartVanillaSrcParser from './transformation-scripts/chart-vanilla-src-parser';
 import type { GeneratedContents, InternalFramework } from './types';
 import {
@@ -133,6 +134,17 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
         ignoreDarkMode,
         isDev,
     });
+
+    if (internalFramework === 'vanilla' && ignoreDarkMode === true && entryFile.includes('@ag-options-extract')) {
+        const { optionsById } = transformPlainEntryFile(files[entryFileName], files['data.js']);
+
+        const jsonOptions = {};
+        for (const [id, options] of optionsById) {
+            jsonOptions[id] = options;
+        }
+
+        files['_options.json'] = JSON.stringify(jsonOptions);
+    }
 
     const result: GeneratedContents = {
         isEnterprise,

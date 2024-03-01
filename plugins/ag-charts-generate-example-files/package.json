@@ -10,6 +10,7 @@
     "json5": "2.2.3",
     "@nx/devkit": "^18.0.4",
     "@swc/helpers": "0.5.3",
+    "jscodeshift": "^0.15.0",
     "prettier": "^3.2.5"
   },
   "type": "commonjs",

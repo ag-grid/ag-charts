@@ -19,7 +19,6 @@ import {
 } from './constants';
 import { getChartLayout } from './getChartLayout';
 import { patchOptions } from './patchOptions';
-import { transformPlainEntryFile } from './transformPlainEntryFile';
 
 interface Params {
     example: GeneratedContents;
@@ -29,10 +28,13 @@ interface Params {
 }
 
 export async function generateExample({ example, theme, outputPath, dpi }: Params) {
-    const { entryFileName, files = {} } = example;
+    const { files = {} } = example;
 
-    const entryFile = files[entryFileName];
-    const { optionsById } = transformPlainEntryFile(entryFile, files['data.js']);
+    const optionsJson = files['_options.json'];
+    if (optionsJson == null) {
+        throw new Error('_options.json not found - check your source example has a /* @ag-options-extract */ comment.');
+    }
+    const optionsById = JSON.parse(optionsJson);
 
     const { rows, columns, charts } = getChartLayout(files['index.html']);
 
@@ -74,7 +76,7 @@ export async function generateExample({ example, theme, outputPath, dpi }: Param
         } as any);
         /* End TODO */
 
-        const options = optionsById.get(id);
+        const options = optionsById[id];
         if (options == null) {
             throw new Error(`No options found for container with id "${id}"`);
         }

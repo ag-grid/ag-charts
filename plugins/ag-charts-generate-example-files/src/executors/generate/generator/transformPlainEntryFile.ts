@@ -1,6 +1,5 @@
 import j from 'jscodeshift';
 
-import type { AgChartThemeName } from 'ag-charts-community';
 import * as agCharts from 'ag-charts-community';
 import { parseExampleOptions } from 'ag-charts-test';
 
@@ -35,7 +34,7 @@ function generateOptions(
     return { code, options };
 }
 
-function transformer(sourceFile: string, dataFile?: string, themeName?: AgChartThemeName) {
+function transformer(sourceFile: string, dataFile?: string) {
     const root = j(sourceFile);
     let code = root.toSource();
 
