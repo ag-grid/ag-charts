@@ -3,6 +3,7 @@ import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
+import { Logger } from '../../util/logger';
 import { clamp } from '../../util/number';
 import { ActionOnSet, ObserveChanges } from '../../util/proxy';
 import { BOOLEAN, OBJECT, POSITIVE_NUMBER, RATIO, Validate } from '../../util/validation';
@@ -30,23 +31,23 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     @Validate(POSITIVE_NUMBER)
     public margin: number = 10;
 
-    @Validate(RATIO)
+    @Validate(RATIO, { optional: true })
     @ActionOnSet<Navigator>({
         newValue(min) {
             this._min = min;
             this.updateZoom(min, this._max);
         },
     })
-    public min: number = 0;
+    public min?: number;
 
-    @Validate(RATIO)
+    @Validate(RATIO, { optional: true })
     @ActionOnSet<Navigator>({
         newValue(max) {
             this._max = max;
             this.updateZoom(this._min, max);
         },
     })
-    public max: number = 1;
+    public max?: number;
 
     protected x = 0;
     protected y = 0;
@@ -225,8 +226,15 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         if (!this.enabled) return;
 
         const zoom = this.ctx.zoomManager.getZoom();
-        if (min != null && max != null) {
-            this.ctx.zoomManager.updateZoom('navigator', { x: { min, max }, y: zoom?.y }, false);
-        }
+        if (min == null || max == null) return;
+
+        const warnOnConflict = (stateId: string) => {
+            if (this.min == null && this.max == null) return;
+            Logger.warnOnce(
+                `Could not apply [navigator.min] or [navigator.max] as [${stateId}] has modified the initial zoom state.`
+            );
+        };
+
+        return this.ctx.zoomManager.updateZoom('navigator', { x: { min, max }, y: zoom?.y }, false, warnOnConflict);
     }
 }
