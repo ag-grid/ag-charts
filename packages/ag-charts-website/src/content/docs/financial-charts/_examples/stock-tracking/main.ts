@@ -78,10 +78,10 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function changeRange(range: string) {
+function changeRange(value: string) {
     let rangeStart = new Date(2022, 1, 27);
     let format = 'm-y';
-    switch (range) {
+    switch (value) {
         case '1y':
             rangeStart = new Date(2023, 1, 26);
             format = 'm-y';
