@@ -101,6 +101,7 @@ function changeRange(value: string) {
         case '1m':
             rangeStart = new Date(2024, 0, 6);
             format = 'd-m';
+            break;
         case 'All':
         default:
             rangeStart = new Date(2022, 1, 27);
