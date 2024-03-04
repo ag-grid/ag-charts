@@ -42,14 +42,14 @@ export class RegionManager {
         this.regions.clear();
     }
 
-    private pushRegion(name: RegionName, bboxproviders: BBoxProvider[]): Region {
+    private pushRegion(name: RegionName, bboxprovider: BBoxProvider): Region {
         const region = { name, listeners: new RegionListeners() };
-        this.regions.add(region, bboxproviders);
+        this.regions.add(region, bboxprovider);
         return region;
     }
 
-    public addRegion(name: RegionName, bboxprovider: BBoxProvider, ...extraProviders: BBoxProvider[]) {
-        return this.makeObserver(this.pushRegion(name, [bboxprovider, ...extraProviders]));
+    public addRegion(name: RegionName, bboxprovider: BBoxProvider) {
+        return this.makeObserver(this.pushRegion(name, bboxprovider));
     }
 
     public getRegion(name: RegionName) {

@@ -346,7 +346,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.container = container;
 
         const { All } = InteractionState;
-        const seriesRegion = this.regionManager.addRegion('series', this.seriesRoot, this.axisGroup);
+        const seriesRegion = this.regionManager.addRegion('series', this.seriesRoot);
 
         this._destroyFns.push(
             this.dataService.addListener('data-load', (event) => {
