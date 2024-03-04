@@ -204,6 +204,8 @@
         }
       },
       "dependsOn": [
+        "build",
+        "ag-charts-community-examples:build",
         "ag-charts-website-src_content_docs_benchmarks__examples_integrated-large-scale_main.ts:generate-example",
         "ag-charts-website-src_content_docs_benchmarks__examples_large-dataset_main.ts:generate-example",
         "ag-charts-website-src_content_docs_benchmarks__examples_large-scale-multi-series_main.ts:generate-example",
