@@ -231,9 +231,9 @@ describe('Zoom', () => {
         });
     });
 
-    describe('min/max', () => {
+    describe('ratio', () => {
         it('should start at the given zoom', async () => {
-            await prepareChart({ ratioX: { min: 0.2, max: 0.8 }, ratioY: { min: 0.1, max: 0.9 } });
+            await prepareChart({ ratioX: { start: 0.2, end: 0.8 }, ratioY: { start: 0.1, end: 0.9 } });
             await compare();
         });
     });

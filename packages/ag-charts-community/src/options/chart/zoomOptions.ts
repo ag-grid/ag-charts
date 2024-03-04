@@ -13,9 +13,9 @@ export interface AgZoomRange {
 
 export interface AgZoomRatio {
     /** The minimum value of the axis zoom ratio. */
-    min?: number;
+    start?: number;
     /** The maximum value of the axis zoom ratio. */
-    max?: number;
+    end?: number;
 }
 
 export interface AgZoomOptions {

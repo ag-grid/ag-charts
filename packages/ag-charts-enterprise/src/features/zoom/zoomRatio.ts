@@ -6,18 +6,18 @@ const { ActionOnSet } = _ModuleSupport;
 
 export class ZoomRatio {
     @ActionOnSet<ZoomRatio>({
-        changeValue(min?: number) {
-            this.onChange?.({ min: min ?? UNIT.min, max: this.max ?? UNIT.max });
+        changeValue(start?: number) {
+            this.onChange?.({ min: start ?? UNIT.min, max: this.end ?? UNIT.max });
         },
     })
-    public min?: number;
+    public start?: number;
 
     @ActionOnSet<ZoomRatio>({
-        changeValue(max?: number) {
-            this.onChange?.({ min: this.min ?? UNIT.min, max: max ?? UNIT.max });
+        changeValue(end?: number) {
+            this.onChange?.({ min: this.start ?? UNIT.min, max: end ?? UNIT.max });
         },
     })
-    public max?: number;
+    public end?: number;
 
     constructor(private readonly onChange: (ratio: { min: number; max: number }) => void) {}
 }

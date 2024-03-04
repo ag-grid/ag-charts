@@ -124,13 +124,13 @@ describe('Feature Combinations', () => {
             await compare();
         });
 
-        it('should init with zoom min/max', async () => {
-            await prepareChart(undefined, { ratioX: { min: 0.7, max: 0.9 } });
+        it('should init with zoom ratio', async () => {
+            await prepareChart(undefined, { ratioX: { start: 0.7, end: 0.9 } });
             await compare();
         });
 
-        it('should prioritise zoom min/max over navigator min/max', async () => {
-            await prepareChart({ min: 0.1, max: 0.3 }, { ratioX: { min: 0.7, max: 0.9 } });
+        it('should prioritise zoom ratio over navigator min/max', async () => {
+            await prepareChart({ min: 0.1, max: 0.3 }, { ratioX: { start: 0.7, end: 0.9 } });
             expectWarning(
                 'AG Charts - Could not apply [navigator.min] or [navigator.max] as [zoom] has modified the initial zoom state.'
             );

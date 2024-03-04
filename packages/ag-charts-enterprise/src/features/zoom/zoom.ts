@@ -196,12 +196,22 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.updateZoom(constrainZoom(zoom));
     }
 
-    private onRatioChange(direction: _ModuleSupport.ChartAxisDirection, ratioZoom?: DefinedZoomState['x' | 'y']) {
-        const ratioX = (direction === ChartAxisDirection.X ? ratioZoom : this.ratioX) ?? UNIT;
-        const ratioY = (direction === ChartAxisDirection.Y ? ratioZoom : this.ratioY) ?? UNIT;
+    private onRatioChange(direction: _ModuleSupport.ChartAxisDirection, ratioZoom: DefinedZoomState['x' | 'y']) {
+        let { start: minX, end: maxX } = this.ratioX;
+        let { start: minY, end: maxY } = this.ratioY;
 
-        const { min: minX = UNIT.min, max: maxX = UNIT.max } = ratioX;
-        const { min: minY = UNIT.min, max: maxY = UNIT.max } = ratioY;
+        if (direction === ChartAxisDirection.X) {
+            minX = ratioZoom.min;
+            maxX = ratioZoom.max;
+        } else {
+            minY = ratioZoom.min;
+            maxY = ratioZoom.max;
+        }
+
+        minX ??= UNIT.min;
+        maxX ??= UNIT.max;
+        minY ??= UNIT.min;
+        maxY ??= UNIT.max;
 
         const newZoom = {
             x: { min: minX, max: maxX },
@@ -215,8 +225,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         if (!this.enabled || !this.enableDoubleClickToReset) return;
 
         const {
-            ratioX: { min: minX = UNIT.min, max: maxX = UNIT.max },
-            ratioY: { min: minY = UNIT.min, max: maxY = UNIT.max },
+            ratioX: { start: minX = UNIT.min, end: maxX = UNIT.max },
+            ratioY: { start: minY = UNIT.min, end: maxY = UNIT.max },
         } = this;
 
         if (this.hoveredAxis) {
