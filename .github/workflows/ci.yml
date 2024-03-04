@@ -126,6 +126,7 @@ jobs:
               run: |
                   sudo df -h
                   sudo du -sh .
+                  sudo du -sh .nx .git node_modules
 
             - name: nx format:check
               id: format
