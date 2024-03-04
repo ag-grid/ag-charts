@@ -1,3 +1,4 @@
+/* @ag-options-extract */
 import { AgCartesianChartOptions, AgCharts, AgLineSeriesOptions } from 'ag-charts-community';
 
 import { integratedChartOptions } from './data';
@@ -9,5 +10,6 @@ const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     autoSize: true,
 };
+/* @ag-options-end */
 
 var chart = AgCharts.create(options);
