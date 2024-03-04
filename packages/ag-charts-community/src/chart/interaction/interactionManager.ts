@@ -1,5 +1,5 @@
 import { Debug } from '../../util/debug';
-import { injectStyle } from '../../util/dom';
+import { getDocument, getWindow, injectStyle } from '../../util/dom';
 import { Logger } from '../../util/logger';
 import { partialAssign } from '../../util/object';
 import { isFiniteNumber } from '../../util/type-guards';
@@ -110,7 +110,6 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
 
     private readonly rootElement: HTMLElement;
     private readonly element: HTMLElement;
-    private readonly window: Window;
 
     private eventHandler = (event: SupportedEvent) => this.processEvent(event);
 
@@ -126,12 +125,11 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
 
     private stateQueue: InteractionState = InteractionState.Default;
 
-    public constructor(element: HTMLElement, document: Document, window: Window) {
+    public constructor(element: HTMLElement) {
         super();
 
-        this.rootElement = document.body;
+        this.rootElement = getDocument().body;
         this.element = element;
-        this.window = window;
 
         for (const type of EVENT_HANDLERS) {
             if (type.startsWith('touch')) {
@@ -144,12 +142,12 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         }
 
         for (const type of WINDOW_EVENT_HANDLERS) {
-            this.window.addEventListener(type, this.eventHandler);
+            getWindow().addEventListener(type, this.eventHandler);
         }
 
-        if (!InteractionManager.interactionDocuments.includes(document)) {
+        if (!InteractionManager.interactionDocuments.includes(getDocument())) {
             injectStyle(CSS);
-            InteractionManager.interactionDocuments.push(document);
+            InteractionManager.interactionDocuments.push(getDocument());
         }
     }
 
@@ -157,7 +155,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         super.destroy();
 
         for (const type of WINDOW_EVENT_HANDLERS) {
-            this.window.removeEventListener(type, this.eventHandler);
+            getWindow().removeEventListener(type, this.eventHandler);
         }
 
         for (const type of EVENT_HANDLERS) {

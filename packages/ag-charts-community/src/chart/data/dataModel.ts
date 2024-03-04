@@ -278,7 +278,8 @@ export class DataModel<
     Grouped extends boolean | undefined = undefined,
 > {
     private readonly debug = Debug.create(true, 'data-model');
-    private readonly scopeCache: Map<string, Map<PropertyDefinition<any>, Set<string>>> = new Map();
+    private readonly scopeCache: Map<string, Map<string, Set<PropertyDefinition<any> & InternalDefinition>>> =
+        new Map();
 
     private readonly opts: DataModelOptions<K, Grouped>;
     private readonly keys: InternalDatumPropertyDefinition<K>[];
@@ -372,12 +373,14 @@ export class DataModel<
         return this.resolveProcessedDataDefById(scope, searchId) ?? {};
     }
 
-    resolveProcessedDataIndicesById(scope: ScopeProvider, searchId: string): ProcessedDataDef[] | never {
-        return this.resolveProcessedDataDefsById(scope, searchId);
-    }
-
     resolveProcessedDataDefById(scope: ScopeProvider, searchId: string): ProcessedDataDef | never {
-        return this.resolveProcessedDataDefsById(scope, searchId)[0];
+        const { value, done } = this.scopeDefs(scope, searchId).next();
+
+        if (done) {
+            throw new Error(`AG Charts - didn't find property definition for [${searchId}, ${scope.id}]`);
+        }
+
+        return value;
     }
 
     resolveProcessedDataDefsByIds<T extends string>(scope: ScopeProvider, searchIds: T[]): [T, ProcessedDataDef[]][] {
@@ -397,18 +400,7 @@ export class DataModel<
     }
 
     resolveProcessedDataDefsById(searchScope: ScopeProvider, searchId: string): ProcessedDataDef[] | never {
-        const { keys, values, aggregates, groupProcessors, reducers } = this;
-        const result: ProcessedDataDef[] = [];
-
-        for (const def of iterate(keys, values, aggregates, groupProcessors, reducers)) {
-            if (
-                def.ids != null &&
-                def.scopes?.includes(searchScope.id) &&
-                this.scopeCache.get(searchScope.id)?.get(def)?.has(searchId)
-            ) {
-                result.push({ index: def.index, def });
-            }
-        }
+        const result = Array.from(this.scopeDefs(searchScope, searchId));
 
         if (!result.length) {
             throw new Error(`AG Charts - didn't find property definition for [${searchId}, ${searchScope.id}]`);
@@ -417,13 +409,19 @@ export class DataModel<
         return result;
     }
 
+    private *scopeDefs(searchScope: ScopeProvider, searchId: string) {
+        for (const def of this.scopeCache.get(searchScope.id)?.get(searchId) ?? []) {
+            yield { index: def.index, def };
+        }
+    }
+
     getDomain(
         scope: ScopeProvider,
         searchId: string,
         type: PropertyDefinition<any>['type'] = 'value',
         processedData: ProcessedData<K>
     ): any[] | ContinuousDomain<number> | [] {
-        const matches = this.resolveProcessedDataIndicesById(scope, searchId);
+        const matches = this.resolveProcessedDataDefsById(scope, searchId);
 
         let domainProp: keyof ProcessedData<any>['domain'];
         switch (type) {
@@ -517,11 +515,11 @@ export class DataModel<
         for (const def of iterate(this.keys, this.values, this.aggregates, this.groupProcessors, this.reducers)) {
             for (const [scope, id] of def.ids ?? []) {
                 if (!this.scopeCache.has(scope)) {
-                    this.scopeCache.set(scope, new Map([[def, new Set([id])]]));
-                } else if (!this.scopeCache.get(scope)!.has(def)) {
-                    this.scopeCache.get(scope)!.set(def, new Set([id]));
+                    this.scopeCache.set(scope, new Map([[id, new Set([def])]]));
+                } else if (!this.scopeCache.get(scope)!.has(id)) {
+                    this.scopeCache.get(scope)!.set(id, new Set([def]));
                 } else {
-                    this.scopeCache.get(scope)!.get(def)!.add(id);
+                    this.scopeCache.get(scope)!.get(id)!.add(def);
                 }
             }
         }
