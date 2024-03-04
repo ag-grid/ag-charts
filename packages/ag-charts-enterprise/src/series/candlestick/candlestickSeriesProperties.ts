@@ -6,8 +6,6 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
-const { DropShadow } = _Scene;
-
 const {
     BaseProperties,
     AbstractBarSeriesProperties,
