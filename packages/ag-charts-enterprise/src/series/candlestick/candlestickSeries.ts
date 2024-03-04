@@ -21,6 +21,8 @@ const {
 } = _ModuleSupport;
 const { motion } = _Scene;
 
+const { sanitizeHtml, Logger } = _Util;
+
 class CandlestickSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
 > extends _ModuleSupport.SeriesNodeEvent<CandlestickNodeDatum, TEvent> {
@@ -178,6 +180,24 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<
                 { keys, values }
             );
 
+            // compare unscaled values
+            const validLowValue = lowValue !== undefined && lowValue <= openValue && lowValue <= closeValue;
+            const validHighValue = highValue !== undefined && highValue >= openValue && highValue >= closeValue;
+
+            if (!validLowValue) {
+                Logger.warnOnce(
+                    `invalid low value for key [${lowKey}] in data element, low value cannot be higher than datum open or close values`
+                );
+                return;
+            }
+
+            if (!validHighValue) {
+                Logger.warnOnce(
+                    `invalid high value for key [${highKey}] in data element, high value cannot be lower than datum open or close values.`
+                );
+                return;
+            }
+
             const scaledValues = convertValuesToScaleByDefs({
                 defs,
                 values: {
@@ -277,7 +297,7 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<
             lowName,
             tooltip,
         } = this.properties;
-        const { datum } = nodeDatum as { datum: any };
+        const { datum } = nodeDatum;
 
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
@@ -286,7 +306,7 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<
 
         const capitalise = (text: string) => text.charAt(0).toUpperCase() + text.substring(1);
 
-        const title = _Util.sanitizeHtml(yName);
+        const title = sanitizeHtml(yName);
         const contentData: [string, string | undefined, _ModuleSupport.ChartAxis][] = [
             [xKey, xName, xAxis],
             [openKey, openName, yAxis],
@@ -295,9 +315,7 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<
             [closeKey, closeName, yAxis],
         ];
         const content = contentData
-            .map(([key, name, axis]) =>
-                _Util.sanitizeHtml(`${name ?? capitalise(key)}: ${axis.formatDatum(datum[key])}`)
-            )
+            .map(([key, name, axis]) => sanitizeHtml(`${name ?? capitalise(key)}: ${axis.formatDatum(datum[key])}`))
             .join('<br/>');
 
         let { fill } = this.getFormattedStyles(nodeDatum);
