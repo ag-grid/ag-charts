@@ -169,6 +169,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
         const { barWidth, groupIndex } = this.updateGroupScale(xAxis);
         const { groupScale, processedData } = this;
+        const isVertical = this.isVertical();
 
         processedData?.data.forEach(({ datum, keys, values }) => {
             const { xValue, minValue, q1Value, medianValue, q3Value, maxValue } =
@@ -200,12 +201,22 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
             scaledValues.xValue += Math.round(groupScale.convert(String(groupIndex)));
 
+            const bandwidth = Math.round(barWidth);
+            const height = Math.abs(scaledValues.q3Value - scaledValues.q1Value);
+            const midX = scaledValues.xValue + bandwidth / 2;
+            const midY = Math.min(scaledValues.q3Value, scaledValues.q1Value) + height / 2;
+
+            const midPoint = {
+                x: isVertical ? midX : midY,
+                y: isVertical ? midY : midX,
+            };
+
             nodeData.push({
                 series: this,
                 itemId: xValue,
                 datum,
                 xKey,
-                bandwidth: Math.round(barWidth),
+                bandwidth,
                 scaledValues,
                 cap,
                 whisker,
@@ -216,6 +227,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 strokeOpacity,
                 lineDash,
                 lineDashOffset,
+                midPoint,
             });
         });
 
