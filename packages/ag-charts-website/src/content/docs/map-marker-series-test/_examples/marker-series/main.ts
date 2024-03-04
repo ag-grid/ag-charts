@@ -2,23 +2,28 @@ import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { backgroundTopology } from './backgroundTopology';
 import { data } from './data';
-import { topology } from './topology';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
-        text: 'UK Motorways',
+        text: 'Crime in Surrey',
     },
     data,
     series: [
         {
             // @ts-ignore
-            type: 'map',
-            topology,
-            idKey: 'name',
+            type: 'map-marker',
+            latKey: 'lat',
+            lonKey: 'lon',
+            sizeKey: 'count',
+            sizeName: 'Count',
             background: {
                 topology: backgroundTopology,
-                id: 'United Kingdom',
+                id: 'Surrey',
+            },
+            marker: {
+                size: 3,
+                maxSize: 50,
             },
         },
     ],

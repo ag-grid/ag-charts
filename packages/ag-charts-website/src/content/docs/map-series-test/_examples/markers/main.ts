@@ -24,12 +24,10 @@ const options: AgChartOptions = {
             background: {
                 topology: backgroundTopology,
                 id: 'United Kingdom',
-                fillOpacity: 0.2,
             },
             marker: {
                 size: 3,
                 maxSize: 30,
-                fillOpacity: 0.5,
             },
             tooltip: {
                 // @ts-ignore
