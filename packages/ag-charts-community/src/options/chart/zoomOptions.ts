@@ -11,6 +11,13 @@ export interface AgZoomRange {
     end?: Date | number;
 }
 
+export interface AgZoomRatio {
+    /** The minimum value of the axis zoom ratio. */
+    min?: number;
+    /** The maximum value of the axis zoom ratio. */
+    max?: number;
+}
+
 export interface AgZoomOptions {
     /**
      * The anchor point for the x-axis about which to zoom into when scrolling.
@@ -68,21 +75,25 @@ export interface AgZoomOptions {
      */
     minVisibleItemsY?: number;
     /**
+     * @deprecated v9.2.0 Use `ratioX.min` instead.
      * The initial minimum x-axis position of the zoom, as a ratio of the full chart.
      * Default: `0`
      */
     minX?: number;
     /**
+     * @deprecated v9.2.0 Use `ratioX.max` instead.
      * The initial maximum x-axis position of the zoom, as a ratio of the full chart.
      * Default: `1`
      */
     maxX?: number;
     /**
+     * @deprecated v9.2.0 Use `ratioY.min` instead.
      * The initial minimum y-axis position of the zoom, as a ratio of the full chart.
      * Default: `0`
      */
     minY?: number;
     /**
+     * @deprecated v9.2.0 Use `ratioY.max` instead.
      * The initial maximum y-axis position of the zoom, as a ratio of the full chart.
      * Default: `1`
      */
@@ -94,8 +105,12 @@ export interface AgZoomOptions {
     panKey?: AgZoomPanKey;
     /** The initial x-axis range of the zoom, as values of the axis type. */
     rangeX?: AgZoomRange;
-    /** The initial x-axis range of the zoom, as values of the axis type. */
+    /** The initial y-axis range of the zoom, as values of the axis type. */
     rangeY?: AgZoomRange;
+    /** The initial x-axis range of the zoom, as a ratio between 0 to 1. */
+    ratioX?: AgZoomRatio;
+    /** The initial y-axis range of the zoom, as a ratio between 0 to 1. */
+    ratioY?: AgZoomRatio;
     /**
      * The amount to zoom when scrolling with the mouse wheel, as a ratio of the full chart.
      * Default: `0.1`

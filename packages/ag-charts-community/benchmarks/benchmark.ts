@@ -31,11 +31,11 @@ export function benchmark(name: string, ctx: BenchmarkContext, callback: () => P
         const newImageData = extractImageData(ctx.canvasCtx);
         expect(newImageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
 
-        const { currentTestName } = expect.getState();
-        if (currentTestName == null) {
+        const { currentTestName, testPath } = expect.getState();
+        if (testPath == null || currentTestName == null) {
             throw new Error('Unable to resolve current test name.');
         }
-        recordTiming(currentTestName, duration);
+        recordTiming(testPath, currentTestName, duration);
     });
 }
 

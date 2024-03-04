@@ -1,5 +1,6 @@
 import { BREAK_TRANSFORM_CHAIN, addTransformToInstanceProperty } from './decorator';
 import { Logger } from './logger';
+import { getPath, setPath } from './object';
 
 export function createDeprecationWarning() {
     return (key: string, message?: string) => {
@@ -27,13 +28,13 @@ export function DeprecatedAndRenamedTo(newPropName: any, mapValue?: (value: any)
         (target, key, value) => {
             if (value !== target[newPropName]) {
                 warnDeprecated(key.toString(), `Use [${newPropName}] instead.`);
-                target[newPropName] = mapValue ? mapValue(value) : value;
+                setPath(target, newPropName, mapValue ? mapValue(value) : value);
             }
             return BREAK_TRANSFORM_CHAIN;
         },
         (target, key) => {
             warnDeprecated(key.toString(), `Use [${newPropName}] instead.`);
-            return target[newPropName];
+            return getPath(target, newPropName);
         }
     );
 }

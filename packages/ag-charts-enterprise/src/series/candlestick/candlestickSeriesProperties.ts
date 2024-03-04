@@ -6,8 +6,6 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
-const { DropShadow } = _Scene;
-
 const {
     BaseProperties,
     AbstractBarSeriesProperties,
@@ -40,9 +38,6 @@ class CandlestickSeriesWick extends BaseProperties {
 }
 
 export class CandlestickSeriesItem extends BaseProperties {
-    @Validate(STRING, { optional: true })
-    name?: string;
-
     @Validate(COLOR_STRING, { optional: true })
     fill: string = '#c16068';
 
@@ -69,9 +64,6 @@ export class CandlestickSeriesItem extends BaseProperties {
 
     @Validate(FUNCTION, { optional: true })
     formatter?: (params: AgCandlestickSeriesFormatterParams<any>) => AgCandlestickSeriesStyles;
-
-    @Validate(OBJECT)
-    readonly shadow = new DropShadow().set({ enabled: false });
 
     @Validate(OBJECT)
     readonly wick = new CandlestickSeriesWick();

@@ -5,6 +5,7 @@ import { ZoomRect } from './scenes/zoomRect';
 import { ZoomAxisDragger } from './zoomAxisDragger';
 import { ZoomPanner } from './zoomPanner';
 import { ZoomRange } from './zoomRange';
+import { ZoomRatio } from './zoomRatio';
 import { ZoomScrollPanner } from './zoomScrollPanner';
 import { ZoomScroller } from './zoomScroller';
 import { ZoomSelector } from './zoomSelector';
@@ -24,8 +25,19 @@ import {
 type PinchEvent = _ModuleSupport.PinchEvent;
 type ContextMenuActionParams = _ModuleSupport.ContextMenuActionParams;
 
-const { AND, BOOLEAN, GREATER_THAN, NUMBER, RATIO, UNION, ActionOnSet, ChartAxisDirection, ChartUpdateType, Validate } =
-    _ModuleSupport;
+const {
+    AND,
+    BOOLEAN,
+    GREATER_THAN,
+    NUMBER,
+    RATIO,
+    UNION,
+    ActionOnSet,
+    ChartAxisDirection,
+    ChartUpdateType,
+    DeprecatedAndRenamedTo,
+    Validate,
+} = _ModuleSupport;
 
 const ANCHOR_CORD = UNION(['pointer', 'start', 'middle', 'end'], 'an anchor cord');
 
@@ -42,6 +54,7 @@ enum DragState {
 }
 
 export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
+    // Deprecated v9.2.0 - Remove when removing the `minX` etc properties
     private static UpdateZoomOnSet(prop: 'minX' | 'maxX' | 'minY' | 'maxY') {
         return ActionOnSet<Zoom>({
             newValue(value) {
@@ -85,18 +98,22 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     public scrollingStep = (UNIT.max - UNIT.min) / 10;
 
     @Zoom.UpdateZoomOnSet('minX')
+    @DeprecatedAndRenamedTo('ratioX.min')
     @Validate(RATIO)
     public minX?: number;
 
     @Zoom.UpdateZoomOnSet('maxX')
+    @DeprecatedAndRenamedTo('ratioX.max')
     @Validate(AND(RATIO, GREATER_THAN('minX')))
     public maxX?: number;
 
     @Zoom.UpdateZoomOnSet('minY')
+    @DeprecatedAndRenamedTo('ratioY.min')
     @Validate(RATIO)
     public minY?: number;
 
     @Zoom.UpdateZoomOnSet('maxY')
+    @DeprecatedAndRenamedTo('ratioY.max')
     @Validate(AND(RATIO, GREATER_THAN('minY')))
     public maxY?: number;
 
@@ -114,6 +131,9 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     public rangeX = new ZoomRange(this.onRangeChange.bind(this, ChartAxisDirection.X));
     public rangeY = new ZoomRange(this.onRangeChange.bind(this, ChartAxisDirection.Y));
+
+    public ratioX = new ZoomRatio(this.onRatioChange.bind(this, ChartAxisDirection.X));
+    public ratioY = new ZoomRatio(this.onRatioChange.bind(this, ChartAxisDirection.Y));
 
     // Scenes
     private readonly scene: _Scene.Scene;
@@ -179,6 +199,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         );
     }
 
+    // Deprecated v9.2.0 - Remove when removing the `minX` etc properties
     private updateZoomFromProperties(props: { minX?: number; maxX?: number; minY?: number; maxY?: number }) {
         const {
             minX = this.minX ?? UNIT.min,
@@ -234,10 +255,28 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.updateZoom(constrainZoom(zoom));
     }
 
+    private onRatioChange(direction: _ModuleSupport.ChartAxisDirection, ratioZoom?: DefinedZoomState['x' | 'y']) {
+        const ratioX = (direction === ChartAxisDirection.X ? ratioZoom : this.ratioX) ?? UNIT;
+        const ratioY = (direction === ChartAxisDirection.Y ? ratioZoom : this.ratioY) ?? UNIT;
+
+        const { min: minX = UNIT.min, max: maxX = UNIT.max } = ratioX;
+        const { min: minY = UNIT.min, max: maxY = UNIT.max } = ratioY;
+
+        const newZoom = {
+            x: { min: minX, max: maxX },
+            y: { min: minY, max: maxY },
+        };
+
+        this.zoomManager.updateZoom('zoom', newZoom);
+    }
+
     private onDoubleClick(event: _ModuleSupport.InteractionEvent<'dblclick'>) {
         if (!this.enabled || !this.enableDoubleClickToReset) return;
 
-        const { minX = UNIT.min, maxX = UNIT.max, minY = UNIT.min, maxY = UNIT.max } = this;
+        const {
+            ratioX: { min: minX = UNIT.min, max: maxX = UNIT.max },
+            ratioY: { min: minY = UNIT.min, max: maxY = UNIT.max },
+        } = this;
 
         if (this.hoveredAxis) {
             const { id, direction } = this.hoveredAxis;
