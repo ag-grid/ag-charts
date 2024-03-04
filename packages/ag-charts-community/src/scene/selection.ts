@@ -53,10 +53,6 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
             : (classOrFactory as NodeFactory<TChild, TDatum>);
     }
 
-    get size() {
-        return this._nodes.length;
-    }
-
     private createNode(datum: TDatum, initializer?: (node: TChild) => void, idx?: number) {
         const node = this.nodeFactory(datum);
         node.datum = datum;
