@@ -3,14 +3,12 @@ import type { Geometry, Position } from 'geojson';
 import { BBox } from '../../../scene/bbox';
 import { Path2D } from '../../../scene/path2D';
 import { Path, ScenePathChangeDetection } from '../../../scene/shape/path';
-import type { MercatorScale } from './mercatorScale';
+import { lineStringDistance } from './lineStringUtil';
+import { polygonDistance } from './polygonUtil';
 
 export class GeoGeometry extends Path {
     @ScenePathChangeDetection()
-    geometry: Geometry | undefined = undefined;
-
-    @ScenePathChangeDetection()
-    scale: MercatorScale | undefined;
+    projectedGeometry: Geometry | undefined = undefined;
 
     private bbox: BBox | undefined;
     // Keep non-filled shapes separate so we don't fill them
@@ -22,20 +20,16 @@ export class GeoGeometry extends Path {
             this.dirtyPath = false;
         }
 
-        return this.bbox;
+        return this.bbox?.clone();
     }
 
     override updatePath(): void {
-        let bbox: BBox | undefined;
+        const { projectedGeometry } = this;
+
         this.strokePath.clear();
         this.path.clear();
 
-        const { geometry } = this;
-        if (geometry != null) {
-            bbox = this.drawGeometry(geometry, bbox);
-        }
-
-        this.bbox = bbox;
+        this.bbox = projectedGeometry != null ? this.drawGeometry(projectedGeometry, undefined) : undefined;
     }
 
     override drawPath(ctx: any) {
@@ -46,69 +40,32 @@ export class GeoGeometry extends Path {
     }
 
     override containsPoint(x: number, y: number): boolean {
-        const { geometry } = this;
-        if (geometry == null) return false;
+        const { projectedGeometry } = this;
+        if (projectedGeometry == null) return false;
 
         ({ x, y } = this.transformPoint(x, y));
         if (!this.getCachedBBox().containsPoint(x, y)) return false;
 
-        return this.geometryContainsPoint(geometry, x, y);
+        return this.geometryContainsPoint(projectedGeometry, x, y);
     }
 
     private geometryContainsPoint(geometry: Geometry, x: number, y: number): boolean {
+        const { strokeWidth } = this;
         switch (geometry.type) {
             case 'GeometryCollection':
                 return geometry.geometries.some((g) => this.geometryContainsPoint(g, x, y));
             case 'Polygon':
-                return this.polygonsContainsPoint(geometry.coordinates, x, y);
+                return polygonDistance(geometry.coordinates, x, y) <= 0;
             case 'MultiPolygon':
-                return geometry.coordinates.some((coordinates) => this.polygonsContainsPoint(coordinates, x, y));
+                return geometry.coordinates.some((coordinates) => polygonDistance(coordinates, x, y) <= 0);
             case 'LineString':
+                return lineStringDistance(geometry.coordinates, x, y) < strokeWidth;
             case 'MultiLineString':
+                return geometry.coordinates.some((lineString) => lineStringDistance(lineString, x, y) < strokeWidth);
             case 'Point':
             case 'MultiPoint':
                 return false;
         }
-    }
-
-    private polygonsContainsPoint(polygons: Position[][], x: number, y: number): boolean {
-        if (polygons.length < 1) return false;
-
-        if (!this.polygonContainsPoint(polygons[0], x, y)) {
-            return false;
-        }
-
-        for (let i = 1; i < polygons.length; i += 1) {
-            const enclave = polygons[i];
-            if (this.polygonContainsPoint(enclave, x, y)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private polygonContainsPoint(polygon: Position[], x: number, y: number): boolean {
-        const { scale } = this;
-        if (scale == null) return false;
-
-        let [x0, y0] = scale.convert(polygon[polygon.length - 1]);
-        let x1 = 0;
-        let y1 = 0;
-        let inside = false;
-
-        for (let i = 0; i < polygon.length; i += 1) {
-            [x1, y1] = scale.convert(polygon[i]);
-
-            if (y1 > y !== y0 > y && x < ((x0 - x1) * (y - y1)) / (y0 - y1) + x1) {
-                inside = !inside;
-            }
-
-            x0 = x1;
-            y0 = y1;
-        }
-
-        return inside;
     }
 
     private drawGeometry(geometry: Geometry, bbox: BBox | undefined): BBox | undefined {
@@ -161,17 +118,14 @@ export class GeoGeometry extends Path {
         bbox: BBox | undefined,
         isClosed: boolean
     ): BBox | undefined {
-        const { scale } = this;
-
-        if (scale == null || coordinates.length < 2) return bbox;
+        if (coordinates.length < 2) return bbox;
 
         // For polygons (i.e. closed), the start and end coordinates are the same
         // Use closePath instead so the path draws its miters correctly
         const end = isClosed ? coordinates.length - 1 : coordinates.length;
 
         for (let i = 0; i < end; i += 1) {
-            const lonLat = coordinates[i];
-            const [x, y] = scale.convert(lonLat);
+            const [x, y] = coordinates[i];
 
             if (i === 0) {
                 path.moveTo(x, y);
@@ -194,7 +148,7 @@ export class GeoGeometry extends Path {
         }
 
         if (isClosed) {
-            this.path.closePath();
+            path.closePath();
         }
 
         return bbox;
