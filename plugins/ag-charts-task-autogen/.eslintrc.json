@@ -15,13 +15,6 @@
       "rules": {}
     },
     {
-      "files": ["*.json"],
-      "parser": "jsonc-eslint-parser",
-      "rules": {
-        "@nx/dependency-checks": "error"
-      }
-    },
-    {
       "files": ["./package.json", "./executors.json"],
       "parser": "jsonc-eslint-parser",
       "rules": {
