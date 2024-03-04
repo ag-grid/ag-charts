@@ -5,8 +5,6 @@ import type { DefinedZoomState, ZoomCoords } from './zoomTypes';
 import { constrainZoom, definedZoomState, dx, dy, pointToRatio, scaleZoomAxisWithAnchor } from './zoomUtils';
 
 export class ZoomAxisDragger {
-    public isAxisDragging: boolean = false;
-
     private coords?: ZoomCoords;
     private oldZoom?: DefinedZoomState;
 
@@ -18,8 +16,6 @@ export class ZoomAxisDragger {
         zoom?: _ModuleSupport.AxisZoomState,
         axisZoom?: _ModuleSupport.ZoomState
     ): _ModuleSupport.ZoomState {
-        this.isAxisDragging = true;
-
         // Store the initial zoom state, merged with the state for this axis
         this.oldZoom ??= definedZoomState(
             direction === _ModuleSupport.ChartAxisDirection.X ? { ...zoom, x: axisZoom } : { ...zoom, y: axisZoom }
@@ -30,7 +26,6 @@ export class ZoomAxisDragger {
     }
 
     stop() {
-        this.isAxisDragging = false;
         this.coords = undefined;
         this.oldZoom = undefined;
     }
