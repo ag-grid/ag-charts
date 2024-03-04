@@ -6,5 +6,5 @@ import type { ISeries } from './series/seriesTypes';
 export interface ChartService {
     readonly mode: ChartMode;
     readonly title?: CaptionLike;
-    readonly series: ISeries<any>[];
+    readonly series: ISeries<any, any>[];
 }

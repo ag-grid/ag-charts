@@ -6,6 +6,8 @@ import { COLOR_STRING, LINE_CAP, POSITIVE_NUMBER, Validate } from '../../../util
 export class RangeHandle extends Path {
     static override readonly className = 'RangeHandle';
 
+    override zIndex = 3;
+
     @Validate(COLOR_STRING)
     protected _fill = '#f2f2f2';
 
@@ -89,6 +91,11 @@ export class RangeHandle extends Path {
     }
     get height(): number {
         return this._height;
+    }
+
+    layout(x: number, y: number) {
+        this.centerX = x;
+        this.centerY = y;
     }
 
     override computeBBox() {

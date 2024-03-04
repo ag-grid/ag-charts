@@ -4,13 +4,15 @@ import type { DataController } from '../data/dataController';
 import type { DataModel, DataModelOptions, ProcessedData, PropertyDefinition } from '../data/dataModel';
 import type { SeriesNodeDataContext } from './series';
 import { Series } from './series';
+import type { SeriesProperties } from './seriesProperties';
 import type { SeriesNodeDatum } from './seriesTypes';
 
 export abstract class DataModelSeries<
     TDatum extends SeriesNodeDatum,
+    TProps extends SeriesProperties<any>,
     TLabel = TDatum,
     TContext extends SeriesNodeDataContext<TDatum, TLabel> = SeriesNodeDataContext<TDatum, TLabel>,
-> extends Series<TDatum, TLabel, TContext> {
+> extends Series<TDatum, TProps, TLabel, TContext> {
     protected dataModel?: DataModel<any, any, any>;
     protected processedData?: ProcessedData<any>;
 

@@ -23,7 +23,12 @@ import { Layers } from '../../layers';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
 import { DataModelSeries } from '../dataModelSeries';
-import type { SeriesNodeDataContext, SeriesNodeEventTypes, SeriesNodePickMatch } from '../series';
+import type {
+    SeriesDirectionKeysMapping,
+    SeriesNodeDataContext,
+    SeriesNodeEventTypes,
+    SeriesNodePickMatch,
+} from '../series';
 import { SeriesNodeEvent } from '../series';
 import type { SeriesGroupZIndexSubOrderType } from '../seriesLayerManager';
 import { SeriesProperties } from '../seriesProperties';
@@ -46,13 +51,19 @@ interface SubGroup<TNode extends Node, TDatum extends SeriesNodeDatum, TLabel = 
     labelSelection: Selection<Text, TLabel>;
     markerSelection?: Selection<Marker, TDatum>;
 }
-interface SeriesOpts<TNode extends Node, TDatum extends CartesianSeriesNodeDatum, TLabel extends SeriesNodeDatum> {
+
+type CartesianSeriesOpts<
+    TNode extends Node,
+    TProps extends CartesianSeriesProperties<any>,
+    TDatum extends CartesianSeriesNodeDatum,
+    TLabel extends SeriesNodeDatum,
+> = {
     pathsPerSeries: number;
     pathsZIndexSubOrderOffset: number[];
     hasMarkers: boolean;
     hasHighlightedLabels: boolean;
-    directionKeys: { [key in ChartAxisDirection]?: string[] };
-    directionNames: { [key in ChartAxisDirection]?: string[] };
+    directionKeys: SeriesDirectionKeysMapping<TProps>;
+    directionNames: SeriesDirectionKeysMapping<TProps>;
     datumSelectionGarbageCollection: boolean;
     markerSelectionGarbageCollection: boolean;
     animationAlwaysUpdateSelections: boolean;
@@ -62,16 +73,16 @@ interface SeriesOpts<TNode extends Node, TDatum extends CartesianSeriesNodeDatum
         label?: (node: Text, datum: TLabel) => AnimationValue & Partial<Text>;
         marker?: (node: Marker, datum: TDatum) => AnimationValue & Partial<Marker>;
     };
-}
-
-const DEFAULT_DIRECTION_KEYS: { [key in ChartAxisDirection]?: string[] } = {
-    [ChartAxisDirection.X]: ['xKey'],
-    [ChartAxisDirection.Y]: ['yKey'],
 };
 
-const DEFAULT_DIRECTION_NAMES: { [key in ChartAxisDirection]?: string[] } = {
-    [ChartAxisDirection.X]: ['xName'],
-    [ChartAxisDirection.Y]: ['yName'],
+export const DEFAULT_CARTESIAN_DIRECTION_KEYS = {
+    [ChartAxisDirection.X]: ['xKey' as const],
+    [ChartAxisDirection.Y]: ['yKey' as const],
+};
+
+export const DEFAULT_CARTESIAN_DIRECTION_NAMES = {
+    [ChartAxisDirection.X]: ['xName' as const],
+    [ChartAxisDirection.Y]: ['yName' as const],
 };
 
 export class CartesianSeriesNodeEvent<TEvent extends string = SeriesNodeEventTypes> extends SeriesNodeEvent<
@@ -84,7 +95,7 @@ export class CartesianSeriesNodeEvent<TEvent extends string = SeriesNodeEventTyp
         type: TEvent,
         nativeEvent: MouseEvent,
         datum: SeriesNodeDatum,
-        series: ISeries<SeriesNodeDatum> & { properties: { xKey?: string; yKey?: string } }
+        series: ISeries<SeriesNodeDatum, { xKey?: string; yKey?: string }>
     ) {
         super(type, nativeEvent, datum, series);
         this.xKey = series.properties.xKey;
@@ -136,12 +147,11 @@ export interface CartesianSeriesNodeDataContext<
 
 export abstract class CartesianSeries<
     TNode extends Node,
+    TProps extends CartesianSeriesProperties<any>,
     TDatum extends CartesianSeriesNodeDatum,
     TLabel extends SeriesNodeDatum = TDatum,
     TContext extends CartesianSeriesNodeDataContext<TDatum, TLabel> = CartesianSeriesNodeDataContext<TDatum, TLabel>,
-> extends DataModelSeries<TDatum, TLabel, TContext> {
-    abstract override properties: CartesianSeriesProperties<any>;
-
+> extends DataModelSeries<TDatum, TProps, TLabel, TContext> {
     private _contextNodeData: TContext[] = [];
     get contextNodeData() {
         return this._contextNodeData.slice();
@@ -168,7 +178,7 @@ export abstract class CartesianSeries<
         dirtyNodeData: true,
     };
 
-    private readonly opts: SeriesOpts<TNode, TDatum, TLabel>;
+    private readonly opts: CartesianSeriesOpts<TNode, TProps, TDatum, TLabel>;
     private readonly debug = Debug.create();
 
     protected animationState: StateMachine<CartesianAnimationState, CartesianAnimationEvent>;
@@ -178,14 +188,16 @@ export abstract class CartesianSeries<
         hasMarkers = false,
         hasHighlightedLabels = false,
         pathsZIndexSubOrderOffset = [],
-        directionKeys = DEFAULT_DIRECTION_KEYS,
-        directionNames = DEFAULT_DIRECTION_NAMES,
         datumSelectionGarbageCollection = true,
         markerSelectionGarbageCollection = true,
         animationAlwaysUpdateSelections = false,
         animationResetFns,
+        directionKeys,
+        directionNames,
         ...otherOpts
-    }: Partial<SeriesOpts<TNode, TDatum, TLabel>> & ConstructorParameters<typeof DataModelSeries>[0]) {
+    }: Partial<CartesianSeriesOpts<TNode, TProps, TDatum, TLabel>> &
+        Pick<CartesianSeriesOpts<TNode, TProps, TDatum, TLabel>, 'directionKeys' | 'directionNames'> &
+        ConstructorParameters<typeof DataModelSeries<TDatum, TProps, TLabel>>[0]) {
         super({
             directionKeys,
             directionNames,
@@ -193,6 +205,8 @@ export abstract class CartesianSeries<
             canHaveAxes: true,
             ...otherOpts,
         });
+
+        if (!directionKeys || !directionNames) throw new Error(`Unable to initialise series type ${this.type}`);
 
         this.opts = {
             pathsPerSeries,

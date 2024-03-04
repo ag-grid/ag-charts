@@ -10,7 +10,7 @@ class ExampleHierarchySeriesProperties extends HierarchySeriesProperties<any> {
     readonly tooltip: SeriesTooltip<any> = null!;
 }
 
-class ExampleHierarchySeries extends HierarchySeries<any> {
+class ExampleHierarchySeries extends HierarchySeries<any, any> {
     override properties = new ExampleHierarchySeriesProperties();
 
     override getSeriesDomain(_direction: ChartAxisDirection): any[] {

@@ -1,93 +1,99 @@
 import type { ModuleInstance } from '../../module/baseModule';
 import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
-import { BBox } from '../../scene/bbox';
-import { debounce } from '../../util/function';
+import type { BBox } from '../../scene/bbox';
+import type { Group } from '../../scene/group';
+import { Logger } from '../../util/logger';
 import { clamp } from '../../util/number';
-import { ObserveChanges, ProxyProperty } from '../../util/proxy';
-import { BOOLEAN, OBJECT, POSITIVE_NUMBER, Validate } from '../../util/validation';
-import { InteractionState } from '../interaction/interactionManager';
+import { ActionOnSet, ObserveChanges } from '../../util/proxy';
+import { BOOLEAN, OBJECT, POSITIVE_NUMBER, RATIO, Validate } from '../../util/validation';
+import { InteractionEvent, InteractionState } from '../interaction/interactionManager';
+import type { ZoomChangeEvent } from '../interaction/zoomManager';
 import { RangeHandle } from './shapes/rangeHandle';
 import { RangeMask } from './shapes/rangeMask';
 import { RangeSelector } from './shapes/rangeSelector';
 
-interface Offset {
-    offsetX: number;
-    offsetY: number;
-}
-
 export class Navigator extends BaseModuleInstance implements ModuleInstance {
-    protected readonly rs = new RangeSelector();
-
     @Validate(OBJECT, { optional: true })
-    miniChart: unknown = undefined;
-
-    private minHandleDragging = false;
-    private maxHandleDragging = false;
-    private panHandleOffset = NaN;
+    public miniChart: unknown = undefined;
 
     @Validate(BOOLEAN)
     @ObserveChanges<Navigator>((target) => target.updateGroupVisibility())
-    enabled: boolean = false;
+    public enabled: boolean = false;
 
-    @ProxyProperty('rs.mask')
-    mask!: RangeMask;
-
-    @ProxyProperty('rs.minHandle')
-    minHandle!: RangeHandle;
-
-    @ProxyProperty('rs.maxHandle')
-    maxHandle!: RangeHandle;
-
-    height: number = 30;
-
-    @ProxyProperty('rs.min')
-    min!: number;
-
-    @ProxyProperty('rs.max')
-    max!: number;
+    public mask = new RangeMask();
+    public minHandle = new RangeHandle();
+    public maxHandle = new RangeHandle();
 
     @Validate(POSITIVE_NUMBER)
-    margin: number = 10;
+    public height: number = 30;
 
-    @Validate(BOOLEAN)
-    @ObserveChanges<Navigator>((target) => target.updateGroupVisibility())
-    visible: boolean = true;
+    @Validate(POSITIVE_NUMBER)
+    public margin: number = 10;
 
-    private updateGroupVisibility() {
-        const visible = Boolean(this.enabled && this.visible);
-        if (visible === this.rs.visible) return;
-        this.rs.visible = visible;
+    @Validate(RATIO, { optional: true })
+    @ActionOnSet<Navigator>({
+        newValue(min) {
+            this._min = min;
+            this.updateZoom(min, this._max);
+        },
+    })
+    public min?: number;
 
-        if (visible) {
-            this.onRangeChange();
-        }
-    }
+    @Validate(RATIO, { optional: true })
+    @ActionOnSet<Navigator>({
+        newValue(max) {
+            this._max = max;
+            this.updateZoom(this._min, max);
+        },
+    })
+    public max?: number;
+
+    protected x = 0;
+    protected y = 0;
+    protected width = 0;
+
+    private rangeSelector = new RangeSelector([this.mask, this.minHandle, this.maxHandle]);
+
+    private dragging?: 'min' | 'max' | 'pan';
+    private panStart?: number;
+    private _min = 0;
+    private _max = 1;
+
+    private minRange = 0.001;
 
     constructor(private readonly ctx: ModuleContext) {
         super();
 
-        this.rs.onRangeChange = debounce(() => this.onRangeChange());
-
-        const region = ctx.regionManager.addRegion('navigator', this.rs);
+        const region = ctx.regionManager.addRegion('navigator', this.rangeSelector);
         const dragStates = InteractionState.Default | InteractionState.Animation | InteractionState.ZoomDrag;
         this.destroyFns.push(
-            ctx.scene.attachNode(this.rs),
+            ctx.scene.attachNode(this.rangeSelector),
+            region.addListener('hover', (event) => this.onHover(event), dragStates),
             region.addListener('drag-start', (event) => this.onDragStart(event), dragStates),
             region.addListener('drag', (event) => this.onDrag(event), dragStates),
-            region.addListener('hover', (event) => this.onDrag(event), dragStates),
-            region.addListener('leave', (event) => this.onDrag(event), dragStates),
-            region.addListener('drag-end', () => this.onDragStop(), dragStates),
-            ctx.zoomManager.addListener('zoom-change', () => this.onZoomChange()),
-            () => delete this.rs.onRangeChange
+            region.addListener('drag-end', () => this.onDragEnd(), dragStates),
+            region.addListener('leave', (event) => this.onLeave(event), dragStates),
+            ctx.zoomManager.addListener('zoom-change', (event) => this.onZoomChange(event))
         );
 
         this.updateGroupVisibility();
     }
 
-    protected x = 0;
-    protected y = 0;
-    protected width = 0;
+    public updateBackground(oldGroup?: Group, newGroup?: Group) {
+        this.rangeSelector?.updateBackground(oldGroup, newGroup);
+    }
+
+    private updateGroupVisibility() {
+        const { enabled } = this;
+
+        if (this.rangeSelector == null || enabled === this.rangeSelector.visible) return;
+        this.rangeSelector.visible = enabled;
+
+        if (enabled) {
+            this.updateZoom(this._min, this._max);
+        }
+    }
 
     async performLayout({ shrinkRect }: { shrinkRect: BBox }): Promise<{ shrinkRect: BBox }> {
         if (this.enabled) {
@@ -103,116 +109,132 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
 
     async performCartesianLayout(opts: { seriesRect: BBox }): Promise<void> {
         const { x, width } = opts.seriesRect;
-        const visible = true;
-        if (this.enabled && visible) {
-            const { y, height } = this;
-            this.rs.layout(x, y, width, height);
-        }
 
-        this.visible = visible;
+        if (this.enabled) {
+            const { y, height } = this;
+            this.layoutNodes(x, y, width, height);
+        }
 
         this.x = x;
         this.width = width;
     }
 
-    private onRangeChange() {
+    private onHover(event: InteractionEvent<'hover'>) {
         if (!this.enabled) return;
-        const { min, max } = this.rs;
-        const zoom = this.ctx.zoomManager.getZoom();
-        if (zoom?.x?.min !== min || zoom?.x?.max !== max) {
-            this.ctx.zoomManager.updateZoom('navigator', { x: { min, max }, y: zoom?.y }, false);
+
+        const { mask, minHandle, maxHandle } = this;
+        const { offsetX, offsetY } = event;
+
+        if (minHandle.containsPoint(offsetX, offsetY) || maxHandle.containsPoint(offsetX, offsetY)) {
+            this.ctx.cursorManager.updateCursor('navigator', 'ew-resize');
+        } else if (mask.computeVisibleRangeBBox().containsPoint(offsetX, offsetY)) {
+            this.ctx.cursorManager.updateCursor('navigator', 'grab');
         }
     }
 
-    private onZoomChange() {
+    private onDragStart(event: InteractionEvent<'drag-start'>) {
         if (!this.enabled) return;
-        const currentZoom = this.ctx.zoomManager.getZoom();
-        if (currentZoom?.x) {
-            this.rs.mask.setMin(currentZoom.x.min);
-            this.rs.mask.setMax(currentZoom.x.max);
-        }
-    }
 
-    private onDragStart(offset: Offset) {
-        if (!this.enabled) {
-            return;
-        }
-
-        const { offsetX, offsetY } = offset;
-        const { rs } = this;
-        const { minHandle, maxHandle, min } = rs;
-        const { x, width } = this;
-        const visibleRange = rs.computeVisibleRangeBBox();
-
-        if (this.minHandleDragging || this.maxHandleDragging) return;
+        const { mask, minHandle, maxHandle, x, width, _min: min } = this;
+        const { offsetX, offsetY } = event;
 
         if (minHandle.zIndex < maxHandle.zIndex) {
             if (maxHandle.containsPoint(offsetX, offsetY)) {
-                this.maxHandleDragging = true;
+                this.dragging = 'max';
             } else if (minHandle.containsPoint(offsetX, offsetY)) {
-                this.minHandleDragging = true;
+                this.dragging = 'min';
             }
         } else if (minHandle.containsPoint(offsetX, offsetY)) {
-            this.minHandleDragging = true;
+            this.dragging = 'min';
         } else if (maxHandle.containsPoint(offsetX, offsetY)) {
-            this.maxHandleDragging = true;
+            this.dragging = 'max';
         }
 
-        if (!this.minHandleDragging && !this.maxHandleDragging && visibleRange.containsPoint(offsetX, offsetY)) {
-            this.panHandleOffset = (offsetX - x) / width - min;
-        }
-    }
+        if (this.dragging != null) return;
 
-    private onDrag(offset: Offset & { type: 'drag' | 'leave' | 'hover' }) {
-        if (!this.enabled) {
-            return;
-        }
-
-        const { rs, panHandleOffset } = this;
-        const { minHandle, maxHandle } = rs;
-        const { x, y, width, height } = this;
-        const { offsetX, offsetY } = offset;
-        const minX = x + width * rs.min;
-        const maxX = x + width * rs.max;
-        const visibleRange = new BBox(minX, y, maxX - minX, height);
-
-        const getRatio = () => clamp(0, (offsetX - x) / width, 1);
-
-        if (offset.type !== 'drag') {
-            if (minHandle.containsPoint(offsetX, offsetY) || maxHandle.containsPoint(offsetX, offsetY)) {
-                this.ctx.cursorManager.updateCursor('navigator', 'ew-resize');
-            } else if (visibleRange.containsPoint(offsetX, offsetY)) {
-                this.ctx.cursorManager.updateCursor('navigator', 'grab');
-            } else {
-                this.ctx.cursorManager.updateCursor('navigator');
-            }
-        }
-
-        if (this.minHandleDragging) {
-            rs.min = getRatio();
-        } else if (this.maxHandleDragging) {
-            rs.max = getRatio();
-        } else if (!isNaN(panHandleOffset)) {
-            const span = rs.max - rs.min;
-            const min = Math.min(getRatio() - panHandleOffset, 1 - span);
-            if (min <= rs.min) {
-                // pan left
-                rs.min = min;
-                rs.max = rs.min + span;
-            } else {
-                // pan right
-                rs.max = min + span;
-                rs.min = rs.max - span;
-            }
+        if (mask.computeVisibleRangeBBox().containsPoint(offsetX, offsetY)) {
+            this.dragging = 'pan';
+            this.panStart = (offsetX - x) / width - min;
         }
     }
 
-    private onDragStop() {
-        this.stopHandleDragging();
+    private onDrag(event: InteractionEvent<'drag'>) {
+        if (!this.enabled || this.dragging == null) return;
+
+        const { dragging, minRange, panStart, x, width } = this;
+        let { _min: min, _max: max } = this;
+        const { offsetX } = event;
+
+        const ratio = (offsetX - x) / width;
+
+        if (dragging === 'min') {
+            min = clamp(0, ratio, max - minRange);
+        } else if (dragging === 'max') {
+            max = clamp(min + minRange, ratio, 1);
+        } else if (dragging === 'pan' && panStart != null) {
+            const span = max - min;
+            min = clamp(0, ratio - panStart, 1 - span);
+            max = min + span;
+        }
+
+        this.updateZoom(min, max);
     }
 
-    private stopHandleDragging() {
-        this.minHandleDragging = this.maxHandleDragging = false;
-        this.panHandleOffset = NaN;
+    private onDragEnd() {
+        this.dragging = undefined;
+        this.ctx.cursorManager.updateCursor('navigator');
+    }
+
+    private onLeave(_event: InteractionEvent<'leave'>) {
+        if (this.dragging == null) {
+            this.ctx.cursorManager.updateCursor('navigator');
+        }
+    }
+
+    private onZoomChange(event: ZoomChangeEvent) {
+        const { x } = event;
+        if (!x) return;
+
+        this._min = x.min;
+        this._max = x.max;
+        this.updateNodes(x.min, x.max);
+    }
+
+    private layoutNodes(x: number, y: number, width: number, height: number) {
+        const { rangeSelector, mask, minHandle, maxHandle, _min: min, _max: max } = this;
+
+        rangeSelector.layout(x, y, width, height);
+        mask.layout(x, y, width, height);
+
+        minHandle.layout(x + width * min, y + height / 2);
+        maxHandle.layout(x + width * max, y + height / 2);
+
+        if (min + (max - min) / 2 < 0.5) {
+            minHandle.zIndex = 3;
+            maxHandle.zIndex = 4;
+        } else {
+            minHandle.zIndex = 4;
+            maxHandle.zIndex = 3;
+        }
+    }
+
+    private updateNodes(min: number, max: number) {
+        this.mask.update(min, max);
+    }
+
+    private updateZoom(min?: number, max?: number) {
+        if (!this.enabled) return;
+
+        const zoom = this.ctx.zoomManager.getZoom();
+        if (min == null || max == null) return;
+
+        const warnOnConflict = (stateId: string) => {
+            if (this.min == null && this.max == null) return;
+            Logger.warnOnce(
+                `Could not apply [navigator.min] or [navigator.max] as [${stateId}] has modified the initial zoom state.`
+            );
+        };
+
+        return this.ctx.zoomManager.updateZoom('navigator', { x: { min, max }, y: zoom?.y }, false, warnOnConflict);
     }
 }

@@ -39,7 +39,11 @@ class RadarSeriesNodeEvent<
     }
 }
 
-export abstract class RadarSeries extends _ModuleSupport.PolarSeries<RadarNodeDatum, _Scene.Marker> {
+export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
+    RadarNodeDatum,
+    RadarSeriesProperties<any>,
+    _Scene.Marker
+> {
     static readonly className: string = 'RadarSeries';
 
     override properties = new RadarSeriesProperties();

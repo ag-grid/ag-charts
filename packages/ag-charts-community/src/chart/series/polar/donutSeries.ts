@@ -91,7 +91,7 @@ enum PieNodeTag {
     Label,
 }
 
-export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
+export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperties, Sector> {
     static readonly className = 'DonutSeries';
     static readonly type = 'donut' as const;
 
@@ -192,7 +192,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
         }
 
         let { data } = this;
-        const { seriesItemEnabled } = this;
+        const { visible, seriesItemEnabled } = this;
         const { angleKey, radiusKey, calloutLabelKey, sectorLabelKey, legendItemKey } = this.properties;
 
         const animationEnabled = !this.ctx.animationManager.isSkipped();
@@ -240,7 +240,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
         }
         extraProps.push(animationValidation(this));
 
-        data = data.map((d, idx) => (seriesItemEnabled[idx] ? d : { ...d, [angleKey]: 0 }));
+        data = data.map((d, idx) => (visible && seriesItemEnabled[idx] ? d : { ...d, [angleKey]: 0 }));
 
         await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
@@ -681,7 +681,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
 
     private async updateNodes(seriesRect: BBox) {
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
-        const isVisible = this.seriesItemEnabled.indexOf(true) >= 0;
+        const isVisible = this.visible && this.seriesItemEnabled.indexOf(true) >= 0;
         this.rootGroup.visible = isVisible;
         this.backgroundGroup.visible = isVisible;
         this.contentGroup.visible = isVisible;

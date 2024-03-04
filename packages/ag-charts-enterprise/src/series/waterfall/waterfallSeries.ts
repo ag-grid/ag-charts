@@ -23,6 +23,8 @@ const {
     seriesLabelFadeInAnimation,
     resetLabelFn,
     animationValidation,
+    DEFAULT_CARTESIAN_DIRECTION_KEYS,
+    DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } = _ModuleSupport;
 const { ContinuousScale, Rect, motion } = _Scene;
 const { sanitizeHtml, isContinuous, isNumber } = _Util;
@@ -65,6 +67,7 @@ type WaterfallAnimationData = _ModuleSupport.CartesianAnimationData<
 
 export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     _Scene.Rect,
+    WaterfallSeriesProperties,
     WaterfallNodeDatum,
     WaterfallNodeDatum,
     WaterfallContext
@@ -77,6 +80,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
+            directionKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
+            directionNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
             pathsPerSeries: 1,
             hasHighlightedLabels: true,

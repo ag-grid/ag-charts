@@ -18,12 +18,11 @@ export abstract class AbstractBarSeriesProperties<T extends object> extends Cart
 
 export abstract class AbstractBarSeries<
     TNode extends Node,
+    TProps extends AbstractBarSeriesProperties<any>,
     TDatum extends CartesianSeriesNodeDatum,
     TLabel extends SeriesNodeDatum = TDatum,
     TContext extends CartesianSeriesNodeDataContext<TDatum, TLabel> = CartesianSeriesNodeDataContext<TDatum, TLabel>,
-> extends CartesianSeries<TNode, TDatum, TLabel, TContext> {
-    abstract override properties: AbstractBarSeriesProperties<any>;
-
+> extends CartesianSeries<TNode, TProps, TDatum, TLabel, TContext> {
     /**
      * Used to get the position of bars within each group.
      */

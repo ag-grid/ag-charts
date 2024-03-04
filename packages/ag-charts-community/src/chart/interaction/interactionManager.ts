@@ -405,7 +405,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
             deltaY = factorFn(event.deltaY);
         }
 
-        // AG-8880 Because we are using listeners globally on the canaves, click events are always fired
+        // AG-8880 Because we are using listeners globally on the canvases, click events are always fired
         // whenever the mouse button is lifted. The pointerHistory allows listeners to check that click events
         // are only fired when both the mousedown & mouseup events are in the revelant bounding area.
         let pointerHistory: PointerHistoryEvent[] = [];

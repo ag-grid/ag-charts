@@ -22,9 +22,15 @@ export interface AgZoomOptions {
      * Default: `middle`
      */
     anchorPointY?: AgZoomAnchorPoint;
-    /** The axes on which to zoom, one of `xy`, `x`, or `y`. */
+    /**
+     * The axes on which to zoom, one of `xy`, `x`, or `y`.
+     * Default: `x`
+     */
     axes?: AgZoomAxes;
-    /** Set to `true` to enable the zoom module, defaults to `false`. */
+    /**
+     *  Set to `true` to enable the zoom module.
+     * Default: `false`
+     */
     enabled?: boolean;
     /**
      * Set to `true` to enable dragging an axis to zoom series attached to that axis.
@@ -63,22 +69,22 @@ export interface AgZoomOptions {
     minVisibleItemsY?: number;
     /**
      * The initial minimum x-axis position of the zoom, as a ratio of the full chart.
-     * Default: '0'
+     * Default: `0`
      */
     minX?: number;
     /**
      * The initial maximum x-axis position of the zoom, as a ratio of the full chart.
-     * Default: '1'
+     * Default: `1`
      */
     maxX?: number;
     /**
      * The initial minimum y-axis position of the zoom, as a ratio of the full chart.
-     * Default: '0'
+     * Default: `0`
      */
     minY?: number;
     /**
      * The initial maximum y-axis position of the zoom, as a ratio of the full chart.
-     * Default: '1'
+     * Default: `1`
      */
     maxY?: number;
     /**

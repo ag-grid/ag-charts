@@ -209,7 +209,7 @@ export class SeriesNodeEvent<TDatum extends SeriesNodeDatum, TEvent extends stri
         readonly type: TEvent,
         readonly event: MouseEvent,
         { datum }: TDatum,
-        series: ISeries<TDatum>
+        series: ISeries<TDatum, unknown>
     ) {
         this.datum = datum;
         this.seriesId = series.id;
@@ -230,11 +230,15 @@ enum SeriesHighlight {
 
 export type SeriesModuleMap = ModuleMap<SeriesOptionModule, SeriesOptionInstance, SeriesContext>;
 
+export type SeriesDirectionKeysMapping<P extends SeriesProperties<any>> = {
+    [key in ChartAxisDirection]?: (keyof P & string)[];
+};
+
 export class SeriesGroupingChangedEvent implements TypedEvent {
     type = 'groupingChanged';
 
     constructor(
-        public series: Series<any>,
+        public series: Series<any, any>,
         public seriesGrouping: SeriesGrouping | undefined,
         public oldGrouping: SeriesGrouping | undefined
     ) {}
@@ -242,18 +246,19 @@ export class SeriesGroupingChangedEvent implements TypedEvent {
 
 export abstract class Series<
         TDatum extends SeriesNodeDatum,
+        TProps extends SeriesProperties<any>,
         TLabel = TDatum,
         TContext extends SeriesNodeDataContext<TDatum, TLabel> = SeriesNodeDataContext<TDatum, TLabel>,
     >
     extends Observable
-    implements ISeries<TDatum>
+    implements ISeries<TDatum, TProps>
 {
     protected destroyFns: (() => void)[] = [];
-    abstract readonly properties: SeriesProperties<any>;
+    abstract readonly properties: TProps;
 
     pickModes: SeriesNodePickMode[];
 
-    @ActionOnSet<Series<TDatum, TLabel>>({
+    @ActionOnSet<Series<TDatum, TProps, TLabel>>({
         changeValue: function (newVal, oldVal) {
             this.onSeriesGroupingChange(oldVal, newVal);
         },
@@ -298,7 +303,7 @@ export abstract class Series<
     chart?: {
         mode: ChartMode;
         isMiniChart: boolean;
-        placeLabels(): Map<Series<any>, PlacedLabel[]>;
+        placeLabels(): Map<Series<any, any>, PlacedLabel[]>;
         seriesRect?: BBox;
     };
 
@@ -308,8 +313,8 @@ export abstract class Series<
     };
 
     directions: ChartAxisDirection[] = [ChartAxisDirection.X, ChartAxisDirection.Y];
-    private readonly directionKeys: { [key in ChartAxisDirection]?: string[] };
-    private readonly directionNames: { [key in ChartAxisDirection]?: string[] };
+    private readonly directionKeys: SeriesDirectionKeysMapping<TProps>;
+    private readonly directionNames: SeriesDirectionKeysMapping<TProps>;
 
     // Flag to determine if we should recalculate node data.
     protected nodeDataRefresh = true;
@@ -375,8 +380,8 @@ export abstract class Series<
         useLabelLayer?: boolean;
         pickModes?: SeriesNodePickMode[];
         contentGroupVirtual?: boolean;
-        directionKeys?: { [key in ChartAxisDirection]?: string[] };
-        directionNames?: { [key in ChartAxisDirection]?: string[] };
+        directionKeys?: SeriesDirectionKeysMapping<TProps>;
+        directionNames?: SeriesDirectionKeysMapping<TProps>;
         canHaveAxes?: boolean;
     }) {
         super();

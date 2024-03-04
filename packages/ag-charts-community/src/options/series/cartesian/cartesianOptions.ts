@@ -84,6 +84,10 @@ export interface AgCategoryAxisOptions extends AgBaseCartesianAxisOptions {
     tick?: AgAxisCategoryTickOptions;
 }
 
+export interface AgOrdinalTimeAxisOptions extends Omit<AgCategoryAxisOptions, 'type'> {
+    type: 'ordinal-time';
+}
+
 export interface AgGroupedCategoryAxisOptions extends AgBaseCartesianAxisOptions {
     type: 'grouped-category';
     /** Configuration for the axis ticks. */
@@ -104,12 +108,13 @@ export interface AgTimeAxisOptions extends AgBaseCartesianAxisOptions {
 
 export type AgCartesianAxisPosition = 'top' | 'right' | 'bottom' | 'left';
 
-export type AgCartesianAxisType = 'category' | 'grouped-category' | 'number' | 'log' | 'time';
+export type AgCartesianAxisType = 'category' | 'grouped-category' | 'ordinal-time' | 'number' | 'log' | 'time';
 
 export type AgCartesianAxisOptions =
     | AgNumberAxisOptions
     | AgLogAxisOptions
     | AgCategoryAxisOptions
+    | AgOrdinalTimeAxisOptions
     | AgGroupedCategoryAxisOptions
     | AgTimeAxisOptions;
 
@@ -157,6 +162,10 @@ export interface AgLogAxisThemeOptions
 export interface AgCategoryAxisThemeOptions
     extends Omit<AgCategoryAxisOptions, 'type' | 'crossLines'>,
         AgCartesianAxisThemeOptions<AgCategoryAxisOptions>,
+        AgCartesianAxesCrossLineThemeOptions {}
+export interface AgOrdinalTimeAxisThemeOptions
+    extends Omit<AgOrdinalTimeAxisOptions, 'type' | 'crossLines'>,
+        AgCartesianAxisThemeOptions<AgOrdinalTimeAxisOptions>,
         AgCartesianAxesCrossLineThemeOptions {}
 export interface AgGroupedCategoryAxisThemeOptions
     extends Omit<AgGroupedCategoryAxisOptions, 'type' | 'crossLines'>,

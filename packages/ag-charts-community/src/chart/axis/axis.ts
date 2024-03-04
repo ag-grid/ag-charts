@@ -172,7 +172,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     abstract get direction(): ChartAxisDirection;
 
-    boundSeries: ISeries<unknown>[] = [];
+    boundSeries: ISeries<unknown, unknown>[] = [];
     includeInvisibleDomains: boolean = false;
 
     interactionEnabled = true;
@@ -1051,8 +1051,13 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                 }
                 break;
             case TickGenerationType.CREATE_SECONDARY:
-                // `updateSecondaryAxisTicks` mutates `scale.domain` based on `primaryTickCount`
-                rawTicks = this.updateSecondaryAxisTicks(primaryTickCount);
+                if (ContinuousScale.is(scale)) {
+                    // `updateSecondaryAxisTicks` mutates `scale.domain` based on `primaryTickCount`
+                    rawTicks = this.updateSecondaryAxisTicks(primaryTickCount);
+                } else {
+                    // AG-10654 Just use normal ticks for categoric axes.
+                    rawTicks = this.createTicks(tickCount, minTickCount, maxTickCount);
+                }
                 break;
             case TickGenerationType.FILTER:
                 rawTicks = this.filterTicks(previousTicks, tickCount);

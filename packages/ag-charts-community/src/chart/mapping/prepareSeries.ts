@@ -2,16 +2,27 @@ import type { AgChartOptionsNext } from '../../options/chart/chartBuilderOptions
 import { jsonDiff } from '../../util/json';
 import type { ISeries } from '../series/seriesTypes';
 
-export function matchSeriesOptions<S extends ISeries<any>>(
+const MATCHING_KEYS = [
+    'direction',
+    'xKey',
+    'yKey',
+    'sizeKey',
+    'angleKey',
+    'radiusKey',
+    'normalizedTo',
+    'stacked',
+    'grouped',
+    'stackGroup',
+];
+
+export function matchSeriesOptions<S extends ISeries<any, any>>(
     series: S[],
     optSeries: NonNullable<AgChartOptionsNext['series']>,
     oldOptsSeries?: AgChartOptionsNext['series']
 ) {
-    const keysToConsider = ['direction', 'xKey', 'yKey', 'sizeKey', 'angleKey', 'radiusKey', 'normalizedTo'];
-
     const generateKey = (type: string | undefined, i: any) => {
         const result = [type];
-        for (const key of keysToConsider) {
+        for (const key of MATCHING_KEYS) {
             if (key in i && i[key] != null) result.push(`${key}=${i[key]}`);
         }
         return result.join(';');
@@ -62,7 +73,10 @@ export function matchSeriesOptions<S extends ISeries<any>>(
             const previousOpts = oldOptsSeries?.[outputIdx] ?? {};
             const diff = jsonDiff(previousOpts, opts ?? {}) as any;
 
-            if (diff) {
+            const { groupIndex, stackIndex } = diff?.seriesGrouping ?? {};
+            if (groupIndex != null || stackIndex != null) {
+                changes.push({ opts, series: outputSeries, diff, idx: outputIdx, status: 'series-grouping' as const });
+            } else if (diff) {
                 changes.push({ opts, series: outputSeries, diff, idx: outputIdx, status: 'update' as const });
             } else {
                 changes.push({ opts, series: outputSeries, idx: outputIdx, status: 'no-op' as const });

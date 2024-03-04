@@ -53,7 +53,11 @@ const STYLING_KEYS: (keyof _Scene.Shape)[] = [
 
 type BulletAnimationData = _ModuleSupport.CartesianAnimationData<_Scene.Rect, BulletNodeDatum>;
 
-export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, BulletNodeDatum> {
+export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
+    _Scene.Rect,
+    BulletSeriesProperties,
+    BulletNodeDatum
+> {
     override properties = new BulletSeriesProperties();
 
     private normalizedColorRanges: NormalizedColorRange[] = [];
@@ -64,6 +68,8 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
+            directionKeys: { y: ['targetKey', 'valueKey'] },
+            directionNames: { y: ['targetName', 'valueName'] },
             pickModes: [_ModuleSupport.SeriesNodePickMode.EXACT_SHAPE_MATCH],
             hasHighlightedLabels: true,
             animationResetFns: {

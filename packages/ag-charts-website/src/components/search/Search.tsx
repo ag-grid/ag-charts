@@ -1,76 +1,69 @@
-import { ASTRO_ALGOLIA_APP_ID, ASTRO_ALGOLIA_SEARCH_KEY } from '@constants';
-import gridStyles from '@design-system/modules/Search.module.scss';
-import algoliasearch from 'algoliasearch/lite';
-import { createRef, useMemo, useState } from 'react';
-import { InstantSearch, connectSearchBox } from 'react-instantsearch-dom';
+import styles from '@design-system/modules/Search.module.scss';
+import { useStore } from '@nanostores/react';
+import { $internalFramework } from '@stores/frameworkStore';
+import { getFrameworkFromInternalFramework } from '@utils/framework';
+import React, { useEffect, useMemo, useState } from 'react';
 
-import SearchBox from './SearchBox';
-import SearchResult from './SearchResult';
-import { useClickOutside } from './useClickOutside';
+import { Icon } from '../icon/Icon';
+import SearchModal from './SearchModal';
 
 /**
+ * grid-packages/ag-grid-docs/documentation
  * The website uses Algolia to power its search functionality. This component builds on components provided by Algolia
  * to render the search box and results.
  */
-const Search = ({ currentFramework, isDev }) => {
-    const [query, setQuery] = useState();
+const Search = () => {
+    const internalFramework = useStore($internalFramework);
+    const currentFramework = useMemo(() => getFrameworkFromInternalFramework(internalFramework), [internalFramework]);
 
-    // It is important to memoise the client, otherwise we end up creating a new one on every re-render, resulting in
-    // no caching and multiple repeated queries!
-    const algoliaClient = useMemo(() => algoliasearch(ASTRO_ALGOLIA_APP_ID, ASTRO_ALGOLIA_SEARCH_KEY), []);
-    const searchClient = useMemo(
-        () => ({
-            ...algoliaClient,
-            search(requests) {
-                if (requests.every(({ params }) => !params.query)) {
-                    return Promise.resolve({
-                        results: requests.map(() => ({
-                            hits: [],
-                            nbHits: 0,
-                            nbPages: 0,
-                            page: 0,
-                            processingTimeMS: 0,
-                        })),
-                    });
-                }
+    const [isOpen, setOpen] = useState(false);
+    const [isMac, setMac] = useState(false);
 
-                return algoliaClient.search(requests);
-            },
-        }),
-        [algoliaClient]
-    );
+    // done inside effect as window won't be available for SSR.
+    useEffect(() => {
+        const isMacLike =
+            typeof window !== 'undefined' &&
+            typeof window.navigator !== 'undefined' &&
+            (/(Mac|iPhone|iPod|iPad)/i.test(navigator.platform) ||
+                /(Mac|iPhone|iPod|iPad)/i.test(navigator.userAgentData?.platform));
+        setMac(isMacLike);
+    }, []);
 
-    const indices = [{ name: `ag-charts${isDev ? '-dev' : ''}_${currentFramework}` }];
+    /**
+     * When search is mounted, add global listeners to open/close the search
+     */
+    useEffect(() => {
+        const onKeyDownAnywhere = (e) => {
+            const isMetaK = e.key === 'k' && (e.metaKey || e.ctrlKey);
+
+            if (isMetaK) {
+                // use the callback so we don't need to update the func ref,
+                // and start removing/adding the callback, which would be messy
+                setOpen((open) => !open);
+                return;
+            }
+
+            const isEsc = e.key === 'Escape';
+            if (isEsc) {
+                setOpen(false);
+            }
+        };
+
+        document.addEventListener('keydown', onKeyDownAnywhere);
+        return () => document.removeEventListener('keydown', onKeyDownAnywhere);
+    }, []);
 
     return (
-        <InstantSearch
-            searchClient={searchClient}
-            indexName={indices[0].name}
-            onSearchStateChange={({ query }) => setQuery(query)}
-        >
-            <SearchComponents indices={indices} query={query} />
-        </InstantSearch>
+        <>
+            <div className={styles.headerSearchBox} onClick={() => setOpen(true)}>
+                <Icon name="search" svgClasses={styles.searchIcon} />
+                <span className={styles.placeholder}>Search...</span>
+                <span className={styles.kbdShortcut}>{isMac ? `⌘ K` : `Ctrl K`}</span>
+            </div>
+
+            <SearchModal isOpen={isOpen} currentFramework={currentFramework} closeModal={() => setOpen(false)} />
+        </>
     );
 };
-
-const SearchComponents = connectSearchBox(({ indices, query, refine }) => {
-    const rootRef = createRef();
-    const [hasFocus, setFocus] = useState(false);
-    const showResults = query && query.length > 0 && hasFocus;
-    const onResultClicked = () => {
-        setFocus(false);
-        refine('');
-    };
-
-    useClickOutside(rootRef, () => setFocus(false));
-
-    return (
-        <div className={gridStyles.searchForm} ref={rootRef}>
-            <SearchBox onFocus={() => setFocus(true)} hasFocus={hasFocus} delay={250} resultsOpen={showResults} />
-
-            <SearchResult show={showResults} indices={indices} onResultClicked={onResultClicked} />
-        </div>
-    );
-});
 
 export default Search;

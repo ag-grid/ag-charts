@@ -556,4 +556,27 @@ describe('Axis Examples', () => {
             });
         }
     });
+
+    describe('AG-10654', () => {
+        it('should render secondary category axis', async () => {
+            chart = await createChart({
+                data: [
+                    { quarter: 'Q1', quarter2: 'Q21', petrol: 200, diesel: 100 },
+                    { quarter: 'Q2', quarter2: 'Q22', petrol: 300, diesel: 130 },
+                    { quarter: 'Q3', quarter2: 'Q23', petrol: 350, diesel: 160 },
+                    { quarter: 'Q4', quarter2: 'Q24', petrol: 400, diesel: 200 },
+                ],
+                series: [
+                    { type: 'line', xKey: 'quarter', yKey: 'petrol' },
+                    { type: 'line', xKey: 'quarter2', yKey: 'diesel' },
+                ],
+                axes: [
+                    { type: 'category', position: 'top', keys: ['quarter'] },
+                    { type: 'category', position: 'bottom', keys: ['quarter2'] },
+                    { type: 'number', position: 'left' },
+                ],
+            });
+            await compare();
+        });
+    });
 });

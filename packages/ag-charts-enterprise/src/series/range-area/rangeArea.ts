@@ -26,15 +26,6 @@ const {
 const { getMarker, PointerEvents } = _Scene;
 const { sanitizeHtml, extent, isNumber } = _Util;
 
-const DEFAULT_DIRECTION_KEYS = {
-    [_ModuleSupport.ChartAxisDirection.X]: ['xKey'],
-    [_ModuleSupport.ChartAxisDirection.Y]: ['yLowKey', 'yHighKey'],
-};
-const DEFAULT_DIRECTION_NAMES = {
-    [ChartAxisDirection.X]: ['xName'],
-    [ChartAxisDirection.Y]: ['yLowName', 'yHighName', 'yName'],
-};
-
 type RangeAreaLabelDatum = Readonly<_Scene.Point> & {
     text: string;
     textAlign: CanvasTextAlign;
@@ -74,6 +65,7 @@ type RadarAreaPathDatum = {
 
 export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     _Scene.Group,
+    RangeAreaProperties,
     RangeAreaMarkerDatum,
     RangeAreaLabelDatum,
     RangeAreaContext
@@ -90,8 +82,14 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             moduleCtx,
             hasMarkers: true,
             pathsPerSeries: 2,
-            directionKeys: DEFAULT_DIRECTION_KEYS,
-            directionNames: DEFAULT_DIRECTION_NAMES,
+            directionKeys: {
+                [ChartAxisDirection.X]: ['xKey'],
+                [ChartAxisDirection.Y]: ['yLowKey', 'yHighKey'],
+            },
+            directionNames: {
+                [ChartAxisDirection.X]: ['xName'],
+                [ChartAxisDirection.Y]: ['yLowName', 'yHighName', 'yName'],
+            },
             animationResetFns: {
                 path: buildResetPathFn({ getOpacity: () => this.getOpacity() }),
                 label: resetLabelFn,

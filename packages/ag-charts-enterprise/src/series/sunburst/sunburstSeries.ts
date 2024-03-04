@@ -58,7 +58,11 @@ enum TextNodeTag {
     Secondary,
 }
 
-export class SunburstSeries extends _ModuleSupport.HierarchySeries<_Scene.Group, _ModuleSupport.SeriesNodeDatum> {
+export class SunburstSeries extends _ModuleSupport.HierarchySeries<
+    _Scene.Group,
+    SunburstSeriesProperties,
+    _ModuleSupport.SeriesNodeDatum
+> {
     static readonly className = 'SunburstSeries';
     static readonly type = 'sunburst' as const;
 

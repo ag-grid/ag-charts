@@ -108,7 +108,23 @@
         "commands": ["nx run-many -t test --parallel 1", "nx run-many -t validate-examples"]
       }
     },
-    "clean": { "command": "rimraf dist/ 'packages/*/dist/'" }
+    "clean": { "command": "rimraf dist/ 'packages/*/dist/'" },
+    "generate-docs-example": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "nx run ag-charts-website-src_content_docs_{args.page}__examples_{args.example}_main.ts:generate-example --skip-nx-cache"
+        ]
+      }
+    },
+    "generate-gallery-example": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "nx run ag-charts-website-src_content_gallery__examples_{args.example}_main.ts:generate-example --skip-nx-cache"
+        ]
+      }
+    }
   },
   "implicitDependencies": [
     "ag-charts-community",

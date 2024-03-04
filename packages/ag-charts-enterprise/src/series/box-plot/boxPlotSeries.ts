@@ -42,7 +42,11 @@ class BoxPlotSeriesNodeEvent<
     }
 }
 
-export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup, BoxPlotNodeDatum> {
+export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
+    BoxPlotGroup,
+    BoxPlotSeriesProperties,
+    BoxPlotNodeDatum
+> {
     static readonly type = 'box-plot' as const;
 
     override properties = new BoxPlotSeriesProperties();
@@ -53,6 +57,14 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup
         super({
             moduleCtx,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            directionKeys: {
+                x: ['xKey'],
+                y: ['medianKey', 'q1Key', 'q3Key', 'minKey', 'maxKey'],
+            },
+            directionNames: {
+                x: ['xName'],
+                y: ['medianName', 'q1Name', 'q3Name', 'minName', 'maxName'],
+            },
             pathsPerSeries: 1,
             hasHighlightedLabels: true,
         });

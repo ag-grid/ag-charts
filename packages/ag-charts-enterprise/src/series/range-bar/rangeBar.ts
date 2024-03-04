@@ -26,15 +26,6 @@ const {
 const { ContinuousScale, Rect, PointerEvents, motion } = _Scene;
 const { sanitizeHtml, isNumber, extent } = _Util;
 
-const DEFAULT_DIRECTION_KEYS = {
-    [_ModuleSupport.ChartAxisDirection.X]: ['xKey'],
-    [_ModuleSupport.ChartAxisDirection.Y]: ['yLowKey', 'yHighKey'],
-};
-const DEFAULT_DIRECTION_NAMES = {
-    [ChartAxisDirection.X]: ['xName'],
-    [ChartAxisDirection.Y]: ['yLowName', 'yHighName', 'yName'],
-};
-
 type Bounds = {
     x: number;
     y: number;
@@ -95,6 +86,7 @@ class RangeBarSeriesNodeEvent<
 
 export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     _Scene.Rect,
+    RangeBarProperties,
     RangeBarNodeDatum,
     RangeBarNodeLabelDatum
 > {
@@ -110,8 +102,14 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             moduleCtx,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
             hasHighlightedLabels: true,
-            directionKeys: DEFAULT_DIRECTION_KEYS,
-            directionNames: DEFAULT_DIRECTION_NAMES,
+            directionKeys: {
+                x: ['xKey'],
+                y: ['yLowKey', 'yHighKey'],
+            },
+            directionNames: {
+                x: ['xName'],
+                y: ['yLowName', 'yHighName', 'yName'],
+            },
             datumSelectionGarbageCollection: false,
             animationResetFns: {
                 datum: resetBarSelectionsFn,
