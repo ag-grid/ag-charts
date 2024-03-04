@@ -343,7 +343,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.container = container;
 
         const { All } = InteractionState;
-        const seriesRegion = this.regionManager.addRegion('series', this.seriesRoot);
+        const seriesRegion = this.regionManager.addRegion('series', this.seriesRoot, this.axisGroup);
         const sizeMonitor = new SizeMonitor(window, document);
         this.sizeMonitor = sizeMonitor;
         sizeMonitor.observe(this.element, (size) => this.rawResize(size));

@@ -25,8 +25,8 @@ function nodeArea<V>(elem: BBoxElem<V>): number {
 export class BBoxSet<V> {
     private elems: BBoxElem<V>[] = [];
 
-    add(value: V, getter: BBoxProvider): void {
-        this.elems.push({ value, getter });
+    add(value: V, getters: BBoxProvider[]): void {
+        getters.forEach((getter) => this.elems.push({ value, getter }));
     }
 
     find(x: number, y: number): V[] {

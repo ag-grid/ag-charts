@@ -34,6 +34,13 @@ const CONTEXT_PAN_ACTION_ID = 'pan-action';
 const CURSOR_ID = 'zoom-cursor';
 const TOOLTIP_ID = 'zoom-tooltip';
 
+enum DragState {
+    None,
+    Axis,
+    Pan,
+    Select,
+}
+
 export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     private static UpdateZoomOnSet(prop: 'minX' | 'maxX' | 'minY' | 'maxY') {
         return ActionOnSet<Zoom>({
@@ -129,8 +136,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private readonly scrollPanner = new ZoomScrollPanner();
 
     // State
-    private isDragging = false;
-    private canDragSelection?: boolean;
+    private dragState = DragState.None;
     private hoveredAxis?: { id: string; direction: _ModuleSupport.ChartAxisDirection };
     private shouldFlipXY?: boolean;
     private minRatioX = 0;
@@ -157,14 +163,15 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const { Default, ZoomDrag, Animation } = _ModuleSupport.InteractionState;
         const draggableState = Default | Animation | ZoomDrag;
         const clickableState = Default | Animation;
+        const region = ctx.regionManager.getRegion('series');
         this.destroyFns.push(
             this.scene.attachNode(selectionRect),
-            ctx.interactionManager.addListener('dblclick', (event) => this.onDoubleClick(event), clickableState),
-            ctx.interactionManager.addListener('drag', (event) => this.onDrag(event), draggableState),
-            ctx.interactionManager.addListener('drag-start', (event) => this.onDragStart(event), draggableState),
-            ctx.interactionManager.addListener('drag-end', () => this.onDragEnd(), draggableState),
-            ctx.interactionManager.addListener('wheel', (event) => this.onWheel(event), clickableState),
-            ctx.interactionManager.addListener('hover', () => this.onHover(), clickableState),
+            region.addListener('dblclick', (event) => this.onDoubleClick(event), clickableState),
+            region.addListener('drag', (event) => this.onDrag(event), draggableState),
+            region.addListener('drag-start', (event) => this.onDragStart(event), draggableState),
+            region.addListener('drag-end', () => this.onDragEnd(), draggableState),
+            region.addListener('wheel', (event) => this.onWheel(event), clickableState),
+            region.addListener('hover', () => this.onHover(), clickableState),
             ctx.chartEventManager.addListener('axis-hover', (event) => this.onAxisHover(event)),
             ctx.gestureDetector.addListener('pinch-move', (event) => this.onPinchMove(event as PinchEvent)),
             ctx.layoutService.addListener('layout-complete', (event) => this.onLayoutComplete(event)),
@@ -249,7 +256,31 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     private onDragStart(event: _ModuleSupport.InteractionEvent<'drag-start'>) {
         if (!this.enabled || !this.paddedRect) return;
-        this.canDragSelection = this.paddedRect.containsPoint(event.offsetX, event.offsetY);
+
+        // Determine which ZoomDrag behaviour to use.
+        let newDragState = DragState.None;
+
+        if (this.enableAxisDragging && this.hoveredAxis) {
+            newDragState = DragState.Axis;
+        }
+        // Panning & Selection can only happen inside the series rect:
+        else if (this.paddedRect.containsPoint(event.offsetX, event.offsetY)) {
+            const panKeyPressed = this.isPanningKeyPressed(event.sourceEvent as DragEvent);
+            // Allow panning if either selection is disabled or the panning key is pressed.
+            if (this.enablePanning && (!this.enableSelecting || panKeyPressed)) {
+                this.cursorManager.updateCursor(CURSOR_ID, 'grabbing');
+                newDragState = DragState.Pan;
+            }
+            // Do not allow selection only if fully zoomed in or when the pankey is pressed
+            else {
+                const fullyZoomedIn = this.isMinZoom(definedZoomState(this.zoomManager.getZoom()));
+                if (!fullyZoomedIn && !panKeyPressed) {
+                    newDragState = DragState.Select;
+                }
+            }
+        }
+
+        this.dragState = newDragState;
     }
 
     private onDrag(event: _ModuleSupport.InteractionEvent<'drag'>) {
@@ -257,81 +288,73 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         this.ctx.interactionManager.pushState(_ModuleSupport.InteractionState.ZoomDrag);
 
-        const sourceEvent = event.sourceEvent as DragEvent;
-
-        const isPrimaryMouseButton = sourceEvent.button === 0;
-        if (!isPrimaryMouseButton) return;
-
-        this.isDragging = true;
-        this.tooltipManager.updateTooltip(TOOLTIP_ID);
-
         const zoom = definedZoomState(this.zoomManager.getZoom());
 
-        if (this.enableAxisDragging && this.hoveredAxis) {
-            const { id: axisId, direction } = this.hoveredAxis;
-            const anchor = direction === _ModuleSupport.ChartAxisDirection.X ? this.anchorPointX : this.anchorPointY;
-            const axisZoom = this.zoomManager.getAxisZoom(axisId);
-            const newZoom = this.axisDragger.update(event, direction, anchor, this.seriesRect, zoom, axisZoom);
-            this.updateAxisZoom(axisId, direction, newZoom);
-            return;
-        }
+        switch (this.dragState) {
+            case DragState.Axis:
+                if (!this.hoveredAxis) break;
 
-        // Prevent the user from dragging outside the series rect (if not on an axis)
-        if (!this.paddedRect.containsPoint(event.offsetX, event.offsetY)) {
-            return;
-        }
-
-        // Allow panning if either selection is disabled or the panning key is pressed.
-        if (this.enablePanning && (!this.enableSelecting || this.isPanningKeyPressed(sourceEvent))) {
-            const newZooms = this.panner.update(event, this.seriesRect, this.zoomManager.getAxisZooms());
-            for (const [axisId, { direction, zoom: newZoom }] of Object.entries(newZooms)) {
+                const { id: axisId, direction } = this.hoveredAxis;
+                const anchor =
+                    direction === _ModuleSupport.ChartAxisDirection.X ? this.anchorPointX : this.anchorPointY;
+                const axisZoom = this.zoomManager.getAxisZoom(axisId);
+                const newZoom = this.axisDragger.update(event, direction, anchor, this.seriesRect, zoom, axisZoom);
                 this.updateAxisZoom(axisId, direction, newZoom);
-            }
-            this.cursorManager.updateCursor(CURSOR_ID, 'grabbing');
-            return;
+                break;
+
+            case DragState.Pan:
+                const newZooms = this.panner.update(event, this.seriesRect, this.zoomManager.getAxisZooms());
+                for (const [panAxisId, { direction: panDirection, zoom: panZoom }] of Object.entries(newZooms)) {
+                    this.updateAxisZoom(panAxisId, panDirection, panZoom);
+                }
+                break;
+
+            case DragState.Select:
+                this.selector.update(
+                    event,
+                    this.minRatioX,
+                    this.minRatioY,
+                    this.isScalingX(),
+                    this.isScalingY(),
+                    this.paddedRect,
+                    zoom
+                );
+                break;
+
+            case DragState.None:
+                return;
         }
 
-        // If the user stops pressing the panKey but continues dragging, we shouldn't go to selection until they stop
-        // dragging and click to start a new drag.
-        const canSelect = this.enableSelecting && this.canDragSelection !== false;
-        const isPanning = this.panner.isPanning || this.isPanningKeyPressed(sourceEvent);
-        if (!canSelect || isPanning || this.isMinZoom(zoom)) {
-            return;
-        }
-
-        this.selector.update(
-            event,
-            this.minRatioX,
-            this.minRatioY,
-            this.isScalingX(),
-            this.isScalingY(),
-            this.paddedRect,
-            zoom
-        );
-
+        this.tooltipManager.updateTooltip(TOOLTIP_ID);
         this.updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
     }
 
     private onDragEnd() {
         // Stop single clicks from triggering drag end and resetting the zoom
-        if (!this.enabled || !this.isDragging) return;
+        if (!this.enabled || this.dragState === DragState.None) return;
 
         this.ctx.interactionManager.popState(_ModuleSupport.InteractionState.ZoomDrag);
 
-        const zoom = definedZoomState(this.zoomManager.getZoom());
+        switch (this.dragState) {
+            case DragState.Axis:
+                this.axisDragger.stop();
+                break;
 
-        this.cursorManager.updateCursor(CURSOR_ID);
+            case DragState.Pan:
+                this.panner.stop();
+                break;
 
-        if (this.enableAxisDragging && this.axisDragger.isAxisDragging) {
-            this.axisDragger.stop();
-        } else if (this.enablePanning && this.panner.isPanning) {
-            this.panner.stop();
-        } else if (this.enableSelecting && !this.isMinZoom(zoom) && this.canDragSelection) {
-            const newZoom = this.selector.stop(this.seriesRect, this.paddedRect, zoom);
-            this.updateZoom(newZoom);
+            case DragState.Select:
+                const zoom = definedZoomState(this.zoomManager.getZoom());
+                if (!this.isMinZoom(zoom)) {
+                    const newZoom = this.selector.stop(this.seriesRect, this.paddedRect, zoom);
+                    this.updateZoom(newZoom);
+                }
+                break;
         }
 
-        this.isDragging = false;
+        this.dragState = DragState.None;
+        this.cursorManager.updateCursor(CURSOR_ID);
         this.tooltipManager.removeTooltip(TOOLTIP_ID);
     }
 
