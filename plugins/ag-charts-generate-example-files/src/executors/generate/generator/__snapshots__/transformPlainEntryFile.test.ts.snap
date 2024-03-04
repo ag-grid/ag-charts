@@ -1,0 +1,67 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`transformPlainEntryFile Adjust padding 1`] = `
+{
+  "padding": {
+    "bottom": 30,
+    "left": 40,
+    "right": 20,
+    "top": 10,
+  },
+  "seriesArea": {
+    "padding": {
+      "left": 40,
+    },
+  },
+}
+`;
+
+exports[`transformPlainEntryFile Remove axes titles 1`] = `
+{
+  "axes": [
+    {
+      "position": "bottom",
+      "title": {
+        "text": "CATEGORY AXIS TITLE",
+      },
+      "type": "category",
+    },
+    {
+      "position": "left",
+      "title": {
+        "text": "NUMBER AXIS TITLE",
+      },
+      "type": "number",
+    },
+  ],
+}
+`;
+
+exports[`transformPlainEntryFile default entry file 1`] = `{}`;
+
+exports[`transformPlainEntryFile disable legend 1`] = `
+{
+  "legend": {
+    "enabled": true,
+    "text": "Test legend",
+  },
+}
+`;
+
+exports[`transformPlainEntryFile remove footnote 1`] = `
+{
+  "footnote": {
+    "enabled": true,
+    "text": "Test footnote",
+  },
+}
+`;
+
+exports[`transformPlainEntryFile remove subtitle 1`] = `
+{
+  "subtitle": {
+    "enabled": true,
+    "text": "Test Subtitle",
+  },
+}
+`;

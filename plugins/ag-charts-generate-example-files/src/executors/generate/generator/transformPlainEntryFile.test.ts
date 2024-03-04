@@ -1,6 +1,5 @@
 import util from 'node:util';
 
-import { patchOptions } from './patchOptions';
 import { transformPlainEntryFile } from './transformPlainEntryFile';
 
 const getEntryFile = (chartOptions: object) => {
@@ -20,7 +19,6 @@ const getChartsOptionsPlainEntryFile = (chartsOptions: object) => {
     const output = transformPlainEntryFile(sourceStr);
 
     const options = output.optionsById.get('container');
-    patchOptions(options, 'ag-default');
 
     return options;
 };

@@ -3,6 +3,7 @@ import path from 'path';
 
 import { readFile } from '../../../executors-utils';
 import { ANGULAR_GENERATED_MAIN_FILE_NAME, SOURCE_ENTRY_FILE_NAME } from './constants';
+import { transformPlainEntryFile } from './transformPlainEntryFile';
 import chartVanillaSrcParser from './transformation-scripts/chart-vanilla-src-parser';
 import type { GeneratedContents, InternalFramework } from './types';
 import {
@@ -61,6 +62,7 @@ type GeneratedContentParams = {
     folderPath: string;
     ignoreDarkMode?: boolean;
     isDev?: boolean;
+    extractOptions?: boolean;
 };
 
 /**
@@ -68,6 +70,7 @@ type GeneratedContentParams = {
  */
 export const getGeneratedContents = async (params: GeneratedContentParams): Promise<GeneratedContents | undefined> => {
     const { internalFramework, folderPath, ignoreDarkMode, isDev = false } = params;
+    let { extractOptions = false } = params;
     const sourceFileList = await fs.readdir(folderPath);
 
     if (!sourceFileList.includes(SOURCE_ENTRY_FILE_NAME)) {
@@ -76,6 +79,7 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
 
     const entryFile = await readFile(path.join(folderPath, SOURCE_ENTRY_FILE_NAME));
     const indexHtml = await readFile(path.join(folderPath, 'index.html'));
+    extractOptions ||= entryFile.includes('@ag-options-extract');
 
     const otherScriptFiles = await getOtherScriptFiles({
         folderPath,
@@ -133,6 +137,17 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
         ignoreDarkMode,
         isDev,
     });
+
+    if (internalFramework === 'vanilla' && ignoreDarkMode === true && extractOptions) {
+        const { optionsById } = transformPlainEntryFile(files[entryFileName], files['data.js']);
+
+        const jsonOptions = {};
+        for (const [id, options] of optionsById) {
+            jsonOptions[id] = options;
+        }
+
+        files['_options.json'] = JSON.stringify(jsonOptions);
+    }
 
     const result: GeneratedContents = {
         isEnterprise,

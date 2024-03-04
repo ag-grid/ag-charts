@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-implied-eval */
+
 /* eslint-disable no-console */
 import * as fs from 'fs';
 
@@ -7,13 +9,19 @@ const filters = [
     /container:/,
     /^Object\.defineProperty/,
     /^const (ag_charts_(community|enterprise)|data)_1 =/,
+    /agChartsDebug =/,
 ];
 
-const cleanJs = (content: string) =>
-    content
-        .split('\n')
-        .filter((line) => !filters.some((f) => f.test(line)))
-        .join('\n');
+function cleanJs(content: string) {
+    const filteredLines = content.split('\n').filter((line) => !filters.some((f) => f.test(line)));
+
+    const optionsEnd = filteredLines.findIndex((l) => l.includes('@ag-options-end'));
+    if (optionsEnd >= 0) {
+        filteredLines.splice(optionsEnd);
+    }
+
+    return filteredLines.join('\n');
+}
 
 export function loadExampleOptions(
     agCharts: { AgCharts: {}; time: {}; Marker: {} },

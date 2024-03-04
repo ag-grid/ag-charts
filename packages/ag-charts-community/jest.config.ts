@@ -29,6 +29,7 @@ const e2eTests = tests
     })
     .map(pathToGlob);
 const unitTests = tests.map(pathToGlob).filter((path) => !e2eTests.includes(path));
+const benchmarks = glob.sync('packages/ag-charts-community/benchmarks/**/*.test.ts').map(pathToGlob);
 
 const commonConfig = {
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node', 'html'],
@@ -46,23 +47,30 @@ if (process.env.CI != null || process.env.NX_TASK_TARGET_CONFIGURATION === 'ci')
     reporters.push(['jest-junit', { outputDirectory: 'reports', outputName: 'ag-charts-community.xml' }]);
 }
 
+const pathFix = (v: string) => v.replace('packages/ag-charts-community/', '**/');
 export default {
     reporters,
     projects: [
         {
             displayName: 'ag-charts-community - unit',
-            testMatch: unitTests.map((v) => v.replace('packages/ag-charts-community/', '**/')),
+            testMatch: unitTests.map(pathFix),
             ...commonConfig,
         },
         {
             displayName: 'ag-charts-community - e2e',
-            testMatch: e2eTests.map((v) => v.replace('packages/ag-charts-community/', '**/')),
+            testMatch: e2eTests.map(pathFix),
             slowTestThreshold: 15,
             // runner: 'jest-serial-runner',
             // WIP discussion: https://github.com/facebook/jest/issues/10936
             // maxWorkers: 1,
             // WIP discussion: https://github.com/facebook/jest/pull/10912
             // maxConcurrency: 1,
+            ...commonConfig,
+        },
+        {
+            displayName: 'ag-charts-community - benchmarks',
+            testMatch: benchmarks.map(pathFix),
+            runner: 'jest-serial-runner',
             ...commonConfig,
         },
     ],
