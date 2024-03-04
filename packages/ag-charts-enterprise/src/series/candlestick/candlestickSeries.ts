@@ -356,6 +356,10 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<
         });
     }
 
+    protected override isVertical(): boolean {
+        return true;
+    }
+
     protected isLabelEnabled(): boolean {
         return false;
     }
