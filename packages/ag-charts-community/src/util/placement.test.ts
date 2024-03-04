@@ -1,6 +1,6 @@
 import { calculatePlacement } from './placement';
 
-describe('calculatePosition function', () => {
+describe('calculatePlacement function', () => {
     const naturalWidth = 100;
     const naturalHeight = 100;
     const containerWidth = 500;
