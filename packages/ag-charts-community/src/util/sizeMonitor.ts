@@ -25,9 +25,9 @@ export class SizeMonitor {
         }
 
         this.resizeObserver = new ResizeObserver((entries: any) => {
-            for (const entry of entries) {
-                const { width, height } = entry.contentRect;
-                this.checkSize(this.elements.get(entry.target), entry.target, width, height);
+            for (const { target, contentRect } of entries) {
+                const { width, height } = contentRect;
+                this.checkSize(this.elements.get(target), target, width, height);
             }
         });
 
@@ -39,22 +39,18 @@ export class SizeMonitor {
             // If we attach before document.readyState === 'complete', then additional incorrect resize events
             // are fired, leading to multiple re-renderings on chart initial load. Waiting for the
             // document to be loaded irons out this browser quirk.
-            getWindow()?.addEventListener('load', this.onContentLoaded);
+            getWindow()?.addEventListener('load', this.onLoad);
         }
     }
 
-    onContentLoaded: EventListener = () => {
-        const newState = getDocument()?.readyState === 'complete';
-        const oldState = this.documentReady;
-        this.documentReady = newState;
-        if (newState && newState !== oldState) {
-            this.queuedObserveRequests.forEach(([el, cb]) => this.observe(el, cb));
-            this.queuedObserveRequests = [];
-        }
+    onLoad: EventListener = () => {
+        this.documentReady = true;
+        this.queuedObserveRequests.forEach(([el, cb]) => this.observe(el, cb));
+        this.queuedObserveRequests = [];
     };
 
     private destroy() {
-        getWindow()?.removeEventListener('load', this.onContentLoaded);
+        getWindow()?.removeEventListener('load', this.onLoad);
         this.resizeObserver?.disconnect();
         this.resizeObserver = null;
     }
