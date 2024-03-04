@@ -10,6 +10,8 @@ export class RangeSelector extends Group {
     private y = 0;
     private width = 200;
     private height = 30;
+    private lOffset = 0;
+    private rOffset = 0;
 
     constructor(children: Node[]) {
         super({ name: 'rangeSelectorGroup', layer: true, zIndex: Layers.NAVIGATOR_ZINDEX });
@@ -22,11 +24,13 @@ export class RangeSelector extends Group {
         this.append(children);
     }
 
-    layout(x: number, y: number, width: number, height: number) {
+    layout(x: number, y: number, width: number, height: number, lOffset: number, rOffset: number) {
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
+        this.lOffset = lOffset;
+        this.rOffset = rOffset;
 
         this.background.translationX = x;
         this.background.translationY = y;
@@ -43,7 +47,7 @@ export class RangeSelector extends Group {
     }
 
     override computeBBox() {
-        const { x, y, width, height } = this;
-        return new BBox(x, y, width, height);
+        const { x, y, width, height, lOffset, rOffset } = this;
+        return new BBox(x - lOffset, y, width + (lOffset + rOffset), height);
     }
 }

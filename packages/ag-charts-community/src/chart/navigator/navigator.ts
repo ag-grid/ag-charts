@@ -202,9 +202,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     private layoutNodes(x: number, y: number, width: number, height: number) {
         const { rangeSelector, mask, minHandle, maxHandle, _min: min, _max: max } = this;
 
-        const minOff = minHandle.width / 2;
-        const maxOff = maxHandle.width / 2;
-        rangeSelector.layout(x - minOff, y, width + minOff + maxOff, height);
+        rangeSelector.layout(x, y, width, height, minHandle.width / 2, maxHandle.width / 2);
         mask.layout(x, y, width, height);
 
         minHandle.layout(x + width * min, y + height / 2);
