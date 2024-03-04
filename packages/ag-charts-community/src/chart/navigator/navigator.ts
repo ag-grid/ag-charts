@@ -53,7 +53,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     protected y = 0;
     protected width = 0;
 
-    private rangeSelector = new RangeSelector(this.mask, this.minHandle, this.maxHandle);
+    private rangeSelector = new RangeSelector([this.mask, this.minHandle, this.maxHandle]);
 
     private dragging?: 'min' | 'max' | 'pan';
     private panStart?: number;
@@ -202,7 +202,9 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     private layoutNodes(x: number, y: number, width: number, height: number) {
         const { rangeSelector, mask, minHandle, maxHandle, _min: min, _max: max } = this;
 
-        rangeSelector.layout(x, y, width, height);
+        const minOff = minHandle.width / 2;
+        const maxOff = maxHandle.width / 2;
+        rangeSelector.layout(x - minOff, y, width + minOff + maxOff, height);
         mask.layout(x, y, width, height);
 
         minHandle.layout(x + width * min, y + height / 2);
