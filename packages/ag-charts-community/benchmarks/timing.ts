@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -18,10 +19,8 @@ export function logTimings() {
             result[name] = value;
         }
 
-        // eslint-disable no-console
         console.log(suitePath);
         console.table(result);
-        // eslint-enable no-console
     }
 }
 
