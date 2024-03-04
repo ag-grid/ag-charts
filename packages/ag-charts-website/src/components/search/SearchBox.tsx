@@ -1,14 +1,14 @@
 import styles from '@design-system/modules/SearchBox.module.scss';
 import React, { useEffect, useRef } from 'react';
-import { useSearchBox } from 'react-instantsearch';
+import { useHits, useSearchBox } from 'react-instantsearch';
 
 import { Icon } from '../icon/Icon';
 
 let timeout;
 
-export default () => {
+export default ({ selectedHit }) => {
     const { refine } = useSearchBox();
-
+    const { hits } = useHits();
     const inputRef = useRef();
 
     // capture the click of anything above the separator and redirect to the input
@@ -29,7 +29,7 @@ export default () => {
     };
 
     return (
-        <div className={styles.searchBox} onClick={onContainerClick}>
+        <div role="presentation" className={styles.searchBox} onClick={onContainerClick}>
             <Icon name="search" svgClasses={styles.searchIcon} />
 
             <input
@@ -38,6 +38,12 @@ export default () => {
                 placeholder="Search documentation..."
                 className={styles.searchInput}
                 onChange={onInputChanged}
+                role="combobox"
+                aria-activedescendant={`hit-${selectedHit}`}
+                aria-controls="search-hits"
+                aria-haspopup="search-hits"
+                aria-expanded={hits.length > 0}
+                aria-label="Press escape to close."
             />
         </div>
     );
