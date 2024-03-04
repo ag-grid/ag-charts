@@ -57,8 +57,6 @@ export class SizeMonitor {
         getWindow()?.removeEventListener('load', this.onContentLoaded);
         this.resizeObserver?.disconnect();
         this.resizeObserver = null;
-        (this as any).window = null;
-        (this as any).document = null;
     }
 
     private checkSize(entry: Entry | undefined, element: HTMLElement, width: number, height: number) {
