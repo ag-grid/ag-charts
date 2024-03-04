@@ -6,6 +6,7 @@ import type {
 } from '../../options/agChartOptions';
 import { BandScale } from '../../scale/bandScale';
 import { ContinuousScale } from '../../scale/continuousScale';
+import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { Scale } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
@@ -416,7 +417,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
     private getRange(): [any, any] {
         const { value, range, scale } = this;
 
-        const isContinuous = ContinuousScale.is(scale);
+        const isContinuous = ContinuousScale.is(scale) || OrdinalTimeScale.is(scale);
         const start = range?.[0] ?? value;
         let end = range?.[1];
 

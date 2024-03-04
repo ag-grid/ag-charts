@@ -22,6 +22,7 @@ const {
 const { motion } = _Scene;
 
 const { sanitizeHtml, Logger } = _Util;
+const { ContinuousScale, OrdinalTimeScale } = _Scale;
 
 class CandlestickSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
@@ -77,7 +78,11 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<
         const { xKey, openKey, closeKey, highKey, lowKey } = this.properties;
 
         const animationEnabled = !this.ctx.animationManager.isSkipped();
-        const isContinuousX = this.getCategoryAxis()?.scale instanceof _Scale.ContinuousScale;
+
+        const xScale = this.getCategoryAxis()?.scale;
+        const isContinuousX = ContinuousScale.is(xScale) || OrdinalTimeScale.is(xScale);
+        const xValueType = ContinuousScale.is(xScale) ? 'range' : 'category';
+
         const extraProps = [];
         if (animationEnabled && this.processedData) {
             extraProps.push(diff(this.processedData));
@@ -88,7 +93,7 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<
 
         const { processedData } = await this.requestDataModel(dataController, this.data ?? [], {
             props: [
-                keyProperty(this, xKey, isContinuousX, { id: `xValue` }),
+                keyProperty(this, xKey, isContinuousX, { id: `xValue`, valueType: xValueType }),
                 valueProperty(this, openKey, true, { id: `openValue` }),
                 valueProperty(this, closeKey, true, { id: `closeValue` }),
                 valueProperty(this, highKey, true, { id: `highValue` }),

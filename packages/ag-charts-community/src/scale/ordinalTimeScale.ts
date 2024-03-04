@@ -5,6 +5,10 @@ import { BandScale } from './bandScale';
 export class OrdinalTimeScale extends BandScale<Date> {
     override readonly type = 'ordinal-time';
 
+    static is(value: any): value is OrdinalTimeScale {
+        return value instanceof OrdinalTimeScale;
+    }
+
     toDomain(d: number): Date {
         return new Date(d);
     }
@@ -29,7 +33,7 @@ export class OrdinalTimeScale extends BandScale<Date> {
         const secondTick = ticks[1];
 
         if (ticks.length === 0 || !(firstTick instanceof Date) || !(secondTick instanceof Date)) {
-            return `${TIME_FORMAT_STRINGS[defaultTimeFormat]}`;
+            return ``;
         }
 
         switch (defaultTimeFormat) {

@@ -1,5 +1,5 @@
 import type { AgWaterfallSeriesItemType } from 'ag-charts-community';
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import type { WaterfallSeriesItem, WaterfallSeriesTotal } from './waterfallSeriesProperties';
 import { WaterfallSeriesProperties } from './waterfallSeriesProperties';
@@ -26,8 +26,9 @@ const {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } = _ModuleSupport;
-const { ContinuousScale, Rect, motion } = _Scene;
+const { Rect, motion } = _Scene;
 const { sanitizeHtml, isContinuous, isNumber } = _Util;
+const { ContinuousScale, OrdinalTimeScale } = _Scale;
 
 type WaterfallNodeLabelDatum = Readonly<_Scene.Point> & {
     readonly text: string;
@@ -149,7 +150,11 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             totalsMap.get(i)?.forEach((total) => dataWithTotals.push({ ...total.toJson(), [xKey]: total.axisLabel }));
         });
 
-        const isContinuousX = ContinuousScale.is(this.getCategoryAxis()?.scale);
+        const xScale = this.getCategoryAxis()?.scale;
+        const isContinuousX = ContinuousScale.is(xScale) || OrdinalTimeScale.is(xScale);
+
+        const xValueType = ContinuousScale.is(xScale) ? 'range' : 'category';
+
         const extraProps = [];
 
         if (!this.ctx.animationManager.isSkipped()) {
@@ -158,7 +163,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
         const { processedData } = await this.requestDataModel<any, any, true>(dataController, dataWithTotals, {
             props: [
-                keyProperty(this, xKey, isContinuousX, { id: `xValue` }),
+                keyProperty(this, xKey, isContinuousX, { id: `xValue`, valueType: xValueType }),
                 accumulativeValueProperty(this, yKey, true, {
                     ...propertyDefinition,
                     id: `yCurrent`,
