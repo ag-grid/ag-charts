@@ -2,7 +2,7 @@ import type { AgTooltipRendererResult, InteractionRange, TextWrap } from '../../
 import { BBox } from '../../scene/bbox';
 import { createElement, getDocument, getWindow, injectStyle } from '../../util/dom';
 import { clamp } from '../../util/number';
-import { Bounds, calculatePosition } from '../../util/position';
+import { Bounds, calculatePlacement } from '../../util/placement';
 import { BaseProperties } from '../../util/properties';
 import {
     BOOLEAN,
@@ -402,7 +402,7 @@ export class Tooltip {
         const maxLeft = windowBounds.x + windowBounds.width - element.clientWidth - 1;
         const maxTop = windowBounds.y + windowBounds.height - element.clientHeight;
 
-        const position = calculatePosition(
+        const position = calculatePlacement(
             element.clientWidth,
             element.clientHeight,
             canvasRect.width,
@@ -476,13 +476,8 @@ export class Tooltip {
         xOffset: number;
         canvasRect: DOMRect;
     }): Bounds {
-        const tooltipWidth = this.element.clientWidth;
-        const tooltipHeight = this.element.clientHeight;
-
-        const bounds: Bounds = {
-            width: tooltipWidth,
-            height: tooltipHeight,
-        };
+        const { clientWidth: tooltipWidth, clientHeight: tooltipHeight } = this.element;
+        const bounds: Bounds = { width: tooltipWidth, height: tooltipHeight };
 
         switch (positionType) {
             case 'node':
