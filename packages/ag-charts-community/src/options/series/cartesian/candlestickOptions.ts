@@ -41,7 +41,7 @@ export type AgCandlestickSeriesFormatterParams<TDatum> = AgSeriesFormatterParams
             Omit<AxisOptions, 'yKey'> &
             FillOptions &
             StrokeOptions & {
-                /** Identifier showing whether the data element is rising (`up`) or falling (`down`).* */
+                /** Identifier showing whether the data element is rising (`up`) or falling (`down`). */
                 itemId: AgCandlestickSeriesItemType;
                 highlighted: boolean;
             }
