@@ -7,7 +7,7 @@ export type Bounds = {
     height?: number;
 };
 
-export function calculatePosition(
+export function calculatePlacement(
     naturalWidth: number,
     naturalHeight: number,
     containerWidth: number,
