@@ -365,15 +365,15 @@ export class MapSeries extends DataModelSeries<
             nodeData.push(nodeDatum);
 
             const markers = projectedGeometry?.type === 'Point' ? markerCenters(projectedGeometry) : undefined;
-            markers?.forEach((position, index) => {
-                const size = sizeValue != null ? sizeScale.convert(sizeValue) : undefined;
+            markers?.forEach(([x, y], index) => {
+                const size = sizeValue != null ? sizeScale.convert(sizeValue) : 0;
+                const point = { x, y, size };
                 markerData.push({
                     ...nodeDatum,
                     type: MapNodeDatumType.Marker,
                     fill: color ?? marker.fill ?? fillProperty,
                     index,
-                    size,
-                    position,
+                    point,
                 });
             });
         });
@@ -503,6 +503,8 @@ export class MapSeries extends DataModelSeries<
             geoGeometry.strokeOpacity = highlightStyle?.strokeOpacity ?? properties.strokeOpacity;
             geoGeometry.lineDash = highlightStyle?.lineDash ?? properties.lineDash;
             geoGeometry.lineDashOffset = highlightStyle?.lineDashOffset ?? properties.lineDashOffset;
+
+            geoGeometry.lineJoin = 'round';
         });
     }
 
@@ -554,16 +556,16 @@ export class MapSeries extends DataModelSeries<
         const highlightStyle = isHighlight ? this.properties.highlightStyle.item : undefined;
 
         markerSelection.each((marker, markerDatum) => {
-            const [x, y] = this.scale!.convert(markerDatum.position);
+            const { point } = markerDatum;
 
-            marker.size = markerDatum.size ?? size;
+            marker.size = point.size > 0 ? point.size : size;
             marker.fill = highlightStyle?.fill ?? markerDatum.fill;
             marker.fillOpacity = highlightStyle?.fillOpacity ?? fillOpacity;
             marker.stroke = highlightStyle?.stroke ?? stroke;
             marker.strokeWidth = highlightStyle?.strokeWidth ?? strokeWidth;
             marker.strokeOpacity = highlightStyle?.strokeOpacity ?? strokeOpacity;
-            marker.translationX = x;
-            marker.translationY = y;
+            marker.translationX = point.x;
+            marker.translationY = point.y;
         });
 
         if (!isHighlight) {

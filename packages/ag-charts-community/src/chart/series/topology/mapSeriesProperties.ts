@@ -1,4 +1,4 @@
-import type { FeatureCollection, Geometry, Position } from 'geojson';
+import type { FeatureCollection, Geometry } from 'geojson';
 
 import type {
     AgMapSeriesFormatterParams,
@@ -9,6 +9,7 @@ import type {
     AgMapSeriesTooltipRendererParams,
 } from '../../../options/series/topology/mapOptions';
 import { SceneChangeDetection } from '../../../scene/node';
+import type { SizedPoint } from '../../../scene/point';
 import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { BaseProperties } from '../../../util/properties';
 import {
@@ -54,8 +55,7 @@ export interface MapNodeDatum extends BaseMapNodeDatum {
 export interface MapNodeMarkerDatum extends BaseMapNodeDatum {
     readonly type: MapNodeDatumType.Marker;
     readonly index: number;
-    readonly size: number | undefined;
-    readonly position: Position;
+    readonly point: Readonly<SizedPoint>;
 }
 
 class MapSeriesMarker extends SeriesMarker<AgMapSeriesOptionsKeys, MapNodeMarkerDatum> {
