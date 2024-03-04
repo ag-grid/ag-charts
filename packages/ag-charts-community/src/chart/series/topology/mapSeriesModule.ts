@@ -25,6 +25,12 @@ export const MapSeriesModule: SeriesModule<'map'> = {
             lineDash: [0],
             lineDashOffset: 0,
         },
+        legend: {
+            enabled: false,
+        },
+        gradientLegend: {
+            enabled: false,
+        },
     },
     // @ts-expect-error When the types are properly exposed, this error should disappear
     paletteFactory: (opts) => {

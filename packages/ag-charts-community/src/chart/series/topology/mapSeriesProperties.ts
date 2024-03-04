@@ -1,4 +1,4 @@
-import type { Feature, FeatureCollection, Position } from 'geojson';
+import type { FeatureCollection, Geometry, Position } from 'geojson';
 
 import type {
     AgMapSeriesFormatterParams,
@@ -9,12 +9,15 @@ import type {
     AgMapSeriesTooltipRendererParams,
 } from '../../../options/series/topology/mapOptions';
 import { SceneChangeDetection } from '../../../scene/node';
+import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
+import { BaseProperties } from '../../../util/properties';
 import {
     AND,
     ARRAY,
     COLOR_STRING,
     COLOR_STRING_ARRAY,
     FUNCTION,
+    LINE_DASH,
     NUMBER_ARRAY,
     OBJECT,
     PLAIN_OBJECT,
@@ -29,19 +32,27 @@ import { SeriesProperties } from '../seriesProperties';
 import { SeriesTooltip } from '../seriesTooltip';
 import type { SeriesNodeDatum } from '../seriesTypes';
 
-export interface MapNodeDatum extends SeriesNodeDatum {
+export interface MapNodeLabelDatum extends PointLabelDatum {}
+
+interface BaseMapNodeDatum extends SeriesNodeDatum {
+    readonly label: MapNodeLabelDatum | undefined;
     readonly fill: string;
     readonly colorValue: number | undefined;
     readonly sizeValue: number | undefined;
-    readonly feature: Feature | undefined;
+    readonly projectedGeometry: Geometry | undefined;
 }
 
-export interface MapNodeLabelDatum {
-    readonly position: Position;
-    readonly text: string;
+export enum MapNodeDatumType {
+    Node,
+    Marker,
 }
 
-export interface MapNodeMarkerDatum extends MapNodeDatum {
+export interface MapNodeDatum extends BaseMapNodeDatum {
+    readonly type: MapNodeDatumType.Node;
+}
+
+export interface MapNodeMarkerDatum extends BaseMapNodeDatum {
+    readonly type: MapNodeDatumType.Marker;
     readonly index: number;
     readonly size: number | undefined;
     readonly position: Position;
@@ -63,7 +74,42 @@ class MapSeriesMarker extends SeriesMarker<AgMapSeriesOptionsKeys, MapNodeMarker
     domain?: [number, number];
 }
 
+class MapSeriesBackground extends BaseProperties {
+    @Validate(PLAIN_OBJECT)
+    topology: FeatureCollection = { type: 'FeatureCollection', features: [] };
+
+    @Validate(STRING, { optional: true })
+    id: string | undefined = undefined;
+
+    @Validate(COLOR_STRING, { optional: true })
+    fill: string | undefined = undefined;
+
+    @Validate(RATIO, { optional: true })
+    fillOpacity: number | undefined = undefined;
+
+    @Validate(COLOR_STRING, { optional: true })
+    stroke: string | undefined = undefined;
+
+    @Validate(RATIO, { optional: true })
+    strokeOpacity: number | undefined = undefined;
+
+    @Validate(POSITIVE_NUMBER, { optional: true })
+    strokeWidth: number | undefined = undefined;
+
+    @Validate(LINE_DASH)
+    lineDash: number[] = [0];
+
+    @Validate(POSITIVE_NUMBER)
+    lineDashOffset: number = 0;
+}
+
 export class MapSeriesProperties extends SeriesProperties<AgMapSeriesOptions> {
+    @Validate(PLAIN_OBJECT)
+    topology: FeatureCollection = { type: 'FeatureCollection', features: [] };
+
+    @Validate(OBJECT)
+    readonly background = new MapSeriesBackground();
+
     @Validate(STRING, { optional: true })
     legendItemName?: string;
 
@@ -91,9 +137,6 @@ export class MapSeriesProperties extends SeriesProperties<AgMapSeriesOptions> {
     @Validate(AND(COLOR_STRING_ARRAY, ARRAY.restrict({ minLength: 1 })), { optional: true })
     colorRange: string[] | undefined = undefined;
 
-    @Validate(PLAIN_OBJECT)
-    topology: FeatureCollection = { type: 'FeatureCollection', features: [] };
-
     @Validate(COLOR_STRING)
     fill: string = 'black';
 
@@ -108,6 +151,12 @@ export class MapSeriesProperties extends SeriesProperties<AgMapSeriesOptions> {
 
     @Validate(POSITIVE_NUMBER)
     strokeWidth: number = 0;
+
+    @Validate(LINE_DASH)
+    lineDash: number[] = [0];
+
+    @Validate(POSITIVE_NUMBER)
+    lineDashOffset: number = 0;
 
     @Validate(FUNCTION, { optional: true })
     formatter?: (params: AgMapSeriesFormatterParams<any>) => AgMapSeriesStyle;
