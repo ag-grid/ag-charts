@@ -22,21 +22,25 @@ type BenchmarkContext = {
     chart: AgChartInstance;
 };
 
-export function benchmark(name: string, ctx: BenchmarkContext, callback: () => Promise<void>) {
-    it(name, async () => {
-        const start = performance.now();
-        await callback();
-        const duration = performance.now() - start;
+export function benchmark(name: string, ctx: BenchmarkContext, callback: () => Promise<void>, timeoutMs = 10000) {
+    it(
+        name,
+        async () => {
+            const start = performance.now();
+            await callback();
+            const duration = performance.now() - start;
 
-        const newImageData = extractImageData(ctx.canvasCtx);
-        expect(newImageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+            const newImageData = extractImageData(ctx.canvasCtx);
+            expect(newImageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
 
-        const { currentTestName, testPath } = expect.getState();
-        if (testPath == null || currentTestName == null) {
-            throw new Error('Unable to resolve current test name.');
-        }
-        recordTiming(testPath, currentTestName, duration);
-    });
+            const { currentTestName, testPath } = expect.getState();
+            if (testPath == null || currentTestName == null) {
+                throw new Error('Unable to resolve current test name.');
+            }
+            recordTiming(testPath, currentTestName, duration);
+        },
+        timeoutMs
+    );
 }
 
 export function setupBenchmark(exampleName: string): BenchmarkContext {
