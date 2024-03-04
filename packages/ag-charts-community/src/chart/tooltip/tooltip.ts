@@ -277,9 +277,9 @@ export class Tooltip {
             this.observer = observer;
         }
 
-        if (Tooltip.tooltipDocuments.indexOf(document) < 0) {
+        if (Tooltip.tooltipDocuments.indexOf(getDocument()) < 0) {
             injectStyle(defaultTooltipCss);
-            Tooltip.tooltipDocuments.push(document);
+            Tooltip.tooltipDocuments.push(getDocument());
         }
     }
 

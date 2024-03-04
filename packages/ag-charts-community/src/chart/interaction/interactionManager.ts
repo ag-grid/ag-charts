@@ -145,9 +145,9 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
             getWindow().addEventListener(type, this.eventHandler);
         }
 
-        if (!InteractionManager.interactionDocuments.includes(document)) {
+        if (!InteractionManager.interactionDocuments.includes(getDocument())) {
             injectStyle(CSS);
-            InteractionManager.interactionDocuments.push(document);
+            InteractionManager.interactionDocuments.push(getDocument());
         }
     }
 

@@ -31,7 +31,7 @@ export class SizeMonitor {
             }
         });
 
-        this.documentReady = document.readyState === 'complete';
+        this.documentReady = getDocument().readyState === 'complete';
         if (!this.documentReady) {
             // Add load listener, so we can check if the main document is ready and all styles are loaded,
             // and if it is then attach any queued requests for resize monitoring.
