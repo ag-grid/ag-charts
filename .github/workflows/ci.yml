@@ -43,11 +43,6 @@ jobs:
             format: ${{ steps.format.outcome || '' }}
             test_count: ${{ steps.test_count.outputs.test_count }}
         steps:
-            - name: Initial volume info
-              if: always()
-              run: |
-                  sudo df -h
-                  sudo du -sh .
             - id: init_format
               name: Update Status (format)
               uses: LouisBrunner/checks-action@v1.6.1
@@ -196,6 +191,12 @@ jobs:
                   check_id: ${{ steps.init_build.outputs.check_id }}
                   conclusion: ${{ steps.build.outcome }}
 
+            - name: Tidy Nx Cache
+              run: |
+                  sudo du -sh .nx/cache
+                  ./tools/tidy-nx-cache.sh
+                  sudo du -sh .nx/cache
+
             - name: Count test targets to run
               id: test_count
               run: |
@@ -204,12 +205,6 @@ jobs:
                   else
                     echo "test_count=$(yarn -s nx show projects --affected --base ${{ steps.nx_config.outputs.base }} -t test | wc -l)" >> $GITHUB_OUTPUT
                   fi
-
-            - name: Final volume info
-              if: always()
-              run: |
-                  sudo df -h
-                  sudo du -sh .
 
     test:
         runs-on: ubuntu-latest
