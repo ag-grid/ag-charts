@@ -1,3 +1,4 @@
+/* @ag-options-extract */
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community/src/main';
 
 import { getLargeScaleData } from './data';
@@ -38,7 +39,7 @@ const options: AgCartesianChartOptions = {
             xKey: 'time',
             yKey: 'value',
             title: 'Scatter',
-            marker: { enabled: true, shape: 'point' },
+            marker: { enabled: true, shape: 'circle' },
             visible: visibleCount >= 1,
         },
         {
@@ -66,6 +67,8 @@ const options: AgCartesianChartOptions = {
         },
     ],
 };
+/* @ag-options-end */
+
 const start = performance.now();
 const chart = AgCharts.create(options);
 

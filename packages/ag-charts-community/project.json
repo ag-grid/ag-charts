@@ -169,6 +169,7 @@
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}", "{workspaceRoot}/reports/ag-charts-community.xml"],
       "options": {
         "jestConfig": "packages/ag-charts-community/jest.config.ts",
+        "testPathIgnorePatterns": [".*/benchmarks/.*"],
         "passWithNoTests": false
       },
       "configurations": {
@@ -184,6 +185,29 @@
           "projects": ["ag-charts-community-examples"],
           "target": "build"
         }
+      ]
+    },
+    "benchmark": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/reports/ag-charts-community-benchmarks.json"],
+      "options": {
+        "jestConfig": "packages/ag-charts-community/jest.config.ts",
+        "testPathPattern": [".*/benchmarks/.*"],
+        "passWithNoTests": false
+      },
+      "configurations": {
+        "watch": {
+          "watch": true
+        },
+        "update": {
+          "updateSnapshot": true
+        }
+      },
+      "dependsOn": [
+        "ag-charts-website-src_content_docs_benchmarks__examples_integrated-large-scale_main.ts:generate-example",
+        "ag-charts-website-src_content_docs_benchmarks__examples_large-dataset_main.ts:generate-example",
+        "ag-charts-website-src_content_docs_benchmarks__examples_large-scale-multi-series_main.ts:generate-example",
+        "ag-charts-website-src_content_docs_benchmarks__examples_multi-series_main.ts:generate-example"
       ]
     },
     "pack": {

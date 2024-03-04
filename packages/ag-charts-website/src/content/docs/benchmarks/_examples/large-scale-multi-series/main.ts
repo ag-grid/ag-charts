@@ -1,3 +1,4 @@
+/* @ag-options-extract */
 import { AgCartesianChartOptions, AgCharts, AgLineSeriesOptions } from 'ag-charts-community';
 
 (window as any).agChartsDebug = 'scene:stats';
@@ -37,6 +38,7 @@ const options: AgCartesianChartOptions = {
     data: generatedData,
     series: generatedSeries,
 };
+/* @ag-options-end */
 
 const start = performance.now();
 var chart = AgCharts.create(options);
