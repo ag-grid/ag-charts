@@ -9,6 +9,7 @@ import type { HighlightManager } from '../chart/interaction/highlightManager';
 import type { InteractionManager } from '../chart/interaction/interactionManager';
 import type { RegionManager } from '../chart/interaction/regionManager';
 import type { SyncManager } from '../chart/interaction/syncManager';
+import type { ToolbarManager } from '../chart/interaction/toolbarManager';
 import type { TooltipManager } from '../chart/interaction/tooltipManager';
 import type { ZoomManager } from '../chart/interaction/zoomManager';
 import type { LayoutService } from '../chart/layout/layoutService';
@@ -40,6 +41,7 @@ export interface ModuleContext {
     regionManager: RegionManager;
     seriesStateManager: SeriesStateManager;
     syncManager: SyncManager;
+    toolbarManager: ToolbarManager;
     tooltipManager: TooltipManager;
     zoomManager: ZoomManager;
 }
