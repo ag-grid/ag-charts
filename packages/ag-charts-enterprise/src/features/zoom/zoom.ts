@@ -25,19 +25,7 @@ import {
 type PinchEvent = _ModuleSupport.PinchEvent;
 type ContextMenuActionParams = _ModuleSupport.ContextMenuActionParams;
 
-const {
-    AND,
-    BOOLEAN,
-    GREATER_THAN,
-    NUMBER,
-    RATIO,
-    UNION,
-    ActionOnSet,
-    ChartAxisDirection,
-    ChartUpdateType,
-    DeprecatedAndRenamedTo,
-    Validate,
-} = _ModuleSupport;
+const { BOOLEAN, NUMBER, RATIO, UNION, ActionOnSet, ChartAxisDirection, ChartUpdateType, Validate } = _ModuleSupport;
 
 const ANCHOR_CORD = UNION(['pointer', 'start', 'middle', 'end'], 'an anchor cord');
 
@@ -54,15 +42,6 @@ enum DragState {
 }
 
 export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
-    // Deprecated v9.2.0 - Remove when removing the `minX` etc properties
-    private static UpdateZoomOnSet(prop: 'minX' | 'maxX' | 'minY' | 'maxY') {
-        return ActionOnSet<Zoom>({
-            newValue(value) {
-                this.updateZoomFromProperties({ [prop]: value });
-            },
-        });
-    }
-
     @ActionOnSet<Zoom>({
         newValue(newValue) {
             if (newValue) {
@@ -96,26 +75,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     @Validate(RATIO)
     public scrollingStep = (UNIT.max - UNIT.min) / 10;
-
-    @Zoom.UpdateZoomOnSet('minX')
-    @DeprecatedAndRenamedTo('ratioX.min')
-    @Validate(RATIO)
-    public minX?: number;
-
-    @Zoom.UpdateZoomOnSet('maxX')
-    @DeprecatedAndRenamedTo('ratioX.max')
-    @Validate(AND(RATIO, GREATER_THAN('minX')))
-    public maxX?: number;
-
-    @Zoom.UpdateZoomOnSet('minY')
-    @DeprecatedAndRenamedTo('ratioY.min')
-    @Validate(RATIO)
-    public minY?: number;
-
-    @Zoom.UpdateZoomOnSet('maxY')
-    @DeprecatedAndRenamedTo('ratioY.max')
-    @Validate(AND(RATIO, GREATER_THAN('minY')))
-    public maxY?: number;
 
     @Validate(NUMBER.restrict({ min: 1 }))
     public minVisibleItemsX = 2;
@@ -196,23 +155,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx.layoutService.addListener('layout-complete', (event) => this.onLayoutComplete(event)),
             ctx.updateService.addListener('update-complete', (event) => this.onUpdateComplete(event))
         );
-    }
-
-    // Deprecated v9.2.0 - Remove when removing the `minX` etc properties
-    private updateZoomFromProperties(props: { minX?: number; maxX?: number; minY?: number; maxY?: number }) {
-        const {
-            minX = this.minX ?? UNIT.min,
-            maxX = this.maxX ?? UNIT.max,
-            minY = this.minY ?? UNIT.min,
-            maxY = this.maxY ?? UNIT.max,
-        } = props;
-
-        const newZoom = {
-            x: { min: minX, max: maxX },
-            y: { min: minY, max: maxY },
-        };
-
-        this.zoomManager.updateZoom('zoom', newZoom);
     }
 
     private registerContextMenuActions() {
