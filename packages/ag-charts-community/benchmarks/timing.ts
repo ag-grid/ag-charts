@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import * as fs from 'fs';
 
 const records = new Map();
@@ -12,6 +11,7 @@ export function logTimings() {
     for (const [name, value] of records) {
         result[name] = value;
     }
+    // eslint-disable-next-line no-console
     console.table(result);
 }
 

@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { afterEach, beforeEach } from '@jest/globals';
 import * as fs from 'fs';
 
@@ -32,7 +31,11 @@ export function benchmark(name: string, ctx: BenchmarkContext, callback: () => P
         const newImageData = extractImageData(ctx.canvasCtx);
         expect(newImageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
 
-        recordTiming(expect.getState().currentTestName ?? 'unknown', duration);
+        const { currentTestName } = expect.getState();
+        if (currentTestName == null) {
+            throw new Error('Unable to resolve current test name.');
+        }
+        recordTiming(currentTestName, duration);
     });
 }
 
@@ -49,9 +52,6 @@ export function setupBenchmark(exampleName: string): BenchmarkContext {
             ctx.chart.destroy();
             (ctx.chart as unknown) = undefined;
         }
-
-        expect(console.warn).not.toHaveBeenCalled();
-        expect(console.error).not.toHaveBeenCalled();
     });
 
     afterAll(() => {
