@@ -57,6 +57,7 @@ import type { InteractionEvent, PointerOffsets } from './interaction/interaction
 import { InteractionManager, InteractionState } from './interaction/interactionManager';
 import { RegionManager } from './interaction/regionManager';
 import { SyncManager } from './interaction/syncManager';
+import { ToolbarManager } from './interaction/toolbarManager';
 import { TooltipManager } from './interaction/tooltipManager';
 import { ZoomManager } from './interaction/zoomManager';
 import { Layers } from './layers';
@@ -256,6 +257,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     protected readonly cursorManager: CursorManager;
     protected readonly interactionManager: InteractionManager;
     protected readonly regionManager: RegionManager;
+    protected readonly toolbarManager: ToolbarManager;
     protected readonly gestureDetector: GestureDetector;
     protected readonly dataService: DataService<any>;
     protected readonly layoutService: LayoutService;
@@ -319,6 +321,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.highlightManager = new HighlightManager();
         this.interactionManager = new InteractionManager(element);
         this.regionManager = new RegionManager(this.interactionManager);
+        this.toolbarManager = new ToolbarManager();
         this.gestureDetector = new GestureDetector(element);
         this.layoutService = new LayoutService();
         this.updateService = new UpdateService((type = ChartUpdateType.FULL, opts) => this.update(type, opts));
@@ -385,10 +388,11 @@ export abstract class Chart extends Observable implements AgChartInstance {
             highlightManager: this.highlightManager,
             interactionManager: this.interactionManager,
             regionManager: this.regionManager,
-            gestureDetector: this.gestureDetector,
             tooltipManager: this.tooltipManager,
+            toolbarManager: this.toolbarManager,
             syncManager: this.syncManager,
             zoomManager: this.zoomManager,
+            gestureDetector: this.gestureDetector,
             chartService: this,
             dataService: this.dataService,
             layoutService: this.layoutService,
