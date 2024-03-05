@@ -100,6 +100,10 @@ export class RegionManager {
         return true;
     }
 
+    private dispatch(region: Region | undefined, event: InteractionEvent<InteractionTypes>) {
+        region?.listeners.dispatch(event.type, event);
+    }
+
     private handleDragging(event: InteractionEvent<InteractionTypes>): boolean {
         const { currentRegion } = this;
 
@@ -108,9 +112,9 @@ export class RegionManager {
         if (this.isDragging) {
             if (event.type === 'drag-end') {
                 this.isDragging = false;
-                currentRegion?.listeners.dispatch(event.type, event);
+                this.dispatch(currentRegion, event);
             } else if (event.type === 'drag') {
-                currentRegion?.listeners.dispatch(event.type, event);
+                this.dispatch(currentRegion, event);
             }
             return true;
         } else if (event.type === 'drag-start') {
@@ -129,13 +133,13 @@ export class RegionManager {
         const { currentRegion } = this;
         const newRegion = this.pickRegion(event.offsetX, event.offsetY);
         if (currentRegion !== undefined && newRegion?.name !== currentRegion.name) {
-            currentRegion.listeners.dispatch('leave', { ...event, type: 'leave' });
+            this.dispatch(currentRegion, { ...event, type: 'leave' });
         }
         if (newRegion !== undefined && newRegion.name !== currentRegion?.name) {
-            newRegion.listeners.dispatch('enter', { ...event, type: 'enter' });
+            this.dispatch(newRegion, { ...event, type: 'enter' });
         }
         if (newRegion !== undefined && this.checkPointerHistory(newRegion, event)) {
-            newRegion.listeners.dispatch(event.type, event);
+            this.dispatch(newRegion, event);
         }
         this.currentRegion = newRegion;
     }
