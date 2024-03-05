@@ -150,7 +150,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             region.addListener('drag-start', (event) => this.onDragStart(event), draggableState),
             region.addListener('drag-end', () => this.onDragEnd(), draggableState),
             region.addListener('wheel', (event) => this.onWheel(event), clickableState),
-            region.addListener('hover', () => this.onHover(), clickableState),
+            region.addListener('hover', () => this.onAxisLeave(), clickableState),
+            region.addListener('leave', () => this.onAxisLeave(), clickableState),
             ctx.chartEventManager.addListener('axis-hover', (event) => this.onAxisHover(event)),
             ctx.gestureDetector.addListener('pinch-move', (event) => this.onPinchMove(event as PinchEvent)),
             ctx.layoutService.addListener('layout-complete', (event) => this.onLayoutComplete(event)),
@@ -396,7 +397,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.updateZoom(newZoom);
     }
 
-    private onHover() {
+    private onAxisLeave() {
         if (!this.enabled) return;
 
         this.hoveredAxis = undefined;
