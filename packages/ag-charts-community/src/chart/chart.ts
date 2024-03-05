@@ -4,7 +4,6 @@ import type { ModuleContext } from '../module/moduleContext';
 import type { AxisOptionModule, ChartOptions } from '../module/optionsModule';
 import type { AgBaseAxisOptions } from '../options/chart/axisOptions';
 import type { AgChartInstance, AgChartOptions } from '../options/chart/chartBuilderOptions';
-import type { AgChartOptionsNext } from '../options/chart/chartBuilderOptionsNext';
 import type { AgChartClickEvent, AgChartDoubleClickEvent } from '../options/chart/eventOptions';
 import type { AgBaseSeriesOptions } from '../options/series/seriesOptions';
 import { BBox } from '../scene/bbox';
@@ -1377,10 +1376,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
         return { minRect, minVisibleRect };
     }
 
-    private filterMiniChartSeries(
-        series: AgChartOptionsNext['series'] | undefined
-    ): AgChartOptionsNext['series'] | undefined;
-    private filterMiniChartSeries(series: AgChartOptionsNext['series']): AgChartOptionsNext['series'];
+    private filterMiniChartSeries(series: AgChartOptions['series'] | undefined): AgChartOptions['series'] | undefined;
+    private filterMiniChartSeries(series: ['series']): ['series'];
     private filterMiniChartSeries(series: any[] | undefined): any[] | undefined {
         return series?.filter((s) => s.showInMiniChart !== false);
     }
@@ -1489,7 +1486,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
-    private shouldForceNodeDataRefresh(deltaOptions: AgChartOptionsNext, seriesStatus: SeriesChangeType) {
+    private shouldForceNodeDataRefresh(deltaOptions: AgChartOptions, seriesStatus: SeriesChangeType) {
         const seriesDataUpdate = !!deltaOptions.data || seriesStatus === 'data-change' || seriesStatus === 'replaced';
         const legendKeys = legendRegistry.getKeys();
         const optionsHaveLegend = Object.values(legendKeys).some(
@@ -1502,8 +1499,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
     private applyMiniChartOptions(
         oldOpts: AgChartOptions & { type?: SeriesOptionsTypes['type'] },
         miniChart: any,
-        miniChartSeries: NonNullable<AgChartOptionsNext['series']>,
-        deltaOptions: AgChartOptionsNext
+        miniChartSeries: NonNullable<AgChartOptions['series']>,
+        deltaOptions: AgChartOptions
     ) {
         const oldSeries = oldOpts?.navigator?.miniChart?.series ?? oldOpts?.series;
         const miniChartSeriesStatus = this.applySeries(
@@ -1596,8 +1593,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     private applySeries(
         chart: { series: Series<any, any>[] },
-        optSeries: AgChartOptionsNext['series'],
-        oldOptSeries?: AgChartOptionsNext['series']
+        optSeries: AgChartOptions['series'],
+        oldOptSeries?: AgChartOptions['series']
     ): SeriesChangeType {
         if (!optSeries) {
             return 'no-change';
@@ -1670,8 +1667,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     private applyAxes(
         chart: { axes: ChartAxis[] },
-        options: AgChartOptionsNext,
-        oldOpts: AgChartOptionsNext,
+        options: AgChartOptions,
+        oldOpts: AgChartOptions,
         seriesStatus: SeriesChangeType,
         skip: string[] = []
     ) {

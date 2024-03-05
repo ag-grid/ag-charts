@@ -15,8 +15,7 @@ import {
 } from '../chart/mapping/types';
 import type { ChartTheme } from '../chart/themes/chartTheme';
 import type { AgBaseAxisOptions } from '../options/chart/axisOptions';
-import type { AgCartesianChartOptions } from '../options/chart/chartBuilderOptions';
-import type { AgChartOptionsNext } from '../options/chart/chartBuilderOptionsNext';
+import type { AgCartesianChartOptions, AgChartOptions } from '../options/chart/chartBuilderOptions';
 import { type AgTooltipPositionOptions, AgTooltipPositionType } from '../options/chart/tooltipOptions';
 import type { AgCartesianAxisOptions } from '../options/series/cartesian/cartesianOptions';
 import type { AgPolarAxisOptions } from '../options/series/polar/polarOptions';
@@ -68,7 +67,7 @@ enum GroupingType {
     GROUP = 'group',
 }
 
-export class ChartOptions<T extends AgChartOptionsNext = AgChartOptionsNext> {
+export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     activeTheme: ChartTheme;
     processedOptions: T;
     seriesDefaults: T;

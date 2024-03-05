@@ -13,7 +13,7 @@ const {
     FONT_WEIGHT,
 } = _Theme;
 
-export const TreemapSeriesModule: _ModuleSupport.SeriesModule<'treemap'> = {
+export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
     type: 'series',
     optionsKey: 'series[]',
     packageType: 'enterprise',

@@ -1,11 +1,15 @@
 import type { Position } from 'geojson';
 
-import type { LatLongBBox } from './LatLongBBox';
+import type { _ModuleSupport } from 'ag-charts-community';
+
 import { extendBbox } from './bboxUtil';
 import { lineSegmentDistanceSquared } from './lineStringUtil';
 import { type List, insertManySorted } from './linkedList';
 
-export function polygonBbox(polygon: Position[], into: LatLongBBox | undefined): LatLongBBox | undefined {
+export function polygonBbox(
+    polygon: Position[],
+    into: _ModuleSupport.LonLatBBox | undefined
+): _ModuleSupport.LonLatBBox | undefined {
     polygon.forEach((coordinates) => {
         const [lon, lat] = coordinates;
         into = extendBbox(into, lon, lat, lon, lat);

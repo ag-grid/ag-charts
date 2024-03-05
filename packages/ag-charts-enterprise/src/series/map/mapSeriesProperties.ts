@@ -7,12 +7,10 @@ import type {
     AgMapSeriesOptionsKeys,
     AgMapSeriesStyle,
     AgMapSeriesTooltipRendererParams,
-} from '../../../options/series/topology/mapOptions';
-import { SceneChangeDetection } from '../../../scene/node';
-import type { SizedPoint } from '../../../scene/point';
-import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
-import { BaseProperties } from '../../../util/properties';
-import {
+} from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+
+const {
     AND,
     ARRAY,
     COLOR_STRING,
@@ -26,16 +24,15 @@ import {
     RATIO,
     STRING,
     Validate,
-} from '../../../util/validation';
-import { Label } from '../../label';
-import { SeriesMarker } from '../seriesMarker';
-import { SeriesProperties } from '../seriesProperties';
-import { SeriesTooltip } from '../seriesTooltip';
-import type { SeriesNodeDatum } from '../seriesTypes';
+    BaseProperties,
+    SeriesProperties,
+    SeriesTooltip,
+} = _ModuleSupport;
+const { Label, SceneChangeDetection } = _Scene;
 
-export interface MapNodeLabelDatum extends PointLabelDatum {}
+export interface MapNodeLabelDatum extends _Util.PointLabelDatum {}
 
-interface BaseMapNodeDatum extends SeriesNodeDatum {
+interface BaseMapNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     readonly idValue: string;
     readonly label: MapNodeLabelDatum | undefined;
     readonly fill: string;
@@ -56,10 +53,10 @@ export interface MapNodeDatum extends BaseMapNodeDatum {
 export interface MapNodeMarkerDatum extends BaseMapNodeDatum {
     readonly type: MapNodeDatumType.Marker;
     readonly index: number;
-    readonly point: Readonly<SizedPoint>;
+    readonly point: Readonly<_Scene.SizedPoint>;
 }
 
-class MapSeriesMarker extends SeriesMarker<AgMapSeriesOptionsKeys, MapNodeMarkerDatum> {
+class MapSeriesMarker extends _ModuleSupport.SeriesMarker<AgMapSeriesOptionsKeys, MapNodeMarkerDatum> {
     /**
      * The series `sizeKey` values along with the `size` and `maxSize` configs will be used to
      * determine the size of the marker. All values will be mapped to a marker size within the

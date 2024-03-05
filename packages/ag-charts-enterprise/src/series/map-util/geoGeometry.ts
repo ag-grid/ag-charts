@@ -1,20 +1,21 @@
 import type { Geometry, Position } from 'geojson';
 
-import { BBox } from '../../../scene/bbox';
-import { Path2D } from '../../../scene/path2D';
-import { Path, ScenePathChangeDetection } from '../../../scene/shape/path';
+import { _Scene } from 'ag-charts-community';
+
 import { lineStringDistance } from './lineStringUtil';
 import { polygonDistance } from './polygonUtil';
+
+const { Path, Path2D, BBox, ScenePathChangeDetection } = _Scene;
 
 export class GeoGeometry extends Path {
     @ScenePathChangeDetection()
     projectedGeometry: Geometry | undefined = undefined;
 
-    private bbox: BBox | undefined;
+    private bbox: _Scene.BBox | undefined;
     // Keep non-filled shapes separate so we don't fill them
     private strokePath = new Path2D();
 
-    override computeBBox(): BBox | undefined {
+    override computeBBox(): _Scene.BBox | undefined {
         if (this.dirtyPath || this.isDirtyPath()) {
             this.updatePath();
             this.dirtyPath = false;
@@ -70,7 +71,7 @@ export class GeoGeometry extends Path {
         }
     }
 
-    private drawGeometry(geometry: Geometry, bbox: BBox | undefined): BBox | undefined {
+    private drawGeometry(geometry: Geometry, bbox: _Scene.BBox | undefined): _Scene.BBox | undefined {
         const { path, strokePath } = this;
         switch (geometry.type) {
             case 'GeometryCollection':
@@ -102,7 +103,11 @@ export class GeoGeometry extends Path {
         return bbox;
     }
 
-    private drawPolygon(path: Path2D, polygons: Position[][], bbox: BBox | undefined): BBox | undefined {
+    private drawPolygon(
+        path: _Scene.Path2D,
+        polygons: Position[][],
+        bbox: _Scene.BBox | undefined
+    ): _Scene.BBox | undefined {
         if (polygons.length < 1) return bbox;
 
         bbox = this.drawLineString(path, polygons[0], bbox, true);
@@ -115,11 +120,11 @@ export class GeoGeometry extends Path {
     }
 
     private drawLineString(
-        path: Path2D,
+        path: _Scene.Path2D,
         coordinates: Position[],
-        bbox: BBox | undefined,
+        bbox: _Scene.BBox | undefined,
         isClosed: boolean
-    ): BBox | undefined {
+    ): _Scene.BBox | undefined {
         if (coordinates.length < 2) return bbox;
 
         // For polygons (i.e. closed), the start and end coordinates are the same

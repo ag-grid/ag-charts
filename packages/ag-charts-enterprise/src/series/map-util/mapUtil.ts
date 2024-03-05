@@ -1,5 +1,4 @@
-import type { FromToMotionPropFn } from '../../../motion/fromToMotion';
-import type { Marker } from '../../marker/marker';
+import type { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 type AnimatableMapMarkerDatum = {
     scalingX: number;
@@ -7,7 +6,11 @@ type AnimatableMapMarkerDatum = {
 };
 
 export function prepareMapMarkerAnimationFunctions() {
-    const fromFn: FromToMotionPropFn<Marker, AnimatableMapMarkerDatum, unknown> = (marker, _datum, status) => {
+    const fromFn: _ModuleSupport.FromToMotionPropFn<_Scene.Marker, AnimatableMapMarkerDatum, unknown> = (
+        marker,
+        _datum,
+        status
+    ) => {
         if (status === 'removed') {
             return { scalingX: 1, scalingY: 1 };
         } else if (marker.previousDatum == null) {
@@ -15,7 +18,11 @@ export function prepareMapMarkerAnimationFunctions() {
         }
         return { scalingX: marker.scalingX, scalingY: marker.scalingY };
     };
-    const toFn: FromToMotionPropFn<Marker, AnimatableMapMarkerDatum, unknown> = (_marker, _datum, status) => {
+    const toFn: _ModuleSupport.FromToMotionPropFn<_Scene.Marker, AnimatableMapMarkerDatum, unknown> = (
+        _marker,
+        _datum,
+        status
+    ) => {
         if (status === 'removed') {
             return { scalingX: 0, scalingY: 0 };
         }

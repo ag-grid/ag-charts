@@ -7,12 +7,10 @@ import type {
     AgMapMarkerSeriesOptionsKeys,
     AgMapMarkerSeriesStyle,
     AgMapMarkerSeriesTooltipRendererParams,
-} from '../../../options/series/topology/mapMarkerOptions';
-import { SceneChangeDetection } from '../../../scene/node';
-import type { SizedPoint } from '../../../scene/point';
-import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
-import { BaseProperties } from '../../../util/properties';
-import {
+} from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+
+const {
     AND,
     ARRAY,
     COLOR_STRING,
@@ -26,26 +24,25 @@ import {
     RATIO,
     STRING,
     Validate,
-} from '../../../util/validation';
-import { Label } from '../../label';
-import { SeriesMarker } from '../seriesMarker';
-import { SeriesProperties } from '../seriesProperties';
-import { SeriesTooltip } from '../seriesTooltip';
-import type { SeriesNodeDatum } from '../seriesTypes';
+    BaseProperties,
+    SeriesProperties,
+    SeriesTooltip,
+} = _ModuleSupport;
+const { Label, SceneChangeDetection } = _Scene;
 
-export interface MapMarkerNodeLabelDatum extends PointLabelDatum {}
+export interface MapMarkerNodeLabelDatum extends _Util.PointLabelDatum {}
 
-export interface MapMarkerNodeDatum extends SeriesNodeDatum {
+export interface MapMarkerNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     readonly label: MapMarkerNodeLabelDatum | undefined;
     readonly fill: string | undefined;
     readonly lonValue: number;
     readonly latValue: number;
     readonly colorValue: number | undefined;
     readonly sizeValue: number | undefined;
-    readonly point: Readonly<SizedPoint>;
+    readonly point: Readonly<_Scene.SizedPoint>;
 }
 
-class MapMarkerSeriesMarker extends SeriesMarker<AgMapMarkerSeriesOptionsKeys, MapMarkerNodeDatum> {
+class MapMarkerSeriesMarker extends _ModuleSupport.SeriesMarker<AgMapMarkerSeriesOptionsKeys, MapMarkerNodeDatum> {
     /**
      * The series `sizeKey` values along with the `size` and `maxSize` configs will be used to
      * determine the size of the marker. All values will be mapped to a marker size within the

@@ -1,4 +1,10 @@
-export const gmt = [{ name: 'Greenland' }, { name: 'Iceland' }, { name: 'Portugal' }, { name: 'United Kingdom' }];
+export const gmt = [
+    { name: 'Greenland' },
+    { name: 'Iceland' },
+    { name: 'Ireland' },
+    { name: 'Portugal' },
+    { name: 'United Kingdom' },
+];
 
 export const cet = [
     { name: 'Albania' },

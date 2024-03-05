@@ -1,17 +1,19 @@
-import type { SeriesModule } from '../../../module/coreModules';
-import { singleSeriesPaletteFactory } from '../../../module/theme';
-import {
-    DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
-    DEFAULT_LABEL_COLOUR,
-    EXTENDS_CARTESIAN_MARKER_DEFAULTS,
-    EXTENDS_SERIES_DEFAULTS,
-} from '../../themes/symbols';
+import { _ModuleSupport, _Theme } from 'ag-charts-community';
+
 import { MapMarkerSeries } from './mapMarkerSeries';
 
-export const MapMarkerSeriesModule: SeriesModule<'map-marker'> = {
+const {
+    EXTENDS_SERIES_DEFAULTS,
+    DEFAULT_LABEL_COLOUR,
+    EXTENDS_CARTESIAN_MARKER_DEFAULTS,
+    DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
+    singleSeriesPaletteFactory,
+} = _Theme;
+
+export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
     type: 'series',
     optionsKey: 'series[]',
-    packageType: 'community',
+    packageType: 'enterprise',
     chartTypes: ['topology'],
 
     identifier: 'map-marker',

@@ -2,10 +2,9 @@ import type { ChartOptions } from '../module/optionsModule';
 import { BBox } from '../scene/bbox';
 import type { TransferableResources } from './chart';
 import { Chart } from './chart';
-import type { LatLongBBox } from './series/topology/LatLongBBox';
-import { MapMarkerSeries } from './series/topology/mapMarkerSeries';
-import { MapSeries } from './series/topology/mapSeries';
+import type { LonLatBBox } from './series/topology/lonLatBbox';
 import { MercatorScale } from './series/topology/mercatorScale';
+import type { TopologySeries } from './series/topologySeries';
 
 export class TopologyChart extends Chart {
     static readonly className = 'TopologyChart';
@@ -36,13 +35,11 @@ export class TopologyChart extends Chart {
         this.animationRect = shrinkRect;
         this.hoverRect = shrinkRect;
 
-        const mapSeries = this.series.filter<MapSeries | MapMarkerSeries>(
-            (series): series is MapSeries | MapMarkerSeries => {
-                return series instanceof MapSeries || series instanceof MapMarkerSeries;
-            }
-        );
+        const mapSeries = this.series.filter<TopologySeries>((series): series is TopologySeries => {
+            return series.type === 'map' || series.type === 'map-marker';
+        });
 
-        const combinedBbox: LatLongBBox | undefined = mapSeries.reduce<LatLongBBox | undefined>((combined, series) => {
+        const combinedBbox: LonLatBBox | undefined = mapSeries.reduce<LonLatBBox | undefined>((combined, series) => {
             const bbox = series.topologyBounds;
             if (bbox == null) return combined;
             if (combined == null) return bbox;

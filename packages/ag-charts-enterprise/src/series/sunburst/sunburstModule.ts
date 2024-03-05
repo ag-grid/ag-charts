@@ -4,7 +4,7 @@ import { SunburstSeries } from './sunburstSeries';
 
 const { EXTENDS_SERIES_DEFAULTS, DEFAULT_INSIDE_SERIES_LABEL_COLOUR } = _Theme;
 
-export const SunburstSeriesModule: _ModuleSupport.SeriesModule<'sunburst'> = {
+export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
     type: 'series',
     optionsKey: 'series[]',
     packageType: 'enterprise',

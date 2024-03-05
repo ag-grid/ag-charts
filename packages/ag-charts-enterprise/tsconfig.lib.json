@@ -3,6 +3,10 @@
   "compilerOptions": {
     "types": ["node"]
   },
-  "include": ["src/**/*.ts"],
+  "include": [
+    "src/**/*.ts",
+    "../ag-charts-community/src/chart/series/topology/mercatorScale.ts",
+    "../ag-charts-community/src/chart/series/topology/lonLatBbox.ts"
+  ],
   "exclude": ["jest.config.ts", "src/**/*.spec.ts", "src/**/*.test.ts", "src/**/test/**"]
 }

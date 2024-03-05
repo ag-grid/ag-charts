@@ -1,12 +1,15 @@
 import type { Geometry, Position } from 'geojson';
 
-import type { LatLongBBox } from './LatLongBBox';
+import type { _ModuleSupport } from 'ag-charts-community';
+
 import { extendBbox } from './bboxUtil';
 import { lineStringCenter } from './lineStringUtil';
-import type { MercatorScale } from './mercatorScale';
 import { inaccessibilityPole, polygonBbox } from './polygonUtil';
 
-export function geometryBbox(geometry: Geometry, into: LatLongBBox | undefined): LatLongBBox | undefined {
+export function geometryBbox(
+    geometry: Geometry,
+    into: _ModuleSupport.LonLatBBox | undefined
+): _ModuleSupport.LonLatBBox | undefined {
     if (geometry.bbox != null) {
         const [lon0, lat0, lon1, lat1] = geometry.bbox;
         into = extendBbox(into, lon0, lat0, lon1, lat1);
@@ -132,7 +135,7 @@ export function markerCenters(geometry: Geometry): Position[] {
     }
 }
 
-export function projectGeometry(geometry: Geometry, scale: MercatorScale): Geometry {
+export function projectGeometry(geometry: Geometry, scale: _ModuleSupport.MercatorScale): Geometry {
     switch (geometry.type) {
         case 'GeometryCollection':
             return {
@@ -172,14 +175,14 @@ export function projectGeometry(geometry: Geometry, scale: MercatorScale): Geome
     }
 }
 
-function projectMultiPolygon(polygons: Position[][][], scale: MercatorScale): Position[][][] {
+function projectMultiPolygon(polygons: Position[][][], scale: _ModuleSupport.MercatorScale): Position[][][] {
     return polygons.map((polygon) => projectPolygon(polygon, scale));
 }
 
-function projectPolygon(polygon: Position[][], scale: MercatorScale): Position[][] {
+function projectPolygon(polygon: Position[][], scale: _ModuleSupport.MercatorScale): Position[][] {
     return polygon.map((lineString) => projectLineString(lineString, scale));
 }
 
-function projectLineString(lineString: Position[], scale: MercatorScale): Position[] {
+function projectLineString(lineString: Position[], scale: _ModuleSupport.MercatorScale): Position[] {
     return lineString.map((lonLat) => scale.convert(lonLat));
 }
