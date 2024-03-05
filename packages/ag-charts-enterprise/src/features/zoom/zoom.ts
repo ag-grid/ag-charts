@@ -199,9 +199,17 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private onRatioChange(direction: _ModuleSupport.ChartAxisDirection, ratioZoom?: DefinedZoomState['x' | 'y']) {
         if (!ratioZoom) return;
 
-        const zoom = definedZoomState(this.zoomManager.getZoom());
-        zoom[direction] = ratioZoom;
-        this.updateZoom(constrainZoom(zoom));
+        let x = this.ratioX.getRatio();
+        let y = this.ratioY.getRatio();
+
+        if (direction === ChartAxisDirection.X) {
+            x = ratioZoom;
+        } else {
+            y = ratioZoom;
+        }
+
+        const newZoom = constrainZoom(definedZoomState({ x, y }));
+        this.updateZoom(newZoom);
     }
 
     private onDoubleClick(event: _ModuleSupport.InteractionEvent<'dblclick'>) {
