@@ -24,6 +24,7 @@ import type { AgRadarAreaSeriesThemeableOptions } from '../series/polar/radarAre
 import type { AgRadarSeriesThemeableOptions } from '../series/polar/radarOptions';
 import type { AgRadialBarSeriesThemeableOptions } from '../series/polar/radialBarOptions';
 import type { AgRadialColumnSeriesThemeableOptions } from '../series/polar/radialColumnOptions';
+import type { AgMapMarkerSeriesThemeableOptions } from '../series/topology/mapMarkerOptions';
 import type { AgMapSeriesThemeableOptions } from '../series/topology/mapOptions';
 import type { AgBaseTopologyThemeOptions } from '../series/topology/topologyOptions';
 import type { AgBaseChartOptions, AgBaseThemeableChartOptions } from './chartOptions';
@@ -146,6 +147,9 @@ export interface AgTreemapSeriesThemeOverrides extends AgBaseHierarchyThemeOptio
 export interface AgMapSeriesThemeOverrides extends AgBaseTopologyThemeOptions {
     series?: AgMapSeriesThemeableOptions;
 }
+export interface AgMapMarkerSeriesThemeOverrides extends AgBaseTopologyThemeOptions {
+    series?: AgMapMarkerSeriesThemeableOptions;
+}
 
 export interface AgCommonThemeableAxisOptions extends AgCartesianAxesTheme, AgPolarAxesTheme {}
 
@@ -203,6 +207,8 @@ export interface AgChartThemeOverrides {
     treemap?: AgTreemapSeriesThemeOverrides;
     /** Map series theme overrides. */
     map?: AgMapSeriesThemeOverrides;
+    /** Map series theme overrides. */
+    'map-marker'?: AgMapMarkerSeriesThemeOverrides;
 }
 
 // Use Typescript function types to verify that all series types are present in the manually

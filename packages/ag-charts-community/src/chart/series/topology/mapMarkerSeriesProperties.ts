@@ -1,13 +1,13 @@
-import type { FeatureCollection, Geometry } from 'geojson';
+import type { FeatureCollection } from 'geojson';
 
 import type {
-    AgMapSeriesFormatterParams,
-    AgMapSeriesLabelFormatterParams,
-    AgMapSeriesOptions,
-    AgMapSeriesOptionsKeys,
-    AgMapSeriesStyle,
-    AgMapSeriesTooltipRendererParams,
-} from '../../../options/series/topology/mapOptions';
+    AgMapMarkerSeriesFormatterParams,
+    AgMapMarkerSeriesLabelFormatterParams,
+    AgMapMarkerSeriesOptions,
+    AgMapMarkerSeriesOptionsKeys,
+    AgMapMarkerSeriesStyle,
+    AgMapMarkerSeriesTooltipRendererParams,
+} from '../../../options/series/topology/mapMarkerOptions';
 import { SceneChangeDetection } from '../../../scene/node';
 import type { SizedPoint } from '../../../scene/point';
 import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
@@ -33,33 +33,19 @@ import { SeriesProperties } from '../seriesProperties';
 import { SeriesTooltip } from '../seriesTooltip';
 import type { SeriesNodeDatum } from '../seriesTypes';
 
-export interface MapNodeLabelDatum extends PointLabelDatum {}
+export interface MapMarkerNodeLabelDatum extends PointLabelDatum {}
 
-interface BaseMapNodeDatum extends SeriesNodeDatum {
-    readonly idValue: string;
-    readonly label: MapNodeLabelDatum | undefined;
-    readonly fill: string;
+export interface MapMarkerNodeDatum extends SeriesNodeDatum {
+    readonly label: MapMarkerNodeLabelDatum | undefined;
+    readonly fill: string | undefined;
+    readonly lonValue: number;
+    readonly latValue: number;
     readonly colorValue: number | undefined;
     readonly sizeValue: number | undefined;
-    readonly projectedGeometry: Geometry | undefined;
-}
-
-export enum MapNodeDatumType {
-    Node,
-    Marker,
-}
-
-export interface MapNodeDatum extends BaseMapNodeDatum {
-    readonly type: MapNodeDatumType.Node;
-}
-
-export interface MapNodeMarkerDatum extends BaseMapNodeDatum {
-    readonly type: MapNodeDatumType.Marker;
-    readonly index: number;
     readonly point: Readonly<SizedPoint>;
 }
 
-class MapSeriesMarker extends SeriesMarker<AgMapSeriesOptionsKeys, MapNodeMarkerDatum> {
+class MapMarkerSeriesMarker extends SeriesMarker<AgMapMarkerSeriesOptionsKeys, MapMarkerNodeDatum> {
     /**
      * The series `sizeKey` values along with the `size` and `maxSize` configs will be used to
      * determine the size of the marker. All values will be mapped to a marker size within the
@@ -75,7 +61,7 @@ class MapSeriesMarker extends SeriesMarker<AgMapSeriesOptionsKeys, MapNodeMarker
     domain?: [number, number];
 }
 
-class MapSeriesBackground extends BaseProperties {
+class MapMarkerSeriesBackground extends BaseProperties {
     @Validate(PLAIN_OBJECT)
     topology: FeatureCollection = { type: 'FeatureCollection', features: [] };
 
@@ -104,21 +90,18 @@ class MapSeriesBackground extends BaseProperties {
     lineDashOffset: number = 0;
 }
 
-export class MapSeriesProperties extends SeriesProperties<AgMapSeriesOptions> {
-    @Validate(PLAIN_OBJECT)
-    topology: FeatureCollection = { type: 'FeatureCollection', features: [] };
-
+export class MapMarkerSeriesProperties extends SeriesProperties<AgMapMarkerSeriesOptions> {
     @Validate(OBJECT)
-    readonly background = new MapSeriesBackground();
+    readonly background = new MapMarkerSeriesBackground();
 
     @Validate(STRING, { optional: true })
     legendItemName?: string;
 
     @Validate(STRING)
-    idKey: string = '';
+    latKey: string = '';
 
-    @Validate(STRING, { optional: true })
-    idName: string | undefined = undefined;
+    @Validate(STRING)
+    lonKey: string = '';
 
     @Validate(STRING, { optional: true })
     labelKey: string | undefined = undefined;
@@ -138,42 +121,15 @@ export class MapSeriesProperties extends SeriesProperties<AgMapSeriesOptions> {
     @Validate(AND(COLOR_STRING_ARRAY, ARRAY.restrict({ minLength: 1 })), { optional: true })
     colorRange: string[] | undefined = undefined;
 
-    @Validate(COLOR_STRING)
-    fill: string = 'black';
-
-    @Validate(RATIO)
-    fillOpacity: number = 1;
-
-    @Validate(COLOR_STRING, { optional: true })
-    stroke: string | undefined;
-
-    @Validate(RATIO)
-    strokeOpacity: number = 1;
-
-    @Validate(POSITIVE_NUMBER)
-    strokeWidth: number = 0;
-
-    @Validate(LINE_DASH)
-    lineDash: number[] = [0];
-
-    @Validate(POSITIVE_NUMBER)
-    lineDashOffset: number = 0;
-
     @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgMapSeriesFormatterParams<any>) => AgMapSeriesStyle;
+    formatter?: (params: AgMapMarkerSeriesFormatterParams<any>) => AgMapMarkerSeriesStyle;
 
     @Validate(OBJECT)
-    readonly marker = new MapSeriesMarker();
+    readonly marker = new MapMarkerSeriesMarker();
 
     @Validate(OBJECT)
-    readonly label = new Label<AgMapSeriesLabelFormatterParams>();
+    readonly label = new Label<AgMapMarkerSeriesLabelFormatterParams>();
 
     @Validate(OBJECT)
-    override tooltip = new SeriesTooltip<AgMapSeriesTooltipRendererParams<any>>();
-
-    @Validate(STRING, { optional: true })
-    __POLYGON_STROKE?: string = undefined;
-
-    @Validate(STRING, { optional: true })
-    __LINE_STRING_STROKE?: string = undefined;
+    override tooltip = new SeriesTooltip<AgMapMarkerSeriesTooltipRendererParams<any>>();
 }

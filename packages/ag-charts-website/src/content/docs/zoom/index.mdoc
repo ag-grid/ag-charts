@@ -13,19 +13,26 @@ zoom: {
 }
 ```
 
-A user will now be able to use the zooming features as in the following example, including:
+{% chartExampleRunner title="Zoom" name="zoom" type="generated" /%}
 
--   Scroll in and out with the mouse wheel.
+In the above example you can:
+
+-   Scroll in and out with the mouse wheel or touchpad.
 -   Click and drag to pan around the zoomed in chart.
 -   Click and drag an axis to zoom in or out on only that axis.
 -   Double click anywhere to reset the zoom.
--   Click and drag a box to select an area to zoom into (not enabled by default).
-
-{% chartExampleRunner title="Zoom" name="zoom" type="generated" /%}
 
 ## Enabling and Disabling Features
 
-You can enable and disable each feature of the zoom module separately if they are not appropriate for your chart. These can be toggled with the `enablePanning`, `enableScrolling` and `enableSelecting` options.
+You can enable and disable each feature of the zoom module separately if they are not appropriate for your chart. Each feature has a separate option to enable or disable it.
+
+The available features are as follows:
+
+-   **Scrolling:** Zooming by using the mouse wheel or touchpad.
+-   **Panning:** Click and drag on a zoomed chart to move around within the chart.
+-   **Selecting:** Zooming in by clicking and dragging a box to select an area on the chart.
+-   **Axis Dragging:** Zoom by clicking and dragging on an axis.
+-   **Double-Click to Reset:** Reset the zoom by double-clicking on an empty space in the chart.
 
 In the example below, we only enable selecting an area.
 
