@@ -46,7 +46,6 @@ describe('Chart Heap Memory', () => {
                 yKey: `value-${s}`,
                 yName: `Series-${s}`,
                 stacked: false,
-                grouped: true,
             };
             result.push(series);
         }

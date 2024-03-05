@@ -1,5 +1,5 @@
 import type { AgTooltipRendererResult } from 'ag-charts-community';
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import { RangeBarProperties } from './rangeBarProperties';
 
@@ -23,8 +23,9 @@ const {
     animationValidation,
     createDatumId,
 } = _ModuleSupport;
-const { ContinuousScale, Rect, PointerEvents, motion } = _Scene;
+const { Rect, PointerEvents, motion } = _Scene;
 const { sanitizeHtml, isNumber, extent } = _Util;
+const { ContinuousScale, OrdinalTimeScale } = _Scale;
 
 type Bounds = {
     x: number;
@@ -134,8 +135,14 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         }
 
         const { xKey, yLowKey, yHighKey } = this.properties;
-        const isContinuousX = ContinuousScale.is(this.getCategoryAxis()?.scale);
-        const isContinuousY = ContinuousScale.is(this.getValueAxis()?.scale);
+
+        const xScale = this.getCategoryAxis()?.scale;
+        const yScale = this.getValueAxis()?.scale;
+
+        const isContinuousX = ContinuousScale.is(xScale) || OrdinalTimeScale.is(xScale);
+        const isContinuousY = ContinuousScale.is(yScale) || OrdinalTimeScale.is(yScale);
+
+        const xValueType = ContinuousScale.is(xScale) ? 'range' : 'category';
 
         const extraProps = [];
         if (!this.ctx.animationManager.isSkipped()) {
@@ -148,7 +155,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const visibleProps = this.visible ? {} : { forceValue: 0 };
         const { processedData } = await this.requestDataModel<any, any, true>(dataController, this.data ?? [], {
             props: [
-                keyProperty(this, xKey, isContinuousX, { id: 'xValue' }),
+                keyProperty(this, xKey, isContinuousX, { id: 'xValue', valueType: xValueType }),
                 valueProperty(this, yLowKey, isContinuousY, { id: `yLowValue`, ...visibleProps }),
                 valueProperty(this, yHighKey, isContinuousY, { id: `yHighValue`, ...visibleProps }),
                 ...(isContinuousX ? [SMALLEST_KEY_INTERVAL] : []),

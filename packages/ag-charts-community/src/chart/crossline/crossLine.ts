@@ -1,5 +1,6 @@
 import type { AgBaseCrossLineLabelOptions, AgCrossLineLabelPosition } from '../../options/agChartOptions';
 import { ContinuousScale } from '../../scale/continuousScale';
+import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { Scale } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
@@ -42,7 +43,7 @@ export const validateCrossLineValues = (
     }
 
     const [start, end] = range ?? [value, undefined];
-    const isContinuous = ContinuousScale.is(scale);
+    const isContinuous = ContinuousScale.is(scale) || OrdinalTimeScale.is(scale);
     const validStart = checkDatum(start, isContinuous) != null && !isNaN(scale.convert(start));
     const validEnd = checkDatum(end, isContinuous) != null && !isNaN(scale.convert(end));
 

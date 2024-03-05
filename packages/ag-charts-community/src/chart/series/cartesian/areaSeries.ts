@@ -90,6 +90,10 @@ export class AreaSeries extends CartesianSeries<
         const { xKey, yKey, connectMissingData, normalizedTo } = this.properties;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
         const { isContinuousX, isContinuousY } = this.isContinuous();
+
+        const xScale = this.axes[ChartAxisDirection.X]?.scale;
+        const xValueType = ContinuousScale.is(xScale) ? 'range' : 'category';
+
         const ids = [
             `area-stack-${groupIndex}-yValues`,
             `area-stack-${groupIndex}-yValues-trailing`,
@@ -124,7 +128,7 @@ export class AreaSeries extends CartesianSeries<
         }
         await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
-                keyProperty(this, xKey, isContinuousX, { id: 'xValue' }),
+                keyProperty(this, xKey, isContinuousX, { id: 'xValue', valueType: xValueType }),
                 valueProperty(this, yKey, isContinuousY, { id: `yValueRaw`, ...common }),
                 ...groupAccumulativeValueProperty(this, yKey, isContinuousY, 'window', 'current', {
                     id: `yValueEnd`,
@@ -207,7 +211,7 @@ export class AreaSeries extends CartesianSeries<
         const { scale: xScale } = xAxis;
         const { scale: yScale } = yAxis;
 
-        const continuousY = ContinuousScale.is(yScale);
+        const { isContinuousY } = this.isContinuous();
 
         const xOffset = (xScale.bandwidth ?? 0) / 2;
 
@@ -243,7 +247,9 @@ export class AreaSeries extends CartesianSeries<
             // if not normalized, the invalid data points will be processed as `undefined` in processData()
             // if normalized, the invalid data points will be processed as 0 rather than `undefined`
             // check if unprocessed datum is valid as we only want to show markers for valid points
-            if (isDefined(this.properties.normalizedTo) ? continuousY && isContinuous(rawYDatum) : !isNaN(rawYDatum)) {
+            if (
+                isDefined(this.properties.normalizedTo) ? isContinuousY && isContinuous(rawYDatum) : !isNaN(rawYDatum)
+            ) {
                 currY = yEnd;
             }
 
