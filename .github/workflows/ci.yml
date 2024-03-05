@@ -258,7 +258,7 @@ jobs:
             - name: nx test
               if: matrix.shard != 0
               id: test
-              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t test --configuration=ci --exclude all --shard=${{ matrix.shard }}/${{ strategy.job-total }}
+              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t test --configuration=ci --exclude all --shard=${{ matrix.shard }}/$((${{ strategy.job-total }} - 1))
             - name: nx benchmark
               if: matrix.shard == 0
               id: benchmark
