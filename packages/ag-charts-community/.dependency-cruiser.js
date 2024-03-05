@@ -220,7 +220,7 @@ module.exports = {
        for a complete list
     */
         doNotFollow: {
-            path: 'node_modules',
+            path: ['node_modules', '../../libraries'],
         },
 
         /* conditions specifying which dependencies to exclude

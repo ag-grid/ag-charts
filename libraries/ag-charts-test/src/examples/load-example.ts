@@ -57,3 +57,12 @@ export function parseExampleOptions(
     const exampleRunFn = Function(...Object.keys(evalGlobals), evalExpr);
     return exampleRunFn(...Object.values(evalGlobals));
 }
+
+export function loadBuiltExampleOptions(name: string) {
+    const fileContent = fs
+        .readFileSync(
+            `dist/generated-examples/ag-charts-website/docs/benchmarks/_examples/${name}/plain/vanilla/contents.json`
+        )
+        .toString();
+    return JSON.parse(JSON.parse(fileContent)['files']['_options.json'])['myChart'];
+}
