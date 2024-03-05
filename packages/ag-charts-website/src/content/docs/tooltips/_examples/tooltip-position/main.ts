@@ -35,8 +35,8 @@ function fixTooltipToPointer() {
 }
 
 function reset() {
-    options.tooltip.position!.type = 'node';
-    options.tooltip.position!.xOffset = 0;
-    options.tooltip.position!.yOffset = 0;
+    options.tooltip!.position!.type = 'node';
+    options.tooltip!.position!.xOffset = 0;
+    options.tooltip!.position!.yOffset = 0;
     AgCharts.update(chart, options);
 }
