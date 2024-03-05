@@ -1,4 +1,4 @@
-import type { FeatureCollection, Geometry, Position } from 'geojson';
+import type { FeatureCollection, Geometry } from 'geojson';
 
 import type {
     AgMapSeriesFormatterParams,
@@ -9,6 +9,7 @@ import type {
     AgMapSeriesTooltipRendererParams,
 } from '../../../options/series/topology/mapOptions';
 import { SceneChangeDetection } from '../../../scene/node';
+import type { SizedPoint } from '../../../scene/point';
 import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { BaseProperties } from '../../../util/properties';
 import {
@@ -35,6 +36,7 @@ import type { SeriesNodeDatum } from '../seriesTypes';
 export interface MapNodeLabelDatum extends PointLabelDatum {}
 
 interface BaseMapNodeDatum extends SeriesNodeDatum {
+    readonly idValue: string;
     readonly label: MapNodeLabelDatum | undefined;
     readonly fill: string;
     readonly colorValue: number | undefined;
@@ -54,8 +56,7 @@ export interface MapNodeDatum extends BaseMapNodeDatum {
 export interface MapNodeMarkerDatum extends BaseMapNodeDatum {
     readonly type: MapNodeDatumType.Marker;
     readonly index: number;
-    readonly size: number | undefined;
-    readonly position: Position;
+    readonly point: Readonly<SizedPoint>;
 }
 
 class MapSeriesMarker extends SeriesMarker<AgMapSeriesOptionsKeys, MapNodeMarkerDatum> {
@@ -81,20 +82,20 @@ class MapSeriesBackground extends BaseProperties {
     @Validate(STRING, { optional: true })
     id: string | undefined = undefined;
 
-    @Validate(COLOR_STRING, { optional: true })
-    fill: string | undefined = undefined;
+    @Validate(COLOR_STRING)
+    fill: string = 'black';
 
-    @Validate(RATIO, { optional: true })
-    fillOpacity: number | undefined = undefined;
+    @Validate(RATIO)
+    fillOpacity: number = 1;
 
-    @Validate(COLOR_STRING, { optional: true })
-    stroke: string | undefined = undefined;
+    @Validate(COLOR_STRING)
+    stroke: string = 'black';
 
-    @Validate(RATIO, { optional: true })
-    strokeOpacity: number | undefined = undefined;
+    @Validate(RATIO)
+    strokeOpacity: number = 1;
 
-    @Validate(POSITIVE_NUMBER, { optional: true })
-    strokeWidth: number | undefined = undefined;
+    @Validate(POSITIVE_NUMBER)
+    strokeWidth: number = 0;
 
     @Validate(LINE_DASH)
     lineDash: number[] = [0];
@@ -143,8 +144,8 @@ export class MapSeriesProperties extends SeriesProperties<AgMapSeriesOptions> {
     @Validate(RATIO)
     fillOpacity: number = 1;
 
-    @Validate(COLOR_STRING)
-    stroke: string = 'black';
+    @Validate(COLOR_STRING, { optional: true })
+    stroke: string | undefined;
 
     @Validate(RATIO)
     strokeOpacity: number = 1;
@@ -169,4 +170,10 @@ export class MapSeriesProperties extends SeriesProperties<AgMapSeriesOptions> {
 
     @Validate(OBJECT)
     override tooltip = new SeriesTooltip<AgMapSeriesTooltipRendererParams<any>>();
+
+    @Validate(STRING, { optional: true })
+    __POLYGON_STROKE?: string = undefined;
+
+    @Validate(STRING, { optional: true })
+    __LINE_STRING_STROKE?: string = undefined;
 }

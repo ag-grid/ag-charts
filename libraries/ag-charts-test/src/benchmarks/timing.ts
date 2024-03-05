@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -13,15 +14,13 @@ export function recordTiming(suitePath: string, name: string, timeMs: number) {
 
 export function logTimings() {
     for (const [suitePath, suiteRecords] of records) {
-        const result = {};
+        const result: Record<string, number> = {};
         for (const [name, value] of suiteRecords) {
             result[name] = value;
         }
 
-        // eslint-disable no-console
         console.log(suitePath);
         console.table(result);
-        // eslint-enable no-console
     }
 }
 
@@ -33,7 +32,7 @@ export function flushTimings() {
     };
 
     for (const [suitePath, suiteRecords] of records) {
-        const result = {};
+        const result: Record<string, number> = {};
         for (const [name, value] of suiteRecords) {
             result[name] = value;
         }
@@ -41,6 +40,7 @@ export function flushTimings() {
         const filename = `./reports${suitePath.replace(/.ts$/, '.json')}`;
         mkdir(path.dirname(filename));
         fs.writeFileSync(filename, JSON.stringify(result));
+        console.log(`Wrote timings to ${filename}`);
     }
 }
 

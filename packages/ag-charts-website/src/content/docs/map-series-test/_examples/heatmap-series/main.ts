@@ -23,10 +23,7 @@ const options: AgChartOptions = {
             idKey: 'name',
             labelKey: 'code',
             colorKey: 'gdp',
-            stroke: 'white',
-            strokeWidth: 1,
             label: {
-                enabled: true,
                 fontWeight: 'bold',
             },
             tooltip: {

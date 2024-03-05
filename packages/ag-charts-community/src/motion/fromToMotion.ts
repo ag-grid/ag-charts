@@ -152,7 +152,14 @@ export function fromToMotion<
                     }
                 },
                 onStop: () => {
-                    node.setProperties({ ...to, ...finish, ...toFinish } as unknown as T);
+                    node.setProperties({
+                        ...start,
+                        ...toStart,
+                        ...from,
+                        ...to,
+                        ...finish,
+                        ...toFinish,
+                    } as unknown as T);
                 },
             });
 

@@ -1,4 +1,5 @@
 import { ContinuousScale } from '../../scale/continuousScale';
+import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { DataController } from '../data/dataController';
 import type { DataModel, DataModelOptions, ProcessedData, PropertyDefinition } from '../data/dataModel';
@@ -17,8 +18,10 @@ export abstract class DataModelSeries<
     protected processedData?: ProcessedData<any>;
 
     protected isContinuous(): { isContinuousX: boolean; isContinuousY: boolean } {
-        const isContinuousX = ContinuousScale.is(this.axes[ChartAxisDirection.X]?.scale);
-        const isContinuousY = ContinuousScale.is(this.axes[ChartAxisDirection.Y]?.scale);
+        const xScale = this.axes[ChartAxisDirection.X]?.scale;
+        const yScale = this.axes[ChartAxisDirection.Y]?.scale;
+        const isContinuousX = ContinuousScale.is(xScale) || OrdinalTimeScale.is(xScale);
+        const isContinuousY = ContinuousScale.is(yScale) || OrdinalTimeScale.is(yScale);
         return { isContinuousX, isContinuousY };
     }
 

@@ -1,6 +1,7 @@
 import type { AgZoomAnchorPoint, _Scene } from 'ag-charts-community';
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
+import { RANGES } from '../range-buttons/rangeTypes';
 import { ZoomRect } from './scenes/zoomRect';
 import { ZoomAxisDragger } from './zoomAxisDragger';
 import { ZoomPanner } from './zoomPanner';
@@ -46,6 +47,9 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         newValue(newValue) {
             if (newValue) {
                 this.registerContextMenuActions();
+                this.addToolbarButtons();
+            } else if (this.enabled) {
+                this.removeToolbarButtons();
             }
         },
     })
@@ -106,6 +110,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private readonly updateService: _ModuleSupport.UpdateService;
     private readonly zoomManager: _ModuleSupport.ZoomManager;
     private readonly contextMenuRegistry: _ModuleSupport.ContextMenuRegistry;
+    private readonly toolbarManager: _ModuleSupport.ToolbarManager;
 
     // Zoom methods
     private readonly axisDragger = new ZoomAxisDragger();
@@ -134,6 +139,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.zoomManager = ctx.zoomManager;
         this.updateService = ctx.updateService;
         this.contextMenuRegistry = ctx.contextMenuRegistry;
+        this.toolbarManager = ctx.toolbarManager;
 
         // Add selection zoom method and attach selection rect to root scene
         const selectionRect = new ZoomRect();
@@ -142,16 +148,19 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const { Default, ZoomDrag, Animation } = _ModuleSupport.InteractionState;
         const draggableState = Default | Animation | ZoomDrag;
         const clickableState = Default | Animation;
+        const region = ctx.regionManager.getRegion('series');
         this.destroyFns.push(
             this.scene.attachNode(selectionRect),
-            ctx.interactionManager.addListener('dblclick', (event) => this.onDoubleClick(event), clickableState),
-            ctx.interactionManager.addListener('drag', (event) => this.onDrag(event), draggableState),
-            ctx.interactionManager.addListener('drag-start', (event) => this.onDragStart(event), draggableState),
-            ctx.interactionManager.addListener('drag-end', () => this.onDragEnd(), draggableState),
-            ctx.interactionManager.addListener('wheel', (event) => this.onWheel(event), clickableState),
-            ctx.interactionManager.addListener('hover', () => this.onHover(), clickableState),
+            region.addListener('dblclick', (event) => this.onDoubleClick(event), clickableState),
+            region.addListener('drag', (event) => this.onDrag(event), draggableState),
+            region.addListener('drag-start', (event) => this.onDragStart(event), draggableState),
+            region.addListener('drag-end', () => this.onDragEnd(), draggableState),
+            region.addListener('wheel', (event) => this.onWheel(event), clickableState),
+            region.addListener('hover', () => this.onAxisLeave(), clickableState),
+            region.addListener('leave', () => this.onAxisLeave(), clickableState),
             ctx.chartEventManager.addListener('axis-hover', (event) => this.onAxisHover(event)),
             ctx.gestureDetector.addListener('pinch-move', (event) => this.onPinchMove(event as PinchEvent)),
+            ctx.toolbarManager.addListener('button-pressed', (event) => this.onToolbarButtonPress(event)),
             ctx.layoutService.addListener('layout-complete', (event) => this.onLayoutComplete(event)),
             ctx.updateService.addListener('update-complete', (event) => this.onUpdateComplete(event))
         );
@@ -172,6 +181,20 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         const zoom = definedZoomState(this.zoomManager.getZoom());
         this.toggleContextMenuActions(zoom);
+    }
+
+    private addToolbarButtons() {
+        for (const [range] of RANGES.entries()) {
+            this.toolbarManager.addButton(range, {
+                label: range,
+            });
+        }
+    }
+
+    private removeToolbarButtons() {
+        for (const [range] of RANGES.entries()) {
+            this.toolbarManager.removeButton(range);
+        }
     }
 
     private toggleContextMenuActions(zoom: DefinedZoomState) {
@@ -196,38 +219,30 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.updateZoom(constrainZoom(zoom));
     }
 
-    private onRatioChange(direction: _ModuleSupport.ChartAxisDirection, ratioZoom: DefinedZoomState['x' | 'y']) {
-        let { start: minX, end: maxX } = this.ratioX;
-        let { start: minY, end: maxY } = this.ratioY;
+    private onRatioChange(direction: _ModuleSupport.ChartAxisDirection, ratioZoom?: DefinedZoomState['x' | 'y']) {
+        if (!ratioZoom) return;
+
+        let x = this.ratioX.getRatio();
+        let y = this.ratioY.getRatio();
 
         if (direction === ChartAxisDirection.X) {
-            minX = ratioZoom.min;
-            maxX = ratioZoom.max;
+            x = ratioZoom;
         } else {
-            minY = ratioZoom.min;
-            maxY = ratioZoom.max;
+            y = ratioZoom;
         }
 
-        minX ??= UNIT.min;
-        maxX ??= UNIT.max;
-        minY ??= UNIT.min;
-        maxY ??= UNIT.max;
-
-        const newZoom = {
-            x: { min: minX, max: maxX },
-            y: { min: minY, max: maxY },
-        };
-
-        this.zoomManager.updateZoom('zoom', newZoom);
+        const newZoom = constrainZoom(definedZoomState({ x, y }));
+        this.updateZoom(newZoom);
     }
 
     private onDoubleClick(event: _ModuleSupport.InteractionEvent<'dblclick'>) {
         if (!this.enabled || !this.enableDoubleClickToReset) return;
 
-        const {
-            ratioX: { start: minX = UNIT.min, end: maxX = UNIT.max },
-            ratioY: { start: minY = UNIT.min, end: maxY = UNIT.max },
-        } = this;
+        const x = this.rangeX.getInitialRange() ?? this.ratioX.getInitialRatio() ?? UNIT;
+        const y = this.rangeY.getInitialRange() ?? this.ratioY.getInitialRatio() ?? UNIT;
+
+        const { min: minX, max: maxX } = x;
+        const { min: minY, max: maxY } = y;
 
         if (this.hoveredAxis) {
             const { id, direction } = this.hoveredAxis;
@@ -320,10 +335,10 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private onDragEnd() {
+        this.ctx.interactionManager.popState(_ModuleSupport.InteractionState.ZoomDrag);
+
         // Stop single clicks from triggering drag end and resetting the zoom
         if (!this.enabled || this.dragState === DragState.None) return;
-
-        this.ctx.interactionManager.popState(_ModuleSupport.InteractionState.ZoomDrag);
 
         switch (this.dragState) {
             case DragState.Axis:
@@ -403,7 +418,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.updateZoom(newZoom);
     }
 
-    private onHover() {
+    private onAxisLeave() {
         if (!this.enabled) return;
 
         this.hoveredAxis = undefined;
@@ -446,6 +461,23 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
 
         this.updateZoom(constrainZoom(newZoom));
+    }
+
+    private onToolbarButtonPress(event: _ModuleSupport.ToolbarEvent<'button-pressed'>) {
+        if (!RANGES.has(event.id)) return;
+
+        const time = RANGES.get(event.id);
+
+        if (typeof time === 'function') {
+            this.rangeX.start = time();
+            this.rangeX.end = undefined;
+        } else if (time == null) {
+            this.rangeX.start = undefined;
+            this.rangeX.end = new Date().getTime();
+        } else {
+            this.rangeX.start = new Date().getTime() - time;
+            this.rangeX.end = undefined;
+        }
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {

@@ -42,15 +42,23 @@ export interface MapNodeDataContext extends SeriesNodeDataContext<MapNodeDatum, 
     visible: boolean;
 }
 
-export interface MapAnimationData {
-    markerSelection: Selection<Marker, MapNodeMarkerDatum>;
-    contextData: MapNodeDataContext[];
-    seriesRect?: BBox;
-    duration?: number;
-}
-
 type MapAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
 type MapAnimationEvent = 'update' | 'updateData' | 'highlight' | 'resize' | 'clear' | 'reset' | 'skip';
+
+const isLineString = (geometry: Geometry) => {
+    switch (geometry.type) {
+        case 'GeometryCollection':
+            return geometry.geometries.some(isLineString);
+        case 'MultiLineString':
+        case 'LineString':
+            return true;
+        case 'MultiPolygon':
+        case 'Polygon':
+        case 'MultiPoint':
+        case 'Point':
+            return false;
+    }
+};
 
 export class MapSeries extends DataModelSeries<
     MapNodeDatum,
@@ -214,11 +222,11 @@ export class MapSeries extends DataModelSeries<
             return geometryBbox(feature.geometry, current);
         }, undefined);
 
-        const { id } = background;
+        const { id: backgroundId } = background;
         const backgroundTopology = background.topology ?? topology;
         const backgroundGeometry =
-            id != null
-                ? backgroundTopology.features.find((feature) => feature.properties?.name === id)?.geometry
+            backgroundId != null
+                ? backgroundTopology.features.find((feature) => feature.properties?.name === backgroundId)?.geometry
                 : undefined;
 
         if (backgroundGeometry != null) {
@@ -316,13 +324,13 @@ export class MapSeries extends DataModelSeries<
         const labelData: MapNodeLabelDatum[] = [];
         const markerData: MapNodeMarkerDatum[] = [];
         processedData.data.forEach(({ datum, values }) => {
-            const itemId = values[idIdx];
+            const idValue = values[idIdx];
             const colorValue: number | undefined = colorIdx != null ? values[colorIdx] : undefined;
             const sizeValue: number | undefined = sizeIdx != null ? values[sizeIdx] : undefined;
             const color: string | undefined =
                 colorScaleValid && colorValue != null ? colorScale.convert(colorValue) : undefined;
 
-            const projectedGeometry = projectedGeomerties.get(itemId);
+            const projectedGeometry = projectedGeomerties.get(idValue);
 
             const labelValue = labelIdx != null ? values[labelIdx] : undefined;
             const labelText =
@@ -353,9 +361,10 @@ export class MapSeries extends DataModelSeries<
             const nodeDatum: MapNodeDatum = {
                 type: MapNodeDatumType.Node,
                 series: this,
-                itemId,
+                itemId: idKey,
                 datum,
                 label: labelDatum,
+                idValue: idValue,
                 fill: color ?? fillProperty,
                 sizeValue,
                 colorValue,
@@ -365,24 +374,24 @@ export class MapSeries extends DataModelSeries<
             nodeData.push(nodeDatum);
 
             const markers = projectedGeometry?.type === 'Point' ? markerCenters(projectedGeometry) : undefined;
-            markers?.forEach((position, index) => {
-                const size = sizeValue != null ? sizeScale.convert(sizeValue) : undefined;
+            markers?.forEach(([x, y], index) => {
+                const size = sizeValue != null ? sizeScale.convert(sizeValue) : 0;
+                const point = { x, y, size };
                 markerData.push({
                     ...nodeDatum,
                     type: MapNodeDatumType.Marker,
                     fill: color ?? marker.fill ?? fillProperty,
                     index,
-                    size,
-                    position,
+                    point,
                 });
             });
         });
 
-        const { id } = background;
+        const { id: backgroundId } = background;
         const backgroundTopology = background.topology ?? properties.topology;
         const backgroundGeometry =
-            id != null
-                ? backgroundTopology.features.find((feature) => feature.properties?.name === id)?.geometry
+            backgroundId != null
+                ? backgroundTopology.features.find((feature) => feature.properties?.name === backgroundId)?.geometry
                 : undefined;
         const projectedBackgroundGeometry =
             backgroundGeometry != null && scale != null ? projectGeometry(backgroundGeometry, scale) : undefined;
@@ -407,14 +416,8 @@ export class MapSeries extends DataModelSeries<
     }
 
     override async update({ seriesRect }: { seriesRect?: BBox }): Promise<void> {
-        const {
-            datumSelection,
-            labelSelection,
-            markerSelection,
-            highlightDatumSelection,
-            // highlightLabelSelection,
-            highlightMarkerSelection,
-        } = this;
+        const { datumSelection, labelSelection, markerSelection, highlightDatumSelection, highlightMarkerSelection } =
+            this;
 
         await this.updateSelections();
 
@@ -460,7 +463,8 @@ export class MapSeries extends DataModelSeries<
 
     private updateBackground(projectedGeometry: Geometry | undefined) {
         const { backgroundNode, properties } = this;
-        const backgroundProperties = properties.background;
+        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } =
+            properties.background;
 
         if (projectedGeometry == null) {
             backgroundNode.projectedGeometry = undefined;
@@ -470,20 +474,20 @@ export class MapSeries extends DataModelSeries<
 
         backgroundNode.visible = true;
         backgroundNode.projectedGeometry = projectedGeometry;
-        backgroundNode.fill = backgroundProperties?.fill ?? properties.fill;
-        backgroundNode.fillOpacity = backgroundProperties?.fillOpacity ?? properties.fillOpacity;
-        backgroundNode.stroke = backgroundProperties?.stroke ?? properties.stroke;
-        backgroundNode.strokeWidth = backgroundProperties?.strokeWidth ?? properties.strokeWidth;
-        backgroundNode.strokeOpacity = backgroundProperties?.strokeOpacity ?? properties.strokeOpacity;
-        backgroundNode.lineDash = backgroundProperties?.lineDash ?? properties.lineDash;
-        backgroundNode.lineDashOffset = backgroundProperties?.lineDashOffset ?? properties.lineDashOffset;
+        backgroundNode.fill = fill;
+        backgroundNode.fillOpacity = fillOpacity;
+        backgroundNode.stroke = stroke;
+        backgroundNode.strokeWidth = strokeWidth;
+        backgroundNode.strokeOpacity = strokeOpacity;
+        backgroundNode.lineDash = lineDash;
+        backgroundNode.lineDashOffset = lineDashOffset;
     }
 
     private async updateDatumSelection(opts: {
         nodeData: MapNodeDatum[];
         datumSelection: Selection<GeoGeometry, MapNodeDatum>;
     }) {
-        return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId(datum.itemId));
+        return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId(datum.idValue));
     }
 
     private async updateDatumNodes(opts: {
@@ -495,14 +499,26 @@ export class MapSeries extends DataModelSeries<
         const highlightStyle = isHighlight ? this.properties.highlightStyle.item : undefined;
 
         datumSelection.each((geoGeometry, datum) => {
-            geoGeometry.projectedGeometry = datum.projectedGeometry;
+            const { projectedGeometry } = datum;
+            if (projectedGeometry == null) {
+                geoGeometry.projectedGeometry = undefined;
+                geoGeometry.visible = false;
+                return;
+            }
+
+            geoGeometry.projectedGeometry = projectedGeometry;
             geoGeometry.fill = highlightStyle?.fill ?? datum.fill;
             geoGeometry.fillOpacity = highlightStyle?.fillOpacity ?? properties.fillOpacity;
-            geoGeometry.stroke = highlightStyle?.stroke ?? properties.stroke;
+            geoGeometry.stroke =
+                highlightStyle?.stroke ??
+                properties.stroke ??
+                (isLineString(projectedGeometry) ? properties.__LINE_STRING_STROKE : properties.__POLYGON_STROKE);
             geoGeometry.strokeWidth = highlightStyle?.strokeWidth ?? properties.strokeWidth;
             geoGeometry.strokeOpacity = highlightStyle?.strokeOpacity ?? properties.strokeOpacity;
             geoGeometry.lineDash = highlightStyle?.lineDash ?? properties.lineDash;
             geoGeometry.lineDashOffset = highlightStyle?.lineDashOffset ?? properties.lineDashOffset;
+
+            geoGeometry.lineJoin = 'round';
         });
     }
 
@@ -542,7 +558,7 @@ export class MapSeries extends DataModelSeries<
         }
 
         const data = this.isMarkerEnabled() ? markerData : [];
-        return markerSelection.update(data, undefined, (datum) => `${createDatumId(datum.itemId)}:${datum.index}`);
+        return markerSelection.update(data, undefined, (datum) => createDatumId([datum.idValue, datum.index]));
     }
 
     private async updateMarkerNodes(opts: {
@@ -554,16 +570,16 @@ export class MapSeries extends DataModelSeries<
         const highlightStyle = isHighlight ? this.properties.highlightStyle.item : undefined;
 
         markerSelection.each((marker, markerDatum) => {
-            const [x, y] = this.scale!.convert(markerDatum.position);
+            const { point } = markerDatum;
 
-            marker.size = markerDatum.size ?? size;
+            marker.size = point.size > 0 ? point.size : size;
             marker.fill = highlightStyle?.fill ?? markerDatum.fill;
             marker.fillOpacity = highlightStyle?.fillOpacity ?? fillOpacity;
             marker.stroke = highlightStyle?.stroke ?? stroke;
             marker.strokeWidth = highlightStyle?.strokeWidth ?? strokeWidth;
             marker.strokeOpacity = highlightStyle?.strokeOpacity ?? strokeOpacity;
-            marker.translationX = x;
-            marker.translationY = y;
+            marker.translationX = point.x;
+            marker.translationY = point.y;
         });
 
         if (!isHighlight) {
@@ -701,9 +717,9 @@ export class MapSeries extends DataModelSeries<
 
         const { idKey, sizeKey, sizeName, colorKey, colorName, stroke, strokeWidth, formatter, tooltip } =
             this.properties;
-        const { itemId, datum, fill, sizeValue, colorValue } = nodeDatum;
+        const { datum, fill, idValue, sizeValue, colorValue } = nodeDatum;
 
-        const title = sanitizeHtml(itemId);
+        const title = sanitizeHtml(idValue);
         const contentLines: string[] = [];
         if (sizeValue != null) {
             contentLines.push(sanitizeHtml((sizeName ?? sizeKey) + ': ' + sizeValue));

@@ -3,9 +3,11 @@ title: 'Zoom'
 enterprise: true
 ---
 
-AG Charts provides two methods of zooming, either by scrolling with the mouse wheel or selecting an area of the chart to zoom into.
+AG Charts allows zooming into charts, making it easier to navigate large datasets.
 
-To enable these features, set `zoom.enabled` to `true`.
+{% chartExampleRunner title="Zoom" name="zoom" type="generated" /%}
+
+To enable this feature, set `zoom.enabled` to `true`.
 
 ```ts
 zoom: {
@@ -13,56 +15,22 @@ zoom: {
 }
 ```
 
-A user will now be able to use the zooming features as in the following example, including:
+In the above example you can:
 
--   Scroll in and out with the mouse wheel.
+-   Scroll in and out with the mouse wheel or trackpad.
 -   Click and drag to pan around the zoomed in chart.
 -   Click and drag an axis to zoom in or out on only that axis.
 -   Double click anywhere to reset the zoom.
--   Click and drag a box to select an area to zoom into (not enabled by default).
 
-{% chartExampleRunner title="Zoom" name="zoom" type="generated" /%}
+{% note %}
+If `axis[].tick.maxSpacing` is provided, the axis ticks and labels will update with the zoom.
+{% /note %}
 
-## Enabling and Disabling Features
+## Scrolling
 
-You can enable and disable each feature of the zoom module separately if they are not appropriate for your chart. These can be toggled with the `enablePanning`, `enableScrolling` and `enableSelecting` options.
+This allows zooming by using the mouse wheel or trackpad, as shown in the above example and is enabled by default. To disable use `enableScrolling: false`.
 
-In the example below, we only enable selecting an area.
-
-```ts
-zoom: {
-    enableAxisDragging: false,
-    enablePanning: false,
-    enableScrolling: false,
-    enableSelecting: true,
-}
-```
-
-{% chartExampleRunner title="Zoom Enabling and Disabling Features" name="zoom-selecting" type="generated" /%}
-
-## Axes
-
-Zooming can be enabled for either the `x` or `y` axis, or for both at the same time with `xy` using the `axes` property. By default, zooming is only enabled on the `x` axis.
-
-In the example below, we enable zoom on the `y` axis. By also providing a `axis[].tick.minSpacing` and `axis[].tick.maxSpacing`, the axis ticks update with the zoom.
-
-```ts
-zoom: {
-    axes: 'xy',
-}
-```
-
-{% chartExampleRunner title="Zoom Axes" name="zoom-axes" type="generated" /%}
-
-### Dragging an Axis
-
-By default, a user can click and drag on an axis to change the zoom of that axis. This ignores the `axes` property, so will either be enabled for all axes or none using the `enableAxisDragging` property.
-
-In the example below, we have series attached to different y-axes. Both y-axes are zoomed in sync with each other.
-
-{% chartExampleRunner title="Zoom Axis Dragging" name="zoom-axis-dragging" type="generated" /%}
-
-## Anchor Point
+### Anchor Point
 
 By default, the chart will zoom while keeping the right side of the x-axis pinned. You can change this anchor point with the `anchorPointX` and `anchorPointY` properties, setting them each to one of:
 
@@ -73,6 +41,8 @@ By default, the chart will zoom while keeping the right side of the x-axis pinne
 
 In the example below, we set the anchor point for both axes to the mouse pointer.
 
+{% chartExampleRunner title="Zoom Anchor Point" name="zoom-anchor-point" type="generated" /%}
+
 ```ts
 zoom: {
     anchorPointX: 'pointer',
@@ -80,13 +50,13 @@ zoom: {
 }
 ```
 
-{% chartExampleRunner title="Zoom Anchor Point" name="zoom-anchor-point" type="generated" /%}
+### Scrolling Step
 
-## Scrolling Step
-
-When scrolling the chart zooms in by a step for each movement of the scroll wheel or on the trackpad. By default `scrollingStep` is set to `0.1`, or 10% of the chart at a time.
+When scrolling, the chart zooms in by a single step for each movement of the scroll wheel or trackpad. By default `scrollingStep` is set to `0.1`, or 10% of the chart each time.
 
 In the example below, we change the step to `0.4`.
+
+{% chartExampleRunner title="Zoom Scrolling Step" name="zoom-scrolling-step" type="generated" /%}
 
 ```ts
 zoom: {
@@ -94,29 +64,31 @@ zoom: {
 }
 ```
 
-{% chartExampleRunner title="Zoom Scrolling Step" name="zoom-scrolling-step" type="generated" /%}
+### Axes
 
-## Minimum Visible Items
+By default, scrolling zoom is only enabled for the `x` axis. This can be changed by setting the `axes` property to `x`, `y` or `xy`.
 
-The `minVisibleItemsX` and `minVisibleItemsY` options can be used to limit how far a user can zoom in to the chart, helping to prevent them from getting lost in a blank space of the chart. These options set the minimum number of items visible on each axis, for example the number of bars in a bar series or points in a line series. The default for both values is `2`.
+In the example below, we enable zoom on both the `x` and `y` axes.
 
-The example below demonstrates setting `minVisibleItemsX` to `10`, preventing the user from zooming beyond showing a minimum of 10 points on the line.
+{% chartExampleRunner title="Zoom Axes" name="zoom-axes" type="generated" /%}
 
 ```ts
 zoom: {
-    minVisibleItemsX: 10,
+    axes: 'xy',
 }
 ```
 
-{% chartExampleRunner title="Zoom Min Visible Items" name="zoom-min-visible-items" type="generated" /%}
+## Panning
 
-## Pan Key
+This is enabled by default and allows users to click and drag to move around a zoomed chart. To disable use `enablePanning: false`.
 
-While zoomed in to the chart, a user can pan around by clicking and dragging.
+If [zoom by selecting](#selecting) is enabled, clicking and dragging will no longer pan by default. Instead the user will need to hold down a key to switch to panning mode.
 
-If you have enabled selecting an area to zoom as well using `enableSelecting: true`, clicking and dragging will no longer pan by default. Instead the user will need to hold down a key to switch to panning mode.
+This key defaults to `alt` but can be set with the `panKey` property to one of `alt`, `ctrl`, `shift` or `meta` (the command key on MacOS or start key on Windows).
 
-This key defaults to `alt` but can be set on the `panKey` property to one of `alt`, `ctrl`, `shift` or `meta` (the command key on MacOS or start key on Windows).
+In the example below, panning can only be done by holding down the `shift` key while clicking and dragging.
+
+{% chartExampleRunner title="Zoom Pan Key" name="zoom-pan-key" type="generated" /%}
 
 ```ts
 zoom: {
@@ -124,7 +96,91 @@ zoom: {
 }
 ```
 
-{% chartExampleRunner title="Zoom Pan Key" name="zoom-pan-key" type="generated" /%}
+## Selecting
+
+This method of zooming works by clicking and dragging a box to select an area on the chart. This is disabled by default. To enable, use `enableSelecting: true`.
+
+In the example below, the user can only zoom in by selection, and can only zoom out by double-click to reset.
+
+{% chartExampleRunner title="Zoom Selecting" name="zoom-selecting" type="generated" /%}
+
+```ts
+zoom: {
+    enableAxisDragging: false,
+    enablePanning: false,
+    enableScrolling: false,
+    enableSelecting: true,
+}
+```
+
+## Dragging an Axis
+
+By default, a user can click and drag on any axis to change the zoom of that axis. This ignores the `axes` property and is enabled by default for all axes. To disable use `enableAxisDragging: false`.
+
+In the example below, we have two series, each attached to a different y-axis. Dragging one of the y-axes will zoom both of them.
+
+{% chartExampleRunner title="Zoom Axis Dragging" name="zoom-axis-dragging" type="generated" /%}
+
+## Double-Click to Reset
+
+This allows users to reset the zoom by double-clicking in an empty space in the chart area, and is enabled by default. To disable use `enableDoubleClickToReset: false`.
+
+## Minimum Visible Items
+
+The `minVisibleItemsX` and `minVisibleItemsY` options can be used to limit how far a user can zoom in to the chart, helping to prevent them from getting lost in a blank space of the chart. These options set the minimum number of items visible on each axis, for example the number of bars in a bar series or points in a line series. The default for both values is `2`.
+
+The example below demonstrates setting `minVisibleItemsX` to `10`, preventing the user from zooming beyond showing a minimum of 10 points on the line.
+
+{% chartExampleRunner title="Zoom Min Visible Items" name="zoom-min-visible-items" type="generated" /%}
+
+```ts
+zoom: {
+    minVisibleItemsX: 10,
+}
+```
+
+## Range
+
+Use the `rangeX` and `rangeY` options to set the zoom range. This can be used for when the chart first loads, or updated via the [update API](./api-create-update/) at runtime.
+
+The `start` and `end` values should be of the same type as the matching axis, for example a `Date` object on a time axis.
+
+{% chartExampleRunner title="Zoom Range" name="zoom-range" type="generated" /%}
+
+```ts
+zoom: {
+    rangeX: {
+        start: new Date('2024-08-01 00:00:00'),
+        end: new Date('2024-08-30 23:59:59'),
+    },
+}
+```
+
+As an alternative to specifying the zoom in terms of range values, you can use `ratioX` and `ratioY` to specify it as a ratio of the full chart from `0` to `1`.
+
+```ts
+zoom: {
+    ratioX:
+    {
+      start: 0.8,
+      end: 1,
+    }
+}
+```
+
+{% note %}
+If a range or ratio is specified, [double-click to reset](#double-click-to-reset) will reset to the initial range or ratio specified.
+{% /note %}
+
+## Navigator
+
+The zoom functionality can be used together with the [Navigator](./navigator/) to add a visual reference to the zoom position.
+
+## Context Menu
+
+When both the zoom and [Context Menu](./context-menu/) are enabled, additional zoom actions are added into the Context Menu for zooming and panning to the clicked location.
+
+{% chartExampleRunner title="Zoom Context Menu" name="zoom-context-menu" type="generated" /%}
 
 ## Asynchronous Loading
 
@@ -147,36 +203,6 @@ The data returned from the `getData` function should always include the coarse d
 {% note %}
 The `windowStart` and `windowEnd` parameters will be `undefined` if the chart does not have a time axis. They will also be `undefined` on the first call to `dataSource.getData()` if no `axis[].min` and `axis[].max` are provided on the time axis.
 {% /note %}
-
-## Range
-
-Use the `rangeX` and `rangeY` options to set the zoom range. The `start` and `end` values should be of the same type as the matching axis, for example a `Date` object with a time axis.
-
-```ts
-zoom: {
-    rangeX: {
-        start: new Date('2024-08-01 00:00:00'),
-        end: new Date('2024-08-30 23:59:59'),
-    },
-}
-```
-
-{% chartExampleRunner title="Zoom Range" name="zoom-range" type="generated" /%}
-
-Instead of specifying the range, you can use the `minX`, `maxX`, `minY` and `maxY` options as a ratio of the full chart from `0` to `1`.
-
-```ts
-zoom: {
-    minX: 0.8,
-    maxX: 1,
-}
-```
-
-## Context Menu
-
-When both the zoom and context menu are enabled, additional zoom actions are added into the context menu for zooming and panning to the clicked location.
-
-{% chartExampleRunner title="Zoom Context Menu" name="zoom-context-menu" type="generated" /%}
 
 ## API Reference
 
