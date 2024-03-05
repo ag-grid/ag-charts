@@ -40,29 +40,30 @@ export class RangeMask extends Path {
     }
 
     override updatePath() {
-        const { path, x, y, width, height, min, max } = this;
+        const { path, x, y, width, height, min, max, strokeWidth } = this;
+        const pixelAlign = strokeWidth / 2;
 
         path.clear();
 
-        const ax = this.align(x);
-        const ay = this.align(y);
-        const axw = ax + this.align(x, width);
-        const ayh = ay + this.align(y, height);
+        const ax = this.align(x) + pixelAlign;
+        const ay = this.align(y) + pixelAlign;
+        const axw = ax + this.align(x, width) - 2 * pixelAlign;
+        const ayh = ay + this.align(y, height) - 2 * pixelAlign;
 
         // Whole range.
         path.moveTo(ax, ay);
         path.lineTo(axw, ay);
         path.lineTo(axw, ayh);
         path.lineTo(ax, ayh);
-        path.lineTo(ax, ay);
+        path.closePath();
 
-        const minX = this.align(x + width * min);
-        const maxX = this.align(x + width * max);
+        const minX = this.align(x + width * min) - pixelAlign;
+        const maxX = this.align(x + width * max) - pixelAlign;
         // Visible range.
         path.moveTo(minX, ay);
         path.lineTo(minX, ayh);
         path.lineTo(maxX, ayh);
         path.lineTo(maxX, ay);
-        path.lineTo(minX, ay);
+        path.closePath;
     }
 }

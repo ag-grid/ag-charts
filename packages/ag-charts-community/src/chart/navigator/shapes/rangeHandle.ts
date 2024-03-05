@@ -114,31 +114,29 @@ export class RangeHandle extends Path {
     }
 
     override updatePath() {
-        const { path, centerX, centerY, width, height } = this;
+        const { path, strokeWidth } = this;
+        const pixelAlign = strokeWidth / 2;
 
         path.clear();
 
-        const x = centerX - width / 2;
-        const y = centerY - height / 2;
-
-        const ax = this.align(x);
-        const ay = this.align(y);
-        const axw = ax + this.align(x, width);
-        const ayh = ay + this.align(y, height);
+        const halfWidth = this.align(this.width) / 2;
+        const halfHeight = this.align(this.height) / 2;
+        const centerX = this.align(this.centerX) - (halfWidth % 1);
+        const centerY = this.align(this.centerY) - (halfHeight % 1);
 
         // Handle.
-        path.moveTo(ax, ay);
-        path.lineTo(axw, ay);
-        path.lineTo(axw, ayh);
-        path.lineTo(ax, ayh);
+        path.moveTo(centerX - halfWidth + pixelAlign, centerY - halfHeight + pixelAlign);
+        path.lineTo(centerX + halfWidth - pixelAlign, centerY - halfHeight + pixelAlign);
+        path.lineTo(centerX + halfWidth - pixelAlign, centerY + halfHeight - pixelAlign);
+        path.lineTo(centerX - halfWidth + pixelAlign, centerY + halfHeight - pixelAlign);
         path.closePath();
 
         // Grip lines.
         const dx = this.gripLineGap / 2;
         const dy = this.gripLineLength / 2;
-        path.moveTo(this.align(centerX - dx), this.align(centerY - dy));
-        path.lineTo(this.align(centerX - dx), this.align(centerY + dy));
-        path.moveTo(this.align(centerX + dx), this.align(centerY - dy));
-        path.lineTo(this.align(centerX + dx), this.align(centerY + dy));
+        path.moveTo(centerX - dx - pixelAlign, centerY - dy);
+        path.lineTo(centerX - dx - pixelAlign, centerY + dy);
+        path.moveTo(centerX + dx + pixelAlign, centerY - dy);
+        path.lineTo(centerX + dx + pixelAlign, centerY + dy);
     }
 }
