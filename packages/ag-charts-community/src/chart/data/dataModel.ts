@@ -4,7 +4,9 @@ import { Logger } from '../../util/logger';
 import { isNegative } from '../../util/number';
 import { isFiniteNumber, isObject } from '../../util/type-guards';
 import type { ChartMode } from '../chartMode';
-import { ContinuousDomain, DiscreteDomain, type IDataDomain } from './dataDomain';
+import { DataDomain } from './dataDomain';
+import type { ContinuousDomain } from './utilFunctions';
+import { extendDomain } from './utilFunctions';
 
 export type ScopeProvider = { id: string };
 
@@ -418,7 +420,7 @@ export class DataModel<
         searchId: string,
         type: PropertyDefinition<any>['type'] = 'value',
         processedData: ProcessedData<K>
-    ): any[] | [number, number] | [] {
+    ): any[] | ContinuousDomain<number> | [] {
         const matches = this.resolveProcessedDataDefsById(scope, searchId);
 
         let domainProp: keyof ProcessedData<any>['domain'];
@@ -439,15 +441,16 @@ export class DataModel<
                 return [];
         }
 
+        const firstMatch = processedData.domain[domainProp]?.[matches[0].index] ?? [];
         if (matches.length === 1) {
-            return processedData.domain[domainProp]?.[matches[0].index] ?? [];
+            return firstMatch;
         }
 
-        let result;
-        for (const idx of matches) {
-            ContinuousDomain.extendDomain(processedData.domain[domainProp]?.[idx.index] ?? [], result);
+        const result = [...firstMatch];
+        for (const idx of matches.slice(1)) {
+            extendDomain(processedData.domain[domainProp]?.[idx.index] ?? [], result as ContinuousDomain<any>);
         }
-        return result ?? [];
+        return result;
     }
 
     processData(
@@ -545,20 +548,19 @@ export class DataModel<
         const noScopesToMatch = scopes == null || scopes.length === 0;
         const scopeMatch = (compareTo?: string[]) => {
             const anyScope = compareTo == null;
-            if (anyScope) {
-                return true;
-            }
+            if (anyScope) return true;
 
             const noScopes = compareTo == null || compareTo.length === 0;
-            if (noScopesToMatch === noScopes) {
-                return true;
-            }
+            if (noScopesToMatch === noScopes) return true;
 
             return compareTo?.some((s) => scopes.includes(s));
         };
 
         const propId = typeof prop === 'string' ? prop : prop.id;
-        const idMatch = ([scope, id]: [string, string]) => scopeMatch([scope]) && id === propId;
+        const idMatch = ([scope, id]: [string, string]) => {
+            return scopeMatch([scope]) && id === propId;
+        };
+
         const result = this.values.findIndex((def) => {
             return (
                 scopeMatch(def.scopes) &&
@@ -666,13 +668,12 @@ export class DataModel<
         resultData.length = resultDataIdx;
 
         const propertyDomain = (def: InternalDatumPropertyDefinition<K>) => {
-            const defDomain = dataDomain.get(def)!;
-            const result = defDomain.getDomain();
-            // Ignore starting values.
-            if (ContinuousDomain.is(defDomain) && result[0] > result[1]) {
+            const result = dataDomain.get(def)!.getDomain();
+            if (Array.isArray(result) && result[0] > result[1]) {
+                // Ignore starting values.
                 return [];
             }
-            return result;
+            return [...result];
         };
 
         return {
@@ -755,7 +756,7 @@ export class DataModel<
 
         if (!aggDefs) return;
 
-        const resultAggValues = aggDefs.map((): [number, number] => [Infinity, -Infinity]);
+        const resultAggValues = aggDefs.map((): ContinuousDomain<number> => [Infinity, -Infinity]);
         const resultAggValueIndices = aggDefs.map((def) => this.valueGroupIdxLookup(def));
         const resultAggFns = aggDefs.map((def) => def.aggregateFunction);
         const resultGroupAggFns = aggDefs.map((def) => def.groupAggregateFunction);
@@ -779,21 +780,21 @@ export class DataModel<
                     continue;
                 }
 
-                let groupAggValues = resultGroupAggFns[resultIdx]?.() ?? ContinuousDomain.extendDomain([]);
+                let groupAggValues = resultGroupAggFns[resultIdx]?.() ?? extendDomain([]);
                 for (const distinctValues of values) {
                     const valuesToAgg = indices.map((valueIdx) => distinctValues[valueIdx] as D[K]);
                     const valuesAgg = resultAggFns[resultIdx](valuesToAgg, group.keys);
                     if (valuesAgg) {
                         groupAggValues =
                             resultGroupAggFns[resultIdx]?.(valuesAgg, groupAggValues) ??
-                            ContinuousDomain.extendDomain(valuesAgg, groupAggValues);
+                            extendDomain(valuesAgg, groupAggValues);
                     }
                 }
 
                 const finalValues = (resultFinalFns[resultIdx]?.(groupAggValues) ?? groupAggValues).map((v) =>
                     round(v)
                 ) as [number, number];
-                ContinuousDomain.extendDomain(finalValues, resultAggValues[resultIdx]);
+                extendDomain(finalValues, resultAggValues[resultIdx]);
                 group.aggValues[resultIdx++] = finalValues;
             }
         }
@@ -807,7 +808,7 @@ export class DataModel<
         if (!groupProcessors) return;
 
         const affectedIndices = new Set<number>();
-        const updatedDomains = new Map<number, IDataDomain>();
+        const updatedDomains = new Map<number, DataDomain>();
         const groupProcessorIndices = new Map<object, number[]>();
         const groupProcessorInitFns = new Map<object, () => (v: any[], i: number[]) => void>();
         for (const processor of groupProcessors) {
@@ -817,9 +818,8 @@ export class DataModel<
 
             for (const idx of indices) {
                 const valueDef = this.values[idx];
-                const isDiscrete = valueDef.valueType === 'category';
                 affectedIndices.add(idx);
-                updatedDomains.set(idx, isDiscrete ? new DiscreteDomain() : new ContinuousDomain());
+                updatedDomains.set(idx, new DataDomain(valueDef.valueType === 'category' ? 'discrete' : 'continuous'));
             }
         }
 
@@ -864,7 +864,7 @@ export class DataModel<
         }
 
         for (const [idx, dataDomain] of updatedDomains) {
-            processedData.domain.values[idx] = dataDomain.getDomain();
+            processedData.domain.values[idx] = [...dataDomain.getDomain()];
         }
     }
 
@@ -925,29 +925,28 @@ export class DataModel<
         }
         const scopesCount = scopes.size;
 
-        const dataDomain: Map<object, IDataDomain> = new Map();
+        const dataDomain: Map<object, DataDomain> = new Map();
         const processorFns = new Map<InternalDatumPropertyDefinition<K>, ProcessorFn>();
         let allScopesHaveSameDefs = true;
         const initDataDomainKey = (
             key: InternalDatumPropertyDefinition<K>,
             type: DatumPropertyType,
-            updateDataDomain = dataDomain
+            updateDataDomain: typeof dataDomain = dataDomain
         ) => {
             if (type === 'category') {
-                updateDataDomain.set(key, new DiscreteDomain());
+                updateDataDomain.set(key, new DataDomain('discrete'));
             } else {
-                updateDataDomain.set(key, new ContinuousDomain());
+                updateDataDomain.set(key, new DataDomain('continuous'));
                 allScopesHaveSameDefs &&= (key.scopes ?? []).length === scopesCount;
             }
         };
         const initDataDomain = () => {
-            for (const def of iterate(keyDefs, valueDefs)) {
-                initDataDomainKey(def, def.valueType);
-            }
+            keyDefs.forEach((def) => initDataDomainKey(def, def.valueType));
+            valueDefs.forEach((def) => initDataDomainKey(def, def.valueType));
         };
         initDataDomain();
 
-        const accessors = this.buildAccessors(iterate(keyDefs, valueDefs));
+        const accessors = this.buildAccessors(...keyDefs, ...valueDefs);
 
         const processValue = (
             def: InternalDatumPropertyDefinition<K>,
@@ -956,7 +955,7 @@ export class DataModel<
             scope?: string
         ) => {
             const hasAccessor = def.property in accessors;
-            let valueInDatum: boolean;
+            let valueInDatum = false;
             let value;
             if (hasAccessor) {
                 try {
@@ -964,7 +963,7 @@ export class DataModel<
                 } catch (error: any) {
                     // Swallow errors - these get reported as missing values to the user later.
                 }
-                valueInDatum = value != null;
+                valueInDatum = value !== undefined;
             } else {
                 valueInDatum = def.property in datum;
                 value = valueInDatum ? datum[def.property] : def.missingValue;
@@ -1016,7 +1015,7 @@ export class DataModel<
         return { dataDomain, processValue, initDataDomain, scopes, allScopesHaveSameDefs };
     }
 
-    buildAccessors(defs: Iterable<{ property: string }>) {
+    buildAccessors(...defs: { property: string }[]) {
         const result: Record<string, (d: any) => any> = {};
         if (this.mode === 'integrated') return result;
 
