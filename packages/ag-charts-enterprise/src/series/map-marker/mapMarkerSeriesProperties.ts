@@ -127,9 +127,6 @@ export class MapMarkerSeriesProperties extends SeriesProperties<AgMapMarkerSerie
     @Validate(STRING, { optional: true })
     colorName?: string;
 
-    @Validate(STRING)
-    topologyProperty: string = 'name';
-
     @Validate(AND(COLOR_STRING_ARRAY, ARRAY.restrict({ minLength: 1 })), { optional: true })
     colorRange: string[] | undefined = undefined;
 

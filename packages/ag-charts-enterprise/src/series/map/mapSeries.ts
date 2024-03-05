@@ -1,6 +1,6 @@
 import type { Feature, FeatureCollection, Geometry } from 'geojson';
 
-import { AgMapSeriesStyle, _ModuleSupport, _Scale, _Scene, _Theme, _Util } from 'ag-charts-community';
+import { AgMapSeriesStyle, _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import { GeoGeometry } from '../map-util/geoGeometry';
 import { geometryBbox, geometryCenter, markerCenters, projectGeometry } from '../map-util/geometryUtil';
@@ -192,7 +192,8 @@ export class MapSeries
         if (background.topology != null) {
             ({ topology, topologyProperty } = background);
         } else {
-            ({ topology, topologyProperty } = this.properties);
+            topology = this.topology;
+            topologyProperty = this.properties.topologyProperty;
         }
 
         return topology?.features.find((feature) => feature.properties?.[topologyProperty] === id)?.geometry;
@@ -277,9 +278,18 @@ export class MapSeries
         return !colorDataMissing;
     }
 
-    override async createNodeData(): Promise<MapNodeDataContext[]> {
-        const { id: seriesId, dataModel, processedData, colorScale, sizeScale, properties, scale } = this;
-        const {
+    private getLabelDatum(
+        datum: any,
+        labelValue: string | undefined,
+        projectedGeometry: Geometry | undefined,
+        font: string
+    ): MapNodeLabelDatum | undefined {
+        if (labelValue == null || projectedGeometry == null) return;
+
+        const { idKey, idName, sizeKey, sizeName, colorKey, colorName, labelKey, labelName, label } = this.properties;
+        const labelText = this.getLabelText(label, {
+            value: labelValue,
+            datum,
             idKey,
             idName,
             sizeKey,
@@ -288,10 +298,27 @@ export class MapSeries
             colorName,
             labelKey,
             labelName,
-            label,
-            marker,
-            fill: fillProperty,
-        } = properties;
+        });
+        if (labelText == null) return;
+
+        const labelCenter =
+            projectedGeometry != null && labelText != null ? geometryCenter(projectedGeometry, 1) : undefined;
+        if (labelCenter == null) return;
+
+        const labelSize = Text.getTextSize(String(labelText), font);
+        if (labelCenter.distance < Math.hypot(labelSize.width / 2, labelSize.height / 2)) return;
+
+        const { x, y } = labelCenter;
+        const { width, height } = labelSize;
+        return {
+            point: { x, y, size: 0 },
+            label: { width, height, text: labelText },
+        };
+    }
+
+    override async createNodeData(): Promise<MapNodeDataContext[]> {
+        const { id: seriesId, dataModel, processedData, colorScale, sizeScale, properties, scale } = this;
+        const { idKey, sizeKey, colorKey, labelKey, label, marker, fill: fillProperty } = properties;
 
         if (dataModel == null || processedData == null) return [];
 
@@ -309,7 +336,7 @@ export class MapSeries
         const projectedGeometries = new Map<string, Geometry>();
         processedData.data.forEach(({ values }) => {
             const id: string | undefined = values[idIdx];
-            const geometry = (values[featureIdx] as Feature | undefined)?.geometry;
+            const geometry: Geometry | undefined = values[featureIdx]?.geometry;
             const projectedGeometry = geometry != null && scale != null ? projectGeometry(geometry, scale) : undefined;
             if (id != null && projectedGeometry != null) {
                 projectedGeometries.set(id, projectedGeometry);
@@ -323,43 +350,14 @@ export class MapSeries
             const idValue = values[idIdx];
             const colorValue: number | undefined = colorIdx != null ? values[colorIdx] : undefined;
             const sizeValue: number | undefined = sizeIdx != null ? values[sizeIdx] : undefined;
+            const labelValue: string | undefined = labelIdx != null ? values[labelIdx] : undefined;
+
             const color: string | undefined =
                 colorScaleValid && colorValue != null ? colorScale.convert(colorValue) : undefined;
-
             const projectedGeometry = projectedGeometries.get(idValue);
 
-            const labelValue = labelIdx != null ? values[labelIdx] : undefined;
-            let renderLabel = true;
-            const labelText =
-                labelValue != null
-                    ? this.getLabelText(this.properties.label, {
-                          value: labelValue,
-                          datum,
-                          idKey,
-                          idName,
-                          sizeKey,
-                          sizeName,
-                          colorKey,
-                          colorName,
-                          labelKey,
-                          labelName,
-                      })
-                    : undefined;
-            const labelCenter =
-                projectedGeometry != null && labelText != null ? geometryCenter(projectedGeometry, 1) : undefined;
-            const labelSize =
-                labelText != null && labelCenter != null ? Text.getTextSize(String(labelText), font) : undefined;
-            if (labelCenter != null && labelSize != null) {
-                renderLabel &&= labelCenter.distance > Math.hypot(labelSize.width / 2, labelSize.height / 2);
-            }
-            let labelDatum: MapNodeLabelDatum | undefined;
-            if (renderLabel && labelText != null && labelCenter != null) {
-                const { x, y } = labelCenter;
-                const { width, height } = Text.getTextSize(String(labelText), font);
-                labelDatum = {
-                    point: { x, y, size: 0 },
-                    label: { width, height, text: labelText },
-                };
+            const labelDatum = this.getLabelDatum(datum, labelValue, projectedGeometry, font);
+            if (labelDatum != null) {
                 labelData.push(labelDatum);
             }
 

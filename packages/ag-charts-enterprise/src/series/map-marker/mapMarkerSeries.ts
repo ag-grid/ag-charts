@@ -1,6 +1,6 @@
-import type { Geometry } from 'geojson';
+import type { FeatureCollection, Geometry } from 'geojson';
 
-import { AgMapSeriesStyle, _ModuleSupport, _Scale, _Scene, _Theme, _Util } from 'ag-charts-community';
+import { AgMapSeriesStyle, _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import { extendBbox } from '../map-util/bboxUtil';
 import { GeoGeometry } from '../map-util/geoGeometry';
@@ -37,6 +37,12 @@ export class MapMarkerSeries extends DataModelSeries<
     public topologyBounds: _ModuleSupport.LonLatBBox | undefined;
 
     override properties = new MapMarkerSeriesProperties();
+
+    private _chartTopology?: FeatureCollection = undefined;
+
+    private get topology() {
+        return this._chartTopology ?? { type: 'FeatureCollection', features: [] };
+    }
 
     private readonly colorScale = new ColorScale();
     private readonly sizeScale = new LinearScale();
@@ -112,7 +118,12 @@ export class MapMarkerSeries extends DataModelSeries<
         );
     }
 
-    setChartTopology(_topology: any): void {}
+    setChartTopology(topology: any): void {
+        this._chartTopology = topology;
+        if (this.topology === topology) {
+            this.nodeDataRefresh = true;
+        }
+    }
 
     override addChartEventListeners(): void {
         this.destroyFns.push(
@@ -140,9 +151,12 @@ export class MapMarkerSeries extends DataModelSeries<
     }
 
     private getBackgroundGeometry(): Geometry | undefined {
-        const { id, topology, topologyProperty } = this.properties.background;
+        const { background } = this.properties;
+        const { id, topologyProperty } = background;
         if (id == null) return;
-        return topology.features.find((feature) => feature.properties?.[topologyProperty] === id)?.geometry;
+
+        const topology = background.topology ?? this.topology;
+        return topology?.features.find((feature) => feature.properties?.[topologyProperty] === id)?.geometry;
     }
 
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
@@ -215,22 +229,44 @@ export class MapMarkerSeries extends DataModelSeries<
         return !colorDataMissing;
     }
 
-    override async createNodeData(): Promise<MapMarkerNodeDataContext[]> {
-        const { id: seriesId, dataModel, processedData, colorScale, sizeScale, properties, scale } = this;
-        const {
-            lonKey,
-            lonName,
+    private getLabelDatum(
+        datum: any,
+        labelValue: string | undefined,
+        x: number,
+        y: number,
+        font: string
+    ): MapMarkerNodeLabelDatum | undefined {
+        if (labelValue == null) return;
+
+        const { latKey, latName, lonKey, lonName, sizeKey, sizeName, colorKey, colorName, labelKey, labelName, label } =
+            this.properties;
+        const labelText = this.getLabelText(label, {
+            value: labelValue,
+            datum,
             latKey,
             latName,
+            lonKey,
+            lonName,
             sizeKey,
             sizeName,
             colorKey,
             colorName,
             labelKey,
             labelName,
-            label,
-            marker,
-        } = properties;
+        });
+        if (labelText == null) return;
+
+        const { width, height } = Text.getTextSize(String(labelText), font);
+
+        return {
+            point: { x, y, size: 0 },
+            label: { width, height, text: labelText },
+        };
+    }
+
+    override async createNodeData(): Promise<MapMarkerNodeDataContext[]> {
+        const { id: seriesId, dataModel, processedData, colorScale, sizeScale, properties, scale } = this;
+        const { latKey, sizeKey, colorKey, labelKey, label, marker } = properties;
 
         if (dataModel == null || processedData == null || scale == null) return [];
 
@@ -250,38 +286,17 @@ export class MapMarkerSeries extends DataModelSeries<
         processedData.data.forEach(({ datum, values }) => {
             const lonValue = values[lonIdx];
             const latValue = values[latIdx];
-            const [x, y] = scale.convert([lonValue, latValue]);
             const colorValue: number | undefined = colorIdx != null ? values[colorIdx] : undefined;
             const sizeValue: number | undefined = sizeIdx != null ? values[sizeIdx] : undefined;
+            const labelValue: string | undefined = labelIdx != null ? values[labelIdx] : undefined;
+
+            const [x, y] = scale.convert([lonValue, latValue]);
             const size = sizeValue != null ? sizeScale.convert(sizeValue) : 0;
             const color: string | undefined =
                 colorScaleValid && colorValue != null ? colorScale.convert(colorValue) : undefined;
 
-            const labelValue = labelIdx != null ? values[labelIdx] : undefined;
-            const labelText =
-                labelValue != null
-                    ? this.getLabelText(this.properties.label, {
-                          value: labelValue,
-                          datum,
-                          latKey,
-                          latName,
-                          lonKey,
-                          lonName,
-                          sizeKey,
-                          sizeName,
-                          colorKey,
-                          colorName,
-                          labelKey,
-                          labelName,
-                      })
-                    : undefined;
-            let labelDatum: MapMarkerNodeLabelDatum | undefined;
-            if (labelText != null) {
-                const { width, height } = Text.getTextSize(String(labelText), font);
-                labelDatum = {
-                    point: { x, y, size: 0 },
-                    label: { width, height, text: labelText },
-                };
+            const labelDatum = this.getLabelDatum(datum, labelValue, x, y, font);
+            if (labelDatum) {
                 labelData.push(labelDatum);
             }
 
