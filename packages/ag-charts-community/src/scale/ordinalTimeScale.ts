@@ -1,5 +1,10 @@
 import { buildFormatter } from '../util/timeFormat';
-import { DefaultTimeFormats, TIME_FORMAT_STRINGS, defaultTimeTickFormat } from '../util/timeFormatDefaults';
+import {
+    DefaultTimeFormats,
+    TIME_FORMAT_STRINGS,
+    dateToNumber,
+    defaultTimeTickFormat,
+} from '../util/timeFormatDefaults';
 import { BandScale } from './bandScale';
 
 export class OrdinalTimeScale extends BandScale<Date> {
@@ -11,6 +16,63 @@ export class OrdinalTimeScale extends BandScale<Date> {
 
     toDomain(d: number): Date {
         return new Date(d);
+    }
+
+    protected override index: Map<Date[], number> = new Map<Date[], number>();
+
+    /**
+     * Contains unique datums only. Since `{}` is used in place of `Map`
+     * for IE11 compatibility, the datums are converted `toString` before
+     * the uniqueness check.
+     */
+    protected override _domain: Date[] = [];
+    override set domain(values: Date[]) {
+        this.invalid = true;
+
+        const domain: Date[] = [];
+
+        this.index = new Map<Date[], number>();
+        const index = this.index;
+
+        values.forEach((value, i) => {
+            const nextValue = this.toDomain(dateToNumber(values[i + 1]) - 1 || dateToNumber(value) + 1);
+            const dateRange = [value, nextValue];
+            if (index.get(dateRange) === undefined) {
+                index.set(dateRange, domain.push(value) - 1);
+            }
+        });
+
+        this._domain = domain;
+    }
+    override get domain(): Date[] {
+        return this._domain;
+    }
+
+    override convert(d: Date): number {
+        if (!(d instanceof Date)) {
+            return NaN;
+        }
+
+        this.refresh();
+
+        let i;
+        this.index.forEach((index: number, dateRange: Date[]) => {
+            if (d >= dateRange[0] && d <= dateRange[1]) {
+                i = index;
+                return;
+            }
+        });
+
+        if (i === undefined) {
+            return NaN;
+        }
+
+        const r = this.ordinalRange[i];
+        if (r === undefined) {
+            return NaN;
+        }
+
+        return r;
     }
 
     /**
