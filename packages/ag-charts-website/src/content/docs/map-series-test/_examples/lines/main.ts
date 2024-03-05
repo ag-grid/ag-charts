@@ -4,14 +4,10 @@ import { backgroundTopology } from './backgroundTopology';
 import { data } from './data';
 import { topology } from './topology';
 
-const numberFormatter = new Intl.NumberFormat('en-US', {
-    useGrouping: true,
-});
-
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
-        text: 'Population of UK Cities',
+        text: 'UK Motorways',
     },
     data,
     series: [
@@ -20,21 +16,9 @@ const options: AgChartOptions = {
             type: 'map',
             topology,
             idKey: 'name',
-            sizeKey: 'population',
             background: {
                 topology: backgroundTopology,
                 id: 'United Kingdom',
-            },
-            marker: {
-                size: 3,
-                maxSize: 30,
-            },
-            tooltip: {
-                // @ts-ignore
-                renderer: ({ datum, title }) => ({
-                    title,
-                    content: `Population: ${numberFormatter.format(datum?.population)}`,
-                }),
             },
         },
     ],

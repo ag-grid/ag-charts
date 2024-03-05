@@ -3,6 +3,7 @@ import { BBox } from '../scene/bbox';
 import type { TransferableResources } from './chart';
 import { Chart } from './chart';
 import type { LatLongBBox } from './series/topology/LatLongBBox';
+import { MapMarkerSeries } from './series/topology/mapMarkerSeries';
 import { MapSeries } from './series/topology/mapSeries';
 import { MercatorScale } from './series/topology/mercatorScale';
 
@@ -35,7 +36,11 @@ export class TopologyChart extends Chart {
         this.animationRect = shrinkRect;
         this.hoverRect = shrinkRect;
 
-        const mapSeries = this.series.filter<MapSeries>((series): series is MapSeries => series instanceof MapSeries);
+        const mapSeries = this.series.filter<MapSeries | MapMarkerSeries>(
+            (series): series is MapSeries | MapMarkerSeries => {
+                return series instanceof MapSeries || series instanceof MapMarkerSeries;
+            }
+        );
 
         const combinedBbox: LatLongBBox | undefined = mapSeries.reduce<LatLongBBox | undefined>((combined, series) => {
             const bbox = series.topologyBounds;

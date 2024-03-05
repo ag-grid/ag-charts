@@ -15,6 +15,7 @@ import { LineSeriesModule } from '../series/cartesian/lineSeriesModule';
 import { ScatterSeriesModule } from '../series/cartesian/scatterSeriesModule';
 import { DonutSeriesModule } from '../series/polar/donutSeriesModule';
 import { PieSeriesModule } from '../series/polar/pieSeriesModule';
+import { MapMarkerSeriesModule } from '../series/topology/mapMarkerSeriesModule';
 import { MapSeriesModule } from '../series/topology/mapSeriesModule';
 import { axisRegistry } from './axisRegistry';
 
@@ -34,6 +35,7 @@ export function registerInbuiltModules() {
 
     // @todo(AG-10831) Move to enterprise
     registerModule(MapSeriesModule);
+    registerModule(MapMarkerSeriesModule);
 
     for (const AxisConstructor of [NumberAxis, CategoryAxis, TimeAxis, GroupedCategoryAxis, LogAxis]) {
         axisRegistry.register(AxisConstructor.type, { instanceConstructor: AxisConstructor });

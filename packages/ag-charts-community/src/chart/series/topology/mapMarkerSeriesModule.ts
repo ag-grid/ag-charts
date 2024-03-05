@@ -1,30 +1,25 @@
 import type { SeriesModule } from '../../../module/coreModules';
 import { singleSeriesPaletteFactory } from '../../../module/theme';
 import {
-    DEFAULT_BACKGROUND_COLOUR,
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
     DEFAULT_LABEL_COLOUR,
     EXTENDS_CARTESIAN_MARKER_DEFAULTS,
     EXTENDS_SERIES_DEFAULTS,
 } from '../../themes/symbols';
-import { MapSeries } from './mapSeries';
+import { MapMarkerSeries } from './mapMarkerSeries';
 
-export const MapSeriesModule: SeriesModule<'map'> = {
+export const MapMarkerSeriesModule: SeriesModule<'map-marker'> = {
     type: 'series',
     optionsKey: 'series[]',
     packageType: 'community',
     chartTypes: ['topology'],
 
-    identifier: 'map',
-    instanceConstructor: MapSeries,
+    identifier: 'map-marker',
+    instanceConstructor: MapMarkerSeries,
     seriesDefaults: {},
     themeTemplate: {
         series: {
             __extends__: EXTENDS_SERIES_DEFAULTS,
-            fillOpacity: 1,
-            strokeWidth: 1,
-            lineDash: [0],
-            lineDashOffset: 0,
             background: {
                 strokeWidth: 0,
                 fillOpacity: 0.2,
@@ -50,6 +45,7 @@ export const MapSeriesModule: SeriesModule<'map'> = {
             enabled: false,
         },
     },
+    // @ts-expect-error When the types are properly exposed, this error should disappear
     paletteFactory: (opts) => {
         const { takeColors, colorsCount, userPalette, themeTemplateParameters } = opts;
         const { fill, stroke } = singleSeriesPaletteFactory(opts);
@@ -57,13 +53,9 @@ export const MapSeriesModule: SeriesModule<'map'> = {
         const defaultColorRange = properties.get(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE);
         const { fills } = takeColors(colorsCount);
         return {
-            fill,
-            stroke: undefined!,
+            colorRange: userPalette ? [fills[0], fills[1]] : defaultColorRange,
             background: { fill, stroke },
             marker: { fill, stroke },
-            colorRange: userPalette ? [fills[0], fills[1]] : defaultColorRange,
-            __POLYGON_STROKE: properties.get(DEFAULT_BACKGROUND_COLOUR),
-            __LINE_STRING_STROKE: fill,
         };
     },
 };

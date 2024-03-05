@@ -50,7 +50,7 @@ export class GeoGeometry extends Path {
     }
 
     private geometryContainsPoint(geometry: Geometry, x: number, y: number): boolean {
-        const { strokeWidth } = this;
+        const minStrokeDistance = Math.max(this.strokeWidth / 2, 1) + 1;
         switch (geometry.type) {
             case 'GeometryCollection':
                 return geometry.geometries.some((g) => this.geometryContainsPoint(g, x, y));
@@ -59,9 +59,11 @@ export class GeoGeometry extends Path {
             case 'MultiPolygon':
                 return geometry.coordinates.some((coordinates) => polygonDistance(coordinates, x, y) <= 0);
             case 'LineString':
-                return lineStringDistance(geometry.coordinates, x, y) < strokeWidth;
+                return lineStringDistance(geometry.coordinates, x, y) < minStrokeDistance;
             case 'MultiLineString':
-                return geometry.coordinates.some((lineString) => lineStringDistance(lineString, x, y) < strokeWidth);
+                return geometry.coordinates.some(
+                    (lineString) => lineStringDistance(lineString, x, y) < minStrokeDistance
+                );
             case 'Point':
             case 'MultiPoint':
                 return false;
