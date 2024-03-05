@@ -43,10 +43,24 @@ export class ZoomRange {
             return isNumberAxis || isDateAxis;
         });
 
-        if (!validAxis) return this.domain != null;
+        let domain = this.domain;
 
-        const changed = this.domain == null || !_Util.areArrayItemsStrictlyEqual(this.domain, validAxis.domain);
-        this.domain = validAxis.domain;
+        if (!validAxis) return domain != null;
+
+        let validAxisDomain = validAxis.domain;
+
+        // Ensure a valid comparison of date objects by mapping to timestamps
+        if (domain != null && domain[0] instanceof Date) {
+            domain = domain.map((d) => (d instanceof Date ? d.getTime() : d));
+            validAxisDomain = validAxisDomain.map((d) => (d instanceof Date ? d.getTime() : d));
+        }
+
+        const changed = domain == null || !_Util.areArrayItemsStrictlyEqual(domain, validAxisDomain);
+
+        if (changed) {
+            this.domain = validAxis.domain;
+        }
+
         return changed;
     }
 
