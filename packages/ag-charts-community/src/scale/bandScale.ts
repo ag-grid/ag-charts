@@ -9,12 +9,12 @@ import type { Scale } from './scale';
 export class BandScale<D> implements Scale<D, number, number> {
     readonly type: string = 'band';
 
-    private invalid = true;
+    protected invalid = true;
 
     @Invalidating
     interval: number = 1;
 
-    private refresh() {
+    protected refresh() {
         if (!this.invalid) return;
 
         this.invalid = false;
@@ -29,19 +29,19 @@ export class BandScale<D> implements Scale<D, number, number> {
      * Maps datum to its index in the {@link domain} array.
      * Used to check for duplicate datums (not allowed).
      */
-    private index = new Map<D, number>();
+    protected index = new Map<D | D[], number>();
 
     /**
      * The output range values for datum at each index.
      */
-    private ordinalRange: number[] = [];
+    protected ordinalRange: number[] = [];
 
     /**
      * Contains unique datums only. Since `{}` is used in place of `Map`
      * for IE11 compatibility, the datums are converted `toString` before
      * the uniqueness check.
      */
-    private _domain: D[] = [];
+    protected _domain: D[] = [];
     set domain(values: D[]) {
         this.invalid = true;
 

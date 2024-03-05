@@ -32,7 +32,7 @@ import { enterpriseModule } from './enterpriseModule';
 import type { AxisContext, ModuleContextWithParent } from './moduleContext';
 import type { SeriesType } from './optionsModuleTypes';
 
-type AxisType = 'category' | 'number' | 'log' | 'time';
+type AxisType = 'category' | 'number' | 'log' | 'time' | 'ordinal-time';
 
 export interface AxisOptionModule<M extends ModuleInstance = ModuleInstance> extends BaseModule {
     type: 'axis-option';
