@@ -68,12 +68,13 @@ export class OrdinalTimeScale extends BandScale<Date> {
         this.refresh();
 
         let i;
-        this.index.forEach((index: number, dateRange: Date[]) => {
+
+        for (const [dateRange, index] of this.index.entries()) {
             if (d >= dateRange[0] && d <= dateRange[1]) {
                 i = index;
-                return;
+                break;
             }
-        });
+        }
 
         if (i === undefined) {
             return NaN;
