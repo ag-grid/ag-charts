@@ -5,6 +5,7 @@ const { DATE, NUMBER, OR, ActionOnSet, isFiniteNumber, isValidDate, Validate } =
 export class ZoomRange {
     @ActionOnSet<ZoomRange>({
         changeValue(start) {
+            this.initialStart ??= start;
             this.onChange?.(this.getRangeWithValues(start, this.end));
         },
     })
@@ -13,6 +14,7 @@ export class ZoomRange {
 
     @ActionOnSet<ZoomRange>({
         changeValue(end) {
+            this.initialEnd ??= end;
             this.onChange?.(this.getRangeWithValues(this.start, end));
         },
     })
@@ -20,14 +22,20 @@ export class ZoomRange {
     public end?: Date | number;
 
     private domain?: Array<Date | number>;
+    private initialStart?: number;
+    private initialEnd?: number;
 
     constructor(private readonly onChange: (range?: { min: number; max: number }) => void) {}
 
-    getRange() {
+    public getRange() {
         return this.getRangeWithValues(this.start, this.end);
     }
 
-    updateAxis(axes: Array<_ModuleSupport.AxisLayout>) {
+    public getInitialRange() {
+        return this.getRangeWithValues(this.initialStart, this.initialEnd);
+    }
+
+    public updateAxis(axes: Array<_ModuleSupport.AxisLayout>) {
         const validAxis = axes.find(({ domain }) => {
             const isNumberAxis = !isFiniteNumber(domain[0]) || !isFiniteNumber(domain.at(-1));
             const isDateAxis = !isValidDate(domain[0]) || !isValidDate(domain.at(-1));
