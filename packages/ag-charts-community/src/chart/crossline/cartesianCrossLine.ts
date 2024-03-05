@@ -263,13 +263,15 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
         const [xStart, xEnd] = [0, sideFlag * gridLength];
         let [yStart, yEnd] = this.getRange();
 
+        const ordinalTimeScalePadding = yEnd === undefined && OrdinalTimeScale.is(scale) ? bandwidth / 2 + padding : 0;
+
         let [clampedYStart, clampedYEnd] = [
-            Number(scale.convert(yStart, { clampMode: 'clamped' })) - padding,
+            Number(scale.convert(yStart, { clampMode: 'clamped' })) - padding + ordinalTimeScalePadding,
             scale.convert(yEnd, { clampMode: 'clamped' }) + bandwidth + padding,
         ];
         clampedYStart = clampArray(clampedYStart, clippedRange);
         clampedYEnd = clampArray(clampedYEnd, clippedRange);
-        [yStart, yEnd] = [Number(scale.convert(yStart)), scale.convert(yEnd) + bandwidth];
+        [yStart, yEnd] = [Number(scale.convert(yStart)) + ordinalTimeScalePadding, scale.convert(yEnd) + bandwidth];
 
         const validRange =
             (yStart === clampedYStart || yEnd === clampedYEnd || clampedYStart !== clampedYEnd) &&
