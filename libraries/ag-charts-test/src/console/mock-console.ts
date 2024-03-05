@@ -1,6 +1,4 @@
 /* eslint-disable no-console */
-import { afterEach, beforeEach, expect, jest } from '@jest/globals';
-
 export function setupMockConsole() {
     beforeEach(() => {
         console.warn = jest.fn();
