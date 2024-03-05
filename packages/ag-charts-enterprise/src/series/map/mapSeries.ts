@@ -56,8 +56,11 @@ export class MapSeries
 
     override properties = new MapSeriesProperties();
 
-    private _topology: FeatureCollection | undefined;
-    private projectedGeomerties = new Map<string, Geometry>();
+    private _chartTopology?: FeatureCollection = undefined;
+
+    private get topology() {
+        return this.properties.topology ?? this._chartTopology ?? { type: 'FeatureCollection', features: [] };
+    }
 
     private readonly colorScale = new ColorScale();
     private readonly sizeScale = new LinearScale();
@@ -143,6 +146,13 @@ export class MapSeries
         );
     }
 
+    setChartTopology(topology: any): void {
+        this._chartTopology = topology;
+        if (this.topology === topology) {
+            this.nodeDataRefresh = true;
+        }
+    }
+
     override addChartEventListeners(): void {
         this.destroyFns.push(
             this.ctx.chartEventManager.addListener('legend-item-click', (event) => {
@@ -172,19 +182,35 @@ export class MapSeries
         return new MarkerShape();
     }
 
+    private getBackgroundGeometry(): Geometry | undefined {
+        const { background } = this.properties;
+        const { id } = background;
+        if (id == null) return;
+
+        let topology: FeatureCollection | undefined;
+        let topologyProperty: string;
+        if (background.topology != null) {
+            ({ topology, topologyProperty } = background);
+        } else {
+            ({ topology, topologyProperty } = this.properties);
+        }
+
+        return topology?.features.find((feature) => feature.properties?.[topologyProperty] === id)?.geometry;
+    }
+
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
         if (this.data == null || !this.properties.isValid()) {
             return;
         }
 
-        const { data } = this;
-        const { idKey, sizeKey, colorKey, labelKey, colorRange, marker, topology, background } = this.properties;
+        const { data, topology } = this;
+        const { topologyProperty, idKey, sizeKey, colorKey, labelKey, colorRange, marker } = this.properties;
 
         const featureById = new Map<string, Feature>();
         topology.features.forEach((feature) => {
-            const name = feature.properties?.name;
-            if (name == null) return;
-            featureById.set(name, feature);
+            const property = feature.properties?.[topologyProperty];
+            if (property == null) return;
+            featureById.set(property, feature);
         });
 
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
@@ -210,13 +236,7 @@ export class MapSeries
             undefined
         );
 
-        const { id: backgroundId } = background;
-        const backgroundTopology = background.topology ?? topology;
-        const backgroundGeometry =
-            backgroundId != null
-                ? backgroundTopology.features.find((feature) => feature.properties?.name === backgroundId)?.geometry
-                : undefined;
-
+        const backgroundGeometry = this.getBackgroundGeometry();
         if (backgroundGeometry != null) {
             bbox = geometryBbox(backgroundGeometry, bbox);
         }
@@ -258,27 +278,18 @@ export class MapSeries
     }
 
     override async createNodeData(): Promise<MapNodeDataContext[]> {
+        const { id: seriesId, dataModel, processedData, colorScale, sizeScale, properties, scale } = this;
         const {
-            id: seriesId,
-            dataModel,
-            processedData,
-            colorScale,
-            sizeScale,
-            properties,
-            scale,
-            projectedGeomerties,
-        } = this;
-        const {
-            topology,
             idKey,
+            idName,
             sizeKey,
             sizeName,
             colorKey,
             colorName,
             labelKey,
+            labelName,
             label,
             marker,
-            background,
             fill: fillProperty,
         } = properties;
 
@@ -295,18 +306,15 @@ export class MapSeries
         sizeScale.range = [marker.size, marker.maxSize ?? marker.size];
         const font = label.getFont();
 
-        if (this._topology !== topology) {
-            projectedGeomerties.clear();
-            processedData.data.forEach(({ values }) => {
-                const id: string | undefined = values[idIdx];
-                const geometry = (values[featureIdx] as Feature | undefined)?.geometry;
-                const projectedGeometry =
-                    geometry != null && scale != null ? projectGeometry(geometry, scale) : undefined;
-                if (id != null && projectedGeometry != null) {
-                    projectedGeomerties.set(id, projectedGeometry);
-                }
-            });
-        }
+        const projectedGeometries = new Map<string, Geometry>();
+        processedData.data.forEach(({ values }) => {
+            const id: string | undefined = values[idIdx];
+            const geometry = (values[featureIdx] as Feature | undefined)?.geometry;
+            const projectedGeometry = geometry != null && scale != null ? projectGeometry(geometry, scale) : undefined;
+            if (id != null && projectedGeometry != null) {
+                projectedGeometries.set(id, projectedGeometry);
+            }
+        });
 
         const nodeData: MapNodeDatum[] = [];
         const labelData: MapNodeLabelDatum[] = [];
@@ -318,26 +326,35 @@ export class MapSeries
             const color: string | undefined =
                 colorScaleValid && colorValue != null ? colorScale.convert(colorValue) : undefined;
 
-            const projectedGeometry = projectedGeomerties.get(idValue);
+            const projectedGeometry = projectedGeometries.get(idValue);
 
             const labelValue = labelIdx != null ? values[labelIdx] : undefined;
+            let renderLabel = true;
             const labelText =
                 labelValue != null
                     ? this.getLabelText(this.properties.label, {
                           value: labelValue,
                           datum,
                           idKey,
+                          idName,
                           sizeKey,
                           sizeName,
                           colorKey,
                           colorName,
+                          labelKey,
+                          labelName,
                       })
                     : undefined;
             const labelCenter =
                 projectedGeometry != null && labelText != null ? geometryCenter(projectedGeometry, 1) : undefined;
+            const labelSize =
+                labelText != null && labelCenter != null ? Text.getTextSize(String(labelText), font) : undefined;
+            if (labelCenter != null && labelSize != null) {
+                renderLabel &&= labelCenter.distance > Math.hypot(labelSize.width / 2, labelSize.height / 2);
+            }
             let labelDatum: MapNodeLabelDatum | undefined;
-            if (labelText != null && labelCenter != null) {
-                const [x, y] = labelCenter;
+            if (renderLabel && labelText != null && labelCenter != null) {
+                const { x, y } = labelCenter;
                 const { width, height } = Text.getTextSize(String(labelText), font);
                 labelDatum = {
                     point: { x, y, size: 0 },
@@ -375,12 +392,7 @@ export class MapSeries
             });
         });
 
-        const { id: backgroundId } = background;
-        const backgroundTopology = background.topology ?? properties.topology;
-        const backgroundGeometry =
-            backgroundId != null
-                ? backgroundTopology.features.find((feature) => feature.properties?.name === backgroundId)?.geometry
-                : undefined;
+        const backgroundGeometry = this.getBackgroundGeometry();
         const projectedBackgroundGeometry =
             backgroundGeometry != null && scale != null ? projectGeometry(backgroundGeometry, scale) : undefined;
 

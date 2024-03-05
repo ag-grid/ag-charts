@@ -63,7 +63,12 @@ import { LayoutService } from './layout/layoutService';
 import type { CategoryLegendDatum, ChartLegend, ChartLegendType, GradientLegendDatum } from './legendDatum';
 import { AxisPositionGuesser } from './mapping/prepareAxis';
 import { matchSeriesOptions } from './mapping/prepareSeries';
-import { type SeriesOptionsTypes, isAgCartesianChartOptions, isAgPolarChartOptions } from './mapping/types';
+import {
+    type SeriesOptionsTypes,
+    isAgCartesianChartOptions,
+    isAgPolarChartOptions,
+    isAgTopologyChartOptions,
+} from './mapping/types';
 import { ModulesManager } from './modulesManager';
 import { ChartOverlays } from './overlay/chartOverlays';
 import { type Series, SeriesGroupingChangedEvent, SeriesNodePickMode } from './series/series';
@@ -1377,7 +1382,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     private filterMiniChartSeries(series: AgChartOptions['series'] | undefined): AgChartOptions['series'] | undefined;
-    private filterMiniChartSeries(series: ['series']): ['series'];
+    private filterMiniChartSeries(series: AgChartOptions['series']): AgChartOptions['series'];
     private filterMiniChartSeries(series: any[] | undefined): any[] | undefined {
         return series?.filter((s) => s.showInMiniChart !== false);
     }
@@ -1407,6 +1412,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
         if (isAgCartesianChartOptions(deltaOptions) || isAgPolarChartOptions(deltaOptions)) {
             // Append axes to defaults.
             skip.push('axes');
+        }
+        if (isAgTopologyChartOptions(deltaOptions)) {
+            skip.push('topology');
         }
 
         // Needs to be done before applying the series to detect if a seriesNode[Double]Click listener has been added

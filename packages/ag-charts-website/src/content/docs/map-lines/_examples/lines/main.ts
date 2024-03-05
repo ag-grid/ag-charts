@@ -1,6 +1,5 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-import { backgroundTopology } from './backgroundTopology';
 import { data } from './data';
 import { topology } from './topology';
 
@@ -10,16 +9,11 @@ const options: AgChartOptions = {
         text: 'UK Motorways',
     },
     data,
+    topology,
     series: [
         {
-            // @ts-ignore
             type: 'map',
-            topology,
             idKey: 'name',
-            background: {
-                topology: backgroundTopology,
-                id: 'United Kingdom',
-            },
         },
     ],
 };

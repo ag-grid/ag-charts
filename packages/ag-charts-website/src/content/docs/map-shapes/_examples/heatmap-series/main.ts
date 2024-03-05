@@ -15,19 +15,13 @@ const options: AgChartOptions = {
         text: 'Population of America',
     },
     data,
+    topology,
     series: [
         {
-            // @ts-ignore
             type: 'map',
-            topology,
             idKey: 'name',
-            labelKey: 'code',
             colorKey: 'gdp',
-            label: {
-                fontWeight: 'bold',
-            },
             tooltip: {
-                // @ts-ignore
                 renderer: ({ datum, title }) => ({
                     title,
                     content: `GDP: ${numberFormatter.format(datum?.gdp)}`,

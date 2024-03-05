@@ -4,7 +4,7 @@ import { MapSeries } from './mapSeries';
 
 const {
     EXTENDS_SERIES_DEFAULTS,
-    DEFAULT_LABEL_COLOUR,
+    DEFAULT_INVERTED_LABEL_COLOUR,
     EXTENDS_CARTESIAN_MARKER_DEFAULTS,
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
     DEFAULT_BACKGROUND_COLOUR,
@@ -32,7 +32,8 @@ export const MapModule: _ModuleSupport.SeriesModule<'map'> = {
                 fillOpacity: 0.2,
             },
             label: {
-                color: DEFAULT_LABEL_COLOUR,
+                color: DEFAULT_INVERTED_LABEL_COLOUR,
+                fontWeight: 'bold',
             },
             marker: {
                 __extends__: EXTENDS_CARTESIAN_MARKER_DEFAULTS,

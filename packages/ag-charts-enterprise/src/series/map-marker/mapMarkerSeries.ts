@@ -112,6 +112,8 @@ export class MapMarkerSeries extends DataModelSeries<
         );
     }
 
+    setChartTopology(_topology: any): void {}
+
     override addChartEventListeners(): void {
         this.destroyFns.push(
             this.ctx.chartEventManager.addListener('legend-item-click', (event) => {
@@ -137,13 +139,19 @@ export class MapMarkerSeries extends DataModelSeries<
         return new MarkerShape();
     }
 
+    private getBackgroundGeometry(): Geometry | undefined {
+        const { id, topology, topologyProperty } = this.properties.background;
+        if (id == null) return;
+        return topology.features.find((feature) => feature.properties?.[topologyProperty] === id)?.geometry;
+    }
+
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
         if (this.data == null || !this.properties.isValid()) {
             return;
         }
 
         const { data } = this;
-        const { latKey, lonKey, sizeKey, colorKey, labelKey, colorRange, marker, background } = this.properties;
+        const { latKey, lonKey, sizeKey, colorKey, labelKey, colorRange, marker } = this.properties;
 
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
@@ -166,13 +174,7 @@ export class MapMarkerSeries extends DataModelSeries<
             undefined
         );
 
-        const { id: backgroundId } = background;
-        const backgroundTopology = background.topology;
-        const backgroundGeometry =
-            backgroundId != null
-                ? backgroundTopology.features.find((feature) => feature.properties?.name === backgroundId)?.geometry
-                : undefined;
-
+        const backgroundGeometry = this.getBackgroundGeometry();
         if (backgroundGeometry != null) {
             bbox = geometryBbox(backgroundGeometry, bbox);
         }
@@ -215,8 +217,20 @@ export class MapMarkerSeries extends DataModelSeries<
 
     override async createNodeData(): Promise<MapMarkerNodeDataContext[]> {
         const { id: seriesId, dataModel, processedData, colorScale, sizeScale, properties, scale } = this;
-        const { lonKey, latKey, sizeKey, sizeName, colorKey, colorName, labelKey, label, marker, background } =
-            properties;
+        const {
+            lonKey,
+            lonName,
+            latKey,
+            latName,
+            sizeKey,
+            sizeName,
+            colorKey,
+            colorName,
+            labelKey,
+            labelName,
+            label,
+            marker,
+        } = properties;
 
         if (dataModel == null || processedData == null || scale == null) return [];
 
@@ -250,11 +264,15 @@ export class MapMarkerSeries extends DataModelSeries<
                           value: labelValue,
                           datum,
                           latKey,
+                          latName,
                           lonKey,
+                          lonName,
                           sizeKey,
                           sizeName,
                           colorKey,
                           colorName,
+                          labelKey,
+                          labelName,
                       })
                     : undefined;
             let labelDatum: MapMarkerNodeLabelDatum | undefined;
@@ -281,12 +299,7 @@ export class MapMarkerSeries extends DataModelSeries<
             });
         });
 
-        const { id: backgroundId } = background;
-        const backgroundTopology = background.topology;
-        const backgroundGeometry =
-            backgroundId != null
-                ? backgroundTopology.features.find((feature) => feature.properties?.name === backgroundId)?.geometry
-                : undefined;
+        const backgroundGeometry = this.getBackgroundGeometry();
         const projectedBackgroundGeometry =
             backgroundGeometry != null && scale != null ? projectGeometry(backgroundGeometry, scale) : undefined;
 
@@ -557,7 +570,7 @@ export class MapMarkerSeries extends DataModelSeries<
         const { latKey, lonKey, sizeKey, sizeName, colorKey, colorName, formatter, marker, tooltip } = this.properties;
         const { datum, fill, latValue, lonValue, sizeValue, colorValue } = nodeDatum;
 
-        const title = sanitizeHtml(`${latValue} ${lonValue}`);
+        const title = sanitizeHtml(`${latValue.toFixed(6)} ${lonValue.toFixed(6)}`);
         const contentLines: string[] = [];
         if (sizeValue != null) {
             contentLines.push(sanitizeHtml((sizeName ?? sizeKey) + ': ' + sizeValue));

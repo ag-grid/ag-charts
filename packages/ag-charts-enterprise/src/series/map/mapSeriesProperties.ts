@@ -79,6 +79,9 @@ class MapSeriesBackground extends BaseProperties {
     @Validate(STRING, { optional: true })
     id: string | undefined = undefined;
 
+    @Validate(STRING)
+    topologyProperty: string = 'name';
+
     @Validate(COLOR_STRING)
     fill: string = 'black';
 
@@ -102,8 +105,8 @@ class MapSeriesBackground extends BaseProperties {
 }
 
 export class MapSeriesProperties extends SeriesProperties<AgMapSeriesOptions> {
-    @Validate(PLAIN_OBJECT)
-    topology: FeatureCollection = { type: 'FeatureCollection', features: [] };
+    @Validate(PLAIN_OBJECT, { optional: true })
+    topology?: FeatureCollection = undefined;
 
     @Validate(OBJECT)
     readonly background = new MapSeriesBackground();
@@ -121,6 +124,9 @@ export class MapSeriesProperties extends SeriesProperties<AgMapSeriesOptions> {
     labelKey: string | undefined = undefined;
 
     @Validate(STRING, { optional: true })
+    labelName: string | undefined = undefined;
+
+    @Validate(STRING, { optional: true })
     sizeKey?: string;
 
     @Validate(STRING, { optional: true })
@@ -131,6 +137,9 @@ export class MapSeriesProperties extends SeriesProperties<AgMapSeriesOptions> {
 
     @Validate(STRING, { optional: true })
     colorName?: string;
+
+    @Validate(STRING)
+    topologyProperty: string = 'name';
 
     @Validate(AND(COLOR_STRING_ARRAY, ARRAY.restrict({ minLength: 1 })), { optional: true })
     colorRange: string[] | undefined = undefined;

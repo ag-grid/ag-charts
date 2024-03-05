@@ -1,12 +1,13 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
+import { backgroundTopology } from './backgroundTopology';
 import { data } from './data';
 import { topology } from './topology';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
-        text: 'UK Cities',
+        text: 'UK Motorways',
     },
     data,
     topology,
@@ -14,6 +15,10 @@ const options: AgChartOptions = {
         {
             type: 'map',
             idKey: 'name',
+            background: {
+                topology: backgroundTopology,
+                id: 'United Kingdom',
+            },
         },
     ],
 };

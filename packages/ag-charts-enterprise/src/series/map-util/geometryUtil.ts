@@ -71,17 +71,29 @@ function pointsCenter(points: Position[]): Position | undefined {
     return [totalX / points.length, totalY / points.length];
 }
 
-export function geometryCenter(geometry: Geometry, precision: number): Position | undefined {
+function positionToUnknownDistance(
+    position: Position | undefined
+): { x: number; y: number; distance: number } | undefined {
+    if (position == null) return;
+    const [x, y] = position;
+    return { x, y, distance: Infinity };
+}
+
+export function geometryCenter(
+    geometry: Geometry,
+    precision: number
+): { x: number; y: number; distance: number } | undefined {
     switch (geometry.type) {
         case 'GeometryCollection': {
             const points: Position[] = [];
             for (const g of geometry.geometries) {
                 const point = geometryCenter(g, precision);
                 if (point != null) {
-                    points.push(point);
+                    const { x, y } = point;
+                    points.push([x, y]);
                 }
             }
-            return pointsCenter(points);
+            return positionToUnknownDistance(pointsCenter(points));
         }
         case 'MultiPolygon': {
             let largestSize: number | undefined;
@@ -108,14 +120,14 @@ export function geometryCenter(geometry: Geometry, precision: number): Position 
                     points.push(center.point);
                 }
             }
-            return pointsCenter(points);
+            return positionToUnknownDistance(pointsCenter(points));
         }
         case 'LineString':
-            return lineStringCenter(geometry.coordinates)?.point;
+            return positionToUnknownDistance(lineStringCenter(geometry.coordinates)?.point);
         case 'MultiPoint':
-            return pointsCenter(geometry.coordinates);
+            return positionToUnknownDistance(pointsCenter(geometry.coordinates));
         case 'Point':
-            return geometry.coordinates;
+            return positionToUnknownDistance(geometry.coordinates);
     }
 }
 

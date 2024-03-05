@@ -65,6 +65,9 @@ class MapMarkerSeriesBackground extends BaseProperties {
     @Validate(STRING, { optional: true })
     id: string | undefined = undefined;
 
+    @Validate(STRING)
+    topologyProperty: string = 'name';
+
     @Validate(COLOR_STRING)
     fill: string = 'black';
 
@@ -97,11 +100,20 @@ export class MapMarkerSeriesProperties extends SeriesProperties<AgMapMarkerSerie
     @Validate(STRING)
     latKey: string = '';
 
+    @Validate(STRING, { optional: true })
+    latName: string | undefined = undefined;
+
     @Validate(STRING)
     lonKey: string = '';
 
     @Validate(STRING, { optional: true })
+    lonName: string | undefined = undefined;
+
+    @Validate(STRING, { optional: true })
     labelKey: string | undefined = undefined;
+
+    @Validate(STRING, { optional: true })
+    labelName: string | undefined = undefined;
 
     @Validate(STRING, { optional: true })
     sizeKey?: string;
@@ -114,6 +126,9 @@ export class MapMarkerSeriesProperties extends SeriesProperties<AgMapMarkerSerie
 
     @Validate(STRING, { optional: true })
     colorName?: string;
+
+    @Validate(STRING)
+    topologyProperty: string = 'name';
 
     @Validate(AND(COLOR_STRING_ARRAY, ARRAY.restrict({ minLength: 1 })), { optional: true })
     colorRange: string[] | undefined = undefined;

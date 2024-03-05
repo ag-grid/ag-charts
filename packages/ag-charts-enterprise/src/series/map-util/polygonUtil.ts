@@ -40,22 +40,28 @@ export function polygonCentroid(polygon: Position[]): Position | undefined {
     return [x / k, y / k];
 }
 
-function cellValue(distanceToPolygon: number, distanceToCentroid: number) {
-    return distanceToPolygon - 0.5 * distanceToCentroid;
+function cellValue(distanceToPolygon: number, distanceToCentroid: number, centroidDistance: number) {
+    return distanceToPolygon - 0.5 * Math.max(distanceToCentroid - centroidDistance, 0);
 }
 
-export function inaccessibilityPole(polygons: Position[][], precision: number): Position | undefined {
+export function inaccessibilityPole(
+    polygons: Position[][],
+    precision: number
+): { x: number; y: number; distance: number } | undefined {
     const bbox = polygonBbox(polygons[0], undefined);
     if (bbox == null) return;
 
     const centroid = polygonCentroid(polygons[0])!;
+    const centroidDistance = -polygonDistance(polygons, centroid[0], centroid[1]);
     let [bestX, bestY] = centroid;
-    let bestValue = cellValue(polygonDistance(polygons, bestX, bestY), 0);
+    let bestDistance = centroidDistance;
+    let bestValue = cellValue(bestDistance, 0, centroidDistance);
 
     let queue: List<LabelPlacement> = {
         value: new LabelPlacement(
             polygons,
             centroid,
+            centroidDistance,
             (bbox.lon0 + bbox.lon1) / 2,
             (bbox.lat0 + bbox.lat1) / 2,
             Math.abs(bbox.lon1 - bbox.lon0),
@@ -65,11 +71,12 @@ export function inaccessibilityPole(polygons: Position[][], precision: number): 
     };
 
     while (queue != null) {
-        const { value, maxValue, x, y, width, height } = queue.value;
+        const { distance, value, maxValue, x, y, width, height } = queue.value;
         queue = queue.next;
 
         if (value > bestValue) {
             bestValue = value;
+            bestDistance = distance;
             bestX = x;
             bestY = y;
         }
@@ -81,13 +88,13 @@ export function inaccessibilityPole(polygons: Position[][], precision: number): 
         let newLabelPlacements: LabelPlacement[];
         if (width > height) {
             newLabelPlacements = [
-                new LabelPlacement(polygons, centroid, x - width / 2, y, width / 2, height),
-                new LabelPlacement(polygons, centroid, x + width / 2, y, width / 2, height),
+                new LabelPlacement(polygons, centroid, centroidDistance, x - width / 2, y, width / 2, height),
+                new LabelPlacement(polygons, centroid, centroidDistance, x + width / 2, y, width / 2, height),
             ];
         } else {
             newLabelPlacements = [
-                new LabelPlacement(polygons, centroid, x, y - height / 2, width, height / 2),
-                new LabelPlacement(polygons, centroid, x, y + height / 2, width, height / 2),
+                new LabelPlacement(polygons, centroid, centroidDistance, x, y - height / 2, width, height / 2),
+                new LabelPlacement(polygons, centroid, centroidDistance, x, y + height / 2, width, height / 2),
             ];
         }
 
@@ -96,18 +103,20 @@ export function inaccessibilityPole(polygons: Position[][], precision: number): 
         queue = insertManySorted(queue, newLabelPlacements, labelPlacementCmp);
     }
 
-    return [bestX, bestY];
+    return { x: bestX, y: bestY, distance: bestDistance };
 }
 
 const labelPlacementCmp = (a: LabelPlacement, b: LabelPlacement) => a.maxValue - b.maxValue;
 
 class LabelPlacement {
+    distance: number;
     value: number;
     maxValue: number;
 
     constructor(
         polygons: Position[][],
         centroid: Position,
+        centroidDistance: number,
         public x: number,
         public y: number,
         public width: number,
@@ -122,8 +131,9 @@ class LabelPlacement {
         const maxYTowardsCentroid = Math.min(Math.max(cy, y - height / 2), y + height / 2);
         const minDistanceToCentroid = Math.hypot(cx - maxXTowardsCentroid, cy - maxYTowardsCentroid);
 
-        this.value = cellValue(distanceToPolygon, distanceToCentroid);
-        this.maxValue = cellValue(maxDistanceToPolygon, minDistanceToCentroid);
+        this.distance = distanceToPolygon;
+        this.value = cellValue(distanceToPolygon, distanceToCentroid, centroidDistance);
+        this.maxValue = cellValue(maxDistanceToPolygon, minDistanceToCentroid, centroidDistance);
     }
 }
 

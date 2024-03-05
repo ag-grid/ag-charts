@@ -1,18 +1,20 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { data } from './data';
+import { topology } from './topology';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
-        text: 'Crime in Surrey',
+        text: 'Population of America',
     },
     data,
+    topology,
     series: [
         {
-            type: 'map-marker',
-            latKey: 'lat',
-            lonKey: 'lon',
+            type: 'map',
+            idKey: 'name',
+            labelKey: 'code',
         },
     ],
 };
