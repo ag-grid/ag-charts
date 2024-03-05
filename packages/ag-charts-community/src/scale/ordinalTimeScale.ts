@@ -31,12 +31,24 @@ export class OrdinalTimeScale extends BandScale<Date> {
 
         const domain: Date[] = [];
 
+        const n = values.length;
+        if (n === 0) {
+            this._domain = domain;
+            return;
+        }
+
         this.index = new Map<Date[], number>();
-        const index = this.index;
+        const { index } = this;
+
+        const isReversed = values[0] > values[n - 1];
 
         values.forEach((value, i) => {
-            const nextValue = this.toDomain(dateToNumber(values[i + 1]) - 1 || dateToNumber(value) + 1);
-            const dateRange = [value, nextValue];
+            const nextValue = this.toDomain(
+                dateToNumber(values[i + 1]) + (isReversed ? 1 : -1) || dateToNumber(value) + (isReversed ? -1 : 1)
+            );
+
+            const dateRange = isReversed ? [nextValue, value] : [value, nextValue];
+
             if (index.get(dateRange) === undefined) {
                 index.set(dateRange, domain.push(value) - 1);
             }
