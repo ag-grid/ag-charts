@@ -3,7 +3,6 @@ import { _Theme } from 'ag-charts-community';
 export const CANDLESTICK_SERIES_THEME = {
     series: {
         __extends__: _Theme.EXTENDS_SERIES_DEFAULTS,
-        direction: 'vertical' as const,
     },
     axes: {
         [_Theme.CARTESIAN_AXIS_TYPE.NUMBER]: {
@@ -11,10 +10,10 @@ export const CANDLESTICK_SERIES_THEME = {
                 snap: false,
             },
         },
-        [_Theme.CARTESIAN_AXIS_TYPE.CATEGORY]: {
+        [_Theme.CARTESIAN_AXIS_TYPE.ORDINAL_TIME]: {
             groupPaddingInner: 0.2,
             crosshair: {
-                enabled: false,
+                enabled: true,
             },
         },
     },
