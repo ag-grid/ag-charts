@@ -12,9 +12,13 @@ export interface AgZoomRange {
 }
 
 export interface AgZoomRatio {
-    /** The minimum value of the axis zoom ratio. */
+    /** The minimum value of the axis zoom ratio.
+     *  Default: `0`
+     */
     start?: number;
-    /** The maximum value of the axis zoom ratio. */
+    /** The maximum value of the axis zoom ratio.
+     *  Default: `1`
+     */
     end?: number;
 }
 
@@ -30,7 +34,7 @@ export interface AgZoomOptions {
      */
     anchorPointY?: AgZoomAnchorPoint;
     /**
-     * The axes on which to zoom, one of `xy`, `x`, or `y`.
+     * The axes on which to zoom when scrolling, one of `xy`, `x`, or `y`.
      * Default: `x`
      */
     axes?: AgZoomAxes;
