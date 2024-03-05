@@ -42,14 +42,14 @@ export class RegionManager {
         this.regions.clear();
     }
 
-    private pushRegion(name: RegionName, bboxprovider: BBoxProvider): Region {
+    private pushRegion(name: RegionName, bboxproviders: BBoxProvider[]): Region {
         const region = { name, listeners: new RegionListeners() };
-        this.regions.add(region, bboxprovider);
+        this.regions.add(region, bboxproviders);
         return region;
     }
 
-    public addRegion(name: RegionName, bboxprovider: BBoxProvider) {
-        return this.makeObserver(this.pushRegion(name, bboxprovider));
+    public addRegion(name: RegionName, bboxprovider: BBoxProvider, ...extraProviders: BBoxProvider[]) {
+        return this.makeObserver(this.pushRegion(name, [bboxprovider, ...extraProviders]));
     }
 
     public getRegion(name: RegionName) {
@@ -101,11 +101,7 @@ export class RegionManager {
     }
 
     private dispatch(region: Region | undefined, event: InteractionEvent<InteractionTypes>) {
-        // Async dispatch to avoid blocking the event-processing thread.
-        if (region !== undefined) {
-            const dispatcher = async () => region.listeners.dispatch(event.type, event);
-            dispatcher().catch((e) => Logger.errorOnce(e));
-        }
+        region?.listeners.dispatch(event.type, event);
     }
 
     private handleDragging(event: InteractionEvent<InteractionTypes>): boolean {

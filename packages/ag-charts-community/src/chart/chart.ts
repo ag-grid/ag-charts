@@ -349,7 +349,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.container = container;
 
         const { All } = InteractionState;
-        const seriesRegion = this.regionManager.addRegion('series', this.seriesRoot);
+        const seriesRegion = this.regionManager.addRegion('series', this.seriesRoot, this.axisGroup);
 
         this._destroyFns.push(
             this.dataService.addListener('data-load', (event) => {
@@ -362,7 +362,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
             seriesRegion.addListener('leave', (event) => this.onLeave(event)),
             this.interactionManager.addListener('page-left', () => this.destroy()),
 
-            this.interactionManager.addListener('wheel', () => this.resetPointer()),
             this.interactionManager.addListener('drag', () => this.resetPointer()),
             this.interactionManager.addListener('contextmenu', (event) => this.onContextMenu(event), All),
 
@@ -370,9 +369,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 this.update(ChartUpdateType.SCENE_RENDER);
             }),
             this.highlightManager.addListener('highlight-change', (event) => this.changeHighlightDatum(event)),
-            this.zoomManager.addListener('zoom-change', () =>
-                this.update(ChartUpdateType.PROCESS_DATA, { forceNodeDataRefresh: true, skipAnimations: true })
-            )
+            this.zoomManager.addListener('zoom-change', () => {
+                this.resetPointer();
+                this.update(ChartUpdateType.PROCESS_DATA, { forceNodeDataRefresh: true, skipAnimations: true });
+            })
         );
     }
 
