@@ -11,7 +11,7 @@ export const CANDLESTICK_SERIES_THEME = {
             },
         },
         [_Theme.CARTESIAN_AXIS_TYPE.ORDINAL_TIME]: {
-            groupPaddingInner: 0.2,
+            groupPaddingInner: 0,
             crosshair: {
                 enabled: true,
             },
