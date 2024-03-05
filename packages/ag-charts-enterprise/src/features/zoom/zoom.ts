@@ -196,38 +196,22 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.updateZoom(constrainZoom(zoom));
     }
 
-    private onRatioChange(direction: _ModuleSupport.ChartAxisDirection, ratioZoom: DefinedZoomState['x' | 'y']) {
-        let { start: minX, end: maxX } = this.ratioX;
-        let { start: minY, end: maxY } = this.ratioY;
+    private onRatioChange(direction: _ModuleSupport.ChartAxisDirection, ratioZoom?: DefinedZoomState['x' | 'y']) {
+        if (!ratioZoom) return;
 
-        if (direction === ChartAxisDirection.X) {
-            minX = ratioZoom.min;
-            maxX = ratioZoom.max;
-        } else {
-            minY = ratioZoom.min;
-            maxY = ratioZoom.max;
-        }
-
-        minX ??= UNIT.min;
-        maxX ??= UNIT.max;
-        minY ??= UNIT.min;
-        maxY ??= UNIT.max;
-
-        const newZoom = {
-            x: { min: minX, max: maxX },
-            y: { min: minY, max: maxY },
-        };
-
-        this.zoomManager.updateZoom('zoom', newZoom);
+        const zoom = definedZoomState(this.zoomManager.getZoom());
+        zoom[direction] = ratioZoom;
+        this.updateZoom(constrainZoom(zoom));
     }
 
     private onDoubleClick(event: _ModuleSupport.InteractionEvent<'dblclick'>) {
         if (!this.enabled || !this.enableDoubleClickToReset) return;
 
-        const {
-            ratioX: { start: minX = UNIT.min, end: maxX = UNIT.max },
-            ratioY: { start: minY = UNIT.min, end: maxY = UNIT.max },
-        } = this;
+        const x = this.rangeX.getInitialRange() ?? this.ratioX.getInitialRatio() ?? UNIT;
+        const y = this.rangeY.getInitialRange() ?? this.ratioY.getInitialRatio() ?? UNIT;
+
+        const { min: minX, max: maxX } = x;
+        const { min: minY, max: maxY } = y;
 
         if (this.hoveredAxis) {
             const { id, direction } = this.hoveredAxis;
