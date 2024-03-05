@@ -14,15 +14,9 @@ const options: AgChartOptions = {
             type: 'map-marker',
             latKey: 'lat',
             lonKey: 'lon',
-            sizeKey: 'count',
-            sizeName: 'Count',
             background: {
                 topology: backgroundTopology,
                 id: 'Surrey',
-            },
-            marker: {
-                size: 3,
-                maxSize: 50,
             },
         },
     ],
