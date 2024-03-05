@@ -96,14 +96,12 @@ function round(val: number): number {
 }
 
 function fixNumericExtentInternal(extent?: (number | Date)[]): [] | [number, number] {
-    if (extent === undefined) {
+    if (extent == null) {
         // Don't return a range, there is no range.
         return [];
     }
 
-    let [min, max] = extent;
-    min = Number(min);
-    max = Number(max);
+    let [min, max] = extent.map(Number);
 
     if (min === 0 && max === 0) {
         // domain has zero length and the single valid value is 0. Use the default of [0, 1].
@@ -113,11 +111,9 @@ function fixNumericExtentInternal(extent?: (number | Date)[]): [] | [number, num
     if (min === Infinity && max === -Infinity) {
         // There's no data in the domain.
         return [];
-    }
-    if (min === Infinity) {
+    } else if (min === Infinity) {
         min = 0;
-    }
-    if (max === -Infinity) {
+    } else if (max === -Infinity) {
         max = 0;
     }
 
@@ -157,7 +153,7 @@ function defaultMissMap(): MissMap {
 }
 
 export function getMissCount(scopeProvider: ScopeProvider, missMap: MissMap | undefined) {
-    return missMap === undefined ? 0 : missMap.get(scopeProvider.id) ?? 0;
+    return missMap?.get(scopeProvider.id) ?? 0;
 }
 
 type GroupingFn<K> = (data: UngroupedDataItem<K, any[]>) => K[];
@@ -244,14 +240,14 @@ export type GroupValueProcessorDefinition<D, K extends keyof D & string> = Prope
         type: 'group-value-processor';
         /**
          * Outer function called once per all data processing; inner function called once per group;
-         * inner-most called once per datum.
+         * innermost called once per datum.
          */
         adjust: () => () => (values: D[K][], indexes: number[]) => void;
     };
 
 export type PropertyValueProcessorDefinition<D> = PropertyIdentifiers & {
     type: 'property-value-processor';
-    property: PropertyId<keyof D & string>;
+    property: PropertyId<string>;
     adjust: () => (processedData: ProcessedData<D>, valueIndex: number) => void;
 };
 
@@ -308,37 +304,13 @@ export class DataModel<
         }
 
         this.opts = { dataVisible: true, ...opts };
-        this.keys = props
-            .filter((def): def is DatumPropertyDefinition<K> => def.type === 'key')
-            .map((def, index) => ({ ...def, index, missing: defaultMissMap() }));
-        this.values = props
-            .filter((def): def is DatumPropertyDefinition<K> => def.type === 'value')
-            .map((def, index) => ({ ...def, index, missing: defaultMissMap() }));
-        this.aggregates = props
-            .filter((def): def is AggregatePropertyDefinition<D, K> => def.type === 'aggregate')
-            .map((def, index) => ({ ...def, index }));
-        this.groupProcessors = props
-            .filter((def): def is GroupValueProcessorDefinition<D, K> => def.type === 'group-value-processor')
-            .map((def, index) => ({ ...def, index }));
-        this.propertyProcessors = props
-            .filter((def): def is PropertyValueProcessorDefinition<D> => def.type === 'property-value-processor')
-            .map((def, index) => ({ ...def, index }));
-        this.reducers = props
-            .filter((def): def is ReducerOutputPropertyDefinition => def.type === 'reducer')
-            .map((def, index) => ({ ...def, index }));
-        this.processors = props
-            .filter((def): def is ProcessorOutputPropertyDefinition => def.type === 'processor')
-            .map((def, index) => ({ ...def, index }));
-
-        for (const def of this.values) {
-            if (def.property == null) {
-                throw new Error(
-                    `AG Charts - internal config error: no properties specified for value definitions: ${JSON.stringify(
-                        def
-                    )}`
-                );
-            }
-        }
+        this.keys = [];
+        this.values = [];
+        this.aggregates = [];
+        this.groupProcessors = [];
+        this.propertyProcessors = [];
+        this.reducers = [];
+        this.processors = [];
 
         const verifyMatchGroupId = ({ matchGroupIds = [] }: { matchGroupIds?: string[] }) => {
             for (const matchGroupId of matchGroupIds) {
@@ -363,9 +335,47 @@ export class DataModel<
             }
         };
 
-        for (const def of iterate(this.groupProcessors, this.aggregates)) {
-            verifyMatchIds(def);
-            verifyMatchGroupId(def);
+        for (const def of props) {
+            switch (def.type) {
+                case 'key':
+                    this.keys.push({ ...def, index: this.keys.length, missing: defaultMissMap() });
+                    break;
+
+                case 'value':
+                    if (def.property == null) {
+                        throw new Error(
+                            `AG Charts - internal config error: no properties specified for value definitions: ${JSON.stringify(
+                                def
+                            )}`
+                        );
+                    }
+                    this.values.push({ ...def, index: this.values.length, missing: defaultMissMap() });
+                    break;
+
+                case 'aggregate':
+                    verifyMatchIds(def);
+                    verifyMatchGroupId(def);
+                    this.aggregates.push({ ...def, index: this.aggregates.length });
+                    break;
+
+                case 'group-value-processor':
+                    verifyMatchIds(def);
+                    verifyMatchGroupId(def);
+                    this.groupProcessors.push({ ...def, index: this.groupProcessors.length });
+                    break;
+
+                case 'property-value-processor':
+                    this.propertyProcessors.push({ ...def, index: this.propertyProcessors.length });
+                    break;
+
+                case 'reducer':
+                    this.reducers.push({ ...def, index: this.reducers.length });
+                    break;
+
+                case 'processor':
+                    this.processors.push({ ...def, index: this.processors.length });
+                    break;
+            }
         }
     }
 
@@ -422,35 +432,36 @@ export class DataModel<
         processedData: ProcessedData<K>
     ): any[] | ContinuousDomain<number> | [] {
         const matches = this.resolveProcessedDataDefsById(scope, searchId);
+        const domains = this.getDomainsByType(type, processedData);
 
-        let domainProp: keyof ProcessedData<any>['domain'];
+        if (domains == null) {
+            return [];
+        }
+
+        if (matches.length === 1) {
+            return domains[matches[0].index] ?? [];
+        } else {
+            const result: [number, number] = [Infinity, -Infinity];
+            for (const { index } of matches) {
+                extendDomain(domains[index] ?? [], result);
+            }
+            return result;
+        }
+    }
+
+    private getDomainsByType(type: PropertyDefinition<any>['type'], processedData: ProcessedData<K>) {
         switch (type) {
             case 'key':
-                domainProp = 'keys';
-                break;
+                return processedData.domain.keys;
             case 'value':
-                domainProp = 'values';
-                break;
+                return processedData.domain.values;
             case 'aggregate':
-                domainProp = 'aggValues';
-                break;
+                return processedData.domain.aggValues;
             case 'group-value-processor':
-                domainProp = 'groups';
-                break;
+                return processedData.domain.groups;
             default:
-                return [];
+                return null;
         }
-
-        const firstMatch = processedData.domain[domainProp]?.[matches[0].index] ?? [];
-        if (matches.length === 1) {
-            return firstMatch;
-        }
-
-        const result = [...firstMatch];
-        for (const idx of matches.slice(1)) {
-            extendDomain(processedData.domain[domainProp]?.[idx.index] ?? [], result as ContinuousDomain<any>);
-        }
-        return result;
     }
 
     processData(
@@ -527,21 +538,26 @@ export class DataModel<
         return processedData as Grouped extends true ? GroupedData<D> : UngroupedData<D>;
     }
 
-    private valueGroupIdxLookup({ matchGroupIds, matchIds }: PropertySelectors) {
-        return this.values
-            .map((def, index) => ({ def, index }))
-            .filter(({ def }) => {
-                if (matchGroupIds && (def.groupId == null || !matchGroupIds.includes(def.groupId))) {
-                    return false;
+    private hasMatchingDef(matchIds: [string, string][], defIds: [string, string][]) {
+        for (const [matchId, matchScope] of matchIds) {
+            for (const [defId, defScope] of defIds) {
+                if (defId === matchId && defScope === matchScope) {
+                    return true;
                 }
-                if (!matchIds) return true;
-                if (def.ids == null) return false;
+            }
+        }
+        return false;
+    }
 
-                return matchIds.some(([matchScope, matchId]) =>
-                    def.ids?.some(([defScope, defId]) => defScope === matchScope && defId === matchId)
-                );
-            })
-            .map(({ index }) => index);
+    private valueGroupIdxLookup({ matchGroupIds, matchIds }: PropertySelectors) {
+        const result: number[] = [];
+        for (const [index, def] of this.values.entries()) {
+            if (matchGroupIds && (def.groupId == null || !matchGroupIds.includes(def.groupId))) continue;
+            if (matchIds && (def.ids == null || !this.hasMatchingDef(matchIds, def.ids))) continue;
+
+            result.push(index);
+        }
+        return result;
     }
 
     private valueIdxLookup(scopes: string[], prop: PropertyId<string>) {
@@ -557,26 +573,23 @@ export class DataModel<
         };
 
         const propId = typeof prop === 'string' ? prop : prop.id;
-        const idMatch = ([scope, id]: [string, string]) => {
-            return scopeMatch([scope]) && id === propId;
-        };
+        const idMatch = ([scope, id]: [string, string]) => scopeMatch([scope]) && id === propId;
 
-        const result = this.values.findIndex((def) => {
-            return (
+        const result = this.values.findIndex(
+            (def) =>
                 scopeMatch(def.scopes) &&
                 (def.ids?.some((id) => idMatch(id)) || def.property === propId || def.id === propId)
-            );
-        });
+        );
 
-        if (result >= 0) {
-            return result;
+        if (result === -1) {
+            throw new Error(
+                `AG Charts - configuration error, unknown property ${JSON.stringify(prop)} in scope(s) ${JSON.stringify(
+                    scopes
+                )}`
+            );
         }
 
-        throw new Error(
-            `AG Charts - configuration error, unknown property ${JSON.stringify(prop)} in scope(s) ${JSON.stringify(
-                scopes
-            )}`
-        );
+        return result;
     }
 
     private extractData(data: D[], sources?: { id: string; data: D[] }[]): UngroupedData<D> {
