@@ -194,11 +194,13 @@ export class DataController {
             const scope = scopes[i];
             const resultCb = resultCbs[i];
 
-            processedData.data = processedData.data.filter(
-                ({ validScopes }) => validScopes?.some((s) => s === scope) ?? true
-            );
-
-            resultCb({ dataModel, processedData });
+            resultCb({
+                dataModel,
+                processedData: {
+                    ...processedData,
+                    data: processedData.data.filter(({ validScopes }) => validScopes?.some((s) => s === scope) ?? true),
+                },
+            });
         }
     }
 
@@ -231,7 +233,7 @@ export class DataController {
                     return false;
                 }
 
-                let i, keys, length;
+                let i, length;
                 if (Array.isArray(a)) {
                     length = a.length;
                     if (length !== (b as unknown[]).length) {
@@ -245,7 +247,7 @@ export class DataController {
                     return true;
                 }
 
-                keys = Object.keys(a);
+                const keys = Object.keys(a);
                 length = keys.length;
                 if (length !== Object.keys(b).length) {
                     return false;

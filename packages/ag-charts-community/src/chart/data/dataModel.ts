@@ -441,7 +441,7 @@ export class DataModel<
         } else {
             const result: [number, number] = [Infinity, -Infinity];
             for (const { index } of matches) {
-                extendDomain(domains[index] ?? [], result);
+                ContinuousDomain.extendDomain(domains[index] ?? [], result);
             }
             return result;
         }
@@ -576,8 +576,8 @@ export class DataModel<
 
         const propId = typeof prop === 'string' ? prop : prop.id;
         const idMatch = ([scope, id]: [string, string]) => scopeMatch([scope]) && id === propId;
-        const result = this.values.findIndex((def) => {
-            return (
+        const result = this.values.findIndex(
+            (def) =>
                 scopeMatch(def.scopes) &&
                 (def.ids?.some((id) => idMatch(id)) || def.property === propId || def.id === propId)
         );
