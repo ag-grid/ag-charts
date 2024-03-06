@@ -1,4 +1,4 @@
-import type { AgChartOptionsNext } from '../../options/chart/chartBuilderOptionsNext';
+import type { AgChartOptions } from '../../options/chart/chartBuilderOptions';
 import { jsonDiff } from '../../util/json';
 import type { ISeries } from '../series/seriesTypes';
 
@@ -17,8 +17,8 @@ const MATCHING_KEYS = [
 
 export function matchSeriesOptions<S extends ISeries<any, any>>(
     series: S[],
-    optSeries: NonNullable<AgChartOptionsNext['series']>,
-    oldOptsSeries?: AgChartOptionsNext['series']
+    optSeries: NonNullable<AgChartOptions['series']>,
+    oldOptsSeries?: AgChartOptions['series']
 ) {
     const generateKey = (type: string | undefined, i: any) => {
         const result = [type];
@@ -38,7 +38,7 @@ export function matchSeriesOptions<S extends ISeries<any, any>>(
         seriesMap.get(key)?.push([s, idx++]);
     }
 
-    const optsMap = new Map<string, NonNullable<AgChartOptionsNext['series']>[number][]>();
+    const optsMap = new Map<string, NonNullable<AgChartOptions['series']>[number][]>();
     for (const o of optSeries) {
         const key = generateKey(o.type, o);
         if (!optsMap.has(key)) {

@@ -4,7 +4,6 @@ import type { ModuleContext } from '../module/moduleContext';
 import type { AxisOptionModule, ChartOptions } from '../module/optionsModule';
 import type { AgBaseAxisOptions } from '../options/chart/axisOptions';
 import type { AgChartInstance, AgChartOptions } from '../options/chart/chartBuilderOptions';
-import type { AgChartOptionsNext } from '../options/chart/chartBuilderOptionsNext';
 import type { AgChartClickEvent, AgChartDoubleClickEvent } from '../options/chart/eventOptions';
 import type { AgBaseSeriesOptions } from '../options/series/seriesOptions';
 import { BBox } from '../scene/bbox';
@@ -65,7 +64,12 @@ import { LayoutService } from './layout/layoutService';
 import type { CategoryLegendDatum, ChartLegend, ChartLegendType, GradientLegendDatum } from './legendDatum';
 import { AxisPositionGuesser } from './mapping/prepareAxis';
 import { matchSeriesOptions } from './mapping/prepareSeries';
-import { type SeriesOptionsTypes, isAgCartesianChartOptions, isAgPolarChartOptions } from './mapping/types';
+import {
+    type SeriesOptionsTypes,
+    isAgCartesianChartOptions,
+    isAgPolarChartOptions,
+    isAgTopologyChartOptions,
+} from './mapping/types';
 import { ModulesManager } from './modulesManager';
 import { ChartOverlays } from './overlay/chartOverlays';
 import { type Series, SeriesGroupingChangedEvent, SeriesNodePickMode } from './series/series';
@@ -1381,10 +1385,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
         return { minRect, minVisibleRect };
     }
 
-    private filterMiniChartSeries(
-        series: AgChartOptionsNext['series'] | undefined
-    ): AgChartOptionsNext['series'] | undefined;
-    private filterMiniChartSeries(series: AgChartOptionsNext['series']): AgChartOptionsNext['series'];
+    private filterMiniChartSeries(series: AgChartOptions['series'] | undefined): AgChartOptions['series'] | undefined;
+    private filterMiniChartSeries(series: AgChartOptions['series']): AgChartOptions['series'];
     private filterMiniChartSeries(series: any[] | undefined): any[] | undefined {
         return series?.filter((s) => s.showInMiniChart !== false);
     }
@@ -1414,6 +1416,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
         if (isAgCartesianChartOptions(deltaOptions) || isAgPolarChartOptions(deltaOptions)) {
             // Append axes to defaults.
             skip.push('axes');
+        }
+        if (isAgTopologyChartOptions(deltaOptions)) {
+            skip.push('topology');
         }
 
         // Needs to be done before applying the series to detect if a seriesNode[Double]Click listener has been added
@@ -1493,7 +1498,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
-    private shouldForceNodeDataRefresh(deltaOptions: AgChartOptionsNext, seriesStatus: SeriesChangeType) {
+    private shouldForceNodeDataRefresh(deltaOptions: AgChartOptions, seriesStatus: SeriesChangeType) {
         const seriesDataUpdate = !!deltaOptions.data || seriesStatus === 'data-change' || seriesStatus === 'replaced';
         const legendKeys = legendRegistry.getKeys();
         const optionsHaveLegend = Object.values(legendKeys).some(
@@ -1506,8 +1511,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
     private applyMiniChartOptions(
         oldOpts: AgChartOptions & { type?: SeriesOptionsTypes['type'] },
         miniChart: any,
-        miniChartSeries: NonNullable<AgChartOptionsNext['series']>,
-        deltaOptions: AgChartOptionsNext
+        miniChartSeries: NonNullable<AgChartOptions['series']>,
+        deltaOptions: AgChartOptions
     ) {
         const oldSeries = oldOpts?.navigator?.miniChart?.series ?? oldOpts?.series;
         const miniChartSeriesStatus = this.applySeries(
@@ -1600,8 +1605,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     private applySeries(
         chart: { series: Series<any, any>[] },
-        optSeries: AgChartOptionsNext['series'],
-        oldOptSeries?: AgChartOptionsNext['series']
+        optSeries: AgChartOptions['series'],
+        oldOptSeries?: AgChartOptions['series']
     ): SeriesChangeType {
         if (!optSeries) {
             return 'no-change';
@@ -1674,8 +1679,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     private applyAxes(
         chart: { axes: ChartAxis[] },
-        options: AgChartOptionsNext,
-        oldOpts: AgChartOptionsNext,
+        options: AgChartOptions,
+        oldOpts: AgChartOptions,
         seriesStatus: SeriesChangeType,
         skip: string[] = []
     ) {

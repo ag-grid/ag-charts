@@ -1,6 +1,7 @@
 import type { AgBaseCartesianChartOptions } from '../series/cartesian/cartesianOptions';
 import type { AgBaseHierarchyChartOptions } from '../series/hierarchy/hierarchyOptions';
 import type { AgBasePolarChartOptions } from '../series/polar/polarOptions';
+import type { AgBaseTopologyChartOptions } from '../series/topology/topologyOptions';
 import type { AgBaseChartOptions } from './chartOptions';
 import type { AgBaseChartThemeOptions, AgChartTheme, AgChartThemeName } from './themeOptions';
 import type { PixelSize } from './types';
@@ -21,7 +22,14 @@ export interface AgPolarChartOptions extends AgBasePolarChartOptions, AgBaseChar
 export interface AgHierarchyChartOptions extends AgBaseHierarchyChartOptions, AgBaseChartOptions {
     theme?: AgChartTheme | AgChartThemeName;
 }
-export type AgChartOptions = AgCartesianChartOptions | AgPolarChartOptions | AgHierarchyChartOptions;
+export interface AgTopologyChartOptions extends AgBaseTopologyChartOptions, AgBaseChartOptions {
+    theme?: AgChartTheme | AgChartThemeName;
+}
+export type AgChartOptions =
+    | AgCartesianChartOptions
+    | AgPolarChartOptions
+    | AgHierarchyChartOptions
+    | AgTopologyChartOptions;
 
 export interface AgChartInstance {
     /** Get the `AgChartOptions` representing the current chart configuration. */
