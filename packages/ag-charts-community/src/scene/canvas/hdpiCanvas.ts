@@ -37,13 +37,15 @@ export class HdpiCanvas {
     constructor(options: CanvasOptions) {
         const { width, height, pixelRatio } = options;
 
+        this.pixelRatio = hasConstrainedCanvasMemory() ? 1 : pixelRatio ?? getWindow('devicePixelRatio');
+
         // Create canvas and immediately apply width + height to avoid out-of-memory errors on iOS/iPadOS Safari.
         this.element = createElement('canvas');
-        this.element.width = width ?? this.width;
-        this.element.height = height ?? this.height;
+        // Safari needs a width and height set or the output can appear blurry
+        this.element.width = Math.round((width ?? this.width) * this.pixelRatio);
+        this.element.height = Math.round((height ?? this.height) * this.pixelRatio);
 
         this.context = this.element.getContext('2d')!;
-        this.pixelRatio = hasConstrainedCanvasMemory() ? 1 : pixelRatio ?? getWindow('devicePixelRatio');
 
         this.onEnabledChange(); // Force `display: block` style
         this.resize(width ?? 0, height ?? 0);
