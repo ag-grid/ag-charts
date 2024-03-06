@@ -352,6 +352,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
                 break;
 
             case DragState.Select:
+                if (!this.selector.didUpdate()) break;
                 const zoom = definedZoomState(this.zoomManager.getZoom());
                 if (!this.isMinZoom(zoom)) {
                     const newZoom = this.selector.stop(this.seriesRect, this.paddedRect, zoom);
