@@ -7,6 +7,7 @@ import type {
     TextWrap,
 } from '../../options/chart/types';
 import { createElement } from '../../util/dom';
+import { memoizeFunction } from '../../util/memo';
 import { BBox } from '../bbox';
 import type { RenderContext } from '../node';
 import { RedrawType, SceneChangeDetection } from '../node';
@@ -581,17 +582,33 @@ export class Text extends Shape {
         return (this._textContext ??= createElement('canvas').getContext('2d')!);
     }
 
+    private static _measureText = memoizeFunction(
+        ({
+            text,
+            font,
+            textBaseline,
+            textAlign,
+        }: {
+            text: string;
+            font: string;
+            textBaseline: CanvasTextBaseline;
+            textAlign: CanvasTextAlign;
+        }) => {
+            const ctx = this.textContext;
+            ctx.font = font;
+            ctx.textBaseline = textBaseline;
+            ctx.textAlign = textAlign;
+            return ctx.measureText(text);
+        }
+    );
+
     static measureText(
         text: string,
         font: string,
         textBaseline: CanvasTextBaseline,
         textAlign: CanvasTextAlign
     ): TextMetrics {
-        const ctx = this.textContext;
-        ctx.font = font;
-        ctx.textBaseline = textBaseline;
-        ctx.textAlign = textAlign;
-        return ctx.measureText(text);
+        return this._measureText({ text, font, textBaseline, textAlign });
     }
 
     /**
@@ -699,5 +716,5 @@ function getVerticalOffset(textBaseline: CanvasTextBaseline): number {
 }
 
 export function splitText(text?: string) {
-    return typeof text === 'string' ? text.split(/\r?\n/g) : [];
+    return typeof text === 'string' ? text.split('\n').map((t) => t.trim()) : [];
 }
