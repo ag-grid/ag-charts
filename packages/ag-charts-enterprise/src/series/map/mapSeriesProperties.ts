@@ -30,7 +30,9 @@ const {
 } = _ModuleSupport;
 const { Label, SceneChangeDetection } = _Scene;
 
-export interface MapNodeLabelDatum extends _Util.PointLabelDatum {}
+export interface MapNodeLabelDatum extends _Util.PointLabelDatum {
+    hasMarkers: boolean;
+}
 
 interface BaseMapNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     readonly idValue: string;
@@ -72,6 +74,11 @@ class MapSeriesMarker extends _ModuleSupport.SeriesMarker<AgMapSeriesOptionsKeys
     domain?: [number, number];
 }
 
+class MapSeriesLabel extends Label<AgMapSeriesLabelFormatterParams> {
+    @Validate(STRING)
+    placement: _Util.LabelPlacement = 'bottom';
+}
+
 class MapSeriesBackground extends BaseProperties {
     @Validate(PLAIN_OBJECT)
     topology: FeatureCollection = { type: 'FeatureCollection', features: [] };
@@ -80,7 +87,7 @@ class MapSeriesBackground extends BaseProperties {
     id: string | undefined = undefined;
 
     @Validate(STRING)
-    topologyProperty: string = 'name';
+    topologyIdKey: string = 'name';
 
     @Validate(COLOR_STRING)
     fill: string = 'black';
@@ -139,7 +146,7 @@ export class MapSeriesProperties extends SeriesProperties<AgMapSeriesOptions> {
     colorName?: string;
 
     @Validate(STRING)
-    topologyProperty: string = 'name';
+    topologyIdKey: string = 'name';
 
     @Validate(AND(COLOR_STRING_ARRAY, ARRAY.restrict({ minLength: 1 })), { optional: true })
     colorRange: string[] | undefined = undefined;
@@ -172,14 +179,17 @@ export class MapSeriesProperties extends SeriesProperties<AgMapSeriesOptions> {
     readonly marker = new MapSeriesMarker();
 
     @Validate(OBJECT)
-    readonly label = new Label<AgMapSeriesLabelFormatterParams>();
+    readonly label = new MapSeriesLabel();
 
     @Validate(OBJECT)
     override tooltip = new SeriesTooltip<AgMapSeriesTooltipRendererParams<any>>();
 
     @Validate(STRING, { optional: true })
     __POLYGON_STROKE?: string = undefined;
-
+    @Validate(OBJECT)
+    __POLYGON_LABEL = new Label<AgMapSeriesLabelFormatterParams>();
     @Validate(STRING, { optional: true })
     __LINE_STRING_STROKE?: string = undefined;
+    @Validate(OBJECT)
+    __MARKER_LABEL = new Label<AgMapSeriesLabelFormatterParams>();
 }

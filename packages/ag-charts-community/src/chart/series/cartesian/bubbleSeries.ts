@@ -124,6 +124,8 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         const { axes, dataModel, processedData, colorScale, sizeScale } = this;
         const { xKey, yKey, sizeKey, labelKey, xName, yName, sizeName, labelName, label, colorKey, marker, visible } =
             this.properties;
+        const markerShape = this.markerFactory();
+        const { placement } = label;
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
@@ -183,6 +185,8 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
                 midPoint: { x, y },
                 fill,
                 label: { text: labelText, ...size },
+                marker: markerShape,
+                placement,
             });
         }
 

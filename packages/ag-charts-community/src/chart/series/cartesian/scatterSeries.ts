@@ -103,6 +103,8 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
     async createNodeData() {
         const { axes, dataModel, processedData, colorScale } = this;
         const { xKey, yKey, labelKey, colorKey, xName, yName, labelName, marker, label, visible } = this.properties;
+        const { placement } = label;
+        const markerShape = this.markerFactory();
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
@@ -156,6 +158,8 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
                 midPoint: { x, y },
                 fill,
                 label: { text: labelText, ...size },
+                marker: markerShape,
+                placement,
             });
         }
 
@@ -224,6 +228,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
             placedLabels.map(({ datum, x, y }) => ({
                 ...(datum as ScatterNodeDatum),
                 point: { x, y, size: datum.point.size },
+                placement: 'top',
             })),
             (text) => {
                 text.pointerEvents = PointerEvents.None;

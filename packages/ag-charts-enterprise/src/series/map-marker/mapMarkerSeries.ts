@@ -152,11 +152,11 @@ export class MapMarkerSeries extends DataModelSeries<
 
     private getBackgroundGeometry(): Geometry | undefined {
         const { background } = this.properties;
-        const { id, topologyProperty } = background;
+        const { id, topologyIdKey } = background;
         if (id == null) return;
 
         const topology = background.topology ?? this.topology;
-        return topology?.features.find((feature) => feature.properties?.[topologyProperty] === id)?.geometry;
+        return topology?.features.find((feature) => feature.properties?.[topologyIdKey] === id)?.geometry;
     }
 
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
@@ -234,12 +234,13 @@ export class MapMarkerSeries extends DataModelSeries<
         labelValue: string | undefined,
         x: number,
         y: number,
+        size: number,
         font: string
     ): MapMarkerNodeLabelDatum | undefined {
         if (labelValue == null) return;
 
-        const { latKey, latName, lonKey, lonName, sizeKey, sizeName, colorKey, colorName, labelKey, labelName, label } =
-            this.properties;
+        const { latKey, latName, lonKey, lonName, sizeKey, sizeName, labelKey, labelName, label } = this.properties;
+        const { placement } = label;
         const labelText = this.getLabelText(label, {
             value: labelValue,
             datum,
@@ -249,18 +250,19 @@ export class MapMarkerSeries extends DataModelSeries<
             lonName,
             sizeKey,
             sizeName,
-            colorKey,
-            colorName,
             labelKey,
             labelName,
         });
         if (labelText == null) return;
 
         const { width, height } = Text.getTextSize(String(labelText), font);
+        const marker = this.markerFactory();
 
         return {
-            point: { x, y, size: 0 },
+            point: { x, y, size },
             label: { width, height, text: labelText },
+            marker,
+            placement,
         };
     }
 
@@ -295,7 +297,7 @@ export class MapMarkerSeries extends DataModelSeries<
             const color: string | undefined =
                 colorScaleValid && colorValue != null ? colorScale.convert(colorValue) : undefined;
 
-            const labelDatum = this.getLabelDatum(datum, labelValue, x, y, font);
+            const labelDatum = this.getLabelDatum(datum, labelValue, x, y, size, font);
             if (labelDatum) {
                 labelData.push(labelDatum);
             }

@@ -26,8 +26,8 @@ export class Label<TParams = never, TDatum = any>
     @Validate(BOOLEAN)
     enabled = true;
 
-    @Validate(COLOR_STRING)
-    color = '#464646';
+    @Validate(COLOR_STRING, { optional: true })
+    color?: string;
 
     @Validate(FONT_STYLE, { optional: true })
     fontStyle?: FontStyle;
@@ -146,5 +146,7 @@ export function calculateLabelBBox(
     return {
         point: { x, y, size: 0 },
         label: { width, height, text },
+        marker: undefined,
+        placement: 'bottom',
     };
 }

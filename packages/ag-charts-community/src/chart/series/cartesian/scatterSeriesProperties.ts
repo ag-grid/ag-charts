@@ -4,9 +4,10 @@ import type {
     AgScatterSeriesOptionsKeys,
     AgScatterSeriesTooltipRendererParams,
 } from '../../../options/agChartOptions';
-import type { MeasuredLabel } from '../../../scene/util/labelPlacement';
-import { COLOR_STRING_ARRAY, NUMBER_ARRAY, OBJECT, STRING, Validate } from '../../../util/validation';
+import type { LabelPlacement, MeasuredLabel } from '../../../scene/util/labelPlacement';
+import { COLOR_STRING_ARRAY, LABEL_PLACEMENT, NUMBER_ARRAY, OBJECT, STRING, Validate } from '../../../util/validation';
 import { Label } from '../../label';
+import type { Marker } from '../../marker/marker';
 import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
@@ -14,7 +15,14 @@ import { CartesianSeriesNodeDatum, CartesianSeriesProperties } from './cartesian
 
 export interface ScatterNodeDatum extends Required<CartesianSeriesNodeDatum>, ErrorBoundSeriesNodeDatum {
     readonly label: MeasuredLabel;
+    readonly placement: LabelPlacement;
+    readonly marker: Marker;
     readonly fill: string | undefined;
+}
+
+class ScatterSeriesLabel extends Label<AgScatterSeriesLabelFormatterParams> {
+    @Validate(LABEL_PLACEMENT)
+    placement: LabelPlacement = 'top';
 }
 
 export class ScatterSeriesProperties extends CartesianSeriesProperties<AgScatterSeriesOptions> {
@@ -55,7 +63,7 @@ export class ScatterSeriesProperties extends CartesianSeriesProperties<AgScatter
     readonly marker = new SeriesMarker<AgScatterSeriesOptionsKeys, ScatterNodeDatum>();
 
     @Validate(OBJECT)
-    readonly label = new Label<AgScatterSeriesLabelFormatterParams>();
+    readonly label = new ScatterSeriesLabel();
 
     @Validate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgScatterSeriesTooltipRendererParams>();

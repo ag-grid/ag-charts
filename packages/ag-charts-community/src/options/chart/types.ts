@@ -21,6 +21,8 @@ export type FontSize = number;
 // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 export type MarkerShape = 'circle' | 'cross' | 'diamond' | 'heart' | 'plus' | 'triangle' | 'square' | any;
 
+export type LabelPlacement = 'top' | 'bottom' | 'left' | 'right';
+
 /** Alias to denote that a value should be a CSS-compliant color string, such as `#FFFFFF` or `rgb(255, 255, 255)` or `white`. */
 export type CssColor = string;
 

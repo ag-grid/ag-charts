@@ -33,7 +33,7 @@ interface HeatmapLabelDatum extends _Scene.Point {
     fontStyle: FontStyle | undefined;
     fontFamily: string;
     fontWeight: FontWeight | undefined;
-    color: string;
+    color: string | undefined;
     textAlign: TextAlign;
     verticalAlign: VerticalAlign;
 }
