@@ -471,14 +471,11 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const time = RANGES.get(event.id);
 
         if (typeof time === 'function') {
-            this.rangeX.start = time();
-            this.rangeX.end = undefined;
+            this.rangeX.extendWith(time);
         } else if (time == null) {
-            this.rangeX.start = undefined;
-            this.rangeX.end = new Date().getTime();
+            this.rangeX.extendAll();
         } else {
-            this.rangeX.start = new Date().getTime() - time;
-            this.rangeX.end = undefined;
+            this.rangeX.extendToEnd(time);
         }
     }
 
