@@ -146,6 +146,11 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
             jsonOptions[id] = options;
         }
 
+        // NOTE: This works well for static options structures where JSON.stringify() is sufficient,
+        // but doesn't support cases using callback functions.
+        //
+        // The NPM package `serialize-javascript` can deal with trivial cases, but non-trivial cases
+        // such as a callback that uses another function declared in the example are not handled well.
         files['_options.json'] = JSON.stringify(jsonOptions);
     }
 

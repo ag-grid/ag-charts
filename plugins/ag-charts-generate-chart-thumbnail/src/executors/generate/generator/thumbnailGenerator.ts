@@ -5,7 +5,7 @@ import sharp from 'sharp';
 
 import { type AgChartThemeName, AgCharts } from 'ag-charts-community';
 import 'ag-charts-enterprise';
-import type { GeneratedContents } from 'ag-charts-generate-example-files/src/executors/generate/generator/types';
+import { type GeneratedContents, transformPlainEntryFile } from 'ag-charts-generate-example-files';
 import { mockCanvas } from 'ag-charts-test';
 
 import {
@@ -28,13 +28,10 @@ interface Params {
 }
 
 export async function generateExample({ example, theme, outputPath, dpi }: Params) {
-    const { files = {} } = example;
+    const { entryFileName, files = {} } = example;
 
-    const optionsJson = files['_options.json'];
-    if (optionsJson == null) {
-        throw new Error('_options.json not found - check your source example has a /* @ag-options-extract */ comment.');
-    }
-    const optionsById = JSON.parse(optionsJson);
+    const entryFile = files[entryFileName];
+    const { optionsById } = transformPlainEntryFile(entryFile, files['data.js']);
 
     const { rows, columns, charts } = getChartLayout(files['index.html']);
 
@@ -76,7 +73,7 @@ export async function generateExample({ example, theme, outputPath, dpi }: Param
         } as any);
         /* End TODO */
 
-        const options = optionsById[id];
+        const options = optionsById.get(id);
         if (options == null) {
             throw new Error(`No options found for container with id "${id}"`);
         }
