@@ -1,7 +1,6 @@
 import { unique } from '../../util/array';
 import { Debug } from '../../util/debug';
 import { getWindow } from '../../util/dom';
-import { jsonDiff } from '../../util/json';
 import type { ChartMode } from '../chartMode';
 import type {
     DataModelOptions,
@@ -246,18 +245,9 @@ export class DataController {
                         }
                     }
 
-                    const match = result.opts.props.find((existing: any) => {
-                        if (existing.type !== prop.type) {
-                            return false;
-                        }
-                        const diff = jsonDiff(existing, prop, ['id', 'ids', 'scopes', 'useScopedValues']);
-
-                        if ((diff == null) !== DataController.deepEqual(existing, prop)) {
-                            console.log(diff, existing, prop);
-                        }
-
-                        return diff == null;
-                    });
+                    const match = result.opts.props.find(
+                        (existing: any) => existing.type === prop.type && DataController.deepEqual(existing, prop)
+                    );
 
                     if (!match) {
                         result.opts.props.push(prop);
