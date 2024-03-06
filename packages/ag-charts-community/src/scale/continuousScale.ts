@@ -11,7 +11,7 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
         return value instanceof ContinuousScale;
     }
 
-    private invalid = true;
+    protected invalid = true;
 
     @Invalidating
     domain: D[];
