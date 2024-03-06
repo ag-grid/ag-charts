@@ -7,6 +7,8 @@ export type AgTopologySeriesOptions = AgMapSeriesOptions | AgMapMarkerSeriesOpti
 export interface AgBaseTopologyChartOptions {
     /** Series configurations. */
     series?: AgTopologySeriesOptions[];
+    /** Topology to use in all series. */
+    topology?: any;
 }
 
 export interface AgBaseTopologyThemeOptions extends AgBaseThemeableChartOptions {}

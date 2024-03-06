@@ -79,7 +79,8 @@ export class Caption extends BaseProperties implements CaptionLike {
     private truncated = false;
 
     registerInteraction(moduleCtx: ModuleContext) {
-        return moduleCtx.interactionManager.addListener('hover', (event) => this.handleMouseMove(moduleCtx, event));
+        const rootRegion = moduleCtx.regionManager.getRegion('root');
+        return rootRegion.addListener('hover', (event) => this.handleMouseMove(moduleCtx, event));
     }
 
     computeTextWrap(containerWidth: number, containerHeight: number) {

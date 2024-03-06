@@ -7,7 +7,7 @@ import type {
     AgHierarchySeriesOptions,
     AgPolarSeriesOptions,
 } from '../../options/agChartOptions';
-import type { AgChartOptionsNext } from '../../options/chart/chartBuilderOptionsNext';
+import type { AgChartOptions } from '../../options/chart/chartBuilderOptions';
 import type { AgTopologySeriesOptions } from '../../options/series/topology/topologyOptions';
 import { deepClone } from '../../util/json';
 import { mergeDefaults } from '../../util/object';
@@ -111,7 +111,7 @@ export class SeriesRegistry {
         return this.seriesMap.get(seriesType)?.stackedByDefault ?? false;
     }
 
-    isDefaultAxisSwapNeeded(options: AgChartOptionsNext) {
+    isDefaultAxisSwapNeeded(options: AgChartOptions) {
         let result: boolean | undefined;
 
         for (const series of options.series ?? []) {

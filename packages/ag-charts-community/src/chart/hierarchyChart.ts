@@ -11,8 +11,6 @@ export class HierarchyChart extends Chart {
         super(options, resources);
     }
 
-    protected _data: any = {};
-
     override async performLayout() {
         const shrinkRect = await super.performLayout();
 

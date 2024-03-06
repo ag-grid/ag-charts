@@ -32,6 +32,8 @@ export interface AgMapMarkerSeriesBackground extends FillOptions, StrokeOptions 
     topology?: any;
     /** ID of the feature to use from the topology. */
     id?: string;
+    /** The property to reference in the topology to match up with data. Defaults to `name`. */
+    topologyProperty?: string;
 }
 
 export interface AgMapMarkerSeriesThemeableOptions<TDatum = any>
@@ -60,8 +62,8 @@ export interface AgMapMarkerSeriesOptions<TDatum = any>
         AgMapMarkerSeriesThemeableOptions<TDatum> {
     /** Configuration for the Map Series. */
     type: 'map-marker';
-    /** GeoJSON data. */
-    topology: any;
+    /** Human-readable description of the series. */
+    legendItemName?: string;
 }
 
 export interface AgMapMarkerSeriesOptionsKeys {
@@ -73,13 +75,21 @@ export interface AgMapMarkerSeriesOptionsKeys {
     sizeKey?: string;
     /** The name of the node key containing the colour value. This value (along with `colorRange` config) will be used to determine the segment colour. */
     colorKey?: string;
+    /** The key to use to retrieve values from the data to use as labels for the markers. */
+    labelKey?: string;
 }
 
 export interface AgMapMarkerSeriesOptionsNames {
+    /** A human-readable description of the lat-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
+    latName?: string;
+    /** A human-readable description of the lon-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
+    lonName?: string;
     /** The key to use to retrieve size values from the data, used to control the size of the markers.  */
     sizeName?: string;
     /** A human-readable description of the colour values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     colorName?: string;
+    /** A human-readable description of the label values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
+    labelName?: string;
 }
 
 export type AgMapMarkerSeriesLabelFormatterParams = AgMapMarkerSeriesOptionsKeys & AgMapMarkerSeriesOptionsNames;
