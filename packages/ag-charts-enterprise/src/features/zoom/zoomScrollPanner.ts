@@ -4,7 +4,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import type { AxisZoomStates } from './zoomTypes';
 import { constrainZoom, definedZoomState, dx, pointToRatio, translateZoom } from './zoomUtils';
 
-const DELTA_SCALE = 200;
+const DELTA_SCALE = 1000;
 
 export class ZoomScrollPanner {
     update(
