@@ -61,6 +61,10 @@ export class OrdinalTimeScale extends BandScale<Date> {
     }
 
     override convert(d: Date): number {
+        if (typeof d === 'number') {
+            d = new Date(d);
+        }
+
         if (!(d instanceof Date)) {
             return NaN;
         }
