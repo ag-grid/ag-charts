@@ -298,7 +298,7 @@ export class MapMarkerSeries extends DataModelSeries<
                 ? backgroundTopology.features.find((feature) => feature.properties?.name === backgroundId)?.geometry
                 : undefined;
         const projectedBackgroundGeometry =
-            backgroundGeometry != null && scale != null ? projectGeometry(backgroundGeometry, scale) : undefined;
+            backgroundGeometry != null ? projectGeometry(backgroundGeometry, scale) : undefined;
 
         return [
             {

@@ -716,5 +716,5 @@ function getVerticalOffset(textBaseline: CanvasTextBaseline): number {
 }
 
 export function splitText(text?: string) {
-    return typeof text === 'string' ? text.split('\n').map((t) => t.trim()) : [];
+    return typeof text === 'string' ? text.split('\n') : [];
 }
