@@ -33,7 +33,6 @@ export async function generateFiles(options: ExecutorOptions) {
                 internalFramework,
                 ignoreDarkMode,
                 isDev: options.mode === 'dev',
-                extractOptions: options.examplePath.includes('/gallery/'),
             });
 
             const outputPath = path.join(options.outputPath, darkModePath, internalFramework, 'contents.json');
