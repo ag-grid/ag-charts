@@ -30,10 +30,7 @@ export class HdpiOffscreenCanvas {
     pixelRatio: number;
 
     static isSupported() {
-        return (
-            typeof OffscreenCanvas !== 'undefined' &&
-            Object.getPrototypeOf(OffscreenCanvas).transferToImageBitmap != null
-        );
+        return typeof OffscreenCanvas !== 'undefined' && OffscreenCanvas.prototype.transferToImageBitmap != null;
     }
 
     constructor({ width = 600, height = 300, pixelRatio }: OffscreenCanvasOptions) {
