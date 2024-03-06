@@ -1,6 +1,7 @@
 import { unique } from '../../util/array';
 import { Debug } from '../../util/debug';
 import { getWindow } from '../../util/dom';
+import { jsonDiff } from '../../util/json';
 import type { ChartMode } from '../chartMode';
 import type {
     DataModelOptions,
@@ -221,52 +222,6 @@ export class DataController {
     }
 
     private static mergeRequests(requests: RequestedProcessing<any, any, any>[]): MergedRequests<any, any, any> {
-        const skipKeys = new Set<string>(['id', 'ids', 'type', 'scopes', 'useScopedValues']);
-
-        function deepEqual<T>(a: T, b: T): boolean {
-            if (a === b) {
-                return true;
-            }
-
-            if (a && b && typeof a == 'object' && typeof b == 'object') {
-                if (a.constructor !== b.constructor) {
-                    return false;
-                }
-
-                let i, length;
-                if (Array.isArray(a)) {
-                    length = a.length;
-                    if (length !== (b as unknown[]).length) {
-                        return false;
-                    }
-                    for (i = length - 1; i > 0; i--) {
-                        if (!deepEqual(a[i], (b as unknown[])[i])) {
-                            return false;
-                        }
-                    }
-                    return true;
-                }
-
-                const keys = Object.keys(a);
-                length = keys.length;
-                if (length !== Object.keys(b).length) {
-                    return false;
-                }
-                for (i = length - 1; i > 0; i--) {
-                    const key = keys[i];
-                    if (
-                        !skipKeys.has(key) &&
-                        (!Object.hasOwn(b, key) || !deepEqual(a[key as keyof T], b[key as keyof T]))
-                    ) {
-                        return false;
-                    }
-                }
-                return true;
-            }
-
-            return false;
-        }
-
         function updateKeyValueOpts(prop: PropertyDefinition<any>) {
             if (prop.type === 'key' || prop.type === 'value') {
                 prop.useScopedValues = unique(prop.scopes ?? []).length > 1;
@@ -291,9 +246,18 @@ export class DataController {
                         }
                     }
 
-                    const match = result.opts.props.find(
-                        (existing: any) => existing.type === prop.type && deepEqual(existing, prop)
-                    );
+                    const match = result.opts.props.find((existing: any) => {
+                        if (existing.type !== prop.type) {
+                            return false;
+                        }
+                        const diff = jsonDiff(existing, prop, ['id', 'ids', 'scopes', 'useScopedValues']);
+
+                        if ((diff == null) !== DataController.deepEqual(existing, prop)) {
+                            console.log(diff, existing, prop);
+                        }
+
+                        return diff == null;
+                    });
 
                     if (!match) {
                         result.opts.props.push(prop);
@@ -312,5 +276,51 @@ export class DataController {
             },
             { ids: [], rejects: [], resultCbs: [], data: null, opts: null } as any
         );
+    }
+
+    // optimized version of deep equality for `mergeRequests` which can potentially loop over 1M times
+    static skipKeys = new Set<string>(['id', 'ids', 'type', 'scopes', 'useScopedValues']);
+    static deepEqual<T>(a: T, b: T): boolean {
+        if (a === b) {
+            return true;
+        }
+
+        if (a && b && typeof a == 'object' && typeof b == 'object') {
+            if (a.constructor !== b.constructor) {
+                return false;
+            }
+
+            let i, length;
+            if (Array.isArray(a)) {
+                length = a.length;
+                if (length !== (b as unknown[]).length) {
+                    return false;
+                }
+                for (i = length - 1; i >= 0; i--) {
+                    if (!DataController.deepEqual(a[i], (b as unknown[])[i])) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            const keys = Object.keys(a);
+            length = keys.length;
+            if (length !== Object.keys(b).length) {
+                return false;
+            }
+            for (i = length - 1; i >= 0; i--) {
+                const key = keys[i];
+                if (
+                    !DataController.skipKeys.has(key) &&
+                    (!Object.hasOwn(b, key) || !DataController.deepEqual(a[key as keyof T], b[key as keyof T]))
+                ) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        return false;
     }
 }

@@ -315,4 +315,46 @@ describe('DataController', () => {
             expect(results[1].processedData.data[0].values).toEqual([40]);
         });
     });
+
+    describe('deepEqual', () => {
+        it('should correctly compare primitive values', () => {
+            expect(DataController.deepEqual(1, 1)).toBe(true);
+            expect(DataController.deepEqual('test', 'test')).toBe(true);
+            expect(DataController.deepEqual(true, false)).toBe(false);
+        });
+
+        it('should correctly compare arrays', () => {
+            expect(DataController.deepEqual([1, 2, 3], [1, 2, 3])).toBe(true);
+            expect(DataController.deepEqual(['a', 'b', 'c'], ['a', 'b', 'c'])).toBe(true);
+            expect(DataController.deepEqual([1, 2, 3], [3, 2, 1])).toBe(false);
+        });
+
+        it('should correctly compare simple objects', () => {
+            expect(DataController.deepEqual({ a: 1, b: 2 }, { a: 1, b: 2 })).toBe(true);
+            expect(DataController.deepEqual({ a: 'test', b: 'check' }, { a: 'test', b: 'check' })).toBe(true);
+            expect(DataController.deepEqual({ a: 1, b: 2 }, { a: 2, b: 1 })).toBe(false);
+        });
+
+        it('should correctly compare nested objects', () => {
+            const obj1 = { a: 1, b: { c: 2, d: 3 } };
+            const obj2 = { a: 1, b: { c: 2, d: 3 } };
+            const obj3 = { a: 1, b: { c: 3, d: 2 } };
+            expect(DataController.deepEqual(obj1, obj2)).toBe(true);
+            expect(DataController.deepEqual(obj1, obj3)).toBe(false);
+        });
+
+        it('should correctly compare objects containing arrays', () => {
+            const obj1 = { a: [1, 2, 3], b: 'test' };
+            const obj2 = { a: [1, 2, 3], b: 'test' };
+            const obj3 = { a: [3, 2, 1], b: 'test' };
+            expect(DataController.deepEqual(obj1, obj2)).toBe(true);
+            expect(DataController.deepEqual(obj1, obj3)).toBe(false);
+        });
+
+        it('should correctly ignore specified keys when comparing objects', () => {
+            const obj1 = { id: 123, name: 'John', type: 'admin' };
+            const obj2 = { id: 456, name: 'John', type: 'user' };
+            expect(DataController.deepEqual(obj1, obj2)).toBe(true); // assuming id and type are in skipKeys
+        });
+    });
 });
