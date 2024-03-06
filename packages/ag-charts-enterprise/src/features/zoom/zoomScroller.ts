@@ -11,8 +11,6 @@ import {
     scaleZoomAxisWithPoint,
 } from './zoomUtils';
 
-const DELTA_SCALE = 4;
-
 export class ZoomScroller {
     update(
         event: _ModuleSupport.InteractionEvent<'wheel'>,
@@ -30,8 +28,8 @@ export class ZoomScroller {
         // Scale the zoom bounding box
         const dir = event.deltaY;
         let newZoom = definedZoomState(oldZoom);
-        newZoom.x.max += isScalingX ? step * dir * dx(oldZoom) * DELTA_SCALE : 0;
-        newZoom.y.max += isScalingY ? step * dir * dy(oldZoom) * DELTA_SCALE : 0;
+        newZoom.x.max += isScalingX ? step * dir * dx(oldZoom) : 0;
+        newZoom.y.max += isScalingY ? step * dir * dy(oldZoom) : 0;
 
         if ((anchorPointX === 'pointer' && isScalingX) || (anchorPointY === 'pointer' && isScalingY)) {
             newZoom = this.scaleZoomToPointer(sourceEvent, isScalingX, isScalingY, bbox, oldZoom, newZoom);
