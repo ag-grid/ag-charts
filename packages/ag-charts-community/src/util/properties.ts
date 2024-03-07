@@ -71,7 +71,7 @@ export class PropertiesArray<T extends BaseProperties> extends Array {
     }
 
     toJson() {
-        return this.slice();
+        return this.map((value) => value?.toJson?.() ?? value);
     }
 }
 
