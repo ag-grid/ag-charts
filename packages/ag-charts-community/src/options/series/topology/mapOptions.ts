@@ -1,7 +1,7 @@
 import type { AgChartCallbackParams } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
-import type { CssColor, PixelSize } from '../../chart/types';
+import type { CssColor, LabelPlacement, PixelSize } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgSeriesMarkerOptions } from '../markerOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
@@ -27,13 +27,18 @@ export interface AgMapSeriesMarker<TDatum> extends AgSeriesMarkerOptions<AgMapSe
     domain?: [number, number];
 }
 
+export interface AgMapSeriesLabel<TDatum> extends AgChartLabelOptions<TDatum, AgMapSeriesLabelFormatterParams> {
+    /** Placement of label in relation to the marker (if visible). Defaults to `bottom`. */
+    placement?: LabelPlacement;
+}
+
 export interface AgMapSeriesBackground extends FillOptions, StrokeOptions {
     /** Topology to use for the background. */
     topology?: any;
     /** ID of the feature to use from the topology. */
     id?: string;
     /** The property to reference in the topology to match up with data. Defaults to `name`. */
-    topologyProperty?: string;
+    topologyIdKey?: string;
 }
 
 export interface AgMapSeriesThemeableOptions<TDatum = any>
@@ -46,7 +51,7 @@ export interface AgMapSeriesThemeableOptions<TDatum = any>
     /** Configuration for the markers used in the series. */
     marker?: AgMapSeriesMarker<TDatum>;
     /** Configuration for the labels shown on top of data points. */
-    label?: AgChartLabelOptions<TDatum, AgMapSeriesLabelFormatterParams>;
+    label?: AgMapSeriesLabel<TDatum>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgMapSeriesTooltipRendererParams<TDatum>>;
     /** A callback function for adjusting the styles of a particular Map sector based on the input parameters. */
@@ -65,7 +70,7 @@ export interface AgMapSeriesOptions<TDatum = any>
     /** GeoJSON data. */
     topology?: any;
     /** The property to reference in the topology to match up with data. Defaults to `name`. */
-    topologyProperty?: string;
+    topologyIdKey?: string;
     /** Human-readable description of the series. */
     legendItemName?: string;
 }

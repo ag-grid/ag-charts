@@ -26,7 +26,7 @@ import { Selection } from '../../scene/selection';
 import { Line } from '../../scene/shape/line';
 import type { TextSizeProperties } from '../../scene/shape/text';
 import { Text, measureText, splitText } from '../../scene/shape/text';
-import type { PointLabelDatum } from '../../scene/util/labelPlacement';
+import type { PlacedLabelDatum } from '../../scene/util/labelPlacement';
 import { axisLabelsOverlap } from '../../scene/util/labelPlacement';
 import { normalizeAngle360, toRadians } from '../../util/angle';
 import { areArrayNumbersEqual } from '../../util/equal';
@@ -981,7 +981,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     ): boolean {
         Matrix.updateTransformMatrix(labelMatrix, 1, 1, rotation, 0, 0);
 
-        const labelData: PointLabelDatum[] = this.createLabelData(tickData, labelX, textProps, labelMatrix);
+        const labelData: PlacedLabelDatum[] = this.createLabelData(tickData, labelX, textProps, labelMatrix);
         const labelSpacing = getLabelSpacing(this.label.minSpacing, rotated);
 
         return axisLabelsOverlap(labelData, labelSpacing);
@@ -992,8 +992,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         labelX: number,
         textProps: TextSizeProperties,
         labelMatrix: Matrix
-    ): PointLabelDatum[] {
-        const labelData: PointLabelDatum[] = [];
+    ): PlacedLabelDatum[] {
+        const labelData: PlacedLabelDatum[] = [];
         for (const tickDatum of tickData) {
             const { tickLabel, translationY } = tickDatum;
             if (tickLabel === '' || tickLabel == undefined) {

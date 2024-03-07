@@ -1,9 +1,23 @@
 import type { Point, SizedPoint } from '../point';
 
+export type LabelPlacement = 'top' | 'bottom' | 'left' | 'right';
+
 export interface MeasuredLabel {
     readonly text: string;
     readonly width: number;
     readonly height: number;
+}
+
+export interface PlacedLabelDatum {
+    readonly point: Point;
+    readonly label: MeasuredLabel;
+}
+
+export interface PointLabelDatum {
+    readonly point: Readonly<SizedPoint>;
+    readonly label: MeasuredLabel;
+    readonly marker: { center: Point } | undefined;
+    readonly placement: LabelPlacement;
 }
 
 export interface PlacedLabel<PLD = PointLabelDatum> extends MeasuredLabel, Readonly<Point> {
@@ -11,35 +25,45 @@ export interface PlacedLabel<PLD = PointLabelDatum> extends MeasuredLabel, Reado
     readonly datum: PLD;
 }
 
-export interface PointLabelDatum {
-    readonly point: Readonly<SizedPoint>;
-    readonly label: MeasuredLabel;
-}
-
 interface Bounds extends Readonly<Point> {
     readonly width: number;
     readonly height: number;
 }
 
-function circleRectOverlap(c: SizedPoint, x: number, y: number, w: number, h: number): boolean {
+function circleRectOverlap(
+    c: SizedPoint,
+    unitCenter: Point | undefined,
+    x: number,
+    y: number,
+    w: number,
+    h: number
+): boolean {
     if (c.size === 0) return false;
 
+    let cx = c.x;
+    let cy = c.y;
+
+    if (unitCenter != null) {
+        cx -= (unitCenter.x - 0.5) * c.size;
+        cy -= (unitCenter.y - 0.5) * c.size;
+    }
+
     // Find closest horizontal and vertical edges.
-    let edgeX = c.x;
-    if (c.x < x) {
+    let edgeX = cx;
+    if (cx < x) {
         edgeX = x;
-    } else if (c.x > x + w) {
+    } else if (cx > x + w) {
         edgeX = x + w;
     }
-    let edgeY = c.y;
-    if (c.y < y) {
+    let edgeY = cy;
+    if (cy < y) {
         edgeY = y;
-    } else if (c.y > y + h) {
+    } else if (cy > y + h) {
         edgeY = y + h;
     }
     // Find distance to closest edges.
-    const dx = c.x - edgeX;
-    const dy = c.y - edgeY;
+    const dx = cx - edgeX;
+    const dy = cy - edgeY;
     const d = Math.sqrt(dx * dx + dy * dy);
     return d <= c.size * 0.5;
 }
@@ -57,6 +81,13 @@ function rectContainsRect(r1: Bounds, r2x: number, r2y: number, r2w: number, r2h
 export function isPointLabelDatum(x: any): x is PointLabelDatum {
     return x != null && typeof x.point === 'object' && typeof x.label === 'object';
 }
+
+const labelPlacements: Record<LabelPlacement, { x: -1 | 0 | 1; y: -1 | 0 | 1 }> = {
+    top: { x: 0, y: -1 },
+    bottom: { x: 0, y: 1 },
+    left: { x: -1, y: 0 },
+    right: { x: 1, y: 0 },
+};
 
 /**
  * @param data Points and labels for one or more series. The order of series determines label placement precedence.
@@ -79,10 +110,14 @@ export function placeLabels(
         }
         for (let i = 0, ln = datum.length; i < ln; i++) {
             const d = datum[i];
-            const { text, width, height } = d.label;
-            const r = d.point.size * 0.5;
-            const x = d.point.x - width * 0.5;
-            const y = r > 0 ? d.point.y - r - height - padding : d.point.y - height * 0.5;
+            const { point, label, marker } = d;
+            const { text, width, height } = label;
+            const r = point.size * 0.5;
+            const placement = labelPlacements[d.placement];
+            const dx = r > 0 ? (width * 0.5 + r + padding) * placement.x : 0;
+            const dy = r > 0 ? (height * 0.5 + r + padding) * placement.y : 0;
+            const x = point.x - width * 0.5 + dx - ((marker?.center.x ?? 0.5) - 0.5) * point.size;
+            const y = point.y - height * 0.5 + dy - ((marker?.center.y ?? 0.5) - 0.5) * point.size;
 
             const withinBounds = !bounds || rectContainsRect(bounds, x, y, width, height);
             if (!withinBounds) {
@@ -90,7 +125,9 @@ export function placeLabels(
             }
 
             const overlapPoints = data.some((dataDatums) =>
-                dataDatums.some((dataDatum) => circleRectOverlap(dataDatum.point, x, y, width, height))
+                dataDatums.some((dataDatum) =>
+                    circleRectOverlap(dataDatum.point, dataDatum.marker?.center, x, y, width, height)
+                )
             );
             if (overlapPoints) {
                 continue;
@@ -116,8 +153,8 @@ export function placeLabels(
     return result;
 }
 
-export function axisLabelsOverlap(data: readonly PointLabelDatum[], padding?: number): boolean {
-    const result: PlacedLabel[] = [];
+export function axisLabelsOverlap(data: readonly PlacedLabelDatum[], padding?: number): boolean {
+    const result: PlacedLabel<PlacedLabelDatum>[] = [];
 
     for (let i = 0; i < data.length; i++) {
         const datum = data[i];
@@ -132,7 +169,7 @@ export function axisLabelsOverlap(data: readonly PointLabelDatum[], padding?: nu
         width += padding ?? 0;
         height += padding ?? 0;
 
-        const overlapLabels = result.some((l: PlacedLabel) => {
+        const overlapLabels = result.some((l) => {
             return rectRectOverlap(l, x, y, width, height);
         });
 

@@ -3,11 +3,21 @@ import type {
     AgBubbleSeriesOptions,
     AgBubbleSeriesOptionsKeys,
     AgBubbleSeriesTooltipRendererParams,
+    LabelPlacement,
 } from '../../../options/agChartOptions';
 import { RedrawType, SceneChangeDetection } from '../../../scene/changeDetectable';
 import type { MeasuredLabel } from '../../../scene/util/labelPlacement';
-import { COLOR_STRING_ARRAY, NUMBER_ARRAY, OBJECT, POSITIVE_NUMBER, STRING, Validate } from '../../../util/validation';
+import {
+    COLOR_STRING_ARRAY,
+    LABEL_PLACEMENT,
+    NUMBER_ARRAY,
+    OBJECT,
+    POSITIVE_NUMBER,
+    STRING,
+    Validate,
+} from '../../../util/validation';
 import { Label } from '../../label';
+import type { MarkerConstructor } from '../../marker/util';
 import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
 import { CartesianSeriesNodeDatum, CartesianSeriesProperties } from './cartesianSeries';
@@ -15,6 +25,8 @@ import { CartesianSeriesNodeDatum, CartesianSeriesProperties } from './cartesian
 export interface BubbleNodeDatum extends Required<CartesianSeriesNodeDatum> {
     readonly sizeValue: any;
     readonly label: MeasuredLabel;
+    readonly placement: LabelPlacement;
+    readonly marker: MarkerConstructor;
     readonly fill: string | undefined;
 }
 
@@ -32,6 +44,11 @@ class BubbleSeriesMarker extends SeriesMarker<AgBubbleSeriesOptionsKeys, BubbleN
     @Validate(NUMBER_ARRAY, { optional: true })
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
     domain?: [number, number];
+}
+
+class BubbleSeriesLabel extends Label<AgBubbleSeriesLabelFormatterParams> {
+    @Validate(LABEL_PLACEMENT)
+    placement: LabelPlacement = 'top';
 }
 
 export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSeriesOptions> {
@@ -78,7 +95,7 @@ export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSe
     readonly marker = new BubbleSeriesMarker();
 
     @Validate(OBJECT)
-    readonly label = new Label<AgBubbleSeriesLabelFormatterParams>();
+    readonly label = new BubbleSeriesLabel();
 
     @Validate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgBubbleSeriesTooltipRendererParams>();
