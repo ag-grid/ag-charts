@@ -73,9 +73,16 @@ export class OrdinalTimeScale extends BandScale<Date> {
         const start = Math.min(t0, t1);
         const stop = Math.max(t0, t1);
 
-        const { tickCount, minTickCount, maxTickCount } = this;
+        const { interval, tickCount, minTickCount, maxTickCount } = this;
 
-        return TimeScale.getDefaultTicks({ start, stop, tickCount, minTickCount, maxTickCount });
+        let ticks;
+        if (interval !== undefined) {
+            const [r0, r1] = this.range;
+            const availableRange = Math.abs(r1 - r0);
+            ticks = TimeScale.getTicksForInterval({ start, stop, interval, availableRange });
+        }
+
+        return ticks ?? TimeScale.getDefaultTicks({ start, stop, tickCount, minTickCount, maxTickCount });
     }
 
     override convert(d: Date): number {

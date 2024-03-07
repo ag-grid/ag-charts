@@ -1,7 +1,7 @@
 import { _Scale, _Util } from 'ag-charts-community';
 
 const { LinearScale, Invalidating } = _Scale;
-const { isNumberEqual, range } = _Util;
+const { isNumberEqual, range, isDenseInterval } = _Util;
 
 export class LinearAngleScale extends LinearScale {
     @Invalidating
@@ -20,7 +20,8 @@ export class LinearAngleScale extends LinearScale {
 
         if (interval) {
             const step = Math.abs(interval);
-            if (!this.isDenseInterval({ start: d0, stop: d1, interval: step })) {
+            const availableRange = this.getPixelRange();
+            if (!isDenseInterval({ start: d0, stop: d1, interval: step, availableRange })) {
                 return range(d0, d1, step);
             }
         }

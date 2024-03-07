@@ -1,4 +1,6 @@
+import { Logger } from './logger';
 import { countFractionDigits } from './number';
+import type { TimeInterval } from './time/interval';
 
 // @todo(AG-10085): Improve types for this
 export type NumericTicks = number[] & {
@@ -89,4 +91,31 @@ export function range(start: number, stop: number, step: number): NumericTicks {
     }
 
     return values;
+}
+
+export function isDenseInterval({
+    start,
+    stop,
+    interval,
+    count,
+    availableRange,
+}: {
+    start: number;
+    stop: number;
+    interval: number | TimeInterval;
+    count?: number;
+    availableRange: number;
+}): boolean {
+    const domain = stop - start;
+
+    const step = typeof interval === 'number' ? interval : 1;
+    count ??= domain / step;
+    if (count >= availableRange) {
+        Logger.warn(
+            `the configured interval results in more than 1 item per pixel, ignoring. Supply a larger interval or omit this configuration`
+        );
+        return true;
+    }
+
+    return false;
 }

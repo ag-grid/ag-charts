@@ -1,4 +1,4 @@
-import { tickStep } from '../util/ticks';
+import { isDenseInterval, tickStep } from '../util/ticks';
 import timeDay from '../util/time/day';
 import {
     durationDay,
@@ -132,12 +132,15 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
         const start = Math.min(t0, t1);
         const stop = Math.max(t0, t1);
 
-        if (this.interval !== undefined) {
-            return this.getTicksForInterval({ start, stop });
+        const { interval, nice, tickCount, minTickCount, maxTickCount } = this;
+
+        if (interval !== undefined) {
+            const availableRange = this.getPixelRange();
+            const ticks = TimeScale.getTicksForInterval({ start, stop, interval, availableRange });
+            return ticks ?? TimeScale.getDefaultTicks({ start, stop, tickCount, minTickCount, maxTickCount });
         }
 
-        if (this.nice) {
-            const { tickCount } = this;
+        if (nice) {
             if (tickCount === 2) {
                 return this.niceDomain;
             }
@@ -172,17 +175,25 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
         return t ? t.range(new Date(start), new Date(stop)) : []; // inclusive stop
     }
 
-    private getTicksForInterval({ start, stop }: { start: number; stop: number }): Date[] {
-        const { interval, tickIntervals } = this;
-
+    static getTicksForInterval({
+        start,
+        stop,
+        interval,
+        availableRange,
+    }: {
+        start: number;
+        stop: number;
+        interval: number | TimeInterval;
+        availableRange: number;
+    }): Date[] | undefined {
         if (!interval) {
             return [];
         }
 
         if (interval instanceof TimeInterval) {
             const ticks = interval.range(new Date(start), new Date(stop));
-            if (this.isDenseInterval({ start, stop, interval, count: ticks.length })) {
-                return this.getDefaultTicks({ start, stop });
+            if (isDenseInterval({ start, stop, interval, count: ticks.length, availableRange })) {
+                return;
             }
 
             return ticks;
@@ -190,8 +201,8 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
 
         const absInterval = Math.abs(interval);
 
-        if (this.isDenseInterval({ start, stop, interval: absInterval })) {
-            return this.getDefaultTicks({ start, stop });
+        if (isDenseInterval({ start, stop, interval: absInterval, availableRange })) {
+            return;
         }
 
         const reversedInterval = [...TimeScale.tickIntervals];
