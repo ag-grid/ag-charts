@@ -1,11 +1,9 @@
 import { buildFormatter } from '../util/timeFormat';
-import {
-    DefaultTimeFormats,
-    TIME_FORMAT_STRINGS,
-    dateToNumber,
-    defaultTimeTickFormat,
-} from '../util/timeFormatDefaults';
+import { dateToNumber, defaultTimeTickFormat } from '../util/timeFormatDefaults';
 import { BandScale } from './bandScale';
+import { ContinuousScale } from './continuousScale';
+import { Invalidating } from './invalidating';
+import { TimeScale } from './timeScale';
 
 export class OrdinalTimeScale extends BandScale<Date> {
     override readonly type = 'ordinal-time';
@@ -13,6 +11,13 @@ export class OrdinalTimeScale extends BandScale<Date> {
     static is(value: any): value is OrdinalTimeScale {
         return value instanceof OrdinalTimeScale;
     }
+
+    @Invalidating
+    tickCount = ContinuousScale.defaultTickCount;
+    @Invalidating
+    minTickCount = 0;
+    @Invalidating
+    maxTickCount = Infinity;
 
     toDomain(d: number): Date {
         return new Date(d);
@@ -58,6 +63,19 @@ export class OrdinalTimeScale extends BandScale<Date> {
     }
     override get domain(): Date[] {
         return this._domain;
+    }
+
+    override ticks(): Date[] {
+        this.refresh();
+
+        const [t0, t1] = [dateToNumber(this.domain[0]), dateToNumber(this.domain.at(-1))];
+
+        const start = Math.min(t0, t1);
+        const stop = Math.max(t0, t1);
+
+        const { tickCount, minTickCount, maxTickCount } = this;
+
+        return TimeScale.getDefaultTicks({ start, stop, tickCount, minTickCount, maxTickCount });
     }
 
     override convert(d: Date): number {
