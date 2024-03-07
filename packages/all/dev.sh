@@ -17,7 +17,6 @@ if [[ "${BUILD_FWS:-0}" == "1" ]] ; then
     ag-charts-vue
     ag-charts-vue3
   )
-  echo "*** [ignored] BUILD_FWS must be set to 1 to rebuild ${MODIFIED}"
 fi
 
 if [[ "${IGNORED_PROJECTS[@]}" =~ "${MODIFIED}" ]] ; then
