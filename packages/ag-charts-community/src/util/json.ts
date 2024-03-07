@@ -161,12 +161,7 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
         skip?: string[];
     } & JsonApplyParams = {}
 ): Target {
-    const {
-        path,
-        matcherPath = path ? path.replace(/(\[[0-9+]+])/i, '[]') : undefined,
-        skip = [],
-        constructedArrays = new WeakMap(),
-    } = params;
+    const { path, constructedArrays, matcherPath = path?.replace(/(\[[0-9+]+])/i, '[]'), skip = [] } = params;
 
     if (target == null) {
         throw new Error(`AG Charts - target is uninitialised: ${path ?? '<root>'}`);
@@ -203,8 +198,7 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
                 currentValueType != null &&
                 newValueType != null &&
                 newValueType !== currentValueType &&
-                currentValueType !== CLASS_INSTANCE_TYPE &&
-                newValueType !== 'object'
+                (currentValueType !== CLASS_INSTANCE_TYPE || newValueType !== 'object')
             ) {
                 Logger.warn(
                     `unable to set [${propertyPath}] in ${targetClass?.name} - can't apply type of [${newValueType}], allowed types are: [${currentValueType}]`
@@ -213,7 +207,7 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
             }
 
             if (newValueType === 'array') {
-                ctr ??= constructedArrays.get(currentValue);
+                ctr ??= constructedArrays?.get(currentValue);
                 if (isProperties(targetAny[property])) {
                     targetAny[property].set(newValue);
                 } else if (ctr == null) {
