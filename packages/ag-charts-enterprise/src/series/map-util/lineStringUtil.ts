@@ -2,7 +2,7 @@ import type { Position } from 'geojson';
 
 const delta = 1e-9;
 
-export function lineSegmentDistanceSquared(a: Position, b: Position, x: number, y: number): number {
+export function lineSegmentDistanceToPointSquared(a: Position, b: Position, x: number, y: number): number {
     const [ax, ay] = a;
     const [bx, by] = b;
     const abx = bx - ax;
@@ -27,12 +27,62 @@ export function lineSegmentDistanceSquared(a: Position, b: Position, x: number, 
     return dx * dx + dy * dy;
 }
 
+export function lineSegmentDistanceToRectSquared(
+    a: Position,
+    b: Position,
+    center: Position,
+    size: { width: number; height: number }
+): number {
+    const [ax, ay] = a;
+    const [bx, by] = b;
+    const abx = bx - ax;
+    const aby = by - ay;
+    const l = abx * abx + aby * aby;
+
+    const [cx, cy] = center;
+    const rx0 = cx - size.width / 2;
+    const ry0 = cy - size.height / 2;
+    const rx1 = cx + size.width / 2;
+    const ry1 = cy + size.height / 2;
+
+    let minDistanceSquared = Infinity;
+
+    for (const [x, y] of [
+        [rx0, ry0],
+        [rx1, ry0],
+        [rx1, ry1],
+        [rx0, ry1],
+    ]) {
+        let x0;
+        let y0;
+        if (Math.abs(l) < delta) {
+            x0 = ax;
+            y0 = ay;
+        } else {
+            let t = ((x - ax) * abx + (y - ay) * aby) / l;
+            t = Math.max(0, Math.min(1, t));
+            x0 = ax + t * (bx - ax);
+            y0 = ay + t * (by - ay);
+        }
+
+        const rectContainsPoint = x0 >= rx0 && x0 <= rx1 && y0 >= ry0 && y0 <= ry1;
+        if (rectContainsPoint) return 0;
+
+        const dx = x - x0;
+        const dy = y - y0;
+        const distanceSquared = dx * dx + dy * dy;
+        minDistanceSquared = Math.min(minDistanceSquared, distanceSquared);
+    }
+
+    return minDistanceSquared;
+}
+
 export function lineStringDistance(lineString: Position[], x: number, y: number) {
     let minDistanceSquared = Infinity;
     let p0 = lineString[lineString.length - 1];
 
     for (const p1 of lineString) {
-        minDistanceSquared = Math.min(minDistanceSquared, lineSegmentDistanceSquared(p0, p1, x, y));
+        minDistanceSquared = Math.min(minDistanceSquared, lineSegmentDistanceToPointSquared(p0, p1, x, y));
         p0 = p1;
     }
 

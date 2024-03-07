@@ -3,7 +3,7 @@ import type { Feature, FeatureCollection, Geometry } from 'geojson';
 import { AgMapSeriesStyle, _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import { GeoGeometry } from '../map-util/geoGeometry';
-import { geometryBbox, geometryCenter, markerCenters, projectGeometry } from '../map-util/geometryUtil';
+import { geometryBbox, labelPosition, markerCenters, projectGeometry } from '../map-util/geometryUtil';
 import { prepareMapMarkerAnimationFunctions } from '../map-util/mapUtil';
 import {
     MapNodeDatum,
@@ -304,15 +304,13 @@ export class MapSeries
         });
         if (labelText == null) return;
 
-        const labelCenter =
-            projectedGeometry != null && labelText != null ? geometryCenter(projectedGeometry, 1) : undefined;
+        const { width, height } = Text.getTextSize(String(labelText), font);
+
+        const paddedSize = { width: width + 2, height: height + 2 };
+        const labelCenter = labelPosition(projectedGeometry, paddedSize, 2);
         if (labelCenter == null) return;
 
-        const labelSize = Text.getTextSize(String(labelText), font);
-        if (labelCenter.distance < Math.hypot(labelSize.width / 2, labelSize.height / 2)) return;
-
-        const { x, y } = labelCenter;
-        const { width, height } = labelSize;
+        const [x, y] = labelCenter;
         const { placement } = label;
 
         return {
