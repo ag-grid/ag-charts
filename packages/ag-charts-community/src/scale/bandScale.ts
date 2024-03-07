@@ -6,13 +6,13 @@ import type { Scale } from './scale';
 /**
  * Maps a discrete domain to a continuous numeric range.
  */
-export class BandScale<D> implements Scale<D, number, number> {
+export class BandScale<D, I = number> implements Scale<D, number, I> {
     readonly type: string = 'band';
 
     protected invalid = true;
 
     @Invalidating
-    interval: number = 1;
+    interval?: I = undefined;
 
     protected refresh() {
         if (!this.invalid) return;
@@ -72,7 +72,7 @@ export class BandScale<D> implements Scale<D, number, number> {
     ticks(): D[] {
         this.refresh();
         const { interval = 1 } = this;
-        const step = Math.abs(Math.round(interval));
+        const step = Math.abs(Math.round(interval as number));
         return this._domain.filter((_, i) => i % step === 0);
     }
 

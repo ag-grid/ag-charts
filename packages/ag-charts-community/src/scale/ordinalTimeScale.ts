@@ -1,3 +1,4 @@
+import type { TimeInterval } from '../util/time/interval';
 import { buildFormatter } from '../util/timeFormat';
 import { dateToNumber, defaultTimeTickFormat } from '../util/timeFormatDefaults';
 import { BandScale } from './bandScale';
@@ -5,7 +6,7 @@ import { ContinuousScale } from './continuousScale';
 import { Invalidating } from './invalidating';
 import { TimeScale } from './timeScale';
 
-export class OrdinalTimeScale extends BandScale<Date> {
+export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
     override readonly type = 'ordinal-time';
 
     static is(value: any): value is OrdinalTimeScale {
@@ -18,6 +19,9 @@ export class OrdinalTimeScale extends BandScale<Date> {
     minTickCount = 0;
     @Invalidating
     maxTickCount = Infinity;
+
+    @Invalidating
+    override interval?: TimeInterval | number = undefined;
 
     toDomain(d: number): Date {
         return new Date(d);
