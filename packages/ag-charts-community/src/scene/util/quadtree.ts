@@ -4,14 +4,20 @@ import type { Point } from '../point';
 
 type QuadtreeNearest<V> = NearestResult<QuadtreeElem<V>>;
 
+export type QuadtreeHitTester = {
+    getCachedBBox(): BBox;
+    distanceSquared(point: Point): number;
+    containsPoint(x: number, y: number): boolean;
+};
+
 class QuadtreeElem<V> {
     constructor(
-        public bbox: BBox,
+        public hitTester: QuadtreeHitTester,
         public value: V
     ) {}
 
     distanceSquared(point: Point) {
-        return this.bbox.distanceSquared(point);
+        return this.hitTester.distanceSquared(point);
     }
 }
 
@@ -34,8 +40,8 @@ export class Quadtree<V> {
         this.root.clear(boundary);
     }
 
-    addValue(bbox: BBox, value: V): void {
-        this.root.addElem(new QuadtreeElem(bbox, value));
+    addValue(hitTester: QuadtreeHitTester, value: V): void {
+        this.root.addElem(new QuadtreeElem(hitTester, value));
     }
 
     findExact(x: number, y: number): Iterable<QuadtreeElem<V>> {
@@ -104,7 +110,7 @@ class QuadtreeNode<V> {
     }
 
     addElem(e: QuadtreeElem<V>) {
-        if (!this.boundary.collidesBBox(e.bbox)) {
+        if (!this.boundary.collidesBBox(e.hitTester.getCachedBBox())) {
             return;
         }
 
@@ -126,7 +132,7 @@ class QuadtreeNode<V> {
 
         if (this.subdivisions === undefined) {
             for (const elem of this.elems) {
-                if (elem.bbox.containsPoint(x, y)) {
+                if (elem.hitTester.containsPoint(x, y)) {
                     foundElems.push(elem);
                 }
             }
