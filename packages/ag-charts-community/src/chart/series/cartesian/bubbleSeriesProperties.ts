@@ -17,7 +17,7 @@ import {
     Validate,
 } from '../../../util/validation';
 import { Label } from '../../label';
-import type { Marker } from '../../marker/marker';
+import type { MarkerConstructor } from '../../marker/util';
 import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
 import { CartesianSeriesNodeDatum, CartesianSeriesProperties } from './cartesianSeries';
@@ -26,7 +26,7 @@ export interface BubbleNodeDatum extends Required<CartesianSeriesNodeDatum> {
     readonly sizeValue: any;
     readonly label: MeasuredLabel;
     readonly placement: LabelPlacement;
-    readonly marker: Marker;
+    readonly marker: MarkerConstructor;
     readonly fill: string | undefined;
 }
 

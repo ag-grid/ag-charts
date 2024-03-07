@@ -313,13 +313,12 @@ export class MapSeries
 
         const { x, y } = labelCenter;
         const { width, height } = labelSize;
-        const marker = this.markerFactory();
         const { placement } = label;
 
         return {
             point: { x, y, size },
             label: { width, height, text: labelText },
-            marker,
+            marker: getMarker(this.properties.marker.shape),
             placement,
             hasMarkers,
         };

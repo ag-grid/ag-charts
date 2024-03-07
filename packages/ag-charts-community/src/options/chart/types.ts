@@ -19,7 +19,17 @@ export type FontFamily = string;
 export type FontSize = number;
 
 // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-export type MarkerShape = 'circle' | 'cross' | 'diamond' | 'heart' | 'plus' | 'triangle' | 'square' | any;
+export type MarkerShape =
+    | 'circle'
+    | 'cross'
+    | 'diamond'
+    | 'heart'
+    | 'plus'
+    | 'pin'
+    | 'square'
+    | 'star'
+    | 'triangle'
+    | any;
 
 export type LabelPlacement = 'top' | 'bottom' | 'left' | 'right';
 

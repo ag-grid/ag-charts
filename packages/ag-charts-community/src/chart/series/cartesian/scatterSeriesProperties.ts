@@ -7,7 +7,7 @@ import type {
 import type { LabelPlacement, MeasuredLabel } from '../../../scene/util/labelPlacement';
 import { COLOR_STRING_ARRAY, LABEL_PLACEMENT, NUMBER_ARRAY, OBJECT, STRING, Validate } from '../../../util/validation';
 import { Label } from '../../label';
-import type { Marker } from '../../marker/marker';
+import type { MarkerConstructor } from '../../marker/util';
 import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
@@ -16,7 +16,7 @@ import { CartesianSeriesNodeDatum, CartesianSeriesProperties } from './cartesian
 export interface ScatterNodeDatum extends Required<CartesianSeriesNodeDatum>, ErrorBoundSeriesNodeDatum {
     readonly label: MeasuredLabel;
     readonly placement: LabelPlacement;
-    readonly marker: Marker;
+    readonly marker: MarkerConstructor;
     readonly fill: string | undefined;
 }
 

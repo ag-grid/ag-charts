@@ -104,7 +104,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         const { axes, dataModel, processedData, colorScale } = this;
         const { xKey, yKey, labelKey, colorKey, xName, yName, labelName, marker, label, visible } = this.properties;
         const { placement } = label;
-        const markerShape = this.markerFactory();
+        const markerShape = getMarker(marker.shape);
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];

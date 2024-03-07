@@ -2,24 +2,15 @@ import { Circle } from './circle';
 import { Cross } from './cross';
 import { Diamond } from './diamond';
 import { Heart } from './heart';
-import { MapPin } from './map-pin';
 import type { Marker } from './marker';
+import { Pin } from './pin';
 import { Plus } from './plus';
 import { Square } from './square';
 import { Star } from './star';
 import { Triangle } from './triangle';
 
-type MarkerConstructor = new () => Marker;
-type MarkerSupportedShapes =
-    | 'circle'
-    | 'cross'
-    | 'diamond'
-    | 'heart'
-    | 'map-pin'
-    | 'plus'
-    | 'square'
-    | 'star'
-    | 'triangle';
+export type MarkerConstructor = typeof Marker;
+type MarkerSupportedShapes = 'circle' | 'cross' | 'diamond' | 'heart' | 'plus' | 'pin' | 'square' | 'star' | 'triangle';
 export type MarkerShape = MarkerConstructor | MarkerSupportedShapes;
 
 const MARKER_SHAPES: { [K in MarkerSupportedShapes]: MarkerConstructor } = {
@@ -27,8 +18,8 @@ const MARKER_SHAPES: { [K in MarkerSupportedShapes]: MarkerConstructor } = {
     cross: Cross,
     diamond: Diamond,
     heart: Heart,
+    pin: Pin,
     plus: Plus,
-    'map-pin': MapPin,
     square: Square,
     star: Star,
     triangle: Triangle,

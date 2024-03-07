@@ -1,4 +1,3 @@
-import type { Marker } from '../../chart/marker/marker';
 import type { Point, SizedPoint } from '../point';
 
 export type LabelPlacement = 'top' | 'bottom' | 'left' | 'right';
@@ -17,7 +16,7 @@ export interface PlacedLabel<PLD = PointLabelDatum> extends MeasuredLabel, Reado
 export interface PointLabelDatum {
     readonly point: Readonly<SizedPoint>;
     readonly label: MeasuredLabel;
-    readonly marker: Marker | undefined;
+    readonly marker: { center: Point } | undefined;
     readonly placement: LabelPlacement;
 }
 

@@ -39,8 +39,7 @@ import { gridLayout } from './gridLayout';
 import { InteractionEvent, InteractionState } from './interaction/interactionManager';
 import { Layers } from './layers';
 import type { CategoryLegendDatum } from './legendDatum';
-import type { Marker } from './marker/marker';
-import { getMarker } from './marker/util';
+import { MarkerConstructor, getMarker } from './marker/util';
 import { MarkerLabel } from './markerLabel';
 import { Pagination } from './pagination/pagination';
 import { toTooltipHtml } from './tooltip/tooltip';
@@ -74,7 +73,7 @@ class LegendMarker extends BaseProperties {
      * regardless of the type that comes from the `data`.
      */
     @ObserveChanges<LegendMarker>((target) => target.parent?.onMarkerShapeChange())
-    shape?: string | (new () => Marker);
+    shape?: string | MarkerConstructor;
 
     @Validate(POSITIVE_NUMBER)
     size = 15;

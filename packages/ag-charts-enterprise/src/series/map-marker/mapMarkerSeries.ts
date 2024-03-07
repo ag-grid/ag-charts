@@ -256,12 +256,11 @@ export class MapMarkerSeries extends DataModelSeries<
         if (labelText == null) return;
 
         const { width, height } = Text.getTextSize(String(labelText), font);
-        const marker = this.markerFactory();
 
         return {
             point: { x, y, size },
             label: { width, height, text: labelText },
-            marker,
+            marker: getMarker(this.properties.marker.shape),
             placement,
         };
     }
