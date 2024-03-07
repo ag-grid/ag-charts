@@ -193,7 +193,7 @@ module.exports = {
        for a complete list
     */
         doNotFollow: {
-            path: ['node_modules', '../ag-charts-community'],
+            path: ['node_modules', '../../libraries', '../ag-charts-community'],
         },
 
         /* conditions specifying which dependencies to exclude

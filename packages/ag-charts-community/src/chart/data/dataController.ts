@@ -1,7 +1,6 @@
 import { unique } from '../../util/array';
 import { Debug } from '../../util/debug';
 import { getWindow } from '../../util/dom';
-import { jsonDiff } from '../../util/json';
 import type { ChartMode } from '../chartMode';
 import type {
     DataModelOptions,
@@ -195,11 +194,13 @@ export class DataController {
             const scope = scopes[i];
             const resultCb = resultCbs[i];
 
-            processedData.data = processedData.data.filter(
-                ({ validScopes }) => validScopes?.some((s) => s === scope) ?? true
-            );
-
-            resultCb({ dataModel, processedData });
+            resultCb({
+                dataModel,
+                processedData: {
+                    ...processedData,
+                    data: processedData.data.filter(({ validScopes }) => validScopes?.some((s) => s === scope) ?? true),
+                },
+            });
         }
     }
 
@@ -235,6 +236,8 @@ export class DataController {
                 result.opts ??= { ...opts, props: [] };
 
                 for (const prop of props) {
+                    updateKeyValueOpts(prop);
+
                     if (prop.id != null) {
                         prop.ids ??= [];
                         for (const scope of prop.scopes ?? []) {
@@ -243,20 +246,16 @@ export class DataController {
                     }
 
                     const match = result.opts.props.find(
-                        (existing: any) =>
-                            existing.type === prop.type && // early dismiss
-                            jsonDiff(existing, prop, ['id', 'ids', 'scopes', 'useScopedValues']) == null
+                        (existing: any) => existing.type === prop.type && DataController.deepEqual(existing, prop)
                     );
 
                     if (!match) {
-                        updateKeyValueOpts(prop);
                         result.opts.props.push(prop);
                         continue;
                     }
 
                     match.scopes ??= [];
                     match.scopes.push(...(prop.scopes ?? []));
-                    updateKeyValueOpts(prop);
 
                     if ((match.type === 'key' || match.type === 'value') && prop.ids?.length) {
                         match.ids?.push(...prop.ids);
@@ -267,5 +266,51 @@ export class DataController {
             },
             { ids: [], rejects: [], resultCbs: [], data: null, opts: null } as any
         );
+    }
+
+    // optimized version of deep equality for `mergeRequests` which can potentially loop over 1M times
+    static skipKeys = new Set<string>(['id', 'ids', 'type', 'scopes', 'useScopedValues']);
+    static deepEqual<T>(a: T, b: T): boolean {
+        if (a === b) {
+            return true;
+        }
+
+        if (a && b && typeof a == 'object' && typeof b == 'object') {
+            if (a.constructor !== b.constructor) {
+                return false;
+            }
+
+            let i, length;
+            if (Array.isArray(a)) {
+                length = a.length;
+                if (length !== (b as unknown[]).length) {
+                    return false;
+                }
+                for (i = length - 1; i >= 0; i--) {
+                    if (!DataController.deepEqual(a[i], (b as unknown[])[i])) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            const keys = Object.keys(a);
+            length = keys.length;
+            if (length !== Object.keys(b).length) {
+                return false;
+            }
+            for (i = length - 1; i >= 0; i--) {
+                const key = keys[i];
+                if (
+                    !DataController.skipKeys.has(key) &&
+                    (!Object.hasOwn(b, key) || !DataController.deepEqual(a[key as keyof T], b[key as keyof T]))
+                ) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        return false;
     }
 }

@@ -29,10 +29,10 @@ const e2eTests = tests
     })
     .map(pathToGlob);
 const unitTests = tests.map(pathToGlob).filter((path) => !e2eTests.includes(path));
+const benchmarks = glob.sync('packages/ag-charts-enterprise/benchmarks/**/*.test.ts').map(pathToGlob);
 
 const commonConfig = {
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node', 'html'],
-    // extensionsToTreatAsEsm: ['.ts'],
     testEnvironment: '../ag-charts-community/jest.jsdom-with-timezone.cjs',
     setupFiles: ['jest-canvas-mock'],
     setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
@@ -51,22 +51,30 @@ if (process.env.CI != null || process.env.NX_TASK_TARGET_CONFIGURATION === 'ci')
     reporters.push(['jest-junit', { outputDirectory: 'reports', outputName: 'ag-charts-enterprise.xml' }]);
 }
 
+const pathFix = (v: string) => v.replace('packages/ag-charts-enterprise/', '**/');
 export default {
     reporters,
     projects: [
         {
             displayName: 'ag-charts-enterprise - unit',
-            testMatch: unitTests.map((v) => v.replace('packages/ag-charts-enterprise/', '**/')),
+            testMatch: unitTests.map(pathFix),
             ...commonConfig,
         },
         {
             displayName: 'ag-charts-enterprise - e2e',
-            testMatch: e2eTests.map((v) => v.replace('packages/ag-charts-enterprise/', '**/')),
+            testMatch: e2eTests.map(pathFix),
+            slowTestThreshold: 15,
             // runner: 'jest-serial-runner',
             // WIP discussion: https://github.com/facebook/jest/issues/10936
             // maxWorkers: 1,
             // WIP discussion: https://github.com/facebook/jest/pull/10912
             // maxConcurrency: 1,
+            ...commonConfig,
+        },
+        {
+            displayName: 'ag-charts-enterprise - benchmarks',
+            testMatch: benchmarks.map(pathFix),
+            runner: 'jest-serial-runner',
             ...commonConfig,
         },
     ],

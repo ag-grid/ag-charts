@@ -1,10 +1,12 @@
 import type { AgZoomAnchorPoint, _Scene } from 'ag-charts-community';
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
+import { RANGES } from '../range-buttons/rangeTypes';
 import { ZoomRect } from './scenes/zoomRect';
 import { ZoomAxisDragger } from './zoomAxisDragger';
 import { ZoomPanner } from './zoomPanner';
 import { ZoomRange } from './zoomRange';
+import { ZoomRatio } from './zoomRatio';
 import { ZoomScrollPanner } from './zoomScrollPanner';
 import { ZoomScroller } from './zoomScroller';
 import { ZoomSelector } from './zoomSelector';
@@ -24,7 +26,7 @@ import {
 type PinchEvent = _ModuleSupport.PinchEvent;
 type ContextMenuActionParams = _ModuleSupport.ContextMenuActionParams;
 
-const { AND, BOOLEAN, GREATER_THAN, NUMBER, RATIO, UNION, ActionOnSet, ChartAxisDirection, ChartUpdateType, Validate } =
+const { BOOLEAN, NUMBER, RATIO, UNION, ActionOnSet, ChartAxisDirection, ChartUpdateType, Validate, round } =
     _ModuleSupport;
 
 const ANCHOR_CORD = UNION(['pointer', 'start', 'middle', 'end'], 'an anchor cord');
@@ -42,18 +44,13 @@ enum DragState {
 }
 
 export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
-    private static UpdateZoomOnSet(prop: 'minX' | 'maxX' | 'minY' | 'maxY') {
-        return ActionOnSet<Zoom>({
-            newValue(value) {
-                this.updateZoomFromProperties({ [prop]: value });
-            },
-        });
-    }
-
     @ActionOnSet<Zoom>({
         newValue(newValue) {
             if (newValue) {
                 this.registerContextMenuActions();
+                this.addToolbarButtons();
+            } else if (this.enabled) {
+                this.removeToolbarButtons();
             }
         },
     })
@@ -84,22 +81,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     @Validate(RATIO)
     public scrollingStep = (UNIT.max - UNIT.min) / 10;
 
-    @Zoom.UpdateZoomOnSet('minX')
-    @Validate(RATIO)
-    public minX?: number;
-
-    @Zoom.UpdateZoomOnSet('maxX')
-    @Validate(AND(RATIO, GREATER_THAN('minX')))
-    public maxX?: number;
-
-    @Zoom.UpdateZoomOnSet('minY')
-    @Validate(RATIO)
-    public minY?: number;
-
-    @Zoom.UpdateZoomOnSet('maxY')
-    @Validate(AND(RATIO, GREATER_THAN('minY')))
-    public maxY?: number;
-
     @Validate(NUMBER.restrict({ min: 1 }))
     public minVisibleItemsX = 2;
 
@@ -115,6 +96,9 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     public rangeX = new ZoomRange(this.onRangeChange.bind(this, ChartAxisDirection.X));
     public rangeY = new ZoomRange(this.onRangeChange.bind(this, ChartAxisDirection.Y));
 
+    public ratioX = new ZoomRatio(this.onRatioChange.bind(this, ChartAxisDirection.X));
+    public ratioY = new ZoomRatio(this.onRatioChange.bind(this, ChartAxisDirection.Y));
+
     // Scenes
     private readonly scene: _Scene.Scene;
     private seriesRect?: _Scene.BBox;
@@ -127,6 +111,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private readonly updateService: _ModuleSupport.UpdateService;
     private readonly zoomManager: _ModuleSupport.ZoomManager;
     private readonly contextMenuRegistry: _ModuleSupport.ContextMenuRegistry;
+    private readonly toolbarManager: _ModuleSupport.ToolbarManager;
 
     // Zoom methods
     private readonly axisDragger = new ZoomAxisDragger();
@@ -155,6 +140,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.zoomManager = ctx.zoomManager;
         this.updateService = ctx.updateService;
         this.contextMenuRegistry = ctx.contextMenuRegistry;
+        this.toolbarManager = ctx.toolbarManager;
 
         // Add selection zoom method and attach selection rect to root scene
         const selectionRect = new ZoomRect();
@@ -171,28 +157,15 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             region.addListener('drag-start', (event) => this.onDragStart(event), draggableState),
             region.addListener('drag-end', () => this.onDragEnd(), draggableState),
             region.addListener('wheel', (event) => this.onWheel(event), clickableState),
-            region.addListener('hover', () => this.onHover(), clickableState),
+            region.addListener('hover', () => this.onAxisLeave(), clickableState),
+            region.addListener('leave', () => this.onAxisLeave(), clickableState),
             ctx.chartEventManager.addListener('axis-hover', (event) => this.onAxisHover(event)),
             ctx.gestureDetector.addListener('pinch-move', (event) => this.onPinchMove(event as PinchEvent)),
+            ctx.toolbarManager.addListener('button-pressed', (event) => this.onToolbarButtonPress(event)),
             ctx.layoutService.addListener('layout-complete', (event) => this.onLayoutComplete(event)),
-            ctx.updateService.addListener('update-complete', (event) => this.onUpdateComplete(event))
+            ctx.updateService.addListener('update-complete', (event) => this.onUpdateComplete(event)),
+            ctx.zoomManager.addListener('zoom-change', () => this.onZoomChange())
         );
-    }
-
-    private updateZoomFromProperties(props: { minX?: number; maxX?: number; minY?: number; maxY?: number }) {
-        const {
-            minX = this.minX ?? UNIT.min,
-            maxX = this.maxX ?? UNIT.max,
-            minY = this.minY ?? UNIT.min,
-            maxY = this.maxY ?? UNIT.max,
-        } = props;
-
-        const newZoom = {
-            x: { min: minX, max: maxX },
-            y: { min: minY, max: maxY },
-        };
-
-        this.zoomManager.updateZoom('zoom', newZoom);
     }
 
     private registerContextMenuActions() {
@@ -210,6 +183,20 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         const zoom = definedZoomState(this.zoomManager.getZoom());
         this.toggleContextMenuActions(zoom);
+    }
+
+    private addToolbarButtons() {
+        for (const [range] of RANGES.entries()) {
+            this.toolbarManager.addButton(range, {
+                label: range,
+            });
+        }
+    }
+
+    private removeToolbarButtons() {
+        for (const [range] of RANGES.entries()) {
+            this.toolbarManager.removeButton(range);
+        }
     }
 
     private toggleContextMenuActions(zoom: DefinedZoomState) {
@@ -234,10 +221,30 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.updateZoom(constrainZoom(zoom));
     }
 
+    private onRatioChange(direction: _ModuleSupport.ChartAxisDirection, ratioZoom?: DefinedZoomState['x' | 'y']) {
+        if (!ratioZoom) return;
+
+        let x = this.ratioX.getRatio();
+        let y = this.ratioY.getRatio();
+
+        if (direction === ChartAxisDirection.X) {
+            x = ratioZoom;
+        } else {
+            y = ratioZoom;
+        }
+
+        const newZoom = constrainZoom(definedZoomState({ x, y }));
+        this.updateZoom(newZoom);
+    }
+
     private onDoubleClick(event: _ModuleSupport.InteractionEvent<'dblclick'>) {
         if (!this.enabled || !this.enableDoubleClickToReset) return;
 
-        const { minX = UNIT.min, maxX = UNIT.max, minY = UNIT.min, maxY = UNIT.max } = this;
+        const x = this.rangeX.getInitialRange() ?? this.ratioX.getInitialRatio() ?? UNIT;
+        const y = this.rangeY.getInitialRange() ?? this.ratioY.getInitialRatio() ?? UNIT;
+
+        const { min: minX, max: maxX } = x;
+        const { min: minY, max: maxY } = y;
 
         if (this.hoveredAxis) {
             const { id, direction } = this.hoveredAxis;
@@ -330,10 +337,10 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private onDragEnd() {
+        this.ctx.interactionManager.popState(_ModuleSupport.InteractionState.ZoomDrag);
+
         // Stop single clicks from triggering drag end and resetting the zoom
         if (!this.enabled || this.dragState === DragState.None) return;
-
-        this.ctx.interactionManager.popState(_ModuleSupport.InteractionState.ZoomDrag);
 
         switch (this.dragState) {
             case DragState.Axis:
@@ -345,6 +352,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
                 break;
 
             case DragState.Select:
+                if (!this.selector.didUpdate()) break;
                 const zoom = definedZoomState(this.zoomManager.getZoom());
                 if (!this.isMinZoom(zoom)) {
                     const newZoom = this.selector.stop(this.seriesRect, this.paddedRect, zoom);
@@ -413,7 +421,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.updateZoom(newZoom);
     }
 
-    private onHover() {
+    private onAxisLeave() {
         if (!this.enabled) return;
 
         this.hoveredAxis = undefined;
@@ -458,6 +466,20 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.updateZoom(constrainZoom(newZoom));
     }
 
+    private onToolbarButtonPress(event: _ModuleSupport.ToolbarEvent<'button-pressed'>) {
+        if (!RANGES.has(event.id)) return;
+
+        const time = RANGES.get(event.id);
+
+        if (typeof time === 'function') {
+            this.rangeX.extendWith(time);
+        } else if (time == null) {
+            this.rangeX.extendAll();
+        } else {
+            this.rangeX.extendToEnd(time);
+        }
+    }
+
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
         if (!this.enabled) return;
 
@@ -500,8 +522,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         // We don't need to check flipping here again, as it is already built into the width & height ratios and the
         // zoom.x/y values themselves do not flip and are bound to width/height respectively.
-        const ratioX = widthRatio * dx(zoom);
-        const ratioY = heightRatio * dy(zoom);
+        const ratioX = round(widthRatio * dx(zoom), 10);
+        const ratioY = round(heightRatio * dy(zoom), 10);
 
         if (this.isScalingX()) {
             this.minRatioX = Math.min(1, ratioX);
@@ -567,6 +589,10 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.updateZoom(constrainZoom(newZoom));
     }
 
+    private onZoomChange() {
+        this.toggleContextMenuActions(definedZoomState(this.zoomManager.getZoom()));
+    }
+
     private isPanningKeyPressed(event: MouseEvent | WheelEvent) {
         switch (this.panKey) {
             case 'alt':
@@ -599,16 +625,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private isMinZoom(zoom: DefinedZoomState): boolean {
-        let minXCheckValue = dx(zoom);
-        let minYCheckValue = dy(zoom);
-
-        if (this.enableScrolling) {
-            minXCheckValue *= 1 - this.scrollingStep;
-            minYCheckValue *= 1 - this.scrollingStep;
-        }
-
-        const isMinXZoom = !this.isScalingX() || minXCheckValue <= this.minRatioX;
-        const isMinYZoom = !this.isScalingY() || minYCheckValue <= this.minRatioX;
+        const isMinXZoom = dx(zoom) <= this.minRatioX;
+        const isMinYZoom = dy(zoom) <= this.minRatioY;
 
         return isMinXZoom && isMinYZoom;
     }
@@ -618,8 +636,9 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private updateZoom(zoom: DefinedZoomState) {
-        const dx_ = dx(zoom);
-        const dy_ = dy(zoom);
+        // Round the comparison values to avoid floating point issues, but not too much to break "infinite" zoom
+        const dx_ = round(dx(zoom), 10);
+        const dy_ = round(dy(zoom), 10);
 
         const oldZoom = definedZoomState(this.zoomManager.getZoom());
 
@@ -631,8 +650,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             this.contextMenuRegistry.enableAction(CONTEXT_PAN_ACTION_ID);
             return;
         }
-
-        this.toggleContextMenuActions(zoom);
 
         this.zoomManager.updateZoom('zoom', zoom);
     }

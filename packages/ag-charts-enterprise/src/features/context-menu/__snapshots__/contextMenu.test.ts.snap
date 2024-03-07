@@ -1,0 +1,29 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Context Menu should initially be hidden 1`] = `
+HTMLCollection [
+  <div
+    class="ag-chart-context-menu"
+    style="display: none;"
+  />,
+]
+`;
+
+exports[`Context Menu should show the default actions 1`] = `
+HTMLCollection [
+  <div
+    class="ag-chart-context-menu"
+    style="display: block; left: 401px; top: calc(300px - 0.5em);"
+  >
+    <div
+      class="ag-chart-context-menu__menu"
+    >
+      <button
+        class="ag-chart-context-menu__item"
+      >
+        Download
+      </button>
+    </div>
+  </div>,
+]
+`;

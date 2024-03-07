@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { cityData } from './cityData';
 import { cityTopology } from './cityTopology';
@@ -26,6 +26,7 @@ const options: AgChartOptions = {
             data: data,
             idKey: 'name',
             fill: '#badc58',
+            legendItemName: 'Map',
         },
         {
             // @ts-ignore
@@ -35,6 +36,7 @@ const options: AgChartOptions = {
             idKey: 'name',
             stroke: '#4834d4',
             strokeWidth: 5,
+            legendItemName: 'Route',
         },
         {
             // @ts-ignore
@@ -59,6 +61,7 @@ const options: AgChartOptions = {
                 size: 48,
                 maxSize: 72,
             },
+            legendItemName: 'Cities',
         },
     ],
 };

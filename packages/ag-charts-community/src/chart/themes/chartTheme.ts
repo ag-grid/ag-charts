@@ -416,7 +416,8 @@ export class ChartTheme {
         return mergeDefaults(
             getOverridesByType('cartesian', chartTypes.cartesianTypes),
             getOverridesByType('polar', chartTypes.polarTypes),
-            getOverridesByType('hierarchy', chartTypes.hierarchyTypes)
+            getOverridesByType('hierarchy', chartTypes.hierarchyTypes),
+            getOverridesByType('topology', chartTypes.topologyTypes)
         );
     }
 

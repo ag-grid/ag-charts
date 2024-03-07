@@ -201,7 +201,6 @@ export abstract class CartesianSeries<
         super({
             directionKeys,
             directionNames,
-            useSeriesGroupLayer: true,
             canHaveAxes: true,
             ...otherOpts,
         });
@@ -888,7 +887,7 @@ export abstract class CartesianSeries<
         return { minRect, minVisibleRect };
     }
 
-    protected async updateHighlightSelectionItem(opts: {
+    protected updateHighlightSelectionItem(opts: {
         items?: TDatum[];
         highlightSelection: Selection<TNode, TDatum>;
     }): Promise<Selection<TNode, TDatum>> {
@@ -911,7 +910,7 @@ export abstract class CartesianSeries<
         }
     }
 
-    protected async updateHighlightSelectionLabel(opts: {
+    protected updateHighlightSelectionLabel(opts: {
         items?: TLabel[];
         highlightLabelSelection: Selection<Text, TLabel>;
     }): Promise<Selection<Text, TLabel>> {

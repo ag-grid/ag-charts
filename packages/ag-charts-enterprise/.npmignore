@@ -5,10 +5,12 @@ tools
 .npmignore
 .prettierignore
 .swcrc
+.dependency-cruiser.js
 jest.*
 tsconfig.*
 project.json
 .esbuild.*
+.env*
 
 dist/*.d.ts
 dist/**/*.test.*

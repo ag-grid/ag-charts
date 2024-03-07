@@ -59,3 +59,9 @@ jobs:
               id: blt
               run: |
                   yarn nx run blt
+
+            - name: Tidy Nx Cache
+              run: |
+                  sudo du -sh .nx/cache
+                  ./tools/tidy-nx-cache.sh
+                  sudo du -sh .nx/cache

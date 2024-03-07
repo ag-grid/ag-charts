@@ -5,7 +5,7 @@ import sharp from 'sharp';
 
 import { type AgChartThemeName, AgCharts } from 'ag-charts-community';
 import 'ag-charts-enterprise';
-import type { GeneratedContents } from 'ag-charts-generate-example-files/src/executors/generate/generator/types';
+import { type GeneratedContents, transformPlainEntryFile } from 'ag-charts-generate-example-files';
 import { mockCanvas } from 'ag-charts-test';
 
 import {
@@ -19,7 +19,6 @@ import {
 } from './constants';
 import { getChartLayout } from './getChartLayout';
 import { patchOptions } from './patchOptions';
-import { transformPlainEntryFile } from './transformPlainEntryFile';
 
 interface Params {
     example: GeneratedContents;

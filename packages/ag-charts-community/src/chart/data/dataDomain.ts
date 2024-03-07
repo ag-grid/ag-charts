@@ -1,29 +1,56 @@
-export class DataDomain {
-    private continuousDomain = [Infinity, -Infinity];
-    private discreteDomain = new Set();
+export interface IDataDomain<D = any> {
+    extend(val: any): void;
+    getDomain(): D[];
+}
 
-    public constructor(private readonly type: 'continuous' | 'discrete') {}
+export class DiscreteDomain implements IDataDomain {
+    private domain = new Set();
+
+    static is(value: unknown): value is DiscreteDomain {
+        return value instanceof DiscreteDomain;
+    }
 
     extend(val: any) {
-        if (this.type === 'discrete') {
-            this.discreteDomain.add(val);
-        } else if (this.type === 'continuous') {
-            if (this.continuousDomain[0] > val) {
-                this.continuousDomain[0] = val;
+        this.domain.add(val);
+    }
+
+    getDomain() {
+        return Array.from(this.domain);
+    }
+}
+
+export class ContinuousDomain<T extends number | Date> implements IDataDomain<T> {
+    private domain = [Infinity, -Infinity] as [T, T];
+
+    static is<T extends number | Date = any>(value: unknown): value is ContinuousDomain<T> {
+        return value instanceof ContinuousDomain;
+    }
+
+    static extendDomain(values: unknown[], domain: [number, number] = [Infinity, -Infinity]) {
+        for (const value of values) {
+            if (typeof value !== 'number') {
+                continue;
             }
-            if (this.continuousDomain[1] < val) {
-                this.continuousDomain[1] = val;
+            if (domain[0] > value) {
+                domain[0] = value;
             }
+            if (domain[1] < value) {
+                domain[1] = value;
+            }
+        }
+        return domain;
+    }
+
+    extend(value: T) {
+        if (this.domain[0] > value) {
+            this.domain[0] = value;
+        }
+        if (this.domain[1] < value) {
+            this.domain[1] = value;
         }
     }
 
     getDomain() {
-        if (this.type === 'discrete') {
-            return this.discreteDomain;
-        } else if (this.type === 'continuous') {
-            return this.continuousDomain;
-        }
-
-        throw new Error('AG Charts - Unsupported data domain type: ' + this.type);
+        return [...this.domain];
     }
 }

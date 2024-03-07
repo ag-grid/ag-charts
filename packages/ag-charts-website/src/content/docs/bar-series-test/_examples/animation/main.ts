@@ -3,6 +3,7 @@ import { AgCartesianChartOptions, AgChartLegendPosition, AgChartOptions, AgChart
 import { getData } from './data';
 
 const legendPositions: Array<AgChartLegendPosition> = ['bottom', 'left', 'right', 'top'];
+const stackGroups = ['Devices', 'Devices', 'Devices', 'Wearables', 'Series'];
 const modes = ['standalone', 'integrated'] as const;
 let mode = modes[0];
 const modeButton = document.getElementById('modeButton')!;
@@ -149,9 +150,7 @@ function switchToGrouped() {
 
 function switchToStacked() {
     options.series?.forEach((s: any, i) => {
-        if (i < 3) {
-            s.stackGroup = 'Devices';
-        }
+        s.stackGroup = stackGroups[i];
     });
 
     if (options.mode === 'integrated') {

@@ -26,12 +26,27 @@ The name keys mirror the data keys and differ between series types. See the seri
 
 ## Tooltip Position
 
-The tooltip has two position options:
+The tooltip position can be changed using the `tooltip.position.type` property, and further modified using `xOffset` and `yOffset`.
+
+Options for `tooltip.position.type` include:
 
 -   `node` - Anchors the tooltip to the highlighted node. This is the default for marker-based series such as `line` and `scatter`.
 -   `pointer` - Anchors the tooltip to the mouse pointer. This is the default for shape-based series such as `bar` and `pie`.
 
-The tooltip position can be changed using the `tooltip.position.type` property, and further modified using `xOffset` and `yOffset`.
+For specific canvas positions, use `tooltip.position.type`:
+
+-   `top`
+-   `right`
+-   `bottom`
+-   `left`
+-   `top-left`
+-   `top-right`
+-   `bottom-right`
+-   `bottom-left`
+
+The example below demonstrates setting `tooltip.position.type` and applying an x and y offset.
+
+Use the buttons to switch between positon types `top-right`, `pointer` and `node` (default).
 
 {% chartExampleRunner title="Tooltip Position" name="tooltip-position" type="generated" /%}
 
@@ -39,16 +54,16 @@ The tooltip position can be changed using the `tooltip.position.type` property, 
 tooltip: {
     position: {
         type: 'pointer',
-        xOffset: 80, // positions tooltip 80px to the right of the mouse cursor
-        yOffset: 80, // positions tooltip 80px down from the start of the mouse cursor
+        xOffset: 80,
+        yOffset: 80,
     },
 },
 ```
 
 In this configuration:
 
--   Instead of the tooltip being anchored to the highlighted marker node, it is anchored 80 pixels to the left and below the mouse pointer.
--   The `xOffset` and `yOffset` options define the distance in pixels from the tooltip to the anchor point.
+-   Instead of the tooltip being anchored to the highlighted marker node, it is anchored to the mouse pointer.
+-   The `xOffset` and `yOffset` options define the distance in pixels from the bottom centre of the tooltip to the anchor point.
 -   By default, when `tooltip.position.xOffset` or `tooltip.position.yOffset` are configured, the tooltip arrow is removed.
 
 ## Tooltip Arrow

@@ -1,5 +1,5 @@
 import type { SeriesOptionsTypes } from '../chart/mapping/types';
-import type { AgChartOptionsNext } from '../options/chart/chartBuilderOptionsNext';
+import type { AgChartOptions } from '../options/chart/chartBuilderOptions';
 
 type RequiredSeriesType = NonNullable<SeriesOptionsTypes['type']>;
 
@@ -19,7 +19,7 @@ export type SeriesPaletteFactory<SeriesType extends RequiredSeriesType = Require
 
 export type SeriesPaletteOptions<
     SeriesType extends RequiredSeriesType,
-    SeriesOpts = NonNullable<AgChartOptionsNext['series']>[number] & { type: SeriesType },
+    SeriesOpts = NonNullable<AgChartOptions['series']>[number] & { type: SeriesType },
     ColourKeys = 'stroke' | 'fill' | 'fills' | 'strokes' | 'colors',
     NestedKeys = 'marker' | 'calloutLine',
 > = {

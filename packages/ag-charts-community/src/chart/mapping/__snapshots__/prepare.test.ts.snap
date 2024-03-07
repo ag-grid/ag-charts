@@ -415,6 +415,9 @@ exports[`prepare #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare o
     "text": "Marriage Statistics (Northern Ireland)",
     "wrapping": "hyphenate",
   },
+  "toolbar": {
+    "enabled": true,
+  },
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
@@ -875,6 +878,9 @@ exports[`prepare #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it sho
     "spacing": 25,
     "text": "Cattle Holdings and Beef Exports (UK)",
     "wrapping": "hyphenate",
+  },
+  "toolbar": {
+    "enabled": true,
   },
   "tooltip": {
     "darkTheme": false,
@@ -1512,6 +1518,9 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should 
     "spacing": 25,
     "text": "Taxed Alcohol Consumption (UK)",
     "wrapping": "hyphenate",
+  },
+  "toolbar": {
+    "enabled": true,
   },
   "tooltip": {
     "darkTheme": false,
@@ -2204,6 +2213,9 @@ exports[`prepare #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepa
     "text": "WEEE Collected in UK",
     "wrapping": "hyphenate",
   },
+  "toolbar": {
+    "enabled": true,
+  },
   "tooltip": {
     "class": "my-tooltip",
     "darkTheme": false,
@@ -2473,6 +2485,9 @@ exports[`prepare #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it sho
     "spacing": 25,
     "text": "Worldwide Earthquakes",
     "wrapping": "hyphenate",
+  },
+  "toolbar": {
+    "enabled": true,
   },
   "tooltip": {
     "darkTheme": false,
@@ -2932,6 +2947,9 @@ exports[`prepare #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it s
     "spacing": 25,
     "text": "Earthquake Magnitudes by Source",
     "wrapping": "hyphenate",
+  },
+  "toolbar": {
+    "enabled": true,
   },
   "tooltip": {
     "darkTheme": false,
@@ -3498,6 +3516,9 @@ exports[`prepare #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it 
     "text": "Changes in UK Energy Stock",
     "wrapping": "hyphenate",
   },
+  "toolbar": {
+    "enabled": true,
+  },
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
@@ -3778,6 +3799,9 @@ exports[`prepare #prepareOptions for BAR_CHART_EXAMPLE it should prepare options
 by Occupation",
     "wrapping": "hyphenate",
   },
+  "toolbar": {
+    "enabled": true,
+  },
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
@@ -4049,6 +4073,9 @@ exports[`prepare #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should pre
 (June to September)",
     "wrapping": "hyphenate",
   },
+  "toolbar": {
+    "enabled": true,
+  },
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
@@ -4317,6 +4344,9 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it sho
     "fontWeight": "normal",
     "text": "Punch Card of Github",
     "wrapping": "hyphenate",
+  },
+  "toolbar": {
+    "enabled": true,
   },
   "tooltip": {
     "darkTheme": false,
@@ -4588,6 +4618,9 @@ exports[`prepare #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE i
     "spacing": 25,
     "text": "Most Populous Cities",
     "wrapping": "hyphenate",
+  },
+  "toolbar": {
+    "enabled": true,
   },
   "tooltip": {
     "darkTheme": false,
@@ -4939,6 +4972,9 @@ exports[`prepare #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE i
     "spacing": 25,
     "text": "Changes in Prison Population",
     "wrapping": "hyphenate",
+  },
+  "toolbar": {
+    "enabled": true,
   },
   "tooltip": {
     "darkTheme": false,
@@ -5294,6 +5330,9 @@ exports[`prepare #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare
     "spacing": 25,
     "text": "Annual Growth in Pay",
     "wrapping": "hyphenate",
+  },
+  "toolbar": {
+    "enabled": true,
   },
   "tooltip": {
     "darkTheme": false,
@@ -5926,6 +5965,9 @@ exports[`prepare #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare op
     "spacing": 25,
     "text": "Regular Internet Users",
     "wrapping": "hyphenate",
+  },
+  "toolbar": {
+    "enabled": true,
   },
   "tooltip": {
     "darkTheme": false,
@@ -7080,6 +7122,9 @@ exports[`prepare #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prep
     "text": "Imported Banana Prices",
     "wrapping": "hyphenate",
   },
+  "toolbar": {
+    "enabled": true,
+  },
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
@@ -7345,6 +7390,9 @@ exports[`prepare #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options 
     "fontWeight": "normal",
     "text": "World Population Over Time",
     "wrapping": "hyphenate",
+  },
+  "toolbar": {
+    "enabled": true,
   },
   "tooltip": {
     "darkTheme": false,
@@ -8072,6 +8120,9 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAM
     "text": "UK Energy Sources",
     "wrapping": "hyphenate",
   },
+  "toolbar": {
+    "enabled": true,
+  },
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
@@ -8491,6 +8542,9 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it 
     "spacing": 25,
     "text": "Internet Users by Geographical Location",
     "wrapping": "hyphenate",
+  },
+  "toolbar": {
+    "enabled": true,
   },
   "tooltip": {
     "darkTheme": false,
@@ -9087,6 +9141,9 @@ exports[`prepare #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE
     "text": "Ethnic Diversity of School Pupils",
     "wrapping": "hyphenate",
   },
+  "toolbar": {
+    "enabled": true,
+  },
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
@@ -9573,6 +9630,9 @@ exports[`prepare #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare
     "text": "Total Visitors to Tate Galleries",
     "wrapping": "hyphenate",
   },
+  "toolbar": {
+    "enabled": true,
+  },
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
@@ -9844,6 +9904,9 @@ exports[`prepare #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepa
     "spacing": 25,
     "text": "Total Visitors to Museums and Galleries",
     "wrapping": "hyphenate",
+  },
+  "toolbar": {
+    "enabled": true,
   },
   "tooltip": {
     "darkTheme": false,
@@ -10413,6 +10476,9 @@ exports[`prepare #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare
     "text": "Road fuel prices",
     "wrapping": "hyphenate",
   },
+  "toolbar": {
+    "enabled": true,
+  },
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
@@ -10872,6 +10938,9 @@ exports[`prepare #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prep
     "spacing": 25,
     "text": "Height vs Weight for Major League Baseball Players",
     "wrapping": "hyphenate",
+  },
+  "toolbar": {
+    "enabled": true,
   },
   "tooltip": {
     "darkTheme": false,
@@ -11550,6 +11619,9 @@ exports[`prepare #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepar
     "text": "Total Visitors to Science Museums",
     "wrapping": "hyphenate",
   },
+  "toolbar": {
+    "enabled": true,
+  },
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
@@ -12009,6 +12081,9 @@ exports[`prepare #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare
     "fontWeight": "normal",
     "text": "UK Housing Stock",
     "wrapping": "hyphenate",
+  },
+  "toolbar": {
+    "enabled": true,
   },
   "tooltip": {
     "darkTheme": false,
@@ -12550,6 +12625,9 @@ exports[`prepare #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prep
     "fontWeight": "normal",
     "text": "Average Station Entries",
     "wrapping": "hyphenate",
+  },
+  "toolbar": {
+    "enabled": true,
   },
   "tooltip": {
     "darkTheme": false,
