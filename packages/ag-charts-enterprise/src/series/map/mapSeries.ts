@@ -1,5 +1,3 @@
-import type { Feature, FeatureCollection, Geometry } from 'geojson';
-
 import { AgMapSeriesStyle, _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import { GeoGeometry } from '../map-util/geoGeometry';
@@ -12,6 +10,11 @@ import {
     MapNodeMarkerDatum,
     MapSeriesProperties,
 } from './mapSeriesProperties';
+
+// import type { Feature, FeatureCollection, Geometry } from 'geojson';
+type Feature = any;
+type FeatureCollection = any;
+type Geometry = any;
 
 const { fromToMotion, StateMachine, getMissCount, createDatumId, DataModelSeries, SeriesNodePickMode, valueProperty } =
     _ModuleSupport;
@@ -196,7 +199,7 @@ export class MapSeries
             topologyIdKey = this.properties.topologyIdKey;
         }
 
-        return topology?.features.find((feature) => feature.properties?.[topologyIdKey] === id)?.geometry;
+        return topology?.features.find((feature: Feature) => feature.properties?.[topologyIdKey] === id)?.geometry;
     }
 
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
@@ -208,7 +211,7 @@ export class MapSeries
         const { topologyIdKey, idKey, sizeKey, colorKey, labelKey, colorRange, marker } = this.properties;
 
         const featureById = new Map<string, Feature>();
-        topology.features.forEach((feature) => {
+        topology.features.forEach((feature: Feature) => {
             const property = feature.properties?.[topologyIdKey];
             if (property == null) return;
             featureById.set(property, feature);

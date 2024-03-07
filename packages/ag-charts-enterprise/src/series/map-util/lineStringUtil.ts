@@ -1,4 +1,5 @@
-import type { Position } from 'geojson';
+// import type { Position } from 'geojson';
+type Position = any;
 
 const delta = 1e-9;
 

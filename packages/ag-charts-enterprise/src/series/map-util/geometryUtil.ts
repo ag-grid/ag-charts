@@ -1,10 +1,12 @@
-import type { Geometry, Position } from 'geojson';
-
 import type { _ModuleSupport } from 'ag-charts-community';
 
 import { extendBbox } from './bboxUtil';
 import { lineStringCenter } from './lineStringUtil';
 import { polygonBbox, preferredLabelCenter } from './polygonUtil';
+
+// import type { Geometry, Position } from 'geojson';
+type Position = any;
+type Geometry = any;
 
 export function geometryBbox(
     geometry: Geometry,
@@ -18,12 +20,12 @@ export function geometryBbox(
 
     switch (geometry.type) {
         case 'GeometryCollection':
-            geometry.geometries.forEach((g) => {
+            geometry.geometries.forEach((g: Geometry) => {
                 into = geometryBbox(g, into);
             });
             break;
         case 'MultiPolygon':
-            geometry.coordinates.forEach((c) => {
+            geometry.coordinates.forEach((c: Position[]) => {
                 if (c.length > 0) {
                     into = polygonBbox(c[0], into);
                 }
@@ -35,7 +37,7 @@ export function geometryBbox(
             }
             break;
         case 'MultiLineString':
-            geometry.coordinates.forEach((c) => {
+            geometry.coordinates.forEach((c: Position[]) => {
                 into = polygonBbox(c, into);
             });
             break;
@@ -43,7 +45,7 @@ export function geometryBbox(
             into = polygonBbox(geometry.coordinates, into);
             break;
         case 'MultiPoint':
-            geometry.coordinates.forEach((p) => {
+            geometry.coordinates.forEach((p: Position[]) => {
                 const [lon, lat] = p;
                 into = extendBbox(into, lon, lat, lon, lat);
             });
@@ -90,7 +92,7 @@ export function labelPosition(
         case 'MultiPolygon': {
             let largestArea: number | undefined;
             let largestPolygon: Position[][] | undefined;
-            geometry.coordinates.map((polygon) => {
+            geometry.coordinates.map((polygon: Position[]) => {
                 const bbox = polygonBbox(polygon[0], undefined);
                 if (bbox == null) return;
 
@@ -137,6 +139,7 @@ export function markerCenters(geometry: Geometry): Position[] {
         case 'Point':
             return [geometry.coordinates];
     }
+    return [];
 }
 
 export function projectGeometry(geometry: Geometry, scale: _ModuleSupport.MercatorScale): Geometry {
@@ -144,7 +147,7 @@ export function projectGeometry(geometry: Geometry, scale: _ModuleSupport.Mercat
         case 'GeometryCollection':
             return {
                 type: 'GeometryCollection',
-                geometries: geometry.geometries.map((g) => projectGeometry(g, scale)),
+                geometries: geometry.geometries.map((g: Position[]) => projectGeometry(g, scale)),
             };
         case 'Polygon':
             return {

@@ -377,7 +377,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.zoomManager.addListener('zoom-change', () => {
                 this.resetPointer();
                 this.series.map((s) => (s as any).animationState.transition('updateData'));
-                this.update(ChartUpdateType.PERFORM_LAYOUT, { forceNodeDataRefresh: true, skipAnimations: true });
+                const skipAnimations = this.chartAnimationPhase !== 'initial';
+                this.update(ChartUpdateType.PERFORM_LAYOUT, { forceNodeDataRefresh: true, skipAnimations });
             })
         );
     }
