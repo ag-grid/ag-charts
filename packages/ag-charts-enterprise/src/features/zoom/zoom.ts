@@ -4,7 +4,7 @@ import { _ModuleSupport, _Util } from 'ag-charts-community';
 import { RANGES } from '../range-buttons/rangeTypes';
 import { ZoomRect } from './scenes/zoomRect';
 import { ZoomAxisDragger } from './zoomAxisDragger';
-import { ZoomPanner } from './zoomPanner';
+import { ZoomPanUpdate, ZoomPanner } from './zoomPanner';
 import { ZoomRange } from './zoomRange';
 import { ZoomRatio } from './zoomRatio';
 import { ZoomScrollPanner } from './zoomScrollPanner';
@@ -164,7 +164,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx.toolbarManager.addListener('button-pressed', (event) => this.onToolbarButtonPress(event)),
             ctx.layoutService.addListener('layout-complete', (event) => this.onLayoutComplete(event)),
             ctx.updateService.addListener('update-complete', (event) => this.onUpdateComplete(event)),
-            ctx.zoomManager.addListener('zoom-change', () => this.onZoomChange())
+            ctx.zoomManager.addListener('zoom-change', () => this.onZoomChange()),
+            this.panner.addListener('update', (event) => this.onPanUpdate(event))
         );
     }
 
@@ -264,6 +265,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private onDragStart(event: _ModuleSupport.InteractionEvent<'drag-start'>) {
         if (!this.enabled || !this.paddedRect) return;
 
+        this.panner.stopInteractions();
+
         // Determine which ZoomDrag behaviour to use.
         let newDragState = DragState.None;
 
@@ -277,6 +280,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             if (this.enablePanning && (!this.enableSelecting || panKeyPressed)) {
                 this.cursorManager.updateCursor(CURSOR_ID, 'grabbing');
                 newDragState = DragState.Pan;
+                this.panner.start();
             }
             // Do not allow selection only if fully zoomed in or when the pankey is pressed
             else {
@@ -310,10 +314,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
                 break;
 
             case DragState.Pan:
-                const newZooms = this.panner.update(event, this.seriesRect, this.zoomManager.getAxisZooms());
-                for (const [panAxisId, { direction: panDirection, zoom: panZoom }] of Object.entries(newZooms)) {
-                    this.updateAxisZoom(panAxisId, panDirection, panZoom);
-                }
+                this.panner.update(event);
                 break;
 
             case DragState.Select:
@@ -591,6 +592,20 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     private onZoomChange() {
         this.toggleContextMenuActions(definedZoomState(this.zoomManager.getZoom()));
+    }
+
+    private onPanUpdate(e: ZoomPanUpdate) {
+        const newZooms = this.panner.translateZooms(
+            this.seriesRect!,
+            this.zoomManager.getAxisZooms(),
+            e.deltaX,
+            e.deltaY
+        );
+        for (const [panAxisId, { direction: panDirection, zoom: panZoom }] of Object.entries(newZooms)) {
+            this.updateAxisZoom(panAxisId, panDirection, panZoom);
+        }
+        this.tooltipManager.updateTooltip(TOOLTIP_ID);
+        this.updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
     }
 
     private isPanningKeyPressed(event: MouseEvent | WheelEvent) {
