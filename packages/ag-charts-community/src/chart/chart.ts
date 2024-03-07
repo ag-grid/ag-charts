@@ -21,7 +21,7 @@ import { createId } from '../util/id';
 import { jsonApply, jsonDiff } from '../util/json';
 import { Logger } from '../util/logger';
 import { Mutex } from '../util/mutex';
-import { mergeDefaults } from '../util/object';
+import { mergeDefaults, without } from '../util/object';
 import type { TypedEvent, TypedEventListener } from '../util/observable';
 import { Observable } from '../util/observable';
 import { Padding } from '../util/padding';
@@ -1545,27 +1545,12 @@ export abstract class Chart extends Observable implements AgChartInstance {
             const labelOptions = deltaOptions.navigator?.miniChart?.label;
             const intervalOptions = deltaOptions.navigator?.miniChart?.label?.interval;
 
-            jsonApply(horizontalAxis.label, labelOptions, {
-                path: 'navigator.miniChart.label',
-                skip: [
-                    'navigator.miniChart.label.interval',
-                    'navigator.miniChart.label.rotation',
-                    'navigator.miniChart.label.minSpacing',
-                    'navigator.miniChart.label.autoRotate',
-                    'navigator.miniChart.label.autoRotateAngle',
-                ],
-            });
-            jsonApply(horizontalAxis.tick, intervalOptions, {
-                path: 'navigator.miniChart.interval',
-                skip: [
-                    'navigator.miniChart.interval.enabled',
-                    'navigator.miniChart.interval.width',
-                    'navigator.miniChart.interval.size',
-                    'navigator.miniChart.interval.color',
-                    'navigator.miniChart.interval.interval',
-                    'navigator.miniChart.interval.step',
-                ],
-            });
+            horizontalAxis.label.set(
+                without(labelOptions, ['interval', 'rotation', 'minSpacing', 'autoRotate', 'autoRotateAngle'])
+            );
+            horizontalAxis.tick.set(
+                without(intervalOptions, ['enabled', 'width', 'size', 'color', 'interval', 'step'])
+            );
 
             const step = intervalOptions?.step;
             if (step != null) {
@@ -1815,6 +1800,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 this.registerInteraction(moduleContext);
             }
         }
+
         return jsonApply<T, any>(target, options, {
             constructors: {
                 ...JSON_APPLY_OPTIONS.constructors,

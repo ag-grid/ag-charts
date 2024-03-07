@@ -14,7 +14,6 @@ export const JSON_APPLY_OPTIONS: JsonApplyParams = {
         'axes[].title': AxisTitle,
     },
     allowedTypes: {
-        'legend.pagination.marker.shape': ['primitive', 'function'],
         'axis[].tick.count': ['primitive', 'class-instance'],
     },
 };

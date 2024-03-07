@@ -220,7 +220,7 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
             }
 
             if (newValueType === 'array') {
-                ctr = ctr ?? constructedArrays.get(currentValue) ?? constructors[`${propertyMatcherPath}[]`];
+                ctr ??= constructedArrays.get(currentValue) ?? constructors[`${propertyMatcherPath}[]`];
                 if (isProperties(targetAny[property])) {
                     targetAny[property].set(newValue);
                 } else if (ctr == null) {
