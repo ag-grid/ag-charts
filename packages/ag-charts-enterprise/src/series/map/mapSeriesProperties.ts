@@ -1,5 +1,3 @@
-import type { FeatureCollection, Geometry } from 'geojson';
-
 import type {
     AgMapSeriesFormatterParams,
     AgMapSeriesLabelFormatterParams,
@@ -9,6 +7,10 @@ import type {
     AgMapSeriesTooltipRendererParams,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+
+// import type { FeatureCollection, Geometry } from 'geojson';
+type FeatureCollection = any;
+type Geometry = any;
 
 const {
     AND,

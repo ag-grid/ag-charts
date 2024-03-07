@@ -1,5 +1,3 @@
-import type { FeatureCollection, Geometry } from 'geojson';
-
 import { AgMapSeriesStyle, _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import { extendBbox } from '../map-util/bboxUtil';
@@ -7,6 +5,11 @@ import { GeoGeometry } from '../map-util/geoGeometry';
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
 import { prepareMapMarkerAnimationFunctions } from '../map-util/mapUtil';
 import { MapMarkerNodeDatum, MapMarkerNodeLabelDatum, MapMarkerSeriesProperties } from './mapMarkerSeriesProperties';
+
+// import type { FeatureCollection, Feature, Geometry } from 'geojson';
+type FeatureCollection = any;
+type Feature = any;
+type Geometry = any;
 
 const { fromToMotion, StateMachine, getMissCount, createDatumId, DataModelSeries, SeriesNodePickMode, valueProperty } =
     _ModuleSupport;
@@ -156,7 +159,7 @@ export class MapMarkerSeries extends DataModelSeries<
         if (id == null) return;
 
         const topology = background.topology ?? this.topology;
-        return topology?.features.find((feature) => feature.properties?.[topologyIdKey] === id)?.geometry;
+        return topology?.features.find((feature: Feature) => feature.properties?.[topologyIdKey] === id)?.geometry;
     }
 
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {

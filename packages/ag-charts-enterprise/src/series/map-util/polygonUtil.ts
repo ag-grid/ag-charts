@@ -1,10 +1,11 @@
-import type { Position } from 'geojson';
-
 import type { _ModuleSupport } from 'ag-charts-community';
 
 import { extendBbox } from './bboxUtil';
 import { lineSegmentDistanceSquared } from './lineStringUtil';
 import { type List, insertManySorted } from './linkedList';
+
+// import type { Position } from 'geojson';
+type Position = any;
 
 export function polygonBbox(
     polygon: Position[],
