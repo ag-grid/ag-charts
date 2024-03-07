@@ -21,6 +21,9 @@ const {
 } = _ModuleSupport;
 const { motion } = _Scene;
 
+const { sanitizeHtml, Logger } = _Util;
+const { ContinuousScale, OrdinalTimeScale } = _Scale;
+
 class CandlestickSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
 > extends _ModuleSupport.SeriesNodeEvent<CandlestickNodeDatum, TEvent> {
@@ -75,7 +78,11 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<
         const { xKey, openKey, closeKey, highKey, lowKey } = this.properties;
 
         const animationEnabled = !this.ctx.animationManager.isSkipped();
-        const isContinuousX = this.getCategoryAxis()?.scale instanceof _Scale.ContinuousScale;
+
+        const xScale = this.getCategoryAxis()?.scale;
+        const isContinuousX = ContinuousScale.is(xScale) || OrdinalTimeScale.is(xScale);
+        const xValueType = ContinuousScale.is(xScale) ? 'range' : 'category';
+
         const extraProps = [];
         if (animationEnabled && this.processedData) {
             extraProps.push(diff(this.processedData));
@@ -86,7 +93,7 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<
 
         const { processedData } = await this.requestDataModel(dataController, this.data ?? [], {
             props: [
-                keyProperty(this, xKey, isContinuousX, { id: `xValue` }),
+                keyProperty(this, xKey, isContinuousX, { id: `xValue`, valueType: xValueType }),
                 valueProperty(this, openKey, true, { id: `openValue` }),
                 valueProperty(this, closeKey, true, { id: `closeValue` }),
                 valueProperty(this, highKey, true, { id: `highValue` }),
@@ -178,6 +185,24 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<
                 { keys, values }
             );
 
+            // compare unscaled values
+            const validLowValue = lowValue !== undefined && lowValue <= openValue && lowValue <= closeValue;
+            const validHighValue = highValue !== undefined && highValue >= openValue && highValue >= closeValue;
+
+            if (!validLowValue) {
+                Logger.warnOnce(
+                    `invalid low value for key [${lowKey}] in data element, low value cannot be higher than datum open or close values`
+                );
+                return;
+            }
+
+            if (!validHighValue) {
+                Logger.warnOnce(
+                    `invalid high value for key [${highKey}] in data element, high value cannot be lower than datum open or close values.`
+                );
+                return;
+            }
+
             const scaledValues = convertValuesToScaleByDefs({
                 defs,
                 values: {
@@ -207,6 +232,15 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<
                 cornerRadius,
             } = this.getItemConfig(itemId);
 
+            const y = Math.min(scaledValues.openValue, scaledValues.closeValue);
+            const yBottom = Math.max(scaledValues.openValue, scaledValues.closeValue);
+            const height = yBottom - y;
+
+            const midPoint = {
+                x: scaledValues.xValue + Math.round(barWidth) / 2,
+                y: y + height / 2,
+            };
+
             nodeData.push({
                 series: this,
                 itemId,
@@ -232,10 +266,7 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<
                 lineDash,
                 lineDashOffset,
                 cornerRadius,
-                midPoint: {
-                    x: scaledValues.xValue + Math.round(barWidth) / 2,
-                    y: Math.abs(scaledValues.openValue - scaledValues.closeValue) / 2,
-                },
+                midPoint,
                 aggregatedValue: closeValue,
             });
         });
@@ -277,7 +308,7 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<
             lowName,
             tooltip,
         } = this.properties;
-        const { datum } = nodeDatum as { datum: any };
+        const { datum } = nodeDatum;
 
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
@@ -286,7 +317,7 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<
 
         const capitalise = (text: string) => text.charAt(0).toUpperCase() + text.substring(1);
 
-        const title = _Util.sanitizeHtml(yName);
+        const title = sanitizeHtml(yName);
         const contentData: [string, string | undefined, _ModuleSupport.ChartAxis][] = [
             [xKey, xName, xAxis],
             [openKey, openName, yAxis],
@@ -295,9 +326,7 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<
             [closeKey, closeName, yAxis],
         ];
         const content = contentData
-            .map(([key, name, axis]) =>
-                _Util.sanitizeHtml(`${name ?? capitalise(key)}: ${axis.formatDatum(datum[key])}`)
-            )
+            .map(([key, name, axis]) => sanitizeHtml(`${name ?? capitalise(key)}: ${axis.formatDatum(datum[key])}`))
             .join('<br/>');
 
         let { fill } = this.getFormattedStyles(nodeDatum);
@@ -336,6 +365,10 @@ export class CandlestickSeries extends _ModuleSupport.AbstractBarSeries<
         motion.staticFromToMotion(this.id, 'datums', this.ctx.animationManager, datumSelections, from, to, {
             phase: 'initial',
         });
+    }
+
+    protected override isVertical(): boolean {
+        return true;
     }
 
     protected isLabelEnabled(): boolean {

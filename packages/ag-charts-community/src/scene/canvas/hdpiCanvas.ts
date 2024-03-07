@@ -30,24 +30,25 @@ export class HdpiCanvas {
     @ObserveChanges<HdpiCanvas>((target, newValue, oldValue) => target.onContainerChange(newValue, oldValue))
     container?: HTMLElement;
 
-    width: number = 0;
-    height: number = 0;
+    width: number = 600;
+    height: number = 300;
     pixelRatio: number;
 
     constructor(options: CanvasOptions) {
-        const { width = 600, height = 300, pixelRatio } = options;
+        const { width, height, pixelRatio } = options;
 
-        // Create canvas and immediately apply width + height to avoid out-of-memory
-        // errors on iOS/iPadOS Safari.
-        this.element = createElement('canvas');
-        this.element.width = width;
-        this.element.height = height;
-
-        this.context = this.element.getContext('2d')!;
         this.pixelRatio = hasConstrainedCanvasMemory() ? 1 : pixelRatio ?? getWindow('devicePixelRatio');
 
+        // Create canvas and immediately apply width + height to avoid out-of-memory errors on iOS/iPadOS Safari.
+        this.element = createElement('canvas');
+        // Safari needs a width and height set or the output can appear blurry
+        this.element.width = Math.round((width ?? this.width) * this.pixelRatio);
+        this.element.height = Math.round((height ?? this.height) * this.pixelRatio);
+
+        this.context = this.element.getContext('2d')!;
+
         this.onEnabledChange(); // Force `display: block` style
-        this.resize(width, height);
+        this.resize(width ?? 0, height ?? 0);
 
         HdpiCanvas.debugContext(this.context);
     }
@@ -61,15 +62,15 @@ export class HdpiCanvas {
     }
 
     resize(width: number, height: number) {
-        if (!(width > 0 && height > 0)) {
-            return;
-        }
+        if (!(width > 0 && height > 0)) return;
+
         const { element, context, pixelRatio } = this;
         element.width = Math.round(width * pixelRatio);
         element.height = Math.round(height * pixelRatio);
+        context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+
         element.style.width = width + 'px';
         element.style.height = height + 'px';
-        context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
 
         this.width = width;
         this.height = height;

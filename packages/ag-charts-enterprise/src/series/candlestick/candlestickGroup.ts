@@ -3,8 +3,6 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import type { CandlestickNodeDatum } from './candlestickTypes';
 
-const { Logger } = _Util;
-
 export enum GroupTags {
     Rect,
     Outline,
@@ -30,10 +28,6 @@ export class CandlestickGroup extends _Scene.Group {
         const {
             bandwidth,
             scaledValues: { xValue: axisValue },
-            lowKey = '',
-            highKey = '',
-            xKey,
-            datum: rawDatum,
         } = datum;
         const { openValue, closeValue, highValue, lowValue } = datum.scaledValues;
 
@@ -80,37 +74,18 @@ export class CandlestickGroup extends _Scene.Group {
             cornerRadius,
         });
 
-        // compare unscaled values
-        const validLowValue =
-            datum.lowValue !== undefined && datum.lowValue <= datum.openValue && datum.lowValue <= datum.closeValue;
-        const validHighValue =
-            datum.highValue !== undefined && datum.highValue >= datum.openValue && datum.highValue >= datum.closeValue;
+        wicks[0].setProperties({
+            y1: Math.round(yLow + wickStyles.strokeWidth / 2),
+            y2: yBottom,
+            x: Math.floor(axisValue + bandwidth / 2),
+        });
+        wicks[0].setProperties(wickStyles);
 
-        if (validLowValue) {
-            wicks[0].setProperties({
-                y1: Math.round(yLow + wickStyles.strokeWidth / 2),
-                y2: yBottom,
-                x: Math.floor(axisValue + bandwidth / 2),
-            });
-            wicks[0].setProperties(wickStyles);
-        } else if (!isNaN(lowValue)) {
-            Logger.warnOnce(
-                `invalid low value [${rawDatum[lowKey]}] at x value: [${rawDatum[xKey]}], low value cannot be higher than datum open or close values`
-            );
-        }
-
-        if (validHighValue) {
-            wicks[1].setProperties({
-                y1: Math.round(yHigh - wickStyles.strokeWidth / 2),
-                y2: y,
-                x: Math.floor(axisValue + bandwidth / 2),
-            });
-
-            wicks[1].setProperties(wickStyles);
-        } else if (!isNaN(highValue)) {
-            Logger.warnOnce(
-                `invalid high value [${rawDatum[highKey]}] at x value: [${rawDatum[xKey]}], high value cannot be lower than datum open or close values.`
-            );
-        }
+        wicks[1].setProperties({
+            y1: Math.round(yHigh - wickStyles.strokeWidth / 2),
+            y2: y,
+            x: Math.floor(axisValue + bandwidth / 2),
+        });
+        wicks[1].setProperties(wickStyles);
     }
 }

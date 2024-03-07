@@ -1,4 +1,3 @@
-import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { CssColor } from '../../chart/types';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
@@ -40,7 +39,11 @@ export type AgCandlestickSeriesFormatterParams<TDatum> = AgSeriesFormatterParams
         CandlestickUniqueOptions &
             Omit<AxisOptions, 'yKey'> &
             FillOptions &
-            StrokeOptions & { itemId: AgCandlestickSeriesItemType; highlighted: boolean }
+            StrokeOptions & {
+                /** Identifier showing whether the data element is rising (`up`) or falling (`down`). */
+                itemId: AgCandlestickSeriesItemType;
+                highlighted: boolean;
+            }
     >;
 
 export interface AgCandlestickSeriesTooltipRendererParams
@@ -50,10 +53,6 @@ export interface AgCandlestickSeriesTooltipRendererParams
 }
 
 export interface AgCandlestickSeriesItemOptions extends AgBarSeriesStyle {
-    /** A human-readable description of the y-values. If supplied, this will be shown in the legend and default tooltip and passed to the tooltip renderer as one of the parameters. */
-    name?: string;
-    /** Configuration for the shadow used behind the series items. */
-    shadow?: AgDropShadowOptions;
     /** Options to style chart's wicks */
     wick?: AgCandlestickWickOptions;
 }
@@ -71,7 +70,7 @@ export interface AgCandlestickSeriesStyles {
 }
 
 export interface AgCandlestickSeriesThemeableOptions<TDatum = any>
-    extends AgBaseCartesianThemeableOptions<TDatum>,
+    extends Omit<AgBaseCartesianThemeableOptions<TDatum>, 'showInLegend'>,
         AgCandlestickSeriesStyles {
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgCandlestickSeriesTooltipRendererParams>;
@@ -81,13 +80,9 @@ export interface AgCandlestickSeriesThemeableOptions<TDatum = any>
 
 export interface AgCandlestickSeriesOptions<TDatum = any>
     extends AgCandlestickSeriesThemeableOptions<TDatum>,
-        AgBaseSeriesOptions<TDatum>,
+        Omit<AgBaseSeriesOptions<TDatum>, 'showInLegend'>,
         CandlestickUniqueOptions,
         Omit<AxisOptions, 'yKey'> {
     /** Configuration for the Candlestick Series. */
     type: 'candlestick';
-    /** Whether to group together (adjacently) separate columns. */
-    grouped?: boolean;
-    /** Human-readable description of the y-values. If supplied, matching items with the same value will be toggled together. */
-    legendItemName?: string;
 }

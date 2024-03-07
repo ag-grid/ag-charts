@@ -5,7 +5,7 @@ import { Logger } from '../../util/logger';
 import type { InteractionEvent, InteractionManager, InteractionTypes } from './interactionManager';
 import { INTERACTION_TYPES, InteractionState } from './interactionManager';
 
-export type RegionName = 'legend' | 'navigator' | 'pagination' | 'series';
+export type RegionName = 'legend' | 'navigator' | 'pagination' | 'series' | 'root';
 
 type RegionHandler<Event extends InteractionEvent> = (event: Event) => void;
 
@@ -18,6 +18,7 @@ type Region = {
 
 export class RegionManager {
     private currentRegion?: Region;
+    private isDragging = false;
 
     private eventHandler = (event: InteractionEvent<InteractionTypes>) => this.processEvent(event);
     private regions: BBoxSet<Region> = new BBoxSet();
@@ -100,22 +101,36 @@ export class RegionManager {
     }
 
     private dispatch(region: Region | undefined, event: InteractionEvent<InteractionTypes>) {
-        // Async dispatch to avoid blocking the event-processing thread.
-        if (region !== undefined) {
-            const dispatcher = async () => region.listeners.dispatch(event.type, event);
-            dispatcher().catch((e) => Logger.errorOnce(e));
-        }
+        region?.listeners.dispatch(event.type, event);
     }
 
-    private processEvent(event: InteractionEvent<InteractionTypes>) {
+    private handleDragging(event: InteractionEvent<InteractionTypes>): boolean {
         const { currentRegion } = this;
 
         // AG-10875 only dispatch followup drag event to the region that received the 'drag-start'
-        if (event.type === 'drag' || event.type === 'drag-end') {
-            this.dispatch(currentRegion, event);
+        // This logic will deliberatly suppress 'leave' events from the InteractionManager when dragging.
+        if (this.isDragging) {
+            if (event.type === 'drag-end') {
+                this.isDragging = false;
+                this.dispatch(currentRegion, event);
+            } else if (event.type === 'drag') {
+                this.dispatch(currentRegion, event);
+            }
+            return true;
+        } else if (event.type === 'drag-start') {
+            this.isDragging = true;
+        }
+
+        return false;
+    }
+
+    private processEvent(event: InteractionEvent<InteractionTypes>) {
+        if (this.handleDragging(event)) {
+            // We are current dragging, so do not send leave/enter events until dragging is done.
             return;
         }
 
+        const { currentRegion } = this;
         const newRegion = this.pickRegion(event.offsetX, event.offsetY);
         if (currentRegion !== undefined && newRegion?.name !== currentRegion.name) {
             this.dispatch(currentRegion, { ...event, type: 'leave' });

@@ -105,9 +105,9 @@ describe('Zoom', () => {
     describe('pixel scrolling', () => {
         it('should zoom in then out', async () => {
             await prepareChart();
-            await scrollAction(cx, cy, -4.3, WheelDeltaMode.Pixels)(chart);
+            await scrollAction(cx, cy, -70, WheelDeltaMode.Pixels)(chart);
             await compare();
-            await scrollAction(cx, cy, 2.7, WheelDeltaMode.Pixels)(chart);
+            await scrollAction(cx, cy, 50, WheelDeltaMode.Pixels)(chart);
             await compare();
         });
     });
@@ -118,10 +118,10 @@ describe('Zoom', () => {
             await prepareChart();
             await scrollAction(cx, cy, -1)(chart);
             // Pan left
-            await scrollAction(cx, cy, 0, WheelDeltaMode.Pixels, -100)(chart);
+            await scrollAction(cx, cy, 0, WheelDeltaMode.Pixels, -400)(chart);
             await compare();
             // Pan right
-            await scrollAction(cx, cy, 0, WheelDeltaMode.Pixels, 50)(chart);
+            await scrollAction(cx, cy, 0, WheelDeltaMode.Pixels, 250)(chart);
             await compare();
         });
     });
@@ -231,9 +231,9 @@ describe('Zoom', () => {
         });
     });
 
-    describe('min/max', () => {
+    describe('ratio', () => {
         it('should start at the given zoom', async () => {
-            await prepareChart({ minX: 0.2, maxX: 0.8, minY: 0.1, maxY: 0.9 });
+            await prepareChart({ ratioX: { start: 0.2, end: 0.8 }, ratioY: { start: 0.1, end: 0.9 } });
             await compare();
         });
     });

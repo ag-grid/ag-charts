@@ -1,7 +1,7 @@
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 const { Image } = _Scene;
-const { BaseProperties, ObserveChanges, ProxyProperty, Validate, NUMBER, POSITIVE_NUMBER, RATIO, calculatePosition } =
+const { BaseProperties, ObserveChanges, ProxyProperty, Validate, NUMBER, POSITIVE_NUMBER, RATIO, calculatePlacement } =
     _ModuleSupport;
 
 export class BackgroundImage extends BaseProperties {
@@ -59,7 +59,7 @@ export class BackgroundImage extends BaseProperties {
                 ? {
                       visible: true,
                       opacity: this.opacity,
-                      ...calculatePosition(
+                      ...calculatePlacement(
                           this.imageElement.width,
                           this.imageElement.height,
                           this.containerWidth,

@@ -22,7 +22,6 @@ const commonOptions: AgCartesianChartOptions = {
             start: new Date(2023, 10, 26),
         },
     },
-
     data: getData(),
 };
 
@@ -30,6 +29,9 @@ const candlestickOptions: AgCartesianChartOptions = {
     ...commonOptions,
     container: document.getElementById('ohlcChart'),
     title: { text: 'AAPL Stock Price' },
+    rangeButtons: {
+        enabled: true,
+    },
     series: [
         {
             type: 'candlestick',
@@ -147,44 +149,3 @@ const volumeOptions: AgCartesianChartOptions = {
 };
 
 const volumeChart = AgCharts.create(volumeOptions);
-
-function changeRange(value: string) {
-    let rangeStart = new Date(2022, 1, 27);
-    let format = 'm-y';
-    switch (value) {
-        case '1y':
-            rangeStart = new Date(2023, 1, 26);
-            format = 'm-y';
-            break;
-        case 'YTD':
-            rangeStart = new Date(2024, 0, 1);
-            format = 'd-m';
-            break;
-        case '6m':
-            rangeStart = new Date(2023, 7, 27);
-            format = 'm-y';
-            break;
-        case '3m':
-            rangeStart = new Date(2023, 9, 27);
-            format = 'd-m';
-            break;
-        case '1m':
-            rangeStart = new Date(2024, 0, 6);
-            format = 'd-m';
-            break;
-        case 'All':
-        default:
-            rangeStart = new Date(2022, 1, 27);
-            format = 'm-y';
-            break;
-    }
-
-    volumeOptions.zoom!.rangeX = { start: rangeStart };
-
-    volumeOptions.axes![1].label!.formatter = ({ value }) => dateFormat(value, format);
-    volumeOptions.axes![1].crosshair!.label!.renderer = ({ value }) => {
-        return { text: dateFormat(value, format) };
-    };
-
-    AgCharts.update(volumeChart, volumeOptions);
-}

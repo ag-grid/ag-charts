@@ -4,7 +4,6 @@ import type { ModuleContext } from '../module/moduleContext';
 import type { AxisOptionModule, ChartOptions } from '../module/optionsModule';
 import type { AgBaseAxisOptions } from '../options/chart/axisOptions';
 import type { AgChartInstance, AgChartOptions } from '../options/chart/chartBuilderOptions';
-import type { AgChartOptionsNext } from '../options/chart/chartBuilderOptionsNext';
 import type { AgChartClickEvent, AgChartDoubleClickEvent } from '../options/chart/eventOptions';
 import type { AgBaseSeriesOptions } from '../options/series/seriesOptions';
 import { BBox } from '../scene/bbox';
@@ -17,6 +16,7 @@ import { groupBy } from '../util/array';
 import { sleep } from '../util/async';
 import { CallbackCache } from '../util/callbackCache';
 import { Debug } from '../util/debug';
+import { createElement } from '../util/dom';
 import { createId } from '../util/id';
 import { jsonApply, jsonDiff } from '../util/json';
 import { Logger } from '../util/logger';
@@ -56,6 +56,7 @@ import type { InteractionEvent, PointerOffsets } from './interaction/interaction
 import { InteractionManager, InteractionState } from './interaction/interactionManager';
 import { RegionManager } from './interaction/regionManager';
 import { SyncManager } from './interaction/syncManager';
+import { ToolbarManager } from './interaction/toolbarManager';
 import { TooltipManager } from './interaction/tooltipManager';
 import { ZoomManager } from './interaction/zoomManager';
 import { Layers } from './layers';
@@ -63,7 +64,12 @@ import { LayoutService } from './layout/layoutService';
 import type { CategoryLegendDatum, ChartLegend, ChartLegendType, GradientLegendDatum } from './legendDatum';
 import { AxisPositionGuesser } from './mapping/prepareAxis';
 import { matchSeriesOptions } from './mapping/prepareSeries';
-import { type SeriesOptionsTypes, isAgCartesianChartOptions, isAgPolarChartOptions } from './mapping/types';
+import {
+    type SeriesOptionsTypes,
+    isAgCartesianChartOptions,
+    isAgPolarChartOptions,
+    isAgTopologyChartOptions,
+} from './mapping/types';
 import { ModulesManager } from './modulesManager';
 import { ChartOverlays } from './overlay/chartOverlays';
 import { type Series, SeriesGroupingChangedEvent, SeriesNodePickMode } from './series/series';
@@ -79,9 +85,7 @@ import { UpdateOpts, UpdateService } from './updateService';
 
 const debug = Debug.create(true, 'opts');
 
-type OptionalHTMLElement = HTMLElement | undefined | null;
-
-export type TransferableResources = { container?: OptionalHTMLElement; scene: Scene; element: HTMLElement };
+export type TransferableResources = { container?: HTMLElement; scene: Scene; element: HTMLElement };
 
 type SyncModule = ModuleInstance & { enabled?: boolean; syncAxes: (skipSync: boolean) => void };
 
@@ -160,7 +164,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             Chart.chartsInstances.delete(value);
         },
     })
-    container: OptionalHTMLElement;
+    container?: HTMLElement;
 
     public data: any = [];
 
@@ -257,6 +261,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
     protected readonly cursorManager: CursorManager;
     protected readonly interactionManager: InteractionManager;
     protected readonly regionManager: RegionManager;
+    protected readonly toolbarManager: ToolbarManager;
     protected readonly gestureDetector: GestureDetector;
     protected readonly dataService: DataService<any>;
     protected readonly layoutService: LayoutService;
@@ -284,10 +289,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
         super();
 
         this.chartOptions = options;
-        const { window, document, overrideDevicePixelRatio } = options.specialOverrides;
 
         const scene = resources?.scene;
-        const element = resources?.element ?? document.createElement('div');
+        const element = resources?.element ?? createElement('div');
         const container = resources?.container;
 
         const root = new Group({ name: 'root' });
@@ -306,6 +310,11 @@ export abstract class Chart extends Observable implements AgChartInstance {
         element.classList.add('ag-chart-wrapper');
         element.style.position = 'relative';
 
+        const sizeMonitor = new SizeMonitor();
+        this.sizeMonitor = sizeMonitor;
+        sizeMonitor.observe(this.element, (size) => this.rawResize(size));
+
+        const { overrideDevicePixelRatio } = options.specialOverrides;
         this.scene = scene ?? new Scene({ pixelRatio: overrideDevicePixelRatio });
         this.scene.setRoot(root).setContainer(element);
         this.autoSize = true;
@@ -314,8 +323,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.contextMenuRegistry = new ContextMenuRegistry();
         this.cursorManager = new CursorManager(element);
         this.highlightManager = new HighlightManager();
-        this.interactionManager = new InteractionManager(element, document, window);
+        this.interactionManager = new InteractionManager(element);
         this.regionManager = new RegionManager(this.interactionManager);
+        this.toolbarManager = new ToolbarManager();
         this.gestureDetector = new GestureDetector(element);
         this.layoutService = new LayoutService();
         this.updateService = new UpdateService((type = ChartUpdateType.FULL, opts) => this.update(type, opts));
@@ -337,16 +347,15 @@ export abstract class Chart extends Observable implements AgChartInstance {
             new OverlaysProcessor(this, this.overlays, this.dataService, this.layoutService),
         ];
 
-        this.tooltip = new Tooltip(this.scene.canvas.element, document, window, document.body);
+        this.tooltip = new Tooltip(this.scene.canvas.element);
         this.tooltipManager = new TooltipManager(this.tooltip, this.interactionManager);
         this.highlight = new ChartHighlight();
         this.container = container;
 
         const { All } = InteractionState;
         const seriesRegion = this.regionManager.addRegion('series', this.seriesRoot, this.axisGroup);
-        const sizeMonitor = new SizeMonitor(window, document);
-        this.sizeMonitor = sizeMonitor;
-        sizeMonitor.observe(this.element, (size) => this.rawResize(size));
+        this.regionManager.addRegion('root', root);
+
         this._destroyFns.push(
             this.dataService.addListener('data-load', (event) => {
                 this.data = event.data;
@@ -358,7 +367,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
             seriesRegion.addListener('leave', (event) => this.onLeave(event)),
             this.interactionManager.addListener('page-left', () => this.destroy()),
 
-            this.interactionManager.addListener('wheel', () => this.resetPointer()),
             this.interactionManager.addListener('drag', () => this.resetPointer()),
             this.interactionManager.addListener('contextmenu', (event) => this.onContextMenu(event), All),
 
@@ -366,9 +374,11 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 this.update(ChartUpdateType.SCENE_RENDER);
             }),
             this.highlightManager.addListener('highlight-change', (event) => this.changeHighlightDatum(event)),
-            this.zoomManager.addListener('zoom-change', () =>
-                this.update(ChartUpdateType.PROCESS_DATA, { forceNodeDataRefresh: true, skipAnimations: true })
-            )
+            this.zoomManager.addListener('zoom-change', () => {
+                this.resetPointer();
+                this.series.map((s) => (s as any).animationState.transition('updateData'));
+                this.update(ChartUpdateType.PERFORM_LAYOUT, { forceNodeDataRefresh: true, skipAnimations: true });
+            })
         );
     }
 
@@ -384,10 +394,11 @@ export abstract class Chart extends Observable implements AgChartInstance {
             highlightManager: this.highlightManager,
             interactionManager: this.interactionManager,
             regionManager: this.regionManager,
-            gestureDetector: this.gestureDetector,
             tooltipManager: this.tooltipManager,
+            toolbarManager: this.toolbarManager,
             syncManager: this.syncManager,
             zoomManager: this.zoomManager,
+            gestureDetector: this.gestureDetector,
             chartService: this,
             dataService: this.dataService,
             layoutService: this.layoutService,
@@ -1376,10 +1387,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
         return { minRect, minVisibleRect };
     }
 
-    private filterMiniChartSeries(
-        series: AgChartOptionsNext['series'] | undefined
-    ): AgChartOptionsNext['series'] | undefined;
-    private filterMiniChartSeries(series: AgChartOptionsNext['series']): AgChartOptionsNext['series'];
+    private filterMiniChartSeries(series: AgChartOptions['series'] | undefined): AgChartOptions['series'] | undefined;
+    private filterMiniChartSeries(series: AgChartOptions['series']): AgChartOptions['series'];
     private filterMiniChartSeries(series: any[] | undefined): any[] | undefined {
         return series?.filter((s) => s.showInMiniChart !== false);
     }
@@ -1409,6 +1418,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
         if (isAgCartesianChartOptions(deltaOptions) || isAgPolarChartOptions(deltaOptions)) {
             // Append axes to defaults.
             skip.push('axes');
+        }
+        if (isAgTopologyChartOptions(deltaOptions)) {
+            skip.push('topology');
         }
 
         // Needs to be done before applying the series to detect if a seriesNode[Double]Click listener has been added
@@ -1488,7 +1500,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
     }
 
-    private shouldForceNodeDataRefresh(deltaOptions: AgChartOptionsNext, seriesStatus: SeriesChangeType) {
+    private shouldForceNodeDataRefresh(deltaOptions: AgChartOptions, seriesStatus: SeriesChangeType) {
         const seriesDataUpdate = !!deltaOptions.data || seriesStatus === 'data-change' || seriesStatus === 'replaced';
         const legendKeys = legendRegistry.getKeys();
         const optionsHaveLegend = Object.values(legendKeys).some(
@@ -1500,8 +1512,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     private applyMiniChartOptions(
         miniChart: any,
-        miniChartSeries: NonNullable<AgChartOptionsNext['series']>,
-        completeOptions: AgChartOptionsNext,
+        miniChartSeries: NonNullable<AgChartOptions['series']>,
+        completeOptions: AgChartOptions,
         oldOpts: AgChartOptions & { type?: SeriesOptionsTypes['type'] }
     ) {
         const oldSeries = oldOpts?.navigator?.miniChart?.series ?? oldOpts?.series;
@@ -1598,8 +1610,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     private applySeries(
         chart: { series: Series<any, any>[] },
-        optSeries: AgChartOptionsNext['series'],
-        oldOptSeries?: AgChartOptionsNext['series']
+        optSeries: AgChartOptions['series'],
+        oldOptSeries?: AgChartOptions['series']
     ): SeriesChangeType {
         if (!optSeries) {
             return 'no-change';
@@ -1672,8 +1684,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     private applyAxes(
         chart: { axes: ChartAxis[] },
-        options: AgChartOptionsNext,
-        oldOpts: AgChartOptionsNext,
+        options: AgChartOptions,
+        oldOpts: AgChartOptions,
         seriesStatus: SeriesChangeType,
         skip: string[] = []
     ) {

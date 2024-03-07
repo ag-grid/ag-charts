@@ -1,10 +1,16 @@
 import type { ChartOptions } from '../module/optionsModule';
+import type { AgTopologyChartOptions } from '../options/agChartOptions';
 import { BBox } from '../scene/bbox';
 import type { TransferableResources } from './chart';
 import { Chart } from './chart';
-import type { LatLongBBox } from './series/topology/LatLongBBox';
-import { MapSeries } from './series/topology/mapSeries';
+import type { Series } from './series/series';
+import type { LonLatBBox } from './series/topology/lonLatBbox';
 import { MercatorScale } from './series/topology/mercatorScale';
+import type { TopologySeries } from './series/topologySeries';
+
+function isTopologySeries(series: Series<any, any>): series is TopologySeries {
+    return series.type === 'map' || series.type === 'map-marker';
+}
 
 export class TopologyChart extends Chart {
     static readonly className = 'TopologyChart';
@@ -14,8 +20,19 @@ export class TopologyChart extends Chart {
         super(options, resources);
     }
 
-    protected _data: any = {};
+    override async updateData() {
+        await super.updateData();
 
+        const { topology } = this.getOptions() as AgTopologyChartOptions;
+
+        this.series.forEach((series) => {
+            if (isTopologySeries(series)) {
+                series.setChartTopology(topology);
+            }
+        });
+    }
+
+    private firstSeriesTranslation = true;
     override async performLayout() {
         const shrinkRect = await super.performLayout();
 
@@ -34,12 +51,10 @@ export class TopologyChart extends Chart {
         this.animationRect = shrinkRect;
         this.hoverRect = shrinkRect;
 
-        const mapSeries = this.series.filter<MapSeries>((series): series is MapSeries => series instanceof MapSeries);
+        const mapSeries = this.series.filter<TopologySeries>(isTopologySeries);
 
-        await Promise.all(mapSeries.map((series) => series.updateSelections()));
-
-        const combinedBbox: LatLongBBox | undefined = mapSeries.reduce<LatLongBBox | undefined>((combined, series) => {
-            const bbox = series.computeLatLngBox();
+        const combinedBbox: LonLatBBox | undefined = mapSeries.reduce<LonLatBBox | undefined>((combined, series) => {
+            const bbox = series.topologyBounds;
             if (bbox == null) return combined;
             if (combined == null) return bbox;
             combined.merge(bbox);
@@ -49,15 +64,15 @@ export class TopologyChart extends Chart {
         let scale: MercatorScale | undefined;
         if (combinedBbox != null) {
             const { lon0, lat0, lon1, lat1 } = combinedBbox;
-            const { x, y, width, height } = shrinkRect;
+            const { width, height } = shrinkRect;
             scale = new MercatorScale(
                 [
                     [lon0, lat0],
                     [lon1, lat1],
                 ],
                 [
-                    [x, y],
-                    [x + width, y + height],
+                    [0, 0],
+                    [width, height],
                 ]
             );
         }
@@ -66,17 +81,16 @@ export class TopologyChart extends Chart {
             series.scale = scale;
         });
 
-        await Promise.all(
-            this.series.map(async (series) => {
-                await series.update({ seriesRect: shrinkRect });
-            })
-        );
-
         const seriesVisible = this.series.some((s) => s.visible);
         seriesRoot.visible = seriesVisible;
-        seriesRoot.setClipRectInGroupCoordinateSpace(
-            new BBox(shrinkRect.x, shrinkRect.y, shrinkRect.width, shrinkRect.height)
-        );
+        if (this.firstSeriesTranslation) {
+            seriesRoot.translationX = Math.floor(shrinkRect.x);
+            seriesRoot.translationY = Math.floor(shrinkRect.y);
+            seriesRoot.setClipRectInGroupCoordinateSpace(
+                new BBox(shrinkRect.x, shrinkRect.y, shrinkRect.width, shrinkRect.height)
+            );
+            this.firstSeriesTranslation = false;
+        }
 
         this.layoutService.dispatchLayoutComplete({
             type: 'layout-complete',

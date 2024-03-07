@@ -46,6 +46,8 @@ export * from './series/polar/radarAreaOptions';
 export * from './series/polar/radialBarOptions';
 export * from './series/polar/radialColumnOptions';
 export * from './series/polar/radialOptions';
+export * from './series/topology/mapOptions';
+export * from './series/topology/mapMarkerOptions';
 
 /**
  * Internal Use Only: Used to ensure this file is treated as a module until we can use moduleDetection flag in Ts v4.7

@@ -1,3 +1,4 @@
+/* @ag-options-extract */
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 
 import { getData } from './data';
@@ -257,6 +258,7 @@ for (let i = 2; i <= 3; i++) {
         })
     );
 }
+/* @ag-options-end */
 
 const start = performance.now();
 const chart = AgCharts.create(options);

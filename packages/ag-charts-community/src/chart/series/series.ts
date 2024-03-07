@@ -376,7 +376,6 @@ export abstract class Series<
 
     constructor(seriesOpts: {
         moduleCtx: ModuleContext;
-        useSeriesGroupLayer?: boolean;
         useLabelLayer?: boolean;
         pickModes?: SeriesNodePickMode[];
         contentGroupVirtual?: boolean;

@@ -129,6 +129,8 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             this.ctx.cursorManager.updateCursor('navigator', 'ew-resize');
         } else if (mask.computeVisibleRangeBBox().containsPoint(offsetX, offsetY)) {
             this.ctx.cursorManager.updateCursor('navigator', 'grab');
+        } else {
+            this.ctx.cursorManager.updateCursor('navigator');
         }
     }
 
@@ -182,13 +184,10 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
 
     private onDragEnd() {
         this.dragging = undefined;
-        this.ctx.cursorManager.updateCursor('navigator');
     }
 
     private onLeave(_event: InteractionEvent<'leave'>) {
-        if (this.dragging == null) {
-            this.ctx.cursorManager.updateCursor('navigator');
-        }
+        this.ctx.cursorManager.updateCursor('navigator');
     }
 
     private onZoomChange(event: ZoomChangeEvent) {
@@ -203,7 +202,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     private layoutNodes(x: number, y: number, width: number, height: number) {
         const { rangeSelector, mask, minHandle, maxHandle, _min: min, _max: max } = this;
 
-        rangeSelector.layout(x, y, width, height);
+        rangeSelector.layout(x, y, width, height, minHandle.width / 2, maxHandle.width / 2);
         mask.layout(x, y, width, height);
 
         minHandle.layout(x + width * min, y + height / 2);

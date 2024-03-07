@@ -12,15 +12,18 @@ import { CrosshairModule } from './features/crosshair/main';
 import { DataSourceModule } from './features/data-source/main';
 import { ErrorBarsModule } from './features/error-bar/errorBarModule';
 import { NavigatorModule } from './features/navigator/navigatorModule';
+import { RangeButtonsModule } from './features/range-buttons/main';
 import { SyncModule } from './features/sync/syncModule';
 import { ZoomModule } from './features/zoom/main';
 import { GradientLegendModule } from './gradient-legend/main';
 import { LicenseManager } from './license/licenseManager';
 import { injectWatermark } from './license/watermark';
-import { BoxPlotModule } from './series/box-plot/boxPlotModule';
+import { BoxPlotModule } from './series/box-plot/main';
 import { BulletModule } from './series/bullet/bulletModule';
-import { CandlestickModule } from './series/candlestick/candlestickModule';
+import { CandlestickModule } from './series/candlestick/main';
 import { HeatmapModule } from './series/heatmap/main';
+import { MapMarkerModule } from './series/map-marker/main';
+import { MapModule } from './series/map/main';
 import { NightingaleModule } from './series/nightingale/main';
 import { RadarAreaModule } from './series/radar-area/main';
 import { RadarLineModule } from './series/radar-line/main';
@@ -28,8 +31,8 @@ import { RadialBarModule } from './series/radial-bar/main';
 import { RadialColumnModule } from './series/radial-column/main';
 import { RangeAreaModule } from './series/range-area/rangeAreaModule';
 import { RangeBarModule } from './series/range-bar/main';
-import { SunburstSeriesModule } from './series/sunburst/sunburstSeriesModule';
-import { TreemapSeriesModule } from './series/treemap/treemapSeriesModule';
+import { SunburstModule } from './series/sunburst/main';
+import { TreemapModule } from './series/treemap/main';
 import { WaterfallModule } from './series/waterfall/main';
 
 export function setupEnterpriseModules() {
@@ -44,6 +47,8 @@ export function setupEnterpriseModules() {
     _ModuleSupport.registerModule(CrosshairModule);
     _ModuleSupport.registerModule(DataSourceModule);
     _ModuleSupport.registerModule(ErrorBarsModule);
+    _ModuleSupport.registerModule(MapModule);
+    _ModuleSupport.registerModule(MapMarkerModule);
     _ModuleSupport.registerModule(NavigatorModule);
     _ModuleSupport.registerModule(GradientLegendModule);
     _ModuleSupport.registerModule(HeatmapModule);
@@ -56,10 +61,11 @@ export function setupEnterpriseModules() {
     _ModuleSupport.registerModule(RadiusCategoryAxisModule);
     _ModuleSupport.registerModule(RadiusNumberAxisModule);
     _ModuleSupport.registerModule(RangeBarModule);
+    _ModuleSupport.registerModule(RangeButtonsModule);
     _ModuleSupport.registerModule(RangeAreaModule);
-    _ModuleSupport.registerModule(SunburstSeriesModule);
+    _ModuleSupport.registerModule(SunburstModule);
     _ModuleSupport.registerModule(SyncModule);
-    _ModuleSupport.registerModule(TreemapSeriesModule);
+    _ModuleSupport.registerModule(TreemapModule);
     _ModuleSupport.registerModule(WaterfallModule);
     _ModuleSupport.registerModule(ZoomModule);
 

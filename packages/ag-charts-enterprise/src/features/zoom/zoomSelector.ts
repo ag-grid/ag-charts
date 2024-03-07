@@ -64,6 +64,10 @@ export class ZoomSelector {
         this.rect.visible = false;
     }
 
+    didUpdate(): boolean {
+        return this.rect.visible;
+    }
+
     private updateCoords(
         x: number,
         y: number,

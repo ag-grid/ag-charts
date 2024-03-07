@@ -8,7 +8,11 @@
       "executor": "@nx/js:swc",
       "inputs": ["{projectRoot}/src/**"],
       "outputs": ["{options.outputPath}"],
-      "dependsOn": ["ag-charts-community:build:package", "ag-charts-enterprise:build:package"],
+      "dependsOn": [
+        "ag-charts-community:build:package",
+        "ag-charts-enterprise:build:package",
+        "ag-charts-generate-thumbnail:build"
+      ],
       "options": {
         "outputPath": "{projectRoot}/dist",
         "main": "{projectRoot}/src/index.ts",

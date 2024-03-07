@@ -1,8 +1,8 @@
 import type { AgTooltipRendererResult, InteractionRange, TextWrap } from '../../options/agChartOptions';
 import { BBox } from '../../scene/bbox';
-import { injectStyle } from '../../util/dom';
+import { createElement, getDocument, getWindow, injectStyle } from '../../util/dom';
 import { clamp } from '../../util/number';
-import { Bounds, calculatePosition } from '../../util/position';
+import { Bounds, calculatePlacement } from '../../util/placement';
 import { BaseProperties } from '../../util/properties';
 import {
     BOOLEAN,
@@ -253,12 +253,10 @@ export class Tooltip {
     private lastVisibilityChange: number = Date.now();
 
     readonly position: TooltipPosition = new TooltipPosition();
-    private readonly window: Window;
 
-    constructor(canvasElement: HTMLCanvasElement, document: Document, window: Window, container: HTMLElement) {
-        this.tooltipRoot = container;
-        this.window = window;
-        const element = document.createElement('div');
+    constructor(canvasElement: HTMLCanvasElement) {
+        this.tooltipRoot = getDocument().body;
+        const element = createElement('div');
         this.element = this.tooltipRoot.appendChild(element);
         this.element.classList.add(DEFAULT_TOOLTIP_CLASS);
         this.canvasElement = canvasElement;
@@ -279,9 +277,9 @@ export class Tooltip {
             this.observer = observer;
         }
 
-        if (Tooltip.tooltipDocuments.indexOf(document) < 0) {
+        if (Tooltip.tooltipDocuments.indexOf(getDocument()) < 0) {
             injectStyle(defaultTooltipCss);
-            Tooltip.tooltipDocuments.push(document);
+            Tooltip.tooltipDocuments.push(getDocument());
         }
     }
 
@@ -378,7 +376,7 @@ export class Tooltip {
         });
     }
 
-    private showTimeout: number = 0;
+    private showTimeout: NodeJS.Timeout | number = 0;
     private _showArrow = true;
     /**
      * Shows tooltip at the given event's coordinates.
@@ -404,7 +402,7 @@ export class Tooltip {
         const maxLeft = windowBounds.x + windowBounds.width - element.clientWidth - 1;
         const maxTop = windowBounds.y + windowBounds.height - element.clientHeight;
 
-        const position = calculatePosition(
+        const position = calculatePlacement(
             element.clientWidth,
             element.clientHeight,
             canvasRect.width,
@@ -430,7 +428,7 @@ export class Tooltip {
 
         if (this.delay > 0 && !instantly) {
             this.toggle(false);
-            this.showTimeout = this.window.setTimeout(() => {
+            this.showTimeout = setTimeout(() => {
                 this.toggle(true, meta.addCustomClass);
             }, this.delay);
             return;
@@ -440,12 +438,13 @@ export class Tooltip {
     }
 
     private getWindowBoundingBox(): BBox {
-        return new BBox(0, 0, this.window.innerWidth, this.window.innerHeight);
+        const { innerWidth, innerHeight } = getWindow();
+        return new BBox(0, 0, innerWidth, innerHeight);
     }
 
     toggle(visible?: boolean, addCustomClass?: boolean) {
         if (!visible) {
-            this.window.clearTimeout(this.showTimeout);
+            clearTimeout(this.showTimeout);
         }
         this.updateClass(visible, this._showArrow, addCustomClass);
     }
@@ -477,13 +476,8 @@ export class Tooltip {
         xOffset: number;
         canvasRect: DOMRect;
     }): Bounds {
-        const tooltipWidth = this.element.clientWidth;
-        const tooltipHeight = this.element.clientHeight;
-
-        const bounds: Bounds = {
-            width: tooltipWidth,
-            height: tooltipHeight,
-        };
+        const { clientWidth: tooltipWidth, clientHeight: tooltipHeight } = this.element;
+        const bounds: Bounds = { width: tooltipWidth, height: tooltipHeight };
 
         switch (positionType) {
             case 'node':
