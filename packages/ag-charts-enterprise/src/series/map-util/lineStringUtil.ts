@@ -34,6 +34,15 @@ export function lineSegmentDistanceToRectSquared(
     center: Position,
     size: { width: number; height: number }
 ): number {
+    /**
+     * Finds the minimum distance between a line segment and a rect.
+     * Does this by finding the minimum distance from each corner to the line segment.
+     * As part of the way we find this minimum distance, we get a point line segment itself.
+     * If the line segment intersects the rect, one of those points on the line segment will
+     * (if I'm not wrong) be inside the rect.
+     *
+     * Returns 0 if the line segment intersects the rect.
+     */
     const [ax, ay] = a;
     const [bx, by] = b;
     const abx = bx - ax;
