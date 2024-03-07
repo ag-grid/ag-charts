@@ -47,12 +47,14 @@ export function lineSegmentDistanceToRectSquared(
 
     let minDistanceSquared = Infinity;
 
-    for (const [x, y] of [
-        [rx0, ry0],
-        [rx1, ry0],
-        [rx1, ry1],
-        [rx0, ry1],
-    ]) {
+    // Iterate over each corner
+    // This might look like an over-engineered way to do this,
+    // But it had a **significant** perf improvement (10x)
+    // Probably something to do with a loop unrolling optimisation by the engine
+    for (let i = 0; i < 4; i += 1) {
+        const x = i % 2 ? rx0 : rx1;
+        const y = i < 2 ? ry0 : ry1;
+
         let x0;
         let y0;
         if (Math.abs(l) < delta) {
