@@ -3,7 +3,7 @@ import type { AgChartLabelFormatterParams, AgChartLabelOptions } from '../option
 import { BBox } from '../scene/bbox';
 import type { Matrix } from '../scene/matrix';
 import { getFont } from '../scene/shape/text';
-import type { PointLabelDatum } from '../scene/util/labelPlacement';
+import type { PlacedLabelDatum } from '../scene/util/labelPlacement';
 import { normalizeAngle360, toRadians } from '../util/angle';
 import { BaseProperties } from '../util/properties';
 import type { RequireOptional } from '../util/types';
@@ -128,7 +128,7 @@ export function calculateLabelBBox(
     labelX: number,
     labelY: number,
     labelMatrix: Matrix
-): PointLabelDatum {
+): PlacedLabelDatum {
     // Text.computeBBox() does not take into account any of the transformations that have been applied to the label nodes, only the width and height are useful.
     // Rather than taking into account all transformations including those of parent nodes which would be the result of `computeTransformedBBox()`, giving the x and y in the entire axis coordinate space,
     // take into account only the rotation and translation applied to individual label nodes to get the x y coordinates of the labels relative to each other
@@ -139,14 +139,12 @@ export function calculateLabelBBox(
     const translatedBBox = new BBox(labelX, labelY, 0, 0);
     labelMatrix.transformBBox(translatedBBox, bbox);
 
-    const { x = 0, y = 0 } = bbox;
+    const { x, y } = bbox;
     bbox.width = width;
     bbox.height = height;
 
     return {
-        point: { x, y, size: 0 },
-        label: { width, height, text },
-        marker: undefined,
-        placement: 'bottom',
+        point: { x, y },
+        label: { text, width, height },
     };
 }

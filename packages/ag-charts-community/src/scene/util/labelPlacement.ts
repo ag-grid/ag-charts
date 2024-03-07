@@ -8,9 +8,9 @@ export interface MeasuredLabel {
     readonly height: number;
 }
 
-export interface PlacedLabel<PLD = PointLabelDatum> extends MeasuredLabel, Readonly<Point> {
-    readonly index: number;
-    readonly datum: PLD;
+export interface PlacedLabelDatum {
+    readonly point: Point;
+    readonly label: MeasuredLabel;
 }
 
 export interface PointLabelDatum {
@@ -18,6 +18,11 @@ export interface PointLabelDatum {
     readonly label: MeasuredLabel;
     readonly marker: { center: Point } | undefined;
     readonly placement: LabelPlacement;
+}
+
+export interface PlacedLabel<PLD = PointLabelDatum> extends MeasuredLabel, Readonly<Point> {
+    readonly index: number;
+    readonly datum: PLD;
 }
 
 interface Bounds extends Readonly<Point> {
@@ -148,8 +153,8 @@ export function placeLabels(
     return result;
 }
 
-export function axisLabelsOverlap(data: readonly PointLabelDatum[], padding?: number): boolean {
-    const result: PlacedLabel[] = [];
+export function axisLabelsOverlap(data: readonly PlacedLabelDatum[], padding?: number): boolean {
+    const result: PlacedLabel<PlacedLabelDatum>[] = [];
 
     for (let i = 0; i < data.length; i++) {
         const datum = data[i];
@@ -164,7 +169,7 @@ export function axisLabelsOverlap(data: readonly PointLabelDatum[], padding?: nu
         width += padding ?? 0;
         height += padding ?? 0;
 
-        const overlapLabels = result.some((l: PlacedLabel) => {
+        const overlapLabels = result.some((l) => {
             return rectRectOverlap(l, x, y, width, height);
         });
 
