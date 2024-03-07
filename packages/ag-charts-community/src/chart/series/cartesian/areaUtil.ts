@@ -51,7 +51,7 @@ export interface LabelSelectionDatum extends Readonly<Point>, SeriesNodeDatum {
         readonly fontFamily: string;
         readonly textAlign: CanvasTextAlign;
         readonly textBaseline: CanvasTextBaseline;
-        readonly fill: string;
+        readonly fill?: string;
     };
 }
 

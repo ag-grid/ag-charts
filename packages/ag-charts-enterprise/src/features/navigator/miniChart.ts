@@ -195,6 +195,10 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
 
     computeAxisPadding() {
         const padding = new Padding();
+        if (!this.enabled) {
+            return padding;
+        }
+
         this.axes.forEach((axis) => {
             const { position, thickness = 0, line, label } = axis;
             if (position == null) return;

@@ -49,7 +49,7 @@ export interface HistogramNodeDatum extends CartesianSeriesNodeDatum {
         readonly fontWeight?: FontWeight;
         readonly fontSize: number;
         readonly fontFamily: string;
-        readonly fill: string;
+        readonly fill?: string;
     };
 }
 

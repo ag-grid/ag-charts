@@ -4,6 +4,7 @@ import { MapSeries } from './mapSeries';
 
 const {
     EXTENDS_SERIES_DEFAULTS,
+    DEFAULT_LABEL_COLOUR,
     DEFAULT_INVERTED_LABEL_COLOUR,
     EXTENDS_CARTESIAN_MARKER_DEFAULTS,
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
@@ -30,10 +31,6 @@ export const MapModule: _ModuleSupport.SeriesModule<'map'> = {
             background: {
                 strokeWidth: 0,
                 fillOpacity: 0.2,
-            },
-            label: {
-                color: DEFAULT_INVERTED_LABEL_COLOUR,
-                fontWeight: 'bold',
             },
             marker: {
                 __extends__: EXTENDS_CARTESIAN_MARKER_DEFAULTS,
@@ -67,6 +64,14 @@ export const MapModule: _ModuleSupport.SeriesModule<'map'> = {
             colorRange: userPalette ? [fills[0], fills[1]] : defaultColorRange,
             __POLYGON_STROKE: properties.get(DEFAULT_BACKGROUND_COLOUR),
             __LINE_STRING_STROKE: fill,
+            __POLYGON_LABEL: {
+                color: properties.get(DEFAULT_INVERTED_LABEL_COLOUR),
+                fontWeight: 'bold',
+            },
+            __MARKER_LABEL: {
+                color: properties.get(DEFAULT_LABEL_COLOUR),
+                fontWeight: 'normal',
+            },
         };
     },
 };

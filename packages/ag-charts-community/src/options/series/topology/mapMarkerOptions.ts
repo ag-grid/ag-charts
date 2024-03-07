@@ -1,7 +1,7 @@
 import type { AgChartCallbackParams } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
-import type { CssColor, PixelSize } from '../../chart/types';
+import type { CssColor, LabelPlacement, PixelSize } from '../../chart/types';
 import type { FillOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgSeriesMarkerOptions } from '../markerOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
@@ -27,13 +27,19 @@ export interface AgMapMarkerSeriesMarker<TDatum> extends AgSeriesMarkerOptions<A
     domain?: [number, number];
 }
 
+export interface AgMapMarkerSeriesLabel<TDatum>
+    extends AgChartLabelOptions<TDatum, AgMapMarkerSeriesLabelFormatterParams> {
+    /** Placement of label in relation to the marker (if visible). Defaults to `bottom`. */
+    placement?: LabelPlacement;
+}
+
 export interface AgMapMarkerSeriesBackground extends FillOptions, StrokeOptions {
     /** Topology to use for the background. */
     topology?: any;
     /** ID of the feature to use from the topology. */
     id?: string;
     /** The property to reference in the topology to match up with data. Defaults to `name`. */
-    topologyProperty?: string;
+    topologyIdKey?: string;
 }
 
 export interface AgMapMarkerSeriesThemeableOptions<TDatum = any>
@@ -46,7 +52,7 @@ export interface AgMapMarkerSeriesThemeableOptions<TDatum = any>
     /** Configuration for the markers used in the series. */
     marker?: AgMapMarkerSeriesMarker<TDatum>;
     /** Configuration for the labels shown on top of data points. */
-    label?: AgChartLabelOptions<TDatum, AgMapMarkerSeriesLabelFormatterParams>;
+    label?: AgMapMarkerSeriesLabel<TDatum>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgMapMarkerSeriesTooltipRendererParams<TDatum>>;
     /** A callback function for adjusting the styles of a particular Map sector based on the input parameters. */
@@ -73,8 +79,6 @@ export interface AgMapMarkerSeriesOptionsKeys {
     lonKey?: string;
     /** The key to use to retrieve size values from the data, used to control the size of the markers. */
     sizeKey?: string;
-    /** The name of the node key containing the colour value. This value (along with `colorRange` config) will be used to determine the segment colour. */
-    colorKey?: string;
     /** The key to use to retrieve values from the data to use as labels for the markers. */
     labelKey?: string;
 }
@@ -86,8 +90,6 @@ export interface AgMapMarkerSeriesOptionsNames {
     lonName?: string;
     /** The key to use to retrieve size values from the data, used to control the size of the markers.  */
     sizeName?: string;
-    /** A human-readable description of the colour values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
-    colorName?: string;
     /** A human-readable description of the label values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     labelName?: string;
 }

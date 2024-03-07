@@ -26,8 +26,19 @@ import {
 type PinchEvent = _ModuleSupport.PinchEvent;
 type ContextMenuActionParams = _ModuleSupport.ContextMenuActionParams;
 
-const { BOOLEAN, NUMBER, RATIO, UNION, ActionOnSet, ChartAxisDirection, ChartUpdateType, Validate, round } =
-    _ModuleSupport;
+const {
+    BOOLEAN,
+    NUMBER,
+    RATIO,
+    UNION,
+    ActionOnSet,
+    ChartAxisDirection,
+    ChartUpdateType,
+    Validate,
+    round: sharedRound,
+} = _ModuleSupport;
+
+const round = (value: number) => sharedRound(value, 8);
 
 const ANCHOR_CORD = UNION(['pointer', 'start', 'middle', 'end'], 'an anchor cord');
 
@@ -522,19 +533,11 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         // We don't need to check flipping here again, as it is already built into the width & height ratios and the
         // zoom.x/y values themselves do not flip and are bound to width/height respectively.
-        const ratioX = round(widthRatio * dx(zoom), 10);
-        const ratioY = round(heightRatio * dy(zoom), 10);
+        const ratioX = round(widthRatio * dx(zoom));
+        const ratioY = round(heightRatio * dy(zoom));
 
-        if (this.isScalingX()) {
-            this.minRatioX = Math.min(1, ratioX);
-        }
-
-        if (this.isScalingY()) {
-            this.minRatioY = Math.min(1, ratioY);
-        }
-
-        this.minRatioX ||= this.minRatioY || 0;
-        this.minRatioY ||= this.minRatioX || 0;
+        this.minRatioX = this.isScalingX() ? Math.min(1, ratioX) : 1;
+        this.minRatioY = this.isScalingY() ? Math.min(1, ratioY) : 1;
     }
 
     private onContextMenuZoomToHere({ event }: ContextMenuActionParams) {
@@ -625,8 +628,9 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private isMinZoom(zoom: DefinedZoomState): boolean {
-        const isMinXZoom = dx(zoom) <= this.minRatioX;
-        const isMinYZoom = dy(zoom) <= this.minRatioY;
+        // Round the comparison values to avoid floating point issues, but not too much to break "infinite" zoom
+        const isMinXZoom = round(dx(zoom)) <= this.minRatioX;
+        const isMinYZoom = round(dy(zoom)) <= this.minRatioY;
 
         return isMinXZoom && isMinYZoom;
     }
@@ -637,8 +641,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     private updateZoom(zoom: DefinedZoomState) {
         // Round the comparison values to avoid floating point issues, but not too much to break "infinite" zoom
-        const dx_ = round(dx(zoom), 10);
-        const dy_ = round(dy(zoom), 10);
+        const dx_ = round(dx(zoom));
+        const dy_ = round(dy(zoom));
 
         const oldZoom = definedZoomState(this.zoomManager.getZoom());
 
@@ -646,8 +650,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const zoomedInTooFarY = dy_ < dy(oldZoom) && dy_ < this.minRatioY;
 
         if (zoomedInTooFarX || zoomedInTooFarY) {
-            this.contextMenuRegistry.disableAction(CONTEXT_ZOOM_ACTION_ID);
-            this.contextMenuRegistry.enableAction(CONTEXT_PAN_ACTION_ID);
+            this.toggleContextMenuActions(zoom);
             return;
         }
 
