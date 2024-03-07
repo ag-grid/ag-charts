@@ -245,5 +245,5 @@
     }
   },
   "implicitDependencies": ["ag-charts-test"],
-  "tags": []
+  "tags": ["no-batching"]
 }

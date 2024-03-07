@@ -47,7 +47,7 @@ function closeMatch<T extends number | string>(a: T, b: T) {
 
 function calculateMoveTo(from = false, to = false): PathPoint['moveTo'] {
     if (from === to) {
-        return !!from;
+        return Boolean(from);
     }
 
     return from ? 'in' : 'out';

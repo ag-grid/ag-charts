@@ -3,7 +3,7 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "packages/ag-charts-react/src",
   "projectType": "library",
-  "tags": ["fw"],
+  "tags": ["fw", "no-batching"],
   "targets": {
     "lint": {
       "executor": "nx:noop"

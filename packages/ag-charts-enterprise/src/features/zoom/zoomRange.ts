@@ -35,6 +35,41 @@ export class ZoomRange {
         return this.getRangeWithValues(this.initialStart, this.initialEnd);
     }
 
+    public extendToEnd(extent: number) {
+        return this.extendWith((end) => Number(end) - extent);
+    }
+
+    public extendWith(fn: (end: Date | number) => Date | number) {
+        if (!this.domain) return;
+
+        const end = this.domain.at(-1);
+        if (end == null) return;
+
+        const start = fn(end);
+        const changed = this.start !== start || this.end !== end;
+
+        this.end = end;
+        this.start = start;
+
+        // If neither start or end were changed, ensure we still call the `onChange` callback
+        if (!changed) this.onChange?.(this.getRange());
+    }
+
+    public extendAll() {
+        if (!this.domain) return;
+
+        const start = this.domain[0];
+        const end = this.domain.at(-1);
+
+        const changed = this.start !== start || this.end !== end;
+
+        this.start = start;
+        this.end = end;
+
+        // If neither start or end were changed, ensure we still call the `onChange` callback
+        if (!changed) this.onChange?.(this.getRange());
+    }
+
     public updateAxis(axes: Array<_ModuleSupport.AxisLayout>) {
         const validAxis = axes.find(({ domain }) => {
             const isNumberAxis = !isFiniteNumber(domain[0]) || !isFiniteNumber(domain.at(-1));

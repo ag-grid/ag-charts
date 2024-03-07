@@ -1,4 +1,3 @@
-import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { CssColor } from '../../chart/types';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
@@ -54,10 +53,6 @@ export interface AgCandlestickSeriesTooltipRendererParams
 }
 
 export interface AgCandlestickSeriesItemOptions extends AgBarSeriesStyle {
-    /** A human-readable description of the y-values. If supplied, this will be shown in the legend and default tooltip and passed to the tooltip renderer as one of the parameters. */
-    name?: string;
-    /** Configuration for the shadow used behind the series items. */
-    shadow?: AgDropShadowOptions;
     /** Options to style chart's wicks */
     wick?: AgCandlestickWickOptions;
 }

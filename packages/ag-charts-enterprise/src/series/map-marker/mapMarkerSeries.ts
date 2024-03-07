@@ -317,7 +317,7 @@ export class MapMarkerSeries extends DataModelSeries<
 
         const backgroundGeometry = this.getBackgroundGeometry();
         const projectedBackgroundGeometry =
-            backgroundGeometry != null && scale != null ? projectGeometry(backgroundGeometry, scale) : undefined;
+            backgroundGeometry != null ? projectGeometry(backgroundGeometry, scale) : undefined;
 
         return [
             {

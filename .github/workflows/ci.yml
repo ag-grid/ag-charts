@@ -28,6 +28,8 @@ env:
     NX_NO_CLOUD: true
     NX_CLOUD_ACCESS_TOKEN: x
     NX_BRANCH: ${{ github.ref }}
+    # Set to --batch to enable batch execution.
+    NX_BATCH_FLAG: '--batch'
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
@@ -158,26 +160,14 @@ jobs:
                   check_id: ${{ steps.init_lint.outputs.check_id }}
                   conclusion: ${{ github.ref == 'refs/heads/latest' && steps.lint.outcome || steps.lint_diff.outcome }}
 
-            # - name: nx batched build
-            #   id: batched_build
-            #   if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
-            #   run: |
-            #       COUNT=$(yarn --silent nx show projects --affected -t generate-examples,generate-thumbnails | wc -l)
-            #       if [[ "${{ github.event.inputs.nx_command || 'affected' }}" != "affected" ]] ; then
-            #         # Always run the Nx commands.
-            #         echo "Forcibly running batched generation."
-            #       elif [[ "${COUNT}" == "0" ]] ; then
-            #         exit
-            #       fi
-
-            #       yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t build:types
-            #       yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t generate-examples --batch
-            #       yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t generate-thumbnails --batch
-
             - name: nx build
               id: build
               if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
-              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t build --parallel=3  --exclude all
+              run: |
+                  # Non-batched builds - some TS/JS targets will fail if run with --batch, so build them unbatched first.
+                  yarn nx run-many -p tag:no-batching -t build --parallel=3
+                  # Batched builds.
+                  yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t build --parallel=3  --exclude all ${NX_BATCH_FLAG}
 
             - name: nx run-many -t validate-examples
               if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'

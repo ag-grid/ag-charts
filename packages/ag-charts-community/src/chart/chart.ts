@@ -354,6 +354,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         const { All } = InteractionState;
         const seriesRegion = this.regionManager.addRegion('series', this.seriesRoot, this.axisGroup);
+        this.regionManager.addRegion('root', root);
 
         this._destroyFns.push(
             this.dataService.addListener('data-load', (event) => {
@@ -375,7 +376,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.highlightManager.addListener('highlight-change', (event) => this.changeHighlightDatum(event)),
             this.zoomManager.addListener('zoom-change', () => {
                 this.resetPointer();
-                this.update(ChartUpdateType.PROCESS_DATA, { forceNodeDataRefresh: true, skipAnimations: true });
+                this.series.map((s) => (s as any).animationState.transition('updateData'));
+                this.update(ChartUpdateType.PERFORM_LAYOUT, { forceNodeDataRefresh: true, skipAnimations: true });
             })
         );
     }

@@ -14,7 +14,10 @@ export class OrdinalTimeAxis extends _ModuleSupport.CategoryAxis<_Scene.OrdinalT
     override normaliseDataDomain(d: Date[]) {
         const domain = [];
         const uniqueValues = new Set();
-        for (const v of d) {
+        for (let v of d) {
+            if (typeof v === 'number') {
+                v = new Date(v);
+            }
             const key = dateToNumber(v);
             if (!uniqueValues.has(key)) {
                 uniqueValues.add(key);
