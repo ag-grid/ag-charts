@@ -17,7 +17,12 @@ import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import { Series, SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { collapsedStartingBarPosition, prepareBarAnimationFunctions, resetBarSelectionsFn } from './barUtil';
-import { type CartesianAnimationData, CartesianSeries } from './cartesianSeries';
+import {
+    type CartesianAnimationData,
+    CartesianSeries,
+    DEFAULT_CARTESIAN_DIRECTION_KEYS,
+    DEFAULT_CARTESIAN_DIRECTION_NAMES,
+} from './cartesianSeries';
 import { HistogramNodeDatum, HistogramSeriesProperties } from './histogramSeriesProperties';
 
 enum HistogramSeriesNodeTag {
@@ -29,15 +34,17 @@ const defaultBinCount = 10;
 
 type HistogramAnimationData = CartesianAnimationData<Rect, HistogramNodeDatum>;
 
-export class HistogramSeries extends CartesianSeries<Rect, HistogramNodeDatum> {
-    static className = 'HistogramSeries';
-    static type = 'histogram' as const;
+export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProperties, HistogramNodeDatum> {
+    static readonly className = 'HistogramSeries';
+    static readonly type = 'histogram' as const;
 
     override properties = new HistogramSeriesProperties();
 
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,
+            directionKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
+            directionNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
             datumSelectionGarbageCollection: false,
             animationResetFns: {
@@ -251,33 +258,35 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramNodeDatum> {
             const x = Math.min(xMinPx, xMaxPx);
             const y = Math.min(yZeroPx, yMaxPx);
 
-            const selectionDatumLabel =
-                total !== 0
-                    ? {
-                          text:
-                              callbackCache.call(labelFormatter, {
-                                  value: total,
-                                  datum,
-                                  seriesId,
-                                  xKey,
-                                  yKey,
-                                  xName,
-                                  yName,
-                              }) ?? String(total),
-                          fontStyle: labelFontStyle,
-                          fontWeight: labelFontWeight,
-                          fontSize: labelFontSize,
-                          fontFamily: labelFontFamily,
-                          fill: labelColor,
-                          x: x + w / 2,
-                          y: y + h / 2,
-                      }
-                    : undefined;
+            let selectionDatumLabel = undefined;
+            if (total !== 0) {
+                selectionDatumLabel = {
+                    text:
+                        callbackCache.call(labelFormatter, {
+                            value: total,
+                            datum,
+                            seriesId,
+                            xKey,
+                            yKey,
+                            xName,
+                            yName,
+                        }) ?? String(total),
+                    fontStyle: labelFontStyle,
+                    fontWeight: labelFontWeight,
+                    fontSize: labelFontSize,
+                    fontFamily: labelFontFamily,
+                    fill: labelColor,
+                    x: x + w / 2,
+                    y: y + h / 2,
+                };
+            }
 
             const nodeMidPoint = {
                 x: x + w / 2,
                 y: y + h / 2,
             };
+
+            const yAxisReversed = yAxis.isReversed();
 
             nodeData.push({
                 series: this,
@@ -298,10 +307,10 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramNodeDatum> {
                 fill: fill,
                 stroke: stroke,
                 cornerRadius,
-                topLeftCornerRadius: true,
-                topRightCornerRadius: true,
-                bottomRightCornerRadius: false,
-                bottomLeftCornerRadius: false,
+                topLeftCornerRadius: !yAxisReversed,
+                topRightCornerRadius: !yAxisReversed,
+                bottomRightCornerRadius: yAxisReversed,
+                bottomLeftCornerRadius: yAxisReversed,
                 opacity: 1,
                 strokeWidth: strokeWidth,
                 label: selectionDatumLabel,
@@ -508,7 +517,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramNodeDatum> {
     }
 
     override animateWaitingUpdateReady(data: HistogramAnimationData) {
-        const diff = this.processedData?.reduced?.diff;
+        const dataDiff = this.processedData?.reduced?.diff;
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(true, this.axes, 'normal'));
 
         fromToMotion(
@@ -518,7 +527,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramNodeDatum> {
             data.datumSelections,
             fns,
             (_, datum) => createDatumId(datum.domain),
-            diff
+            dataDiff
         );
 
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, data.labelSelections);

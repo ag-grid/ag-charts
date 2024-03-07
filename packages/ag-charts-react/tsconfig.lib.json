@@ -1,7 +1,11 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "types": ["node"]
+    "types": ["node"],
+    "paths": {
+      "ag-charts-community": ["../ag-charts-community/dist/types/main.d.ts"],
+      "ag-charts-enterprise": ["../ag-charts-enterprise/dist/types/main.d.ts"]
+    }
   },
   "files": ["../../node_modules/@nx/react/typings/cssmodule.d.ts", "../../node_modules/@nx/react/typings/image.d.ts"],
   "exclude": [

@@ -85,7 +85,6 @@ export interface AnimationOptions<T extends AnimationValue> {
 
 export interface AdditionalAnimationOptions {
     id?: string;
-    disableInteractions?: boolean;
 }
 
 export interface IAnimation {

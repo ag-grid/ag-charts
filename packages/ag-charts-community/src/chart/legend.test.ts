@@ -62,8 +62,8 @@ describe('Legend', () => {
 
     const ctx = setupMockCanvas();
 
-    const compare = async (chart: Chart) => {
-        await waitForChartStability(chart);
+    const compare = async (chartInstance: Chart) => {
+        await waitForChartStability(chartInstance);
 
         const imageData = extractImageData(ctx);
         expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);

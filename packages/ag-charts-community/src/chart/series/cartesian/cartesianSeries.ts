@@ -23,7 +23,13 @@ import { Layers } from '../../layers';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
 import { DataModelSeries } from '../dataModelSeries';
-import type { SeriesNodeDataContext, SeriesNodeEventTypes, SeriesNodePickMatch } from '../series';
+import type {
+    SeriesConstructorOpts,
+    SeriesDirectionKeysMapping,
+    SeriesNodeDataContext,
+    SeriesNodeEventTypes,
+    SeriesNodePickMatch,
+} from '../series';
 import { SeriesNodeEvent } from '../series';
 import type { SeriesGroupZIndexSubOrderType } from '../seriesLayerManager';
 import { SeriesProperties } from '../seriesProperties';
@@ -46,13 +52,19 @@ interface SubGroup<TNode extends Node, TDatum extends SeriesNodeDatum, TLabel = 
     labelSelection: Selection<Text, TLabel>;
     markerSelection?: Selection<Marker, TDatum>;
 }
-interface SeriesOpts<TNode extends Node, TDatum extends CartesianSeriesNodeDatum, TLabel extends SeriesNodeDatum> {
+
+type CartesianSeriesOpts<
+    TNode extends Node,
+    TProps extends CartesianSeriesProperties<any>,
+    TDatum extends CartesianSeriesNodeDatum,
+    TLabel extends SeriesNodeDatum,
+> = {
     pathsPerSeries: number;
     pathsZIndexSubOrderOffset: number[];
     hasMarkers: boolean;
     hasHighlightedLabels: boolean;
-    directionKeys: { [key in ChartAxisDirection]?: string[] };
-    directionNames: { [key in ChartAxisDirection]?: string[] };
+    directionKeys: SeriesDirectionKeysMapping<TProps>;
+    directionNames: SeriesDirectionKeysMapping<TProps>;
     datumSelectionGarbageCollection: boolean;
     markerSelectionGarbageCollection: boolean;
     animationAlwaysUpdateSelections: boolean;
@@ -62,16 +74,16 @@ interface SeriesOpts<TNode extends Node, TDatum extends CartesianSeriesNodeDatum
         label?: (node: Text, datum: TLabel) => AnimationValue & Partial<Text>;
         marker?: (node: Marker, datum: TDatum) => AnimationValue & Partial<Marker>;
     };
-}
-
-const DEFAULT_DIRECTION_KEYS: { [key in ChartAxisDirection]?: string[] } = {
-    [ChartAxisDirection.X]: ['xKey'],
-    [ChartAxisDirection.Y]: ['yKey'],
 };
 
-const DEFAULT_DIRECTION_NAMES: { [key in ChartAxisDirection]?: string[] } = {
-    [ChartAxisDirection.X]: ['xName'],
-    [ChartAxisDirection.Y]: ['yName'],
+export const DEFAULT_CARTESIAN_DIRECTION_KEYS = {
+    [ChartAxisDirection.X]: ['xKey' as const],
+    [ChartAxisDirection.Y]: ['yKey' as const],
+};
+
+export const DEFAULT_CARTESIAN_DIRECTION_NAMES = {
+    [ChartAxisDirection.X]: ['xName' as const],
+    [ChartAxisDirection.Y]: ['yName' as const],
 };
 
 export class CartesianSeriesNodeEvent<TEvent extends string = SeriesNodeEventTypes> extends SeriesNodeEvent<
@@ -84,7 +96,7 @@ export class CartesianSeriesNodeEvent<TEvent extends string = SeriesNodeEventTyp
         type: TEvent,
         nativeEvent: MouseEvent,
         datum: SeriesNodeDatum,
-        series: ISeries<SeriesNodeDatum> & { properties: { xKey?: string; yKey?: string } }
+        series: ISeries<SeriesNodeDatum, { xKey?: string; yKey?: string }>
     ) {
         super(type, nativeEvent, datum, series);
         this.xKey = series.properties.xKey;
@@ -136,12 +148,11 @@ export interface CartesianSeriesNodeDataContext<
 
 export abstract class CartesianSeries<
     TNode extends Node,
+    TProps extends CartesianSeriesProperties<any>,
     TDatum extends CartesianSeriesNodeDatum,
     TLabel extends SeriesNodeDatum = TDatum,
     TContext extends CartesianSeriesNodeDataContext<TDatum, TLabel> = CartesianSeriesNodeDataContext<TDatum, TLabel>,
-> extends DataModelSeries<TDatum, TLabel, TContext> {
-    abstract override properties: CartesianSeriesProperties<any>;
-
+> extends DataModelSeries<TDatum, TProps, TLabel, TContext> {
     private _contextNodeData: TContext[] = [];
     get contextNodeData() {
         return this._contextNodeData.slice();
@@ -159,7 +170,16 @@ export abstract class CartesianSeries<
     private subGroups: SubGroup<any, TDatum, TLabel>[] = [];
     private subGroupId: number = 0;
 
-    private readonly opts: SeriesOpts<TNode, TDatum, TLabel>;
+    private minRectsCache: {
+        dirtyNodeData: boolean;
+        sizeCache?: string;
+        minRect?: BBox;
+        minVisibleRect?: BBox;
+    } = {
+        dirtyNodeData: true,
+    };
+
+    private readonly opts: CartesianSeriesOpts<TNode, TProps, TDatum, TLabel>;
     private readonly debug = Debug.create();
 
     protected animationState: StateMachine<CartesianAnimationState, CartesianAnimationEvent>;
@@ -169,21 +189,24 @@ export abstract class CartesianSeries<
         hasMarkers = false,
         hasHighlightedLabels = false,
         pathsZIndexSubOrderOffset = [],
-        directionKeys = DEFAULT_DIRECTION_KEYS,
-        directionNames = DEFAULT_DIRECTION_NAMES,
         datumSelectionGarbageCollection = true,
         markerSelectionGarbageCollection = true,
         animationAlwaysUpdateSelections = false,
         animationResetFns,
+        directionKeys,
+        directionNames,
         ...otherOpts
-    }: Partial<SeriesOpts<TNode, TDatum, TLabel>> & ConstructorParameters<typeof DataModelSeries>[0]) {
+    }: Partial<CartesianSeriesOpts<TNode, TProps, TDatum, TLabel>> &
+        Pick<CartesianSeriesOpts<TNode, TProps, TDatum, TLabel>, 'directionKeys' | 'directionNames'> &
+        SeriesConstructorOpts<TProps>) {
         super({
             directionKeys,
             directionNames,
-            useSeriesGroupLayer: true,
             canHaveAxes: true,
             ...otherOpts,
         });
+
+        if (!directionKeys || !directionNames) throw new Error(`Unable to initialise series type ${this.type}`);
 
         this.opts = {
             pathsPerSeries,
@@ -265,7 +288,7 @@ export abstract class CartesianSeries<
 
     async update({ seriesRect }: { seriesRect?: BBox }) {
         const { visible, _contextNodeData: previousContextData } = this;
-        const { series } = this.ctx.highlightManager?.getActiveHighlight() ?? {};
+        const series = this.ctx.highlightManager?.getActiveHighlight()?.series;
         const seriesHighlighted = series === this;
 
         const resize = this.checkResize(seriesRect);
@@ -299,7 +322,7 @@ export abstract class CartesianSeries<
             this._contextNodeData.forEach((nodeData) => {
                 nodeData.animationValid ??= animationValid;
             });
-            this.minRect = this.computeMinRect();
+            this.minRectsCache.dirtyNodeData = true;
 
             await this.updateSeriesGroups();
 
@@ -526,7 +549,7 @@ export abstract class CartesianSeries<
         const labelItems = labelData.filter(
             (ld) => ld.datum === highlightedItem.datum && ld.itemId === highlightedItem.itemId
         );
-        return labelItems.length !== 0 ? labelItems : undefined;
+        return labelItems.length === 0 ? undefined : labelItems;
     }
 
     protected getHighlightData(_nodeData: TDatum[], highlightedItem: TDatum): TDatum[] | undefined {
@@ -579,7 +602,7 @@ export abstract class CartesianSeries<
 
         let match: Node | undefined;
         for (const { dataNodeGroup, markerGroup } of this.subGroups) {
-            let match = dataNodeGroup.pickNode(x, y);
+            match = dataNodeGroup.pickNode(x, y);
 
             if (!match && hasMarkers) {
                 match = markerGroup?.pickNode(x, y);
@@ -690,12 +713,12 @@ export abstract class CartesianSeries<
                     continue;
                 }
 
-                const point = primaryDirection === ChartAxisDirection.X ? [datumX, datumY] : [datumY, datumX];
+                const datumPoint = primaryDirection === ChartAxisDirection.X ? [datumX, datumY] : [datumY, datumX];
 
                 // Compare distances from most significant dimension to least.
                 let newMinDistance = true;
-                for (let i = 0; i < point.length; i++) {
-                    const dist = Math.abs(point[i] - hitPointCoords[i]);
+                for (let i = 0; i < datumPoint.length; i++) {
+                    const dist = Math.abs(datumPoint[i] - hitPointCoords[i]);
                     if (dist > minDistance[i]) {
                         newMinDistance = false;
                         break;
@@ -775,32 +798,97 @@ export abstract class CartesianSeries<
      * may not represent the same two points for both directions. The dimensions represent the greatest distance
      * between any two adjacent nodes.
      */
-    override getMinRect() {
-        return this.minRect;
+    override getMinRects(width: number, height: number) {
+        const { dirtyNodeData, sizeCache, minRect, minVisibleRect } = this.minRectsCache;
+
+        const newSizeCache = JSON.stringify({ width, height });
+        const dirtySize = newSizeCache !== sizeCache;
+
+        if (!dirtySize && !dirtyNodeData && minRect && minVisibleRect) {
+            return { minRect, minVisibleRect };
+        }
+
+        const rects = this.computeMinRects(width, height);
+
+        this.minRectsCache = {
+            dirtyNodeData: false,
+            sizeCache: newSizeCache,
+            minRect: rects?.minRect,
+            minVisibleRect: rects?.minVisibleRect,
+        };
+
+        return rects;
     }
 
-    private minRect?: BBox;
-    private computeMinRect() {
+    private computeMinRects(width: number, height: number) {
         const [context] = this._contextNodeData;
 
         if (!context?.nodeData.length) {
             return;
         }
 
-        const width = context.nodeData
-            .map(({ midPoint }) => midPoint?.x ?? 0)
-            .sort((a, b) => a - b)
-            .reduce((max, x, i, array) => (i > 0 ? Math.max(max, x - array[i - 1]) : max), 0);
+        const { nodeData } = context;
 
-        const height = context.nodeData
-            .map(({ midPoint }) => midPoint?.y ?? 0)
-            .sort((a, b) => a - b)
-            .reduce((max, y, i, array) => (i > 0 ? Math.max(max, y - array[i - 1]) : max), 0);
+        // Get the sorted midpoints for both directions
+        const minRectXs = Array(nodeData.length);
+        const minRectYs = Array(nodeData.length);
 
-        return new BBox(0, 0, width, height);
+        for (const [i, { midPoint }] of nodeData.entries()) {
+            minRectXs[i] = midPoint?.x ?? 0;
+            minRectYs[i] = midPoint?.y ?? 0;
+        }
+
+        minRectXs.sort((a, b) => a - b);
+        minRectYs.sort((a, b) => a - b);
+
+        // Take the visible slice from the sorted data as the points >= 0 and <= width/height
+        let zeroX, widthX, zeroY, heightY;
+        let maxWidth = 0;
+        let maxHeight = 0;
+
+        for (let i = 1; i < nodeData.length; i++) {
+            if (minRectXs[i] >= 0) zeroX ??= i;
+            if (minRectXs[i] > width) widthX ??= i;
+            if (minRectYs[i] >= 0) zeroY ??= i;
+            if (minRectYs[i] > height) heightY ??= i;
+
+            // Find the max distance between adjacent points in both directions
+            maxWidth = Math.max(maxWidth, minRectXs[i] - minRectXs[i - 1]);
+            maxHeight = Math.max(maxHeight, minRectYs[i] - minRectYs[i - 1]);
+        }
+
+        widthX ??= nodeData.length;
+        heightY ??= nodeData.length;
+
+        const minVisibleRectXs = zeroX != null && widthX != null ? minRectXs.slice(zeroX, widthX) : [];
+        const minVisibleRectYs = zeroY != null && heightY != null ? minRectYs.slice(zeroY, heightY) : [];
+
+        // Find the max visible distance between adjacent points in both directions
+        let maxVisibleWidth = 0;
+        let maxVisibleHeight = 0;
+
+        for (let i = 1; i < Math.max(minVisibleRectXs.length, minVisibleRectYs.length); i++) {
+            const x1 = minVisibleRectXs[i];
+            const x2 = minVisibleRectXs[i - 1];
+            const y1 = minVisibleRectYs[i];
+            const y2 = minVisibleRectYs[i - 1];
+
+            if (x1 != null && x2 != null) {
+                maxVisibleWidth = Math.max(maxVisibleWidth, x1 - x2);
+            }
+
+            if (y1 != null && y2 != null) {
+                maxVisibleHeight = Math.max(maxVisibleHeight, y1 - y2);
+            }
+        }
+
+        const minRect = new BBox(0, 0, maxWidth, maxHeight);
+        const minVisibleRect = new BBox(0, 0, maxVisibleWidth, maxVisibleHeight);
+
+        return { minRect, minVisibleRect };
     }
 
-    protected async updateHighlightSelectionItem(opts: {
+    protected updateHighlightSelectionItem(opts: {
         items?: TDatum[];
         highlightSelection: Selection<TNode, TDatum>;
     }): Promise<Selection<TNode, TDatum>> {
@@ -823,7 +911,7 @@ export abstract class CartesianSeries<
         }
     }
 
-    protected async updateHighlightSelectionLabel(opts: {
+    protected updateHighlightSelectionLabel(opts: {
         items?: TLabel[];
         highlightLabelSelection: Selection<Text, TLabel>;
     }): Promise<Selection<Text, TLabel>> {
@@ -999,7 +1087,7 @@ export abstract class CartesianSeries<
 
                 result[direction] = {
                     type: 'log',
-                    convert: (domain) => axis.scale.convert(domain),
+                    convert: (d) => axis.scale.convert(d),
                     domain: [domain[0], domain[1]],
                     range: [range[0], range[1]],
                 };

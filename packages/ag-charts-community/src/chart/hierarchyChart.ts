@@ -4,14 +4,12 @@ import type { TransferableResources } from './chart';
 import { Chart } from './chart';
 
 export class HierarchyChart extends Chart {
-    static className = 'HierarchyChart';
-    static type = 'hierarchy' as const;
+    static readonly className = 'HierarchyChart';
+    static readonly type = 'hierarchy' as const;
 
     constructor(options: ChartOptions, resources?: TransferableResources) {
         super(options, resources);
     }
-
-    protected _data: any = {};
 
     override async performLayout() {
         const shrinkRect = await super.performLayout();

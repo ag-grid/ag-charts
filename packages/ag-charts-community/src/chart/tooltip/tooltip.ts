@@ -1,8 +1,8 @@
 import type { AgTooltipRendererResult, InteractionRange, TextWrap } from '../../options/agChartOptions';
 import { BBox } from '../../scene/bbox';
-import { injectStyle } from '../../util/dom';
+import { createElement, getDocument, getWindow, injectStyle } from '../../util/dom';
 import { clamp } from '../../util/number';
-import { Bounds, calculatePosition } from '../../util/position';
+import { Bounds, calculatePlacement } from '../../util/placement';
 import { BaseProperties } from '../../util/properties';
 import {
     BOOLEAN,
@@ -149,10 +149,10 @@ type TooltipPositionType =
     | 'right'
     | 'bottom'
     | 'left'
-    | 'topLeft'
-    | 'topRight'
-    | 'bottomRight'
-    | 'bottomLeft';
+    | 'top-left'
+    | 'top-right'
+    | 'bottom-right'
+    | 'bottom-left';
 
 export type TooltipMeta = PointerOffsets & {
     showArrow?: boolean;
@@ -190,7 +190,18 @@ export function toTooltipHtml(input: string | AgTooltipRendererResult, defaults?
 export class TooltipPosition extends BaseProperties {
     @Validate(
         UNION(
-            ['pointer', 'node', 'top', 'right', 'bottom', 'left', 'topLeft', 'topRight', 'bottomRight', 'bottomLeft'],
+            [
+                'pointer',
+                'node',
+                'top',
+                'right',
+                'bottom',
+                'left',
+                'top-left',
+                'top-right',
+                'bottom-right',
+                'bottom-left',
+            ],
             'a position type'
         )
     )
@@ -242,12 +253,10 @@ export class Tooltip {
     private lastVisibilityChange: number = Date.now();
 
     readonly position: TooltipPosition = new TooltipPosition();
-    private readonly window: Window;
 
-    constructor(canvasElement: HTMLCanvasElement, document: Document, window: Window, container: HTMLElement) {
-        this.tooltipRoot = container;
-        this.window = window;
-        const element = document.createElement('div');
+    constructor(canvasElement: HTMLCanvasElement) {
+        this.tooltipRoot = getDocument().body;
+        const element = createElement('div');
         this.element = this.tooltipRoot.appendChild(element);
         this.element.classList.add(DEFAULT_TOOLTIP_CLASS);
         this.canvasElement = canvasElement;
@@ -268,9 +277,9 @@ export class Tooltip {
             this.observer = observer;
         }
 
-        if (Tooltip.tooltipDocuments.indexOf(document) < 0) {
+        if (Tooltip.tooltipDocuments.indexOf(getDocument()) < 0) {
             injectStyle(defaultTooltipCss);
-            Tooltip.tooltipDocuments.push(document);
+            Tooltip.tooltipDocuments.push(getDocument());
         }
     }
 
@@ -367,7 +376,7 @@ export class Tooltip {
         });
     }
 
-    private showTimeout: number = 0;
+    private showTimeout: NodeJS.Timeout | number = 0;
     private _showArrow = true;
     /**
      * Shows tooltip at the given event's coordinates.
@@ -393,7 +402,7 @@ export class Tooltip {
         const maxLeft = windowBounds.x + windowBounds.width - element.clientWidth - 1;
         const maxTop = windowBounds.y + windowBounds.height - element.clientHeight;
 
-        const position = calculatePosition(
+        const position = calculatePlacement(
             element.clientWidth,
             element.clientHeight,
             canvasRect.width,
@@ -408,7 +417,8 @@ export class Tooltip {
         const top = clamp(windowBounds.y, position.y, maxTop);
 
         const constrained = left !== position.x || top !== position.y;
-        const defaultShowArrow = positionType === 'node' && !constrained && !xOffset && !yOffset;
+        const defaultShowArrow =
+            (positionType === 'node' || positionType === 'pointer') && !constrained && !xOffset && !yOffset;
         const showArrow = meta.showArrow ?? this.showArrow ?? defaultShowArrow;
         this.updateShowArrow(showArrow);
 
@@ -418,7 +428,7 @@ export class Tooltip {
 
         if (this.delay > 0 && !instantly) {
             this.toggle(false);
-            this.showTimeout = this.window.setTimeout(() => {
+            this.showTimeout = setTimeout(() => {
                 this.toggle(true, meta.addCustomClass);
             }, this.delay);
             return;
@@ -428,12 +438,13 @@ export class Tooltip {
     }
 
     private getWindowBoundingBox(): BBox {
-        return new BBox(0, 0, this.window.innerWidth, this.window.innerHeight);
+        const { innerWidth, innerHeight } = getWindow();
+        return new BBox(0, 0, innerWidth, innerHeight);
     }
 
     toggle(visible?: boolean, addCustomClass?: boolean) {
         if (!visible) {
-            this.window.clearTimeout(this.showTimeout);
+            clearTimeout(this.showTimeout);
         }
         this.updateClass(visible, this._showArrow, addCustomClass);
     }
@@ -465,23 +476,14 @@ export class Tooltip {
         xOffset: number;
         canvasRect: DOMRect;
     }): Bounds {
-        const tooltipWidth = this.element.clientWidth;
-        const tooltipHeight = this.element.clientHeight;
-
-        const bounds: Bounds = {
-            width: tooltipWidth,
-            height: tooltipHeight,
-        };
+        const { clientWidth: tooltipWidth, clientHeight: tooltipHeight } = this.element;
+        const bounds: Bounds = { width: tooltipWidth, height: tooltipHeight };
 
         switch (positionType) {
-            case 'node': {
+            case 'node':
+            case 'pointer': {
                 bounds.top = meta.offsetY + yOffset - tooltipHeight - 8;
                 bounds.left = meta.offsetX + xOffset - tooltipWidth / 2;
-                return bounds;
-            }
-            case 'pointer': {
-                bounds.top = meta.offsetY + yOffset - 8;
-                bounds.left = meta.offsetX + xOffset;
                 return bounds;
             }
             case 'top': {
@@ -491,7 +493,7 @@ export class Tooltip {
             }
             case 'right': {
                 bounds.top = canvasRect.height / 2 - tooltipHeight / 2 + yOffset;
-                bounds.right = xOffset;
+                bounds.left = canvasRect.width - tooltipWidth / 2 + xOffset;
                 return bounds;
             }
             case 'left': {
@@ -500,27 +502,27 @@ export class Tooltip {
                 return bounds;
             }
             case 'bottom': {
-                bounds.bottom = yOffset;
+                bounds.top = canvasRect.height - tooltipHeight + yOffset;
                 bounds.left = canvasRect.width / 2 - tooltipWidth / 2 + xOffset;
                 return bounds;
             }
-            case 'topLeft': {
+            case 'top-left': {
                 bounds.top = yOffset;
                 bounds.left = xOffset;
                 return bounds;
             }
-            case 'topRight': {
+            case 'top-right': {
                 bounds.top = yOffset;
-                bounds.right = xOffset;
+                bounds.left = canvasRect.width - tooltipWidth + xOffset;
                 return bounds;
             }
-            case 'bottomRight': {
-                bounds.bottom = yOffset;
-                bounds.right = xOffset;
+            case 'bottom-right': {
+                bounds.top = canvasRect.height - tooltipHeight + yOffset;
+                bounds.left = canvasRect.width - tooltipWidth + xOffset;
                 return bounds;
             }
-            case 'bottomLeft': {
-                bounds.bottom = yOffset;
+            case 'bottom-left': {
+                bounds.top = canvasRect.height - tooltipHeight + yOffset;
                 bounds.left = xOffset;
                 return bounds;
             }

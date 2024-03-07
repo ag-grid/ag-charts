@@ -50,7 +50,7 @@ function applyAxesFlip<T extends AgCartesianChartOptions>(opts: T): T {
 
     return {
         ...opts,
-        axes: opts.axes?.map((axis) => ({ ...axis, position: positionFlip(axis.position) })) || undefined,
+        axes: opts.axes?.map((axis) => ({ ...axis, position: positionFlip(axis.position) })) ?? undefined,
     };
 }
 
@@ -92,16 +92,6 @@ const EXAMPLES: Record<string, TestCase> = {
             }),
         },
     }),
-    NUMBER_AXIS_LOG2_EXAMPLE: {
-        options: axesExamples.NUMBER_AXIS_LOG2_EXAMPLE,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'log'], seriesTypes: ['line'] }),
-        compare: ['log'],
-    },
-    NUMBER_AXIS_LOG10_EXAMPLE: {
-        options: axesExamples.NUMBER_AXIS_LOG10_EXAMPLE,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'log'], seriesTypes: ['line'] }),
-        compare: ['log'],
-    },
 };
 
 const EXAMPLES_NO_SERIES: Record<string, TestCase> = {
@@ -194,10 +184,6 @@ const EXAMPLES_TICK_VALUES: Record<string, TestCase> = {
         TIME_AXIS_TICK_VALUES: {
             options: axesExamples.TIME_AXIS_TICK_VALUES,
             assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 4) }),
-        },
-        LOG_AXIS_TICK_VALUES: {
-            options: axesExamples.LOG_AXIS_TICK_VALUES,
-            assertions: cartesianChartAssertions({ axisTypes: ['number', 'log'], seriesTypes: ['line'] }),
         },
         CATEGORY_AXIS_TICK_VALUES: {
             options: axesExamples.CATEGORY_AXIS_TICK_VALUES,
@@ -569,5 +555,28 @@ describe('Axis Examples', () => {
                 }
             });
         }
+    });
+
+    describe('AG-10654', () => {
+        it('should render secondary category axis', async () => {
+            chart = await createChart({
+                data: [
+                    { quarter: 'Q1', quarter2: 'Q21', petrol: 200, diesel: 100 },
+                    { quarter: 'Q2', quarter2: 'Q22', petrol: 300, diesel: 130 },
+                    { quarter: 'Q3', quarter2: 'Q23', petrol: 350, diesel: 160 },
+                    { quarter: 'Q4', quarter2: 'Q24', petrol: 400, diesel: 200 },
+                ],
+                series: [
+                    { type: 'line', xKey: 'quarter', yKey: 'petrol' },
+                    { type: 'line', xKey: 'quarter2', yKey: 'diesel' },
+                ],
+                axes: [
+                    { type: 'category', position: 'top', keys: ['quarter'] },
+                    { type: 'category', position: 'bottom', keys: ['quarter2'] },
+                    { type: 'number', position: 'left' },
+                ],
+            });
+            await compare();
+        });
     });
 });

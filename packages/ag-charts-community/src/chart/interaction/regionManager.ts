@@ -5,7 +5,7 @@ import { Logger } from '../../util/logger';
 import type { InteractionEvent, InteractionManager, InteractionTypes } from './interactionManager';
 import { INTERACTION_TYPES, InteractionState } from './interactionManager';
 
-export type RegionName = 'legend' | 'pagination' | 'series';
+export type RegionName = 'legend' | 'navigator' | 'pagination' | 'series' | 'root';
 
 type RegionHandler<Event extends InteractionEvent> = (event: Event) => void;
 
@@ -17,13 +17,14 @@ type Region = {
 };
 
 export class RegionManager {
-    public currentRegion?: Region;
+    private currentRegion?: Region;
+    private isDragging = false;
 
     private eventHandler = (event: InteractionEvent<InteractionTypes>) => this.processEvent(event);
     private regions: BBoxSet<Region> = new BBoxSet();
     private readonly destroyFns: (() => void)[] = [];
 
-    constructor(private interactionManager: InteractionManager) {
+    constructor(private readonly interactionManager: InteractionManager) {
         this.destroyFns.push(
             ...INTERACTION_TYPES.map((eventName) =>
                 interactionManager.addListener(eventName, this.eventHandler, InteractionState.All)
@@ -41,30 +42,49 @@ export class RegionManager {
         this.regions.clear();
     }
 
-    private pushRegion(name: RegionName, bboxprovider: BBoxProvider): Region {
+    private pushRegion(name: RegionName, bboxproviders: BBoxProvider[]): Region {
         const region = { name, listeners: new RegionListeners() };
-        this.regions.add(region, bboxprovider);
+        this.regions.add(region, bboxproviders);
         return region;
     }
 
-    public addRegion(name: RegionName, bboxprovider: BBoxProvider) {
-        const region = this.pushRegion(name, bboxprovider);
-        const { interactionManager } = this;
+    public addRegion(name: RegionName, bboxprovider: BBoxProvider, ...extraProviders: BBoxProvider[]) {
+        return this.makeObserver(this.pushRegion(name, [bboxprovider, ...extraProviders]));
+    }
 
+    public getRegion(name: RegionName) {
+        return this.makeObserver(this.findByName(name));
+    }
+
+    private findByName(name: RegionName): Region | undefined {
+        for (const region of this.regions) {
+            if (region.name === name) {
+                return region;
+            }
+        }
+        Logger.errorOnce(`unable '${name}' region found`);
+    }
+
+    // This method return a wrapper object that matches the interface of InteractionManager.addListener.
+    // The intent is to allow the InteractionManager and RegionManager to be used almost interchangeably.
+    private makeObserver(region: Region | undefined) {
+        const { interactionManager } = this;
         class ObservableRegionImplementation {
             addListener<T extends InteractionTypes>(
                 type: T,
                 handler: RegionHandler<InteractionEvent<T>>,
                 triggeringStates: InteractionState = InteractionState.Default
-            ) {
-                return region.listeners.addListener(type, (e) => {
-                    if (!e.consumed) {
-                        const currentState = interactionManager.getState();
-                        if (currentState & triggeringStates) {
-                            handler(e as InteractionEvent<T>);
+            ): () => void {
+                return (
+                    region?.listeners.addListener(type, (e) => {
+                        if (!e.consumed) {
+                            const currentState = interactionManager.getState();
+                            if (currentState & triggeringStates) {
+                                handler(e as InteractionEvent<T>);
+                            }
                         }
-                    }
-                });
+                    }) ?? (() => undefined)
+                );
             }
         }
         return new ObservableRegionImplementation();
@@ -80,19 +100,46 @@ export class RegionManager {
         return true;
     }
 
+    private dispatch(region: Region | undefined, event: InteractionEvent<InteractionTypes>) {
+        region?.listeners.dispatch(event.type, event);
+    }
+
+    private handleDragging(event: InteractionEvent<InteractionTypes>): boolean {
+        const { currentRegion } = this;
+
+        // AG-10875 only dispatch followup drag event to the region that received the 'drag-start'
+        // This logic will deliberatly suppress 'leave' events from the InteractionManager when dragging.
+        if (this.isDragging) {
+            if (event.type === 'drag-end') {
+                this.isDragging = false;
+                this.dispatch(currentRegion, event);
+            } else if (event.type === 'drag') {
+                this.dispatch(currentRegion, event);
+            }
+            return true;
+        } else if (event.type === 'drag-start') {
+            this.isDragging = true;
+        }
+
+        return false;
+    }
+
     private processEvent(event: InteractionEvent<InteractionTypes>) {
+        if (this.handleDragging(event)) {
+            // We are current dragging, so do not send leave/enter events until dragging is done.
+            return;
+        }
+
         const { currentRegion } = this;
         const newRegion = this.pickRegion(event.offsetX, event.offsetY);
         if (currentRegion !== undefined && newRegion?.name !== currentRegion.name) {
-            currentRegion?.listeners.dispatch('leave', { ...event, type: 'leave' });
+            this.dispatch(currentRegion, { ...event, type: 'leave' });
         }
         if (newRegion !== undefined && newRegion.name !== currentRegion?.name) {
-            newRegion?.listeners.dispatch('enter', { ...event, type: 'enter' });
+            this.dispatch(newRegion, { ...event, type: 'enter' });
         }
         if (newRegion !== undefined && this.checkPointerHistory(newRegion, event)) {
-            // Async dispatch to avoid blocking the event-processing thread.
-            const dispatcher = async () => newRegion.listeners.dispatch(event.type, event);
-            dispatcher().catch((e) => Logger.errorOnce(e));
+            this.dispatch(newRegion, event);
         }
         this.currentRegion = newRegion;
     }

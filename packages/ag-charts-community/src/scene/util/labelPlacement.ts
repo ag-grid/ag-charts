@@ -22,6 +22,8 @@ interface Bounds extends Readonly<Point> {
 }
 
 function circleRectOverlap(c: SizedPoint, x: number, y: number, w: number, h: number): boolean {
+    if (c.size === 0) return false;
+
     // Find closest horizontal and vertical edges.
     let edgeX = c.x;
     if (c.x < x) {
@@ -77,32 +79,31 @@ export function placeLabels(
         }
         for (let i = 0, ln = datum.length; i < ln; i++) {
             const d = datum[i];
-            const l = d.label;
+            const { text, width, height } = d.label;
             const r = d.point.size * 0.5;
-            const x = d.point.x - l.width * 0.5;
-            const y = d.point.y - r - l.height - padding;
-            const { width, height } = l;
+            const x = d.point.x - width * 0.5;
+            const y = r > 0 ? d.point.y - r - height - padding : d.point.y - height * 0.5;
 
             const withinBounds = !bounds || rectContainsRect(bounds, x, y, width, height);
             if (!withinBounds) {
                 continue;
             }
 
-            const overlapPoints = data.some((datum) =>
-                datum.some((d) => circleRectOverlap(d.point, x, y, width, height))
+            const overlapPoints = data.some((dataDatums) =>
+                dataDatums.some((dataDatum) => circleRectOverlap(dataDatum.point, x, y, width, height))
             );
             if (overlapPoints) {
                 continue;
             }
 
-            const overlapLabels = result.some((labels) => labels.some((l) => rectRectOverlap(l, x, y, width, height)));
+            const overlapLabels = result.some((l2) => l2.some((l3) => rectRectOverlap(l3, x, y, width, height)));
             if (overlapLabels) {
                 continue;
             }
 
             labels.push({
                 index: i,
-                text: l.text,
+                text,
                 x,
                 y,
                 width,

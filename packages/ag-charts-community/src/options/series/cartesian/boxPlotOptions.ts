@@ -1,5 +1,5 @@
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
-import type { CssColor, Ratio } from '../../chart/types';
+import type { CssColor, PixelSize, Ratio } from '../../chart/types';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type {
@@ -65,6 +65,8 @@ export interface AgBoxPlotSeriesThemeableOptions<TDatum = any>
      * __Note:__ This option affects the layout direction of X and Y data values.
      */
     direction?: 'horizontal' | 'vertical';
+    /** Apply rounded corners to each bar. */
+    cornerRadius?: PixelSize;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgBoxPlotSeriesTooltipRendererParams>;
     /** Function used to return formatting for individual columns, based on the given parameters. If the current column is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */

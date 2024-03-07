@@ -34,9 +34,9 @@ export function gridLayout({
         padding: horizontal ? itemPaddingX : itemPaddingY,
     };
     const secondary: DimensionProps = {
-        max: !horizontal ? maxWidth : maxHeight,
-        fn: !horizontal ? (b: BBox) => b.width : (b: BBox) => b.height,
-        padding: !horizontal ? itemPaddingX : itemPaddingY,
+        max: horizontal ? maxHeight : maxWidth,
+        fn: horizontal ? (b: BBox) => b.height : (b: BBox) => b.width,
+        padding: horizontal ? itemPaddingY : itemPaddingX,
     };
 
     let processedBBoxCount = 0;

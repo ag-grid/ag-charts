@@ -1,4 +1,4 @@
-name: Create/Update Release Branch
+name: Prepare Release Branch
 
 on:
     workflow_dispatch:
@@ -29,7 +29,7 @@ env:
     NX_BRANCH: ${{ github.ref }}
 
 jobs:
-    create_branch_and_prepare:
+    prepare:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
@@ -49,15 +49,6 @@ jobs:
               run: |
                   yarn install --ignore-scripts
 
-            - name: Create Branch
-              id: create_branch
-              if: ${{ github.event.inputs.type == 'create' }}
-              uses: peterjgrainger/action-create-branch@v2.3.0
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              with:
-                  branch: b${{ github.event.inputs.version }}
-
             - name: Merge Latest
               id: merge_branch
               if: ${{ github.event.inputs.type == 'update' }}
@@ -69,6 +60,12 @@ jobs:
               if: ${{ github.event.inputs.type == 'create' }}
               run: |
                   ./tools/bump-versions.sh ${{ github.event.inputs.version }}
+
+            - name: Update Release Information
+              id: release_info
+              if: ${{ github.event.inputs.type == 'create' }}
+              run: |
+                  node ./tools/update-release-info.js
 
             - name: Update Package Version
               id: update_version
@@ -84,11 +81,11 @@ jobs:
               if: success()
               with:
                   default_author: github_actions
-                  message: Automated package version bump to ${{ steps.update_version.outputs.version }}.
+                  message: Release prep for ${{ steps.update_version.outputs.version }}.
 
             - name: Tag Latest Successful Commit For Publish
               uses: EndBug/latest-tag@latest
-              if: success() && ${{ github.event.inputs.update_tag == 'true' }}
+              if: success() && github.event.inputs.update_tag == 'true'
               with:
                   ref: latest-beta-version
                   description: Latest commit to pass GitHub Actions workflow on latest branch.

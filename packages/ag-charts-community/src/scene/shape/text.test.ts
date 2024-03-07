@@ -1,12 +1,11 @@
 import { describe, expect, it } from '@jest/globals';
-import { Canvas, createCanvas } from 'canvas';
 
 import type { TextWrap } from '../../options/chart/types';
 import { extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
-import type { LayerManager } from '../node';
+import type { LayersManager } from '../layersManager';
 import { Text } from './text';
 
-function setUpMockLayerManager(canvasCtx): LayerManager {
+function setUpMockLayerManager(canvasCtx): LayersManager {
     return {
         debug: {} as any,
         canvas: canvasCtx.nodeCanvas,
@@ -267,7 +266,12 @@ describe('Text', () => {
 
                     textNode.x = currX;
                     textNode.y = currY;
-                    const wrapping: TextWrap = hyphens ? 'hyphenate' : breakWord ? 'always' : 'on-space';
+                    let wrapping: TextWrap = 'on-space';
+                    if (hyphens) {
+                        wrapping = 'hyphenate';
+                    } else if (breakWord) {
+                        wrapping = 'always';
+                    }
                     textNode.text = Text.wrap(
                         textNode.text ?? '',
                         maxWidth,

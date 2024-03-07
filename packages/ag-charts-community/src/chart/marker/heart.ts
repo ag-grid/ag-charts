@@ -1,7 +1,7 @@
 import { Marker } from './marker';
 
 export class Heart extends Marker {
-    static override className = 'Heart';
+    static override readonly className = 'Heart';
 
     rad(degree: number) {
         return (degree / 180) * Math.PI;

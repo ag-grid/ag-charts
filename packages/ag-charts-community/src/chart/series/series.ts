@@ -133,9 +133,9 @@ export function trailingValue(): DatumPropertyDefinition<any>['processor'] {
         let value = 0;
 
         return (datum: any) => {
-            const trailingValue = value;
+            const oldValue = value;
             value = datum;
-            return trailingValue;
+            return oldValue;
         };
     };
 }
@@ -209,7 +209,7 @@ export class SeriesNodeEvent<TDatum extends SeriesNodeDatum, TEvent extends stri
         readonly type: TEvent,
         readonly event: MouseEvent,
         { datum }: TDatum,
-        series: ISeries<TDatum>
+        series: ISeries<TDatum, unknown>
     ) {
         this.datum = datum;
         this.seriesId = series.id;
@@ -230,30 +230,45 @@ enum SeriesHighlight {
 
 export type SeriesModuleMap = ModuleMap<SeriesOptionModule, SeriesOptionInstance, SeriesContext>;
 
+export type SeriesDirectionKeysMapping<P extends SeriesProperties<any>> = {
+    [key in ChartAxisDirection]?: (keyof P & string)[];
+};
+
 export class SeriesGroupingChangedEvent implements TypedEvent {
     type = 'groupingChanged';
 
     constructor(
-        public series: Series<any>,
+        public series: Series<any, any>,
         public seriesGrouping: SeriesGrouping | undefined,
         public oldGrouping: SeriesGrouping | undefined
     ) {}
 }
 
+export type SeriesConstructorOpts<TProps extends SeriesProperties<any>> = {
+    moduleCtx: ModuleContext;
+    useLabelLayer?: boolean;
+    pickModes?: SeriesNodePickMode[];
+    contentGroupVirtual?: boolean;
+    directionKeys?: SeriesDirectionKeysMapping<TProps>;
+    directionNames?: SeriesDirectionKeysMapping<TProps>;
+    canHaveAxes?: boolean;
+};
+
 export abstract class Series<
         TDatum extends SeriesNodeDatum,
+        TProps extends SeriesProperties<any>,
         TLabel = TDatum,
         TContext extends SeriesNodeDataContext<TDatum, TLabel> = SeriesNodeDataContext<TDatum, TLabel>,
     >
     extends Observable
-    implements ISeries<TDatum>
+    implements ISeries<TDatum, TProps>
 {
     protected destroyFns: (() => void)[] = [];
-    abstract readonly properties: SeriesProperties<any>;
+    abstract readonly properties: TProps;
 
     pickModes: SeriesNodePickMode[];
 
-    @ActionOnSet<Series<TDatum, TLabel>>({
+    @ActionOnSet<Series<TDatum, TProps, TLabel>>({
         changeValue: function (newVal, oldVal) {
             this.onSeriesGroupingChange(oldVal, newVal);
         },
@@ -298,7 +313,7 @@ export abstract class Series<
     chart?: {
         mode: ChartMode;
         isMiniChart: boolean;
-        placeLabels(): Map<Series<any>, PlacedLabel[]>;
+        placeLabels(): Map<Series<any, any>, PlacedLabel[]>;
         seriesRect?: BBox;
     };
 
@@ -308,8 +323,8 @@ export abstract class Series<
     };
 
     directions: ChartAxisDirection[] = [ChartAxisDirection.X, ChartAxisDirection.Y];
-    private readonly directionKeys: { [key in ChartAxisDirection]?: string[] };
-    private readonly directionNames: { [key in ChartAxisDirection]?: string[] };
+    private readonly directionKeys: SeriesDirectionKeysMapping<TProps>;
+    private readonly directionNames: SeriesDirectionKeysMapping<TProps>;
 
     // Flag to determine if we should recalculate node data.
     protected nodeDataRefresh = true;
@@ -369,16 +384,7 @@ export abstract class Series<
 
     protected readonly ctx: ModuleContext;
 
-    constructor(seriesOpts: {
-        moduleCtx: ModuleContext;
-        useSeriesGroupLayer?: boolean;
-        useLabelLayer?: boolean;
-        pickModes?: SeriesNodePickMode[];
-        contentGroupVirtual?: boolean;
-        directionKeys?: { [key in ChartAxisDirection]?: string[] };
-        directionNames?: { [key in ChartAxisDirection]?: string[] };
-        canHaveAxes?: boolean;
-    }) {
+    constructor(seriesOpts: SeriesConstructorOpts<TProps>) {
         super();
 
         const {
@@ -489,7 +495,9 @@ export abstract class Series<
         const keys = properties?.[resolvedDirection];
         const values: string[] = [];
 
-        if (!keys) return values;
+        if (!keys) {
+            return values;
+        }
 
         const addValues = (...items: any[]) => {
             for (const value of items) {
@@ -523,7 +531,7 @@ export abstract class Series<
     // The union of the series domain ('community') and series-option domains ('enterprise').
     getDomain(direction: ChartAxisDirection): any[] {
         const seriesDomain: any[] = this.getSeriesDomain(direction);
-        const moduleDomains: any[][] = this.moduleMap.mapValues((module) => module.getDomain(direction));
+        const moduleDomains: any[][] = this.moduleMap.mapModules((module) => module.getDomain(direction));
         // Flatten the 2D moduleDomains into a 1D array and concatenate it with seriesDomain
         return seriesDomain.concat(moduleDomains.flat());
     }
@@ -585,7 +593,7 @@ export abstract class Series<
     }
 
     protected isItemIdHighlighted(): SeriesHighlight {
-        const { series } = this.ctx.highlightManager?.getActiveHighlight() ?? {};
+        const series = this.ctx.highlightManager?.getActiveHighlight()?.series;
 
         // Highlighting not active.
         if (series == null) {
@@ -601,7 +609,7 @@ export abstract class Series<
     }
 
     protected getModuleTooltipParams(): object {
-        const params: object[] = this.moduleMap.mapValues((module) => module.getTooltipParams());
+        const params: object[] = this.moduleMap.mapModules((module) => module.getTooltipParams());
         return params.reduce((total, current) => ({ ...current, ...total }), {});
     }
 
@@ -758,7 +766,7 @@ export abstract class Series<
         }
     }
 
-    getMinRect(): BBox | undefined {
+    getMinRects(_width: number, _height: number): { minRect: BBox; minVisibleRect: BBox } | undefined {
         return;
     }
 

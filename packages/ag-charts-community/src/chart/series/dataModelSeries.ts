@@ -1,27 +1,32 @@
 import { ContinuousScale } from '../../scale/continuousScale';
+import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { DataController } from '../data/dataController';
 import type { DataModel, DataModelOptions, ProcessedData, PropertyDefinition } from '../data/dataModel';
 import type { SeriesNodeDataContext } from './series';
 import { Series } from './series';
+import type { SeriesProperties } from './seriesProperties';
 import type { SeriesNodeDatum } from './seriesTypes';
 
 export abstract class DataModelSeries<
     TDatum extends SeriesNodeDatum,
+    TProps extends SeriesProperties<any>,
     TLabel = TDatum,
     TContext extends SeriesNodeDataContext<TDatum, TLabel> = SeriesNodeDataContext<TDatum, TLabel>,
-> extends Series<TDatum, TLabel, TContext> {
+> extends Series<TDatum, TProps, TLabel, TContext> {
     protected dataModel?: DataModel<any, any, any>;
     protected processedData?: ProcessedData<any>;
 
     protected isContinuous(): { isContinuousX: boolean; isContinuousY: boolean } {
-        const isContinuousX = ContinuousScale.is(this.axes[ChartAxisDirection.X]?.scale);
-        const isContinuousY = ContinuousScale.is(this.axes[ChartAxisDirection.Y]?.scale);
+        const xScale = this.axes[ChartAxisDirection.X]?.scale;
+        const yScale = this.axes[ChartAxisDirection.Y]?.scale;
+        const isContinuousX = ContinuousScale.is(xScale) || OrdinalTimeScale.is(xScale);
+        const isContinuousY = ContinuousScale.is(yScale) || OrdinalTimeScale.is(yScale);
         return { isContinuousX, isContinuousY };
     }
 
     private getModulePropertyDefinitions() {
-        return this.moduleMap.mapValues((mod) => mod.getPropertyDefinitions(this.isContinuous())).flat();
+        return this.moduleMap.mapModules((mod) => mod.getPropertyDefinitions(this.isContinuous())).flat();
     }
 
     // Request data, but with message dispatching to series-options (modules).

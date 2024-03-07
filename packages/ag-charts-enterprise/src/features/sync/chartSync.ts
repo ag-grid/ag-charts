@@ -18,7 +18,7 @@ const {
 const { Logger } = _Util;
 
 export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleInstance, AgChartSyncOptions {
-    static className = 'Sync';
+    static readonly className = 'Sync';
 
     @Validate(BOOLEAN)
     @ObserveChanges<ChartSync>((target) => target.onEnabledChange())
@@ -66,7 +66,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         const { syncManager, zoomManager } = this.moduleContext;
         this.disableZoomSync = zoomManager.addListener('zoom-change', () => {
             for (const chart of syncManager.getGroupSiblings(this.groupId)) {
-                if ((chart.modules.get('sync') as ChartSync)?.zoom) {
+                if (chart.modulesManager.getModule<ChartSync>('sync')?.zoom) {
                     chart.zoomManager.updateZoom('sync', this.mergeZoom(chart));
                 }
             }
@@ -79,7 +79,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         const { highlightManager, syncManager } = this.moduleContext;
         this.disableNodeInteractionSync = highlightManager.addListener('highlight-change', (event) => {
             for (const chart of syncManager.getGroupSiblings(this.groupId)) {
-                if (!(chart.modules.get('sync') as ChartSync)?.nodeInteraction) continue;
+                if (!chart.modulesManager.getModule<ChartSync>('sync')?.nodeInteraction) continue;
 
                 if (!event.currentHighlight?.datum) {
                     chart.highlightManager.updateHighlight(chart.id);
@@ -149,8 +149,9 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         const { syncManager } = this.moduleContext;
         const chart = syncManager.getChart();
 
-        const syncSeries = syncManager.getGroup(this.groupId).flatMap((c) => c.series);
-        const syncAxes = syncManager.getGroupSiblings(this.groupId).flatMap((c) => c.axes);
+        const syncGroup = syncManager.getGroup(this.groupId);
+        const syncSeries = syncGroup.flatMap((c) => c.series);
+        const syncAxes = syncGroup[0].axes;
 
         let hasUpdated = false;
 
@@ -162,16 +163,18 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
 
             const { direction, min, max, nice, reverse } = axis as (typeof syncAxes)[number];
 
-            for (const siblingAxis of syncAxes) {
-                if (direction !== siblingAxis.direction) continue;
+            for (const mainAxis of syncAxes) {
+                if (direction !== mainAxis.direction) continue;
 
                 if (
-                    nice !== siblingAxis.nice ||
-                    reverse !== siblingAxis.reverse ||
-                    (min !== siblingAxis.min && (isFiniteNumber(min) || isFiniteNumber(siblingAxis.min))) ||
-                    (max !== siblingAxis.max && (isFiniteNumber(max) || isFiniteNumber(siblingAxis.max)))
+                    nice !== mainAxis.nice ||
+                    reverse !== mainAxis.reverse ||
+                    (min !== mainAxis.min && (isFiniteNumber(min) || isFiniteNumber(mainAxis.min))) ||
+                    (max !== mainAxis.max && (isFiniteNumber(max) || isFiniteNumber(mainAxis.max)))
                 ) {
-                    Logger.warnOnce('For axes sync, ensure matching `min`, `max`, `nice`, and `reverse` properties.');
+                    Logger.warnOnce(
+                        'To allow synchronization, ensure that all charts have matching min, max, nice, and reverse properties on the synchronized axes.'
+                    );
                     axis.boundSeries = chart.series.filter((s) => s.axes[axis.direction] === (axis as any));
                     this.enabled = false;
                     return;

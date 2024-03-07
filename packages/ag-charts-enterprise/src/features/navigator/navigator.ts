@@ -6,13 +6,7 @@ const { ObserveChanges } = _ModuleSupport;
 
 export class Navigator extends _ModuleSupport.Navigator {
     @ObserveChanges<Navigator, MiniChart>((target, value, oldValue) => {
-        if (oldValue != null) {
-            target.rs.background.removeChild(oldValue.root);
-        }
-
-        if (value != null) {
-            target.rs.background.appendChild(value.root);
-        }
+        target.updateBackground(oldValue?.root, value?.root);
     })
     override miniChart: MiniChart = new MiniChart();
 

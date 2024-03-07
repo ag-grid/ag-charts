@@ -1,5 +1,6 @@
+import type { BBoxProvider } from '../util/bboxset';
 import { createId } from '../util/id';
-import type { BBox } from './bbox';
+import { BBox } from './bbox';
 import { ChangeDetectable, RedrawType, SceneChangeDetection } from './changeDetectable';
 import type { LayersManager, ZIndexSubOrder } from './layersManager';
 import { Matrix } from './matrix';
@@ -15,6 +16,7 @@ export enum PointerEvents {
 }
 
 export type RenderContext = {
+    // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
     ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
     devicePixelRatio: number;
     forceRender: boolean | 'dirtyTransform';
@@ -40,7 +42,7 @@ export type NodeWithOpacity = Node & { opacity: number };
  * Abstract scene graph node.
  * Each node can have zero or one parent and belong to zero or one scene.
  */
-export abstract class Node extends ChangeDetectable {
+export abstract class Node extends ChangeDetectable implements BBoxProvider {
     static _nextSerialNumber = 0;
 
     /** Unique number to allow creation order to be easily determined. */
@@ -60,7 +62,7 @@ export abstract class Node extends ChangeDetectable {
     get datum() {
         return this._datum ?? this._parent?.datum;
     }
-    get previousDatum(): any | undefined {
+    get previousDatum(): any {
         return this._previousDatum;
     }
     set datum(datum: any) {
@@ -232,7 +234,6 @@ export abstract class Node extends ChangeDetectable {
     // These matrices may need to have package level visibility
     // for performance optimization purposes.
     matrix = new Matrix();
-    protected inverseMatrix = new Matrix();
 
     private calculateCumulativeMatrix() {
         this.computeTransformMatrix();
@@ -367,6 +368,12 @@ export abstract class Node extends ChangeDetectable {
         return this.children.flatMap((child) => child.findNodes(predicate));
     }
 
+    private cachedBBox?: BBox;
+
+    getCachedBBox(): BBox {
+        return this.cachedBBox ?? BBox.zero;
+    }
+
     computeBBox(): BBox | undefined {
         return;
     }
@@ -414,8 +421,6 @@ export abstract class Node extends ChangeDetectable {
             rotationCenterY,
         });
 
-        matrix.inverseTo(this.inverseMatrix);
-
         this.dirtyTransform = false;
     }
 
@@ -423,6 +428,7 @@ export abstract class Node extends ChangeDetectable {
         const { stats } = renderCtx;
 
         this._dirty = RedrawType.NONE;
+        this.cachedBBox = this.computeBBox();
 
         if (stats) {
             stats.nodesRendered++;

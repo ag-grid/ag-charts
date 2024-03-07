@@ -81,12 +81,17 @@ export const ASTRO_ALGOLIA_APP_ID = import.meta.env?.PUBLIC_ASTRO_ALGOLIA_APP_ID
 
 export const ASTRO_ALGOLIA_SEARCH_KEY = import.meta.env?.PUBLIC_ASTRO_ALGOLIA_SEARCH_KEY;
 
-export const GRID_URL = SITE_URL
-    ? SITE_URL.includes('localhost:4600')
-        ? 'https://localhost:8000'
-        : SITE_URL.includes(STAGING_SITE_URL)
-          ? 'https://grid-staging.ag-grid.com'
-          : 'https://ag-grid.com'
-    : undefined;
+function calculateGridUrl() {
+    if (SITE_URL == null) return;
+
+    if (SITE_URL?.includes('localhost:4600')) {
+        return 'https://localhost:8000';
+    } else if (SITE_URL?.includes(STAGING_SITE_URL)) {
+        return 'https://grid-staging.ag-grid.com';
+    }
+    return 'https://ag-grid.com';
+}
+
+export const GRID_URL = calculateGridUrl();
 
 export const GALLERY_IMAGE_DPR_ENHANCEMENT = import.meta.env?.PUBLIC_GALLERY_IMAGE_DPR_ENHANCEMENT === 'true';

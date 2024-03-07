@@ -9,8 +9,8 @@ const { BandScale } = _Scale;
 const { isNumberEqual } = _Util;
 
 export class AngleCategoryAxis extends AngleAxis<string, _Scale.BandScale<string>> {
-    static className = 'AngleCategoryAxis';
-    static type = 'angle-category' as const;
+    static readonly className = 'AngleCategoryAxis';
+    static readonly type = 'angle-category' as const;
 
     @Validate(RATIO)
     groupPaddingInner: number = 0;

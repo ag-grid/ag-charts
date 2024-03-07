@@ -14,7 +14,7 @@ export function ScenePathChangeDetection(opts?: {
 }
 
 export class Path extends Shape {
-    static className = 'Path';
+    static readonly className: string = 'Path';
 
     /**
      * Declare a path to retain for later rendering and hit testing
@@ -116,8 +116,7 @@ export class Path extends Shape {
             }
 
             if (this._clipX > 0 && this._clipY > 0) {
-                this.path.draw(ctx);
-                this.fillStroke(ctx);
+                this.drawPath(ctx);
             }
 
             if (this.clipMode === 'punch-out') {
@@ -131,11 +130,15 @@ export class Path extends Shape {
 
             ctx.restore();
         } else {
-            this.path.draw(ctx);
-            this.fillStroke(ctx);
+            this.drawPath(ctx);
         }
 
         this.fillShadow?.markClean();
         super.render(renderCtx);
+    }
+
+    protected drawPath(ctx: any) {
+        this.path.draw(ctx);
+        this.fillStroke(ctx);
     }
 }

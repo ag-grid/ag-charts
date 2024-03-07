@@ -41,10 +41,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
      * Create an animation to tween a value between the `from` and `to` properties. If an animation already exists
      * with the same `id`, immediately stop it.
      */
-    public animate<T extends AnimationValue>({
-        disableInteractions = true,
-        ...opts
-    }: AnimationOptions<T> & AdditionalAnimationOptions) {
+    public animate<T extends AnimationValue>({ ...opts }: AnimationOptions<T> & AdditionalAnimationOptions) {
         const batch = this.batch;
 
         try {

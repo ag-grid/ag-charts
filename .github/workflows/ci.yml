@@ -28,6 +28,8 @@ env:
     NX_NO_CLOUD: true
     NX_CLOUD_ACCESS_TOKEN: x
     NX_BRANCH: ${{ github.ref }}
+    # Set to --batch to enable batch execution.
+    NX_BATCH_FLAG: '--batch'
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
@@ -115,6 +117,14 @@ jobs:
             - name: yarn postinstall
               if: steps.cache.outputs.cache-hit == 'true'
               run: yarn postinstall
+
+            - name: Post-install volume info
+              if: always()
+              run: |
+                  sudo df -h
+                  sudo du -sh .
+                  sudo du -sh .nx .git node_modules
+
             - name: nx format:check
               id: format
               if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
@@ -150,26 +160,14 @@ jobs:
                   check_id: ${{ steps.init_lint.outputs.check_id }}
                   conclusion: ${{ github.ref == 'refs/heads/latest' && steps.lint.outcome || steps.lint_diff.outcome }}
 
-            # - name: nx batched build
-            #   id: batched_build
-            #   if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
-            #   run: |
-            #       COUNT=$(yarn --silent nx show projects --affected -t generate-examples,generate-thumbnails | wc -l)
-            #       if [[ "${{ github.event.inputs.nx_command || 'affected' }}" != "affected" ]] ; then
-            #         # Always run the Nx commands.
-            #         echo "Forcibly running batched generation."
-            #       elif [[ "${COUNT}" == "0" ]] ; then
-            #         exit
-            #       fi
-
-            #       yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t build:types
-            #       yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t generate-examples --batch
-            #       yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t generate-thumbnails --batch
-
             - name: nx build
               id: build
               if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
-              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t build --parallel=3  --exclude all
+              run: |
+                  # Non-batched builds - some TS/JS targets will fail if run with --batch, so build them unbatched first.
+                  yarn nx run-many -p tag:no-batching -t build --parallel=3
+                  # Batched builds.
+                  yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t build --parallel=3  --exclude all ${NX_BATCH_FLAG}
 
             - name: nx run-many -t validate-examples
               if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
@@ -182,6 +180,12 @@ jobs:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   check_id: ${{ steps.init_build.outputs.check_id }}
                   conclusion: ${{ steps.build.outcome }}
+
+            - name: Tidy Nx Cache
+              run: |
+                  sudo du -sh .nx/cache
+                  ./tools/tidy-nx-cache.sh
+                  sudo du -sh .nx/cache
 
             - name: Count test targets to run
               id: test_count
@@ -198,7 +202,7 @@ jobs:
         if: needs.execute_blt.outputs.test_count > 0
         strategy:
             matrix:
-                shard: [1, 2, 3, 4]
+                shard: [0, 1, 2, 3, 4]
         name: test (${{ matrix.shard }}/${{ strategy.job-total }})
         env:
             NX_PARALLEL: 1
@@ -242,11 +246,16 @@ jobs:
               if: steps.cache.outputs.cache-hit == 'true'
               run: yarn postinstall
             - name: nx test
+              if: matrix.shard != 0
               id: test
-              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t test --configuration=ci --exclude all --shard=${{ matrix.shard }}/${{ strategy.job-total }}
+              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t test --configuration=ci --exclude all --shard=${{ matrix.shard }}/$((${{ strategy.job-total }} - 1))
+            - name: nx benchmark
+              if: matrix.shard == 0
+              id: benchmark
+              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t benchmark --configuration=ci --exclude all
             - name: Perist test results
               if: always()
-              uses: actions/upload-artifact@v3
+              uses: actions/upload-artifact@v4
               with:
                   name: test-results-${{matrix.shard}}
                   path: |

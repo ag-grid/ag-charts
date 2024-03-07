@@ -13,8 +13,8 @@ import { prepareNightingaleAnimationFunctions, resetNightingaleSelectionFn } fro
 const { Sector } = _Scene;
 
 export class NightingaleSeries extends RadialColumnSeriesBase<_Scene.Sector> {
-    static className = 'NightingaleSeries';
-    static type = 'nightingale' as const;
+    static readonly className = 'NightingaleSeries';
+    static readonly type = 'nightingale' as const;
 
     override properties = new RadialColumnSeriesBaseProperties<AgNightingaleSeriesOptions>();
 

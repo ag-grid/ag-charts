@@ -4,17 +4,22 @@ import { enterpriseModule } from '../../module/enterpriseModule';
 import type { ModuleContext } from '../../module/moduleContext';
 import type {
     AgCartesianSeriesOptions,
-    AgChartOptions,
     AgHierarchySeriesOptions,
     AgPolarSeriesOptions,
 } from '../../options/agChartOptions';
+import type { AgChartOptions } from '../../options/chart/chartBuilderOptions';
+import type { AgTopologySeriesOptions } from '../../options/series/topology/topologyOptions';
 import { deepClone } from '../../util/json';
 import { mergeDefaults } from '../../util/object';
 import type { SeriesType } from '../mapping/types';
 import type { ISeries } from '../series/seriesTypes';
 import { chartTypes } from './chartTypes';
 
-export type SeriesOptions = AgCartesianSeriesOptions | AgPolarSeriesOptions | AgHierarchySeriesOptions;
+export type SeriesOptions =
+    | AgCartesianSeriesOptions
+    | AgPolarSeriesOptions
+    | AgHierarchySeriesOptions
+    | AgTopologySeriesOptions;
 
 interface SeriesRegistryRecord {
     instanceConstructor?: SeriesConstructor;
@@ -61,7 +66,7 @@ export class SeriesRegistry {
         chartTypes.set(seriesType, chartType);
     }
 
-    create(seriesType: SeriesType, moduleContext: ModuleContext): ISeries<any> {
+    create(seriesType: SeriesType, moduleContext: ModuleContext): ISeries<any, any> {
         const SeriesConstructor = this.seriesMap.get(seriesType)?.instanceConstructor;
         if (SeriesConstructor) {
             return new SeriesConstructor(moduleContext);

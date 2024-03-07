@@ -9,7 +9,7 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
     private destroyFns: (() => void)[] = [];
 
     constructor(
-        private chartLike: ChartLike,
+        private readonly chartLike: ChartLike,
         private readonly overlays: ChartOverlays,
         private readonly dataService: DataService<D>,
         private readonly layoutService: LayoutService

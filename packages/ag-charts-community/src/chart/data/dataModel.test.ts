@@ -30,15 +30,23 @@ const categoryKey = (property: string) => ({
     type: 'key' as const,
     valueType: 'category' as const,
 });
-const scopedValue = (scope: string[] | string | undefined, property: string, groupId?: string, id?: string) => ({
-    scopes: Array.isArray(scope) ? scope : scope ? [scope] : undefined,
-    property,
-    type: 'value' as const,
-    valueType: 'range' as const,
-    groupId,
-    id,
-    useScopedValues: Array.isArray(scope) ? scope.length > 1 : false,
-});
+const scopedValue = (scope: string[] | string | undefined, property: string, groupId?: string, id?: string) => {
+    let scopes: string[] | undefined = undefined;
+    if (Array.isArray(scope)) {
+        scopes = scope;
+    } else if (scope) {
+        scopes = [scope];
+    }
+    return {
+        scopes,
+        property,
+        type: 'value' as const,
+        valueType: 'range' as const,
+        groupId,
+        id,
+        useScopedValues: Array.isArray(scope) ? scope.length > 1 : false,
+    };
+};
 const value = (property: string, groupId?: string, id?: string) => scopedValue('test', property, groupId, id);
 const categoryValue = (property: string) => ({
     scopes: ['test'],
@@ -48,7 +56,7 @@ const categoryValue = (property: string) => ({
 });
 const accumulatedGroupValue = (property: string, groupId: string = property, id?: string) => ({
     ...value(property, groupId, id),
-    processor: () => (next, total) => next + (total ?? 0),
+    processor: () => (next: number, total?: number) => next + (total ?? 0),
 });
 const accumulatedPropertyValue = (property: string, groupId: string = property, id?: string) => ({
     ...value(property, groupId, id),
@@ -377,18 +385,18 @@ describe('DataModel', () => {
             });
 
             it('should only sum per data-item', () => {
-                const dataModel = new DataModel<any, any, true>({
+                const dataModel2 = new DataModel<any, any, true>({
                     props: [categoryKey('kp'), value('vp1', 'all'), value('vp2', 'all'), sum('all')],
                     groupByKeys: true,
                 });
-                const data = [
+                const data2 = [
                     { kp: 'Q1', vp1: 5, vp2: 7 },
                     { kp: 'Q1', vp1: 1, vp2: 2 },
                     { kp: 'Q2', vp1: 6, vp2: 9 },
                     { kp: 'Q2', vp1: 6, vp2: 9 },
                 ];
 
-                const result = dataModel.processData(data);
+                const result = dataModel2.processData(data2);
 
                 expect(result?.domain.aggValues).toEqual([[0, 15]]);
                 expect(result?.data[0].aggValues).toEqual([[0, 12]]);
@@ -505,18 +513,18 @@ describe('DataModel', () => {
             });
 
             it('should only sum per data-item', () => {
-                const dataModel = new DataModel<any, any, true>({
+                const dataModel2 = new DataModel<any, any, true>({
                     props: [categoryKey('kp'), value('vp1', 'all'), value('vp2', 'all'), sum('all')],
                     groupByKeys: true,
                 });
-                const data = [
+                const data2 = [
                     { kp: 'Q1', vp1: 5, vp2: 7 },
                     { kp: 'Q1', vp1: 1, vp2: 2 },
                     { kp: 'Q2', vp1: 6, vp2: 9 },
                     { kp: 'Q2', vp1: 6, vp2: 9 },
                 ];
 
-                const result = dataModel.processData(data);
+                const result = dataModel2.processData(data2);
 
                 expect(result?.domain.aggValues).toEqual([[0, 15]]);
                 expect(result?.data[0].aggValues).toEqual([[0, 12]]);
@@ -985,7 +993,7 @@ describe('DataModel', () => {
 
         describe('property tests', () => {
             const defaults = { missingValue: null, invalidValue: NaN };
-            const validated = { ...defaults, validation: (v) => typeof v === 'number' };
+            const validated = { ...defaults, validation: (v: unknown) => typeof v === 'number' };
             const dataModel = new DataModel<any, any, true>({
                 props: [
                     categoryKey('kp'),
@@ -1051,7 +1059,7 @@ describe('DataModel', () => {
         });
 
         describe('property tests', () => {
-            const validated = { validation: (v) => typeof v === 'number' };
+            const validated = { validation: (v: unknown) => typeof v === 'number' };
             const dataModel = new DataModel<any, any, true>({
                 props: [
                     categoryKey('kp'),

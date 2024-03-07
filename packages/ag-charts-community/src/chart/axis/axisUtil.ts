@@ -158,8 +158,8 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
         },
     };
     const group: FromToFns<Group, any, AxisGroupDatum> = {
-        fromFn(group, _datum) {
-            const { rotation, translationX, translationY } = group;
+        fromFn(node, _datum) {
+            const { rotation, translationX, translationY } = node;
             return {
                 rotation,
                 translationX,
@@ -167,7 +167,7 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
                 phase: NODE_UPDATE_STATE_TO_PHASE_MAPPING['updated'],
             };
         },
-        toFn(_group, datum) {
+        toFn(_node, datum) {
             const { rotation, translationX, translationY } = datum;
             return {
                 rotation,

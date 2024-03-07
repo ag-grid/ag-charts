@@ -12,6 +12,6 @@ export interface ModuleInstance {
 export interface BaseModule {
     optionsKey: string;
     packageType: 'community' | 'enterprise';
-    chartTypes: ('cartesian' | 'polar' | 'hierarchy')[];
+    chartTypes: ('cartesian' | 'polar' | 'hierarchy' | 'topology')[];
     identifier?: string;
 }

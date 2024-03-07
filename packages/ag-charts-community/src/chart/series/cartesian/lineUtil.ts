@@ -47,7 +47,7 @@ function closeMatch<T extends number | string>(a: T, b: T) {
 
 function calculateMoveTo(from = false, to = false): PathPoint['moveTo'] {
     if (from === to) {
-        return !!from;
+        return Boolean(from);
     }
 
     return from ? 'in' : 'out';
@@ -180,20 +180,24 @@ export function pairCategoryData(
         moved: {},
         removed: {},
     };
+    const pointResultMapping: Record<PathPoint['change'], keyof PathPointMap<any>> = {
+        in: 'added',
+        move: 'moved',
+        out: 'removed',
+    };
 
     let previousResultPoint: PathPoint | undefined = undefined;
-    let previousXValue: any | undefined = undefined;
-    const addToResultMap = (xValue: string, result: PathPoint) => {
-        const type: keyof PathPointMap =
-            result.change === 'move' ? 'moved' : result.change === 'in' ? 'added' : 'removed';
+    let previousXValue = undefined;
+    const addToResultMap = (xValue: string, newPoint: PathPoint) => {
+        const type = pointResultMapping[newPoint.change];
         if (multiDatum) {
             resultMapMulti[type][xValue] ??= [];
-            resultMapMulti[type][xValue].push(result);
+            resultMapMulti[type][xValue].push(newPoint);
         } else {
-            resultMapSingle[type][xValue] = result;
+            resultMapSingle[type][xValue] = newPoint;
         }
 
-        previousResultPoint = result;
+        previousResultPoint = newPoint;
         previousXValue = transformIntegratedCategoryValue(xValue);
     };
 
@@ -258,9 +262,9 @@ export function pairCategoryData(
         const { change: marker, to: { x = -Infinity } = {} } = pathPoint;
 
         if (marker === 'out') return;
-        const result = x < previousX;
+        const unordered = x < previousX;
         previousX = x;
-        return result;
+        return unordered;
     });
     if (isXUnordered) {
         return { result: undefined, resultMap: undefined };

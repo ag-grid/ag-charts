@@ -4,24 +4,21 @@ if (typeof window !== 'undefined') {
     verifiedGlobals.window = window;
 } else if (typeof global !== 'undefined') {
     verifiedGlobals.window = global.window;
-} else {
-    throw new Error('AG Charts - unable to resolve global window.');
 }
+
 if (typeof document !== 'undefined') {
     verifiedGlobals.document = document;
 } else if (typeof global !== 'undefined') {
     verifiedGlobals.document = global.document;
-} else {
-    throw new Error('AG Charts - unable to resolve global document.');
 }
 
 export function getDocument() {
     return verifiedGlobals.document;
 }
 
-export function getWindow(): Window;
+export function getWindow<E>(): Window & E;
 export function getWindow<K extends keyof Window>(propertyName: K): Window[K];
-export function getWindow<K extends string>(propertyName: K): unknown;
+export function getWindow<R = unknown>(propertyName: string): R;
 export function getWindow<K extends keyof Window>(propertyName?: K) {
     return propertyName ? verifiedGlobals.window?.[propertyName] : verifiedGlobals.window;
 }

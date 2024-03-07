@@ -1,11 +1,10 @@
 import { Debug } from '../../util/debug';
+import { iterate } from '../../util/function';
 import { Logger } from '../../util/logger';
 import { isNegative } from '../../util/number';
 import { isFiniteNumber, isObject } from '../../util/type-guards';
 import type { ChartMode } from '../chartMode';
-import { DataDomain } from './dataDomain';
-import type { ContinuousDomain } from './utilFunctions';
-import { extendDomain } from './utilFunctions';
+import { ContinuousDomain, DiscreteDomain, type IDataDomain } from './dataDomain';
 
 export type ScopeProvider = { id: string };
 
@@ -95,14 +94,12 @@ function round(val: number): number {
 }
 
 function fixNumericExtentInternal(extent?: (number | Date)[]): [] | [number, number] {
-    if (extent === undefined) {
+    if (extent == null) {
         // Don't return a range, there is no range.
         return [];
     }
 
-    let [min, max] = extent;
-    min = Number(min);
-    max = Number(max);
+    let [min, max] = extent.map(Number);
 
     if (min === 0 && max === 0) {
         // domain has zero length and the single valid value is 0. Use the default of [0, 1].
@@ -112,11 +109,9 @@ function fixNumericExtentInternal(extent?: (number | Date)[]): [] | [number, num
     if (min === Infinity && max === -Infinity) {
         // There's no data in the domain.
         return [];
-    }
-    if (min === Infinity) {
+    } else if (min === Infinity) {
         min = 0;
-    }
-    if (max === -Infinity) {
+    } else if (max === -Infinity) {
         max = 0;
     }
 
@@ -156,7 +151,7 @@ function defaultMissMap(): MissMap {
 }
 
 export function getMissCount(scopeProvider: ScopeProvider, missMap: MissMap | undefined) {
-    return missMap === undefined ? 0 : missMap.get(scopeProvider.id) ?? 0;
+    return missMap?.get(scopeProvider.id) ?? 0;
 }
 
 type GroupingFn<K> = (data: UngroupedDataItem<K, any[]>) => K[];
@@ -243,14 +238,14 @@ export type GroupValueProcessorDefinition<D, K extends keyof D & string> = Prope
         type: 'group-value-processor';
         /**
          * Outer function called once per all data processing; inner function called once per group;
-         * inner-most called once per datum.
+         * innermost called once per datum.
          */
         adjust: () => () => (values: D[K][], indexes: number[]) => void;
     };
 
 export type PropertyValueProcessorDefinition<D> = PropertyIdentifiers & {
     type: 'property-value-processor';
-    property: PropertyId<keyof D & string>;
+    property: PropertyId<string>;
     adjust: () => (processedData: ProcessedData<D>, valueIndex: number) => void;
 };
 
@@ -277,6 +272,8 @@ export class DataModel<
     Grouped extends boolean | undefined = undefined,
 > {
     private readonly debug = Debug.create(true, 'data-model');
+    private readonly scopeCache: Map<string, Map<string, Set<PropertyDefinition<any> & InternalDefinition>>> =
+        new Map();
 
     private readonly opts: DataModelOptions<K, Grouped>;
     private readonly keys: InternalDatumPropertyDefinition<K>[];
@@ -305,41 +302,17 @@ export class DataModel<
         }
 
         this.opts = { dataVisible: true, ...opts };
-        this.keys = props
-            .filter((def): def is DatumPropertyDefinition<K> => def.type === 'key')
-            .map((def, index) => ({ ...def, index, missing: defaultMissMap() }));
-        this.values = props
-            .filter((def): def is DatumPropertyDefinition<K> => def.type === 'value')
-            .map((def, index) => ({ ...def, index, missing: defaultMissMap() }));
-        this.aggregates = props
-            .filter((def): def is AggregatePropertyDefinition<D, K> => def.type === 'aggregate')
-            .map((def, index) => ({ ...def, index }));
-        this.groupProcessors = props
-            .filter((def): def is GroupValueProcessorDefinition<D, K> => def.type === 'group-value-processor')
-            .map((def, index) => ({ ...def, index }));
-        this.propertyProcessors = props
-            .filter((def): def is PropertyValueProcessorDefinition<D> => def.type === 'property-value-processor')
-            .map((def, index) => ({ ...def, index }));
-        this.reducers = props
-            .filter((def): def is ReducerOutputPropertyDefinition => def.type === 'reducer')
-            .map((def, index) => ({ ...def, index }));
-        this.processors = props
-            .filter((def): def is ProcessorOutputPropertyDefinition => def.type === 'processor')
-            .map((def, index) => ({ ...def, index }));
+        this.keys = [];
+        this.values = [];
+        this.aggregates = [];
+        this.groupProcessors = [];
+        this.propertyProcessors = [];
+        this.reducers = [];
+        this.processors = [];
 
-        for (const def of this.values) {
-            if (def.property == null) {
-                throw new Error(
-                    `AG Charts - internal config error: no properties specified for value definitions: ${JSON.stringify(
-                        def
-                    )}`
-                );
-            }
-        }
-
-        const verifyMatchGroupId = ({ matchGroupIds }: { matchGroupIds?: string[] }) => {
-            for (const matchGroupId of matchGroupIds ?? []) {
-                if (!this.values.some((def) => def.groupId === matchGroupId)) {
+        const verifyMatchGroupId = ({ matchGroupIds = [] }: { matchGroupIds?: string[] }) => {
+            for (const matchGroupId of matchGroupIds) {
+                if (this.values.every((def) => def.groupId !== matchGroupId)) {
                     throw new Error(
                         `AG Charts - internal config error: matchGroupIds properties must match defined groups (${matchGroupId}).`
                     );
@@ -360,34 +333,66 @@ export class DataModel<
             }
         };
 
-        for (const def of [...this.groupProcessors, ...this.aggregates]) {
-            verifyMatchIds(def);
-            verifyMatchGroupId(def);
+        for (const def of props) {
+            switch (def.type) {
+                case 'key':
+                    this.keys.push({ ...def, index: this.keys.length, missing: defaultMissMap() });
+                    break;
+
+                case 'value':
+                    if (def.property == null) {
+                        throw new Error(
+                            `AG Charts - internal config error: no properties specified for value definitions: ${JSON.stringify(
+                                def
+                            )}`
+                        );
+                    }
+                    this.values.push({ ...def, index: this.values.length, missing: defaultMissMap() });
+                    break;
+
+                case 'aggregate':
+                    verifyMatchIds(def);
+                    verifyMatchGroupId(def);
+                    this.aggregates.push({ ...def, index: this.aggregates.length });
+                    break;
+
+                case 'group-value-processor':
+                    verifyMatchIds(def);
+                    verifyMatchGroupId(def);
+                    this.groupProcessors.push({ ...def, index: this.groupProcessors.length });
+                    break;
+
+                case 'property-value-processor':
+                    this.propertyProcessors.push({ ...def, index: this.propertyProcessors.length });
+                    break;
+
+                case 'reducer':
+                    this.reducers.push({ ...def, index: this.reducers.length });
+                    break;
+
+                case 'processor':
+                    this.processors.push({ ...def, index: this.processors.length });
+                    break;
+            }
         }
     }
 
     resolveProcessedDataIndexById(scope: ScopeProvider, searchId: string): ProcessedDataDef | never {
-        const { index, def } = this.resolveProcessedDataDefById(scope, searchId) ?? {};
-        return { index, def };
-    }
-
-    resolveProcessedDataIndicesById(scope: ScopeProvider, searchId: string | RegExp): ProcessedDataDef[] | never {
-        return this.resolveProcessedDataDefsById(scope, searchId).map(({ index, def }) => ({ index, def }));
+        return this.resolveProcessedDataDefById(scope, searchId) ?? {};
     }
 
     resolveProcessedDataDefById(scope: ScopeProvider, searchId: string): ProcessedDataDef | never {
-        return this.resolveProcessedDataDefsById(scope, searchId)[0];
+        const { value, done } = this.scopeDefs(scope, searchId).next();
+
+        if (done) {
+            throw new Error(`AG Charts - didn't find property definition for [${searchId}, ${scope.id}]`);
+        }
+
+        return value;
     }
 
-    resolveProcessedDataDefsByIds<T extends string>(
-        scope: ScopeProvider,
-        searchIds: T[]
-    ): [T, ProcessedDataDef[]][] | never {
-        const defs: [T, ProcessedDataDef[]][] = [];
-        for (const searchId of searchIds) {
-            defs.push([searchId, this.resolveProcessedDataDefsById(scope, searchId)]);
-        }
-        return defs;
+    resolveProcessedDataDefsByIds<T extends string>(scope: ScopeProvider, searchIds: T[]): [T, ProcessedDataDef[]][] {
+        return searchIds.map((searchId) => [searchId, this.resolveProcessedDataDefsById(scope, searchId)]);
     }
 
     resolveProcessedDataDefsValues<T extends string>(
@@ -402,82 +407,59 @@ export class DataModel<
         return result;
     }
 
-    resolveProcessedDataDefsById(searchScope: ScopeProvider, searchId: RegExp | string): ProcessedDataDef[] | never {
-        const { keys, values, aggregates, groupProcessors, reducers } = this;
+    resolveProcessedDataDefsById(searchScope: ScopeProvider, searchId: string): ProcessedDataDef[] | never {
+        const result = Array.from(this.scopeDefs(searchScope, searchId));
 
-        const match = (prop: PropertyDefinition<any> & InternalDefinition) => {
-            const { ids, scopes } = prop;
-
-            if (ids == null) return false;
-            if (searchScope != null && !scopes?.some((scope) => scope === searchScope.id)) return false;
-
-            return ids.some(
-                ([scope, id]) =>
-                    scope === searchScope.id && (typeof searchId === 'string' ? id === searchId : searchId.test(id))
-            );
-        };
-
-        const allDefs: (PropertyDefinition<any> & InternalDefinition)[][] = [
-            keys,
-            values,
-            aggregates,
-            groupProcessors,
-            reducers,
-        ];
-        const result: ProcessedDataDef[] = [];
-        for (const defs of allDefs) {
-            result.push(...defs.filter(match).map((def) => ({ index: def.index, def })));
+        if (!result.length) {
+            throw new Error(`AG Charts - didn't find property definition for [${searchId}, ${searchScope.id}]`);
         }
 
-        if (result.length > 0) {
-            return result;
-        }
+        return result;
+    }
 
-        throw new Error(`AG Charts - didn't find property definition for [${searchId}, ${searchScope.id}]`);
+    private *scopeDefs(searchScope: ScopeProvider, searchId: string) {
+        for (const def of this.scopeCache.get(searchScope.id)?.get(searchId) ?? []) {
+            yield { index: def.index, def };
+        }
     }
 
     getDomain(
         scope: ScopeProvider,
-        searchId: string | RegExp,
+        searchId: string,
         type: PropertyDefinition<any>['type'] = 'value',
         processedData: ProcessedData<K>
-    ): any[] | ContinuousDomain<number> | [] {
-        let matches;
-        try {
-            matches = this.resolveProcessedDataIndicesById(scope, searchId);
-        } catch (e: any) {
-            if (typeof searchId !== 'string' && /didn't find property definition/.test(e.message)) return [];
-            throw e;
+    ): any[] | [number, number] | [] {
+        const matches = this.resolveProcessedDataDefsById(scope, searchId);
+        const domains = this.getDomainsByType(type, processedData);
+
+        if (domains == null) {
+            return [];
         }
 
-        let domainProp: keyof ProcessedData<any>['domain'];
+        if (matches.length === 1) {
+            return domains[matches[0].index] ?? [];
+        } else {
+            const result: [number, number] = [Infinity, -Infinity];
+            for (const { index } of matches) {
+                ContinuousDomain.extendDomain(domains[index] ?? [], result);
+            }
+            return result;
+        }
+    }
+
+    private getDomainsByType(type: PropertyDefinition<any>['type'], processedData: ProcessedData<K>) {
         switch (type) {
             case 'key':
-                domainProp = 'keys';
-                break;
+                return processedData.domain.keys;
             case 'value':
-                domainProp = 'values';
-                break;
+                return processedData.domain.values;
             case 'aggregate':
-                domainProp = 'aggValues';
-                break;
+                return processedData.domain.aggValues;
             case 'group-value-processor':
-                domainProp = 'groups';
-                break;
+                return processedData.domain.groups;
             default:
-                return [];
+                return null;
         }
-
-        const firstMatch = processedData.domain[domainProp]?.[matches[0].index] ?? [];
-        if (matches.length === 1) {
-            return firstMatch;
-        }
-
-        const result = [...firstMatch];
-        for (const idx of matches.slice(1)) {
-            extendDomain(processedData.domain[domainProp]?.[idx.index] ?? [], result as ContinuousDomain<any>);
-        }
-        return result;
     }
 
     processData(
@@ -520,11 +502,11 @@ export class DataModel<
             this.postProcessData(processedData);
         }
 
-        for (const def of [...this.keys, ...this.values]) {
-            if (data.length > 0) {
+        if (data.length > 0) {
+            for (const def of iterate(this.keys, this.values)) {
                 for (const [scope, missCount] of def.missing) {
                     if (missCount >= data.length) {
-                        const scopeHint = scope === undefined ? '' : ` for ${scope}`;
+                        const scopeHint = scope == null ? '' : ` for ${scope}`;
                         Logger.warnOnce(`the key '${def.property}' was not found in any data element${scopeHint}.`);
                     }
                 }
@@ -538,59 +520,77 @@ export class DataModel<
             logProcessedData(processedData);
         }
 
+        this.scopeCache.clear();
+        for (const def of iterate(this.keys, this.values, this.aggregates, this.groupProcessors, this.reducers)) {
+            for (const [scope, id] of def.ids ?? []) {
+                if (!this.scopeCache.has(scope)) {
+                    this.scopeCache.set(scope, new Map([[id, new Set([def])]]));
+                } else if (!this.scopeCache.get(scope)!.has(id)) {
+                    this.scopeCache.get(scope)!.set(id, new Set([def]));
+                } else {
+                    this.scopeCache.get(scope)!.get(id)!.add(def);
+                }
+            }
+        }
+
         return processedData as Grouped extends true ? GroupedData<D> : UngroupedData<D>;
     }
 
-    private valueGroupIdxLookup({ matchGroupIds, matchIds }: PropertySelectors) {
-        return this.values
-            .map((def, index) => ({ def, index }))
-            .filter(({ def }) => {
-                if (matchGroupIds && (def.groupId == null || !matchGroupIds.includes(def.groupId))) {
-                    return false;
+    private hasMatchingDef(matchIds: [string, string][], defIds: [string, string][]) {
+        for (const [matchId, matchScope] of matchIds) {
+            for (const [defId, defScope] of defIds) {
+                if (defId === matchId && defScope === matchScope) {
+                    return true;
                 }
-                if (!matchIds) return true;
-                if (def.ids == null) return false;
+            }
+        }
+        return false;
+    }
 
-                return matchIds.some(([matchScope, matchId]) =>
-                    def.ids?.some(([defScope, defId]) => defScope === matchScope && defId === matchId)
-                );
-            })
-            .map(({ index }) => index);
+    private valueGroupIdxLookup({ matchGroupIds, matchIds }: PropertySelectors) {
+        const result: number[] = [];
+        for (const [index, def] of this.values.entries()) {
+            if (matchGroupIds && (def.groupId == null || !matchGroupIds.includes(def.groupId))) continue;
+            if (matchIds && (def.ids == null || !this.hasMatchingDef(matchIds, def.ids))) continue;
+
+            result.push(index);
+        }
+        return result;
     }
 
     private valueIdxLookup(scopes: string[], prop: PropertyId<string>) {
         const noScopesToMatch = scopes == null || scopes.length === 0;
         const scopeMatch = (compareTo?: string[]) => {
             const anyScope = compareTo == null;
-            if (anyScope) return true;
+            if (anyScope) {
+                return true;
+            }
 
             const noScopes = compareTo == null || compareTo.length === 0;
-            if (noScopesToMatch === noScopes) return true;
+            if (noScopesToMatch === noScopes) {
+                return true;
+            }
 
             return compareTo?.some((s) => scopes.includes(s));
         };
 
         const propId = typeof prop === 'string' ? prop : prop.id;
-        const idMatch = ([scope, id]: [string, string]) => {
-            return scopeMatch([scope]) && id === propId;
-        };
-
-        const result = this.values.findIndex((def) => {
-            return (
+        const idMatch = ([scope, id]: [string, string]) => scopeMatch([scope]) && id === propId;
+        const result = this.values.findIndex(
+            (def) =>
                 scopeMatch(def.scopes) &&
                 (def.ids?.some((id) => idMatch(id)) || def.property === propId || def.id === propId)
-            );
-        });
+        );
 
-        if (result >= 0) {
-            return result;
+        if (result === -1) {
+            throw new Error(
+                `AG Charts - configuration error, unknown property ${JSON.stringify(prop)} in scope(s) ${JSON.stringify(
+                    scopes
+                )}`
+            );
         }
 
-        throw new Error(
-            `AG Charts - configuration error, unknown property ${JSON.stringify(prop)} in scope(s) ${JSON.stringify(
-                scopes
-            )}`
-        );
+        return result;
     }
 
     private extractData(data: D[], sources?: { id: string; data: D[] }[]): UngroupedData<D> {
@@ -682,12 +682,13 @@ export class DataModel<
         resultData.length = resultDataIdx;
 
         const propertyDomain = (def: InternalDatumPropertyDefinition<K>) => {
-            const result = dataDomain.get(def)!.getDomain();
-            if (Array.isArray(result) && result[0] > result[1]) {
-                // Ignore starting values.
+            const defDomain = dataDomain.get(def)!;
+            const result = defDomain.getDomain();
+            // Ignore starting values.
+            if (ContinuousDomain.is(defDomain) && result[0] > result[1]) {
                 return [];
             }
-            return [...result];
+            return result;
         };
 
         return {
@@ -695,8 +696,8 @@ export class DataModel<
             input: { count: data.length },
             data: resultData,
             domain: {
-                keys: keyDefs.map((def) => propertyDomain(def)),
-                values: valueDefs.map((def) => propertyDomain(def)),
+                keys: keyDefs.map(propertyDomain),
+                values: valueDefs.map(propertyDomain),
             },
             defs: {
                 allScopesHaveSameDefs,
@@ -770,7 +771,7 @@ export class DataModel<
 
         if (!aggDefs) return;
 
-        const resultAggValues = aggDefs.map((): ContinuousDomain<number> => [Infinity, -Infinity]);
+        const resultAggValues = aggDefs.map((): [number, number] => [Infinity, -Infinity]);
         const resultAggValueIndices = aggDefs.map((def) => this.valueGroupIdxLookup(def));
         const resultAggFns = aggDefs.map((def) => def.aggregateFunction);
         const resultGroupAggFns = aggDefs.map((def) => def.groupAggregateFunction);
@@ -794,21 +795,21 @@ export class DataModel<
                     continue;
                 }
 
-                let groupAggValues = resultGroupAggFns[resultIdx]?.() ?? extendDomain([]);
+                let groupAggValues = resultGroupAggFns[resultIdx]?.() ?? ContinuousDomain.extendDomain([]);
                 for (const distinctValues of values) {
                     const valuesToAgg = indices.map((valueIdx) => distinctValues[valueIdx] as D[K]);
                     const valuesAgg = resultAggFns[resultIdx](valuesToAgg, group.keys);
                     if (valuesAgg) {
                         groupAggValues =
                             resultGroupAggFns[resultIdx]?.(valuesAgg, groupAggValues) ??
-                            extendDomain(valuesAgg, groupAggValues);
+                            ContinuousDomain.extendDomain(valuesAgg, groupAggValues);
                     }
                 }
 
                 const finalValues = (resultFinalFns[resultIdx]?.(groupAggValues) ?? groupAggValues).map((v) =>
                     round(v)
                 ) as [number, number];
-                extendDomain(finalValues, resultAggValues[resultIdx]);
+                ContinuousDomain.extendDomain(finalValues, resultAggValues[resultIdx]);
                 group.aggValues[resultIdx++] = finalValues;
             }
         }
@@ -822,7 +823,7 @@ export class DataModel<
         if (!groupProcessors) return;
 
         const affectedIndices = new Set<number>();
-        const updatedDomains = new Map<number, DataDomain>();
+        const updatedDomains = new Map<number, IDataDomain>();
         const groupProcessorIndices = new Map<object, number[]>();
         const groupProcessorInitFns = new Map<object, () => (v: any[], i: number[]) => void>();
         for (const processor of groupProcessors) {
@@ -832,8 +833,9 @@ export class DataModel<
 
             for (const idx of indices) {
                 const valueDef = this.values[idx];
+                const isDiscrete = valueDef.valueType === 'category';
                 affectedIndices.add(idx);
-                updatedDomains.set(idx, new DataDomain(valueDef.valueType === 'category' ? 'discrete' : 'continuous'));
+                updatedDomains.set(idx, isDiscrete ? new DiscreteDomain() : new ContinuousDomain());
             }
         }
 
@@ -878,7 +880,7 @@ export class DataModel<
         }
 
         for (const [idx, dataDomain] of updatedDomains) {
-            processedData.domain.values[idx] = [...dataDomain.getDomain()];
+            processedData.domain.values[idx] = dataDomain.getDomain();
         }
     }
 
@@ -939,28 +941,29 @@ export class DataModel<
         }
         const scopesCount = scopes.size;
 
-        const dataDomain: Map<object, DataDomain> = new Map();
+        const dataDomain: Map<object, IDataDomain> = new Map();
         const processorFns = new Map<InternalDatumPropertyDefinition<K>, ProcessorFn>();
         let allScopesHaveSameDefs = true;
         const initDataDomainKey = (
             key: InternalDatumPropertyDefinition<K>,
             type: DatumPropertyType,
-            updateDataDomain: typeof dataDomain = dataDomain
+            updateDataDomain = dataDomain
         ) => {
             if (type === 'category') {
-                updateDataDomain.set(key, new DataDomain('discrete'));
+                updateDataDomain.set(key, new DiscreteDomain());
             } else {
-                updateDataDomain.set(key, new DataDomain('continuous'));
+                updateDataDomain.set(key, new ContinuousDomain());
                 allScopesHaveSameDefs &&= (key.scopes ?? []).length === scopesCount;
             }
         };
         const initDataDomain = () => {
-            keyDefs.forEach((def) => initDataDomainKey(def, def.valueType));
-            valueDefs.forEach((def) => initDataDomainKey(def, def.valueType));
+            for (const def of iterate(keyDefs, valueDefs)) {
+                initDataDomainKey(def, def.valueType);
+            }
         };
         initDataDomain();
 
-        const accessors = this.buildAccessors(...keyDefs, ...valueDefs);
+        const accessors = this.buildAccessors(iterate(keyDefs, valueDefs));
 
         const processValue = (
             def: InternalDatumPropertyDefinition<K>,
@@ -969,7 +972,7 @@ export class DataModel<
             scope?: string
         ) => {
             const hasAccessor = def.property in accessors;
-            let valueInDatum = false;
+            let valueInDatum: boolean;
             let value;
             if (hasAccessor) {
                 try {
@@ -977,7 +980,7 @@ export class DataModel<
                 } catch (error: any) {
                     // Swallow errors - these get reported as missing values to the user later.
                 }
-                valueInDatum = value !== undefined;
+                valueInDatum = value != null;
             } else {
                 valueInDatum = def.property in datum;
                 value = valueInDatum ? datum[def.property] : def.missingValue;
@@ -1019,7 +1022,7 @@ export class DataModel<
                 if (!processorFns.has(def)) {
                     processorFns.set(def, def.processor());
                 }
-                value = processorFns.get(def)?.(value, previousDatum !== INVALID_VALUE ? previousDatum : undefined);
+                value = processorFns.get(def)?.(value, previousDatum === INVALID_VALUE ? undefined : previousDatum);
             }
 
             dataDomain.get(def)?.extend(value);
@@ -1029,7 +1032,7 @@ export class DataModel<
         return { dataDomain, processValue, initDataDomain, scopes, allScopesHaveSameDefs };
     }
 
-    buildAccessors(...defs: { property: string }[]) {
+    buildAccessors(defs: Iterable<{ property: string }>) {
         const result: Record<string, (d: any) => any> = {};
         if (this.mode === 'integrated') return result;
 
@@ -1043,6 +1046,7 @@ export class DataModel<
             } else {
                 fnBody = `return datum.${def.property};`;
             }
+            // eslint-disable-next-line @typescript-eslint/no-implied-eval
             result[def.property] = new Function('datum', fnBody) as (d: any) => any;
         }
         return result;

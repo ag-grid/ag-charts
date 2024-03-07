@@ -11,8 +11,8 @@ import { PieSeries } from './series/polar/pieSeries';
 import { PolarSeries } from './series/polar/polarSeries';
 
 export class PolarChart extends Chart {
-    static className = 'PolarChart';
-    static type = 'polar' as const;
+    static readonly className = 'PolarChart';
+    static readonly type = 'polar' as const;
 
     override padding = new Padding(40);
 
@@ -83,7 +83,7 @@ export class PolarChart extends Chart {
     }
 
     private async computeCircle(seriesBox: BBox) {
-        const polarSeries = this.series.filter((series): series is PolarSeries<any, any> => {
+        const polarSeries = this.series.filter((series): series is PolarSeries<any, any, any> => {
             return series instanceof PolarSeries;
         });
         const polarAxes = this.axes.filter((axis): axis is PolarAxis => {

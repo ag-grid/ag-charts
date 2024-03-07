@@ -9,6 +9,7 @@ import {
     isAgHierarchyChartOptions,
     isAgPolarChartOptions,
     isAgPolarChartOptionsWithSeriesBasedLegend,
+    isAgTopologyChartOptions,
     isAxisOptionType,
     isSeriesOptionType,
 } from '../chart/mapping/types';
@@ -30,7 +31,7 @@ import { enterpriseModule } from './enterpriseModule';
 import type { AxisContext, ModuleContextWithParent } from './moduleContext';
 import type { SeriesType } from './optionsModuleTypes';
 
-type AxisType = 'category' | 'number' | 'log' | 'time';
+type AxisType = 'category' | 'number' | 'log' | 'time' | 'ordinal-time';
 
 export interface AxisOptionModule<M extends ModuleInstance = ModuleInstance> extends BaseModule {
     type: 'axis-option';
@@ -85,7 +86,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.seriesDefaults = this.getOptionsDefaults(options);
         this.specialOverrides = this.specialOverridesDefaults({ ...specialOverrides });
 
-        const { axes: axesThemes = {}, series: seriesThemes, ...themeDefaults } = this.getSeriesThemeConfig(chartType);
+        const { axes: axesThemes = {}, series: _, ...themeDefaults } = this.getSeriesThemeConfig(chartType);
 
         this.processedOptions = deepClone(
             mergeDefaults(this.userOptions, themeDefaults, this.seriesDefaults),
@@ -190,7 +191,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                         : style
                 );
             }
-            const { top, right, bottom, left, ...axisOptions } = mergeDefaults(axis, axisTheme);
+            const { top: _1, right: _2, bottom: _3, left: _4, ...axisOptions } = mergeDefaults(axis, axisTheme);
             return axisOptions;
         }) as AgCartesianAxisOptions[] | AgPolarAxisOptions[];
     }
@@ -203,7 +204,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             userPalette: Boolean(isObject(options.theme) && options.theme.palette),
         };
 
-        const series = options.series!.map((series) => {
+        const processedSeries = options.series!.map((series) => {
             series.type ??= defaultSeriesType;
             const { innerLabels: innerLabelsTheme, ...seriesTheme } =
                 this.getSeriesThemeConfig(series.type).series ?? {};
@@ -222,7 +223,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             return this.activeTheme.templateTheme(seriesOptions);
         });
 
-        options.series = this.setSeriesGroupingOptions(series);
+        options.series = this.setSeriesGroupingOptions(processedSeries);
     }
 
     protected processMiniChartSeriesOptions(options: T) {
@@ -236,8 +237,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         miniChartSeries = miniChartSeries.map((series) => {
             series.type ??= 'line';
-            const { innerLabels: innerLabelsTheme, ...seriesTheme } =
-                this.getSeriesThemeConfig(series.type).series ?? {};
+            const { innerLabels: _, ...seriesTheme } = this.getSeriesThemeConfig(series.type).series ?? {};
             const seriesOptions = mergeDefaults(
                 this.getSeriesGroupingOptions(series),
                 series,
@@ -292,8 +292,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         };
     }
 
-    protected setSeriesGroupingOptions(series: GroupingSeriesOptions[]) {
-        const seriesGroups = this.getSeriesGrouping(series);
+    protected setSeriesGroupingOptions(allSeries: GroupingSeriesOptions[]) {
+        const seriesGroups = this.getSeriesGrouping(allSeries);
 
         Debug.create(true, 'opts')('setSeriesGroupingOptions() - series grouping: ', seriesGroups);
 
@@ -341,7 +341,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
                 return seriesGroup.series;
             })
-            .map(({ stacked, grouped, ...seriesOptions }) => seriesOptions) as T['series'];
+            .map(({ stacked: _, grouped: __, ...seriesOptions }) => seriesOptions) as T['series'];
     }
 
     protected getSeriesGroupId(series: GroupingSeriesOptions) {
@@ -353,9 +353,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             .join('-');
     }
 
-    protected getSeriesGrouping(series: GroupingSeriesOptions[]) {
+    protected getSeriesGrouping(allSeries: GroupingSeriesOptions[]) {
         const groupMap = new Map<string, SeriesGroup>();
-        return series.reduce<SeriesGroup[]>((result, series) => {
+        return allSeries.reduce<SeriesGroup[]>((result, series) => {
             const seriesType = series.type!;
             if (!series.stacked && !series.grouped) {
                 result.push({ groupType: GroupingType.DEFAULT, seriesType, series: [series] });
@@ -376,10 +376,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     private getDefaultSeriesType(options: T): SeriesType {
         if (isAgCartesianChartOptions(options)) {
             return 'line';
-        } else if (isAgHierarchyChartOptions(options)) {
-            return 'treemap';
         } else if (isAgPolarChartOptions(options)) {
             return 'pie';
+        } else if (isAgHierarchyChartOptions(options)) {
+            return 'treemap';
+        } else if (isAgTopologyChartOptions(options)) {
+            return 'map';
         }
         throw new Error('Invalid chart options type detected.');
     }
@@ -441,16 +443,18 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private soloSeriesIntegrity(options: Partial<T>) {
-        const series: SeriesOptions[] | undefined = options.series;
-        if (series && series.length > 1 && series.some((series) => seriesRegistry.isSolo(series.type))) {
+        const allSeries: SeriesOptions[] | undefined = options.series;
+        if (allSeries && allSeries.length > 1 && allSeries.some((series) => seriesRegistry.isSolo(series.type))) {
             const mainSeriesType = this.optionsType(options);
             if (seriesRegistry.isSolo(mainSeriesType)) {
                 Logger.warn(
                     `series[0] of type '${mainSeriesType}' is incompatible with other series types. Only processing series[0]`
                 );
-                options.series = series.slice(0, 1) as T['series'];
+                options.series = allSeries.slice(0, 1) as T['series'];
             } else {
-                const { solo, nonSolo } = groupBy(series, (s) => (seriesRegistry.isSolo(s.type) ? 'solo' : 'nonSolo'));
+                const { solo, nonSolo } = groupBy(allSeries, (s) =>
+                    seriesRegistry.isSolo(s.type) ? 'solo' : 'nonSolo'
+                );
                 const rejects = unique(solo!.map((s) => s.type)).join(', ');
                 Logger.warn(`Unable to mix these series types with the lead series type: ${rejects}`);
                 options.series = nonSolo as T['series'];
@@ -523,27 +527,27 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     private specialOverridesDefaults(options: Partial<ChartSpecialOverrides>) {
         if (options.window != null) {
             setWindow(options.window);
-        } else {
-            if (typeof window !== 'undefined') {
-                options.window = window;
-            } else if (typeof global !== 'undefined') {
-                options.window = global.window;
-            } else {
-                throw new Error('AG Charts - unable to resolve global window');
-            }
+        } else if (typeof window !== 'undefined') {
+            options.window = window;
+        } else if (typeof global !== 'undefined') {
+            options.window = global.window;
         }
 
         if (options.document != null) {
             setDocument(options.document);
-        } else {
-            if (typeof document !== 'undefined') {
-                options.document = document;
-            } else if (typeof global !== 'undefined') {
-                options.document = global.document;
-            } else {
-                throw new Error('AG Charts - unable to resolve global document');
-            }
+        } else if (typeof document !== 'undefined') {
+            options.document = document;
+        } else if (typeof global !== 'undefined') {
+            options.document = global.document;
         }
+
+        if (options.window == null) {
+            throw new Error('AG Charts - unable to resolve global window');
+        }
+        if (options.document == null) {
+            throw new Error('AG Charts - unable to resolve global document');
+        }
+
         return options as ChartSpecialOverrides;
     }
 }

@@ -3,7 +3,7 @@ import { fromToMotion } from '../../../motion/fromToMotion';
 import { pathMotion } from '../../../motion/pathMotion';
 import { resetMotion } from '../../../motion/resetMotion';
 import { Group } from '../../../scene/group';
-import {  PointerEvents } from '../../../scene/node';
+import { PointerEvents } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
 import type { Text } from '../../../scene/shape/text';
@@ -19,10 +19,14 @@ import { animationValidation, createDatumId, diff } from '../../data/processors'
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
-import {  SeriesNodePickMode, keyProperty, valueProperty } from '../series';
+import { SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { CartesianAnimationData, CartesianSeriesNodeDataContext } from './cartesianSeries';
-import { CartesianSeries } from './cartesianSeries';
+import {
+    CartesianSeries,
+    DEFAULT_CARTESIAN_DIRECTION_KEYS,
+    DEFAULT_CARTESIAN_DIRECTION_NAMES,
+} from './cartesianSeries';
 import { LineNodeDatum, LineSeriesProperties } from './lineSeriesProperties';
 import { prepareLinePathAnimation } from './lineUtil';
 import { markerFadeInAnimation, markerSwipeScaleInAnimation, resetMarkerFn, resetMarkerPositionFn } from './markerUtil';
@@ -30,15 +34,17 @@ import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, updateClip
 
 type LineAnimationData = CartesianAnimationData<Group, LineNodeDatum>;
 
-export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
-    static className = 'LineSeries';
-    static type = 'line' as const;
+export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, LineNodeDatum> {
+    static readonly className = 'LineSeries';
+    static readonly type = 'line' as const;
 
     override properties = new LineSeriesProperties();
 
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,
+            directionKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
+            directionNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
             hasMarkers: true,
             pickModes: [
                 SeriesNodePickMode.NEAREST_BY_MAIN_CATEGORY_AXIS_FIRST,
@@ -271,7 +277,6 @@ export class LineSeries extends CartesianSeries<Group, LineNodeDatum> {
         });
 
         const applyTranslation = this.ctx.animationManager.isSkipped();
-
         markerSelection.each((node, datum) => {
             this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yKey }, baseStyle, { applyTranslation });
         });

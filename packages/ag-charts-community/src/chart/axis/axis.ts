@@ -64,14 +64,6 @@ import {
     resetAxisSelectionFn,
 } from './axisUtil';
 
-export enum Tags {
-    TickLine,
-    TickLabel,
-    GridLine,
-    GridArc,
-    AxisLine,
-}
-
 type TickStrategyParams = {
     index: number;
     tickData: TickData;
@@ -180,7 +172,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     abstract get direction(): ChartAxisDirection;
 
-    boundSeries: ISeries<unknown>[] = [];
+    boundSeries: ISeries<unknown, unknown>[] = [];
     includeInvisibleDomains: boolean = false;
 
     interactionEnabled = true;
@@ -267,7 +259,9 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         this._titleCaption.node.rotation = -Math.PI / 2;
         this.axisGroup.appendChild(this._titleCaption.node);
 
-        this.destroyFns.push(moduleCtx.interactionManager.addListener('hover', (e) => this.checkAxisHover(e)));
+        this.destroyFns.push(
+            moduleCtx.regionManager.getRegion('series').addListener('hover', (e) => this.checkAxisHover(e))
+        );
 
         this.animationManager = moduleCtx.animationManager;
         this.animationState = new StateMachine<AxisAnimationState, AxisAnimationEvent>('empty', {
@@ -599,7 +593,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             const y = sideFlag === -1 ? Math.floor(titleRotationFlag * -padding) : Math.floor(-padding);
 
             const { callbackCache } = this.moduleCtx;
-            const { formatter = (params) => params.defaultValue } = title;
+            const { formatter = (p) => p.defaultValue } = title;
             const text = callbackCache.call(formatter, this.getTitleFormatterParams());
 
             titleNode.setProperties({
@@ -847,9 +841,9 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                 }));
 
                 const rotated = configuredRotation !== 0 || autoRotation !== 0;
-                const rotation = initialRotation + autoRotation;
+                const labelRotation = initialRotation + autoRotation;
                 textAlign = getTextAlign(parallel, configuredRotation, autoRotation, sideFlag, regularFlipFlag);
-                labelOverlap = this.checkLabelOverlap(rotation, rotated, labelMatrix, tickData.ticks, labelX, {
+                labelOverlap = this.checkLabelOverlap(labelRotation, rotated, labelMatrix, tickData.ticks, labelX, {
                     ...textProps,
                     textAlign,
                 });
@@ -865,11 +859,17 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         return { tickData, primaryTickCount, combinedRotation, textBaseline, textAlign };
     }
 
-    private getTickStrategies({ index, secondaryAxis }: { index: number; secondaryAxis: boolean }): TickStrategy[] {
+    private getTickStrategies({
+        index: iteration,
+        secondaryAxis,
+    }: {
+        index: number;
+        secondaryAxis: boolean;
+    }): TickStrategy[] {
         const { scale, label, tick } = this;
         const continuous = ContinuousScale.is(scale);
         const avoidLabelCollisions = label.enabled && label.avoidCollisions;
-        const filterTicks = !continuous && index !== 0 && avoidLabelCollisions;
+        const filterTicks = !continuous && iteration !== 0 && avoidLabelCollisions;
         const autoRotate = label.autoRotate === true && label.rotation === undefined;
 
         const strategies: TickStrategy[] = [];
@@ -1053,8 +1053,13 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                 }
                 break;
             case TickGenerationType.CREATE_SECONDARY:
-                // `updateSecondaryAxisTicks` mutates `scale.domain` based on `primaryTickCount`
-                rawTicks = this.updateSecondaryAxisTicks(primaryTickCount);
+                if (ContinuousScale.is(scale)) {
+                    // `updateSecondaryAxisTicks` mutates `scale.domain` based on `primaryTickCount`
+                    rawTicks = this.updateSecondaryAxisTicks(primaryTickCount);
+                } else {
+                    // AG-10654 Just use normal ticks for categoric axes.
+                    rawTicks = this.createTicks(tickCount, minTickCount, maxTickCount);
+                }
                 break;
             case TickGenerationType.FILTER:
                 rawTicks = this.filterTicks(previousTicks, tickCount);
@@ -1152,11 +1157,10 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         }
 
         // Clamps the min spacing between ticks to be no more than the min distance between datums
-        const minRectDistance = minRect
-            ? this.direction === ChartAxisDirection.X
-                ? minRect.width
-                : minRect.height
-            : 1;
+        let minRectDistance = 1;
+        if (minRect) {
+            minRectDistance = this.direction === ChartAxisDirection.X ? minRect.width : minRect.height;
+        }
         clampMaxTickCount &&= minRectDistance < defaultMinSpacing;
 
         const maxTickCount = clamp(
@@ -1278,17 +1282,17 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         this.lineNode.datum = lineData;
         this.gridLineGroupSelection.update(
             this.gridLength ? data : [],
-            (group) => group.append(new Line({ tag: Tags.GridLine })),
+            (group) => group.append(new Line()),
             (datum: TickDatum) => datum.tickId
         );
         this.tickLineGroupSelection.update(
             data,
-            (group) => group.appendChild(new Line({ tag: Tags.TickLine })),
+            (group) => group.appendChild(new Line()),
             (datum: TickDatum) => datum.tickId
         );
         this.tickLabelGroupSelection.update(
             data.map((d) => this.getTickLabelProps(d, params)),
-            (group) => group.appendChild(new Text({ tag: Tags.TickLabel })),
+            (group) => group.appendChild(new Text()),
             (datum) => datum.tickId
         );
     }
@@ -1383,7 +1387,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         if (title.enabled && params.anyTickVisible) {
             const tickBBox = Group.computeBBox([tickLineGroup, tickLabelGroup, lineNode]);
             const tickWidth = rotation === 0 ? tickBBox.width : tickBBox.height;
-            spacing += tickWidth + (!this.tickLabelGroup.visible ? this.seriesAreaPadding : 0);
+            spacing += tickWidth + (this.tickLabelGroup.visible ? 0 : this.seriesAreaPadding);
         }
         this.setTitleProps(_titleCaption, { spacing });
     }
@@ -1416,7 +1420,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     // For formatting arbitrary values between the ticks.
     formatDatum(datum: any): string {
-        return String(datum);
+        return this.formatTick(datum, 0);
     }
 
     maxThickness: number = Infinity;
@@ -1473,6 +1477,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             gridPadding: this.gridPadding,
             seriesAreaPadding: this.seriesAreaPadding,
             tickSize: this.getTickSize(),
+            direction: this.direction,
+            domain: this.dataDomain.domain,
             ...this.layout,
         };
     }

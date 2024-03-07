@@ -20,7 +20,12 @@ import { SeriesNodePickMode, keyProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { BubbleNodeDatum, BubbleSeriesProperties } from './bubbleSeriesProperties';
 import type { CartesianAnimationData } from './cartesianSeries';
-import { CartesianSeries, CartesianSeriesNodeEvent } from './cartesianSeries';
+import {
+    CartesianSeries,
+    CartesianSeriesNodeEvent,
+    DEFAULT_CARTESIAN_DIRECTION_KEYS,
+    DEFAULT_CARTESIAN_DIRECTION_NAMES,
+} from './cartesianSeries';
 import { markerScaleInAnimation, resetMarkerFn } from './markerUtil';
 
 type BubbleAnimationData = CartesianAnimationData<Group, BubbleNodeDatum>;
@@ -34,9 +39,9 @@ class BubbleSeriesNodeEvent<TEvent extends string = SeriesNodeEventTypes> extend
     }
 }
 
-export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
-    static className = 'BubbleSeries';
-    static type = 'bubble' as const;
+export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties, BubbleNodeDatum> {
+    static readonly className = 'BubbleSeries';
+    static readonly type = 'bubble' as const;
 
     protected override readonly NodeEvent = BubbleSeriesNodeEvent;
 
@@ -49,6 +54,8 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleNodeDatum> {
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,
+            directionKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
+            directionNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
             pickModes: [
                 SeriesNodePickMode.NEAREST_BY_MAIN_CATEGORY_AXIS_FIRST,
                 SeriesNodePickMode.NEAREST_NODE,

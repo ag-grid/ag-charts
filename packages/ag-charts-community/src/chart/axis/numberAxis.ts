@@ -16,8 +16,8 @@ class NumberAxisTick extends AxisTick<LinearScale | LogScale, number> {
 }
 
 export class NumberAxis extends CartesianAxis<LinearScale | LogScale, number> {
-    static className = 'NumberAxis';
-    static type = 'number' as 'number' | 'log';
+    static readonly className: string = 'NumberAxis';
+    static readonly type: string = 'number';
 
     constructor(moduleCtx: ModuleContext, scale = new LinearScale() as LinearScale | LogScale) {
         super(moduleCtx, scale);

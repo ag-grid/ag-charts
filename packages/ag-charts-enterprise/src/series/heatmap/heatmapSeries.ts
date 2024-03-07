@@ -4,7 +4,14 @@ import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 import { formatLabels } from '../util/labelFormatter';
 import { HeatmapSeriesProperties } from './heatmapSeriesProperties';
 
-const { SeriesNodePickMode, getMissCount, valueProperty, ChartAxisDirection } = _ModuleSupport;
+const {
+    SeriesNodePickMode,
+    getMissCount,
+    valueProperty,
+    ChartAxisDirection,
+    DEFAULT_CARTESIAN_DIRECTION_KEYS,
+    DEFAULT_CARTESIAN_DIRECTION_NAMES,
+} = _ModuleSupport;
 const { Rect, PointerEvents } = _Scene;
 const { ColorScale } = _Scale;
 const { sanitizeHtml, Color, Logger } = _Util;
@@ -54,9 +61,14 @@ const verticalAlignFactors: Record<VerticalAlign, number> = {
     bottom: -0.5,
 };
 
-export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, HeatmapNodeDatum, HeatmapLabelDatum> {
-    static className = 'HeatmapSeries';
-    static type = 'heatmap' as const;
+export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
+    _Scene.Rect,
+    HeatmapSeriesProperties,
+    HeatmapNodeDatum,
+    HeatmapLabelDatum
+> {
+    static readonly className = 'HeatmapSeries';
+    static readonly type = 'heatmap' as const;
 
     override properties = new HeatmapSeriesProperties();
 
@@ -67,6 +79,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
+            directionKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
+            directionNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
             pathsPerSeries: 0,
             hasMarkers: false,
@@ -188,12 +202,13 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
             const x = xScale.convert(xDatum) + xOffset;
             const y = yScale.convert(yDatum) + yOffset;
 
-            const colorValue = colorDataIdx != null ? values[colorDataIdx] : undefined;
+            const colorValue = values[colorDataIdx ?? -1];
             const fill = colorScaleValid && colorValue != null ? this.colorScale.convert(colorValue) : colorRange[0];
 
             const labelText =
-                colorValue != null
-                    ? this.getLabelText(label, {
+                colorValue == null
+                    ? undefined
+                    : this.getLabelText(label, {
                           value: colorValue,
                           datum,
                           colorKey,
@@ -202,8 +217,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<_Scene.Rect, H
                           yKey,
                           xName,
                           yName,
-                      })
-                    : undefined;
+                      });
 
             const labels = formatLabels(
                 labelText,

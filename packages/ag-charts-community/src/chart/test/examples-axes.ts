@@ -121,6 +121,34 @@ export const NUMBER_AXIS_UNIFORM_BASIC_EXAMPLE: AgCartesianChartOptions = {
     ],
 };
 
+export const LOG10_SMALL_DOMAIN_NICE_FALSE_EXAMPLE: AgCartesianChartOptions = {
+    ...NUMBER_AXIS_UNIFORM_BASIC_EXAMPLE,
+    data: [
+        {
+            day: 1,
+            likes: 200,
+            subscribes: 184,
+            comments: 182,
+        },
+        {
+            day: 2,
+            likes: 185,
+            subscribes: 185,
+            comments: 182,
+        },
+        {
+            day: 3,
+            likes: 182,
+            subscribes: 182,
+            comments: 180,
+        },
+    ],
+    axes: [
+        { type: 'number', position: 'bottom' },
+        { type: 'log', position: 'left', base: 10, label: { format: '.0f' }, nice: false },
+    ],
+};
+
 export const NUMBER_AXIS_LOG10_EXAMPLE: AgCartesianChartOptions = {
     ...NUMBER_AXIS_UNIFORM_BASIC_EXAMPLE,
     data: data.DATA_YOUTUBE_VIDEOS_STATS_BY_DAY_OF_YEAR_LARGE_SCALE,

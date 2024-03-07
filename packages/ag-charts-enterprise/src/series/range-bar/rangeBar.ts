@@ -1,5 +1,5 @@
 import type { AgTooltipRendererResult } from 'ag-charts-community';
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import { RangeBarProperties } from './rangeBarProperties';
 
@@ -12,7 +12,6 @@ const {
     updateRect,
     checkCrisp,
     updateLabelNode,
-    CategoryAxis,
     SMALLEST_KEY_INTERVAL,
     diff,
     prepareBarAnimationFunctions,
@@ -24,17 +23,9 @@ const {
     animationValidation,
     createDatumId,
 } = _ModuleSupport;
-const { ContinuousScale, BandScale, Rect, PointerEvents, motion } = _Scene;
+const { Rect, PointerEvents, motion } = _Scene;
 const { sanitizeHtml, isNumber, extent } = _Util;
-
-const DEFAULT_DIRECTION_KEYS = {
-    [_ModuleSupport.ChartAxisDirection.X]: ['xKey'],
-    [_ModuleSupport.ChartAxisDirection.Y]: ['yLowKey', 'yHighKey'],
-};
-const DEFAULT_DIRECTION_NAMES = {
-    [ChartAxisDirection.X]: ['xName'],
-    [ChartAxisDirection.Y]: ['yLowName', 'yHighName', 'yName'],
-};
+const { ContinuousScale, OrdinalTimeScale } = _Scale;
 
 type Bounds = {
     x: number;
@@ -96,30 +87,30 @@ class RangeBarSeriesNodeEvent<
 
 export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     _Scene.Rect,
+    RangeBarProperties,
     RangeBarNodeDatum,
     RangeBarNodeLabelDatum
 > {
-    static className = 'RangeBarSeries';
-    static type = 'range-bar' as const;
+    static readonly className = 'RangeBarSeries';
+    static readonly type = 'range-bar' as const;
 
     override properties = new RangeBarProperties();
 
     protected override readonly NodeEvent = RangeBarSeriesNodeEvent;
-
-    /**
-     * Used to get the position of bars within each group.
-     */
-    private groupScale = new BandScale<string>();
-
-    protected smallestDataInterval?: { x: number; y: number } = undefined;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
             hasHighlightedLabels: true,
-            directionKeys: DEFAULT_DIRECTION_KEYS,
-            directionNames: DEFAULT_DIRECTION_NAMES,
+            directionKeys: {
+                x: ['xKey'],
+                y: ['yLowKey', 'yHighKey'],
+            },
+            directionNames: {
+                x: ['xName'],
+                y: ['yLowName', 'yHighName', 'yName'],
+            },
             datumSelectionGarbageCollection: false,
             animationResetFns: {
                 datum: resetBarSelectionsFn,
@@ -144,8 +135,14 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         }
 
         const { xKey, yLowKey, yHighKey } = this.properties;
-        const isContinuousX = ContinuousScale.is(this.getCategoryAxis()?.scale);
-        const isContinuousY = ContinuousScale.is(this.getValueAxis()?.scale);
+
+        const xScale = this.getCategoryAxis()?.scale;
+        const yScale = this.getValueAxis()?.scale;
+
+        const isContinuousX = ContinuousScale.is(xScale) || OrdinalTimeScale.is(xScale);
+        const isContinuousY = ContinuousScale.is(yScale) || OrdinalTimeScale.is(yScale);
+
+        const xValueType = ContinuousScale.is(xScale) ? 'range' : 'category';
 
         const extraProps = [];
         if (!this.ctx.animationManager.isSkipped()) {
@@ -158,7 +155,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const visibleProps = this.visible ? {} : { forceValue: 0 };
         const { processedData } = await this.requestDataModel<any, any, true>(dataController, this.data ?? [], {
             props: [
-                keyProperty(this, xKey, isContinuousX, { id: 'xValue' }),
+                keyProperty(this, xKey, isContinuousX, { id: 'xValue', valueType: xValueType }),
                 valueProperty(this, yLowKey, isContinuousY, { id: `yLowValue`, ...visibleProps }),
                 valueProperty(this, yHighKey, isContinuousY, { id: `yHighValue`, ...visibleProps }),
                 ...(isContinuousX ? [SMALLEST_KEY_INTERVAL] : []),
@@ -227,8 +224,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             dataModel,
             groupScale,
             processedData,
-            smallestDataInterval,
-            ctx: { seriesStateManager },
             properties: { visible },
         } = this;
         const xAxis = this.getCategoryAxis();
@@ -248,40 +243,11 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         const contexts: RangeBarContext[] = [];
 
-        const domain = [];
-        const { index: groupIndex, visibleGroupCount } = seriesStateManager.getVisiblePeerGroupIndex(this);
-        for (let groupIdx = 0; groupIdx < visibleGroupCount; groupIdx++) {
-            domain.push(String(groupIdx));
-        }
-
-        const xBandWidth = ContinuousScale.is(xScale)
-            ? xScale.calcBandwidth(smallestDataInterval?.x)
-            : xScale.bandwidth;
-
-        groupScale.domain = domain;
-        groupScale.range = [0, xBandWidth ?? 0];
-
-        if (xAxis instanceof CategoryAxis) {
-            groupScale.paddingInner = xAxis.groupPaddingInner;
-        } else {
-            // Number or Time axis
-            groupScale.padding = 0;
-        }
-
-        // To get exactly `0` padding we need to turn off rounding
-        groupScale.round = groupScale.padding !== 0;
-
-        const barWidth =
-            groupScale.bandwidth >= 1
-                ? // Pixel-rounded value for low-volume range charts.
-                  groupScale.bandwidth
-                : // Handle high-volume range charts gracefully.
-                  groupScale.rawBandwidth;
-
         const yLowIndex = dataModel.resolveProcessedDataIndexById(this, `yLowValue`).index;
         const yHighIndex = dataModel.resolveProcessedDataIndexById(this, `yHighValue`).index;
         const xIndex = dataModel.resolveProcessedDataIndexById(this, `xValue`).index;
 
+        const { barWidth, groupIndex } = this.updateGroupScale(xAxis);
         processedData?.data.forEach(({ keys, datum, values }, dataIndex) => {
             values.forEach((value, contextIndex) => {
                 contexts[contextIndex] ??= {

@@ -6,7 +6,7 @@ const { ChartAxisDirection, validateCrossLineValues } = _ModuleSupport;
 const { Path, Sector, Text } = _Scene;
 const { normalizeAngle360, isNumberEqual } = _Util;
 export class AngleCrossLine extends PolarCrossLine {
-    static className = 'AngleCrossLine';
+    static readonly className = 'AngleCrossLine';
 
     override direction: _ModuleSupport.ChartAxisDirection = ChartAxisDirection.X;
 

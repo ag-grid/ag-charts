@@ -3,18 +3,17 @@ import type { Group } from '../../scene/group';
 import type { Point, SizedPoint } from '../../scene/point';
 import type { ChartAxisDirection } from '../chartAxisDirection';
 import type { ChartLegendDatum, ChartLegendType } from '../legendDatum';
-import type { SeriesProperties } from './seriesProperties';
 
 // Breaks circular dependency between ISeries and ChartAxis.
 interface ChartAxisLike {
     id: string;
 }
 
-export interface ISeries<TDatum> {
+export interface ISeries<TDatum, TProps> {
     id: string;
     axes: Record<ChartAxisDirection, ChartAxisLike | undefined>;
     contentGroup: Group;
-    properties: SeriesProperties<any>;
+    properties: TProps;
     hasEventListener(type: string): boolean;
     update(opts: { seriesRect?: BBox }): Promise<void>;
     fireNodeClickEvent(event: Event, datum: TDatum): void;
@@ -28,7 +27,7 @@ export interface ISeries<TDatum> {
     getDomain(direction: ChartAxisDirection): any[];
     getKeys(direction: ChartAxisDirection): string[];
     getNames(direction: ChartAxisDirection): (string | undefined)[];
-    getMinRect(): BBox | undefined;
+    getMinRects(width: number, height: number): { minRect: BBox; minVisibleRect: BBox } | undefined;
     isEnabled(): boolean;
     type: string;
     visible: boolean;
@@ -39,7 +38,7 @@ export interface ISeries<TDatum> {
  * contains information used to render pie sectors, bars, markers, etc.
  */
 export interface SeriesNodeDatum {
-    readonly series: ISeries<any>;
+    readonly series: ISeries<any, any>;
     readonly itemId?: any;
     readonly datum: any;
     readonly point?: Readonly<SizedPoint>;

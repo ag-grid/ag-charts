@@ -85,7 +85,7 @@ class PaginationMarker extends BaseProperties {
 }
 
 export class Pagination extends BaseProperties {
-    static className = 'Pagination';
+    static readonly className = 'Pagination';
 
     readonly id = createId(this);
 

@@ -1,13 +1,13 @@
 {
   "name": "ag-charts",
-  "version": "9.1.0-beta.20240225",
+  "version": "9.1.1-beta.20240307",
   "license": "MIT",
   "scripts": {
     "init": "yarn install",
     "new-version": "./tools/bump-versions.sh",
     "package": "nx pack --prod && nx pack:verify --prod",
     "clean": "rimraf dist/ packages/*/dist packages/*/lib",
-    "postinstall": "patch-package && nx run-many -p ag-charts-generate-chart-thumbnail,ag-charts-generate-code-reference-files,ag-charts-generate-example-files,ag-charts-task-autogen -t build"
+    "postinstall": "patch-package && nx run-many -p ag-charts-generate-chart-thumbnail,ag-charts-generate-code-reference-files,ag-charts-generate-example-files,ag-charts-task-autogen -t build && nx daemon --stop"
   },
   "private": true,
   "engines": {

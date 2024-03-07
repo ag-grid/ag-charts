@@ -1,3 +1,5 @@
+import { getDocument, getWindow } from './dom';
+
 type Size = {
     width: number;
     height: number;
@@ -14,10 +16,7 @@ export class SizeMonitor {
     private documentReady = false;
     private queuedObserveRequests: [HTMLElement, OnSizeChange][] = [];
 
-    constructor(
-        private window: Window,
-        private document: Document
-    ) {
+    constructor() {
         if (typeof ResizeObserver === 'undefined') {
             for (const [element, entry] of this.elements) {
                 this.checkClientSize(element, entry);
@@ -26,13 +25,13 @@ export class SizeMonitor {
         }
 
         this.resizeObserver = new ResizeObserver((entries: any) => {
-            for (const entry of entries) {
-                const { width, height } = entry.contentRect;
-                this.checkSize(this.elements.get(entry.target), entry.target, width, height);
+            for (const { target, contentRect } of entries) {
+                const { width, height } = contentRect;
+                this.checkSize(this.elements.get(target), target, width, height);
             }
         });
 
-        this.documentReady = document.readyState === 'complete';
+        this.documentReady = getDocument().readyState === 'complete';
         if (!this.documentReady) {
             // Add load listener, so we can check if the main document is ready and all styles are loaded,
             // and if it is then attach any queued requests for resize monitoring.
@@ -40,26 +39,20 @@ export class SizeMonitor {
             // If we attach before document.readyState === 'complete', then additional incorrect resize events
             // are fired, leading to multiple re-renderings on chart initial load. Waiting for the
             // document to be loaded irons out this browser quirk.
-            window.addEventListener('load', this.onContentLoaded);
+            getWindow()?.addEventListener('load', this.onLoad);
         }
     }
 
-    onContentLoaded: EventListener = () => {
-        const newState = this.document?.readyState === 'complete';
-        const oldState = this.documentReady;
-        this.documentReady = newState;
-        if (newState && newState !== oldState) {
-            this.queuedObserveRequests.forEach(([el, cb]) => this.observe(el, cb));
-            this.queuedObserveRequests = [];
-        }
+    onLoad: EventListener = () => {
+        this.documentReady = true;
+        this.queuedObserveRequests.forEach(([el, cb]) => this.observe(el, cb));
+        this.queuedObserveRequests = [];
     };
 
     private destroy() {
-        this.window?.removeEventListener('load', this.onContentLoaded);
+        getWindow()?.removeEventListener('load', this.onLoad);
         this.resizeObserver?.disconnect();
-        this.resizeObserver = null!;
-        this.window = null!;
-        this.document = null!;
+        this.resizeObserver = null;
     }
 
     private checkSize(entry: Entry | undefined, element: HTMLElement, width: number, height: number) {

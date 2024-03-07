@@ -12,6 +12,7 @@ import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { DataModelSeries } from '../dataModelSeries';
 import { SeriesNodePickMode } from '../series';
+import type { SeriesProperties } from '../seriesProperties';
 import type { SeriesNodeDatum } from '../seriesTypes';
 
 export type PolarAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
@@ -26,7 +27,18 @@ export type PolarAnimationEvent =
     | 'skip';
 export type PolarAnimationData = { duration?: number };
 
-export abstract class PolarSeries<TDatum extends SeriesNodeDatum, TNode extends Node> extends DataModelSeries<TDatum> {
+type PolarSeriesProperties = {
+    angleKey: string;
+    angleName?: string;
+    radiusKey?: string;
+    radiusName?: string;
+};
+
+export abstract class PolarSeries<
+    TDatum extends SeriesNodeDatum,
+    TProps extends SeriesProperties<any> & PolarSeriesProperties,
+    TNode extends Node,
+> extends DataModelSeries<TDatum, TProps> {
     protected itemGroup = this.contentGroup.appendChild(new Group());
 
     protected itemSelection: Selection<TNode, TDatum> = Selection.select(

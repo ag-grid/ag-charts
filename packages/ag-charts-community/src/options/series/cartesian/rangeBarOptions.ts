@@ -67,8 +67,8 @@ export interface AgRangeBarSeriesThemeableOptions<TDatum = any>
      * __Note:__ This option affects the layout direction of X and Y data values.
      */
     direction?: 'horizontal' | 'vertical';
-    /** Apply round corners to each bar. */
-    cornerRadius?: number;
+    /** Apply rounded corners to each bar. */
+    cornerRadius?: PixelSize;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgRangeBarSeriesTooltipRendererParams>;
     /** Configuration for the range series items when they are hovered over. */

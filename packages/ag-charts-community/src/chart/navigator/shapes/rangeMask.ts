@@ -1,65 +1,31 @@
 import { BBox } from '../../../scene/bbox';
 import { Path } from '../../../scene/shape/path';
-import { clamp } from '../../../util/number';
-import { ActionOnSet } from '../../../util/proxy';
-import { NUMBER, POSITIVE_NUMBER, Validate } from '../../../util/validation';
-
-function markDirtyOnChange(this: RangeMask, newValue: unknown, oldValue: unknown) {
-    if (newValue !== oldValue) {
-        this.dirtyPath = true;
-    }
-}
 
 export class RangeMask extends Path {
-    static override className = 'RangeMask';
+    static override readonly className = 'RangeMask';
 
-    @ActionOnSet<RangeMask>({ changeValue: markDirtyOnChange })
-    @Validate(POSITIVE_NUMBER)
-    x = 0;
+    override zIndex = 2;
 
-    @ActionOnSet<RangeMask>({ changeValue: markDirtyOnChange })
-    @Validate(POSITIVE_NUMBER)
-    y = 0;
+    private x = 0;
+    private y = 0;
+    private width = 200;
+    private height = 30;
+    private min = 0;
+    private max = 1;
 
-    @ActionOnSet<RangeMask>({ changeValue: markDirtyOnChange })
-    @Validate(POSITIVE_NUMBER)
-    width = 200;
-
-    @ActionOnSet<RangeMask>({ changeValue: markDirtyOnChange })
-    @Validate(POSITIVE_NUMBER)
-    height = 30;
-
-    readonly minRange = 0.001;
-
-    @Validate(NUMBER)
-    protected _min: number = 0;
-    set min(value: number) {
-        value = clamp(0, value, this.max - this.minRange);
-        if (this._min !== value && !isNaN(value)) {
-            this._min = value;
-            this.dirtyPath = true;
-            this.onRangeChange?.();
-        }
-    }
-    get min(): number {
-        return this._min;
+    layout(x: number, y: number, width: number, height: number) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        this.dirtyPath = true;
     }
 
-    @Validate(NUMBER)
-    protected _max: number = 1;
-    set max(value: number) {
-        value = clamp(this.min + this.minRange, value, 1);
-        if (this._max !== value && !isNaN(value)) {
-            this._max = value;
-            this.dirtyPath = true;
-            this.onRangeChange?.();
-        }
+    update(min: number, max: number) {
+        this.min = isNaN(min) ? this.min : min;
+        this.max = isNaN(max) ? this.max : max;
+        this.dirtyPath = true;
     }
-    get max(): number {
-        return this._max;
-    }
-
-    onRangeChange?: () => any;
 
     override computeBBox() {
         const { x, y, width, height } = this;
@@ -74,29 +40,30 @@ export class RangeMask extends Path {
     }
 
     override updatePath() {
-        const { path, x, y, width, height, min, max } = this;
+        const { path, x, y, width, height, min, max, strokeWidth } = this;
+        const pixelAlign = strokeWidth / 2;
 
         path.clear();
 
-        const ax = this.align(x);
-        const ay = this.align(y);
-        const axw = ax + this.align(x, width);
-        const ayh = ay + this.align(y, height);
+        const ax = this.align(x) + pixelAlign;
+        const ay = this.align(y) + pixelAlign;
+        const axw = ax + this.align(x, width) - 2 * pixelAlign;
+        const ayh = ay + this.align(y, height) - 2 * pixelAlign;
 
         // Whole range.
         path.moveTo(ax, ay);
         path.lineTo(axw, ay);
         path.lineTo(axw, ayh);
         path.lineTo(ax, ayh);
-        path.lineTo(ax, ay);
+        path.closePath();
 
-        const minX = this.align(x + width * min);
-        const maxX = this.align(x + width * max);
+        const minX = this.align(x + width * min) + pixelAlign;
+        const maxX = minX + this.align(x + width * min, width * (max - min)) - 2 * pixelAlign;
         // Visible range.
         path.moveTo(minX, ay);
         path.lineTo(minX, ayh);
         path.lineTo(maxX, ayh);
         path.lineTo(maxX, ay);
-        path.lineTo(minX, ay);
+        path.closePath();
     }
 }

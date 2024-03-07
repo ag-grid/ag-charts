@@ -13,8 +13,8 @@ class TimeAxisTick extends AxisTick<TimeScale, number | Date> {
 }
 
 export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
-    static className = 'TimeAxis';
-    static type = 'time' as const;
+    static readonly className = 'TimeAxis';
+    static readonly type = 'time' as const;
 
     private datumFormat = '%m/%d/%y, %H:%M:%S';
     private datumFormatter: (date: Date) => string;

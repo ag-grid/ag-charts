@@ -4,27 +4,28 @@ type EnterpriseModuleStub = {
     packageType?: 'enterprise';
     identifier?: string;
     optionsKey: string;
-    chartTypes: ('cartesian' | 'polar' | 'hierarchy')[];
+    chartTypes: ('cartesian' | 'polar' | 'hierarchy' | 'topology')[];
     useCount?: number;
     optionsInnerKey?: string;
 };
 
 export const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
-    { type: 'root', optionsKey: 'animation', chartTypes: ['cartesian', 'polar', 'hierarchy'] },
+    { type: 'root', optionsKey: 'animation', chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology'] },
     {
         type: 'root',
         optionsKey: 'background',
-        chartTypes: ['cartesian', 'polar', 'hierarchy'],
+        chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology'],
         optionsInnerKey: 'image',
     },
-    { type: 'root', optionsKey: 'contextMenu', chartTypes: ['cartesian', 'polar', 'hierarchy'] },
-    { type: 'root', optionsKey: 'dataSource', chartTypes: ['cartesian', 'polar', 'hierarchy'] },
+    { type: 'root', optionsKey: 'contextMenu', chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology'] },
+    { type: 'root', optionsKey: 'dataSource', chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology'] },
+    { type: 'root', optionsKey: 'rangeButtons', chartTypes: ['cartesian'] },
     { type: 'root', optionsKey: 'sync', chartTypes: ['cartesian'] },
     { type: 'root', optionsKey: 'zoom', chartTypes: ['cartesian'] },
     {
         type: 'legend',
         optionsKey: 'gradientLegend',
-        chartTypes: ['cartesian', 'polar', 'hierarchy'],
+        chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology'],
         identifier: 'gradient',
     },
     { type: 'root', optionsKey: 'navigator', chartTypes: ['cartesian'], optionsInnerKey: 'miniChart' },
@@ -32,20 +33,24 @@ export const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
     { type: 'axis', optionsKey: 'axes[]', chartTypes: ['polar'], identifier: 'angle-number' },
     { type: 'axis', optionsKey: 'axes[]', chartTypes: ['polar'], identifier: 'radius-category' },
     { type: 'axis', optionsKey: 'axes[]', chartTypes: ['polar'], identifier: 'radius-number' },
+    { type: 'axis', optionsKey: 'axes[]', chartTypes: ['cartesian'], identifier: 'ordinal-time' },
     { type: 'axis-option', optionsKey: 'crosshair', chartTypes: ['cartesian'] },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['cartesian'], identifier: 'box-plot' },
+    { type: 'series', optionsKey: 'series[]', chartTypes: ['cartesian'], identifier: 'candlestick' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['cartesian'], identifier: 'bullet' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['cartesian'], identifier: 'heatmap' },
+    { type: 'series', optionsKey: 'series[]', chartTypes: ['cartesian'], identifier: 'range-area' },
+    { type: 'series', optionsKey: 'series[]', chartTypes: ['cartesian'], identifier: 'range-bar' },
+    { type: 'series', optionsKey: 'series[]', chartTypes: ['cartesian'], identifier: 'waterfall' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['polar'], identifier: 'nightingale' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['polar'], identifier: 'radar-area' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['polar'], identifier: 'radar-line' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['polar'], identifier: 'radial-bar' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['polar'], identifier: 'radial-column' },
-    { type: 'series', optionsKey: 'series[]', chartTypes: ['cartesian'], identifier: 'range-area' },
-    { type: 'series', optionsKey: 'series[]', chartTypes: ['cartesian'], identifier: 'range-bar' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['hierarchy'], identifier: 'sunburst' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['hierarchy'], identifier: 'treemap' },
-    { type: 'series', optionsKey: 'series[]', chartTypes: ['cartesian'], identifier: 'waterfall' },
+    { type: 'series', optionsKey: 'series[]', chartTypes: ['topology'], identifier: 'map' },
+    { type: 'series', optionsKey: 'series[]', chartTypes: ['topology'], identifier: 'map-marker' },
     { type: 'series-option', optionsKey: 'errorBar', chartTypes: ['cartesian'], identifier: 'error-bars' },
 ];
 

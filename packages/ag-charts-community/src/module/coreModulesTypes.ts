@@ -1,5 +1,5 @@
 import type { SeriesOptionsTypes } from '../chart/mapping/types';
-import type { AgChartOptions } from '../options/agChartOptions';
+import type { AgChartOptions } from '../options/chart/chartBuilderOptions';
 
 type RequiredSeriesType = NonNullable<SeriesOptionsTypes['type']>;
 

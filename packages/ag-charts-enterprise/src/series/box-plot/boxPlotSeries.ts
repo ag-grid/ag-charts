@@ -17,6 +17,7 @@ const {
     diff,
     animationValidation,
     ChartAxisDirection,
+    convertValuesToScaleByDefs,
 } = _ModuleSupport;
 const { motion } = _Scene;
 
@@ -41,24 +42,29 @@ class BoxPlotSeriesNodeEvent<
     }
 }
 
-export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup, BoxPlotNodeDatum> {
-    static type = 'box-plot' as const;
+export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
+    BoxPlotGroup,
+    BoxPlotSeriesProperties,
+    BoxPlotNodeDatum
+> {
+    static readonly type = 'box-plot' as const;
 
     override properties = new BoxPlotSeriesProperties();
 
     protected override readonly NodeEvent = BoxPlotSeriesNodeEvent;
 
-    /**
-     * Used to get the position of items within each group.
-     */
-    private groupScale = new _Scale.BandScale<string>();
-
-    protected smallestDataInterval?: { x: number; y: number } = undefined;
-
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            directionKeys: {
+                x: ['xKey'],
+                y: ['medianKey', 'q1Key', 'q3Key', 'minKey', 'maxKey'],
+            },
+            directionNames: {
+                x: ['xName'],
+                y: ['medianName', 'q1Name', 'q3Name', 'minName', 'maxName'],
+            },
             pathsPerSeries: 1,
             hasHighlightedLabels: true,
         });
@@ -149,35 +155,6 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup
 
         const { xKey, fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cap, whisker } =
             this.properties;
-        const {
-            groupScale,
-            smallestDataInterval,
-            ctx: { seriesStateManager },
-        } = this;
-
-        const xBandWidth =
-            xAxis.scale instanceof _Scale.ContinuousScale
-                ? xAxis.scale.calcBandwidth(smallestDataInterval?.x)
-                : xAxis.scale.bandwidth;
-
-        const domain = [];
-        const { index: groupIndex, visibleGroupCount } = seriesStateManager.getVisiblePeerGroupIndex(this);
-        for (let groupIdx = 0; groupIdx < visibleGroupCount; groupIdx++) {
-            domain.push(String(groupIdx));
-        }
-        groupScale.domain = domain;
-        groupScale.range = [0, xBandWidth ?? 0];
-
-        if (xAxis instanceof _ModuleSupport.CategoryAxis) {
-            groupScale.paddingInner = xAxis.groupPaddingInner;
-        }
-
-        const barWidth =
-            groupScale.bandwidth >= 1
-                ? // Pixel-rounded value for low-volume bar charts.
-                  groupScale.bandwidth
-                : // Handle high-volume bar charts gracefully.
-                  groupScale.rawBandwidth;
 
         const nodeData: BoxPlotNodeDatum[] = [];
 
@@ -190,7 +167,11 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup
             `maxValue`,
         ]);
 
-        this.processedData?.data.forEach(({ datum, keys, values }) => {
+        const { barWidth, groupIndex } = this.updateGroupScale(xAxis);
+        const { groupScale, processedData } = this;
+        const isVertical = this.isVertical();
+
+        processedData?.data.forEach(({ datum, keys, values }) => {
             const { xValue, minValue, q1Value, medianValue, q3Value, maxValue } =
                 dataModel.resolveProcessedDataDefsValues(defs, { keys, values });
 
@@ -204,23 +185,38 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup
                 return;
             }
 
-            const scaledValues = this.convertValuesToScaleByDefs(defs, {
-                xValue,
-                minValue,
-                q1Value,
-                medianValue,
-                q3Value,
-                maxValue,
+            const scaledValues = convertValuesToScaleByDefs({
+                defs,
+                values: {
+                    xValue,
+                    minValue,
+                    q1Value,
+                    medianValue,
+                    q3Value,
+                    maxValue,
+                },
+                xAxis,
+                yAxis,
             });
 
             scaledValues.xValue += Math.round(groupScale.convert(String(groupIndex)));
+
+            const bandwidth = Math.round(barWidth);
+            const height = Math.abs(scaledValues.q3Value - scaledValues.q1Value);
+            const midX = scaledValues.xValue + bandwidth / 2;
+            const midY = Math.min(scaledValues.q3Value, scaledValues.q1Value) + height / 2;
+
+            const midPoint = {
+                x: isVertical ? midX : midY,
+                y: isVertical ? midY : midX,
+            };
 
             nodeData.push({
                 series: this,
                 itemId: xValue,
                 datum,
                 xKey,
-                bandwidth: Math.round(barWidth),
+                bandwidth,
                 scaledValues,
                 cap,
                 whisker,
@@ -231,6 +227,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup
                 strokeOpacity,
                 lineDash,
                 lineDashOffset,
+                midPoint,
             });
         });
 
@@ -452,24 +449,5 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotGroup
             }
         }
         return activeStyles;
-    }
-
-    convertValuesToScaleByDefs<T extends string>(
-        defs: [string, _ModuleSupport.ProcessedDataDef[]][],
-        values: Record<T, unknown>
-    ): Record<T, number> {
-        const xAxis = this.getCategoryAxis();
-        const yAxis = this.getValueAxis();
-        if (!(xAxis && yAxis)) {
-            throw new Error('Axes must be defined');
-        }
-        const result: Record<string, number> = {};
-        for (const [searchId, [{ def }]] of defs) {
-            if (Object.hasOwn(values, searchId)) {
-                const { scale } = def.type === 'key' ? xAxis : yAxis;
-                result[searchId] = Math.round(scale.convert((values as any)[searchId]));
-            }
-        }
-        return result;
     }
 }

@@ -7,40 +7,42 @@ interface Module<I extends ModuleInstance = ModuleInstance, C = ModuleContext> e
 }
 
 export class ModuleMap<M extends Module<I, C>, I extends ModuleInstance, C = ModuleContext> {
-    private moduleMap = new Map<string, I>();
+    protected moduleMap = new Map<string, { module: M; moduleInstance: I }>();
+
+    get modules() {
+        return Array.from(this.moduleMap.values(), (m) => m.moduleInstance);
+    }
 
     addModule(module: M, moduleFactory: (module: M) => I) {
         if (this.moduleMap.has(module.optionsKey)) {
             throw new Error(`AG Charts - module already initialised: ${module.optionsKey}`);
         }
-        this.moduleMap.set(module.optionsKey, moduleFactory(module));
+        this.moduleMap.set(module.optionsKey, { module, moduleInstance: moduleFactory(module) });
     }
 
     removeModule(module: M | string) {
         const moduleKey = isString(module) ? module : module.optionsKey;
-        this.moduleMap.get(moduleKey)?.destroy();
+        this.moduleMap.get(moduleKey)?.moduleInstance.destroy();
         this.moduleMap.delete(moduleKey);
     }
 
-    isModuleEnabled(module: M | string) {
+    getModule<R>(module: M | string): R | undefined;
+    getModule(module: M | string) {
+        return this.moduleMap.get(isString(module) ? module : module.optionsKey)?.moduleInstance;
+    }
+
+    isEnabled(module: M | string) {
         return this.moduleMap.has(isString(module) ? module : module.optionsKey);
     }
 
-    getModule(module: M | string) {
-        return this.moduleMap.get(isString(module) ? module : module.optionsKey);
-    }
-
-    get modules() {
-        return this.moduleMap.values();
-    }
-
-    mapValues<T>(callback: (value: I, index: number, array: I[]) => T) {
-        return Array.from(this.moduleMap.values()).map(callback);
+    mapModules<T>(callback: (value: I, index: number) => T) {
+        return Array.from(this.moduleMap.values(), (m, i) => callback(m.moduleInstance, i));
     }
 
     destroy() {
-        for (const optionsKey of this.moduleMap.keys()) {
-            this.removeModule({ optionsKey } as M);
+        for (const moduleKey of this.moduleMap.keys()) {
+            this.moduleMap.get(moduleKey)?.moduleInstance.destroy();
         }
+        this.moduleMap.clear();
     }
 }

@@ -16,18 +16,26 @@ import { ChartUpdateType } from './chartUpdateType';
 import { registerInbuiltModules } from './factory/registerInbuiltModules';
 import { setupModules } from './factory/setupModules';
 import { HierarchyChart } from './hierarchyChart';
-import { isAgCartesianChartOptions, isAgHierarchyChartOptions, isAgPolarChartOptions } from './mapping/types';
+import {
+    isAgCartesianChartOptions,
+    isAgHierarchyChartOptions,
+    isAgPolarChartOptions,
+    isAgTopologyChartOptions,
+} from './mapping/types';
 import { PolarChart } from './polarChart';
+import { TopologyChart } from './topologyChart';
 
 const debug = Debug.create(true, 'opts');
 
-function chartType(options: any): 'cartesian' | 'polar' | 'hierarchy' {
+function chartType(options: any): 'cartesian' | 'polar' | 'hierarchy' | 'topology' {
     if (isAgCartesianChartOptions(options)) {
         return 'cartesian';
     } else if (isAgPolarChartOptions(options)) {
         return 'polar';
     } else if (isAgHierarchyChartOptions(options)) {
         return 'hierarchy';
+    } else if (isAgTopologyChartOptions(options)) {
+        return 'topology';
     }
 
     throw new Error(`AG Chart - unknown type of chart for options with type: ${options.type}`);
@@ -123,7 +131,7 @@ export abstract class AgCharts {
         if (!(chart instanceof AgChartInstanceProxy)) {
             throw new Error(AgCharts.INVALID_CHART_REF_MESSAGE);
         }
-        AgChartsInternal.download(chart, options);
+        AgChartsInternal.download(chart, options).catch((e) => Logger.errorOnce(e));
     }
 
     /**
@@ -176,7 +184,7 @@ class AgChartsInternal {
         return chart ? AgChartInstanceProxy.chartInstances.get(chart) : undefined;
     }
 
-    static initialised = false;
+    private static initialised = false;
     static initialiseModules() {
         if (AgChartsInternal.initialised) return;
 
@@ -211,11 +219,11 @@ class AgChartsInternal {
         }
 
         chart.queuedUserOptions.push(userOptions);
-        chart.requestFactoryUpdate((chart) => {
-            chart.applyOptions(chartOptions);
+        chart.requestFactoryUpdate((chartRef) => {
+            chartRef.applyOptions(chartOptions);
             // If there are a lot of update calls, `requestFactoryUpdate()` may skip callbacks,
             // so we need to remove all queue items up to the last successfully applied item.
-            chart.queuedUserOptions.splice(0, chart.queuedUserOptions.indexOf(userOptions));
+            chartRef.queuedUserOptions.splice(0, chartRef.queuedUserOptions.indexOf(userOptions));
         });
 
         return proxy;
@@ -308,6 +316,8 @@ class AgChartsInternal {
             return HierarchyChart;
         } else if (isAgPolarChartOptions(options)) {
             return PolarChart;
+        } else if (isAgTopologyChartOptions(options)) {
+            return TopologyChart;
         }
 
         throw new Error(

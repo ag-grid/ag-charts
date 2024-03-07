@@ -6,6 +6,7 @@ const TYPES: Record<string, AgCartesianAxisType> = {
     log: 'log',
     category: 'category',
     'grouped-category': 'grouped-category',
+    'ordinal-time': 'ordinal-time',
 };
 
 const AXES_THEME_TEMPLATES: Record<string, {}> = {};

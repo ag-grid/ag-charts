@@ -5,15 +5,21 @@ import BoldChevronDown from '@images/inline-svgs/bold-chevron-down.svg?react';
 import BoldChevronLeft from '@images/inline-svgs/bold-chevron-left.svg?react';
 import BoldChevronRight from '@images/inline-svgs/bold-chevron-right.svg?react';
 import BoldChevronUp from '@images/inline-svgs/bold-chevron-up.svg?react';
+import CodeResult from '@images/inline-svgs/code-result.svg?react';
 import CodeSandboxIcon from '@images/inline-svgs/codesandbox.svg?react';
 import ColumnsIcon from '@images/inline-svgs/columns.svg?react';
 import CrossIcon from '@images/inline-svgs/cross.svg?react';
 import EnterpriseIcon from '@images/inline-svgs/enterprise.svg?react';
+import EscapeIcon from '@images/inline-svgs/escape.svg?react';
+import HeadingResult from '@images/inline-svgs/heading-result.svg?react';
 import IntegratedChartsIcon from '@images/inline-svgs/integrated-chart.svg?react';
 import maximizeIcon from '@images/inline-svgs/maximize.svg?react';
 import minimizeIcon from '@images/inline-svgs/minimize.svg?react';
 import NewTabIcon from '@images/inline-svgs/new-tab.svg?react';
+import PageResult from '@images/inline-svgs/page-result.svg?react';
 import PlunkerIcon from '@images/inline-svgs/plunker.svg?react';
+import RadarArea from '@images/inline-svgs/radar-area.svg?react';
+import RadialColumn from '@images/inline-svgs/radial-column.svg?react';
 import ReplayDemoIcon from '@images/inline-svgs/replay-demo-icon.svg?react';
 import RowsIcon from '@images/inline-svgs/rows.svg?react';
 import StackBlitzIcon from '@images/inline-svgs/stack-blitz.svg?react';
@@ -92,8 +98,9 @@ const CHARTS_ICON_MAP = {
     chartsErrorBar: CarbonIcon.ChartErrorBar,
     chartsWaterfall: CarbonIcon.ChartWaterfall,
     chartsRadar: CarbonIcon.ChartRadar,
+    chartsRadarArea: RadarArea,
     chartsNightingale: CarbonIcon.ChartRose,
-    chartsRadialColumn: CarbonIcon.ChartSpiral,
+    chartsRadialColumn: RadialColumn,
     chartsRadialBar: CarbonIcon.ChartRadial,
     chartsTreemap: CarbonIcon.ChartTreemap,
     chartsSunburst: CarbonIcon.ChartSunburst,
@@ -116,6 +123,7 @@ export const ICON_MAP = {
     arrowRight: CarbonIcon.ArrowRight,
     arrowDown: CarbonIcon.ArrowDown,
     arrowLeft: CarbonIcon.ArrowLeft,
+    return: CarbonIcon.Return,
     link: CarbonIcon.Link,
     chevronUp: BoldChevronUp,
     chevronRight: BoldChevronRight,
@@ -143,6 +151,10 @@ export const ICON_MAP = {
     zoomArea: CarbonIcon.ZoomArea,
     colorPalette: CarbonIcon.ColorPalette,
     newTab: NewTabIcon,
+    escape: EscapeIcon,
+    pageResult: PageResult,
+    codeResult: CodeResult,
+    headingResult: HeadingResult,
     ...SOCIALS_ICON_MAP,
     ...DOCS_CATEGORIES_ICON_MAP,
     ...HOMEPAGE_FEATURES_ICON_MAP,

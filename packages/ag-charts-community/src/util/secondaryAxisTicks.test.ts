@@ -3,13 +3,13 @@ import { expect, test } from '@jest/globals';
 import { calculateNiceSecondaryAxis } from './secondaryAxisTicks';
 
 function ticks(a: number, b: number, count: number): number[] {
-    const [, ticks] = calculateNiceSecondaryAxis([a, b], count);
-    return ticks;
+    const [, result] = calculateNiceSecondaryAxis([a, b], count);
+    return result;
 }
 
-function compareTicks(ticks: number[], array: number[]) {
-    expect(ticks).toHaveLength(array.length);
-    ticks.forEach((tick, index) => {
+function compareTicks(actual: number[], array: number[]) {
+    expect(actual).toHaveLength(array.length);
+    actual.forEach((tick, index) => {
         expect(tick).toBe(array[index]);
     });
 }

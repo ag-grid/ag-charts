@@ -209,6 +209,32 @@
                         "path": "upgrade-to-ag-charts-9"
                     }
                 ]
+            },
+            {
+                "title": "Financial Charts",
+                "items": [
+                    {
+                        "title": "Examples",
+                        "path": "financial-charts"
+                    }
+                ]
+            },
+            {
+                "title": "Maps",
+                "items": [
+                    {
+                        "title": "Shapes",
+                        "path": "map-shapes"
+                    },
+                    {
+                        "title": "Lines",
+                        "path": "map-lines"
+                    },
+                    {
+                        "title": "Markers",
+                        "path": "map-markers"
+                    }
+                ]
             }
         ]
     },
@@ -289,7 +315,7 @@
                     },
                     {
                         "title": "Radar Area",
-                        "icon": "chartsRadar",
+                        "icon": "chartsRadarArea",
                         "path": "radar-area-series",
                         "isEnterprise": true
                     },

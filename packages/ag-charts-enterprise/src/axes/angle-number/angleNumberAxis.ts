@@ -14,8 +14,8 @@ class AngleNumberAxisTick extends _ModuleSupport.AxisTick<LinearAngleScale, numb
 }
 
 export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
-    static className = 'AngleNumberAxis';
-    static type = 'angle-number' as const;
+    static readonly className = 'AngleNumberAxis';
+    static readonly type = 'angle-number' as const;
 
     override shape = 'circle' as const;
 

@@ -30,23 +30,25 @@ export class HdpiCanvas {
     @ObserveChanges<HdpiCanvas>((target, newValue, oldValue) => target.onContainerChange(newValue, oldValue))
     container?: HTMLElement;
 
-    width: number = 0;
-    height: number = 0;
+    width: number = 600;
+    height: number = 300;
     pixelRatio: number;
 
     constructor(options: CanvasOptions) {
-        const { width = 600, height = 300, pixelRatio } = options;
+        const { width, height, pixelRatio } = options;
 
-        // Create canvas and immediately apply width + height to avoid out-of-memory
-        // errors on iOS/iPadOS Safari.
-        this.element = createElement('canvas');
-        this.element.width = width;
-        this.element.height = height;
-
-        this.context = this.element.getContext('2d')!;
         this.pixelRatio = hasConstrainedCanvasMemory() ? 1 : pixelRatio ?? getWindow('devicePixelRatio');
 
-        this.resize(width, height);
+        // Create canvas and immediately apply width + height to avoid out-of-memory errors on iOS/iPadOS Safari.
+        this.element = createElement('canvas');
+        // Safari needs a width and height set or the output can appear blurry
+        this.element.width = Math.round((width ?? this.width) * this.pixelRatio);
+        this.element.height = Math.round((height ?? this.height) * this.pixelRatio);
+
+        this.context = this.element.getContext('2d')!;
+
+        this.onEnabledChange(); // Force `display: block` style
+        this.resize(width ?? 0, height ?? 0);
 
         HdpiCanvas.debugContext(this.context);
     }
@@ -55,24 +57,20 @@ export class HdpiCanvas {
         return context.drawImage(this.context.canvas, dx, dy);
     }
 
-    style(style: Partial<CSSStyleDeclaration>) {
-        Object.assign(this.element.style, style);
-    }
-
     toDataURL(type?: string): string {
         return this.element.toDataURL(type);
     }
 
     resize(width: number, height: number) {
-        if (!(width > 0 && height > 0)) {
-            return;
-        }
+        if (!(width > 0 && height > 0)) return;
+
         const { element, context, pixelRatio } = this;
         element.width = Math.round(width * pixelRatio);
         element.height = Math.round(height * pixelRatio);
+        context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+
         element.style.width = width + 'px';
         element.style.height = height + 'px';
-        context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
 
         this.width = width;
         this.height = height;
@@ -114,6 +112,7 @@ export class HdpiCanvas {
         }
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
     static debugContext(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D) {
         if (Debug.check('canvas')) {
             const save = ctx.save.bind(ctx);

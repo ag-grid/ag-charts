@@ -1,5 +1,5 @@
 import { Debug } from '../../util/debug';
-import { injectStyle } from '../../util/dom';
+import { getDocument, getWindow, injectStyle } from '../../util/dom';
 import { Logger } from '../../util/logger';
 import { partialAssign } from '../../util/object';
 import { isFiniteNumber } from '../../util/type-guards';
@@ -110,7 +110,6 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
 
     private readonly rootElement: HTMLElement;
     private readonly element: HTMLElement;
-    private readonly window: Window;
 
     private eventHandler = (event: SupportedEvent) => this.processEvent(event);
 
@@ -126,12 +125,11 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
 
     private stateQueue: InteractionState = InteractionState.Default;
 
-    public constructor(element: HTMLElement, document: Document, window: Window) {
+    public constructor(element: HTMLElement) {
         super();
 
-        this.rootElement = document.body;
+        this.rootElement = getDocument().body;
         this.element = element;
-        this.window = window;
 
         for (const type of EVENT_HANDLERS) {
             if (type.startsWith('touch')) {
@@ -144,12 +142,12 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         }
 
         for (const type of WINDOW_EVENT_HANDLERS) {
-            this.window.addEventListener(type, this.eventHandler);
+            getWindow().addEventListener(type, this.eventHandler);
         }
 
-        if (!InteractionManager.interactionDocuments.includes(document)) {
+        if (!InteractionManager.interactionDocuments.includes(getDocument())) {
             injectStyle(CSS);
-            InteractionManager.interactionDocuments.push(document);
+            InteractionManager.interactionDocuments.push(getDocument());
         }
     }
 
@@ -157,7 +155,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         super.destroy();
 
         for (const type of WINDOW_EVENT_HANDLERS) {
-            this.window.removeEventListener(type, this.eventHandler);
+            getWindow().removeEventListener(type, this.eventHandler);
         }
 
         for (const type of EVENT_HANDLERS) {
@@ -389,25 +387,16 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
             pageY = clientY - pageRect.top;
         }
 
-        // AG-10475 On Chrome (Windows), wheel clicks send deltaMode: 0 events with deltaY: -100 or +100.
-        // So we use a logarithmic calculation to give us the desired step, whilst preserving behaviors
-        // on track pads. (These are typically much more rapid, smaller incremental delta events).
-        const deltaFactor = (input: number) => {
-            const scaleOutput = 3;
-            const zeroInput = 0.1;
-            const outputCurveFit = 60;
-            const sign = Math.sign(input);
-            return (Math.log10(Math.abs(input) / outputCurveFit + zeroInput) * scaleOutput + scaleOutput) * sign;
-        };
-
         let [deltaX, deltaY] = [NaN, NaN];
         if (this.isWheelEvent(event)) {
-            const factorFn = event.deltaMode === 0 ? deltaFactor : (x: number) => x;
-            deltaX = factorFn(event.deltaX);
-            deltaY = factorFn(event.deltaY);
+            // AG-10475 On Chrome (Windows), wheel clicks send deltaMode: 0 events with deltaY: -100 or +100.
+            // So we divide this by 100 to give us the desired step.
+            const factor = event.deltaMode === 0 ? 0.01 : 1;
+            deltaX = event.deltaX * factor;
+            deltaY = event.deltaY * factor;
         }
 
-        // AG-8880 Because we are using listeners globally on the canaves, click events are always fired
+        // AG-8880 Because we are using listeners globally on the canvases, click events are always fired
         // whenever the mouse button is lifted. The pointerHistory allows listeners to check that click events
         // are only fired when both the mousedown & mouseup events are in the revelant bounding area.
         let pointerHistory: PointerHistoryEvent[] = [];

@@ -1,8 +1,8 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import type { AgBarSeriesStyle, FontStyle, FontWeight } from '../../../options/agChartOptions';
-import { BandScale } from '../../../scale/bandScale';
 import { ContinuousScale } from '../../../scale/continuousScale';
+import { OrdinalTimeScale } from '../../../scale/ordinalTimeScale';
 import { BBox } from '../../../scene/bbox';
 import { PointerEvents } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
@@ -12,8 +12,6 @@ import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
 import { sanitizeHtml } from '../../../util/sanitize';
 import { isFiniteNumber } from '../../../util/type-guards';
-import { CategoryAxis } from '../../axis/categoryAxis';
-import { GroupedCategoryAxis } from '../../axis/groupedCategoryAxis';
 import { LogAxis } from '../../axis/logAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
@@ -40,10 +38,12 @@ import {
     resetBarSelectionsFn,
     updateRect,
 } from './barUtil';
-import type {
-    CartesianAnimationData,
-    CartesianSeriesNodeDataContext,
-    CartesianSeriesNodeDatum,
+import {
+    type CartesianAnimationData,
+    type CartesianSeriesNodeDataContext,
+    type CartesianSeriesNodeDatum,
+    DEFAULT_CARTESIAN_DIRECTION_KEYS,
+    DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
 import { adjustLabelPlacement, updateLabelNode } from './labelUtil';
 
@@ -84,15 +84,17 @@ enum BarSeriesNodeTag {
     Label,
 }
 
-export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
-    static className = 'BarSeries';
-    static type = 'bar' as const;
+export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarNodeDatum> {
+    static readonly className = 'BarSeries';
+    static readonly type = 'bar' as const;
 
     override properties = new BarSeriesProperties();
 
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,
+            directionKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
+            directionNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
             pathsPerSeries: 0,
             hasHighlightedLabels: true,
@@ -105,11 +107,6 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
         });
     }
 
-    /**
-     * Used to get the position of bars within each group.
-     */
-    private groupScale = new BandScale<string>();
-
     protected override resolveKeyDirection(direction: ChartAxisDirection) {
         if (this.getBarDirection() === ChartAxisDirection.X) {
             if (direction === ChartAxisDirection.X) {
@@ -119,8 +116,6 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
         }
         return direction;
     }
-
-    protected smallestDataInterval?: { x: number; y: number } = undefined;
 
     override async processData(dataController: DataController) {
         if (!this.properties.isValid() || !this.data) {
@@ -133,8 +128,14 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
         const animationEnabled = !this.ctx.animationManager.isSkipped();
         const normalizedToAbs = Math.abs(normalizedTo ?? NaN);
 
-        const isContinuousX = ContinuousScale.is(this.getCategoryAxis()?.scale);
-        const isContinuousY = ContinuousScale.is(this.getValueAxis()?.scale);
+        const xScale = this.getCategoryAxis()?.scale;
+        const yScale = this.getValueAxis()?.scale;
+
+        const isContinuousX = ContinuousScale.is(xScale) || OrdinalTimeScale.is(xScale);
+        const isContinuousY = ContinuousScale.is(yScale) || OrdinalTimeScale.is(yScale);
+
+        const xValueType = ContinuousScale.is(xScale) ? 'range' : 'category';
+
         const stackGroupName = `bar-stack-${groupIndex}-yValues`;
         const stackGroupTrailingName = `${stackGroupName}-trailing`;
 
@@ -153,7 +154,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
         const visibleProps = this.visible ? {} : { forceValue: 0 };
         const { processedData } = await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
-                keyProperty(this, xKey, isContinuousX, { id: 'xValue' }),
+                keyProperty(this, xKey, isContinuousX, { id: 'xValue', valueType: xValueType }),
                 valueProperty(this, yKey, isContinuousY, { id: `yValue-raw`, invalidValue: null, ...visibleProps }),
                 ...groupAccumulativeValueProperty(this, yKey, isContinuousY, 'normal', 'current', {
                     id: `yValue-end`,
@@ -237,47 +238,12 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
-
-        const {
-            groupScale,
-            processedData,
-            smallestDataInterval,
-            ctx: { seriesStateManager },
-        } = this;
         const { xKey, yKey, xName, yName, fill, stroke, strokeWidth, cornerRadius, legendItemName, label } =
             this.properties;
 
         const yReversed = yAxis.isReversed();
-        const xBandWidth = ContinuousScale.is(xScale)
-            ? xScale.calcBandwidth(smallestDataInterval?.x)
-            : xScale.bandwidth;
 
-        const domain = [];
-        const { index: groupIndex, visibleGroupCount } = seriesStateManager.getVisiblePeerGroupIndex(this);
-        for (let groupIdx = 0; groupIdx < visibleGroupCount; groupIdx++) {
-            domain.push(String(groupIdx));
-        }
-        groupScale.domain = domain;
-        groupScale.range = [0, xBandWidth ?? 0];
-
-        if (xAxis instanceof CategoryAxis) {
-            groupScale.paddingInner = xAxis.groupPaddingInner;
-        } else if (xAxis instanceof GroupedCategoryAxis) {
-            groupScale.padding = 0.1;
-        } else {
-            // Number or Time axis
-            groupScale.padding = 0;
-        }
-
-        // To get exactly `0` padding we need to turn off rounding
-        groupScale.round = groupScale.padding !== 0;
-
-        const barWidth =
-            groupScale.bandwidth >= 1
-                ? // Pixel-rounded value for low-volume bar charts.
-                  groupScale.bandwidth
-                : // Handle high-volume bar charts gracefully.
-                  groupScale.rawBandwidth;
+        const { barWidth, groupIndex } = this.updateGroupScale(xAxis);
 
         const xIndex = dataModel.resolveProcessedDataIndexById(this, `xValue`).index;
         const yRawIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-raw`).index;
@@ -287,6 +253,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
         const animationEnabled = !this.ctx.animationManager.isSkipped();
         const contexts: Array<CartesianSeriesNodeDataContext<BarNodeDatum>> = [];
 
+        const { groupScale, processedData } = this;
         processedData?.data.forEach(({ keys, datum: seriesDatum, values, aggValues }) => {
             values.forEach((value, contextIndex) => {
                 contexts[contextIndex] ??= {
@@ -601,7 +568,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
 
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
-        const diff = this.processedData?.reduced?.diff;
+        const dataDiff = this.processedData?.reduced?.diff;
         const mode = previousContextData?.length === 0 ? 'fade' : 'normal';
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, mode));
 
@@ -612,10 +579,10 @@ export class BarSeries extends AbstractBarSeries<Rect, BarNodeDatum> {
             datumSelections,
             fns,
             (_, datum) => createDatumId(datum.xValue),
-            diff
+            dataDiff
         );
 
-        const hasMotion = diff?.changed ?? true;
+        const hasMotion = dataDiff?.changed ?? true;
         if (hasMotion) {
             seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelections);
             seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, annotationSelections);

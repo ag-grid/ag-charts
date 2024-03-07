@@ -21,9 +21,9 @@ export function extent(values: Array<number | Date>): [number, number] | undefin
             max = n;
         }
     }
-    const extent = [min, max];
-    if (extent.every(isFinite)) {
-        return extent as [number, number];
+    const result = [min, max];
+    if (result.every(isFinite)) {
+        return result as [number, number];
     }
 }
 
@@ -102,4 +102,11 @@ export function circularSliceArray<T>(data: T[], size: number, offset = 0): T[] 
         result.push(data.at((i + offset) % data.length)!);
     }
     return result;
+}
+
+export function bifurcate<T>(isLeft: (array: T) => boolean, array: T[]): [T[], T[]] {
+    return array.reduce(
+        ([left, right], value) => (isLeft(value) ? [[...left, value], right] : [left, [...right, value]]),
+        [[] as T[], [] as T[]]
+    );
 }

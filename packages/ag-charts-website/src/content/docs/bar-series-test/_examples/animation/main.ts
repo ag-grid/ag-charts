@@ -1,8 +1,12 @@
-import { AgChartLegendPosition, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgChartLegendPosition, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
 const legendPositions: Array<AgChartLegendPosition> = ['bottom', 'left', 'right', 'top'];
+const stackGroups = ['Devices', 'Devices', 'Devices', 'Wearables', 'Series'];
+const modes = ['standalone', 'integrated'] as const;
+let mode = modes[0];
+const modeButton = document.getElementById('modeButton')!;
 
 function toIntegratedData(key: string, d: any[]) {
     const result = [];
@@ -24,7 +28,7 @@ function toIntegratedData(key: string, d: any[]) {
 
 let data = toIntegratedData('quarter', getData());
 
-const series: NonNullable<AgChartOptions['series']> = [
+const series: NonNullable<AgCartesianChartOptions['series']> = [
     {
         type: 'bar',
         direction: 'horizontal',
@@ -80,8 +84,9 @@ const series: NonNullable<AgChartOptions['series']> = [
     },
 ];
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions & { mode: (typeof modes)[number] } = {
     theme: 'ag-default',
+    mode,
     container: document.getElementById('myChart'),
     animation: {
         enabled: true,
@@ -96,6 +101,7 @@ const chart = AgCharts.create(options);
 function reset() {
     data = toIntegratedData('quarter', getData());
     options.data = data;
+    options.series = [...series];
     AgCharts.update(chart, options as any);
 }
 
@@ -126,20 +132,30 @@ function addSeries() {
 
 function switchDirection() {
     options.series?.forEach((s: any) => (s.direction = s.direction === 'horizontal' ? 'vertical' : 'horizontal'));
+
+    if (options.mode === 'integrated') {
+        chart.resetAnimations();
+    }
     AgCharts.update(chart, options as any);
 }
 
 function switchToGrouped() {
     options.series?.forEach((s: any) => delete s['stackGroup']);
+
+    if (options.mode === 'integrated') {
+        chart.resetAnimations();
+    }
     AgCharts.update(chart, options as any);
 }
 
 function switchToStacked() {
     options.series?.forEach((s: any, i) => {
-        if (i < 3) {
-            s.stackGroup = 'Devices';
-        }
+        s.stackGroup = stackGroups[i];
     });
+
+    if (options.mode === 'integrated') {
+        chart.resetAnimations();
+    }
     AgCharts.update(chart, options as any);
 }
 
@@ -147,6 +163,10 @@ function moveLegend() {
     const currentPosition = legendPositions.indexOf(options.legend?.position ?? 'bottom');
     options.legend ??= {};
     options.legend.position = legendPositions[(currentPosition + 1) % 4];
+
+    if (options.mode === 'integrated') {
+        chart.skipAnimations();
+    }
     AgCharts.update(chart, options as any);
 }
 
@@ -155,5 +175,17 @@ function changeTheme() {
     const idx = themes.indexOf(options.theme as any);
 
     options.theme = themes[(idx + 1) % themes.length];
+
+    if (options.mode === 'integrated') {
+        chart.skipAnimations();
+    }
+    AgCharts.update(chart, options);
+}
+
+function toggleMode() {
+    const nextMode = modes[(modes.indexOf(options.mode) + 1) % modes.length];
+    options.mode = nextMode;
+    modeButton.textContent = `Mode: ${nextMode}`;
+
     AgCharts.update(chart, options);
 }

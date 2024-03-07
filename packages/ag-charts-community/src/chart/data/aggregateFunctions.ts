@@ -1,10 +1,8 @@
 import { isFiniteNumber } from '../../util/type-guards';
+import { ContinuousDomain } from './dataDomain';
 import type { AggregatePropertyDefinition, DatumPropertyDefinition, ScopeProvider } from './dataModel';
-import { extendDomain } from './utilFunctions';
 
-type ContinuousDomain<T extends number | Date> = [T, T];
-
-function sumValues(values: any[], accumulator = [0, 0] as ContinuousDomain<number>) {
+function sumValues(values: any[], accumulator: [number, number] = [0, 0]) {
     for (const value of values) {
         if (typeof value !== 'number') {
             continue;
@@ -16,7 +14,6 @@ function sumValues(values: any[], accumulator = [0, 0] as ContinuousDomain<numbe
             accumulator[1] += value;
         }
     }
-
     return accumulator;
 }
 
@@ -36,7 +33,7 @@ export function groupSum(
     scope: ScopeProvider,
     id: string,
     matchGroupId?: string
-): AggregatePropertyDefinition<any, any, [number, number]> {
+): AggregatePropertyDefinition<any, any> {
     return {
         id,
         scopes: [scope.id],
@@ -57,7 +54,7 @@ export function range(scope: ScopeProvider, id: string, matchGroupId: string) {
         scopes: [scope.id],
         matchGroupIds: [matchGroupId],
         type: 'aggregate',
-        aggregateFunction: (values) => extendDomain(values),
+        aggregateFunction: (values) => ContinuousDomain.extendDomain(values),
     };
 
     return result;
@@ -101,7 +98,7 @@ export function average(scope: ScopeProvider, id: string, matchGroupId: string) 
 }
 
 export function groupAverage(scope: ScopeProvider, id: string, matchGroupId?: string) {
-    const result: AggregatePropertyDefinition<any, any, [number, number], [number, number, number]> = {
+    const def: AggregatePropertyDefinition<any, any, [number, number], [number, number, number]> = {
         id,
         scopes: [scope.id],
         matchGroupIds: matchGroupId ? [matchGroupId] : undefined,
@@ -122,7 +119,7 @@ export function groupAverage(scope: ScopeProvider, id: string, matchGroupId?: st
         },
     };
 
-    return result;
+    return def;
 }
 
 export function area(
@@ -154,7 +151,9 @@ export function accumulatedValue(onlyPositive?: boolean): DatumPropertyDefinitio
         let value = 0;
 
         return (datum: any) => {
-            if (!isFiniteNumber(datum)) return datum;
+            if (!isFiniteNumber(datum)) {
+                return datum;
+            }
 
             value += onlyPositive ? Math.max(0, datum) : datum;
             return value;
@@ -167,7 +166,9 @@ export function trailingAccumulatedValue(): DatumPropertyDefinition<any>['proces
         let value = 0;
 
         return (datum: any) => {
-            if (!isFiniteNumber(datum)) return datum;
+            if (!isFiniteNumber(datum)) {
+                return datum;
+            }
 
             const trailingValue = value;
             value += datum;

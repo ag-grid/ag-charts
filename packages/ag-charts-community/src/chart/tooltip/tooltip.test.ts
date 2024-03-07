@@ -3,7 +3,6 @@ import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
 import type { AgChartOptions } from '../../options/agChartOptions';
 import { AgCharts } from '../agChartV2';
-import type { Chart } from '../chart';
 import { expectWarning, setupMockConsole } from '../test/mockConsole';
 import { AgChartProxy, createChart, hoverAction, prepareTestOptions, waitForChartStability } from '../test/utils';
 
@@ -45,13 +44,13 @@ describe('Tooltip', () => {
             });
 
             expectWarning(
-                `AG Charts - Property [type] of [TooltipPosition] cannot be set to ["ponter"]; expecting a position type keyword such as 'pointer', 'node', 'top', 'right', 'bottom', 'left', 'topLeft', 'topRight', 'bottomRight' or 'bottomLeft', ignoring.`
+                `AG Charts - Property [type] of [TooltipPosition] cannot be set to ["ponter"]; expecting a position type keyword such as 'pointer', 'node', 'top', 'right', 'bottom', 'left', 'top-left', 'top-right', 'bottom-right' or 'bottom-left', ignoring.`
             );
         });
     });
 
     describe('Realtime', () => {
-        let chart: Chart;
+        let chart: AgChartProxy;
         afterEach(() => {
             chart?.destroy();
         });
@@ -73,7 +72,7 @@ describe('Tooltip', () => {
             ];
             opts.series = [{ type: 'line', xKey: 'time', yKey: 'voltage' }];
 
-            const chart = AgCharts.create(opts) as AgChartProxy;
+            chart = AgCharts.create(opts) as AgChartProxy;
             await waitForChartStability(chart);
 
             const nextValue = async (time: number, voltage: number) => {

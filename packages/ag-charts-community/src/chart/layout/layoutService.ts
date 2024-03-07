@@ -1,6 +1,7 @@
 import type { BBox } from '../../scene/bbox';
 import { type Listener, Listeners } from '../../util/listeners';
 import { Logger } from '../../util/logger';
+import type { ChartAxisDirection } from '../chartAxisDirection';
 
 type LayoutStage = 'start-layout' | 'before-series';
 type LayoutComplete = 'layout-complete';
@@ -15,6 +16,8 @@ export interface AxisLayout {
         padding: number;
         format?: string;
     };
+    direction: ChartAxisDirection;
+    domain: any[];
 }
 
 export interface LayoutCompleteEvent {

@@ -146,7 +146,7 @@ class LegendListeners extends BaseProperties implements AgChartLegendListeners {
 }
 
 export class Legend extends BaseProperties {
-    static className = 'Legend';
+    static readonly className = 'Legend';
 
     readonly id = createId(this);
 
@@ -331,7 +331,7 @@ export class Legend extends BaseProperties {
      * @param width
      * @param height
      */
-    private performLayout(width: number, height: number) {
+    private calcLayout(width: number, height: number) {
         const {
             paddingX,
             paddingY,
@@ -545,9 +545,8 @@ export class Legend extends BaseProperties {
         let maxPageHeight = 0;
         let count = 0;
 
-        const stableOutput = (lastPassPaginationBBox: BBox) => {
-            const { width, height } = lastPassPaginationBBox;
-            return width === paginationBBox.width && height === paginationBBox.height;
+        const stableOutput = (bbox: BBox) => {
+            return bbox.width === paginationBBox.width && bbox.height === paginationBBox.height;
         };
 
         const forceResult = this.maxWidth !== undefined || this.maxHeight !== undefined;
@@ -776,8 +775,8 @@ export class Legend extends BaseProperties {
 
             if (preventHidingAll && !newEnabled) {
                 const numVisibleItems = chartService.series
-                    .flatMap((series) => series.getLegendData('category'))
-                    .filter((datum) => datum.enabled).length;
+                    .flatMap((s) => s.getLegendData('category'))
+                    .filter((d) => d.enabled).length;
 
                 if (numVisibleItems < 2) {
                     newEnabled = true;
@@ -787,14 +786,14 @@ export class Legend extends BaseProperties {
             this.ctx.chartEventManager.legendItemClick(series, itemId, newEnabled, datum.legendItemName);
         }
 
-        if (!newEnabled) {
-            highlightManager.updateHighlight(this.id);
-        } else {
+        if (newEnabled) {
             highlightManager.updateHighlight(this.id, {
                 series,
                 itemId,
                 datum: undefined,
             });
+        } else {
+            highlightManager.updateHighlight(this.id);
         }
 
         this.ctx.updateService.update(ChartUpdateType.PROCESS_DATA, { forceNodeDataRefresh: true });
@@ -828,8 +827,8 @@ export class Legend extends BaseProperties {
         event.consume();
 
         if (toggleSeriesVisible) {
-            const legendData = chartService.series.flatMap((series) => series.getLegendData('category'));
-            const numVisibleItems = legendData.filter((datum) => datum.enabled).length;
+            const legendData = chartService.series.flatMap((s) => s.getLegendData('category'));
+            const numVisibleItems = legendData.filter((d) => d.enabled).length;
 
             const clickedItem = legendData.find((d) => d.itemId === itemId && d.seriesId === seriesId);
 
@@ -869,7 +868,7 @@ export class Legend extends BaseProperties {
             return;
         }
 
-        const series = datum ? this.ctx.chartService.series.find((series) => series.id === datum?.id) : undefined;
+        const series = datum ? this.ctx.chartService.series.find((s) => s.id === datum?.id) : undefined;
         if (datum && this.truncatedItems.has(datum.itemId ?? datum.id)) {
             this.ctx.tooltipManager.updateTooltip(
                 this.id,
@@ -928,7 +927,7 @@ export class Legend extends BaseProperties {
 
         this.group.translationX = 0;
         this.group.translationY = 0;
-        this.performLayout(legendWidth, legendHeight);
+        this.calcLayout(legendWidth, legendHeight);
         const legendBBox = this.computePagedBBox();
 
         const calculateTranslationPerpendicularDimension = () => {

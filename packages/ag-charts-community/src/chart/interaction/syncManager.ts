@@ -1,4 +1,3 @@
-import type { ModuleInstance } from '../../module/baseModule';
 import type { ChartAxisDirection } from '../chartAxisDirection';
 import type { ISeries } from '../series/seriesTypes';
 import { BaseManager } from './baseManager';
@@ -10,7 +9,7 @@ type GroupId = string | symbol;
 
 /** Breaks circular dependencies which occur when importing ChartAxis. */
 type AxisLike = {
-    boundSeries: ISeries<any>[];
+    boundSeries: ISeries<any, any>[];
     direction: ChartAxisDirection;
     keys: string[];
     reverse?: boolean;
@@ -23,11 +22,11 @@ type AxisLike = {
 type ChartLike = {
     id: string;
     axes: AxisLike[];
-    series: ISeries<any>[];
+    series: ISeries<any, any>[];
     highlightManager: HighlightManager;
+    modulesManager: { getModule<R>(module: string): R | undefined };
     tooltipManager: TooltipManager;
     zoomManager: ZoomManager;
-    modules: Map<string, ModuleInstance>;
     waitForDataProcess(timeout?: number): Promise<void>;
 };
 

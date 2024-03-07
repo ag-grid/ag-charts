@@ -4,7 +4,7 @@ import { RedrawType, SceneChangeDetection } from '../node';
 import { Shape } from './shape';
 
 export class Range extends Shape {
-    static className = 'Range';
+    static readonly className = 'Range';
 
     protected static override defaultStyles = {
         ...Shape.defaultStyles,

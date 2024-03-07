@@ -16,10 +16,10 @@ const CLASS_INSTANCE_TYPE = 'class-instance';
  *
  * @param source starting point for diff
  * @param target target for diff vs. source
- *
+ * @param skip object keys to skip during diff
  * @returns `null` if no differences, or an object with the subset of properties that have changed.
  */
-export function jsonDiff<T extends unknown>(source: T, target: T): Partial<T> | null {
+export function jsonDiff<T extends unknown>(source: T, target: T, skip?: (keyof T)[]): Partial<T> | null {
     if (isArray(target)) {
         if (
             !isArray(source) ||
@@ -39,16 +39,16 @@ export function jsonDiff<T extends unknown>(source: T, target: T): Partial<T> | 
         ]);
         for (const key of allKeys) {
             // Cheap-and-easy equality check.
-            if (source[key] === target[key]) {
+            if (source[key] === target[key] || skip?.includes(key)) {
                 continue;
             }
-            if (typeof source[key] !== typeof target[key]) {
-                result[key] = target[key];
-            } else {
+            if (typeof source[key] === typeof target[key]) {
                 const diff = jsonDiff(source[key], target[key]);
                 if (diff !== null) {
                     result[key] = diff as T[keyof T];
                 }
+            } else {
+                result[key] = target[key];
             }
         }
         return Object.keys(result).length ? result : null;
@@ -223,18 +223,18 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
                 ctr = ctr ?? constructedArrays.get(currentValue) ?? constructors[`${propertyMatcherPath}[]`];
                 if (isProperties(targetAny[property])) {
                     targetAny[property].set(newValue);
-                } else if (ctr != null) {
+                } else if (ctr == null) {
+                    targetAny[property] = newValue;
+                } else {
                     const newValueArray: any[] = newValue as any;
-                    targetAny[property] = newValueArray.map((v, idx) =>
+                    targetAny[property] = newValueArray.map((v, i) =>
                         jsonApply(new ctr(), v, {
                             ...params,
                             path: propertyPath,
                             matcherPath: propertyMatcherPath + '[]',
-                            idx,
+                            idx: i,
                         })
                     );
-                } else {
-                    targetAny[property] = newValue;
                 }
             } else if (newValueType === CLASS_INSTANCE_TYPE) {
                 targetAny[property] = newValue;
@@ -248,7 +248,9 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
                         matcherPath: propertyMatcherPath,
                         idx: undefined,
                     });
-                } else if (ctr != null) {
+                } else if (ctr == null) {
+                    targetAny[property] = newValue;
+                } else {
                     const obj = new ctr();
                     if (isProperties(obj)) {
                         targetAny[property] = obj.set(newValue as object);
@@ -260,8 +262,6 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
                             idx: undefined,
                         });
                     }
-                } else {
-                    targetAny[property] = newValue;
                 }
             } else if (isProperties(targetAny[property])) {
                 targetAny[property].set(newValue);

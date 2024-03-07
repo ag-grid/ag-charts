@@ -5,7 +5,7 @@ import { LogAxis } from '../axis/logAxis';
 import { NumberAxis } from '../axis/numberAxis';
 import { TimeAxis } from '../axis/timeAxis';
 import { BackgroundModule } from '../background/backgroundModule';
-import { Legend } from '../legend';
+import { CommunityLegendModule } from '../legendModule';
 import { NavigatorModule } from '../navigator/navigatorModule';
 import { AreaSeriesModule } from '../series/cartesian/areaSeriesModule';
 import { BarSeriesModule } from '../series/cartesian/barSeriesModule';
@@ -15,12 +15,14 @@ import { LineSeriesModule } from '../series/cartesian/lineSeriesModule';
 import { ScatterSeriesModule } from '../series/cartesian/scatterSeriesModule';
 import { DonutSeriesModule } from '../series/polar/donutSeriesModule';
 import { PieSeriesModule } from '../series/polar/pieSeriesModule';
+import { ToolbarModule } from '../toolbar/toolbarModule';
 import { axisRegistry } from './axisRegistry';
-import { legendRegistry } from './legendRegistry';
 
 export function registerInbuiltModules() {
     registerModule(BackgroundModule);
+    registerModule(CommunityLegendModule);
     registerModule(NavigatorModule);
+    registerModule(ToolbarModule);
 
     registerModule(AreaSeriesModule);
     registerModule(BarSeriesModule);
@@ -34,6 +36,4 @@ export function registerInbuiltModules() {
     for (const AxisConstructor of [NumberAxis, CategoryAxis, TimeAxis, GroupedCategoryAxis, LogAxis]) {
         axisRegistry.register(AxisConstructor.type, { instanceConstructor: AxisConstructor });
     }
-
-    legendRegistry.register('category', { optionsKey: 'legend', instanceConstructor: Legend });
 }

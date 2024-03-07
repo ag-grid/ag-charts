@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
 import { memoryUsage } from 'process';
 
@@ -46,7 +46,6 @@ describe('Chart Heap Memory', () => {
                 yKey: `value-${s}`,
                 yName: `Series-${s}`,
                 stacked: false,
-                grouped: true,
             };
             result.push(series);
         }
@@ -97,16 +96,15 @@ describe('Chart Heap Memory', () => {
         async function createChart(options: object) {
             const chartOptions = prepareTestOptions(options);
             const chartProxy = AgCharts.create(chartOptions) as AgChartProxy;
-            const chart = deproxy(chartProxy);
-            await waitForChartStability(chart);
-            return { chart, chartProxy, chartOptions };
+            const chartInstance = deproxy(chartProxy);
+            await waitForChartStability(chartInstance);
+            return { chart: chartInstance, chartProxy, chartOptions };
         }
 
         async function updateChart(chartProxy: AgChartProxy, options: object) {
             const chartOptions = prepareTestOptions(options);
             AgCharts.update(chartProxy, chartOptions);
-            const chart = deproxy(chartProxy);
-            await waitForChartStability(chart);
+            await waitForChartStability(deproxy(chartProxy));
         }
 
         it('should not leak memory after many updates', async () => {

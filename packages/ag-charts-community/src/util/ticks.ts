@@ -42,11 +42,11 @@ export function tickStep(a: number, b: number, count: number, minCount = 0, maxC
             const diffCount = Math.abs(c - count);
             return { multiplier, isWithinBounds, diffCount };
         })
-        .sort((a, b) => {
-            if (a.isWithinBounds !== b.isWithinBounds) {
-                return a.isWithinBounds ? -1 : 1;
+        .sort((a2, b2) => {
+            if (a2.isWithinBounds !== b2.isWithinBounds) {
+                return a2.isWithinBounds ? -1 : 1;
             }
-            return a.diffCount - b.diffCount;
+            return a2.diffCount - b2.diffCount;
         })[0].multiplier;
     if (!m || isNaN(m)) {
         return NaN;
@@ -71,7 +71,7 @@ export function singleTickDomain(a: number, b: number): number[] {
             const domain = [start, end];
             return { error, domain };
         })
-        .sort((a, b) => a.error - b.error)[0].domain;
+        .sort((a2, b2) => a2.error - b2.error)[0].domain;
 }
 
 export function range(start: number, stop: number, step: number): NumericTicks {

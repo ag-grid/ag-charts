@@ -10,7 +10,6 @@ import { clamp } from '../util/number';
 // https://jsperf.com/array-vs-object-create-access
 import type { DistantObject, NearestResult } from './nearest';
 import { nearestSquared } from './nearest';
-import type { Point } from './point';
 
 type Padding = {
     top: number;
@@ -27,8 +26,8 @@ export class BBox implements DistantObject, Interpolating<BBox> {
     width: number;
     height: number;
 
-    static zero = new BBox(0, 0, 0, 0);
-    static NaN = new BBox(NaN, NaN, NaN, NaN);
+    static readonly zero: Readonly<BBox> = new BBox(0, 0, 0, 0);
+    static readonly NaN: Readonly<BBox> = new BBox(NaN, NaN, NaN, NaN);
 
     constructor(x: number, y: number, width: number, height: number) {
         this.x = x;
@@ -68,19 +67,19 @@ export class BBox implements DistantObject, Interpolating<BBox> {
         );
     }
 
-    distanceSquared(point: Point): number {
-        if (this.containsPoint(point.x, point.y)) {
+    distanceSquared(x: number, y: number): number {
+        if (this.containsPoint(x, y)) {
             return 0;
         }
 
-        const dx = point.x - clamp(this.x, point.x, this.x + this.width);
-        const dy = point.y - clamp(this.y, point.y, this.y + this.height);
+        const dx = x - clamp(this.x, x, this.x + this.width);
+        const dy = y - clamp(this.y, y, this.y + this.height);
 
         return dx * dx + dy * dy;
     }
 
-    static nearestBox(point: Point, boxes: BBox[]): NearestResult<BBox> {
-        return nearestSquared(point, boxes);
+    static nearestBox(x: number, y: number, boxes: BBox[]): NearestResult<BBox> {
+        return nearestSquared(x, y, boxes);
     }
 
     shrink(amounts: Partial<Padding>): this;
@@ -144,6 +143,14 @@ export class BBox implements DistantObject, Interpolating<BBox> {
         }
 
         return this;
+    }
+
+    combine(other: BBox) {
+        const { x, y, width, height } = this;
+        this.x = Math.min(x, other.x);
+        this.y = Math.min(y, other.y);
+        this.width = Math.max(x + width, other.x + other.width) - this.x;
+        this.height = Math.max(y + height, other.y + other.height) - this.y;
     }
 
     static merge(boxes: BBox[]) {

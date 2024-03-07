@@ -2,6 +2,7 @@ import type { AgAreaSeriesOptions } from '../series/cartesian/areaOptions';
 import type { AgBarSeriesOptions } from '../series/cartesian/barOptions';
 import type { AgBoxPlotSeriesOptions } from '../series/cartesian/boxPlotOptions';
 import type { AgBubbleSeriesOptions } from '../series/cartesian/bubbleOptions';
+import type { AgCandlestickSeriesOptions } from '../series/cartesian/candlestickOptions';
 import type { AgCartesianSeriesOptions } from '../series/cartesian/cartesianSeriesTypes';
 import type { AgHeatmapSeriesOptions } from '../series/cartesian/heatmapOptions';
 import type { AgHistogramSeriesOptions } from '../series/cartesian/histogramOptions';
@@ -76,6 +77,8 @@ export interface AgHeatmapMiniChartSeriesOptions extends Omit<AgHeatmapSeriesOpt
 export interface AgWaterfallMiniChartSeriesOptions extends Omit<AgWaterfallSeriesOptions, CommonIgnoredProperties> {}
 export interface AgRangeBarMiniChartSeriesOptions extends Omit<AgRangeBarSeriesOptions, CommonIgnoredProperties> {}
 export interface AgRangeAreaMiniChartSeriesOptions extends Omit<AgRangeAreaSeriesOptions, CommonIgnoredProperties> {}
+export interface AgCandlestickMiniChartSeriesOptions
+    extends Omit<AgCandlestickSeriesOptions, CommonIgnoredProperties> {}
 
 export type AgMiniChartSeriesOptions =
     | AgLineMiniChartSeriesOptions
@@ -88,7 +91,8 @@ export type AgMiniChartSeriesOptions =
     | AgHeatmapMiniChartSeriesOptions
     | AgWaterfallMiniChartSeriesOptions
     | AgRangeBarMiniChartSeriesOptions
-    | AgRangeAreaMiniChartSeriesOptions;
+    | AgRangeAreaMiniChartSeriesOptions
+    | AgCandlestickMiniChartSeriesOptions;
 
 type IgnoredMiniChartSeries = 'bullet';
 type VerifyAgMiniChartSeriesOptions = Record<NonNullable<AgCartesianSeriesOptions['type']>, string>;
@@ -98,6 +102,7 @@ const __MINI_CHART_SERIES_OPTIONS = {} as Record<
     NonNullable<AgMiniChartSeriesOptions['type']> | IgnoredMiniChartSeries,
     string
 >;
+// eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
 // @ts-ignore
 let __VERIFY_MINI_CHART_SERIES_OPTIONS: VerifyAgMiniChartSeriesOptions = undefined as any;
 __VERIFY_MINI_CHART_SERIES_OPTIONS = __MINI_CHART_SERIES_OPTIONS;

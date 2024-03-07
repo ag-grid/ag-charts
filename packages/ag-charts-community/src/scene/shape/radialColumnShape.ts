@@ -14,7 +14,7 @@ function rotatePoint(x: number, y: number, rotation: number) {
 }
 
 export class RadialColumnShape extends Path {
-    static override className = 'RadialColumnShape';
+    static override readonly className = 'RadialColumnShape';
 
     readonly borderPath = new Path2D();
 
@@ -206,8 +206,8 @@ export class RadialColumnShape extends Path {
                 true
             );
         } else {
-            const bottomLeftPt = rotate(left, bottom);
-            path.lineTo(bottomLeftPt.x, bottomLeftPt.y);
+            const rotatedBottomLeftPt = rotate(left, bottom);
+            path.lineTo(rotatedBottomLeftPt.x, rotatedBottomLeftPt.y);
         }
 
         path.closePath();

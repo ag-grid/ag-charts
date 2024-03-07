@@ -13,6 +13,7 @@ import hour from '../util/time/hour';
 import minute from '../util/time/minute';
 import month from '../util/time/month';
 import year from '../util/time/year';
+import { calculateDefaultTimeTickFormat } from '../util/timeFormatDefaults';
 import { TimeScale } from './timeScale';
 
 describe('TimeScale', () => {
@@ -21,7 +22,7 @@ describe('TimeScale', () => {
         scale.domain = [new Date(new Date(2022, 1, 13)), new Date(new Date(2022, 10, 30))];
         scale.nice = true;
         scale.update();
-        expect(scale.niceDomain).toEqual([new Date(2022, 1, 1), new Date(2022, 11, 1)]);
+        expect(scale.getDomain()).toEqual([new Date(2022, 1, 1), new Date(2022, 11, 1)]);
     });
 
     it('should create nice ticks', () => {
@@ -98,13 +99,13 @@ describe('TimeScale', () => {
             ];
 
             it.each(MILLISECONDS_INTERVALS)(`for $name case`, ({ interval, domain }) => {
-                const scale = new TimeScale();
+                const scale2 = new TimeScale();
 
-                scale.range = [0, 600];
-                scale.domain = domain;
-                scale.interval = interval;
+                scale2.range = [0, 600];
+                scale2.domain = domain;
+                scale2.interval = interval;
 
-                expect(scale.ticks()).toMatchSnapshot();
+                expect(scale2.ticks()).toMatchSnapshot();
             });
         });
 
@@ -156,13 +157,13 @@ describe('TimeScale', () => {
             ];
 
             it.each(TIME_INTERVALS)(`for $name case`, ({ interval, domain }) => {
-                const scale = new TimeScale();
+                const scale2 = new TimeScale();
 
-                scale.range = [0, 600];
-                scale.domain = domain;
-                scale.interval = interval;
+                scale2.range = [0, 600];
+                scale2.domain = domain;
+                scale2.interval = interval;
 
-                expect(scale.ticks()).toMatchSnapshot();
+                expect(scale2.ticks()).toMatchSnapshot();
             });
         });
     });
@@ -282,7 +283,7 @@ describe('TimeScale', () => {
             const scale = new TimeScale();
             scale.domain = [ticks[0], ticks[ticks.length - 1]];
 
-            expect(scale.calculateDefaultTickFormat(ticks)).toEqual(expectedFormat);
+            expect(calculateDefaultTimeTickFormat(ticks, scale.buildFormatString)).toEqual(expectedFormat);
         });
     });
 });

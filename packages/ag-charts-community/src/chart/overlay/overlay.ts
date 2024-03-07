@@ -9,9 +9,9 @@ export class Overlay {
     private element?: HTMLElement;
 
     constructor(
-        private className: string,
-        private parentElement: HTMLElement,
-        private animationManager: AnimationManager
+        private readonly className: string,
+        private readonly parentElement: HTMLElement,
+        private readonly animationManager: AnimationManager
     ) {}
 
     @Validate(FUNCTION, { optional: true })

@@ -4,7 +4,7 @@ import { RedrawType, SceneChangeDetection } from '../node';
 import { Shape } from './shape';
 
 export class Line extends Shape {
-    static className = 'Line';
+    static readonly className = 'Line';
 
     protected static override defaultStyles = Object.assign({}, Shape.defaultStyles, {
         fill: undefined,

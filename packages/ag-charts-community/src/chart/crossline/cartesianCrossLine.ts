@@ -6,6 +6,7 @@ import type {
 } from '../../options/agChartOptions';
 import { BandScale } from '../../scale/bandScale';
 import { ContinuousScale } from '../../scale/continuousScale';
+import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { Scale } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
@@ -114,7 +115,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
     protected static readonly RANGE_LAYER_ZINDEX = Layers.SERIES_CROSSLINE_RANGE_ZINDEX;
     protected static readonly LABEL_LAYER_ZINDEX = Layers.SERIES_LABEL_ZINDEX;
 
-    static className = 'CrossLine';
+    static readonly className = 'CrossLine';
     readonly id = createId(this);
 
     @Validate(BOOLEAN, { optional: true })
@@ -262,13 +263,15 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
         const [xStart, xEnd] = [0, sideFlag * gridLength];
         let [yStart, yEnd] = this.getRange();
 
+        const ordinalTimeScalePadding = yEnd === undefined && OrdinalTimeScale.is(scale) ? bandwidth / 2 + padding : 0;
+
         let [clampedYStart, clampedYEnd] = [
-            Number(scale.convert(yStart, { clampMode: 'clamped' })) - padding,
+            Number(scale.convert(yStart, { clampMode: 'clamped' })) - padding + ordinalTimeScalePadding,
             scale.convert(yEnd, { clampMode: 'clamped' }) + bandwidth + padding,
         ];
         clampedYStart = clampArray(clampedYStart, clippedRange);
         clampedYEnd = clampArray(clampedYEnd, clippedRange);
-        [yStart, yEnd] = [Number(scale.convert(yStart)), scale.convert(yEnd) + bandwidth];
+        [yStart, yEnd] = [Number(scale.convert(yStart)) + ordinalTimeScalePadding, scale.convert(yEnd) + bandwidth];
 
         const validRange =
             (yStart === clampedYStart || yEnd === clampedYEnd || clampedYStart !== clampedYEnd) &&
@@ -416,7 +419,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
     private getRange(): [any, any] {
         const { value, range, scale } = this;
 
-        const isContinuous = ContinuousScale.is(scale);
+        const isContinuous = ContinuousScale.is(scale) || OrdinalTimeScale.is(scale);
         const start = range?.[0] ?? value;
         let end = range?.[1];
 

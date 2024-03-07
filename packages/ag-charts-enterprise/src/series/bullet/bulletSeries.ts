@@ -16,6 +16,7 @@ const {
     createDatumId,
 } = _ModuleSupport;
 const { fromToMotion } = _Scene.motion;
+const { ContinuousScale, OrdinalTimeScale } = _Scale;
 const { sanitizeHtml } = _Util;
 
 interface BulletNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
@@ -53,7 +54,11 @@ const STYLING_KEYS: (keyof _Scene.Shape)[] = [
 
 type BulletAnimationData = _ModuleSupport.CartesianAnimationData<_Scene.Rect, BulletNodeDatum>;
 
-export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, BulletNodeDatum> {
+export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
+    _Scene.Rect,
+    BulletSeriesProperties,
+    BulletNodeDatum
+> {
     override properties = new BulletSeriesProperties();
 
     private normalizedColorRanges: NormalizedColorRange[] = [];
@@ -64,6 +69,8 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
+            directionKeys: { y: ['targetKey', 'valueKey'] },
+            directionNames: { y: ['targetName', 'valueName'] },
             pickModes: [_ModuleSupport.SeriesNodePickMode.EXACT_SHAPE_MATCH],
             hasHighlightedLabels: true,
             animationResetFns: {
@@ -87,8 +94,15 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
         }
 
         const { valueKey, targetKey } = this.properties;
-        const isContinuousX = _Scale.ContinuousScale.is(this.getCategoryAxis()?.scale);
-        const isContinuousY = _Scale.ContinuousScale.is(this.getValueAxis()?.scale);
+
+        const xScale = this.getCategoryAxis()?.scale;
+        const yScale = this.getValueAxis()?.scale;
+
+        const isContinuousX = ContinuousScale.is(xScale) || OrdinalTimeScale.is(xScale);
+        const isContinuousY = ContinuousScale.is(yScale) || OrdinalTimeScale.is(yScale);
+
+        const xValueType = ContinuousScale.is(xScale) ? 'range' : 'category';
+
         const extraProps = [];
 
         if (targetKey !== undefined) {
@@ -106,7 +120,7 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<_Scene.Rect, 
         // types and future compatibility (we may decide to support multiple datum at some point).
         await this.requestDataModel<any, any, true>(dataController, this.data.slice(0, 1), {
             props: [
-                keyProperty(this, valueKey, isContinuousX, { id: 'xValue' }),
+                keyProperty(this, valueKey, isContinuousX, { id: 'xValue', valueType: xValueType }),
                 valueProperty(this, valueKey, isContinuousY, { id: 'value' }),
                 ...extraProps,
             ],

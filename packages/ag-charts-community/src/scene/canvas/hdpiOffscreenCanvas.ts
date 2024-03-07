@@ -17,6 +17,7 @@ interface OffscreenCanvasOptions {
  * provide resolution independent rendering based on `window.devicePixelRatio`.
  */
 export class HdpiOffscreenCanvas {
+    // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
     readonly context: OffscreenCanvasRenderingContext2D & { verifyDepthZero?: () => void };
     readonly canvas: OffscreenCanvas;
 
@@ -29,10 +30,7 @@ export class HdpiOffscreenCanvas {
     pixelRatio: number;
 
     static isSupported() {
-        return (
-            typeof OffscreenCanvas !== 'undefined' &&
-            Object.getPrototypeOf(OffscreenCanvas).transferToImageBitmap != null
-        );
+        return typeof OffscreenCanvas !== 'undefined' && OffscreenCanvas.prototype.transferToImageBitmap != null;
     }
 
     constructor({ width = 600, height = 300, pixelRatio }: OffscreenCanvasOptions) {

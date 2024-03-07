@@ -1,12 +1,13 @@
 import type { ChartLegend, ChartLegendType } from '../chart/legendDatum';
 import type { Series } from '../chart/series/series';
-import type { AgChartOptions, AgChartThemeOverrides } from '../options/agChartOptions';
+import type { AgChartThemeOverrides } from '../options/agChartOptions';
+import type { AgChartOptions } from '../options/chart/chartBuilderOptions';
 import type { BaseModule, ModuleInstance } from './baseModule';
 import type { SeriesPaletteFactory } from './coreModulesTypes';
 import type { ModuleContext } from './moduleContext';
 
 type ModuleInstanceConstructor<M> = new (moduleContext: ModuleContext) => M;
-export type SeriesConstructor = ModuleInstanceConstructor<Series<any>>;
+export type SeriesConstructor = ModuleInstanceConstructor<Series<any, any>>;
 export type LegendConstructor = ModuleInstanceConstructor<ChartLegend>;
 
 export interface RootModule<M extends ModuleInstance = ModuleInstance> extends BaseModule {

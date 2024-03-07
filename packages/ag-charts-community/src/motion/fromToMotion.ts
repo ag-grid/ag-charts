@@ -95,19 +95,19 @@ export function fromToMotion<
         ids.removed = zipObject(diff.removed, true);
     }
 
-    const processNodes = (liveNodes: N[], nodes: N[]) => {
+    const processNodes = (liveNodes: N[], subNodes: N[]) => {
         let prevFromProps: T | undefined;
         let liveNodeIndex = 0;
         let nodeIndex = 0;
-        for (const node of nodes) {
+        for (const node of subNodes) {
             const isLive = liveNodes[liveNodeIndex] === node;
             const ctx: FromToMotionPropFnContext<N> = {
-                last: nodeIndex >= nodes.length - 1,
+                last: nodeIndex >= subNodes.length - 1,
                 lastLive: liveNodeIndex >= liveNodes.length - 1,
-                prev: nodes[nodeIndex - 1],
+                prev: subNodes[nodeIndex - 1],
                 prevFromProps,
                 prevLive: liveNodes[liveNodeIndex - 1],
-                next: nodes[nodeIndex + 1],
+                next: subNodes[nodeIndex + 1],
                 nextLive: liveNodes[liveNodeIndex + (isLive ? 1 : 0)],
             };
             const animationId = `${groupId}_${subId}_${node.id}`;
@@ -152,7 +152,14 @@ export function fromToMotion<
                     }
                 },
                 onStop: () => {
-                    node.setProperties({ ...finish, ...toFinish } as unknown as T);
+                    node.setProperties({
+                        ...start,
+                        ...toStart,
+                        ...from,
+                        ...to,
+                        ...finish,
+                        ...toFinish,
+                    } as unknown as T);
                 },
             });
 
@@ -166,9 +173,9 @@ export function fromToMotion<
 
     let selectionIndex = 0;
     for (const selection of selections) {
-        const nodes = selection.nodes();
-        const liveNodes = nodes.filter((n) => !selection.isGarbage(n));
-        processNodes(liveNodes, nodes);
+        const selectionNodes = selection.nodes();
+        const liveNodes = selectionNodes.filter((n) => !selection.isGarbage(n));
+        processNodes(liveNodes, selectionNodes);
 
         // Only perform selection cleanup once.
         animationManager.animate({

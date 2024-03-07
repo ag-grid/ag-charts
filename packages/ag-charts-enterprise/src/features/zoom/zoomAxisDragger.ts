@@ -1,12 +1,10 @@
 import type { AgZoomAnchorPoint, _Scene } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
-import { constrainZoom, definedZoomState, pointToRatio, scaleZoomAxisWithAnchor } from './zoomTransformers';
 import type { DefinedZoomState, ZoomCoords } from './zoomTypes';
+import { constrainZoom, definedZoomState, dx, dy, pointToRatio, scaleZoomAxisWithAnchor } from './zoomUtils';
 
 export class ZoomAxisDragger {
-    public isAxisDragging: boolean = false;
-
     private coords?: ZoomCoords;
     private oldZoom?: DefinedZoomState;
 
@@ -18,8 +16,6 @@ export class ZoomAxisDragger {
         zoom?: _ModuleSupport.AxisZoomState,
         axisZoom?: _ModuleSupport.ZoomState
     ): _ModuleSupport.ZoomState {
-        this.isAxisDragging = true;
-
         // Store the initial zoom state, merged with the state for this axis
         this.oldZoom ??= definedZoomState(
             direction === _ModuleSupport.ChartAxisDirection.X ? { ...zoom, x: axisZoom } : { ...zoom, y: axisZoom }
@@ -30,7 +26,6 @@ export class ZoomAxisDragger {
     }
 
     stop() {
-        this.isAxisDragging = false;
         this.coords = undefined;
         this.oldZoom = undefined;
     }
@@ -63,7 +58,7 @@ export class ZoomAxisDragger {
         const target = pointToRatio(bbox, coords.x2, coords.y2);
 
         if (direction === _ModuleSupport.ChartAxisDirection.X) {
-            const scaleX = (target.x - origin.x) * (oldZoom.x.max - oldZoom.x.min);
+            const scaleX = (target.x - origin.x) * dx(oldZoom);
 
             newZoom.x.max += scaleX;
             newZoom.x = scaleZoomAxisWithAnchor(newZoom.x, oldZoom.x, anchor, origin.x);
@@ -72,7 +67,7 @@ export class ZoomAxisDragger {
             return newZoom.x;
         }
 
-        const scaleY = (target.y - origin.y) * (oldZoom.y.max - oldZoom.y.min);
+        const scaleY = (target.y - origin.y) * dy(oldZoom);
 
         newZoom.y.max -= scaleY;
         newZoom.y = scaleZoomAxisWithAnchor(newZoom.y, oldZoom.y, anchor, origin.y);

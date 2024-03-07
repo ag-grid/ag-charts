@@ -52,10 +52,11 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         this.crosshairGroup.visible = false;
         this.label = new CrosshairLabel(ctx.document, ctx.scene.canvas.container ?? ctx.document.body);
 
+        const region = ctx.regionManager.getRegion('series')!;
         this.destroyFns.push(
             ctx.scene.attachNode(this.crosshairGroup),
-            ctx.interactionManager.addListener('hover', (event) => this.onMouseMove(event)),
-            ctx.interactionManager.addListener('leave', () => this.onMouseOut()),
+            region.addListener('hover', (event) => this.onMouseMove(event)),
+            region.addListener('leave', () => this.onMouseOut()),
             ctx.highlightManager.addListener('highlight-change', (event) => this.onHighlightChange(event)),
             ctx.layoutService.addListener('layout-complete', (event) => this.layout(event)),
             () => this.label.destroy()

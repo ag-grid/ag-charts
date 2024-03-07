@@ -51,7 +51,7 @@ jobs:
               id: build
               run: |
                   # Non-batched builds - some TS/JS targets will fail if run with --batch, so build them unbatched first.
-                  yarn nx run-many -t build --parallel=3  --exclude "all,ag-charts-website,tag:supports:batch"
+                  yarn nx run-many -p tag:no-batching -t build --parallel=3
                   # Batched builds.
                   yarn nx run-many -t build --parallel=3  --exclude all ${NX_BATCH_FLAG}
 
@@ -59,3 +59,9 @@ jobs:
               id: blt
               run: |
                   yarn nx run blt
+
+            - name: Tidy Nx Cache
+              run: |
+                  sudo du -sh .nx/cache
+                  ./tools/tidy-nx-cache.sh
+                  sudo du -sh .nx/cache

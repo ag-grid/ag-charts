@@ -136,7 +136,7 @@ export class LogScale extends ContinuousScale<number> {
                 const prevSpacing = Math.abs(lastTickPosition - tickPosition);
                 const nextSpacing = Math.abs(tickPosition - nextMagnitudeTickPosition);
                 const fits = prevSpacing >= availableSpacing && nextSpacing >= availableSpacing;
-                if (t >= start && t <= stop && (k === 1 || fits)) {
+                if (t >= start && t <= stop && (k === 1 || fits || ticks.length === 0)) {
                     ticks.push(t);
                     lastTickPosition = tickPosition;
                 }

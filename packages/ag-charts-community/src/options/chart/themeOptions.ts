@@ -3,6 +3,7 @@ import type { AgBarSeriesThemeableOptions } from '../series/cartesian/barOptions
 import type { AgBoxPlotSeriesThemeableOptions } from '../series/cartesian/boxPlotOptions';
 import type { AgBubbleSeriesThemeableOptions } from '../series/cartesian/bubbleOptions';
 import type { AgBulletSeriesThemeableOptions } from '../series/cartesian/bulletOptions';
+import type { AgCandlestickSeriesThemeableOptions } from '../series/cartesian/candlestickOptions';
 import type { AgBaseCartesianThemeOptions, AgCartesianAxesTheme } from '../series/cartesian/cartesianOptions';
 import type { AgCartesianSeriesOptions } from '../series/cartesian/cartesianSeriesTypes';
 import type { AgHeatmapSeriesThemeableOptions } from '../series/cartesian/heatmapOptions';
@@ -23,6 +24,9 @@ import type { AgRadarAreaSeriesThemeableOptions } from '../series/polar/radarAre
 import type { AgRadarSeriesThemeableOptions } from '../series/polar/radarOptions';
 import type { AgRadialBarSeriesThemeableOptions } from '../series/polar/radialBarOptions';
 import type { AgRadialColumnSeriesThemeableOptions } from '../series/polar/radialColumnOptions';
+import type { AgMapMarkerSeriesThemeableOptions } from '../series/topology/mapMarkerOptions';
+import type { AgMapSeriesThemeableOptions } from '../series/topology/mapOptions';
+import type { AgBaseTopologyThemeOptions } from '../series/topology/topologyOptions';
 import type { AgBaseChartOptions, AgBaseThemeableChartOptions } from './chartOptions';
 import type { CssColor } from './types';
 
@@ -92,6 +96,9 @@ export interface AgBarSeriesThemeOverrides extends AgBaseCartesianThemeOptions {
 export interface AgBoxPlotSeriesThemeOverrides extends AgBaseCartesianThemeOptions {
     series?: AgBoxPlotSeriesThemeableOptions;
 }
+export interface AgCandlestickSeriesThemeOverrides extends AgBaseCartesianThemeOptions {
+    series?: AgCandlestickSeriesThemeableOptions;
+}
 export interface AgHistogramSeriesThemeOverrides extends AgBaseCartesianThemeOptions {
     series?: AgHistogramSeriesThemeableOptions;
 }
@@ -137,6 +144,12 @@ export interface AgSunburstSeriesThemeOverrides extends AgBaseHierarchyThemeOpti
 export interface AgTreemapSeriesThemeOverrides extends AgBaseHierarchyThemeOptions {
     series?: AgTreemapSeriesThemeableOptions;
 }
+export interface AgMapSeriesThemeOverrides extends AgBaseTopologyThemeOptions {
+    series?: AgMapSeriesThemeableOptions;
+}
+export interface AgMapMarkerSeriesThemeOverrides extends AgBaseTopologyThemeOptions {
+    series?: AgMapMarkerSeriesThemeableOptions;
+}
 
 export interface AgCommonThemeableAxisOptions extends AgCartesianAxesTheme, AgPolarAxesTheme {}
 
@@ -160,6 +173,8 @@ export interface AgChartThemeOverrides {
     bar?: AgBarSeriesThemeOverrides;
     /** Box-plot series theme overrides. */
     'box-plot'?: AgBoxPlotSeriesThemeOverrides;
+    /** Candlestick series theme overrides. */
+    candlestick?: AgCandlestickSeriesThemeOverrides;
     /** Histogram series theme overrides. */
     histogram?: AgHistogramSeriesThemeOverrides;
     /** Heatmap series theme overrides. */
@@ -186,11 +201,14 @@ export interface AgChartThemeOverrides {
     'radial-column'?: AgRadialColumnSeriesThemeOverrides;
     /** Nightingale series theme overrides. */
     nightingale?: AgNightingaleSeriesThemeOverrides;
-
     /** Sunburst series theme overrides. */
     sunburst?: AgSunburstSeriesThemeOverrides;
     /** Treemap series theme overrides. */
     treemap?: AgTreemapSeriesThemeOverrides;
+    /** Map series theme overrides. */
+    map?: AgMapSeriesThemeOverrides;
+    /** Map series theme overrides. */
+    'map-marker'?: AgMapMarkerSeriesThemeOverrides;
 }
 
 // Use Typescript function types to verify that all series types are present in the manually
@@ -207,6 +225,7 @@ type VerifyAgBaseChartThemeOverrides<T = AgBaseChartOptions> = {
 
 // Verification checks for completeness/correctness.
 const __THEME_OVERRIDES = {} as Required<AgChartThemeOverrides>;
+// eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
 // @ts-ignore
 let __VERIFY_THEME_OVERRIDES: Required<VerifyAgBaseChartThemeOverrides> = undefined as any;
 __VERIFY_THEME_OVERRIDES = __THEME_OVERRIDES;

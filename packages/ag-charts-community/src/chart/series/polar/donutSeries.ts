@@ -52,6 +52,16 @@ class DonutSeriesNodeEvent<TEvent extends string = SeriesNodeEventTypes> extends
     }
 }
 
+interface DonutLabelDatum {
+    readonly text: string;
+    readonly textAlign: CanvasTextAlign;
+    readonly textBaseline: CanvasTextBaseline;
+    hidden: boolean;
+    collisionTextAlign?: CanvasTextAlign;
+    collisionOffsetY: number;
+    box?: BBox;
+}
+
 interface DonutNodeDatum extends SeriesNodeDatum {
     readonly index: number;
     readonly radius: number; // in the [0, 1] range
@@ -65,15 +75,7 @@ interface DonutNodeDatum extends SeriesNodeDatum {
     readonly midCos: number;
     readonly midSin: number;
 
-    readonly calloutLabel?: {
-        readonly text: string;
-        readonly textAlign: CanvasTextAlign;
-        readonly textBaseline: CanvasTextBaseline;
-        hidden: boolean;
-        collisionTextAlign?: CanvasTextAlign;
-        collisionOffsetY: number;
-        box?: BBox;
-    };
+    readonly calloutLabel?: DonutLabelDatum;
 
     readonly sectorLabel?: {
         readonly text: string;
@@ -85,14 +87,13 @@ interface DonutNodeDatum extends SeriesNodeDatum {
 }
 
 enum PieNodeTag {
-    Sector,
     Callout,
     Label,
 }
 
-export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
-    static className = 'DonutSeries';
-    static type = 'donut' as const;
+export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperties, Sector> {
+    static readonly className = 'DonutSeries';
+    static readonly type = 'donut' as const;
 
     override properties = new DonutSeriesProperties();
 
@@ -167,17 +168,10 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
         );
     }
 
-    override visibleChanged() {
-        this.processSeriesItemEnabled();
-    }
-
     override get visible() {
-        return this.seriesItemEnabled.length ? this.seriesItemEnabled.some((visible) => visible) : super.visible;
-    }
-
-    private processSeriesItemEnabled() {
-        const { data, visible } = this;
-        this.seriesItemEnabled = data?.map(() => visible) ?? [];
+        return (
+            super.visible && (this.seriesItemEnabled.length === 0 || this.seriesItemEnabled.some((visible) => visible))
+        );
     }
 
     protected override nodeFactory(): Sector {
@@ -198,7 +192,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
         }
 
         let { data } = this;
-        const { seriesItemEnabled } = this;
+        const { visible, seriesItemEnabled } = this;
         const { angleKey, radiusKey, calloutLabelKey, sectorLabelKey, legendItemKey } = this.properties;
 
         const animationEnabled = !this.ctx.animationManager.isSkipped();
@@ -246,7 +240,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
         }
         extraProps.push(animationValidation(this));
 
-        data = data.map((d, idx) => (seriesItemEnabled[idx] ? d : { ...d, [angleKey]: 0 }));
+        data = data.map((d, idx) => (visible && seriesItemEnabled[idx] ? d : { ...d, [angleKey]: 0 }));
 
         await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
@@ -407,7 +401,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
         };
 
         const result: {
-            calloutLabel?: { text: string } & any;
+            calloutLabel?: DonutLabelDatum;
             sectorLabel?: { text: string };
             legendItem?: { key: string; text: string };
         } = {};
@@ -470,20 +464,17 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
         const isDatumHighlighted =
             highlight && highlightedDatum?.series === this && formatIndex === highlightedDatum.itemId;
 
+        let defaultStroke: string | undefined = strokes[formatIndex % strokes.length];
+        if (sectorSpacing == null && defaultStroke == null) {
+            // @todo(AG-10275) Remove sectorSpacing null case
+            defaultStroke = __BACKGROUND_COLOR_DO_NOT_USE;
+        }
         const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity } = mergeDefaults(
             isDatumHighlighted && this.properties.highlightStyle.item,
             {
                 fill: fills.length > 0 ? fills[formatIndex % fills.length] : undefined,
                 fillOpacity: this.properties.fillOpacity,
-                // @todo(AG-10275) Remove sectorSpacing null case
-                stroke:
-                    sectorSpacing != null
-                        ? strokes.length > 0
-                            ? strokes[formatIndex % strokes.length]
-                            : undefined
-                        : strokes.length > 0
-                          ? strokes[formatIndex % strokes.length]
-                          : __BACKGROUND_COLOR_DO_NOT_USE,
+                stroke: defaultStroke,
                 strokeWidth: this.getStrokeWidth(this.properties.strokeWidth),
                 strokeOpacity: this.getOpacity(),
             }
@@ -690,7 +681,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
 
     private async updateNodes(seriesRect: BBox) {
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
-        const isVisible = this.seriesItemEnabled.indexOf(true) >= 0;
+        const isVisible = this.visible && this.seriesItemEnabled.indexOf(true) >= 0;
         this.rootGroup.visible = isVisible;
         this.backgroundGroup.visible = isVisible;
         this.contentGroup.visible = isVisible;
@@ -782,7 +773,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
                 let x2 = datum.midCos * (outerRadius + calloutLength);
                 let y2 = datum.midSin * (outerRadius + calloutLength);
 
-                const isMoved = label.collisionTextAlign || label.collisionOffsetY !== 0;
+                const isMoved = label.collisionTextAlign ?? label.collisionOffsetY !== 0;
                 if (isMoved && label.box != null) {
                     // Get the closest point to the text bounding box
                     const box = label.box;
@@ -1286,7 +1277,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
     }
 
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
-        const { processedData, dataModel } = this;
+        const { visible, processedData, dataModel } = this;
 
         if (!dataModel || !processedData?.data.length || !this.properties.isValid() || legendType !== 'category') {
             return [];
@@ -1340,7 +1331,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
                 id: this.id,
                 itemId: index,
                 seriesId: this.id,
-                enabled: this.seriesItemEnabled[index],
+                enabled: visible && this.seriesItemEnabled[index],
                 label: {
                     text: labelParts.join(' - '),
                 },
@@ -1408,12 +1399,13 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
     override animateWaitingUpdateReady() {
         const { itemSelection, highlightSelection, processedData, radiusScale, previousRadiusScale } = this;
         const { animationManager } = this.ctx;
-        const diff = processedData?.reduced?.diff;
+        const dataDiff = processedData?.reduced?.diff;
 
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
         const supportedDiff =
-            (diff?.moved.length ?? 0) === 0 && diff?.addedIndices.every((i) => !diff.removedIndices.includes(i));
+            (dataDiff?.moved.length ?? 0) === 0 &&
+            dataDiff?.addedIndices.every((i) => !dataDiff.removedIndices.includes(i));
         const hasKeys = (processedData?.defs.keys.length ?? 0) > 0;
         const hasUniqueKeys = processedData?.reduced?.animationValidation?.uniqueKeys ?? true;
         if (!supportedDiff || !hasKeys || !hasUniqueKeys) {
@@ -1433,7 +1425,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
             [itemSelection, highlightSelection],
             fns.nodes,
             (_, datum) => this.getDatumId(datum),
-            diff
+            dataDiff
         );
         fromToMotion(this.id, `innerCircle`, animationManager, [this.innerCircleSelection], fns.innerCircle);
 
@@ -1487,6 +1479,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, Sector> {
     }
 
     protected override onDataChange() {
-        this.processSeriesItemEnabled();
+        const { data, seriesItemEnabled } = this;
+        this.seriesItemEnabled = data?.map((_, index) => seriesItemEnabled[index] ?? true) ?? [];
     }
 }

@@ -11,7 +11,7 @@ export class Mutex {
             this.acquireQueue.push([cb, resolve]);
 
             if (this.available) {
-                this.dispatchNext();
+                this.dispatchNext().catch((e) => Logger.errorOnce(e));
             }
         });
     }

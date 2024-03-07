@@ -151,7 +151,7 @@ export async function waitForChartStability(chartOrProxy: Chart | AgChartProxy, 
     }
 }
 
-function makeMouseEvent<T extends 'mousedown' | 'mouseup' | 'mousemove' | 'click' | 'dblclick'>(
+function makeMouseEvent<T extends 'mousedown' | 'mouseup' | 'mousemove' | 'click' | 'dblclick' | 'contextmenu'>(
     type: T,
     { offsetX, offsetY }: PointerOffsets
 ): MouseEvent {
@@ -178,6 +178,10 @@ function clickEvent(offsets: PointerOffsets): MouseEvent {
 
 function doubleClickEvent(offsets: PointerOffsets): MouseEvent {
     return makeMouseEvent('dblclick', offsets);
+}
+
+function contextMenuEvent(offsets: PointerOffsets): MouseEvent {
+    return makeMouseEvent('contextmenu', offsets);
 }
 
 export enum WheelDeltaMode {
@@ -232,6 +236,17 @@ export function hierarchyChartAssertions(params?: { seriesTypes?: string[] }) {
     };
 }
 
+export function topologyChartAssertions(params?: { seriesTypes?: string[] }) {
+    const { seriesTypes = ['map'] } = params ?? {};
+
+    return async (chartOrProxy: Chart | AgChartProxy) => {
+        const chart = deproxy(chartOrProxy);
+        expect(chart?.constructor?.name).toEqual('TopologyChart');
+        expect(chart.axes).toHaveLength(0);
+        expect(chart.series.map((s) => s.type)).toEqual(seriesTypes);
+    };
+}
+
 const checkTargetValid = (target: HTMLElement) => {
     if (!target.isConnected) throw new Error('Chart must be configured with a container for event testing to work');
 };
@@ -242,9 +257,7 @@ export function hoverAction(x: number, y: number): (chart: Chart | AgChartProxy)
         const target = chart.scene.canvas.element;
         checkTargetValid(target);
 
-        // Reveal tooltip.
         target?.dispatchEvent(mouseMoveEvent({ offsetX: x, offsetY: y }));
-
         return delay(50);
     };
 }
@@ -282,6 +295,37 @@ export function doubleClickAction(x: number, y: number): (chart: Chart | AgChart
         await delay(50);
         await waitForChartStability(chart);
         target?.dispatchEvent(doubleClickEvent(offsets));
+        return delay(50);
+    };
+}
+
+export function contextMenuAction(x: number, y: number): (chart: Chart | AgChartProxy) => Promise<void> {
+    return async (chartOrProxy) => {
+        const chart = deproxy(chartOrProxy);
+        const target = chart.scene.canvas.element;
+        checkTargetValid(target);
+
+        const offsets = { offsetX: x, offsetY: y };
+        target?.dispatchEvent(contextMenuEvent(offsets));
+        return delay(50);
+    };
+}
+
+export function dragAction(
+    from: { x: number; y: number },
+    to: { x: number; y: number }
+): (chart: Chart | AgChartProxy) => Promise<void> {
+    return async (chartOrProxy) => {
+        const chart = deproxy(chartOrProxy);
+        const target = chart.scene.canvas.element;
+        checkTargetValid(target);
+
+        target?.dispatchEvent(mouseDownEvent({ offsetX: from.x, offsetY: from.y }));
+        target?.dispatchEvent(mouseMoveEvent({ offsetX: from.x, offsetY: from.y }));
+        target?.dispatchEvent(mouseMoveEvent({ offsetX: from.x + (to.x - from.x), offsetY: to.y }));
+        target?.dispatchEvent(mouseMoveEvent({ offsetX: to.x, offsetY: to.y }));
+        target?.dispatchEvent(mouseUpEvent({ offsetX: to.x, offsetY: to.y }));
+
         return delay(50);
     };
 }
@@ -397,7 +441,8 @@ export function mixinReversedAxesCases(
 }
 
 export function computeLegendBBox(chart: Chart): BBox {
-    const { x = 0, y = 0, width = 0, height = 0 } = (chart.legend as any)?.group.computeBBox() ?? {};
+    const legendModule = chart.modulesManager.getModule<any>('legend');
+    const { x = 0, y = 0, width = 0, height = 0 } = legendModule?.group.computeBBox() ?? {};
     return new BBox(x, y, width, height);
 }
 
