@@ -115,11 +115,11 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         }
 
         const positiveNumber = (v: any) => {
-            return isContinuous(v) && v >= 0;
+            return isContinuous(v) && Number(v) >= 0;
         };
 
         const negativeNumber = (v: any) => {
-            return isContinuous(v) && v < 0;
+            return isContinuous(v) && Number(v) < 0;
         };
 
         const totalTypeValue = (v: any) => {
@@ -211,7 +211,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
         const { processedData, dataModel } = this;
-        if (!(processedData && dataModel)) return [];
+        if (!processedData || !dataModel) return [];
 
         const {
             domain: {
@@ -232,21 +232,21 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             const keysExtent = _ModuleSupport.extent(keys) ?? [NaN, NaN];
 
             const categoryAxis = this.getCategoryAxis();
-            const isReversed = categoryAxis?.isReversed();
-            if (direction === ChartAxisDirection.Y) {
-                const d0 = keysExtent[0] + (isReversed ? 0 : -scalePadding);
-                const d1 = keysExtent[1] + (isReversed ? scalePadding : 0);
-                return fixNumericExtent([d0, d1], categoryAxis);
-            }
+            const isReversed = Boolean(categoryAxis?.isReversed());
+            const isDirectionY = direction === ChartAxisDirection.Y;
 
-            const d0 = keysExtent[0] + (isReversed ? -scalePadding : 0);
-            const d1 = keysExtent[1] + (isReversed ? 0 : scalePadding);
+            const padding0 = isReversed === isDirectionY ? 0 : -scalePadding;
+            const padding1 = isReversed === isDirectionY ? scalePadding : 0;
+
+            const d0 = keysExtent[0] + padding0;
+            const d1 = keysExtent[1] + padding1;
+
             return fixNumericExtent([d0, d1], categoryAxis);
         } else {
             const yCurrIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrent').index;
             const yExtent = values[yCurrIndex];
-            const fixedYExtent = [yExtent[0] > 0 ? 0 : yExtent[0], yExtent[1] < 0 ? 0 : yExtent[1]];
-            return fixNumericExtent(fixedYExtent as any);
+            const fixedYExtent = [Math.min(0, yExtent[0]), Math.max(0, yExtent[1])];
+            return fixNumericExtent(fixedYExtent);
         }
     }
 
