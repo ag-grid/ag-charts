@@ -312,11 +312,11 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
     }
 
     pickNodeNearest(point: Point): PickNodeDatumResult {
-        return this.groupNode.nearestSquared(point);
+        return this.groupNode.nearestSquared(point.x, point.y);
     }
 
     pickNodeMainAxisFirst(point: Point): PickNodeDatumResult {
-        return this.groupNode.nearestSquared(point);
+        return this.groupNode.nearestSquared(point.x, point.y);
     }
 
     getTooltipParams() {
