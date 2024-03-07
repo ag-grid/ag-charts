@@ -632,7 +632,11 @@ export class Text extends Shape {
     }
 
     // 2D canvas context used for measuring text.
-    private static textContext: CanvasRenderingContext2D = createElement('canvas').getContext('2d')!;
+    private static _textContext: CanvasRenderingContext2D;
+
+    private static get textContext() {
+        return (this._textContext ??= createElement('canvas').getContext('2d')!);
+    }
 
     private static _measureText = memoizeFunction(
         ({
