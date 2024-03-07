@@ -1040,13 +1040,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         switch (tickGenerationType) {
             case TickGenerationType.VALUES:
                 if (ContinuousScale.is(scale)) {
-                    const scaleDomain = scale.getDomain();
-                    const start = scale.fromDomain(scaleDomain[0]);
-                    const stop = scale.fromDomain(scaleDomain[1]);
-
-                    const d0 = Math.min(start, stop);
-                    const d1 = Math.max(start, stop);
-
+                    const [d0, d1] = findMinMax(scale.getDomain().map(Number));
                     rawTicks = this.tick.values!.filter((value) => value >= d0 && value <= d1).sort((a, b) => a - b);
                 } else {
                     rawTicks = this.tick.values!;

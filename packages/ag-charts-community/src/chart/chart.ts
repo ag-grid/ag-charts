@@ -1783,10 +1783,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
     private applyAxisModules(axis: ChartAxis, options: AgBaseAxisOptions) {
         const rootModules = REGISTERED_MODULES.filter((m): m is AxisOptionModule => m.type === 'axis-option');
         const moduleContext = axis.createModuleContext();
+        const moduleMap = axis.getModuleMap();
 
         for (const module of rootModules) {
             const shouldBeEnabled = (options as any)[module.optionsKey] != null;
-            const moduleMap = axis.getModuleMap();
             const isEnabled = moduleMap.isEnabled(module);
 
             if (shouldBeEnabled === isEnabled) continue;
