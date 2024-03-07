@@ -1,6 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { DataController } from './dataController';
+import type { DataModelOptions } from './dataModel';
 
 describe('DataController', () => {
     let controller: DataController;
@@ -214,6 +215,38 @@ describe('DataController', () => {
         ]);
     });
 
+    it('should not leak scopes', async () => {
+        data = [
+            { keyProp1: 2020, valueProp1: 100 },
+            { keyProp1: 2021, valueProp1: 200 },
+            { keyProp1: 2022, valueProp1: 300 },
+        ];
+
+        const promise1 = controller.request('test1', data, {
+            props: [
+                {
+                    scopes: ['test1'],
+                    id: 'keyProp1-key',
+                    property: 'keyProp1',
+                    type: 'key',
+                    valueType: 'category',
+                },
+                {
+                    scopes: ['test1'],
+                    id: 'valueProp1-key',
+                    property: 'valueProp1',
+                    type: 'value',
+                    valueType: 'range',
+                },
+            ],
+        });
+
+        await controller.execute();
+        const results = await Promise.all([promise1]);
+
+        expect(results[0].processedData.data[0].datum).not.toHaveProperty('test1');
+    });
+
     describe('with multiple data sources', () => {
         it('should extract scoped data for each request with shared scopes', async () => {
             const data1 = [
@@ -227,7 +260,7 @@ describe('DataController', () => {
                 { keyProp1: '2022', valueProp1: 60 },
             ];
 
-            const def = {
+            const def: DataModelOptions<'keyProp1' | 'valueProp1', any> = {
                 props: [
                     {
                         scopes: ['test1', 'test2'],
@@ -247,7 +280,6 @@ describe('DataController', () => {
             };
 
             const promise1 = controller.request('test1', data1, def);
-
             const promise2 = controller.request('test2', data2, def);
 
             await controller.execute();
@@ -256,6 +288,9 @@ describe('DataController', () => {
             expect(results.length).toEqual(2);
             expect(results[0].processedData.data[0].values).toEqual([100]);
             expect(results[1].processedData.data[0].values).toEqual([40]);
+
+            expect(results[0].processedData.data[0].datum).not.toHaveProperty('test1');
+            expect(results[1].processedData.data[0].datum).not.toHaveProperty('test1');
         });
 
         it('should extract scoped data for each request with unique scopes', async () => {
@@ -313,6 +348,9 @@ describe('DataController', () => {
 
             expect(results[0].processedData.data[0].values).toEqual([100]);
             expect(results[1].processedData.data[0].values).toEqual([40]);
+
+            expect(results[0].processedData.data[0].datum).not.toHaveProperty('test1');
+            expect(results[1].processedData.data[0].datum).not.toHaveProperty('test2');
         });
     });
 
