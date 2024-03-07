@@ -205,8 +205,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         rangeSelector.layout(x, y, width, height, minHandle.width / 2, maxHandle.width / 2);
         mask.layout(x, y, width, height);
 
-        minHandle.layout(x + width * min, y + height / 2);
-        maxHandle.layout(x + width * max, y + height / 2);
+        RangeHandle.align(minHandle, maxHandle, x, y, width, height, min, max);
 
         if (min + (max - min) / 2 < 0.5) {
             minHandle.zIndex = 3;

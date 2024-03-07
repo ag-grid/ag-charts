@@ -3,8 +3,29 @@
 set -eu
 
 MODIFIED=$1
-
 CHANGED_FILES=$(echo "${NX_FILE_CHANGES}" | xargs -n 1)
+
+IGNORED_PROJECTS=(
+  all
+  ag-charts-website
+)
+
+if [[ "${BUILD_FWS:-0}" == "1" ]] ; then
+  IGNORED_PROJECTS+=(
+    ag-charts-angular
+    ag-charts-react
+    ag-charts-vue
+    ag-charts-vue3
+  )
+fi
+
+if [[ "${IGNORED_PROJECTS[@]}" =~ "${MODIFIED}" ]] ; then
+  for filename in ${CHANGED_FILES} ; do
+    echo "*** [ignored] [${MODIFIED}] ${filename}"
+  done
+  exit 0
+fi
+
 VALID_FILE_COUNT=0
 VALID_FILES=""
 IGNORED_FILE_COUNT=0
@@ -22,14 +43,17 @@ for filename in ${CHANGED_FILES} ; do
   fi
 done
 
-# if [[ ${IGNORED_FILE_COUNT} -gt 0 ]] ; then
-#   echo "[ignored]${IGNORED_FILES}"
-# fi
+echo "*** [project] ${MODIFIED}"
+if [[ ${IGNORED_FILE_COUNT} -gt 0 ]] ; then
+  echo "*** [ignored] [${MODIFIED}] ${IGNORED_FILES}"
+fi
 
 if [[ "${MODIFIED}" == "ag-charts-community" ]] ; then
   nx run-many -p ag-charts-community,ag-charts-enterprise -t build:types,build:package,build:umd,docs-resolved-interfaces -c watch
 elif [[ "${MODIFIED}" == "ag-charts-enterprise" ]] ; then
   nx run-many -p ${MODIFIED} -t build:types,build:package,build:umd -c watch
+elif [[ "${MODIFIED}" =~ "ag-charts-website-" ]] ; then
+  nx run-many -p ${MODIFIED} -t generate -c watch
 elif [[ "${VALID_FILE_COUNT}" -gt 0 ]] ; then
   echo "[changed]${VALID_FILES}"
   nx run-many -p ${MODIFIED} -t build
