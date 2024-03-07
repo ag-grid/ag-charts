@@ -1466,9 +1466,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
 
         const miniChart = navigatorModule?.miniChart;
-        const miniChartSeries = deltaOptions?.navigator?.miniChart?.series ?? deltaOptions?.series;
+        const miniChartSeries = completeOptions.navigator?.miniChart?.series ?? completeOptions.series;
         if (miniChart?.enabled === true && miniChartSeries != null) {
-            this.applyMiniChartOptions(oldOpts, miniChart, miniChartSeries, deltaOptions);
+            this.applyMiniChartOptions(miniChart, miniChartSeries, completeOptions, oldOpts);
         } else if (miniChart?.enabled === false) {
             miniChart.series = [];
             miniChart.axes = [];
@@ -1511,10 +1511,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     private applyMiniChartOptions(
-        oldOpts: AgChartOptions & { type?: SeriesOptionsTypes['type'] },
         miniChart: any,
         miniChartSeries: NonNullable<AgChartOptions['series']>,
-        deltaOptions: AgChartOptions
+        completeOptions: AgChartOptions,
+        oldOpts: AgChartOptions & { type?: SeriesOptionsTypes['type'] }
     ) {
         const oldSeries = oldOpts?.navigator?.miniChart?.series ?? oldOpts?.series;
         const miniChartSeriesStatus = this.applySeries(
@@ -1522,7 +1522,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.filterMiniChartSeries(miniChartSeries),
             this.filterMiniChartSeries(oldSeries)
         );
-        this.applyAxes(miniChart, deltaOptions, oldOpts, miniChartSeriesStatus, [
+        this.applyAxes(miniChart, completeOptions, oldOpts, miniChartSeriesStatus, [
             'axes[].tick',
             'axes[].thickness',
             'axes[].title',
@@ -1542,8 +1542,11 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
 
         if (horizontalAxis != null) {
-            const labelOptions = deltaOptions.navigator?.miniChart?.label;
-            const intervalOptions = deltaOptions.navigator?.miniChart?.label?.interval;
+            const miniChartOpts = completeOptions.navigator?.miniChart;
+            const labelOptions = miniChartOpts?.label;
+            const intervalOptions = miniChartOpts?.label?.interval;
+
+            horizontalAxis.line.enabled = false;
 
             jsonApply(horizontalAxis.label, labelOptions, {
                 path: 'navigator.miniChart.label',
