@@ -64,6 +64,6 @@ export class RangeMask extends Path {
         path.lineTo(minX, ayh);
         path.lineTo(maxX, ayh);
         path.lineTo(maxX, ay);
-        path.closePath;
+        path.closePath();
     }
 }
