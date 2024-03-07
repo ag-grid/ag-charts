@@ -133,9 +133,7 @@ export function jsonWalk<T>(json: T, visit: (...nodes: T[]) => void, opts?: { sk
 }
 
 export type JsonApplyParams = {
-    constructors?: Record<string, new () => any>;
     constructedArrays?: WeakMap<Array<any>, new () => any>;
-    allowedTypes?: Record<string, ReturnType<typeof classify>[]>;
 };
 
 /**
@@ -161,17 +159,13 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
         path?: string;
         matcherPath?: string;
         skip?: string[];
-        idx?: number;
     } & JsonApplyParams = {}
 ): Target {
     const {
         path,
         matcherPath = path ? path.replace(/(\[[0-9+]+])/i, '[]') : undefined,
         skip = [],
-        constructors = {},
         constructedArrays = new WeakMap(),
-        allowedTypes = {},
-        idx,
     } = params;
 
     if (target == null) {
@@ -186,10 +180,6 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
     }
 
     const targetAny = target as any;
-    if (idx != null && '_declarationOrder' in targetAny) {
-        targetAny['_declarationOrder'] = idx;
-    }
-
     const targetType = classify(target);
     for (const property in source) {
         const propertyMatcherPath = `${matcherPath ? matcherPath + '.' : ''}${property}`;
@@ -199,7 +189,7 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
         const propertyPath = `${path ? path + '.' : ''}${property}`;
         const targetClass = targetAny.constructor;
         const currentValue = targetAny[property];
-        let ctr = constructors[propertyMatcherPath] ?? constructors[property];
+        let ctr: (new () => any) | undefined;
         try {
             const currentValueType = classify(currentValue);
             const newValueType = classify(newValue);
@@ -209,30 +199,28 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
                 continue;
             }
 
-            const allowableTypes = allowedTypes[propertyMatcherPath] ?? [currentValueType];
             if (currentValueType === CLASS_INSTANCE_TYPE && newValueType === 'object') {
                 // Allowed, this is the common case! - do not error.
-            } else if (currentValueType != null && newValueType != null && !allowableTypes.includes(newValueType)) {
+            } else if (currentValueType != null && newValueType != null && newValueType !== currentValueType) {
                 Logger.warn(
-                    `unable to set [${propertyPath}] in ${targetClass?.name} - can't apply type of [${newValueType}], allowed types are: [${allowableTypes}]`
+                    `unable to set [${propertyPath}] in ${targetClass?.name} - can't apply type of [${newValueType}], allowed types are: [${currentValueType}]`
                 );
                 continue;
             }
 
             if (newValueType === 'array') {
-                ctr ??= constructedArrays.get(currentValue) ?? constructors[`${propertyMatcherPath}[]`];
+                ctr ??= constructedArrays.get(currentValue);
                 if (isProperties(targetAny[property])) {
                     targetAny[property].set(newValue);
                 } else if (ctr == null) {
                     targetAny[property] = newValue;
                 } else {
                     const newValueArray: any[] = newValue as any;
-                    targetAny[property] = newValueArray.map((v, i) =>
-                        jsonApply(new ctr(), v, {
+                    targetAny[property] = newValueArray.map((v) =>
+                        jsonApply(new ctr!(), v, {
                             ...params,
                             path: propertyPath,
                             matcherPath: propertyMatcherPath + '[]',
-                            idx: i,
                         })
                     );
                 }
@@ -246,7 +234,6 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
                         ...params,
                         path: propertyPath,
                         matcherPath: propertyMatcherPath,
-                        idx: undefined,
                     });
                 } else if (ctr == null) {
                     targetAny[property] = newValue;
@@ -259,7 +246,6 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
                             ...params,
                             path: propertyPath,
                             matcherPath: propertyMatcherPath,
-                            idx: undefined,
                         });
                     }
                 }

@@ -1789,17 +1789,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
     private applyOptionValues<T extends object, S>(
         target: T,
-        options?: S,
-        { skip, path }: { skip?: string[]; path?: string } = {}
+        source?: S,
+        options?: { skip?: string[]; path?: string }
     ): T {
-        return jsonApply<T, any>(target, options, {
-            ...JSON_APPLY_PLUGINS,
-            allowedTypes: {
-                'axis[].tick.count': ['primitive', 'class-instance'],
-            },
-            skip,
-            path,
-        });
+        return jsonApply<T, any>(target, source, { ...options, ...JSON_APPLY_PLUGINS });
     }
 
     private registerListeners(source: ObservableLike, listeners: Record<string, TypedEventListener>) {
