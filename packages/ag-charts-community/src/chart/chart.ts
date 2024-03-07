@@ -26,7 +26,7 @@ import type { TypedEvent, TypedEventListener } from '../util/observable';
 import { Observable } from '../util/observable';
 import { Padding } from '../util/padding';
 import { BaseProperties } from '../util/properties';
-import { ActionOnSet, type ActionOnSetOptions } from '../util/proxy';
+import { ActionOnSet } from '../util/proxy';
 import { debouncedAnimationFrame, debouncedCallback } from '../util/render';
 import { SizeMonitor } from '../util/sizeMonitor';
 import { isDefined, isFiniteNumber, isFunction, isNumber } from '../util/type-guards';
@@ -221,26 +221,17 @@ export abstract class Chart extends Observable implements AgChartInstance {
     @Validate(OBJECT)
     readonly seriesArea = new SeriesArea();
 
-    @ActionOnSet(Chart.NodeValueChangeOptions)
-    public title?: Caption;
+    @Validate(OBJECT)
+    readonly title = new Caption();
 
-    @ActionOnSet(Chart.NodeValueChangeOptions)
-    public subtitle?: Caption;
+    @Validate(OBJECT)
+    readonly subtitle = new Caption();
 
-    @ActionOnSet(Chart.NodeValueChangeOptions)
-    public footnote?: Caption;
+    @Validate(OBJECT)
+    readonly footnote = new Caption();
 
     @Validate(UNION(['standalone', 'integrated'], 'a chart mode'))
     mode: ChartMode = 'standalone';
-
-    private static NodeValueChangeOptions: ActionOnSetOptions<Chart> = {
-        newValue(value) {
-            this.scene.appendChild(value.node);
-        },
-        oldValue(oldValue) {
-            this.scene.removeChild(oldValue.node);
-        },
-    };
 
     public destroyed = false;
 
@@ -353,13 +344,23 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.container = container;
 
         const { All } = InteractionState;
+        const moduleContext = this.getModuleContext();
         const seriesRegion = this.regionManager.addRegion('series', this.seriesRoot, this.axisGroup);
+
         this.regionManager.addRegion('root', root);
 
         this._destroyFns.push(
             this.dataService.addListener('data-load', (event) => {
                 this.data = event.data;
             }),
+
+            this.scene.attachNode(this.title.node),
+            this.scene.attachNode(this.subtitle.node),
+            this.scene.attachNode(this.footnote.node),
+
+            this.title.registerInteraction(moduleContext),
+            this.subtitle.registerInteraction(moduleContext),
+            this.footnote.registerInteraction(moduleContext),
 
             this.interactionManager.addListener('click', (event) => this.onClick(event)),
             this.interactionManager.addListener('dblclick', (event) => this.onDoubleClick(event)),
@@ -1791,23 +1792,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
         options?: S,
         { skip, path }: { skip?: string[]; path?: string } = {}
     ): T {
-        const moduleContext = this.getModuleContext();
-
-        // Allow context to be injected and meet the type requirements
-        class CaptionWithContext extends Caption {
-            constructor() {
-                super();
-                this.registerInteraction(moduleContext);
-            }
-        }
-
         return jsonApply<T, any>(target, options, {
-            constructors: {
-                title: CaptionWithContext,
-                subtitle: CaptionWithContext,
-                footnote: CaptionWithContext,
-            },
-            constructedArrays: JSON_APPLY_PLUGINS.constructedArrays,
+            ...JSON_APPLY_PLUGINS,
             allowedTypes: {
                 'axis[].tick.count': ['primitive', 'class-instance'],
             },

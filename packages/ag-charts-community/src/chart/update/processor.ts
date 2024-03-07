@@ -10,9 +10,9 @@ export interface ChartLike {
     seriesArea: { clip?: boolean };
     seriesRoot: Group;
     padding: Padding;
-    title?: Caption;
-    subtitle?: Caption;
-    footnote?: Caption;
+    title: Caption;
+    subtitle: Caption;
+    footnote: Caption;
 }
 
 export interface AxisLike {
