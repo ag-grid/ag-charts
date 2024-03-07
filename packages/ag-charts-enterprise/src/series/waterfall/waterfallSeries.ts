@@ -767,12 +767,13 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         };
 
         this.ctx.animationManager.animate({
-            id: `${this.id}_datums`,
+            id: `${this.id}_connectors`,
             groupId: this.id,
             phase: 'initial',
             from: startX,
             to: endX,
             ease: _ModuleSupport.Motion.easeOut,
+            collapsable: false,
             onUpdate(pointX) {
                 linePath.clear({ trackChanges: true });
 
@@ -815,12 +816,13 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         };
 
         this.ctx.animationManager.animate({
-            id: `${this.id}_datums`,
+            id: `${this.id}_connectors`,
             groupId: this.id,
             phase: 'initial',
             from: startY,
             to: endY,
             ease: _ModuleSupport.Motion.easeOut,
+            collapsable: false,
             onUpdate(pointY) {
                 linePath.clear({ trackChanges: true });
 
