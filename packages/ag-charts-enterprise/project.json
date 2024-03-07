@@ -222,6 +222,6 @@
       }
     }
   },
-  "tags": [],
+  "tags": ["no-batching"],
   "implicitDependencies": ["ag-charts-community"]
 }

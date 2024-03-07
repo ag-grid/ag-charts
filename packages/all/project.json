@@ -75,12 +75,7 @@
       "outputs": [],
       "options": {
         "parallel": true,
-        "commands": [
-          "while true ; do nx watch -p ag-charts-community,ag-charts-enterprise -- {projectRoot}/dev.sh \\${NX_PROJECT_NAME} ; done",
-          "while (test \"${BUILD_FWS}\" == \"1\") ; do nx watch -p ag-charts-angular,ag-charts-react,ag-charts-vue,ag-charts-vue3 -- {projectRoot}/dev.sh \\${NX_PROJECT_NAME} ; done",
-          "while true ; do nx watch -p ag-charts-website-* -- nx run \\${NX_PROJECT_NAME}:generate; done",
-          "nx run ag-charts-website:dev"
-        ]
+        "commands": ["{projectRoot}/watch.sh", "nx run ag-charts-website:dev"]
       },
       "configurations": {
         "windows": {

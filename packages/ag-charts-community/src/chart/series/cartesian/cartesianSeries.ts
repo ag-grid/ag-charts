@@ -24,6 +24,7 @@ import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
 import { DataModelSeries } from '../dataModelSeries';
 import type {
+    SeriesConstructorOpts,
     SeriesDirectionKeysMapping,
     SeriesNodeDataContext,
     SeriesNodeEventTypes,
@@ -197,7 +198,7 @@ export abstract class CartesianSeries<
         ...otherOpts
     }: Partial<CartesianSeriesOpts<TNode, TProps, TDatum, TLabel>> &
         Pick<CartesianSeriesOpts<TNode, TProps, TDatum, TLabel>, 'directionKeys' | 'directionNames'> &
-        ConstructorParameters<typeof DataModelSeries<TDatum, TProps, TLabel>>[0]) {
+        SeriesConstructorOpts<TProps>) {
         super({
             directionKeys,
             directionNames,
