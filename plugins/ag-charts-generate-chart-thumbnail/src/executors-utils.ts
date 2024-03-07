@@ -1,6 +1,5 @@
 /* eslint-disable no-console */
 import type { ExecutorContext, TaskGraph } from '@nx/devkit';
-import type { ChildProcess } from 'child_process';
 import { readFileSync } from 'fs';
 import * as fs from 'fs/promises';
 import * as glob from 'glob';
