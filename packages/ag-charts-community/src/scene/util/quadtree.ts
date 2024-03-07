@@ -1,12 +1,11 @@
 import { BBox } from '../bbox';
 import { NearestResult, nearestSquared } from '../nearest';
-import type { Point } from '../point';
 
 type QuadtreeNearest<V> = NearestResult<QuadtreeElem<V>>;
 
 export type QuadtreeHitTester = {
     getCachedBBox(): BBox;
-    distanceSquared(point: Point): number;
+    distanceSquared(x: number, y: number): number;
     containsPoint(x: number, y: number): boolean;
 };
 
@@ -16,8 +15,8 @@ class QuadtreeElem<V> {
         public value: V
     ) {}
 
-    distanceSquared(point: Point) {
-        return this.hitTester.distanceSquared(point);
+    distanceSquared(x: number, y: number) {
+        return this.hitTester.distanceSquared(x, y);
     }
 }
 
@@ -52,7 +51,7 @@ export class Quadtree<V> {
 
     findNearest(x: number, y: number): QuadtreeNearest<V> {
         const best = { nearest: undefined, distanceSquared: Infinity };
-        return this.root.findNearest({ x, y }, best);
+        return this.root.findNearest(x, y, best);
     }
 }
 
@@ -78,11 +77,11 @@ class QuadtreeSubdivisions<V> {
         this.se.findExact(x, y, foundElems);
     }
 
-    findNearest(target: Point, best: QuadtreeNearest<V>): QuadtreeNearest<V> {
-        best = pickNearest(best, this.nw.findNearest(target, best));
-        best = pickNearest(best, this.ne.findNearest(target, best));
-        best = pickNearest(best, this.sw.findNearest(target, best));
-        best = pickNearest(best, this.se.findNearest(target, best));
+    findNearest(x: number, y: number, best: QuadtreeNearest<V>): QuadtreeNearest<V> {
+        best = pickNearest(best, this.nw.findNearest(x, y, best));
+        best = pickNearest(best, this.ne.findNearest(x, y, best));
+        best = pickNearest(best, this.sw.findNearest(x, y, best));
+        best = pickNearest(best, this.se.findNearest(x, y, best));
         return best;
     }
 }
@@ -141,15 +140,15 @@ class QuadtreeNode<V> {
         }
     }
 
-    findNearest(target: Point, best: QuadtreeNearest<V>): QuadtreeNearest<V> {
-        if (best.distanceSquared === 0 || this.boundary.distanceSquared(target) > best.distanceSquared) {
+    findNearest(x: number, y: number, best: QuadtreeNearest<V>): QuadtreeNearest<V> {
+        if (best.distanceSquared === 0 || this.boundary.distanceSquared(x, y) > best.distanceSquared) {
             return best;
         }
 
         if (this.subdivisions === undefined) {
-            return pickNearest(best, nearestSquared(target, this.elems, best.distanceSquared));
+            return pickNearest(best, nearestSquared(x, y, this.elems, best.distanceSquared));
         } else {
-            return this.subdivisions.findNearest(target, best);
+            return this.subdivisions.findNearest(x, y, best);
         }
     }
 
