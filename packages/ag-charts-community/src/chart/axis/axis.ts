@@ -35,7 +35,7 @@ import { jsonDiff } from '../../util/json';
 import { Logger } from '../../util/logger';
 import { clamp, findMinMax, findRangeExtent, round } from '../../util/number';
 import { ObserveChanges } from '../../util/proxy';
-import { BOOLEAN, STRING_ARRAY, Validate, predicateWithMessage } from '../../util/validation';
+import { BOOLEAN, OBJECT, STRING_ARRAY, Validate } from '../../util/validation';
 import { Caption } from '../caption';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import type { ChartAxis, ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
@@ -53,7 +53,7 @@ import { AxisLabel } from './axisLabel';
 import { AxisLine } from './axisLine';
 import type { TickCount, TickInterval } from './axisTick';
 import { AxisTick } from './axisTick';
-import type { AxisTitle } from './axisTitle';
+import { AxisTitle } from './axisTitle';
 import type { AxisLineDatum } from './axisUtil';
 import {
     prepareAxisAnimationContext,
@@ -392,8 +392,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         }
     }
 
-    @Validate(predicateWithMessage((title) => typeof title == 'object', 'Title object'), { optional: true })
-    public title?: AxisTitle = undefined;
+    @Validate(OBJECT, { optional: true })
+    title = new AxisTitle();
     protected _titleCaption = new Caption();
 
     private setTickInterval(interval?: TickInterval<S>) {
@@ -564,7 +564,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     private setTitleProps(caption: Caption, params: { spacing: number }) {
         const { title } = this;
-        if (!title) {
+        if (!title.enabled) {
             caption.enabled = false;
             return;
         }

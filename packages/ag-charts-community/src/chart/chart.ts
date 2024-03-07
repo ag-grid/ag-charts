@@ -37,7 +37,7 @@ import type { ChartAxis } from './chartAxis';
 import { ChartAxisDirection } from './chartAxisDirection';
 import { ChartHighlight } from './chartHighlight';
 import type { ChartMode } from './chartMode';
-import { JSON_APPLY_OPTIONS, JSON_APPLY_PLUGINS } from './chartOptions';
+import { JSON_APPLY_PLUGINS } from './chartOptions';
 import { ChartUpdateType } from './chartUpdateType';
 import { DataController } from './data/dataController';
 import { DataService } from './data/dataService';
@@ -1803,14 +1803,13 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         return jsonApply<T, any>(target, options, {
             constructors: {
-                ...JSON_APPLY_OPTIONS.constructors,
                 title: CaptionWithContext,
                 subtitle: CaptionWithContext,
                 footnote: CaptionWithContext,
             },
             constructedArrays: JSON_APPLY_PLUGINS.constructedArrays,
             allowedTypes: {
-                ...JSON_APPLY_OPTIONS.allowedTypes,
+                'axis[].tick.count': ['primitive', 'class-instance'],
             },
             skip,
             path,
