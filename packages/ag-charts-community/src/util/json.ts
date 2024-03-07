@@ -206,13 +206,11 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
                 continue;
             }
 
-            if (newValueType === 'array') {
+            if (isProperties(currentValue)) {
+                targetAny[property].set(newValue);
+            } else if (newValueType === 'array') {
                 ctr ??= constructedArrays?.get(currentValue);
-                if (isProperties(targetAny[property])) {
-                    targetAny[property].set(newValue);
-                } else if (ctr == null) {
-                    targetAny[property] = newValue;
-                } else {
+                if (ctr != null) {
                     const newValueArray: any[] = newValue as any;
                     targetAny[property] = newValueArray.map((v) =>
                         jsonApply(new ctr!(), v, {
@@ -221,34 +219,27 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
                             matcherPath: propertyMatcherPath + '[]',
                         })
                     );
+                } else {
+                    targetAny[property] = newValue;
                 }
             } else if (newValueType === CLASS_INSTANCE_TYPE) {
                 targetAny[property] = newValue;
             } else if (newValueType === 'object') {
-                if (isProperties(currentValue)) {
-                    targetAny[property].set(newValue);
-                } else if (currentValue != null) {
+                if (currentValue != null) {
                     jsonApply(currentValue, newValue as any, {
                         ...params,
                         path: propertyPath,
                         matcherPath: propertyMatcherPath,
                     });
-                } else if (ctr == null) {
-                    targetAny[property] = newValue;
+                } else if (ctr != null) {
+                    targetAny[property] = jsonApply(new ctr(), newValue, {
+                        ...params,
+                        path: propertyPath,
+                        matcherPath: propertyMatcherPath,
+                    });
                 } else {
-                    const obj = new ctr();
-                    if (isProperties(obj)) {
-                        targetAny[property] = obj.set(newValue as object);
-                    } else {
-                        targetAny[property] = jsonApply(obj, newValue, {
-                            ...params,
-                            path: propertyPath,
-                            matcherPath: propertyMatcherPath,
-                        });
-                    }
+                    targetAny[property] = newValue;
                 }
-            } else if (isProperties(targetAny[property])) {
-                targetAny[property].set(newValue);
             } else {
                 targetAny[property] = newValue;
             }

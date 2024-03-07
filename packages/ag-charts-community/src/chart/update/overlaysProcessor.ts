@@ -1,6 +1,5 @@
-import type { BBox } from '../../scene/bbox';
 import type { DataService } from '../data/dataService';
-import type { LayoutCompleteEvent, LayoutService } from '../layout/layoutService';
+import type { LayoutService } from '../layout/layoutService';
 import type { ChartOverlays } from '../overlay/chartOverlays';
 import type { Overlay } from '../overlay/overlay';
 import type { ChartLike, UpdateProcessor } from './processor';
@@ -14,26 +13,26 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
         private readonly dataService: DataService<D>,
         private readonly layoutService: LayoutService
     ) {
-        this.destroyFns.push(this.layoutService.addListener('layout-complete', (ctx) => this.onLayoutComplete(ctx)));
+        this.destroyFns.push(this.layoutService.addListener('layout-complete', () => this.onLayoutComplete()));
     }
 
     public destroy() {
         this.destroyFns.forEach((cb) => cb());
     }
 
-    private onLayoutComplete({ series: { rect } }: LayoutCompleteEvent) {
+    private onLayoutComplete() {
         const isLoading = this.dataService.isLoading();
         const hasData = this.chartLike.series.some((s) => s.data?.length);
         const anySeriesVisible = this.chartLike.series.some((s) => s.visible);
 
-        this.toggleOverlay(this.overlays.loading, rect, isLoading);
-        this.toggleOverlay(this.overlays.noData, rect, !isLoading && !hasData);
-        this.toggleOverlay(this.overlays.noVisibleSeries, rect, hasData && !anySeriesVisible);
+        this.toggleOverlay(this.overlays.loading, isLoading);
+        this.toggleOverlay(this.overlays.noData, !isLoading && !hasData);
+        this.toggleOverlay(this.overlays.noVisibleSeries, hasData && !anySeriesVisible);
     }
 
-    private toggleOverlay(overlay: Overlay, seriesRect: BBox, visible: boolean) {
-        if (visible && seriesRect) {
-            overlay.show(seriesRect);
+    private toggleOverlay(overlay: Overlay, visible: boolean) {
+        if (visible) {
+            overlay.show();
         } else {
             overlay.hide();
         }

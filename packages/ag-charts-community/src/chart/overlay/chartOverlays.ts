@@ -28,6 +28,10 @@ const defaultOverlayCss = `
 export class ChartOverlays {
     private static overlayDocuments: Document[] = [];
 
+    loading: Overlay;
+    noData: Overlay;
+    noVisibleSeries: Overlay;
+
     constructor(parent: HTMLElement, animationManager: AnimationManager) {
         this.loading = new Overlay('ag-chart-loading-overlay', parent, animationManager);
         this.loading.text = 'Loading data...';
@@ -43,10 +47,6 @@ export class ChartOverlays {
             ChartOverlays.overlayDocuments.push(parent.ownerDocument);
         }
     }
-
-    loading: Overlay;
-    noData: Overlay;
-    noVisibleSeries: Overlay;
 
     public destroy() {
         this.loading.hide();

@@ -1,18 +1,21 @@
-import type { BBox } from '../../scene/bbox';
+import { createElement } from '../../util/dom';
+import { BaseProperties } from '../../util/properties';
 import { BOOLEAN, FUNCTION, STRING, Validate } from '../../util/validation';
 import type { AnimationManager } from '../interaction/animationManager';
 
 export const DEFAULT_OVERLAY_CLASS = 'ag-chart-overlay';
 export const DEFAULT_OVERLAY_DARK_CLASS = 'ag-chart-dark-overlay';
 
-export class Overlay {
+export class Overlay extends BaseProperties {
     private element?: HTMLElement;
 
     constructor(
-        private readonly className: string,
+        private readonly styleClass: string,
         private readonly parentElement: HTMLElement,
         private readonly animationManager: AnimationManager
-    ) {}
+    ) {
+        super();
+    }
 
     @Validate(FUNCTION, { optional: true })
     renderer?: () => string;
@@ -23,25 +26,22 @@ export class Overlay {
     @Validate(BOOLEAN)
     darkTheme = false;
 
-    show(rect: BBox) {
+    show() {
         if (!this.element) {
-            this.element = this.createElement('div');
-            this.element.classList.add(this.className, DEFAULT_OVERLAY_CLASS);
+            this.element = createElement('div');
+            this.element.classList.add(this.styleClass, DEFAULT_OVERLAY_CLASS);
         }
 
         this.element.classList.toggle(DEFAULT_OVERLAY_DARK_CLASS, this.darkTheme);
 
         const { element } = this;
         element.style.position = 'absolute';
-        element.style.left = `${rect.x}px`;
-        element.style.top = `${rect.y}px`;
-        element.style.width = `${rect.width}px`;
-        element.style.height = `${rect.height}px`;
+        element.style.inset = '0';
 
         if (this.renderer) {
             element.innerHTML = this.renderer();
         } else {
-            const content = this.createElement('div');
+            const content = createElement('div');
             content.style.alignItems = 'center';
             content.style.boxSizing = 'border-box';
             content.style.display = 'flex';
@@ -74,7 +74,7 @@ export class Overlay {
     hide() {
         if (!this.element) return;
 
-        const element = this.element;
+        const { element } = this;
         this.animationManager.animate({
             from: 1,
             to: 0,
@@ -90,9 +90,5 @@ export class Overlay {
         });
 
         this.element = undefined;
-    }
-
-    protected createElement(tagName: string, options?: ElementCreationOptions) {
-        return this.parentElement.ownerDocument.createElement(tagName, options);
     }
 }
