@@ -8,11 +8,11 @@ import type {
 } from '../../options/chart/types';
 import { createElement } from '../../util/dom';
 import { memoizeFunction } from '../../util/memo';
+import { isString } from '../../util/type-guards';
 import { BBox } from '../bbox';
 import type { RenderContext } from '../node';
 import { RedrawType, SceneChangeDetection } from '../node';
 import { Shape } from './shape';
-import { TextMeasurer } from './textMeasurer';
 
 export interface TextSizeProperties {
     fontFamily?: FontFamily;
@@ -681,6 +681,23 @@ export class Text extends Shape {
      */
     static getTextSize(text: string, font: string) {
         return this._getTextSize({ text, font });
+    }
+}
+
+export class TextMeasurer {
+    protected font: string;
+
+    constructor(font: string | TextSizeProperties) {
+        this.font = isString(font) ? font : getFont(font);
+    }
+
+    size(text: string) {
+        return Text.getTextSize(text, this.font);
+    }
+
+    width(text: string): number {
+        const { width } = this.size(text);
+        return width;
     }
 }
 
