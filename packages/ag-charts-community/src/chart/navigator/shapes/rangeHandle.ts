@@ -98,6 +98,24 @@ export class RangeHandle extends Path {
         this.centerY = y;
     }
 
+    static align(
+        minHandle: RangeHandle,
+        maxHandle: RangeHandle,
+        x: number,
+        y: number,
+        width: number,
+        height: number,
+        min: number,
+        max: number
+    ) {
+        const handlePixelAlign = minHandle.strokeWidth / 2;
+        const minHandleX = minHandle.align(x + width * min) + handlePixelAlign;
+        const maxHandleX = minHandleX + minHandle.align(x + width * min, width * (max - min)) - 2 * handlePixelAlign;
+        const handleY = minHandle.align(y + height / 2) + handlePixelAlign;
+        minHandle.layout(minHandleX, handleY);
+        maxHandle.layout(maxHandleX, handleY);
+    }
+
     override computeBBox() {
         const { centerX, centerY, width, height } = this;
         const x = centerX - width / 2;
@@ -114,29 +132,27 @@ export class RangeHandle extends Path {
     }
 
     override updatePath() {
-        const { path, strokeWidth } = this;
-        const pixelAlign = strokeWidth / 2;
+        const { centerX, centerY, path, strokeWidth, gripLineGap, gripLineLength } = this;
+        const pixelRatio = this.layerManager?.canvas?.pixelRatio ?? 1;
 
         path.clear();
 
-        const halfWidth = this.align(this.width) / 2;
-        const halfHeight = this.align(this.height) / 2;
-        const centerX = this.align(this.centerX) - (halfWidth % 1);
-        const centerY = this.align(this.centerY) - (halfHeight % 1);
+        const halfWidth = Math.floor((this.width / 2) * pixelRatio) / pixelRatio;
+        const halfHeight = Math.floor((this.height / 2) * pixelRatio) / pixelRatio;
 
         // Handle.
-        path.moveTo(centerX - halfWidth + pixelAlign, centerY - halfHeight + pixelAlign);
-        path.lineTo(centerX + halfWidth - pixelAlign, centerY - halfHeight + pixelAlign);
-        path.lineTo(centerX + halfWidth - pixelAlign, centerY + halfHeight - pixelAlign);
-        path.lineTo(centerX - halfWidth + pixelAlign, centerY + halfHeight - pixelAlign);
+        path.moveTo(centerX - halfWidth, centerY - halfHeight);
+        path.lineTo(centerX + halfWidth, centerY - halfHeight);
+        path.lineTo(centerX + halfWidth, centerY + halfHeight);
+        path.lineTo(centerX - halfWidth, centerY + halfHeight);
         path.closePath();
 
         // Grip lines.
-        const dx = this.gripLineGap / 2;
-        const dy = this.gripLineLength / 2;
-        path.moveTo(centerX - dx - pixelAlign, centerY - dy);
-        path.lineTo(centerX - dx - pixelAlign, centerY + dy);
-        path.moveTo(centerX + dx + pixelAlign, centerY - dy);
-        path.lineTo(centerX + dx + pixelAlign, centerY + dy);
+        const dx = Math.floor(((gripLineGap + strokeWidth) / 2) * pixelRatio) / pixelRatio;
+        const dy = Math.floor((gripLineLength / 2) * pixelRatio) / pixelRatio;
+        path.moveTo(centerX - dx, centerY - dy);
+        path.lineTo(centerX - dx, centerY + dy);
+        path.moveTo(centerX + dx, centerY - dy);
+        path.lineTo(centerX + dx, centerY + dy);
     }
 }

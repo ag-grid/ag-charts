@@ -57,8 +57,8 @@ export class RangeMask extends Path {
         path.lineTo(ax, ayh);
         path.closePath();
 
-        const minX = this.align(x + width * min) - pixelAlign;
-        const maxX = this.align(x + width * max) - pixelAlign;
+        const minX = this.align(x + width * min) + pixelAlign;
+        const maxX = minX + this.align(x + width * min, width * (max - min)) - 2 * pixelAlign;
         // Visible range.
         path.moveTo(minX, ay);
         path.lineTo(minX, ayh);
