@@ -4,7 +4,6 @@ import { _ModuleSupport, _Scene } from 'ag-charts-community';
 const { partialAssign, mergeDefaults } = _ModuleSupport;
 const { BBox } = _Scene;
 type BBox = _Scene.BBox;
-type Point = _Scene.Point;
 type NearestResult<T> = _Scene.NearestResult<T>;
 
 export type ErrorBarNodeDatum = _ModuleSupport.CartesianSeriesNodeDatum & _ModuleSupport.ErrorBoundSeriesNodeDatum;
@@ -227,13 +226,13 @@ export class ErrorBarNode extends _Scene.Group {
         return this.containsPoint(x, y) ? this : undefined;
     }
 
-    nearestSquared(point: Point, maxDistance: number): NearestResult<_Scene.Node> {
+    nearestSquared(x: number, y: number, maxDistance: number): NearestResult<_Scene.Node> {
         const { bboxes } = this;
-        if (bboxes.union.distanceSquared(point) > maxDistance) {
+        if (bboxes.union.distanceSquared(x, y) > maxDistance) {
             return { nearest: undefined, distanceSquared: Infinity };
         }
 
-        const { distanceSquared } = BBox.nearestBox(point, bboxes.components);
+        const { distanceSquared } = BBox.nearestBox(x, y, bboxes.components);
         return { nearest: this, distanceSquared };
     }
 }
@@ -243,8 +242,8 @@ export class ErrorBarGroup extends _Scene.Group {
         return super.children as ErrorBarNode[];
     }
 
-    nearestSquared(point: Point): _ModuleSupport.PickNodeDatumResult {
-        const { nearest, distanceSquared } = _Scene.nearestSquaredInContainer(point, this);
+    nearestSquared(x: number, y: number): _ModuleSupport.PickNodeDatumResult {
+        const { nearest, distanceSquared } = _Scene.nearestSquaredInContainer(x, y, this);
         if (nearest !== undefined && !isNaN(distanceSquared)) {
             return { datum: nearest.datum, distanceSquared };
         }
