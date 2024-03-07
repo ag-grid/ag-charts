@@ -1,27 +1,25 @@
 import { _Theme } from 'ag-charts-community';
 
+const itemTheme = {
+    strokeWidth: 0,
+    label: {
+        fontStyle: undefined,
+        fontWeight: _Theme.FONT_WEIGHT.NORMAL,
+        fontSize: 12,
+        fontFamily: _Theme.DEFAULT_FONT_FAMILY,
+        color: _Theme.DEFAULT_LABEL_COLOUR,
+        formatter: undefined,
+        placement: 'inside' as const,
+    },
+};
+
 export const WATERFALL_SERIES_THEME = {
     series: {
         __extends__: _Theme.EXTENDS_SERIES_DEFAULTS,
         item: {
-            positive: {
-                strokeWidth: 0,
-                label: {
-                    enabled: false,
-                },
-            },
-            negative: {
-                strokeWidth: 0,
-                label: {
-                    enabled: false,
-                },
-            },
-            total: {
-                strokeWidth: 0,
-                label: {
-                    enabled: false,
-                },
-            },
+            positive: itemTheme,
+            negative: itemTheme,
+            total: itemTheme,
         },
         line: {
             stroke: _Theme.DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
