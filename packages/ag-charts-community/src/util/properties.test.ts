@@ -3,6 +3,12 @@ import { BaseProperties, PropertiesArray, isProperties } from './properties';
 import { NUMBER, OBJECT_ARRAY, STRING, Validate } from './validation';
 
 describe('BaseProperties', () => {
+    const warnSpy = jest.spyOn(Logger, 'warn');
+
+    beforeEach(() => {
+        warnSpy.mockClear();
+    });
+
     it('should correctly set properties on an instance', () => {
         class MyClass extends BaseProperties<{ prop1: string; prop2: number }> {
             @Validate(STRING)
@@ -18,7 +24,6 @@ describe('BaseProperties', () => {
     });
 
     it('should warn on setting unknown properties', () => {
-        const warnSpy = jest.spyOn(Logger, 'warn');
         class MyClass extends BaseProperties<{ prop1: string }> {
             @Validate(STRING)
             prop1!: string;
@@ -29,14 +34,13 @@ describe('BaseProperties', () => {
     });
 
     it('should warn on providing non-object properties', () => {
-        const warnSpy = jest.spyOn(Logger, 'warn');
         class MyClass extends BaseProperties<{ prop1: string }> {
             @Validate(STRING)
             prop1!: string;
         }
         const instance = new MyClass();
         instance.set('string' as any);
-        expect(warnSpy).toHaveBeenCalledWith('unable to set [unknownProp] in MyClass - expecting an object');
+        expect(warnSpy).toHaveBeenCalledWith('unable to set MyClass - expecting a properties object');
     });
 
     it('should validate required properties correctly', () => {

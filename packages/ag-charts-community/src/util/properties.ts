@@ -4,19 +4,19 @@ import { isArray } from './type-guards';
 
 export class BaseProperties<T extends object = object> {
     set(properties: T) {
-        const keys = new Set(Object.keys(properties));
         const { className = this.constructor.name } = this.constructor as { className?: string };
+
+        if (typeof properties !== 'object') {
+            Logger.warn(`unable to set ${className} - expecting a properties object`);
+            return this;
+        }
+
+        const keys = new Set(Object.keys(properties));
         for (const propertyKey of listDecoratedProperties(this)) {
             if (keys.has(propertyKey)) {
                 const value = properties[propertyKey as keyof T];
                 const self = this as any;
                 if (isProperties(self[propertyKey])) {
-                    if (typeof value !== 'object') {
-                        Logger.warn(`unable to set [${propertyKey}] in ${className} - expecting an object`);
-                        keys.delete(propertyKey);
-                        continue;
-                    }
-
                     // re-set property to force re-validation
                     self[propertyKey] =
                         self[propertyKey] instanceof PropertiesArray

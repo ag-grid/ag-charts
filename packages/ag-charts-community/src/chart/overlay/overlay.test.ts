@@ -31,8 +31,8 @@ describe('Overlay', () => {
             const invalidObj = 0 as unknown as object;
             chart = await createChart({ overlays: { noData: invalidObj, noVisibleSeries: invalidObj } });
             expectWarningMessages(
-                `AG Charts - unable to set [noData] in ChartOverlays - expecting an object`,
-                `AG Charts - unable to set [noVisibleSeries] in ChartOverlays - expecting an object`
+                `AG Charts - unable to set Overlay - expecting a properties object`,
+                `AG Charts - unable to set Overlay - expecting a properties object`
             );
         });
 
