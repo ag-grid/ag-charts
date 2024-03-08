@@ -1,10 +1,10 @@
-import type { AgChartOptionsNext } from '../../options/chart/chartBuilderOptionsNext';
+import type { AgChartOptions } from '../../options/chart/chartBuilderOptions';
 import { Logger } from '../../util/logger';
 import { optionsType } from '../mapping/types';
 import { chartTypes } from './chartTypes';
 import { EXPECTED_ENTERPRISE_MODULES } from './expectedEnterpriseModules';
 
-export function removeUsedEnterpriseOptions<T extends AgChartOptionsNext>(options: T) {
+export function removeUsedEnterpriseOptions<T extends AgChartOptions>(options: T) {
     const usedOptions: string[] = [];
     const optionsChartType = chartTypes.get(optionsType(options));
     for (const {

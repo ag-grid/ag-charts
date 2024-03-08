@@ -1,0 +1,90 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Feature Combinations Context Menu and Zoom when fully zoomed in it should only enable the pan option 1`] = `
+HTMLCollection [
+  <div
+    class="ag-chart-context-menu"
+    style="display: block; left: 401px; top: calc(300px - 0.5em);"
+  >
+    <div
+      class="ag-chart-context-menu__menu"
+    >
+      <button
+        class="ag-chart-context-menu__item"
+      >
+        Download
+      </button>
+      <button
+        class="ag-chart-context-menu__item"
+        disabled=""
+      >
+        Zoom to here
+      </button>
+      <button
+        class="ag-chart-context-menu__item"
+      >
+        Pan to here
+      </button>
+    </div>
+  </div>,
+]
+`;
+
+exports[`Feature Combinations Context Menu and Zoom when fully zoomed out it should only enable the zoom option 1`] = `
+HTMLCollection [
+  <div
+    class="ag-chart-context-menu"
+    style="display: block; left: 401px; top: calc(300px - 0.5em);"
+  >
+    <div
+      class="ag-chart-context-menu__menu"
+    >
+      <button
+        class="ag-chart-context-menu__item"
+      >
+        Download
+      </button>
+      <button
+        class="ag-chart-context-menu__item"
+      >
+        Zoom to here
+      </button>
+      <button
+        class="ag-chart-context-menu__item"
+        disabled=""
+      >
+        Pan to here
+      </button>
+    </div>
+  </div>,
+]
+`;
+
+exports[`Feature Combinations Context Menu and Zoom when zoomed in it should enable both the zoom and pan options 1`] = `
+HTMLCollection [
+  <div
+    class="ag-chart-context-menu"
+    style="display: block; left: 401px; top: calc(300px - 0.5em);"
+  >
+    <div
+      class="ag-chart-context-menu__menu"
+    >
+      <button
+        class="ag-chart-context-menu__item"
+      >
+        Download
+      </button>
+      <button
+        class="ag-chart-context-menu__item"
+      >
+        Zoom to here
+      </button>
+      <button
+        class="ag-chart-context-menu__item"
+      >
+        Pan to here
+      </button>
+    </div>
+  </div>,
+]
+`;

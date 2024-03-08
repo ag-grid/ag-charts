@@ -3,7 +3,6 @@ import { enterpriseModule } from '../module/enterpriseModule';
 import { hasRegisteredEnterpriseModules } from '../module/module';
 import { ChartOptions } from '../module/optionsModule';
 import type { AgChartInstance, AgChartOptions, DownloadOptions, ImageDataUrlOptions } from '../options/agChartOptions';
-import type { AgChartOptionsNext } from '../options/chart/chartBuilderOptionsNext';
 import { Debug } from '../util/debug';
 import { createDeprecationWarning } from '../util/deprecation';
 import { deepClone, jsonWalk } from '../util/json';
@@ -310,7 +309,7 @@ class AgChartsInternal {
         return new ChartConstructor(options, transferableResource);
     }
 
-    private static getChartByOptions(options: AgChartOptionsNext) {
+    private static getChartByOptions(options: AgChartOptions) {
         if (isAgCartesianChartOptions(options)) {
             return CartesianChart;
         } else if (isAgHierarchyChartOptions(options)) {

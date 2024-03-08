@@ -151,7 +151,7 @@ export async function waitForChartStability(chartOrProxy: Chart | AgChartProxy, 
     }
 }
 
-function makeMouseEvent<T extends 'mousedown' | 'mouseup' | 'mousemove' | 'click' | 'dblclick'>(
+function makeMouseEvent<T extends 'mousedown' | 'mouseup' | 'mousemove' | 'click' | 'dblclick' | 'contextmenu'>(
     type: T,
     { offsetX, offsetY }: PointerOffsets
 ): MouseEvent {
@@ -178,6 +178,10 @@ function clickEvent(offsets: PointerOffsets): MouseEvent {
 
 function doubleClickEvent(offsets: PointerOffsets): MouseEvent {
     return makeMouseEvent('dblclick', offsets);
+}
+
+function contextMenuEvent(offsets: PointerOffsets): MouseEvent {
+    return makeMouseEvent('contextmenu', offsets);
 }
 
 export enum WheelDeltaMode {
@@ -233,7 +237,7 @@ export function hierarchyChartAssertions(params?: { seriesTypes?: string[] }) {
 }
 
 export function topologyChartAssertions(params?: { seriesTypes?: string[] }) {
-    const { seriesTypes = ['map'] } = params ?? {};
+    const { seriesTypes = ['map-shape'] } = params ?? {};
 
     return async (chartOrProxy: Chart | AgChartProxy) => {
         const chart = deproxy(chartOrProxy);
@@ -291,6 +295,18 @@ export function doubleClickAction(x: number, y: number): (chart: Chart | AgChart
         await delay(50);
         await waitForChartStability(chart);
         target?.dispatchEvent(doubleClickEvent(offsets));
+        return delay(50);
+    };
+}
+
+export function contextMenuAction(x: number, y: number): (chart: Chart | AgChartProxy) => Promise<void> {
+    return async (chartOrProxy) => {
+        const chart = deproxy(chartOrProxy);
+        const target = chart.scene.canvas.element;
+        checkTargetValid(target);
+
+        const offsets = { offsetX: x, offsetY: y };
+        target?.dispatchEvent(contextMenuEvent(offsets));
         return delay(50);
     };
 }

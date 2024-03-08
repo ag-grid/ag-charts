@@ -22,8 +22,7 @@ const Search = () => {
     // done inside effect as window won't be available for SSR.
     useEffect(() => {
         const isMacLike =
-            typeof window !== 'undefined' &&
-            typeof window.navigator !== 'undefined' &&
+            typeof window?.navigator !== 'undefined' &&
             (/(Mac|iPhone|iPod|iPad)/i.test(navigator.platform) ||
                 /(Mac|iPhone|iPod|iPad)/i.test(navigator.userAgentData?.platform));
         setMac(isMacLike);

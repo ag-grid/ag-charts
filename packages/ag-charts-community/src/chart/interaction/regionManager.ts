@@ -5,7 +5,7 @@ import { Logger } from '../../util/logger';
 import type { InteractionEvent, InteractionManager, InteractionTypes } from './interactionManager';
 import { INTERACTION_TYPES, InteractionState } from './interactionManager';
 
-export type RegionName = 'legend' | 'navigator' | 'pagination' | 'series';
+export type RegionName = 'legend' | 'navigator' | 'pagination' | 'series' | 'root';
 
 type RegionHandler<Event extends InteractionEvent> = (event: Event) => void;
 
@@ -83,7 +83,7 @@ export class RegionManager {
                                 handler(e as InteractionEvent<T>);
                             }
                         }
-                    }) ?? (() => undefined)
+                    }) ?? (() => {})
                 );
             }
         }

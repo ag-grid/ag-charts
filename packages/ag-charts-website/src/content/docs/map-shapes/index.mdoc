@@ -1,0 +1,82 @@
+---
+title: 'Map Shapes'
+---
+
+The Map Shape Series allows you to visualise geographic boundaries, such as countries.
+
+## Simple Map Shapes
+
+A Map Shape Series takes data and a topology in GeoJSON format, with the data referencing items in the topology.
+
+{% chartExampleRunner title="Multiple Series" name="multiple-series" type="generated" /%}
+
+To create a Map Shape Series, use the `map` series type.
+
+```js
+data: data,
+topology: topology,
+series: [
+    {
+        type: 'map-shape',
+        topologyIdKey: 'name',
+        idKey: 'name',
+    },
+],
+```
+
+In this configuration:
+
+-   `topologyIdKey` defines the property key to match against in the topology GeoJSON
+-   `idKey` defines the property key in the data that will be matched against the property value in the topology
+
+{% note %}
+Topology features that did not match an item in the data will not be rendered.
+{% /note %}
+
+## Labels
+
+{% chartExampleRunner title="Labels" name="labels" type="generated" /%}
+
+```js
+series: [
+    {
+        type: 'map-shape',
+        idKey: 'name',
+        labelKey: 'code'
+    },
+],
+```
+
+In this configuration:
+
+-   `labelKey` defines the variable used for the labels.
+
+## Heatmap Series
+
+A heat map will colour items in the topology to denote the magnitude of the data values.
+
+{% chartExampleRunner title="Heatmap Series" name="heatmap-series" type="generated" /%}
+
+```js
+series: [
+    {
+        type: 'map-shape',
+        idKey: 'name',
+        sizeKey: 'gdp'
+    },
+],
+```
+
+In this configuration:
+
+-   `colorKey` is set to 'gdp', which supplies numerical values for the Colour Scale.
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgMapShapeSeriesOptions" label="Map Shape" %}
+{% apiReference id="AgMapShapeSeriesOptions" /%}
+{% /tabItem %}
+
+{% /tabs %}

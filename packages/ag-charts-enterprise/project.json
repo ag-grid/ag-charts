@@ -184,7 +184,11 @@
           "updateSnapshot": true
         }
       },
-      "dependsOn": ["build", "ag-charts-community-examples:build"]
+      "dependsOn": [
+        "build",
+        "ag-charts-community-examples:build",
+        "ag-charts-website-src_content_docs_benchmarks__examples_multi-series_main.ts:generate-example"
+      ]
     },
     "pack": {
       "executor": "nx:run-commands",
@@ -218,6 +222,6 @@
       }
     }
   },
-  "tags": [],
+  "tags": ["no-batching"],
   "implicitDependencies": ["ag-charts-community"]
 }

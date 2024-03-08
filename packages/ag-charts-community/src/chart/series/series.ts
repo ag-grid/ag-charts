@@ -244,6 +244,16 @@ export class SeriesGroupingChangedEvent implements TypedEvent {
     ) {}
 }
 
+export type SeriesConstructorOpts<TProps extends SeriesProperties<any>> = {
+    moduleCtx: ModuleContext;
+    useLabelLayer?: boolean;
+    pickModes?: SeriesNodePickMode[];
+    contentGroupVirtual?: boolean;
+    directionKeys?: SeriesDirectionKeysMapping<TProps>;
+    directionNames?: SeriesDirectionKeysMapping<TProps>;
+    canHaveAxes?: boolean;
+};
+
 export abstract class Series<
         TDatum extends SeriesNodeDatum,
         TProps extends SeriesProperties<any>,
@@ -342,6 +352,10 @@ export abstract class Series<
         return this.properties.visible;
     }
 
+    get hasData() {
+        return this.data != null && this.data.length > 0;
+    }
+
     protected onDataChange() {
         this.nodeDataRefresh = true;
     }
@@ -374,15 +388,7 @@ export abstract class Series<
 
     protected readonly ctx: ModuleContext;
 
-    constructor(seriesOpts: {
-        moduleCtx: ModuleContext;
-        useLabelLayer?: boolean;
-        pickModes?: SeriesNodePickMode[];
-        contentGroupVirtual?: boolean;
-        directionKeys?: SeriesDirectionKeysMapping<TProps>;
-        directionNames?: SeriesDirectionKeysMapping<TProps>;
-        canHaveAxes?: boolean;
-    }) {
+    constructor(seriesOpts: SeriesConstructorOpts<TProps>) {
         super();
 
         const {

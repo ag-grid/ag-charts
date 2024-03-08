@@ -82,6 +82,7 @@ export class DataController {
         }
 
         const multipleSources = this.hasMultipleDataSources(valid);
+        const scopes = this.requested.map(({ id }) => id);
         for (const { opts, data, resultCbs, rejects, ids } of merged) {
             const needsValueExtraction =
                 multipleSources ||
@@ -100,8 +101,8 @@ export class DataController {
                         callback({
                             dataModel,
                             processedData: needsValueExtraction
-                                ? this.extractScopedData(ids[requestIdx], processedData, ids)
-                                : processedData,
+                                ? this.extractScopedData(ids[requestIdx], processedData, scopes)
+                                : this.removeScopedData(processedData, scopes),
                         })
                     );
                 } else if (processedData) {
@@ -150,6 +151,15 @@ export class DataController {
                 values: datum.values?.map(extractValues),
             })),
         };
+    }
+
+    private removeScopedData(processedData: UngroupedData<any>, ids: string[]) {
+        for (const datum of processedData.data) {
+            for (const otherId of ids) {
+                delete datum.datum[otherId];
+            }
+        }
+        return processedData;
     }
 
     private validateRequests(requested: RequestedProcessing<any, any, any>[]): RequestedProcessing<any, any, any>[] {

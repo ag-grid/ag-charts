@@ -1,11 +1,16 @@
 import type { ChartOptions } from '../module/optionsModule';
+import type { AgTopologyChartOptions } from '../options/agChartOptions';
 import { BBox } from '../scene/bbox';
 import type { TransferableResources } from './chart';
 import { Chart } from './chart';
-import type { LatLongBBox } from './series/topology/LatLongBBox';
-import { MapMarkerSeries } from './series/topology/mapMarkerSeries';
-import { MapSeries } from './series/topology/mapSeries';
+import type { Series } from './series/series';
+import type { LonLatBBox } from './series/topology/lonLatBbox';
 import { MercatorScale } from './series/topology/mercatorScale';
+import type { TopologySeries } from './series/topologySeries';
+
+function isTopologySeries(series: Series<any, any>): series is TopologySeries {
+    return series.type === 'map-shape' || series.type === 'map-line' || series.type === 'map-marker';
+}
 
 export class TopologyChart extends Chart {
     static readonly className = 'TopologyChart';
@@ -15,7 +20,17 @@ export class TopologyChart extends Chart {
         super(options, resources);
     }
 
-    protected _data: any = {};
+    override async updateData() {
+        await super.updateData();
+
+        const { topology } = this.getOptions() as AgTopologyChartOptions;
+
+        this.series.forEach((series) => {
+            if (isTopologySeries(series)) {
+                series.setChartTopology(topology);
+            }
+        });
+    }
 
     private firstSeriesTranslation = true;
     override async performLayout() {
@@ -36,13 +51,9 @@ export class TopologyChart extends Chart {
         this.animationRect = shrinkRect;
         this.hoverRect = shrinkRect;
 
-        const mapSeries = this.series.filter<MapSeries | MapMarkerSeries>(
-            (series): series is MapSeries | MapMarkerSeries => {
-                return series instanceof MapSeries || series instanceof MapMarkerSeries;
-            }
-        );
+        const mapSeries = this.series.filter<TopologySeries>(isTopologySeries);
 
-        const combinedBbox: LatLongBBox | undefined = mapSeries.reduce<LatLongBBox | undefined>((combined, series) => {
+        const combinedBbox: LonLatBBox | undefined = mapSeries.reduce<LonLatBBox | undefined>((combined, series) => {
             const bbox = series.topologyBounds;
             if (bbox == null) return combined;
             if (combined == null) return bbox;

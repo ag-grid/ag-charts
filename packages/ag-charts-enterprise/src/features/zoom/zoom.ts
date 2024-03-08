@@ -26,7 +26,19 @@ import {
 type PinchEvent = _ModuleSupport.PinchEvent;
 type ContextMenuActionParams = _ModuleSupport.ContextMenuActionParams;
 
-const { BOOLEAN, NUMBER, RATIO, UNION, ActionOnSet, ChartAxisDirection, ChartUpdateType, Validate } = _ModuleSupport;
+const {
+    BOOLEAN,
+    NUMBER,
+    RATIO,
+    UNION,
+    ActionOnSet,
+    ChartAxisDirection,
+    ChartUpdateType,
+    Validate,
+    round: sharedRound,
+} = _ModuleSupport;
+
+const round = (value: number) => sharedRound(value, 8);
 
 const ANCHOR_CORD = UNION(['pointer', 'start', 'middle', 'end'], 'an anchor cord');
 
@@ -162,7 +174,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx.gestureDetector.addListener('pinch-move', (event) => this.onPinchMove(event as PinchEvent)),
             ctx.toolbarManager.addListener('button-pressed', (event) => this.onToolbarButtonPress(event)),
             ctx.layoutService.addListener('layout-complete', (event) => this.onLayoutComplete(event)),
-            ctx.updateService.addListener('update-complete', (event) => this.onUpdateComplete(event))
+            ctx.updateService.addListener('update-complete', (event) => this.onUpdateComplete(event)),
+            ctx.zoomManager.addListener('zoom-change', () => this.onZoomChange())
         );
     }
 
@@ -350,6 +363,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
                 break;
 
             case DragState.Select:
+                if (!this.selector.didUpdate()) break;
                 const zoom = definedZoomState(this.zoomManager.getZoom());
                 if (!this.isMinZoom(zoom)) {
                     const newZoom = this.selector.stop(this.seriesRect, this.paddedRect, zoom);
@@ -469,14 +483,11 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const time = RANGES.get(event.id);
 
         if (typeof time === 'function') {
-            this.rangeX.start = time();
-            this.rangeX.end = undefined;
+            this.rangeX.extendWith(time);
         } else if (time == null) {
-            this.rangeX.start = undefined;
-            this.rangeX.end = new Date().getTime();
+            this.rangeX.extendAll();
         } else {
-            this.rangeX.start = new Date().getTime() - time;
-            this.rangeX.end = undefined;
+            this.rangeX.extendToEnd(time);
         }
     }
 
@@ -522,19 +533,11 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         // We don't need to check flipping here again, as it is already built into the width & height ratios and the
         // zoom.x/y values themselves do not flip and are bound to width/height respectively.
-        const ratioX = widthRatio * dx(zoom);
-        const ratioY = heightRatio * dy(zoom);
+        const ratioX = round(widthRatio * dx(zoom));
+        const ratioY = round(heightRatio * dy(zoom));
 
-        if (this.isScalingX()) {
-            this.minRatioX = Math.min(1, ratioX);
-        }
-
-        if (this.isScalingY()) {
-            this.minRatioY = Math.min(1, ratioY);
-        }
-
-        this.minRatioX ||= this.minRatioY || 0;
-        this.minRatioY ||= this.minRatioX || 0;
+        this.minRatioX = this.isScalingX() ? Math.min(1, ratioX) : 1;
+        this.minRatioY = this.isScalingY() ? Math.min(1, ratioY) : 1;
     }
 
     private onContextMenuZoomToHere({ event }: ContextMenuActionParams) {
@@ -589,6 +592,10 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.updateZoom(constrainZoom(newZoom));
     }
 
+    private onZoomChange() {
+        this.toggleContextMenuActions(definedZoomState(this.zoomManager.getZoom()));
+    }
+
     private isPanningKeyPressed(event: MouseEvent | WheelEvent) {
         switch (this.panKey) {
             case 'alt':
@@ -621,16 +628,9 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private isMinZoom(zoom: DefinedZoomState): boolean {
-        let minXCheckValue = dx(zoom);
-        let minYCheckValue = dy(zoom);
-
-        if (this.enableScrolling) {
-            minXCheckValue *= 1 - this.scrollingStep;
-            minYCheckValue *= 1 - this.scrollingStep;
-        }
-
-        const isMinXZoom = !this.isScalingX() || minXCheckValue <= this.minRatioX;
-        const isMinYZoom = !this.isScalingY() || minYCheckValue <= this.minRatioX;
+        // Round the comparison values to avoid floating point issues, but not too much to break "infinite" zoom
+        const isMinXZoom = round(dx(zoom)) <= this.minRatioX;
+        const isMinYZoom = round(dy(zoom)) <= this.minRatioY;
 
         return isMinXZoom && isMinYZoom;
     }
@@ -640,8 +640,9 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private updateZoom(zoom: DefinedZoomState) {
-        const dx_ = dx(zoom);
-        const dy_ = dy(zoom);
+        // Round the comparison values to avoid floating point issues, but not too much to break "infinite" zoom
+        const dx_ = round(dx(zoom));
+        const dy_ = round(dy(zoom));
 
         const oldZoom = definedZoomState(this.zoomManager.getZoom());
 
@@ -649,12 +650,9 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const zoomedInTooFarY = dy_ < dy(oldZoom) && dy_ < this.minRatioY;
 
         if (zoomedInTooFarX || zoomedInTooFarY) {
-            this.contextMenuRegistry.disableAction(CONTEXT_ZOOM_ACTION_ID);
-            this.contextMenuRegistry.enableAction(CONTEXT_PAN_ACTION_ID);
+            this.toggleContextMenuActions(zoom);
             return;
         }
-
-        this.toggleContextMenuActions(zoom);
 
         this.zoomManager.updateZoom('zoom', zoom);
     }

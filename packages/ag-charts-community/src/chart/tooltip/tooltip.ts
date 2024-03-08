@@ -218,10 +218,7 @@ export class TooltipPosition extends BaseProperties {
 }
 
 export class Tooltip {
-    private static tooltipDocuments: Document[] = [];
-
     private readonly element: HTMLDivElement;
-
     private readonly observer?: IntersectionObserver;
     private readonly canvasElement: HTMLElement;
     private readonly tooltipRoot: HTMLElement;
@@ -277,10 +274,7 @@ export class Tooltip {
             this.observer = observer;
         }
 
-        if (Tooltip.tooltipDocuments.indexOf(getDocument()) < 0) {
-            injectStyle(defaultTooltipCss);
-            Tooltip.tooltipDocuments.push(getDocument());
-        }
+        injectStyle(defaultTooltipCss, 'tooltip');
     }
 
     destroy() {

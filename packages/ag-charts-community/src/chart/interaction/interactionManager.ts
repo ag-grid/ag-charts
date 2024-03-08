@@ -106,8 +106,6 @@ export enum InteractionState {
 export class InteractionManager extends BaseManager<InteractionTypes, InteractionEvent<InteractionTypes>> {
     private readonly debug = Debug.create(true, 'interaction');
 
-    private static interactionDocuments: Document[] = [];
-
     private readonly rootElement: HTMLElement;
     private readonly element: HTMLElement;
 
@@ -145,10 +143,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
             getWindow().addEventListener(type, this.eventHandler);
         }
 
-        if (!InteractionManager.interactionDocuments.includes(getDocument())) {
-            injectStyle(CSS);
-            InteractionManager.interactionDocuments.push(getDocument());
-        }
+        injectStyle(CSS, 'interactionManager');
     }
 
     override destroy() {

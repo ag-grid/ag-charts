@@ -39,16 +39,19 @@ export const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
     { type: 'series', optionsKey: 'series[]', chartTypes: ['cartesian'], identifier: 'candlestick' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['cartesian'], identifier: 'bullet' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['cartesian'], identifier: 'heatmap' },
+    { type: 'series', optionsKey: 'series[]', chartTypes: ['cartesian'], identifier: 'range-area' },
+    { type: 'series', optionsKey: 'series[]', chartTypes: ['cartesian'], identifier: 'range-bar' },
+    { type: 'series', optionsKey: 'series[]', chartTypes: ['cartesian'], identifier: 'waterfall' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['polar'], identifier: 'nightingale' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['polar'], identifier: 'radar-area' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['polar'], identifier: 'radar-line' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['polar'], identifier: 'radial-bar' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['polar'], identifier: 'radial-column' },
-    { type: 'series', optionsKey: 'series[]', chartTypes: ['cartesian'], identifier: 'range-area' },
-    { type: 'series', optionsKey: 'series[]', chartTypes: ['cartesian'], identifier: 'range-bar' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['hierarchy'], identifier: 'sunburst' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['hierarchy'], identifier: 'treemap' },
-    { type: 'series', optionsKey: 'series[]', chartTypes: ['cartesian'], identifier: 'waterfall' },
+    { type: 'series', optionsKey: 'series[]', chartTypes: ['topology'], identifier: 'map-shape' },
+    { type: 'series', optionsKey: 'series[]', chartTypes: ['topology'], identifier: 'map-line' },
+    { type: 'series', optionsKey: 'series[]', chartTypes: ['topology'], identifier: 'map-marker' },
     { type: 'series-option', optionsKey: 'errorBar', chartTypes: ['cartesian'], identifier: 'error-bars' },
 ];
 
@@ -75,6 +78,10 @@ export function isEnterprisePolar(seriesType: string) {
 export function isEnterpriseHierarchy(seriesType: string) {
     const type = getEnterpriseSeriesChartTypes(seriesType)?.find((v) => v === 'hierarchy');
     return type === 'hierarchy';
+}
+export function isEnterpriseTopology(seriesType: string) {
+    const type = getEnterpriseSeriesChartTypes(seriesType)?.find((v) => v === 'topology');
+    return type === 'topology';
 }
 
 type UnknownPackage = { packageType: string } | EnterpriseModuleStub;

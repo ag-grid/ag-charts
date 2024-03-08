@@ -60,7 +60,7 @@ export class CrosshairLabel extends BaseProperties {
             }
         },
     })
-    override className?: string;
+    className?: string;
 
     @Validate(NUMBER)
     xOffset: number = 0;

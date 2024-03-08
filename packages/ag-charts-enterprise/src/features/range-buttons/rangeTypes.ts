@@ -11,11 +11,11 @@ const DAY = 1000 * 60 * 60 * 24;
 const MONTH = DAY * 30;
 const YEAR = DAY * 365;
 
-export const RANGES = new Map<string, (() => number) | number | null>([
+export const RANGES = new Map<string, ((end: Date | number) => number) | number | null>([
     [Range.MONTH, MONTH],
     [Range.THREE_MONTHS, MONTH * 3],
     [Range.SIX_MONTHS, MONTH * 6],
-    [Range.YTD, () => new Date(`${new Date().getFullYear()}-01-01`).getTime()],
+    [Range.YTD, (end) => new Date(`${new Date(end).getFullYear()}-01-01`).getTime()],
     [Range.ONE_YEAR, YEAR],
     [Range.ALL, null],
 ]);

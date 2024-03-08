@@ -25,13 +25,13 @@ export class Caption extends BaseProperties implements CaptionLike {
     static readonly LARGE_PADDING = 20;
 
     readonly id = createId(this);
-    readonly node = new Text().setProperties({
+    readonly node = new Text({ zIndex: 1 }).setProperties({
         textAlign: 'center',
         pointerEvents: PointerEvents.None,
     });
 
     @Validate(BOOLEAN)
-    enabled = false;
+    enabled: boolean = false;
 
     @Validate(STRING, { optional: true })
     @ProxyPropertyOnWrite('node')
@@ -79,7 +79,8 @@ export class Caption extends BaseProperties implements CaptionLike {
     private truncated = false;
 
     registerInteraction(moduleCtx: ModuleContext) {
-        return moduleCtx.interactionManager.addListener('hover', (event) => this.handleMouseMove(moduleCtx, event));
+        const rootRegion = moduleCtx.regionManager.getRegion('root');
+        return rootRegion.addListener('hover', (event) => this.handleMouseMove(moduleCtx, event));
     }
 
     computeTextWrap(containerWidth: number, containerHeight: number) {
@@ -96,9 +97,7 @@ export class Caption extends BaseProperties implements CaptionLike {
     }
 
     handleMouseMove(moduleCtx: ModuleContext, event: InteractionEvent<'hover'>) {
-        if (!this.enabled) {
-            return;
-        }
+        if (!this.enabled) return;
 
         const { offsetX, offsetY } = event;
         const bbox = this.node.computeBBox();

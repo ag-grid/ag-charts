@@ -218,6 +218,23 @@
                         "path": "financial-charts"
                     }
                 ]
+            },
+            {
+                "title": "Maps",
+                "items": [
+                    {
+                        "title": "Shapes",
+                        "path": "map-shapes"
+                    },
+                    {
+                        "title": "Lines",
+                        "path": "map-lines"
+                    },
+                    {
+                        "title": "Markers",
+                        "path": "map-markers"
+                    }
+                ]
             }
         ]
     },
