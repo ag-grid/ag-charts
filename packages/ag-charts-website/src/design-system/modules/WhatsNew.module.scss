@@ -4,7 +4,7 @@
     width: 100%;
 
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
-        width: var(--layout-width-9-12);
+        width: calc(var(--layout-width-9-12) + $spacing-size-16);
         padding-top: $spacing-size-10;
     }
 }
@@ -55,9 +55,9 @@
     ul {
         padding-top: 0.2rem;
         padding-bottom: 0.75rem;
-        list-style: none;
-        padding-left: 0;
+        padding-left: 1.1rem;
         margin-bottom: 16px;
+        color: var(--color-util-gray-400);
 
         a {
             text-decoration: none;
@@ -66,12 +66,6 @@
                 text-decoration: underline;
             }
         }
-    }
-
-    li::before {
-        content: '• ';
-        color: var(--color-util-gray-400);
-        font-weight: var(--text-bold);
     }
 }
 
