@@ -19,6 +19,7 @@ type Region = {
 export class RegionManager {
     private currentRegion?: Region;
     private isDragging = false;
+    private leftCanvas = false;
 
     private eventHandler = (event: InteractionEvent<InteractionTypes>) => this.processEvent(event);
     private regions: BBoxSet<Region> = new BBoxSet();
@@ -104,21 +105,45 @@ export class RegionManager {
         region?.listeners.dispatch(event.type, event);
     }
 
+    // Process events during a drag action. Returns false if this event should follow the standard
+    // RegionManager.processEvent flow, or true if this event already processed by this function.
     private handleDragging(event: InteractionEvent<InteractionTypes>): boolean {
         const { currentRegion } = this;
 
-        // AG-10875 only dispatch followup drag event to the region that received the 'drag-start'
-        // This logic will deliberatly suppress 'leave' events from the InteractionManager when dragging.
-        if (this.isDragging) {
-            if (event.type === 'drag-end') {
-                this.isDragging = false;
-                this.dispatch(currentRegion, event);
-            } else if (event.type === 'drag') {
-                this.dispatch(currentRegion, event);
-            }
-            return true;
-        } else if (event.type === 'drag-start') {
-            this.isDragging = true;
+        switch (event.type) {
+            case 'drag-start':
+                this.isDragging = true;
+                this.leftCanvas = false;
+                break;
+            // If the user releases the mouse ('drag-end') outside of the canvas, then the region listeners
+            // would not be notified to the 'leave' event by the usual processEvent mechanism. So we need to
+            // fire a deferred 'leave' event if the mouse has left the canvas after a drag event.
+            case 'leave':
+                this.leftCanvas = true;
+                return this.isDragging;
+            case 'enter':
+                this.leftCanvas = false;
+                return this.isDragging;
+
+            // AG-10875 only dispatch followup drag event to the region that received the 'drag-start'
+            // This logic will deliberatly suppress 'leave' events from the InteractionManager when dragging,
+            // and defers it until the drag is done.
+            case 'drag':
+                if (this.isDragging) {
+                    this.dispatch(currentRegion, event);
+                    return true;
+                }
+                break;
+            case 'drag-end':
+                if (this.isDragging) {
+                    this.isDragging = false;
+                    this.dispatch(currentRegion, event);
+                    if (this.leftCanvas) {
+                        this.dispatch(currentRegion, { ...event, type: 'leave' });
+                    }
+                    return true;
+                }
+                break;
         }
 
         return false;

@@ -370,8 +370,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
             seriesRegion.addListener('hover', (event) => this.onMouseMove(event)),
             seriesRegion.addListener('leave', (event) => this.onLeave(event)),
             this.interactionManager.addListener('page-left', () => this.destroy()),
-
-            this.interactionManager.addListener('drag', () => this.resetPointer()),
             this.interactionManager.addListener('contextmenu', (event) => this.onContextMenu(event), All),
 
             this.animationManager.addListener('animation-frame', () => {
