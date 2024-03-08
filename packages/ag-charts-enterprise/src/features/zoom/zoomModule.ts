@@ -9,6 +9,20 @@ export const ZoomModule: _ModuleSupport.Module = {
     chartTypes: ['cartesian'],
     instanceConstructor: Zoom,
     themeTemplate: {
-        zoom: { enabled: false },
+        zoom: {
+            anchorPointX: 'end',
+            anchorPointY: 'middle',
+            axes: 'x',
+            enabled: false,
+            enableAxisDragging: true,
+            enableDoubleClickToReset: true,
+            enablePanning: true,
+            enableScrolling: true,
+            enableSelecting: false,
+            minVisibleItemsX: 2,
+            minVisibleItemsY: 2,
+            panKey: 'alt',
+            scrollingStep: 0.1,
+        },
     },
 };
