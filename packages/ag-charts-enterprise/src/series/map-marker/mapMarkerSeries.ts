@@ -6,11 +6,6 @@ import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
 import { prepareMapMarkerAnimationFunctions } from '../map-util/mapUtil';
 import { MapMarkerNodeDatum, MapMarkerNodeLabelDatum, MapMarkerSeriesProperties } from './mapMarkerSeriesProperties';
 
-// import type { FeatureCollection, Feature, Geometry } from 'geojson';
-type FeatureCollection = any;
-type Feature = any;
-type Geometry = any;
-
 const { fromToMotion, StateMachine, getMissCount, createDatumId, DataModelSeries, SeriesNodePickMode, valueProperty } =
     _ModuleSupport;
 const { ColorScale, LinearScale } = _Scale;
@@ -19,7 +14,7 @@ const { sanitizeHtml } = _Util;
 
 export interface MapMarkerNodeDataContext
     extends _ModuleSupport.SeriesNodeDataContext<MapMarkerNodeDatum, MapMarkerNodeLabelDatum> {
-    projectedBackgroundGeometry: Geometry | undefined;
+    projectedBackgroundGeometry: _ModuleSupport.Geometry | undefined;
     visible: boolean;
 }
 
@@ -41,7 +36,7 @@ export class MapMarkerSeries extends DataModelSeries<
 
     override properties = new MapMarkerSeriesProperties();
 
-    private _chartTopology?: FeatureCollection = undefined;
+    private _chartTopology?: _ModuleSupport.FeatureCollection = undefined;
 
     private get topology() {
         return this._chartTopology ?? { type: 'FeatureCollection', features: [] };
@@ -153,13 +148,14 @@ export class MapMarkerSeries extends DataModelSeries<
         return new MarkerShape();
     }
 
-    private getBackgroundGeometry(): Geometry | undefined {
+    private getBackgroundGeometry(): _ModuleSupport.Geometry | undefined {
         const { background } = this.properties;
         const { id, topologyIdKey } = background;
         if (id == null) return;
 
         const topology = background.topology ?? this.topology;
-        return topology?.features.find((feature: Feature) => feature.properties?.[topologyIdKey] === id)?.geometry;
+        return topology?.features.find((feature: _ModuleSupport.Feature) => feature.properties?.[topologyIdKey] === id)
+            ?.geometry;
     }
 
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
@@ -375,7 +371,7 @@ export class MapMarkerSeries extends DataModelSeries<
         this.animationState.transition('update');
     }
 
-    private updateBackground(projectedGeometry: Geometry | undefined) {
+    private updateBackground(projectedGeometry: _ModuleSupport.Geometry | undefined) {
         const { backgroundNode, properties } = this;
         const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } =
             properties.background;

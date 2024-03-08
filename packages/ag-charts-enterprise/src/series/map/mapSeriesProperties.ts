@@ -8,10 +8,6 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-// import type { FeatureCollection, Geometry } from 'geojson';
-type FeatureCollection = any;
-type Geometry = any;
-
 const {
     AND,
     ARRAY,
@@ -42,7 +38,7 @@ interface BaseMapNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     readonly fill: string;
     readonly colorValue: number | undefined;
     readonly sizeValue: number | undefined;
-    readonly projectedGeometry: Geometry | undefined;
+    readonly projectedGeometry: _ModuleSupport.Geometry | undefined;
 }
 
 export enum MapNodeDatumType {
@@ -83,7 +79,7 @@ class MapSeriesLabel extends Label<AgMapSeriesLabelFormatterParams> {
 
 class MapSeriesBackground extends BaseProperties {
     @Validate(PLAIN_OBJECT)
-    topology: FeatureCollection = { type: 'FeatureCollection', features: [] };
+    topology: _ModuleSupport.FeatureCollection = { type: 'FeatureCollection', features: [] };
 
     @Validate(STRING, { optional: true })
     id: string | undefined = undefined;
@@ -115,7 +111,7 @@ class MapSeriesBackground extends BaseProperties {
 
 export class MapSeriesProperties extends SeriesProperties<AgMapSeriesOptions> {
     @Validate(PLAIN_OBJECT, { optional: true })
-    topology?: FeatureCollection = undefined;
+    topology?: _ModuleSupport.FeatureCollection = undefined;
 
     @Validate(OBJECT)
     readonly background = new MapSeriesBackground();

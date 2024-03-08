@@ -8,9 +8,6 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-// import type { FeatureCollection } from 'geojson';
-type FeatureCollection = any;
-
 const {
     AND,
     ARRAY,
@@ -66,7 +63,7 @@ class MapMarkerSeriesLabel extends Label<AgMapMarkerSeriesLabelFormatterParams> 
 
 class MapMarkerSeriesBackground extends BaseProperties {
     @Validate(PLAIN_OBJECT)
-    topology: FeatureCollection = { type: 'FeatureCollection', features: [] };
+    topology: _ModuleSupport.FeatureCollection = { type: 'FeatureCollection', features: [] };
 
     @Validate(STRING, { optional: true })
     id: string | undefined = undefined;

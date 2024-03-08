@@ -11,11 +11,6 @@ import {
     MapSeriesProperties,
 } from './mapSeriesProperties';
 
-// import type { Feature, FeatureCollection, Geometry } from 'geojson';
-type Feature = any;
-type FeatureCollection = any;
-type Geometry = any;
-
 const { fromToMotion, StateMachine, getMissCount, createDatumId, DataModelSeries, SeriesNodePickMode, valueProperty } =
     _ModuleSupport;
 const { ColorScale, LinearScale } = _Scale;
@@ -24,14 +19,14 @@ const { sanitizeHtml } = _Util;
 
 export interface MapNodeDataContext extends _ModuleSupport.SeriesNodeDataContext<MapNodeDatum, MapNodeLabelDatum> {
     markerData: MapNodeMarkerDatum[];
-    projectedBackgroundGeometry: Geometry | undefined;
+    projectedBackgroundGeometry: _ModuleSupport.Geometry | undefined;
     visible: boolean;
 }
 
 type MapAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
 type MapAnimationEvent = 'update' | 'updateData' | 'highlight' | 'resize' | 'clear' | 'reset' | 'skip';
 
-const isLineString = (geometry: Geometry) => {
+const isLineString = (geometry: _ModuleSupport.Geometry) => {
     switch (geometry.type) {
         case 'GeometryCollection':
             return geometry.geometries.some(isLineString);
@@ -59,7 +54,7 @@ export class MapSeries
 
     override properties = new MapSeriesProperties();
 
-    private _chartTopology?: FeatureCollection = undefined;
+    private _chartTopology?: _ModuleSupport.FeatureCollection = undefined;
 
     private get topology() {
         return this.properties.topology ?? this._chartTopology ?? { type: 'FeatureCollection', features: [] };
@@ -185,12 +180,12 @@ export class MapSeries
         return new MarkerShape();
     }
 
-    private getBackgroundGeometry(): Geometry | undefined {
+    private getBackgroundGeometry(): _ModuleSupport.Geometry | undefined {
         const { background } = this.properties;
         const { id } = background;
         if (id == null) return;
 
-        let topology: FeatureCollection | undefined;
+        let topology: _ModuleSupport.FeatureCollection | undefined;
         let topologyIdKey: string;
         if (background.topology != null) {
             ({ topology, topologyIdKey } = background);
@@ -199,7 +194,8 @@ export class MapSeries
             topologyIdKey = this.properties.topologyIdKey;
         }
 
-        return topology?.features.find((feature: Feature) => feature.properties?.[topologyIdKey] === id)?.geometry;
+        return topology?.features.find((feature: _ModuleSupport.Feature) => feature.properties?.[topologyIdKey] === id)
+            ?.geometry;
     }
 
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
@@ -210,8 +206,8 @@ export class MapSeries
         const { data, topology } = this;
         const { topologyIdKey, idKey, sizeKey, colorKey, labelKey, colorRange, marker } = this.properties;
 
-        const featureById = new Map<string, Feature>();
-        topology.features.forEach((feature: Feature) => {
+        const featureById = new Map<string, _ModuleSupport.Feature>();
+        topology.features.forEach((feature: _ModuleSupport.Feature) => {
             const property = feature.properties?.[topologyIdKey];
             if (property == null) return;
             featureById.set(property, feature);
@@ -233,7 +229,7 @@ export class MapSeries
         const featureIdx = dataModel.resolveProcessedDataIndexById(this, `featureValue`).index;
         let bbox = (processedData.data as any[]).reduce<_ModuleSupport.LonLatBBox | undefined>(
             (current, { values }) => {
-                const feature: Feature | undefined = values[featureIdx];
+                const feature: _ModuleSupport.Feature | undefined = values[featureIdx];
                 if (feature == null) return current;
                 return geometryBbox(feature.geometry, current);
             },
@@ -286,7 +282,7 @@ export class MapSeries
         labelValue: string | undefined,
         size: number,
         hasMarkers: boolean,
-        projectedGeometry: Geometry | undefined,
+        projectedGeometry: _ModuleSupport.Geometry | undefined,
         font: string
     ): MapNodeLabelDatum | undefined {
         if (labelValue == null || projectedGeometry == null) return;
@@ -342,10 +338,10 @@ export class MapSeries
         sizeScale.range = [marker.size, marker.maxSize ?? marker.size];
         const font = label.getFont();
 
-        const projectedGeometries = new Map<string, Geometry>();
+        const projectedGeometries = new Map<string, _ModuleSupport.Geometry>();
         processedData.data.forEach(({ values }) => {
             const id: string | undefined = values[idIdx];
-            const geometry: Geometry | undefined = values[featureIdx]?.geometry;
+            const geometry: _ModuleSupport.Geometry | undefined = values[featureIdx]?.geometry;
             const projectedGeometry = geometry != null && scale != null ? projectGeometry(geometry, scale) : undefined;
             if (id != null && projectedGeometry != null) {
                 projectedGeometries.set(id, projectedGeometry);
@@ -476,7 +472,7 @@ export class MapSeries
         this.animationState.transition('update');
     }
 
-    private updateBackground(projectedGeometry: Geometry | undefined) {
+    private updateBackground(projectedGeometry: _ModuleSupport.Geometry | undefined) {
         const { backgroundNode, properties } = this;
         const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } =
             properties.background;

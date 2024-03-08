@@ -1,17 +1,13 @@
-import { _Scene } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import { lineStringDistance } from './lineStringUtil';
 import { polygonContains } from './polygonUtil';
-
-// import type { Geometry, Position } from 'geojson';
-type Position = any;
-type Geometry = any;
 
 const { Path, Path2D, BBox, ScenePathChangeDetection } = _Scene;
 
 export class GeoGeometry extends Path {
     @ScenePathChangeDetection()
-    projectedGeometry: Geometry | undefined = undefined;
+    projectedGeometry: _ModuleSupport.Geometry | undefined = undefined;
 
     private bbox: _Scene.BBox | undefined;
     // Keep non-filled shapes separate so we don't fill them
@@ -52,20 +48,20 @@ export class GeoGeometry extends Path {
         return this.geometryContainsPoint(projectedGeometry, x, y);
     }
 
-    private geometryContainsPoint(geometry: Geometry, x: number, y: number): boolean {
+    private geometryContainsPoint(geometry: _ModuleSupport.Geometry, x: number, y: number): boolean {
         const minStrokeDistance = Math.max(this.strokeWidth / 2, 1) + 1;
         switch (geometry.type) {
             case 'GeometryCollection':
-                return geometry.geometries.some((g: Geometry) => this.geometryContainsPoint(g, x, y));
+                return geometry.geometries.some((g) => this.geometryContainsPoint(g, x, y));
             case 'Polygon':
                 return polygonContains(geometry.coordinates, x, y);
             case 'MultiPolygon':
-                return geometry.coordinates.some((coordinates: Position[][]) => polygonContains(coordinates, x, y));
+                return geometry.coordinates.some((coordinates) => polygonContains(coordinates, x, y));
             case 'LineString':
                 return lineStringDistance(geometry.coordinates, x, y) < minStrokeDistance;
             case 'MultiLineString':
                 return geometry.coordinates.some(
-                    (lineString: Position[]) => lineStringDistance(lineString, x, y) < minStrokeDistance
+                    (lineString) => lineStringDistance(lineString, x, y) < minStrokeDistance
                 );
             case 'Point':
             case 'MultiPoint':
@@ -74,11 +70,11 @@ export class GeoGeometry extends Path {
         }
     }
 
-    private drawGeometry(geometry: Geometry, bbox: _Scene.BBox | undefined): _Scene.BBox | undefined {
+    private drawGeometry(geometry: _ModuleSupport.Geometry, bbox: _Scene.BBox | undefined): _Scene.BBox | undefined {
         const { path, strokePath } = this;
         switch (geometry.type) {
             case 'GeometryCollection':
-                geometry.geometries.forEach((g: Geometry) => {
+                geometry.geometries.forEach((g) => {
                     bbox = this.drawGeometry(g, bbox);
                 });
                 break;
@@ -86,7 +82,7 @@ export class GeoGeometry extends Path {
                 bbox = this.drawPolygon(path, geometry.coordinates, bbox);
                 break;
             case 'MultiPolygon':
-                geometry.coordinates.forEach((coordinates: Position[][]) => {
+                geometry.coordinates.forEach((coordinates) => {
                     bbox = this.drawPolygon(path, coordinates, bbox);
                 });
                 break;
@@ -94,7 +90,7 @@ export class GeoGeometry extends Path {
                 bbox = this.drawLineString(strokePath, geometry.coordinates, bbox, false);
                 break;
             case 'MultiLineString':
-                geometry.coordinates.forEach((coordinates: Position[]) => {
+                geometry.coordinates.forEach((coordinates) => {
                     bbox = this.drawLineString(strokePath, coordinates, bbox, false);
                 });
                 break;
@@ -108,7 +104,7 @@ export class GeoGeometry extends Path {
 
     private drawPolygon(
         path: _Scene.Path2D,
-        polygons: Position[][],
+        polygons: _ModuleSupport.Position[][],
         bbox: _Scene.BBox | undefined
     ): _Scene.BBox | undefined {
         if (polygons.length < 1) return bbox;
@@ -124,7 +120,7 @@ export class GeoGeometry extends Path {
 
     private drawLineString(
         path: _Scene.Path2D,
-        coordinates: Position[],
+        coordinates: _ModuleSupport.Position[],
         bbox: _Scene.BBox | undefined,
         isClosed: boolean
     ): _Scene.BBox | undefined {

@@ -4,11 +4,8 @@ import { extendBbox } from './bboxUtil';
 import { lineSegmentDistanceToRectSquared } from './lineStringUtil';
 import { type List, insertManySorted } from './linkedList';
 
-// import type { Position } from 'geojson';
-type Position = any;
-
 export function polygonBbox(
-    polygon: Position[],
+    polygon: _ModuleSupport.Position[],
     into: _ModuleSupport.LonLatBBox | undefined
 ): _ModuleSupport.LonLatBBox | undefined {
     polygon.forEach((coordinates) => {
@@ -19,7 +16,7 @@ export function polygonBbox(
     return into;
 }
 
-export function polygonCentroid(polygon: Position[]): Position | undefined {
+export function polygonCentroid(polygon: _ModuleSupport.Position[]): _ModuleSupport.Position | undefined {
     if (polygon.length === 0) return;
 
     let x = 0;
@@ -55,10 +52,10 @@ interface LabelPlacement {
 }
 
 export function preferredLabelCenter(
-    polygons: Position[][],
+    polygons: _ModuleSupport.Position[][],
     size: { width: number; height: number },
     precision: number
-): Position | undefined {
+): _ModuleSupport.Position | undefined {
     const bbox = polygonBbox(polygons[0], undefined);
     if (bbox == null) return;
 
@@ -66,10 +63,10 @@ export function preferredLabelCenter(
     const [cx, cy] = centroid;
     const centroidDistanceToPolygon = -polygonRectDistance(polygons, centroid, { width: 0, height: 0 });
     let bestValue = 0;
-    let bestCenter: Position | undefined;
+    let bestCenter: _ModuleSupport.Position | undefined;
 
     const createLabelPlacement = (x: number, y: number, width: number, height: number) => {
-        const center = [x, y];
+        const center: _ModuleSupport.Position = [x, y];
         const distanceToPolygon = -polygonRectDistance(polygons, center, size);
         const distanceToCentroid = Math.hypot(cx - x, cy - y);
 
@@ -131,7 +128,11 @@ export function preferredLabelCenter(
 const labelPlacementCmp = (a: LabelPlacement, b: LabelPlacement) => a.maxValue - b.maxValue;
 
 /** Distance from a point to a polygon. Negative if inside the polygon. */
-export function polygonRectDistance(polygons: Position[][], center: Position, size: { width: number; height: number }) {
+export function polygonRectDistance(
+    polygons: _ModuleSupport.Position[][],
+    center: _ModuleSupport.Position,
+    size: { width: number; height: number }
+) {
     let inside = false;
     let minDistanceSquared = Infinity;
 
@@ -163,7 +164,7 @@ export function polygonRectDistance(polygons: Position[][], center: Position, si
     return (inside ? -1 : 1) * Math.sqrt(minDistanceSquared);
 }
 
-export function polygonContains(polygons: Position[][], x: number, y: number) {
+export function polygonContains(polygons: _ModuleSupport.Position[][], x: number, y: number) {
     let inside = false;
 
     for (const polygon of polygons) {
