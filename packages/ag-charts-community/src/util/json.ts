@@ -146,11 +146,7 @@ export type JsonApplyParams = {
  * @param params.path path for logging/error purposes, to aid with pinpointing problems
  * @param params.matcherPath path for pattern matching, to lookup allowedTypes override.
  * @param params.skip property names to skip from the source
- * @param params.constructors dictionary of property name to class constructors for properties that
- *                            require object construction
- * @param params.constructedArrays map stores arrays which items should be initialised
- *                                 using a class constructor
- * @param params.allowedTypes overrides by path for allowed property types
+ * @param params.constructedArrays map stores arrays which items should be initialised using a class constructor
  */
 export function jsonApply<Target extends object, Source extends DeepPartial<Target>>(
     target: Target,

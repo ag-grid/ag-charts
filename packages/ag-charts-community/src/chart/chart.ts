@@ -72,6 +72,7 @@ import {
 } from './mapping/types';
 import { ModulesManager } from './modulesManager';
 import { ChartOverlays } from './overlay/chartOverlays';
+import { getLoadingSpinner } from './overlay/loadingSpinner';
 import { type Series, SeriesGroupingChangedEvent, SeriesNodePickMode } from './series/series';
 import { SeriesLayerManager } from './series/seriesLayerManager';
 import { type SeriesGrouping, SeriesStateManager } from './series/seriesStateManager';
@@ -330,12 +331,14 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         this.dataService = new DataService<any>(this.animationManager);
 
-        this.overlays = new ChartOverlays(this.element, this.animationManager);
+        this.overlays = new ChartOverlays();
+        this.overlays.loading.renderer ??= () =>
+            getLoadingSpinner(this.overlays.loading.getText(), this.animationManager.defaultDuration);
 
         this.processors = [
             new BaseLayoutProcessor(this, this.layoutService),
             new DataWindowProcessor(this, this.dataService, this.updateService, this.zoomManager),
-            new OverlaysProcessor(this, this.overlays, this.dataService, this.layoutService),
+            new OverlaysProcessor(this, this.overlays, this.dataService, this.layoutService, this.animationManager),
         ];
 
         this.tooltip = new Tooltip(this.scene.canvas.element);
@@ -1433,7 +1436,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         let forceNodeDataRefresh = false;
         let seriesStatus: SeriesChangeType = 'no-op';
-        if (deltaOptions.series && deltaOptions.series.length > 0) {
+        if (deltaOptions.series?.length) {
             seriesStatus = this.applySeries(this, deltaOptions.series, oldOpts?.series);
             forceNodeDataRefresh = true;
         }
@@ -1468,7 +1471,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         const miniChart = navigatorModule?.miniChart;
         const miniChartSeries = deltaOptions?.navigator?.miniChart?.series ?? deltaOptions?.series;
-        if (miniChart?.enabled === true && miniChartSeries != null) {
+        if (miniChart?.enabled && miniChartSeries != null) {
             this.applyMiniChartOptions(oldOpts, miniChart, miniChartSeries, deltaOptions);
         } else if (miniChart?.enabled === false) {
             miniChart.series = [];

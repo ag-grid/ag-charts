@@ -1,4 +1,5 @@
 import type { DataService } from '../data/dataService';
+import type { AnimationManager } from '../interaction/animationManager';
 import type { LayoutService } from '../layout/layoutService';
 import type { ChartOverlays } from '../overlay/chartOverlays';
 import type { Overlay } from '../overlay/overlay';
@@ -11,7 +12,8 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
         private readonly chartLike: ChartLike,
         private readonly overlays: ChartOverlays,
         private readonly dataService: DataService<D>,
-        private readonly layoutService: LayoutService
+        private readonly layoutService: LayoutService,
+        private readonly animationManager: AnimationManager
     ) {
         this.destroyFns.push(this.layoutService.addListener('layout-complete', () => this.onLayoutComplete()));
     }
@@ -32,9 +34,10 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
 
     private toggleOverlay(overlay: Overlay, visible: boolean) {
         if (visible) {
-            overlay.show();
+            const element = overlay.getElement(this.animationManager);
+            (this.chartLike as any).element.append(element);
         } else {
-            overlay.hide();
+            overlay.removeElement(this.animationManager);
         }
     }
 }

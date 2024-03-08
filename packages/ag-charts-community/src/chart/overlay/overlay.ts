@@ -7,57 +7,64 @@ export const DEFAULT_OVERLAY_CLASS = 'ag-chart-overlay';
 export const DEFAULT_OVERLAY_DARK_CLASS = 'ag-chart-dark-overlay';
 
 export class Overlay extends BaseProperties {
-    private element?: HTMLElement;
-
-    constructor(
-        private readonly styleClass: string,
-        private readonly parentElement: HTMLElement,
-        private readonly animationManager: AnimationManager
-    ) {
-        super();
-    }
-
-    @Validate(FUNCTION, { optional: true })
-    renderer?: () => string;
-
     @Validate(STRING, { optional: true })
     text?: string;
+
+    @Validate(FUNCTION, { optional: true })
+    renderer?: () => string | HTMLElement;
 
     @Validate(BOOLEAN)
     darkTheme = false;
 
-    show() {
-        if (!this.element) {
-            this.element = createElement('div');
-            this.element.classList.add(this.styleClass, DEFAULT_OVERLAY_CLASS);
-        }
+    private element?: HTMLElement;
 
+    constructor(
+        protected className: string,
+        protected defaultText: string
+    ) {
+        super();
+    }
+
+    getText() {
+        return this.text ?? this.defaultText;
+    }
+
+    getElement(animationManager?: AnimationManager) {
+        this.element ??= createElement('div');
+        this.element.classList.add(this.className, DEFAULT_OVERLAY_CLASS);
         this.element.classList.toggle(DEFAULT_OVERLAY_DARK_CLASS, this.darkTheme);
 
-        const { element } = this;
-        element.style.position = 'absolute';
-        element.style.inset = '0';
+        const element = this.element;
+
+        Object.assign(element.style, { position: 'absolute', inset: '0' });
 
         if (this.renderer) {
-            element.innerHTML = this.renderer();
+            const htmlContent = this.renderer();
+            if (htmlContent instanceof HTMLElement) {
+                element.replaceChildren(htmlContent);
+            } else {
+                element.innerHTML = htmlContent;
+            }
         } else {
             const content = createElement('div');
-            content.style.alignItems = 'center';
-            content.style.boxSizing = 'border-box';
-            content.style.display = 'flex';
-            content.style.justifyContent = 'center';
-            content.style.margin = '8px';
-            content.style.height = '100%';
-            content.style.font = '12px Verdana, sans-serif';
-            content.innerText = this.text ?? 'No data to display';
+            Object.assign(content.style, {
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxSizing: 'border-box',
+                height: '100%',
+                margin: '8px',
+                font: '12px Verdana, sans-serif',
+            });
+            content.innerText = this.getText();
 
             element.replaceChildren(content);
 
-            this.animationManager.animate({
+            animationManager?.animate({
                 from: 0,
                 to: 1,
-                phase: 'add',
                 id: 'overlay',
+                phase: 'add',
                 groupId: 'opacity',
                 onUpdate(value) {
                     element.style.opacity = String(value);
@@ -68,26 +75,30 @@ export class Overlay extends BaseProperties {
             });
         }
 
-        this.parentElement?.append(element);
+        return this.element;
     }
 
-    hide() {
+    removeElement(animationManager?: AnimationManager) {
         if (!this.element) return;
 
-        const { element } = this;
-        this.animationManager.animate({
-            from: 1,
-            to: 0,
-            phase: 'remove',
-            id: 'overlay',
-            groupId: 'opacity',
-            onUpdate(value) {
-                element.style.opacity = String(value);
-            },
-            onStop() {
-                element.remove();
-            },
-        });
+        if (animationManager) {
+            const { element } = this;
+            animationManager.animate({
+                from: 1,
+                to: 0,
+                phase: 'remove',
+                id: 'overlay',
+                groupId: 'opacity',
+                onUpdate(value) {
+                    element.style.opacity = String(value);
+                },
+                onStop() {
+                    element.remove();
+                },
+            });
+        } else {
+            this.element.remove();
+        }
 
         this.element = undefined;
     }

@@ -31,8 +31,8 @@ describe('Overlay', () => {
             const invalidObj = 0 as unknown as object;
             chart = await createChart({ overlays: { noData: invalidObj, noVisibleSeries: invalidObj } });
             expectWarningMessages(
-                `AG Charts - unable to set [overlays.noData] in ChartOverlays - can't apply type of [primitive], allowed types are: [class-instance]`,
-                `AG Charts - unable to set [overlays.noVisibleSeries] in ChartOverlays - can't apply type of [primitive], allowed types are: [class-instance]`
+                `AG Charts - unable to set [noData] in ChartOverlays - expecting an object`,
+                `AG Charts - unable to set [noVisibleSeries] in ChartOverlays - expecting an object`
             );
         });
 
