@@ -11,25 +11,25 @@ const options: AgChartOptions = {
     topology,
     series: [
         {
-            type: 'map',
+            type: 'map-shape',
             data: gmt,
             idKey: 'name',
             legendItemName: 'Greenwich Mean Time',
         },
         {
-            type: 'map',
+            type: 'map-shape',
             data: cet,
             idKey: 'name',
             legendItemName: 'Central European Time',
         },
         {
-            type: 'map',
+            type: 'map-shape',
             data: eet,
             idKey: 'name',
             legendItemName: 'Eastern European Time',
         },
         {
-            type: 'map',
+            type: 'map-shape',
             data: msk,
             idKey: 'name',
             legendItemName: 'Moscow Standard Time',

@@ -1,7 +1,7 @@
 import type { _ModuleSupport } from 'ag-charts-community';
 
 import { extendBbox } from './bboxUtil';
-import { lineStringCenter } from './lineStringUtil';
+import { lineStringCenter, lineStringLength } from './lineStringUtil';
 import { polygonBbox, preferredLabelCenter } from './polygonUtil';
 
 export function geometryBbox(
@@ -121,15 +121,51 @@ export function labelPosition(
     }
 }
 
-export function markerCenters(geometry: _ModuleSupport.Geometry): _ModuleSupport.Position[] {
+export function markerPositions(geometry: _ModuleSupport.Geometry, precision: number): _ModuleSupport.Position[] {
     switch (geometry.type) {
         case 'GeometryCollection':
-            return geometry.geometries.flatMap(markerCenters);
-        case 'MultiPolygon':
-        case 'Polygon':
-        case 'MultiLineString':
-        case 'LineString':
-            return [];
+            return geometry.geometries.flatMap(markerPositions);
+        case 'MultiPolygon': {
+            let largestArea: number | undefined;
+            let largestPolygon: _ModuleSupport.Position[][] | undefined;
+            geometry.coordinates.map((polygon) => {
+                const bbox = polygonBbox(polygon[0], undefined);
+                if (bbox == null) return;
+
+                const area = Math.abs(bbox.lat1 - bbox.lat0) * Math.abs(bbox.lon1 - bbox.lon0);
+                if (largestArea == null || area > largestArea) {
+                    largestArea = area;
+                    largestPolygon = polygon;
+                }
+            });
+            const center =
+                largestPolygon != null
+                    ? preferredLabelCenter(largestPolygon, { width: 0, height: 0 }, precision)
+                    : undefined;
+            return center != null ? [center] : [];
+        }
+        case 'Polygon': {
+            const center = preferredLabelCenter(geometry.coordinates, { width: 0, height: 0 }, precision);
+            return center != null ? [center] : [];
+        }
+        case 'MultiLineString': {
+            let largestLength = 0;
+            let largestLineString: _ModuleSupport.Position[] | undefined;
+            geometry.coordinates.forEach((lineString) => {
+                const length = lineStringLength(lineString);
+
+                if (length > largestLength) {
+                    largestLength = length;
+                    largestLineString = lineString;
+                }
+            });
+            const center = largestLineString != null ? lineStringCenter(largestLineString)?.point : undefined;
+            return center != null ? [center] : [];
+        }
+        case 'LineString': {
+            const center = lineStringCenter(geometry.coordinates)?.point;
+            return center != null ? [center] : [];
+        }
         case 'MultiPoint':
             return geometry.coordinates;
         case 'Point':

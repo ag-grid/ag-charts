@@ -22,7 +22,7 @@ export interface AxisLike {
 }
 
 export interface SeriesLike {
-    data?: any[];
+    hasData: boolean;
     visible: boolean;
 }
 

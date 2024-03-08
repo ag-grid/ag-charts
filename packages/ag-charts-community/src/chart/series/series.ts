@@ -352,6 +352,10 @@ export abstract class Series<
         return this.properties.visible;
     }
 
+    get hasData() {
+        return this.data != null && this.data.length > 0;
+    }
+
     protected onDataChange() {
         this.nodeDataRefresh = true;
     }

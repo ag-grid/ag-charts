@@ -4,21 +4,19 @@ export class Star extends Marker {
     static override readonly className = 'Star';
 
     override updatePath() {
-        const { path, x, y } = this;
-        const s = this.size;
+        const { x, y, path, size } = this;
+        const spikes = 5;
+        const innerRadius = size / 2;
+        const rotation = Math.PI / 2;
 
         path.clear();
-
-        path.moveTo(x, y + (0.5 - 1) * s);
-        path.lineTo(x + (1.11226 - 1) * s, y + (0.845491 - 1) * s);
-        path.lineTo(x + (1.47553 - 1) * s, y + (0.845491 - 1) * s);
-        path.lineTo(x + (1.18164 - 1) * s, y + (1.05902 - 1) * s);
-        path.lineTo(x + (1.29389 - 1) * s, y + (1.40451 - 1) * s);
-        path.lineTo(x, y + (1.19098 - 1) * s);
-        path.lineTo(x + (0.706107 - 1) * s, y + (1.40451 - 1) * s);
-        path.lineTo(x + (0.818364 - 1) * s, y + (1.05902 - 1) * s);
-        path.lineTo(x + (0.524472 - 1) * s, y + (0.845491 - 1) * s);
-        path.lineTo(x + (0.887743 - 1) * s, y + (0.845491 - 1) * s);
+        for (let i = 0; i < spikes * 2; i++) {
+            const radius = i % 2 === 0 ? size : innerRadius;
+            const angle = (i * Math.PI) / spikes - rotation;
+            const xCoordinate = x + Math.cos(angle) * radius;
+            const yCoordinate = y + Math.sin(angle) * radius;
+            path.lineTo(xCoordinate, yCoordinate);
+        }
         path.closePath();
     }
 }
