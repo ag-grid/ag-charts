@@ -77,12 +77,12 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         // automatically garbage collect the marker selection.
         if (!isContinuousX) {
             props.push(keyProperty(this, xKey, isContinuousX, { id: 'xKey' }));
-            if (animationEnabled && this.processedData) {
-                props.push(diff(this.processedData));
-            }
         }
         if (animationEnabled) {
             props.push(animationValidation(this, isContinuousX ? ['xValue'] : []));
+            if (this.processedData) {
+                props.push(diff(this.processedData));
+            }
         }
 
         props.push(
@@ -469,6 +469,8 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         const fns = prepareLinePathAnimation(newData, oldData, this.processedData?.reduced?.diff);
         if (fns === undefined) {
             skip();
+            return;
+        } else if (fns.status === 'no-op') {
             return;
         }
 
