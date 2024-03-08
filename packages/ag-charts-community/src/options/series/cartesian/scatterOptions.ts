@@ -1,3 +1,4 @@
+import type { LabelPlacement } from '../../agChartOptions';
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
@@ -13,11 +14,16 @@ export interface AgScatterSeriesTooltipRendererParams<TDatum = any>
 
 export type AgScatterSeriesLabelFormatterParams = AgScatterSeriesOptionsKeys & AgScatterSeriesOptionsNames;
 
+export interface AgScatterSeriesLabel<TDatum> extends AgChartLabelOptions<TDatum, AgScatterSeriesLabelFormatterParams> {
+    /** Placement of label in relation to the marker. Defaults to `bottom`. */
+    placement?: LabelPlacement;
+}
+
 export interface AgScatterSeriesThemeableOptions<TDatum = any> extends AgBaseCartesianThemeableOptions<TDatum> {
     /** Configuration for the markers used in the series.  */
     marker?: AgSeriesMarkerOptions<AgScatterSeriesOptionsKeys, TDatum>;
     /** Configuration for the labels shown on top of data points.  */
-    label?: AgChartLabelOptions<TDatum, AgScatterSeriesLabelFormatterParams>;
+    label?: AgScatterSeriesLabel<TDatum>;
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not.  */
     title?: string;
     /** Series-specific tooltip configuration.  */

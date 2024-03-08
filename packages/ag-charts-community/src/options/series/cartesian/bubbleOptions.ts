@@ -1,6 +1,6 @@
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { PixelSize } from '../../chart/types';
+import type { LabelPlacement, PixelSize } from '../../chart/types';
 import type { AgSeriesMarkerOptions } from '../markerOptions';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
 
@@ -17,13 +17,18 @@ export interface AgBubbleSeriesMarker<TDatum> extends AgSeriesMarkerOptions<AgBu
 
 export type AgBubbleSeriesLabelFormatterParams = AgBubbleSeriesOptionsKeys & AgBubbleSeriesOptionsNames;
 
+export interface AgBubbleSeriesLabel<TDatum> extends AgChartLabelOptions<TDatum, AgBubbleSeriesLabelFormatterParams> {
+    /** Placement of label in relation to the marker. Defaults to `bottom`. */
+    placement?: LabelPlacement;
+}
+
 export interface AgBubbleSeriesThemeableOptions<TDatum = any> extends AgBaseCartesianThemeableOptions<TDatum> {
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not.  */
     title?: string;
     /** Configuration for the markers used in the series.  */
     marker?: AgBubbleSeriesMarker<TDatum>;
     /** Configuration for the labels shown on top of data points.  */
-    label?: AgChartLabelOptions<TDatum, AgBubbleSeriesLabelFormatterParams>;
+    label?: AgBubbleSeriesLabel<TDatum>;
     /** Series-specific tooltip configuration.  */
     tooltip?: AgSeriesTooltip<AgBubbleSeriesTooltipRendererParams<TDatum>>;
 }
