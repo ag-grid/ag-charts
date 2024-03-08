@@ -21,16 +21,16 @@ const options: AgChartOptions = {
     series: [
         {
             // @ts-ignore
-            type: 'map',
+            type: 'map-shape',
             topology,
             data: data,
             idKey: 'name',
             fill: '#badc58',
-            legendItemName: 'Map',
+            legendItemName: 'map-shape',
         },
         {
             // @ts-ignore
-            type: 'map',
+            type: 'map-shape',
             topology: routeTopology,
             data: routeData,
             idKey: 'name',
@@ -40,7 +40,7 @@ const options: AgChartOptions = {
         },
         {
             // @ts-ignore
-            type: 'map',
+            type: 'map-shape',
             topology: cityTopology,
             data: cityData,
             idKey: 'name',

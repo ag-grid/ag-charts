@@ -9,7 +9,7 @@ import { MercatorScale } from './series/topology/mercatorScale';
 import type { TopologySeries } from './series/topologySeries';
 
 function isTopologySeries(series: Series<any, any>): series is TopologySeries {
-    return series.type === 'map' || series.type === 'map-marker';
+    return series.type === 'map-shape' || series.type === 'map-marker';
 }
 
 export class TopologyChart extends Chart {

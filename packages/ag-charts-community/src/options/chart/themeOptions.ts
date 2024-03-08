@@ -25,7 +25,7 @@ import type { AgRadarSeriesThemeableOptions } from '../series/polar/radarOptions
 import type { AgRadialBarSeriesThemeableOptions } from '../series/polar/radialBarOptions';
 import type { AgRadialColumnSeriesThemeableOptions } from '../series/polar/radialColumnOptions';
 import type { AgMapMarkerSeriesThemeableOptions } from '../series/topology/mapMarkerOptions';
-import type { AgMapSeriesThemeableOptions } from '../series/topology/mapOptions';
+import type { AgMapShapeSeriesThemeableOptions } from '../series/topology/mapShapeOptions';
 import type { AgBaseTopologyThemeOptions } from '../series/topology/topologyOptions';
 import type { AgBaseChartOptions, AgBaseThemeableChartOptions } from './chartOptions';
 import type { CssColor } from './types';
@@ -144,8 +144,8 @@ export interface AgSunburstSeriesThemeOverrides extends AgBaseHierarchyThemeOpti
 export interface AgTreemapSeriesThemeOverrides extends AgBaseHierarchyThemeOptions {
     series?: AgTreemapSeriesThemeableOptions;
 }
-export interface AgMapSeriesThemeOverrides extends AgBaseTopologyThemeOptions {
-    series?: AgMapSeriesThemeableOptions;
+export interface AgMapShapeSeriesThemeOverrides extends AgBaseTopologyThemeOptions {
+    series?: AgMapShapeSeriesThemeableOptions;
 }
 export interface AgMapMarkerSeriesThemeOverrides extends AgBaseTopologyThemeOptions {
     series?: AgMapMarkerSeriesThemeableOptions;
@@ -206,7 +206,7 @@ export interface AgChartThemeOverrides {
     /** Treemap series theme overrides. */
     treemap?: AgTreemapSeriesThemeOverrides;
     /** Map series theme overrides. */
-    map?: AgMapSeriesThemeOverrides;
+    'map-shape'?: AgMapShapeSeriesThemeOverrides;
     /** Map series theme overrides. */
     'map-marker'?: AgMapMarkerSeriesThemeOverrides;
 }

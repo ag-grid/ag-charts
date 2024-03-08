@@ -1,6 +1,6 @@
 import { _ModuleSupport, _Theme } from 'ag-charts-community';
 
-import { MapSeries } from './mapSeries';
+import { MapShapeSeries } from './mapShapeSeries';
 
 const {
     EXTENDS_SERIES_DEFAULTS,
@@ -12,14 +12,14 @@ const {
     singleSeriesPaletteFactory,
 } = _Theme;
 
-export const MapModule: _ModuleSupport.SeriesModule<'map'> = {
+export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
     type: 'series',
     optionsKey: 'series[]',
     packageType: 'enterprise',
     chartTypes: ['topology'],
 
-    identifier: 'map',
-    instanceConstructor: MapSeries,
+    identifier: 'map-shape',
+    instanceConstructor: MapShapeSeries,
     seriesDefaults: {},
     themeTemplate: {
         series: {

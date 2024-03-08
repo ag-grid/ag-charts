@@ -1,8 +1,8 @@
 import type { AgBaseThemeableChartOptions } from '../../chart/chartOptions';
 import type { AgMapMarkerSeriesOptions } from './mapMarkerOptions';
-import type { AgMapSeriesOptions } from './mapOptions';
+import type { AgMapShapeSeriesOptions } from './mapShapeOptions';
 
-export type AgTopologySeriesOptions = AgMapSeriesOptions | AgMapMarkerSeriesOptions;
+export type AgTopologySeriesOptions = AgMapShapeSeriesOptions | AgMapMarkerSeriesOptions;
 
 export interface AgBaseTopologyChartOptions {
     /** Series configurations. */

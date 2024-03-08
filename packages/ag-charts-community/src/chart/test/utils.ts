@@ -237,7 +237,7 @@ export function hierarchyChartAssertions(params?: { seriesTypes?: string[] }) {
 }
 
 export function topologyChartAssertions(params?: { seriesTypes?: string[] }) {
-    const { seriesTypes = ['map'] } = params ?? {};
+    const { seriesTypes = ['map-shape'] } = params ?? {};
 
     return async (chartOrProxy: Chart | AgChartProxy) => {
         const chart = deproxy(chartOrProxy);

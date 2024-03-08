@@ -1,10 +1,10 @@
 import type {
-    AgMapSeriesFormatterParams,
-    AgMapSeriesLabelFormatterParams,
-    AgMapSeriesOptions,
-    AgMapSeriesOptionsKeys,
-    AgMapSeriesStyle,
-    AgMapSeriesTooltipRendererParams,
+    AgMapShapeSeriesFormatterParams,
+    AgMapShapeSeriesLabelFormatterParams,
+    AgMapShapeSeriesOptions,
+    AgMapShapeSeriesOptionsKeys,
+    AgMapShapeSeriesStyle,
+    AgMapShapeSeriesTooltipRendererParams,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
@@ -33,11 +33,11 @@ const {
 } = _ModuleSupport;
 const { Label, SceneChangeDetection } = _Scene;
 
-export interface MapNodeLabelDatum extends _Util.PointLabelDatum {
+export interface MapShapeNodeLabelDatum extends _Util.PointLabelDatum {
     hasMarkers: boolean;
 }
 
-interface BaseMapNodeDatum extends _ModuleSupport.SeriesNodeDatum {
+interface BaseMapShapeNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     readonly idValue: string;
     readonly fill: string;
     readonly colorValue: number | undefined;
@@ -45,22 +45,22 @@ interface BaseMapNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     readonly projectedGeometry: Geometry | undefined;
 }
 
-export enum MapNodeDatumType {
+export enum MapShapeNodeDatumType {
     Node,
     Marker,
 }
 
-export interface MapNodeDatum extends BaseMapNodeDatum {
-    readonly type: MapNodeDatumType.Node;
+export interface MapShapeNodeDatum extends BaseMapShapeNodeDatum {
+    readonly type: MapShapeNodeDatumType.Node;
 }
 
-export interface MapNodeMarkerDatum extends BaseMapNodeDatum {
-    readonly type: MapNodeDatumType.Marker;
+export interface MapShapeNodeMarkerDatum extends BaseMapShapeNodeDatum {
+    readonly type: MapShapeNodeDatumType.Marker;
     readonly index: number;
     readonly point: Readonly<_Scene.SizedPoint>;
 }
 
-class MapSeriesMarker extends _ModuleSupport.SeriesMarker<AgMapSeriesOptionsKeys, MapNodeMarkerDatum> {
+class MapShapeSeriesMarker extends _ModuleSupport.SeriesMarker<AgMapShapeSeriesOptionsKeys, MapShapeNodeMarkerDatum> {
     /**
      * The series `sizeKey` values along with the `size` and `maxSize` configs will be used to
      * determine the size of the marker. All values will be mapped to a marker size within the
@@ -76,12 +76,12 @@ class MapSeriesMarker extends _ModuleSupport.SeriesMarker<AgMapSeriesOptionsKeys
     domain?: [number, number];
 }
 
-class MapSeriesLabel extends Label<AgMapSeriesLabelFormatterParams> {
+class MapShapeSeriesLabel extends Label<AgMapShapeSeriesLabelFormatterParams> {
     @Validate(STRING)
     placement: _Util.LabelPlacement = 'bottom';
 }
 
-class MapSeriesBackground extends BaseProperties {
+class MapShapeSeriesBackground extends BaseProperties {
     @Validate(GEOJSON_OBJECT, { optional: true })
     topology: FeatureCollection | undefined = undefined;
 
@@ -113,12 +113,12 @@ class MapSeriesBackground extends BaseProperties {
     lineDashOffset: number = 0;
 }
 
-export class MapSeriesProperties extends SeriesProperties<AgMapSeriesOptions> {
+export class MapShapeSeriesProperties extends SeriesProperties<AgMapShapeSeriesOptions> {
     @Validate(GEOJSON_OBJECT, { optional: true })
     topology?: FeatureCollection = undefined;
 
     @Validate(OBJECT)
-    readonly background = new MapSeriesBackground();
+    readonly background = new MapShapeSeriesBackground();
 
     @Validate(STRING, { optional: true })
     legendItemName?: string;
@@ -175,23 +175,23 @@ export class MapSeriesProperties extends SeriesProperties<AgMapSeriesOptions> {
     lineDashOffset: number = 0;
 
     @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgMapSeriesFormatterParams<any>) => AgMapSeriesStyle;
+    formatter?: (params: AgMapShapeSeriesFormatterParams<any>) => AgMapShapeSeriesStyle;
 
     @Validate(OBJECT)
-    readonly marker = new MapSeriesMarker();
+    readonly marker = new MapShapeSeriesMarker();
 
     @Validate(OBJECT)
-    readonly label = new MapSeriesLabel();
+    readonly label = new MapShapeSeriesLabel();
 
     @Validate(OBJECT)
-    override tooltip = new SeriesTooltip<AgMapSeriesTooltipRendererParams<any>>();
+    override tooltip = new SeriesTooltip<AgMapShapeSeriesTooltipRendererParams<any>>();
 
     @Validate(STRING, { optional: true })
     __POLYGON_STROKE?: string = undefined;
     @Validate(OBJECT)
-    __POLYGON_LABEL = new Label<AgMapSeriesLabelFormatterParams>();
+    __POLYGON_LABEL = new Label<AgMapShapeSeriesLabelFormatterParams>();
     @Validate(STRING, { optional: true })
     __LINE_STRING_STROKE?: string = undefined;
     @Validate(OBJECT)
-    __MARKER_LABEL = new Label<AgMapSeriesLabelFormatterParams>();
+    __MARKER_LABEL = new Label<AgMapShapeSeriesLabelFormatterParams>();
 }

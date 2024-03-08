@@ -49,7 +49,7 @@ export const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
     { type: 'series', optionsKey: 'series[]', chartTypes: ['polar'], identifier: 'radial-column' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['hierarchy'], identifier: 'sunburst' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['hierarchy'], identifier: 'treemap' },
-    { type: 'series', optionsKey: 'series[]', chartTypes: ['topology'], identifier: 'map' },
+    { type: 'series', optionsKey: 'series[]', chartTypes: ['topology'], identifier: 'map-shape' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['topology'], identifier: 'map-marker' },
     { type: 'series-option', optionsKey: 'errorBar', chartTypes: ['cartesian'], identifier: 'error-bars' },
 ];

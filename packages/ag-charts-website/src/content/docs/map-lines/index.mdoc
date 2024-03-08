@@ -17,7 +17,7 @@ data: data,
 topology: topology,
 series: [
     {
-        type: 'map',
+        type: 'map-shape',
         topologyIdKey: 'name',
         idKey: 'name',
     },
@@ -42,7 +42,7 @@ The background property will underlay a geographic shape to provide more context
 ```js
 series: [
     {
-        type: 'map',
+        type: 'map-shape',
         topologyIdKey: 'name',
         idKey: 'name',
         background: {
@@ -60,8 +60,8 @@ In this configuration, the background properties function in the same way as the
 
 {% tabs %}
 
-{% tabItem id="AgMapSeriesOptions" label="Map" %}
-{% apiReference id="AgMapSeriesOptions" /%}
+{% tabItem id="AgMapShapeSeriesOptions" label="Map Shape" %}
+{% apiReference id="AgMapShapeSeriesOptions" /%}
 {% /tabItem %}
 
 {% /tabs %}

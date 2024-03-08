@@ -1,4 +1,4 @@
-import { AgMapSeriesStyle, _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import { AgMapShapeSeriesStyle, _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import { extendBbox } from '../map-util/bboxUtil';
 import { GeoGeometry } from '../map-util/geoGeometry';
@@ -599,7 +599,7 @@ export class MapMarkerSeries extends DataModelSeries<
         }
         const content = contentLines.join('<br>');
 
-        let format: AgMapSeriesStyle | undefined;
+        let format: AgMapShapeSeriesStyle | undefined;
 
         if (formatter) {
             format = callbackCache.call(formatter, {

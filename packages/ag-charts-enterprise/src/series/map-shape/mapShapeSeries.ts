@@ -1,16 +1,16 @@
-import { AgMapSeriesStyle, _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import { AgMapShapeSeriesStyle, _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { geometryBbox, labelPosition, markerCenters, projectGeometry } from '../map-util/geometryUtil';
 import { prepareMapMarkerAnimationFunctions } from '../map-util/mapUtil';
 import { GEOJSON_OBJECT } from '../map-util/validation';
 import {
-    MapNodeDatum,
-    MapNodeDatumType,
-    MapNodeLabelDatum,
-    MapNodeMarkerDatum,
-    MapSeriesProperties,
-} from './mapSeriesProperties';
+    MapShapeNodeDatum,
+    MapShapeNodeDatumType,
+    MapShapeNodeLabelDatum,
+    MapShapeNodeMarkerDatum,
+    MapShapeSeriesProperties,
+} from './mapShapeSeriesProperties';
 
 // import type { Feature, FeatureCollection, Geometry } from 'geojson';
 type Feature = any;
@@ -31,8 +31,9 @@ const { ColorScale, LinearScale } = _Scale;
 const { Group, Selection, Text, getMarker } = _Scene;
 const { sanitizeHtml, Logger } = _Util;
 
-export interface MapNodeDataContext extends _ModuleSupport.SeriesNodeDataContext<MapNodeDatum, MapNodeLabelDatum> {
-    markerData: MapNodeMarkerDatum[];
+export interface MapShapeNodeDataContext
+    extends _ModuleSupport.SeriesNodeDataContext<MapShapeNodeDatum, MapShapeNodeLabelDatum> {
+    markerData: MapShapeNodeMarkerDatum[];
     projectedBackgroundGeometry: Geometry | undefined;
     visible: boolean;
 }
@@ -55,18 +56,23 @@ const isLineString = (geometry: Geometry) => {
     }
 };
 
-export class MapSeries
-    extends DataModelSeries<MapNodeDatum, MapSeriesProperties, MapNodeLabelDatum, MapNodeDataContext>
+export class MapShapeSeries
+    extends DataModelSeries<
+        MapShapeNodeDatum,
+        MapShapeSeriesProperties,
+        MapShapeNodeLabelDatum,
+        MapShapeNodeDataContext
+    >
     implements _ModuleSupport.TopologySeries
 {
     static readonly className = 'MapSeries';
-    static readonly type = 'map' as const;
+    static readonly type = 'map-shape' as const;
 
     scale: _ModuleSupport.MercatorScale | undefined;
 
     public topologyBounds: _ModuleSupport.LonLatBBox | undefined;
 
-    override properties = new MapSeriesProperties();
+    override properties = new MapShapeSeriesProperties();
 
     @Validate(GEOJSON_OBJECT, { optional: true, property: 'topology' })
     private _chartTopology?: FeatureCollection = undefined;
@@ -88,7 +94,7 @@ export class MapSeries
     private markerGroup = this.contentGroup.appendChild(new Group({ name: 'markerGroup' }));
     private highlightMarkerGroup = this.contentGroup.appendChild(new Group({ name: 'highlightMarkerGroup' }));
 
-    private datumSelection: _Scene.Selection<GeoGeometry, MapNodeDatum> = Selection.select(
+    private datumSelection: _Scene.Selection<GeoGeometry, MapShapeNodeDatum> = Selection.select(
         this.itemGroup,
         () => this.nodeFactory(),
         false
@@ -98,21 +104,21 @@ export class MapSeries
         Text,
         false
     );
-    private markerSelection: _Scene.Selection<_Scene.Marker, MapNodeMarkerDatum> = Selection.select(
+    private markerSelection: _Scene.Selection<_Scene.Marker, MapShapeNodeMarkerDatum> = Selection.select(
         this.markerGroup,
         () => this.markerFactory(),
         false
     );
-    private highlightDatumSelection: _Scene.Selection<GeoGeometry, MapNodeDatum> = Selection.select(
+    private highlightDatumSelection: _Scene.Selection<GeoGeometry, MapShapeNodeDatum> = Selection.select(
         this.highlightNode,
         () => this.nodeFactory()
     );
-    private highlightMarkerSelection: _Scene.Selection<_Scene.Marker, MapNodeMarkerDatum> = Selection.select(
+    private highlightMarkerSelection: _Scene.Selection<_Scene.Marker, MapShapeNodeMarkerDatum> = Selection.select(
         this.highlightMarkerGroup,
         () => this.markerFactory()
     );
 
-    private contextNodeData: MapNodeDataContext[] = [];
+    private contextNodeData: MapShapeNodeDataContext[] = [];
 
     private animationState: _ModuleSupport.StateMachine<MapAnimationState, MapAnimationEvent>;
 
@@ -306,7 +312,7 @@ export class MapSeries
         hasMarkers: boolean,
         projectedGeometry: Geometry | undefined,
         font: string
-    ): MapNodeLabelDatum | undefined {
+    ): MapShapeNodeLabelDatum | undefined {
         if (labelValue == null || projectedGeometry == null) return;
 
         const { idKey, idName, sizeKey, sizeName, colorKey, colorName, labelKey, labelName, label } = this.properties;
@@ -343,7 +349,7 @@ export class MapSeries
         };
     }
 
-    override async createNodeData(): Promise<MapNodeDataContext[]> {
+    override async createNodeData(): Promise<MapShapeNodeDataContext[]> {
         const { id: seriesId, dataModel, processedData, colorScale, sizeScale, properties, scale } = this;
         const { idKey, sizeKey, colorKey, labelKey, label, marker, fill: fillProperty } = properties;
 
@@ -370,9 +376,9 @@ export class MapSeries
             }
         });
 
-        const nodeData: MapNodeDatum[] = [];
-        const labelData: MapNodeLabelDatum[] = [];
-        const markerData: MapNodeMarkerDatum[] = [];
+        const nodeData: MapShapeNodeDatum[] = [];
+        const labelData: MapShapeNodeLabelDatum[] = [];
+        const markerData: MapShapeNodeMarkerDatum[] = [];
         const missingGeometries: string[] = [];
         processedData.data.forEach(({ datum, values }) => {
             const idValue = values[idIdx];
@@ -404,8 +410,8 @@ export class MapSeries
                 labelData.push(labelDatum);
             }
 
-            const nodeDatum: MapNodeDatum = {
-                type: MapNodeDatumType.Node,
+            const nodeDatum: MapShapeNodeDatum = {
+                type: MapShapeNodeDatumType.Node,
                 series: this,
                 itemId: idKey,
                 datum,
@@ -421,7 +427,7 @@ export class MapSeries
                 const point = { x, y, size };
                 markerData.push({
                     ...nodeDatum,
-                    type: MapNodeDatumType.Marker,
+                    type: MapShapeNodeDatumType.Marker,
                     fill: color ?? marker.fill ?? fillProperty,
                     index,
                     point,
@@ -468,7 +474,7 @@ export class MapSeries
 
         await this.updateSelections();
 
-        let highlightedDatum: MapNodeDatum | MapNodeMarkerDatum | undefined =
+        let highlightedDatum: MapShapeNodeDatum | MapShapeNodeMarkerDatum | undefined =
             this.ctx.highlightManager?.getActiveHighlight() as any;
         if (highlightedDatum != null && highlightedDatum.series !== this) {
             highlightedDatum = undefined;
@@ -488,13 +494,13 @@ export class MapSeries
         await this.updateMarkerNodes({ markerSelection, isHighlight: false });
 
         this.highlightDatumSelection = await this.updateDatumSelection({
-            nodeData: highlightedDatum?.type === MapNodeDatumType.Node ? [highlightedDatum] : [],
+            nodeData: highlightedDatum?.type === MapShapeNodeDatumType.Node ? [highlightedDatum] : [],
             datumSelection: highlightDatumSelection,
         });
         await this.updateDatumNodes({ datumSelection: highlightDatumSelection, isHighlight: true });
 
         this.highlightMarkerSelection = await this.updateMarkerSelection({
-            markerData: highlightedDatum?.type === MapNodeDatumType.Marker ? [highlightedDatum] : [],
+            markerData: highlightedDatum?.type === MapShapeNodeDatumType.Marker ? [highlightedDatum] : [],
             markerSelection: highlightMarkerSelection,
         });
         await this.updateMarkerNodes({ markerSelection: highlightMarkerSelection, isHighlight: true });
@@ -529,14 +535,14 @@ export class MapSeries
     }
 
     private async updateDatumSelection(opts: {
-        nodeData: MapNodeDatum[];
-        datumSelection: _Scene.Selection<GeoGeometry, MapNodeDatum>;
+        nodeData: MapShapeNodeDatum[];
+        datumSelection: _Scene.Selection<GeoGeometry, MapShapeNodeDatum>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId(datum.idValue));
     }
 
     private async updateDatumNodes(opts: {
-        datumSelection: _Scene.Selection<GeoGeometry, MapNodeDatum>;
+        datumSelection: _Scene.Selection<GeoGeometry, MapShapeNodeDatum>;
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
@@ -586,7 +592,7 @@ export class MapSeries
         const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = this.properties.label;
 
         labelSelection.each((label, { x, y, width, height, text, datum }) => {
-            const { hasMarkers } = datum as MapNodeLabelDatum;
+            const { hasMarkers } = datum as MapShapeNodeLabelDatum;
             const defaults = hasMarkers ? __MARKER_LABEL : __POLYGON_LABEL;
             label.visible = true;
             label.x = x + width / 2;
@@ -603,8 +609,8 @@ export class MapSeries
     }
 
     private async updateMarkerSelection(opts: {
-        markerData: MapNodeMarkerDatum[];
-        markerSelection: _Scene.Selection<_Scene.Marker, MapNodeMarkerDatum>;
+        markerData: MapShapeNodeMarkerDatum[];
+        markerSelection: _Scene.Selection<_Scene.Marker, MapShapeNodeMarkerDatum>;
     }) {
         const { markerData, markerSelection } = opts;
 
@@ -618,7 +624,7 @@ export class MapSeries
     }
 
     private async updateMarkerNodes(opts: {
-        markerSelection: _Scene.Selection<_Scene.Marker, MapNodeMarkerDatum>;
+        markerSelection: _Scene.Selection<_Scene.Marker, MapShapeNodeMarkerDatum>;
         isHighlight: boolean;
     }) {
         const { markerSelection, isHighlight } = opts;
@@ -762,7 +768,7 @@ export class MapSeries
         }
     }
 
-    override getTooltipHtml(nodeDatum: MapNodeDatum): string {
+    override getTooltipHtml(nodeDatum: MapShapeNodeDatum): string {
         const {
             id: seriesId,
             processedData,
@@ -787,7 +793,7 @@ export class MapSeries
         }
         const content = contentLines.join('<br>');
 
-        let format: AgMapSeriesStyle | undefined;
+        let format: AgMapShapeSeriesStyle | undefined;
 
         if (formatter) {
             format = callbackCache.call(formatter, {

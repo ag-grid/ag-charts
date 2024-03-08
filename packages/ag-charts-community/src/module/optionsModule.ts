@@ -381,7 +381,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         } else if (isAgHierarchyChartOptions(options)) {
             return 'treemap';
         } else if (isAgTopologyChartOptions(options)) {
-            return 'map';
+            return 'map-shape';
         }
         throw new Error('Invalid chart options type detected.');
     }

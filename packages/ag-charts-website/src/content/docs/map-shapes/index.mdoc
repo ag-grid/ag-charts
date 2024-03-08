@@ -17,7 +17,7 @@ data: data,
 topology: topology,
 series: [
     {
-        type: 'map',
+        type: 'map-shape',
         topologyIdKey: 'name',
         idKey: 'name',
     },
@@ -40,7 +40,7 @@ Topology features that did not match an item in the data will not be rendered.
 ```js
 series: [
     {
-        type: 'map',
+        type: 'map-shape',
         idKey: 'name',
         labelKey: 'code'
     },
@@ -60,7 +60,7 @@ A heat map will colour items in the topology to denote the magnitude of the data
 ```js
 series: [
     {
-        type: 'map',
+        type: 'map-shape',
         idKey: 'name',
         sizeKey: 'gdp'
     },
@@ -75,8 +75,8 @@ In this configuration:
 
 {% tabs %}
 
-{% tabItem id="AgMapSeriesOptions" label="Map" %}
-{% apiReference id="AgMapSeriesOptions" /%}
+{% tabItem id="AgMapShapeSeriesOptions" label="Map Shape" %}
+{% apiReference id="AgMapShapeSeriesOptions" /%}
 {% /tabItem %}
 
 {% /tabs %}
