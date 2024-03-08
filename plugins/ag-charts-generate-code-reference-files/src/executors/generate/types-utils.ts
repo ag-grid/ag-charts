@@ -165,10 +165,24 @@ export class TypeMapper {
                 typeRef = typeRef.type;
             }
 
-            let typeKeys = node.typeArguments[1];
-            if (typeof typeKeys === 'string' && !typeKeys.match(/^'.*'$/)) {
-                typeKeys = this.resolveType(typeKeys).type;
-            }
+            const resolveTypeKeyType = (typeKey) => {
+                if (typeof typeKey === 'string' && !typeKey.match(/^'.*'$/)) {
+                    return this.resolveType(typeKey).type;
+                } else if (typeKey?.kind === 'union') {
+                    typeKey.type = typeKey.type.flatMap((t) => {
+                        t = resolveTypeKeyType(t);
+                        if (t.kind === 'union') {
+                            return t.type;
+                        } else {
+                            return [t];
+                        }
+                    });
+                    return typeKey;
+                } else {
+                    return typeKey;
+                }
+            };
+            const typeKeys = resolveTypeKeyType(node.typeArguments[1]);
 
             const expectedFilter = node.type === 'Pick';
             const matchType =
