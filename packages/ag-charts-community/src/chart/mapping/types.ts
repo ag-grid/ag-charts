@@ -7,7 +7,12 @@ import type { AgChartOptions, AgTopologyChartOptions } from '../../options/chart
 import { Logger } from '../../util/logger';
 import { axisRegistry } from '../factory/axisRegistry';
 import { chartTypes } from '../factory/chartTypes';
-import { isEnterpriseCartesian, isEnterpriseHierarchy, isEnterprisePolar } from '../factory/expectedEnterpriseModules';
+import {
+    isEnterpriseCartesian,
+    isEnterpriseHierarchy,
+    isEnterprisePolar,
+    isEnterpriseTopology,
+} from '../factory/expectedEnterpriseModules';
 
 export type AxesOptionsTypes = NonNullable<AgCartesianChartOptions['axes']>[number];
 export type SeriesOptionsTypes = NonNullable<AgChartOptions['series']>[number];
@@ -70,7 +75,7 @@ export function isAgTopologyChartOptions(input: AgChartOptions): input is AgTopo
         return true;
     }
 
-    return chartTypes.isTopology(specifiedType) || isEnterpriseHierarchy(specifiedType);
+    return chartTypes.isTopology(specifiedType) || isEnterpriseTopology(specifiedType);
 }
 
 export function isAgPolarChartOptionsWithSeriesBasedLegend(input: AgChartOptions): input is AgPolarChartOptions {

@@ -1,4 +1,4 @@
-import { AgMapLineSeriesStyle, _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import { AgMapLineSeriesStyle, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { geometryBbox, labelPosition, projectGeometry } from '../map-util/geometryUtil';

@@ -79,6 +79,10 @@ export function isEnterpriseHierarchy(seriesType: string) {
     const type = getEnterpriseSeriesChartTypes(seriesType)?.find((v) => v === 'hierarchy');
     return type === 'hierarchy';
 }
+export function isEnterpriseTopology(seriesType: string) {
+    const type = getEnterpriseSeriesChartTypes(seriesType)?.find((v) => v === 'topology');
+    return type === 'topology';
+}
 
 type UnknownPackage = { packageType: string } | EnterpriseModuleStub;
 function isEnterpriseModule(module: UnknownPackage): module is EnterpriseModuleStub {

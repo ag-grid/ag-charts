@@ -24,7 +24,7 @@ const {
 } = _ModuleSupport;
 const { ColorScale, LinearScale } = _Scale;
 const { Group, Selection, Text, getMarker } = _Scene;
-const { sanitizeHtml } = _Util;
+const { sanitizeHtml, Logger } = _Util;
 
 export interface MapMarkerNodeDataContext
     extends _ModuleSupport.SeriesNodeDataContext<MapMarkerNodeDatum, MapMarkerNodeLabelDatum> {
@@ -357,6 +357,7 @@ export class MapMarkerSeries extends DataModelSeries<
 
         const nodeData: MapMarkerNodeDatum[] = [];
         const labelData: MapMarkerNodeLabelDatum[] = [];
+        const missingGeometries: string[] = [];
         processedData.data.forEach(({ datum, values }) => {
             const idValue: string | undefined = idIdx != null ? values[idIdx] : undefined;
             const lonValue: number | undefined = lonIdx != null ? values[lonIdx] : undefined;
@@ -370,6 +371,9 @@ export class MapMarkerSeries extends DataModelSeries<
             const size = sizeValue != null ? sizeScale.convert(sizeValue) : 0;
 
             const projectedGeometry = idValue != null ? projectedGeometries?.get(idValue) : undefined;
+            if (idValue != null && projectGeometry == null) {
+                missingGeometries.push(idValue);
+            }
 
             if (projectedGeometry != null) {
                 markerPositions(projectedGeometry, 1).forEach(([x, y], index) => {
@@ -423,6 +427,16 @@ export class MapMarkerSeries extends DataModelSeries<
         const backgroundGeometry = this.getBackgroundGeometry();
         const projectedBackgroundGeometry =
             backgroundGeometry != null ? projectGeometry(backgroundGeometry, scale) : undefined;
+
+        const missingGeometriesCap = 10;
+        if (missingGeometries.length > missingGeometriesCap) {
+            const excessItems = missingGeometries.length - missingGeometriesCap;
+            missingGeometries.length = missingGeometriesCap;
+            missingGeometries.push(`(+${excessItems} more)`);
+        }
+        if (missingGeometries.length > 0) {
+            Logger.warnOnce(`some data items do not have matches in the provided topology`, missingGeometries);
+        }
 
         return [
             {
