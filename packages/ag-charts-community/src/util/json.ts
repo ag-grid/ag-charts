@@ -133,9 +133,7 @@ export function jsonWalk<T>(json: T, visit: (...nodes: T[]) => void, opts?: { sk
 }
 
 export type JsonApplyParams = {
-    constructors?: Record<string, new () => any>;
     constructedArrays?: WeakMap<Array<any>, new () => any>;
-    allowedTypes?: Record<string, ReturnType<typeof classify>[]>;
 };
 
 /**
@@ -148,11 +146,7 @@ export type JsonApplyParams = {
  * @param params.path path for logging/error purposes, to aid with pinpointing problems
  * @param params.matcherPath path for pattern matching, to lookup allowedTypes override.
  * @param params.skip property names to skip from the source
- * @param params.constructors dictionary of property name to class constructors for properties that
- *                            require object construction
- * @param params.constructedArrays map stores arrays which items should be initialised
- *                                 using a class constructor
- * @param params.allowedTypes overrides by path for allowed property types
+ * @param params.constructedArrays map stores arrays which items should be initialised using a class constructor
  */
 export function jsonApply<Target extends object, Source extends DeepPartial<Target>>(
     target: Target,
@@ -161,18 +155,9 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
         path?: string;
         matcherPath?: string;
         skip?: string[];
-        idx?: number;
     } & JsonApplyParams = {}
 ): Target {
-    const {
-        path,
-        matcherPath = path ? path.replace(/(\[[0-9+]+])/i, '[]') : undefined,
-        skip = [],
-        constructors = {},
-        constructedArrays = new WeakMap(),
-        allowedTypes = {},
-        idx,
-    } = params;
+    const { path, constructedArrays, matcherPath = path?.replace(/(\[[0-9+]+])/i, '[]'), skip = [] } = params;
 
     if (target == null) {
         throw new Error(`AG Charts - target is uninitialised: ${path ?? '<root>'}`);
@@ -186,10 +171,6 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
     }
 
     const targetAny = target as any;
-    if (idx != null && '_declarationOrder' in targetAny) {
-        targetAny['_declarationOrder'] = idx;
-    }
-
     const targetType = classify(target);
     for (const property in source) {
         const propertyMatcherPath = `${matcherPath ? matcherPath + '.' : ''}${property}`;
@@ -199,72 +180,67 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
         const propertyPath = `${path ? path + '.' : ''}${property}`;
         const targetClass = targetAny.constructor;
         const currentValue = targetAny[property];
-        let ctr = constructors[propertyMatcherPath] ?? constructors[property];
+        let ctr: (new () => any) | undefined;
         try {
             const currentValueType = classify(currentValue);
             const newValueType = classify(newValue);
 
-            if (targetType === CLASS_INSTANCE_TYPE && !(property in target || Object.hasOwn(targetAny, property))) {
+            if (targetType === CLASS_INSTANCE_TYPE && !(property in target)) {
                 Logger.warn(`unable to set [${propertyPath}] in ${targetClass?.name} - property is unknown`);
                 continue;
             }
 
-            const allowableTypes = allowedTypes[propertyMatcherPath] ?? [currentValueType];
-            if (currentValueType === CLASS_INSTANCE_TYPE && newValueType === 'object') {
-                // Allowed, this is the common case! - do not error.
-            } else if (currentValueType != null && newValueType != null && !allowableTypes.includes(newValueType)) {
+            if (
+                currentValueType != null &&
+                newValueType != null &&
+                newValueType !== currentValueType &&
+                (currentValueType !== CLASS_INSTANCE_TYPE || newValueType !== 'object')
+            ) {
                 Logger.warn(
-                    `unable to set [${propertyPath}] in ${targetClass?.name} - can't apply type of [${newValueType}], allowed types are: [${allowableTypes}]`
+                    `unable to set [${propertyPath}] in ${targetClass?.name} - can't apply type of [${newValueType}], allowed types are: [${currentValueType}]`
                 );
                 continue;
             }
 
-            if (newValueType === 'array') {
-                ctr = ctr ?? constructedArrays.get(currentValue) ?? constructors[`${propertyMatcherPath}[]`];
-                if (isProperties(targetAny[property])) {
-                    targetAny[property].set(newValue);
-                } else if (ctr == null) {
-                    targetAny[property] = newValue;
-                } else {
+            if (isProperties(currentValue)) {
+                targetAny[property].set(newValue);
+            } else if (newValueType === 'array') {
+                ctr ??= constructedArrays?.get(currentValue);
+                if (ctr != null) {
                     const newValueArray: any[] = newValue as any;
-                    targetAny[property] = newValueArray.map((v, i) =>
-                        jsonApply(new ctr(), v, {
+                    targetAny[property] = newValueArray.map((v) =>
+                        jsonApply(new ctr!(), v, {
                             ...params,
                             path: propertyPath,
                             matcherPath: propertyMatcherPath + '[]',
-                            idx: i,
                         })
                     );
+                } else {
+                    targetAny[property] = newValue;
                 }
             } else if (newValueType === CLASS_INSTANCE_TYPE) {
                 targetAny[property] = newValue;
             } else if (newValueType === 'object') {
-                if (isProperties(currentValue)) {
-                    targetAny[property].set(newValue);
-                } else if (currentValue != null) {
+                if (currentValue != null) {
                     jsonApply(currentValue, newValue as any, {
                         ...params,
                         path: propertyPath,
                         matcherPath: propertyMatcherPath,
-                        idx: undefined,
                     });
-                } else if (ctr == null) {
-                    targetAny[property] = newValue;
+                } else if (ctr != null) {
+                    targetAny[property] = jsonApply(new ctr(), newValue, {
+                        ...params,
+                        path: propertyPath,
+                        matcherPath: propertyMatcherPath,
+                    });
                 } else {
-                    const obj = new ctr();
-                    if (isProperties(obj)) {
-                        targetAny[property] = obj.set(newValue as object);
-                    } else {
-                        targetAny[property] = jsonApply(obj, newValue, {
-                            ...params,
-                            path: propertyPath,
-                            matcherPath: propertyMatcherPath,
-                            idx: undefined,
-                        });
-                    }
+                    targetAny[property] = {};
+                    jsonApply(targetAny[property], newValue as any, {
+                        ...params,
+                        path: propertyPath,
+                        matcherPath: propertyMatcherPath,
+                    });
                 }
-            } else if (isProperties(targetAny[property])) {
-                targetAny[property].set(newValue);
             } else {
                 targetAny[property] = newValue;
             }

@@ -17,7 +17,7 @@ export class TooltipManager {
     private readonly stateTracker = new StateTracker<TooltipState>();
     private readonly exclusiveAreas = new Map<string, BBox>();
     private appliedState: TooltipState | null = null;
-    private appliedExclusiveArea?: string;
+    private appliedExclusiveAreaId?: string;
     private destroyFns: (() => void)[] = [];
 
     public constructor(
@@ -59,17 +59,16 @@ export class TooltipManager {
     }
 
     private checkExclusiveRects(e: InteractionEvent<'hover'>): void {
-        const [newAppliedExclusiveArea] =
-            Array.from(this.exclusiveAreas).find(([_, area]) => area.containsPoint(e.offsetX, e.offsetY)) ?? [];
-
-        if (this.appliedExclusiveArea !== newAppliedExclusiveArea) {
-            this.appliedExclusiveArea = newAppliedExclusiveArea;
-            this.applyStates();
+        for (const [areaId, area] of this.exclusiveAreas) {
+            if (area.containsPoint(e.offsetX, e.offsetY) && this.appliedExclusiveAreaId !== areaId) {
+                this.appliedExclusiveAreaId = areaId;
+                this.applyStates();
+            }
         }
     }
 
     private applyStates() {
-        const id = this.appliedExclusiveArea ?? this.stateTracker.stateId();
+        const id = this.appliedExclusiveAreaId ?? this.stateTracker.stateId();
         const state = id ? this.stateTracker.get(id) : null;
 
         if (state?.meta == null || state?.content == null) {
@@ -94,20 +93,18 @@ export class TooltipManager {
     ): TooltipMeta {
         const { offsetX, offsetY } = event;
         const { tooltip } = datum.series.properties;
-        const position = {
-            type: tooltip.position.type,
-            xOffset: tooltip.position.xOffset,
-            yOffset: tooltip.position.yOffset,
-        };
         const meta: TooltipMeta = {
             offsetX,
             offsetY,
+            enableInteraction: tooltip.interaction?.enabled ?? false,
             lastPointerEvent: { offsetX, offsetY },
             showArrow: tooltip.showArrow,
-            position,
+            position: {
+                type: tooltip.position.type,
+                xOffset: tooltip.position.xOffset,
+                yOffset: tooltip.position.yOffset,
+            },
         };
-
-        meta.enableInteraction = tooltip.interaction?.enabled ?? false;
 
         // On `line` and `scatter` series, the tooltip covers the top of error-bars when using datum.midPoint.
         // Using datum.yBar.upperPoint renders the tooltip higher up.

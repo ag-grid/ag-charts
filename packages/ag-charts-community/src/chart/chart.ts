@@ -21,12 +21,12 @@ import { createId } from '../util/id';
 import { jsonApply, jsonDiff } from '../util/json';
 import { Logger } from '../util/logger';
 import { Mutex } from '../util/mutex';
-import { mergeDefaults } from '../util/object';
+import { mergeDefaults, without } from '../util/object';
 import type { TypedEvent, TypedEventListener } from '../util/observable';
 import { Observable } from '../util/observable';
 import { Padding } from '../util/padding';
 import { BaseProperties } from '../util/properties';
-import { ActionOnSet, type ActionOnSetOptions } from '../util/proxy';
+import { ActionOnSet } from '../util/proxy';
 import { debouncedAnimationFrame, debouncedCallback } from '../util/render';
 import { SizeMonitor } from '../util/sizeMonitor';
 import { isDefined, isFiniteNumber, isFunction, isNumber } from '../util/type-guards';
@@ -37,7 +37,7 @@ import type { ChartAxis } from './chartAxis';
 import { ChartAxisDirection } from './chartAxisDirection';
 import { ChartHighlight } from './chartHighlight';
 import type { ChartMode } from './chartMode';
-import { JSON_APPLY_OPTIONS, JSON_APPLY_PLUGINS } from './chartOptions';
+import { JSON_APPLY_PLUGINS } from './chartOptions';
 import { ChartUpdateType } from './chartUpdateType';
 import { DataController } from './data/dataController';
 import { DataService } from './data/dataService';
@@ -72,6 +72,7 @@ import {
 } from './mapping/types';
 import { ModulesManager } from './modulesManager';
 import { ChartOverlays } from './overlay/chartOverlays';
+import { getLoadingSpinner } from './overlay/loadingSpinner';
 import { type Series, SeriesGroupingChangedEvent, SeriesNodePickMode } from './series/series';
 import { SeriesLayerManager } from './series/seriesLayerManager';
 import { type SeriesGrouping, SeriesStateManager } from './series/seriesStateManager';
@@ -221,26 +222,17 @@ export abstract class Chart extends Observable implements AgChartInstance {
     @Validate(OBJECT)
     readonly seriesArea = new SeriesArea();
 
-    @ActionOnSet(Chart.NodeValueChangeOptions)
-    public title?: Caption;
+    @Validate(OBJECT)
+    readonly title = new Caption();
 
-    @ActionOnSet(Chart.NodeValueChangeOptions)
-    public subtitle?: Caption;
+    @Validate(OBJECT)
+    readonly subtitle = new Caption();
 
-    @ActionOnSet(Chart.NodeValueChangeOptions)
-    public footnote?: Caption;
+    @Validate(OBJECT)
+    readonly footnote = new Caption();
 
     @Validate(UNION(['standalone', 'integrated'], 'a chart mode'))
     mode: ChartMode = 'standalone';
-
-    private static NodeValueChangeOptions: ActionOnSetOptions<Chart> = {
-        newValue(value) {
-            this.scene.appendChild(value.node);
-        },
-        oldValue(oldValue) {
-            this.scene.removeChild(oldValue.node);
-        },
-    };
 
     public destroyed = false;
 
@@ -339,12 +331,14 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
         this.dataService = new DataService<any>(this.animationManager);
 
-        this.overlays = new ChartOverlays(this.element, this.animationManager);
+        this.overlays = new ChartOverlays();
+        this.overlays.loading.renderer ??= () =>
+            getLoadingSpinner(this.overlays.loading.getText(), this.animationManager.defaultDuration);
 
         this.processors = [
             new BaseLayoutProcessor(this, this.layoutService),
             new DataWindowProcessor(this, this.dataService, this.updateService, this.zoomManager),
-            new OverlaysProcessor(this, this.overlays, this.dataService, this.layoutService),
+            new OverlaysProcessor(this, this.overlays, this.dataService, this.layoutService, this.animationManager),
         ];
 
         this.tooltip = new Tooltip(this.scene.canvas.element);
@@ -353,13 +347,23 @@ export abstract class Chart extends Observable implements AgChartInstance {
         this.container = container;
 
         const { All } = InteractionState;
+        const moduleContext = this.getModuleContext();
         const seriesRegion = this.regionManager.addRegion('series', this.seriesRoot, this.axisGroup);
+
         this.regionManager.addRegion('root', root);
 
         this._destroyFns.push(
             this.dataService.addListener('data-load', (event) => {
                 this.data = event.data;
             }),
+
+            this.scene.attachNode(this.title.node),
+            this.scene.attachNode(this.subtitle.node),
+            this.scene.attachNode(this.footnote.node),
+
+            this.title.registerInteraction(moduleContext),
+            this.subtitle.registerInteraction(moduleContext),
+            this.footnote.registerInteraction(moduleContext),
 
             this.interactionManager.addListener('click', (event) => this.onClick(event)),
             this.interactionManager.addListener('dblclick', (event) => this.onDoubleClick(event)),
@@ -1429,11 +1433,11 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.registerListeners(this, deltaOptions.listeners as Record<string, TypedEventListener>);
         }
 
-        this.applyOptionValues(this, deltaOptions, { skip });
+        jsonApply<any, any>(this, deltaOptions, { skip });
 
         let forceNodeDataRefresh = false;
         let seriesStatus: SeriesChangeType = 'no-op';
-        if (deltaOptions.series && deltaOptions.series.length > 0) {
+        if (deltaOptions.series?.length) {
             seriesStatus = this.applySeries(this, deltaOptions.series, oldOpts?.series);
             forceNodeDataRefresh = true;
         }
@@ -1549,27 +1553,12 @@ export abstract class Chart extends Observable implements AgChartInstance {
 
             horizontalAxis.line.enabled = false;
 
-            jsonApply(horizontalAxis.label, labelOptions, {
-                path: 'navigator.miniChart.label',
-                skip: [
-                    'navigator.miniChart.label.interval',
-                    'navigator.miniChart.label.rotation',
-                    'navigator.miniChart.label.minSpacing',
-                    'navigator.miniChart.label.autoRotate',
-                    'navigator.miniChart.label.autoRotateAngle',
-                ],
-            });
-            jsonApply(horizontalAxis.tick, intervalOptions, {
-                path: 'navigator.miniChart.interval',
-                skip: [
-                    'navigator.miniChart.interval.enabled',
-                    'navigator.miniChart.interval.width',
-                    'navigator.miniChart.interval.size',
-                    'navigator.miniChart.interval.color',
-                    'navigator.miniChart.interval.interval',
-                    'navigator.miniChart.interval.step',
-                ],
-            });
+            horizontalAxis.label.set(
+                without(labelOptions, ['interval', 'rotation', 'minSpacing', 'autoRotate', 'autoRotateAngle'])
+            );
+            horizontalAxis.tick.set(
+                without(intervalOptions, ['enabled', 'width', 'size', 'color', 'interval', 'step'])
+            );
 
             const step = intervalOptions?.step;
             if (step != null) {
@@ -1710,7 +1699,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 debug(`AgChartV2.applyAxes() - applying axis diff idx ${index}`, axisDiff);
 
                 const path = `axes[${index}]`;
-                this.applyOptionValues(axis, axisDiff, { path, skip });
+                jsonApply(axis, axisDiff, { ...JSON_APPLY_PLUGINS, path, skip });
             });
             return true;
         }
@@ -1776,7 +1765,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             const axisOptions = options[index];
             const axis = axisRegistry.create(axisOptions.type, moduleContext);
             this.applyAxisModules(axis, axisOptions);
-            this.applyOptionValues(axis, axisOptions, { path: `axes[${index}]`, skip });
+            jsonApply(axis, axisOptions, { ...JSON_APPLY_PLUGINS, path: `axes[${index}]`, skip });
 
             guesser.push(axis, axisOptions);
         }
@@ -1787,10 +1776,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
     private applyAxisModules(axis: ChartAxis, options: AgBaseAxisOptions) {
         const rootModules = REGISTERED_MODULES.filter((m): m is AxisOptionModule => m.type === 'axis-option');
         const moduleContext = axis.createModuleContext();
+        const moduleMap = axis.getModuleMap();
 
         for (const module of rootModules) {
             const shouldBeEnabled = (options as any)[module.optionsKey] != null;
-            const moduleMap = axis.getModuleMap();
             const isEnabled = moduleMap.isEnabled(module);
 
             if (shouldBeEnabled === isEnabled) continue;
@@ -1803,36 +1792,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 delete (axis as any)[module.optionsKey]; // TODO remove
             }
         }
-    }
-
-    private applyOptionValues<T extends object, S>(
-        target: T,
-        options?: S,
-        { skip, path }: { skip?: string[]; path?: string } = {}
-    ): T {
-        const moduleContext = this.getModuleContext();
-
-        // Allow context to be injected and meet the type requirements
-        class CaptionWithContext extends Caption {
-            constructor() {
-                super();
-                this.registerInteraction(moduleContext);
-            }
-        }
-        return jsonApply<T, any>(target, options, {
-            constructors: {
-                ...JSON_APPLY_OPTIONS.constructors,
-                title: CaptionWithContext,
-                subtitle: CaptionWithContext,
-                footnote: CaptionWithContext,
-            },
-            constructedArrays: JSON_APPLY_PLUGINS.constructedArrays,
-            allowedTypes: {
-                ...JSON_APPLY_OPTIONS.allowedTypes,
-            },
-            skip,
-            path,
-        });
     }
 
     private registerListeners(source: ObservableLike, listeners: Record<string, TypedEventListener>) {

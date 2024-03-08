@@ -251,10 +251,9 @@ function attachNumberRestrictions(predicate: ValidatePredicate): ValidateNumberP
 function attachObjectRestrictions(predicate: ValidatePredicate): ValidateObjectPredicate {
     return Object.assign(predicate, {
         restrict(objectType: Function) {
-            const isInstanceOf = (value: unknown) => isProperties(value) && value instanceof objectType;
             return predicateWithMessage(
-                (value, ctx) => isInstanceOf(value) || (isObject(value) && isInstanceOf(ctx.target[ctx.property])),
-                (ctx) => getPredicateMessage(predicate, ctx) ?? 'an object'
+                (value) => value instanceof objectType,
+                (ctx) => getPredicateMessage(predicate, ctx) ?? `an instance of ${objectType.name}`
             );
         },
     });

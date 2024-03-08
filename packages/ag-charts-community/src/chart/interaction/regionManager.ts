@@ -83,7 +83,7 @@ export class RegionManager {
                                 handler(e as InteractionEvent<T>);
                             }
                         }
-                    }) ?? (() => undefined)
+                    }) ?? (() => {})
                 );
             }
         }

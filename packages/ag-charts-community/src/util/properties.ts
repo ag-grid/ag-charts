@@ -3,8 +3,14 @@ import { Logger } from './logger';
 import { isArray } from './type-guards';
 
 export class BaseProperties<T extends object = object> {
-    constructor(protected className?: string) {}
     set(properties: T) {
+        const { className = this.constructor.name } = this.constructor as { className?: string };
+
+        if (typeof properties !== 'object') {
+            Logger.warn(`unable to set ${className} - expecting a properties object`);
+            return this;
+        }
+
         const keys = new Set(Object.keys(properties));
         for (const propertyKey of listDecoratedProperties(this)) {
             if (keys.has(propertyKey)) {
@@ -23,7 +29,6 @@ export class BaseProperties<T extends object = object> {
             }
         }
         for (const unknownKey of keys) {
-            const { className = this.constructor.name } = this.constructor as { className?: string };
             Logger.warn(`unable to set [${unknownKey}] in ${className} - property is unknown`);
         }
 
@@ -71,7 +76,7 @@ export class PropertiesArray<T extends BaseProperties> extends Array {
     }
 
     toJson() {
-        return this.slice();
+        return this.map((value) => value?.toJson?.() ?? value);
     }
 }
 
