@@ -1,7 +1,7 @@
 import { _Scene } from 'ag-charts-community';
 
 import { lineStringDistance } from './lineStringUtil';
-import { polygonDistance } from './polygonUtil';
+import { polygonContains } from './polygonUtil';
 
 // import type { Geometry, Position } from 'geojson';
 type Position = any;
@@ -58,11 +58,9 @@ export class GeoGeometry extends Path {
             case 'GeometryCollection':
                 return geometry.geometries.some((g: Geometry) => this.geometryContainsPoint(g, x, y));
             case 'Polygon':
-                return polygonDistance(geometry.coordinates, x, y) <= 0;
+                return polygonContains(geometry.coordinates, x, y);
             case 'MultiPolygon':
-                return geometry.coordinates.some(
-                    (coordinates: Position[][]) => polygonDistance(coordinates, x, y) <= 0
-                );
+                return geometry.coordinates.some((coordinates: Position[][]) => polygonContains(coordinates, x, y));
             case 'LineString':
                 return lineStringDistance(geometry.coordinates, x, y) < minStrokeDistance;
             case 'MultiLineString':

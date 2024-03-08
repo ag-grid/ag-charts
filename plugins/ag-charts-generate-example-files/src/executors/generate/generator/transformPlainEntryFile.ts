@@ -12,7 +12,7 @@ import { filterPropertyKeys } from './jsCodeShiftUtils';
 function generateOptions(
     root: j.Collection<any>,
     variableDeclarator: j.Collection<j.VariableDeclarator>,
-    dataFile?: string
+    preamble?: string[]
 ) {
     const optionsExpression = variableDeclarator.find(j.ObjectExpression);
 
@@ -29,12 +29,12 @@ function generateOptions(
     if (node.id.type !== 'Identifier') {
         throw new Error('Invalid options specifier');
     }
-    const options: agCharts.AgChartOptions = parseExampleOptions(node.id.name, code, dataFile, { agCharts });
+    const options: agCharts.AgChartOptions = parseExampleOptions(node.id.name, code, preamble, { agCharts });
 
     return { code, options };
 }
 
-function transformer(sourceFile: string, dataFile?: string) {
+function transformer(sourceFile: string, preamble?: string[]) {
     const root = j(sourceFile);
     let code = root.toSource();
 
@@ -57,7 +57,7 @@ function transformer(sourceFile: string, dataFile?: string) {
             .paths()[0];
 
         if (containerPropertyPath != null) {
-            const { code: _code, options } = generateOptions(root, variableDeclarator, dataFile);
+            const { code: _code, options } = generateOptions(root, variableDeclarator, preamble);
             optionsById.set(containerPropertyPath.node.value as any, options);
             code = _code;
         }
@@ -68,7 +68,7 @@ function transformer(sourceFile: string, dataFile?: string) {
 
 export function transformPlainEntryFile(
     entryFile: string,
-    dataFile?: string
+    preamble?: string[]
 ): { code: string; optionsById: Map<string, agCharts.AgChartOptions> } {
-    return transformer(entryFile, dataFile);
+    return transformer(entryFile, preamble);
 }
