@@ -60,23 +60,45 @@ export interface AgNavigatorMiniChartPadding {
 type CommonIgnoredProperties =
     | 'cursor'
     | 'highlightStyle'
-    | 'nodeClickRange'
     | 'listeners'
+    | 'nodeClickRange'
     | 'showInLegend'
     | 'showInMiniChart'
-    | 'tooltip';
+    | 'tooltip'
+    | 'visible'
+    | 'xName'
+    | 'yName';
 
-export interface AgLineMiniChartSeriesOptions extends Omit<AgLineSeriesOptions, CommonIgnoredProperties> {}
-export interface AgScatterMiniChartSeriesOptions extends Omit<AgScatterSeriesOptions, CommonIgnoredProperties> {}
-export interface AgBubbleMiniChartSeriesOptions extends Omit<AgBubbleSeriesOptions, CommonIgnoredProperties> {}
-export interface AgAreaMiniChartSeriesOptions extends Omit<AgAreaSeriesOptions, CommonIgnoredProperties> {}
-export interface AgBarMiniChartSeriesOptions extends Omit<AgBarSeriesOptions, CommonIgnoredProperties> {}
-export interface AgBoxPlotMiniChartSeriesOptions extends Omit<AgBoxPlotSeriesOptions, CommonIgnoredProperties> {}
-export interface AgHistogramMiniChartSeriesOptions extends Omit<AgHistogramSeriesOptions, CommonIgnoredProperties> {}
-export interface AgHeatmapMiniChartSeriesOptions extends Omit<AgHeatmapSeriesOptions, CommonIgnoredProperties> {}
-export interface AgWaterfallMiniChartSeriesOptions extends Omit<AgWaterfallSeriesOptions, CommonIgnoredProperties> {}
-export interface AgRangeBarMiniChartSeriesOptions extends Omit<AgRangeBarSeriesOptions, CommonIgnoredProperties> {}
-export interface AgRangeAreaMiniChartSeriesOptions extends Omit<AgRangeAreaSeriesOptions, CommonIgnoredProperties> {}
+export interface AgLineMiniChartSeriesOptions
+    extends Omit<AgLineSeriesOptions, CommonIgnoredProperties | 'errorBar' | 'title' | 'label'> {}
+export interface AgScatterMiniChartSeriesOptions
+    extends Omit<
+        AgScatterSeriesOptions,
+        CommonIgnoredProperties | 'errorBar' | 'title' | 'label' | 'labelKey' | 'labelName'
+    > {}
+export interface AgBubbleMiniChartSeriesOptions
+    extends Omit<
+        AgBubbleSeriesOptions,
+        CommonIgnoredProperties | 'title' | 'label' | 'labelKey' | 'labelName' | 'sizeName'
+    > {}
+export interface AgAreaMiniChartSeriesOptions extends Omit<AgAreaSeriesOptions, CommonIgnoredProperties | 'area'> {}
+export interface AgBarMiniChartSeriesOptions
+    extends Omit<AgBarSeriesOptions, CommonIgnoredProperties | 'errorBar' | 'label' | 'direction'> {}
+export interface AgBoxPlotMiniChartSeriesOptions
+    extends Omit<
+        AgBoxPlotSeriesOptions,
+        CommonIgnoredProperties | 'direction' | 'minName' | 'q1Name' | 'medianName' | 'q3Name' | 'maxName'
+    > {}
+export interface AgHistogramMiniChartSeriesOptions
+    extends Omit<AgHistogramSeriesOptions, CommonIgnoredProperties | 'label'> {}
+export interface AgHeatmapMiniChartSeriesOptions
+    extends Omit<AgHeatmapSeriesOptions, CommonIgnoredProperties | 'title' | 'label' | 'colorRange'> {}
+export interface AgWaterfallMiniChartSeriesOptions
+    extends Omit<AgWaterfallSeriesOptions, CommonIgnoredProperties | 'direction'> {}
+export interface AgRangeBarMiniChartSeriesOptions
+    extends Omit<AgRangeBarSeriesOptions, CommonIgnoredProperties | 'label' | 'direction' | 'yLowName' | 'yHighName'> {}
+export interface AgRangeAreaMiniChartSeriesOptions
+    extends Omit<AgRangeAreaSeriesOptions, CommonIgnoredProperties | 'label' | 'yLowName' | 'yHighName'> {}
 export interface AgCandlestickMiniChartSeriesOptions
     extends Omit<AgCandlestickSeriesOptions, CommonIgnoredProperties> {}
 

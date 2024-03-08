@@ -1,0 +1,14 @@
+@use '../../core/' as *;
+
+.container {
+}
+
+.tabContainer {
+    display: flex;
+    justify-content: flex-start;
+    gap: $spacing-size-12;
+}
+
+.tabButton {
+    background: none;
+}

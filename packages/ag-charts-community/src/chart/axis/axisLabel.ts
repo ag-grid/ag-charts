@@ -1,12 +1,13 @@
 import type { AgAxisLabelFormatterParams, FontStyle, FontWeight } from '../../options/agChartOptions';
-import { getFont } from '../../scene/shape/text';
 import { Default } from '../../util/default';
+import { BaseProperties } from '../../util/properties';
 import {
     BOOLEAN,
     COLOR_STRING,
     DEGREE,
     FONT_STYLE,
     FONT_WEIGHT,
+    FUNCTION,
     NUMBER,
     NUMBER_OR_NAN,
     POSITIVE_NUMBER,
@@ -15,7 +16,7 @@ import {
 } from '../../util/validation';
 import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
 
-export class AxisLabel implements ChartAxisLabel {
+export class AxisLabel extends BaseProperties implements ChartAxisLabel {
     @Validate(BOOLEAN)
     enabled = true;
 
@@ -25,17 +26,17 @@ export class AxisLabel implements ChartAxisLabel {
 
     /** Used to constrain the width of the label when `autoWrap` is `true`, if the label text width exceeds the `maxWidth`, it will be wrapped on multiple lines automatically. If `maxWidth` is omitted, a default width constraint will be applied. */
     @Validate(POSITIVE_NUMBER, { optional: true })
-    maxWidth?: number = undefined;
+    maxWidth?: number;
 
     /** Used to constrain the height of the multiline label, if the label text height exceeds the `maxHeight`, it will be truncated automatically. If `maxHeight` is omitted, a default height constraint will be applied. */
     @Validate(POSITIVE_NUMBER, { optional: true })
-    maxHeight?: number = undefined;
+    maxHeight?: number;
 
     @Validate(FONT_STYLE, { optional: true })
-    fontStyle?: FontStyle = undefined;
+    fontStyle?: FontStyle;
 
     @Validate(FONT_WEIGHT, { optional: true })
-    fontWeight?: FontWeight = undefined;
+    fontWeight?: FontWeight;
 
     @Validate(NUMBER.restrict({ min: 1 }))
     fontSize: number = 12;
@@ -71,7 +72,7 @@ export class AxisLabel implements ChartAxisLabel {
      * from the default rotation.
      */
     @Validate(DEGREE, { optional: true })
-    rotation?: number = undefined;
+    rotation?: number;
 
     /**
      * Avoid axis label collision by automatically reducing the number of ticks displayed. If set to `false`, axis labels may collide.
@@ -118,12 +119,9 @@ export class AxisLabel implements ChartAxisLabel {
      * digits used by the tick step. For example, if the tick step is `0.0005`,
      * the `fractionDigits` is 4.
      */
-    formatter?: (params: AgAxisLabelFormatterParams) => string = undefined;
+    @Validate(FUNCTION, { optional: true })
+    formatter?: (params: AgAxisLabelFormatterParams) => string;
 
     @Validate(STRING, { optional: true })
     format?: string;
-
-    getFont(): string {
-        return getFont(this);
-    }
 }

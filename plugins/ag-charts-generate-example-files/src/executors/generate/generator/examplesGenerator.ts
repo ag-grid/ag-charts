@@ -139,7 +139,7 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
     });
 
     if (internalFramework === 'vanilla' && ignoreDarkMode === true && extractOptions) {
-        const { optionsById } = transformPlainEntryFile(files[entryFileName], files['data.js']);
+        const { optionsById } = transformPlainEntryFile(files[entryFileName], [files['data.js']]);
 
         const jsonOptions = {};
         for (const [id, options] of optionsById) {

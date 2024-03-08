@@ -16,7 +16,7 @@ interface Props {
     pageName: string;
     exampleName: string;
     exampleUrl: string;
-    generatedContents: GeneratedContents;
+    generatedContents: GeneratedContents | undefined;
     /**
      * Whether to use relative paths for script files references
      */
@@ -66,15 +66,11 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
 ---
 
 {
-    !generatedContents && (
+    !generatedContents ? (
         <p>
             Error generating content for: <a href={exampleUrl}>{exampleUrl}</a>
         </p>
-    )
-}
-
-{
-    internalFramework === 'vanilla' && (
+    ) : internalFramework === 'vanilla' ? (
         <JavascriptTemplate
             isDev={isDev}
             title={title}
@@ -85,14 +81,8 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             indexFragment={indexFragment!}
             appLocation={appLocation}
             extraStyles={extraStyles}
-        >
-            {addInitMessageScript && <PostInitMessageScript pageName={pageName} exampleName={exampleName} />}
-        </JavascriptTemplate>
-    )
-}
-
-{
-    internalFramework === 'typescript' && (
+        ></JavascriptTemplate>
+    ) : internalFramework === 'typescript' ? (
         <TypescriptTemplate
             isDev={isDev}
             title={title}
@@ -103,14 +93,8 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             appLocation={appLocation}
             boilerplatePath={boilerPlateUrl}
             extraStyles={extraStyles}
-        >
-            {addInitMessageScript && <PostInitMessageScript pageName={pageName} exampleName={exampleName} />}
-        </TypescriptTemplate>
-    )
-}
-
-{
-    ['reactFunctional', 'reactFunctionalTs'].includes(internalFramework) && (
+        ></TypescriptTemplate>
+    ) : ['reactFunctional', 'reactFunctionalTs'].includes(internalFramework) ? (
         <ReactTemplate
             isDev={isDev}
             title={title}
@@ -122,14 +106,8 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             boilerplatePath={boilerPlateUrl}
             ignoreSystemJs={ignoreSystemJs}
             extraStyles={extraStyles}
-        >
-            {addInitMessageScript && <PostInitMessageScript pageName={pageName} exampleName={exampleName} />}
-        </ReactTemplate>
-    )
-}
-
-{
-    internalFramework === 'angular' && (
+        ></ReactTemplate>
+    ) : internalFramework === 'angular' ? (
         <AngularTemplate
             isDev={isDev}
             title={title}
@@ -140,14 +118,8 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             appLocation={appLocation}
             boilerplatePath={boilerPlateUrl}
             extraStyles={extraStyles}
-        >
-            {addInitMessageScript && <PostInitMessageScript pageName={pageName} exampleName={exampleName} />}
-        </AngularTemplate>
-    )
-}
-
-{
-    (internalFramework === 'vue' || internalFramework === 'vue3') && (
+        ></AngularTemplate>
+    ) : internalFramework === 'vue' || internalFramework === 'vue3' ? (
         <VueTemplate
             isDev={isDev}
             title={title}
@@ -159,8 +131,8 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             boilerplatePath={boilerPlateUrl}
             vueFramework={internalFramework}
             extraStyles={extraStyles}
-        >
-            {addInitMessageScript && <PostInitMessageScript pageName={pageName} exampleName={exampleName} />}
-        </VueTemplate>
-    )
+        ></VueTemplate>
+    ) : null
 }
+
+{addInitMessageScript && <PostInitMessageScript pageName={pageName} exampleName={exampleName} />}

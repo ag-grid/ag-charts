@@ -1,6 +1,5 @@
-import type { Position } from 'geojson';
-
 import type { Scale } from '../../../scale/scale';
+import type { Position } from './geojson';
 
 type XY = [x: number, y: number];
 

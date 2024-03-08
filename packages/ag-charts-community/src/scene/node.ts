@@ -34,6 +34,7 @@ export type RenderContext = {
 export interface NodeOptions {
     isVirtual?: boolean;
     tag?: number;
+    zIndex?: number;
 }
 
 export type NodeWithOpacity = Node & { opacity: number };
@@ -313,10 +314,11 @@ export abstract class Node extends ChangeDetectable implements BBoxProvider {
     @SceneChangeDetection({ type: 'transform' })
     translationY: number = 0;
 
-    constructor({ isVirtual, tag }: NodeOptions = {}) {
+    constructor({ isVirtual, tag, zIndex }: NodeOptions = {}) {
         super();
         this.isVirtual = isVirtual ?? false;
         this.tag = tag ?? NaN;
+        this.zIndex = zIndex ?? 0;
     }
 
     containsPoint(_x: number, _y: number): boolean {

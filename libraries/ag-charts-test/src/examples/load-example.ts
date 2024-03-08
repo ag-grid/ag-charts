@@ -50,10 +50,10 @@ export function loadExampleOptions(
 export function parseExampleOptions(
     evalFn: string,
     exampleJs: string,
-    dataJs: string = '',
+    preamble: string[] = [],
     evalGlobals: Record<string, unknown> = {}
 ) {
-    const evalExpr = [dataJs, cleanJs(exampleJs), `return ${evalFn};`].join('\n');
+    const evalExpr = [...preamble, cleanJs(exampleJs), `return ${evalFn};`].join('\n');
     const exampleRunFn = Function(...Object.keys(evalGlobals), evalExpr);
     return exampleRunFn(...Object.values(evalGlobals));
 }

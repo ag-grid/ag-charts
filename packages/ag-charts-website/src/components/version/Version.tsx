@@ -1,4 +1,4 @@
-import styles from '@design-system/modules/Version.module.scss';
+import styles from '@design-system/modules/WhatsNew.module.scss';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 
 const parseVersion = (version: string) => {

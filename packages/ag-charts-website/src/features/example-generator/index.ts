@@ -57,7 +57,7 @@ type GeneratedContents = {
 const cacheKeys: Record<string, object> = {};
 const cacheValues = new WeakMap<object, GeneratedContents>();
 
-const readContentJson = async (params: GeneratedExampleParams) => {
+const readContentJson = async (params: GeneratedExampleParams): Promise<GeneratedContents | undefined> => {
     const useCache = !getIsDev();
     const jsonPath = getContentJsonPath(params);
 
@@ -70,12 +70,17 @@ const readContentJson = async (params: GeneratedExampleParams) => {
         }
     }
 
-    if (!result) {
-        const buffer = await fs.readFile(jsonPath);
-        result = JSON.parse(buffer.toString('utf-8')) as GeneratedContents;
+    if (result == null) {
+        try {
+            result = JSON.parse(await fs.readFile(jsonPath, 'utf-8')) as GeneratedContents;
+        } catch (e) {
+            if (!getIsDev()) {
+                throw e;
+            }
+        }
     }
 
-    if (useCache) {
+    if (result != null && useCache) {
         cacheKeys[jsonPath] = cacheKey;
         cacheValues.set(cacheKey, result);
     }
@@ -86,7 +91,7 @@ const readContentJson = async (params: GeneratedExampleParams) => {
 export const getGeneratedContentsFileList = async (params: GeneratedExampleParams) => {
     const contents = await readContentJson(params);
 
-    return Object.keys(contents.files);
+    return contents != null ? Object.keys(contents.files) : [];
 };
 
 export const getGeneratedContents = async (params: GeneratedExampleParams) => {

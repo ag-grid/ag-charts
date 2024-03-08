@@ -48,6 +48,14 @@ export function mapValues<T extends PlainObject, R>(
     );
 }
 
+export function without(object: object | undefined, keys: string[]) {
+    const clone = { ...object };
+    for (const key of keys) {
+        delete clone[key as keyof object];
+    }
+    return clone;
+}
+
 export function getPath(object: object, path: string | string[]) {
     const pathArray = isArray(path) ? path : path.split('.');
     return pathArray.reduce<any>((value, pathKey) => value[pathKey], object);

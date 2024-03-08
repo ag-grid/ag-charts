@@ -55,7 +55,7 @@ interface BarNodeLabelDatum extends Readonly<Point> {
     readonly fontFamily: string;
     readonly textAlign: CanvasTextAlign;
     readonly textBaseline: CanvasTextBaseline;
-    readonly fill: string;
+    readonly fill?: string;
 }
 
 interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum, Readonly<Point> {

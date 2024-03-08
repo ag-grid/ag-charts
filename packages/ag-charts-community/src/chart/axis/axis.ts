@@ -24,9 +24,8 @@ import { Matrix } from '../../scene/matrix';
 import type { Node } from '../../scene/node';
 import { Selection } from '../../scene/selection';
 import { Line } from '../../scene/shape/line';
-import type { TextSizeProperties } from '../../scene/shape/text';
-import { Text, measureText, splitText } from '../../scene/shape/text';
-import type { PointLabelDatum } from '../../scene/util/labelPlacement';
+import { Text, TextMeasurer, type TextSizeProperties } from '../../scene/shape/text';
+import type { PlacedLabelDatum } from '../../scene/util/labelPlacement';
 import { axisLabelsOverlap } from '../../scene/util/labelPlacement';
 import { normalizeAngle360, toRadians } from '../../util/angle';
 import { areArrayNumbersEqual } from '../../util/equal';
@@ -35,7 +34,7 @@ import { jsonDiff } from '../../util/json';
 import { Logger } from '../../util/logger';
 import { clamp, findMinMax, findRangeExtent, round } from '../../util/number';
 import { ObserveChanges } from '../../util/proxy';
-import { BOOLEAN, STRING_ARRAY, Validate, predicateWithMessage } from '../../util/validation';
+import { BOOLEAN, OBJECT, STRING_ARRAY, Validate } from '../../util/validation';
 import { Caption } from '../caption';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import type { ChartAxis, ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
@@ -53,7 +52,7 @@ import { AxisLabel } from './axisLabel';
 import { AxisLine } from './axisLine';
 import type { TickCount, TickInterval } from './axisTick';
 import { AxisTick } from './axisTick';
-import type { AxisTitle } from './axisTitle';
+import { AxisTitle } from './axisTitle';
 import type { AxisLineDatum } from './axisUtil';
 import {
     prepareAxisAnimationContext,
@@ -392,8 +391,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         }
     }
 
-    @Validate(predicateWithMessage((title) => typeof title == 'object', 'Title object'), { optional: true })
-    public title?: AxisTitle = undefined;
+    @Validate(OBJECT, { optional: true })
+    title = new AxisTitle();
     protected _titleCaption = new Caption();
 
     private setTickInterval(interval?: TickInterval<S>) {
@@ -564,7 +563,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     private setTitleProps(caption: Caption, params: { spacing: number }) {
         const { title } = this;
-        if (!title) {
+        if (!title.enabled) {
             caption.enabled = false;
             return;
         }
@@ -981,7 +980,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     ): boolean {
         Matrix.updateTransformMatrix(labelMatrix, 1, 1, rotation, 0, 0);
 
-        const labelData: PointLabelDatum[] = this.createLabelData(tickData, labelX, textProps, labelMatrix);
+        const labelData: PlacedLabelDatum[] = this.createLabelData(tickData, labelX, textProps, labelMatrix);
         const labelSpacing = getLabelSpacing(this.label.minSpacing, rotated);
 
         return axisLabelsOverlap(labelData, labelSpacing);
@@ -992,25 +991,20 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         labelX: number,
         textProps: TextSizeProperties,
         labelMatrix: Matrix
-    ): PointLabelDatum[] {
-        const labelData: PointLabelDatum[] = [];
-        for (const tickDatum of tickData) {
-            const { tickLabel, translationY } = tickDatum;
-            if (tickLabel === '' || tickLabel == undefined) {
-                // skip user hidden ticks
-                continue;
-            }
+    ): PlacedLabelDatum[] {
+        const labelData: PlacedLabelDatum[] = [];
+        const measurer = new TextMeasurer(textProps);
 
-            const lines = splitText(tickLabel);
+        for (const { tickLabel, translationY } of tickData) {
+            if (tickLabel === '' || tickLabel == undefined) continue;
 
-            const { width, height } = measureText(lines, labelX, translationY, textProps);
-
+            const { width, height } = measurer.size(tickLabel);
             const bbox = new BBox(labelX, translationY, width, height);
-
             const labelDatum = calculateLabelBBox(tickLabel, bbox, labelX, translationY, labelMatrix);
 
             labelData.push(labelDatum);
         }
+
         return labelData;
     }
 
@@ -1040,13 +1034,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         switch (tickGenerationType) {
             case TickGenerationType.VALUES:
                 if (ContinuousScale.is(scale)) {
-                    const scaleDomain = scale.getDomain();
-                    const start = scale.fromDomain(scaleDomain[0]);
-                    const stop = scale.fromDomain(scaleDomain[1]);
-
-                    const d0 = Math.min(start, stop);
-                    const d1 = Math.max(start, stop);
-
+                    const [d0, d1] = findMinMax(scale.getDomain().map(Number));
                     rawTicks = this.tick.values!.filter((value) => value >= d0 && value <= d1).sort((a, b) => a - b);
                 } else {
                     rawTicks = this.tick.values!;

@@ -4,6 +4,7 @@ set -eu
 
 MODIFIED=$1
 CHANGED_FILES=$(echo "${NX_FILE_CHANGES}" | xargs -n 1)
+NX_OPTS="--output-style=compact"
 
 IGNORED_PROJECTS=(
   all
@@ -49,14 +50,14 @@ if [[ ${IGNORED_FILE_COUNT} -gt 0 ]] ; then
 fi
 
 if [[ "${MODIFIED}" == "ag-charts-community" ]] ; then
-  nx run-many -p ag-charts-community,ag-charts-enterprise -t build:types,build:package,build:umd,docs-resolved-interfaces -c watch
+  nx run-many ${NX_OPTS} -p ag-charts-community,ag-charts-enterprise -t build:types,build:package,build:umd,docs-resolved-interfaces -c watch
 elif [[ "${MODIFIED}" == "ag-charts-enterprise" ]] ; then
-  nx run-many -p ${MODIFIED} -t build:types,build:package,build:umd -c watch
+  nx run-many ${NX_OPTS} -p ${MODIFIED} -t build:types,build:package,build:umd -c watch
 elif [[ "${MODIFIED}" =~ "ag-charts-website-" ]] ; then
-  nx run-many -p ${MODIFIED} -t generate -c watch
+  nx run-many ${NX_OPTS} -p ${MODIFIED} -t generate -c watch
 elif [[ "${VALID_FILE_COUNT}" -gt 0 ]] ; then
   echo "[changed]${VALID_FILES}"
-  nx run-many -p ${MODIFIED} -t build
+  nx run-many ${NX_OPTS} -p ${MODIFIED} -t build
 # else
 #   echo "[changed] no valid changed files"
 fi
