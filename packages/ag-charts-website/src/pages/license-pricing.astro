@@ -1,10 +1,8 @@
 ---
+import { LicensePricing } from '@components/license-pricing/LicensePricing';
 import Layout from '@layouts/Layout.astro';
-import { getFrameworkFromPath } from '@features/docs/utils/urlPaths';
-import { FRAMEWORKS } from '@constants';
-import { LicensePricing } from '@features/license-pricing/LicensePricing';
 ---
 
 <Layout title="AG Charts License & Pricing">
-    <LicensePricing client:only />
+    <LicensePricing client:load />
 </Layout>

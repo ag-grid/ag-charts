@@ -1,24 +1,49 @@
 @use '../core' as *;
 
-:global {
-    .pageSections article {
-        > h2 {
-            margin-top: $spacing-size-12;
-        }
+.contentViewport {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
 
-        > h3,
-        > h4 {
-            margin-top: $spacing-size-8;
-        }
+    @media (min-width: $breakpoint-docs-nav-medium) {
+        flex-direction: row;
+    }
 
-        p,
-        > ul,
-        > ol,
-        > table,
-        > pre {
-            font-size: var(--text-fs-base);
-            line-height: var(--text-lh-xs);
+    &.noLeftMenu .docPage {
+        width: 100%;
+    }
+
+    @media (min-width: $breakpoint-docs-nav-large) {
+        &.noLeftMenu .docPage {
+            width: var(--layout-width-9-12);
         }
+    }
+
+    @media (min-width: $breakpoint-docs-nav-extra-large) {
+        &.noLeftMenu .docPage {
+            width: var(--layout-width-6-12);
+            margin-left: calc(var(--layout-width-3-12) + var(--layout-gap));
+        }
+    }
+}
+
+.pageSections article {
+    > h2 {
+        margin-top: $spacing-size-12;
+    }
+
+    > h3,
+    > h4 {
+        margin-top: $spacing-size-8;
+    }
+
+    p,
+    > ul,
+    > ol,
+    > table,
+    > pre {
+        font-size: var(--text-fs-base);
+        line-height: var(--text-lh-xs);
     }
 }
 
@@ -65,6 +90,32 @@
     :global(h6) {
         :global(#{$selector-darkmode}) & {
             color: var(--color-fg-primary);
+        }
+
+        &:hover :global(.docs-header-icon) {
+            opacity: 0.5;
+        }
+    }
+
+    :global(.docs-header-icon) {
+        position: relative;
+        padding-left: 0;
+        margin-left: $spacing-size-2;
+        font-size: inherit;
+        opacity: 0;
+        transition: opacity 0.33s ease-in-out;
+
+        &:hover {
+            opacity: 1 !important;
+        }
+
+        :global(svg) {
+            position: relative;
+            width: 0.85em;
+            height: 0.85em;
+            top: -0.1em;
+            visibility: visible;
+            fill: var(--color-link);
         }
     }
 
@@ -115,6 +166,10 @@
     margin-bottom: $spacing-size-8;
     color: color-mix(in srgb, var(--color-fg-secondary), var(--color-bg-primary) 20%);
     line-height: var(--text-lh-sm);
+
+    :global(code) {
+        font-size: 0.8em;
+    }
 }
 
 // Hack to target markdown images and not images within components

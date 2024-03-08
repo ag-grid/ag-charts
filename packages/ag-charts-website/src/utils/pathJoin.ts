@@ -4,7 +4,7 @@
  * Works on server and client side
  */
 export function pathJoin(...segments: (string | URL | undefined)[]): string {
-    if (!segments || !segments.length) {
+    if (!segments?.length) {
         return '';
     } else if (segments[0] === '/' && segments.length === 1) {
         return '/';

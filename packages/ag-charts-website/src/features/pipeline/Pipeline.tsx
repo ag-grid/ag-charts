@@ -1,13 +1,13 @@
 import { Alert } from '@components/alert/Alert';
-// @ts-ignore
+// @ts-expect-error
 import ChevronButtonCellRenderer from '@components/grid/ChevronButtonRenderer';
-// @ts-ignore
+// @ts-expect-error
 import DetailCellRenderer from '@components/grid/DetailCellRendererComponent';
-// @ts-ignore
+// @ts-expect-error
 import { Grid } from '@components/grid/Grid';
-// @ts-ignore
+// @ts-expect-error
 import IssueTypeCellRenderer from '@components/grid/IssueTypeRenderer';
-// @ts-ignore
+// @ts-expect-error
 import PaddingCellRenderer from '@components/grid/PaddingCellRenderer';
 import { Icon } from '@components/icon/Icon';
 import { SITE_BASE_URL, SITE_URL } from '@constants';
@@ -145,9 +145,9 @@ const detailCellRendererParams = (params: any) => {
 };
 
 const extractFilterTerm = (location: any) =>
-    location && location.search ? new URLSearchParams(location.search).get('searchQuery') : '';
+    location?.search ? new URLSearchParams(location.search).get('searchQuery') : '';
 
-// @ts-ignore
+// @ts-expect-error
 export const Pipeline = ({ location, currentFramework }) => {
     const [rowData, setRowData] = useState<any>(null);
     const [gridApi, setGridApi] = useState<any>(null);
