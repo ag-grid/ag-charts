@@ -28,6 +28,17 @@ describe('BaseProperties', () => {
         expect(warnSpy).toHaveBeenCalledWith('unable to set [unknownProp] in MyClass - property is unknown');
     });
 
+    it('should warn on providing non-object properties', () => {
+        const warnSpy = jest.spyOn(Logger, 'warn');
+        class MyClass extends BaseProperties<{ prop1: string }> {
+            @Validate(STRING)
+            prop1!: string;
+        }
+        const instance = new MyClass();
+        instance.set('string' as any);
+        expect(warnSpy).toHaveBeenCalledWith('unable to set [unknownProp] in MyClass - expecting an object');
+    });
+
     it('should validate required properties correctly', () => {
         class MyClass extends BaseProperties<{ prop1: string; prop2?: number }> {
             @Validate(STRING)

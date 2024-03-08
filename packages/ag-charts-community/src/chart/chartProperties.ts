@@ -2,15 +2,18 @@ import { Padding } from '../util/padding';
 import { BaseProperties } from '../util/properties';
 import { ARRAY, BOOLEAN, OBJECT, POSITIVE_NUMBER, UNION, Validate } from '../util/validation';
 import { Caption } from './caption';
+import { ChartOverlays } from './overlay/chartOverlays';
 
-export class ChartHighlight extends BaseProperties {
+// import { Tooltip } from './tooltip/tooltip';
+
+class ChartHighlight extends BaseProperties {
     @Validate(UNION(['tooltip', 'node'], 'a range'))
     public range: 'tooltip' | 'node' = 'tooltip';
 }
 
 class SeriesArea extends BaseProperties {
-    @Validate(BOOLEAN, { optional: true })
-    clip?: boolean;
+    @Validate(BOOLEAN)
+    clip: boolean = false;
 
     @Validate(OBJECT)
     padding = new Padding(0);
@@ -49,4 +52,10 @@ export class ChartProperties extends BaseProperties {
 
     @Validate(OBJECT)
     readonly highlight = new ChartHighlight();
+
+    @Validate(OBJECT)
+    readonly overlays = new ChartOverlays();
+
+    // @Validate(OBJECT)
+    // readonly tooltip = new Tooltip();
 }

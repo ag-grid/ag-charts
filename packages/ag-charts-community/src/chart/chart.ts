@@ -1433,7 +1433,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.registerListeners(this, deltaOptions.listeners as Record<string, TypedEventListener>);
         }
 
-        this.applyOptionValues(this, deltaOptions, { skip });
+        jsonApply<any, any>(this, deltaOptions, { skip });
 
         let forceNodeDataRefresh = false;
         let seriesStatus: SeriesChangeType = 'no-op';
@@ -1699,7 +1699,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 debug(`AgChartV2.applyAxes() - applying axis diff idx ${index}`, axisDiff);
 
                 const path = `axes[${index}]`;
-                this.applyOptionValues(axis, axisDiff, { path, skip });
+                jsonApply(axis, axisDiff, { ...JSON_APPLY_PLUGINS, path, skip });
             });
             return true;
         }
@@ -1765,7 +1765,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             const axisOptions = options[index];
             const axis = axisRegistry.create(axisOptions.type, moduleContext);
             this.applyAxisModules(axis, axisOptions);
-            this.applyOptionValues(axis, axisOptions, { path: `axes[${index}]`, skip });
+            jsonApply(axis, axisOptions, { ...JSON_APPLY_PLUGINS, path: `axes[${index}]`, skip });
 
             guesser.push(axis, axisOptions);
         }
@@ -1792,14 +1792,6 @@ export abstract class Chart extends Observable implements AgChartInstance {
                 delete (axis as any)[module.optionsKey]; // TODO remove
             }
         }
-    }
-
-    private applyOptionValues<T extends object, S>(
-        target: T,
-        source?: S,
-        options?: { skip?: string[]; path?: string }
-    ): T {
-        return jsonApply<T, any>(target, source, { ...options, ...JSON_APPLY_PLUGINS });
     }
 
     private registerListeners(source: ObservableLike, listeners: Record<string, TypedEventListener>) {
