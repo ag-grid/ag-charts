@@ -49,6 +49,7 @@ export * from './series/polar/radialOptions';
 export * from './series/topology/mapShapeOptions';
 export * from './series/topology/mapLineOptions';
 export * from './series/topology/mapMarkerOptions';
+export * from './series/markerOptions';
 
 /**
  * Internal Use Only: Used to ensure this file is treated as a module until we can use moduleDetection flag in Ts v4.7
