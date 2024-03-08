@@ -8,6 +8,8 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
+import { GEOJSON_OBJECT } from '../map-util/validation';
+
 // import type { FeatureCollection } from 'geojson';
 type FeatureCollection = any;
 
@@ -20,7 +22,6 @@ const {
     LINE_DASH,
     NUMBER_ARRAY,
     OBJECT,
-    PLAIN_OBJECT,
     POSITIVE_NUMBER,
     RATIO,
     STRING,
@@ -65,8 +66,8 @@ class MapMarkerSeriesLabel extends Label<AgMapMarkerSeriesLabelFormatterParams> 
 }
 
 class MapMarkerSeriesBackground extends BaseProperties {
-    @Validate(PLAIN_OBJECT)
-    topology: FeatureCollection = { type: 'FeatureCollection', features: [] };
+    @Validate(GEOJSON_OBJECT, { optional: true })
+    topology: FeatureCollection | undefined = undefined;
 
     @Validate(STRING, { optional: true })
     id: string | undefined = undefined;

@@ -1,8 +1,9 @@
 import { AgMapSeriesStyle, _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
-import { GeoGeometry } from '../map-util/geoGeometry';
+import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { geometryBbox, labelPosition, markerCenters, projectGeometry } from '../map-util/geometryUtil';
 import { prepareMapMarkerAnimationFunctions } from '../map-util/mapUtil';
+import { GEOJSON_OBJECT } from '../map-util/validation';
 import {
     MapNodeDatum,
     MapNodeDatumType,
@@ -16,11 +17,19 @@ type Feature = any;
 type FeatureCollection = any;
 type Geometry = any;
 
-const { fromToMotion, StateMachine, getMissCount, createDatumId, DataModelSeries, SeriesNodePickMode, valueProperty } =
-    _ModuleSupport;
+const {
+    fromToMotion,
+    StateMachine,
+    getMissCount,
+    createDatumId,
+    DataModelSeries,
+    SeriesNodePickMode,
+    valueProperty,
+    Validate,
+} = _ModuleSupport;
 const { ColorScale, LinearScale } = _Scale;
 const { Group, Selection, Text, getMarker } = _Scene;
-const { sanitizeHtml } = _Util;
+const { sanitizeHtml, Logger } = _Util;
 
 export interface MapNodeDataContext extends _ModuleSupport.SeriesNodeDataContext<MapNodeDatum, MapNodeLabelDatum> {
     markerData: MapNodeMarkerDatum[];
@@ -59,10 +68,15 @@ export class MapSeries
 
     override properties = new MapSeriesProperties();
 
+    @Validate(GEOJSON_OBJECT, { optional: true, property: 'topology' })
     private _chartTopology?: FeatureCollection = undefined;
 
     private get topology() {
-        return this.properties.topology ?? this._chartTopology ?? { type: 'FeatureCollection', features: [] };
+        return this.properties.topology ?? this._chartTopology;
+    }
+
+    override get hasData() {
+        return super.hasData && this.topology != null;
     }
 
     private readonly colorScale = new ColorScale();
@@ -211,7 +225,7 @@ export class MapSeries
         const { topologyIdKey, idKey, sizeKey, colorKey, labelKey, colorRange, marker } = this.properties;
 
         const featureById = new Map<string, Feature>();
-        topology.features.forEach((feature: Feature) => {
+        topology?.features.forEach((feature: Feature) => {
             const property = feature.properties?.[topologyIdKey];
             if (property == null) return;
             featureById.set(property, feature);
@@ -261,6 +275,10 @@ export class MapSeries
         }
 
         this.animationState.transition('updateData');
+
+        if (topology == null) {
+            Logger.warnOnce(`no topology was provided for [MapSeries]; nothing will be rendered.`);
+        }
     }
 
     private isColorScaleValid() {
@@ -355,6 +373,7 @@ export class MapSeries
         const nodeData: MapNodeDatum[] = [];
         const labelData: MapNodeLabelDatum[] = [];
         const markerData: MapNodeMarkerDatum[] = [];
+        const missingGeometries: string[] = [];
         processedData.data.forEach(({ datum, values }) => {
             const idValue = values[idIdx];
             const colorValue: number | undefined = colorIdx != null ? values[colorIdx] : undefined;
@@ -362,6 +381,10 @@ export class MapSeries
             const labelValue: string | undefined = labelIdx != null ? values[labelIdx] : undefined;
 
             const projectedGeometry = projectedGeometries.get(idValue);
+            if (projectedGeometry == null) {
+                missingGeometries.push(idValue);
+            }
+
             const markers = projectedGeometry ? markerCenters(projectedGeometry) : undefined;
             const markerCount = markers?.length ?? 0;
 
@@ -386,7 +409,6 @@ export class MapSeries
                 series: this,
                 itemId: idKey,
                 datum,
-                label: labelDatum,
                 idValue: idValue,
                 fill: color ?? fillProperty,
                 sizeValue,
@@ -410,6 +432,16 @@ export class MapSeries
         const backgroundGeometry = this.getBackgroundGeometry();
         const projectedBackgroundGeometry =
             backgroundGeometry != null && scale != null ? projectGeometry(backgroundGeometry, scale) : undefined;
+
+        const missingGeometriesCap = 10;
+        if (missingGeometries.length > missingGeometriesCap) {
+            const excessItems = missingGeometries.length - missingGeometriesCap;
+            missingGeometries.length = missingGeometriesCap;
+            missingGeometries.push(`(+${excessItems} more)`);
+        }
+        if (missingGeometries.length > 0) {
+            Logger.warnOnce(`some data items do not have matches in the provided topology`, missingGeometries);
+        }
 
         return [
             {
@@ -435,8 +467,6 @@ export class MapSeries
             this;
 
         await this.updateSelections();
-
-        this.contentGroup.visible = this.visible;
 
         let highlightedDatum: MapNodeDatum | MapNodeMarkerDatum | undefined =
             this.ctx.highlightManager?.getActiveHighlight() as any;
@@ -510,8 +540,11 @@ export class MapSeries
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
-        const { properties } = this;
+        const { visible, properties } = this;
         const highlightStyle = isHighlight ? this.properties.highlightStyle.item : undefined;
+
+        const renderMode = visible ? GeoGeometryRenderMode.All : GeoGeometryRenderMode.PolygonsOnly;
+        const opacityScale = visible ? 1 : 0.2;
 
         datumSelection.each((geoGeometry, datum) => {
             const { projectedGeometry } = datum;
@@ -522,14 +555,15 @@ export class MapSeries
             }
 
             geoGeometry.projectedGeometry = projectedGeometry;
+            geoGeometry.renderMode = renderMode;
             geoGeometry.fill = highlightStyle?.fill ?? datum.fill;
-            geoGeometry.fillOpacity = highlightStyle?.fillOpacity ?? properties.fillOpacity;
+            geoGeometry.fillOpacity = (highlightStyle?.fillOpacity ?? properties.fillOpacity) * opacityScale;
             geoGeometry.stroke =
                 highlightStyle?.stroke ??
                 properties.stroke ??
                 (isLineString(projectedGeometry) ? properties.__LINE_STRING_STROKE : properties.__POLYGON_STROKE);
             geoGeometry.strokeWidth = highlightStyle?.strokeWidth ?? properties.strokeWidth;
-            geoGeometry.strokeOpacity = highlightStyle?.strokeOpacity ?? properties.strokeOpacity;
+            geoGeometry.strokeOpacity = (highlightStyle?.strokeOpacity ?? properties.strokeOpacity) * opacityScale;
             geoGeometry.lineDash = highlightStyle?.lineDash ?? properties.lineDash;
             geoGeometry.lineDashOffset = highlightStyle?.lineDashOffset ?? properties.lineDashOffset;
 

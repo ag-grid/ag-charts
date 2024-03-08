@@ -9,9 +9,17 @@ type Geometry = any;
 
 const { Path, Path2D, BBox, ScenePathChangeDetection } = _Scene;
 
+export enum GeoGeometryRenderMode {
+    All,
+    PolygonsOnly,
+}
+
 export class GeoGeometry extends Path {
     @ScenePathChangeDetection()
     projectedGeometry: Geometry | undefined = undefined;
+
+    @ScenePathChangeDetection()
+    renderMode: GeoGeometryRenderMode = GeoGeometryRenderMode.All;
 
     private bbox: _Scene.BBox | undefined;
     // Keep non-filled shapes separate so we don't fill them
@@ -38,8 +46,10 @@ export class GeoGeometry extends Path {
     override drawPath(ctx: any) {
         super.drawPath(ctx);
 
-        this.strokePath.draw(ctx);
-        this.renderStroke(ctx);
+        if (this.renderMode === GeoGeometryRenderMode.All) {
+            this.strokePath.draw(ctx);
+            this.renderStroke(ctx);
+        }
     }
 
     override containsPoint(x: number, y: number): boolean {

@@ -39,8 +39,8 @@ export interface ValidateObjectPredicate extends ValidatePredicate {
     restrict(objectType: Function): ValidatePredicate;
 }
 
-export function Validate(predicate: ValidatePredicate, options: ValidateOptions = {}) {
-    const { optional = false } = options;
+export function Validate(predicate: ValidatePredicate, options: ValidateOptions & { property?: string } = {}) {
+    const { optional = false, property: overrideProperty } = options;
     return addTransformToInstanceProperty(
         (target, property, value: any) => {
             const context = { ...options, target, property };
@@ -52,11 +52,18 @@ export function Validate(predicate: ValidatePredicate, options: ValidateOptions 
                 return value;
             }
 
-            const cleanKey = String(property).replace(/^_*/, '');
+            const cleanKey = overrideProperty ?? String(property).replace(/^_*/, '');
             const targetName = target.constructor.className ?? target.constructor.name.replace(/Properties$/, '');
 
+            let valueString = stringify(value);
+            const maxLength = 50;
+            if (valueString != null && valueString.length > maxLength) {
+                const excessCharacters = valueString.length - maxLength;
+                valueString = valueString.slice(0, maxLength) + `... (+${excessCharacters} characters)`;
+            }
+
             Logger.warn(
-                `Property [${cleanKey}] of [${targetName}] cannot be set to [${stringify(value)}]${
+                `Property [${cleanKey}] of [${targetName}] cannot be set to [${valueString}]${
                     predicate.message ? `; expecting ${getPredicateMessage(predicate, context)}` : ''
                 }, ignoring.`
             );

@@ -8,6 +8,8 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
+import { GEOJSON_OBJECT } from '../map-util/validation';
+
 // import type { FeatureCollection, Geometry } from 'geojson';
 type FeatureCollection = any;
 type Geometry = any;
@@ -21,7 +23,6 @@ const {
     LINE_DASH,
     NUMBER_ARRAY,
     OBJECT,
-    PLAIN_OBJECT,
     POSITIVE_NUMBER,
     RATIO,
     STRING,
@@ -38,7 +39,6 @@ export interface MapNodeLabelDatum extends _Util.PointLabelDatum {
 
 interface BaseMapNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     readonly idValue: string;
-    readonly label: MapNodeLabelDatum | undefined;
     readonly fill: string;
     readonly colorValue: number | undefined;
     readonly sizeValue: number | undefined;
@@ -82,8 +82,8 @@ class MapSeriesLabel extends Label<AgMapSeriesLabelFormatterParams> {
 }
 
 class MapSeriesBackground extends BaseProperties {
-    @Validate(PLAIN_OBJECT)
-    topology: FeatureCollection = { type: 'FeatureCollection', features: [] };
+    @Validate(GEOJSON_OBJECT, { optional: true })
+    topology: FeatureCollection | undefined = undefined;
 
     @Validate(STRING, { optional: true })
     id: string | undefined = undefined;
@@ -114,7 +114,7 @@ class MapSeriesBackground extends BaseProperties {
 }
 
 export class MapSeriesProperties extends SeriesProperties<AgMapSeriesOptions> {
-    @Validate(PLAIN_OBJECT, { optional: true })
+    @Validate(GEOJSON_OBJECT, { optional: true })
     topology?: FeatureCollection = undefined;
 
     @Validate(OBJECT)

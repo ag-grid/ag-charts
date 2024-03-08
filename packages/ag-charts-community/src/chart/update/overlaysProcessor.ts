@@ -23,7 +23,7 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
 
     private onLayoutComplete({ series: { rect } }: LayoutCompleteEvent) {
         const isLoading = this.dataService.isLoading();
-        const hasData = this.chartLike.series.some((s) => s.data?.length);
+        const hasData = this.chartLike.series.some((s) => s.hasData);
         const anySeriesVisible = this.chartLike.series.some((s) => s.visible);
 
         this.toggleOverlay(this.overlays.loading, rect, isLoading);
