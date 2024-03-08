@@ -10,10 +10,6 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import { GEOJSON_OBJECT } from '../map-util/validation';
 
-// import type { FeatureCollection, Geometry } from 'geojson';
-type FeatureCollection = any;
-type Geometry = any;
-
 const {
     AND,
     ARRAY,
@@ -44,7 +40,7 @@ export interface MapMarkerNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     readonly latValue: number | undefined;
     readonly colorValue: number | undefined;
     readonly sizeValue: number | undefined;
-    readonly projectedGeometry: Geometry | undefined;
+    readonly projectedGeometry: _ModuleSupport.Geometry | undefined;
     readonly point: Readonly<_Scene.SizedPoint>;
 }
 
@@ -71,7 +67,7 @@ class MapMarkerSeriesLabel extends Label<AgMapMarkerSeriesLabelFormatterParams> 
 
 class MapMarkerSeriesBackground extends BaseProperties {
     @Validate(GEOJSON_OBJECT, { optional: true })
-    topology: FeatureCollection | undefined = undefined;
+    topology: _ModuleSupport.FeatureCollection | undefined = undefined;
 
     @Validate(STRING, { optional: true })
     id: string | undefined = undefined;
@@ -119,7 +115,7 @@ export class MapMarkerSeriesProperties extends SeriesProperties<AgMapMarkerSerie
     }
 
     @Validate(GEOJSON_OBJECT, { optional: true })
-    topology: FeatureCollection | undefined = undefined;
+    topology: _ModuleSupport.FeatureCollection | undefined = undefined;
 
     @Validate(STRING, { optional: true })
     legendItemName?: string;

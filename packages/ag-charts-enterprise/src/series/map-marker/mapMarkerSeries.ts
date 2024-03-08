@@ -7,11 +7,6 @@ import { prepareMapMarkerAnimationFunctions } from '../map-util/mapUtil';
 import { GEOJSON_OBJECT } from '../map-util/validation';
 import { MapMarkerNodeDatum, MapMarkerNodeLabelDatum, MapMarkerSeriesProperties } from './mapMarkerSeriesProperties';
 
-// import type { FeatureCollection, Feature, Geometry } from 'geojson';
-type FeatureCollection = any;
-type Feature = any;
-type Geometry = any;
-
 const {
     Validate,
     fromToMotion,
@@ -28,7 +23,7 @@ const { sanitizeHtml, Logger } = _Util;
 
 export interface MapMarkerNodeDataContext
     extends _ModuleSupport.SeriesNodeDataContext<MapMarkerNodeDatum, MapMarkerNodeLabelDatum> {
-    projectedBackgroundGeometry: Geometry | undefined;
+    projectedBackgroundGeometry: _ModuleSupport.Geometry | undefined;
     visible: boolean;
 }
 
@@ -51,7 +46,7 @@ export class MapMarkerSeries extends DataModelSeries<
     override properties = new MapMarkerSeriesProperties();
 
     @Validate(GEOJSON_OBJECT, { optional: true, property: 'topology' })
-    private _chartTopology?: FeatureCollection = undefined;
+    private _chartTopology?: _ModuleSupport.FeatureCollection = undefined;
 
     private get topology() {
         return this.properties.topology ?? this._chartTopology;
@@ -168,13 +163,14 @@ export class MapMarkerSeries extends DataModelSeries<
         return new MarkerShape();
     }
 
-    private getBackgroundGeometry(): Geometry | undefined {
+    private getBackgroundGeometry(): _ModuleSupport.Geometry | undefined {
         const { background } = this.properties;
         const { id, topologyIdKey } = background;
         if (id == null) return;
 
         const topology = background.topology ?? this.topology;
-        return topology?.features.find((feature: Feature) => feature.properties?.[topologyIdKey] === id)?.geometry;
+        return topology?.features.find((feature: _ModuleSupport.Feature) => feature.properties?.[topologyIdKey] === id)
+            ?.geometry;
     }
 
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
@@ -186,8 +182,8 @@ export class MapMarkerSeries extends DataModelSeries<
         const { topologyIdKey, idKey, latKey, lonKey, sizeKey, colorKey, labelKey, colorRange, marker } =
             this.properties;
 
-        const featureById = new Map<string, Feature>();
-        topology?.features.forEach((feature: Feature) => {
+        const featureById = new Map<string, _ModuleSupport.Feature>();
+        topology?.features.forEach((feature) => {
             const property = feature.properties?.[topologyIdKey];
             if (property == null) return;
             featureById.set(property, feature);
@@ -223,7 +219,7 @@ export class MapMarkerSeries extends DataModelSeries<
         const lonIdx = hasLatLon ? dataModel.resolveProcessedDataIndexById(this, `lonValue`).index : undefined;
         let bbox = (processedData.data as any[]).reduce<_ModuleSupport.LonLatBBox | undefined>(
             (current, { values }) => {
-                const feature: Feature | undefined = featureIdx != null ? values[featureIdx] : undefined;
+                const feature: _ModuleSupport.Feature | undefined = featureIdx != null ? values[featureIdx] : undefined;
                 if (feature != null) {
                     current = geometryBbox(feature.geometry, current);
                 }
@@ -341,12 +337,12 @@ export class MapMarkerSeries extends DataModelSeries<
         sizeScale.range = [marker.size, marker.maxSize ?? marker.size];
         const font = label.getFont();
 
-        let projectedGeometries: Map<string, GeoGeometry> | undefined;
+        let projectedGeometries: Map<string, _ModuleSupport.Geometry> | undefined;
         if (idIdx != null && featureIdx != null) {
-            projectedGeometries = new Map<string, Geometry>();
+            projectedGeometries = new Map<string, _ModuleSupport.Geometry>();
             processedData.data.forEach(({ values }) => {
                 const id: string | undefined = values[idIdx];
-                const geometry: Geometry | undefined = values[featureIdx]?.geometry;
+                const geometry: _ModuleSupport.Geometry | undefined = values[featureIdx]?.geometry;
                 const projectedGeometry =
                     geometry != null && scale != null ? projectGeometry(geometry, scale) : undefined;
                 if (id != null && projectedGeometry != null) {
@@ -491,7 +487,7 @@ export class MapMarkerSeries extends DataModelSeries<
         this.animationState.transition('update');
     }
 
-    private updateBackground(projectedGeometry: Geometry | undefined) {
+    private updateBackground(projectedGeometry: _ModuleSupport.Geometry | undefined) {
         const { backgroundNode, properties } = this;
         const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } =
             properties.background;

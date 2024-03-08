@@ -5,18 +5,13 @@ import { geometryBbox, labelPosition, projectGeometry } from '../map-util/geomet
 import { GEOJSON_OBJECT } from '../map-util/validation';
 import { MapLineNodeDatum, MapLineNodeLabelDatum, MapLineSeriesProperties } from './mapLineSeriesProperties';
 
-// import type { Feature, FeatureCollection, Geometry } from 'geojson';
-type Feature = any;
-type FeatureCollection = any;
-type Geometry = any;
-
 const { createDatumId, DataModelSeries, SeriesNodePickMode, valueProperty, Validate } = _ModuleSupport;
 const { Group, Selection, Text } = _Scene;
 const { sanitizeHtml, Logger } = _Util;
 
 export interface MapLineNodeDataContext
     extends _ModuleSupport.SeriesNodeDataContext<MapLineNodeDatum, MapLineNodeLabelDatum> {
-    projectedBackgroundGeometry: Geometry | undefined;
+    projectedBackgroundGeometry: _ModuleSupport.Geometry | undefined;
     visible: boolean;
 }
 
@@ -34,7 +29,7 @@ export class MapLineSeries
     override properties = new MapLineSeriesProperties();
 
     @Validate(GEOJSON_OBJECT, { optional: true, property: 'topology' })
-    private _chartTopology?: FeatureCollection = undefined;
+    private _chartTopology?: _ModuleSupport.FeatureCollection = undefined;
 
     private get topology() {
         return this.properties.topology ?? this._chartTopology;
@@ -103,12 +98,12 @@ export class MapLineSeries
         return geoGeometry;
     }
 
-    private getBackgroundGeometry(): Geometry | undefined {
+    private getBackgroundGeometry(): _ModuleSupport.Geometry | undefined {
         const { background } = this.properties;
         const { id } = background;
         if (id == null) return;
 
-        let topology: FeatureCollection | undefined;
+        let topology: _ModuleSupport.FeatureCollection | undefined;
         let topologyIdKey: string;
         if (background.topology != null) {
             ({ topology, topologyIdKey } = background);
@@ -117,7 +112,7 @@ export class MapLineSeries
             topologyIdKey = this.properties.topologyIdKey;
         }
 
-        return topology?.features.find((feature: Feature) => feature.properties?.[topologyIdKey] === id)?.geometry;
+        return topology?.features.find((feature) => feature.properties?.[topologyIdKey] === id)?.geometry;
     }
 
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
@@ -128,8 +123,8 @@ export class MapLineSeries
         const { data, topology } = this;
         const { topologyIdKey, idKey, labelKey } = this.properties;
 
-        const featureById = new Map<string, Feature>();
-        topology?.features.forEach((feature: Feature) => {
+        const featureById = new Map<string, _ModuleSupport.Feature>();
+        topology?.features.forEach((feature) => {
             const property = feature.properties?.[topologyIdKey];
             if (property == null) return;
             featureById.set(property, feature);
@@ -149,7 +144,7 @@ export class MapLineSeries
         const featureIdx = dataModel.resolveProcessedDataIndexById(this, `featureValue`).index;
         let bbox = (processedData.data as any[]).reduce<_ModuleSupport.LonLatBBox | undefined>(
             (current, { values }) => {
-                const feature: Feature | undefined = values[featureIdx];
+                const feature: _ModuleSupport.Feature | undefined = values[featureIdx];
                 if (feature == null) return current;
                 return geometryBbox(feature.geometry, current);
             },
@@ -171,7 +166,7 @@ export class MapLineSeries
     private getLabelDatum(
         datum: any,
         labelValue: string | undefined,
-        projectedGeometry: Geometry | undefined,
+        projectedGeometry: _ModuleSupport.Geometry | undefined,
         font: string
     ): MapLineNodeLabelDatum | undefined {
         if (labelValue == null || projectedGeometry == null) return;
@@ -217,10 +212,10 @@ export class MapLineSeries
 
         const font = label.getFont();
 
-        const projectedGeometries = new Map<string, Geometry>();
+        const projectedGeometries = new Map<string, _ModuleSupport.Geometry>();
         processedData.data.forEach(({ values }) => {
             const id: string | undefined = values[idIdx];
-            const geometry: Geometry | undefined = values[featureIdx]?.geometry;
+            const geometry: _ModuleSupport.Geometry | undefined = values[featureIdx]?.geometry;
             const projectedGeometry = geometry != null && scale != null ? projectGeometry(geometry, scale) : undefined;
             if (id != null && projectedGeometry != null) {
                 projectedGeometries.set(id, projectedGeometry);
@@ -314,7 +309,7 @@ export class MapLineSeries
         await this.updateDatumNodes({ datumSelection: highlightDatumSelection, isHighlight: true });
     }
 
-    private updateBackground(projectedGeometry: Geometry | undefined) {
+    private updateBackground(projectedGeometry: _ModuleSupport.Geometry | undefined) {
         const { backgroundNode, properties } = this;
         const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } =
             properties.background;

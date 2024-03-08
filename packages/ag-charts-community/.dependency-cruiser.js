@@ -148,7 +148,6 @@ module.exports = {
             },
             to: {
                 dependencyTypes: ['npm-dev'],
-                pathNot: 'node_modules/@types/geojson',
             },
         },
         {
