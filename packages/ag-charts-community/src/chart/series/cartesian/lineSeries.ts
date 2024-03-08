@@ -2,6 +2,7 @@ import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import { pathMotion } from '../../../motion/pathMotion';
 import { resetMotion } from '../../../motion/resetMotion';
+import { ContinuousScale } from '../../../scale/continuousScale';
 import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
@@ -85,8 +86,11 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             props.push(animationValidation(this, isContinuousX ? ['xValue'] : []));
         }
 
+        const xScale = this.axes[ChartAxisDirection.X]?.scale;
+        const xValueType = ContinuousScale.is(xScale) ? 'range' : 'category';
+
         props.push(
-            valueProperty(this, xKey, isContinuousX, { id: 'xValue' }),
+            valueProperty(this, xKey, isContinuousX, { id: 'xValue', valueType: xValueType }),
             valueProperty(this, yKey, isContinuousY, { id: 'yValue', invalidValue: undefined })
         );
 
