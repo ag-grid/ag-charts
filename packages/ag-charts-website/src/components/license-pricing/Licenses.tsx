@@ -1,4 +1,4 @@
-// @ts-ignore
+// @ts-expect-error
 import styles from '@design-system/modules/Licenses.module.scss';
 // import { trackBuyButton } from '@utils/analytics';
 import classnames from 'classnames';

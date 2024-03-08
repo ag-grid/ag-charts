@@ -1,35 +1,33 @@
+import styles from '@design-system/modules/FAQ.module.scss';
 import classNames from 'classnames';
 import React, { useState } from 'react';
-import styles from '@design-system/modules/FAQ.module.scss';
-import { Icon } from '../Icon';
+
 import { Collapsible } from '../Collapsible';
+import { Icon } from '../Icon';
 
 // Single FAQ item component
 const FAQItem = ({ question, answer }) => {
     const [isOpen, setIsOpen] = useState(false);
-  
+
     // Function to toggle the FAQ item's open state
     const toggleOpen = () => setIsOpen(!isOpen);
-  
-    const questionID = question.toLowerCase()
-        .replace(" ", "-")
-        .replace("?", "")
-        .substring(0, 16)
+
+    const questionID = question.toLowerCase().replace(' ', '-').replace('?', '').substring(0, 16);
 
     return (
         <div className={classNames(styles.faqItem, isOpen ? styles.isOpen : '')} onClick={toggleOpen}>
             <div className={styles.question}>
                 {question}
-                <Icon name="chevronDownAlt" svgClasses={styles.chevronDown}/>
+                <Icon name="chevronDownAlt" svgClasses={styles.chevronDown} />
             </div>
-            <div className={styles.answer} >
+            <div className={styles.answer}>
                 <Collapsible id={questionID} isDisabled={false} isOpen={isOpen}>
                     <div className={styles.answerContent}>{answer}</div>
-                </Collapsible> 
+                </Collapsible>
             </div>
         </div>
     );
-  };
+};
 
 // FAQ component to display a list of FAQs
 const FAQ = ({ faqs }) => {

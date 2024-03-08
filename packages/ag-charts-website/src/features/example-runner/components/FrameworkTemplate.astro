@@ -66,7 +66,7 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
 ---
 
 {
-    (!generatedContents) ? (
+    !generatedContents ? (
         <p>
             Error generating content for: <a href={exampleUrl}>{exampleUrl}</a>
         </p>
@@ -81,9 +81,8 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             indexFragment={indexFragment!}
             appLocation={appLocation}
             extraStyles={extraStyles}
-        >
-        </JavascriptTemplate>
-    ) : (internalFramework === 'typescript') ? (
+        ></JavascriptTemplate>
+    ) : internalFramework === 'typescript' ? (
         <TypescriptTemplate
             isDev={isDev}
             title={title}
@@ -94,8 +93,7 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             appLocation={appLocation}
             boilerplatePath={boilerPlateUrl}
             extraStyles={extraStyles}
-        >
-        </TypescriptTemplate>
+        ></TypescriptTemplate>
     ) : ['reactFunctional', 'reactFunctionalTs'].includes(internalFramework) ? (
         <ReactTemplate
             isDev={isDev}
@@ -108,8 +106,7 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             boilerplatePath={boilerPlateUrl}
             ignoreSystemJs={ignoreSystemJs}
             extraStyles={extraStyles}
-        >
-        </ReactTemplate>
+        ></ReactTemplate>
     ) : internalFramework === 'angular' ? (
         <AngularTemplate
             isDev={isDev}
@@ -121,9 +118,8 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             appLocation={appLocation}
             boilerplatePath={boilerPlateUrl}
             extraStyles={extraStyles}
-        >
-        </AngularTemplate>
-    ) : (internalFramework === 'vue' || internalFramework === 'vue3') ? (
+        ></AngularTemplate>
+    ) : internalFramework === 'vue' || internalFramework === 'vue3' ? (
         <VueTemplate
             isDev={isDev}
             title={title}
@@ -135,8 +131,7 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             boilerplatePath={boilerPlateUrl}
             vueFramework={internalFramework}
             extraStyles={extraStyles}
-        >
-        </VueTemplate>
+        ></VueTemplate>
     ) : null
 }
 
