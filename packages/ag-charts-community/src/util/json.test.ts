@@ -428,12 +428,12 @@ describe('json module', () => {
             expect(target.recurse?.array).toEqual(json.recurse.array);
         });
 
-        // it('should skip specified properties', () => {
-        //     const target = new TestApply();
-        //     jsonApply(target, json, { skip: ['recurse.str', 'str'] });
-        //     expect(target.str).toEqual(undefined);
-        //     expect(target.recurse?.str).toEqual(undefined);
-        // });
+        it('should skip specified properties', () => {
+            const target = new TestApply();
+            jsonApply(target, json, { skip: ['recurse.str', 'str'] });
+            expect(target.str).toEqual(undefined);
+            expect(target.recurse?.str).toEqual(undefined);
+        });
 
         it('should error on unrecognised properties', () => {
             const badJson = { foo: 'bar' };

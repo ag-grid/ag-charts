@@ -174,6 +174,7 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
     const targetType = classify(target);
     for (const property in source) {
         const propertyMatcherPath = `${matcherPath ? matcherPath + '.' : ''}${property}`;
+        console.log({ propertyMatcherPath, property, path }, skip.includes(propertyMatcherPath));
         if (skip.includes(propertyMatcherPath)) continue;
 
         const newValue = source[property];
@@ -234,7 +235,12 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
                         matcherPath: propertyMatcherPath,
                     });
                 } else {
-                    targetAny[property] = newValue;
+                    targetAny[property] = {};
+                    jsonApply(targetAny[property], newValue as any, {
+                        ...params,
+                        path: propertyPath,
+                        matcherPath: propertyMatcherPath,
+                    });
                 }
             } else {
                 targetAny[property] = newValue;
