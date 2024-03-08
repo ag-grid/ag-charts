@@ -93,14 +93,7 @@ gatsby-fast-refresh {
     display: flex;
     flex-direction: row-reverse;
     height: 320px;
-    background-color: #001223; // --ag-background-color;
-    border-top-left-radius: 4px;
-    border-top-right-radius: 4px;
     overflow: hidden;
-
-    #{$selector-darkmode} & {
-        background-color: #121f29;
-    }
 
     @media screen and (min-width: $breakpoint-hero-large) {
         width: 860px;
@@ -203,7 +196,7 @@ gatsby-fast-refresh {
     width: calc(100% + var(--overflow-width) * 2);
     height: 107px;
     margin-left: calc(var(--overflow-width) * -1);
-    background-image: url('../../images/customer-logos/ag-grid-customer-logos.webp');
+    background-image: url('../../../images/ag-grid-customer-logos.webp');
     background-size: auto 107px;
     animation-name: customerMarquee;
     animation-duration: 1600s;

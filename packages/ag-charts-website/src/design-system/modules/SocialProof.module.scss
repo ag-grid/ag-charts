@@ -1,4 +1,4 @@
-@use '../core' as *;
+@use "../core" as *;
 
 .socialProof {
     --social-proof-bg: #fbfbfc;
@@ -45,20 +45,24 @@
         margin-left: auto;
         left: 1px;
     }
+
     p,
     h3 {
         margin-right: $spacing-size-6;
         margin-left: $spacing-size-6;
     }
+
     p {
         margin-bottom: $spacing-size-2;
         font-weight: var(--text-semibold);
         color: var(--color-text-brand-primary);
+
         @media screen and (max-width: $breakpoint-pricing-medium) {
             padding-top: $spacing-size-16;
         }
     }
 }
+
 .statsOuter {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -78,11 +82,13 @@
 .stat {
     padding: 72px $spacing-size-10;
     font-size: var(--text-fs-base);
+
     @media screen and (max-width: $breakpoint-pricing-large) {
         padding-top: $spacing-size-10;
         padding-bottom: $spacing-size-10;
         border-bottom: 1px solid var(--color-border-secondary);
     }
+
     &:first-child {
         padding-left: $spacing-size-6;
         @media screen and (max-width: $breakpoint-pricing-large) {
@@ -102,13 +108,14 @@
 
 .advocates {
     display: flex;
-    #{$selector-darkmode} & {
-        background: color-mix(in srgb, var(--color-fg-primary), var(--color-bg-primary) 98%);
-    }
     border-bottom: 1px solid var(--color-border-secondary);
 
     @media screen and (max-width: $breakpoint-pricing-medium) {
         flex-direction: column;
+    }
+
+    #{$selector-darkmode} & {
+        background: color-mix(in srgb, var(--color-fg-primary), var(--color-bg-primary) 98%);
     }
 }
 
@@ -127,6 +134,7 @@
     &:first-child {
         padding: $spacing-size-6 $spacing-size-8 $spacing-size-6 $spacing-size-6;
         border-right: 1px solid var(--color-border-secondary);
+
         @media screen and (max-width: $breakpoint-pricing-medium) {
             border-bottom: 1px solid var(--color-border-secondary);
         }
@@ -192,7 +200,7 @@
 }
 
 .cellsIllustration {
-    --cell-width: 226px;
+    --cell-width: min(226px, calc(50% + 1px));
     --cell-height: 48px;
 
     display: flex;
@@ -210,18 +218,18 @@
     width: var(--cell-width);
     height: var(--cell-height);
 
-    #{$selector-darkmode} & {
-        opacity: 0.7;
-    }
-
     &::before {
         content: '';
         position: absolute;
         bottom: 0;
-        left: 0;
+        right: 0;
         width: 8px;
         height: 8px;
         background-color: var(--color-border-primary);
+    }
+
+    #{$selector-darkmode} & {
+        opacity: 0.7;
     }
 }
 
