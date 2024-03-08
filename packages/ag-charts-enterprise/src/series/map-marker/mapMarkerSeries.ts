@@ -458,6 +458,7 @@ export class MapMarkerSeries extends DataModelSeries<
         await this.updateSelections();
 
         this.contentGroup.visible = this.visible;
+        this.contentGroup.opacity = this.getOpacity();
 
         let highlightedDatum: MapMarkerNodeDatum | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
         if (highlightedDatum != null && highlightedDatum.series !== this) {
@@ -493,8 +494,8 @@ export class MapMarkerSeries extends DataModelSeries<
             properties.background;
 
         if (projectedGeometry == null) {
-            backgroundNode.projectedGeometry = undefined;
             backgroundNode.visible = false;
+            backgroundNode.projectedGeometry = undefined;
             return;
         }
 
@@ -559,8 +560,9 @@ export class MapMarkerSeries extends DataModelSeries<
         isHighlight: boolean;
     }) {
         const { markerSelection, isHighlight } = opts;
-        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, size } = this.properties.marker;
+        const { fill, fillOpacity, stroke, strokeOpacity, size } = this.properties.marker;
         const highlightStyle = isHighlight ? this.properties.highlightStyle.item : undefined;
+        const strokeWidth = this.getStrokeWidth(this.properties.marker.strokeWidth);
 
         markerSelection.each((marker, markerDatum) => {
             const { point } = markerDatum;

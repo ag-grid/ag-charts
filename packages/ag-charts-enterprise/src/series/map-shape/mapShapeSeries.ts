@@ -304,6 +304,8 @@ export class MapShapeSeries
 
         await this.updateSelections();
 
+        this.contentGroup.opacity = this.getOpacity() * (this.visible ? 1 : 0.2);
+
         let highlightedDatum: MapShapeNodeDatum | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
         if (highlightedDatum != null && highlightedDatum.series !== this) {
             highlightedDatum = undefined;
@@ -336,10 +338,9 @@ export class MapShapeSeries
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
-        const { visible, properties } = this;
+        const { fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = this.properties;
         const highlightStyle = isHighlight ? this.properties.highlightStyle.item : undefined;
-
-        const opacityScale = visible ? 1 : 0.2;
+        const strokeWidth = this.getStrokeWidth(this.properties.strokeWidth);
 
         datumSelection.each((geoGeometry, datum) => {
             const { projectedGeometry } = datum;
@@ -352,12 +353,12 @@ export class MapShapeSeries
             geoGeometry.visible = true;
             geoGeometry.projectedGeometry = projectedGeometry;
             geoGeometry.fill = highlightStyle?.fill ?? datum.fill;
-            geoGeometry.fillOpacity = (highlightStyle?.fillOpacity ?? properties.fillOpacity) * opacityScale;
-            geoGeometry.stroke = highlightStyle?.stroke ?? properties.stroke;
-            geoGeometry.strokeWidth = highlightStyle?.strokeWidth ?? properties.strokeWidth;
-            geoGeometry.strokeOpacity = (highlightStyle?.strokeOpacity ?? properties.strokeOpacity) * opacityScale;
-            geoGeometry.lineDash = highlightStyle?.lineDash ?? properties.lineDash;
-            geoGeometry.lineDashOffset = highlightStyle?.lineDashOffset ?? properties.lineDashOffset;
+            geoGeometry.fillOpacity = highlightStyle?.fillOpacity ?? fillOpacity;
+            geoGeometry.stroke = highlightStyle?.stroke ?? stroke;
+            geoGeometry.strokeWidth = highlightStyle?.strokeWidth ?? strokeWidth;
+            geoGeometry.strokeOpacity = highlightStyle?.strokeOpacity ?? strokeOpacity;
+            geoGeometry.lineDash = highlightStyle?.lineDash ?? lineDash;
+            geoGeometry.lineDashOffset = highlightStyle?.lineDashOffset ?? lineDashOffset;
         });
     }
 
