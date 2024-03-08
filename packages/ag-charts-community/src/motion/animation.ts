@@ -202,15 +202,11 @@ export class Animation<T extends AnimationValue> implements IAnimation {
     }
 
     pause() {
-        if (this.isPlaying) {
-            this.isPlaying = false;
-        }
+        this.isPlaying = false;
     }
 
     stop() {
-        if (this.isPlaying) {
-            this.isPlaying = false;
-        }
+        this.isPlaying = false;
         if (!this.isComplete) {
             this.isComplete = true;
             this.onStop?.(this);

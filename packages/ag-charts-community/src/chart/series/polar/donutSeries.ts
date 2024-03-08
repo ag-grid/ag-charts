@@ -153,13 +153,6 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         this.sectorLabelSelection = Selection.select(pieSectorLabels, Text);
         this.innerLabelsSelection = Selection.select(innerLabels, Text);
         this.innerCircleSelection = Selection.select(this.innerCircleGroup, Circle);
-
-        for (const circle of [this.zerosumInnerRing, this.zerosumOuterRing]) {
-            circle.fillOpacity = 0;
-            circle.stroke = this.properties.calloutLabel.color;
-            circle.strokeWidth = 1;
-            circle.strokeOpacity = 1;
-        }
     }
 
     override addChartEventListeners(): void {
@@ -582,6 +575,13 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             title.node.visible =
                 title.enabled && isFinite(dy) && !this.bboxIntersectsSurroundingSeries(titleBox, 0, dy);
             title.node.translationY = isFinite(dy) ? dy : 0;
+        }
+
+        for (const circle of [this.zerosumInnerRing, this.zerosumOuterRing]) {
+            circle.fillOpacity = 0;
+            circle.stroke = this.properties.calloutLabel.color;
+            circle.strokeWidth = 1;
+            circle.strokeOpacity = 1;
         }
 
         this.updateNodeMidPoint();

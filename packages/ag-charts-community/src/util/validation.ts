@@ -167,6 +167,7 @@ export const OVERFLOW_STRATEGY = UNION(['ellipsis', 'hide'], 'an overflow strate
 export const DIRECTION = UNION(['horizontal', 'vertical'], 'a direction');
 export const PLACEMENT = UNION(['inside', 'outside'], 'a placement');
 export const INTERACTION_RANGE = OR(UNION(['exact', 'nearest'], 'interaction range'), NUMBER);
+export const LABEL_PLACEMENT = UNION(['top', 'bottom', 'left', 'right']);
 
 export function UNION(options: string[], message: string = 'a') {
     return predicateWithMessage(

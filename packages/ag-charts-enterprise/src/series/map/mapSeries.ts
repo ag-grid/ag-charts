@@ -1,9 +1,7 @@
-import type { Feature, FeatureCollection, Geometry } from 'geojson';
-
 import { AgMapSeriesStyle, _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import { GeoGeometry } from '../map-util/geoGeometry';
-import { geometryBbox, geometryCenter, markerCenters, projectGeometry } from '../map-util/geometryUtil';
+import { geometryBbox, labelPosition, markerCenters, projectGeometry } from '../map-util/geometryUtil';
 import { prepareMapMarkerAnimationFunctions } from '../map-util/mapUtil';
 import {
     MapNodeDatum,
@@ -12,6 +10,11 @@ import {
     MapNodeMarkerDatum,
     MapSeriesProperties,
 } from './mapSeriesProperties';
+
+// import type { Feature, FeatureCollection, Geometry } from 'geojson';
+type Feature = any;
+type FeatureCollection = any;
+type Geometry = any;
 
 const { fromToMotion, StateMachine, getMissCount, createDatumId, DataModelSeries, SeriesNodePickMode, valueProperty } =
     _ModuleSupport;
@@ -188,15 +191,15 @@ export class MapSeries
         if (id == null) return;
 
         let topology: FeatureCollection | undefined;
-        let topologyProperty: string;
+        let topologyIdKey: string;
         if (background.topology != null) {
-            ({ topology, topologyProperty } = background);
+            ({ topology, topologyIdKey } = background);
         } else {
             topology = this.topology;
-            topologyProperty = this.properties.topologyProperty;
+            topologyIdKey = this.properties.topologyIdKey;
         }
 
-        return topology?.features.find((feature) => feature.properties?.[topologyProperty] === id)?.geometry;
+        return topology?.features.find((feature: Feature) => feature.properties?.[topologyIdKey] === id)?.geometry;
     }
 
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
@@ -205,11 +208,11 @@ export class MapSeries
         }
 
         const { data, topology } = this;
-        const { topologyProperty, idKey, sizeKey, colorKey, labelKey, colorRange, marker } = this.properties;
+        const { topologyIdKey, idKey, sizeKey, colorKey, labelKey, colorRange, marker } = this.properties;
 
         const featureById = new Map<string, Feature>();
-        topology.features.forEach((feature) => {
-            const property = feature.properties?.[topologyProperty];
+        topology.features.forEach((feature: Feature) => {
+            const property = feature.properties?.[topologyIdKey];
             if (property == null) return;
             featureById.set(property, feature);
         });
@@ -281,12 +284,15 @@ export class MapSeries
     private getLabelDatum(
         datum: any,
         labelValue: string | undefined,
+        size: number,
+        hasMarkers: boolean,
         projectedGeometry: Geometry | undefined,
         font: string
     ): MapNodeLabelDatum | undefined {
         if (labelValue == null || projectedGeometry == null) return;
 
         const { idKey, idName, sizeKey, sizeName, colorKey, colorName, labelKey, labelName, label } = this.properties;
+
         const labelText = this.getLabelText(label, {
             value: labelValue,
             datum,
@@ -301,18 +307,21 @@ export class MapSeries
         });
         if (labelText == null) return;
 
-        const labelCenter =
-            projectedGeometry != null && labelText != null ? geometryCenter(projectedGeometry, 1) : undefined;
+        const { width, height } = Text.getTextSize(String(labelText), font);
+
+        const paddedSize = { width: width + 2, height: height + 2 };
+        const labelCenter = labelPosition(projectedGeometry, paddedSize, 2);
         if (labelCenter == null) return;
 
-        const labelSize = Text.getTextSize(String(labelText), font);
-        if (labelCenter.distance < Math.hypot(labelSize.width / 2, labelSize.height / 2)) return;
+        const [x, y] = labelCenter;
+        const { placement } = label;
 
-        const { x, y } = labelCenter;
-        const { width, height } = labelSize;
         return {
-            point: { x, y, size: 0 },
+            point: { x, y, size },
             label: { width, height, text: labelText },
+            marker: getMarker(this.properties.marker.shape),
+            placement,
+            hasMarkers,
         };
     }
 
@@ -352,11 +361,22 @@ export class MapSeries
             const sizeValue: number | undefined = sizeIdx != null ? values[sizeIdx] : undefined;
             const labelValue: string | undefined = labelIdx != null ? values[labelIdx] : undefined;
 
+            const projectedGeometry = projectedGeometries.get(idValue);
+            const markers = projectedGeometry ? markerCenters(projectedGeometry) : undefined;
+            const markerCount = markers?.length ?? 0;
+
+            let size: number;
+            if (sizeValue != null) {
+                size = sizeScale.convert(sizeValue);
+            } else if (markerCount === 1) {
+                size = marker.size;
+            } else {
+                size = 0;
+            }
             const color: string | undefined =
                 colorScaleValid && colorValue != null ? colorScale.convert(colorValue) : undefined;
-            const projectedGeometry = projectedGeometries.get(idValue);
 
-            const labelDatum = this.getLabelDatum(datum, labelValue, projectedGeometry, font);
+            const labelDatum = this.getLabelDatum(datum, labelValue, size, markerCount > 0, projectedGeometry, font);
             if (labelDatum != null) {
                 labelData.push(labelDatum);
             }
@@ -375,10 +395,7 @@ export class MapSeries
             };
 
             nodeData.push(nodeDatum);
-
-            const markers = projectedGeometry?.type === 'Point' ? markerCenters(projectedGeometry) : undefined;
             markers?.forEach(([x, y], index) => {
-                const size = sizeValue != null ? sizeScale.convert(sizeValue) : 0;
                 const point = { x, y, size };
                 markerData.push({
                     ...nodeDatum,
@@ -531,18 +548,21 @@ export class MapSeries
         labelSelection: _Scene.Selection<_Scene.Text, _Util.PlacedLabel<_Util.PointLabelDatum>>;
     }) {
         const { labelSelection } = opts;
+        const { __POLYGON_LABEL, __MARKER_LABEL } = this.properties;
         const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = this.properties.label;
 
-        labelSelection.each((label, { x, y, width, height, text }) => {
+        labelSelection.each((label, { x, y, width, height, text, datum }) => {
+            const { hasMarkers } = datum as MapNodeLabelDatum;
+            const defaults = hasMarkers ? __MARKER_LABEL : __POLYGON_LABEL;
             label.visible = true;
             label.x = x + width / 2;
             label.y = y + height / 2;
             label.text = text;
-            label.fill = fill;
-            label.fontStyle = fontStyle;
-            label.fontWeight = fontWeight;
-            label.fontSize = fontSize;
-            label.fontFamily = fontFamily;
+            label.fill = fill ?? defaults.color;
+            label.fontStyle = fontStyle ?? defaults.fontStyle;
+            label.fontWeight = fontWeight ?? defaults.fontWeight;
+            label.fontSize = fontSize ?? defaults.fontSize;
+            label.fontFamily = fontFamily ?? defaults.fontFamily;
             label.textAlign = 'center';
             label.textBaseline = 'middle';
         });

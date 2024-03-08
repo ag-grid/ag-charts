@@ -1,9 +1,11 @@
-import type { Geometry, Position } from 'geojson';
-
 import { _Scene } from 'ag-charts-community';
 
 import { lineStringDistance } from './lineStringUtil';
-import { polygonDistance } from './polygonUtil';
+import { polygonContains } from './polygonUtil';
+
+// import type { Geometry, Position } from 'geojson';
+type Position = any;
+type Geometry = any;
 
 const { Path, Path2D, BBox, ScenePathChangeDetection } = _Scene;
 
@@ -54,19 +56,20 @@ export class GeoGeometry extends Path {
         const minStrokeDistance = Math.max(this.strokeWidth / 2, 1) + 1;
         switch (geometry.type) {
             case 'GeometryCollection':
-                return geometry.geometries.some((g) => this.geometryContainsPoint(g, x, y));
+                return geometry.geometries.some((g: Geometry) => this.geometryContainsPoint(g, x, y));
             case 'Polygon':
-                return polygonDistance(geometry.coordinates, x, y) <= 0;
+                return polygonContains(geometry.coordinates, x, y);
             case 'MultiPolygon':
-                return geometry.coordinates.some((coordinates) => polygonDistance(coordinates, x, y) <= 0);
+                return geometry.coordinates.some((coordinates: Position[][]) => polygonContains(coordinates, x, y));
             case 'LineString':
                 return lineStringDistance(geometry.coordinates, x, y) < minStrokeDistance;
             case 'MultiLineString':
                 return geometry.coordinates.some(
-                    (lineString) => lineStringDistance(lineString, x, y) < minStrokeDistance
+                    (lineString: Position[]) => lineStringDistance(lineString, x, y) < minStrokeDistance
                 );
             case 'Point':
             case 'MultiPoint':
+            default:
                 return false;
         }
     }
@@ -75,7 +78,7 @@ export class GeoGeometry extends Path {
         const { path, strokePath } = this;
         switch (geometry.type) {
             case 'GeometryCollection':
-                geometry.geometries.forEach((g) => {
+                geometry.geometries.forEach((g: Geometry) => {
                     bbox = this.drawGeometry(g, bbox);
                 });
                 break;
@@ -83,7 +86,7 @@ export class GeoGeometry extends Path {
                 bbox = this.drawPolygon(path, geometry.coordinates, bbox);
                 break;
             case 'MultiPolygon':
-                geometry.coordinates.forEach((coordinates) => {
+                geometry.coordinates.forEach((coordinates: Position[][]) => {
                     bbox = this.drawPolygon(path, coordinates, bbox);
                 });
                 break;
@@ -91,7 +94,7 @@ export class GeoGeometry extends Path {
                 bbox = this.drawLineString(strokePath, geometry.coordinates, bbox, false);
                 break;
             case 'MultiLineString':
-                geometry.coordinates.forEach((coordinates) => {
+                geometry.coordinates.forEach((coordinates: Position[]) => {
                     bbox = this.drawLineString(strokePath, coordinates, bbox, false);
                 });
                 break;

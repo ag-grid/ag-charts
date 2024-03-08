@@ -1,9 +1,12 @@
 import { BBox } from '../../scene/bbox';
+import type { Point } from '../../scene/point';
 import { Path, ScenePathChangeDetection } from '../../scene/shape/path';
 
 export type MarkerPathMove = { x: number; y: number; t?: 'move' };
 
-export abstract class Marker extends Path {
+export class Marker extends Path {
+    public static center: Point = { x: 0.5, y: 0.5 };
+
     @ScenePathChangeDetection()
     x: number = 0;
 
@@ -15,9 +18,9 @@ export abstract class Marker extends Path {
 
     override computeBBox(): BBox {
         const { x, y, size } = this;
-        const half = size / 2;
+        const { center } = this.constructor as any;
 
-        return new BBox(x - half, y - half, size, size);
+        return new BBox(x - size * center.x, y - size * center.y, size, size);
     }
 
     protected applyPath(s: number, moves: MarkerPathMove[]) {

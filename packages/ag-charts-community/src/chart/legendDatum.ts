@@ -1,6 +1,6 @@
 import type { AgChartLegendListeners } from '../options/agChartOptions';
 import type { Scene } from '../scene/scene';
-import type { Marker } from './marker/marker';
+import type { MarkerConstructor } from './marker/util';
 
 export interface ChartLegend {
     attachLegend(scene: Scene): void;
@@ -27,7 +27,7 @@ export interface CategoryLegendDatum extends BaseChartLegendDatum {
     id: string; // component ID
     itemId: any; // sub-component ID
     marker: {
-        shape?: string | (new () => Marker);
+        shape?: string | MarkerConstructor;
         fill?: string;
         stroke?: string;
         fillOpacity: number;

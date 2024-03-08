@@ -1,5 +1,3 @@
-import type { FeatureCollection } from 'geojson';
-
 import type {
     AgMapMarkerSeriesFormatterParams,
     AgMapMarkerSeriesLabelFormatterParams,
@@ -9,6 +7,9 @@ import type {
     AgMapMarkerSeriesTooltipRendererParams,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+
+// import type { FeatureCollection } from 'geojson';
+type FeatureCollection = any;
 
 const {
     AND,
@@ -58,6 +59,11 @@ class MapMarkerSeriesMarker extends _ModuleSupport.SeriesMarker<AgMapMarkerSerie
     domain?: [number, number];
 }
 
+class MapMarkerSeriesLabel extends Label<AgMapMarkerSeriesLabelFormatterParams> {
+    @Validate(STRING)
+    placement: _Util.LabelPlacement = 'bottom';
+}
+
 class MapMarkerSeriesBackground extends BaseProperties {
     @Validate(PLAIN_OBJECT)
     topology: FeatureCollection = { type: 'FeatureCollection', features: [] };
@@ -66,7 +72,7 @@ class MapMarkerSeriesBackground extends BaseProperties {
     id: string | undefined = undefined;
 
     @Validate(STRING)
-    topologyProperty: string = 'name';
+    topologyIdKey: string = 'name';
 
     @Validate(COLOR_STRING)
     fill: string = 'black';
@@ -137,7 +143,7 @@ export class MapMarkerSeriesProperties extends SeriesProperties<AgMapMarkerSerie
     readonly marker = new MapMarkerSeriesMarker();
 
     @Validate(OBJECT)
-    readonly label = new Label<AgMapMarkerSeriesLabelFormatterParams>();
+    readonly label = new MapMarkerSeriesLabel();
 
     @Validate(OBJECT)
     override tooltip = new SeriesTooltip<AgMapMarkerSeriesTooltipRendererParams<any>>();

@@ -551,6 +551,31 @@
         ],
         [
             {
+                "title": "Map",
+                "seriesName": "map",
+                "icon": "chartsSunburst",
+                "enterprise": true,
+                "examples": [
+                    {
+                        "title": "Multiple Series",
+                        "description": "",
+                        "name": "multiple-map-series"
+                    },
+                    {
+                        "title": "Heatmap Series",
+                        "description": "",
+                        "name": "map-heatmap-series"
+                    },
+                    {
+                        "title": "Map Marker Series",
+                        "description": "",
+                        "name": "map-marker-series"
+                    }
+                ]
+            }
+        ],
+        [
+            {
                 "title": "Sunburst",
                 "seriesName": "sunburst",
                 "icon": "chartsSunburst",

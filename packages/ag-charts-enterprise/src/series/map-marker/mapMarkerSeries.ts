@@ -1,5 +1,3 @@
-import type { FeatureCollection, Geometry } from 'geojson';
-
 import { AgMapSeriesStyle, _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import { extendBbox } from '../map-util/bboxUtil';
@@ -7,6 +5,11 @@ import { GeoGeometry } from '../map-util/geoGeometry';
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
 import { prepareMapMarkerAnimationFunctions } from '../map-util/mapUtil';
 import { MapMarkerNodeDatum, MapMarkerNodeLabelDatum, MapMarkerSeriesProperties } from './mapMarkerSeriesProperties';
+
+// import type { FeatureCollection, Feature, Geometry } from 'geojson';
+type FeatureCollection = any;
+type Feature = any;
+type Geometry = any;
 
 const { fromToMotion, StateMachine, getMissCount, createDatumId, DataModelSeries, SeriesNodePickMode, valueProperty } =
     _ModuleSupport;
@@ -152,11 +155,11 @@ export class MapMarkerSeries extends DataModelSeries<
 
     private getBackgroundGeometry(): Geometry | undefined {
         const { background } = this.properties;
-        const { id, topologyProperty } = background;
+        const { id, topologyIdKey } = background;
         if (id == null) return;
 
         const topology = background.topology ?? this.topology;
-        return topology?.features.find((feature) => feature.properties?.[topologyProperty] === id)?.geometry;
+        return topology?.features.find((feature: Feature) => feature.properties?.[topologyIdKey] === id)?.geometry;
     }
 
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
@@ -234,12 +237,13 @@ export class MapMarkerSeries extends DataModelSeries<
         labelValue: string | undefined,
         x: number,
         y: number,
+        size: number,
         font: string
     ): MapMarkerNodeLabelDatum | undefined {
         if (labelValue == null) return;
 
-        const { latKey, latName, lonKey, lonName, sizeKey, sizeName, colorKey, colorName, labelKey, labelName, label } =
-            this.properties;
+        const { latKey, latName, lonKey, lonName, sizeKey, sizeName, labelKey, labelName, label } = this.properties;
+        const { placement } = label;
         const labelText = this.getLabelText(label, {
             value: labelValue,
             datum,
@@ -249,8 +253,6 @@ export class MapMarkerSeries extends DataModelSeries<
             lonName,
             sizeKey,
             sizeName,
-            colorKey,
-            colorName,
             labelKey,
             labelName,
         });
@@ -259,8 +261,10 @@ export class MapMarkerSeries extends DataModelSeries<
         const { width, height } = Text.getTextSize(String(labelText), font);
 
         return {
-            point: { x, y, size: 0 },
+            point: { x, y, size },
             label: { width, height, text: labelText },
+            marker: getMarker(this.properties.marker.shape),
+            placement,
         };
     }
 
@@ -295,7 +299,7 @@ export class MapMarkerSeries extends DataModelSeries<
             const color: string | undefined =
                 colorScaleValid && colorValue != null ? colorScale.convert(colorValue) : undefined;
 
-            const labelDatum = this.getLabelDatum(datum, labelValue, x, y, font);
+            const labelDatum = this.getLabelDatum(datum, labelValue, x, y, size, font);
             if (labelDatum) {
                 labelData.push(labelDatum);
             }

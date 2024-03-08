@@ -19,7 +19,7 @@ function generateThumbnails(projectName: string) {
 
 export const createNodes: CreateNodes = [
     'packages/*/src/**/_examples/*/main.ts',
-    (configFilePath, options, context) => {
+    (configFilePath, _options, _context) => {
         const parentProject = PROJECTS.find((p) => configFilePath.startsWith(`packages/${p}`));
 
         if (!parentProject) {
@@ -30,7 +30,8 @@ export const createNodes: CreateNodes = [
             .split('/')
             .slice(2)
             .filter((p) => !NON_UNIQUE_PATH_ELEMENTS.has[p])
-            .join('_');
+            .join('_')
+            .replace(' ', '-');
         const examplePath = dirname(configFilePath).replace(`packages/${parentProject}/`, '{projectRoot}/');
         const projectRelativeInputPath = examplePath.split('/').slice(2).join('/');
         const srcRelativeInputPath = projectRelativeInputPath.split('/').slice(1).join('/');

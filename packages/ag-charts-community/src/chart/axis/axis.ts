@@ -24,9 +24,8 @@ import { Matrix } from '../../scene/matrix';
 import type { Node } from '../../scene/node';
 import { Selection } from '../../scene/selection';
 import { Line } from '../../scene/shape/line';
-import type { TextSizeProperties } from '../../scene/shape/text';
-import { Text, measureText, splitText } from '../../scene/shape/text';
-import type { PointLabelDatum } from '../../scene/util/labelPlacement';
+import { Text, TextMeasurer, type TextSizeProperties } from '../../scene/shape/text';
+import type { PlacedLabelDatum } from '../../scene/util/labelPlacement';
 import { axisLabelsOverlap } from '../../scene/util/labelPlacement';
 import { normalizeAngle360, toRadians } from '../../util/angle';
 import { areArrayNumbersEqual } from '../../util/equal';
@@ -981,7 +980,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     ): boolean {
         Matrix.updateTransformMatrix(labelMatrix, 1, 1, rotation, 0, 0);
 
-        const labelData: PointLabelDatum[] = this.createLabelData(tickData, labelX, textProps, labelMatrix);
+        const labelData: PlacedLabelDatum[] = this.createLabelData(tickData, labelX, textProps, labelMatrix);
         const labelSpacing = getLabelSpacing(this.label.minSpacing, rotated);
 
         return axisLabelsOverlap(labelData, labelSpacing);
@@ -992,25 +991,20 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         labelX: number,
         textProps: TextSizeProperties,
         labelMatrix: Matrix
-    ): PointLabelDatum[] {
-        const labelData: PointLabelDatum[] = [];
-        for (const tickDatum of tickData) {
-            const { tickLabel, translationY } = tickDatum;
-            if (tickLabel === '' || tickLabel == undefined) {
-                // skip user hidden ticks
-                continue;
-            }
+    ): PlacedLabelDatum[] {
+        const labelData: PlacedLabelDatum[] = [];
+        const measurer = new TextMeasurer(textProps);
 
-            const lines = splitText(tickLabel);
+        for (const { tickLabel, translationY } of tickData) {
+            if (tickLabel === '' || tickLabel == undefined) continue;
 
-            const { width, height } = measureText(lines, labelX, translationY, textProps);
-
+            const { width, height } = measurer.size(tickLabel);
             const bbox = new BBox(labelX, translationY, width, height);
-
             const labelDatum = calculateLabelBBox(tickLabel, bbox, labelX, translationY, labelMatrix);
 
             labelData.push(labelDatum);
         }
+
         return labelData;
     }
 

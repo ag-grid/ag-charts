@@ -1,8 +1,9 @@
-import type { Position } from 'geojson';
+// import type { Position } from 'geojson';
+type Position = any;
 
 const delta = 1e-9;
 
-export function lineSegmentDistanceSquared(a: Position, b: Position, x: number, y: number): number {
+export function lineSegmentDistanceToPointSquared(a: Position, b: Position, x: number, y: number): number {
     const [ax, ay] = a;
     const [bx, by] = b;
     const abx = bx - ax;
@@ -27,12 +28,73 @@ export function lineSegmentDistanceSquared(a: Position, b: Position, x: number, 
     return dx * dx + dy * dy;
 }
 
+export function lineSegmentDistanceToRectSquared(
+    a: Position,
+    b: Position,
+    center: Position,
+    size: { width: number; height: number }
+): number {
+    /**
+     * Finds the minimum distance between a line segment and a rect.
+     * Does this by finding the minimum distance from each corner to the line segment.
+     * As part of the way we find this minimum distance, we get a point line segment itself.
+     * If the line segment intersects the rect, one of those points on the line segment will
+     * (if I'm not wrong) be inside the rect.
+     *
+     * Returns 0 if the line segment intersects the rect.
+     */
+    const [ax, ay] = a;
+    const [bx, by] = b;
+    const abx = bx - ax;
+    const aby = by - ay;
+    const l = abx * abx + aby * aby;
+
+    const [cx, cy] = center;
+    const rx0 = cx - size.width / 2;
+    const ry0 = cy - size.height / 2;
+    const rx1 = cx + size.width / 2;
+    const ry1 = cy + size.height / 2;
+
+    let minDistanceSquared = Infinity;
+
+    // Iterate over each corner
+    // This might look like an over-engineered way to do this,
+    // But it had a **significant** perf improvement (10x)
+    // Probably something to do with a loop unrolling optimisation by the engine
+    for (let i = 0; i < 4; i += 1) {
+        const x = i % 2 ? rx0 : rx1;
+        const y = i < 2 ? ry0 : ry1;
+
+        let x0;
+        let y0;
+        if (Math.abs(l) < delta) {
+            x0 = ax;
+            y0 = ay;
+        } else {
+            let t = ((x - ax) * abx + (y - ay) * aby) / l;
+            t = Math.max(0, Math.min(1, t));
+            x0 = ax + t * (bx - ax);
+            y0 = ay + t * (by - ay);
+        }
+
+        const rectContainsPoint = x0 >= rx0 && x0 <= rx1 && y0 >= ry0 && y0 <= ry1;
+        if (rectContainsPoint) return 0;
+
+        const dx = x - x0;
+        const dy = y - y0;
+        const distanceSquared = dx * dx + dy * dy;
+        minDistanceSquared = Math.min(minDistanceSquared, distanceSquared);
+    }
+
+    return minDistanceSquared;
+}
+
 export function lineStringDistance(lineString: Position[], x: number, y: number) {
     let minDistanceSquared = Infinity;
     let p0 = lineString[lineString.length - 1];
 
     for (const p1 of lineString) {
-        minDistanceSquared = Math.min(minDistanceSquared, lineSegmentDistanceSquared(p0, p1, x, y));
+        minDistanceSquared = Math.min(minDistanceSquared, lineSegmentDistanceToPointSquared(p0, p1, x, y));
         p0 = p1;
     }
 

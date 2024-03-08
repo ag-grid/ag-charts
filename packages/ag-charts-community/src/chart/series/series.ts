@@ -244,6 +244,16 @@ export class SeriesGroupingChangedEvent implements TypedEvent {
     ) {}
 }
 
+export type SeriesConstructorOpts<TProps extends SeriesProperties<any>> = {
+    moduleCtx: ModuleContext;
+    useLabelLayer?: boolean;
+    pickModes?: SeriesNodePickMode[];
+    contentGroupVirtual?: boolean;
+    directionKeys?: SeriesDirectionKeysMapping<TProps>;
+    directionNames?: SeriesDirectionKeysMapping<TProps>;
+    canHaveAxes?: boolean;
+};
+
 export abstract class Series<
         TDatum extends SeriesNodeDatum,
         TProps extends SeriesProperties<any>,
@@ -374,15 +384,7 @@ export abstract class Series<
 
     protected readonly ctx: ModuleContext;
 
-    constructor(seriesOpts: {
-        moduleCtx: ModuleContext;
-        useLabelLayer?: boolean;
-        pickModes?: SeriesNodePickMode[];
-        contentGroupVirtual?: boolean;
-        directionKeys?: SeriesDirectionKeysMapping<TProps>;
-        directionNames?: SeriesDirectionKeysMapping<TProps>;
-        canHaveAxes?: boolean;
-    }) {
+    constructor(seriesOpts: SeriesConstructorOpts<TProps>) {
         super();
 
         const {

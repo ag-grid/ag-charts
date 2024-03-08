@@ -381,7 +381,8 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.zoomManager.addListener('zoom-change', () => {
                 this.resetPointer();
                 this.series.map((s) => (s as any).animationState.transition('updateData'));
-                this.update(ChartUpdateType.PERFORM_LAYOUT, { forceNodeDataRefresh: true, skipAnimations: true });
+                const skipAnimations = this.chartAnimationPhase !== 'initial';
+                this.update(ChartUpdateType.PERFORM_LAYOUT, { forceNodeDataRefresh: true, skipAnimations });
             })
         );
     }
@@ -1470,9 +1471,9 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
 
         const miniChart = navigatorModule?.miniChart;
-        const miniChartSeries = deltaOptions?.navigator?.miniChart?.series ?? deltaOptions?.series;
-        if (miniChart?.enabled && miniChartSeries != null) {
-            this.applyMiniChartOptions(oldOpts, miniChart, miniChartSeries, deltaOptions);
+        const miniChartSeries = completeOptions.navigator?.miniChart?.series ?? completeOptions.series;
+        if (miniChart?.enabled === true && miniChartSeries != null) {
+            this.applyMiniChartOptions(miniChart, miniChartSeries, completeOptions, oldOpts);
         } else if (miniChart?.enabled === false) {
             miniChart.series = [];
             miniChart.axes = [];
@@ -1515,10 +1516,10 @@ export abstract class Chart extends Observable implements AgChartInstance {
     }
 
     private applyMiniChartOptions(
-        oldOpts: AgChartOptions & { type?: SeriesOptionsTypes['type'] },
         miniChart: any,
         miniChartSeries: NonNullable<AgChartOptions['series']>,
-        deltaOptions: AgChartOptions
+        completeOptions: AgChartOptions,
+        oldOpts: AgChartOptions & { type?: SeriesOptionsTypes['type'] }
     ) {
         const oldSeries = oldOpts?.navigator?.miniChart?.series ?? oldOpts?.series;
         const miniChartSeriesStatus = this.applySeries(
@@ -1526,7 +1527,7 @@ export abstract class Chart extends Observable implements AgChartInstance {
             this.filterMiniChartSeries(miniChartSeries),
             this.filterMiniChartSeries(oldSeries)
         );
-        this.applyAxes(miniChart, deltaOptions, oldOpts, miniChartSeriesStatus, [
+        this.applyAxes(miniChart, completeOptions, oldOpts, miniChartSeriesStatus, [
             'axes[].tick',
             'axes[].thickness',
             'axes[].title',
@@ -1546,8 +1547,11 @@ export abstract class Chart extends Observable implements AgChartInstance {
         }
 
         if (horizontalAxis != null) {
-            const labelOptions = deltaOptions.navigator?.miniChart?.label;
-            const intervalOptions = deltaOptions.navigator?.miniChart?.label?.interval;
+            const miniChartOpts = completeOptions.navigator?.miniChart;
+            const labelOptions = miniChartOpts?.label;
+            const intervalOptions = miniChartOpts?.label?.interval;
+
+            horizontalAxis.line.enabled = false;
 
             horizontalAxis.label.set(
                 without(labelOptions, ['interval', 'rotation', 'minSpacing', 'autoRotate', 'autoRotateAngle'])
