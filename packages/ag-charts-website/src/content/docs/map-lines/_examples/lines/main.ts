@@ -12,7 +12,7 @@ const options: AgChartOptions = {
     topology,
     series: [
         {
-            type: 'map-shape',
+            type: 'map-line',
             idKey: 'name',
         },
     ],

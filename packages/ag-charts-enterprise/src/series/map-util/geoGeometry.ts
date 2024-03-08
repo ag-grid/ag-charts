@@ -10,8 +10,9 @@ type Geometry = any;
 const { Path, Path2D, BBox, ScenePathChangeDetection } = _Scene;
 
 export enum GeoGeometryRenderMode {
-    All,
-    PolygonsOnly,
+    All = 0b11,
+    Polygons = 0b01,
+    Lines = 0b10,
 }
 
 export class GeoGeometry extends Path {
@@ -46,10 +47,8 @@ export class GeoGeometry extends Path {
     override drawPath(ctx: any) {
         super.drawPath(ctx);
 
-        if (this.renderMode === GeoGeometryRenderMode.All) {
-            this.strokePath.draw(ctx);
-            this.renderStroke(ctx);
-        }
+        this.strokePath.draw(ctx);
+        this.renderStroke(ctx);
     }
 
     override containsPoint(x: number, y: number): boolean {
@@ -63,50 +62,71 @@ export class GeoGeometry extends Path {
     }
 
     private geometryContainsPoint(geometry: Geometry, x: number, y: number): boolean {
-        const minStrokeDistance = Math.max(this.strokeWidth / 2, 1) + 1;
+        const { renderMode, strokeWidth } = this;
+        const drawPolygons = (renderMode & GeoGeometryRenderMode.Polygons) !== 0;
+        const drawLines = (renderMode & GeoGeometryRenderMode.Lines) !== 0;
+        const minStrokeDistance = Math.max(strokeWidth / 2, 1) + 1;
+
         switch (geometry.type) {
             case 'GeometryCollection':
                 return geometry.geometries.some((g: Geometry) => this.geometryContainsPoint(g, x, y));
-            case 'Polygon':
-                return polygonContains(geometry.coordinates, x, y);
             case 'MultiPolygon':
-                return geometry.coordinates.some((coordinates: Position[][]) => polygonContains(coordinates, x, y));
-            case 'LineString':
-                return lineStringDistance(geometry.coordinates, x, y) < minStrokeDistance;
-            case 'MultiLineString':
-                return geometry.coordinates.some(
-                    (lineString: Position[]) => lineStringDistance(lineString, x, y) < minStrokeDistance
+                return (
+                    drawPolygons &&
+                    geometry.coordinates.some((coordinates: Position[][]) => polygonContains(coordinates, x, y))
                 );
-            case 'Point':
+            case 'Polygon':
+                return drawPolygons && polygonContains(geometry.coordinates, x, y);
+            case 'MultiLineString':
+                return (
+                    drawLines &&
+                    geometry.coordinates.some((lineString: Position[]) => {
+                        return lineStringDistance(lineString, x, y) < minStrokeDistance;
+                    })
+                );
+            case 'LineString':
+                return drawLines && lineStringDistance(geometry.coordinates, x, y) < minStrokeDistance;
             case 'MultiPoint':
+            case 'Point':
             default:
                 return false;
         }
     }
 
     private drawGeometry(geometry: Geometry, bbox: _Scene.BBox | undefined): _Scene.BBox | undefined {
-        const { path, strokePath } = this;
+        const { renderMode, path, strokePath } = this;
+        const drawPolygons = (renderMode & GeoGeometryRenderMode.Polygons) !== 0;
+        const drawLines = (renderMode & GeoGeometryRenderMode.Lines) !== 0;
+
         switch (geometry.type) {
             case 'GeometryCollection':
                 geometry.geometries.forEach((g: Geometry) => {
                     bbox = this.drawGeometry(g, bbox);
                 });
                 break;
-            case 'Polygon':
-                bbox = this.drawPolygon(path, geometry.coordinates, bbox);
-                break;
             case 'MultiPolygon':
-                geometry.coordinates.forEach((coordinates: Position[][]) => {
-                    bbox = this.drawPolygon(path, coordinates, bbox);
-                });
+                if (drawPolygons) {
+                    geometry.coordinates.forEach((coordinates: Position[][]) => {
+                        bbox = this.drawPolygon(path, coordinates, bbox);
+                    });
+                }
+                break;
+            case 'Polygon':
+                if (drawPolygons) {
+                    bbox = this.drawPolygon(path, geometry.coordinates, bbox);
+                }
                 break;
             case 'LineString':
-                bbox = this.drawLineString(strokePath, geometry.coordinates, bbox, false);
+                if (drawLines) {
+                    bbox = this.drawLineString(strokePath, geometry.coordinates, bbox, false);
+                }
                 break;
             case 'MultiLineString':
-                geometry.coordinates.forEach((coordinates: Position[]) => {
-                    bbox = this.drawLineString(strokePath, coordinates, bbox, false);
-                });
+                if (drawLines) {
+                    geometry.coordinates.forEach((coordinates: Position[]) => {
+                        bbox = this.drawLineString(strokePath, coordinates, bbox, false);
+                    });
+                }
                 break;
             case 'Point':
             case 'MultiPoint':

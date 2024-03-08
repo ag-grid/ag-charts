@@ -101,9 +101,7 @@ export function lineStringDistance(lineString: Position[], x: number, y: number)
     return Math.sqrt(minDistanceSquared);
 }
 
-export function lineStringCenter(lineSegment: Position[]): { point: Position; angle: number } | undefined {
-    if (lineSegment.length === 0) return;
-
+export function lineStringLength(lineSegment: Position[]): number {
     let [x0, y0] = lineSegment[0];
     let totalDistance = 0;
     for (let i = 1; i < lineSegment.length; i += 1) {
@@ -114,10 +112,16 @@ export function lineStringCenter(lineSegment: Position[]): { point: Position; an
         y0 = y1;
     }
 
-    const targetDistance = totalDistance / 2;
+    return totalDistance;
+}
 
-    [x0, y0] = lineSegment[0];
-    totalDistance = 0;
+export function lineStringCenter(lineSegment: Position[]): { point: Position; angle: number } | undefined {
+    if (lineSegment.length === 0) return;
+
+    const targetDistance = lineStringLength(lineSegment) / 2;
+
+    let [x0, y0] = lineSegment[0];
+    let totalDistance = 0;
     for (let i = 1; i < lineSegment.length; i += 1) {
         const [x1, y1] = lineSegment[i];
         const distance = Math.hypot(x1 - x0, y1 - y0);

@@ -68,11 +68,17 @@ export interface AgMapMarkerSeriesOptions<TDatum = any>
         AgMapMarkerSeriesThemeableOptions<TDatum> {
     /** Configuration for the Map Series. */
     type: 'map-marker';
+    /** GeoJSON data. */
+    topology?: any;
+    /** The property to reference in the topology to match up with data. Defaults to `name`. */
+    topologyIdKey?: string;
     /** Human-readable description of the series. */
     legendItemName?: string;
 }
 
 export interface AgMapMarkerSeriesOptionsKeys {
+    /** The name of the node key containing the id value. */
+    idKey?: string;
     /** The latitude of a marker. */
     latKey?: string;
     /** The longitude of a marker. */
@@ -84,6 +90,8 @@ export interface AgMapMarkerSeriesOptionsKeys {
 }
 
 export interface AgMapMarkerSeriesOptionsNames {
+    /** A human-readable description of the id-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
+    idName?: string;
     /** A human-readable description of the lat-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     latName?: string;
     /** A human-readable description of the lon-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */

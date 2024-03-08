@@ -22,6 +22,7 @@ import { BoxPlotModule } from './series/box-plot/main';
 import { BulletModule } from './series/bullet/bulletModule';
 import { CandlestickModule } from './series/candlestick/main';
 import { HeatmapModule } from './series/heatmap/main';
+import { MapLineModule } from './series/map-line/main';
 import { MapMarkerModule } from './series/map-marker/main';
 import { MapShapeModule } from './series/map-shape/main';
 import { NightingaleModule } from './series/nightingale/main';
@@ -47,6 +48,7 @@ export function setupEnterpriseModules() {
     _ModuleSupport.registerModule(CrosshairModule);
     _ModuleSupport.registerModule(DataSourceModule);
     _ModuleSupport.registerModule(ErrorBarsModule);
+    _ModuleSupport.registerModule(MapLineModule);
     _ModuleSupport.registerModule(MapMarkerModule);
     _ModuleSupport.registerModule(MapShapeModule);
     _ModuleSupport.registerModule(NavigatorModule);

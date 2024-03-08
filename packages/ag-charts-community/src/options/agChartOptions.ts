@@ -47,6 +47,7 @@ export * from './series/polar/radialBarOptions';
 export * from './series/polar/radialColumnOptions';
 export * from './series/polar/radialOptions';
 export * from './series/topology/mapShapeOptions';
+export * from './series/topology/mapLineOptions';
 export * from './series/topology/mapMarkerOptions';
 
 /**

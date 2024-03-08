@@ -1,42 +1,37 @@
-import { AgMapShapeSeriesStyle, _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import { AgMapLineSeriesStyle, _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { geometryBbox, labelPosition, projectGeometry } from '../map-util/geometryUtil';
 import { GEOJSON_OBJECT } from '../map-util/validation';
-import { MapShapeNodeDatum, MapShapeNodeLabelDatum, MapShapeSeriesProperties } from './mapShapeSeriesProperties';
+import { MapLineNodeDatum, MapLineNodeLabelDatum, MapLineSeriesProperties } from './mapLineSeriesProperties';
 
 // import type { Feature, FeatureCollection, Geometry } from 'geojson';
 type Feature = any;
 type FeatureCollection = any;
 type Geometry = any;
 
-const { getMissCount, createDatumId, DataModelSeries, SeriesNodePickMode, valueProperty, Validate } = _ModuleSupport;
-const { ColorScale } = _Scale;
+const { createDatumId, DataModelSeries, SeriesNodePickMode, valueProperty, Validate } = _ModuleSupport;
 const { Group, Selection, Text } = _Scene;
 const { sanitizeHtml, Logger } = _Util;
 
-export interface MapShapeNodeDataContext
-    extends _ModuleSupport.SeriesNodeDataContext<MapShapeNodeDatum, MapShapeNodeLabelDatum> {
+export interface MapLineNodeDataContext
+    extends _ModuleSupport.SeriesNodeDataContext<MapLineNodeDatum, MapLineNodeLabelDatum> {
+    projectedBackgroundGeometry: Geometry | undefined;
     visible: boolean;
 }
 
-export class MapShapeSeries
-    extends DataModelSeries<
-        MapShapeNodeDatum,
-        MapShapeSeriesProperties,
-        MapShapeNodeLabelDatum,
-        MapShapeNodeDataContext
-    >
+export class MapLineSeries
+    extends DataModelSeries<MapLineNodeDatum, MapLineSeriesProperties, MapLineNodeLabelDatum, MapLineNodeDataContext>
     implements _ModuleSupport.TopologySeries
 {
     static readonly className = 'MapShapeSeries';
-    static readonly type = 'map-shape' as const;
+    static readonly type = 'map-line' as const;
 
     scale: _ModuleSupport.MercatorScale | undefined;
 
     public topologyBounds: _ModuleSupport.LonLatBBox | undefined;
 
-    override properties = new MapShapeSeriesProperties();
+    override properties = new MapLineSeriesProperties();
 
     @Validate(GEOJSON_OBJECT, { optional: true, property: 'topology' })
     private _chartTopology?: FeatureCollection = undefined;
@@ -49,11 +44,11 @@ export class MapShapeSeries
         return super.hasData && this.topology != null;
     }
 
-    private readonly colorScale = new ColorScale();
+    private backgroundNode = this.contentGroup.appendChild(new GeoGeometry());
 
     private itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
 
-    private datumSelection: _Scene.Selection<GeoGeometry, MapShapeNodeDatum> = Selection.select(
+    private datumSelection: _Scene.Selection<GeoGeometry, MapLineNodeDatum> = Selection.select(
         this.itemGroup,
         () => this.nodeFactory(),
         false
@@ -63,12 +58,12 @@ export class MapShapeSeries
         Text,
         false
     );
-    private highlightDatumSelection: _Scene.Selection<GeoGeometry, MapShapeNodeDatum> = Selection.select(
+    private highlightDatumSelection: _Scene.Selection<GeoGeometry, MapLineNodeDatum> = Selection.select(
         this.highlightNode,
         () => this.nodeFactory()
     );
 
-    private contextNodeData: MapShapeNodeDataContext[] = [];
+    private contextNodeData: MapLineNodeDataContext[] = [];
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
@@ -103,9 +98,26 @@ export class MapShapeSeries
 
     private nodeFactory(): GeoGeometry {
         const geoGeometry = new GeoGeometry();
-        geoGeometry.renderMode = GeoGeometryRenderMode.Polygons;
+        geoGeometry.renderMode = GeoGeometryRenderMode.Lines;
         geoGeometry.lineJoin = 'round';
         return geoGeometry;
+    }
+
+    private getBackgroundGeometry(): Geometry | undefined {
+        const { background } = this.properties;
+        const { id } = background;
+        if (id == null) return;
+
+        let topology: FeatureCollection | undefined;
+        let topologyIdKey: string;
+        if (background.topology != null) {
+            ({ topology, topologyIdKey } = background);
+        } else {
+            topology = this.topology;
+            topologyIdKey = this.properties.topologyIdKey;
+        }
+
+        return topology?.features.find((feature: Feature) => feature.properties?.[topologyIdKey] === id)?.geometry;
     }
 
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
@@ -114,7 +126,7 @@ export class MapShapeSeries
         }
 
         const { data, topology } = this;
-        const { topologyIdKey, idKey, colorKey, labelKey, colorRange } = this.properties;
+        const { topologyIdKey, idKey, labelKey } = this.properties;
 
         const featureById = new Map<string, Feature>();
         topology?.features.forEach((feature: Feature) => {
@@ -131,12 +143,11 @@ export class MapShapeSeries
                     processor: () => (datum) => featureById.get(datum),
                 }),
                 ...(labelKey ? [valueProperty(this, labelKey, false, { id: 'labelValue' })] : []),
-                ...(colorKey ? [valueProperty(this, colorKey, true, { id: 'colorValue' })] : []),
             ],
         });
 
         const featureIdx = dataModel.resolveProcessedDataIndexById(this, `featureValue`).index;
-        this.topologyBounds = (processedData.data as any[]).reduce<_ModuleSupport.LonLatBBox | undefined>(
+        let bbox = (processedData.data as any[]).reduce<_ModuleSupport.LonLatBBox | undefined>(
             (current, { values }) => {
                 const feature: Feature | undefined = values[featureIdx];
                 if (feature == null) return current;
@@ -145,34 +156,16 @@ export class MapShapeSeries
             undefined
         );
 
-        if (colorRange != null && this.isColorScaleValid()) {
-            const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue').index;
-            this.colorScale.domain = processedData.domain.values[colorKeyIdx];
-            this.colorScale.range = colorRange;
-            this.colorScale.update();
+        const backgroundGeometry = this.getBackgroundGeometry();
+        if (backgroundGeometry != null) {
+            bbox = geometryBbox(backgroundGeometry, bbox);
         }
+
+        this.topologyBounds = bbox;
 
         if (topology == null) {
             Logger.warnOnce(`no topology was provided for [MapSeries]; nothing will be rendered.`);
         }
-    }
-
-    private isColorScaleValid() {
-        const { colorKey } = this.properties;
-        if (!colorKey) {
-            return false;
-        }
-
-        const { dataModel, processedData } = this;
-        if (!dataModel || !processedData) {
-            return false;
-        }
-
-        const colorIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue').index;
-        const dataCount = processedData.data.length;
-        const missCount = getMissCount(this, processedData.defs.values[colorIdx].missing);
-        const colorDataMissing = dataCount === 0 || dataCount === missCount;
-        return !colorDataMissing;
     }
 
     private getLabelDatum(
@@ -180,53 +173,47 @@ export class MapShapeSeries
         labelValue: string | undefined,
         projectedGeometry: Geometry | undefined,
         font: string
-    ): MapShapeNodeLabelDatum | undefined {
+    ): MapLineNodeLabelDatum | undefined {
         if (labelValue == null || projectedGeometry == null) return;
 
-        const { idKey, idName, colorKey, colorName, labelKey, labelName, label } = this.properties;
+        const { idKey, idName, labelKey, labelName, label } = this.properties;
 
         const labelText = this.getLabelText(label, {
             value: labelValue,
             datum,
             idKey,
             idName,
-            colorKey,
-            colorName,
             labelKey,
             labelName,
         });
         if (labelText == null) return;
 
-        const { width, height } = Text.getTextSize(String(labelText), font);
-
-        const paddedSize = { width: width + 2, height: height + 2 };
-        const labelCenter = labelPosition(projectedGeometry, paddedSize, 2);
+        const labelSize = Text.getTextSize(String(labelText), font);
+        const labelCenter = labelPosition(projectedGeometry, labelSize, 2);
         if (labelCenter == null) return;
 
         const [x, y] = labelCenter;
+        const { width, height } = labelSize;
+        const { placement } = label;
 
         return {
             point: { x, y, size: 0 },
             label: { width, height, text: labelText },
             marker: undefined,
-            placement: 'bottom',
+            placement,
         };
     }
 
-    override async createNodeData(): Promise<MapShapeNodeDataContext[]> {
-        const { id: seriesId, dataModel, processedData, colorScale, properties, scale } = this;
-        const { idKey, colorKey, labelKey, label, fill: fillProperty } = properties;
+    override async createNodeData(): Promise<MapLineNodeDataContext[]> {
+        const { id: seriesId, dataModel, processedData, properties, scale } = this;
+        const { idKey, labelKey, label } = properties;
 
         if (dataModel == null || processedData == null) return [];
-
-        const colorScaleValid = this.isColorScaleValid();
 
         const idIdx = dataModel.resolveProcessedDataIndexById(this, `idValue`).index;
         const featureIdx = dataModel.resolveProcessedDataIndexById(this, `featureValue`).index;
         const labelIdx =
             labelKey != null ? dataModel.resolveProcessedDataIndexById(this, `labelValue`).index : undefined;
-        const colorIdx =
-            colorKey != null ? dataModel.resolveProcessedDataIndexById(this, `colorValue`).index : undefined;
 
         const font = label.getFont();
 
@@ -240,21 +227,17 @@ export class MapShapeSeries
             }
         });
 
-        const nodeData: MapShapeNodeDatum[] = [];
-        const labelData: MapShapeNodeLabelDatum[] = [];
+        const nodeData: MapLineNodeDatum[] = [];
+        const labelData: MapLineNodeLabelDatum[] = [];
         const missingGeometries: string[] = [];
         processedData.data.forEach(({ datum, values }) => {
             const idValue = values[idIdx];
-            const colorValue: number | undefined = colorIdx != null ? values[colorIdx] : undefined;
             const labelValue: string | undefined = labelIdx != null ? values[labelIdx] : undefined;
 
             const projectedGeometry = projectedGeometries.get(idValue);
             if (projectedGeometry == null) {
                 missingGeometries.push(idValue);
             }
-
-            const color: string | undefined =
-                colorScaleValid && colorValue != null ? colorScale.convert(colorValue) : undefined;
 
             const labelDatum = this.getLabelDatum(datum, labelValue, projectedGeometry, font);
             if (labelDatum != null) {
@@ -266,11 +249,13 @@ export class MapShapeSeries
                 itemId: idKey,
                 datum,
                 idValue: idValue,
-                fill: color ?? fillProperty,
-                colorValue,
                 projectedGeometry,
             });
         });
+
+        const backgroundGeometry = this.getBackgroundGeometry();
+        const projectedBackgroundGeometry =
+            backgroundGeometry != null && scale != null ? projectGeometry(backgroundGeometry, scale) : undefined;
 
         const missingGeometriesCap = 10;
         if (missingGeometries.length > missingGeometriesCap) {
@@ -287,6 +272,7 @@ export class MapShapeSeries
                 itemId: seriesId,
                 nodeData,
                 labelData,
+                projectedBackgroundGeometry,
                 visible: true,
             },
         ];
@@ -304,12 +290,16 @@ export class MapShapeSeries
 
         await this.updateSelections();
 
-        let highlightedDatum: MapShapeNodeDatum | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
+        this.contentGroup.visible = this.visible;
+
+        let highlightedDatum: MapLineNodeDatum | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
         if (highlightedDatum != null && highlightedDatum.series !== this) {
             highlightedDatum = undefined;
         }
 
-        const { nodeData } = this.contextNodeData[0];
+        const { nodeData, projectedBackgroundGeometry } = this.contextNodeData[0];
+
+        this.updateBackground(projectedBackgroundGeometry);
 
         this.datumSelection = await this.updateDatumSelection({ nodeData, datumSelection });
         await this.updateDatumNodes({ datumSelection, isHighlight: false });
@@ -324,22 +314,42 @@ export class MapShapeSeries
         await this.updateDatumNodes({ datumSelection: highlightDatumSelection, isHighlight: true });
     }
 
+    private updateBackground(projectedGeometry: Geometry | undefined) {
+        const { backgroundNode, properties } = this;
+        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } =
+            properties.background;
+
+        if (projectedGeometry == null) {
+            backgroundNode.projectedGeometry = undefined;
+            backgroundNode.visible = false;
+            return;
+        }
+
+        backgroundNode.visible = true;
+        backgroundNode.projectedGeometry = projectedGeometry;
+        backgroundNode.fill = fill;
+        backgroundNode.fillOpacity = fillOpacity;
+        backgroundNode.stroke = stroke;
+        backgroundNode.strokeWidth = strokeWidth;
+        backgroundNode.strokeOpacity = strokeOpacity;
+        backgroundNode.lineDash = lineDash;
+        backgroundNode.lineDashOffset = lineDashOffset;
+    }
+
     private async updateDatumSelection(opts: {
-        nodeData: MapShapeNodeDatum[];
-        datumSelection: _Scene.Selection<GeoGeometry, MapShapeNodeDatum>;
+        nodeData: MapLineNodeDatum[];
+        datumSelection: _Scene.Selection<GeoGeometry, MapLineNodeDatum>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId(datum.idValue));
     }
 
     private async updateDatumNodes(opts: {
-        datumSelection: _Scene.Selection<GeoGeometry, MapShapeNodeDatum>;
+        datumSelection: _Scene.Selection<GeoGeometry, MapLineNodeDatum>;
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
-        const { visible, properties } = this;
+        const { properties } = this;
         const highlightStyle = isHighlight ? this.properties.highlightStyle.item : undefined;
-
-        const opacityScale = visible ? 1 : 0.2;
 
         datumSelection.each((geoGeometry, datum) => {
             const { projectedGeometry } = datum;
@@ -351,11 +361,9 @@ export class MapShapeSeries
 
             geoGeometry.visible = true;
             geoGeometry.projectedGeometry = projectedGeometry;
-            geoGeometry.fill = highlightStyle?.fill ?? datum.fill;
-            geoGeometry.fillOpacity = (highlightStyle?.fillOpacity ?? properties.fillOpacity) * opacityScale;
             geoGeometry.stroke = highlightStyle?.stroke ?? properties.stroke;
             geoGeometry.strokeWidth = highlightStyle?.strokeWidth ?? properties.strokeWidth;
-            geoGeometry.strokeOpacity = (highlightStyle?.strokeOpacity ?? properties.strokeOpacity) * opacityScale;
+            geoGeometry.strokeOpacity = highlightStyle?.strokeOpacity ?? properties.strokeOpacity;
             geoGeometry.lineDash = highlightStyle?.lineDash ?? properties.lineDash;
             geoGeometry.lineDashOffset = highlightStyle?.lineDashOffset ?? properties.lineDashOffset;
         });
@@ -435,33 +443,9 @@ export class MapShapeSeries
     ): _ModuleSupport.CategoryLegendDatum[] | _ModuleSupport.GradientLegendDatum[] {
         const { processedData, dataModel } = this;
         if (processedData == null || dataModel == null) return [];
-        const {
-            legendItemName,
-            idKey,
-            fill,
-            fillOpacity,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-            colorKey,
-            colorName,
-            colorRange,
-            visible,
-        } = this.properties;
+        const { legendItemName, idKey, stroke, strokeOpacity, visible } = this.properties;
 
-        if (legendType === 'gradient' && colorKey != null && colorRange != null) {
-            const colorDomain =
-                processedData.domain.values[dataModel.resolveProcessedDataIndexById(this, 'colorValue').index];
-            const legendDatum: _ModuleSupport.GradientLegendDatum = {
-                legendType: 'gradient',
-                enabled: visible,
-                seriesId: this.id,
-                colorName,
-                colorRange,
-                colorDomain,
-            };
-            return [legendDatum];
-        } else if (legendType === 'category') {
+        if (legendType === 'category') {
             const legendDatum: _ModuleSupport.CategoryLegendDatum = {
                 legendType: 'category',
                 id: this.id,
@@ -470,11 +454,11 @@ export class MapShapeSeries
                 enabled: visible,
                 label: { text: legendItemName ?? idKey },
                 marker: {
-                    fill,
-                    fillOpacity,
-                    stroke,
-                    strokeWidth,
-                    strokeOpacity,
+                    fill: stroke,
+                    fillOpacity: strokeOpacity,
+                    stroke: undefined,
+                    strokeWidth: 0,
+                    strokeOpacity: 0,
                 },
                 legendItemName,
             };
@@ -484,7 +468,7 @@ export class MapShapeSeries
         }
     }
 
-    override getTooltipHtml(nodeDatum: MapShapeNodeDatum): string {
+    override getTooltipHtml(nodeDatum: MapLineNodeDatum): string {
         const {
             id: seriesId,
             processedData,
@@ -495,31 +479,26 @@ export class MapShapeSeries
             return '';
         }
 
-        const { idKey, colorKey, colorName, stroke, strokeWidth, formatter, tooltip } = this.properties;
-        const { datum, fill, idValue, colorValue } = nodeDatum;
+        const { idKey, stroke, strokeWidth, formatter, tooltip } = this.properties;
+        const { datum, idValue } = nodeDatum;
 
         const title = sanitizeHtml(idValue);
-        const contentLines: string[] = [];
-        if (colorValue != null) {
-            contentLines.push(sanitizeHtml((colorName ?? colorKey) + ': ' + colorValue));
-        }
-        const content = contentLines.join('<br>');
+        const content = '';
 
-        let format: AgMapShapeSeriesStyle | undefined;
+        let format: AgMapLineSeriesStyle | undefined;
 
         if (formatter) {
             format = callbackCache.call(formatter, {
                 seriesId,
                 datum,
                 idKey,
-                fill,
                 stroke,
                 strokeWidth: this.getStrokeWidth(strokeWidth),
                 highlighted: false,
             });
         }
 
-        const color = format?.fill ?? fill;
+        const color = format?.stroke ?? stroke;
 
         return tooltip.toTooltipHtml(
             { title, content, backgroundColor: color },

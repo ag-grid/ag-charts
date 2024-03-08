@@ -10,8 +10,9 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import { GEOJSON_OBJECT } from '../map-util/validation';
 
-// import type { FeatureCollection } from 'geojson';
+// import type { FeatureCollection, Geometry } from 'geojson';
 type FeatureCollection = any;
+type Geometry = any;
 
 const {
     AND,
@@ -31,16 +32,19 @@ const {
     SeriesTooltip,
 } = _ModuleSupport;
 const { Label, SceneChangeDetection } = _Scene;
+const { Logger } = _Util;
 
 export interface MapMarkerNodeLabelDatum extends _Util.PointLabelDatum {}
 
 export interface MapMarkerNodeDatum extends _ModuleSupport.SeriesNodeDatum {
-    readonly label: MapMarkerNodeLabelDatum | undefined;
+    readonly index: number;
     readonly fill: string | undefined;
-    readonly lonValue: number;
-    readonly latValue: number;
+    readonly idValue: string | undefined;
+    readonly lonValue: number | undefined;
+    readonly latValue: number | undefined;
     readonly colorValue: number | undefined;
     readonly sizeValue: number | undefined;
+    readonly projectedGeometry: Geometry | undefined;
     readonly point: Readonly<_Scene.SizedPoint>;
 }
 
@@ -98,20 +102,45 @@ class MapMarkerSeriesBackground extends BaseProperties {
 }
 
 export class MapMarkerSeriesProperties extends SeriesProperties<AgMapMarkerSeriesOptions> {
-    @Validate(OBJECT)
-    readonly background = new MapMarkerSeriesBackground();
+    override isValid(): boolean {
+        const superIsValid = super.isValid();
+
+        const hasTopology = this.idKey != null;
+        const hasLatLon = this.latKey != null && this.lonKey != null;
+        if (!hasTopology && !hasLatLon) {
+            Logger.warnOnce(
+                'Either both [topology] and [idKey] or both [latKey] and [lonKey] must be set to render a map marker series.'
+            );
+
+            return false;
+        }
+
+        return superIsValid;
+    }
+
+    @Validate(GEOJSON_OBJECT, { optional: true })
+    topology: FeatureCollection | undefined = undefined;
 
     @Validate(STRING, { optional: true })
     legendItemName?: string;
 
+    @Validate(STRING, { optional: true })
+    idKey: string | undefined = undefined;
+
     @Validate(STRING)
-    latKey: string = '';
+    topologyIdKey: string = 'name';
+
+    @Validate(STRING, { optional: true })
+    idName: string | undefined = undefined;
+
+    @Validate(STRING, { optional: true })
+    latKey: string | undefined = undefined;
 
     @Validate(STRING, { optional: true })
     latName: string | undefined = undefined;
 
-    @Validate(STRING)
-    lonKey: string = '';
+    @Validate(STRING, { optional: true })
+    lonKey: string | undefined = undefined;
 
     @Validate(STRING, { optional: true })
     lonName: string | undefined = undefined;
@@ -139,6 +168,9 @@ export class MapMarkerSeriesProperties extends SeriesProperties<AgMapMarkerSerie
 
     @Validate(FUNCTION, { optional: true })
     formatter?: (params: AgMapMarkerSeriesFormatterParams<any>) => AgMapMarkerSeriesStyle;
+
+    @Validate(OBJECT)
+    readonly background = new MapMarkerSeriesBackground();
 
     @Validate(OBJECT)
     readonly marker = new MapMarkerSeriesMarker();

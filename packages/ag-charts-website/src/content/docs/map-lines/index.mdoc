@@ -2,22 +2,22 @@
 title: 'Map Lines'
 ---
 
-The Map Series allows you to visualise geographic lines, such as roads or flight paths.
+The Map Line Series allows you to visualise geographic lines, such as roads or flight paths.
 
-## Map Lines
+## Simple Map Lines
 
-A Map Series takes data and a topology in GeoJSON format, with the data referencing items in the topology.
+A Map Line Series takes data and a topology in GeoJSON format, with the data referencing items in the topology.
 
 {% chartExampleRunner title="Lines" name="lines" type="generated" /%}
 
-To create a Map Series, use the `map` series type.
+To create a Map Line Series, use the `map` series type.
 
 ```js
 data: data,
 topology: topology,
 series: [
     {
-        type: 'map-shape',
+        type: 'map-line',
         topologyIdKey: 'name',
         idKey: 'name',
     },
@@ -42,7 +42,7 @@ The background property will underlay a geographic shape to provide more context
 ```js
 series: [
     {
-        type: 'map-shape',
+        type: 'map-line',
         topologyIdKey: 'name',
         idKey: 'name',
         background: {

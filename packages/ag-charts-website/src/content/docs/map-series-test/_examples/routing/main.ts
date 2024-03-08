@@ -30,29 +30,25 @@ const options: AgChartOptions = {
         },
         {
             // @ts-ignore
-            type: 'map-shape',
+            type: 'map-line',
             topology: routeTopology,
             data: routeData,
             idKey: 'name',
+            labelKey: 'name',
             stroke: '#4834d4',
             strokeWidth: 5,
             legendItemName: 'Route',
         },
         {
             // @ts-ignore
-            type: 'map-shape',
+            type: 'map-marker',
             topology: cityTopology,
             data: cityData,
             idKey: 'name',
             labelKey: 'name',
             sizeKey: 'population',
             sizeName: 'Population',
-            label: {
-                color: 'white',
-                fontSize: 8,
-            },
             marker: {
-                enabled: true,
                 fill: '#ff7979',
                 fillOpacity: 0.5,
                 stroke: '#eb4d4b',

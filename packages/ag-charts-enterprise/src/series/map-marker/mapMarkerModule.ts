@@ -31,6 +31,7 @@ export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
             },
             marker: {
                 __extends__: EXTENDS_CARTESIAN_MARKER_DEFAULTS,
+                enabled: true,
                 maxSize: 30,
                 fillOpacity: 0.5,
             },
