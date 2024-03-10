@@ -298,7 +298,9 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             }
         }
 
-        this.dragState = newDragState;
+        if ((this.dragState = newDragState) !== DragState.None) {
+            this.zoomManager.fireZoomPanStartEvent();
+        }
     }
 
     private onDrag(event: _ModuleSupport.InteractionEvent<'drag'>) {

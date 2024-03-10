@@ -18,17 +18,23 @@ export interface ZoomChangeEvent extends AxisZoomState {
     axes: Record<string, ZoomState | undefined>;
 }
 
+export interface ZoomPanStartEvent {
+    type: 'zoom-pan-start';
+}
+
 type ChartAxisLike = {
     id: string;
     direction: ChartAxisDirection;
     visibleRange: [number, number];
 };
 
+type ZoomEvents = ZoomChangeEvent | ZoomPanStartEvent;
+
 /**
  * Manages the current zoom state for a chart. Tracks the requested zoom from distinct dependents
  * and handles conflicting zoom requests.
  */
-export class ZoomManager extends BaseManager<'zoom-change', ZoomChangeEvent> {
+export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> {
     private axisZoomManagers = new Map<string, AxisZoomManager>();
     private state = new StateTracker<AxisZoomState>(undefined, 'initial');
     private rejectCallbacks = new Map<string, (stateId: string) => void>();
@@ -84,6 +90,11 @@ export class ZoomManager extends BaseManager<'zoom-change', ZoomChangeEvent> {
     public updateAxisZoom(callerId: string, axisId: string, newZoom?: ZoomState) {
         this.axisZoomManagers.get(axisId)?.updateZoom(callerId, newZoom);
         this.applyChanges();
+    }
+
+    // Fire this event to signal to listeners that the view is changing through a zoom and/or pan change.
+    public fireZoomPanStartEvent() {
+        this.listeners.dispatch('zoom-pan-start', { type: 'zoom-pan-start' });
     }
 
     public getZoom(): AxisZoomState | undefined {

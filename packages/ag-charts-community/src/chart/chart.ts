@@ -370,14 +370,13 @@ export abstract class Chart extends Observable implements AgChartInstance {
             seriesRegion.addListener('hover', (event) => this.onMouseMove(event)),
             seriesRegion.addListener('leave', (event) => this.onLeave(event)),
             this.interactionManager.addListener('page-left', () => this.destroy()),
-
-            this.interactionManager.addListener('drag', () => this.resetPointer()),
             this.interactionManager.addListener('contextmenu', (event) => this.onContextMenu(event), All),
 
             this.animationManager.addListener('animation-frame', () => {
                 this.update(ChartUpdateType.SCENE_RENDER);
             }),
             this.highlightManager.addListener('highlight-change', (event) => this.changeHighlightDatum(event)),
+            this.zoomManager.addListener('zoom-pan-start', () => this.resetPointer()),
             this.zoomManager.addListener('zoom-change', () => {
                 this.resetPointer();
                 this.series.map((s) => (s as any).animationState.transition('updateData'));

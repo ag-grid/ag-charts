@@ -152,11 +152,13 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             this.dragging = 'max';
         }
 
-        if (this.dragging != null) return;
-
-        if (mask.computeVisibleRangeBBox().containsPoint(offsetX, offsetY)) {
+        if (this.dragging == null && mask.computeVisibleRangeBBox().containsPoint(offsetX, offsetY)) {
             this.dragging = 'pan';
             this.panStart = (offsetX - x) / width - min;
+        }
+
+        if (this.dragging != null) {
+            this.ctx.zoomManager.fireZoomPanStartEvent();
         }
     }
 
