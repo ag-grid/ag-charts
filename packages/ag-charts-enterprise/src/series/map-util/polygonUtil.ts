@@ -1,7 +1,7 @@
 import type { _ModuleSupport } from 'ag-charts-community';
 
 import { extendBbox } from './bboxUtil';
-import { lineSegmentDistanceToRectSquared } from './lineStringUtil';
+import { lineSegmentDistanceToPointSquared, lineSegmentDistanceToRectSquared } from './lineStringUtil';
 import { type List, insertManySorted } from './linkedList';
 
 export function polygonBbox(
@@ -164,8 +164,9 @@ export function polygonRectDistance(
     return (inside ? -1 : 1) * Math.sqrt(minDistanceSquared);
 }
 
-export function polygonContains(polygons: _ModuleSupport.Position[][], x: number, y: number) {
+export function polygonDistance(polygons: _ModuleSupport.Position[][], x: number, y: number) {
     let inside = false;
+    let minDistanceSquared = Infinity;
 
     for (const polygon of polygons) {
         let p0 = polygon[polygon.length - 1];
@@ -178,11 +179,12 @@ export function polygonContains(polygons: _ModuleSupport.Position[][], x: number
                 inside = !inside;
             }
 
+            minDistanceSquared = Math.min(minDistanceSquared, lineSegmentDistanceToPointSquared(p0, p1, x, y));
             p0 = p1;
             x0 = x1;
             y0 = y1;
         }
     }
 
-    return inside;
+    return (inside ? -1 : 1) * Math.sqrt(minDistanceSquared);
 }

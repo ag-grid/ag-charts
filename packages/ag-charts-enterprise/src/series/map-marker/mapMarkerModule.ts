@@ -47,6 +47,9 @@ export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
         gradientLegend: {
             enabled: false,
         },
+        tooltip: {
+            range: 'exact',
+        },
     },
     // @ts-expect-error When the types are properly exposed, this error should disappear
     paletteFactory: (opts) => {
