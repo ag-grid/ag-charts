@@ -44,15 +44,15 @@ data: data,
 series: [
     {
         type: 'map-marker',
-        latKey: 'lat',
-        lonKey: 'lon',
+        latitudeKey: 'lat',
+        longitudeKey: 'lon',
     },
 ],
 ```
 
 In this configuration:
 
--   `latKey` and `lonKey` the geographic position for the datum.
+-   `latitudeKey` and `longitudeKey` the geographic position for the datum.
 
 ## Background
 
@@ -87,8 +87,8 @@ Both the Map Series and the Map Marker series support scaling the marker based o
 series: [
     {
         type: 'map-marker',
-        latKey: 'lat',
-        lonKey: 'lon',
+        latitudeKey: 'lat',
+        longitudeKey: 'lon',
         sizeKey: 'count',
     },
 ],
