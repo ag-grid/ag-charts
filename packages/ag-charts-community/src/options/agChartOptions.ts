@@ -49,6 +49,7 @@ export * from './series/polar/radialOptions';
 export * from './series/topology/mapShapeOptions';
 export * from './series/topology/mapLineOptions';
 export * from './series/topology/mapMarkerOptions';
+export * from './series/topology/mapShapeAccessoryOptions';
 export * from './series/markerOptions';
 
 /**

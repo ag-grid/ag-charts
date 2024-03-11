@@ -67,6 +67,8 @@ enum GroupingType {
     GROUP = 'group',
 }
 
+const unthemedSeries = new Set<SeriesType>(['map-shape-accessory']);
+
 export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     activeTheme: ChartTheme;
     processedOptions: T;
@@ -208,12 +210,15 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             series.type ??= defaultSeriesType;
             const { innerLabels: innerLabelsTheme, ...seriesTheme } =
                 this.getSeriesThemeConfig(series.type).series ?? {};
+            const palette = !unthemedSeries.has(series.type)
+                ? this.getSeriesPalette(series.type, paletteOptions)
+                : undefined;
             const seriesOptions = mergeDefaults(
                 this.getSeriesGroupingOptions(series),
                 series,
                 defaultTooltipPosition,
                 seriesTheme,
-                this.getSeriesPalette(series.type, paletteOptions)
+                palette
             );
 
             if (seriesOptions.innerLabels) {

@@ -1,7 +1,7 @@
 import type { AgChartCallbackParams } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
-import type { CssColor, LabelPlacement, PixelSize } from '../../chart/types';
+import type { CssColor, GeoJSON, LabelPlacement, PixelSize } from '../../chart/types';
 import type { FillOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgSeriesMarkerOptions } from '../markerOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
@@ -38,7 +38,7 @@ export interface AgMapMarkerSeriesLabel<TDatum>
 
 export interface AgMapMarkerSeriesBackground extends FillOptions, StrokeOptions {
     /** Topology to use for the background. */
-    topology?: any;
+    topology?: GeoJSON;
     /** ID of the feature to use from the topology. */
     id?: string;
     /** The property to reference in the topology to match up with data. Defaults to `name`. */
@@ -72,7 +72,7 @@ export interface AgMapMarkerSeriesOptions<TDatum = any>
     /** Configuration for the Map Series. */
     type: 'map-marker';
     /** GeoJSON data. */
-    topology?: any;
+    topology?: GeoJSON;
     /** The property to reference in the topology to match up with data. Defaults to `name`. */
     topologyIdKey?: string;
     /** Human-readable description of the series. */

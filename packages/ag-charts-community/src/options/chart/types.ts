@@ -84,3 +84,5 @@ export type InteractionRange = PixelSize | 'exact' | 'nearest';
 export type VerticalAlign = 'top' | 'middle' | 'bottom';
 
 export type Direction = 'vertical' | 'horizontal';
+
+export type GeoJSON = any;

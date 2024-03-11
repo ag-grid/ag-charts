@@ -334,12 +334,7 @@ export abstract class Series<
     protected _data?: any[];
     protected _chartData?: any[];
 
-    set data(input: any[] | undefined) {
-        this._data = input;
-        this.onDataChange();
-    }
-
-    get data() {
+    protected get data() {
         return this._data ?? this._chartData;
     }
 
@@ -356,8 +351,17 @@ export abstract class Series<
         return this.data != null && this.data.length > 0;
     }
 
+    get tooltipEnabled() {
+        return this.properties.tooltip?.enabled ?? false;
+    }
+
     protected onDataChange() {
         this.nodeDataRefresh = true;
+    }
+
+    setOptionsData(input: unknown[]) {
+        this._data = input;
+        this.onDataChange();
     }
 
     setChartData(input: unknown[]) {
