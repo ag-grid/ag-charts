@@ -1,4 +1,11 @@
-import { AgMapShapeSeriesStyle, _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import {
+    AgMapShapeSeriesFormatterParams,
+    AgMapShapeSeriesStyle,
+    _ModuleSupport,
+    _Scale,
+    _Scene,
+    _Util,
+} from 'ag-charts-community';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { geometryBbox, labelPosition, projectGeometry } from '../map-util/geometryUtil';
@@ -337,10 +344,16 @@ export class MapShapeSeries
         datumSelection: _Scene.Selection<GeoGeometry, MapShapeNodeDatum>;
         isHighlight: boolean;
     }) {
+        const {
+            id: seriesId,
+            properties,
+            ctx: { callbackCache },
+        } = this;
         const { datumSelection, isHighlight } = opts;
-        const { fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = this.properties;
-        const highlightStyle = isHighlight ? this.properties.highlightStyle.item : undefined;
-        const strokeWidth = this.getStrokeWidth(this.properties.strokeWidth);
+        const { idKey, colorKey, labelKey, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset, formatter } =
+            properties;
+        const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
+        const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
 
         datumSelection.each((geoGeometry, datum) => {
             const { projectedGeometry } = datum;
@@ -350,15 +363,36 @@ export class MapShapeSeries
                 return;
             }
 
+            let format: AgMapShapeSeriesStyle | undefined;
+            if (formatter != null) {
+                const params: _Util.RequireOptional<AgMapShapeSeriesFormatterParams> = {
+                    seriesId,
+                    datum: datum.datum,
+                    itemId: datum.itemId,
+                    idKey,
+                    colorKey,
+                    labelKey,
+                    fill: datum.fill,
+                    fillOpacity,
+                    strokeOpacity,
+                    stroke,
+                    strokeWidth,
+                    lineDash,
+                    lineDashOffset,
+                    highlighted: isHighlight,
+                };
+                format = callbackCache.call(formatter, params as AgMapShapeSeriesFormatterParams);
+            }
+
             geoGeometry.visible = true;
             geoGeometry.projectedGeometry = projectedGeometry;
-            geoGeometry.fill = highlightStyle?.fill ?? datum.fill;
-            geoGeometry.fillOpacity = highlightStyle?.fillOpacity ?? fillOpacity;
-            geoGeometry.stroke = highlightStyle?.stroke ?? stroke;
-            geoGeometry.strokeWidth = highlightStyle?.strokeWidth ?? strokeWidth;
-            geoGeometry.strokeOpacity = highlightStyle?.strokeOpacity ?? strokeOpacity;
-            geoGeometry.lineDash = highlightStyle?.lineDash ?? lineDash;
-            geoGeometry.lineDashOffset = highlightStyle?.lineDashOffset ?? lineDashOffset;
+            geoGeometry.fill = highlightStyle?.fill ?? format?.fill ?? datum.fill;
+            geoGeometry.fillOpacity = highlightStyle?.fillOpacity ?? format?.fillOpacity ?? fillOpacity;
+            geoGeometry.stroke = highlightStyle?.stroke ?? format?.stroke ?? stroke;
+            geoGeometry.strokeWidth = highlightStyle?.strokeWidth ?? format?.strokeWidth ?? strokeWidth;
+            geoGeometry.strokeOpacity = highlightStyle?.strokeOpacity ?? format?.strokeOpacity ?? strokeOpacity;
+            geoGeometry.lineDash = highlightStyle?.lineDash ?? format?.lineDash ?? lineDash;
+            geoGeometry.lineDashOffset = highlightStyle?.lineDashOffset ?? format?.lineDashOffset ?? lineDashOffset;
         });
     }
 

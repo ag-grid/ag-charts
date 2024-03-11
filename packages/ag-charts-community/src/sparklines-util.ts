@@ -17,3 +17,5 @@ export { default as ticks, tickStep, range } from './util/ticks';
 export { Color } from './util/color';
 export type { LabelPlacement, MeasuredLabel, PointLabelDatum, PlacedLabel } from './scene/util/labelPlacement';
 export * from './util/logger';
+
+export type { RequireOptional } from './util/types';

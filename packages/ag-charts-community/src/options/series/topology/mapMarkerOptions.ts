@@ -108,7 +108,6 @@ export type AgMapMarkerSeriesLabelFormatterParams = AgMapMarkerSeriesOptionsKeys
 export interface AgMapMarkerSeriesFormatterParams<TDatum = any>
     extends AgChartCallbackParams<TDatum>,
         AgMapMarkerSeriesOptionsKeys,
-        AgMapMarkerSeriesOptionsNames,
         AgMapMarkerSeriesStyle {
     /** `true` if the sector is highlighted by hovering. */
     readonly highlighted: boolean;
