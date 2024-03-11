@@ -26,10 +26,12 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
         this.container.visible = false;
 
+        const toolbarRegion = ctx.regionManager.addRegion('toolbar', this.container);
         this.destroyFns.push(
             ctx.scene.attachNode(this.container),
-            ctx.interactionManager.addListener('hover', this.onHover.bind(this)),
-            ctx.interactionManager.addListener('click', this.onClick.bind(this)),
+            toolbarRegion.addListener('hover', this.onHover.bind(this)),
+            toolbarRegion.addListener('leave', this.onHover.bind(this)),
+            toolbarRegion.addListener('click', this.onClick.bind(this)),
             ctx.toolbarManager.addListener('visibility', this.onVisibility.bind(this)),
             ctx.toolbarManager.addListener('button-added', this.onButtonAdded.bind(this)),
             ctx.toolbarManager.addListener('button-removed', this.onButtonRemoved.bind(this))
@@ -57,7 +59,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         }
     }
 
-    private onHover({ offsetX, offsetY }: InteractionEvent<'hover'>) {
+    private onHover({ offsetX, offsetY }: InteractionEvent<'hover' | 'leave'>) {
         this.activeButton = undefined;
 
         if (!this.container.visible) return;
