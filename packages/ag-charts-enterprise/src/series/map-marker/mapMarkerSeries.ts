@@ -178,7 +178,7 @@ export class MapMarkerSeries extends DataModelSeries<
             return;
         }
 
-        const { data, topology } = this;
+        const { data, topology, sizeScale, colorScale } = this;
         const { topologyIdKey, idKey, latKey, lonKey, sizeKey, colorKey, labelKey, colorRange, marker } =
             this.properties;
 
@@ -243,14 +243,14 @@ export class MapMarkerSeries extends DataModelSeries<
         if (sizeKey != null) {
             const sizeIdx = dataModel.resolveProcessedDataIndexById(this, `sizeValue`).index;
             const processedSize = processedData.domain.values[sizeIdx] ?? [];
-            this.sizeScale.domain = marker.domain ?? processedSize;
+            sizeScale.domain = marker.domain ?? processedSize;
         }
 
         if (colorRange != null && this.isColorScaleValid()) {
             const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue').index;
-            this.colorScale.domain = processedData.domain.values[colorKeyIdx];
-            this.colorScale.range = colorRange;
-            this.colorScale.update();
+            colorScale.domain = processedData.domain.values[colorKeyIdx];
+            colorScale.range = colorRange;
+            colorScale.update();
         }
 
         this.animationState.transition('updateData');

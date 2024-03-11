@@ -23,6 +23,8 @@ function isValidGeometry(v: any) {
 
     // Point, LineString, Polygon, MultiPoint, MultiLineString, and MultiPolygon
     switch (type) {
+        case 'GeometryCollection':
+            return Array.isArray(v.geometries) && v.geometries.every(isValidGeometry);
         case 'MultiPolygon':
             return Array.isArray(coordinates) && coordinates.every(isValidPolygon);
         case 'Polygon':
